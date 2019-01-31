@@ -1,0 +1,71 @@
+const address = require("./encoding/address");
+const encoding = require("./encoding/encoding");
+const nacl = require("./nacl/naclWrappers");
+const utils = require("./utils/utils");
+const base32 = require('hi-base32');
+
+const ALGORAND_TRANSACTION_LENGTH = 52;
+
+/**
+ * Transaction enables construction of Algorand transactions
+ * */
+class Transaction {
+    constructor({from, to, fee, amount, firstRound, lastRound, note}) {
+        this.name = "Transaction";
+        this.tag = Buffer.from([84, 88]); // "TX"
+
+        from = address.decode(from);
+        to = address.decode(to);
+
+        if (!Number.isSafeInteger(amount) || amount < 0) throw Error("Amount must be positive and 2^53-1");
+        if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be positive and 2^53-1");
+        if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be positive");
+        if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be positive");
+        if (note.constructor !== Uint8Array) throw Error("note must be Uint8Array. In order to not include a note, just pass an empty one.");
+
+        Object.assign(this, {
+            from, to, fee, amount, firstRound, lastRound, note
+        });
+    }
+
+    get_obj_for_encoding() {
+        let txn = {
+            "amt": this.amount,
+            "fee": this.fee,
+            "fv": this.firstRound,
+            "lv": this.lastRound,
+            "note": Buffer.from(this.note),
+            "rcv": Buffer.from(this.to.publicKey),
+            "snd": Buffer.from(this.from.publicKey),
+        };
+
+        if (txn.note.length === 0) delete txn.note;
+        return txn;
+    }
+
+    signTxn(sk) {
+        const m = {"type": "pay", "pay": this.get_obj_for_encoding()};
+        const encodedMsg = encoding.encode(m);
+        const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
+        const sig = nacl.sign(toBeSigned, sk);
+
+        // construct signed message
+        let sTxn = {
+            "sig": Buffer.from(sig),
+            "txn": {
+                "pay": this.get_obj_for_encoding(),
+                "type": "pay",
+            }
+        };
+        return new Uint8Array(encoding.encode(sTxn));
+    }
+
+    txID() {
+        let m = {"type": "pay", "pay": this.get_obj_for_encoding()};
+        const en_msg = encoding.encode(m);
+        const gh = Buffer.from(utils.concatArrays(this.tag, en_msg));
+        return base32.encode(nacl.genericHash(gh)).slice(0, ALGORAND_TRANSACTION_LENGTH);
+    }
+}
+
+module.exports = {Transaction};

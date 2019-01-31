@@ -1,0 +1,24 @@
+{
+  "name": "algosdkjs",
+  "version": "0.0.5",
+  "description": "algosdkjs is Algorand's official javascript SDK",
+  "main": "src/algosdk.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "hi-base32": "^0.5.0",
+    "js-sha512": "^0.8.0",
+    "msgpack-lite": "git+https://github.com/algorand/msgpack-lite.git",
+    "tweetnacl": "^1.0.1"
+  },
+  "devDependencies": {
+    "common-shakeify": "^0.5.3",
+    "mocha": "^5.2.0"
+  },
+  "scripts": {
+    "test": "find ./tests -name '*.js' | xargs mocha -R spec"
+  },
+  "author": "Algorand, llc",
+  "license": "AGPL V3"
+}
