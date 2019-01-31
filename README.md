@@ -10,9 +10,9 @@ AlgoSDK.js is a javascript library for communicating with the Algorand network f
 $ npm install algosdk.js
 ```
 
-### broswer 
+### Broswer 
 The `dist` directory contains a minified version of the library - `algosdk.min.js`. 
-include that in your HTML 
+Include that in your HTML 
 ```html
 <script src="algosdk.min.js">
 // Your code here 
@@ -63,13 +63,13 @@ There is no need to specify the `from` address, it is computed directly from the
 **Note** -- The fields names must be identical to the following example's.
 ```javascript
 var txn = { 
-    "to":"7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
+    "to": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
     "fee": 10,
     "amount": 847,
     "firstRound": 51,
     "lastRound": 61,
-    "note": new Uint8Array(0),
-    };
+    "note": new Uint8Array(0)
+};
 ```
 
 Then, call `signTransaction` and pass the transaction along with relevant private key.
@@ -86,12 +86,12 @@ First, create an object with the bid's information
 ```javascript
 var bid = {
     "bidderKey": "IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U",
-    "auctionKey":"7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
-    "bidAmount":1000,
-    "maxPrice":10,
+    "auctionKey": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
+    "bidAmount": 1000,
+    "maxPrice": 10,
     "bidID": 2, 
-    "auctionID": 56,
-}
+    "auctionID": 56
+};
 ```
 Then, call `signBid` and pass the bid and information along with the private key.
 
@@ -99,15 +99,15 @@ Then, call `signBid` and pass the bid and information along with the private key
 var signedBid = algosdk.signBid(bid, keys.sk);
 ```
 
-In order to send a bid to the network. Attach the output of `algosdk.signBid` to a regular transaction `note`'s field.
+In order to send a bid to the network. Embbed the output of `algosdk.signBid` to a transaction `note`'s field.
 For example,
 ```javascript
 var txn = { 
-    "to":"7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
+    "to": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
     "fee": 10,
     "amount": 0,
     "firstRound": 51,
     "lastRound": 61,
-    "note": signedBid,
-    };
+    "note": <signedBid>
+};
 ```
