@@ -46,7 +46,7 @@ function importMnemonic(mn) {
 /**
  * exportMnemonic takes an Algorand secret key and returns the corresponding mnemonic.
  * @param sk Uint8Array
- * @returns mnemonic string
+ * @returns string mnemonic
  */
 function exportMnemonic(sk) {
     // get the seed from the sk
@@ -62,6 +62,8 @@ function exportMnemonic(sk) {
  */
 function signTransaction(txn, sk){
     // Get pk from sk
+    let key = nacl.keyPairFromSecretKey(sk);
+    txn.from = address.encode(key.publicKey);
    let algoTxn = new txnBuilder.Transaction(txn);
 
    return {"txID": algoTxn.txID().toString(), "blob" : algoTxn.signTxn(sk)};
