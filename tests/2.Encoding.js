@@ -40,7 +40,6 @@ describe('encoding', function () {
             }, (err) => err === encoding.ERROR_CONTAINS_EMPTY);
         });
 
-        it('should encode every positive integer as uint');
         it('should encode Binary blob should be used for binary data and string for strings', function () {
             let golden = Buffer.from([0x82, 0xa1, 0x4a, 0xc4, 0x3, 0x14, 0x1e, 0x28, 0xa1, 0x4b, 0xa3, 0x61, 0x61, 0x61]);
             let o = {"J": Buffer.from([20, 30, 40]), "K": "aaa"};

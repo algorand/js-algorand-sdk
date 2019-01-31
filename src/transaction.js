@@ -17,11 +17,14 @@ class Transaction {
         from = address.decode(from);
         to = address.decode(to);
 
-        if (!Number.isSafeInteger(amount) || amount < 0) throw Error("Amount must be positive and 2^53-1");
-        if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be positive and 2^53-1");
-        if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be positive");
-        if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be positive");
-        if (note.constructor !== Uint8Array) throw Error("note must be Uint8Array. In order to not include a note, just pass an empty one.");
+        if (!Number.isSafeInteger(amount) || amount < 0) throw Error("Amount must be a positive number and smaller than 2^53-1");
+        if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be a positive number and smaller than 2^53-1");
+        if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
+        if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
+
+        if (note !== undefined) {
+            if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
+        }
 
         Object.assign(this, {
             from, to, fee, amount, firstRound, lastRound, note

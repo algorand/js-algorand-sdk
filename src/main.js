@@ -55,8 +55,9 @@ function exportMnemonic(sk) {
 }
 
 /**
- * signTransaction takes an Algorand Transaction and a secret key and returns a signed blob
- * @param txn Algorand Transaction
+ * signTransaction takes an object with the following fields: to, amount, fee, firstRound, lastRound,
+ * and note(optional), and a secret key and returns a signed blob
+ * @param txn object with the following fields -  to, amount, fee, firstRound, lastRound, and note(optional)
  * @param sk Algorand Secret Key
  * @returns object contains the binary signed transaction and it's txID
  */
@@ -70,8 +71,8 @@ function signTransaction(txn, sk){
 }
 
 /**
- *  signBid takes and Algorand Bid and a secret key and returns a signed blob to be inserted into
- *  transaction Algorand note field.
+ * signBid takes an object with the following fields: bidder key, bid amount, max price, bid ID, auctionKey, auction ID,
+ * and a secret key and returns a signed blob to be inserted into a transaction Algorand note field.
  * @param bid Algorand Bid
  * @param sk Algorand secret key
  * @returns Uint8Array binary signed bid
