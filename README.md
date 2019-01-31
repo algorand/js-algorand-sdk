@@ -1,4 +1,4 @@
-#AlgoSDK.js
+# AlgoSDK.js
 
 AlgoSDK.js is a javascript library for communicating with the Algorand network for modern browsers and node.js.
 
@@ -20,7 +20,7 @@ include that in your HTML
 
 ## Usage
 
-##### Generate an Algorand address
+#### Generate an Algorand address
 ```javascript
 var keys = algosdk.generateAddress();
 ```  
@@ -29,7 +29,7 @@ Example result
 {addr: "IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U", sk: Uint8Array(64)}
 ```
 
-##### Export mnemonic 
+#### Export mnemonic 
 ```javascript
 var mnemonic = algosdk.exportMnemonic(keys.sk);
 ```  
@@ -38,7 +38,7 @@ Example result
 "gorilla fortune learn marble essay uphold defense hover index effort ice atom figure will improve mom indoor mansion people elder hill material donkey abandon gown"
 ```
 
-##### Import Key from mnemonic
+#### Import Key from mnemonic
 ```javascript
 var recoverd_key = algosdk.importMnemonic(mnemonic);
 ```
@@ -47,7 +47,7 @@ Example result
 {addr: "IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U", sk: Uint8Array(64)}
 ```
 
-##### Check the validity of an Address
+#### Check the validity of an Address
 ```javascript
 var algosdk.isValidAddress("IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U");
 ```
@@ -56,7 +56,7 @@ Example result
 true
 ```
 
-##### Sign a transaction 
+#### Sign a transaction 
 In order to create and sign a transaction, create first an object with the relevant properties. 
 
 **Note** -- The fields names must be identical to the following example's.
@@ -80,7 +80,7 @@ var signedTxn = algosdk.signTransaction(txn, keys.sk);
 
 Now `signedTxn` can be posted to the network via Algorand API. 
 
-##### Sign a bid 
+#### Sign a bid 
 Bids have similar pattern to a transaction. 
 First, create an object with the bid's information 
 ```javascript
