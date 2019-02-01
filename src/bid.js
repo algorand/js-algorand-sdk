@@ -25,11 +25,11 @@ class Bid{
 
     get_obj_for_encoding(){
         return {
-            "bidder": Buffer.from(this.bidderKey),
+            "bidder": Buffer.from(this.bidderKey.publicKey),
             "cur": this.bidAmount,
             "price": this.maxPrice,
             "id": this.bidID,
-            "auc": Buffer.from(this.auctionKey),
+            "auc": Buffer.from(this.auctionKey.publicKey),
             "aid": this.auctionID,
         };
     }
