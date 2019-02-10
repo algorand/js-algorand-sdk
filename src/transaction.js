@@ -40,6 +40,7 @@ class Transaction {
             "note": Buffer.from(this.note),
             "rcv": Buffer.from(this.to.publicKey),
             "snd": Buffer.from(this.from.publicKey),
+            "type": "pay",
         };
 
         if (txn.note.length === 0) delete txn.note;
@@ -47,25 +48,20 @@ class Transaction {
     }
 
     signTxn(sk) {
-        const m = {"type": "pay", "pay": this.get_obj_for_encoding()};
-        const encodedMsg = encoding.encode(m);
+        const encodedMsg = encoding.encode(this.get_obj_for_encoding());
         const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
         const sig = nacl.sign(toBeSigned, sk);
 
         // construct signed message
         let sTxn = {
             "sig": Buffer.from(sig),
-            "txn": {
-                "pay": this.get_obj_for_encoding(),
-                "type": "pay",
-            }
+            "txn": this.get_obj_for_encoding(),
         };
         return new Uint8Array(encoding.encode(sTxn));
     }
 
     txID() {
-        let m = {"type": "pay", "pay": this.get_obj_for_encoding()};
-        const en_msg = encoding.encode(m);
+        const en_msg = encoding.encode(this.get_obj_for_encoding());
         const gh = Buffer.from(utils.concatArrays(this.tag, en_msg));
         return base32.encode(nacl.genericHash(gh)).slice(0, ALGORAND_TRANSACTION_LENGTH);
     }
