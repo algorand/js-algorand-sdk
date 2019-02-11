@@ -10,15 +10,23 @@
     "hi-base32": "^0.5.0",
     "js-sha512": "^0.8.0",
     "msgpack-lite": "git+https://github.com/algorand/msgpack-lite.git",
-    "tweetnacl": "^1.0.1",
-    "xmlhttprequest": "^1.8.0"
+    "superagent": "^4.1.0",
+    "tweetnacl": "^1.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "babel-core": "^6.26.3",
+    "babelify": "^10.0.0",
+    "browserify": "^16.2.3",
     "common-shakeify": "^0.5.3",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "uglify-js": "^3.4.9",
+    "watchify": "^3.11.0"
   },
   "scripts": {
-    "test": "find ./tests -name '*.js' | xargs mocha -R spec"
+    "test": "find ./tests -name '*.js' | xargs mocha -R spec",
+    "build": "browserify src/main.js -s algosdk -t babelify --minified -o dist/algosdk.min.js"
   },
   "author": "Algorand, llc",
   "license": "AGPL V3"

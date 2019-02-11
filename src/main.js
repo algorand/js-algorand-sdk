@@ -3,7 +3,9 @@ const address = require('./encoding/address');
 const mnemonic = require('./mnemonic/mnemonic');
 const txnBuilder = require('./transaction');
 const bidBuilder = require('./bid');
+const algod = require('./client/algod');
 
+let Algod = algod.Algod;
 
 // Errors
 const ERROR_NOT_TRANSACTION_BUILDER = new Error("The transaction passed should be an Algorand transaction." +
@@ -81,6 +83,7 @@ function signBid(bid, sk) {
     let signedBid = new bidBuilder.Bid(bid);
     return signedBid.signBid(sk);
 }
-module.exports = {isValidAddress, generateAddress, importMnemonic, exportMnemonic, signTransaction, signBid};
+
+module.exports = {isValidAddress, generateAddress, importMnemonic, exportMnemonic, signTransaction, signBid, Algod};
 module.exports.ERROR_NOT_TRANSACTION_BUILDER = ERROR_NOT_TRANSACTION_BUILDER;
 module.exports.ERROR_NOT_BID_BUILDER = ERROR_NOT_BID_BUILDER;
