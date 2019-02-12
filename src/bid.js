@@ -16,7 +16,7 @@ class Bid{
 
         if (!Number.isSafeInteger(bidAmount) || bidAmount < 0) throw Error("Bid amount must be positive and 2^53-1");
         if (!Number.isSafeInteger(bidID) || bidID < 0) throw Error("BidID must be positive and 2^53-1");
-        if (!Number.isSafeInteger(auctionID) || auctionID < 0) throw Error("firstRound must be positive");
+        if (!Number.isSafeInteger(auctionID) || auctionID < 0) throw Error("auctionID must be positive");
 
         Object.assign(this, {
             bidderKey, auctionKey, bidAmount, maxPrice, bidID, auctionID,

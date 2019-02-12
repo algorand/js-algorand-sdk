@@ -43,7 +43,10 @@ class Transaction {
             "type": "pay",
         };
 
+        // allowed empty values
         if (txn.note.length === 0) delete txn.note;
+        if (txn.amt === 0) delete txn.amt;
+        
         return txn;
     }
 

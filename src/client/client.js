@@ -18,13 +18,12 @@ function HTTPClient(token, baseServer, port) {
 
     this.post = async function (path, data) {
         try {
-            document.body.innerHTML = data;
             return await request
                 .post(this.address + path)
                 .set('X-algo-api-token', token)
                 .send(data);
         } catch (e) {
-            throw e;
+            throw e.response;
         }
     };
 }
