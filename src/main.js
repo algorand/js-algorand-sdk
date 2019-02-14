@@ -17,7 +17,7 @@ const ERROR_NOT_BID_BUILDER = new Error("The bid passed should be an Algorand bi
  * GenerateAddress returns a new Algorand address and its corresponding secret key
  * @returns {{sk: Uint8Array, addr: string}}
  */
-function generateAddress(){
+function generateAccount() {
     let keys = nacl.keyPair();
     let encodedPk = address.encode(keys.publicKey);
     return {addr: encodedPk, sk: keys.secretKey};
@@ -84,6 +84,14 @@ function signBid(bid, sk) {
     return signedBid.signBid(sk);
 }
 
-module.exports = {isValidAddress, generateAddress, importMnemonic, exportMnemonic, signTransaction, signBid, Algod};
+module.exports = {
+    isValidAddress,
+    generateAddress: generateAccount,
+    importMnemonic,
+    exportMnemonic,
+    signTransaction,
+    signBid,
+    Algod
+};
 module.exports.ERROR_NOT_TRANSACTION_BUILDER = ERROR_NOT_TRANSACTION_BUILDER;
 module.exports.ERROR_NOT_BID_BUILDER = ERROR_NOT_BID_BUILDER;
