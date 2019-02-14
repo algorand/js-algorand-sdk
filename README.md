@@ -19,6 +19,20 @@ Include that in your HTML
 </script>
 ```
 
+## Quick Start 
+```javascript
+const token = "Your algod API token";
+const server = "http://127.0.0.1";
+const port = 8080;
+const client = new algosdk.Algod(token, server, port);
+   
+(async () => {
+    console.log(client.status());
+})().catch(e => {
+    console.log(e);
+});
+```
+
 ## Usage
 
 #### Generate an Algorand address
@@ -50,7 +64,7 @@ Example result
 
 #### Check the validity of an Address
 ```javascript
-var algosdk.isValidAddress("IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U");
+var isValid = algosdk.isValidAddress("IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U");
 ```
 Example result
 ```text
