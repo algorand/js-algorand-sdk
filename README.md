@@ -33,6 +33,8 @@ const client = new algosdk.Algod(token, server, port);
 });
 ```
 
+## Documentation 
+For detailed information about the different API calls in `client`, visit https://developer.algorand.org
 ## Usage
 
 #### Generate an Algorand address
