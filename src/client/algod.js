@@ -82,7 +82,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @param addr string
      * @returns {Promise<*>}
      */
-    this.accountInforamtion = async function (addr) {
+    this.accountInformation = async function (addr) {
         let res = await c.get("/v1/account/" + addr);
         return res.body;
     };
