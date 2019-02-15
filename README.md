@@ -27,7 +27,7 @@ const port = 8080;
 const client = new algosdk.Algod(token, server, port);
    
 (async () => {
-    console.log(client.status());
+    console.log(await client.status());
 })().catch(e => {
     console.log(e);
 });
