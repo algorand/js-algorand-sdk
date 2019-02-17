@@ -1,6 +1,6 @@
 {
   "name": "algosdkjs",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "algosdkjs is Algorand's official javascript SDK",
   "main": "src/algosdk.js",
   "directories": {
@@ -29,5 +29,5 @@
     "build": "browserify src/main.js -s algosdk -t babelify --minified -o dist/algosdk.min.js"
   },
   "author": "Algorand, llc",
-  "license": "AGPL V3"
+  "license": "MIT"
 }
