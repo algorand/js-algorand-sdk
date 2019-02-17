@@ -2,7 +2,7 @@ const client = require('./client');
 
 function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     // Get client
-    let c = new client.HTTPClient(token, baseServer, port);
+    let c = new client.HTTPClient('X-algo-api-token', token, baseServer, port);
 
     /**
      * status retrieves the StatusResponse from the running node

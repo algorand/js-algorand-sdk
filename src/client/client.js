@@ -1,6 +1,6 @@
 var request = require("superagent");
 
-function HTTPClient(token, baseServer, port) {
+function HTTPClient(tokenHeader, token, baseServer, port) {
     this.address = baseServer + ":" + port.toString();
     this.token = token;
 
@@ -8,7 +8,7 @@ function HTTPClient(token, baseServer, port) {
         try {
             return await request
                 .get(this.address + path)
-                .set('X-algo-api-token', token)
+                .set(tokenHeader, token)
                 .set('Accept', 'application/json')
                 .query(query);
         } catch (e) {
@@ -20,7 +20,18 @@ function HTTPClient(token, baseServer, port) {
         try {
             return await request
                 .post(this.address + path)
-                .set('X-algo-api-token', token)
+                .set(tokenHeader, token)
+                .send(data);
+        } catch (e) {
+            throw e.response;
+        }
+    };
+
+    this.delete = async function (path, data) {
+        try {
+            return await request
+                .delete(this.address + path)
+                .set(tokenHeader, token)
                 .send(data);
         } catch (e) {
             throw e.response;
