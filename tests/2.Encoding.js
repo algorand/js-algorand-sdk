@@ -34,9 +34,14 @@ describe('encoding', function () {
                 encoding.encode(a);
             }, (err) => err === encoding.ERROR_CONTAINS_EMPTY);
 
-            a = {"a": 4, "B": []};
+            let b = {"a": 4, "B": []};
             assert.throws(() => {
-                encoding.encode(a);
+                encoding.encode(b);
+            }, (err) => err === encoding.ERROR_CONTAINS_EMPTY);
+
+            let c = {"a": 4, "B": 0};
+            assert.throws(() => {
+                encoding.encode(c);
             }, (err) => err === encoding.ERROR_CONTAINS_EMPTY);
         });
 
