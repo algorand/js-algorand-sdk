@@ -17,6 +17,7 @@
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.3.1",
     "babel-core": "^6.26.3",
+    "babel-minify": "^0.5.0",
     "babelify": "^10.0.0",
     "browserify": "^16.2.3",
     "common-shakeify": "^0.5.3",
@@ -26,7 +27,7 @@
   },
   "scripts": {
     "test": "find ./tests -name '*.js' | xargs mocha -R spec",
-    "build": "browserify src/main.js -s algosdk -t babelify --minified -o dist/algosdk.min.js"
+    "build": "browserify src/main.js -s algosdk | minify dist/algosdk.js --simplify --mangle.keepClassName --deadcode.keepFnArgs --mangle.keepFnName --comments false --outFile dist/algosdk.min.js"
   },
   "author": "Algorand, llc",
   "license": "MIT"
