@@ -27,7 +27,7 @@
   },
   "scripts": {
     "test": "find ./tests -name '*.js' | xargs mocha -R spec",
-    "build": "browserify src/main.js -s algosdk | minify dist/algosdk.js --simplify --mangle.keepClassName --deadcode.keepFnArgs --mangle.keepFnName --comments false --outFile dist/algosdk.min.js"
+    "build": "browserify src/main.js -s algosdk | minify --simplify --mangle.keepClassName --deadcode.keepFnArgs --mangle.keepFnName --comments false --outFile dist/algosdk.min.js"
   },
   "author": "Algorand, llc",
   "license": "MIT"
