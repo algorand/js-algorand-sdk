@@ -37,9 +37,9 @@ const client = new algosdk.Algod(token, server, port);
 For detailed information about the different API calls in `client`, visit https://developer.algorand.org
 ## Usage
 
-#### Generate an Algorand address
+#### Generate an Algorand account 
 ```javascript
-var keys = algosdk.generateAddress();
+var keys = algosdk.generateAccount();
 ```  
 Example result
 ```text
