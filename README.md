@@ -94,7 +94,7 @@ Then, call `signTransaction` and pass the transaction along with relevant privat
 var signedTxn = algosdk.signTransaction(txn, keys.sk);
 ``` 
 
-Now `signedTxn` can be posted to the network via Algorand API. 
+Now `signedTxn` can be posted to the network via `algod.sendRawTransaction()`. 
 
 #### Sign a bid 
 Bids have similar pattern to a transaction. 
