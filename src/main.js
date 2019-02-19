@@ -86,7 +86,7 @@ function signBid(bid, sk) {
 
 module.exports = {
     isValidAddress,
-    generateAddress: generateAccount,
+    generateAccount,
     importMnemonic,
     exportMnemonic,
     signTransaction,
