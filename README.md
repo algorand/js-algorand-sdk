@@ -10,7 +10,7 @@ AlgoSDK.js is a javascript library for communicating with the Algorand network f
 $ npm install algosdk.js
 ```
 
-### Broswer 
+### Browser 
 The `dist` directory contains a minified version of the library - `algosdk.min.js`. 
 Include that in your HTML 
 ```html
