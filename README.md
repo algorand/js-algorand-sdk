@@ -12,11 +12,9 @@ $ npm install algosdk.js
 
 ### Broswer 
 The `dist` directory contains a minified version of the library - `algosdk.min.js`. 
-Include that in your HTML 
+Include this line in your HTML.
 ```html
-<script src="algosdk.min.js">
-// Your code here 
-</script>
+<script src="algosdk.min.js"/>
 ```
 
 ## Quick Start 
