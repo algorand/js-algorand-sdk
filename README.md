@@ -10,7 +10,7 @@ AlgoSDK.js is a javascript library for communicating with the Algorand network f
 $ npm install algosdk.js
 ```
 
-### Broswer 
+### Browser 
 The `dist` directory contains a minified version of the library - `algosdk.min.js`. 
 Include this line in your HTML.
 ```html
@@ -92,7 +92,7 @@ Then, call `signTransaction` and pass the transaction along with relevant privat
 var signedTxn = algosdk.signTransaction(txn, keys.sk);
 ``` 
 
-Now `signedTxn` can be posted to the network via Algorand API. 
+Now `signedTxn` can be posted to the network via `algod.sendRawTransaction()`. 
 
 #### Sign a bid 
 Bids have similar pattern to a transaction. 
