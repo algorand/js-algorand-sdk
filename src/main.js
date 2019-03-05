@@ -36,12 +36,12 @@ function isValidAddress(addr){
 }
 
 /**
- * importMnemonic takes a mnemonic string and returns the corresponding Algorand address and its secret key.
+ * mnemonicToSecretKey takes a mnemonic string and returns the corresponding Algorand address and its secret key.
  * @param mn 25 words Algorand mnemonic
  * @returns {{sk: Uint8Array, addr: string}}
  * @throws error if fails to decode the mnemonic
  */
-function importMnemonic(mn) {
+function mnemonicToSecretKey(mn) {
     let seed = mnemonic.seedFromMnemonic(mn);
     let keys = nacl.keyPairFromSeed(seed);
     let encodedPk = address.encode(keys.publicKey);
@@ -49,14 +49,34 @@ function importMnemonic(mn) {
 }
 
 /**
- * exportMnemonic takes an Algorand secret key and returns the corresponding mnemonic.
+ * secretKeyToMnemonic takes an Algorand secret key and returns the corresponding mnemonic.
  * @param sk Uint8Array
  * @returns string mnemonic
  */
-function exportMnemonic(sk) {
+function secretKeyToMnemonic(sk) {
     // get the seed from the sk
     let seed = sk.slice(0, nacl.SEED_BTYES_LENGTH);
     return mnemonic.mnemonicFromSeed(seed);
+}
+
+/**
+ * mnemonicToMasterDerivationKey takes a mnemonic string and returns the corresponding master derivation key.
+ * @param mn 25 words Algorand mnemonic
+ * @returns {{mdk: Uint8Array}}
+ * @throws error if fails to decode the mnemonic
+ */
+function mnemonicToMasterDerivationKey(mn) {
+    let mdk = mnemonic.seedFromMnemonic(mn);
+    return {mdk: mdk};
+}
+
+/**
+ * masterDerivationKeyToMnemonic takes a master derivation key and returns the corresponding mnemonic.
+ * @param mdk Uint8Array
+ * @returns string mnemonic
+ */
+function masterDerivationKeyToMnemonic(mdk) {
+    return mnemonic.mnemonicFromSeed(mdk);
 }
 
 /**
@@ -90,12 +110,14 @@ function signBid(bid, sk) {
 module.exports = {
     isValidAddress,
     generateAccount,
-    importMnemonic,
-    exportMnemonic,
+    secretKeyToMnemonic,
+    mnemonicToSecretKey,
     signTransaction,
     signBid,
     Algod,
-    Kmd
+    Kmd,
+    mnemonicToMasterDerivationKey,
+    masterDerivationKeyToMnemonic
 };
 module.exports.ERROR_NOT_TRANSACTION_BUILDER = ERROR_NOT_TRANSACTION_BUILDER;
 module.exports.ERROR_NOT_BID_BUILDER = ERROR_NOT_BID_BUILDER;

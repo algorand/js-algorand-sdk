@@ -44,18 +44,18 @@ Example result
 {addr: "IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U", sk: Uint8Array(64)}
 ```
 
-#### Export mnemonic 
+#### Secret key to mnemonic 
 ```javascript
-var mnemonic = algosdk.exportMnemonic(keys.sk);
+var mnemonic = algosdk.secretKeyToMnemonic(keys.sk);
 ```  
 Example result
 ```text
 "gorilla fortune learn marble essay uphold defense hover index effort ice atom figure will improve mom indoor mansion people elder hill material donkey abandon gown"
 ```
 
-#### Import Key from mnemonic
+#### Mnemonic to secret sey
 ```javascript
-var recoverd_key = algosdk.importMnemonic(mnemonic);
+var secret_key = algosdk.mnemonicToSecretKey(mnemonic);
 ```
 Example result
 ```text
@@ -93,6 +93,25 @@ var signedTxn = algosdk.signTransaction(txn, keys.sk);
 ``` 
 
 Now `signedTxn` can be posted to the network via `algod.sendRawTransaction()`. 
+
+
+#### Master derivation key to mnemonic 
+```javascript
+var mnemonic = algosdk.masterDerivationKeyToMnemonic(mdk);
+```  
+Example result
+```text
+label danger traffic dream path boss runway worry awful abuse stairs spare wasp clock steel impact swear eagle canal diagram nation upon creek abstract pride```
+
+#### Mnemonic to master derivation key
+```javascript
+var mdk = algosdk.mnemonicToMasterDerivationKey(mnemonic);
+```
+Example result
+```text
+{mdk: Uint8Array(32)}
+```
+
 
 #### Sign a bid 
 Bids have similar pattern to a transaction. 

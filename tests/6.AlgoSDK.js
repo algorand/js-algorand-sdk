@@ -6,8 +6,8 @@ describe('Algosdk (AKA end to end)', function () {
         it('should export and import', function () {
             for (let i=0 ; i<50 ; i++) {
                 let keys = algosdk.generateAccount();
-                let mn = algosdk.exportMnemonic(keys.sk);
-                let recovered = algosdk.importMnemonic(mn);
+                let mn = algosdk.secretKeyToMnemonic(keys.sk);
+                let recovered = algosdk.mnemonicToSecretKey(mn);
                 assert.deepStrictEqual(keys.sk, recovered.sk);
                 assert.deepStrictEqual(keys.addr, recovered.addr);
             }
