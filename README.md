@@ -1,5 +1,5 @@
 # js-algorand-sdk
-[![Build Status](https://travis-ci.com/algorand/algosdk.js.svg?token=25XP72ADqbCQJ3TJVC9S&branch=master)](https://travis-ci.com/algorand/algosdk.js)
+[![Build Status](https://travis-ci.com/algorand/js-algorand-sdk.svg?token=25XP72ADqbCQJ3TJVC9S&branch=master)](https://travis-ci.com/algorand/js-algorand-sdk)
 
 AlgoSDK is a javascript library for communicating with the Algorand network for modern browsers and node.js.
 
