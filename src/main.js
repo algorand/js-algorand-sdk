@@ -4,8 +4,11 @@ const mnemonic = require('./mnemonic/mnemonic');
 const txnBuilder = require('./transaction');
 const bidBuilder = require('./bid');
 const algod = require('./client/algod');
+const kmd = require('./client/kmd');
 
 let Algod = algod.Algod;
+let Kmd = kmd.Kmd;
+
 
 // Errors
 const ERROR_NOT_TRANSACTION_BUILDER = new Error("The transaction passed should be an Algorand transaction." +
@@ -91,7 +94,8 @@ module.exports = {
     exportMnemonic,
     signTransaction,
     signBid,
-    Algod
+    Algod,
+    Kmd
 };
 module.exports.ERROR_NOT_TRANSACTION_BUILDER = ERROR_NOT_TRANSACTION_BUILDER;
 module.exports.ERROR_NOT_BID_BUILDER = ERROR_NOT_BID_BUILDER;

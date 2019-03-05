@@ -345,6 +345,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
 
 
 }
+module.exports = {Kmd};
 
 
 module.exports = {Kmd};
