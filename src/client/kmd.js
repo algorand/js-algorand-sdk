@@ -39,7 +39,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
             "wallet_name": walletName,
             "wallet_driver_name": walletDriverName,
             "wallet_password": walletPassword,
-            "master_derivation_key": btoa(walletMDK),
+            "master_derivation_key": Buffer.from(walletMDK).toString('base64'),
         };
         let res = await c.post("/v1/wallet", req);
         return res.body;
@@ -161,7 +161,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
     this.importKey = async function (walletHandle, secretKey) {
         let req = {
             "wallet_handle_token": walletHandle,
-            "private_key": btoa(secretKey),
+            "private_key": Buffer.from(secretKey).toString('base64'),
         };
         let res = await c.post("/v1/key/import", req);
         return res.body;
@@ -335,7 +335,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
         let req = {
             "wallet_handle_token": walletHandle,
             "transaction": tx,
-            "public_key": btoa(pk),
+            "public_key": Buffer.from(pk).toString('base64'),
             "partial_multisig": partial,
             "wallet_password": pw
         };
