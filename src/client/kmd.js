@@ -34,7 +34,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
      * @param walletMDK
      * @returns {Promise<*>}
      */
-    this.createWallet = async function (walletName, walletPassword, walletDriverName = "sqlite", walletMDK = "") {
+    this.createWallet = async function (walletName, walletPassword, walletMDK = "", walletDriverName = "sqlite") {
         let req = {
             "wallet_name": walletName,
             "wallet_driver_name": walletDriverName,

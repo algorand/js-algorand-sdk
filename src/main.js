@@ -62,12 +62,12 @@ function secretKeyToMnemonic(sk) {
 /**
  * mnemonicToMasterDerivationKey takes a mnemonic string and returns the corresponding master derivation key.
  * @param mn 25 words Algorand mnemonic
- * @returns {{mdk: Uint8Array}}
+ * @returns Uint8Array
  * @throws error if fails to decode the mnemonic
  */
 function mnemonicToMasterDerivationKey(mn) {
     let mdk = mnemonic.seedFromMnemonic(mn);
-    return {mdk: mdk};
+    return mdk;
 }
 
 /**

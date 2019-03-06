@@ -109,7 +109,7 @@ var mdk = algosdk.mnemonicToMasterDerivationKey(mnemonic);
 ```
 Example result
 ```text
-{mdk: Uint8Array(32)}
+Uint8Array(32)
 ```
 
 
