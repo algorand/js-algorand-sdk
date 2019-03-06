@@ -146,7 +146,7 @@ var txn = {
 };
 ```
 
-## Contributing
+## Contribution
 For information on how to contribute, please refer to our contribution guide.
 
 ## License
