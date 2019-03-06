@@ -183,7 +183,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
             "wallet_password": walletPassword
         };
         let res = await c.post("/v1/key/export", req);
-        return res.body;
+        return {"private_key": Buffer.from(res.body.private_key, 'base64')};
     };
 
     /**
