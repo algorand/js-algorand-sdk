@@ -102,7 +102,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.sendRawTransaction = async function (txn) {
-        let res = await c.post("/v1/transactions", txn);
+        let res = await c.post("/v1/transactions", Buffer.from(txn));
         return res.body;
     };
 
