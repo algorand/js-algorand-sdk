@@ -101,7 +101,8 @@ var mnemonic = algosdk.masterDerivationKeyToMnemonic(mdk);
 ```  
 Example result
 ```text
-label danger traffic dream path boss runway worry awful abuse stairs spare wasp clock steel impact swear eagle canal diagram nation upon creek abstract pride```
+label danger traffic dream path boss runway worry awful abuse stairs spare wasp clock steel impact swear eagle canal diagram nation upon creek abstract pride
+```
 
 #### Mnemonic to master derivation key
 ```javascript
