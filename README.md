@@ -83,7 +83,7 @@ var txn = {
     "firstRound": 51,
     "lastRound": 61,
     "note": new Uint8Array(0),
-    "GenesisID":"testnet-v1.0"
+    "GenesisID":"testnet-v1.0",
 };
 ```
 
