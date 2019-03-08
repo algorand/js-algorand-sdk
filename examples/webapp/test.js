@@ -1,11 +1,11 @@
 (function() {
 
     const atoken = "YOUR-ALGOD-API-TOKEN";
-    const aserver = "http://127.0.0.1";
-    const aport = 8081;
+    const aserver = "http://ALGOD-ADDRESS";
+    const aport = ALGOD-PORT;
     const kmdtoken = "YOUR-KMD-API-TOKEN";
-    const kmdserver = "http://127.0.0.1";
-    const kmdport = 7833;
+    const kmdserver = "http://KMD-ADDRESS";
+    const kmdport = KMD-PORT;
     var from = document.getElementById('from');
     var to = document.getElementById('to');
     to.value = "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q"
