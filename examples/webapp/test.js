@@ -1,9 +1,9 @@
 (function() {
 
-    const atoken = "a706b9d4bfa36310e957982ee6024bd093238e87b1c7db63dff479807297c032";
+    const atoken = "YOUR-ALGOD-API-TOKEN";
     const aserver = "http://127.0.0.1";
     const aport = 8081;
-    const kmdtoken = "171bc3bf5232cc87f59fe8980cd4f85cc47b794472874414cfda4b92e05acbcf";
+    const kmdtoken = "YOUR-KMD-API-TOKEN";
     const kmdserver = "http://127.0.0.1";
     const kmdport = 7833;
     var from = document.getElementById('from');
