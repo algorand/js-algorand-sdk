@@ -10,7 +10,7 @@ describe('Sign', function () {
             "amount": 847,
             "firstRound": 51,
             "lastRound": 61,
-            "note": new Uint8Array(0),
+            "note": new Uint8Array(0)
         };
 
         let txn = new transaction.Transaction(o);
@@ -25,7 +25,7 @@ describe('Sign', function () {
             "amount": 847,
             "firstRound": 51,
             "lastRound": 61,
-            "note": new Uint8Array([123, 12, 200]),
+            "note": new Uint8Array([123, 12, 200])
         };
 
         let txn = new transaction.Transaction(o);
@@ -41,7 +41,7 @@ describe('Sign', function () {
             "firstRound": 51,
             "lastRound": 61,
             "note": new Uint8Array([123, 12, 200]),
-            "genesisID": "",
+            "genesisID": ""
         };
 
         let txn = new transaction.Transaction(o);
@@ -57,7 +57,7 @@ describe('Sign', function () {
             "amount": 847,
             "firstRound": 51,
             "lastRound": 61,
-            "note": "new Uint8Array(0)",
+            "note": "new Uint8Array(0)"
         };
         assert.throws(() => {
             let txn = new transaction.Transaction(o);
