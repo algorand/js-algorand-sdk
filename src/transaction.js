@@ -10,7 +10,7 @@ const ALGORAND_TRANSACTION_LENGTH = 52;
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note}) {
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID}) {
         this.name = "Transaction";
         this.tag = Buffer.from([84, 88]); // "TX"
 
@@ -27,7 +27,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note
+            from, to, fee, amount, firstRound, lastRound, note, genesisID
         });
     }
 
@@ -41,11 +41,14 @@ class Transaction {
             "rcv": Buffer.from(this.to.publicKey),
             "snd": Buffer.from(this.from.publicKey),
             "type": "pay",
+            "gen": this.genesisID,
         };
 
         // allowed empty values
-        if (txn.note.length === 0) delete txn.note;
-        if (txn.amt === 0) delete txn.amt;
+        if (!txn.note.length) delete txn.note;
+        if (!txn.amt) delete txn.amt;
+        if (!txn.gen) delete txn.gen;
+
 
         return txn;
     }
