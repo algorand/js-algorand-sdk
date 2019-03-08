@@ -107,6 +107,15 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     };
 
     /**
+     * getTransactionParams returns to common needed parameters for a new transaction
+     * @returns {Promise<*>}
+     */
+    this.getTransactionParams = async function () {
+        let res = await c.get("/v1/transactions/params");
+        return res.body;
+    };
+
+    /**
      * block gets the block info for the given round This call blocks
      * @param roundNumber
      * @returns {Promise<*>}
