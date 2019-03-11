@@ -1,0 +1,60 @@
+<html>
+   <head>
+      <meta charset="utf-8">
+      <script src="algosdk.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="test.css">
+   </head>
+   <body>
+      <p>
+         <label for="name">From:</label>
+         <input type="text" id="from" name="from" required
+            minlength="52" maxlength="52" size="70"> 
+         <label for="name">To:</label>       
+         <input type="text" id="to" name="to" required
+            minlength="52" maxlength="52" size="70">
+         <label for="name">Algos:</label>
+         <input type="text" id="algos" name="algos" required
+            minlength="1" maxlength="10" size="10">            
+      </p>
+      <p>
+         <label for="name">Account Mnemonic:</label>  
+         <input type="text" id="backup" name="backup" required
+            maxlength="255" size="150">        
+      </p>
+      <p>
+         <label for="name">Wallet Mnemonic:</label>  
+         <input type="text" id="wallet" name="wallet" required
+            maxlength="255" size="150">        
+      </p>
+      <p>
+         <label for="name">First Round:</label>  
+         <input type="text" id="fround" name="fround" required
+            maxlength="255" size="10">     
+         <label for="name">Last Round:</label>  
+         <input type="text" id="lround" name="lround" required
+            maxlength="255" size="10">                
+      </p>
+      <p>
+         <button class="styled" type="button" id='block'>
+         Get Latest Block
+         </button>
+         <button class="styled" type="button" id='account'>
+         Generate Account
+         </button>   
+         <button class="styled" type="button" id='recover'>
+         Recover Account from Account Mnemonic
+         </button> 
+         <button class="styled" type="button" id='wrecover'>
+         Recover Account from Wallet Mnemonic
+         </button>                                     
+         <button class="styled" type="button" id='transaction'>
+         Submit Transaction
+         </button>
+         <button class="styled" type="button" id='adetails'>
+         Get Account Details
+         </button>    
+      </p>
+      <textarea id="ta" name="ta" ></textarea>
+   </body>
+   <script src="test.js"></script>
+</html>
