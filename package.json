@@ -1,11 +1,15 @@
 {
   "name": "algosdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "algosdk is Algorand's official javascript SDK",
   "main": "index.js",
 
   "directories": {
     "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:algorand/js-algorand-sdk.git"
   },
   "dependencies": {
     "hi-base32": "^0.5.0",
