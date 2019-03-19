@@ -31,7 +31,7 @@ function generateAccount() {
  * @param addr Algorand address
  * @returns {boolean}n true if valid, false otherwise
  */
-function isValidAddress(addr){
+function isValidAddress(addr) {
     return address.isValidAddress(addr);
 }
 
@@ -86,13 +86,13 @@ function masterDerivationKeyToMnemonic(mdk) {
  * @param sk Algorand Secret Key
  * @returns object contains the binary signed transaction and it's txID
  */
-function signTransaction(txn, sk){
+function signTransaction(txn, sk) {
     // Get pk from sk
     let key = nacl.keyPairFromSecretKey(sk);
     txn.from = address.encode(key.publicKey);
-   let algoTxn = new txnBuilder.Transaction(txn);
+    let algoTxn = new txnBuilder.Transaction(txn);
 
-   return {"txID": algoTxn.txID().toString(), "blob" : algoTxn.signTxn(sk)};
+    return {"txID": algoTxn.txID().toString(), "blob" : algoTxn.signTxn(sk)};
 }
 
 /**

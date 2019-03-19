@@ -6,10 +6,10 @@ const utils = require("./utils/utils");
 /**
  * Bid enables construction of Algorand Auctions Bids
  * */
-class Bid{
+class Bid {
     constructor({bidderKey, bidAmount, maxPrice, bidID, auctionKey, auctionID}) {
         this.name = "Bid";
-        this.tag = Buffer.from([97,66]); // "aB"
+        this.tag = Buffer.from([97, 66]); // "aB"
 
         bidderKey = address.decode(bidderKey);
         auctionKey = address.decode(auctionKey);
@@ -23,7 +23,7 @@ class Bid{
         });
     }
 
-    get_obj_for_encoding(){
+    get_obj_for_encoding() {
         return {
             "bidder": Buffer.from(this.bidderKey.publicKey),
             "cur": this.bidAmount,
@@ -34,7 +34,7 @@ class Bid{
         };
     }
 
-    signBid(sk){
+    signBid(sk) {
         const encodedMsg = encoding.encode(this.get_obj_for_encoding());
         const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
         const sig = nacl.sign(toBeSigned, sk);
@@ -47,8 +47,8 @@ class Bid{
         };
 
         let note = {
-            "t":"b",
-            "b":sBid
+            "t": "b",
+            "b": sBid
         };
         return new Uint8Array(encoding.encode(note));
     }
