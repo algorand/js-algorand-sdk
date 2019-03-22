@@ -88,6 +88,17 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     };
 
     /**
+     * transactionInformation returns the a transaction information of a specific txid and an address
+     * @param addr
+     * @param txid
+     * @returns {Promise<*>}
+     */
+    this.transactionInformation = async function (addr, txid) {
+        let res = await c.get("/v1/account/" + addr + "/transaction/" + txid);
+        return res.body;
+    };
+
+    /**
      * suggestedFee gets the recommended transaction fee from the node
      * @returns {Promise<*>}
      */
