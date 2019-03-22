@@ -21,7 +21,7 @@ const ERROR_CONTAINS_EMPTY = new Error("The object contains empty or 0 values");
  * @param obj
  * @returns {boolean} true if contains empty, false otherwise
  */
-function containsEmpty(obj){
+function containsEmpty(obj) {
     for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
             if (!obj[key] || obj[key].length === 0) return true;
@@ -36,7 +36,7 @@ function containsEmpty(obj){
  * @returns {Buffer} msgpack representation of the object
  * @throws ERROR_CONTAINS_EMPTY if the object contains empty or zero values
  */
-function encode(obj){
+function encode(obj) {
     // Check for empty values
     if (containsEmpty(obj)) {throw ERROR_CONTAINS_EMPTY;}
 
@@ -45,7 +45,7 @@ function encode(obj){
     return msgpack.encode(obj, options);
 }
 
-function decode(obj){
+function decode(obj) {
     return msgpack.decode(obj);
 }
 

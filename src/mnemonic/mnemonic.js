@@ -10,7 +10,7 @@ const ERROR_NOT_IN_WORDS_LIST = Error('the mnemonic contains a word that is not 
  * @param seed 32 bytes long seed
  * @returns {string} 25 words mnemonic
  */
-function mnemonicFromSeed(seed){
+function mnemonicFromSeed(seed) {
     // Sanity length check
     if (seed.length !== nacl.SEED_BTYES_LENGTH) {throw new RangeError("Seed length must be " +
         nacl.SEED_BTYES_LENGTH);}
@@ -29,12 +29,12 @@ function mnemonicFromSeed(seed){
  * @param mnemonic 25 words mnemonic
  * @returns {Uint8Array} 32 bytes long seed
  */
-function seedFromMnemonic(mnemonic){
+function seedFromMnemonic(mnemonic) {
     const words = mnemonic.split(' ');
     const key = words.slice(0, 24);
 
     //Check that all words are in list
-    for (let w of key){
+    for (let w of key) {
         if (english.indexOf(w) === -1) throw ERROR_NOT_IN_WORDS_LIST;
     }
 
@@ -54,10 +54,10 @@ function seedFromMnemonic(mnemonic){
     if (uint8Array.length !== 33) throw ERROR_FAIL_TO_DECODE_MNEMONIC;
 
     // check that the last byte is actually 0x0
-    if (uint8Array[uint8Array.length-1] !== 0x0) throw ERROR_FAIL_TO_DECODE_MNEMONIC;
+    if (uint8Array[uint8Array.length - 1] !== 0x0) throw ERROR_FAIL_TO_DECODE_MNEMONIC;
 
     // chop it !
-    uint8Array = uint8Array.slice(0,uint8Array.length-1);
+    uint8Array = uint8Array.slice(0, uint8Array.length - 1);
 
 
     // compute checksum
@@ -69,7 +69,7 @@ function seedFromMnemonic(mnemonic){
     throw ERROR_FAIL_TO_DECODE_MNEMONIC;
 }
 
-function computeChecksum(seed){
+function computeChecksum(seed) {
     const hashBuffer = nacl.genericHash(seed);
     const uint11Hash = toUint11Array(hashBuffer);
     const words = applyWords(uint11Hash);
@@ -77,27 +77,27 @@ function computeChecksum(seed){
     return words[0];
 }
 
-function applyWords(nums){
+function applyWords(nums) {
     return nums.map(n => english[n]);
 }
 
 
 // https://stackoverflow.com/a/51452614
-function toUint11Array(buffer8){
+function toUint11Array(buffer8) {
     let buffer11 = [];
     let acc = 0;
     let accBits = 0;
-    function add( octet) {
+    function add(octet) {
         acc = (octet << accBits) | acc;
         accBits += 8;
-        if( accBits >=11) {
+        if (accBits >=11) {
             buffer11.push( acc & 0x7ff);
             acc >>= 11;
             accBits -= 11;
         }
     }
     function flush() {
-        if( accBits) {
+        if (accBits) {
             buffer11.push( acc);
         }
     }
@@ -113,17 +113,17 @@ function toUint8Array(buffer11) {
     let buffer8 = [];
     let acc = 0;
     let accBits = 0;
-    function add( ui11) {
+    function add(ui11) {
         acc = (ui11 << accBits) | acc;
         accBits += 11;
-        while( accBits >= 8) {
+        while (accBits >= 8) {
             buffer8.push( acc & 0xff);
             acc >>= 8;
             accBits -= 8;
         }
     }
     function flush() {
-        if( accBits) {
+        if (accBits) {
             buffer8.push( acc);
         }
     }

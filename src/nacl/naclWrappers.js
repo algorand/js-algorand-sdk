@@ -1,7 +1,7 @@
 const nacl = require('tweetnacl');
 const sha512 = require('js-sha512');
 
-function genericHash(arr){
+function genericHash(arr) {
     return sha512.sha512_256.array(arr);
 }
 
@@ -9,20 +9,20 @@ function randomBytes(length) {
     return nacl.randomBytes(length);
 }
 
-function keyPair(){
+function keyPair() {
     let seed = randomBytes(nacl.box.secretKeyLength);
     return keyPairFromSeed(seed);
 }
 
-function keyPairFromSeed(seed){
+function keyPairFromSeed(seed) {
     return nacl.sign.keyPair.fromSeed(seed);
 }
 
-function keyPairFromSecretKey(sk){
+function keyPairFromSecretKey(sk) {
     return nacl.sign.keyPair.fromSecretKey(sk);
 }
 
-function sign(msg, secretKey){
+function sign(msg, secretKey) {
     return nacl.sign.detached(msg, secretKey);
 }
 
