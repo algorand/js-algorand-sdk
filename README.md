@@ -73,8 +73,9 @@ true
 
 #### Sign a transaction 
 In order to create and sign a transaction, create first an object with the relevant properties. 
-There is no need to specify the `from` address, it is computed directly from the secretKey. 
-**Note** -- The fields names must be identical to the following example's.
+There is no need to specify the `from` address, it is computed directly from the secretKey.  
+**Note** -- The fields names must be identical to the following example's.  
+**Note 2** -- In order to encode data into the note field, simply encode any JavaScript object using `algosdk.encodeObj(o)`. 
 ```javascript
 var txn = { 
     "to": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
