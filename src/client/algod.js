@@ -95,6 +95,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      */
     this.transactionInformation = async function (addr, txid) {
         let res = await c.get("/v1/account/" + addr + "/transaction/" + txid);
+        res.body.note = Buffer.from(res.body.note, "base64");
         return res.body;
     };
 
