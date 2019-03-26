@@ -2,7 +2,7 @@
  * ArrayEqual takes two arrays and return true if equal, false otherwise
  * @return {boolean}
  */
-function arrayEqual(a,b) {
+function arrayEqual(a, b) {
     if (a.length !== b.length) {return false;}
     return a.every((val, i) => val === b[i]);
 }
@@ -13,7 +13,7 @@ function arrayEqual(a,b) {
  * @param b
  * @returns {Uint8Array} [a,b]
  */
-function concatArrays(a, b){
+function concatArrays(a, b) {
     let c = new Uint8Array(a.length + b.length);
     c.set(a);
     c.set(b, a.length);
