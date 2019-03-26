@@ -1,6 +1,7 @@
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
 const mnemonic = require('./mnemonic/mnemonic');
+const enconding = require('./encoding/encoding');
 const txnBuilder = require('./transaction');
 const bidBuilder = require('./bid');
 const algod = require('./client/algod');
@@ -31,7 +32,7 @@ function generateAccount() {
  * @param addr Algorand address
  * @returns {boolean}n true if valid, false otherwise
  */
-function isValidAddress(addr){
+function isValidAddress(addr) {
     return address.isValidAddress(addr);
 }
 
@@ -66,8 +67,7 @@ function secretKeyToMnemonic(sk) {
  * @throws error if fails to decode the mnemonic
  */
 function mnemonicToMasterDerivationKey(mn) {
-    let mdk = mnemonic.seedFromMnemonic(mn);
-    return mdk;
+    return mnemonic.seedFromMnemonic(mn);
 }
 
 /**
@@ -86,13 +86,13 @@ function masterDerivationKeyToMnemonic(mdk) {
  * @param sk Algorand Secret Key
  * @returns object contains the binary signed transaction and it's txID
  */
-function signTransaction(txn, sk){
+function signTransaction(txn, sk) {
     // Get pk from sk
     let key = nacl.keyPairFromSecretKey(sk);
     txn.from = address.encode(key.publicKey);
-   let algoTxn = new txnBuilder.Transaction(txn);
+    let algoTxn = new txnBuilder.Transaction(txn);
 
-   return {"txID": algoTxn.txID().toString(), "blob" : algoTxn.signTxn(sk)};
+    return {"txID": algoTxn.txID().toString(), "blob": algoTxn.signTxn(sk)};
 }
 
 /**
@@ -107,6 +107,25 @@ function signBid(bid, sk) {
     return signedBid.signBid(sk);
 }
 
+/**
+ * encodeObj takes a javascript object and returns its msgpack encoding
+ * Note that the encoding sorts the fields alphabetically
+ * @param o js obj
+ * @returns Uint8Array binary representation
+ */
+function encodeObj(o) {
+    return new Uint8Array(enconding.encode(o));
+}
+
+/**
+ * decodeObj takes a Uint8Array and returns its javascript obj
+ * @param o Uint8Array to decode
+ * @returns object
+ */
+function decodeObj(o) {
+    return enconding.decode(o);
+}
+
 module.exports = {
     isValidAddress,
     generateAccount,
@@ -114,6 +133,8 @@ module.exports = {
     mnemonicToSecretKey,
     signTransaction,
     signBid,
+    encodeObj,
+    decodeObj,
     Algod,
     Kmd,
     mnemonicToMasterDerivationKey,
