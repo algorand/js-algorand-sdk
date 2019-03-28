@@ -43,7 +43,9 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.pendingTransactions = async function (maxTxns) {
         if (!Number.isInteger(maxTxns)) throw Error("maxTxns should be an integer");
         let res = await c.get("/v1/transactions/pending", {'max': maxTxns});
-        res.body.note = Buffer.from(res.body.noteb64, "base64");
+        for(var i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
+          res.body.truncatedTxns.transactions[i].note = Buffer.from(res.body.truncatedTxns.transactions[i].noteb64, "base64");
+        }
         return res.body;
     };
 
@@ -75,7 +77,9 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.transactionByAddress = async function (addr, first, last) {
         if (!Number.isInteger(first) || !Number.isInteger(last)) throw Error("first and last rounds should be integers");
         let res = await c.get("/v1/account/" + addr + "/transactions", {'firstRound': first, 'lastRound': last});
-        res.body.note = Buffer.from(res.body.noteb64, "base64");
+        for(var i = 0; i < res.body.transactions.length; i++) {
+          res.body.transactions[i].note = Buffer.from(res.body.transactions[i].noteb64, "base64");
+        }
         return res.body;
     };
 
@@ -137,7 +141,9 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.block = async function (roundNumber) {
         if (!Number.isInteger(roundNumber)) throw Error("roundNumber should be an integer");
         let res = await c.get("/v1/block/" + roundNumber);
-        res.body.note = Buffer.from(res.body.noteb64, "base64");
+        for(var i = 0; i < res.body.txns.transactions.length; i++) {
+          res.body.txns.transactions[i].note = Buffer.from(res.body.txns.transactions[i].noteb64, "base64");
+        }
         return res.body;
     };
 
