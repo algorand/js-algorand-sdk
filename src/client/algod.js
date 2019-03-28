@@ -35,6 +35,18 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     };
 
     /**
+     * Takes an object and convert its note field to Buffer, if exist.
+     * @param o
+     * @returns {*}
+     */
+    function noteb64ToNote(o) {
+        if (o.noteb64 !== undefined) {
+            o.note = Buffer.from(o.noteb64, "base64")
+        }
+        return o
+    }
+
+    /**
      * pendingTransactions asks algod for a snapshot of current pending txns on the node, bounded by maxTxns.
      * If maxTxns = 0, fetches as many transactions as possible.
      * @param maxTxns number
@@ -43,8 +55,10 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.pendingTransactions = async function (maxTxns) {
         if (!Number.isInteger(maxTxns)) throw Error("maxTxns should be an integer");
         let res = await c.get("/v1/transactions/pending", {'max': maxTxns});
-        for(var i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
-          res.body.truncatedTxns.transactions[i].note = Buffer.from(res.body.truncatedTxns.transactions[i].noteb64, "base64");
+        if (res.statusCode === 200) {
+            for (var i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
+                res.body.truncatedTxns.transactions[i] = noteb64ToNote(res.body.truncatedTxns.transactions[i]);
+            }
         }
         return res.body;
     };
