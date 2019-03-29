@@ -1,3 +1,7 @@
+# 1.0.5
+## Added
+- Update to a newer msgpack version (Support 64bit numbers) 
+- Update algod client to convert b64 to buffer 
 # 1.0.4
 ## Added
 - Support for arbitrary encoding and decoding of javascript objects 

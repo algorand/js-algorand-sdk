@@ -40,7 +40,6 @@ describe('Algosdk (AKA end to end)', function () {
                 "note": new Uint8Array(0),
             };
 
-
             let js_dec = algosdk.signTransaction(o, sk);
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
 
