@@ -5,6 +5,18 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     let c = new client.HTTPClient('X-algo-api-token', token, baseServer, port);
 
     /**
+     * Takes an object and convert its note field to Buffer, if exist.
+     * @param o
+     * @returns {*}
+     */
+    function noteb64ToNote(o) {
+        if (o.noteb64 !== undefined) {
+            o.note = Buffer.from(o.noteb64, "base64")
+        }
+        return o
+    }
+
+    /**
      * status retrieves the StatusResponse from the running node
      * @returns {Promise<*>}
      */
@@ -33,18 +45,6 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
         let res = await c.get("/v1/status/wait-for-block-after/" + roundNumber);
         return res.body;
     };
-
-    /**
-     * Takes an object and convert its note field to Buffer, if exist.
-     * @param o
-     * @returns {*}
-     */
-    function noteb64ToNote(o) {
-        if (o.noteb64 !== undefined) {
-            o.note = Buffer.from(o.noteb64, "base64")
-        }
-        return o
-    }
 
     /**
      * pendingTransactions asks algod for a snapshot of current pending txns on the node, bounded by maxTxns.
@@ -93,7 +93,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
         let res = await c.get("/v1/account/" + addr + "/transactions", {'firstRound': first, 'lastRound': last});
         if (res.statusCode === 200) {
           for(var i = 0; i < res.body.transactions.length; i++) {
-            res.body.transactions[i] = noteb64ToNote(res.body.transactions[i], "base64");
+            res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
           }
         }
         return res.body;
@@ -118,7 +118,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.transactionInformation = async function (addr, txid) {
         let res = await c.get("/v1/account/" + addr + "/transaction/" + txid);
         if (res.statusCode === 200) {
-           res.body.note = Buffer.from(res.body.noteb64, "base64");
+           res.body = noteb64ToNote(res.body);
         }
         return res.body;
     };
@@ -161,7 +161,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
         let res = await c.get("/v1/block/" + roundNumber);
         if (res.statusCode === 200) {
           for(var i = 0; i < res.body.txns.transactions.length; i++) {
-            res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i], "base64");
+            res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i]);
           }
         }
         return res.body;
