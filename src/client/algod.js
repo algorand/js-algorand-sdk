@@ -159,7 +159,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.block = async function (roundNumber) {
         if (!Number.isInteger(roundNumber)) throw Error("roundNumber should be an integer");
         let res = await c.get("/v1/block/" + roundNumber);
-        if (res.statusCode === 200) {
+        if (res.statusCode === 200 && res.txns.transactions !== undefined) {
           for(var i = 0; i < res.body.txns.transactions.length; i++) {
             res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i]);
           }

@@ -1,3 +1,5 @@
+# 1.0.6
+- Bug Fix
 # 1.0.5
 ## Added
 - Update to a newer msgpack version (Support 64bit numbers) 

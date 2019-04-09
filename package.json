@@ -1,6 +1,6 @@
 {
   "name": "algosdk",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "algosdk is Algorand's official javascript SDK",
   "main": "index.js",
   "directories": {
