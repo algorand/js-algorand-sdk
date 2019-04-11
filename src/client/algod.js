@@ -21,8 +21,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.status = async function () {
-        let res = await c.get("/v1/status");
-        return res.body;
+        try {
+            let res = await c.get("/v1/status");
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -30,8 +34,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.healthCheck = async function () {
-        let res = await c.get("/health");
-        return res.body;
+        try {
+            let res = await c.get("/health");
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -42,8 +50,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      */
     this.statusAfterBlock = async function (roundNumber) {
         if (!Number.isInteger(roundNumber)) throw Error("roundNumber should be an integer");
-        let res = await c.get("/v1/status/wait-for-block-after/" + roundNumber);
-        return res.body;
+        try {
+            let res = await c.get("/v1/status/wait-for-block-after/" + roundNumber);
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -54,13 +66,17 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      */
     this.pendingTransactions = async function (maxTxns) {
         if (!Number.isInteger(maxTxns)) throw Error("maxTxns should be an integer");
-        let res = await c.get("/v1/transactions/pending", {'max': maxTxns});
-        if (res.statusCode === 200) {
-            for (var i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
-                res.body.truncatedTxns.transactions[i] = noteb64ToNote(res.body.truncatedTxns.transactions[i]);
+        try {
+            let res = await c.get("/v1/transactions/pending", {'max': maxTxns});
+            if (res.statusCode === 200) {
+                for (var i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
+                    res.body.truncatedTxns.transactions[i] = noteb64ToNote(res.body.truncatedTxns.transactions[i]);
+                }
             }
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
         }
-        return res.body;
     };
 
     /**
@@ -68,8 +84,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.versions = async function () {
-        let res = await c.get("/versions");
-        return res.body;
+        try {
+            let res = await c.get("/versions");
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -77,8 +97,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.ledgerSupply = async function () {
-        let res = await c.get("/v1/ledger/supply");
-        return res.body;
+        try {
+            let res = await c.get("/v1/ledger/supply");
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -90,13 +114,17 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      */
     this.transactionByAddress = async function (addr, first, last) {
         if (!Number.isInteger(first) || !Number.isInteger(last)) throw Error("first and last rounds should be integers");
-        let res = await c.get("/v1/account/" + addr + "/transactions", {'firstRound': first, 'lastRound': last});
-        if (res.statusCode === 200) {
-          for(var i = 0; i < res.body.transactions.length; i++) {
-            res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
-          }
+        try {
+            let res = await c.get("/v1/account/" + addr + "/transactions", {'firstRound': first, 'lastRound': last});
+            if (res.statusCode === 200) {
+              for(var i = 0; i < res.body.transactions.length; i++) {
+                res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
+              }
+            }
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
         }
-        return res.body;
     };
 
     /**
@@ -105,8 +133,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.accountInformation = async function (addr) {
-        let res = await c.get("/v1/account/" + addr);
-        return res.body;
+        try {
+            let res = await c.get("/v1/account/" + addr);
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -116,11 +148,15 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.transactionInformation = async function (addr, txid) {
-        let res = await c.get("/v1/account/" + addr + "/transaction/" + txid);
-        if (res.statusCode === 200) {
-           res.body = noteb64ToNote(res.body);
+        try {
+            let res = await c.get("/v1/account/" + addr + "/transaction/" + txid);
+            if (res.statusCode === 200) {
+               res.body = noteb64ToNote(res.body);
+            }
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
         }
-        return res.body;
     };
 
     /**
@@ -128,8 +164,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.suggestedFee = async function () {
-        let res = await c.get("/v1/transactions/fee");
-        return res.body;
+        try {
+            let res = await c.get("/v1/transactions/fee");
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -138,8 +178,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.sendRawTransaction = async function (txn) {
-        let res = await c.post("/v1/transactions", Buffer.from(txn));
-        return res.body;
+        try {
+            let res = await c.post("/v1/transactions", Buffer.from(txn));
+            return res.body;
+        } catch (e) {
+            throw Error(e.error.message)
+        }
     };
 
     /**
@@ -147,8 +191,12 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      * @returns {Promise<*>}
      */
     this.getTransactionParams = async function () {
-        let res = await c.get("/v1/transactions/params");
-        return res.body;
+        try {
+            let res = await c.get("/v1/transactions/params");
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
+        }
     };
 
     /**
@@ -158,13 +206,17 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      */
     this.block = async function (roundNumber) {
         if (!Number.isInteger(roundNumber)) throw Error("roundNumber should be an integer");
-        let res = await c.get("/v1/block/" + roundNumber);
-        if (res.statusCode === 200 && res.txns.transactions !== undefined) {
-          for(var i = 0; i < res.body.txns.transactions.length; i++) {
-            res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i]);
-          }
+        try {
+            let res = await c.get("/v1/block/" + roundNumber);
+            if (res.statusCode === 200 && res.txns.transactions !== undefined) {
+              for(var i = 0; i < res.body.txns.transactions.length; i++) {
+                res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i]);
+              }
+            }
+            return res.body;
+        } catch (e) {
+            throw Error(e.response.error.message)
         }
-        return res.body;
     };
 
 }
