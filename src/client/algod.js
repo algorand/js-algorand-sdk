@@ -25,7 +25,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/v1/status");
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -38,7 +39,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/health");
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -54,7 +56,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/v1/status/wait-for-block-after/" + roundNumber);
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -75,7 +78,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             }
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -88,7 +92,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/versions");
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -101,7 +106,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/v1/ledger/supply");
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -123,7 +129,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             }
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -137,7 +144,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/v1/account/" + addr);
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -155,7 +163,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             }
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -168,7 +177,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/v1/transactions/fee");
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -182,7 +192,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.post("/v1/transactions", Buffer.from(txn));
             return res.body;
         } catch (e) {
-            throw Error(e.error.message)
+            e.message = e.error.message;
+            throw e;
         }
     };
 
@@ -195,7 +206,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             let res = await c.get("/v1/transactions/params");
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
@@ -215,7 +227,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
             }
             return res.body;
         } catch (e) {
-            throw Error(e.response.error.message)
+            e.message = e.response.error.message;
+            throw e;
         }
     };
 
