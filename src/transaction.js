@@ -54,7 +54,13 @@ class Transaction {
     }
 
     signTxn(sk) {
+        let PreEncodedMsg = encoding.encode(this.get_obj_for_encoding());
+
+        // Change fee
+        this.fee = this.fee * PreEncodedMsg.length;
+        // reencode
         const encodedMsg = encoding.encode(this.get_obj_for_encoding());
+
         const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
         const sig = nacl.sign(toBeSigned, sk);
 

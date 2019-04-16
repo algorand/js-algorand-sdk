@@ -1,3 +1,8 @@
+# 1.0.7
+## Added
+- Support in new Suggested Fee scheme
+## Fixed
+- Now the client handles empty transactions list
 # 1.0.6
 - Bug Fix
 # 1.0.5

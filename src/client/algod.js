@@ -55,8 +55,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.pendingTransactions = async function (maxTxns) {
         if (!Number.isInteger(maxTxns)) throw Error("maxTxns should be an integer");
         let res = await c.get("/v1/transactions/pending", {'max': maxTxns});
-        if (res.statusCode === 200) {
-            for (var i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
+        if (res.statusCode === 200 && res.body.truncatedTxns.transactions !== undefined) {
+            for (let i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
                 res.body.truncatedTxns.transactions[i] = noteb64ToNote(res.body.truncatedTxns.transactions[i]);
             }
         }
@@ -91,8 +91,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.transactionByAddress = async function (addr, first, last) {
         if (!Number.isInteger(first) || !Number.isInteger(last)) throw Error("first and last rounds should be integers");
         let res = await c.get("/v1/account/" + addr + "/transactions", {'firstRound': first, 'lastRound': last});
-        if (res.statusCode === 200) {
-          for(var i = 0; i < res.body.transactions.length; i++) {
+        if (res.statusCode === 200 && res.body.transactions !== undefined) {
+            for (let i = 0; i < res.body.transactions.length; i++) {
             res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
           }
         }
@@ -159,8 +159,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.block = async function (roundNumber) {
         if (!Number.isInteger(roundNumber)) throw Error("roundNumber should be an integer");
         let res = await c.get("/v1/block/" + roundNumber);
-        if (res.statusCode === 200 && res.txns.transactions !== undefined) {
-          for(var i = 0; i < res.body.txns.transactions.length; i++) {
+        if (res.statusCode === 200 && res.body.txns.transactions !== undefined) {
+            for (let i = 0; i < res.body.txns.transactions.length; i++) {
             res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i]);
           }
         }
