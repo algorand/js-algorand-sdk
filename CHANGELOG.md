@@ -1,3 +1,6 @@
+# 1.0.7
+## Added
+- Support in new Suggested Fee scheme
 # 1.0.6
 - Bug Fix
 # 1.0.5

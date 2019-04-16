@@ -80,9 +80,9 @@ function masterDerivationKeyToMnemonic(mdk) {
 }
 
 /**
- * signTransaction takes an object with the following fields: to, amount, fee, firstRound, lastRound,
+ * signTransaction takes an object with the following fields: to, amount, fee per byte, firstRound, lastRound,
  * and note(optional),GenesisID(optional) and a secret key and returns a signed blob
- * @param txn object with the following fields -  to, amount, fee, firstRound, lastRound, and note(optional)
+ * @param txn object with the following fields -  to, amount, fee per byte, firstRound, lastRound, and note(optional)
  * @param sk Algorand Secret Key
  * @returns object contains the binary signed transaction and it's txID
  */
