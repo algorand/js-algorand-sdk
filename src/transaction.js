@@ -29,6 +29,9 @@ class Transaction {
         Object.assign(this, {
             from, to, fee, amount, firstRound, lastRound, note, genesisID
         });
+
+        // Modify Fee
+        this.fee *= this.estimateSize();
     }
 
     get_obj_for_encoding() {
@@ -53,14 +56,15 @@ class Transaction {
         return txn;
     }
 
+    estimateSize() {
+        // Generate random key
+        let key = nacl.keyPair();
+        return this.signTxn(key.secretKey).length;
+
+    }
+
     signTxn(sk) {
-        let PreEncodedMsg = encoding.encode(this.get_obj_for_encoding());
-
-        // Change fee
-        this.fee = this.fee * PreEncodedMsg.length;
-        // reencode
-        const encodedMsg = encoding.encode(this.get_obj_for_encoding());
-
+        let encodedMsg = encoding.encode(this.get_obj_for_encoding());
         const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
         const sig = nacl.sign(toBeSigned, sk);
 
