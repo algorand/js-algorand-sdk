@@ -148,8 +148,5 @@ var txn = {
 };
 ```
 
-## Contribution
-For information on how to contribute, please refer to our contribution guide.
-
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
