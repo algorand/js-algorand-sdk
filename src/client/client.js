@@ -1,14 +1,15 @@
 var request = require("superagent");
 
-function HTTPClient(tokenHeader, token, baseServer, port) {
-    this.address = baseServer + ":" + port.toString();
-    this.token = token;
+function HTTPClient(requestHeaders, baseServer, port) {
+    // Do not need colon if port is empty
+    if (port != '') { baseServer += ":" + port.toString(); }
+    this.address = baseServer;
 
     this.get = async function (path, query) {
         try {
             return await request
                 .get(this.address + path)
-                .set(tokenHeader, token)
+                .set(requestHeaders)
                 .set('Accept', 'application/json')
                 .query(query);
         } catch (e) {
@@ -20,7 +21,7 @@ function HTTPClient(tokenHeader, token, baseServer, port) {
         try {
             return await request
                 .post(this.address + path)
-                .set(tokenHeader, token)
+                .set(requestHeaders)
                 .send(data);
         } catch (e) {
             throw e.response;
@@ -31,7 +32,7 @@ function HTTPClient(tokenHeader, token, baseServer, port) {
         try {
             return await request
                 .delete(this.address + path)
-                .set(tokenHeader, token)
+                .set(requestHeaders)
                 .send(data);
         } catch (e) {
             throw e.response;
@@ -39,4 +40,4 @@ function HTTPClient(tokenHeader, token, baseServer, port) {
     };
 }
 
-module.exports = {HTTPClient};
+module.exports = { HTTPClient };

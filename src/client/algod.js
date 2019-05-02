@@ -1,8 +1,22 @@
 const client = require('./client');
 
-function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
+// token can either be the X-Algo-API-Token string value or is a JS Object to allow setting multiple headers in the request
+// ex. 
+// const token = {
+//    'X-API-Key': 'SOME VALUE',
+//   'X-Algo-API-Token': 'ANOTHER VALUE'
+// };
+// const algodclient = new algosdk.Algod(token, baseServer, port);
+
+
+function Algod(token = '', baseServer = "http://r2.algorand.network", port = 4180) {
+
+    // workaround to allow backwards compatibility for multiple headers
+    let requestHeaders = token;
+    if (typeof (requestHeaders) == 'string') { requestHeaders = { 'X-Algo-API-Token': requestHeaders }; };
+
     // Get client
-    let c = new client.HTTPClient('X-algo-api-token', token, baseServer, port);
+    let c = new client.HTTPClient(requestHeaders, baseServer, port);
 
     /**
      * Takes an object and convert its note field to Buffer, if exist.
@@ -54,7 +68,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      */
     this.pendingTransactions = async function (maxTxns) {
         if (!Number.isInteger(maxTxns)) throw Error("maxTxns should be an integer");
-        let res = await c.get("/v1/transactions/pending", {'max': maxTxns});
+        let res = await c.get("/v1/transactions/pending", { 'max': maxTxns });
         if (res.statusCode === 200 && res.body.truncatedTxns.transactions !== undefined) {
             for (let i = 0; i < res.body.truncatedTxns.transactions.length; i++) {
                 res.body.truncatedTxns.transactions[i] = noteb64ToNote(res.body.truncatedTxns.transactions[i]);
@@ -90,11 +104,11 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
      */
     this.transactionByAddress = async function (addr, first, last) {
         if (!Number.isInteger(first) || !Number.isInteger(last)) throw Error("first and last rounds should be integers");
-        let res = await c.get("/v1/account/" + addr + "/transactions", {'firstRound': first, 'lastRound': last});
+        let res = await c.get("/v1/account/" + addr + "/transactions", { 'firstRound': first, 'lastRound': last });
         if (res.statusCode === 200 && res.body.transactions !== undefined) {
             for (let i = 0; i < res.body.transactions.length; i++) {
-            res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
-          }
+                res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
+            }
         }
         return res.body;
     };
@@ -118,7 +132,7 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
     this.transactionInformation = async function (addr, txid) {
         let res = await c.get("/v1/account/" + addr + "/transaction/" + txid);
         if (res.statusCode === 200) {
-           res.body = noteb64ToNote(res.body);
+            res.body = noteb64ToNote(res.body);
         }
         return res.body;
     };
@@ -161,8 +175,8 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
         let res = await c.get("/v1/block/" + roundNumber);
         if (res.statusCode === 200 && res.body.txns.transactions !== undefined) {
             for (let i = 0; i < res.body.txns.transactions.length; i++) {
-            res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i]);
-          }
+                res.body.txns.transactions[i] = noteb64ToNote(res.body.txns.transactions[i]);
+            }
         }
         return res.body;
     };
@@ -170,4 +184,4 @@ function Algod(token, baseServer = "http://r2.algorand.network", port = 4180) {
 }
 
 
-module.exports = {Algod};
+module.exports = { Algod };
