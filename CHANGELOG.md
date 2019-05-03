@@ -1,3 +1,6 @@
+# 1.0.8
+## Added
+- Support in more than one token for algodClient
 # 1.0.7
 ## Added
 - Support in new Suggested Fee scheme
