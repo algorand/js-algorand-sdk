@@ -1,5 +1,6 @@
 let assert = require('assert');
 let transaction = require("../src/transaction");
+let encoding = require("../src/encoding/encoding");
 
 describe('Sign', function () {
     it('should not complain on a missing note', function () {
@@ -65,5 +66,67 @@ describe('Sign', function () {
 
 
     });
+
+    describe('should correctly serialize and deserialize from msgpack representation', function () {
+        it('should correctly serialize and deserialize from msgpack representation', function() {
+            let o = {
+                "from": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "to": "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM",
+                "fee": 10,
+                "amount": 847,
+                "firstRound": 51,
+                "lastRound": 61,
+                "note": new Uint8Array([123, 12, 200]),
+                "genesisID": ""
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let encRep = expectedTxn.get_obj_for_encoding();
+            const encTxn = encoding.encode(encRep);
+            const decEncRep = encoding.decode(encTxn);
+            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const reencRep = decTxn.get_obj_for_encoding();
+            assert.deepStrictEqual(reencRep, encRep);
+        });
+
+        it('reserializes correctly no genesis ID', function() {
+            let o = {
+                "from": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "to": "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM",
+                "fee": 10,
+                "amount": 847,
+                "firstRound": 51,
+                "lastRound": 61,
+                "note": new Uint8Array([123, 12, 200]),
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let encRep = expectedTxn.get_obj_for_encoding();
+            const encTxn = encoding.encode(encRep);
+            const decEncRep = encoding.decode(encTxn);
+            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const reencRep = decTxn.get_obj_for_encoding();
+            assert.deepStrictEqual(reencRep, encRep);
+        });
+
+        it('reserializes correctly zero amount', function() {
+            let o = {
+                "from": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "to": "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM",
+                "fee": 10,
+                "amount": 0,
+                "firstRound": 51,
+                "lastRound": 61,
+                "note": new Uint8Array([123, 12, 200]),
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let encRep = expectedTxn.get_obj_for_encoding();
+            const encTxn = encoding.encode(encRep);
+            const decEncRep = encoding.decode(encTxn);
+            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const reencRep = decTxn.get_obj_for_encoding();
+            assert.deepStrictEqual(reencRep, encRep);
+        });
+
+    });
+
 
 });

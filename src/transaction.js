@@ -52,7 +52,22 @@ class Transaction {
         if (!txn.amt) delete txn.amt;
         if (!txn.gen) delete txn.gen;
 
+        return txn;
+    }
 
+    static from_obj_for_encoding(txnForEnc) {
+        let txn = Object.create(this.prototype);
+        txn.name = "Transaction";
+        txn.tag = Buffer.from([84, 88]); // "TX"
+
+        txn.amount = txnForEnc.amt;
+        txn.fee = txnForEnc.fee;
+        txn.firstRound = txnForEnc.fv;
+        txn.lastRound = txnForEnc.lv;
+        txn.note = new Uint8Array(txnForEnc.note);
+        txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.rcv)));
+        txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
+        txn.genesisID = txnForEnc.gen;
         return txn;
     }
 
@@ -63,14 +78,18 @@ class Transaction {
 
     }
 
-    signTxn(sk) {
+    // returns the raw signature
+    rawSignTxn(sk) {
         let encodedMsg = encoding.encode(this.get_obj_for_encoding());
         const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
         const sig = nacl.sign(toBeSigned, sk);
+        return Buffer.from(sig);
+    }
 
+    signTxn(sk) {
         // construct signed message
         let sTxn = {
-            "sig": Buffer.from(sig),
+            "sig": this.rawSignTxn(sk),
             "txn": this.get_obj_for_encoding(),
         };
         return new Uint8Array(encoding.encode(sTxn));

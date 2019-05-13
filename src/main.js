@@ -1,8 +1,9 @@
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
 const mnemonic = require('./mnemonic/mnemonic');
-const enconding = require('./encoding/encoding');
+const encoding = require('./encoding/encoding');
 const txnBuilder = require('./transaction');
+const multisig = require('./multisig');
 const bidBuilder = require('./bid');
 const algod = require('./client/algod');
 const kmd = require('./client/kmd');
@@ -12,10 +13,7 @@ let Kmd = kmd.Kmd;
 
 
 // Errors
-const ERROR_NOT_TRANSACTION_BUILDER = new Error("The transaction passed should be an Algorand transaction." +
-    "Please use Transaction to construct one.");
-const ERROR_NOT_BID_BUILDER = new Error("The bid passed should be an Algorand bid." +
-    "Please use Bid to construct one.");
+const ERROR_MULTISIG_BAD_FROM_FIELD = new Error("The transaction from field and multisig preimage do not match.");
 
 /**
  * GenerateAddress returns a new Algorand address and its corresponding secret key
@@ -108,13 +106,78 @@ function signBid(bid, sk) {
 }
 
 /**
+ * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
+ * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
+ * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendMultisigTransaction.
+ * @param txn object with the following fields -  to, amount, fee per byte, firstRound, lastRound, and note(optional)
+ * @param version multisig version
+ * @param threshold multisig threshold
+ * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param sk Algorand secret key. The corresponding pk should be in the pre image.
+ * @returns object containing txID, and blob of partially signed multisig transaction (with multisig preimage information)
+ */
+function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
+    const pks = addrs.map(addr => {
+        return address.decode(addr).publicKey;
+    });
+    // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
+    let expectedFromRaw = address.fromMultisigPreImg({version, threshold, pks});
+    if (txn.hasOwnProperty('from')) {
+        if (txn.from !== address.encode(expectedFromRaw)) {
+            throw ERROR_MULTISIG_BAD_FROM_FIELD;
+        }
+    } else {
+        txn.from = address.encode(expectedFromRaw); // will be decoded later
+    }
+    let algoTxn = new multisig.MultiSigTransaction(txn);
+    return {
+        "txID": algoTxn.txID().toString(),
+        "blob": algoTxn.partialSignTxn({version, threshold, pks}, sk),
+    };
+}
+
+/**
+ * appendSignMultisigTransaction takes a multisig transaction blob, and appends our signature to it.
+ * While we could derive public key preimagery from the partially-signed multisig transaction,
+ * we ask the caller to pass it back in, to ensure they know what they are signing.
+ * @param multisigTxnBlob an encoded multisig txn
+ * @param version multisig version
+ * @param threshold mutlisig threshold
+ * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param sk Algorand secret key
+ * @returns object containing txID, and blob representing encoded multisig txn
+ */
+function appendSignMultisigTransaction(multisigTxnBlob, {version, threshold, addrs}, sk) {
+    const pks = addrs.map(addr => {
+        return address.decode(addr).publicKey;
+    });
+    // obtain underlying txn, sign it, and merge it
+    let multisigTxObj = encoding.decode(multisigTxnBlob);
+    let msigTxn = multisig.MultiSigTransaction.from_obj_for_encoding(multisigTxObj.txn);
+    let partialSignedBlob = msigTxn.partialSignTxn({version, threshold, pks}, sk);
+    return {
+        "txID": msigTxn.txID().toString(),
+        "blob": mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
+    };
+}
+
+/**
+ * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
+ * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
+ * @returns blob representing encoded multisig txn
+ */
+function mergeMultisigTransactions(multisigTxnBlobs) {
+    return multisig.mergeMultisigTransactions(multisigTxnBlobs);
+}
+
+/**
  * encodeObj takes a javascript object and returns its msgpack encoding
  * Note that the encoding sorts the fields alphabetically
  * @param o js obj
  * @returns Uint8Array binary representation
  */
 function encodeObj(o) {
-    return new Uint8Array(enconding.encode(o));
+    return new Uint8Array(encoding.encode(o));
 }
 
 /**
@@ -123,7 +186,7 @@ function encodeObj(o) {
  * @returns object
  */
 function decodeObj(o) {
-    return enconding.decode(o);
+    return encoding.decode(o);
 }
 
 module.exports = {
@@ -138,7 +201,9 @@ module.exports = {
     Algod,
     Kmd,
     mnemonicToMasterDerivationKey,
-    masterDerivationKeyToMnemonic
+    masterDerivationKeyToMnemonic,
+    appendSignMultisigTransaction,
+    mergeMultisigTransactions,
+    signMultisigTransaction,
+    ERROR_MULTISIG_BAD_FROM_FIELD,
 };
-module.exports.ERROR_NOT_TRANSACTION_BUILDER = ERROR_NOT_TRANSACTION_BUILDER;
-module.exports.ERROR_NOT_BID_BUILDER = ERROR_NOT_BID_BUILDER;
