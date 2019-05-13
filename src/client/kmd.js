@@ -2,7 +2,7 @@ const client = require('./client');
 
 function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
     // Get client
-    let c = new client.HTTPClient({'X-KMD-API-Token':token}, baseServer, port);
+    let c = new client.HTTPClient('X-KMD-API-Token', token, baseServer, port);
 
     /**
      * version returns a VersionResponse containing a list of kmd API versions supported by this running kmd instance.
