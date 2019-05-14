@@ -78,10 +78,18 @@ class Transaction {
 
     }
 
+    bytesToSign() {
+        let encodedMsg = this.toByte();
+        return Buffer.from(utils.concatArrays(this.tag, encodedMsg));
+    }
+
+    toByte() {
+        return encoding.encode(this.get_obj_for_encoding());
+    }
+
     // returns the raw signature
     rawSignTxn(sk) {
-        let encodedMsg = encoding.encode(this.get_obj_for_encoding());
-        const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
+        const toBeSigned = this.bytesToSign();
         const sig = nacl.sign(toBeSigned, sk);
         return Buffer.from(sig);
     }
