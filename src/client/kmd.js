@@ -1,4 +1,5 @@
 const client = require('./client');
+const txn = require("../transaction");
 
 function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
     // Get client
@@ -239,7 +240,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
     };
 
     /**
-     * signTransaction accepts a wallet handle, wallet password, and transaction,
+     * signTransaction accepts a wallet handle, wallet password, and a transaction,
      * and returns and SignTransactionResponse containing an encoded, signed
      * transaction. The transaction is signed using the key corresponding to the
      * Sender field.
@@ -249,12 +250,19 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
      * @returns {Promise<*>}
      */
     this.signTransaction = async function (walletHandle, walletPassword, transaction) {
+
+        let tx = new txn.Transaction(transaction);
+
         let req = {
             "wallet_handle_token": walletHandle,
             "wallet_password": walletPassword,
-            "transaction": transaction
+            "transaction": tx.toByte().toString('base64')
         };
         let res = await c.post("/v1/transaction/sign", req);
+
+        if (res.statusCode === 200) {
+            return Buffer.from(res.body.signed_transaction, 'base64')
+        }
         return res.body;
     };
 
