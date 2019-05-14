@@ -1,3 +1,6 @@
+# 1.0.9
+## Fixed
+- kmd can now sign transactions
 # 1.0.8
 ## Added
 - Support in more than one token for algodClient
