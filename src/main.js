@@ -140,7 +140,7 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
  * appendSignMultisigTransaction takes a multisig transaction blob, and appends our signature to it.
  * While we could derive public key preimagery from the partially-signed multisig transaction,
  * we ask the caller to pass it back in, to ensure they know what they are signing.
- * @param multisigTxnBlob an encoded multisig txn
+ * @param multisigTxnBlob an encoded multisig txn. Supports non-payment txn types.
  * @param version multisig version
  * @param threshold mutlisig threshold
  * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
