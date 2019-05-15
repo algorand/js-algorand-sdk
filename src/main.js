@@ -117,19 +117,19 @@ function signBid(bid, sk) {
  * @returns object containing txID, and blob of partially signed multisig transaction (with multisig preimage information)
  */
 function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
-    const pks = addrs.map(addr => {
-        return address.decode(addr).publicKey;
-    });
     // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
-    let expectedFromRaw = address.fromMultisigPreImg({version, threshold, pks});
+    let expectedFromRaw = address.fromMultisigPreImgAddrs({version, threshold, addrs});
     if (txn.hasOwnProperty('from')) {
-        if (txn.from !== address.encode(expectedFromRaw)) {
+        if (txn.from !== expectedFromRaw) {
             throw ERROR_MULTISIG_BAD_FROM_FIELD;
         }
     } else {
-        txn.from = address.encode(expectedFromRaw); // will be decoded later
+        txn.from = expectedFromRaw;
     }
     let algoTxn = new multisig.MultiSigTransaction(txn);
+    const pks = addrs.map(addr => {
+        return address.decode(addr).publicKey;
+    });
     return {
         "txID": algoTxn.txID().toString(),
         "blob": algoTxn.partialSignTxn({version, threshold, pks}, sk),
@@ -171,6 +171,16 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
 }
 
 /**
+ * multisigAddress takes multisig metadata (preimage) and returns the corresponding human readable Algorand address.
+ * @param version mutlisig version
+ * @param threshold multisig threshold
+ * @param addrs list of Algorand addresses
+ */
+function multisigAddress({version, threshold, addrs}) {
+    return address.fromMultisigPreImgAddrs({version, threshold, addrs});
+}
+
+/**
  * encodeObj takes a javascript object and returns its msgpack encoding
  * Note that the encoding sorts the fields alphabetically
  * @param o js obj
@@ -205,5 +215,6 @@ module.exports = {
     appendSignMultisigTransaction,
     mergeMultisigTransactions,
     signMultisigTransaction,
+    multisigAddress,
     ERROR_MULTISIG_BAD_FROM_FIELD,
 };

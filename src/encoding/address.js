@@ -63,9 +63,15 @@ function encode(address) {
     return addr.toString().slice(0, ALGORAND_ADDRESS_LENGTH); // removing the extra '===='
 }
 
-// fromMultisigPreImg generates a raw Uint8Array 32 byte address that identifies the "exact group, version, and public
-// keys" that are required for signing. Hash("MultisigAddr" || version uint8 || threshold uint8 || PK1 || PK2 || ...)
-// encoding this output yields a human readable address.
+/**
+ * fromMultisigPreImg takes multisig parameters and returns a 32 byte typed array public key,
+ * representing an address that identifies the "exact group, version, and public keys" that are required for signing.
+ * Hash("MultisigAddr" || version uint8 || threshold uint8 || PK1 || PK2 || ...)
+ * Encoding this output yields a human readable address.
+ * @param version multisig version
+ * @param threshold multisig threshold
+ * @param pks array of typed array public keys
+ */
 function fromMultisigPreImg({version, threshold, pks}) {
     if (version !== 1 || version > 255) {
         throw INVALID_MSIG_VERSION;
@@ -90,5 +96,19 @@ function fromMultisigPreImg({version, threshold, pks}) {
     return nacl.genericHash(merged);
 }
 
-module.exports = {isValidAddress, decode, encode, fromMultisigPreImg, MALFORMED_ADDRESS_ERROR,
+/**
+ * fromMultisigPreImgAddrs takes multisig parameters and returns a human readable Algorand address.
+ * This is equivalent to fromMultisigPreImg, but interfaces with encoded addresses.
+ * @param version multisig version
+ * @param threshold multisig threshold
+ * @param addrs array of encoded addresses
+ */
+function fromMultisigPreImgAddrs({version, threshold, addrs}) {
+    const pks = addrs.map(addr => {
+        return decode(addr).publicKey;
+    });
+    return encode(fromMultisigPreImg({version, threshold, pks}));
+}
+
+module.exports = {isValidAddress, decode, encode, fromMultisigPreImg, fromMultisigPreImgAddrs, MALFORMED_ADDRESS_ERROR,
     INVALID_MSIG_VERSION, INVALID_MSIG_THRESHOLD, INVALID_MSIG_PK, UNEXPECTED_PK_LEN};

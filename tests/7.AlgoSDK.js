@@ -49,9 +49,7 @@ describe('Algosdk (AKA end to end)', function () {
             // Check txid
             let tx_golden = "SGQTHZ4NF47OEHNUKN4SPGJOEVLFIMW2GILZRVU347YOYYRDSVAA";
             assert.deepStrictEqual(js_dec.txID, tx_golden);
-
         });
-
     });
 
     describe('Multisig Sign', function () {
@@ -60,7 +58,7 @@ describe('Algosdk (AKA end to end)', function () {
                 version: 1,
                 threshold: 2,
                 addrs: [
-                   "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA",
+                    "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA",
                     "BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM",
                     "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
                 ],
@@ -87,7 +85,6 @@ describe('Algosdk (AKA end to end)', function () {
             let tx_golden = "6CPXBC4QQFFAM6ZOROB6TOX7WE5OGKEMW6CES5GH2MANZFTNFDRQ";
             assert.deepStrictEqual(js_dec.txID, tx_golden);
         });
-
     });
 
 
@@ -117,6 +114,21 @@ describe('Algosdk (AKA end to end)', function () {
             let tx_golden = "6CPXBC4QQFFAM6ZOROB6TOX7WE5OGKEMW6CES5GH2MANZFTNFDRQ";
             assert.deepStrictEqual(js_dec.txID, tx_golden);
         });
+    });
 
+    describe('Multisig Address', function () {
+        it('should return the correct address from preimage', function () {
+            const params = {
+                version: 1,
+                threshold: 2,
+                addrs: [
+                    "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA",
+                    "BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM",
+                    "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
+                ],
+            };
+            let outAddr = algosdk.multisigAddress(params);
+            assert.deepStrictEqual(outAddr, "RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM");
+        });
     });
 });
