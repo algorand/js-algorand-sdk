@@ -1,3 +1,6 @@
+# 1.1.0
+## Added
+- Support for multisignatures
 # 1.0.9
 ## Fixed
 - kmd can now sign transactions

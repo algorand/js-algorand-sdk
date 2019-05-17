@@ -1,0 +1,6 @@
+
+# exclude WebStorm
+.idea/
+
+# npm
+node_modules/

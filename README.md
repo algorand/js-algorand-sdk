@@ -148,5 +148,98 @@ var txn = {
 };
 ```
 
+#### Manipulating Multisig Transactions
+
+This SDK also supports manipulating multisignature payment and keyreg transactions.
+
+To create a multisignature transaction, first set up the multisignature identity:
+
+```javascript
+const params = {
+    version: 1,
+    threshold: 2,
+    addrs: [
+        "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA",
+        "BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM",
+        "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
+    ],
+};
+```
+
+With these multisignature parameters, we can now create a (partially) signed multisignature transaction:
+
+```javascript
+// sk that matches "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU"
+let mnem3 = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
+let seed = passphrase.seedFromMnemonic(mnem3);
+let sk = nacl.keyPairFromSeed(seed).secretKey;
+
+let txn = {
+    "to": "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
+    "fee": 10,
+    "amount": 10000,
+    "firstRound": 1000,
+    "lastRound": 1000,
+    "note": new Uint8Array(0),
+};
+
+let rawSignedTxn = algosdk.signMultisigTransaction(txn, params, sk).blob;
+```
+
+Now, we can broadcast this raw partially signed transaction to the network, which is valid if the threhsold is 1. 
+We can also write it to a file (in node):
+
+```javascript
+const fs = require('fs');
+fs.writeFile("/tmp/example_multisig.tx", Buffer.from(rawSignedTxn), function(err) {
+    if(err) {
+        return console.log(err);
+    }
+    console.log("The file was saved!");
+}); 
+```
+
+We can import multiple files or raw signed transactions, and merge the multisignature transactions:
+
+```javascript
+let partialTxn1 = new Uint8Array(fs.readFileSync('/tmp/example_multisig.tx'));
+let partialTxn2 = new Uint8Array(fs.readFileSync('/tmp/example_multisig_two.tx'));
+let mergedTsigTxn = algosdk.mergeMultisigTransactions([partialTxn1, partialTxn2]);
+```
+
+We can also append our own signature, with knowledge of the public identity (params):
+
+```javascript
+let partialTxn1 = new Uint8Array(fs.readFileSync('/tmp/example_multisig.tx'));
+const params = {
+    version: 1,
+    threshold: 2,
+    addrs: [
+        "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA",
+        "BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM",
+        "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
+    ],
+};
+// sk corresponding to "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA"
+let mnem1 = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
+let seed = passphrase.seedFromMnemonic(mnem1);
+let sk = nacl.keyPairFromSeed(seed).secretKey;
+let appendedMsigTxn = algosdk.appendSignMultisigTransaction(partialTxn1, params, sk).blob;
+```
+
+Any transaction blob returned by the multisignature API can be submitted to the network:
+
+```javascript
+let algodclient = new algosdk.Algod(atoken, aserver, aport);
+//submit the transaction
+(async () => {
+    let tx = (await algodclient.sendRawTransaction(appendedMsigTxn));
+    console.log(tx);
+})().catch(e => {
+    console.log(e.error);
+});
+```
+
+
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
