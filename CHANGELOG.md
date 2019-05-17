@@ -1,4 +1,4 @@
-# 1.0.10
+# 1.1.0
 ## Added
 - Support for multisignatures
 # 1.0.9

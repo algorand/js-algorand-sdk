@@ -13,7 +13,7 @@ let Kmd = kmd.Kmd;
 
 
 // Errors
-const ERROR_MULTISIG_BAD_FROM_FIELD = new Error("The transaction from field and multisig preimage do not match.");
+const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
 
 /**
  * GenerateAddress returns a new Algorand address and its corresponding secret key
@@ -121,7 +121,7 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
     let expectedFromRaw = address.fromMultisigPreImgAddrs({version, threshold, addrs});
     if (txn.hasOwnProperty('from')) {
         if (txn.from !== expectedFromRaw) {
-            throw ERROR_MULTISIG_BAD_FROM_FIELD;
+            throw ERROR_MULTISIG_BAD_SENDER;
         }
     } else {
         txn.from = expectedFromRaw;
@@ -216,5 +216,5 @@ module.exports = {
     mergeMultisigTransactions,
     signMultisigTransaction,
     multisigAddress,
-    ERROR_MULTISIG_BAD_FROM_FIELD,
+    ERROR_MULTISIG_BAD_SENDER,
 };

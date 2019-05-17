@@ -100,7 +100,6 @@ describe('Multisig Functionality', function () {
             };
             const decRawTx = encoding.decode(rawTxBlob).txn;
             let msigTxn = multisig.MultiSigTransaction.from_obj_for_encoding(decRawTx);
-
             let mnem1 = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
             let seed = passphrase.seedFromMnemonic(mnem1);
             let sk = nacl.keyPairFromSeed(seed).secretKey;

@@ -73,7 +73,8 @@ function encode(address) {
  * @param pks array of typed array public keys
  */
 function fromMultisigPreImg({version, threshold, pks}) {
-    if (version !== 1 || version > 255) {
+    if (version !== 1 || version > 255 || version < 0) {
+        // ^ a tad redundant, but in case in the future version != 1, still check for uint8
         throw INVALID_MSIG_VERSION;
     }
     if (threshold === 0 || pks.length === 0 || threshold > pks.length || threshold > 255) {
