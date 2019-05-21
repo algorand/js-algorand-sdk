@@ -13,9 +13,23 @@ describe('Sign', function () {
             "lastRound": 61,
             "note": new Uint8Array(0)
         };
-
         let txn = new transaction.Transaction(o);
+    });
 
+    it('should respect min tx fee', function () {
+        let o = {
+            "from": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
+            "to": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
+            "fee": 0,
+            "amount": 847,
+            "firstRound": 51,
+            "lastRound": 61,
+            "note": new Uint8Array([123, 12, 200])
+        };
+        let txn = new transaction.Transaction(o);
+        assert.equal(txn.fee, 1000); // 1000 is the v5 min txn fee
+        let txnEnc = txn.get_obj_for_encoding();
+        assert.equal(txnEnc.fee, 1000);
     });
 
     it('should not complain on a missing genesisID', function () {

@@ -5,6 +5,7 @@ const utils = require("./utils/utils");
 const base32 = require('hi-base32');
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
+const ALGORAND_MIN_TX_FEE = 1000; // version v5
 
 /**
  * Transaction enables construction of Algorand transactions
@@ -32,6 +33,11 @@ class Transaction {
 
         // Modify Fee
         this.fee *= this.estimateSize();
+
+        // If suggested fee too small and will be rejected, set to min tx fee
+        if (this.fee < ALGORAND_MIN_TX_FEE) {
+            this.fee = ALGORAND_MIN_TX_FEE;
+        }
     }
 
     get_obj_for_encoding() {
@@ -47,9 +53,10 @@ class Transaction {
             "gen": this.genesisID,
         };
 
-        // allowed empty values
+        // allowed zero values
         if (!txn.note.length) delete txn.note;
         if (!txn.amt) delete txn.amt;
+        if (!txn.fee) delete txn.fee;
         if (!txn.gen) delete txn.gen;
 
         return txn;

@@ -1,3 +1,6 @@
+# 1.1.1
+## Fixed
+- Bug Fix for Suggested Fee
 # 1.1.0
 ## Added
 - Support for multisignatures
