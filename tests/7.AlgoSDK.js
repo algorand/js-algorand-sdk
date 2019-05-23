@@ -29,6 +29,16 @@ describe('Algosdk (AKA end to end)', function () {
         });
     });
 
+    describe('Key pair', function() {
+        it('should generate a key pair from a seed', function () {
+            const keyPair = algosdk.generateAccount();
+            const seed = keyPair.sk.slice(0, nacl.SEED_BYTES_LENGTH);
+            const regeneratedKeyPair = algosdk.generateKeyPairFromSeed(seed);
+            assert.equal(keyPair.addr, regeneratedKeyPair.addr);
+            assert.deepStrictEqual(keyPair.sk, regeneratedKeyPair.sk);
+        });
+    });
+
     describe('Sign', function () {
         it('should return a blob that matches the go code', function () {
             let sk = Buffer.from([242, 175, 163, 193, 109, 239, 243, 150, 57, 236, 107, 130, 11, 20, 250, 252, 116, 163, 125, 222, 50, 175, 14, 232, 7, 153, 82, 169, 228, 5, 76, 247, 143, 84, 203, 38, 75, 204, 66, 20, 164, 35, 27, 68, 149, 151, 224, 143, 55, 229, 237, 204, 90, 5, 160, 96, 193, 117, 197, 79, 183, 92, 227, 132]);
