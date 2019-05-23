@@ -27,7 +27,7 @@ class Transaction {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
         }
         else {
-          note = new Uint8Array([0]);
+          note = new Uint8Array(0);
         }
 
         Object.assign(this, {
