@@ -5,12 +5,17 @@ function genericHash(arr) {
     return sha512.sha512_256.array(arr);
 }
 
-function randomBytes(length) {
+function randomBytes(length, randomizationFn) {
+    // custom randomization function for nacl
+    if (randomizationFn !== undefined) {    
+        nacl.setPRNG(randomizationFn);
+    }
+
     return nacl.randomBytes(length);
 }
 
-function keyPair() {
-    let seed = randomBytes(nacl.box.secretKeyLength);
+function keyPair(randomizationFn) {
+    let seed = randomBytes(nacl.box.secretKeyLength, randomizationFn);
     return keyPairFromSeed(seed);
 }
 

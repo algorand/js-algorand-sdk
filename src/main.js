@@ -11,16 +11,16 @@ const kmd = require('./client/kmd');
 let Algod = algod.Algod;
 let Kmd = kmd.Kmd;
 
-
 // Errors
 const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
 
 /**
  * GenerateAddress returns a new Algorand address and its corresponding secret key
+ * @param randomizationFn Function - A function to pass to nacl to use for randomization
  * @returns {{sk: Uint8Array, addr: string}}
  */
-function generateAccount() {
-    let keys = nacl.keyPair();
+function generateAccount(randomizationFn) {
+    let keys = nacl.keyPair(randomizationFn);
     let encodedPk = address.encode(keys.publicKey);
     return {addr: encodedPk, sk: keys.secretKey};
 }
@@ -208,6 +208,7 @@ module.exports = {
     signBid,
     encodeObj,
     decodeObj,
+    nacl,
     Algod,
     Kmd,
     mnemonicToMasterDerivationKey,

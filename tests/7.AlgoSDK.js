@@ -1,5 +1,6 @@
 let assert = require('assert');
 let algosdk = require("../src/main");
+const crypto = require('crypto');
 let address = require("../src/encoding/address");
 let passphrase = require("../src/mnemonic/mnemonic");
 let nacl = require("../src/nacl/naclWrappers");
@@ -11,6 +12,21 @@ describe('Algosdk (AKA end to end)', function () {
                 let keys = algosdk.generateAccount();
                 let mn = algosdk.secretKeyToMnemonic(keys.sk);
                 let recovered = algosdk.mnemonicToSecretKey(mn);
+                assert.deepStrictEqual(keys.sk, recovered.sk);
+                assert.deepStrictEqual(keys.addr, recovered.addr);
+            }
+        });
+
+        it('should allow own randomization function in nacl', function () {
+            for (let i=0 ; i < 50 ; i++) {
+                let keys = algosdk.generateAccount((x, n) => { 
+                    let v = crypto.randomBytes(n);
+                    for (let i = 0; i < n; i++) x[i] = v[i];
+                });
+
+                let mn = algosdk.secretKeyToMnemonic(keys.sk);
+                let recovered = algosdk.mnemonicToSecretKey(mn);
+
                 assert.deepStrictEqual(keys.sk, recovered.sk);
                 assert.deepStrictEqual(keys.addr, recovered.addr);
             }
