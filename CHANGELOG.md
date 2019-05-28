@@ -1,3 +1,6 @@
+# 1.2.0
+## Added 
+- Support of GenesisHash and Close Remainder To fields 
 # 1.1.1
 ## Fixed
 - Bug Fix for Suggested Fee

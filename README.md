@@ -83,8 +83,10 @@ var txn = {
     "amount": 847,
     "firstRound": 51,
     "lastRound": 61,
-    "note": new Uint8Array(0),
-    "GenesisID":"testnet-v1.0"
+    "genesisID": "devnet-v33.0",
+    "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+    "closeRemainderTo": "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA",
+    "note": new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64"))
 };
 ```
 
@@ -180,7 +182,10 @@ let txn = {
     "amount": 10000,
     "firstRound": 1000,
     "lastRound": 1000,
-    "note": new Uint8Array(0),
+    "genesisID": "devnet-v33.0",
+    "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+    "closeRemainderTo": "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA",
+    "note": new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64")),
 };
 
 let rawSignedTxn = algosdk.signMultisigTransaction(txn, params, sk).blob;
