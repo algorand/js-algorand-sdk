@@ -11,6 +11,7 @@ describe('Sign', function () {
             "amount": 847,
             "firstRound": 51,
             "lastRound": 61,
+            "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
             "note": new Uint8Array(0)
         };
         let txn = new transaction.Transaction(o);
@@ -24,6 +25,7 @@ describe('Sign', function () {
             "amount": 847,
             "firstRound": 51,
             "lastRound": 61,
+            "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
             "note": new Uint8Array([123, 12, 200])
         };
         let txn = new transaction.Transaction(o);
@@ -40,6 +42,7 @@ describe('Sign', function () {
             "amount": 847,
             "firstRound": 51,
             "lastRound": 61,
+            "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
             "note": new Uint8Array([123, 12, 200])
         };
 
@@ -56,6 +59,7 @@ describe('Sign', function () {
             "firstRound": 51,
             "lastRound": 61,
             "note": new Uint8Array([123, 12, 200]),
+            "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
             "genesisID": ""
         };
 
@@ -72,6 +76,7 @@ describe('Sign', function () {
             "amount": 847,
             "firstRound": 51,
             "lastRound": 61,
+            "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
             "note": "new Uint8Array(0)"
         };
         assert.throws(() => {
@@ -91,6 +96,7 @@ describe('Sign', function () {
                 "firstRound": 51,
                 "lastRound": 61,
                 "note": new Uint8Array([123, 12, 200]),
+                "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
                 "genesisID": ""
             };
             let expectedTxn = new transaction.Transaction(o);
@@ -110,6 +116,7 @@ describe('Sign', function () {
                 "amount": 847,
                 "firstRound": 51,
                 "lastRound": 61,
+                "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
                 "note": new Uint8Array([123, 12, 200]),
             };
             let expectedTxn = new transaction.Transaction(o);
@@ -129,6 +136,7 @@ describe('Sign', function () {
                 "amount": 0,
                 "firstRound": 51,
                 "lastRound": 61,
+                "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
                 "note": new Uint8Array([123, 12, 200]),
             };
             let expectedTxn = new transaction.Transaction(o);

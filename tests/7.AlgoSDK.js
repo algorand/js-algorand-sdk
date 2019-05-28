@@ -31,23 +31,27 @@ describe('Algosdk (AKA end to end)', function () {
 
     describe('Sign', function () {
         it('should return a blob that matches the go code', function () {
-            let sk = Buffer.from([242, 175, 163, 193, 109, 239, 243, 150, 57, 236, 107, 130, 11, 20, 250, 252, 116, 163, 125, 222, 50, 175, 14, 232, 7, 153, 82, 169, 228, 5, 76, 247, 143, 84, 203, 38, 75, 204, 66, 20, 164, 35, 27, 68, 149, 151, 224, 143, 55, 229, 237, 204, 90, 5, 160, 96, 193, 117, 197, 79, 183, 92, 227, 132]);
-            let golden = Buffer.from([130, 163, 115, 105, 103, 196, 64, 131, 118, 119, 11, 135, 24, 77, 7, 112, 40, 243, 142, 37, 135, 67, 134, 136, 191, 0, 29, 231, 196, 61, 179, 87, 218, 72, 35, 51, 136, 90, 21, 28, 20, 46, 187, 156, 253, 174, 221, 29, 32, 35, 191, 204, 151, 214, 104, 130, 179, 128, 91, 234, 165, 10, 125, 202, 69, 175, 56, 134, 162, 222, 13, 163, 116, 120, 110, 135, 163, 97, 109, 116, 10, 163, 102, 101, 101, 205, 7, 38, 162, 102, 118, 205, 3, 232, 162, 108, 118, 205, 3, 232, 163, 114, 99, 118, 196, 32, 143, 84, 203, 38, 75, 204, 66, 20, 164, 35, 27, 68, 149, 151, 224, 143, 55, 229, 237, 204, 90, 5, 160, 96, 193, 117, 197, 79, 183, 92, 227, 132, 163, 115, 110, 100, 196, 32, 143, 84, 203, 38, 75, 204, 66, 20, 164, 35, 27, 68, 149, 151, 224, 143, 55, 229, 237, 204, 90, 5, 160, 96, 193, 117, 197, 79, 183, 92, 227, 132, 164, 116, 121, 112, 101, 163, 112, 97, 121]);
-            let ad = "R5KMWJSLZRBBJJBDDNCJLF7AR436L3OMLIC2AYGBOXCU7N244OCLNZFM2M";
+            let sk = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
+            let golden = "gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=";
             let o = {
-                "to":ad,
-                "fee": 10,
-                "amount": 10,
-                "firstRound": 1000,
-                "lastRound": 1000,
-                "note": new Uint8Array(0),
+                "to": "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI",
+                "fee": 4,
+                "amount": 1000,
+                "firstRound": 12466,
+                "lastRound": 13466,
+                "genesisID": "devnet-v33.0",
+                "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+                "closeRemainderTo": "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA",
+                "note": new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64")),
             };
 
-            let js_dec = algosdk.signTransaction(o, sk);
-            assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+            sk = algosdk.mnemonicToSecretKey(sk);
 
-            // Check txid
-            let tx_golden = "SGQTHZ4NF47OEHNUKN4SPGJOEVLFIMW2GILZRVU347YOYYRDSVAA";
+            let js_dec = algosdk.signTransaction(o, sk.sk);
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
+
+            // // Check txid
+            let tx_golden = "5FJDJD5LMZC3EHUYYJNH5I23U4X6H2KXABNDGPIL557ZMJ33GZHQ";
             assert.deepStrictEqual(js_dec.txID, tx_golden);
         });
     });
@@ -62,27 +66,32 @@ describe('Algosdk (AKA end to end)', function () {
                     "BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM",
                     "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
                 ],
-            };
+            }; // msig address - RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM
+
             let mnem3 = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
             let seed = passphrase.seedFromMnemonic(mnem3);
-            let sk = nacl.keyPairFromSeed(seed).secretKey;
+            let keys = nacl.keyPairFromSeed(seed);
+            let sk = keys.secretKey;
 
             let o = {
-                "to": "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
-                "fee": 10,
-                "amount": 10,
-                "firstRound": 1000,
-                "lastRound": 1000,
-                "note": new Uint8Array(0),
+                "to": "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI",
+                "fee": 4,
+                "amount": 1000,
+                "firstRound": 12466,
+                "lastRound": 13466,
+                "genesisID": "devnet-v33.0",
+                "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+                "closeRemainderTo": "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA",
+                "note": new Uint8Array(Buffer.from("X4Bl4wQ9rCo=", "base64")),
             };
 
             let js_dec = algosdk.signMultisigTransaction(o, params, sk);
             // this golden also contains the correct multisig address
-            let golden = Buffer.from([130, 164, 109, 115, 105, 103, 131, 166, 115, 117, 98, 115, 105, 103, 147, 129, 162, 112, 107, 196, 32, 27, 126, 192, 176, 75, 234, 97, 183, 150, 144, 151, 230, 203, 244, 7, 225, 8, 167, 5, 53, 29, 11, 201, 138, 190, 177, 34, 9, 168, 171, 129, 120, 129, 162, 112, 107, 196, 32, 9, 99, 50, 9, 83, 115, 137, 240, 117, 103, 17, 119, 57, 145, 199, 208, 62, 27, 115, 200, 196, 245, 43, 246, 175, 240, 26, 162, 92, 249, 194, 113, 130, 162, 112, 107, 196, 32, 231, 240, 248, 77, 6, 129, 29, 249, 243, 28, 141, 135, 139, 17, 85, 244, 103, 29, 81, 161, 133, 194, 0, 144, 134, 103, 244, 73, 88, 112, 104, 161, 161, 115, 196, 64, 89, 235, 190, 174, 89, 197, 155, 153, 148, 120, 178, 211, 193, 116, 216, 211, 24, 246, 254, 115, 130, 238, 147, 23, 192, 199, 86, 179, 170, 110, 70, 192, 6, 111, 210, 93, 202, 165, 40, 72, 70, 252, 64, 102, 2, 75, 43, 85, 222, 192, 161, 25, 152, 117, 93, 213, 182, 136, 91, 206, 108, 218, 83, 3, 163, 116, 104, 114, 2, 161, 118, 1, 163, 116, 120, 110, 135, 163, 97, 109, 116, 10, 163, 102, 101, 101, 205, 7, 38, 162, 102, 118, 205, 3, 232, 162, 108, 118, 205, 3, 232, 163, 114, 99, 118, 196, 32, 231, 240, 248, 77, 6, 129, 29, 249, 243, 28, 141, 135, 139, 17, 85, 244, 103, 29, 81, 161, 133, 194, 0, 144, 134, 103, 244, 73, 88, 112, 104, 161, 163, 115, 110, 100, 196, 32, 141, 146, 180, 137, 144, 1, 115, 160, 77, 250, 67, 89, 163, 102, 106, 106, 252, 234, 44, 66, 160, 93, 217, 193, 247, 62, 235, 165, 71, 128, 55, 233, 164, 116, 121, 112, 101, 163, 112, 97, 121]);
+            let golden = Buffer.from("gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
 
             // Check txid
-            let tx_golden = "6CPXBC4QQFFAM6ZOROB6TOX7WE5OGKEMW6CES5GH2MANZFTNFDRQ";
+            let tx_golden = "TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A";
             assert.deepStrictEqual(js_dec.txID, tx_golden);
         });
     });
@@ -103,15 +112,15 @@ describe('Algosdk (AKA end to end)', function () {
             let seed = passphrase.seedFromMnemonic(mnem1);
             let sk = nacl.keyPairFromSeed(seed).secretKey;
 
-            // this is a multisig transaction with an existing signature in the third slot
-            let o = Buffer.from([130, 164, 109, 115, 105, 103, 131, 166, 115, 117, 98, 115, 105, 103, 147, 129, 162, 112, 107, 196, 32, 27, 126, 192, 176, 75, 234, 97, 183, 150, 144, 151, 230, 203, 244, 7, 225, 8, 167, 5, 53, 29, 11, 201, 138, 190, 177, 34, 9, 168, 171, 129, 120, 129, 162, 112, 107, 196, 32, 9, 99, 50, 9, 83, 115, 137, 240, 117, 103, 17, 119, 57, 145, 199, 208, 62, 27, 115, 200, 196, 245, 43, 246, 175, 240, 26, 162, 92, 249, 194, 113, 130, 162, 112, 107, 196, 32, 231, 240, 248, 77, 6, 129, 29, 249, 243, 28, 141, 135, 139, 17, 85, 244, 103, 29, 81, 161, 133, 194, 0, 144, 134, 103, 244, 73, 88, 112, 104, 161, 161, 115, 196, 64, 89, 235, 190, 174, 89, 197, 155, 153, 148, 120, 178, 211, 193, 116, 216, 211, 24, 246, 254, 115, 130, 238, 147, 23, 192, 199, 86, 179, 170, 110, 70, 192, 6, 111, 210, 93, 202, 165, 40, 72, 70, 252, 64, 102, 2, 75, 43, 85, 222, 192, 161, 25, 152, 117, 93, 213, 182, 136, 91, 206, 108, 218, 83, 3, 163, 116, 104, 114, 2, 161, 118, 1, 163, 116, 120, 110, 135, 163, 97, 109, 116, 10, 163, 102, 101, 101, 205, 7, 38, 162, 102, 118, 205, 3, 232, 162, 108, 118, 205, 3, 232, 163, 114, 99, 118, 196, 32, 231, 240, 248, 77, 6, 129, 29, 249, 243, 28, 141, 135, 139, 17, 85, 244, 103, 29, 81, 161, 133, 194, 0, 144, 134, 103, 244, 73, 88, 112, 104, 161, 163, 115, 110, 100, 196, 32, 141, 146, 180, 137, 144, 1, 115, 160, 77, 250, 67, 89, 163, 102, 106, 106, 252, 234, 44, 66, 160, 93, 217, 193, 247, 62, 235, 165, 71, 128, 55, 233, 164, 116, 121, 112, 101, 163, 112, 97, 121]);
+            // this is a multisig transaction with an existing signature
+            let o = Buffer.from("gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==", "base64");
 
             let js_dec = algosdk.appendSignMultisigTransaction(o, params, sk);
-            let golden = Buffer.from([130, 164, 109, 115, 105, 103, 131, 166, 115, 117, 98, 115, 105, 103, 147, 130, 162, 112, 107, 196, 32, 27, 126, 192, 176, 75, 234, 97, 183, 150, 144, 151, 230, 203, 244, 7, 225, 8, 167, 5, 53, 29, 11, 201, 138, 190, 177, 34, 9, 168, 171, 129, 120, 161, 115, 196, 64, 220, 122, 23, 29, 121, 252, 136, 31, 80, 18, 91, 94, 220, 180, 80, 145, 148, 182, 228, 225, 197, 111, 162, 84, 103, 176, 63, 164, 167, 48, 244, 56, 17, 45, 46, 182, 204, 171, 2, 70, 129, 13, 77, 89, 189, 91, 242, 188, 191, 235, 82, 240, 114, 91, 164, 208, 143, 99, 102, 131, 70, 115, 51, 7, 129, 162, 112, 107, 196, 32, 9, 99, 50, 9, 83, 115, 137, 240, 117, 103, 17, 119, 57, 145, 199, 208, 62, 27, 115, 200, 196, 245, 43, 246, 175, 240, 26, 162, 92, 249, 194, 113, 130, 162, 112, 107, 196, 32, 231, 240, 248, 77, 6, 129, 29, 249, 243, 28, 141, 135, 139, 17, 85, 244, 103, 29, 81, 161, 133, 194, 0, 144, 134, 103, 244, 73, 88, 112, 104, 161, 161, 115, 196, 64, 89, 235, 190, 174, 89, 197, 155, 153, 148, 120, 178, 211, 193, 116, 216, 211, 24, 246, 254, 115, 130, 238, 147, 23, 192, 199, 86, 179, 170, 110, 70, 192, 6, 111, 210, 93, 202, 165, 40, 72, 70, 252, 64, 102, 2, 75, 43, 85, 222, 192, 161, 25, 152, 117, 93, 213, 182, 136, 91, 206, 108, 218, 83, 3, 163, 116, 104, 114, 2, 161, 118, 1, 163, 116, 120, 110, 135, 163, 97, 109, 116, 10, 163, 102, 101, 101, 205, 7, 38, 162, 102, 118, 205, 3, 232, 162, 108, 118, 205, 3, 232, 163, 114, 99, 118, 196, 32, 231, 240, 248, 77, 6, 129, 29, 249, 243, 28, 141, 135, 139, 17, 85, 244, 103, 29, 81, 161, 133, 194, 0, 144, 134, 103, 244, 73, 88, 112, 104, 161, 163, 115, 110, 100, 196, 32, 141, 146, 180, 137, 144, 1, 115, 160, 77, 250, 67, 89, 163, 102, 106, 106, 252, 234, 44, 66, 160, 93, 217, 193, 247, 62, 235, 165, 71, 128, 55, 233, 164, 116, 121, 112, 101, 163, 112, 97, 121]);
+            let golden = Buffer.from("gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAjmG2MILQVLoKg8q7jAYpu0r42zu9edYHrkkuSAikJAnDPplY1Pq90/ssyFhpKLrmvDDcSwNAwTGBjqtSOFYUAIGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgqJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGhc8RAXqddnsKAid3WHs1Wykg8Vk2GQ8v68YWlM3AfcSH2DA8zyl/UQ9Md8++N/XixLvE3uZMr7CvPs52Gnit1YE1QBKN0aHICoXYBo3R4boujYW10zQPopWNsb3NlxCBA6TSSiCVky86cWaabZ1Qmiemhw6Kp6ltlpuikQh/8V6NmZWXNBJiiZnbNMLKjZ2VurGRldm5ldC12MzMuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbNNJqkbm90ZcQIX4Bl4wQ9rCqjcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
 
             // Check txid
-            let tx_golden = "6CPXBC4QQFFAM6ZOROB6TOX7WE5OGKEMW6CES5GH2MANZFTNFDRQ";
+            let tx_golden = "TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A";
             assert.deepStrictEqual(js_dec.txID, tx_golden);
         });
     });
