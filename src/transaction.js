@@ -11,12 +11,18 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID}) {
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo}) {
         this.name = "Transaction";
         this.tag = Buffer.from([84, 88]); // "TX"
 
         from = address.decode(from);
         to = address.decode(to);
+
+        if (closeRemainderTo !== undefined) closeRemainderTo = address.decode(closeRemainderTo);
+
+        if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
+
+        genesisHash = Buffer.from(genesisHash, 'base64');
 
         if (!Number.isSafeInteger(amount) || amount < 0) throw Error("Amount must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be a positive number and smaller than 2^53-1");
@@ -28,7 +34,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisID
+            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo
         });
 
         // Modify Fee
@@ -51,7 +57,11 @@ class Transaction {
             "snd": Buffer.from(this.from.publicKey),
             "type": "pay",
             "gen": this.genesisID,
+            "gh": this.genesisHash,
         };
+
+        // parse close address
+        if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
 
         // allowed zero values
         if (!txn.note.length) delete txn.note;
@@ -74,7 +84,9 @@ class Transaction {
         txn.note = new Uint8Array(txnForEnc.note);
         txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.rcv)));
         txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
+        if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(new Uint8Array(txnForEnc.close)));
         txn.genesisID = txnForEnc.gen;
+        txn.genesisHash = txnForEnc.gh;
         return txn;
     }
 
