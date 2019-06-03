@@ -4,3 +4,6 @@
 
 # npm
 node_modules/
+
+# bitgo
+build/
