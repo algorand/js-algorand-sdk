@@ -33,7 +33,9 @@
   },
   "scripts": {
     "test": "mocha -R spec tests/",
-    "build": "browserify src/main.js -s algosdk | minify --simplify --mangle.keepClassName --deadcode.keepFnArgs --mangle.keepFnName --comments false --outFile dist/algosdk.min.js"
+    "build": "browserify src/main.js -s algosdk | minify --simplify --mangle.keepClassName --deadcode.keepFnArgs --mangle.keepFnName --comments false --outFile dist/algosdk.min.js",
+    "buildBitgo": "babel ../algosdk/src --out-dir build/",
+    "postinstall": "npm run buildBitgo"
   },
   "author": "Algorand, llc",
   "license": "MIT"
