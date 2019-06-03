@@ -1,5 +1,6 @@
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
+const Seed = require('./encoding/seed');
 const mnemonic = require('./mnemonic/mnemonic');
 const encoding = require('./encoding/encoding');
 const txnBuilder = require('./transaction');
@@ -23,6 +24,29 @@ function generateAccount() {
     let keys = nacl.keyPair();
     let encodedPk = address.encode(keys.publicKey);
     return {addr: encodedPk, sk: keys.secretKey};
+}
+
+/**
+ * Generates an account (key pair) from a seed and returns a new Algorand
+ * address and its corresponding secret key
+ * @param {Uint8Array} [seed] - Algorand seed
+ * @returns {{sk: Uint8Array, addr: string}}
+ */
+function generateAccountFromSeed(seed) {
+    const keys = nacl.keyPairFromSeed(seed);
+    return {
+        addr: address.encode(keys.publicKey),
+        sk: keys.secretKey
+    };
+}
+
+/**
+ * Takes an Algorand seed and checks if valid
+ * @param {String} seed - Algorand seed
+ * @returns {Boolean} true if valid, false otherwise
+ */
+function isValidSeed(seed) {
+    return Seed.isValidSeed(seed);
 }
 
 /**
@@ -54,7 +78,7 @@ function mnemonicToSecretKey(mn) {
  */
 function secretKeyToMnemonic(sk) {
     // get the seed from the sk
-    let seed = sk.slice(0, nacl.SEED_BTYES_LENGTH);
+    let seed = sk.slice(0, nacl.SEED_BYTES_LENGTH);
     return mnemonic.mnemonicFromSeed(seed);
 }
 
@@ -201,15 +225,20 @@ function decodeObj(o) {
 
 module.exports = {
     isValidAddress,
+    isValidSeed,
     generateAccount,
+    generateAccountFromSeed,
     secretKeyToMnemonic,
     mnemonicToSecretKey,
     signTransaction,
     signBid,
     encodeObj,
     decodeObj,
+    address,
+    seed: Seed,
     Algod,
     Kmd,
+    nacl,
     mnemonicToMasterDerivationKey,
     masterDerivationKeyToMnemonic,
     appendSignMultisigTransaction,

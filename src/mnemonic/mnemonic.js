@@ -12,8 +12,8 @@ const ERROR_NOT_IN_WORDS_LIST = Error('the mnemonic contains a word that is not 
  */
 function mnemonicFromSeed(seed) {
     // Sanity length check
-    if (seed.length !== nacl.SEED_BTYES_LENGTH) {throw new RangeError("Seed length must be " +
-        nacl.SEED_BTYES_LENGTH);}
+    if (seed.length !== nacl.SEED_BYTES_LENGTH) {throw new RangeError("Seed length must be " +
+        nacl.SEED_BYTES_LENGTH);}
 
     const uint11Array = toUint11Array(seed);
     const words = applyWords(uint11Array);

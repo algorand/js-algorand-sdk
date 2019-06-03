@@ -29,6 +29,16 @@ describe('Algosdk (AKA end to end)', function () {
         });
     });
 
+    describe('Key pair', function() {
+        it('should generate a key pair from a seed', function () {
+            const keyPair = algosdk.generateAccount();
+            const seed = keyPair.sk.slice(0, nacl.SEED_BYTES_LENGTH);
+            const regeneratedKeyPair = algosdk.generateAccountFromSeed(seed);
+            assert.equal(keyPair.addr, regeneratedKeyPair.addr);
+            assert.deepStrictEqual(keyPair.sk, regeneratedKeyPair.sk);
+        });
+    });
+
     describe('Sign', function () {
         it('should return a blob that matches the go code', function () {
             let sk = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
