@@ -26,14 +26,18 @@ function sign(msg, secretKey) {
     return nacl.sign.detached(msg, secretKey);
 }
 
+function verify(msg, sig, publicKey) {
+    return nacl.sign.detached.verify(msg, sig, publicKey);
+}
+
 function bytesEqual(a, b) {
     return nacl.verify(a, b);
 }
 
-module.exports = {genericHash, randomBytes, keyPair, sign, keyPairFromSeed, keyPairFromSecretKey, bytesEqual};
+module.exports = {genericHash, randomBytes, keyPair, sign, verify, keyPairFromSeed, keyPairFromSecretKey, bytesEqual};
 
 // constants
 module.exports.PUBLIC_KEY_LENGTH = nacl.sign.publicKeyLength;
 module.exports.SECRET_KEY_LENGTH = nacl.sign.secretKeyLength;
 module.exports.HASH_BYTES_LENGTH = 32;
-module.exports.SEED_BTYES_LENGTH = 32;
+module.exports.SEED_BYTES_LENGTH = 32;
