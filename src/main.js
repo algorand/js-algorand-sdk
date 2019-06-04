@@ -8,6 +8,7 @@ const multisig = require('./multisig');
 const bidBuilder = require('./bid');
 const algod = require('./client/algod');
 const kmd = require('./client/kmd');
+const utils = require('./utils/utils');
 
 let Algod = algod.Algod;
 let Kmd = kmd.Kmd;
@@ -234,11 +235,8 @@ module.exports = {
     signBid,
     encodeObj,
     decodeObj,
-    address,
-    seed: Seed,
     Algod,
     Kmd,
-    nacl,
     mnemonicToMasterDerivationKey,
     masterDerivationKeyToMnemonic,
     appendSignMultisigTransaction,
@@ -246,4 +244,13 @@ module.exports = {
     signMultisigTransaction,
     multisigAddress,
     ERROR_MULTISIG_BAD_SENDER,
+
+    Multisig: multisig,
+    Transaction: txnBuilder,
+    Address: address,
+    Encoding: encoding,
+    Seed,
+    Mnemonic: mnemonic,
+    NaclWrapper: nacl,
+    Utils: utils,
 };
