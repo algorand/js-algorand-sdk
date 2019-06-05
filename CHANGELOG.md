@@ -1,3 +1,7 @@
+# 1.2.1
+## Added 
+- Support for GetTransactionByID 
+- Handle the case of undeclared noteField
 # 1.2.0
 ## Added 
 - Support of GenesisHash and Close Remainder To fields 

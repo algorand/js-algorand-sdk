@@ -13,7 +13,9 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
 
     // workaround to allow backwards compatibility for multiple headers
     let requestHeaders = token;
-    if (typeof (requestHeaders) == 'string') { requestHeaders = { 'X-Algo-API-Token': requestHeaders }; };
+    if (typeof (requestHeaders) == 'string') {
+        requestHeaders = {'X-Algo-API-Token': requestHeaders};
+    }
 
     // Get client
     let c = new client.HTTPClient(requestHeaders, baseServer, port);
@@ -115,6 +117,7 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
 
     /**
      * transactionById returns the a transaction information of a specific txid [txId]
+     * Note - This method is allowed only when Indexer is enabled.
      * @param txid
      * @returns {Promise<*>}
      */
