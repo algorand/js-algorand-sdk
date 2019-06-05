@@ -32,6 +32,9 @@ class Transaction {
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
         }
+        else {
+          note = new Uint8Array(0);
+        }
 
         Object.assign(this, {
             from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo
