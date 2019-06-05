@@ -114,12 +114,12 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     };
 
     /**
-     * accountInformation returns the passed account's information
-     * @param addr string
+     * transactionById returns the a transaction information of a specific txid [txId]
+     * @param txid
      * @returns {Promise<*>}
      */
-    this.accountInformation = async function (addr) {
-        let res = await c.get("/v1/account/" + addr);
+    this.transactionById = async function (txid) {
+        let res = await c.get("/v1/transaction/" + txid);
         return res.body;
     };
 
@@ -134,6 +134,16 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
         if (res.statusCode === 200) {
             res.body = noteb64ToNote(res.body);
         }
+        return res.body;
+    };
+
+    /**
+     * accountInformation returns the passed account's information
+     * @param addr string
+     * @returns {Promise<*>}
+     */
+    this.accountInformation = async function (addr) {
+        let res = await c.get("/v1/account/" + addr);
         return res.body;
     };
 
