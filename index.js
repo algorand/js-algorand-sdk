@@ -1,1 +1,1 @@
-module.exports = require('./build/main.js');
+module.exports = require('./dist/bitgo/main.js');
