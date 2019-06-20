@@ -127,16 +127,18 @@
             ta.innerHTML = "";
 
 
+
             txn = {
                 "from": account,
                 "to": to.value.toString(),
-                "fee": 10,
+                "fee": 1000,
                 "amount": parseInt(algos.value),
                 "firstRound": parseInt(fround.value),
                 "lastRound": parseInt(lround.value),
-                "note": new Uint8Array(0)
+                "note": algosdk.encodeObj(person),
+                "genesisID": "testnet-v1.0",
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="
             };
-
             var signedTxn = algosdk.signTransaction(txn, signKey);
             console.log(signedTxn.txID);
             let algodclient = new algosdk.Algod(atoken, aserver, aport);
