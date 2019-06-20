@@ -139,6 +139,7 @@
                 "genesisID": "testnet-v1.0",
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="
             };
+            
             var signedTxn = algosdk.signTransaction(txn, signKey);
             console.log(signedTxn.txID);
             let algodclient = new algosdk.Algod(atoken, aserver, aport);
