@@ -10,8 +10,7 @@
     var to = document.getElementById('to');
     to.value = "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q"
     var algos = document.getElementById('algos');
-    algos.value = 739;
-
+    algos.value = 739000;
     var tb = document.getElementById('block');
     var ta = document.getElementById('ta');
     var ga = document.getElementById('account');
@@ -23,7 +22,8 @@
     var fround = document.getElementById('fround');
     var lround = document.getElementById('lround');
     var adetails = document.getElementById('adetails');
-
+    var trans = document.getElementById('trans');
+    var txid = document.getElementById('txid');
     var signKey = null;
     var account = null;
 
@@ -36,8 +36,9 @@
 
         return text;
     }
+    //acount information
     if (adetails) {
-        adetails.onclick = function() {
+        adetails.onclick = function () {
             ta.innerHTML = "";
             const algodclient = new algosdk.Algod(atoken, aserver, aport);
 
@@ -53,8 +54,9 @@
 
         }
     }
+    //block status
     if (tb) {
-        tb.onclick = function() {
+        tb.onclick = function () {
             ta.innerHTML = "";
             const algodclient = new algosdk.Algod(atoken, aserver, aport);
 
@@ -75,8 +77,9 @@
 
         }
     }
+    //Create account
     if (ga) {
-        ga.onclick = function() {
+        ga.onclick = function () {
             ta.innerHTML = "";
 
             var acct = algosdk.generateAccount();
@@ -95,8 +98,9 @@
 
         }
     }
+    //recover account
     if (re) {
-        re.onclick = function() {
+        re.onclick = function () {
             ta.innerHTML = "";
 
             var recovered_account = algosdk.mnemonicToSecretKey(bu.value);
@@ -121,22 +125,23 @@
 
         }
     }
+    //submit transaction
     if (st) {
-        st.onclick = function() {
-
+        st.onclick = function () {
             ta.innerHTML = "";
-
-
+             var person = { firstName: "John", lastName: "Doe", age: 50, eyeColor: "blue" };
+            var note = algosdk.encodeObj(person);
             txn = {
                 "from": account,
                 "to": to.value.toString(),
-                "fee": 10,
+                "fee": 1000,
                 "amount": parseInt(algos.value),
                 "firstRound": parseInt(fround.value),
                 "lastRound": parseInt(lround.value),
-                "note": new Uint8Array(0)
+                "note": algosdk.encodeObj(person),
+                "genesisID": "testnet-v1.0",
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="
             };
-
             var signedTxn = algosdk.signTransaction(txn, signKey);
             console.log(signedTxn.txID);
             let algodclient = new algosdk.Algod(atoken, aserver, aport);
@@ -145,49 +150,39 @@
                 var textedJson = JSON.stringify(tx, undefined, 4);
                 console.log(textedJson);
                 ta.innerHTML = textedJson;
+                console.log(tx);
+                console.log(tx.txId);
+                txid.value = tx.txId;
             })().catch(e => {
                 ta.innerHTML = e.text;
                 console.log(e);
             });
 
 
+
         }
     }
+    //Get transaction note
+    if (trans) {
+        trans.onclick = function () {
 
-    if (wr) {
-        wr.onclick = function() {
             ta.innerHTML = "";
-            const kmdclient = new algosdk.Kmd(kmdtoken, kmdserver, kmdport);
-            const algodclient = new algosdk.Algod(atoken, aserver, aport);
-            // Recover a wallet example
+
+            let algodclient = new algosdk.Algod(atoken, aserver, aport);
             (async () => {
-
-                let mdk = (await algosdk.mnemonicToMasterDerivationKey(wall.value));
-                console.log(mdk);
-                var walletname = createWalletName();
-                console.log("Created Wallet : " + walletname);
-                let walletid = (await kmdclient.createWallet(walletname, "", mdk)).wallet.id;
-                let wallethandle = (await kmdclient.initWalletHandle(walletid, "")).wallet_handle_token;
-                console.log("Got wallet handle.", wallethandle);
-                var acct = (await kmdclient.generateKey(wallethandle));
-                signKey = (await kmdclient.exportKey(wallethandle, "", acct.address)).private_key;
-                account = acct.address;
-                console.log(signKey)
-
-
-
-
-                let tx = (await algodclient.accountInformation(account));
-                var textedJson = JSON.stringify(tx, undefined, 4);
+                 let tx = (await algodclient.transactionInformation(account, txid.value));
+                  var textedJson = JSON.stringify(tx, undefined, 4);
                 console.log(textedJson);
-                ta.innerHTML = textedJson;
-
-
-
+ 
+                var encodednote = algosdk.decodeObj(tx.note);
+                 ta.innerHTML = JSON.stringify(encodednote, undefined, 4);
 
             })().catch(e => {
+                ta.innerHTML = e.text;
+                if (e.text === undefined) {
+                 }
                 console.log(e);
-            })
+            });
 
 
         }
