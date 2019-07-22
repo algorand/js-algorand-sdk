@@ -15,9 +15,9 @@ const ERROR_MULTISIG_BAD_FROM_FIELD = new Error("The transaction from field and 
 const ERROR_MULTISIG_KEY_NOT_EXIST = new Error("Key does not exist");
 
 /**
- * MultiSigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
+ * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
  */
-class MultiSigTransaction extends txnBuilder.Transaction {
+class MultisigTransaction extends txnBuilder.Transaction {
     get_obj_for_encoding() {
         if (this.hasOwnProperty("objForEncoding")) {
             // if set, use the value for encoding. This allows us to sign existing non-payment type transactions.
@@ -115,14 +115,14 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
         throw ERROR_MULTISIG_MERGE_LESSTHANTWO;
     }
     const refSigTx = encoding.decode(multisigTxnBlobs[0]);
-    const refSigAlgoTx = MultiSigTransaction.from_obj_for_encoding(refSigTx.txn);
+    const refSigAlgoTx = MultisigTransaction.from_obj_for_encoding(refSigTx.txn);
     const refTxIDStr = refSigAlgoTx.txID().toString();
     const from = address.encode(refSigTx.txn.snd);
 
     let newSubsigs = refSigTx.msig.subsig;
     for (let i = 0; i < multisigTxnBlobs.length; i++) {
         let unisig = encoding.decode(multisigTxnBlobs[i]);
-        let unisigAlgoTxn = MultiSigTransaction.from_obj_for_encoding(unisig.txn);
+        let unisigAlgoTxn = MultisigTransaction.from_obj_for_encoding(unisig.txn);
         if (unisigAlgoTxn.txID().toString() !== refTxIDStr) {
             throw ERROR_MULTISIG_MERGE_MISMATCH;
         }
@@ -174,7 +174,7 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
 }
 
 module.exports = {
-    MultiSigTransaction,
+    MultisigTransaction,
     mergeMultisigTransactions,
     createMultisigTransaction,
     ERROR_MULTISIG_MERGE_LESSTHANTWO,

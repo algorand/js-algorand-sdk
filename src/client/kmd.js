@@ -275,7 +275,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
      * @param walletHandle
      * @returns {Promise<*>}
      */
-    this.listMultiSig = async function (walletHandle) {
+    this.listMultisig = async function (walletHandle) {
         let req = {
             "wallet_handle_token": walletHandle,
         };
@@ -284,7 +284,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
     };
 
     /**
-     * importMultiSig accepts a wallet handle and the information required to
+     * importMultisig accepts a wallet handle and the information required to
      * generate a multisig address. It derives this address, and stores all of the
      * information within the wallet. It returns a ImportMultisigResponse with the
      * derived address.
@@ -294,7 +294,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
      * @param pks
      * @returns {Promise<*>}
      */
-    this.importMultiSig = async function (walletHandle, version, threshold, pks) {
+    this.importMultisig = async function (walletHandle, version, threshold, pks) {
         let req = {
             "wallet_handle_token": walletHandle,
             "multisig_version": version,
@@ -316,11 +316,10 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
      * @param addr
      * @returns {Promise<*>}
      */
-    this.exportMultisig = async function (walletHandle, walletPassword, addr) {
+    this.exportMultisig = async function (walletHandle, addr) {
         let req = {
             "wallet_handle_token": walletHandle,
             "address": addr,
-            "wallet_password": walletPassword
         };
         let res = await c.post("/v1/multisig/export", req);
         return res.body;
@@ -339,15 +338,16 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
      * @param partial
      * @returns {Promise<*>}
      */
-    this.signMultisigTransaction = async function (walletHandle, pw, tx, pk, partial) {
+    this.signMultisigTransaction = async function (walletHandle, pw, transaction, pk, partial) {
+        let tx = new txn.Transaction(transaction);
         let req = {
             "wallet_handle_token": walletHandle,
-            "transaction": tx,
+            "transaction": tx.toByte().toString('base64'),
             "public_key": Buffer.from(pk).toString('base64'),
             "partial_multisig": partial,
             "wallet_password": pw
         };
-        let res = await c.delete("/v1/multisig/sign", req);
+        let res = await c.post("/v1/multisig/sign", req);
         return res.body;
     };
 
