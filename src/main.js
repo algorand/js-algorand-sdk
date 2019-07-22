@@ -126,7 +126,7 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
     } else {
         txn.from = expectedFromRaw;
     }
-    let algoTxn = new multisig.MultiSigTransaction(txn);
+    let algoTxn = new multisig.MultisigTransaction(txn);
     const pks = addrs.map(addr => {
         return address.decode(addr).publicKey;
     });
@@ -153,7 +153,7 @@ function appendSignMultisigTransaction(multisigTxnBlob, {version, threshold, add
     });
     // obtain underlying txn, sign it, and merge it
     let multisigTxObj = encoding.decode(multisigTxnBlob);
-    let msigTxn = multisig.MultiSigTransaction.from_obj_for_encoding(multisigTxObj.txn);
+    let msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
     let partialSignedBlob = msigTxn.partialSignTxn({version, threshold, pks}, sk);
     return {
         "txID": msigTxn.txID().toString(),
