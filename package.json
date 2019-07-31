@@ -1,6 +1,6 @@
 {
   "name": "algosdk",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "algosdk is Algorand's official javascript SDK",
   "main": "index.js",
   "directories": {
@@ -13,10 +13,10 @@
   "dependencies": {
     "hi-base32": "^0.5.0",
     "js-sha512": "^0.8.0",
+    "js-yaml": ">=3.13.1",
     "msgpack-lite": "git+https://github.com/algorand/msgpack-lite.git",
     "superagent": "^4.1.0",
-    "tweetnacl": "^1.0.1",
-    "js-yaml": ">=3.13.1"
+    "tweetnacl": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.4.0",
