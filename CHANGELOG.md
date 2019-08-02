@@ -1,3 +1,6 @@
+# 1.2.2
+## Added 
+- Support for Optional Parameters for GetTransactionsByAddress
 # 1.2.1
 ## Added 
 - Support for GetTransactionByID 

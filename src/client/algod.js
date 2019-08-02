@@ -100,12 +100,18 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     /**
      * transactionsByAddress returns all transactions for a PK [addr] in the [first, last] rounds range.
      * @param addr string
-     * @param first number
-     * @param last number
+     * @param first number, optional
+     * @param last number, optional
      * @returns {Promise<*>}
      */
-    this.transactionByAddress = async function (addr, first, last) {
-        if (!Number.isInteger(first) || !Number.isInteger(last)) throw Error("first and last rounds should be integers");
+    this.transactionByAddress = async function (addr, first=null, last=null) {
+
+        if (( first !== null ) && (!Number.isInteger(first) )){
+            throw Error("first round should be an integer")
+        }
+        if (( last !== null ) && (!Number.isInteger(last) )){
+            throw Error("last round should be an integer")
+        }
         let res = await c.get("/v1/account/" + addr + "/transactions", { 'firstRound': first, 'lastRound': last });
         if (res.statusCode === 200 && res.body.transactions !== undefined) {
             for (let i = 0; i < res.body.transactions.length; i++) {
