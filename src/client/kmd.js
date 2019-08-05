@@ -351,7 +351,24 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
         return res.body;
     };
 
-
+    /**
+     * deleteMultisig accepts a wallet handle, wallet password, and multisig
+     * address, and deletes the information about this multisig address from the 
+     * wallet (including address and secret key).
+     * @param walletHandle
+     * @param walletPassword
+     * @param addr
+     * @returns {Promise<*>}
+     */
+    this.deleteMultisig = async function (walletHandle, walletPassword, addr) {
+        let req = {
+            "wallet_handle_token": walletHandle,
+            "address": addr,
+            "wallet_password": walletPassword
+        };
+        let res = await c.delete("/v1/multisig", req);
+        return res.body;
+    };
 }
 module.exports = {Kmd};
 
