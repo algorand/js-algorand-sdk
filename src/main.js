@@ -7,6 +7,7 @@ const multisig = require('./multisig');
 const bidBuilder = require('./bid');
 const algod = require('./client/algod');
 const kmd = require('./client/kmd');
+const utils = require("./utils/utils");
 
 let Algod = algod.Algod;
 let Kmd = kmd.Kmd;
@@ -14,6 +15,7 @@ let Kmd = kmd.Kmd;
 
 // Errors
 const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
+const BYTES_SIGN_PREFIX = Buffer.from([65, 98]); // "Ab"
 
 /**
  * GenerateAddress returns a new Algorand address and its corresponding secret key
@@ -91,6 +93,19 @@ function signTransaction(txn, sk) {
     let algoTxn = new txnBuilder.Transaction(txn);
 
     return {"txID": algoTxn.txID().toString(), "blob": algoTxn.signTxn(sk)};
+}
+
+/**
+ * signBytes takes a Uint8Array and a secret key and returns the resulting signature
+ * @param toSign bytes to be signed
+ * @param sk Algorand Secret Key
+ * @returns object contains the binary signed transaction and it's txID
+ */
+function signBytes(toBeSigned, sk) {
+    // Get pk from sk
+    toBeSigned = Buffer.from(utils.concatArrays(BYTES_SIGN_PREFIX, toBeSigned))
+    sig = nacl.sign(toBeSigned, sk);
+    return Buffer.from(sig);
 }
 
 /**
@@ -205,6 +220,7 @@ module.exports = {
     secretKeyToMnemonic,
     mnemonicToSecretKey,
     signTransaction,
+    signBytes,
     signBid,
     encodeObj,
     decodeObj,
