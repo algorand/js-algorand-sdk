@@ -13,7 +13,8 @@ const utils = require('./utils/utils');
 let Algod = algod.Algod;
 let Kmd = kmd.Kmd;
 
-const SIGN_BYTES_PREFIX = Buffer.from([77, 88]) // "MX"
+const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
+const MICROALGOS_TO_ALGOS_RATIO = 1e6;
 // Errors
 const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
 
@@ -230,20 +231,21 @@ function decodeObj(o) {
 
 /**
  * microalgosToAlgos converts microalgos to algos
- * @param microalgos number, string, or Big
- * @returns Big
+ * @param microalgos number
+ * @returns number
  */
 function microalgosToAlgos(microalgos) {
-    return Big(microalgos).div(1e6)
+    return microalgos/MICROALGOS_TO_ALGOS_RATIO
 }
 
 /**
  * algosToMicroalgos converts algos to microalgos
- * @param algos number, string, or Big
- * @returns Big
+ * @param algos number
+ * @returns number
  */
 function algosToMicroalgos(algos) {
-    return Big(algos).times(1e6).round()
+    let microalgos = algos*MICROALGOS_TO_ALGOS_RATIO;
+    return Math.round(microalgos)
 }
 
 
