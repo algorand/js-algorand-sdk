@@ -7,7 +7,6 @@ const multisig = require('./multisig');
 const bidBuilder = require('./bid');
 const algod = require('./client/algod');
 const kmd = require('./client/kmd');
-const Big = require('big.js');
 const utils = require('./utils/utils');
 
 let Algod = algod.Algod;
