@@ -42,7 +42,7 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     };
 
     /**
-     * helathCheck returns an empty object iff the node is running
+     * healthCheck returns an empty object iff the node is running
      * @returns {Promise<*>}
      */
     this.healthCheck = async function () {
@@ -102,9 +102,10 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      * @param addr string
      * @param first number, optional
      * @param last number, optional
+     * @param maxTxns number, optional
      * @returns {Promise<*>}
      */
-    this.transactionByAddress = async function (addr, first=null, last=null) {
+    this.transactionByAddress = async function (addr, first=null, last=null, maxTxns=null) {
 
         if (( first !== null ) && (!Number.isInteger(first) )){
             throw Error("first round should be an integer")
@@ -112,7 +113,26 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
         if (( last !== null ) && (!Number.isInteger(last) )){
             throw Error("last round should be an integer")
         }
-        let res = await c.get("/v1/account/" + addr + "/transactions", { 'firstRound': first, 'lastRound': last });
+        let res = await c.get("/v1/account/" + addr + "/transactions", { 'firstRound': first, 'lastRound': last, 'max': maxTxns });
+        if (res.statusCode === 200 && res.body.transactions !== undefined) {
+            for (let i = 0; i < res.body.transactions.length; i++) {
+                res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
+            }
+        }
+        return res.body;
+    };
+
+    /**
+     * transactionsByAddressAndDate returns all transactions for a PK [addr] in the [fromDate, toDate] date range. 
+     * The date is a string in the YYYY-MM-DD format.
+     * @param addr string
+     * @param fromDate string
+     * @param toDate string
+     * @param maxTxns number, optional
+     * @returns {Promise<*>}
+     */
+    this.transactionByAddressAndDate = async function (addr, fromDate, toDate, maxTxns=null) {
+        let res = await c.get("/v1/account/" + addr + "/transactions", { 'fromDate': fromDate, 'toDate': toDate, 'max': maxTxns });
         if (res.statusCode === 200 && res.body.transactions !== undefined) {
             for (let i = 0; i < res.body.transactions.length; i++) {
                 res.body.transactions[i] = noteb64ToNote(res.body.transactions[i]);
@@ -133,13 +153,26 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     };
 
     /**
-     * transactionInformation returns the a transaction information of a specific txid and an address
+     * transactionInformation returns the transaction information of a specific txid and an address
      * @param addr
      * @param txid
      * @returns {Promise<*>}
      */
     this.transactionInformation = async function (addr, txid) {
         let res = await c.get("/v1/account/" + addr + "/transaction/" + txid);
+        if (res.statusCode === 200) {
+            res.body = noteb64ToNote(res.body);
+        }
+        return res.body;
+    };
+
+    /**
+     * pendingTransactionInformation returns the transaction information for a specific txid of a pending transaction
+     * @param txid
+     * @returns {Promise<*>}
+     */
+    this.pendingTransactionInformation = async function (txid) {
+        let res = await c.get("/v1/transactions/pending/" + txid);
         if (res.statusCode === 200) {
             res.body = noteb64ToNote(res.body);
         }

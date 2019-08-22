@@ -56,6 +56,22 @@ describe('Algosdk (AKA end to end)', function () {
         });
     });
 
+    describe('Sign and verify bytes', function () {
+        it('should verify a correct signature', function () {
+            let account = algosdk.generateAccount();
+            let toSign = new Uint8Array(Buffer.from([1, 9, 25, 49]));
+            let signed = algosdk.signBytes(toSign, account.sk);
+            assert.equal(true, algosdk.verifyBytes(toSign, signed, account.addr))
+        });
+        it('should not verify a corrupted signature', function () {
+            let account = algosdk.generateAccount();
+            let toSign = Buffer.from([1, 9, 25, 49]);
+            let signed = algosdk.signBytes(toSign, account.sk);
+            signed[0] = (signed[0] + 1)%256;
+            assert.equal(false, algosdk.verifyBytes(toSign, signed, account.addr))
+        });
+    });
+
     describe('Multisig Sign', function () {
         it('should return a blob that matches the go code', function () {
             const params = {

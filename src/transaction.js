@@ -11,7 +11,7 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo}) {
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo, flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from([84, 88]); // "TX"
 
@@ -41,7 +41,9 @@ class Transaction {
         });
 
         // Modify Fee
-        this.fee *= this.estimateSize();
+        if (!flatFee){
+            this.fee *= this.estimateSize();
+        }
 
         // If suggested fee too small and will be rejected, set to min tx fee
         if (this.fee < ALGORAND_MIN_TX_FEE) {

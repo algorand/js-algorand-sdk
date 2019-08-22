@@ -11,6 +11,7 @@
     "url": "git://github.com/algorand/js-algorand-sdk.git"
   },
   "dependencies": {
+    "big.js": "^5.2.2",
     "hi-base32": "^0.5.0",
     "js-sha512": "^0.8.0",
     "js-yaml": ">=3.13.1",
