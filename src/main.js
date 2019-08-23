@@ -80,9 +80,15 @@ function masterDerivationKeyToMnemonic(mdk) {
 }
 
 /**
- * signTransaction takes an object with the following fields: to, amount, fee per byte, firstRound, lastRound,
- * and note(optional),GenesisID(optional) and a secret key and returns a signed blob
- * @param txn object with the following fields -  to, amount, fee per byte, firstRound, lastRound, and note(optional)
+ * signTransaction takes an object with either payment or key registration fields and 
+ * a secret key and returns a signed blob.
+ * 
+ * Payment transaction fields: to, amount, fee, firstRound, lastRound, genesisHash,
+ * note(optional), GenesisID(optional), closeRemainderTo(optional)
+ * 
+ * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
+ * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
+ * @param txn object with either payment or key registration fields
  * @param sk Algorand Secret Key
  * @returns object contains the binary signed transaction and its txID
  */
@@ -138,7 +144,7 @@ function verifyBytes(bytes, signature, addr) {
  * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
  * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
  * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendMultisigTransaction.
- * @param txn object with the following fields -  to, amount, fee per byte, firstRound, lastRound, and note(optional)
+ * @param txn object with either payment or key registration fields
  * @param version multisig version
  * @param threshold multisig threshold
  * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
@@ -171,7 +177,7 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
  * we ask the caller to pass it back in, to ensure they know what they are signing.
  * @param multisigTxnBlob an encoded multisig txn. Supports non-payment txn types.
  * @param version multisig version
- * @param threshold mutlisig threshold
+ * @param threshold multisig threshold
  * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
  * @param sk Algorand secret key
  * @returns object containing txID, and blob representing encoded multisig txn
@@ -234,6 +240,9 @@ function decodeObj(o) {
  * @returns number
  */
 function microalgosToAlgos(microalgos) {
+    if (!Number.isSafeInteger(microalgos)){
+        throw Error("microalgos must be less than 2^53 - 1");
+    }
     return microalgos/MICROALGOS_TO_ALGOS_RATIO
 }
 
