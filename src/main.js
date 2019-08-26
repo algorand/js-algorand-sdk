@@ -16,7 +16,7 @@ const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 const MICROALGOS_TO_ALGOS_RATIO = 1e6;
 // Errors
 const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
-
+const ERROR_INVALID_MICROALGOS = new Error("Microalgos should be positive and less than 2^53 - 1.")
 /**
  * generateAccount returns a new Algorand address and its corresponding secret key
  * @returns {{sk: Uint8Array, addr: string}}
@@ -240,8 +240,8 @@ function decodeObj(o) {
  * @returns number
  */
 function microalgosToAlgos(microalgos) {
-    if (!Number.isSafeInteger(microalgos)){
-        throw Error("microalgos must be less than 2^53 - 1");
+    if (microalgos < 0 || !Number.isSafeInteger(microalgos)){
+        throw ERROR_INVALID_MICROALGOS;
     }
     return microalgos/MICROALGOS_TO_ALGOS_RATIO
 }
@@ -277,6 +277,7 @@ module.exports = {
     signMultisigTransaction,
     multisigAddress,
     ERROR_MULTISIG_BAD_SENDER,
+    ERROR_INVALID_MICROALGOS,
     microalgosToAlgos,
     algosToMicroalgos,
 };
