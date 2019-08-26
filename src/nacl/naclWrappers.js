@@ -30,7 +30,11 @@ function bytesEqual(a, b) {
     return nacl.verify(a, b);
 }
 
-module.exports = {genericHash, randomBytes, keyPair, sign, keyPairFromSeed, keyPairFromSecretKey, bytesEqual};
+function verify(message, signature, verifyKey) {
+    return nacl.sign.detached.verify(message, signature, verifyKey);
+}
+
+module.exports = {genericHash, randomBytes, keyPair, sign, keyPairFromSeed, keyPairFromSecretKey, bytesEqual, verify};
 
 // constants
 module.exports.PUBLIC_KEY_LENGTH = nacl.sign.publicKeyLength;

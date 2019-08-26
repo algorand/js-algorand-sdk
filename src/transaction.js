@@ -11,12 +11,12 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo}) {
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, type="pay", flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from([84, 88]); // "TX"
 
         from = address.decode(from);
-        to = address.decode(to);
+        if (to !== undefined) to = address.decode(to);
 
         if (closeRemainderTo !== undefined) closeRemainderTo = address.decode(closeRemainderTo);
 
@@ -24,7 +24,7 @@ class Transaction {
 
         genesisHash = Buffer.from(genesisHash, 'base64');
 
-        if (!Number.isSafeInteger(amount) || amount < 0) throw Error("Amount must be a positive number and smaller than 2^53-1");
+        if (amount !== undefined && (!Number.isSafeInteger(amount) || amount < 0)) throw Error("Amount must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
@@ -35,14 +35,21 @@ class Transaction {
         else {
           note = new Uint8Array(0);
         }
+        if (voteKey !== undefined) {
+            voteKey = Buffer.from(voteKey, "base64");
+        }
+        if (selectionKey !== undefined) {
+            selectionKey = Buffer.from(selectionKey, "base64");
+        }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo
+            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, type
         });
 
         // Modify Fee
-        this.fee *= this.estimateSize();
-
+        if (!flatFee){
+            this.fee *= this.estimateSize();
+        }
         // If suggested fee too small and will be rejected, set to min tx fee
         if (this.fee < ALGORAND_MIN_TX_FEE) {
             this.fee = ALGORAND_MIN_TX_FEE;
@@ -50,29 +57,53 @@ class Transaction {
     }
 
     get_obj_for_encoding() {
-        let txn = {
-            "amt": this.amount,
-            "fee": this.fee,
-            "fv": this.firstRound,
-            "lv": this.lastRound,
-            "note": Buffer.from(this.note),
-            "rcv": Buffer.from(this.to.publicKey),
-            "snd": Buffer.from(this.from.publicKey),
-            "type": "pay",
-            "gen": this.genesisID,
-            "gh": this.genesisHash,
-        };
+        if (this.type == "pay") {
+            let txn = {
+                "amt": this.amount,
+                "fee": this.fee,
+                "fv": this.firstRound,
+                "lv": this.lastRound,
+                "note": Buffer.from(this.note),
+                "rcv": Buffer.from(this.to.publicKey),
+                "snd": Buffer.from(this.from.publicKey),
+                "type": "pay",
+                "gen": this.genesisID,
+                "gh": this.genesisHash,
+            };
+    
+            // parse close address
+            if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
+    
+            // allowed zero values
+            if (!txn.note.length) delete txn.note;
+            if (!txn.amt) delete txn.amt;
+            if (!txn.fee) delete txn.fee;
+            if (!txn.gen) delete txn.gen;
 
-        // parse close address
-        if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
-
-        // allowed zero values
-        if (!txn.note.length) delete txn.note;
-        if (!txn.amt) delete txn.amt;
-        if (!txn.fee) delete txn.fee;
-        if (!txn.gen) delete txn.gen;
-
-        return txn;
+            return txn;
+        }
+        else if (this.type == "keyreg") {
+            let txn = {
+                "fee": this.fee,
+                "fv": this.firstRound,
+                "lv": this.lastRound,
+                "note": Buffer.from(this.note),
+                "snd": Buffer.from(this.from.publicKey),
+                "type": this.type,
+                "gen": this.genesisID,
+                "gh": this.genesisHash,
+                "votekey": this.voteKey,
+                "selkey": this.selectionKey,
+                "votefst": this.voteFirst,
+                "votelst": this.voteLast,
+                "votekd": this.voteKeyDilution
+            };
+            // allowed zero values
+            if (!txn.note.length) delete txn.note;
+            if (!txn.fee) delete txn.fee;
+            if (!txn.gen) delete txn.gen;
+            return txn;
+        }
     }
 
     static from_obj_for_encoding(txnForEnc) {
@@ -80,16 +111,28 @@ class Transaction {
         txn.name = "Transaction";
         txn.tag = Buffer.from([84, 88]); // "TX"
 
-        txn.amount = txnForEnc.amt;
+        txn.genesisID = txnForEnc.gen;
+        txn.genesisHash = txnForEnc.gh;
+        txn.type = txnForEnc.type;
         txn.fee = txnForEnc.fee;
         txn.firstRound = txnForEnc.fv;
         txn.lastRound = txnForEnc.lv;
         txn.note = new Uint8Array(txnForEnc.note);
-        txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.rcv)));
         txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
-        if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(new Uint8Array(txnForEnc.close)));
-        txn.genesisID = txnForEnc.gen;
-        txn.genesisHash = txnForEnc.gh;
+
+        if (txnForEnc.type === "pay") {
+            txn.amount = txnForEnc.amt;
+            txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.rcv)));
+            if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(new Uint8Array(txnForEnc.close)));    
+        }
+        else if (txnForEnc.type === "keyreg") {
+            txn.voteKey = txnForEnc.votekey;
+            txn.selectionKey = txnForEnc.selkey;
+            txn.voteKeyDilution = txnForEnc.votekd;
+            txn.voteFirst = txnForEnc.votefst;
+            txn.voteLast = txnForEnc.votelst;
+        }
+        
         return txn;
     }
 

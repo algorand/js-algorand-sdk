@@ -7,16 +7,18 @@ const multisig = require('./multisig');
 const bidBuilder = require('./bid');
 const algod = require('./client/algod');
 const kmd = require('./client/kmd');
+const utils = require('./utils/utils');
 
 let Algod = algod.Algod;
 let Kmd = kmd.Kmd;
 
-
+const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
+const MICROALGOS_TO_ALGOS_RATIO = 1e6;
 // Errors
 const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
-
+const ERROR_INVALID_MICROALGOS = new Error("Microalgos should be positive and less than 2^53 - 1.")
 /**
- * GenerateAddress returns a new Algorand address and its corresponding secret key
+ * generateAccount returns a new Algorand address and its corresponding secret key
  * @returns {{sk: Uint8Array, addr: string}}
  */
 function generateAccount() {
@@ -28,7 +30,7 @@ function generateAccount() {
 /**
  * isValidAddress takes an Algorand address and checks if valid.
  * @param addr Algorand address
- * @returns {boolean}n true if valid, false otherwise
+ * @returns {boolean} true if valid, false otherwise
  */
 function isValidAddress(addr) {
     return address.isValidAddress(addr);
@@ -78,11 +80,17 @@ function masterDerivationKeyToMnemonic(mdk) {
 }
 
 /**
- * signTransaction takes an object with the following fields: to, amount, fee per byte, firstRound, lastRound,
- * and note(optional),GenesisID(optional) and a secret key and returns a signed blob
- * @param txn object with the following fields -  to, amount, fee per byte, firstRound, lastRound, and note(optional)
+ * signTransaction takes an object with either payment or key registration fields and 
+ * a secret key and returns a signed blob.
+ * 
+ * Payment transaction fields: to, amount, fee, firstRound, lastRound, genesisHash,
+ * note(optional), GenesisID(optional), closeRemainderTo(optional)
+ * 
+ * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
+ * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
+ * @param txn object with either payment or key registration fields
  * @param sk Algorand Secret Key
- * @returns object contains the binary signed transaction and it's txID
+ * @returns object contains the binary signed transaction and its txID
  */
 function signTransaction(txn, sk) {
     // Get pk from sk
@@ -106,10 +114,37 @@ function signBid(bid, sk) {
 }
 
 /**
+ * signBytes takes arbitrary bytes and a secret key, prepends the bytes with "MX" for domain separation, signs the bytes 
+ * with the private key, and returns the signature.
+ * @param bytes Uint8array
+ * @param sk Algorand secret key
+ * @returns binary signature
+ */
+function signBytes(bytes, sk) {
+    let toBeSigned = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
+    let sig = nacl.sign(toBeSigned, sk);
+    return sig;
+}
+
+/**
+ * verifyBytes takes arbitraray bytes, an address, and a signature and verifies if the signature is correct for the public
+ * key and the bytes (the bytes should have been signed with "MX" prepended for domain separation).
+ * @param bytes Uint8Array
+ * @param signature binary signature
+ * @param addr string address
+ * @returns bool
+ */
+function verifyBytes(bytes, signature, addr) {
+    toBeVerified = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
+    let pk = address.decode(addr).publicKey;
+    return nacl.verify(toBeVerified, signature, pk);
+}
+
+/**
  * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
  * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
  * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendMultisigTransaction.
- * @param txn object with the following fields -  to, amount, fee per byte, firstRound, lastRound, and note(optional)
+ * @param txn object with either payment or key registration fields
  * @param version multisig version
  * @param threshold multisig threshold
  * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
@@ -142,7 +177,7 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
  * we ask the caller to pass it back in, to ensure they know what they are signing.
  * @param multisigTxnBlob an encoded multisig txn. Supports non-payment txn types.
  * @param version multisig version
- * @param threshold mutlisig threshold
+ * @param threshold multisig threshold
  * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
  * @param sk Algorand secret key
  * @returns object containing txID, and blob representing encoded multisig txn
@@ -199,6 +234,29 @@ function decodeObj(o) {
     return encoding.decode(o);
 }
 
+/**
+ * microalgosToAlgos converts microalgos to algos
+ * @param microalgos number
+ * @returns number
+ */
+function microalgosToAlgos(microalgos) {
+    if (microalgos < 0 || !Number.isSafeInteger(microalgos)){
+        throw ERROR_INVALID_MICROALGOS;
+    }
+    return microalgos/MICROALGOS_TO_ALGOS_RATIO
+}
+
+/**
+ * algosToMicroalgos converts algos to microalgos
+ * @param algos number
+ * @returns number
+ */
+function algosToMicroalgos(algos) {
+    let microalgos = algos*MICROALGOS_TO_ALGOS_RATIO;
+    return Math.round(microalgos)
+}
+
+
 module.exports = {
     isValidAddress,
     generateAccount,
@@ -206,6 +264,8 @@ module.exports = {
     mnemonicToSecretKey,
     signTransaction,
     signBid,
+    signBytes,
+    verifyBytes,
     encodeObj,
     decodeObj,
     Algod,
@@ -217,4 +277,7 @@ module.exports = {
     signMultisigTransaction,
     multisigAddress,
     ERROR_MULTISIG_BAD_SENDER,
+    ERROR_INVALID_MICROALGOS,
+    microalgosToAlgos,
+    algosToMicroalgos,
 };
