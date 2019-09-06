@@ -1,3 +1,11 @@
+# 1.3.0
+## Added 
+- Support for key registration transactions
+- Support for flat fees
+- Signing and verifying bytes
+## Fixed 
+- deleteMultisig uses post instead of get
+- "MultiSig" standardized to "Multisig"
 # 1.2.2
 ## Added 
 - Support for Optional Parameters for GetTransactionsByAddress
