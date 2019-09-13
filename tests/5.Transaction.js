@@ -166,10 +166,14 @@ describe('Sign', function () {
                 "voteKey": "5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=",
                 "selectionKey": "oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=",
                 "voteFirst": 123,
-                "voteLast": 456,
-                "voteKeyDilution": 1234,
-                "genesisID": "",
-                "type": "acfg"
+                "t": 1000,
+                "df": true,
+                "un": "tests",
+                "an": "testcoin",
+                "m": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "r": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "f": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "c": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
             };
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
