@@ -1,8 +1,24 @@
 var request = require("superagent");
 
+/**
+ * removeEmpty gets a dictionary and removes empty values
+ * @param obj
+ * @returns {*}
+ */
+function removeEmpty(obj) {
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            if (!obj[key] || obj[key].length === 0) delete obj[key];
+        }
+    }
+    return obj;
+}
+
 function HTTPClient(requestHeaders, baseServer, port) {
     // Do not need colon if port is empty
-    if (port != '') { baseServer += ":" + port.toString(); }
+    if (port !== '') {
+        baseServer += ":" + port.toString();
+    }
     this.address = baseServer;
 
     this.get = async function (path, query) {
@@ -11,7 +27,7 @@ function HTTPClient(requestHeaders, baseServer, port) {
                 .get(this.address + path)
                 .set(requestHeaders)
                 .set('Accept', 'application/json')
-                .query(query);
+                .query(removeEmpty(query));
         } catch (e) {
             throw e;
         }

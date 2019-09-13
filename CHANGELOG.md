@@ -1,3 +1,8 @@
+# 1.3.1
+## Changed 
+- msgpack lib was replaced with the official https://github.com/msgpack/msgpack-javascript
+## Fixed 
+- algod.transactionById returns the note as Uint8Array and not as base64   
 # 1.3.0
 ## Added 
 - Support for key registration transactions

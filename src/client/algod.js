@@ -149,6 +149,9 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      */
     this.transactionById = async function (txid) {
         let res = await c.get("/v1/transaction/" + txid);
+        if (res.statusCode === 200) {
+            res.body = noteb64ToNote(res.body);
+        }
         return res.body;
     };
 

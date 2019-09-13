@@ -112,7 +112,7 @@ class Transaction {
         txn.tag = Buffer.from([84, 88]); // "TX"
 
         txn.genesisID = txnForEnc.gen;
-        txn.genesisHash = txnForEnc.gh;
+        txn.genesisHash = Buffer.from(txnForEnc.gh);
         txn.type = txnForEnc.type;
         txn.fee = txnForEnc.fee;
         txn.firstRound = txnForEnc.fv;
@@ -123,11 +123,11 @@ class Transaction {
         if (txnForEnc.type === "pay") {
             txn.amount = txnForEnc.amt;
             txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.rcv)));
-            if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(new Uint8Array(txnForEnc.close)));    
+            if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(txnForEnc.close));
         }
         else if (txnForEnc.type === "keyreg") {
-            txn.voteKey = txnForEnc.votekey;
-            txn.selectionKey = txnForEnc.selkey;
+            txn.voteKey = Buffer.from(txnForEnc.votekey);
+            txn.selectionKey = Buffer.from(txnForEnc.selkey);
             txn.voteKeyDilution = txnForEnc.votekd;
             txn.voteFirst = txnForEnc.votefst;
             txn.voteLast = txnForEnc.votelst;
