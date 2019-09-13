@@ -11,7 +11,7 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, type="pay", flatFee=false}) {
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type="pay", flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from([84, 88]); // "TX"
 
@@ -28,6 +28,7 @@ class Transaction {
         if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
+        if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^53-1");
 
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
@@ -43,7 +44,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, type
+            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type
         });
 
         // Modify Fee
@@ -104,6 +105,39 @@ class Transaction {
             if (!txn.gen) delete txn.gen;
             return txn;
         }
+        else if (this.type == "acfg") {
+            // asset creation, or asset reconfigure, or asset destruction
+            let txn = {
+                "fee": this.fee,
+                "fv": this.firstRound,
+                "lv": this.lastRound,
+                "note": Buffer.from(this.note),
+                "snd": Buffer.from(this.from.publicKey),
+                "type": this.type,
+                "gen": this.genesisID,
+                "gh": this.genesisHash,
+                "t": this.assetTotal,
+                "df": this.assetDefaultFrozen,
+                "un": this.assetUnitName,
+                "an": this.assetName,
+                "m": this.assetManager,
+                "r": this.assetReserve,
+                "f": this.assetFreeze,
+                "c": this.assetClawback,
+            };
+            // allowed zero values
+            if (!txn.note.length) delete txn.note;
+            if (!txn.amt) delete txn.amt;
+            if (!txn.fee) delete txn.fee;
+            if (!txn.gen) delete txn.gen;
+            if (!txn.un) delete txn.un;
+            if (!txn.an) delete txn.an;
+            if (!txn.m) delete txn.m;
+            if (!txn.r) delete txn.r;
+            if (!txn.f) delete txn.f;
+            if (!txn.c) delete txn.c;
+            return txn;
+        }
     }
 
     static from_obj_for_encoding(txnForEnc) {
@@ -132,7 +166,18 @@ class Transaction {
             txn.voteFirst = txnForEnc.votefst;
             txn.voteLast = txnForEnc.votelst;
         }
-        
+        else if (txnForEnc.type === "acfg") {
+            // asset creation, or asset reconfigure, or asset destruction
+            txn.assetTotal = txnForEnc.assetTotal;
+            txn.assetDefaultFrozen = txnForEnc.assetDefaultFrozen;
+            if (txnForEnc.assetManager !== undefined) txn.assetManager = txnForEnc.assetManager;
+            if (txnForEnc.assetReserve !== undefined) txn.assetReserve = txnForEnc.assetReserve;
+            if (txnForEnc.assetFreeze !== undefined) txn.assetFreeze = txnForEnc.assetFreeze;
+            if (txnForEnc.assetClawback !== undefined) txn.assetClawback = txnForEnc.assetClawback;
+            if (txnForEnc.assetUnitName !== undefined) txn.assetUnitName = txnForEnc.assetUnitName;
+            if (txnForEnc.assetName !== undefined) txn.assetName = txnForEnc.assetName;
+        }
+
         return txn;
     }
 
