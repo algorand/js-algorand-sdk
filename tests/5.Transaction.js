@@ -181,7 +181,7 @@ describe('Sign', function () {
             const decEncRep = encoding.decode(encTxn);
             let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
-            assert.deepStrictEqual(false, true); // always fail until this test is written
+            assert.deepStrictEqual(reencRep, encTxn);
         });
 
         it('reserializes correctly no genesis ID', function() {
