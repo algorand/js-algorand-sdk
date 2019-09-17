@@ -1,10 +1,11 @@
 language: node_js
 node_js:
-  - "9"
+  - "12"
 
 install:
   - curl https://raw.githubusercontent.com/algorand/algorand-sdk-testing/master/scripts/sdkupdate.sh -o ~/sdkupdate.sh
   - chmod +x ~/sdkupdate.sh
+  - npm install
 
 script:
   - npm test
