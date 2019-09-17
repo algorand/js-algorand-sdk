@@ -10,20 +10,20 @@ AlgoSDK is a javascript library for communicating with the Algorand network for 
 $ npm install algosdk
 ```
 
-### Browser 
-The `dist` directory contains a minified version of the library - `algosdk.min.js`. 
+### Browser
+The `dist` directory contains a minified version of the library - `algosdk.min.js`.
 Include this line in your HTML.
 ```html
 <script src="algosdk.min.js"/>
 ```
 
-## Quick Start 
+## Quick Start
 ```javascript
 const token = "Your algod API token";
 const server = "http://127.0.0.1";
 const port = 8080;
 const client = new algosdk.Algod(token, server, port);
-   
+
 (async () => {
     console.log(await client.status());
 })().catch(e => {
@@ -31,23 +31,23 @@ const client = new algosdk.Algod(token, server, port);
 });
 ```
 
-## Documentation 
+## Documentation
 For detailed information about the different API calls in `client`, visit https://developer.algorand.org
 ## Usage
 
-#### Generate an Algorand account 
+#### Generate an Algorand account
 ```javascript
 var keys = algosdk.generateAccount();
-```  
+```
 Example result
 ```text
 {addr: "IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U", sk: Uint8Array(64)}
 ```
 
-#### Secret key to mnemonic 
+#### Secret key to mnemonic
 ```javascript
 var mnemonic = algosdk.secretKeyToMnemonic(keys.sk);
-```  
+```
 Example result
 ```text
 "gorilla fortune learn marble essay uphold defense hover index effort ice atom figure will improve mom indoor mansion people elder hill material donkey abandon gown"
