@@ -256,7 +256,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
         let req = {
             "wallet_handle_token": walletHandle,
             "wallet_password": walletPassword,
-            "transaction": tx.toByte().toString('base64')
+            "transaction": Buffer.from(tx.toByte()).toString('base64')
         };
         let res = await c.post("/v1/transaction/sign", req);
 
@@ -342,7 +342,7 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
         let tx = new txn.Transaction(transaction);
         let req = {
             "wallet_handle_token": walletHandle,
-            "transaction": tx.toByte().toString('base64'),
+            "transaction": Buffer.from(tx.toByte()).toString('base64'),
             "public_key": Buffer.from(pk).toString('base64'),
             "partial_multisig": partial,
             "wallet_password": pw
