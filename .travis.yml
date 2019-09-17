@@ -7,5 +7,6 @@ install:
   - chmod +x ~/sdkupdate.sh
 
 script:
+  - npm install -g mocha
   - npm test
   - ~/sdkupdate.sh --js
