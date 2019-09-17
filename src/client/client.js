@@ -27,7 +27,7 @@ function HTTPClient(requestHeaders, baseServer, port) {
                 .get(this.address + path)
                 .set(requestHeaders)
                 .set('Accept', 'application/json')
-                .query(query);
+                .query(removeEmpty(query));
         } catch (e) {
             throw e;
         }
