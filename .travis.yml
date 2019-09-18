@@ -5,6 +5,7 @@ node_js:
 install:
   - curl https://raw.githubusercontent.com/algorand/algorand-sdk-testing/master/scripts/sdkupdate.sh -o ~/sdkupdate.sh
   - chmod +x ~/sdkupdate.sh
+  - npm install
 
 script:
   - npm test

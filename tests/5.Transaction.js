@@ -227,7 +227,7 @@ describe('Sign', function () {
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
             const encTxn = encoding.encode(encRep);            
-            assert.deepStrictEqual(encTxn, golden);
+            assert.deepStrictEqual(Buffer.from(encTxn), Buffer.from(golden));
         });
 
         it('reserializes correctly no genesis ID', function() {
