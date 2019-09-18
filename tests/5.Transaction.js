@@ -155,25 +155,21 @@ describe('Sign', function () {
             assert.deepStrictEqual(reencRep, encRep);
         });
 
-        it('should correctly serialize and deserialize an asset creation transaction from msgpack representation', function() {
+        it('should correctly serialize and deserialize an asset configuration transaction from msgpack representation', function() {
+            address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
             let o = {
-                "from": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "from": address,
                 "fee": 10,
-                "firstRound": 51,
-                "lastRound": 61,
-                "note": new Uint8Array([123, 12, 200]),
-                "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
-                "voteKey": "5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=",
-                "selectionKey": "oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=",
-                "voteFirst": 123,
-                "t": 1000,
-                "df": true,
-                "un": "tests",
-                "an": "testcoin",
-                "m": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
-                "r": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
-                "f": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
-                "c": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "creator": address,
+                "index": 1234,
+                "assetManager": address,
+                "assetReserve": address,
+                "assetFreeze": address,
+                "assetClawback": address,
+                "type": "acfg"
             };
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
@@ -181,7 +177,58 @@ describe('Sign', function () {
             const decEncRep = encoding.decode(encTxn);
             let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
-            assert.deepStrictEqual(reencRep, encTxn);
+            assert.deepStrictEqual(reencRep, encRep);
+        });
+
+        it('should correctly serialize and deserialize an asset creation transaction from msgpack representation', function() {
+            address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
+            let o = {
+                "from": address,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "t": 1000,
+                "df": true,
+                "un": "tests",
+                "an": "testcoin",
+                "assetManager": address,
+                "assetReserve": address,
+                "assetFreeze": address,
+                "assetClawback": address,
+                "type": "acfg"
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let encRep = expectedTxn.get_obj_for_encoding();
+            const encTxn = encoding.encode(encRep);
+            const decEncRep = encoding.decode(encTxn);
+            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const reencRep = decTxn.get_obj_for_encoding();
+            console.log(Buffer.from(encTxn).toString("base64"))
+            assert.deepStrictEqual(reencRep, encRep);
+        });
+
+        it('should correctly serialize an asset creation transaction to msgpack representation', function() {
+            address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
+            let o = {
+                "from": address,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "creator": address,
+                "index": 1234,
+                "assetManager": address,
+                "assetReserve": address,
+                "assetFreeze": address,
+                "assetClawback": address,
+                "type": "acfg"
+            };
+            golden = Buffer.from("iKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpzQTSo2ZlZc0OzqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaRhY2Zn", "base64");
+            let expectedTxn = new transaction.Transaction(o);
+            let encRep = expectedTxn.get_obj_for_encoding();
+            const encTxn = encoding.encode(encRep);
+            assert.deepStrictEqual(encTxn, golden);
         });
 
         it('reserializes correctly no genesis ID', function() {

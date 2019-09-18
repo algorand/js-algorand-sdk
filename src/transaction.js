@@ -11,14 +11,18 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type="pay", flatFee=false}) {
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type="pay", flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from([84, 88]); // "TX"
 
         from = address.decode(from);
         if (to !== undefined) to = address.decode(to);
-
         if (closeRemainderTo !== undefined) closeRemainderTo = address.decode(closeRemainderTo);
+        if (creator !== undefined) creator = Buffer.from(address.decode(creator).publicKey);
+        if (assetManager !== undefined) assetManager = Buffer.from(address.decode(assetManager).publicKey);
+        if (assetReserve !== undefined) assetReserve = Buffer.from(address.decode(assetReserve).publicKey);
+        if (assetFreeze !== undefined) assetFreeze = Buffer.from(address.decode(assetFreeze).publicKey);
+        if (assetClawback !== undefined) assetClawback = Buffer.from(address.decode(assetClawback).publicKey);
 
         if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
 
@@ -29,6 +33,7 @@ class Transaction {
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
         if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^53-1");
+        if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Asset index must be a positive number and smaller than 2^53-1");
 
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
@@ -42,9 +47,15 @@ class Transaction {
         if (selectionKey !== undefined) {
             selectionKey = Buffer.from(selectionKey, "base64");
         }
+        if (assetName !== undefined) {
+            assetName = Buffer.from(assetName);
+        }
+        if (assetUnitName !== undefined) {
+            assetUnitName = Buffer.from(assetUnitName);
+        }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type
+            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type
         });
 
         // Modify Fee
@@ -116,26 +127,54 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
-                "t": this.assetTotal,
-                "df": this.assetDefaultFrozen,
-                "un": this.assetUnitName,
-                "an": this.assetName,
-                "m": this.assetManager,
-                "r": this.assetReserve,
-                "f": this.assetFreeze,
-                "c": this.assetClawback,
+                "caid": {
+                    "c": this.creator,
+                    "i": this.index
+                },
+                "apar": {
+                    "t": this.assetTotal,
+                    "df": this.assetDefaultFrozen,
+                    "un": this.assetUnitName,
+                    "an": this.assetName,
+                    "m": this.assetManager,
+                    "r": this.assetReserve,
+                    "f": this.assetFreeze,
+                    "c": this.assetClawback,
+                }
             };
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-            if (!txn.un) delete txn.un;
-            if (!txn.an) delete txn.an;
-            if (!txn.m) delete txn.m;
-            if (!txn.r) delete txn.r;
-            if (!txn.f) delete txn.f;
-            if (!txn.c) delete txn.c;
+
+
+            if ((!txn.caid.c) && (!txn.caid.i)) delete txn.caid;
+            else {
+                if (!txn.caid.i) delete txn.caid.i;
+                if (!txn.caid.c) delete txn.caid.c;
+            }
+            if ((!txn.apar.t) &&
+                (!txn.apar.un) &&
+                (!txn.apar.an) &&
+                (!txn.apar.df) &&
+                (!txn.apar.m) &&
+                (!txn.apar.r) &&
+                (!txn.apar.f) &&
+                (!txn.apar.c)){
+                    delete txn.apar
+            }
+            else {
+                if (!txn.apar.t) delete txn.apar.t;
+                if (!txn.apar.un) delete txn.apar.un;
+                if (!txn.apar.an) delete txn.apar.an;
+                if (!txn.apar.df) delete txn.apar.df;
+                if (!txn.apar.m) delete txn.apar.m;
+                if (!txn.apar.r) delete txn.apar.r;
+                if (!txn.apar.f) delete txn.apar.f;
+                if (!txn.apar.c) delete txn.apar.c;
+            }
+            
             return txn;
         }
     }
@@ -168,16 +207,21 @@ class Transaction {
         }
         else if (txnForEnc.type === "acfg") {
             // asset creation, or asset reconfigure, or asset destruction
-            txn.assetTotal = txnForEnc.assetTotal;
-            txn.assetDefaultFrozen = txnForEnc.assetDefaultFrozen;
-            if (txnForEnc.assetManager !== undefined) txn.assetManager = txnForEnc.assetManager;
-            if (txnForEnc.assetReserve !== undefined) txn.assetReserve = txnForEnc.assetReserve;
-            if (txnForEnc.assetFreeze !== undefined) txn.assetFreeze = txnForEnc.assetFreeze;
-            if (txnForEnc.assetClawback !== undefined) txn.assetClawback = txnForEnc.assetClawback;
-            if (txnForEnc.assetUnitName !== undefined) txn.assetUnitName = txnForEnc.assetUnitName;
-            if (txnForEnc.assetName !== undefined) txn.assetName = txnForEnc.assetName;
+            if (txnForEnc.caid !== undefined){
+                txn.index = txnForEnc.caid.i
+                if (txnForEnc.caid.c!== undefined) txn.creator = txnForEnc.caid.c;
+            }
+            if (txnForEnc.apar !== undefined){
+                txn.assetTotal = txnForEnc.apar.t;
+                txn.assetDefaultFrozen = txnForEnc.apar.df;
+                if (txnForEnc.apar.m !== undefined) txn.assetManager = txnForEnc.apar.m;
+                if (txnForEnc.apar.r !== undefined) txn.assetReserve = txnForEnc.apar.r;
+                if (txnForEnc.apar.f !== undefined) txn.assetFreeze = txnForEnc.apar.f;
+                if (txnForEnc.apar.c !== undefined) txn.assetClawback = txnForEnc.apar.c;
+                if (txnForEnc.apar.un !== undefined) txn.assetUnitName = txnForEnc.apar.un;
+                if (txnForEnc.apar.an !== undefined) txn.assetName = txnForEnc.apar.an;
+            }
         }
-
         return txn;
     }
 
