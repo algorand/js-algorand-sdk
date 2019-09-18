@@ -1,8 +1,10 @@
 let assert = require('assert');
 let algosdk = require("../src/main");
 let address = require("../src/encoding/address");
+let encoding = require("../src/encoding/encoding");
 let passphrase = require("../src/mnemonic/mnemonic");
 let nacl = require("../src/nacl/naclWrappers");
+let transaction = require("../src/transaction");
 
 describe('Algosdk (AKA end to end)', function () {
     describe('#mnemonic', function () {
@@ -180,6 +182,88 @@ describe('Algosdk (AKA end to end)', function () {
             };
             let outAddr = algosdk.multisigAddress(params);
             assert.deepStrictEqual(outAddr, "RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM");
+        });
+    });
+
+    describe('Group operations', function () {
+        it('should return a blob that matches the go code', function () {
+
+            const address = "UPYAFLHSIPMJOHVXU2MPLQ46GXJKSDCEMZ6RLCQ7GWB5PRDKJUWKKXECXI";
+            const [fromAddress, toAddress] = [address, address];
+            const fee = 1000;
+            const amount = 2000;
+            const genesisID = "devnet-v1.0";
+            const genesisHash = "sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E";
+            const firstRound1 = 710399;
+            const note1 = new Uint8Array(Buffer.from("wRKw5cJ0CMo=", "base64"));
+            let o1 = {
+                "to": toAddress,
+                "from": fromAddress,
+                "fee": fee,
+                "amount": amount,
+                "firstRound": firstRound1,
+                "lastRound": firstRound1 + 1000,
+                "genesisID": genesisID,
+                "genesisHash": genesisHash,
+                "note": note1,
+                flatFee: true,
+            };
+
+
+            const firstRound2 = 710515
+            const note2 = new Uint8Array(Buffer.from("dBlHI6BdrIg=", "base64"));
+
+            let o2 = {
+                "to": toAddress,
+                "from": fromAddress,
+                "fee": fee,
+                "amount": amount,
+                "firstRound": firstRound2,
+                "lastRound": firstRound2 + 1000,
+                "genesisID": genesisID,
+                "genesisHash": genesisHash,
+                "note": note2,
+                flatFee: true,
+            };
+
+            const goldenTx1 = "gaN0eG6Ko2FtdM0H0KNmZWXNA+iiZnbOAArW/6NnZW6rZGV2bmV0LXYxLjCiZ2jEILAtz+3tknW6iiStLW4gnSvbXUqW3ul3ghinaDc5pY9Bomx2zgAK2uekbm90ZcQIwRKw5cJ0CMqjcmN2xCCj8AKs8kPYlx63ppj1w5410qkMRGZ9FYofNYPXxGpNLKNzbmTEIKPwAqzyQ9iXHremmPXDnjXSqQxEZn0Vih81g9fEak0spHR5cGWjcGF5";
+            const goldenTx2 = "gaN0eG6Ko2FtdM0H0KNmZWXNA+iiZnbOAArXc6NnZW6rZGV2bmV0LXYxLjCiZ2jEILAtz+3tknW6iiStLW4gnSvbXUqW3ul3ghinaDc5pY9Bomx2zgAK21ukbm90ZcQIdBlHI6BdrIijcmN2xCCj8AKs8kPYlx63ppj1w5410qkMRGZ9FYofNYPXxGpNLKNzbmTEIKPwAqzyQ9iXHremmPXDnjXSqQxEZn0Vih81g9fEak0spHR5cGWjcGF5";
+
+            let tx1 = new transaction.Transaction(o1);
+            let tx2 = new transaction.Transaction(o2);
+
+            // goal clerk send dumps unsigned transaction as signed with empty signature in order to save tx type
+            let stx1 = Buffer.from(encoding.encode({txn: tx1.get_obj_for_encoding()}));
+            let stx2 = Buffer.from(encoding.encode({txn: tx2.get_obj_for_encoding()}));
+            assert.deepStrictEqual(stx1, Buffer.from(goldenTx1, "base64"));
+            assert.deepStrictEqual(stx2, Buffer.from(goldenTx2, "base64"));
+
+            const gid = algosdk.computeGroupID([tx1, tx2]);
+
+            // goal clerk group sets Group to every transaction and concatenate them in output file
+            // simulating that behavior here
+            tx1.group = gid;
+            tx2.group = gid;
+            stx1 = encoding.encode({txn: tx1.get_obj_for_encoding()});
+            stx2 = encoding.encode({txn: tx2.get_obj_for_encoding()});
+            const concat = Buffer.concat([stx1, stx2]);
+            const goldenTxg = "gaN0eG6Lo2FtdM0H0KNmZWXNA+iiZnbOAArW/6NnZW6rZGV2bmV0LXYxLjCiZ2jEILAtz+3tknW6iiStLW4gnSvbXUqW3ul3ghinaDc5pY9Bo2dycMQgLiQ9OBup9H/bZLSfQUH2S6iHUM6FQ3PLuv9FNKyt09SibHbOAAra56Rub3RlxAjBErDlwnQIyqNyY3bEIKPwAqzyQ9iXHremmPXDnjXSqQxEZn0Vih81g9fEak0so3NuZMQgo/ACrPJD2Jcet6aY9cOeNdKpDERmfRWKHzWD18RqTSykdHlwZaNwYXmBo3R4boujYW10zQfQo2ZlZc0D6KJmds4ACtdzo2dlbqtkZXZuZXQtdjEuMKJnaMQgsC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0GjZ3JwxCAuJD04G6n0f9tktJ9BQfZLqIdQzoVDc8u6/0U0rK3T1KJsds4ACttbpG5vdGXECHQZRyOgXayIo3JjdsQgo/ACrPJD2Jcet6aY9cOeNdKpDERmfRWKHzWD18RqTSyjc25kxCCj8AKs8kPYlx63ppj1w5410qkMRGZ9FYofNYPXxGpNLKR0eXBlo3BheQ==";
+
+            assert.deepStrictEqual(concat, Buffer.from(goldenTxg, "base64"));
+
+            let result;
+            result = algosdk.assignGroupID([tx1, tx2]);
+            assert.equal(result.length, 2);
+
+            result = algosdk.assignGroupID([tx1, tx2], "");
+            assert.equal(result.length, 2);
+
+            result = algosdk.assignGroupID([tx1, tx2], address);
+            assert.equal(result.length, 2);
+
+            result = algosdk.assignGroupID([tx1, tx2], "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA");
+            assert.ok(result instanceof Array);
+            assert.equal(result.length, 0);
         });
     });
 });

@@ -31,7 +31,7 @@ function containsEmpty(obj) {
 }
 
 /**
- * ecnode encodes objects using msgpack
+ * encode encodes objects using msgpack
  * @param obj a dictionary to be encoded. Must not contain empty or 0 values.
  * @returns {Uint8Array} msgpack representation of the object
  * @throws ERROR_CONTAINS_EMPTY if the object contains empty or zero values
