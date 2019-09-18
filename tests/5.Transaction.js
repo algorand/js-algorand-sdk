@@ -1,4 +1,5 @@
 let assert = require('assert');
+
 let transaction = require("../src/transaction");
 let encoding = require("../src/encoding/encoding");
 
@@ -195,7 +196,40 @@ describe('Sign', function () {
             assert.deepStrictEqual(reencRep, encRep);
         });
 
+        it('should correctly serialize and deserialize group object', function() {
+            let o = {
+                "from": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
+                "to": "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM",
+                "fee": 10,
+                "amount": 0,
+                "firstRound": 51,
+                "lastRound": 61,
+                "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+                "note": new Uint8Array([123, 12, 200]),
+            };
+            let tx = new transaction.Transaction(o);
+
+            {
+                let expectedTxg = new transaction.TxGroup([tx.rawTxID(), tx.rawTxID()])
+                let encRep = expectedTxg.get_obj_for_encoding();
+                const encTxg = encoding.encode(encRep);
+                const decEncRep = encoding.decode(encTxg);
+                let decTxg = transaction.TxGroup.from_obj_for_encoding(decEncRep);
+                const reencRep = decTxg.get_obj_for_encoding();
+                assert.deepStrictEqual(reencRep, encRep);
+            }
+
+            {
+                let expectedTxn = tx;
+                expectedTxn.group = tx.rawTxID();
+                let encRep = expectedTxn.get_obj_for_encoding();
+                const encTxn = encoding.encode(encRep);
+                const decEncRep = encoding.decode(encTxn);
+                let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+                const reencRep = decTxn.get_obj_for_encoding();
+                assert.deepStrictEqual(reencRep, encRep);
+            }
+
+        });
     });
-
-
 });
