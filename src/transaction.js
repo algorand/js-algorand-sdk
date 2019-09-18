@@ -18,11 +18,11 @@ class Transaction {
         from = address.decode(from);
         if (to !== undefined) to = address.decode(to);
         if (closeRemainderTo !== undefined) closeRemainderTo = address.decode(closeRemainderTo);
-        if (creator !== undefined) creator = Buffer.from(address.decode(creator).publicKey);
-        if (assetManager !== undefined) assetManager = Buffer.from(address.decode(assetManager).publicKey);
-        if (assetReserve !== undefined) assetReserve = Buffer.from(address.decode(assetReserve).publicKey);
-        if (assetFreeze !== undefined) assetFreeze = Buffer.from(address.decode(assetFreeze).publicKey);
-        if (assetClawback !== undefined) assetClawback = Buffer.from(address.decode(assetClawback).publicKey);
+        if (creator !== undefined) creator = address.decode(creator);
+        if (assetManager !== undefined) assetManager = address.decode(assetManager);
+        if (assetReserve !== undefined) assetReserve = address.decode(assetReserve);
+        if (assetFreeze !== undefined) assetFreeze = address.decode(assetFreeze);
+        if (assetClawback !== undefined) assetClawback = address.decode(assetClawback);
 
         if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
 
@@ -33,7 +33,7 @@ class Transaction {
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
         if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^53-1");
-        if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Asset index must be a positive number and smaller than 2^53-1");
+        if (index !== undefined && (!Number.isSafeInteger(index) || index < 0)) throw Error("Asset index must be a positive number and smaller than 2^53-1");
 
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
@@ -46,12 +46,6 @@ class Transaction {
         }
         if (selectionKey !== undefined) {
             selectionKey = Buffer.from(selectionKey, "base64");
-        }
-        if (assetName !== undefined) {
-            assetName = Buffer.from(assetName);
-        }
-        if (assetUnitName !== undefined) {
-            assetUnitName = Buffer.from(assetUnitName);
         }
 
         Object.assign(this, {
@@ -128,20 +122,21 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "caid": {
-                    "c": this.creator,
                     "i": this.index
                 },
                 "apar": {
                     "t": this.assetTotal,
                     "df": this.assetDefaultFrozen,
-                    "un": this.assetUnitName,
-                    "an": this.assetName,
-                    "m": this.assetManager,
-                    "r": this.assetReserve,
-                    "f": this.assetFreeze,
-                    "c": this.assetClawback,
                 }
             };
+            if (this.creator !== undefined) txn.caid.c = Buffer.from(this.creator.publicKey)
+            if (this.assetManager !== undefined) txn.apar.m = Buffer.from(this.assetManager.publicKey)
+            if (this.assetReserve !== undefined) txn.apar.r = Buffer.from(this.assetReserve.publicKey)
+            if (this.assetFreeze !== undefined) txn.apar.f = Buffer.from(this.assetFreeze.publicKey)
+            if (this.assetClawback !== undefined) txn.apar.c = Buffer.from(this.assetClawback.publicKey)
+            if (this.assetName !== undefined) txn.apar.an = Buffer.from(this.assetName);
+            if (this.assetUnitName !== undefined) txn.apar.un = Buffer.from(this.assetUnitName);
+            
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.amt) delete txn.amt;
@@ -209,15 +204,15 @@ class Transaction {
             // asset creation, or asset reconfigure, or asset destruction
             if (txnForEnc.caid !== undefined){
                 txn.index = txnForEnc.caid.i
-                if (txnForEnc.caid.c!== undefined) txn.creator = txnForEnc.caid.c;
+                if (txnForEnc.caid.c!== undefined) txn.creator = address.decode(address.encode(new Uint8Array(txnForEnc.caid.c)));
             }
             if (txnForEnc.apar !== undefined){
                 txn.assetTotal = txnForEnc.apar.t;
                 txn.assetDefaultFrozen = txnForEnc.apar.df;
-                if (txnForEnc.apar.m !== undefined) txn.assetManager = txnForEnc.apar.m;
-                if (txnForEnc.apar.r !== undefined) txn.assetReserve = txnForEnc.apar.r;
-                if (txnForEnc.apar.f !== undefined) txn.assetFreeze = txnForEnc.apar.f;
-                if (txnForEnc.apar.c !== undefined) txn.assetClawback = txnForEnc.apar.c;
+                if (txnForEnc.apar.m !== undefined) txn.assetManager = address.decode(address.encode(new Uint8Array(txnForEnc.apar.m)));
+                if (txnForEnc.apar.r !== undefined) txn.assetReserve = address.decode(address.encode(new Uint8Array(txnForEnc.apar.r)));
+                if (txnForEnc.apar.f !== undefined) txn.assetFreeze = address.decode(address.encode(new Uint8Array(txnForEnc.apar.f)));
+                if (txnForEnc.apar.c !== undefined) txn.assetClawback = address.decode(address.encode(new Uint8Array(txnForEnc.apar.c)));
                 if (txnForEnc.apar.un !== undefined) txn.assetUnitName = txnForEnc.apar.un;
                 if (txnForEnc.apar.an !== undefined) txn.assetName = txnForEnc.apar.an;
             }

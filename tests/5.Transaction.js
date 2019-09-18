@@ -204,11 +204,10 @@ describe('Sign', function () {
             const decEncRep = encoding.decode(encTxn);
             let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
-            console.log(Buffer.from(encTxn).toString("base64"))
             assert.deepStrictEqual(reencRep, encRep);
         });
 
-        it('should correctly serialize an asset creation transaction to msgpack representation', function() {
+        it('should correctly serialize an asset config transaction to msgpack representation', function() {
             address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
             let o = {
                 "from": address,
@@ -227,7 +226,7 @@ describe('Sign', function () {
             golden = Buffer.from("iKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpzQTSo2ZlZc0OzqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaRhY2Zn", "base64");
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
+            const encTxn = encoding.encode(encRep);            
             assert.deepStrictEqual(encTxn, golden);
         });
 
