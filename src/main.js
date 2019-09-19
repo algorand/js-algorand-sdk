@@ -258,12 +258,16 @@ function algosToMicroalgos(algos) {
 
 /**
  * computeGroupID returns group ID for a group of transactions
- * @param txns list of transactions
+ * @param txns array of transactions (every element is a dict or Transaction)
  * @return Buffer
  */
 function computeGroupID(txns) {
     const hashes = [];
-    for (let tx of txns) {
+    for (let txn of txns)  {
+        let tx = txn;
+        if (!(txn instanceof txnBuilder.Transaction)) {
+            tx = new txnBuilder.Transaction(txn);
+        }
         hashes.push(tx.rawTxID());
     }
 
@@ -277,7 +281,7 @@ function computeGroupID(txns) {
 
 /**
  * assignGroupID assigns group id to a given list of unsigned transactions
- * @param txns list of transactions
+ * @param txns array of transactions (every element is a dict or Transaction)
  * @param from optional sender address specifying which transaction return
  * @return possible list of matching transactions
  */

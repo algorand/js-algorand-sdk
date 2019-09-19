@@ -212,6 +212,17 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     };
 
     /**
+     * sendRawTransactions gets a list of encoded SignedTxns and broadcasts it to the network
+     * @param txn Array of Uin8Array
+     * @returns {Promise<*>}
+     */
+    this.sendRawTransactions = async function (txns) {
+        const merged = Array.prototype.concat(...txns.map(arr => Array.from(arr)));
+        let res = await c.post("/v1/transactions", Buffer.from(merged));
+        return res.body;
+    };
+
+    /**
      * getTransactionParams returns to common needed parameters for a new transaction
      * @returns {Promise<*>}
      */
