@@ -127,7 +127,7 @@ var bid = {
     "auctionKey": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
     "bidAmount": 1000,
     "maxPrice": 10,
-    "bidID": 2, 
+    "bidID": 2,
     "auctionID": 56
 };
 ```
@@ -140,7 +140,7 @@ var signedBid = algosdk.signBid(bid, keys.sk);
 In order to send a bid to the network. Embbed the output of `algosdk.signBid` to a transaction `note`'s field.
 For example,
 ```javascript
-var txn = { 
+var txn = {
     "to": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
     "fee": 10,
     "amount": 0,
@@ -201,7 +201,7 @@ fs.writeFile("/tmp/example_multisig.tx", Buffer.from(rawSignedTxn), function(err
         return console.log(err);
     }
     console.log("The file was saved!");
-}); 
+});
 ```
 
 We can import multiple files or raw signed transactions, and merge the multisignature transactions:
@@ -245,6 +245,28 @@ let algodclient = new algosdk.Algod(atoken, aserver, aport);
 });
 ```
 
+#### Transaction group
+
+Example below show how to group and send transactions:
+
+```javascript
+let txns = [...];  // array of unsigned transactions (dict or Transaction)
+let sks = [...];   // array of appropriate secret keys
+assert(txns.length == sks.length);
+
+// assign group id
+let txgroup = algosdk.assignGroupID(txns);
+assert(txgroup.length == sks.length);
+
+// sign all transactions
+let signed = [];
+for (let idx in txgroup) {
+    signed.push(algosdk.signTransaction(txgroup[idx], sks[idx]));
+}
+// send array of signed transactions as a group
+let algodclient = new algosdk.Algod(atoken, aserver, aport);
+algodclient.sendRawTransactions(signed);
+```
 
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
