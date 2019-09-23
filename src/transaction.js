@@ -11,7 +11,10 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type="pay", flatFee=false}) {
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, 
+                 closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
+                 creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
+                 assetFreeze, assetClawback, assetUnitName, assetName, type="pay", flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from([84, 88]); // "TX"
 
@@ -49,7 +52,10 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, assetFreeze, assetClawback, assetUnitName, assetName, type
+            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, 
+            closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
+            creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
+            assetFreeze, assetClawback, assetUnitName, assetName, type
         });
 
         // Modify Fee

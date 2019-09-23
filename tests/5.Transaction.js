@@ -207,29 +207,6 @@ describe('Sign', function () {
             assert.deepStrictEqual(reencRep, encRep);
         });
 
-        it('should correctly serialize an asset config transaction to msgpack representation', function() {
-            address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
-            let o = {
-                "from": address,
-                "fee": 10,
-                "firstRound": 322575,
-                "lastRound": 323575,
-                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-                "creator": address,
-                "index": 1234,
-                "assetManager": address,
-                "assetReserve": address,
-                "assetFreeze": address,
-                "assetClawback": address,
-                "type": "acfg"
-            };
-            golden = Buffer.from("iKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpzQTSo2ZlZc0OzqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaRhY2Zn", "base64");
-            let expectedTxn = new transaction.Transaction(o);
-            let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);            
-            assert.deepStrictEqual(Buffer.from(encTxn), Buffer.from(golden));
-        });
-
         it('reserializes correctly no genesis ID', function() {
             let o = {
                 "from": "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU",
