@@ -10,7 +10,7 @@
  *  5. Binary blob should be used for binary data and string for strings
  *  */
 
-const msgpack = require("msgpack-lite");
+const msgpack = require("@msgpack/msgpack");
 
 // Errors
 const ERROR_CONTAINS_EMPTY = new Error("The object contains empty or 0 values");
@@ -31,9 +31,9 @@ function containsEmpty(obj) {
 }
 
 /**
- * ecnode encodes objects using msgpack
+ * encode encodes objects using msgpack
  * @param obj a dictionary to be encoded. Must not contain empty or 0 values.
- * @returns {Buffer} msgpack representation of the object
+ * @returns {Uint8Array} msgpack representation of the object
  * @throws ERROR_CONTAINS_EMPTY if the object contains empty or zero values
  */
 function encode(obj) {
@@ -41,7 +41,7 @@ function encode(obj) {
     if (containsEmpty(obj)) {throw ERROR_CONTAINS_EMPTY;}
 
     // enable the canonical option
-    let options = {codec: msgpack.createCodec({canonical: true})};
+    let options = {sortKeys: true};
     return msgpack.encode(obj, options);
 }
 

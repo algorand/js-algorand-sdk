@@ -149,6 +149,9 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      */
     this.transactionById = async function (txid) {
         let res = await c.get("/v1/transaction/" + txid);
+        if (res.statusCode === 200) {
+            res.body = noteb64ToNote(res.body);
+        }
         return res.body;
     };
 
@@ -205,6 +208,17 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      */
     this.sendRawTransaction = async function (txn) {
         let res = await c.post("/v1/transactions", Buffer.from(txn));
+        return res.body;
+    };
+
+    /**
+     * sendRawTransactions gets a list of encoded SignedTxns and broadcasts it to the network
+     * @param txn Array of Uin8Array
+     * @returns {Promise<*>}
+     */
+    this.sendRawTransactions = async function (txns) {
+        const merged = Array.prototype.concat(...txns.map(arr => Array.from(arr)));
+        let res = await c.post("/v1/transactions", Buffer.from(merged));
         return res.body;
     };
 

@@ -16,7 +16,7 @@ class Transaction {
                  creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
                  assetFreeze, assetClawback, assetUnitName, assetName, type="pay", flatFee=false}) {
         this.name = "Transaction";
-        this.tag = Buffer.from([84, 88]); // "TX"
+        this.tag = Buffer.from("TX");
 
         from = address.decode(from);
         if (to !== undefined) to = address.decode(to);
@@ -66,6 +66,9 @@ class Transaction {
         if (this.fee < ALGORAND_MIN_TX_FEE) {
             this.fee = ALGORAND_MIN_TX_FEE;
         }
+
+        // say we are aware of groups
+        this.group = undefined;
     }
 
     get_obj_for_encoding() {
@@ -81,16 +84,18 @@ class Transaction {
                 "type": "pay",
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
+                "grp": this.group,
             };
-    
+
             // parse close address
             if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
-    
+
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
+            if (txn.grp === undefined) delete txn.grp;
 
             return txn;
         }
@@ -104,6 +109,7 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
+                "grp": this.group,
                 "votekey": this.voteKey,
                 "selkey": this.selectionKey,
                 "votefst": this.voteFirst,
@@ -114,6 +120,9 @@ class Transaction {
             if (!txn.note.length) delete txn.note;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
+
+            if (txn.grp === undefined) delete txn.grp;
+
             return txn;
         }
         else if (this.type == "acfg") {
@@ -183,25 +192,26 @@ class Transaction {
     static from_obj_for_encoding(txnForEnc) {
         let txn = Object.create(this.prototype);
         txn.name = "Transaction";
-        txn.tag = Buffer.from([84, 88]); // "TX"
+        txn.tag = Buffer.from("TX");
 
         txn.genesisID = txnForEnc.gen;
-        txn.genesisHash = txnForEnc.gh;
+        txn.genesisHash = Buffer.from(txnForEnc.gh);
         txn.type = txnForEnc.type;
         txn.fee = txnForEnc.fee;
         txn.firstRound = txnForEnc.fv;
         txn.lastRound = txnForEnc.lv;
         txn.note = new Uint8Array(txnForEnc.note);
         txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
+        if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
 
         if (txnForEnc.type === "pay") {
             txn.amount = txnForEnc.amt;
             txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.rcv)));
-            if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(new Uint8Array(txnForEnc.close)));    
+            if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(txnForEnc.close));
         }
         else if (txnForEnc.type === "keyreg") {
-            txn.voteKey = txnForEnc.votekey;
-            txn.selectionKey = txnForEnc.selkey;
+            txn.voteKey = Buffer.from(txnForEnc.votekey);
+            txn.selectionKey = Buffer.from(txnForEnc.selkey);
             txn.voteKeyDilution = txnForEnc.votekd;
             txn.voteFirst = txnForEnc.votefst;
             txn.voteLast = txnForEnc.votelst;
@@ -258,11 +268,51 @@ class Transaction {
         return new Uint8Array(encoding.encode(sTxn));
     }
 
-    txID() {
-        const en_msg = encoding.encode(this.get_obj_for_encoding());
+    rawTxID() {
+        const en_msg = this.toByte();
         const gh = Buffer.from(utils.concatArrays(this.tag, en_msg));
-        return base32.encode(nacl.genericHash(gh)).slice(0, ALGORAND_TRANSACTION_LENGTH);
+        return Buffer.from(nacl.genericHash(gh));
+    }
+
+    txID() {
+        const hash = this.rawTxID();
+        return base32.encode(hash).slice(0, ALGORAND_TRANSACTION_LENGTH);
     }
 }
 
-module.exports = {Transaction};
+/**
+ * Aux class for group id calculation of a group of transactions
+ */
+class TxGroup {
+    constructor(hashes) {
+        this.name = "Transaction group";
+        this.tag = Buffer.from("TG");
+
+        this.txGroupHashes = hashes;
+    }
+
+    get_obj_for_encoding() {
+        const txgroup = {
+            "txlist": this.txGroupHashes
+        };
+        return txgroup;
+    }
+
+    static from_obj_for_encoding(txgroupForEnc) {
+        const txn = Object.create(this.prototype);
+        txn.name = "Transaction group";
+        txn.tag = Buffer.from("TG");
+        txn.txGroupHashes = [];
+        for (let hash of txgroupForEnc.txlist) {
+            txn.txGroupHashes.push(new Buffer.from(hash));
+        }
+        return txn;
+    }
+
+    toByte() {
+        return encoding.encode(this.get_obj_for_encoding());
+    }
+
+}
+
+module.exports = {Transaction, TxGroup};
