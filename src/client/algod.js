@@ -198,7 +198,7 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      * @param index number
      * @returns {Promise<*>}
      */
-    this.accountInformation = async function (creator, index) {
+    this.assetInformation = async function (creator, index) {
         let res = await c.get("/v1/account/" + creator + "/assets/" + index);
         return res.body;
     };
