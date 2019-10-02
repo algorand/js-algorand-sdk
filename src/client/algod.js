@@ -193,6 +193,17 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     };
 
     /**
+     * assetInformation returns the information for the asset with the passed creator and index
+     * @param creator string
+     * @param index number
+     * @returns {Promise<*>}
+     */
+    this.assetInformation = async function (creator, index) {
+        let res = await c.get("/v1/account/" + creator + "/assets/" + index);
+        return res.body;
+    };
+
+    /**
      * suggestedFee gets the recommended transaction fee from the node
      * @returns {Promise<*>}
      */
