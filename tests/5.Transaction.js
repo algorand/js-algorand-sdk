@@ -228,10 +228,11 @@ describe('Sign', function () {
             for (let key in o) {
                 if (o.hasOwnProperty(key)) {
                     if (!o[key] || o[key].length === 0) {
-                        assert.fail("failed on empty key" + key)
+                        console.log(key)
                     }
                 }
             }
+            console.log(o)
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
             const encTxn = encoding.encode(encRep);
