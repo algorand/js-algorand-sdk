@@ -228,7 +228,7 @@ describe('Sign', function () {
             for (let key in o) {
                 if (o.hasOwnProperty(key)) {
                     if (!o[key] || o[key].length === 0) {
-                        assert.fail("failed on empty key", key, "empty key", ":")
+                        assert.fail("failed on empty key" + key)
                     }
                 }
             }
