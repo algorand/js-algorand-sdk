@@ -227,8 +227,10 @@ describe('Sign', function () {
             };
 
             let expectedTxn = new transaction.Transaction(o);
+            console.log("unique string for finding in log lakcjbvy7");
             let encRep = expectedTxn.get_obj_for_encoding();
             console.log(encRep);
+            console.log("unique string for finding in log 1932847");
             const encTxn = encoding.encode(encRep);
             const decEncRep = encoding.decode(encTxn);
             let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
