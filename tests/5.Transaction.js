@@ -225,6 +225,13 @@ describe('Sign', function () {
                 "faid": faid,
                 "afrz": true
             };
+            for (let key in o) {
+                if (o.hasOwnProperty(key)) {
+                    if (!o[key] || o[key].length === 0) {
+                        assert.fail("failed on empty key", key, "empty key", ":")
+                    }
+                }
+            }
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
             const encTxn = encoding.encode(encRep);
