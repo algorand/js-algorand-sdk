@@ -225,16 +225,10 @@ describe('Sign', function () {
                 "faid": faid,
                 "afrz": true
             };
-            for (let key in o) {
-                if (o.hasOwnProperty(key)) {
-                    if (!o[key] || o[key].length === 0) {
-                        console.log(key)
-                    }
-                }
-            }
-            console.log(o)
+
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
+            console.log(encRep);
             const encTxn = encoding.encode(encRep);
             const decEncRep = encoding.decode(encTxn);
             let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
