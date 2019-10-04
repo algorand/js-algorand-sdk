@@ -210,10 +210,6 @@ describe('Sign', function () {
 
         it('should correctly serialize and deserialize an asset freeze transaction from msgpack representation', function() {
             address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
-            let faid = {
-                "i" : 1,
-                "c" : address
-            };
             let o = {
                 "from": address,
                 "fee": 10,
@@ -221,16 +217,14 @@ describe('Sign', function () {
                 "lastRound": 323575,
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
                 "type": "afrz",
-                "fadd": address,
-                "faid": faid,
-                "afrz": true
+                "freezeAccount": address,
+                "index": 1,
+                "creator" : address,
+                "freezeState" : true
             };
 
             let expectedTxn = new transaction.Transaction(o);
-            console.log("unique string for finding in log lakcjbvy7");
             let encRep = expectedTxn.get_obj_for_encoding();
-            console.log(encRep);
-            console.log("unique string for finding in log 1932847");
             const encTxn = encoding.encode(encRep);
             const decEncRep = encoding.decode(encTxn);
             let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);

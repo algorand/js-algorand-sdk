@@ -207,6 +207,11 @@ class Transaction {
             };
             if (this.creator !== undefined) txn.faid.c = Buffer.from(this.creator.publicKey);
             if (this.freezeAccount !== undefined) txn.fadd = Buffer.from(this.freezeAccount.publicKey);
+            // allowed zero values
+            if (!txn.note.length) delete txn.note;
+            if (!txn.amt) delete txn.amt;
+            if (!txn.fee) delete txn.fee;
+            if (!txn.gen) delete txn.gen;
             return txn;
         }
     }
