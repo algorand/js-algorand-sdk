@@ -118,9 +118,9 @@ Uint8Array(32)
 ```
 
 
-#### Sign a bid 
-Bids have similar pattern to a transaction. 
-First, create an object with the bid's information 
+#### Sign a bid
+Bids have similar pattern to a transaction.
+First, create an object with the bid's information
 ```javascript
 var bid = {
     "bidderKey": "IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U",
@@ -266,6 +266,45 @@ for (let idx in txgroup) {
 // send array of signed transactions as a group
 let algodclient = new algosdk.Algod(atoken, aserver, aport);
 algodclient.sendRawTransactions(signed);
+```
+
+#### LogicSig Transactions
+
+Demonstrate delegation for a standard account.
+
+```javascript
+// recover keys from mnemonic
+let mnem = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
+let seed = passphrase.seedFromMnemonic(mnem1);
+let keys = nacl.keyPairFromSeed(seed);
+let sender_pk = address.encode(keys.publicKey)
+
+// create LogicSig object and sign with our secret key
+let program = Uint8Array.from([1, 32, 1, 0, 34]);  // int 0 => never transfer money
+let lsig = algosdk.makeLogicSig(program);
+lsig.sign(keys.secretKey);
+
+assert lsig.verify(sender_pk);
+
+// create transaction
+let txn = {
+    "to": "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
+    "from": sender,
+    "fee": 10,
+    "amount": 10000,
+    "firstRound": 1000,
+    "lastRound": 1000,
+    "genesisID": "devnet-v33.0",
+    "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+    "closeRemainderTo": "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA",
+    "note": new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64")),
+};
+
+// create logic signed transaction.
+let rawSignedTxn = algosdk.signLogicSigTransaction(txn, lsig).blob;
+
+let algodclient = new algosdk.Algod(atoken, aserver, aport);
+algodclient.sendRawTransaction(rawSignedTxn);
 ```
 
 ## License

@@ -337,7 +337,6 @@ describe('Algosdk (AKA end to end)', function () {
         it('should return a blob that matches the go code', function () {
 
             let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
-
             let o = {
                 "from": addr,
                 "fee": 10,
@@ -360,4 +359,146 @@ describe('Algosdk (AKA end to end)', function () {
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
         });
     });
-});
+
+    describe('LogicSig', function () {
+        it('should return valid logic sig object', function () {
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);  // int 1
+            let lsig = algosdk.makeLogicSig(program);
+            assert.equal(lsig.logic, program);
+            assert.equal(lsig.args, undefined);
+            assert.equal(lsig.sig, undefined);
+            assert.equal(lsig.msig, undefined);
+
+            let args = [
+                Uint8Array.from("123"),
+                Uint8Array.from("456")
+            ];
+            lsig = algosdk.makeLogicSig(program);
+            assert.equal(lsig.logic, program);
+            assert.equal(lsig.args, args);
+        });
+        it('should throw on invalid program', function () {
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);  // int 1
+            program[0] = 2;
+            assert.throws(
+                () => algosdk.makeLogicSig(program)
+            );
+        });
+    });
+    describe('Single logic sig', function () {
+        it('should work on valid program', function () {
+            let program = Uint8Array.from("\x01\x20\x01\x01\x22");
+            let keys = algosdk.generateAccount();
+            let lsig = algosdk.makeLogicSig(program);
+            lsig.sign(keys.sk);
+            let verified = lsig.verify(address.decode(keys.addr));
+            assert.equal(verified, true);
+
+            // check serialization
+            let encoded = lsig.toByte();
+            let decoded = logic.LogicSig.from_obj_for_encoding(encoded);
+            assert.deepStrictEqual(decoded, lsig);
+        });
+    });
+    describe('Multisig logic sig', function () {
+        it('should work on valid program', function () {
+            let program = Uint8Array.from("\x01\x20\x01\x01\x22");
+            let lsig = algosdk.makeLogicSig(program);
+
+            let keys = algosdk.generateAccount();
+            assert.throws(
+                () => lsig.appendToMultisig(keys.secretKey),
+                "empty msig"
+            );
+
+            const params = {
+                version: 1,
+                threshold: 2,
+                addrs: [
+                    "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA",
+                    "BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM",
+                    "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
+                ],
+            };
+            const outAddr = algosdk.multisigAddress(params);
+            const msig_pk = address.decode(outAddr);
+            const mn1 = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
+            const mn2 = "since during average anxiety protect cherry club long lawsuit loan expand embark forum theory winter park twenty ball kangaroo cram burst board host ability left";
+            const sk1 = algosdk.mnemonicToSecretKey(mn1);
+            const sk2 = algosdk.mnemonicToSecretKey(mn2);
+
+            lsig.sign(sk1.sk);
+
+            // fails on wrong key
+            assert.throws(
+                () => lsig.appendToMultisig(keys.secretKey)
+            );
+
+            lsig.appendToMultisig(sk2.sk);
+            let verified = lsig.verify(msig_pk);
+            assert.equal(verified, true);
+
+            // combine sig and msig
+            let lsigf = algosdk.makeLogicSig(program);
+            lsig.sig = lsigf.sig;
+            verified = lsig.verify(msig_pk);
+            assert.equal(verified, false);
+
+            lsig.sig = undefined;
+            verified = lsig.verify(msig_pk);
+            assert.equal(verified, true);
+
+            // check serialization
+            let encoded = lsig.toByte();
+            let decoded = logic.LogicSig.from_obj_for_encoding(encoded);
+            assert.deepStrictEqual(decoded, lsig);
+        });
+    });
+
+    describe('LogicSig Transaction', function () {
+        it('should match to goal-produced logic signed tx', function () {
+            const fromAddress = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU";
+            const toAddress = "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI";
+            const mn = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
+            const fee = 1000;
+            const amount = 2000;
+            const firstRound = 2063137;
+            const genesisID = "devnet-v1.0";
+            const genesisHash = "sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E=";
+            const note = new Uint8Array(Buffer.from("8xMCTuLQ810=", "base64"));
+
+            let txn = {
+                "to": toAddress,
+                "from": fromAddress,
+                "fee": fee,
+                "amount": amount,
+                "firstRound": firstRound,
+                "lastRound": firstRound + 1000,
+                "genesisID": genesisID,
+                "genesisHash": genesisHash,
+                "note": note,
+                flatFee: true,
+            };
+
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);  // int 1
+            let args = [
+                Uint8Array.from("123"),
+                Uint8Array.from("456")
+            ];
+            let lsig = algosdk.makeLogicSig(program, args);
+            lsig.sign(sk.sk);
+
+            sk = algosdk.mnemonicToSecretKey(mn);
+            let js_dec = algosdk.signLogicSigTransaction(txn, lsig);
+
+            // goal clerk send -o tx3 -a 2000 --fee 1000 -d ~/.algorand -w test -L sig.lsig --argb64 MTIz --argb64 NDU2 \
+            // -f 47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU \
+            // -t PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI
+            const golden = "gqRsc2lng6NhcmeSxAMxMjPEAzQ1NqFsxAUBIAEBIqNzaWfEQE6HXaI5K0lcq50o/y3bWOYsyw9TLi/oorZB4xaNdn1Z14351u2f6JTON478fl+JhIP4HNRRAIh/I8EWXBPpJQ2jdHhuiqNhbXTNB9CjZmVlzQPoomZ2zgAfeyGjZ2Vuq2Rldm5ldC12MS4womdoxCCwLc/t7ZJ1uookrS1uIJ0r211Klt7pd4IYp2g3OaWPQaJsds4AH38JpG5vdGXECPMTAk7i0PNdo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaR0eXBlo3BheQ=="
+
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
+            let sender_pk = address.decode(fromAddress);
+            let verified = lsig.verify(sender_pk);
+            assert.equal(verified, true);
+        });
+    });});

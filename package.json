@@ -32,6 +32,9 @@
     "uglify-js": "^3.6.0",
     "watchify": "^3.11.1"
   },
+  "files": [
+    "src/logic/langspec.json"
+  ],
   "scripts": {
     "test": "mocha -R spec tests/",
     "build": "browserify src/main.js -s algosdk | minify --simplify --mangle.keepClassName --deadcode.keepFnArgs --mangle.keepFnName --comments false --outFile dist/algosdk.min.js"

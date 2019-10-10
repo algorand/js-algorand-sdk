@@ -127,7 +127,7 @@ function signBytes(bytes, sk) {
 }
 
 /**
- * verifyBytes takes arbitraray bytes, an address, and a signature and verifies if the signature is correct for the public
+ * verifyBytes takes array of bytes, an address, and a signature and verifies if the signature is correct for the public
  * key and the bytes (the bytes should have been signed with "MX" prepended for domain separation).
  * @param bytes Uint8Array
  * @param signature binary signature
