@@ -173,10 +173,15 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
     return new Uint8Array(encoding.encode(sTxn));
 }
 
+function verifyMultisig(toBeVerified, msig) {
+    throw EvalError("not implemented");
+}
+
 module.exports = {
     MultisigTransaction,
     mergeMultisigTransactions,
     createMultisigTransaction,
+    verifyMultisig,
     ERROR_MULTISIG_MERGE_LESSTHANTWO,
     ERROR_MULTISIG_MERGE_MISMATCH,
     ERROR_MULTISIG_MERGE_WRONG_PREIMAGE,
