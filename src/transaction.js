@@ -270,7 +270,7 @@ class Transaction {
                 txn.index = txnForEnc.xaid.i
                 if (txnForEnc.xaid.c !== undefined) txn.creator = address.decode(address.encode(new Uint8Array(txnForEnc.xaid.c)));
             }
-            if (txnForEnc.amount !== undefined) txn.amount = txnForEnc.aamt;
+            if (txnForEnc.aamt !== undefined) txn.amount = txnForEnc.aamt;
             if (txnForEnc.aclose !== undefined) {
                 txn.closeRemainderTo = address.decode(address.encode(new Uint8Array(txnForEnc.aclose)));
             }
