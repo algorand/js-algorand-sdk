@@ -210,14 +210,27 @@ describe('Sign', function () {
 
         it('should correctly serialize and deserialize an asset transfer transaction from msgpack representation', function() {
             address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
-            let o = {};
+            let o = {
+                "type": "axfer",
+                "from": address,
+                "to": address,
+                "amount": 100,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "creator": address,
+                "index": 1234,
+                "assetRevocationTarget": address,
+                "closeRemainderTo": address
+            };
             let expectedTxn = new transaction.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
             const encTxn = encoding.encode(encRep);
             const decEncRep = encoding.decode(encTxn);
             let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
-            assert.deepStrictEqual(0, 1); // TODO ejr fail always for now
+            assert.deepStrictEqual(reencRep, encRep); // TODO ejr fail always for now
         });
 
         it('reserializes correctly no genesis ID', function() {

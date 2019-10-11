@@ -209,12 +209,14 @@ class Transaction {
             if (this.assetRevocationTarget !== undefined) txn.asnd = Buffer.from(this.assetRevocationTarget.publicKey);
             // allowed zero values
             if (!txn.note.length) delete txn.note;
-            if (!txn.amt) delete txn.amt;
+            if (!txn.aamt) delete txn.aamt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
+
+            return txn;
         }
     }
 
@@ -262,7 +264,7 @@ class Transaction {
                 if (txnForEnc.apar.an !== undefined) txn.assetName = txnForEnc.apar.an;
             }
         }
-        else if (txnForenc.type === "axfer") {
+        else if (txnForEnc.type === "axfer") {
             // asset transfer, acceptance, revocation, mint, or burn
             if (txnForEnc.xaid !== undefined){
                 txn.index = txnForEnc.xaid.i
