@@ -12,13 +12,22 @@ const maxLength = 1000;
 /**
  * checkProgram validates program for length and running cost
  * @param {Uint8Array} program Program to check
- * @param {[Uint8Array]} args Program arguments
+ * @param {[Uint8Array]} args Program arguments as array of Uint8Array arrays
  * @throws {Error}
  * @returns {bool} true if success
  */
 function checkProgram(program, args) {
+    const intcblockOpcode = 32;
+    const bytecblockOpcode = 38;
     if (!program) {
         throw new Error("empty program");
+    }
+
+    if (args == undefined) {
+        args = []
+    }
+    if (!Array.isArray(args)) {
+        throw new Error("invalid arguments");
     }
 
     let [version, vlen] = parseUvariant(program);
@@ -39,6 +48,7 @@ function checkProgram(program, args) {
     }
 
     if (!opcodes) {
+        opcodes = {}
         for (let op of langspec.Ops) {
             opcodes[op.Opcode] = op;
         }
@@ -55,11 +65,11 @@ function checkProgram(program, args) {
         let size = op.Size;
         if (size == 0) {
             switch (op.Opcode) {
-                case 32: {  // intcblock
+                case intcblockOpcode: {
                     size = checkIntConstBlock(program, pc);
                     break;
                 }
-                case 38: {  // bytecblock
+                case bytecblockOpcode: {
                     size = checkByteConstBlock(program, pc);
                     break;
                 }
@@ -124,11 +134,11 @@ function checkByteConstBlock(program, pc) {
     return size;
 }
 
-function parseUvariant(buf) {
+function parseUvariant(array) {
     let x = 0;
     let s = 0;
-    for (let i in buf) {
-        b = buf[i];
+    for (let i = 0; i < array.length; i++) {
+        b = array[i];
         if (b < 0x80) {
             if (i > 9 || i == 9 && b > 1) {
                 return [0, -(i + 1)];

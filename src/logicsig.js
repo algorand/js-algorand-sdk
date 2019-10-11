@@ -1,8 +1,10 @@
+const assert = require('assert');
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
 const logic = require('./logic/logic');
 const multisig = require('./multisig');
+const utils = require('./utils/utils');
 
 /**
  LogicSig implementation
@@ -53,7 +55,7 @@ class LogicSig {
         }
 
         try {
-            this.logic.checkProgram(this.program, this.args);
+            logic.checkProgram(this.logic, this.args);
         } catch (e) {
             return false;
         }
@@ -66,10 +68,10 @@ class LogicSig {
         }
 
         if (this.sig) {
-            return nacl.verify(toBeSigned, this.msig, publicKey);
+            return nacl.verify(toBeSigned, this.sig, publicKey);
         }
 
-        return multisig.verifyMultisig(this.msig, toBeSigned);
+        return multisig.verifyMultisig(toBeSigned, this.msig, publicKey);
     }
 
     /**
@@ -85,15 +87,24 @@ class LogicSig {
     /**
      * Creates signature (if no msig provided) or multi signature otherwise
      * @param {Uint8Array} secretKey Secret key to sign with
-     * @param {Object} msig Multisig account
+     * @param {Object} msig Multisig account as {version, threshold, addrs}
      */
     sign(secretKey, msig) {
         if (msig === undefined) {
             this.sig = this.signProgram(secretKey);
         } else {
-            let [sig, index] = this.singleSignMultisig(secretKey, msig);
-            this.msig = msig;
-            this.msig.subsigs[index].s = sig;
+            let subsigs = msig.addrs.map(addr => {
+                return {"pk": address.decode(addr).publicKey};
+            });
+
+            this.msig = {
+                "v": msig.version,
+                "thr": msig.threshold,
+                "subsig": subsigs
+            };
+
+            let [sig, index] = this.singleSignMultisig(secretKey, this.msig);
+            this.msig.subsig[index].s = sig;
         }
     }
 
@@ -106,7 +117,7 @@ class LogicSig {
             throw new Error("no multisig present");
         }
         let [sig, index] = this.singleSignMultisig(secretKey, this.msig);
-        this.msig.subsigs[index].s = sig;
+        this.msig.subsig[index].s = sig;
     }
 
     signProgram(secretKey) {
@@ -118,9 +129,9 @@ class LogicSig {
     singleSignMultisig(secretKey, msig) {
         let index = -1;
         let myPk = nacl.keyPairFromSecretKey(secretKey).publicKey;
-        for (let i in msig.subsigs) {
-            subsig = msig.subsigs[i]
-            if (utils.arrayEqual(subsig.pk, myPk)) {
+        for (let i = 0; i < msig.subsig.length; i++) {
+            let pk = msig.subsig[i].pk;
+            if (utils.arrayEqual(pk, myPk)) {
                 index = i;
                 break;
             }
@@ -128,12 +139,17 @@ class LogicSig {
         if (index == -1) {
             throw new Error("invalid secret key");
         }
-        sig = this.signProgram(secretKey);
+        let sig = this.signProgram(secretKey);
         return [sig, index];
     }
 
     toByte() {
         return encoding.encode(this.get_obj_for_encoding());
+    }
+
+    static fromByte(encoded) {
+        let decoded_obj = encoding.decode(encoded);
+        return LogicSig.from_obj_for_encoding(decoded_obj);
     }
 }
 

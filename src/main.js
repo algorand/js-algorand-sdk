@@ -8,6 +8,7 @@ const bidBuilder = require('./bid');
 const algod = require('./client/algod');
 const kmd = require('./client/kmd');
 const utils = require('./utils/utils');
+const logicsig = require('./logicsig');
 
 let Algod = algod.Algod;
 let Kmd = kmd.Kmd;
@@ -297,6 +298,43 @@ function assignGroupID(txns, from = undefined) {
     return result;
 }
 
+/**
+ * makeLogicSig creates LogicSig object from program and arguments
+ *
+ * @param {Uint8Array} program Program to make LogicSig from
+ * @param {[Uint8Array]} args Arguments as array of Uint8Array
+ * @returns {LogicSig} LogicSig object
+ */
+function makeLogicSig(program, args) {
+    return new logicsig.LogicSig(program, args);
+}
+
+/**
+ * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
+ * transaction which is a blob representing a transaction and logicsig object.
+ * @param {Object} txn transaction object
+ * @param {LogicSig} lsig logicsig object
+ * @returns {Object} Object containing txID and blob representing signed transaction.
+ * @throws error on failure
+ */
+function signLogicSigTransaction(txn, lsig) {
+    if (!lsig.verify(address.decode(txn.from).publicKey)) {
+        throw new Error("invalid signature");
+    }
+
+    let algoTxn = new txnBuilder.Transaction(txn);
+
+    let lstx = {
+        lsig: lsig.get_obj_for_encoding(),
+        txn: algoTxn.get_obj_for_encoding()
+    };
+
+    return {
+        "txID": algoTxn.txID().toString(),
+        "blob": encoding.encode(lstx)
+    };
+}
+
 module.exports = {
     isValidAddress,
     generateAccount,
@@ -322,4 +360,6 @@ module.exports = {
     algosToMicroalgos,
     computeGroupID,
     assignGroupID,
+    makeLogicSig,
+    signLogicSigTransaction,
 };
