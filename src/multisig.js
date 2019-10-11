@@ -2,6 +2,7 @@ const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
 const txnBuilder = require('./transaction');
+const utils = require('./utils/utils');
 
 /**
  Utilities for manipulating multisig transaction blobs.
@@ -173,8 +174,53 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
     return new Uint8Array(encoding.encode(sTxn));
 }
 
-function verifyMultisig(toBeVerified, msig) {
-    throw EvalError("not implemented");
+function verifyMultisig(toBeVerified, msig, publicKey) {
+    const version = msig.v;
+    const threshold = msig.thr;
+    const subsigs = msig.subsig;
+
+    let pks = subsigs.map(
+        (subsig) => subsig.pk
+    );
+    if (msig.subsig.length < threshold) {
+        return false;
+    }
+
+    let pk;
+    try {
+        pk = address.fromMultisigPreImg({version, threshold, pks});
+    } catch (e) {
+        return false;
+    }
+
+    if (!utils.arrayEqual(pk, publicKey)) {
+        return false;
+    }
+
+    let counter = 0;
+    for (let subsig of subsigs) {
+        if (subsig.s !== undefined) {
+            counter += 1;
+        }
+    }
+    if (counter < threshold) {
+        return false;
+    }
+
+    let verifiedCounter = 0;
+    for (let subsig of subsigs) {
+        if (subsig.s !== undefined) {
+            if (nacl.verify(toBeVerified, subsig.s, subsig.pk)) {
+                verifiedCounter += 1;
+            }
+        }
+    }
+
+    if (verifiedCounter < threshold) {
+        return false;
+    }
+
+    return true;
 }
 
 module.exports = {

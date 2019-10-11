@@ -5,6 +5,7 @@ let encoding = require("../src/encoding/encoding");
 let passphrase = require("../src/mnemonic/mnemonic");
 let nacl = require("../src/nacl/naclWrappers");
 let transaction = require("../src/transaction");
+let logicsig = require("../src/logicsig");
 
 describe('Algosdk (AKA end to end)', function () {
     describe('#mnemonic', function () {
@@ -373,12 +374,12 @@ describe('Algosdk (AKA end to end)', function () {
                 Uint8Array.from("123"),
                 Uint8Array.from("456")
             ];
-            lsig = algosdk.makeLogicSig(program);
+            lsig = algosdk.makeLogicSig(program, args);
             assert.equal(lsig.logic, program);
             assert.equal(lsig.args, args);
         });
         it('should throw on invalid program', function () {
-            let program = Uint8Array.from([1, 32, 1, 1, 34]);  // int 1
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);
             program[0] = 2;
             assert.throws(
                 () => algosdk.makeLogicSig(program)
@@ -387,27 +388,28 @@ describe('Algosdk (AKA end to end)', function () {
     });
     describe('Single logic sig', function () {
         it('should work on valid program', function () {
-            let program = Uint8Array.from("\x01\x20\x01\x01\x22");
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);
             let keys = algosdk.generateAccount();
             let lsig = algosdk.makeLogicSig(program);
             lsig.sign(keys.sk);
-            let verified = lsig.verify(address.decode(keys.addr));
+            let verified = lsig.verify(address.decode(keys.addr).publicKey);
             assert.equal(verified, true);
 
             // check serialization
             let encoded = lsig.toByte();
-            let decoded = logic.LogicSig.from_obj_for_encoding(encoded);
+            let obj = encoding.decode(encoded);
+            let decoded = logicsig.LogicSig.from_obj_for_encoding(obj);
             assert.deepStrictEqual(decoded, lsig);
         });
     });
     describe('Multisig logic sig', function () {
         it('should work on valid program', function () {
-            let program = Uint8Array.from("\x01\x20\x01\x01\x22");
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);
             let lsig = algosdk.makeLogicSig(program);
 
             let keys = algosdk.generateAccount();
             assert.throws(
-                () => lsig.appendToMultisig(keys.secretKey),
+                () => lsig.appendToMultisig(keys.sk),
                 "empty msig"
             );
 
@@ -421,17 +423,17 @@ describe('Algosdk (AKA end to end)', function () {
                 ],
             };
             const outAddr = algosdk.multisigAddress(params);
-            const msig_pk = address.decode(outAddr);
+            const msig_pk = address.decode(outAddr).publicKey;
             const mn1 = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
             const mn2 = "since during average anxiety protect cherry club long lawsuit loan expand embark forum theory winter park twenty ball kangaroo cram burst board host ability left";
             const sk1 = algosdk.mnemonicToSecretKey(mn1);
             const sk2 = algosdk.mnemonicToSecretKey(mn2);
 
-            lsig.sign(sk1.sk);
+            lsig.sign(sk1.sk, params);
 
             // fails on wrong key
             assert.throws(
-                () => lsig.appendToMultisig(keys.secretKey)
+                () => lsig.appendToMultisig(keys.sk)
             );
 
             lsig.appendToMultisig(sk2.sk);
@@ -440,6 +442,7 @@ describe('Algosdk (AKA end to end)', function () {
 
             // combine sig and msig
             let lsigf = algosdk.makeLogicSig(program);
+            lsigf.sign(keys.sk)
             lsig.sig = lsigf.sig;
             verified = lsig.verify(msig_pk);
             assert.equal(verified, false);
@@ -450,7 +453,7 @@ describe('Algosdk (AKA end to end)', function () {
 
             // check serialization
             let encoded = lsig.toByte();
-            let decoded = logic.LogicSig.from_obj_for_encoding(encoded);
+            let decoded = logicsig.LogicSig.fromByte(encoded);
             assert.deepStrictEqual(decoded, lsig);
         });
     });
@@ -482,13 +485,13 @@ describe('Algosdk (AKA end to end)', function () {
 
             let program = Uint8Array.from([1, 32, 1, 1, 34]);  // int 1
             let args = [
-                Uint8Array.from("123"),
-                Uint8Array.from("456")
+                Uint8Array.from([49, 50, 51]),
+                Uint8Array.from([52, 53, 54])
             ];
             let lsig = algosdk.makeLogicSig(program, args);
+            let sk = algosdk.mnemonicToSecretKey(mn);
             lsig.sign(sk.sk);
 
-            sk = algosdk.mnemonicToSecretKey(mn);
             let js_dec = algosdk.signLogicSigTransaction(txn, lsig);
 
             // goal clerk send -o tx3 -a 2000 --fee 1000 -d ~/.algorand -w test -L sig.lsig --argb64 MTIz --argb64 NDU2 \
@@ -497,7 +500,7 @@ describe('Algosdk (AKA end to end)', function () {
             const golden = "gqRsc2lng6NhcmeSxAMxMjPEAzQ1NqFsxAUBIAEBIqNzaWfEQE6HXaI5K0lcq50o/y3bWOYsyw9TLi/oorZB4xaNdn1Z14351u2f6JTON478fl+JhIP4HNRRAIh/I8EWXBPpJQ2jdHhuiqNhbXTNB9CjZmVlzQPoomZ2zgAfeyGjZ2Vuq2Rldm5ldC12MS4womdoxCCwLc/t7ZJ1uookrS1uIJ0r211Klt7pd4IYp2g3OaWPQaJsds4AH38JpG5vdGXECPMTAk7i0PNdo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaR0eXBlo3BheQ=="
 
             assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
-            let sender_pk = address.decode(fromAddress);
+            let sender_pk = address.decode(fromAddress).publicKey;
             let verified = lsig.verify(sender_pk);
             assert.equal(verified, true);
         });
