@@ -304,6 +304,35 @@ describe('Algosdk (AKA end to end)', function () {
         });
     });
 
+    describe('asset transfer', function () {
+        it('should return a blob that matches the go code', function () {
+
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+
+            let o = {
+                "type": "axfer",
+                "from": addr,
+                "to": addr,
+                "amount": 1,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323576,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "creator": addr,
+                "index": 1,
+                "closeRemainderTo": addr
+            };
+
+            let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
+            let seed = passphrase.seedFromMnemonic(mnem);
+            let keys = nacl.keyPairFromSeed(seed);
+            let sk = keys.secretKey;
+            let js_dec = algosdk.signTransaction(o, sk);
+            let golden = Buffer.from("gqNzaWfEQGkk9CtvOKnn4nU59xmPGoZvYv+6TCu5B95PgwQ/YytwE9dr199ehEqAnSS0C2SaO4YhEBAk+JVOiwZiRq/w1gijdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0MRKJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpAQ==", "base64");
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+        });
+    });
+
     describe('asset freeze', function () {
         it('should return a blob that matches the go code', function () {
 
@@ -327,10 +356,8 @@ describe('Algosdk (AKA end to end)', function () {
             let keys = nacl.keyPairFromSeed(seed);
             let sk = keys.secretKey;
             let js_dec = algosdk.signTransaction(o, sk);
-
             let golden = Buffer.from("gqNzaWfEQJsNp4Hm5qYBN1Foa8nGd3zeMFxGFJiAxuf3/L1A4MTgR521fId0nIYtMwbJha5zRpN/0UuNoq91IkOK7LVhzACjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpAaNmZWXNCqCiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
-
         });
     });
 });
