@@ -313,6 +313,7 @@ class Transaction {
                 txn.index = txnForEnc.faid.i;
                 if (txnForEnc.faid.c !== undefined) txn.creator = address.decode(address.encode(new Uint8Array(txnForEnc.faid.c)));
             }
+            txn.freezeAccount = address.decode(address.encode(new Uint8Array(txnForEnc.fadd)));
         }
         return txn;
     }
