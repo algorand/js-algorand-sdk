@@ -26,7 +26,7 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      * @returns {*}
      */
     function noteb64ToNote(o) {
-        if (o.noteb64 !== undefined) {
+        if (!(o.noteb64 === undefined || o.noteb64 === null)) {
             o.note = Buffer.from(o.noteb64, "base64")
         }
         return o
