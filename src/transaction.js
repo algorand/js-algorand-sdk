@@ -14,7 +14,7 @@ class Transaction {
     constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, 
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
-                 assetFreeze, assetClawback, assetUnitName, assetName, assetRevocationTarget, type="pay", flatFee=false}) {
+                 assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
@@ -27,6 +27,7 @@ class Transaction {
         if (assetFreeze !== undefined) assetFreeze = address.decode(assetFreeze);
         if (assetClawback !== undefined) assetClawback = address.decode(assetClawback);
         if (assetRevocationTarget !== undefined) assetRevocationTarget = address.decode(assetRevocationTarget);
+        if (freezeAccount !== undefined) freezeAccount = address.decode(freezeAccount);
         if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
 
         genesisHash = Buffer.from(genesisHash, 'base64');
@@ -55,7 +56,8 @@ class Transaction {
             from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, 
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
             creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
-            assetFreeze, assetClawback, assetUnitName, assetRevocationTarget, assetName, type
+            assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount,
+            freezeState, assetRevocationTarget, type
         });
 
         // Modify Fee
@@ -215,6 +217,29 @@ class Transaction {
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
+        else if (this.type == "afrz") {
+            // asset freeze or unfreeze
+            let txn = {
+                "fee": this.fee,
+                "fv": this.firstRound,
+                "lv": this.lastRound,
+                "note": Buffer.from(this.note),
+                "snd": Buffer.from(this.from.publicKey),
+                "type": this.type,
+                "gen": this.genesisID,
+                "gh": this.genesisHash,
+                "faid": {
+                    "i": this.index
+                },
+                "afrz": this.freezeState
+            };
+            if (this.creator !== undefined) txn.faid.c = Buffer.from(this.creator.publicKey);
+            if (this.freezeAccount !== undefined) txn.fadd = Buffer.from(this.freezeAccount.publicKey);
+            // allowed zero values
+            if (!txn.note.length) delete txn.note;
+            if (!txn.amt) delete txn.amt;
+            if (!txn.fee) delete txn.fee;
+            if (!txn.gen) delete txn.gen;
 
             return txn;
         }
@@ -278,6 +303,12 @@ class Transaction {
                 txn.assetRevocationTarget = address.decode(address.encode(new Uint8Array(txnForEnc.asnd)));
             }
             txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.arcv)));
+        else if (txnForEnc.type === "afrz") {
+            txn.freezeState = txnForEnc.afrz;
+            if (txnForEnc.faid !== undefined) {
+                txn.index = txnForEnc.faid.i;
+                if (txnForEnc.faid.c !== undefined) txn.creator = address.decode(address.encode(new Uint8Array(txnForEnc.faid.c)));
+            }
         }
         return txn;
     }
