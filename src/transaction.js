@@ -217,6 +217,7 @@ class Transaction {
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
+        }
         else if (this.type == "afrz") {
             // asset freeze or unfreeze
             let txn = {
