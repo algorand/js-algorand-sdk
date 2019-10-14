@@ -14,7 +14,8 @@ class Transaction {
     constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, 
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
-                 assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false}) {
+                 assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount, freezeState,
+                 assetRevocationTarget, type="pay", flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
@@ -56,8 +57,8 @@ class Transaction {
             from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, 
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
             creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
-            assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount,
-            freezeState, assetRevocationTarget, type
+            assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount, freezeState,
+            assetRevocationTarget, type
         });
 
         // Modify Fee
@@ -217,6 +218,7 @@ class Transaction {
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
+            return txn;
         }
         else if (this.type == "afrz") {
             // asset freeze or unfreeze
