@@ -303,4 +303,34 @@ describe('Algosdk (AKA end to end)', function () {
             assert.equal(result.length, 0);
         });
     });
+
+    describe('asset freeze', function () {
+        it('should return a blob that matches the go code', function () {
+
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+
+            let o = {
+                "from": addr,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323576,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "type": "afrz",
+                "freezeAccount": addr,
+                "index": 1,
+                "creator" : addr,
+                "freezeState" : true
+            };
+
+            let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
+            let seed = passphrase.seedFromMnemonic(mnem);
+            let keys = nacl.keyPairFromSeed(seed);
+            let sk = keys.secretKey;
+            let js_dec = algosdk.signTransaction(o, sk);
+
+            let golden = Buffer.from("gqNzaWfEQJsNp4Hm5qYBN1Foa8nGd3zeMFxGFJiAxuf3/L1A4MTgR521fId0nIYtMwbJha5zRpN/0UuNoq91IkOK7LVhzACjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpAaNmZWXNCqCiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==", "base64");
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+
+        });
+    });
 });
