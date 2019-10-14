@@ -292,7 +292,7 @@ class Transaction {
         }
         else if (txnForEnc.type === "axfer") {
             // asset transfer, acceptance, revocation, mint, or burn
-            if (txnForEnc.xaid !== undefined){
+            if (txnForEnc.xaid !== undefined) {
                 txn.index = txnForEnc.xaid.i
                 if (txnForEnc.xaid.c !== undefined) txn.creator = address.decode(address.encode(new Uint8Array(txnForEnc.xaid.c)));
             }
@@ -304,6 +304,7 @@ class Transaction {
                 txn.assetRevocationTarget = address.decode(address.encode(new Uint8Array(txnForEnc.asnd)));
             }
             txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.arcv)));
+        }
         else if (txnForEnc.type === "afrz") {
             txn.freezeState = txnForEnc.afrz;
             if (txnForEnc.faid !== undefined) {
