@@ -21,14 +21,14 @@ function HTTPClient(token, baseServer, port, headers={}) {
     }
     this.address = baseServer;
     this.token = token;
-    this.clientHeaders = headers;
+    this.defaultHeaders = headers;
 
     this.get = async function (path, query, requestHeaders={}) {
         try {
             return await request
                 .get(this.address + path)
                 .set(this.token)
-                .set(this.clientHeaders)
+                .set(this.defaultHeaders)
                 .set(requestHeaders)
                 .set('Accept', 'application/json')
                 .query(removeEmpty(query));
@@ -42,7 +42,7 @@ function HTTPClient(token, baseServer, port, headers={}) {
             return await request
                 .post(this.address + path)
                 .set(this.token)
-                .set(this.clientHeaders)
+                .set(this.defaultHeaders)
                 .set(requestHeaders)
                 .send(data);
         } catch (e) {
@@ -55,7 +55,7 @@ function HTTPClient(token, baseServer, port, headers={}) {
             return await request
                 .delete(this.address + path)
                 .set(this.token)
-                .set(this.clientHeaders)
+                .set(this.defaultHeaders)
                 .set(requestHeaders)
                 .send(data);
         } catch (e) {
