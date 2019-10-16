@@ -14,17 +14,21 @@ function removeEmpty(obj) {
     return obj;
 }
 
-function HTTPClient(requestHeaders, baseServer, port) {
+function HTTPClient(token, baseServer, port, headers={}) {
     // Do not need colon if port is empty
     if (port !== '') {
         baseServer += ":" + port.toString();
     }
     this.address = baseServer;
+    this.token = token;
+    this.defaultHeaders = headers;
 
-    this.get = async function (path, query) {
+    this.get = async function (path, query, requestHeaders={}) {
         try {
             return await request
                 .get(this.address + path)
+                .set(this.token)
+                .set(this.defaultHeaders)
                 .set(requestHeaders)
                 .set('Accept', 'application/json')
                 .query(removeEmpty(query));
@@ -33,10 +37,12 @@ function HTTPClient(requestHeaders, baseServer, port) {
         }
     };
 
-    this.post = async function (path, data) {
+    this.post = async function (path, data, requestHeaders={}) {
         try {
             return await request
                 .post(this.address + path)
+                .set(this.token)
+                .set(this.defaultHeaders)
                 .set(requestHeaders)
                 .send(data);
         } catch (e) {
@@ -44,10 +50,12 @@ function HTTPClient(requestHeaders, baseServer, port) {
         }
     };
 
-    this.delete = async function (path, data) {
+    this.delete = async function (path, data, requestHeaders={}) {
         try {
             return await request
                 .delete(this.address + path)
+                .set(this.token)
+                .set(this.defaultHeaders)
                 .set(requestHeaders)
                 .send(data);
         } catch (e) {
