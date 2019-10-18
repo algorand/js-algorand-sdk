@@ -33,6 +33,7 @@
     "watchify": "^3.11.1"
   },
   "files": [
+    "src/**/*",
     "src/logic/langspec.json"
   ],
   "scripts": {
