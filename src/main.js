@@ -256,6 +256,46 @@ function algosToMicroalgos(algos) {
     return Math.round(microalgos)
 }
 
+/**
+ * computeGroupID returns group ID for a group of transactions
+ * @param txns array of transactions (every element is a dict or Transaction)
+ * @return Buffer
+ */
+function computeGroupID(txns) {
+    const hashes = [];
+    for (let txn of txns)  {
+        let tx = txn;
+        if (!(txn instanceof txnBuilder.Transaction)) {
+            tx = new txnBuilder.Transaction(txn);
+        }
+        hashes.push(tx.rawTxID());
+    }
+
+    const txgroup = new txnBuilder.TxGroup(hashes);
+
+    const bytes = txgroup.toByte();
+    const toBeHashed = Buffer.from(utils.concatArrays(txgroup.tag, bytes));
+    const gid = nacl.genericHash(toBeHashed)
+    return Buffer.from(gid);
+}
+
+/**
+ * assignGroupID assigns group id to a given list of unsigned transactions
+ * @param txns array of transactions (every element is a dict or Transaction)
+ * @param from optional sender address specifying which transaction return
+ * @return possible list of matching transactions
+ */
+function assignGroupID(txns, from = undefined) {
+    const gid = computeGroupID(txns);
+    let result = [];
+    for (tx of txns) {
+        if (!from || address.encode(tx.from.publicKey) == from) {
+            tx.group = gid;
+            result.push(tx);
+        }
+    }
+    return result;
+}
 
 module.exports = {
     isValidAddress,
@@ -280,4 +320,6 @@ module.exports = {
     ERROR_INVALID_MICROALGOS,
     microalgosToAlgos,
     algosToMicroalgos,
+    computeGroupID,
+    assignGroupID,
 };
