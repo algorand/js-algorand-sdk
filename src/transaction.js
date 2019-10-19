@@ -54,9 +54,9 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, 
-            closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
-            creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve, 
+            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+            closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
+            creator, index, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount, freezeState,
             assetRevocationTarget, type
         });
@@ -154,7 +154,7 @@ class Transaction {
             if (this.assetClawback !== undefined) txn.apar.c = Buffer.from(this.assetClawback.publicKey)
             if (this.assetName !== undefined) txn.apar.an = Buffer.from(this.assetName);
             if (this.assetUnitName !== undefined) txn.apar.un = Buffer.from(this.assetUnitName);
-            
+
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.amt) delete txn.amt;
@@ -187,7 +187,7 @@ class Transaction {
                 if (!txn.apar.f) delete txn.apar.f;
                 if (!txn.apar.c) delete txn.apar.c;
             }
-            
+
             return txn;
         }
         else if (this.type == "axfer") {
