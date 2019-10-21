@@ -333,4 +333,66 @@ describe('Sign', function () {
 
         });
     });
+
+    describe('transaction making functions', function () {
+        it('should be able to use helper to make a payment transaction', function() {
+            let from = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
+            let to = "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM";
+            let fee = 10;
+            let amount = 847;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let o = {
+                "from": from,
+                "to": to,
+                "fee": fee,
+                "amount": amount,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let actualTxn = makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should be able to use helper to make a keyreg transaction', function() {
+            let from = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
+            let fee = 10;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let voteKey = "5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=";
+            let selectionKey = "oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=";
+            let voteKeyDilution = 1234;
+            let voteFirst = 123;
+            let voteLast = 456;
+            let o = {
+                "from": from,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "voteKey": voteKey,
+                "selectionKey": selectionKey,
+                "voteFirst": voteFirst,
+                "voteLast": voteLast,
+                "voteKeyDilution": voteKeyDilution,
+                "genesisID": genesisID,
+                "type": "keyreg"
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let actualTxn = makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+    });
 });
