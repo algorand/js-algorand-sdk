@@ -487,7 +487,7 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
 }
 
 /** makeAssetDestroyTxn will allow the asset's manager to remove this asset from the ledger, so long
- * as all outstanding assets are held by the manager.
+ * as all outstanding assets are held by the creator.
  *
  * @param from - string representation of Algorand address
  * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object

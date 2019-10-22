@@ -307,5 +307,141 @@ let algodclient = new algosdk.Algod(atoken, aserver, aport);
 algodclient.sendRawTransaction(rawSignedTxn);
 ```
 
+#### Assets
+
+Asset creation:
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let defaultFrozen = false;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let totalIssuance = 100;
+let reserve = addr;
+let freeze = addr;
+let clawback = addr;
+let manager = addr;
+let unitName = "tst";
+let assetName = "testcoin";
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" will allow you to create an asset
+let txn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note,
+    genesisHash, genesisID, totalIssuance, defaultFrozen, manager, reserve, freeze, clawback, unitName, assetName);
+```
+
+
+Asset reconfiguration:
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let assetIndex = 1234;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let manager = addr;
+let reserve = addr;
+let freeze = addr;
+let clawback = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" will allow the asset manager to change:
+// asset manager, reserve, asset freeze manager, asset revocation manager 
+let txn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex, manager, reserve, freeze, clawback);
+```
+
+Asset destruction:
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let assetIndex = 1234;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// if all outstanding assets are held by the asset creator,
+// the asset creator can sign and issue "txn" to remove the asset from the ledger. 
+let txn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
+Begin accepting an asset:
+```javascript
+let addr = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU";
+let fee = 10;
+let sender = addr;
+let recipient = sender;
+let revocationTarget = undefined;
+let closeRemainderTo = undefined;
+let assetIndex = 1234;
+let amount = 0;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" allows sender to begin accepting asset specified by creator and index
+let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
+Transfer an asset:
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let sender = addr;
+let recipient = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU";
+let revocationTarget = undefined;
+let closeRemainderTo = undefined; // supply an address to close remaining balance after transfer to supplied address
+let assetIndex = 1234;
+let amount = 10;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" will send "amount" assets from "sender" to "recipient"
+let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
+Revoke an asset:
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let sender = addr;
+let recipient = addr;
+let revocationTarget = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU";
+let closeRemainderTo = undefined; 
+let assetIndex = 1234;
+let amount = 10;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" will send "amount" assets from "revocationTarget" to "recipient",
+// if and only if sender == clawback manager for this asset
+let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
