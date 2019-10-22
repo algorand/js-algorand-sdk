@@ -394,5 +394,177 @@ describe('Sign', function () {
                 voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
+
+        it('should be able to use helper to make an asset create transaction', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let defaultFrozen = false;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let total = 100;
+            let reserve = addr;
+            let freeze = addr;
+            let clawback = addr;
+            let unitName = "tst";
+            let assetName = "testcoin";
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let o = {
+                "from": addr,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "t": total,
+                "df": defaultFrozen,
+                "un": unitName,
+                "an": assetName,
+                "assetManager": addr,
+                "assetReserve": reserve,
+                "assetFreeze": freeze,
+                "assetClawback": clawback,
+                "genesisID": genesisID,
+                "type": "acfg"
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let actualTxn = makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                total, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should be able to use helper to make an asset config transaction', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let assetIndex = 1234;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let creator = addr;
+            let manager = addr;
+            let reserve = addr;
+            let freeze = addr;
+            let clawback = addr;
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let o = {
+                "from": addr,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+                "creator": creator,
+                "index": assetIndex,
+                "assetManager": manager,
+                "assetReserve": reserve,
+                "assetFreeze": freeze,
+                "assetClawback": clawback,
+                "type": "acfg",
+                "note": note
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let actualTxn = makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                creator, assetIndex, manager, reserve, freeze, clawback);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should be able to use helper to make an asset destroy transaction', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let assetIndex = 1234;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let creator = addr;
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let o = {
+                "from": addr,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+                "creator": creator,
+                "index": assetIndex,
+                "type": "acfg",
+                "note": note
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let actualTxn = makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                creator, assetIndex);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should be able to use helper to make an asset transfer transaction', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let sender = addr;
+            let recipient = addr;
+            let revocationTarget = addr;
+            let closeRemainderTo = addr;
+            let assetIndex = 1234;
+            let amount = 100;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let creator = addr;
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let o = o = {
+                "type": "axfer",
+                "from": sender,
+                "to": recipient,
+                "amount": amount,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+                "creator": creator,
+                "index": assetIndex,
+                "note": note,
+                "assetRevocationTarget": revocationTarget,
+                "closeRemainderTo": closeRemainderTo
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let actualTxn = makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
+                fee, firstRound, lastRound, note, genesisHash, genesisID,
+                creator, assetIndex);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should be able to use helper to make an asset freeze transaction', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let assetIndex = 1234;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let creator = addr;
+            let freezeTarget = addr;
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let freezeState = true;
+            let note = new Uint8Array([123, 12, 200]);
+            let o = {
+                "from": addr,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "genesisHash": genesisHash,
+                "type": "afrz",
+                "freezeAccount": freezeTarget,
+                "index": assetIndex,
+                "creator" : creator,
+                "freezeState" : freezeState,
+                "note": note
+            };
+            let expectedTxn = new transaction.Transaction(o);
+            let actualTxn = makeAssetFreezeTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                creator, assetIndex, freezeTarget, freezeState);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
     });
 });
