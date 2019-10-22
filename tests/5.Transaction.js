@@ -1,7 +1,9 @@
+
 let assert = require('assert');
 
 let transaction = require("../src/transaction");
 let encoding = require("../src/encoding/encoding");
+let algosdk = require("../src/main");
 
 describe('Sign', function () {
     it('should not complain on a missing note', function () {
@@ -357,7 +359,7 @@ describe('Sign', function () {
                 "genesisID": genesisID
             };
             let expectedTxn = new transaction.Transaction(o);
-            let actualTxn = makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID);
+            let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -390,7 +392,7 @@ describe('Sign', function () {
                 "type": "keyreg"
             };
             let expectedTxn = new transaction.Transaction(o);
-            let actualTxn = makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
+            let actualTxn = algosdk.makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                 voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });

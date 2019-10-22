@@ -335,6 +335,73 @@ function signLogicSigTransaction(txn, lsig) {
     };
 }
 
+
+/**
+ * makePaymentTxn takes payment arguments and returns a transaction.Transaction object representing that payment txn
+ * @param from - string representation of Algorand address
+ * @param to - string representation of Algorand address
+ * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * @param amount - integer amount to send
+ * @param firstRound - integer first protocol round on which this txn is valid
+ * @param lastRound - integer last protocol round on which this txn is valid
+ * @param note - uint8array of arbitrary data
+ * @param genesisHash - string
+ * @param genesisID - string
+ * @returns {Transaction}
+ */
+function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID) {
+    let o = {
+        "from": from,
+        "to": to,
+        "fee": fee,
+        "amount": amount,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "note": note,
+        "genesisHash": genesisHash,
+        "genesisID": genesisID,
+        "type": "pay"
+    };
+    return new txnBuilder.Transaction(o);
+}
+
+/**
+ * makeKeyRegistrationTxn takes key registration arguments and returns a transaction.Transaction object for
+ * that key registration operation
+ * @param from - string representation of Algorand address
+ * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * @param firstRound - integer first protocol round on which this txn is valid
+ * @param lastRound - integer last protocol round on which this txn is valid
+ * @param note - uint8array of arbitrary data
+ * @param genesisHash - string
+ * @param genesisID - string
+ * @param voteKey - string
+ * @param selectionKey - string
+ * @param voteFirst - first round on which voteKey is valid
+ * @param voteLast - last round on which voteKey is valid
+ * @param voteKeyDilution - integer
+ * @returns {Transaction}
+ */
+function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution) {
+    let o = {
+        "from": from,
+        "fee": fee,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "note": note,
+        "genesisHash": genesisHash,
+        "voteKey": voteKey,
+        "selectionKey": selectionKey,
+        "voteFirst": voteFirst,
+        "voteLast": voteLast,
+        "voteKeyDilution": voteKeyDilution,
+        "genesisID": genesisID,
+        "type": "keyreg"
+    };
+    return new txnBuilder.Transaction(o);
+}
+
 module.exports = {
     isValidAddress,
     generateAccount,
@@ -362,4 +429,6 @@ module.exports = {
     assignGroupID,
     makeLogicSig,
     signLogicSigTransaction,
+    makePaymentTxn,
+    makeKeyRegistrationTxn,
 };
