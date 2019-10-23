@@ -307,5 +307,159 @@ let algodclient = new algosdk.Algod(atoken, aserver, aport);
 algodclient.sendRawTransaction(rawSignedTxn);
 ```
 
+#### Assets
+
+The Algorand protocol allows users to create and trade named assets on layer one. Creating and managing these assets
+is done through the issuing of asset transactions. This section details how to make asset transactions, and what they do.
+
+Asset creation: This allows a user to issue a new asset. The user can define the number of assets in circulation,
+whether there is an account that can revoke assets, whether there is an account that can freeze user accounts, 
+whether there is an account that can be considered the asset reserve, and whether there is an account that can change
+the other accounts. The creating user can also do things like specify a name for the asset.
+                                                                        
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"; // the account issuing the transaction; the asset creator
+let fee = 10; // the number of microAlgos per byte to pay as a transaction fee
+let defaultFrozen = false; // whether user accounts will need to be unfrozen before transacting
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="; // hash of the genesis block of the network to be used
+let totalIssuance = 100; // total number of this asset in circulation
+let reserve = addr; // specified address is considered the asset reserve (it has no special privileges, this is only informational)
+let freeze = addr; // specified address can freeze or unfreeze user asset holdings
+let clawback = addr; // specified address can revoke user asset holdings and send them to other addresses
+let manager = addr; // specified address can change reserve, freeze, clawback, and manager
+let unitName = "tst"; // used to display asset units to user
+let assetName = "testcoin"; // "friendly name" of asset
+let genesisID = ""; // like genesisHash this is used to specify network to be used
+let firstRound = 322575; // first Algorand round on which this transaction is valid
+let lastRound = 322575; // last Algorand round on which this transaction is valid
+let note = undefined; // arbitrary data to be stored in the transaction; here, none is stored
+
+// signing and sending "txn" allows "addr" to create an asset
+let txn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note,
+    genesisHash, genesisID, totalIssuance, defaultFrozen, manager, reserve, freeze, clawback, unitName, assetName);
+```
+
+
+Asset reconfiguration: This allows the address specified as `manager` to change any of the special addresses for the asset,
+such as the reserve address. To keep an address the same, it must be re-specified in each new configuration transaction.
+Supplying an empty address is the same as turning the associated feature off for this asset. Once a special address
+is set to the empty address, it can never change again. For example, if an asset configuration transaction specifying
+`clawback=""` were issued, the associated asset could never be revoked from asset holders, and `clawback=""` would be
+true for all time.                                                                                                                     
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let assetIndex = 1234;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let manager = addr;
+let reserve = addr;
+let freeze = addr;
+let clawback = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" will allow the asset manager to change:
+// asset manager, asset reserve, asset freeze manager, asset revocation manager 
+let txn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex, manager, reserve, freeze, clawback);
+```
+
+Asset destruction: This allows the creator to remove the asset from the ledger, if all outstanding assets are held
+by the creator.
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let assetIndex = 1234;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// if all outstanding assets are held by the asset creator,
+// the asset creator can sign and issue "txn" to remove the asset from the ledger. 
+let txn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
+Begin accepting an asset: Before a user can begin transacting with an asset, the user must first issue an asset acceptance transaction.
+This is a special case of the asset transfer transaction, where the user sends 0 assets to themself. After issuing this transaction,
+the user can begin transacting with the asset. Each new accepted asset increases the user's minimum balance.                                                                                                                               
+```javascript
+let addr = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU";
+let fee = 10;
+let sender = addr;
+let recipient = sender;
+let revocationTarget = undefined;
+let closeRemainderTo = undefined;
+let assetIndex = 1234;
+let amount = 0;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" allows sender to begin accepting asset specified by creator and index
+let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
+Transfer an asset: This allows users to transact with assets, after they have issued asset acceptance transactions. The
+optional `closeRemainderTo` argument can be used to stop transacting with a particular asset. Note: A frozen account can always close
+out to the asset creator.                                                                                                             
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let sender = addr;
+let recipient = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU";
+let revocationTarget = undefined;
+let closeRemainderTo = undefined; // supply an address to close remaining balance after transfer to supplied address
+let assetIndex = 1234;
+let amount = 10;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" will send "amount" assets from "sender" to "recipient"
+let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
+Revoke an asset: This allows an asset's revocation manager to transfer assets on behalf of another user. It will only work when 
+issued by the asset's revocation manager.
+```javascript
+let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+let fee = 10;
+let sender = addr;
+let recipient = addr;
+let revocationTarget = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU";
+let closeRemainderTo = undefined; 
+let assetIndex = 1234;
+let amount = 10;
+let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+let creator = addr;
+let genesisID = "";
+let firstRound = 322575;
+let lastRound = 322575;
+let note = undefined;
+
+// signing and sending "txn" will send "amount" assets from "revocationTarget" to "recipient",
+// if and only if sender == clawback manager for this asset
+let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+    creator, assetIndex);
+```
+
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
