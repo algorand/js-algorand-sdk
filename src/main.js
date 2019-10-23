@@ -337,16 +337,16 @@ function signLogicSigTransaction(txn, lsig) {
 
 
 /**
- * makePaymentTxn takes payment arguments and returns a transaction.Transaction object representing that payment txn
- * @param from - string representation of Algorand address
- * @param to - string representation of Algorand address
- * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
- * @param amount - integer amount to send
+ * makePaymentTxn takes payment arguments and returns a Transaction object
+ * @param from - string representation of Algorand address of sender
+ * @param to - string representation of Algorand address of recipient
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
+ * @param amount - integer amount to send, in microAlgos
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data
- * @param genesisHash - string
- * @param genesisID - string
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
  * @returns {Transaction}
  */
 function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID) {
@@ -366,18 +366,18 @@ function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, gene
 }
 
 /**
- * makeKeyRegistrationTxn takes key registration arguments and returns a transaction.Transaction object for
+ * makeKeyRegistrationTxn takes key registration arguments and returns a Transaction object for
  * that key registration operation
  *
- * @param from - string representation of Algorand address
- * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * @param from - string representation of Algorand address of sender
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data
- * @param genesisHash - string
- * @param genesisID - string
- * @param voteKey - string
- * @param selectionKey - string
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
+ * @param voteKey - string representation of voting key. for key deregistration, leave undefined
+ * @param selectionKey - string representation of selection key. for key deregistration, leave undefined 
  * @param voteFirst - first round on which voteKey is valid
  * @param voteLast - last round on which voteKey is valid
  * @param voteKeyDilution - integer
@@ -403,16 +403,16 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
     return new txnBuilder.Transaction(o);
 }
 
-/** makeAssetCreateTxn takes asset creation arguments and returns a transaction.Transaciton object
+/** makeAssetCreateTxn takes asset creation arguments and returns a Transaction object
  * for creating that asset
  *
- * @param from - string representation of Algorand address
- * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * @param from - string representation of Algorand address of sender
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data
- * @param genesisHash - string
- * @param genesisID - string
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
  * @param total - integer total supply of the asset
  * @param defaultFrozen - boolean whether asset accounts should default to being frozen
  * @param manager - string representation of Algorand address in charge of reserve, freeze, clawback, destruction, etc
@@ -450,19 +450,19 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * you must respecify existing addresses to keep them the same; leaving a field blank is the same as turning
  * that feature off for this asset
  *
- * @param from - string representation of Algorand address
- * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * @param from - string representation of Algorand address of sender
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data
- * @param genesisHash - string
- * @param genesisID - string
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
  * @param creator - string representation of Algorand address of creator
  * @param assetIndex - int asset index
  * @param manager - string representation of new asset manager Algorand address
  * @param reserve - string representation of new reserve Algorand address
  * @param freeze - string representation of new freeze manager Algorand address
- * @param clawback - string representaiton of new revocation manager Algorand address
+ * @param clawback - string representation of new revocation manager Algorand address
  * @returns {Transaction}
  */
 function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
@@ -489,13 +489,13 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
 /** makeAssetDestroyTxn will allow the asset's manager to remove this asset from the ledger, so long
  * as all outstanding assets are held by the creator.
  *
- * @param from - string representation of Algorand address
- * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * @param from - string representation of Algorand address of sender
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data
- * @param genesisHash - string
- * @param genesisID - string
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
  * @param creator - string representation of Algorand address of creator
  * @param assetIndex - int asset index
  * @returns {Transaction}
@@ -517,15 +517,16 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
     return new txnBuilder.Transaction(o);
 }
 
-/** makeAssetFreezeTxn will allow the asset's freeze manager to freeze or un-freeze an account
+/** makeAssetFreezeTxn will allow the asset's freeze manager to freeze or un-freeze an account,
+ * blocking or allowing asset transfers to and from the targeted account.
  *
- * @param from - string representation of Algorand address
- * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * @param from - string representation of Algorand address of sender
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data
- * @param genesisHash - string
- * @param genesisID - string
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
  * @param creator - string representation of Algorand address of creator
  * @param assetIndex - int asset index
  * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
@@ -553,19 +554,19 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
 /** makeAssetTransferTxn allows for the creation of an asset transfer transaction.
  * Special case: to begin accepting assets, set amount=0 and from=to.
  *
- * @param from - string representation of Algorand address
+ * @param from - string representation of Algorand address of sender
  * @param to - string representation of Algorand address of asset recipient
  * @param closeRemainderTo - optional - string representation of Algorand address - if provided,
- * send all remaining assets after transfer to the closeRemainderTo address and close "from"'s asset holdings
- * @param revocationTarget - optional - string representaiton of Algorand address - if provided,
- * and if "from" is the asset's revocation manager, then deduct from revocationTarget rather than "from"
- * @param fee - integer fee per byte. for a flat fee, overwrite the fee property on the returned object
+ * send all remaining assets after transfer to the "closeRemainderTo" address and close "from"'s asset holdings
+ * @param revocationTarget - optional - string representation of Algorand address - if provided,
+ * and if "from" is the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
  * @param amount - integer amount of assets to send
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data
- * @param genesisHash - string
- * @param genesisID - string
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
  * @param creator - string representation of Algorand address of creator
  * @param assetIndex - int asset index
  * @returns {Transaction}
