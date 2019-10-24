@@ -351,7 +351,6 @@ let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
 let fee = 10;
 let assetIndex = 1234;
 let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-let creator = addr;
 let manager = addr;
 let reserve = addr;
 let freeze = addr;
@@ -364,7 +363,7 @@ let note = undefined;
 // signing and sending "txn" will allow the asset manager to change:
 // asset manager, asset reserve, asset freeze manager, asset revocation manager 
 let txn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-    creator, assetIndex, manager, reserve, freeze, clawback);
+    assetIndex, manager, reserve, freeze, clawback);
 ```
 
 Asset destruction: This allows the creator to remove the asset from the ledger, if all outstanding assets are held
@@ -374,7 +373,6 @@ let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
 let fee = 10;
 let assetIndex = 1234;
 let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-let creator = addr;
 let genesisID = "";
 let firstRound = 322575;
 let lastRound = 322575;
@@ -382,8 +380,7 @@ let note = undefined;
 
 // if all outstanding assets are held by the asset creator,
 // the asset creator can sign and issue "txn" to remove the asset from the ledger. 
-let txn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-    creator, assetIndex);
+let txn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
 ```
 
 Begin accepting an asset: Before a user can begin transacting with an asset, the user must first issue an asset acceptance transaction.
@@ -399,7 +396,6 @@ let closeRemainderTo = undefined;
 let assetIndex = 1234;
 let amount = 0;
 let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-let creator = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
 let genesisID = "";
 let firstRound = 322575;
 let lastRound = 322575;
@@ -407,8 +403,7 @@ let note = undefined;
 
 // signing and sending "txn" allows sender to begin accepting asset specified by creator and index
 let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
-    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
-    creator, assetIndex);
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
 ```
 
 Transfer an asset: This allows users to transact with assets, after they have issued asset acceptance transactions. The
@@ -424,7 +419,6 @@ let closeRemainderTo = undefined; // supply an address to close remaining balanc
 let assetIndex = 1234;
 let amount = 10;
 let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-let creator = addr;
 let genesisID = "";
 let firstRound = 322575;
 let lastRound = 322575;
@@ -432,8 +426,7 @@ let note = undefined;
 
 // signing and sending "txn" will send "amount" assets from "sender" to "recipient"
 let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
-    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
-    creator, assetIndex);
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
 ```
 
 Revoke an asset: This allows an asset's revocation manager to transfer assets on behalf of another user. It will only work when 
@@ -448,7 +441,6 @@ let closeRemainderTo = undefined;
 let assetIndex = 1234;
 let amount = 10;
 let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-let creator = addr;
 let genesisID = "";
 let firstRound = 322575;
 let lastRound = 322575;
@@ -457,8 +449,7 @@ let note = undefined;
 // signing and sending "txn" will send "amount" assets from "revocationTarget" to "recipient",
 // if and only if sender == clawback manager for this asset
 let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
-    fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
-    creator, assetIndex);
+    fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
 ```
 
 ## License
