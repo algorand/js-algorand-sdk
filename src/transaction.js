@@ -14,8 +14,8 @@ class Transaction {
     constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, 
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
-                 assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount, freezeState,
-                 assetRevocationTarget, type="pay", flatFee=false}) {
+                 assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
+                 freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
@@ -56,8 +56,8 @@ class Transaction {
             from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
-            assetFreeze, assetClawback, assetUnitName, assetName, freezeAccount, freezeState,
-            assetRevocationTarget, type
+            assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
+            freezeAccount, freezeState, assetRevocationTarget, type
         });
 
         // Modify Fee
@@ -150,6 +150,8 @@ class Transaction {
             if (this.assetClawback !== undefined) txn.apar.c = Buffer.from(this.assetClawback.publicKey);
             if (this.assetName !== undefined) txn.apar.an = Buffer.from(this.assetName);
             if (this.assetUnitName !== undefined) txn.apar.un = Buffer.from(this.assetUnitName);
+            if (this.assetURL !== undefined) txn.apar.au = Buffer.from(this.assetURL);
+            if (this.assetMetadataHash !== undefined) txn.apar.am = Buffer.from(this.assetMetadataHash);
 
             // allowed zero values
             if (!txn.note.length) delete txn.note;
@@ -178,6 +180,8 @@ class Transaction {
                 if (!txn.apar.r) delete txn.apar.r;
                 if (!txn.apar.f) delete txn.apar.f;
                 if (!txn.apar.c) delete txn.apar.c;
+                if (!txn.apar.au) delete txn.apar.au;
+                if (!txn.apar.an) delete txn.apar.an;
             }
 
             return txn;
@@ -275,6 +279,8 @@ class Transaction {
                 if (txnForEnc.apar.c !== undefined) txn.assetClawback = address.decode(address.encode(new Uint8Array(txnForEnc.apar.c)));
                 if (txnForEnc.apar.un !== undefined) txn.assetUnitName = txnForEnc.apar.un;
                 if (txnForEnc.apar.an !== undefined) txn.assetName = txnForEnc.apar.an;
+                if (txnForEnc.apar.au !== undefined) txn.assetURL = txnForEnc.apar.au;
+                if (txnForEnc.apar.am !== undefined) txn.assetMetadataHash = txnForEnc.apar.am;
             }
         }
         else if (txnForEnc.type === "axfer") {
