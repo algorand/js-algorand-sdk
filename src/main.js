@@ -421,10 +421,13 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * @param clawback - string representation of Algorand address with power to revoke asset holdings
  * @param unitName - string units name for this asset
  * @param assetName - string name for this asset
+ * @param assetURL - string URL relating to this asset
+ * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
  * @returns {Transaction}
  */
 function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            total, defaultFrozen, manager, reserve, freeze, clawback, unitName, assetName) {
+                            total, defaultFrozen, manager, reserve, freeze, clawback,
+                            unitName, assetName, assetURL, assetMetadataHash) {
     let o = {
         "from": from,
         "fee": fee,
@@ -432,10 +435,12 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "lastRound": lastRound,
         "note": note,
         "genesisHash": genesisHash,
-        "t": total,
-        "df": defaultFrozen,
-        "un": unitName,
-        "an": assetName,
+        "assetTotal": total,
+        "assetDefaultFrozen": defaultFrozen,
+        "assetUnitName": unitName,
+        "assetName": assetName,
+        "assetURL": assetURL,
+        "assetMetadataHash": assetMetadataHash,
         "assetManager": manager,
         "assetReserve": reserve,
         "assetFreeze": freeze,

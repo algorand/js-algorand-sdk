@@ -190,10 +190,12 @@ describe('Sign', function () {
                 "firstRound": 322575,
                 "lastRound": 323575,
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-                "t": 1000,
-                "df": true,
-                "un": "tests",
-                "an": "testcoin",
+                "assetTotal": 1000,
+                "assetDefaultFrozen": true,
+                "assetUnitName": "tests",
+                "assetName": "testcoin",
+                "assetURL": "testURL",
+                "assetMetadataHash": "metadatahash",
                 "assetManager": address,
                 "assetReserve": address,
                 "assetFreeze": address,
@@ -405,6 +407,8 @@ describe('Sign', function () {
             let clawback = addr;
             let unitName = "tst";
             let assetName = "testcoin";
+            let assetURL = "testURL";
+            let assetMetadataHash = "testhash";
             let genesisID = "";
             let firstRound = 322575;
             let lastRound = 322575;
@@ -416,10 +420,12 @@ describe('Sign', function () {
                 "lastRound": lastRound,
                 "note": note,
                 "genesisHash": genesisHash,
-                "t": total,
-                "df": defaultFrozen,
-                "un": unitName,
-                "an": assetName,
+                "assetTotal": total,
+                "assetDefaultFrozen": defaultFrozen,
+                "assetUnitName": unitName,
+                "assetName": assetName,
+                "assetURL": assetURL,
+                "assetMetadataHash": assetMetadataHash,
                 "assetManager": addr,
                 "assetReserve": reserve,
                 "assetFreeze": freeze,
@@ -429,7 +435,7 @@ describe('Sign', function () {
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                total, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName);
+                total, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 

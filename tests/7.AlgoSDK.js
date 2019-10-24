@@ -86,9 +86,9 @@ describe('Algosdk (AKA end to end)', function () {
     });
 
     it('should return a blob that matches the go code for an asset configuration transaction', function() {
-        let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
-        let golden = "gqNzaWfEQCRiqooONBncRNNplEiW0aKkcOn64MdOlHiRNN81GDQx0SqUYKL1q//4Yi5ziFdmtFOC7Iu/I8qbCkSlYPUVRAWjdHhuiKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpzQTSo2ZlZc0OzqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaRhY2Zn"
-        let sk = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
+        let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+        let golden = "gqNzaWfEQBBkfw5n6UevuIMDo2lHyU4dS80JCCQ/vTRUcTx5m0ivX68zTKyuVRrHaTbxbRRc3YpJ4zeVEnC9Fiw3Wf4REwejdHhuiKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkzQTSo2ZlZc0NSKJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaRhY2Zn";
+        let sk = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
         let o = {
             "from": address,
             "fee": 10,
@@ -96,7 +96,7 @@ describe('Algosdk (AKA end to end)', function () {
             "lastRound": 323575,
             "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
             "creator": address,
-            "index": 1234,
+            "assetIndex": 1234,
             "assetManager": address,
             "assetReserve": address,
             "assetFreeze": address,
@@ -104,8 +104,8 @@ describe('Algosdk (AKA end to end)', function () {
             "type": "acfg"
         };
         sk = algosdk.mnemonicToSecretKey(sk);
-
         let js_dec = algosdk.signTransaction(o, sk.sk);
+        console.log(Buffer.from(js_dec.blob).toString('base64'));
         assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
     });
 
