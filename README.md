@@ -333,10 +333,13 @@ let genesisID = ""; // like genesisHash this is used to specify network to be us
 let firstRound = 322575; // first Algorand round on which this transaction is valid
 let lastRound = 322575; // last Algorand round on which this transaction is valid
 let note = undefined; // arbitrary data to be stored in the transaction; here, none is stored
+let assetURL = "http://someurl"; // optional string pointing to a URL relating to the asset 
+let assetMetadataHash = "somehash"; // optional hash commitment of some sort relating to the asset
 
 // signing and sending "txn" allows "addr" to create an asset
 let txn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note,
-    genesisHash, genesisID, totalIssuance, defaultFrozen, manager, reserve, freeze, clawback, unitName, assetName);
+    genesisHash, genesisID, totalIssuance, defaultFrozen, manager, reserve, freeze, clawback,
+    unitName, assetName, assetURL, assetMetadataHash);
 ```
 
 
