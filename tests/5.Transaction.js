@@ -166,8 +166,7 @@ describe('Sign', function () {
                 "firstRound": 322575,
                 "lastRound": 323575,
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-                "creator": address,
-                "index": 1234,
+                "assetIndex": 1234,
                 "assetManager": address,
                 "assetReserve": address,
                 "assetFreeze": address,
@@ -221,8 +220,7 @@ describe('Sign', function () {
                 "firstRound": 322575,
                 "lastRound": 323575,
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-                "creator": address,
-                "index": 1234,
+                "assetIndex": 1234,
                 "assetRevocationTarget": address,
                 "closeRemainderTo": address
             };
@@ -245,8 +243,7 @@ describe('Sign', function () {
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
                 "type": "afrz",
                 "freezeAccount": address,
-                "index": 1,
-                "creator" : address,
+                "assetIndex": 1,
                 "freezeState" : true
             };
 
