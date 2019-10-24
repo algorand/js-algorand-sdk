@@ -438,7 +438,6 @@ describe('Sign', function () {
             let fee = 10;
             let assetIndex = 1234;
             let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-            let creator = addr;
             let manager = addr;
             let reserve = addr;
             let freeze = addr;
@@ -454,8 +453,7 @@ describe('Sign', function () {
                 "lastRound": lastRound,
                 "genesisHash": genesisHash,
                 "genesisID": genesisID,
-                "creator": creator,
-                "index": assetIndex,
+                "assetIndex": assetIndex,
                 "assetManager": manager,
                 "assetReserve": reserve,
                 "assetFreeze": freeze,
@@ -465,7 +463,7 @@ describe('Sign', function () {
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                creator, assetIndex, manager, reserve, freeze, clawback);
+                assetIndex, manager, reserve, freeze, clawback);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -474,7 +472,6 @@ describe('Sign', function () {
             let fee = 10;
             let assetIndex = 1234;
             let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
-            let creator = addr;
             let genesisID = "";
             let firstRound = 322575;
             let lastRound = 322575;
@@ -486,14 +483,13 @@ describe('Sign', function () {
                 "lastRound": lastRound,
                 "genesisHash": genesisHash,
                 "genesisID": genesisID,
-                "creator": creator,
-                "index": assetIndex,
+                "assetIndex": assetIndex,
                 "type": "acfg",
                 "note": note
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                creator, assetIndex);
+                assetIndex);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -522,16 +518,14 @@ describe('Sign', function () {
                 "lastRound": lastRound,
                 "genesisHash": genesisHash,
                 "genesisID": genesisID,
-                "creator": creator,
-                "index": assetIndex,
+                "assetIndex": assetIndex,
                 "note": note,
                 "assetRevocationTarget": revocationTarget,
                 "closeRemainderTo": closeRemainderTo
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
-                fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
-                creator, assetIndex);
+                fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -555,14 +549,14 @@ describe('Sign', function () {
                 "genesisHash": genesisHash,
                 "type": "afrz",
                 "freezeAccount": freezeTarget,
-                "index": assetIndex,
+                "assetIndex": assetIndex,
                 "creator" : creator,
                 "freezeState" : freezeState,
                 "note": note
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetFreezeTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                creator, assetIndex, freezeTarget, freezeState);
+                assetIndex, freezeTarget, freezeState);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
     });
