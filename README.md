@@ -334,7 +334,7 @@ let firstRound = 322575; // first Algorand round on which this transaction is va
 let lastRound = 322575; // last Algorand round on which this transaction is valid
 let note = undefined; // arbitrary data to be stored in the transaction; here, none is stored
 let assetURL = "http://someurl"; // optional string pointing to a URL relating to the asset 
-let assetMetadataHash = "somehash"; // optional hash commitment of some sort relating to the asset
+let assetMetadataHash = "thisIsSomeLength32HashCommitment"; // optional hash commitment of some sort relating to the asset. 32 character length.
 
 // signing and sending "txn" allows "addr" to create an asset
 let txn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note,
@@ -348,7 +348,8 @@ such as the reserve address. To keep an address the same, it must be re-specifie
 Supplying an empty address is the same as turning the associated feature off for this asset. Once a special address
 is set to the empty address, it can never change again. For example, if an asset configuration transaction specifying
 `clawback=""` were issued, the associated asset could never be revoked from asset holders, and `clawback=""` would be
-true for all time.                                                                                                                     
+true for all time.                 
+                                                                                                    
 ```javascript
 let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
 let fee = 10;
