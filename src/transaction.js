@@ -148,9 +148,9 @@ class Transaction {
             if (this.assetReserve !== undefined) txn.apar.r = Buffer.from(this.assetReserve.publicKey);
             if (this.assetFreeze !== undefined) txn.apar.f = Buffer.from(this.assetFreeze.publicKey);
             if (this.assetClawback !== undefined) txn.apar.c = Buffer.from(this.assetClawback.publicKey);
-            if (this.assetName !== undefined) txn.apar.an = Buffer.from(this.assetName);
-            if (this.assetUnitName !== undefined) txn.apar.un = Buffer.from(this.assetUnitName);
-            if (this.assetURL !== undefined) txn.apar.au = Buffer.from(this.assetURL);
+            if (this.assetName !== undefined) txn.apar.an =this.assetName;
+            if (this.assetUnitName !== undefined) txn.apar.un = this.assetUnitName;
+            if (this.assetURL !== undefined) txn.apar.au = this.assetURL;
             if (this.assetMetadataHash !== undefined) txn.apar.am = Buffer.from(this.assetMetadataHash);
 
             // allowed zero values
@@ -168,7 +168,9 @@ class Transaction {
                 (!txn.apar.m) &&
                 (!txn.apar.r) &&
                 (!txn.apar.f) &&
-                (!txn.apar.c)){
+                (!txn.apar.c) &&
+                (!txn.apar.au) &&
+                (!txn.apar.am)){
                     delete txn.apar
             }
             else {
@@ -181,8 +183,9 @@ class Transaction {
                 if (!txn.apar.f) delete txn.apar.f;
                 if (!txn.apar.c) delete txn.apar.c;
                 if (!txn.apar.au) delete txn.apar.au;
-                if (!txn.apar.an) delete txn.apar.an;
+                if (!txn.apar.am) delete txn.apar.am;
             }
+            if (txn.grp === undefined) delete txn.grp;
 
             return txn;
         }
@@ -206,6 +209,7 @@ class Transaction {
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.aamt) delete txn.aamt;
+            if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
             if (txn.grp === undefined) delete txn.grp;
@@ -233,6 +237,7 @@ class Transaction {
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
+            if (txn.grp === undefined) delete txn.grp;
 
             return txn;
         }

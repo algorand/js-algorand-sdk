@@ -284,7 +284,7 @@ describe('Algosdk (AKA end to end)', function () {
     describe('assets', function () {
         it('should return a blob that matches the go code for asset create', function() {
             let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
-            let golden = "gqNzaWfEQGgrTyL9vDPnfdHhNycCFm+reimO11pXK0jNcvWigQ5iHUzg3OrY5QlNTUXRcCrLP07K256WPy+5aRtrYvwMgwWjdHhuh6RhcGFyiaJhbcQgc29tZWhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACiYW7EIHRlc3Rjb2luAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAomF1xCB3ZWJzaXRlAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aF0ZKJ1bsQIdHN0AAAAAACjZmVlzRHuomZ2zgAE7A+iZ2jEIEhjtRiks8hOyBDyLU8QgcsPcfBZp6wg3sYvf3DlCToiomx2zgAE7/ejc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aR0eXBlpGFjZmc=";
+            let golden = "gqNzaWfEQEDd1OMRoQI/rzNlU4iiF50XQXmup3k5czI9hEsNqHT7K4KsfmA/0DUVkbzOwtJdRsHS8trm3Arjpy9r7AXlbAujdHhuh6RhcGFyiaJhbcQgZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5RmiiYW6odGVzdGNvaW6iYXWnd2Vic2l0ZaFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aF0ZKJ1bqN0c3SjZmVlzQ+0omZ2zgAE7A+iZ2jEIEhjtRiks8hOyBDyLU8QgcsPcfBZp6wg3sYvf3DlCToiomx2zgAE7/ejc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aR0eXBlpGFjZmc=";
             let sk = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
             let createTxn = {
                 "from": address,
@@ -301,7 +301,7 @@ describe('Algosdk (AKA end to end)', function () {
                 "assetUnitName": "tst",
                 "assetName": "testcoin",
                 "assetURL": "website",
-                "assetMetadataHash": "somehash",
+                "assetMetadataHash": "fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh",
                 "type": "acfg"
             };
             sk = algosdk.mnemonicToSecretKey(sk);
@@ -337,7 +337,7 @@ describe('Algosdk (AKA end to end)', function () {
 
         it('should return a blob that matches the go code for asset destroy', function() {
             let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
-            let golden = "gqNzaWfEQPd0mv/T/t92g08WiJ9f/l0QsiHhFu8D9hSYt5z7cExhSStmVN5WV9wHRUOyAy6SFC72OutIi58rNxOcc+ZmTASjdHhuh6RjYWlkAaNmZWXNB2yiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWNmZw==";
+            let golden = "gqNzaWfEQBSP7HtzD/Lvn4aVvaNpeR4T93dQgo4LvywEwcZgDEoc/WVl3aKsZGcZkcRFoiWk8AidhfOZzZYutckkccB8RgGjdHhuh6RjYWlkAaNmZWXNB1iiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWNmZw==";
             let sk = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
             let o = {
                 "from": address,
@@ -446,7 +446,7 @@ describe('Algosdk (AKA end to end)', function () {
             let sk = keys.secretKey;
             let js_dec = algosdk.signTransaction(o, sk);
             console.log(Buffer.from(js_dec.blob).toString('base64'));
-            let golden = Buffer.from("gqNzaWfEQHIBdz/aZdjl3qE8j9IPedxw6HoFvI91fDwiMHNe+v6XDqRSm7BoFIUoRzSsaRXt3TCh4nEwhD/qxsXvYBbB+AGjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCr6iZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=", "base64");
+            let golden = Buffer.from("gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
         });
     });
