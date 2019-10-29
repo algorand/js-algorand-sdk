@@ -308,7 +308,6 @@ describe('Algosdk (AKA end to end)', function () {
             let algoTxn = new transaction.Transaction(createTxn);
 
             let js_dec_create = algosdk.signTransaction(createTxn, sk.sk);
-            console.log(Buffer.from(js_dec_create.blob).toString('base64'));
             assert.deepStrictEqual(Buffer.from(js_dec_create.blob), Buffer.from(golden, "base64"));
         });
 
@@ -350,7 +349,6 @@ describe('Algosdk (AKA end to end)', function () {
             };
             sk = algosdk.mnemonicToSecretKey(sk);
             let js_dec = algosdk.signTransaction(o, sk.sk);
-            console.log(Buffer.from(js_dec.blob).toString('base64'));
             assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
         });
         it('should return a blob that matches the go code for asset freeze', function () {
@@ -374,7 +372,6 @@ describe('Algosdk (AKA end to end)', function () {
             let sk = keys.secretKey;
             let js_dec = algosdk.signTransaction(o, sk);
             let golden = Buffer.from("gqNzaWfEQAhru5V2Xvr19s4pGnI0aslqwY4lA2skzpYtDTAN9DKSH5+qsfQQhm4oq+9VHVj7e1rQC49S28vQZmzDTVnYDQGjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkAaNmZWXNCRqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==", "base64");
-            console.log(Buffer.from(js_dec.blob).toString('base64'));
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
         });
         it('should return a blob that matches the go code for asset transfer', function () {
@@ -445,7 +442,6 @@ describe('Algosdk (AKA end to end)', function () {
             let keys = nacl.keyPairFromSeed(seed);
             let sk = keys.secretKey;
             let js_dec = algosdk.signTransaction(o, sk);
-            console.log(Buffer.from(js_dec.blob).toString('base64'));
             let golden = Buffer.from("gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
         });
