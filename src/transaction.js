@@ -6,7 +6,7 @@ const base32 = require('hi-base32');
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5
-
+const ALGORAND_ASSET_METADATA_HASH_MAX_LENGTH = 32;
 /**
  * Transaction enables construction of Algorand transactions
  * */
@@ -50,6 +50,10 @@ class Transaction {
         }
         if (selectionKey !== undefined) {
             selectionKey = Buffer.from(selectionKey, "base64");
+        }
+
+        if (assetMetadataHash !== undefined) {
+            if (assetMetadataHash.length > ALGORAND_ASSET_METADATA_HASH_MAX_LENGTH) throw Error("asset metadata hash too long.");
         }
 
         Object.assign(this, {
