@@ -421,10 +421,13 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * @param clawback - string representation of Algorand address with power to revoke asset holdings
  * @param unitName - string units name for this asset
  * @param assetName - string name for this asset
+ * @param assetURL - string URL relating to this asset
+ * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
  * @returns {Transaction}
  */
 function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            total, defaultFrozen, manager, reserve, freeze, clawback, unitName, assetName) {
+                            total, defaultFrozen, manager, reserve, freeze, clawback,
+                            unitName, assetName, assetURL, assetMetadataHash) {
     let o = {
         "from": from,
         "fee": fee,
@@ -432,10 +435,12 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "lastRound": lastRound,
         "note": note,
         "genesisHash": genesisHash,
-        "t": total,
-        "df": defaultFrozen,
-        "un": unitName,
-        "an": assetName,
+        "assetTotal": total,
+        "assetDefaultFrozen": defaultFrozen,
+        "assetUnitName": unitName,
+        "assetName": assetName,
+        "assetURL": assetURL,
+        "assetMetadataHash": assetMetadataHash,
         "assetManager": manager,
         "assetReserve": reserve,
         "assetFreeze": freeze,
@@ -457,8 +462,7 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
- * @param creator - string representation of Algorand address of creator
- * @param assetIndex - int asset index
+ * @param assetIndex - int asset index uniquely specifying the asset
  * @param manager - string representation of new asset manager Algorand address
  * @param reserve - string representation of new reserve Algorand address
  * @param freeze - string representation of new freeze manager Algorand address
@@ -466,7 +470,7 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @returns {Transaction}
  */
 function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            creator, assetIndex, manager, reserve, freeze, clawback) {
+                            assetIndex, manager, reserve, freeze, clawback) {
     let o = {
         "from": from,
         "fee": fee,
@@ -474,8 +478,7 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "lastRound": lastRound,
         "genesisHash": genesisHash,
         "genesisID": genesisID,
-        "creator": creator,
-        "index": assetIndex,
+        "assetIndex": assetIndex,
         "assetManager": manager,
         "assetReserve": reserve,
         "assetFreeze": freeze,
@@ -496,12 +499,10 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
- * @param creator - string representation of Algorand address of creator
- * @param assetIndex - int asset index
+ * @param assetIndex - int asset index uniquely specifying the asset
  * @returns {Transaction}
  */
-function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                             creator, assetIndex) {
+function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
     let o = {
         "from": from,
         "fee": fee,
@@ -509,8 +510,7 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
         "lastRound": lastRound,
         "genesisHash": genesisHash,
         "genesisID": genesisID,
-        "creator": creator,
-        "index": assetIndex,
+        "assetIndex": assetIndex,
         "type": "acfg",
         "note": note
     };
@@ -527,14 +527,13 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
- * @param creator - string representation of Algorand address of creator
- * @param assetIndex - int asset index
+ * @param assetIndex - int asset index uniquely specifying the asset
  * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
  * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
  * @returns {Transaction}
  */
 function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            creator, assetIndex, freezeTarget, freezeState) {
+                            assetIndex, freezeTarget, freezeState) {
     let o = {
         "from": from,
         "fee": fee,
@@ -543,8 +542,7 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "genesisHash": genesisHash,
         "type": "afrz",
         "freezeAccount": freezeTarget,
-        "index": assetIndex,
-        "creator" : creator,
+        "assetIndex": assetIndex,
         "freezeState" : freezeState,
         "note": note
     };
@@ -567,13 +565,11 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
- * @param creator - string representation of Algorand address of creator
- * @param assetIndex - int asset index
+ * @param assetIndex - int asset index uniquely specifying the asset
  * @returns {Transaction}
  */
 function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
-                              fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
-                              creator, assetIndex) {
+                              fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
     let o = {
         "type": "axfer",
         "from": from,
@@ -584,8 +580,7 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
         "lastRound": lastRound,
         "genesisHash": genesisHash,
         "genesisID": genesisID,
-        "creator": creator,
-        "index": assetIndex,
+        "assetIndex": assetIndex,
         "note": note,
         "assetRevocationTarget": revocationTarget,
         "closeRemainderTo": closeRemainderTo

@@ -85,30 +85,6 @@ describe('Algosdk (AKA end to end)', function () {
         });
     });
 
-    it('should return a blob that matches the go code for an asset configuration transaction', function() {
-        let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
-        let golden = "gqNzaWfEQCRiqooONBncRNNplEiW0aKkcOn64MdOlHiRNN81GDQx0SqUYKL1q//4Yi5ziFdmtFOC7Iu/I8qbCkSlYPUVRAWjdHhuiKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpzQTSo2ZlZc0OzqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaRhY2Zn"
-        let sk = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
-        let o = {
-            "from": address,
-            "fee": 10,
-            "firstRound": 322575,
-            "lastRound": 323575,
-            "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-            "creator": address,
-            "index": 1234,
-            "assetManager": address,
-            "assetReserve": address,
-            "assetFreeze": address,
-            "assetClawback": address,
-            "type": "acfg"
-        };
-        sk = algosdk.mnemonicToSecretKey(sk);
-
-        let js_dec = algosdk.signTransaction(o, sk.sk);
-        assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
-    });
-
     describe('Sign and verify bytes', function () {
         it('should verify a correct signature', function () {
             let account = algosdk.generateAccount();
@@ -305,9 +281,100 @@ describe('Algosdk (AKA end to end)', function () {
         });
     });
 
-    describe('asset transfer', function () {
-        it('should return a blob that matches the go code', function () {
+    describe('assets', function () {
+        it('should return a blob that matches the go code for asset create', function() {
+            let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let golden = "gqNzaWfEQEDd1OMRoQI/rzNlU4iiF50XQXmup3k5czI9hEsNqHT7K4KsfmA/0DUVkbzOwtJdRsHS8trm3Arjpy9r7AXlbAujdHhuh6RhcGFyiaJhbcQgZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5RmiiYW6odGVzdGNvaW6iYXWnd2Vic2l0ZaFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aF0ZKJ1bqN0c3SjZmVlzQ+0omZ2zgAE7A+iZ2jEIEhjtRiks8hOyBDyLU8QgcsPcfBZp6wg3sYvf3DlCToiomx2zgAE7/ejc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aR0eXBlpGFjZmc=";
+            let sk = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
+            let createTxn = {
+                "from": address,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "assetTotal": 100,
+                "assetDefaultFrozen": false,
+                "assetManager": address,
+                "assetReserve": address,
+                "assetFreeze": address,
+                "assetClawback": address,
+                "assetUnitName": "tst",
+                "assetName": "testcoin",
+                "assetURL": "website",
+                "assetMetadataHash": "fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh",
+                "type": "acfg"
+            };
+            sk = algosdk.mnemonicToSecretKey(sk);
+            let algoTxn = new transaction.Transaction(createTxn);
 
+            let js_dec_create = algosdk.signTransaction(createTxn, sk.sk);
+            assert.deepStrictEqual(Buffer.from(js_dec_create.blob), Buffer.from(golden, "base64"));
+        });
+
+        it('should return a blob that matches the go code for asset configuration', function() {
+            let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let golden = "gqNzaWfEQBBkfw5n6UevuIMDo2lHyU4dS80JCCQ/vTRUcTx5m0ivX68zTKyuVRrHaTbxbRRc3YpJ4zeVEnC9Fiw3Wf4REwejdHhuiKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkzQTSo2ZlZc0NSKJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaRhY2Zn";
+            let sk = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
+            let o = {
+                "from": address,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "assetIndex": 1234,
+                "assetManager": address,
+                "assetReserve": address,
+                "assetFreeze": address,
+                "assetClawback": address,
+                "type": "acfg"
+            };
+            sk = algosdk.mnemonicToSecretKey(sk);
+            let js_dec = algosdk.signTransaction(o, sk.sk);
+            console.log(Buffer.from(js_dec.blob).toString('base64'));
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
+        });
+
+        it('should return a blob that matches the go code for asset destroy', function() {
+            let address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let golden = "gqNzaWfEQBSP7HtzD/Lvn4aVvaNpeR4T93dQgo4LvywEwcZgDEoc/WVl3aKsZGcZkcRFoiWk8AidhfOZzZYutckkccB8RgGjdHhuh6RjYWlkAaNmZWXNB1iiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWNmZw==";
+            let sk = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
+            let o = {
+                "from": address,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "assetIndex": 1,
+                "type": "acfg"
+            };
+            sk = algosdk.mnemonicToSecretKey(sk);
+            let js_dec = algosdk.signTransaction(o, sk.sk);
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
+        });
+        it('should return a blob that matches the go code for asset freeze', function () {
+
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let o = {
+                "from": addr,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323576,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "type": "afrz",
+                "freezeAccount": addr,
+                "assetIndex": 1,
+                "freezeState" : true
+            };
+
+            let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
+            let seed = passphrase.seedFromMnemonic(mnem);
+            let keys = nacl.keyPairFromSeed(seed);
+            let sk = keys.secretKey;
+            let js_dec = algosdk.signTransaction(o, sk);
+            let golden = Buffer.from("gqNzaWfEQAhru5V2Xvr19s4pGnI0aslqwY4lA2skzpYtDTAN9DKSH5+qsfQQhm4oq+9VHVj7e1rQC49S28vQZmzDTVnYDQGjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkAaNmZWXNCRqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==", "base64");
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+        });
+        it('should return a blob that matches the go code for asset transfer', function () {
             let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
 
             let o = {
@@ -319,8 +386,7 @@ describe('Algosdk (AKA end to end)', function () {
                 "firstRound": 322575,
                 "lastRound": 323576,
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-                "creator": addr,
-                "index": 1,
+                "assetIndex": 1,
                 "closeRemainderTo": addr
             };
 
@@ -329,26 +395,22 @@ describe('Algosdk (AKA end to end)', function () {
             let keys = nacl.keyPairFromSeed(seed);
             let sk = keys.secretKey;
             let js_dec = algosdk.signTransaction(o, sk);
-            let golden = Buffer.from("gqNzaWfEQGkk9CtvOKnn4nU59xmPGoZvYv+6TCu5B95PgwQ/YytwE9dr199ehEqAnSS0C2SaO4YhEBAk+JVOiwZiRq/w1gijdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0MRKJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpAQ==", "base64");
+            let golden = Buffer.from("gqNzaWfEQNkEs3WdfFq6IQKJdF1n0/hbV9waLsvojy9pM1T4fvwfMNdjGQDy+LeesuQUfQVTneJD4VfMP7zKx4OUlItbrwSjdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0KvqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkAQ==", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
         });
-    });
-
-    describe('asset freeze', function () {
-        it('should return a blob that matches the go code', function () {
-
+        it('should return a blob that matches the go code for asset accept', function () {
             let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+
             let o = {
+                "type": "axfer",
                 "from": addr,
+                "to": addr,
+                "amount": 0,
                 "fee": 10,
                 "firstRound": 322575,
-                "lastRound": 323576,
+                "lastRound": 323575,
                 "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
-                "type": "afrz",
-                "freezeAccount": addr,
-                "index": 1,
-                "creator" : addr,
-                "freezeState" : true
+                "assetIndex": 1
             };
 
             let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
@@ -356,7 +418,31 @@ describe('Algosdk (AKA end to end)', function () {
             let keys = nacl.keyPairFromSeed(seed);
             let sk = keys.secretKey;
             let js_dec = algosdk.signTransaction(o, sk);
-            let golden = Buffer.from("gqNzaWfEQJsNp4Hm5qYBN1Foa8nGd3zeMFxGFJiAxuf3/L1A4MTgR521fId0nIYtMwbJha5zRpN/0UuNoq91IkOK7LVhzACjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkgqFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFpAaNmZWXNCqCiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==", "base64");
+            let golden = Buffer.from("gqNzaWfEQJ7q2rOT8Sb/wB0F87ld+1zMprxVlYqbUbe+oz0WM63FctIi+K9eYFSqT26XBZ4Rr3+VTJpBE+JLKs8nctl9hgijdHhuiKRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCOiiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=", "base64");
+            assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+        });
+        it('should return a blob that matches the go code for asset revoke', function () {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+
+            let o = {
+                "type": "axfer",
+                "from": addr,
+                "to": addr,
+                "assetRevocationTarget": addr,
+                "amount": 1,
+                "fee": 10,
+                "firstRound": 322575,
+                "lastRound": 323575,
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "assetIndex": 1
+            };
+
+            let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
+            let seed = passphrase.seedFromMnemonic(mnem);
+            let keys = nacl.keyPairFromSeed(seed);
+            let sk = keys.secretKey;
+            let js_dec = algosdk.signTransaction(o, sk);
+            let golden = Buffer.from("gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
         });
     });
