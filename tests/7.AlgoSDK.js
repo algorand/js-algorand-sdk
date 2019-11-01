@@ -330,7 +330,6 @@ describe('Algosdk (AKA end to end)', function () {
             };
             sk = algosdk.mnemonicToSecretKey(sk);
             let js_dec = algosdk.signTransaction(o, sk.sk);
-            console.log(Buffer.from(js_dec.blob).toString('base64'));
             assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
         });
 
