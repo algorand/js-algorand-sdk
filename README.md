@@ -334,7 +334,7 @@ let firstRound = 322575; // first Algorand round on which this transaction is va
 let lastRound = 322575; // last Algorand round on which this transaction is valid
 let note = undefined; // arbitrary data to be stored in the transaction; here, none is stored
 let assetURL = "http://someurl"; // optional string pointing to a URL relating to the asset 
-let assetMetadataHash = "thisIsSomeLength32HashCommitment"; // optional hash commitment of some sort relating to the asset. 32 character length.
+let assetMetadataHash = "16efaa3924a6fd9d3a4824799a4ac65d"; // optional hash commitment of some sort relating to the asset. 32 character length.
 
 // signing and sending "txn" allows "addr" to create an asset
 let txn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note,
