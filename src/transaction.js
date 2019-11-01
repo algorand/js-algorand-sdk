@@ -285,7 +285,7 @@ class Transaction {
                 if (txnForEnc.apar.un !== undefined) txn.assetUnitName = txnForEnc.apar.un;
                 if (txnForEnc.apar.an !== undefined) txn.assetName = txnForEnc.apar.an;
                 if (txnForEnc.apar.au !== undefined) txn.assetURL = txnForEnc.apar.au;
-                if (txnForEnc.apar.am !== undefined) txn.assetMetadataHash = txnForEnc.apar.am;
+                if (txnForEnc.apar.am !== undefined) txn.assetMetadataHash = new Uint8Array(txnForEnc.apar.am);
             }
         }
         else if (txnForEnc.type === "axfer") {
