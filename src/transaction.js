@@ -237,6 +237,7 @@ class Transaction {
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
+            if (!txn.afrz) delete txn.afrz;
             if (txn.grp === undefined) delete txn.grp;
 
             return txn;
@@ -303,7 +304,9 @@ class Transaction {
             txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.arcv)));
         }
         else if (txnForEnc.type === "afrz") {
-            txn.freezeState = txnForEnc.afrz;
+            if (txnForEnc.afrz !== undefined) {
+                txn.freezeState = txnForEnc.afrz;
+            }
             if (txnForEnc.faid !== undefined) {
                 txn.assetIndex = txnForEnc.faid;
             }
