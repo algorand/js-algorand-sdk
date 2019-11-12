@@ -347,9 +347,14 @@ function signLogicSigTransaction(txn, lsig) {
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
+ * @param lease - 32 byte array or undefined - Lease enforces mutual exclusion of transactions.  If this field is
+ * nonzero, then once the transaction is confirmed, it acquires the
+ * lease identified by the (Sender, Lease) pair of the transaction until
+ * the LastValid round passes.  While this transaction possesses the
+ * lease, no other transaction specifying this lease can be confirmed.
  * @returns {Transaction}
  */
-function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID) {
+function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID, lease) {
     let o = {
         "from": from,
         "to": to,
@@ -360,7 +365,8 @@ function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, gene
         "note": note,
         "genesisHash": genesisHash,
         "genesisID": genesisID,
-        "type": "pay"
+        "type": "pay",
+        "lease": lease
     };
     return new txnBuilder.Transaction(o);
 }
@@ -381,10 +387,11 @@ function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, gene
  * @param voteFirst - first round on which voteKey is valid
  * @param voteLast - last round on which voteKey is valid
  * @param voteKeyDilution - integer
+ * @param lease - see makePaymentTxn
  * @returns {Transaction}
  */
 function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution) {
+                                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, lease) {
     let o = {
         "from": from,
         "fee": fee,
@@ -398,7 +405,8 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
         "voteLast": voteLast,
         "voteKeyDilution": voteKeyDilution,
         "genesisID": genesisID,
-        "type": "keyreg"
+        "type": "keyreg",
+        "lease": lease
     };
     return new txnBuilder.Transaction(o);
 }
@@ -423,11 +431,12 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * @param assetName - string name for this asset
  * @param assetURL - string URL relating to this asset
  * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
+ * @param lease - see makePaymentTxn
  * @returns {Transaction}
  */
 function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                             total, defaultFrozen, manager, reserve, freeze, clawback,
-                            unitName, assetName, assetURL, assetMetadataHash) {
+                            unitName, assetName, assetURL, assetMetadataHash, lease) {
     let o = {
         "from": from,
         "fee": fee,
@@ -446,7 +455,8 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "assetFreeze": freeze,
         "assetClawback": clawback,
         "genesisID": genesisID,
-        "type": "acfg"
+        "type": "acfg",
+        "lease": lease
     };
     return new txnBuilder.Transaction(o);
 }
@@ -467,10 +477,11 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param reserve - string representation of new reserve Algorand address
  * @param freeze - string representation of new freeze manager Algorand address
  * @param clawback - string representation of new revocation manager Algorand address
+ * @param lease - see makePaymentTxn
  * @returns {Transaction}
  */
 function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            assetIndex, manager, reserve, freeze, clawback) {
+                            assetIndex, manager, reserve, freeze, clawback, lease) {
     let o = {
         "from": from,
         "fee": fee,
@@ -484,7 +495,8 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "assetFreeze": freeze,
         "assetClawback": clawback,
         "type": "acfg",
-        "note": note
+        "note": note,
+        "lease": lease
     };
     return new txnBuilder.Transaction(o);
 }
@@ -500,9 +512,10 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param assetIndex - int asset index uniquely specifying the asset
+ * @param lease - see makePaymentTxn
  * @returns {Transaction}
  */
-function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
+function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, lease) {
     let o = {
         "from": from,
         "fee": fee,
@@ -512,7 +525,8 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
         "genesisID": genesisID,
         "assetIndex": assetIndex,
         "type": "acfg",
-        "note": note
+        "note": note,
+        "lease": lease
     };
     return new txnBuilder.Transaction(o);
 }
@@ -530,10 +544,11 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
  * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
+ * @param lease - see makePaymentTxn
  * @returns {Transaction}
  */
 function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            assetIndex, freezeTarget, freezeState) {
+                            assetIndex, freezeTarget, freezeState, lease) {
     let o = {
         "from": from,
         "fee": fee,
@@ -544,7 +559,8 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "freezeAccount": freezeTarget,
         "assetIndex": assetIndex,
         "freezeState" : freezeState,
-        "note": note
+        "note": note,
+        "lease": lease
     };
     return new txnBuilder.Transaction(o);
 }
@@ -566,10 +582,11 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param assetIndex - int asset index uniquely specifying the asset
+ * @param lease - see makePaymentTxn
  * @returns {Transaction}
  */
 function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
-                              fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
+                              fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, lease) {
     let o = {
         "type": "axfer",
         "from": from,
@@ -583,7 +600,8 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
         "assetIndex": assetIndex,
         "note": note,
         "assetRevocationTarget": revocationTarget,
-        "closeRemainderTo": closeRemainderTo
+        "closeRemainderTo": closeRemainderTo,
+        "lease": lease
     };
     return new txnBuilder.Transaction(o);
 }
