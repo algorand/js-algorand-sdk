@@ -6,12 +6,13 @@ const base32 = require('hi-base32');
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5
+const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 
 /**
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, 
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -45,6 +46,13 @@ class Transaction {
         else {
           note = new Uint8Array(0);
         }
+        if (lease !== undefined) {
+            if (lease.constructor !== Uint8Array) throw Error("lease must be a Uint8Array.");
+            if (lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH) throw Error("lease must be of length " + ALGORAND_TRANSACTION_LEASE_LENGTH.toString() + ".");
+        }
+        else {
+            lease = new Uint8Array(0);
+        }
         if (voteKey !== undefined) {
             voteKey = Buffer.from(voteKey, "base64");
         }
@@ -53,7 +61,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -86,6 +94,7 @@ class Transaction {
                 "type": "pay",
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
+                "lx": Buffer.from(this.lease),
                 "grp": this.group,
             };
 
@@ -98,6 +107,7 @@ class Transaction {
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
             if (txn.grp === undefined) delete txn.grp;
+            if (!txn.lx.length) delete txn.lx;
 
             return txn;
         }
@@ -111,6 +121,7 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
+                "lx": Buffer.from(this.lease),
                 "grp": this.group,
                 "votekey": this.voteKey,
                 "selkey": this.selectionKey,
@@ -120,6 +131,7 @@ class Transaction {
             };
             // allowed zero values
             if (!txn.note.length) delete txn.note;
+            if (!txn.lx.length) delete txn.lx;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
 
@@ -138,6 +150,7 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
+                "lx": Buffer.from(this.lease),
                 "caid": this.assetIndex,
                 "apar": {
                     "t": this.assetTotal,
@@ -155,6 +168,7 @@ class Transaction {
 
             // allowed zero values
             if (!txn.note.length) delete txn.note;
+            if (!txn.lx.length) delete txn.lx;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
@@ -202,12 +216,14 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
+                "lx": Buffer.from(this.lease),
                 "xaid": this.assetIndex
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
             if (this.assetRevocationTarget !== undefined) txn.asnd = Buffer.from(this.assetRevocationTarget.publicKey);
             // allowed zero values
             if (!txn.note.length) delete txn.note;
+            if (!txn.lx.length) delete txn.lx;
             if (!txn.aamt) delete txn.aamt;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
@@ -228,12 +244,14 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
+                "lx": Buffer.from(this.lease),
                 "faid": this.assetIndex,
                 "afrz": this.freezeState
             };
             if (this.freezeAccount !== undefined) txn.fadd = Buffer.from(this.freezeAccount.publicKey);
             // allowed zero values
             if (!txn.note.length) delete txn.note;
+            if (!txn.lx.length) delete txn.lx;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
@@ -256,6 +274,7 @@ class Transaction {
         txn.firstRound = txnForEnc.fv;
         txn.lastRound = txnForEnc.lv;
         txn.note = new Uint8Array(txnForEnc.note);
+        txn.lease = new Uint8Array(txnForEnc.lx);
         txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
         if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
 
