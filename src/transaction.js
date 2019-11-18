@@ -376,6 +376,18 @@ class Transaction {
         const hash = this.rawTxID();
         return base32.encode(hash).slice(0, ALGORAND_TRANSACTION_LENGTH);
     }
+
+    // add a lease to a transaction not yet having
+    addLease(lease) {
+        if (lease !== undefined) {
+            if (lease.constructor !== Uint8Array) throw Error("lease must be a Uint8Array.");
+            if (lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH) throw Error("lease must be of length " + ALGORAND_TRANSACTION_LEASE_LENGTH.toString() + ".");
+        }
+        else {
+            lease = new Uint8Array(0);
+        }
+        this.lease = lease;
+    }
 }
 
 /**
