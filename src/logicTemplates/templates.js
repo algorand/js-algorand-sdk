@@ -5,11 +5,11 @@ const nacl = require('../nacl/naclWrappers');
 function putUvarint(buf, x){
     let i = 0;
     while (x > 0x80) {
-        buf.append((x&0xFF) | 0x80);
+        buf.push((x&0xFF) | 0x80);
         x >>= 7;
         i += 1;
     }
-    buf.append(x&0xFF);
+    buf.push(x&0xFF);
     return i + 1
 }
 
@@ -26,10 +26,10 @@ function inject(orig, offsets, values, valueTypes) {
     let res = orig;
 
     function replace(arr, newVal, offset, placeholderLength) {
-        let firstChunk = arr.slice(0, offset); // TODO ejr maybe offset + 1
-        firstChunk.push(newVal);
-        let secondChunk = arr.slice(offset + placeholderLength, arr.length);
-        return firstChunk.concat(secondChunk);
+        let beforeReplacement = arr.slice(0, offset); // TODO ejr maybe offset + 1
+        let afterReplacement = arr.slice(offset + placeholderLength, arr.length);
+        let chunks = [beforeReplacement, Buffer.from(newVal), afterReplacement];
+        return Buffer.concat(chunks);
     }
 
     for (let i = 0; i < offsets.length; i++ ) {
@@ -41,11 +41,11 @@ function inject(orig, offsets, values, valueTypes) {
             case valTypes.INT:
                 let buf = [];
                 decodedLength = putUvarint(buf, val);
-                res = replace(res, val, offsets[i], 1);
+                res = replace(res, buf, offsets[i], 1);
                 break;
             case valTypes.ADDRESS:
                 val = address.decode(val);
-                res = replace(res, val, offsets[i], 32);
+                res = replace(res, val.publicKey, offsets[i], 32);
                 break;
             case valTypes.BASE64:
                 val = Buffer.from(val, 'base64');
@@ -67,7 +67,7 @@ function inject(orig, offsets, values, valueTypes) {
 
 function addressFromProgram(program) {
     let tag = Buffer.from("Program");
-    let forHashing = tag.concat(program);
+    let forHashing = Buffer.concat([tag, program]);
     let hash = nacl.genericHash(forHashing);
     return address.encode(hash);
 }

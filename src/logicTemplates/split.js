@@ -37,7 +37,7 @@ class Split {
         let referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
         let referenceOffsets = [ /*fee*/ 4 /*timeout*/, 7 /*ratn*/, 8 /*ratd*/, 9 /*minPay*/, 10 /*owner*/, 14 /*receiver1*/, 47 /*receiver2*/, 80];
         let injectionVector =  [maxFee, expiryRound, ratn, ratd, minPay, owner, receiverOne, receiverTwo];
-        let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS];
+        let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS];
         let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
         this.program = injectedBytes.toString(); // is this correct for getting back to b64?
         this.address = templates.addressFromProgram(injectedBytes);
