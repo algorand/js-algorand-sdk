@@ -1,5 +1,5 @@
 const templates = require('./templates');
-const algosdk = require('../src/main');
+const algosdk = require('../main');
 
 class Split {
     /**
