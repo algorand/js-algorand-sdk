@@ -1,9 +1,10 @@
-let assert = require('assert');
-let address = require("../src/encoding/address");
-let logicsig = require("../src/logicsig");
-let logic = require("../src/logic/logic");
-let utils = require("../src/utils/utils");
-let logicTemplates = require("../src/logicTemplates");
+const assert = require('assert');
+const address = require("../src/encoding/address");
+const logicsig = require("../src/logicsig");
+const logic = require("../src/logic/logic");
+const utils = require("../src/utils/utils");
+const splitTemplate = require("../src/logicTemplates/split");
+const htlcTemplate = require("../src/logicTemplates/htlc");
 
 describe('LogicSig functionality', function () {
     describe('Basic logic sig', function () {
@@ -165,7 +166,7 @@ describe('Logic validation', function () {
             let expiryRound = 123456;
             let minPay = 10000;
             let maxFee = 5000000;
-            let split = logicTemplates.Split(owner, receivers[0], receivers[1], ratn, ratd, expiryRound, minPay, maxFee);
+            let split = new splitTemplate.Split(owner, receivers[0], receivers[1], ratn, ratd, expiryRound, minPay, maxFee);
             // Outputs
             let goldenProgram = "ASAIAcCWsQICAMDEBx5kkE4mAyCztwQn0+DycN+vsk+vJWcsoz/b7NDS6i33HOkvTpf+YiC3qUpIgHGWE8/1LPh9SGCalSN7IaITeeWSXbfsS5wsXyC4kBQ38Z8zcwWVAym4S8vpFB/c0XC6R4mnPi9EBADsPDEQIhIxASMMEDIEJBJAABkxCSgSMQcyAxIQMQglEhAxAiEEDRAiQAAuMwAAMwEAEjEJMgMSEDMABykSEDMBByoSEDMACCEFCzMBCCEGCxIQMwAIIQcPEBA=";
             assert.equal(goldenProgram, split.getProgram());
@@ -182,7 +183,7 @@ describe('Logic validation', function () {
             let hashImg = "f4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGk=";
             let expiryRound = 600000;
             let maxFee = 1000;
-            let htlc = logicTemplates.HTLC(owner, receiver, hashFn, hashImg, expiryRound, maxFee);
+            let htlc = new htlcTemplate.HTLC(owner, receiver, hashFn, hashImg, expiryRound, maxFee);
             // Outputs
             let goldenProgram = "ASAE6AcBAMDPJCYDIOaalh5vLV96yGYHkmVSvpgjXtMzY8qIkYu5yTipFbb5IH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpIP68oLsUSlpOp7Q4pGgayA5soQW8tgf8VlMlyVaV9qITMQEiDjEQIxIQMQcyAxIQMQgkEhAxCSgSLQEpEhAxCSoSMQIlDRAREA==";
             assert.equal(goldenProgram, htlc.getProgram());

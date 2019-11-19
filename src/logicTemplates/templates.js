@@ -1,5 +1,6 @@
-let assert = require('assert');
+const assert = require('assert');
 const address = require("../encoding/address");
+const nacl = require('../nacl/naclWrappers');
 
 function putUvarint(buf, x){
     let i = 0;
@@ -63,3 +64,12 @@ function inject(orig, offsets, values, valueTypes) {
 
     return res
 }
+
+function addressFromProgram(program) {
+    let tag = Buffer.from("Program");
+    let forHashing = tag.concat(program);
+    let hash = nacl.genericHash(forHashing);
+    return address.encode(hash);
+}
+
+module.exports = {inject, addressFromProgram, valTypes};
