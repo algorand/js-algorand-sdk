@@ -1,6 +1,5 @@
 const templates = require('./templates');
-const algosdk = require('../main');
-const utils = require('../utils/utils');
+const algosdk = require('../src/main');
 
 class Split {
     /**
@@ -77,11 +76,28 @@ class Split {
      *  slightly more. When True, an error will be raised.
      * @returns {Uint8Array}
      */
-    getSendFundsTransaction(amount, firstRound, lastRound, fee, genesisHash, precise=false) {
-        // TODO precise behavior
-        let ratio = this.ratn / this.ratd;
-        let amountForReceiverOne = amount * ratio;
-        let amountForReceiverTwo = amount * (1 - ratio);
+    getSendFundsTransaction(amount, firstRound, lastRound, fee, genesisHash, precise=true) {
+        let amountForReceiverOne = 0;
+        // reduce fractions
+        var gcdFn = function(a, b) {
+            if (!b) {
+                return a;
+            }
+
+            return gcdFn(b, a % b);
+        };
+        let gcd = gcdFn(this.ratn, this.ratd);
+        let ratn = Math.floor(this.ratn / gcd);
+        let ratd = Math.floor(this.ratd / gcd);
+        if (amount % ratd === 0) {
+            amountForReceiverOne = Math.floor(amount * ratn / ratd);
+        } else if (precise) {
+            throw Error("precise splitting requested but amount and contract ratio cannot be split precisely");
+        } else {
+            amountForReceiverOne = Math.round(amount * ratn / ratd);
+        }
+        let amountForReceiverTwo = amount - amountForReceiverOne;
+
         let from = this.address;
 
         let tx1 = algosdk.makePaymentTxn(from, this.receiverOne, fee, amountForReceiverOne, firstRound, lastRound, undefined, genesisHash, undefined, undefined);

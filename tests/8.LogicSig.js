@@ -188,9 +188,11 @@ describe('Logic validation', function () {
             let htlc = new htlcTemplate.HTLC(owner, receiver, hashFn, hashImg, expiryRound, maxFee);
             // Outputs
             let goldenProgram = "ASAE6AcBAMDPJCYDIOaalh5vLV96yGYHkmVSvpgjXtMzY8qIkYu5yTipFbb5IH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpIP68oLsUSlpOp7Q4pGgayA5soQW8tgf8VlMlyVaV9qITMQEiDjEQIxIQMQcyAxIQMQgkEhAxCSgSLQEpEhAxCSoSMQIlDRAREA==";
-            assert.equal(goldenProgram, htlc.getProgram());
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = htlc.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
             let goldenAddress = "KNBD7ATNUVQ4NTLOI72EEUWBVMBNKMPHWVBCETERV2W7T2YO6CVMLJRBM4";
-            assert.equal(goldenAddress, htlc.getAddress());
+            assert.deepStrictEqual(goldenAddress, htlc.getAddress());
         });
     });
 });
