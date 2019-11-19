@@ -1,4 +1,6 @@
-const templates = require('./templates')
+const templates = require('./templates');
+const algosdk = require('../main');
+const utils = require('../utils/utils');
 
 class Split {
     /**
@@ -39,7 +41,7 @@ class Split {
         let injectionVector =  [maxFee, expiryRound, ratn, ratd, minPay, owner, receiverOne, receiverTwo];
         let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS];
         let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
-        this.program = injectedBytes.toString(); // is this correct for getting back to b64?
+        this.programBytes = injectedBytes;
         this.address = templates.addressFromProgram(injectedBytes);
         this.ratn = ratn;
         this.ratd = ratd;
@@ -48,11 +50,11 @@ class Split {
     }
 
     /**
-     * returns the b64 string representation of the program bytes
-     * @returns {string}
+     * returns the program bytes
+     * @returns {Uint8Array}
      */
      getProgram() {
-        return this.program;
+        return this.programBytes;
     }
 
     /**
@@ -69,14 +71,32 @@ class Split {
      * @param {int} firstRound: the first round on which the transaction group will be valid
      * @param {int} lastRound: the last round on which the transaction group will be valid
      * @param {int} fee: the fee to pay in microAlgos
-     * @param {Uint8Array} genesisHash: the genesis hash indicating the network for this transaction
+     * @param {string} genesisHash: the b64-encoded genesis hash indicating the network for this transaction
      * @param {boolean} precise, optional, precise treats the case where amount is not perfectly divisible based on the ratio.
      *  When set to False, the amount will be divided as close as possible but one address will get
      *  slightly more. When True, an error will be raised.
-     * @returns {[transaction, transaction]}
+     * @returns {Uint8Array}
      */
     getSendFundsTransaction(amount, firstRound, lastRound, fee, genesisHash, precise=false) {
-        return null;
+        // TODO precise behavior
+        let ratio = this.ratn / this.ratd;
+        let amountForReceiverOne = amount * ratio;
+        let amountForReceiverTwo = amount * (1 - ratio);
+        let from = this.address;
+
+        let tx1 = algosdk.makePaymentTxn(from, this.receiverOne, fee, amountForReceiverOne, firstRound, lastRound, undefined, genesisHash, undefined, undefined);
+        let tx2 = algosdk.makePaymentTxn(from, this.receiverTwo, fee, amountForReceiverTwo, firstRound, lastRound, undefined, genesisHash, undefined, undefined);
+
+        let txns = [tx1, tx2];
+        let txGroup = algosdk.assignGroupID(txns);
+
+        let logicSig = algosdk.makeLogicSig(this.getProgram(), undefined); // no args
+        let signedTxns = [];
+        for (let idx in txGroup) {
+            let stxn = algosdk.signLogicSigTransaction(txGroup[idx], logicSig);
+            signedTxns.push(stxn)
+        }
+        return utils.concatArrays(signedTxns[0], signedTxns[1]);
     }
 }
 

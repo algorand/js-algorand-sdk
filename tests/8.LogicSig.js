@@ -169,9 +169,11 @@ describe('Logic validation', function () {
             let split = new splitTemplate.Split(owner, receivers[0], receivers[1], ratn, ratd, expiryRound, minPay, maxFee);
             // Outputs
             let goldenProgram = "ASAIAcCWsQICAMDEBx5kkE4mAyCztwQn0+DycN+vsk+vJWcsoz/b7NDS6i33HOkvTpf+YiC3qUpIgHGWE8/1LPh9SGCalSN7IaITeeWSXbfsS5wsXyC4kBQ38Z8zcwWVAym4S8vpFB/c0XC6R4mnPi9EBADsPDEQIhIxASMMEDIEJBJAABkxCSgSMQcyAxIQMQglEhAxAiEEDRAiQAAuMwAAMwEAEjEJMgMSEDMABykSEDMBByoSEDMACCEFCzMBCCEGCxIQMwAIIQcPEBA=";
-            assert.equal(goldenProgram, split.getProgram());
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = split.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
             let goldenAddress = "KPYGWKTV7CKMPMTLQRNGMEQRSYTYDHUOFNV4UDSBDLC44CLIJPQWRTCPBU";
-            assert.equal(goldenAddress, split.getAddress());
+            assert.deepStrictEqual(goldenAddress, split.getAddress());
         });
     });
     describe('HTLC', function () {
