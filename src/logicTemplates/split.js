@@ -1,5 +1,6 @@
 const templates = require('./templates');
 const algosdk = require('../main');
+const logicSig = require('../logicsig');
 
 class Split {
     /**
@@ -41,7 +42,8 @@ class Split {
         let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS];
         let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
         this.programBytes = injectedBytes;
-        this.address = templates.addressFromProgram(injectedBytes);
+        let lsig = new logicSig.LogicSig(injectedBytes, undefined);
+        this.address = lsig.address();
         this.ratn = ratn;
         this.ratd = ratd;
         this.receiverOne = receiverOne;

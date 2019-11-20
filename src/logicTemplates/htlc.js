@@ -1,6 +1,5 @@
 const templates = require('./templates');
-const algosdk = require('../main');
-const utils = require('../utils/utils');
+const logicSig = require('../logicsig');
 
 class HTLC {
     /**
@@ -47,8 +46,8 @@ class HTLC {
         let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.BASE64, templates.valTypes.ADDRESS];
         let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
         this.programBytes = injectedBytes;
-        this.address = templates.addressFromProgram(injectedBytes);
-
+        let lsig = new logicSig.LogicSig(injectedBytes, undefined);
+        this.address = lsig.address();
     }
 
     /**

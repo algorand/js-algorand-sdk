@@ -1,6 +1,6 @@
 const assert = require('assert');
 const address = require("../encoding/address");
-const nacl = require('../nacl/naclWrappers');
+const logicsig = require('../logicsig');
 
 function putUvarint(buf, x){
     let i = 0;
@@ -68,11 +68,4 @@ function inject(orig, offsets, values, valueTypes) {
     return res
 }
 
-function addressFromProgram(program) {
-    let tag = Buffer.from("Program");
-    let forHashing = Buffer.concat([tag, program]);
-    let hash = nacl.genericHash(forHashing);
-    return address.encode(hash);
-}
-
-module.exports = {inject, addressFromProgram, valTypes};
+module.exports = {inject, valTypes};
