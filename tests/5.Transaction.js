@@ -475,6 +475,29 @@ describe('Sign', function () {
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
+        it('should throw when disobeying strict address checking in make asset config', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let assetIndex = 1234;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let manager = addr;
+            let reserve = undefined;
+            let freeze = undefined;
+            let clawback = addr;
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let threw = false;
+            try {
+                algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                    assetIndex, manager, reserve, freeze, clawback);
+            } catch {
+                threw = true;
+            }
+            assert.deepStrictEqual(true, threw);
+        });
+
         it('should be able to use helper to make an asset destroy transaction', function() {
             let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
             let fee = 10;
