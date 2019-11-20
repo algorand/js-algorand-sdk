@@ -30,7 +30,7 @@ function checkProgram(program, args) {
         throw new Error("invalid arguments");
     }
 
-    let [version, vlen] = parseUvariant(program);
+    let [version, vlen] = parseUvarint(program);
     if (vlen <= 0) {
         throw new Error("version parsing error");
     }
@@ -90,7 +90,7 @@ function checkProgram(program, args) {
 
 function checkIntConstBlock(program, pc) {
     let size = 1;
-    let [numInts, bytesUsed] = parseUvariant(program.slice(pc + size));
+    let [numInts, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
         throw new Error(`could not decode int const block size at pc=${pc + size}`);
     }
@@ -100,7 +100,7 @@ function checkIntConstBlock(program, pc) {
         if (pc + size >= program.length) {
             throw new Error("intcblock ran past end of program");
         }
-        [_, bytesUsed] = parseUvariant(program.slice(pc + size));
+        [_, bytesUsed] = parseUvarint(program.slice(pc + size));
         if (bytesUsed <= 0) {
             throw new Error(`could not decode int const[${i}] block size at pc=${pc + size}`);
         }
@@ -111,7 +111,7 @@ function checkIntConstBlock(program, pc) {
 
 function checkByteConstBlock(program, pc) {
     let size = 1;
-    let [numInts, bytesUsed] = parseUvariant(program.slice(pc + size));
+    let [numInts, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
         throw new Error(`could not decode []byte const block size at pc=${pc + size}`);
     }
@@ -121,7 +121,7 @@ function checkByteConstBlock(program, pc) {
         if (pc + size >= program.length) {
             throw new Error("bytecblock ran past end of program");
         }
-        let [itemLen, bytesUsed] = parseUvariant(program.slice(pc + size));
+        let [itemLen, bytesUsed] = parseUvarint(program.slice(pc + size));
         if (bytesUsed <= 0) {
             throw new Error(`could not decode []byte] const[${i}] block size at pc=${pc + size}`);
         }
@@ -134,7 +134,7 @@ function checkByteConstBlock(program, pc) {
     return size;
 }
 
-function parseUvariant(array) {
+function parseUvarint(array) {
     let x = 0;
     let s = 0;
     for (let i = 0; i < array.length; i++) {
@@ -153,7 +153,7 @@ function parseUvariant(array) {
 
 module.exports = {
     checkProgram,
-    parseUvariant,
+    parseUvarint,
     checkIntConstBlock,
     checkByteConstBlock
 };
