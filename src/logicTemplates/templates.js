@@ -51,7 +51,8 @@ function inject(orig, offsets, values, valueTypes) {
                 let lenBuf = [];
                 val = Buffer.from(val, 'base64');
                 putUvarint(lenBuf, val.length);
-                res = replace(res, Buffer.concat([Buffer.from(lenBuf), val]), offsets[i], 33);
+                val = Buffer.concat([Buffer.from(lenBuf), val]);
+                res = replace(res, val, offsets[i], 33);
                 break;
             default:
                 throw "unrecognized value type"
