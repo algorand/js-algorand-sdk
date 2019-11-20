@@ -348,7 +348,8 @@ such as the reserve address. To keep an address the same, it must be re-specifie
 Supplying an empty address is the same as turning the associated feature off for this asset. Once a special address
 is set to the empty address, it can never change again. For example, if an asset configuration transaction specifying
 `clawback=""` were issued, the associated asset could never be revoked from asset holders, and `clawback=""` would be
-true for all time.                 
+true for all time. The optional `strictEmptyAddressChecking` argument can help with this behavior: when set to its default `true`,
+`makeAssetConfigTxn` will `throw` if any `undefined` management addresses are passed.                 
                                                                                                     
 ```javascript
 let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
@@ -363,11 +364,12 @@ let genesisID = "";
 let firstRound = 322575;
 let lastRound = 322575;
 let note = undefined;
+let strictEmptyAddressChecking = true;
 
 // signing and sending "txn" will allow the asset manager to change:
 // asset manager, asset reserve, asset freeze manager, asset revocation manager 
 let txn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-    assetIndex, manager, reserve, freeze, clawback);
+    assetIndex, manager, reserve, freeze, clawback, strictEmptyAddressChecking);
 ```
 
 Asset destruction: This allows the creator to remove the asset from the ledger, if all outstanding assets are held
