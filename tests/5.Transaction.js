@@ -346,11 +346,13 @@ describe('Sign', function () {
             let note = new Uint8Array([123, 12, 200]);
             let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
             let genesisID = "";
+            let closeRemainderTo = undefined;
             let o = {
                 "from": from,
                 "to": to,
                 "fee": fee,
                 "amount": amount,
+                "closeRemainderTo": closeRemainderTo,
                 "firstRound": firstRound,
                 "lastRound": lastRound,
                 "note": note,
@@ -358,7 +360,7 @@ describe('Sign', function () {
                 "genesisID": genesisID
             };
             let expectedTxn = new transaction.Transaction(o);
-            let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID);
+            let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
