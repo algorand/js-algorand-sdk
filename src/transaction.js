@@ -6,13 +6,12 @@ const base32 = require('hi-base32');
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5
-const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 
 /**
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash,
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -46,13 +45,6 @@ class Transaction {
         else {
           note = new Uint8Array(0);
         }
-        if (lease !== undefined) {
-            if (lease.constructor !== Uint8Array) throw Error("lease must be a Uint8Array.");
-            if (lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH) throw Error("lease must be of length " + ALGORAND_TRANSACTION_LEASE_LENGTH.toString() + ".");
-        }
-        else {
-            lease = new Uint8Array(0);
-        }
         if (voteKey !== undefined) {
             voteKey = Buffer.from(voteKey, "base64");
         }
@@ -61,7 +53,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
+            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash,
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -94,7 +86,6 @@ class Transaction {
                 "type": "pay",
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
-                "lx": Buffer.from(this.lease),
                 "grp": this.group,
             };
 
@@ -121,7 +112,6 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
-                "lx": Buffer.from(this.lease),
                 "grp": this.group,
                 "votekey": this.voteKey,
                 "selkey": this.selectionKey,
@@ -150,7 +140,6 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
-                "lx": Buffer.from(this.lease),
                 "caid": this.assetIndex,
                 "apar": {
                     "t": this.assetTotal,
@@ -216,7 +205,6 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
-                "lx": Buffer.from(this.lease),
                 "xaid": this.assetIndex
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
@@ -244,7 +232,6 @@ class Transaction {
                 "type": this.type,
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
-                "lx": Buffer.from(this.lease),
                 "faid": this.assetIndex,
                 "afrz": this.freezeState
             };
@@ -274,7 +261,6 @@ class Transaction {
         txn.firstRound = txnForEnc.fv;
         txn.lastRound = txnForEnc.lv;
         txn.note = new Uint8Array(txnForEnc.note);
-        txn.lease = new Uint8Array(txnForEnc.lx);
         txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
         if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
 
@@ -375,18 +361,6 @@ class Transaction {
     txID() {
         const hash = this.rawTxID();
         return base32.encode(hash).slice(0, ALGORAND_TRANSACTION_LENGTH);
-    }
-
-    // add a lease to a transaction not yet having
-    addLease(lease) {
-        if (lease !== undefined) {
-            if (lease.constructor !== Uint8Array) throw Error("lease must be a Uint8Array.");
-            if (lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH) throw Error("lease must be of length " + ALGORAND_TRANSACTION_LEASE_LENGTH.toString() + ".");
-        }
-        else {
-            lease = new Uint8Array(0);
-        }
-        this.lease = lease;
     }
 }
 
