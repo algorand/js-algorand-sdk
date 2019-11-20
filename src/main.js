@@ -342,6 +342,7 @@ function signLogicSigTransaction(txn, lsig) {
  * @param to - string representation of Algorand address of recipient
  * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
  * @param amount - integer amount to send, in microAlgos
+ * @param closeRemainderTo - optionally close out remaining account balance to this account, represented as string rep of Algorand address
  * @param firstRound - integer first protocol round on which this txn is valid
  * @param lastRound - integer last protocol round on which this txn is valid
  * @param note - uint8array of arbitrary data for sender to store
@@ -349,12 +350,13 @@ function signLogicSigTransaction(txn, lsig) {
  * @param genesisID - string specifies genesis ID of network in use
  * @returns {Transaction}
  */
-function makePaymentTxn(from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID) {
+function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID) {
     let o = {
         "from": from,
         "to": to,
         "fee": fee,
         "amount": amount,
+        "closeRemainderTo": closeRemainderTo,
         "firstRound": firstRound,
         "lastRound": lastRound,
         "note": note,
