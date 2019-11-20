@@ -26,7 +26,7 @@ function inject(orig, offsets, values, valueTypes) {
     let res = orig;
 
     function replace(arr, newVal, offset, placeholderLength) {
-        let beforeReplacement = arr.slice(0, offset); // TODO ejr maybe offset + 1
+        let beforeReplacement = arr.slice(0, offset);
         let afterReplacement = arr.slice(offset + placeholderLength, arr.length);
         let chunks = [beforeReplacement, Buffer.from(newVal), afterReplacement];
         return Buffer.concat(chunks);
