@@ -82,10 +82,10 @@ class Split {
         let amountForReceiverOne = 0;
         // reduce fractions
         var gcdFn = function(a, b) {
+            if ((typeof a !== 'number') || (typeof b !== 'number')) throw "gcd operates only on positive integers";
             if (!b) {
                 return a;
             }
-
             return gcdFn(b, a % b);
         };
         let gcd = gcdFn(this.ratn, this.ratd);
