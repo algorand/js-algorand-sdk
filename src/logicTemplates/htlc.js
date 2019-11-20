@@ -42,7 +42,7 @@ class HTLC {
         if (hashImageBytes.length !== 32) throw Error("hash image must be 32 bytes");
 
         let referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
-        let referenceOffsets = [ /*fee*/ 3 /*expiryRound*/, 6 /*receiver*/, 10 /*hashImage*/, 43 /*owner*/, 76];
+        let referenceOffsets = [ /*fee*/ 3 /*expiryRound*/, 6 /*receiver*/, 10 /*hashImage*/, 42 /*owner*/, 76];
         let injectionVector =  [maxFee, expiryRound, receiver, hashImage, owner];
         let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.BASE64, templates.valTypes.ADDRESS];
         let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);

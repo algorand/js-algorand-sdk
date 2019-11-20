@@ -39,17 +39,19 @@ function inject(orig, offsets, values, valueTypes) {
 
         switch (valType) {
             case valTypes.INT:
-                let buf = [];
-                decodedLength = putUvarint(buf, val);
-                res = replace(res, buf, offsets[i], 1);
+                let intBuf = [];
+                decodedLength = putUvarint(intBuf, val);
+                res = replace(res, intBuf, offsets[i], 1);
                 break;
             case valTypes.ADDRESS:
                 val = address.decode(val);
                 res = replace(res, val.publicKey, offsets[i], 32);
                 break;
             case valTypes.BASE64:
+                let lenBuf = [];
                 val = Buffer.from(val, 'base64');
-                res = replace(res, val, offsets[i], 32);
+                putUvarint(lenBuf, val.length);
+                res = replace(res, Buffer.concat([Buffer.from(lenBuf), val]), offsets[i], 33);
                 break;
             default:
                 throw "unrecognized value type"
