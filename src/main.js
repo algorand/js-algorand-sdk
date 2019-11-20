@@ -474,11 +474,8 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  */
 function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                             assetIndex, manager, reserve, freeze, clawback, strictEmptyAddressChecking=true) {
-    if (strictEmptyAddressChecking) {
-        let anyUndefined = (manager === undefined) || (reserve === undefined) || (freeze === undefined) || (clawback === undefined);
-        if (anyUndefined) {
-            throw Error("strict empty address checking was turned on, but at least one empty address was provided");
-        }
+    if (strictEmptyAddressChecking && (manager === undefined) || (reserve === undefined) || (freeze === undefined) || (clawback === undefined)) {
+        throw Error("strict empty address checking was turned on, but at least one empty address was provided");
     }
     let o = {
         "from": from,
