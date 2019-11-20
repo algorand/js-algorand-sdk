@@ -469,10 +469,14 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param reserve - string representation of new reserve Algorand address
  * @param freeze - string representation of new freeze manager Algorand address
  * @param clawback - string representation of new revocation manager Algorand address
+ * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
  * @returns {Transaction}
  */
 function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            assetIndex, manager, reserve, freeze, clawback) {
+                            assetIndex, manager, reserve, freeze, clawback, strictEmptyAddressChecking=true) {
+    if (strictEmptyAddressChecking && ((manager === undefined) || (reserve === undefined) || (freeze === undefined) || (clawback === undefined))) {
+        throw Error("strict empty address checking was turned on, but at least one empty address was provided");
+    }
     let o = {
         "from": from,
         "fee": fee,
