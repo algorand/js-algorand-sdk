@@ -378,7 +378,8 @@ class Transaction {
     }
 
     // add a lease to a transaction not yet having
-    addLease(lease) {
+    // supply feePerByte to increment fee accordingly
+    addLease(lease, feePerByte=0) {
         if (lease !== undefined) {
             if (lease.constructor !== Uint8Array) throw Error("lease must be a Uint8Array.");
             if (lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH) throw Error("lease must be of length " + ALGORAND_TRANSACTION_LEASE_LENGTH.toString() + ".");
@@ -387,6 +388,9 @@ class Transaction {
             lease = new Uint8Array(0);
         }
         this.lease = lease;
+        if (feePerByte !== 0) {
+            this.fee += 37 * feePerByte; // 32 bytes + 5 byte label
+        }
     }
 }
 
