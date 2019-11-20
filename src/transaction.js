@@ -155,7 +155,6 @@ class Transaction {
 
             // allowed zero values
             if (!txn.note.length) delete txn.note;
-            if (!txn.lx.length) delete txn.lx;
             if (!txn.amt) delete txn.amt;
             if (!txn.gen) delete txn.gen;
 
