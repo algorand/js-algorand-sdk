@@ -6,6 +6,7 @@ const base32 = require('hi-base32');
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5
+const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 
 /**
  * Transaction enables construction of Algorand transactions
@@ -364,6 +365,11 @@ class Transaction {
  */
 class TxGroup {
     constructor(hashes) {
+        if (hashes.length > ALGORAND_MAX_TX_GROUP_SIZE) {
+            let errorMsg = hashes.length.toString() + " transactions grouped together but max group size is " + ALGORAND_MAX_TX_GROUP_SIZE.toString();
+            throw Error(errorMsg);
+        }
+
         this.name = "Transaction group";
         this.tag = Buffer.from("TG");
 
