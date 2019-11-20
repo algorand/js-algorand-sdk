@@ -102,8 +102,8 @@ class Split {
 
         let from = this.address;
 
-        let tx1 = algosdk.makePaymentTxn(from, this.receiverOne, fee, amountForReceiverOne, firstRound, lastRound, undefined, genesisHash, undefined, undefined);
-        let tx2 = algosdk.makePaymentTxn(from, this.receiverTwo, fee, amountForReceiverTwo, firstRound, lastRound, undefined, genesisHash, undefined, undefined);
+        let tx1 = algosdk.makePaymentTxn(from, this.receiverOne, fee, amountForReceiverOne, firstRound, lastRound, undefined, genesisHash, undefined);
+        let tx2 = algosdk.makePaymentTxn(from, this.receiverTwo, fee, amountForReceiverTwo, firstRound, lastRound, undefined, genesisHash, undefined);
 
         let txns = [tx1, tx2];
         let txGroup = algosdk.assignGroupID(txns);
