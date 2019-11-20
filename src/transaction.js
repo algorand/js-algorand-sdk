@@ -98,7 +98,6 @@ class Transaction {
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
             if (txn.grp === undefined) delete txn.grp;
-            if (!txn.lx.length) delete txn.lx;
 
             return txn;
         }
@@ -121,7 +120,6 @@ class Transaction {
             };
             // allowed zero values
             if (!txn.note.length) delete txn.note;
-            if (!txn.lx.length) delete txn.lx;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
 
@@ -159,7 +157,6 @@ class Transaction {
             if (!txn.note.length) delete txn.note;
             if (!txn.lx.length) delete txn.lx;
             if (!txn.amt) delete txn.amt;
-            if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
 
 
@@ -211,7 +208,6 @@ class Transaction {
             if (this.assetRevocationTarget !== undefined) txn.asnd = Buffer.from(this.assetRevocationTarget.publicKey);
             // allowed zero values
             if (!txn.note.length) delete txn.note;
-            if (!txn.lx.length) delete txn.lx;
             if (!txn.aamt) delete txn.aamt;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
@@ -238,7 +234,6 @@ class Transaction {
             if (this.freezeAccount !== undefined) txn.fadd = Buffer.from(this.freezeAccount.publicKey);
             // allowed zero values
             if (!txn.note.length) delete txn.note;
-            if (!txn.lx.length) delete txn.lx;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;

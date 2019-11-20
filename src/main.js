@@ -566,7 +566,6 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param assetIndex - int asset index uniquely specifying the asset
- * @param lease - see makePaymentTxn
  * @returns {Transaction}
  */
 function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
