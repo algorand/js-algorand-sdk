@@ -1,8 +1,10 @@
-let assert = require('assert');
-let address = require("../src/encoding/address");
-let logicsig = require("../src/logicsig");
-let logic = require("../src/logic/logic");
-let utils = require("../src/utils/utils");
+const assert = require('assert');
+const address = require("../src/encoding/address");
+const logicsig = require("../src/logicsig");
+const logic = require("../src/logic/logic");
+const utils = require("../src/utils/utils");
+const splitTemplate = require("../src/logicTemplates/split");
+const htlcTemplate = require("../src/logicTemplates/htlc");
 
 describe('LogicSig functionality', function () {
     describe('Basic logic sig', function () {
@@ -149,6 +151,48 @@ describe('Logic validation', function () {
                 () => logic.checkProgram(program),
                 new Error("program too costly to run")
             );
+        });
+    });
+});
+
+describe('Logic validation', function () {
+    describe('Split', function () {
+        it('should match the goldens', function () {
+            // Inputs
+            let owner = "WO3QIJ6T4DZHBX5PWJH26JLHFSRT7W7M2DJOULPXDTUS6TUX7ZRIO4KDFY";
+            let receivers = ["W6UUUSEAOGLBHT7VFT4H2SDATKKSG6ZBUIJXTZMSLW36YS44FRP5NVAU7U", "XCIBIN7RT4ZXGBMVAMU3QS6L5EKB7XGROC5EPCNHHYXUIBAA5Q6C5Y7NEU"];
+            let ratn = 30;
+            let ratd = 100; // receiverOne gets 30/100 of whatever is sent to contract address
+            let expiryRound = 123456;
+            let minPay = 10000;
+            let maxFee = 5000000;
+            let split = new splitTemplate.Split(owner, receivers[0], receivers[1], ratn, ratd, expiryRound, minPay, maxFee);
+            // Outputs
+            let goldenProgram = "ASAIAcCWsQICAMDEBx5kkE4mAyCztwQn0+DycN+vsk+vJWcsoz/b7NDS6i33HOkvTpf+YiC3qUpIgHGWE8/1LPh9SGCalSN7IaITeeWSXbfsS5wsXyC4kBQ38Z8zcwWVAym4S8vpFB/c0XC6R4mnPi9EBADsPDEQIhIxASMMEDIEJBJAABkxCSgSMQcyAxIQMQglEhAxAiEEDRAiQAAuMwAAMwEAEjEJMgMSEDMABykSEDMBByoSEDMACCEFCzMBCCEGCxIQMwAIIQcPEBA=";
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = split.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
+            let goldenAddress = "KPYGWKTV7CKMPMTLQRNGMEQRSYTYDHUOFNV4UDSBDLC44CLIJPQWRTCPBU";
+            assert.deepStrictEqual(goldenAddress, split.getAddress());
+        });
+    });
+    describe('HTLC', function () {
+        it('should match the goldens', function () {
+            // Inputs
+            let owner = "726KBOYUJJNE5J5UHCSGQGWIBZWKCBN4WYD7YVSTEXEVNFPWUIJ7TAEOPM";
+            let receiver = "42NJMHTPFVPXVSDGA6JGKUV6TARV5UZTMPFIREMLXHETRKIVW34QFSDFRE";
+            let hashFn = "sha256";
+            let hashImg = "f4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGk=";
+            let expiryRound = 600000;
+            let maxFee = 1000;
+            let htlc = new htlcTemplate.HTLC(owner, receiver, hashFn, hashImg, expiryRound, maxFee);
+            // Outputs
+            let goldenProgram = "ASAE6AcBAMDPJCYDIOaalh5vLV96yGYHkmVSvpgjXtMzY8qIkYu5yTipFbb5IH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpIP68oLsUSlpOp7Q4pGgayA5soQW8tgf8VlMlyVaV9qITMQEiDjEQIxIQMQcyAxIQMQgkEhAxCSgSLQEpEhAxCSoSMQIlDRAREA==";
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = htlc.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
+            let goldenAddress = "KNBD7ATNUVQ4NTLOI72EEUWBVMBNKMPHWVBCETERV2W7T2YO6CVMLJRBM4";
+            assert.deepStrictEqual(goldenAddress, htlc.getAddress());
         });
     });
 });

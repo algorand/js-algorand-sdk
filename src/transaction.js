@@ -11,7 +11,7 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, 
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash,
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -53,7 +53,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisHash, genesisID,
+            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash,
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -155,8 +155,8 @@ class Transaction {
 
             // allowed zero values
             if (!txn.note.length) delete txn.note;
-            if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
+            if (!txn.amt) delete txn.amt;
             if (!txn.gen) delete txn.gen;
 
 
