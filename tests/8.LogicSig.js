@@ -62,20 +62,20 @@ describe('LogicSig functionality', function () {
 });
 
 describe('Logic validation', function () {
-    describe('Variant', function () {
+    describe('Varint', function () {
         it('should parse binary data correctly', function () {
             let data = Uint8Array.from([1]);
-            let [value, length] = logic.parseUvariant(data);
+            let [value, length] = logic.parseUvarint(data);
             assert.equal(length, 1);
             assert.equal(value, 1);
 
             data = Uint8Array.from([123]);
-            [value, length] = logic.parseUvariant(data);
+            [value, length] = logic.parseUvarint(data);
             assert.equal(length, 1);
             assert.equal(value, 123);
 
             data = Uint8Array.from([200, 3]);
-            [value, length] = logic.parseUvariant(data);
+            [value, length] = logic.parseUvarint(data);
             assert.equal(length, 2);
             assert.equal(value, 456);
         });
