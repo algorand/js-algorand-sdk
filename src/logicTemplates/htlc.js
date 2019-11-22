@@ -10,7 +10,7 @@ class HTLC {
      * More formally -
      * Algos can be transferred under only two circumstances:
      * 1. To owner if hash_function(arg_0) = hash_value
-     * 2. To owner if txn.FirstValid > expiry_round
+     * 2. To receiver if txn.FirstValid > expiry_round
      * ...
      *
      *Parameters
