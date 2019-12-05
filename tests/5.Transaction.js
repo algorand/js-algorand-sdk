@@ -404,6 +404,7 @@ describe('Sign', function () {
             let defaultFrozen = false;
             let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
             let total = 100;
+            let decimals = 0;
             let reserve = addr;
             let freeze = addr;
             let clawback = addr;
@@ -423,6 +424,7 @@ describe('Sign', function () {
                 "note": note,
                 "genesisHash": genesisHash,
                 "assetTotal": total,
+                "assetDecimals": decimals,
                 "assetDefaultFrozen": defaultFrozen,
                 "assetUnitName": unitName,
                 "assetName": assetName,
@@ -437,7 +439,7 @@ describe('Sign', function () {
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                total, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash);
+                total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 

@@ -416,6 +416,7 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param total - integer total supply of the asset
+ * @param decimals - integer number of decimals for asset unit calculation
  * @param defaultFrozen - boolean whether asset accounts should default to being frozen
  * @param manager - string representation of Algorand address in charge of reserve, freeze, clawback, destruction, etc
  * @param reserve - string representation of Algorand address representing asset reserve
@@ -428,8 +429,8 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * @returns {Transaction}
  */
 function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            total, defaultFrozen, manager, reserve, freeze, clawback,
-                            unitName, assetName, assetURL, assetMetadataHash) {
+                            total, decimals, defaultFrozen, manager, reserve, freeze,
+                            clawback, unitName, assetName, assetURL, assetMetadataHash) {
     let o = {
         "from": from,
         "fee": fee,
@@ -438,6 +439,7 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "note": note,
         "genesisHash": genesisHash,
         "assetTotal": total,
+        "assetDecimals": decimals,
         "assetDefaultFrozen": defaultFrozen,
         "assetUnitName": unitName,
         "assetName": assetName,
