@@ -8,6 +8,7 @@ const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
+const ALGORAND_MAX_ASSET_DECIMALS = 19;
 
 /**
  * Transaction enables construction of Algorand transactions
@@ -39,7 +40,7 @@ class Transaction {
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
         if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^53-1");
-        if (assetDecimals !== undefined && (!Number.isSafeInteger(assetDecimals) || assetDecimals < 0)) throw Error("assetDecimals must be a positive number and smaller than 2^53-1");
+        if (assetDecimals !== undefined && (!Number.isSafeInteger(assetDecimals) || assetDecimals < 0 || assetDecimals > ALGORAND_MAX_ASSET_DECIMALS)) throw Error("assetDecimals must be a positive number and smaller than " + ALGORAND_MAX_ASSET_DECIMALS.toString());
         if (assetIndex !== undefined && (!Number.isSafeInteger(assetIndex) || assetIndex < 0)) throw Error("Asset index must be a positive number and smaller than 2^53-1");
 
         if (note !== undefined) {
