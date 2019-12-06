@@ -323,6 +323,7 @@ let fee = 10; // the number of microAlgos per byte to pay as a transaction fee
 let defaultFrozen = false; // whether user accounts will need to be unfrozen before transacting
 let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="; // hash of the genesis block of the network to be used
 let totalIssuance = 100; // total number of this asset in circulation
+let decimals = 0; // hint that the units of this asset are whole-integer amounts
 let reserve = addr; // specified address is considered the asset reserve (it has no special privileges, this is only informational)
 let freeze = addr; // specified address can freeze or unfreeze user asset holdings
 let clawback = addr; // specified address can revoke user asset holdings and send them to other addresses
@@ -338,7 +339,7 @@ let assetMetadataHash = "16efaa3924a6fd9d3a4824799a4ac65d"; // optional hash com
 
 // signing and sending "txn" allows "addr" to create an asset
 let txn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note,
-    genesisHash, genesisID, totalIssuance, defaultFrozen, manager, reserve, freeze, clawback,
+    genesisHash, genesisID, totalIssuance, decimals, defaultFrozen, manager, reserve, freeze, clawback,
     unitName, assetName, assetURL, assetMetadataHash);
 ```
 

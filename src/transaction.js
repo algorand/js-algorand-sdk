@@ -8,6 +8,7 @@ const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
+const ALGORAND_MAX_ASSET_DECIMALS = 19;
 
 /**
  * Transaction enables construction of Algorand transactions
@@ -15,7 +16,7 @@ const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 class Transaction {
     constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
-                 assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
+                 assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
                  freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false}) {
         this.name = "Transaction";
@@ -39,6 +40,7 @@ class Transaction {
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
         if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^53-1");
+        if (assetDecimals !== undefined && (!Number.isSafeInteger(assetDecimals) || assetDecimals < 0 || assetDecimals > ALGORAND_MAX_ASSET_DECIMALS)) throw Error("assetDecimals must be a positive number and smaller than " + ALGORAND_MAX_ASSET_DECIMALS.toString());
         if (assetIndex !== undefined && (!Number.isSafeInteger(assetIndex) || assetIndex < 0)) throw Error("Asset index must be a positive number and smaller than 2^53-1");
 
         if (note !== undefined) {
@@ -64,7 +66,7 @@ class Transaction {
         Object.assign(this, {
             from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
-            assetIndex, assetTotal, assetDefaultFrozen, assetManager, assetReserve,
+            assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
             freezeAccount, freezeState, assetRevocationTarget, type
         });
@@ -156,6 +158,7 @@ class Transaction {
                 "apar": {
                     "t": this.assetTotal,
                     "df": this.assetDefaultFrozen,
+                    "dc": this.assetDecimals,
                 }
             };
             if (this.assetManager !== undefined) txn.apar.m = Buffer.from(this.assetManager.publicKey);
@@ -185,11 +188,13 @@ class Transaction {
                 (!txn.apar.f) &&
                 (!txn.apar.c) &&
                 (!txn.apar.au) &&
-                (!txn.apar.am)){
+                (!txn.apar.am) &&
+                (!txn.apar.dc)){
                     delete txn.apar
             }
             else {
                 if (!txn.apar.t) delete txn.apar.t;
+                if (!txn.apar.dc) delete txn.apar.dc;
                 if (!txn.apar.un) delete txn.apar.un;
                 if (!txn.apar.an) delete txn.apar.an;
                 if (!txn.apar.df) delete txn.apar.df;
@@ -299,6 +304,7 @@ class Transaction {
             if (txnForEnc.apar !== undefined){
                 txn.assetTotal = txnForEnc.apar.t;
                 txn.assetDefaultFrozen = txnForEnc.apar.df;
+                if (txnForEnc.apar.dc !== undefined) txn.assetDecimals = txnForEnc.apar.dc;
                 if (txnForEnc.apar.m !== undefined) txn.assetManager = address.decode(address.encode(new Uint8Array(txnForEnc.apar.m)));
                 if (txnForEnc.apar.r !== undefined) txn.assetReserve = address.decode(address.encode(new Uint8Array(txnForEnc.apar.r)));
                 if (txnForEnc.apar.f !== undefined) txn.assetFreeze = address.decode(address.encode(new Uint8Array(txnForEnc.apar.f)));
