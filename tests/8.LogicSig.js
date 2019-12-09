@@ -5,6 +5,7 @@ const logic = require("../src/logic/logic");
 const utils = require("../src/utils/utils");
 const splitTemplate = require("../src/logicTemplates/split");
 const htlcTemplate = require("../src/logicTemplates/htlc");
+const limitOrderTemplate = require("../src/logicTemplates/limitorder");
 
 describe('LogicSig functionality', function () {
     describe('Basic logic sig', function () {
@@ -155,7 +156,7 @@ describe('Logic validation', function () {
     });
 });
 
-describe('Logic validation', function () {
+describe('Template validation', function () {
     describe('Split', function () {
         it('should match the goldens', function () {
             // Inputs
@@ -193,6 +194,26 @@ describe('Logic validation', function () {
             assert.deepStrictEqual(goldenBytes, actualBytes);
             let goldenAddress = "KNBD7ATNUVQ4NTLOI72EEUWBVMBNKMPHWVBCETERV2W7T2YO6CVMLJRBM4";
             assert.deepStrictEqual(goldenAddress, htlc.getAddress());
+        });
+    });
+    describe('Limit Order', function () {
+        it('should match the goldens', function () {
+            // Inputs
+            let owner = "726KBOYUJJNE5J5UHCSGQGWIBZWKCBN4WYD7YVSTEXEVNFPWUIJ7TAEOPM";
+            let assetid = 12345;
+            let ratn = 30;
+            let ratd = 100;
+            let expiryRound = 123456;
+            let minTrade = 10000;
+            let maxFee = 5000000;
+            let limitOrder = new limitOrderTemplate.LimitOrder(owner, assetid, ratn, ratd, expiryRound, minTrade, maxFee);
+            // Outputs
+            let goldenProgram = "ASAKAAHAlrECApBOBLlgZB7AxAcmASD+vKC7FEpaTqe0OKRoGsgObKEFvLYH/FZTJclWlfaiEzEWIhIxECMSEDEBJA4QMgQjEkAAVTIEJRIxCCEEDRAxCTIDEhAzARAhBRIQMwERIQYSEDMBFCgSEDMBEzIDEhAzARIhBx01AjUBMQghCB01BDUDNAE0Aw1AACQ0ATQDEjQCNAQPEEAAFgAxCSgSMQIhCQ0QMQcyAxIQMQgiEhAQ";
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = limitOrder.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
+            let goldenAddress = "LXQWT2XLIVNFS54VTLR63UY5K6AMIEWI7YTVE6LB4RWZDBZKH22ZO3S36I";
+            assert.deepStrictEqual(goldenAddress, limitOrder.getAddress());
         });
     });
 });
