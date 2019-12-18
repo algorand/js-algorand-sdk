@@ -1,3 +1,6 @@
+# 1.4.1
+# Added
+- Added asset decimals field. 
 # 1.4.0
 # Added
 - Added support for Algorand Standardized Assets (ASA)
