@@ -52,6 +52,8 @@ class PeriodicPayment {
         this.address = lsig.address();
         this.receiver = receiver;
         this.amount = amount;
+        this.duration = withdrawalWindow;
+        this.period = period;
     }
 
     /**
@@ -74,11 +76,15 @@ class PeriodicPayment {
      * getWithdrawalTransaction returns a signed transaction extracting funds form the contract
      * @param {int} fee: the fee to pay in microAlgos
      * @param {int} firstValid: the first round on which the txn will be valid
-     * @param {int}lastValid: the final round on which the txn will be valid
      * @param {string} genesisHash: the hash representing the network for the txn
      * @returns {Object} Object containing txID and blob representing signed transaction
+     * @throws error on failure
      */
-    getWithdrawalTransaction(fee, firstValid, lastValid, genesisHash) {
+    getWithdrawalTransaction(fee, firstValid, genesisHash) {
+        if ((firstValid % this.period) !== 0) {
+            throw new Error("firstValid round was not a multiple of contract period")
+        }
+        let lastValid = firstValid + this.duration;
         let from = this.address;
         let to = this.receiver;
         let amount = this.amount;
