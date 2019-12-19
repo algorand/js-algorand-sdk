@@ -2,6 +2,7 @@ const templates = require('./templates');
 const transaction = require('../transaction');
 const logicSig = require('../logicsig');
 const algosdk = require('../main');
+const nacl = require('../nacl/naclWrappers');
 
 class DynamicFee {
     zeroAddress = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
@@ -145,9 +146,9 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
 
     let txnGroup = algosdk.assignGroupID([txn, feePayTxn], undefined);
 
-    let stx1 = algosdk.signLogicSigTransaction(txnGroup[0], lsig).blob
+    let stx1 = algosdk.signLogicSigTransaction(txnGroup[0], lsig).blob;
 
-    let stx2 = feePayTxn.signTxn(privateKey)
+    let stx2 = feePayTxn.signTxn(privateKey);
 
     return [stx1, stx2]
 }
