@@ -125,8 +125,8 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
         txn.fee = transaction.ALGORAND_MIN_TX_FEE
     }
 
-    //somehow convert privateKey to address
-    let address = "TODO";
+    let keys = nacl.keyPairFromSecretKey(privateKey);
+    let address = address.encode(keys.publicKey);
 
     let feePayTxn = transaction.Transaction({
         "from": address,
