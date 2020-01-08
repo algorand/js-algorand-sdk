@@ -98,7 +98,7 @@ class LimitOrder {
         let txns = [tx1, tx2];
         let txGroup = algosdk.assignGroupID(txns);
 
-        let logicSig = algosdk.makeLogicSig(this.getProgram(), undefined); // no args
+        let logicSig = algosdk.makeLogicSig(contract, undefined); // no args
         let signedTxns = [];
         for (let idx in txGroup) {
             let stxn = algosdk.signLogicSigTransaction(txGroup[idx], logicSig);
