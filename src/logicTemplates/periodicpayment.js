@@ -1,8 +1,9 @@
 const templates = require('./templates');
 const algosdk = require('../main');
 const logicSig = require('../logicsig');
+const logic = require('../logic/logic');
 const nacl = require("../nacl/naclWrappers");
-
+const address = require("../encoding/address");
 class PeriodicPayment {
     /**
      * MakePeriodicPayment allows some account to execute periodic withdrawal of funds.
@@ -50,10 +51,6 @@ class PeriodicPayment {
         this.programBytes = injectedBytes;
         let lsig = new logicSig.LogicSig(injectedBytes, undefined);
         this.address = lsig.address();
-        this.receiver = receiver;
-        this.amount = amount;
-        this.duration = withdrawalWindow;
-        this.period = period;
     }
 
     /**
@@ -74,24 +71,36 @@ class PeriodicPayment {
 
     /**
      * getWithdrawalTransaction returns a signed transaction extracting funds form the contract
-     * @param {int} fee: the fee to pay in microAlgos
+     * @param {Uint8Array} contract: the bytearray defining the contract, received from the payer
      * @param {int} firstValid: the first round on which the txn will be valid
      * @param {string} genesisHash: the hash representing the network for the txn
      * @returns {Object} Object containing txID and blob representing signed transaction
      * @throws error on failure
      */
-    getWithdrawalTransaction(fee, firstValid, genesisHash) {
-        if ((firstValid % this.period) !== 0) {
+    getWithdrawalTransaction(contract, firstValid, genesisHash) {
+        let [ints, byteArrays, _] = logic.readProgram(contract, undefined);
+        let fee = ints[1];
+        let period = ints[2];
+        let duration = ints[4];
+        let amount = ints[5];
+        if ((firstValid % period) !== 0) {
             throw new Error("firstValid round was not a multiple of contract period")
         }
-        let lastValid = firstValid + this.duration;
-        let from = this.address;
-        let to = this.receiver;
-        let amount = this.amount;
+
+        // extract receiver and convert as needed
+        let receiverBytes = byteArrays[1];
+        let receiver = address.encode(receiverBytes);
+        // extract lease
+        let lease = byteArrays[0];
+
+        let lastValid = firstValid + duration;
+        let to = receiver;
         let noCloseRemainder = undefined;
         let noNote = undefined;
+        let lsig = algosdk.makeLogicSig(contract, undefined);
+        let from = lsig.address();
         let txn = algosdk.makePaymentTxn(from, to, fee, amount, noCloseRemainder, firstValid, lastValid, noNote, genesisHash, "");
-        let logicSig = algosdk.makeLogicSig(this.getProgram(), undefined);
+        txn.addLease(lease, fee);
         return algosdk.signLogicSigTransaction(txn, logicSig);
     }
 }

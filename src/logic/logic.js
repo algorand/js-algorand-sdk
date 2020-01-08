@@ -104,6 +104,12 @@ function readProgram(program, args) {
     return [ints, byteArrays, true];
 }
 
+function checkIntConstBlock(program, pc) {
+    let _;
+    [size, _] = readIntConstBlock(program, pc);
+    return size;
+}
+
 function readIntConstBlock(program, pc) {
     let size = 1;
     let [numInts, bytesUsed] = parseUvarint(program.slice(pc + size));
@@ -124,6 +130,12 @@ function readIntConstBlock(program, pc) {
         size += bytesUsed;
     }
     return [size, ints];
+}
+
+function checkByteConstBlock(program, pc) {
+    let _;
+    [size, _] = readByteConstBlock(program, pc);
+    return size;
 }
 
 function readByteConstBlock(program, pc) {
@@ -172,6 +184,7 @@ function parseUvarint(array) {
 
 module.exports = {
     checkProgram,
+    readProgram,
     parseUvarint,
     checkIntConstBlock,
     checkByteConstBlock
