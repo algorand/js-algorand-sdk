@@ -105,7 +105,7 @@ function readProgram(program, args) {
 }
 
 function checkIntConstBlock(program, pc) {
-    let size = readIntConstBlock(program, pc);
+    let [size, unused] = readIntConstBlock(program, pc);
     return size;
 }
 
@@ -132,7 +132,7 @@ function readIntConstBlock(program, pc) {
 }
 
 function checkByteConstBlock(program, pc) {
-    let size = readByteConstBlock(program, pc);
+    let [size, unused] = readByteConstBlock(program, pc);
     return size;
 }
 
