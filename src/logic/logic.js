@@ -80,13 +80,13 @@ function readProgram(program, args) {
         if (size == 0) {
             switch (op.Opcode) {
                 case intcblockOpcode: {
-                    [foundInts, size] = readIntConstBlock(program, pc);
-                    ints.push(foundInts);
+                    [size, foundInts] = readIntConstBlock(program, pc);
+                    ints = ints.concat(foundInts);
                     break;
                 }
                 case bytecblockOpcode: {
-                    [foundByteArrays, size] = readByteConstBlock(program, pc);
-                    byteArrays.push(foundByteArrays);
+                    [size, foundByteArrays] = readByteConstBlock(program, pc);
+                    byteArrays = byteArrays.concat(foundByteArrays);
                     break;
                 }
                 default: {
@@ -105,8 +105,7 @@ function readProgram(program, args) {
 }
 
 function checkIntConstBlock(program, pc) {
-    let _;
-    [size, _] = readIntConstBlock(program, pc);
+    let size = readIntConstBlock(program, pc);
     return size;
 }
 
@@ -122,7 +121,7 @@ function readIntConstBlock(program, pc) {
         if (pc + size >= program.length) {
             throw new Error("intcblock ran past end of program");
         }
-        [numberFound, bytesUsed] = parseUvarint(program.slice(pc + size));
+        let [numberFound, bytesUsed] = parseUvarint(program.slice(pc + size));
         if (bytesUsed <= 0) {
             throw new Error(`could not decode int const[${i}] block size at pc=${pc + size}`);
         }
@@ -133,8 +132,7 @@ function readIntConstBlock(program, pc) {
 }
 
 function checkByteConstBlock(program, pc) {
-    let _;
-    [size, _] = readByteConstBlock(program, pc);
+    let size = readByteConstBlock(program, pc);
     return size;
 }
 

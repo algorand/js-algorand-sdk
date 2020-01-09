@@ -69,42 +69,58 @@ class PeriodicPayment {
         return this.address;
     }
 
-    /**
-     * getWithdrawalTransaction returns a signed transaction extracting funds form the contract
-     * @param {Uint8Array} contract: the bytearray defining the contract, received from the payer
-     * @param {int} firstValid: the first round on which the txn will be valid
-     * @param {string} genesisHash: the hash representing the network for the txn
-     * @returns {Object} Object containing txID and blob representing signed transaction
-     * @throws error on failure
-     */
-    getWithdrawalTransaction(contract, firstValid, genesisHash) {
-        let [ints, byteArrays, _] = logic.readProgram(contract, undefined);
-        let fee = ints[1];
-        let period = ints[2];
-        let duration = ints[4];
-        let amount = ints[5];
-        if ((firstValid % period) !== 0) {
-            throw new Error("firstValid round was not a multiple of contract period")
-        }
-
-        // extract receiver and convert as needed
-        let receiverBytes = byteArrays[1];
-        let receiver = address.encode(receiverBytes);
-        // extract lease
-        let lease = byteArrays[0];
-
-        let lastValid = firstValid + duration;
-        let to = receiver;
-        let noCloseRemainder = undefined;
-        let noNote = undefined;
-        let lsig = algosdk.makeLogicSig(contract, undefined);
-        let from = lsig.address();
-        let txn = algosdk.makePaymentTxn(from, to, fee, amount, noCloseRemainder, firstValid, lastValid, noNote, genesisHash, "");
-        txn.addLease(lease, fee);
-        return algosdk.signLogicSigTransaction(txn, logicSig);
-    }
 }
 
+/**
+ * getPeriodicPaymentWithdrawalTransaction returns a signed transaction extracting funds form the contract
+ * @param {Uint8Array} contract: the bytearray defining the contract, received from the payer
+ * @param {int} firstValid: the first round on which the txn will be valid
+ * @param {string} genesisHash: the hash representing the network for the txn
+ * @returns {Object} Object containing txID and blob representing signed transaction
+ * @throws error on failure
+ */
+function getPeriodicPaymentWithdrawalTransaction(contract, firstValid, genesisHash) {
+    let readResult = logic.readProgram(contract, undefined);
+    let ints = readResult[0];
+    let byteArrays = readResult[1];
+    let fee = ints[1];
+    let period = ints[2];
+    let duration = ints[4];
+    let amount = ints[5];
+    if ((firstValid % period) !== 0) {
+        throw new Error("firstValid round was not a multiple of contract period")
+    }
+
+    // extract receiver and convert as needed
+    let receiverBytes = byteArrays[1];
+    let receiver = address.encode(receiverBytes);
+    // extract lease and convert
+    let leaseBuffer = byteArrays[0];
+    let lease = new Uint8Array(leaseBuffer);
+    let lastValid = firstValid + duration;
+    let to = receiver;
+    let noCloseRemainder = undefined;
+    let noNote = undefined;
+    let lsig = algosdk.makeLogicSig(contract, undefined);
+    let from = lsig.address();
+    let txn = {
+        "from": from,
+        "to": to,
+        "fee": fee,
+        "amount": amount,
+        "closeRemainderTo": noCloseRemainder,
+        "firstRound": firstValid,
+        "lastRound": lastValid,
+        "note": noNote,
+        "genesisHash": genesisHash,
+        "genesisID": "",
+        "type": "pay",
+        "lease": lease
+    };
+
+    return algosdk.signLogicSigTransaction(txn, lsig);
+}
 module.exports = {
-    PeriodicPayment
+    PeriodicPayment,
+    getPeriodicPaymentWithdrawalTransaction
 };
