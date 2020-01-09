@@ -103,7 +103,8 @@ describe('Logic validation', function () {
             result = logic.checkProgram(program, [Uint8Array.from("a" * 10)]);
             assert.equal(result, true);
 
-            result = utils.concatArrays(program, Uint8Array.from("\x22" * 10));
+            program = utils.concatArrays(program, Uint8Array.from("\x22" * 10));
+            result = logic.checkProgram(program, [Uint8Array.from("a" * 10)]);
             assert.equal(result, true);
         });
         it('should fail on long input', function () {
