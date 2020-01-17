@@ -14,7 +14,7 @@ const ALGORAND_MAX_ASSET_DECIMALS = 19;
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease, group,
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -64,7 +64,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease, group,
+            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -79,6 +79,9 @@ class Transaction {
         if (this.fee < ALGORAND_MIN_TX_FEE) {
             this.fee = ALGORAND_MIN_TX_FEE;
         }
+
+        // say we are aware of groups
+        this.group = undefined;
     }
 
     get_obj_for_encoding() {
