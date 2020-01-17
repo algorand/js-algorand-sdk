@@ -14,7 +14,7 @@ const ALGORAND_MAX_ASSET_DECIMALS = 19;
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
-    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
+    constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease, group,
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -64,7 +64,7 @@ class Transaction {
         }
 
         Object.assign(this, {
-            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
+            from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease, group,
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
@@ -79,9 +79,6 @@ class Transaction {
         if (this.fee < ALGORAND_MIN_TX_FEE) {
             this.fee = ALGORAND_MIN_TX_FEE;
         }
-
-        // say we are aware of groups
-        this.group = undefined;
     }
 
     get_obj_for_encoding() {
@@ -154,6 +151,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "caid": this.assetIndex,
                 "apar": {
                     "t": this.assetTotal,
@@ -223,6 +221,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "xaid": this.assetIndex
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
@@ -251,6 +250,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "faid": this.assetIndex,
                 "afrz": this.freezeState
             };

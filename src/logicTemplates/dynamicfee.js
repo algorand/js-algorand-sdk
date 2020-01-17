@@ -4,6 +4,7 @@ const logicSig = require('../logicsig');
 const algosdk = require('../main');
 const nacl = require('../nacl/naclWrappers');
 const address = require('../encoding/address');
+const encoding = require('../encoding/encoding');
 
 class DynamicFee {
     zeroAddress = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
@@ -129,6 +130,9 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
     let keys = nacl.keyPairFromSecretKey(privateKey);
     let from = address.encode(keys.publicKey);
 
+    let lease = txn.lease;
+    delete txn.lease;
+
     let feePayTxn = {
         "from": from,
         "to": txn.from,
@@ -137,16 +141,27 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
         "firstRound": firstValid,
         "lastRound": lastValid,
         "genesisHash": Buffer.from(txn.genesisHash).toString('base64'),
-        "type": "pay",
-        "lease": txn.lease
+        "type": "pay"
     };
 
-    let txnGroup = algosdk.assignGroupID([txn, feePayTxn], undefined);
+    /////
+    if (!lsig.verify(address.decode(txn.from).publicKey)) {
+        throw new Error("invalid signature");
+    }
+    let txnObj = new transaction.Transaction(txn);
+    txnObj.addLease(lease, fee);
+    let feePayTxnObj = new transaction.Transaction(feePayTxn);
+    feePayTxnObj.addLease(lease, fee);
+    let txnGroup = algosdk.assignGroupID([txnObj, feePayTxnObj], undefined);
 
-    console.log(txnGroup);
-    let stx1 = algosdk.signLogicSigTransaction(txnGroup[0], lsig).blob; //expectedLen == 528
-
-    let stx2 = algosdk.signTransaction(feePayTxn, privateKey).blob; //expectedLen == 303
+    let txnObjWithGroup = txnGroup[0];
+    let feePayTxnWithGroup = txnGroup[1];
+    let lstx = {
+        lsig: lsig.get_obj_for_encoding(),
+        txn: txnObjWithGroup.get_obj_for_encoding()
+    };
+    let stx1 = encoding.encode(lstx);
+    let stx2 = feePayTxnWithGroup.signTxn(privateKey);
 
     let concatStx = new Uint8Array(stx1.length + stx2.length);
     concatStx.set(stx1);
