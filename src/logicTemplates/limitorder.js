@@ -77,7 +77,7 @@ class LimitOrder {
      * @param {Uint8Array} contract: byteform of the contract from the payer
      * @param {Uint8Array} secretKey: secret key for signing transaction
      * @param {int} fee: the fee per byte to pay in microAlgos
-     * @param {int} algoAmount: number of algos to transfer
+     * @param {int} microAlgoAmount: number of microAlgos to transfer
      * @param {int} firstRound: the first round on which these txns will be valid
      * @param {int} lastRound: the last round on which these txns will be valid
      * @param {string} genesisHash: the b64-encoded genesis hash indicating the network for this transaction
@@ -86,13 +86,13 @@ class LimitOrder {
      * the second payment sends money (the asset) from Buyer to the Owner
      * these transactions will be rejected if they do not meet the restrictions set by the contract
      */
-    getSwapAssetsTransaction(assetAmount, contract, secretKey, fee, algoAmount, firstRound, lastRound,  genesisHash) {
+    getSwapAssetsTransaction(assetAmount, contract, secretKey, fee, microAlgoAmount, firstRound, lastRound,  genesisHash) {
         let buyerKeyPair = nacl.keyPairFromSecretKey(secretKey);
         let buyerAddr = address.encode(buyerKeyPair.publicKey);
 
         let noCloseRemainder = undefined;
         let noAssetRevocationTarget = undefined;
-        let tx1 = algosdk.makePaymentTxn(this.address, buyerAddr, fee, algoAmount, noCloseRemainder, firstRound, lastRound, undefined, genesisHash, undefined);
+        let tx1 = algosdk.makePaymentTxn(this.address, buyerAddr, fee, microAlgoAmount, noCloseRemainder, firstRound, lastRound, undefined, genesisHash, undefined);
         let tx2 = algosdk.makeAssetTransferTxn(buyerAddr, this.owner, noCloseRemainder, noAssetRevocationTarget, fee, assetAmount, firstRound, lastRound, undefined, genesisHash, undefined, this.assetid);
 
         let txns = [tx1, tx2];
