@@ -335,6 +335,33 @@ function signLogicSigTransaction(txn, lsig) {
     };
 }
 
+/**
+ * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
+ * transaction which is a blob representing a transaction and logicsig object.
+ * @param {Object} txn transaction.Transaction
+ * @param {LogicSig} lsig logicsig object
+ * @returns {Object} Object containing txID and blob representing signed transaction.
+ */
+function signLogicSigTransactionObject(txn, lsig) {
+    let lstx = {
+        lsig: lsig.get_obj_for_encoding(),
+        txn: txn.get_obj_for_encoding()
+    };
+
+    return {
+        "txID": txn.txID().toString(),
+        "blob": encoding.encode(lstx)
+    };
+}
+
+/**
+ * logicSigFromByte accepts encoded logic sig bytes and attempts to call logicsig.fromByte on it,
+ * returning the result
+ */
+function logicSigFromByte(encoded) {
+    return logicsig.LogicSig.fromByte(encoded);
+}
+
 
 /**
  * makePaymentTxn takes payment arguments and returns a Transaction object
@@ -624,6 +651,8 @@ module.exports = {
     assignGroupID,
     makeLogicSig,
     signLogicSigTransaction,
+    signLogicSigTransactionObject,
+    logicSigFromByte,
     makePaymentTxn,
     makeKeyRegistrationTxn,
     makeAssetCreateTxn,
