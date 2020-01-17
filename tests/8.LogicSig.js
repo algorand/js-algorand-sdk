@@ -1,11 +1,13 @@
 const assert = require('assert');
 const address = require("../src/encoding/address");
+const encoding = require("../src/encoding/encoding");
 const logicsig = require("../src/logicsig");
 const logic = require("../src/logic/logic");
 const utils = require("../src/utils/utils");
 const splitTemplate = require("../src/logicTemplates/split");
 const htlcTemplate = require("../src/logicTemplates/htlc");
 const limitOrderTemplate = require("../src/logicTemplates/limitorder");
+const periodicPaymentTemplate = require("../src/logicTemplates/periodicpayment");
 
 describe('LogicSig functionality', function () {
     describe('Basic logic sig', function () {
@@ -103,6 +105,7 @@ describe('Logic validation', function () {
             assert.equal(result, true);
 
             program = utils.concatArrays(program, Uint8Array.from("\x22" * 10));
+            result = logic.checkProgram(program, [Uint8Array.from("a" * 10)]);
             assert.equal(result, true);
         });
         it('should fail on long input', function () {
@@ -156,7 +159,8 @@ describe('Logic validation', function () {
     });
 });
 
-describe('Template validation', function () {
+
+describe('Template logic validation', function () {
     describe('Split', function () {
         it('should match the goldens', function () {
             // Inputs
@@ -214,6 +218,31 @@ describe('Template validation', function () {
             assert.deepStrictEqual(goldenBytes, actualBytes);
             let goldenAddress = "LXQWT2XLIVNFS54VTLR63UY5K6AMIEWI7YTVE6LB4RWZDBZKH22ZO3S36I";
             assert.deepStrictEqual(goldenAddress, limitOrder.getAddress());
+    describe('Periodic payment', function () {
+        it('should match the goldens', function () {
+            // Inputs
+            let receiver = "SKXZDBHECM6AS73GVPGJHMIRDMJKEAN5TUGMUPSKJCQ44E6M6TC2H2UJ3I";
+            let leaseb64 = "AQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIAQIDBAUGBwg=";
+            let amount = 500000;
+            let withdrawalWindow = 95;
+            let period = 100;
+            let expiryRound = 2445756;
+            let maxFee = 1000;
+            let periodicPayment = new periodicPaymentTemplate.PeriodicPayment(receiver, amount, withdrawalWindow, period, expiryRound, maxFee, leaseb64);
+            // Outputs
+            let goldenProgram = "ASAHAegHZABfoMIevKOVASYCIAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFMRAiEjEBIw4QMQIkGCUSEDEEIQQxAggSEDEGKBIQMQkyAxIxBykSEDEIIQUSEDEJKRIxBzIDEhAxAiEGDRAxCCUSEBEQ";
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = periodicPayment.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
+            let goldenAddress = "JMS3K4LSHPULANJIVQBTEDP5PZK6HHMDQS4OKHIMHUZZ6OILYO3FVQW7IY";
+            assert.deepStrictEqual(goldenAddress, periodicPayment.getAddress());
+            let goldenGenesisHash = "f4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGk=";
+            let goldenStx = "gqRsc2lngaFsxJkBIAcB6AdkAF+gwh68o5UBJgIgAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIAQIDBAUGBwggkq+RhOQTPAl/ZqvMk7ERGxKiAb2dDMo+SkihzhPM9MUxECISMQEjDhAxAiQYJRIQMQQhBDECCBIQMQYoEhAxCTIDEjEHKRIQMQghBRIQMQkpEjEHMgMSEDECIQYNEDEIJRIQERCjdHhuiaNhbXTOAAehIKNmZWXOAAQDWKJmds0EsKJnaMQgf4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGmibHbNBQ+ibHjEIAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIo3JjdsQgkq+RhOQTPAl/ZqvMk7ERGxKiAb2dDMo+SkihzhPM9MWjc25kxCBLJbVxcjvosDUorAMyDf1+VeOdg4S45R0MPTOfOQvDtqR0eXBlo3BheQ==";
+            let goldenStxBlob = Buffer.from(goldenStx, 'base64');
+            let stx = periodicPaymentTemplate.getPeriodicPaymentWithdrawalTransaction(actualBytes, 1200, goldenGenesisHash);
+            let expectedDict = encoding.decode(goldenStxBlob);
+            let actualDict = encoding.decode(stx['blob']);
+            assert.deepEqual(expectedDict, actualDict);
         });
     });
 });
