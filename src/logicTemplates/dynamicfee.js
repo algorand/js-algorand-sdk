@@ -118,8 +118,13 @@ class DynamicFee {
  * @param {int} firstValid - first protocol round on which both transactions will be valid
  * @param {int} lastValid - last protocol round on which both transactions will be valid
  *
+ * @throws on invalid lsig
  */
 function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, lastValid) {
+    if (!lsig.verify(address.decode(txn.from).publicKey)) {
+        throw new Error("invalid signature");
+    }
+
     txn.firstRound = firstValid;
     txn.lastRound = lastValid;
     txn.fee = fee;
@@ -130,36 +135,35 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
     let keys = nacl.keyPairFromSecretKey(privateKey);
     let from = address.encode(keys.publicKey);
 
+    // must remove lease and re-add using addLease so that fee calculation will match other SDKs
     let lease = txn.lease;
     delete txn.lease;
+
+    let txnObj = new transaction.Transaction(txn);
+    txnObj.addLease(lease, fee);
 
     let feePayTxn = {
         "from": from,
         "to": txn.from,
         "fee": fee,
-        "amount": 0,
+        "amount": txnObj.fee, // calculated after txnObj is built to have the correct fee
         "firstRound": firstValid,
         "lastRound": lastValid,
-        "genesisHash": Buffer.from(txn.genesisHash).toString('base64'),
+        "genesisHash": txn.genesisHash,
         "type": "pay"
     };
-
-    /////
-    if (!lsig.verify(address.decode(txn.from).publicKey)) {
-        throw new Error("invalid signature");
-    }
-    let txnObj = new transaction.Transaction(txn);
-    txnObj.addLease(lease, fee);
     let feePayTxnObj = new transaction.Transaction(feePayTxn);
     feePayTxnObj.addLease(lease, fee);
-    let txnGroup = algosdk.assignGroupID([txnObj, feePayTxnObj], undefined);
 
+    let txnGroup = algosdk.assignGroupID([txnObj, feePayTxnObj], undefined);
     let txnObjWithGroup = txnGroup[0];
     let feePayTxnWithGroup = txnGroup[1];
+
     let lstx = {
         lsig: lsig.get_obj_for_encoding(),
         txn: txnObjWithGroup.get_obj_for_encoding()
     };
+
     let stx1 = encoding.encode(lstx);
     let stx2 = feePayTxnWithGroup.signTxn(privateKey);
 
