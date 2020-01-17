@@ -99,12 +99,7 @@ class LimitOrder {
         let txGroup = algosdk.assignGroupID(txns);
 
         let logicSig = algosdk.makeLogicSig(contract, undefined); // no args
-        let signedTxns = [];
-        for (let idx in txGroup) {
-            let stxn = algosdk.signLogicSigTransaction(txGroup[idx], logicSig);
-            signedTxns.push(stxn)
-        }
-        return utils.concatArrays(signedTxns[0], signedTxns[1]);
+        return utils.concatArrays(algosdk.signLogicSigTransaction(txGroup[0], logicSig), txGroup[1].signTxn(secretKey));
     }
 }
 
