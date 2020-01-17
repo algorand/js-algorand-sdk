@@ -219,6 +219,7 @@ describe('Template logic validation', function () {
             let goldenAddress = "LXQWT2XLIVNFS54VTLR63UY5K6AMIEWI7YTVE6LB4RWZDBZKH22ZO3S36I";
             assert.deepStrictEqual(goldenAddress, limitOrder.getAddress());
         });
+    });
     describe('Periodic payment', function () {
         it('should match the goldens', function () {
             // Inputs
