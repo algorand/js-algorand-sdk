@@ -312,7 +312,7 @@ function makeLogicSig(program, args) {
 /**
  * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} txn transaction object
+ * @param {Dict} txn transaction constructors dictionary
  * @param {LogicSig} lsig logicsig object
  * @returns {Object} Object containing txID and blob representing signed transaction.
  * @throws error on failure
