@@ -27,29 +27,28 @@ class PeriodicPayment {
      * @returns {PeriodicPayment}
      */
     constructor(receiver, amount, withdrawalWindow, period, expiryRound, maxFee, lease) {
-        // don't need to validate receiver, it's validated by template insert
+        // don't need to validate receiver or lease, it's validated by template insert
+        this.receiver = receiver;
         if (!Number.isSafeInteger(amount) || amount < 0) throw Error("amount must be a positive number and smaller than 2^53-1");
+        this.amount = amount;
         if (!Number.isSafeInteger(withdrawalWindow) || withdrawalWindow < 0) throw Error("withdrawalWindow must be a positive number and smaller than 2^53-1");
+        this.withdrawalWindow = withdrawalWindow;
         if (!Number.isSafeInteger(period) || period < 0) throw Error("period must be a positive number and smaller than 2^53-1");
+        this.period = period;
         if (!Number.isSafeInteger(expiryRound) || expiryRound < 0) throw Error("expiryRound must be a positive number and smaller than 2^53-1");
+        this.expiryRound = expiryRound;
         if (!Number.isSafeInteger(maxFee) || maxFee < 0) throw Error("maxFee must be a positive number and smaller than 2^53-1");
+        this.maxFee = maxFee;
 
         if (lease === undefined) {
             let leaseBytes = nacl.randomBytes(32);
-            lease = Buffer.from(leaseBytes).toString('base64');
+            this.lease = Buffer.from(leaseBytes).toString('base64');
+        } else {
+            this.lease = lease
         }
-        const referenceProgramB64 = "ASAHAQYFAAQDByYCIAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFMRAiEjEBIw4QMQIkGCUSEDEEIQQxAggSEDEGKBIQMQkyAxIxBykSEDEIIQUSEDEJKRIxBzIDEhAxAiEGDRAxCCUSEBEQ";
-        let referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
-        let referenceOffsets = [ /*fee*/ 4 /*period*/, 5 /*withdrawWindow*/, 7 /*amount*/, 8 /*expiryRound*/, 9 /*lease*/, 12 /*receiver*/, 46];
-        let injectionVector =  [maxFee, period, withdrawalWindow,
-                                amount, expiryRound, lease,
-                                receiver];
-        let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT,
-                                templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.BASE64,
-                                templates.valTypes.ADDRESS];
-        let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
-        this.programBytes = injectedBytes;
-        let lsig = new logicSig.LogicSig(injectedBytes, undefined);
+
+        this.programBytes = this.getProgram();
+        let lsig = new logicSig.LogicSig( this.programBytes, undefined);
         this.address = lsig.address();
     }
 
@@ -58,7 +57,16 @@ class PeriodicPayment {
      * @returns {Uint8Array}
      */
     getProgram() {
-        return this.programBytes;
+        const referenceProgramB64 = "ASAHAQYFAAQDByYCIAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFMRAiEjEBIw4QMQIkGCUSEDEEIQQxAggSEDEGKBIQMQkyAxIxBykSEDEIIQUSEDEJKRIxBzIDEhAxAiEGDRAxCCUSEBEQ";
+        let referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
+        let referenceOffsets = [ /*fee*/ 4 /*period*/, 5 /*withdrawWindow*/, 7 /*amount*/, 8 /*expiryRound*/, 9 /*lease*/, 12 /*receiver*/, 46];
+        let injectionVector =  [this.maxFee, this.period, this.withdrawalWindow,
+            this.amount, this.expiryRound, this.lease,
+            this.receiver];
+        let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT,
+            templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.BASE64,
+            templates.valTypes.ADDRESS];
+        return templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
     }
 
     /**
