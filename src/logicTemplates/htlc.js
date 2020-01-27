@@ -3,8 +3,8 @@ const logicSig = require('../logicsig');
 
 class HTLC {
     /**
-     * MakeHTLC allows a user to recieve the Algo prior to a deadline (in terms of a round) by proving a knowledge
-     * of a special value or to forfeit the ability to claim, returing it to the payer.
+     * HTLC allows a user to receive the Algo prior to a deadline (in terms of a round) by proving a knowledge
+     * of a special value or to forfeit the ability to claim, returning it to the payer.
      * This contract is usually used to perform cross-chained atomic swaps
      *
      * More formally -
