@@ -441,4 +441,4 @@ class TxGroup {
 
 }
 
-module.exports = {Transaction, TxGroup};
+module.exports = {Transaction, TxGroup, ALGORAND_MIN_TX_FEE};

@@ -7,6 +7,7 @@ const utils = require("../src/utils/utils");
 const splitTemplate = require("../src/logicTemplates/split");
 const htlcTemplate = require("../src/logicTemplates/htlc");
 const periodicPaymentTemplate = require("../src/logicTemplates/periodicpayment");
+const dynamicFeeTemplate = require("../src/logicTemplates/dynamicfee");
 
 describe('LogicSig functionality', function () {
     describe('Basic logic sig', function () {
@@ -223,6 +224,25 @@ describe('Template logic validation', function () {
             let expectedDict = encoding.decode(goldenStxBlob);
             let actualDict = encoding.decode(stx['blob']);
             assert.deepEqual(expectedDict, actualDict);
+        });
+    });
+    describe('Dynamic Fee', function () {
+        it('should match the goldens', function () {
+            // Inputs
+            let receiver = "726KBOYUJJNE5J5UHCSGQGWIBZWKCBN4WYD7YVSTEXEVNFPWUIJ7TAEOPM";
+            let amount = 5000;
+            let firstValid = 12345;
+            let lastValid = 12346;
+            let closeRemainder = "42NJMHTPFVPXVSDGA6JGKUV6TARV5UZTMPFIREMLXHETRKIVW34QFSDFRE";
+            let artificialLease = "f4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGk=";
+            let dynamicFee = new dynamicFeeTemplate.DynamicFee(receiver, amount, firstValid, lastValid, closeRemainder, artificialLease);
+            // Outputs
+            let goldenProgram = "ASAFAgGIJ7lgumAmAyD+vKC7FEpaTqe0OKRoGsgObKEFvLYH/FZTJclWlfaiEyDmmpYeby1feshmB5JlUr6YI17TM2PKiJGLuck4qRW2+SB/g7Flf/H8U7ktwYFIodZd/C1LH6PWdyhK3dIAEm2QaTIEIhIzABAjEhAzAAcxABIQMwAIMQESEDEWIxIQMRAjEhAxBygSEDEJKRIQMQgkEhAxAiUSEDEEIQQSEDEGKhIQ";
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = dynamicFee.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
+            let goldenAddress = "GCI4WWDIWUFATVPOQ372OZYG52EULPUZKI7Y34MXK3ZJKIBZXHD2H5C5TI";
+            assert.deepStrictEqual(goldenAddress, dynamicFee.getAddress());
         });
     });
 });
