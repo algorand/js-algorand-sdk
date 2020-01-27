@@ -43,7 +43,7 @@ class LimitOrder {
         if (!Number.isSafeInteger(maxFee) || maxFee < 0) throw Error("maxFee must be a positive number and smaller than 2^53-1");
 
         const referenceProgramB64 = "ASAKAAEFAgYEBwgJCiYBIP68oLsUSlpOp7Q4pGgayA5soQW8tgf8VlMlyVaV9qITMRYiEjEQIxIQMQEkDhAyBCMSQABVMgQlEjEIIQQNEDEJMgMSEDMBECEFEhAzAREhBhIQMwEUKBIQMwETMgMSEDMBEiEHHTUCNQExCCEIHTUENQM0ATQDDUAAJDQBNAMSNAI0BA8QQAAWADEJKBIxAiEJDRAxBzIDEhAxCCISEBA=";
-        let referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
+        let referenceProgramBytes = Buffer.from(referenceProgramB64, "base64");
         let referenceOffsets = [ /*maxFee*/ 5 /*minTrade*/, 7 /*assetID*/, 9 /*ratd*/, 10 /*ratn*/, 11 /*expiryRound*/, 12 /*owner*/, 16];
         let injectionVector =  [maxFee, minTrade, assetid, ratd, ratn, expiryRound, owner];
         let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS];
