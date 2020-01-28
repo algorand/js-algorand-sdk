@@ -312,7 +312,7 @@ function makeLogicSig(program, args) {
 /**
  * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
- * @param {Dict} txn transaction constructors dictionary
+ * @param {Object} dictionary containing constructor arguments for a transaction
  * @param {LogicSig} lsig logicsig object
  * @returns {Object} Object containing txID and blob representing signed transaction.
  * @throws error on failure
@@ -321,18 +321,8 @@ function signLogicSigTransaction(txn, lsig) {
     if (!lsig.verify(address.decode(txn.from).publicKey)) {
         throw new Error("invalid signature");
     }
-
     let algoTxn = new txnBuilder.Transaction(txn);
-
-    let lstx = {
-        lsig: lsig.get_obj_for_encoding(),
-        txn: algoTxn.get_obj_for_encoding()
-    };
-
-    return {
-        "txID": algoTxn.txID().toString(),
-        "blob": encoding.encode(lstx)
-    };
+    return signLogicSigTransactionObject(algoTxn, lsig);
 }
 
 /**
