@@ -154,6 +154,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "caid": this.assetIndex,
                 "apar": {
                     "t": this.assetTotal,
@@ -223,6 +224,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "xaid": this.assetIndex
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
@@ -251,6 +253,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "faid": this.assetIndex,
                 "afrz": this.freezeState
             };

@@ -3,6 +3,8 @@ const transaction = require('../transaction');
 const logicSig = require('../logicsig');
 const algosdk = require('../main');
 const nacl = require('../nacl/naclWrappers');
+const address = require('../encoding/address');
+const encoding = require('../encoding/encoding');
 
 class DynamicFee {
     zeroAddress = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
@@ -47,6 +49,9 @@ class DynamicFee {
         this.receiver = receiver;
         this.amount = amount;
         this.closeRemainder = closeRemainder;
+        this.firstValid = firstValid;
+        this.lastValid = lastValid;
+        this.lease = lease;
     }
 
     /**
@@ -70,20 +75,19 @@ class DynamicFee {
      * These should be sent to the fee payer, who can use GetDynamicFeeTransactions
      * @param {Uint8Array} secretKey: the secret key for building the logic sig
      * @param {string} genesisHash: the genesisHash to use for the txn
-     * @returns {Object} object containing result of transaction building under key "txn" and result of logic sign sign under "lsig"
+     * @returns {Object} object containing json of txnbuilder constructor arguments under "txn" and signed logicsig under "lsig"
      */
     signDynamicFee(secretKey, genesisHash) {
-        let from = somehowFromSecretKey;
+        let keys = nacl.keyPairFromSecretKey(secretKey);
+        let from = address.encode(keys.publicKey);
         let to = this.receiver;
         let fee = 0;
         let amount = this.amount;
         let closeRemainderTo = this.closeRemainder;
-        let firstRound = this.firstRound;
-        let lastRound = this.lastRound;
-        let note = undefined;
-        let genesisID = undefined;
+        let firstRound = this.firstValid;
+        let lastRound = this.lastValid;
         let lease = this.lease;
-        let txn = transaction.Transaction({
+        let txn = {
             "from": from,
             "to": to,
             "fee": fee,
@@ -91,66 +95,83 @@ class DynamicFee {
             "closeRemainderTo": closeRemainderTo,
             "firstRound": firstRound,
             "lastRound": lastRound,
-            "note": note,
             "genesisHash": genesisHash,
-            "genesisID": genesisID,
             "type": "pay",
             "lease": lease
-        });
+        };
 
-        let lsig = new logicSig.LogicSig(this.programBytes, undefined);
-        let noMsig = undefined;
-        return {"txn": txn, "lsig": lsig.sign(secretKey, noMsig)};
+        let lsig = new logicSig.LogicSig(new Uint8Array(this.programBytes), undefined);
+        lsig.sign(secretKey);
+        return {"txn": txn, "lsig": lsig};
     }
 }
 
 /**
- * GetDynamicFeeTransactions creates and signs the secondary dynamic fee transaction, updates
+ * getDynamicFeeTransactions creates and signs the secondary dynamic fee transaction, updates
  * transaction fields, and signs as the fee payer; it returns both
  * transactions as bytes suitable for sendRaw.
  * Parameters:
- * @param {Transaction} txn - main transaction from payer
- * @param {LogicSig} lsig - the signed logic received from the payer
+ * @param {dict} txn - main transaction from payer's signDynamicFee output (a dict of constructor arguments, NOT a transaction.Transaction)
+ * @param {LogicSig} lsig - the signed logic received from the payer's signDynamicFee output
  * @param {Uint8Array} privateKey - the private key for the account that pays the fee
  * @param {int} fee - fee per byte for both transactions
  * @param {int} firstValid - first protocol round on which both transactions will be valid
  * @param {int} lastValid - last protocol round on which both transactions will be valid
  *
+ * @throws on invalid lsig
  */
 function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, lastValid) {
+    if (!lsig.verify(address.decode(txn.from).publicKey)) {
+        throw new Error("invalid signature");
+    }
+
     txn.firstRound = firstValid;
     txn.lastRound = lastValid;
     txn.fee = fee;
-    txn.fee *= txn.estimateSize();
     if (txn.fee < transaction.ALGORAND_MIN_TX_FEE) {
         txn.fee = transaction.ALGORAND_MIN_TX_FEE
     }
 
     let keys = nacl.keyPairFromSecretKey(privateKey);
-    let address = address.encode(keys.publicKey);
+    let from = address.encode(keys.publicKey);
 
-    let feePayTxn = transaction.Transaction({
-        "from": address,
-        "to": address.encode(txn.from),
+    // must remove lease and re-add using addLease so that fee calculation will match other SDKs
+    let lease = txn.lease;
+    delete txn.lease;
+
+    let txnObj = new transaction.Transaction(txn);
+    txnObj.addLease(lease, fee);
+
+    let feePayTxn = {
+        "from": from,
+        "to": txn.from,
         "fee": fee,
-        "amount": 0,
-        "closeRemainderTo": undefined,
+        "amount": txnObj.fee, // calculated after txnObj is built to have the correct fee
         "firstRound": firstValid,
         "lastRound": lastValid,
-        "note": undefined,
-        "genesisHash": Buffer.from(txn.genesisHash).toString('base64'),
-        "genesisID": txn.genesisID,
-        "type": "pay",
-        "lease": txn.lease
-    });
+        "genesisHash": txn.genesisHash,
+        "type": "pay"
+    };
+    let feePayTxnObj = new transaction.Transaction(feePayTxn);
+    feePayTxnObj.addLease(lease, fee);
 
-    let txnGroup = algosdk.assignGroupID([txn, feePayTxn], undefined);
+    let txnGroup = algosdk.assignGroupID([txnObj, feePayTxnObj], undefined);
+    let txnObjWithGroup = txnGroup[0];
+    let feePayTxnWithGroup = txnGroup[1];
 
-    let stx1 = algosdk.signLogicSigTransaction(txnGroup[0], lsig).blob;
+    let lstx = {
+        lsig: lsig.get_obj_for_encoding(),
+        txn: txnObjWithGroup.get_obj_for_encoding()
+    };
 
-    let stx2 = feePayTxn.signTxn(privateKey);
+    let stx1 = encoding.encode(lstx);
+    let stx2 = feePayTxnWithGroup.signTxn(privateKey);
 
-    return [stx1, stx2]
+    let concatStx = new Uint8Array(stx1.length + stx2.length);
+    concatStx.set(stx1);
+    concatStx.set(stx2, stx1.length);
+
+    return concatStx
 }
 
 module.exports = {
