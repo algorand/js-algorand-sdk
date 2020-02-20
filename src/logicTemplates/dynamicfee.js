@@ -155,9 +155,9 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
     let feePayTxnObj = new transaction.Transaction(feePayTxn);
     feePayTxnObj.addLease(lease, fee);
 
-    let txnGroup = algosdk.assignGroupID([txnObj, feePayTxnObj], undefined);
-    let txnObjWithGroup = txnGroup[0];
-    let feePayTxnWithGroup = txnGroup[1];
+    let txnGroup = algosdk.assignGroupID([feePayTxnObj, txnObj], undefined);
+    let feePayTxnWithGroup = txnGroup[0];
+    let txnObjWithGroup = txnGroup[1];
 
     let lstx = {
         lsig: lsig.get_obj_for_encoding(),
