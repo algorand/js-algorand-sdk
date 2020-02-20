@@ -92,14 +92,16 @@ class LimitOrder {
 
         let noCloseRemainder = undefined;
         let noAssetRevocationTarget = undefined;
-        let tx1 = algosdk.makePaymentTxn(this.address, buyerAddr, fee, microAlgoAmount, noCloseRemainder, firstRound, lastRound, undefined, genesisHash, undefined);
-        let tx2 = algosdk.makeAssetTransferTxn(buyerAddr, this.owner, noCloseRemainder, noAssetRevocationTarget, fee, assetAmount, firstRound, lastRound, undefined, genesisHash, undefined, this.assetid);
+        let algosForAssets = algosdk.makePaymentTxn(this.address, buyerAddr, fee, microAlgoAmount, noCloseRemainder, firstRound, lastRound, undefined, genesisHash, undefined);
+        let assetsForAlgos = algosdk.makeAssetTransferTxn(buyerAddr, this.owner, noCloseRemainder, noAssetRevocationTarget, fee, assetAmount, firstRound, lastRound, undefined, genesisHash, undefined, this.assetid);
 
-        let txns = [tx1, tx2];
+        let txns = [algosForAssets, assetsForAlgos];
         let txGroup = algosdk.assignGroupID(txns);
 
         let logicSig = algosdk.makeLogicSig(contract, undefined); // no args
-        return utils.concatArrays(algosdk.signLogicSigTransaction(txGroup[0], logicSig), txGroup[1].signTxn(secretKey));
+        let algosForAssetsSigned = algosdk.signLogicSigTransaction(txGroup[0], logicSig);
+        let assetsForAlgosSigned = txGroup[1].signTxn(secretKey);
+        return utils.concatArrays(algosForAssetsSigned.blob, assetsForAlgosSigned);
     }
 }
 
