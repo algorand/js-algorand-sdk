@@ -73,12 +73,9 @@ class Split {
      * @param {int} lastRound: the last round on which the transaction group will be valid
      * @param {int} fee: the fee to pay in microAlgos
      * @param {string} genesisHash: the b64-encoded genesis hash indicating the network for this transaction
-     * @param {boolean} precise, optional, precise treats the case where amount is not perfectly divisible based on the ratio.
-     *  When set to False, the amount will be divided as close as possible but one address will get
-     *  slightly more. When True, an error will be raised.
      * @returns {Uint8Array}
      */
-    getSendFundsTransaction(amount, firstRound, lastRound, fee, genesisHash, precise=true) {
+    getSendFundsTransaction(amount, firstRound, lastRound, fee, genesisHash) {
         let amountForReceiverOne = 0;
         // reduce fractions
         var gcdFn = function(a, b) {
@@ -91,14 +88,11 @@ class Split {
         let gcd = gcdFn(this.ratn, this.ratd);
         let ratn = Math.floor(this.ratn / gcd);
         let ratd = Math.floor(this.ratd / gcd);
-        if (amount % ratd === 0) {
-            amountForReceiverOne = Math.floor(amount * ratn / ratd);
-        } else if (precise) {
-            throw Error("precise splitting requested but amount and contract ratio cannot be split precisely");
-        } else {
-            amountForReceiverOne = Math.round(amount * ratn / ratd);
-        }
+        let ratio = ratd / ratn;
         let amountForReceiverTwo = amount - amountForReceiverOne;
+        if ((ratd*amountForReceiverOne) != (ratn*amountForReceiverTwo)) {
+            throw Error("could not split funds in a way that satisfied the contract ratio");
+        }
 
         let from = this.address;
 
