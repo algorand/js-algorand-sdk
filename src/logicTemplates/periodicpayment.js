@@ -82,16 +82,16 @@ class PeriodicPayment {
 /**
  * getPeriodicPaymentWithdrawalTransaction returns a signed transaction extracting funds form the contract
  * @param {Uint8Array} contract: the bytearray defining the contract, received from the payer
+ * @param {int} fee: the fee per byte for the transaction
  * @param {int} firstValid: the first round on which the txn will be valid
  * @param {string} genesisHash: the hash representing the network for the txn
  * @returns {Object} Object containing txID and blob representing signed transaction
  * @throws error on failure
  */
-function getPeriodicPaymentWithdrawalTransaction(contract, firstValid, genesisHash) {
+function getPeriodicPaymentWithdrawalTransaction(contract, fee, firstValid, genesisHash) {
     let readResult = logic.readProgram(contract, undefined);
     let ints = readResult[0];
     let byteArrays = readResult[1];
-    let fee = ints[1];
     let period = ints[2];
     let duration = ints[4];
     let amount = ints[5];
@@ -125,7 +125,6 @@ function getPeriodicPaymentWithdrawalTransaction(contract, firstValid, genesisHa
         "type": "pay",
         "lease": lease
     };
-
     return algosdk.signLogicSigTransaction(txn, lsig);
 }
 module.exports = {
