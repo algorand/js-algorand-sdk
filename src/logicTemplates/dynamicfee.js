@@ -1,10 +1,11 @@
+const address = require('../encoding/address');
+const algosdk = require('../main');
+const encoding = require('../encoding/encoding');
+const logic = require('../logic/logic');
+const logicSig = require('../logicsig');
+const nacl = require('../nacl/naclWrappers');
 const templates = require('./templates');
 const transaction = require('../transaction');
-const logicSig = require('../logicsig');
-const algosdk = require('../main');
-const nacl = require('../nacl/naclWrappers');
-const address = require('../encoding/address');
-const encoding = require('../encoding/encoding');
 
 class DynamicFee {
     zeroAddress = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
