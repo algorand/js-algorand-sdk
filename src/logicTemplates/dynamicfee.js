@@ -86,7 +86,7 @@ function signDynamicFee(contract, secretKey, genesisHash) {
     let closeRemainderTo = address.encode(byteArrays[1]);
     let firstRound = ints[3];
     let lastRound = ints[4];
-    let lease = byteArrays[2];
+    let lease = new Uint8Array(byteArrays[2]);
     let txn = {
         "from": from,
         "to": to,
@@ -100,7 +100,7 @@ function signDynamicFee(contract, secretKey, genesisHash) {
         "lease": lease
     };
 
-    let lsig = new logicSig.LogicSig(new Uint8Array(this.programBytes), undefined);
+    let lsig = new logicSig.LogicSig(contract, undefined);
     lsig.sign(secretKey);
     return {"txn": txn, "lsig": lsig};
 }
@@ -114,18 +114,14 @@ function signDynamicFee(contract, secretKey, genesisHash) {
  * @param {LogicSig} lsig - the signed logic received from the payer's signDynamicFee output
  * @param {Uint8Array} privateKey - the private key for the account that pays the fee
  * @param {int} fee - fee per byte for both transactions
- * @param {int} firstValid - first protocol round on which both transactions will be valid
- * @param {int} lastValid - last protocol round on which both transactions will be valid
  *
  * @throws on invalid lsig
  */
-function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, lastValid) {
+function getDynamicFeeTransactions (txn, lsig, privateKey, fee) {
     if (!lsig.verify(address.decode(txn.from).publicKey)) {
         throw new Error("invalid signature");
     }
 
-    txn.firstRound = firstValid;
-    txn.lastRound = lastValid;
     txn.fee = fee;
     if (txn.fee < transaction.ALGORAND_MIN_TX_FEE) {
         txn.fee = transaction.ALGORAND_MIN_TX_FEE
@@ -146,8 +142,8 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
         "to": txn.from,
         "fee": fee,
         "amount": txnObj.fee, // calculated after txnObj is built to have the correct fee
-        "firstRound": firstValid,
-        "lastRound": lastValid,
+        "firstRound": txn.firstRound,
+        "lastRound": txn.lastRound,
         "genesisHash": txn.genesisHash,
         "type": "pay"
     };
@@ -163,8 +159,8 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
         txn: txnObjWithGroup.get_obj_for_encoding()
     };
 
-    let stx1 = encoding.encode(lstx);
-    let stx2 = feePayTxnWithGroup.signTxn(privateKey);
+    let stx1 = feePayTxnWithGroup.signTxn(privateKey);
+    let stx2 = encoding.encode(lstx);
 
     let concatStx = new Uint8Array(stx1.length + stx2.length);
     concatStx.set(stx1);
