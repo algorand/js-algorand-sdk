@@ -1,9 +1,10 @@
-const templates = require('./templates');
-const algosdk = require('../main');
-const logicSig = require('../logicsig');
-const logic = require('../logic/logic');
-const nacl = require("../nacl/naclWrappers");
 const address = require("../encoding/address");
+const algosdk = require('../main');
+const logic = require('../logic/logic');
+const logicSig = require('../logicsig');
+const nacl = require("../nacl/naclWrappers");
+const templates = require('./templates');
+
 class PeriodicPayment {
     /**
      * MakePeriodicPayment allows some account to execute periodic withdrawal of funds.

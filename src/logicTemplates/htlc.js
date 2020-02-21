@@ -1,6 +1,6 @@
-const templates = require('./templates');
+const algosdk = require('../main');
 const logicSig = require('../logicsig');
-
+const templates = require('./templates');
 class HTLC {
     /**
      * HTLC allows a user to receive the Algo prior to a deadline (in terms of a round) by proving a knowledge
@@ -67,6 +67,26 @@ class HTLC {
     }
 }
 
+/* signTransactionWithHTLCUnlock accepts a transaction, such as a payment, and builds the HTLC-unlocking signature around that transaction
+* @param {Uint8Array} byte representation of the HTLC
+* @param {Object} txn dictionary containing constructor arguments for a transaction
+* @param {string} preimage of the hash as base64 string
+*
+* @returns {Object} Object containing txID and blob representing signed transaction.
+ */
+function signTransactionWithHTLCUnlock(contract, txn, preImageAsBase64) {
+    let preImageBytes = Buffer.from(preImageAsBase64, 'base64');
+
+    let args = [preImageBytes]; // array of one element, the Uint8Array preimage
+
+    let lsig = new logicSig.LogicSig(contract, args);
+    // clear out receiver just in case
+    delete txn.to;
+
+    return algosdk.signLogicSigTransaction(txn, lsig);
+}
+
 module.exports = {
-    HTLC
+    HTLC,
+    signTransactionWithHTLCUnlock
 };

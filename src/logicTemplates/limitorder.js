@@ -1,6 +1,6 @@
-const templates = require('./templates');
 const algosdk = require('../main');
 const logicSig = require('../logicsig');
+const templates = require('./templates');
 
 class LimitOrder {
     /**
