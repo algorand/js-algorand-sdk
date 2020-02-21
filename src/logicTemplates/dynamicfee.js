@@ -46,12 +46,6 @@ class DynamicFee {
         this.programBytes = injectedBytes;
         let lsig = new logicSig.LogicSig(injectedBytes, undefined);
         this.address = lsig.address();
-        this.receiver = receiver;
-        this.amount = amount;
-        this.closeRemainder = closeRemainder;
-        this.firstValid = firstValid;
-        this.lastValid = lastValid;
-        this.lease = lease;
     }
 
     /**
@@ -70,40 +64,44 @@ class DynamicFee {
         return this.address;
     }
 
-    /**
-     * signDynamicFee returns the main transaction and signed logic needed to complete the transfer.
-     * These should be sent to the fee payer, who can use GetDynamicFeeTransactions
-     * @param {Uint8Array} secretKey: the secret key for building the logic sig
-     * @param {string} genesisHash: the genesisHash to use for the txn
-     * @returns {Object} object containing json of txnbuilder constructor arguments under "txn" and signed logicsig under "lsig"
-     */
-    signDynamicFee(secretKey, genesisHash) {
-        let keys = nacl.keyPairFromSecretKey(secretKey);
-        let from = address.encode(keys.publicKey);
-        let to = this.receiver;
-        let fee = 0;
-        let amount = this.amount;
-        let closeRemainderTo = this.closeRemainder;
-        let firstRound = this.firstValid;
-        let lastRound = this.lastValid;
-        let lease = this.lease;
-        let txn = {
-            "from": from,
-            "to": to,
-            "fee": fee,
-            "amount": amount,
-            "closeRemainderTo": closeRemainderTo,
-            "firstRound": firstRound,
-            "lastRound": lastRound,
-            "genesisHash": genesisHash,
-            "type": "pay",
-            "lease": lease
-        };
+}
+/**
+ * signDynamicFee returns the main transaction and signed logic needed to complete the transfer.
+ * These should be sent to the fee payer, who can use GetDynamicFeeTransactions
+ * @param {Uint8Array} contract: the bytearray representing the contract
+ * @param {Uint8Array} secretKey: the secret key for building the logic sig
+ * @param {string} genesisHash: the genesisHash to use for the txn
+ * @returns {Object} object containing json of txnbuilder constructor arguments under "txn" and signed logicsig under "lsig"
+ */
+function signDynamicFee(contract, secretKey, genesisHash) {
+    let programOutputs = logic.readProgram(contract, undefined);
+    let ints = programOutputs[0];
+    let byteArrays = programOutputs[1];
+    let keys = nacl.keyPairFromSecretKey(secretKey);
+    let from = address.encode(keys.publicKey);
+    let to = address.encode(byteArrays[0]);
+    let fee = 0;
+    let amount = ints[2];
+    let closeRemainderTo = address.encode(byteArrays[1]);
+    let firstRound = ints[3];
+    let lastRound = ints[4];
+    let lease = byteArrays[2];
+    let txn = {
+        "from": from,
+        "to": to,
+        "fee": fee,
+        "amount": amount,
+        "closeRemainderTo": closeRemainderTo,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "genesisHash": genesisHash,
+        "type": "pay",
+        "lease": lease
+    };
 
-        let lsig = new logicSig.LogicSig(new Uint8Array(this.programBytes), undefined);
-        lsig.sign(secretKey);
-        return {"txn": txn, "lsig": lsig};
-    }
+    let lsig = new logicSig.LogicSig(new Uint8Array(this.programBytes), undefined);
+    lsig.sign(secretKey);
+    return {"txn": txn, "lsig": lsig};
 }
 
 /**
@@ -176,5 +174,6 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
 
 module.exports = {
     DynamicFee,
-    getDynamicFeeTransactions
+    getDynamicFeeTransactions,
+    signDynamicFee
 };
