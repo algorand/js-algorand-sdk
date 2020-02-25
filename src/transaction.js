@@ -92,7 +92,6 @@ class Transaction {
                 "fv": this.firstRound,
                 "lv": this.lastRound,
                 "note": Buffer.from(this.note),
-
                 "snd": Buffer.from(this.from.publicKey),
                 "type": "pay",
                 "gen": this.genesisID,
