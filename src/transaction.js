@@ -92,7 +92,7 @@ class Transaction {
                 "fv": this.firstRound,
                 "lv": this.lastRound,
                 "note": Buffer.from(this.note),
-                "rcv": Buffer.from(this.to.publicKey),
+
                 "snd": Buffer.from(this.from.publicKey),
                 "type": "pay",
                 "gen": this.genesisID,
@@ -105,6 +105,7 @@ class Transaction {
             if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
 
             // allowed zero values
+            if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
             if (!txn.note.length) delete txn.note;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
