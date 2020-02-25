@@ -126,6 +126,13 @@ function getPeriodicPaymentWithdrawalTransaction(contract, fee, firstValid, gene
         "type": "pay",
         "lease": lease
     };
+
+    // check fee
+    let tempTxn = algosdk.makePaymentTxn(from, to, fee, amount, noCloseRemainder, firstValid, lastValid, noNote, genesisHash, "");
+    if (tempTxn.fee > ints[1]) {
+        throw new Error("final fee of payment transaction" + tempTxn.fee.toString() + "greater than transaction max fee" + ints[1].toString())
+    }
+
     return algosdk.signLogicSigTransaction(txn, lsig);
 }
 module.exports = {

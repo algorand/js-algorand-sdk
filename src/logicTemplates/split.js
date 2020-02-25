@@ -13,8 +13,9 @@ class Split {
     * split, or single transaction, for closing the account.
     *
     * Withdrawals from this account are allowed as a group transaction which
-    * sends receiverOne and receiverTwo amounts with exactly the ratio of
-    * ratn/ratd.  At least minPay must be sent to receiverOne.
+    * sends receiverOne and receiverTwo amounts with exactly the specified ratio:
+    * (rat1*amountForReceiverOne) = (rat2*amountForReceiverTwo)
+    * At least minPay must be sent to receiverOne.
     * (CloseRemainderTo must be zero.)
     *
     * After expiryRound passes, all funds can be refunded to owner.
@@ -22,25 +23,25 @@ class Split {
      * @param {string} owner: the address to refund funds to on timeout
      * @param {string} receiverOne: the first recipient in the split account
      * @param {string} receiverTwo: the second recipient in the split account
-     * @param {int} ratn: fraction of money to be paid to the first recipient (numerator)
-     * @param {int} ratd: fraction of money to be paid to the first recipient (denominator)
+     * @param {int} rat2: fraction of money to be paid to the 2nd recipient
+     * @param {int} rat1: fraction of money to be paid to the 1st recipient
      * @param {int} expiryRound: the round at which the account expires
      * @param {int} minPay: minimum amount to be paid out of the account
      * @param {int} maxFee: half of the maximum fee used by each split forwarding group transaction
      * @returns {Split}
      */
-    constructor(owner, receiverOne, receiverTwo, ratn, ratd, expiryRound, minPay, maxFee) {
+    constructor(owner, receiverOne, receiverTwo, rat1, rat2, expiryRound, minPay, maxFee) {
         // don't need to validate owner, receiverone, receivertwo - they'll be validated by template.insert
-        if (!Number.isSafeInteger(ratn) || ratn < 0) throw Error("ratn must be a positive number and smaller than 2^53-1");
-        if (!Number.isSafeInteger(ratd) || ratd < 0) throw Error("ratd must be a positive number and smaller than 2^53-1");
+        if (!Number.isSafeInteger(rat2) || rat2 < 0) throw Error("rat2 must be a positive number and smaller than 2^53-1");
+        if (!Number.isSafeInteger(rat1) || rat1 < 0) throw Error("rat1 must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(expiryRound) || expiryRound < 0) throw Error("expiryRound must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(minPay) || minPay < 0) throw Error("minPay must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(maxFee) || maxFee < 0) throw Error("maxFee must be a positive number and smaller than 2^53-1");
 
         const referenceProgramB64 = "ASAIAQUCAAYHCAkmAyCztwQn0+DycN+vsk+vJWcsoz/b7NDS6i33HOkvTpf+YiC3qUpIgHGWE8/1LPh9SGCalSN7IaITeeWSXbfsS5wsXyC4kBQ38Z8zcwWVAym4S8vpFB/c0XC6R4mnPi9EBADsPDEQIhIxASMMEDIEJBJAABkxCSgSMQcyAxIQMQglEhAxAiEEDRAiQAAuMwAAMwEAEjEJMgMSEDMABykSEDMBByoSEDMACCEFCzMBCCEGCxIQMwAIIQcPEBA=";
         let referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
-        let referenceOffsets = [ /*fee*/ 4 /*timeout*/, 7 /*ratn*/, 8 /*ratd*/, 9 /*minPay*/, 10 /*owner*/, 14 /*receiver1*/, 47 /*receiver2*/, 80];
-        let injectionVector =  [maxFee, expiryRound, ratn, ratd, minPay, owner, receiverOne, receiverTwo];
+        let referenceOffsets = [ /*fee*/ 4 /*timeout*/, 7 /*rat2*/, 8 /*rat1*/, 9 /*minPay*/, 10 /*owner*/, 14 /*receiver1*/, 47 /*receiver2*/, 80];
+        let injectionVector =  [maxFee, expiryRound, rat2, rat1, minPay, owner, receiverOne, receiverTwo];
         let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS];
         let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
         this.programBytes = injectedBytes;
@@ -79,8 +80,8 @@ function getSplitFundsTransaction(contract, amount, firstRound, lastRound, fee, 
     let programOutputs = logic.readProgram(contract, undefined);
     let ints = programOutputs[0];
     let byteArrays = programOutputs[1];
-    let ratn = ints[6];
-    let ratd = ints[5];
+    let rat2 = ints[6];
+    let rat1 = ints[5];
     let amountForReceiverOne = 0;
     // reduce fractions
     let gcdFn = function(a, b) {
@@ -90,13 +91,13 @@ function getSplitFundsTransaction(contract, amount, firstRound, lastRound, fee, 
         }
         return gcdFn(b, a % b);
     };
-    let gcd = gcdFn(ratn, ratd);
-    ratn = Math.floor(ratn / gcd);
-    ratd = Math.floor(ratd / gcd);
-    let ratio = ratd / ratn;
+    let gcd = gcdFn(rat2, rat1);
+    rat2 = Math.floor(rat2 / gcd);
+    rat1 = Math.floor(rat1 / gcd);
+    let ratio = rat1 / rat2;
     amountForReceiverOne = Math.floor(amount / (1 + ratio));
     let amountForReceiverTwo = amount - amountForReceiverOne;
-    if ((ratd*amountForReceiverOne) != (ratn*amountForReceiverTwo)) {
+    if ((rat1*amountForReceiverOne) != (rat2*amountForReceiverTwo)) {
         throw Error("could not split funds in a way that satisfied the contract ratio");
     }
 

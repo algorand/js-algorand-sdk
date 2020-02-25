@@ -168,12 +168,12 @@ describe('Template logic validation', function () {
             // Inputs
             let owner = "WO3QIJ6T4DZHBX5PWJH26JLHFSRT7W7M2DJOULPXDTUS6TUX7ZRIO4KDFY";
             let receivers = ["W6UUUSEAOGLBHT7VFT4H2SDATKKSG6ZBUIJXTZMSLW36YS44FRP5NVAU7U", "XCIBIN7RT4ZXGBMVAMU3QS6L5EKB7XGROC5EPCNHHYXUIBAA5Q6C5Y7NEU"];
-            let ratn = 30;
-            let ratd = 100; // receiverOne gets 30/100 of whatever is sent to contract address
+            let rat1 = 100;
+            let rat2 = 30;
             let expiryRound = 123456;
             let minPay = 10000;
             let maxFee = 5000000;
-            let split = new splitTemplate.Split(owner, receivers[0], receivers[1], ratn, ratd, expiryRound, minPay, maxFee);
+            let split = new splitTemplate.Split(owner, receivers[0], receivers[1], rat1, rat2, expiryRound, minPay, maxFee);
             // Outputs
             let goldenProgram = "ASAIAcCWsQICAMDEBx5kkE4mAyCztwQn0+DycN+vsk+vJWcsoz/b7NDS6i33HOkvTpf+YiC3qUpIgHGWE8/1LPh9SGCalSN7IaITeeWSXbfsS5wsXyC4kBQ38Z8zcwWVAym4S8vpFB/c0XC6R4mnPi9EBADsPDEQIhIxASMMEDIEJBJAABkxCSgSMQcyAxIQMQglEhAxAiEEDRAiQAAuMwAAMwEAEjEJMgMSEDMABykSEDMBByoSEDMACCEFCzMBCCEGCxIQMwAIIQcPEBA=";
             let goldenBytes = Buffer.from(goldenProgram, 'base64');

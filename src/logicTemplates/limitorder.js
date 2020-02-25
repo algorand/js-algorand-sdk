@@ -91,6 +91,7 @@ class LimitOrder {
  * the first payment sends money (Algos) from contract to the recipient (we'll call him Buyer), closing the rest of the account to Owner
  * the second payment sends money (the asset) from Buyer to the Owner
  * these transactions will be rejected if they do not meet the restrictions set by the contract
+ * @throws error if arguments fail contract validation
  */
 function getSwapAssetsTransaction(contract, assetAmount, microAlgoAmount, secretKey, fee, firstRound, lastRound, genesisHash) {
     let buyerKeyPair = nacl.keyPairFromSecretKey(secretKey);
@@ -109,6 +110,21 @@ function getSwapAssetsTransaction(contract, assetAmount, microAlgoAmount, secret
     let assetsForAlgos = algosdk.makeAssetTransferTxn(buyerAddr, contractOwner, noCloseRemainder, noAssetRevocationTarget, fee, assetAmount, firstRound, lastRound, undefined, genesisHash, undefined, contractAssetID);
     let txns = [algosForAssets, assetsForAlgos];
     let txGroup = algosdk.assignGroupID(txns);
+
+    let ratd = ints[7];
+    let ratn = ints[8];
+    if ((assetAmount * ratd) < (microAlgoAmount * ratn)) {
+        throw new Error("bad payment ratio, " + assetAmount.toString() + "*" + ratd.toString() + " !>= " + microAlgoAmount.toString() + "*" + ratn.toString())
+    }
+    let minTrade = ints[4];
+    if (microAlgoAmount < minTrade) {
+        throw new Error("payment amount " + microAlgoAmount.toString() + " less than minimum trade " + minTrade.toString())
+    }
+    let maxFee = ints[2];
+    if (txGroup[0].fee > maxFee) {
+        throw new Error("final fee of payment transaction " + txGroup[0].fee.toString() + " greater than transaction max fee " + maxFee.toString())
+    }
+
     let algosForAssetsSigned = algosdk.signLogicSigTransactionObject(txGroup[0], lsig);
     let assetsForAlgosSigned = txGroup[1].signTxn(secretKey);
     return utils.concatArrays(algosForAssetsSigned.blob, assetsForAlgosSigned);
