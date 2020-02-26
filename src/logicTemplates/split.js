@@ -102,7 +102,7 @@ function getSplitFundsTransaction(contract, amount, firstRound, lastRound, fee, 
     }
 
     let logicSig = algosdk.makeLogicSig(contract, undefined); // no args
-    let from = lsig.address();
+    let from = logicSig.address();
     let receiverOne = address.encode(byteArrays[1]);
     let receiverTwo = address.encode(byteArrays[2]);
     let tx1 = algosdk.makePaymentTxn(from, receiverOne, fee, amountForReceiverOne, firstRound, lastRound, undefined, genesisHash, undefined);
