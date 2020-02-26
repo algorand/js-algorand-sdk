@@ -113,7 +113,7 @@ function getSplitFundsTransaction(contract, amount, firstRound, lastRound, fee, 
 
     let signedTxns = [];
     for (let idx in txGroup) {
-        let stxn = algosdk.signLogicSigTransaction(txGroup[idx], logicSig);
+        let stxn = algosdk.signLogicSigTransactionObject(txGroup[idx], logicSig);
         signedTxns.push(stxn)
     }
     return utils.concatArrays(signedTxns[0], signedTxns[1]);
