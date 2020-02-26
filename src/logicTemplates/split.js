@@ -23,8 +23,8 @@ class Split {
      * @param {string} owner: the address to refund funds to on timeout
      * @param {string} receiverOne: the first recipient in the split account
      * @param {string} receiverTwo: the second recipient in the split account
-     * @param {int} rat2: fraction of money to be paid to the 2nd recipient
      * @param {int} rat1: fraction of money to be paid to the 1st recipient
+     * @param {int} rat2: fraction of money to be paid to the 2nd recipient
      * @param {int} expiryRound: the round at which the account expires
      * @param {int} minPay: minimum amount to be paid out of the account
      * @param {int} maxFee: half of the maximum fee used by each split forwarding group transaction
