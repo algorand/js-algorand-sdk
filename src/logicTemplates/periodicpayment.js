@@ -97,7 +97,7 @@ function getPeriodicPaymentWithdrawalTransaction(contract, fee, firstValid, gene
     let duration = ints[4];
     let amount = ints[5];
     if ((firstValid % period) !== 0) {
-        throw new Error("firstValid round was not a multiple of contract period")
+        throw new Error("firstValid round " + firstValid.toString() + " was not a multiple of contract period " + period.toString())
     }
 
     // extract receiver and convert as needed
