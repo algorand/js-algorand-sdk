@@ -1,8 +1,8 @@
 const address = require('../encoding/address');
 const algosdk = require('../main');
 const logic = require('../logic/logic');
-const logicSig = require('../logicsig');
 const templates = require('./templates');
+const utils = require('../utils/utils');
 
 class Split {
     /**
