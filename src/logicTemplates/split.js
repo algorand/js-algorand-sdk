@@ -105,8 +105,8 @@ function getSplitFundsTransaction(contract, amount, firstRound, lastRound, fee, 
     let from = logicSig.address();
     let receiverOne = address.encode(byteArrays[1]);
     let receiverTwo = address.encode(byteArrays[2]);
-    let tx1 = algosdk.makePaymentTxn(from, receiverOne, fee, amountForReceiverOne, undefined, firstRound, lastRound, genesisHash, undefined);
-    let tx2 = algosdk.makePaymentTxn(from, receiverTwo, fee, amountForReceiverTwo, undefined, firstRound, lastRound, genesisHash, undefined);
+    let tx1 = algosdk.makePaymentTxn(from, receiverOne, fee, amountForReceiverOne, undefined, firstRound, lastRound, undefined, genesisHash);
+    let tx2 = algosdk.makePaymentTxn(from, receiverTwo, fee, amountForReceiverTwo, undefined, firstRound, lastRound, undefined, genesisHash);
     let txns = [tx1, tx2];
     let txGroup = algosdk.assignGroupID(txns);
 
