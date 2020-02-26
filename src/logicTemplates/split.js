@@ -95,7 +95,7 @@ function getSplitFundsTransaction(contract, amount, firstRound, lastRound, fee, 
     rat2 = Math.floor(rat2 / gcd);
     rat1 = Math.floor(rat1 / gcd);
     let ratio = rat1 / rat2;
-    amountForReceiverOne = Math.floor(amount / (1 + ratio));
+    amountForReceiverOne = Math.round(amount / (1 + ratio));
     let amountForReceiverTwo = amount - amountForReceiverOne;
     if ((rat1*amountForReceiverOne) != (rat2*amountForReceiverTwo)) {
         throw Error("could not split funds in a way that satisfied the contract ratio");
