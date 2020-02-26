@@ -124,6 +124,9 @@ function getSwapAssetsTransaction(contract, assetAmount, microAlgoAmount, secret
     if (txGroup[0].fee > maxFee) {
         throw new Error("final fee of payment transaction " + txGroup[0].fee.toString() + " greater than transaction max fee " + maxFee.toString())
     }
+    if (txGroup[1].fee > maxFee) {
+        throw new Error("final fee of asset transaction " + txGroup[1].fee.toString() + " greater than transaction max fee " + maxFee.toString())
+    }
 
     let algosForAssetsSigned = algosdk.signLogicSigTransactionObject(txGroup[0], lsig);
     let assetsForAlgosSigned = txGroup[1].signTxn(secretKey);
