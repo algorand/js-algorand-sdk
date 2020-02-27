@@ -8,7 +8,6 @@ const templates = require('./templates');
 const transaction = require('../transaction');
 
 class DynamicFee {
-    zeroAddress = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
     /**
      * DynamicFee contract allows you to create a transaction without
      * specifying the fee. The fee will be determined at the moment of
@@ -30,7 +29,7 @@ class DynamicFee {
         if (!Number.isSafeInteger(lastValid) || lastValid < 0) throw Error("lastValid must be a positive number and smaller than 2^53-1");
 
         if (closeRemainder === undefined) {
-            closeRemainder = this.zeroAddress
+            closeRemainder = address.ALGORAND_ZERO_ADDRESS_STRING;
         }
         if (lease === undefined) {
             let leaseBytes = nacl.randomBytes(32);

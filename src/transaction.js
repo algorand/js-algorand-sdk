@@ -101,8 +101,9 @@ class Transaction {
             };
 
             // parse close address
-            if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
-
+            if ((this.closeRemainderTo !== undefined) && (address.encode(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
+                txn.close = Buffer.from(this.closeRemainderTo.publicKey);
+            }
             // allowed zero values
             if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
             if (!txn.note.length) delete txn.note;
