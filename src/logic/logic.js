@@ -14,9 +14,21 @@ const maxLength = 1000;
  * @param {Uint8Array} program Program to check
  * @param {[Uint8Array]} args Program arguments as array of Uint8Array arrays
  * @throws {Error}
- * @returns {bool} true if success
+ * @returns {boolean} true if success
  */
 function checkProgram(program, args) {
+    [_, _, success] = readProgram(program, args);
+    return success
+}
+
+/** readProgram validates program for length and running cost,
+ * and additionally provides the found int variables and byte blocks
+ * @param {Uint8Array} program Program to check
+ * @param {[Uint8Array]} args Program arguments as array of Uint8Array arrays
+ * @throws {Error}
+ * @returns {[Uint8Array, [Uint8Array], boolean]}
+ */
+function readProgram(program, args) {
     const intcblockOpcode = 32;
     const bytecblockOpcode = 38;
     if (!program) {
@@ -55,6 +67,8 @@ function checkProgram(program, args) {
     }
 
     let pc = vlen;
+    let ints = [];
+    let byteArrays = [];
     while (pc < program.length) {
         let op = opcodes[program[pc]];
         if (op === undefined) {
@@ -66,11 +80,13 @@ function checkProgram(program, args) {
         if (size == 0) {
             switch (op.Opcode) {
                 case intcblockOpcode: {
-                    size = checkIntConstBlock(program, pc);
+                    [size, foundInts] = readIntConstBlock(program, pc);
+                    ints = ints.concat(foundInts);
                     break;
                 }
                 case bytecblockOpcode: {
-                    size = checkByteConstBlock(program, pc);
+                    [size, foundByteArrays] = readByteConstBlock(program, pc);
+                    byteArrays = byteArrays.concat(foundByteArrays);
                     break;
                 }
                 default: {
@@ -85,37 +101,48 @@ function checkProgram(program, args) {
         throw new Error("program too costly to run");
     }
 
-    return true;
+    return [ints, byteArrays, true];
 }
 
 function checkIntConstBlock(program, pc) {
+    let [size, unused] = readIntConstBlock(program, pc);
+    return size;
+}
+
+function readIntConstBlock(program, pc) {
     let size = 1;
     let [numInts, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
         throw new Error(`could not decode int const block size at pc=${pc + size}`);
     }
-
+    let ints = [];
     size += bytesUsed;
     for (let i = 0; i < numInts; i++) {
         if (pc + size >= program.length) {
             throw new Error("intcblock ran past end of program");
         }
-        [_, bytesUsed] = parseUvarint(program.slice(pc + size));
+        let [numberFound, bytesUsed] = parseUvarint(program.slice(pc + size));
         if (bytesUsed <= 0) {
             throw new Error(`could not decode int const[${i}] block size at pc=${pc + size}`);
         }
+        ints.push(numberFound);
         size += bytesUsed;
     }
-    return size;
+    return [size, ints];
 }
 
 function checkByteConstBlock(program, pc) {
+    let [size, unused] = readByteConstBlock(program, pc);
+    return size;
+}
+
+function readByteConstBlock(program, pc) {
     let size = 1;
     let [numInts, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
         throw new Error(`could not decode []byte const block size at pc=${pc + size}`);
     }
-
+    let byteArrays = [];
     size += bytesUsed;
     for (let i = 0; i < numInts; i++) {
         if (pc + size >= program.length) {
@@ -129,9 +156,11 @@ function checkByteConstBlock(program, pc) {
         if (pc + size >= program.length) {
             throw new Error("bytecblock ran past end of program");
         }
+        let byteArray = program.slice(pc+size, pc+size+itemLen);
+        byteArrays.push(byteArray);
         size += itemLen;
     }
-    return size;
+    return [size, byteArrays];
 }
 
 function parseUvarint(array) {
@@ -153,6 +182,7 @@ function parseUvarint(array) {
 
 module.exports = {
     checkProgram,
+    readProgram,
     parseUvarint,
     checkIntConstBlock,
     checkByteConstBlock
