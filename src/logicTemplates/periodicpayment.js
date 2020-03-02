@@ -1,9 +1,10 @@
-const templates = require('./templates');
-const algosdk = require('../main');
-const logicSig = require('../logicsig');
-const logic = require('../logic/logic');
-const nacl = require("../nacl/naclWrappers");
 const address = require("../encoding/address");
+const algosdk = require('../main');
+const logic = require('../logic/logic');
+const logicSig = require('../logicsig');
+const nacl = require("../nacl/naclWrappers");
+const templates = require('./templates');
+
 class PeriodicPayment {
     /**
      * MakePeriodicPayment allows some account to execute periodic withdrawal of funds.
@@ -82,21 +83,21 @@ class PeriodicPayment {
 /**
  * getPeriodicPaymentWithdrawalTransaction returns a signed transaction extracting funds form the contract
  * @param {Uint8Array} contract: the bytearray defining the contract, received from the payer
+ * @param {int} fee: the fee per byte for the transaction
  * @param {int} firstValid: the first round on which the txn will be valid
  * @param {string} genesisHash: the hash representing the network for the txn
  * @returns {Object} Object containing txID and blob representing signed transaction
  * @throws error on failure
  */
-function getPeriodicPaymentWithdrawalTransaction(contract, firstValid, genesisHash) {
+function getPeriodicPaymentWithdrawalTransaction(contract, fee, firstValid, genesisHash) {
     let readResult = logic.readProgram(contract, undefined);
     let ints = readResult[0];
     let byteArrays = readResult[1];
-    let fee = ints[1];
     let period = ints[2];
     let duration = ints[4];
     let amount = ints[5];
     if ((firstValid % period) !== 0) {
-        throw new Error("firstValid round was not a multiple of contract period")
+        throw new Error("firstValid round " + firstValid.toString() + " was not a multiple of contract period " + period.toString())
     }
 
     // extract receiver and convert as needed
@@ -125,6 +126,12 @@ function getPeriodicPaymentWithdrawalTransaction(contract, firstValid, genesisHa
         "type": "pay",
         "lease": lease
     };
+
+    // check fee
+    let tempTxn = algosdk.makePaymentTxn(from, to, fee, amount, noCloseRemainder, firstValid, lastValid, noNote, genesisHash, "");
+    if (tempTxn.fee > ints[1]) {
+        throw new Error("final fee of payment transaction" + tempTxn.fee.toString() + "greater than transaction max fee" + ints[1].toString())
+    }
 
     return algosdk.signLogicSigTransaction(txn, lsig);
 }

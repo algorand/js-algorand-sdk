@@ -1,13 +1,13 @@
+const address = require('../encoding/address');
+const algosdk = require('../main');
+const encoding = require('../encoding/encoding');
+const logic = require('../logic/logic');
+const logicSig = require('../logicsig');
+const nacl = require('../nacl/naclWrappers');
 const templates = require('./templates');
 const transaction = require('../transaction');
-const logicSig = require('../logicsig');
-const algosdk = require('../main');
-const nacl = require('../nacl/naclWrappers');
-const address = require('../encoding/address');
-const encoding = require('../encoding/encoding');
 
 class DynamicFee {
-    zeroAddress = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
     /**
      * DynamicFee contract allows you to create a transaction without
      * specifying the fee. The fee will be determined at the moment of
@@ -29,7 +29,7 @@ class DynamicFee {
         if (!Number.isSafeInteger(lastValid) || lastValid < 0) throw Error("lastValid must be a positive number and smaller than 2^53-1");
 
         if (closeRemainder === undefined) {
-            closeRemainder = this.zeroAddress
+            closeRemainder = address.ALGORAND_ZERO_ADDRESS_STRING;
         }
         if (lease === undefined) {
             let leaseBytes = nacl.randomBytes(32);
@@ -46,12 +46,6 @@ class DynamicFee {
         this.programBytes = injectedBytes;
         let lsig = new logicSig.LogicSig(injectedBytes, undefined);
         this.address = lsig.address();
-        this.receiver = receiver;
-        this.amount = amount;
-        this.closeRemainder = closeRemainder;
-        this.firstValid = firstValid;
-        this.lastValid = lastValid;
-        this.lease = lease;
     }
 
     /**
@@ -70,40 +64,44 @@ class DynamicFee {
         return this.address;
     }
 
-    /**
-     * signDynamicFee returns the main transaction and signed logic needed to complete the transfer.
-     * These should be sent to the fee payer, who can use GetDynamicFeeTransactions
-     * @param {Uint8Array} secretKey: the secret key for building the logic sig
-     * @param {string} genesisHash: the genesisHash to use for the txn
-     * @returns {Object} object containing json of txnbuilder constructor arguments under "txn" and signed logicsig under "lsig"
-     */
-    signDynamicFee(secretKey, genesisHash) {
-        let keys = nacl.keyPairFromSecretKey(secretKey);
-        let from = address.encode(keys.publicKey);
-        let to = this.receiver;
-        let fee = 0;
-        let amount = this.amount;
-        let closeRemainderTo = this.closeRemainder;
-        let firstRound = this.firstValid;
-        let lastRound = this.lastValid;
-        let lease = this.lease;
-        let txn = {
-            "from": from,
-            "to": to,
-            "fee": fee,
-            "amount": amount,
-            "closeRemainderTo": closeRemainderTo,
-            "firstRound": firstRound,
-            "lastRound": lastRound,
-            "genesisHash": genesisHash,
-            "type": "pay",
-            "lease": lease
-        };
+}
+/**
+ * signDynamicFee returns the main transaction and signed logic needed to complete the transfer.
+ * These should be sent to the fee payer, who can use GetDynamicFeeTransactions
+ * @param {Uint8Array} contract: the bytearray representing the contract
+ * @param {Uint8Array} secretKey: the secret key for building the logic sig
+ * @param {string} genesisHash: the genesisHash to use for the txn
+ * @returns {Object} object containing json of txnbuilder constructor arguments under "txn" and signed logicsig under "lsig"
+ */
+function signDynamicFee(contract, secretKey, genesisHash) {
+    let programOutputs = logic.readProgram(contract, undefined);
+    let ints = programOutputs[0];
+    let byteArrays = programOutputs[1];
+    let keys = nacl.keyPairFromSecretKey(secretKey);
+    let from = address.encode(keys.publicKey);
+    let to = address.encode(byteArrays[0]);
+    let fee = 0;
+    let amount = ints[2];
+    let closeRemainderTo = address.encode(byteArrays[1]);
+    let firstRound = ints[3];
+    let lastRound = ints[4];
+    let lease = new Uint8Array(byteArrays[2]);
+    let txn = {
+        "from": from,
+        "to": to,
+        "fee": fee,
+        "amount": amount,
+        "closeRemainderTo": closeRemainderTo,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "genesisHash": genesisHash,
+        "type": "pay",
+        "lease": lease
+    };
 
-        let lsig = new logicSig.LogicSig(new Uint8Array(this.programBytes), undefined);
-        lsig.sign(secretKey);
-        return {"txn": txn, "lsig": lsig};
-    }
+    let lsig = new logicSig.LogicSig(contract, undefined);
+    lsig.sign(secretKey);
+    return {"txn": txn, "lsig": lsig};
 }
 
 /**
@@ -115,18 +113,14 @@ class DynamicFee {
  * @param {LogicSig} lsig - the signed logic received from the payer's signDynamicFee output
  * @param {Uint8Array} privateKey - the private key for the account that pays the fee
  * @param {int} fee - fee per byte for both transactions
- * @param {int} firstValid - first protocol round on which both transactions will be valid
- * @param {int} lastValid - last protocol round on which both transactions will be valid
  *
  * @throws on invalid lsig
  */
-function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, lastValid) {
+function getDynamicFeeTransactions (txn, lsig, privateKey, fee) {
     if (!lsig.verify(address.decode(txn.from).publicKey)) {
         throw new Error("invalid signature");
     }
 
-    txn.firstRound = firstValid;
-    txn.lastRound = lastValid;
     txn.fee = fee;
     if (txn.fee < transaction.ALGORAND_MIN_TX_FEE) {
         txn.fee = transaction.ALGORAND_MIN_TX_FEE
@@ -147,25 +141,25 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
         "to": txn.from,
         "fee": fee,
         "amount": txnObj.fee, // calculated after txnObj is built to have the correct fee
-        "firstRound": firstValid,
-        "lastRound": lastValid,
+        "firstRound": txn.firstRound,
+        "lastRound": txn.lastRound,
         "genesisHash": txn.genesisHash,
         "type": "pay"
     };
     let feePayTxnObj = new transaction.Transaction(feePayTxn);
     feePayTxnObj.addLease(lease, fee);
 
-    let txnGroup = algosdk.assignGroupID([txnObj, feePayTxnObj], undefined);
-    let txnObjWithGroup = txnGroup[0];
-    let feePayTxnWithGroup = txnGroup[1];
+    let txnGroup = algosdk.assignGroupID([feePayTxnObj, txnObj], undefined);
+    let feePayTxnWithGroup = txnGroup[0];
+    let txnObjWithGroup = txnGroup[1];
 
     let lstx = {
         lsig: lsig.get_obj_for_encoding(),
         txn: txnObjWithGroup.get_obj_for_encoding()
     };
 
-    let stx1 = encoding.encode(lstx);
-    let stx2 = feePayTxnWithGroup.signTxn(privateKey);
+    let stx1 = feePayTxnWithGroup.signTxn(privateKey);
+    let stx2 = encoding.encode(lstx);
 
     let concatStx = new Uint8Array(stx1.length + stx2.length);
     concatStx.set(stx1);
@@ -176,5 +170,6 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee, firstValid, last
 
 module.exports = {
     DynamicFee,
-    getDynamicFeeTransactions
+    getDynamicFeeTransactions,
+    signDynamicFee
 };
