@@ -312,7 +312,7 @@ function makeLogicSig(program, args) {
 /**
  * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} dictionary containing constructor arguments for a transaction
+ * @param {Object} txn transaction object
  * @param {LogicSig} lsig logicsig object
  * @returns {Object} Object containing txID and blob representing signed transaction.
  * @throws error on failure
@@ -321,35 +321,18 @@ function signLogicSigTransaction(txn, lsig) {
     if (!lsig.verify(address.decode(txn.from).publicKey)) {
         throw new Error("invalid signature");
     }
-    let algoTxn = new txnBuilder.Transaction(txn);
-    return signLogicSigTransactionObject(algoTxn, lsig);
-}
 
-/**
- * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
- * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} txn transaction.Transaction
- * @param {LogicSig} lsig logicsig object
- * @returns {Object} Object containing txID and blob representing signed transaction.
- */
-function signLogicSigTransactionObject(txn, lsig) {
+    let algoTxn = new txnBuilder.Transaction(txn);
+
     let lstx = {
         lsig: lsig.get_obj_for_encoding(),
-        txn: txn.get_obj_for_encoding()
+        txn: algoTxn.get_obj_for_encoding()
     };
 
     return {
-        "txID": txn.txID().toString(),
+        "txID": algoTxn.txID().toString(),
         "blob": encoding.encode(lstx)
     };
-}
-
-/**
- * logicSigFromByte accepts encoded logic sig bytes and attempts to call logicsig.fromByte on it,
- * returning the result
- */
-function logicSigFromByte(encoded) {
-    return logicsig.LogicSig.fromByte(encoded);
 }
 
 
@@ -641,8 +624,6 @@ module.exports = {
     assignGroupID,
     makeLogicSig,
     signLogicSigTransaction,
-    signLogicSigTransactionObject,
-    logicSigFromByte,
     makePaymentTxn,
     makeKeyRegistrationTxn,
     makeAssetCreateTxn,

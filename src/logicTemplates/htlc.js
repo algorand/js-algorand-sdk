@@ -1,15 +1,10 @@
-const algosdk = require('../main');
-const logic = require('../logic/logic');
-const logicSig = require('../logicsig');
 const templates = require('./templates');
-const transaction = require('../transaction');
-const sha256 = require('js-sha256');
-const keccak256 = require('keccak256');
+const logicSig = require('../logicsig');
 
 class HTLC {
     /**
-     * HTLC allows a user to receive the Algo prior to a deadline (in terms of a round) by proving a knowledge
-     * of a special value or to forfeit the ability to claim, returning it to the payer.
+     * MakeHTLC allows a user to recieve the Algo prior to a deadline (in terms of a round) by proving a knowledge
+     * of a special value or to forfeit the ability to claim, returing it to the payer.
      * This contract is usually used to perform cross-chained atomic swaps
      *
      * More formally -
@@ -72,58 +67,6 @@ class HTLC {
     }
 }
 
-/**
- *  signTransactionWithHTLCUnlock accepts a transaction, such as a payment, and builds the HTLC-unlocking signature around that transaction
-* @param {Uint8Array} contract : byte representation of the HTLC
-* @param {Object} txn dictionary containing constructor arguments for a transaction
-* @param {string} preImageAsBase64 : preimage of the hash as base64 string
-*
-* @returns {Object} Object containing txID and blob representing signed transaction.
-* @throws error on validation failure
- */
-function signTransactionWithHTLCUnlock(contract, txn, preImageAsBase64) {
-    let preImageBytes = Buffer.from(preImageAsBase64, 'base64');
-
-    // hash validation
-    let readResult = logic.readProgram(contract, undefined);
-    let ints = readResult[0];
-    let byteArrays = readResult[1];
-    let expectedHashedOutput = byteArrays[1];
-    let hashFunction = contract[contract.length - 15];
-    if (hashFunction == 1) {
-        let hash = sha256.create();
-        hash.update(preImageBytes);
-        let actualHashedOutput = Buffer.from(hash.hex(), 'hex');
-        if (!actualHashedOutput.equals(expectedHashedOutput)) {
-            throw new Error("sha256 hash of preimage did not match stored contract hash")
-        }
-    } else if (hashFunction == 2) {
-        let actualHashedOutput = keccak256(preImageBytes);
-        if (!actualHashedOutput.equals(expectedHashedOutput)) {
-            throw new Error("keccak256 hash of preimage did not match stored contract hash")
-        }
-    } else {
-        throw new Error("hash function in contract unrecognized")
-    }
-
-    let args = [preImageBytes]; // array of one element, the Uint8Array preimage
-
-    let lsig = new logicSig.LogicSig(contract, args);
-    // clear out receiver just in case
-    delete txn.to;
-
-
-    let maxFee = ints[0];
-    // check fee
-    let tempTxn = new transaction.Transaction(txn);
-    if (tempTxn.fee > maxFee) {
-        throw new Error("final fee of payment transaction" + tempTxn.fee.toString() + "greater than transaction max fee" + maxFee.toString())
-    }
-
-    return algosdk.signLogicSigTransaction(txn, lsig);
-}
-
 module.exports = {
-    HTLC,
-    signTransactionWithHTLCUnlock
+    HTLC
 };
