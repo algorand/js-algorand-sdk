@@ -13,8 +13,10 @@
   "dependencies": {
     "@msgpack/msgpack": "^1.9.0",
     "hi-base32": "^0.5.0",
+    "js-sha256": "^0.9.0",
     "js-sha512": "^0.8.0",
     "js-yaml": ">=3.13.1",
+    "keccak256": "^1.0.0",
     "superagent": "^4.1.0",
     "tweetnacl": "^1.0.1"
   },
