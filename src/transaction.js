@@ -92,6 +92,7 @@ class Transaction {
                 "fv": this.firstRound,
                 "lv": this.lastRound,
                 "note": Buffer.from(this.note),
+                "rcv": Buffer.from(this.to.publicKey),
                 "snd": Buffer.from(this.from.publicKey),
                 "type": "pay",
                 "gen": this.genesisID,
@@ -101,11 +102,9 @@ class Transaction {
             };
 
             // parse close address
-            if ((this.closeRemainderTo !== undefined) && (address.encode(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
-                txn.close = Buffer.from(this.closeRemainderTo.publicKey);
-            }
+            if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
+
             // allowed zero values
-            if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
             if (!txn.note.length) delete txn.note;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
@@ -155,7 +154,6 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
-                "grp": this.group,
                 "caid": this.assetIndex,
                 "apar": {
                     "t": this.assetTotal,
@@ -225,7 +223,6 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
-                "grp": this.group,
                 "xaid": this.assetIndex
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
@@ -254,7 +251,6 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
-                "grp": this.group,
                 "faid": this.assetIndex,
                 "afrz": this.freezeState
             };

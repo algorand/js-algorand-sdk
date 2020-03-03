@@ -1,5 +1,6 @@
 const assert = require('assert');
 const address = require("../encoding/address");
+const logicsig = require('../logicsig');
 
 function putUvarint(buf, x){
     let i = 0;
