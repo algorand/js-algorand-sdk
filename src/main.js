@@ -621,7 +621,7 @@ function makeAssetConfigTxnWithParams(from, note, assetIndex,
     }
     let o = {
         "from": from,
-        "params":, params,
+        "params": params,
         "assetIndex": assetIndex,
         "assetManager": manager,
         "assetReserve": reserve,
