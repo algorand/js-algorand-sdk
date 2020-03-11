@@ -585,7 +585,8 @@ describe('Sign', function () {
                 "assetIndex": assetIndex,
                 "creator" : creator,
                 "freezeState" : freezeState,
-                "note": note
+                "note": note,
+                "genesisID": genesisID
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetFreezeTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
