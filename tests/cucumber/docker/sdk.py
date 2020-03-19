@@ -12,7 +12,7 @@ default_dirs = {
 
 def setup_sdk():
     """
-    Setup python cucumber environment.
+    Setup js cucumber environment.
     """    
     subprocess.check_call(['npm install --silent'], shell=True, cwd=default_dirs['source'])
     subprocess.check_call(['npm install %s --silent' % default_dirs['source']], shell=True)
