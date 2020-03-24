@@ -18,9 +18,18 @@ class Transaction {
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
-                 freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false}) {
+                 freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false, suggestedParams=undefined}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
+
+        if (suggestedParams !== undefined) {
+            genesisHash = suggestedParams.genesisHash;
+            fee = suggestedParams.fee;
+            if (suggestedParams.flatFee !== undefined) flatFee = suggestedParams.flatFee;
+            firstRound = suggestedParams.firstRound;
+            lastRound = suggestedParams.lastRound;
+            genesisID = suggestedParams.genesisID;
+        }
 
         from = address.decode(from);
         if (to !== undefined) to = address.decode(to);
@@ -92,7 +101,6 @@ class Transaction {
                 "fv": this.firstRound,
                 "lv": this.lastRound,
                 "note": Buffer.from(this.note),
-                "rcv": Buffer.from(this.to.publicKey),
                 "snd": Buffer.from(this.from.publicKey),
                 "type": "pay",
                 "gen": this.genesisID,
@@ -102,9 +110,11 @@ class Transaction {
             };
 
             // parse close address
-            if (this.closeRemainderTo !== undefined) txn.close = Buffer.from(this.closeRemainderTo.publicKey);
-
+            if ((this.closeRemainderTo !== undefined) && (address.encode(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
+                txn.close = Buffer.from(this.closeRemainderTo.publicKey);
+            }
             // allowed zero values
+            if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
             if (!txn.note.length) delete txn.note;
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
@@ -154,6 +164,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "caid": this.assetIndex,
                 "apar": {
                     "t": this.assetTotal,
@@ -223,6 +234,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "xaid": this.assetIndex
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
@@ -251,6 +263,7 @@ class Transaction {
                 "gen": this.genesisID,
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
+                "grp": this.group,
                 "faid": this.assetIndex,
                 "afrz": this.freezeState
             };

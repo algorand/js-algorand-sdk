@@ -312,7 +312,7 @@ function makeLogicSig(program, args) {
 /**
  * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} txn transaction object
+ * @param {Object} dictionary containing constructor arguments for a transaction
  * @param {LogicSig} lsig logicsig object
  * @returns {Object} Object containing txID and blob representing signed transaction.
  * @throws error on failure
@@ -321,18 +321,35 @@ function signLogicSigTransaction(txn, lsig) {
     if (!lsig.verify(address.decode(txn.from).publicKey)) {
         throw new Error("invalid signature");
     }
-
     let algoTxn = new txnBuilder.Transaction(txn);
+    return signLogicSigTransactionObject(algoTxn, lsig);
+}
 
+/**
+ * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
+ * transaction which is a blob representing a transaction and logicsig object.
+ * @param {Object} txn transaction.Transaction
+ * @param {LogicSig} lsig logicsig object
+ * @returns {Object} Object containing txID and blob representing signed transaction.
+ */
+function signLogicSigTransactionObject(txn, lsig) {
     let lstx = {
         lsig: lsig.get_obj_for_encoding(),
-        txn: algoTxn.get_obj_for_encoding()
+        txn: txn.get_obj_for_encoding()
     };
 
     return {
-        "txID": algoTxn.txID().toString(),
+        "txID": txn.txID().toString(),
         "blob": encoding.encode(lstx)
     };
+}
+
+/**
+ * logicSigFromByte accepts encoded logic sig bytes and attempts to call logicsig.fromByte on it,
+ * returning the result
+ */
+function logicSigFromByte(encoded) {
+    return logicsig.LogicSig.fromByte(encoded);
 }
 
 
@@ -348,20 +365,45 @@ function signLogicSigTransaction(txn, lsig) {
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID) {
+    let suggestedParams = {
+        "genesisHash": genesisHash,
+        "genesisID": genesisID,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "fee": fee
+    };
+    return makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams);
+}
+
+/**
+ * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
+ * @param from - string representation of Algorand address of sender
+ * @param to - string representation of Algorand address of recipient
+ * @param amount - integer amount to send, in microAlgos
+ * @param closeRemainderTo - optionally close out remaining account balance to this account, represented as string rep of Algorand address
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
+ * @returns {Transaction}
+ */
+function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams) {
     let o = {
         "from": from,
         "to": to,
-        "fee": fee,
         "amount": amount,
         "closeRemainderTo": closeRemainderTo,
-        "firstRound": firstRound,
-        "lastRound": lastRound,
         "note": note,
-        "genesisHash": genesisHash,
-        "genesisID": genesisID,
+        "suggestedParams": suggestedParams,
         "type": "pay"
     };
     return new txnBuilder.Transaction(o);
@@ -379,27 +421,56 @@ function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, las
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param voteKey - string representation of voting key. for key deregistration, leave undefined
- * @param selectionKey - string representation of selection key. for key deregistration, leave undefined 
+ * @param selectionKey - string representation of selection key. for key deregistration, leave undefined
  * @param voteFirst - first round on which voteKey is valid
  * @param voteLast - last round on which voteKey is valid
  * @param voteKeyDilution - integer
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                                 voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution) {
-    let o = {
-        "from": from,
-        "fee": fee,
+    let suggestedParams = {
+        "genesisHash": genesisHash,
+        "genesisID": genesisID,
         "firstRound": firstRound,
         "lastRound": lastRound,
+        "fee": fee
+    };
+    return makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams);
+}
+
+/**
+ * makeKeyRegistrationTxnWithSuggestedParams takes key registration arguments and returns a Transaction object for
+ * that key registration operation
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param voteKey - string representation of voting key. for key deregistration, leave undefined
+ * @param selectionKey - string representation of selection key. for key deregistration, leave undefined
+ * @param voteFirst - first round on which voteKey is valid
+ * @param voteLast - last round on which voteKey is valid
+ * @param voteKeyDilution - integer
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
+ * @returns {Transaction}
+ */
+function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams) {
+    let o = {
+        "from": from,
         "note": note,
-        "genesisHash": genesisHash,
         "voteKey": voteKey,
         "selectionKey": selectionKey,
         "voteFirst": voteFirst,
         "voteLast": voteLast,
         "voteKeyDilution": voteKeyDilution,
-        "genesisID": genesisID,
+        "suggestedParams": suggestedParams,
         "type": "keyreg"
     };
     return new txnBuilder.Transaction(o);
@@ -426,18 +497,54 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * @param assetName - string name for this asset
  * @param assetURL - string URL relating to this asset
  * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                             total, decimals, defaultFrozen, manager, reserve, freeze,
                             clawback, unitName, assetName, assetURL, assetMetadataHash) {
-    let o = {
-        "from": from,
-        "fee": fee,
+    let suggestedParams = {
+        "genesisHash": genesisHash,
+        "genesisID": genesisID,
         "firstRound": firstRound,
         "lastRound": lastRound,
+        "fee": fee
+    };
+    return makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defaultFrozen, manager, reserve, freeze, clawback,
+        unitName, assetName, assetURL, assetMetadataHash, suggestedParams);
+}
+
+/** makeAssetCreateTxnWithSuggestedParams takes asset creation arguments and returns a Transaction object
+ * for creating that asset
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param total - integer total supply of the asset
+ * @param decimals - integer number of decimals for asset unit calculation
+ * @param defaultFrozen - boolean whether asset accounts should default to being frozen
+ * @param manager - string representation of Algorand address in charge of reserve, freeze, clawback, destruction, etc
+ * @param reserve - string representation of Algorand address representing asset reserve
+ * @param freeze - string representation of Algorand address with power to freeze/unfreeze asset holdings
+ * @param clawback - string representation of Algorand address with power to revoke asset holdings
+ * @param unitName - string units name for this asset
+ * @param assetName - string name for this asset
+ * @param assetURL - string URL relating to this asset
+ * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @returns {Transaction}
+ */
+function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defaultFrozen, manager, reserve, freeze,
+                            clawback, unitName, assetName, assetURL, assetMetadataHash, suggestedParams) {
+    let o = {
+        "from": from,
         "note": note,
-        "genesisHash": genesisHash,
+        "suggestedParams": suggestedParams,
         "assetTotal": total,
         "assetDecimals": decimals,
         "assetDefaultFrozen": defaultFrozen,
@@ -449,7 +556,6 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "assetReserve": reserve,
         "assetFreeze": freeze,
         "assetClawback": clawback,
-        "genesisID": genesisID,
         "type": "acfg"
     };
     return new txnBuilder.Transaction(o);
@@ -472,20 +578,50 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param freeze - string representation of new freeze manager Algorand address
  * @param clawback - string representation of new revocation manager Algorand address
  * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                             assetIndex, manager, reserve, freeze, clawback, strictEmptyAddressChecking=true) {
+    let suggestedParams = {
+        "genesisHash": genesisHash,
+        "genesisID": genesisID,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "fee": fee
+    };
+    return makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex, manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking);
+}
+
+/** makeAssetConfigTxnWithSuggestedParams can be issued by the asset manager to change the manager, reserve, freeze, or clawback
+ * you must respecify existing addresses to keep them the same; leaving a field blank is the same as turning
+ * that feature off for this asset
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param assetIndex - int asset index uniquely specifying the asset
+ * @param manager - string representation of new asset manager Algorand address
+ * @param reserve - string representation of new reserve Algorand address
+ * @param freeze - string representation of new freeze manager Algorand address
+ * @param clawback - string representation of new revocation manager Algorand address
+ * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @returns {Transaction}
+ */
+function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
+                                      manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking=true) {
     if (strictEmptyAddressChecking && ((manager === undefined) || (reserve === undefined) || (freeze === undefined) || (clawback === undefined))) {
         throw Error("strict empty address checking was turned on, but at least one empty address was provided");
     }
     let o = {
         "from": from,
-        "fee": fee,
-        "firstRound": firstRound,
-        "lastRound": lastRound,
-        "genesisHash": genesisHash,
-        "genesisID": genesisID,
+        "suggestedParams": suggestedParams,
         "assetIndex": assetIndex,
         "assetManager": manager,
         "assetReserve": reserve,
@@ -508,16 +644,39 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param assetIndex - int asset index uniquely specifying the asset
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
-    let o = {
-        "from": from,
-        "fee": fee,
-        "firstRound": firstRound,
-        "lastRound": lastRound,
+    let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "fee": fee
+    };
+    return makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams);
+}
+
+/** makeAssetDestroyTxnWithSuggestedParams will allow the asset's manager to remove this asset from the ledger, so long
+ * as all outstanding assets are held by the creator.
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param assetIndex - int asset index uniquely specifying the asset
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @returns {Transaction}
+ */
+function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams) {
+    let o = {
+        "from": from,
+        "suggestedParams": suggestedParams,
         "assetIndex": assetIndex,
         "type": "acfg",
         "note": note
@@ -538,24 +697,51 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
  * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                             assetIndex, freezeTarget, freezeState) {
-    let o = {
-        "from": from,
-        "fee": fee,
+    let suggestedParams = {
+        "genesisHash": genesisHash,
+        "genesisID": genesisID,
         "firstRound": firstRound,
         "lastRound": lastRound,
-        "genesisHash": genesisHash,
+        "fee": fee
+    };
+    return makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams);
+}
+
+/** makeAssetFreezeTxnWithSuggestedParams will allow the asset's freeze manager to freeze or un-freeze an account,
+ * blocking or allowing asset transfers to and from the targeted account.
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param assetIndex - int asset index uniquely specifying the asset
+ * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
+ * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @returns {Transaction}
+ */
+function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams) {
+    let o = {
+        "from": from,
         "type": "afrz",
         "freezeAccount": freezeTarget,
         "assetIndex": assetIndex,
         "freezeState" : freezeState,
-        "note": note
+        "note": note,
+        "suggestedParams": suggestedParams
     };
     return new txnBuilder.Transaction(o);
 }
+
 
 /** makeAssetTransferTxn allows for the creation of an asset transfer transaction.
  * Special case: to begin accepting assets, set amount=0 and from=to.
@@ -574,21 +760,51 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param assetIndex - int asset index uniquely specifying the asset
- * @param lease - see makePaymentTxn
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
                               fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
+    let suggestedParams = {
+        "genesisHash": genesisHash,
+        "genesisID": genesisID,
+        "firstRound": firstRound,
+        "lastRound": lastRound,
+        "fee": fee
+    };
+    return makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, revocationTarget, amount, note, assetIndex, suggestedParams);
+}
+
+/** makeAssetTransferTxnWithSuggestedParams allows for the creation of an asset transfer transaction.
+ * Special case: to begin accepting assets, set amount=0 and from=to.
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param to - string representation of Algorand address of asset recipient
+ * @param closeRemainderTo - optional - string representation of Algorand address - if provided,
+ * send all remaining assets after transfer to the "closeRemainderTo" address and close "from"'s asset holdings
+ * @param revocationTarget - optional - string representation of Algorand address - if provided,
+ * and if "from" is the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
+ * @param amount - integer amount of assets to send
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param assetIndex - int asset index uniquely specifying the asset
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @returns {Transaction}
+ */
+function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, revocationTarget,
+                              amount, note, assetIndex, suggestedParams) {
     let o = {
         "type": "axfer",
         "from": from,
         "to": to,
         "amount": amount,
-        "fee": fee,
-        "firstRound": firstRound,
-        "lastRound": lastRound,
-        "genesisHash": genesisHash,
-        "genesisID": genesisID,
+        "suggestedParams": suggestedParams,
         "assetIndex": assetIndex,
         "note": note,
         "assetRevocationTarget": revocationTarget,
@@ -596,6 +812,7 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
     };
     return new txnBuilder.Transaction(o);
 }
+
 
 module.exports = {
     isValidAddress,
@@ -624,6 +841,8 @@ module.exports = {
     assignGroupID,
     makeLogicSig,
     signLogicSigTransaction,
+    signLogicSigTransactionObject,
+    logicSigFromByte,
     makePaymentTxn,
     makeKeyRegistrationTxn,
     makeAssetCreateTxn,
@@ -631,4 +850,11 @@ module.exports = {
     makeAssetDestroyTxn,
     makeAssetFreezeTxn,
     makeAssetTransferTxn,
+    makePaymentTxnWithSuggestedParams,
+    makeKeyRegistrationTxnWithSuggestedParams,
+    makeAssetCreateTxnWithSuggestedParams,
+    makeAssetConfigTxnWithSuggestedParams,
+    makeAssetDestroyTxnWithSuggestedParams,
+    makeAssetFreezeTxnWithSuggestedParams,
+    makeAssetTransferTxnWithSuggestedParams
 };

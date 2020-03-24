@@ -249,6 +249,23 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     };
 
     /**
+     * suggestParams returns to common needed parameters for a new transaction, in a format the transaction builder expects
+     * @param headers, optional
+     * @returns {Object}
+     */
+    this.suggestParams = async function (headers={}) {
+        let result = await this.getTransactionParams(headers);
+        return {
+            "flatFee": false,
+            "fee": result.fee,
+            "firstRound": result.lastRound,
+            "lastRound": result.lastRound + 1000,
+            "genesisID": result.genesisID,
+            "genesisHash": result.genesishashb64,
+        };
+    };
+
+    /**
      * block gets the block info for the given round This call blocks
      * @param roundNumber
      * @param headers, optional

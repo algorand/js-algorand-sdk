@@ -1,7 +1,10 @@
 
-# exclude WebStorm
 .idea/
 .vscode
 
 # npm
 node_modules/
+
+# Testing files
+*.feature
+temp
