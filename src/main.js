@@ -615,7 +615,7 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @returns {Transaction}
  */
 function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
-                                      manager, reserve, freeze, clawback, params, strictEmptyAddressChecking=true) {
+                                      manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking=true) {
     if (strictEmptyAddressChecking && ((manager === undefined) || (reserve === undefined) || (freeze === undefined) || (clawback === undefined))) {
         throw Error("strict empty address checking was turned on, but at least one empty address was provided");
     }
