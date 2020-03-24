@@ -18,17 +18,17 @@ class Transaction {
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
-                 freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false, params=undefined}) {
+                 freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false, suggestedParams=undefined}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
-        if (params !== undefined) {
-            genesisHash = params.genesisHash;
-            fee = params.fee;
-            if (params.flatFee !== undefined) flatFee = params.flatFee;
-            firstRound = params.firstRound;
-            lastRound = params.lastRound;
-            genesisID = params.genesisID;
+        if (suggestedParams !== undefined) {
+            genesisHash = suggestedParams.genesisHash;
+            fee = suggestedParams.fee;
+            if (suggestedParams.flatFee !== undefined) flatFee = suggestedParams.flatFee;
+            firstRound = suggestedParams.firstRound;
+            lastRound = suggestedParams.lastRound;
+            genesisID = suggestedParams.genesisID;
         }
 
         from = address.decode(from);
