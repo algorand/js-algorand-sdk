@@ -1,3 +1,10 @@
+# 1.5.0
+# Added
+-  additional Algorand Smart Contracts (ASC)
+    -  support for Dynamic Fee contract
+    -  support for Limit Order contract
+    -  support for Periodic Payment contract
+- support for Suggested Params
 # 1.4.1
 # Added
 - Added asset decimals field. 
