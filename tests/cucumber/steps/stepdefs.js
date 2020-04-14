@@ -1424,3 +1424,304 @@ Given('I send the dynamic fee transactions', async function () {
     this.txid = this.txid.txId;
     this.pk = this.accounts[0];
 });
+
+Given('mock http responses in {string} loaded from {string}', function (string, string2) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('expect error string to contain {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Given('mock server recording request paths', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('expect the path used to be {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Shutdown call with timeout {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Register Participation Keys call against account {string} fee {int} dilution {int} lastvalidround {int} and nowait {string}', function (string, int, int2, int3, string2) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Pending Transaction Information against txid {string} with max {int}', function (string, int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Pending Transactions By Address call against account {string} and max {int}', function (string, int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Status after Block call with round {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make an Account Information call against account {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Get Block call against block number {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Shutdown call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Register Participation Keys call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Pending Transaction Information call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Pending Transaction Information response should have sender {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Pending Transactions Information call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Pending Transactions Information response should have sender {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+
+When('we make any Send Raw Transaction call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Send Raw Transaction response should have txid {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Pending Transactions By Address call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Pending Transactions By Address response should contain an array of len {int} and element number {int} should have sender {string}', function (int, int2, string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Node Status call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Node Status response should have a last round of {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Ledger Supply call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}', function (int, int2, int3) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Status After Block call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Status After Block response should have a last round of {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Account Information call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Account Information response should have address {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Get Block call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Get Block response should have rewards pool {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any Suggested Transaction Parameters call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed Suggested Transaction Parameters response should have first round valid of {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Lookup Asset Balances call against asset index {int} with limit {int} afterAddress {string} round {int} currencyGreaterThan {int} currencyLessThan {int}', function (int, int5, string, int2, int3, int4) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string}', function (int, string, string2, string3, string4, int2, int3, int4, int5, int6, int7, int8, int9, string5, string6, string7) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', function (string, string2, string3, string4, string5, int, int2, int3, int4, int5, int6, int7, int8, int9, string6, string7) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Lookup Block call against round {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Lookup Account by ID call against account {string} with round {int}', function (string, int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Lookup Asset by ID call against asset index {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and afterAddress {string}', function (int, int2, int3, int4, string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', function (string, string2, string3, string4, string5, int, int2, int3, int4, int5, int6, int7, int8, int9, string6, string7) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and afterAsset {int}', function (int, string, string2, string3, int2, int3) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any LookupAssetBalances call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}', function (int, int2, int3, string, int4, string2) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any LookupAssetTransactions call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (int, int2, int3, string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any LookupAccountTransactions call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (int, int2, int3, string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any LookupBlock call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed LookupBlock response should have proposer {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any LookupAccountByID call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed LookupAccountByID response should have address {string}', function (string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any LookupAssetByID call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed LookupAssetByID response should have index {int}', function (int) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any SearchAccounts call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}', function (int, int2, int3, string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any SearchForTransactions call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}', function (int, int2, int3, string) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+When('we make any SearchForAssets call', function () {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
+
+Then('the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}', function (int, int2, int3, int4) {
+    // Write code here that turns the phrase above into concrete actions
+    return 'pending';
+});
