@@ -1,4 +1,4 @@
-class SupplyService {
+class Supply {
 	constructor(c) {
 		this.c = c;
 	}

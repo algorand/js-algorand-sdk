@@ -1,4 +1,4 @@
-class RegisterParticipationKeysService {
+class RegisterParticipationKeys {
 	constructor(c, account) {
 		this.c = c;
 		this.account = account;

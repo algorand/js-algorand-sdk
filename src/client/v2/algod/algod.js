@@ -9,58 +9,62 @@ class AlgodClient {
         }
 
         // Get client
-        let c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
+        let c =  client.HTTPClient(tokenHeader, baseServer, port, headers);
 
-        this.newHealthCheckService = function () {
-            return HealthCheckService(c)
+        this.healthCheck = function () {
+            return HealthCheck(c)
         };
 
-        this.newVersionsCheckService = function () {
-            return VersionsService(c)
+        this.versionsCheck = function () {
+            return Versions(c)
         };
 
-        this.newSendRawTransactionService = function(stx_or_stxs) {
-            return SendRawTransactionService(stx_or_stxs)
+        this.sendRawTransaction = function(stx_or_stxs) {
+            return SendRawTransaction(stx_or_stxs)
         };
 
-        this.newAccountInformationService = function(account) {
-            return AccountInformationService(c, account)
+        this.accountInformation = function(account) {
+            return AccountInformation(c, account)
         };
 
-        this.newBlockService = function(roundNumber) {
-            return BlockService(c, roundNumber)
+        this.block = function(roundNumber) {
+            return Block(c, roundNumber)
         };
 
-        this.newPendingTransactionInformationService = function(txid) {
-            return PendingTransactionInformationService(c, txid)
+        this.pendingTransactionInformation = function(txid) {
+            return PendingTransactionInformation(c, txid)
         };
 
-        this.newPendingTransactionsInformationService = function() {
-            return PendingTransactionsService(c)
+        this.pendingTransactionsInformation = function() {
+            return PendingTransactions(c)
         };
 
-        this.newPendingTransactionByAddressService = function(address) {
-            return PendingTransactionsByAddressService(c, address)
+        this.pendingTransactionByAddress = function(address) {
+            return PendingTransactionsByAddress(c, address)
         };
 
-        this.newRegisterParticipationKeyService = function(account) {
-            return RegisterParticipationKeysService(c, account)
+        this.registerParticipationKey = function(account) {
+            return RegisterParticipationKeys(c, account)
         };
 
-        this.newShutdownService = function () {
-            return ShutdownService(c)
+        this.shutdown = function () {
+            return Shutdown(c)
         };
 
-        this.newStatusAfterBlockService = function (round) {
-            return StatusAfterBlockService(c, round)
+        this.status = function() {
+            return Status(c)
         };
 
-        this.newGetTransactionParamsService = function () {
-            return SuggestedParamsService(c)
+        this.statusAfterBlock = function (round) {
+            return StatusAfterBlock(c, round)
         };
 
-        this.newSupplyService = function () {
-            return SupplyService(c)
+        this.getTransactionParams = function () {
+            return SuggestedParams(c)
+        };
+
+        this.supply = function () {
+            return Supply(c)
         };
     }
 }

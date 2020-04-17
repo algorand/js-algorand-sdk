@@ -1,4 +1,4 @@
-class ShutdownService {
+class Shutdown {
 	constructor(c) {
 		this.c = c;
 		this.shutdownParams = {}

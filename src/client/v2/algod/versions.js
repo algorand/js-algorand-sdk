@@ -1,4 +1,4 @@
-class VersionsService {
+class Versions {
 	constructor(c) {
 		this.c = c
 	}

@@ -1,4 +1,4 @@
-class PendingTransactionsByAddressService {
+class PendingTransactionsByAddress {
 	constructor(c, address) {
 		this.c = c;
 		this.address = address;

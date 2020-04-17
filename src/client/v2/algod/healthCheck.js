@@ -1,5 +1,5 @@
 
-class HealthCheckService {
+class HealthCheck {
 	constructor(c) {
 		this.c = c
 	}

@@ -8,6 +8,8 @@ const htlcTemplate = require("../../../src/logicTemplates/htlc");
 const periodicPayTemplate = require("../../../src/logicTemplates/periodicpayment");
 const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
+const clientv2 = require("../../../src/client/v2/algod/algod");
+const indexer = require("../../../src/client/v2/indexer/indexer");
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
@@ -768,6 +770,10 @@ When('I get recent transactions, limited by {int} transactions', function (int) 
     this.acl.transactionByAddress(this.accounts[0], parseInt(int));
 });
 
+////////////////////////////////////
+// begin asset tests
+////////////////////////////////////
+
 Given("asset test fixture", function() {
     this.assetTestFixture = {
         "creator": "",
@@ -1207,6 +1213,10 @@ When('I create a transaction revoking {int} assets from a second account to crea
     this.pk = this.assetTestFixture.creator;
 });
 
+////////////////////////////////////
+// begin teal contract template tests
+////////////////////////////////////
+
 Given('contract test fixture', function () {
     this.contractTestFixture = {
         "split": undefined,
@@ -1425,12 +1435,17 @@ Given('I send the dynamic fee transactions', async function () {
     this.pk = this.accounts[0];
 });
 
-Given('mock http responses in {string} loaded from {string}', function (string, string2) {
+////////////////////////////////////
+// begin indexer and algodv2 tests
+////////////////////////////////////
+
+Given('mock http responses in {string} loaded from {string}', function (commaSeparatedJsonFiles, jsonDirectory) {
     // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    this.v2Client = new clientv2.AlgodClient('', "", 0, {});
+    this.indexerClient = new indexer.IndexerClient('', "", 0, {});
 });
 
-Then('expect error string to contain {string}', function (string) {
+Then('expect error string to contain {string}', function (expectedErrorString) {
     // Write code here that turns the phrase above into concrete actions
     return 'pending';
 });
@@ -1440,288 +1455,302 @@ Given('mock server recording request paths', function () {
     return 'pending';
 });
 
-Then('expect the path used to be {string}', function (string) {
+Then('expect the path used to be {string}', function (expectedRequestPath) {
     // Write code here that turns the phrase above into concrete actions
     return 'pending';
 });
 
-When('we make a Shutdown call with timeout {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Shutdown call with timeout {int}', function (timeout) {
+    this.v2Client.shutdown().timeout(timeout).do();
 });
 
-When('we make a Register Participation Keys call against account {string} fee {int} dilution {int} lastvalidround {int} and nowait {string}', function (string, int, int2, int3, string2) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Register Participation Keys call against account {string} fee {int} dilution {int} lastvalidround {int} and nowait {string}', function (account, fee, dil, lastvalid, nowaitAsString) {
+    let nowait = false;
+    if (nowaitAsString === "true") {
+        nowait = true;
+    }
+    this.v2Client.registerParticipationKey(account).fee(fee).dilution(dil).lastValid(lastvalid).noWait(nowait).do();
 });
 
-When('we make a Pending Transaction Information against txid {string} with max {int}', function (string, int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Pending Transaction Information against txid {string} with max {int}', function (txid, max) {
+    this.v2Client.pendingTransactionInformation(txid).max(max).do();
 });
 
-When('we make a Pending Transactions By Address call against account {string} and max {int}', function (string, int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Pending Transactions By Address call against account {string} and max {int}', function (account, max) {
+    this.v2Client.pendingTransactionByAddress(account).max(max).do();
 });
 
-When('we make a Status after Block call with round {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Status after Block call with round {int}', function (round) {
+    this.v2Client.statusAfterBlock(round).do();
 });
 
-When('we make an Account Information call against account {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make an Account Information call against account {string}', function (account) {
+    this.v2Client.accountInformation(account).do();
 });
 
-When('we make a Get Block call against block number {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Get Block call against block number {int}', function (blockNum) {
+    this.v2Client.block(blockNum).do();
 });
 
 When('we make any Shutdown call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    this.v2Client.shutdown().do();
 });
 
 When('we make any Register Participation Keys call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    this.v2Client.registerParticipationKey().do();
 });
+
+let anyPendingTransactionInfoResponse;
 
 When('we make any Pending Transaction Information call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyPendingTransactionInfoResponse = this.v2Client.pendingTransactionInformation().do();
 });
 
-Then('the parsed Pending Transaction Information response should have sender {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Pending Transaction Information response should have sender {string}', function (sender) {
+    assert.equal(anyPendingTransactionInfoResponse.sender, sender);
 });
+
+let anyPendingTransactionsInfoResponse;
 
 When('we make any Pending Transactions Information call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyPendingTransactionsInfoResponse = this.v2Client.pendingTransactionsInformation().do();
 });
 
-Then('the parsed Pending Transactions Information response should have sender {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Pending Transactions Information response should have sender {string}', function (sender) {
+    assert.equal(anyPendingTransactionsInfoResponse.sender, sender);
 });
 
+let anySendRawTransactionResponse;
 
 When('we make any Send Raw Transaction call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anySendRawTransactionResponse = this.v2Client.sendRawTransaction().do()
 });
 
-Then('the parsed Send Raw Transaction response should have txid {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Send Raw Transaction response should have txid {string}', function (txid) {
+    assert.equal(anySendRawTransactionResponse, txid);
 });
+
+let anyPendingTransactionsByAddressResponse;
 
 When('we make any Pending Transactions By Address call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyPendingTransactionsByAddressResponse = this.v2Client.pendingTransactionByAddress().do();
 });
 
-Then('the parsed Pending Transactions By Address response should contain an array of len {int} and element number {int} should have sender {string}', function (int, int2, string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Pending Transactions By Address response should contain an array of len {int} and element number {int} should have sender {string}', function (len, idx, sender) {
+    assert.equal(len, anyPendingTransactionsByAddressResponse.length);
+    assert.equal(sender, anyPendingTransactionsByAddressResponse[idx].sender);
 });
+
+let anyNodeStatusResponse;
 
 When('we make any Node Status call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyNodeStatusResponse = this.v2Client.status().do();
 });
 
-Then('the parsed Node Status response should have a last round of {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Node Status response should have a last round of {int}', function (lastRound) {
+    assert.equal(lastRound, anyNodeStatusResponse.lastRound);
 });
+
+let anyLedgerSupplyResponse;
 
 When('we make any Ledger Supply call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyLedgerSupplyResponse = this.v2Client.supply().do();
 });
 
-Then('the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}', function (int, int2, int3) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}', function (totalMoney, onlineMoney, round) {
+    assert.equal(totalMoney, anyLedgerSupplyResponse.totalMoney);
+    assert.equal(onlineMoney, anyLedgerSupplyResponse.onlineMoney);
+    assert.equal(round, anyLedgerSupplyResponse.round);
 });
 
 When('we make any Status After Block call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyNodeStatusResponse = this.v2Client.statusAfterBlock().do();
 });
 
-Then('the parsed Status After Block response should have a last round of {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Status After Block response should have a last round of {int}', function (lastRound) {
+    assert.equal(lastRound, anyNodeStatusResponse.lastRound);
 });
+
+let anyAccountInformationResponse;
 
 When('we make any Account Information call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyAccountInformationResponse = this.v2Client.accountInformation().do();
 });
 
-Then('the parsed Account Information response should have address {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Account Information response should have address {string}', function (address) {
+    assert.equal(address, anyAccountInformationResponse.address);
 });
+
+let anyBlockResponse;
 
 When('we make any Get Block call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyBlockResponse = this.v2Client.block().do();
 });
 
-Then('the parsed Get Block response should have rewards pool {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Get Block response should have rewards pool {string}', function (rewardsPoolAddress) {
+    assert.equal(rewardsPoolAddress, anyBlockResponse.rewardsPool);
 });
+
+let anySuggestedTransactionsResponse;
 
 When('we make any Suggested Transaction Parameters call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anySuggestedTransactionsResponse = this.v2Client.getTransactionParams().do();
 });
 
-Then('the parsed Suggested Transaction Parameters response should have first round valid of {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed Suggested Transaction Parameters response should have first round valid of {int}', function (firstRound) {
+    assert.equal(firstRound, anySuggestedTransactionsResponse.firstRound);
 });
 
-When('we make a Lookup Asset Balances call against asset index {int} with limit {int} afterAddress {string} round {int} currencyGreaterThan {int} currencyLessThan {int}', function (int, int5, string, int2, int3, int4) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Lookup Asset Balances call against asset index {int} with limit {int} nextToken {string} round {int} currencyGreaterThan {int} currencyLessThan {int}', function (index, limit, nextToken, round, currencyGreater, currencyLesser) {
+    this.indexerClient.lookupAssetBalances(index).limit(limit).round(round).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).nextToken(nextToken).do();
 });
 
-When('we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string}', function (int, string, string2, string3, string4, int2, int3, int4, int5, int6, int7, int8, int9, string5, string6, string7) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string}', function (assetIndex, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    this.indexerClient.lookupAssetTransactions(assetIndex).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).liit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
 });
 
-When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', function (string, string2, string3, string4, string5, int, int2, int3, int4, int5, int6, int7, int8, int9, string6, string7) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    this.indexerClient.lookupAccountTransactions(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
 });
 
-When('we make a Lookup Block call against round {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Lookup Block call against round {int}', function (round) {
+    this.indexerClient.lookupBlock(round).do();
 });
 
-When('we make a Lookup Account by ID call against account {string} with round {int}', function (string, int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Lookup Account by ID call against account {string} with round {int}', function (account, round) {
+    this.indexerClient.lookupAccountByID(account).round(round).do();
 });
 
-When('we make a Lookup Asset by ID call against asset index {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Lookup Asset by ID call against asset index {int}', function (assetIndex) {
+    this.indexerClient.lookupAssetByID(assetIndex).do();
 });
 
-When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and afterAddress {string}', function (int, int2, int3, int4, string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}', function (assetIndex, limit, currencyGreater, currencyLesser, nextToken) {
+    this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).nextToken(nextToken).do();
+});
+When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    this.indexerClient.searchForTransactions().account(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessthan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
 });
 
-When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', function (string, string2, string3, string4, string5, int, int2, int3, int4, int5, int6, int7, int8, int9, string6, string7) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and nextToken {string}', function (limit, creator, name, unit, index, nextToken) {
+    this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).nextToken(nextToken).do();
 });
 
-When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and afterAsset {int}', function (int, string, string2, string3, int2, int3) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
-});
+let anyLookupAssetBalancesResponse;
 
 When('we make any LookupAssetBalances call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyLookupAssetBalancesResponse = this.indexerClient.lookupAssetBalances().do();
 });
 
-Then('the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}', function (int, int2, int3, string, int4, string2) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}', function (round, length, index, address, amount, frozenStateAsString) {
+    assert.equal(round, anyLookupAssetBalancesRespons.validRound);
+    assert.equal(length, anyLookupAssetBalancesResponse.balances.length);
+    let frozenState = false;
+    if (frozenStateAsString === "true") {
+        frozenState = true;
+    }
+    assert.equal(amount, anyLookupAssetBalancesResponse.balances[index].amount);
+    assert.equal(frozenState, anyLookupAssetBalancesResponse.balances[index].frozenState);
 });
+
+let anyLookupAssetTransactionsResponse;
 
 When('we make any LookupAssetTransactions call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyLookupAssetTransactionsResponse = this.indexerClient.lookupAssetTransactions().do();
 });
 
-Then('the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (int, int2, int3, string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (round, length, idx, sender) {
+    assert.equal(round, anyLookupAssetTransactionsResponse.validRound);
+    assert.equal(length, anyLookupAssetTransactionsResponse.transactions.length);
+    assert.equal(sender, anyLookupAssetTransactionsResponse.transactions[idx].sender);
 });
+
+let anyLookupAccountTransactionsResponse;
 
 When('we make any LookupAccountTransactions call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyLookupAccountTransactionsResponse = this.indexerClient.lookupAccountTransactions().do();
 });
 
-Then('the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (int, int2, int3, string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (round, length, idx, sender) {
+    assert.equal(round, anyLookupAccountTransactionsResponse.validRound);
+    assert.equal(length, anyLookupAccountTransactionsResponse.transactions.length);
+    assert.equal(sender, anyLookupAccountTransactionsResponse.transactions[idx].sender);
 });
+
+let anyLookupBlockResponse;
 
 When('we make any LookupBlock call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyLookupBlockResponse = this.indexerClient.lookupBlock().do();
 });
 
-Then('the parsed LookupBlock response should have proposer {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed LookupBlock response should have previous block hash {string}', function (prevHash) {
+    assert.equal(prevHash, anyLookupBlockResponse['previous-block-hash']);
 });
+
+let anyLookupAccountByIDResponse;
 
 When('we make any LookupAccountByID call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyLookupAccountByIDResponse = this.indexerClient.lookupAccountByID().do();
 });
 
-Then('the parsed LookupAccountByID response should have address {string}', function (string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed LookupAccountByID response should have address {string}', function (address) {
+    assert.equal(address, anyLookupAccountByIDResponse['address'])
 });
+
+let anyLookupAssetByIDResponse;
 
 When('we make any LookupAssetByID call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anyLookupAssetByIDResponse = this.indexerClient.lookupAssetByID().do();
 });
 
-Then('the parsed LookupAssetByID response should have index {int}', function (int) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed LookupAssetByID response should have index {int}', function (idx) {
+    assert.equal(idx, anyLookupAssetByIDResponse["asset-id"]);
 });
+
+let anySearchAccountsResponse;
 
 When('we make any SearchAccounts call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anySearchAccountsResponse = this.indexerClient.searchAccounts().do();
 });
 
-Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}', function (int, int2, int3, string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}', function (round, length, idx, address) {
+    assert.equal(round, anySearchAccountsResponse.validRound);
+    assert.equal(length, anySearchAccountsResponse.accounts.length);
+    assert.equal(sender, anySearchAccountsResponse.accounts[idx].address);
 });
+
+let anySearchForTransactionsResponse;
 
 When('we make any SearchForTransactions call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anySearchForTransactionsResponse = this.indexerClient.searchForTransactions().do();
 });
 
-Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}', function (int, int2, int3, string) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}', function (round, length, idx, sender) {
+    assert.equal(round, anySearchForTransactionsResponse.validRound);
+    assert.equal(length, anySearchForTransactionsResponse.transactions.length);
+    assert.equal(sender, anySearchForTransactionsResponse.transactions[idx].sender);
 });
+
+let anySearchForAssetsResponse;
 
 When('we make any SearchForAssets call', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    anySearchForAssetsResponse = this.indexerClient.searchForAssets().do();
 });
 
-Then('the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}', function (int, int2, int3, int4) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+Then('the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}', function (round, length, idx, assetIndex) {
+    assert.equal(round, anySearchForAssetsResponse.validRound);
+    assert.equal(length, anySearchForAssetsResponse.assets.length);
+    assert.equal(assetIndex, anySearchForAssetsResponse.assets[idx]['asset-id']);
 });

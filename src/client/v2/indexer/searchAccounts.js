@@ -1,4 +1,4 @@
-class SearchAccountsService {
+class SearchAccounts {
 	constructor(c) {
 		this.c = c;
 		this.query = {};
@@ -38,9 +38,9 @@ class SearchAccountsService {
 		return this;
 	}
 
-	// combine with limit to page through results, as string
-	afterAddress(after) {
-		this.query["after-address"] = after;
+	// used for pagination
+	nextToken(nextToken) {
+		this.query['next'] = nextToken;
 		return this;
 	}
 }

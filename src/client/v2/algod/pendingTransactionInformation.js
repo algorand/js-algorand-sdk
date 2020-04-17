@@ -1,4 +1,4 @@
-class PendingTransactionInformationService {
+class PendingTransactionInformation {
 	constructor(c, txid) {
 		this.c = c;
 		this.txid = txid;

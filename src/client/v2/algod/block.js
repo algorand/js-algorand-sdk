@@ -1,5 +1,5 @@
 
-class BlockService {
+class Block {
 	constructor(c, roundNumber){
 		if (!Number.isInteger(roundNumber)) throw Error("roundNumber should be an integer");
 		this.c = c;

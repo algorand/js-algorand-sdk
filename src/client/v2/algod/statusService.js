@@ -1,4 +1,4 @@
-class StatusService {
+class Status {
 	constructor(c) {
 		this.c = c
 	}

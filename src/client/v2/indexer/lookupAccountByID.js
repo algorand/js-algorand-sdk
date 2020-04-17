@@ -1,4 +1,4 @@
-class LookupAccountByIDService {
+class LookupAccountByID {
 	constructor(c, account) {
 		this.c = c;
 		this.account = account;

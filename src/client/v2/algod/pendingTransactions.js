@@ -1,4 +1,4 @@
-class PendingTransactionsService {
+class PendingTransactions {
 	constructor(c) {
 		this.c = c;
 	}

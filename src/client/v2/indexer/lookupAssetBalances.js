@@ -1,4 +1,4 @@
-class LookupAssetBalancesService {
+class LookupAssetBalances {
 	constructor(c, index) {
 		this.c = c;
 		this.index = index;
@@ -21,12 +21,6 @@ class LookupAssetBalancesService {
 		return this;
 	}
 
-	// used in conjunction with limit to page through results, as string
-	afterAddress(after) {
-		this.query["after-address"] = after;
-		return this;
-	}
-
 	// round to filter with, as int
 	round(round) {
 		this.query["round"] = round;
@@ -42,6 +36,12 @@ class LookupAssetBalancesService {
 	// filtered results should have an amount less than this value, as int, with units representing the asset units
 	currencyLessThan(lesser) {
 		this.query["currency-less-than"] = lesser;
+		return this;
+	}
+
+	// used for pagination
+	nextToken(nextToken) {
+		this.query['next'] = nextToken;
 		return this;
 	}
 }

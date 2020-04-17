@@ -3,42 +3,42 @@ const client = require('../../client');
 class IndexerClient {
     constructor(token, baseServer = "http://127.0.0.1", port = 8080) {
         // Get client
-        let c = new client.HTTPClient({'X-KMD-API-Token': token}, baseServer, port);
+        let c =  client.HTTPClient({'X-Indexer-API-Token': token}, baseServer, port);
 
-        this.newLookupAssetBalancesService = function(index) {
-            return LookupAssetBalancesService(c, index);
+        this.lookupAssetBalances = function(index) {
+            return LookupAssetBalances(c, index);
         };
 
-        this.newLookupAssetTransactionsService = function (index) {
-            return LookupAssetTransactionsService(c, index);
+        this.lookupAssetTransactions = function (index) {
+            return LookupAssetTransactions(c, index);
         };
 
-        this.newLookupAccountTransactionsService = function(account) {
-            return LookupAccountTransactionsService(c, account);
+        this.lookupAccountTransactions = function(account) {
+            return LookupAccountTransactions(c, account);
         };
 
-        this.newLookupBlockService = function(round) {
-            return LookupBlockService(c, round);
+        this.lookupBlock = function(round) {
+            return LookupBlock(c, round);
         };
 
-        this.newLookupAccountByIDService = function(account){
-            return LookupAccountByIDService(c, account);
+        this.lookupAccountByID = function(account){
+            return LookupAccountByID(c, account);
         };
 
-        this.newLookupAssetByIDService = function(index) {
-            return LookupAssetByIDService(c, index);
+        this.lookupAssetByID = function(index) {
+            return LookupAssetByID(c, index);
         };
 
-        this.newSearchAccountsService = function() {
-            return SearchAccountsService(c);
+        this.searchAccounts = function() {
+            return SearchAccounts(c);
         };
 
-        this.newSearchForTransactionsService = function() {
-            return SearchForTransactionsService(c);
+        this.searchForTransactions = function() {
+            return SearchForTransactions(c);
         };
 
-        this.newSearchForAssetsService = function() {
-            return SearchForAssetsService(c);
+        this.searchForAssets = function() {
+            return SearchForAssets(c);
         };
     }
 }

@@ -1,4 +1,4 @@
-class SendRawTransactionService {
+class SendRawTransaction {
 	constructor(c, stx_or_stxs) {
 		let forPosting = stx_or_stxs;
 		if (Array.isArray(stx_or_stxs)) {

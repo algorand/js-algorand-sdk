@@ -1,4 +1,4 @@
-class SearchForAssetsService{
+class SearchForAssets{
 	constructor(c) {
 		this.c = c;
 		this.query = {}
@@ -44,9 +44,9 @@ class SearchForAssetsService{
 		return this;
 	}
 
-	// used in conjunction with limit to page through results, as int
-	afterAsset(afterIndex) {
-		this.query["after-asset"] = afterIndex;
+	// used for pagination
+	nextToken(nextToken) {
+		this.query['next'] = nextToken;
 		return this;
 	}
 }

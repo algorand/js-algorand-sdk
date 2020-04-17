@@ -1,17 +1,16 @@
-class LookupAssetTransactionsService {
-	constructor (c, index) {
+class SearchForTransactions {
+	constructor(c) {
 		this.c = c;
-		this.index = index;
 		this.query = {};
 	}
 
 	/**
-	 * returns information about the passed asset
+	 * returns information about indexed transactions
 	 * @param headers, optional
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/v2/assets/" + this.index, this.query, headers);
+		let res = await this.c.get("/v2/transactions/", this.query, headers);
 		return res.body;
 	};
 
@@ -81,13 +80,13 @@ class LookupAssetTransactionsService {
 		return this;
 	}
 
-	// filtered results should have an amount greater than this value, as int, representing asset units
+	// filtered results should have an amount greater than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
 	currencyGreaterThan(greater) {
 		this.query["currency-greater-than"] = greater;
 		return this;
 	}
 
-	// filtered results should have an amount less than this value, as int, representing asset units
+	// filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
 	currencyLessThan(lesser) {
 		this.query["currency-less-than"] = lesser;
 		return this;
@@ -99,7 +98,7 @@ class LookupAssetTransactionsService {
 		return this;
 	}
 
-	// address to filter on as string
+	// address to filter with, as string
 	address(address) {
 		this.query["address"] = address;
 		return this;
@@ -108,6 +107,12 @@ class LookupAssetTransactionsService {
 	// whether or not to consider the close-to field as a receiver when filtering transactions, as bool. set to true to ignore close-to
 	excludeCloseTo(exclude) {
 		this.query["exclude-close-to"] = exclude;
+		return this;
+	}
+
+	// used for pagination
+	nextToken(nextToken) {
+		this.query['next'] = nextToken;
 		return this;
 	}
 }

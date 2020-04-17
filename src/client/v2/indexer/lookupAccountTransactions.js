@@ -1,16 +1,18 @@
-class SearchForTransactionsService {
-	constructor(c) {
+
+class LookupAccountTransactions {
+	constructor(c, account) {
 		this.c = c;
-		this.query = {};
+		this.account = account;
+		this.query = {}
 	}
 
 	/**
-	 * returns information about indexed transactions
+	 * returns transactions relating to the given account
 	 * @param headers, optional
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/v2/transactions/", this.query, headers);
+		let res = await this.c.get("/v2/accounts/" + this.account + "/transactions", this.query, headers);
 		return res.body;
 	};
 
@@ -98,15 +100,15 @@ class SearchForTransactionsService {
 		return this;
 	}
 
-	// address to filter with, as string
-	address(address) {
-		this.query["address"] = address;
-		return this;
-	}
-
 	// whether or not to consider the close-to field as a receiver when filtering transactions, as bool. set to true to ignore close-to
 	excludeCloseTo(exclude) {
 		this.query["exclude-close-to"] = exclude;
+		return this;
+	}
+
+	// used for pagination
+	nextToken(nextToken) {
+		this.query['next'] = nextToken;
 		return this;
 	}
 }

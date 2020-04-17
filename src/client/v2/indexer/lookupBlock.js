@@ -1,4 +1,4 @@
-class LookupBlockService {
+class LookupBlock {
 	constructor(c, round) {
 		this.c = c;
 		this.round = round;

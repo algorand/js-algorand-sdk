@@ -1,4 +1,4 @@
-class StatusAfterBlockService {
+class StatusAfterBlock {
 	constructor(c, round) {
 		this.c = c;
 		if (!Number.isInteger(round)) throw Error("round should be an integer");

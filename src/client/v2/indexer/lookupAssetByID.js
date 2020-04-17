@@ -1,4 +1,4 @@
-class LookupAssetByIDService {
+class LookupAssetByID {
 	constructor(c, index){
 		this.c = c;
 		this.index = index;

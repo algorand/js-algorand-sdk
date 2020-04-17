@@ -1,4 +1,4 @@
-class SuggestedParamsService {
+class SuggestedParams {
 	constructor(c) {
 		this.c = c;
 	}
