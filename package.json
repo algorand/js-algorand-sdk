@@ -18,7 +18,8 @@
     "js-yaml": ">=3.13.1",
     "keccak256": "^1.0.0",
     "superagent": "^4.1.0",
-    "tweetnacl": "^1.0.1"
+    "tweetnacl": "^1.0.1",
+    "@pokt-network/pocket-js": "0.2.2-rc"
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
