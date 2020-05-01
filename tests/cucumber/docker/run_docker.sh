@@ -2,15 +2,14 @@
 
 set -e
 
-rm -rf temp
+rm -rf test-harness
 rm -rf tests/cucumber/features
-git clone --single-branch --branch templates https://github.com/algorand/algorand-sdk-testing.git temp
+git clone --single-branch --branch evan/minortweaks https://github.com/algorand/algorand-sdk-testing.git test-harness
 
-cp tests/cucumber/docker/sdk.py temp/docker
-mv temp/features tests/cucumber/features
+mv test-harness/features tests/cucumber/features
 
-docker build -t sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)"
+docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)"
 
 docker run -it \
-     -v "$(pwd)":/opt/js-algorand-sdk \
-     sdk-testing:latest 
+     --network host \
+     js-sdk-testing:latest

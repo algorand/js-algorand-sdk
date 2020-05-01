@@ -23,3 +23,4 @@ def test_sdk():
     subprocess.check_call(['node_modules/.bin/cucumber-js %s --require %s/*' % (default_dirs["features_dir"], default_dirs["steps"])], shell=True)
     # subprocess.check_call(['mvn test -Dcucumber.options="--tags @template"'], shell=True, cwd=sdk.default_dirs['cucumber'])
     # subprocess.check_call(['mvn test -Dcucumber.options="/opt/sdk-testing/features/template.feature"'], shell=True, cwd=sdk.default_dirs['cucumber'])
+
