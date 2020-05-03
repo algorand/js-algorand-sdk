@@ -13,3 +13,5 @@ class PendingTransactions {
 		return res.body;
 	}
 }
+
+module.exports = { PendingTransactions };

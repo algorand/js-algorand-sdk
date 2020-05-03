@@ -13,3 +13,5 @@ class Status {
 		return res.body;
 	};
 }
+
+module.exports = { Status };

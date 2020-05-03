@@ -1,4 +1,18 @@
 const client = require('../../client');
+const ai = require('../algod/accountInformation');
+const hc = require('../algod/healthCheck');
+const blk = require('../algod/block');
+const pti = require('../algod/pendingTransactionInformation');
+const pt = require('../algod/pendingTransactions');
+const ptba = require('../algod/pendingTransactionsByAddress');
+const rpk = require('../algod/registerParticipationKeys');
+const srt = require('../algod/sendRawTransaction');
+const sd = require('../algod/shutdown');
+const status = require('../algod/status');
+const sab = require('../algod/statusAfterBlock');
+const sp = require('../algod/suggestedParams');
+const supply = require('../algod/supply');
+const versions = require('../algod/versions');
 
 class AlgodClient {
     constructor(token = '', baseServer = "http://r2.algorand.network", port = 4180, headers = {}) {
@@ -9,62 +23,62 @@ class AlgodClient {
         }
 
         // Get client
-        let c =  client.HTTPClient(tokenHeader, baseServer, port, headers);
+        let c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
 
         this.healthCheck = function () {
-            return HealthCheck(c)
+            return new hc.HealthCheck(c);
         };
 
         this.versionsCheck = function () {
-            return Versions(c)
+            return new versions.Versions(c)
         };
 
         this.sendRawTransaction = function(stx_or_stxs) {
-            return SendRawTransaction(stx_or_stxs)
+            return new srt.SendRawTransaction(stx_or_stxs)
         };
 
         this.accountInformation = function(account) {
-            return AccountInformation(c, account)
+            return new ai.AccountInformation(c, account);
         };
 
         this.block = function(roundNumber) {
-            return Block(c, roundNumber)
+            return new blk.Block(c, roundNumber)
         };
 
         this.pendingTransactionInformation = function(txid) {
-            return PendingTransactionInformation(c, txid)
+            return new pti.PendingTransactionInformation(c, txid)
         };
 
         this.pendingTransactionsInformation = function() {
-            return PendingTransactions(c)
+            return new pt.PendingTransactions(c)
         };
 
         this.pendingTransactionByAddress = function(address) {
-            return PendingTransactionsByAddress(c, address)
+            return new ptba.PendingTransactionsByAddress(c, address)
         };
 
         this.registerParticipationKey = function(account) {
-            return RegisterParticipationKeys(c, account)
+            return new rpk.RegisterParticipationKeys(c, account)
         };
 
         this.shutdown = function () {
-            return Shutdown(c)
+            return new sd.Shutdown(c)
         };
 
         this.status = function() {
-            return Status(c)
+            return new status.Status(c)
         };
 
         this.statusAfterBlock = function (round) {
-            return StatusAfterBlock(c, round)
+            return new sab.StatusAfterBlock(c, round)
         };
 
         this.getTransactionParams = function () {
-            return SuggestedParams(c)
+            return new sp.SuggestedParams(c)
         };
 
         this.supply = function () {
-            return Supply(c)
+            return new supply.Supply(c)
         };
     }
 }

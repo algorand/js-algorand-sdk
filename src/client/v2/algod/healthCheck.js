@@ -14,3 +14,5 @@ class HealthCheck {
 		return res.body;
 	}
 }
+
+module.exports = { HealthCheck };

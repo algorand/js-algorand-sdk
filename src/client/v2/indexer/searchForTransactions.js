@@ -34,7 +34,7 @@ class SearchForTransactions {
 
 	// txid to filter with, as string
 	txid(txid) {
-		this.query["tx-id"] = txid;
+		this.query["txid"] = txid;
 		return this;
 	}
 
@@ -116,3 +116,5 @@ class SearchForTransactions {
 		return this;
 	}
 }
+
+module.exports = {SearchForTransactions};

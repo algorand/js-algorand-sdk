@@ -16,3 +16,5 @@ class StatusAfterBlock {
 		return res.body;
 	};
 }
+
+module.exports = { StatusAfterBlock };

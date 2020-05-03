@@ -14,3 +14,5 @@ class LookupBlock {
 		return res.body;
 	};
 }
+
+module.exports = {LookupBlock};

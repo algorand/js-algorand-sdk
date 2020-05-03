@@ -17,3 +17,5 @@ class Block {
 		return res.body;
 	}
 }
+
+module.exports = { Block };

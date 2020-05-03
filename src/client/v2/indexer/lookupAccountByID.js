@@ -20,3 +20,5 @@ class LookupAccountByID {
 		return this;
 	}
 }
+
+module.exports = {LookupAccountByID};

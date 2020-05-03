@@ -20,3 +20,5 @@ class SuggestedParams {
 		};
 	};
 }
+
+module.exports = { SuggestedParams };

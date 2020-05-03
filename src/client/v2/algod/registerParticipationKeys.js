@@ -35,3 +35,5 @@ class RegisterParticipationKeys {
 		return this;
 	}
 }
+
+module.exports = { RegisterParticipationKeys };

@@ -36,7 +36,7 @@ class LookupAccountTransactions {
 
 	// txid to filter with, as string
 	txid(txid) {
-		this.query["tx-id"] = txid;
+		this.query["txid"] = txid;
 		return this;
 	}
 
@@ -112,3 +112,5 @@ class LookupAccountTransactions {
 		return this;
 	}
 }
+
+module.exports = {LookupAccountTransactions};

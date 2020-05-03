@@ -13,3 +13,5 @@ class Supply {
 		return res.body;
 	};
 }
+
+module.exports = { Supply };

@@ -19,3 +19,5 @@ class Shutdown {
 		return this;
 	}
 }
+
+module.exports = { Shutdown };

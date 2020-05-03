@@ -6,8 +6,25 @@ let passphrase = require("../src/mnemonic/mnemonic");
 let nacl = require("../src/nacl/naclWrappers");
 let transaction = require("../src/transaction");
 let logicsig = require("../src/logicsig");
+let v2client = require("../src/client/v2/algod/algod");
 
 describe('Algosdk (AKA end to end)', function () {
+    describe('playground', () => {
+        it('should return a 500', async () => {
+            console.log("test start");
+            let algodToken = "b8588a5405fda0cac83505cbbbd367406f4442f5ea995579a3af8755aee764aa";
+            let algodURL = "http://localhost";
+            let port = 8080;
+            let testAccount = "ALGORANDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIN5DNAU";
+            let testRound = 6220429;
+            let ac = new v2client.AlgodClient(algodToken, algodURL, port);
+            console.log("built client");
+            console.log("accountInformationResponse.json");
+            console.log(await ac.accountInformation(testAccount).do());
+            console.log("block.json");
+            console.log(await ac.block(testRound).do());
+        });
+    });
     describe('#mnemonic', function () {
         it('should export and import', function () {
             for (let i=0 ; i<50 ; i++) {

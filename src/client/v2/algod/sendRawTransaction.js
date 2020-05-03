@@ -34,3 +34,5 @@ class SendRawTransaction {
 		return res.body;
 	}
 }
+
+module.exports = { SendRawTransaction };

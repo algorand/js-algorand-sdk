@@ -14,3 +14,5 @@ class AccountInformation {
         return res.body;
     }
 }
+
+module.exports = { AccountInformation };

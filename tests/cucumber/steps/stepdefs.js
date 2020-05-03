@@ -14,7 +14,7 @@ const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)))
-const homedir = require('os').homedir()
+const ServerMock = require("mock-http-server");
 
 setDefaultTimeout(60000)
 
@@ -24,46 +24,17 @@ Before(async function () {
 });
 
 Given("an algod client", async function(){
-    data_dir_path = "file://" + process.env.NODE_DIR + "/";
-    algod_token = "";
-    algod_address = "";
+    algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-    xml = new XMLHttpRequest();
-    xml.open("GET", data_dir_path + "algod.net", false);
-    xml.onreadystatechange = function () {
-        algod_address = xml.responseText.trim();
-    };
-    xml.send();
-
-    xml.open("GET", data_dir_path + "algod.token", false);
-    xml.onreadystatechange = function () {
-        algod_token = xml.responseText.trim();
-    };
-    xml.send();
-
-    this.acl = new algosdk.Algod(algod_token, algod_address.split(":")[0], algod_address.split(":")[1]);
+    this.acl = new algosdk.Algod(algod_token, "http://localhost", 60000);
     return this.acl
 })
 
 Given("a kmd client", function(){
-    data_dir_path = "file://" + process.env.NODE_DIR + "/";
-    kmd_folder_name = process.env.KMD_DIR + "/";
-    kmd_token = "";
-    kmd_address = "";
+    kmd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-    xml.open("GET", data_dir_path + kmd_folder_name + "kmd.net", false);
-    xml.onreadystatechange = function () {
-        kmd_address = xml.responseText.trim();
-    };
-    xml.send();
 
-    xml.open("GET", data_dir_path + kmd_folder_name + "kmd.token", false);
-    xml.onreadystatechange = function () {
-        kmd_token = xml.responseText.trim();
-    };
-    xml.send();
-
-    this.kcl = new algosdk.Kmd(kmd_token, kmd_address.split(":")[0], kmd_address.split(":")[1])
+    this.kcl = new algosdk.Kmd(kmd_token, "http://localhost", 60001)
 
     return this.kcl
 
@@ -1439,25 +1410,72 @@ Given('I send the dynamic fee transactions', async function () {
 // begin indexer and algodv2 tests
 ////////////////////////////////////
 
+let globalErrForExamination = "";
+let mockServer;
 Given('mock http responses in {string} loaded from {string}', function (commaSeparatedJsonFiles, jsonDirectory) {
     // Write code here that turns the phrase above into concrete actions
-    this.v2Client = new clientv2.AlgodClient('', "", 0, {});
-    this.indexerClient = new indexer.IndexerClient('', "", 0, {});
+    let bytesToReturn = loadMockJsons(commaSeparatedJsonFiles, jsonDirectory); // TODO define loadmockjsons
+    const mockServerPort = 31337;
+    const mockServerHost = "localhost";
+    mockServer = new ServerMock({ host: mockServerHost, port: mostServerPort });
+    let headers;  // example headers: { "content-type": "application/json" }
+    let body;  // example body: JSON.stringify({ hello: "world" }
+    // TODO:
+    // if jsonfile ends in json
+    /// headers = { "content-type": "application/json" }
+    /// body = json string
+    // else if jsonfile ends in base64
+    /// headers = { "content-type": "application/msgpack"}
+    /// body = base64 string?
+    mockServer.on({
+        method: 'GET',
+        path: '*',
+        reply: {
+            status:  200,
+            headers: headers,
+            body:    body
+        }
+    });
+    mockServer.on({
+        method: 'POST',
+        path: '*',
+        reply: {
+            status:  200,
+            headers: headers,
+            body:    body
+        }
+    });
+    this.v2Client = new clientv2.AlgodClient('', mockServerHost, mockServerPort, {});
+    this.indexerClient = new indexer.IndexerClient('', mockServerHost, mockServerPort, {});
 });
 
 Then('expect error string to contain {string}', function (expectedErrorString) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    if (expectedErrorString === "nil") {
+        return globalErrForExamination === "";  // TODO EJR does returning false here correctly fail the test?
+    }
+    return (globalErrForExamination === expectedErrorString)  // TODO EJR does returning false here correctly fail the test?
 });
 
 Given('mock server recording request paths', function () {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    const mockServerPort = 31337;
+    const mockServerHost = "localhost";
+    let server = new ServerMock({ host: mockServerHost, port: mostServerPort });
+    server.on({
+        method: 'GET',
+        path: '*',
+        reply: {
+            status:  200
+        }
+    });
+    this.v2Client = new clientv2.AlgodClient('', mockServerHost, mockServerPort, {});
+    this.indexerClient = new indexer.IndexerClient('', mockServerHost, mockServerPort, {});
 });
 
 Then('expect the path used to be {string}', function (expectedRequestPath) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
+    // get all requests the mockserver has seen since construction
+    let seenRequests = mockServer.requests();
+    // TODO extract actualRequestPath from seenRequests
+    return expectedRequestPath === actualRequestPath;  // TODO EJR does returning false here correctly fail the test?
 });
 
 When('we make a Shutdown call with timeout {int}', function (timeout) {
@@ -1564,7 +1582,7 @@ Then('the parsed Ledger Supply response should have totalMoney {int} onlineMoney
 });
 
 When('we make any Status After Block call', function () {
-    anyNodeStatusResponse = this.v2Client.statusAfterBlock().do();
+    anyNodeStatusResponse = this.v2Client.statusAfterBlock(1).do();
 });
 
 Then('the parsed Status After Block response should have a last round of {int}', function (lastRound) {
@@ -1584,7 +1602,7 @@ Then('the parsed Account Information response should have address {string}', fun
 let anyBlockResponse;
 
 When('we make any Get Block call', function () {
-    anyBlockResponse = this.v2Client.block().do();
+    anyBlockResponse = this.v2Client.block(1).do();
 });
 
 Then('the parsed Get Block response should have rewards pool {string}', function (rewardsPoolAddress) {

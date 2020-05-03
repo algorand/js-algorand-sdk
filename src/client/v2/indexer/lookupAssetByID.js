@@ -14,3 +14,5 @@ class LookupAssetByID {
 		return res.body;
 	};
 }
+
+module.exports = {LookupAssetByID};

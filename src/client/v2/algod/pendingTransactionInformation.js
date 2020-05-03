@@ -22,3 +22,5 @@ class PendingTransactionInformation {
 		return this;
 	}
 }
+
+module.exports = { PendingTransactionInformation };

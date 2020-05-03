@@ -45,3 +45,5 @@ class LookupAssetBalances {
 		return this;
 	}
 }
+
+module.exports = {LookupAssetBalances};

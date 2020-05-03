@@ -21,3 +21,5 @@ class PendingTransactionsByAddress {
 		return this;
 	}
 }
+
+module.exports = { PendingTransactionsByAddress };

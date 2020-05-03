@@ -50,3 +50,5 @@ class SearchForAssets{
 		return this;
 	}
 }
+
+module.exports = {SearchForAssets};

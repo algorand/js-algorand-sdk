@@ -13,3 +13,5 @@ class Versions {
 		return res.body;
 	};
 }
+
+module.exports = { Versions };

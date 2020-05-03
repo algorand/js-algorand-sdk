@@ -1,4 +1,14 @@
 const client = require('../../client');
+const lacbid = require('../indexer/lookupAccountByID');
+const lact = require('../indexer/lookupAccountTransactions');
+const lasb = require('../indexer/lookupAssetBalances');
+const lasbid = require('../indexer/lookupAssetByID');
+const last = require('../indexer/lookupAssetTransactions');
+const lb = require('../indexer/lookupBlock');
+const sfas = require('../indexer/searchForAssets');
+const sft = require('../indexer/searchForTransactions');
+const sac = require('../indexer/searchAccounts');
+
 
 class IndexerClient {
     constructor(token, baseServer = "http://127.0.0.1", port = 8080) {
@@ -6,39 +16,39 @@ class IndexerClient {
         let c =  client.HTTPClient({'X-Indexer-API-Token': token}, baseServer, port);
 
         this.lookupAssetBalances = function(index) {
-            return LookupAssetBalances(c, index);
+            return new lasb.LookupAssetBalances(c, index);
         };
 
         this.lookupAssetTransactions = function (index) {
-            return LookupAssetTransactions(c, index);
+            return new last.LookupAssetTransactions(c, index);
         };
 
         this.lookupAccountTransactions = function(account) {
-            return LookupAccountTransactions(c, account);
+            return new lact.LookupAccountTransactions(c, account);
         };
 
         this.lookupBlock = function(round) {
-            return LookupBlock(c, round);
+            return new lb.LookupBlock(c, round);
         };
 
         this.lookupAccountByID = function(account){
-            return LookupAccountByID(c, account);
+            return new lacbid.LookupAccountByID(c, account);
         };
 
         this.lookupAssetByID = function(index) {
-            return LookupAssetByID(c, index);
+            return new lasbid.LookupAssetByID(c, index);
         };
 
         this.searchAccounts = function() {
-            return SearchAccounts(c);
+            return new sac.SearchAccounts(c);
         };
 
         this.searchForTransactions = function() {
-            return SearchForTransactions(c);
+            return new sft.SearchForTransactions(c);
         };
 
         this.searchForAssets = function() {
-            return SearchForAssets(c);
+            return new sfas.SearchForAssets(c);
         };
     }
 }

@@ -44,3 +44,5 @@ class SearchAccounts {
 		return this;
 	}
 }
+
+module.exports = {SearchAccounts};
