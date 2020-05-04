@@ -13,7 +13,7 @@ const sac = require('../indexer/searchAccounts');
 class IndexerClient {
     constructor(token, baseServer = "http://127.0.0.1", port = 8080) {
         // Get client
-        let c =  client.HTTPClient({'X-Indexer-API-Token': token}, baseServer, port);
+        let c = new client.HTTPClient({'X-Indexer-API-Token': token}, baseServer, port);
 
         this.lookupAssetBalances = function(index) {
             return new lasb.LookupAssetBalances(c, index);

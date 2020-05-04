@@ -4,6 +4,7 @@ FROM node:14.1.0-stretch
 RUN mkdir -p $HOME/js-algorand-sdk
 COPY . $HOME/js-algorand-sdk
 WORKDIR $HOME/js-algorand-sdk
+ENV UNITTESTDIR=$HOME/js-algorand-sdk/tests/cucumber/features/unit
 
 # Run integration tests
 CMD ["/bin/bash", "-c", "node_modules/.bin/cucumber-js tests/cucumber/features --require tests/cucumber/steps/*"]

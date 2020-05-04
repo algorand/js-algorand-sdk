@@ -1,6 +1,10 @@
+const encoding = require('../../../encoding/encoding')
+
 class PendingTransactions {
 	constructor(c) {
 		this.c = c;
+		this.query = {};
+		this.query["format"] = "msgpack";
 	}
 
 	/**
@@ -9,8 +13,17 @@ class PendingTransactions {
 	 * @returns {Promise<*>}
 	 */
 	async do(headers={}) {
-		let res = await this.c.get("/v2/transactions/pending/", {}, headers);
-		return res.body;
+		let res = await this.c.get("/v2/transactions/pending", this.query, headers);
+		if (res.body) {
+			return encoding.decode(res.body);
+		}
+		return undefined;
+	}
+
+	// max sets the maximum number of txs to return
+	max(max){
+		this.query["max"] = max;
+		return this;
 	}
 }
 

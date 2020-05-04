@@ -9,7 +9,11 @@ class Shutdown {
 	* @param headers, optional
 	*/
 	async do(headers={}) {
-		let res = await this.c.post("/v2/shutdown", Buffer.from(this.shutdownParams), headers);
+		let path = "/v2/shutdown";
+		if (this.shutdownParams["timeout"] != undefined && this.shutdownParams["timeout"] != 0) {
+			path = path + "?timeout=" + this.shutdownParams["timeout"].toString();
+		}
+		let res = await this.c.post(path, this.shutdownParams, headers);
 		return res.body;
 	}
 

@@ -11,7 +11,7 @@ class RegisterParticipationKeys {
 	 * @returns {Promise<*>}
 	 */
 	async do(headers={}) {
-		let res = await this.c.post("/v2/register-participation-keys/"+this.account, Buffer.from(this.registerParams), headers);
+		let res = await this.c.post("/v2/register-participation-keys/"+this.account, this.registerParams, headers);
 		return res.body;
 	}
 

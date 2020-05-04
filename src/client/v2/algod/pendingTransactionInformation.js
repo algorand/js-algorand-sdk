@@ -1,3 +1,5 @@
+const encoding = require('../../../encoding/encoding')
+
 class PendingTransactionInformation {
 	constructor(c, txid) {
 		this.c = c;
@@ -13,7 +15,10 @@ class PendingTransactionInformation {
 	 */
 	async do(headers={}){
 		let res = await this.c.get("/v2/transactions/pending/" + this.txid, this.query, headers);
-		return res.body;
+		if (res.body) {
+			return encoding.decode(res.body);
+		}
+		return undefined;
 	};
 
 	// max sets the maximum number of txs to return

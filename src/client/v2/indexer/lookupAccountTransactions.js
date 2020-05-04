@@ -12,7 +12,7 @@ class LookupAccountTransactions {
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/v2/accounts/" + this.account + "/transactions", this.query, headers);
+		let res = await this.c.get("/accounts/" + this.account + "/transactions", this.query, headers);
 		return res.body;
 	};
 
@@ -36,7 +36,7 @@ class LookupAccountTransactions {
 
 	// txid to filter with, as string
 	txid(txid) {
-		this.query["txid"] = txid;
+		this.query["tx-id"] = txid;
 		return this;
 	}
 

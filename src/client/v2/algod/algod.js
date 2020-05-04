@@ -34,7 +34,7 @@ class AlgodClient {
         };
 
         this.sendRawTransaction = function(stx_or_stxs) {
-            return new srt.SendRawTransaction(stx_or_stxs)
+            return new srt.SendRawTransaction(c, stx_or_stxs)
         };
 
         this.accountInformation = function(account) {

@@ -10,7 +10,7 @@ class SearchAccounts {
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/v2/accounts/", this.query, headers);
+		let res = await this.c.get("/accounts", this.query, headers);
 		return res.body;
 	};
 
@@ -41,6 +41,12 @@ class SearchAccounts {
 	// used for pagination
 	nextToken(nextToken) {
 		this.query['next'] = nextToken;
+		return this;
+	}
+
+	// specific round to search
+	round(round) {
+		this.query['round'] = round;
 		return this;
 	}
 }

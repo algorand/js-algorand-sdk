@@ -9,7 +9,7 @@ class Supply {
 	 * @returns {Promise<*>}
 	 */
 	async do(headers={}) {
-		let res = await c.get("/v2/ledger/supply", {}, headers);
+		let res = await this.c.get("/v2/ledger/supply", {}, headers);
 		return res.body;
 	};
 }

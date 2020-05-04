@@ -9,14 +9,14 @@ class SuggestedParams {
 	 * @returns {Object}
 	 */
 	async do(headers={}) {
-		let result = await this.c.get("/v2/transactions/params", {}, headers);
+		let res = await this.c.get("/v2/transactions/params", {}, headers);
 		return {
 			"flatFee": false,
-			"fee": result.fee,
-			"firstRound": result.lastRound,
-			"lastRound": result.lastRound + 1000,
-			"genesisID": result.genesisID,
-			"genesisHash": result.genesishashb64,
+			"fee": res.body['fee'],
+			"firstRound": res.body['last-round'],
+			"lastRound": res.body['last-round'] + 1000,
+			"genesisID": res.body['genesis-id'],
+			"genesisHash": res.body['genesis-hash'],
 		};
 	};
 }

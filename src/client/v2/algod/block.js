@@ -1,3 +1,4 @@
+const encoding = require('../../../encoding/encoding')
 
 class Block {
 	constructor(c, roundNumber){
@@ -14,7 +15,10 @@ class Block {
 	 */
 	async do(headers={}) {
 		let res = await this.c.get("/v2/blocks/" + this.round, this.query, headers);
-		return res.body;
+		if (res.body) {
+			return encoding.decode(res.body);
+		}
+		return undefined;
 	}
 }
 
