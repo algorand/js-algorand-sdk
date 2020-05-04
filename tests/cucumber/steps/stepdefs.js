@@ -2101,8 +2101,7 @@ Then('There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}
     assert.equal(amount,scrutinizedAccount['amount'])
     assert.equal(status,scrutinizedAccount['status'])
     if (type) {
-        // some accounts may have no type
-        assert.equal(type,scrutinizedAccount['type'])
+        assert.equal(type,scrutinizedAccount['sig-type'])
     }
 });
 
@@ -2158,7 +2157,7 @@ Then('there are {int} transactions in the response, the first is {string}.', fun
 Then('Every transaction has tx-type {string}', function (txType) {
     for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
         let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
-        assert.equal(txType, scrutinizedTxn['type']);
+        assert.equal(txType, scrutinizedTxn['tx-type']);
     }
 });
 
