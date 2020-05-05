@@ -58,7 +58,7 @@ describe('LogicSig functionality', function () {
         });
         it('should fail on invalid program', function () {
             let program = Uint8Array.from([1, 32, 1, 1, 34]);
-            program[0] = 2;
+            program[0] = 128;
             assert.throws(
                 () => logicsig.LogicSig(program)
             );
@@ -157,6 +157,25 @@ describe('Logic validation', function () {
                 () => logic.checkProgram(program),
                 new Error("program too costly to run")
             );
+        });
+        it('should support TEAL v2 opcodes', function () {
+            assert.ok(logic.langspecEvalMaxVersion >= 2)
+            assert.ok(logic.langspecLogicSigVersion >= 2)
+
+            // balance
+            let program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x60]);  // int 0; balance
+            let result = logic.checkProgram(program);
+            assert.equal(result, true);
+
+            // app_opted_in
+            program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, , 0x22, 0x61]);  // int 0; int 0; app_opted_in
+            result = logic.checkProgram(program);
+            assert.equal(result, true);
+
+            // 800x keccak256 more is to costly
+            program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, , 0x22, 0x70, 0x00]);  // int 0; int 0; asset_holding_get Balance
+            result = logic.checkProgram(program);
+            assert.equal(result, true);
         });
     });
 });
