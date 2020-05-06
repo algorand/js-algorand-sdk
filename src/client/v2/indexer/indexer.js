@@ -11,9 +11,14 @@ const sac = require('../indexer/searchAccounts');
 
 
 class IndexerClient {
-    constructor(token, baseServer = "http://127.0.0.1", port = 8080) {
-        // Get client
-        let c = new client.HTTPClient({'X-Indexer-API-Token': token}, baseServer, port);
+    constructor(token, baseServer = "http://127.0.0.1", port = 8080, headers={}) {
+        // workaround to allow backwards compatibility for multiple headers
+        let tokenHeader = token;
+        if (typeof (tokenHeader) == 'string') {
+            tokenHeader = {"X-Indexer-API-Token": tokenHeader};
+        }
+
+        let c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
 
         this.lookupAssetBalances = function(index) {
             return new lasb.LookupAssetBalances(c, index);
