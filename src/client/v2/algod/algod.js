@@ -5,9 +5,7 @@ const blk = require('../algod/block');
 const pti = require('../algod/pendingTransactionInformation');
 const pt = require('../algod/pendingTransactions');
 const ptba = require('../algod/pendingTransactionsByAddress');
-const rpk = require('../algod/registerParticipationKeys');
 const srt = require('../algod/sendRawTransaction');
-const sd = require('../algod/shutdown');
 const status = require('../algod/status');
 const sab = require('../algod/statusAfterBlock');
 const sp = require('../algod/suggestedParams');
@@ -55,14 +53,6 @@ class AlgodClient {
 
         this.pendingTransactionByAddress = function(address) {
             return new ptba.PendingTransactionsByAddress(c, address)
-        };
-
-        this.registerParticipationKey = function(account) {
-            return new rpk.RegisterParticipationKeys(c, account)
-        };
-
-        this.shutdown = function () {
-            return new sd.Shutdown(c)
         };
 
         this.status = function() {

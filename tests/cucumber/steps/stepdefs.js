@@ -1582,18 +1582,6 @@ Then('expect the path used to be {string}', function (expectedRequestPath) {
     assert.equal(expectedRequestPath, actualRequestPath);
 });
 
-When('we make a Shutdown call with timeout {int}', async function (timeout) {
-    await this.v2Client.shutdown().timeout(timeout).do();
-});
-
-When('we make a Register Participation Keys call against account {string} fee {int} dilution {int} lastvalidround {int} and nowait {string}', function (account, fee, dil, lastvalid, nowaitAsString) {
-    let nowait = false;
-    if (nowaitAsString === "true") {
-        nowait = true;
-    }
-    this.v2Client.registerParticipationKey(account).fee(fee).dilution(dil).lastValid(lastvalid).noWait(nowait).do();
-});
-
 When('we make a Pending Transaction Information against txid {string} with max {int}', function (txid, max) {
     this.v2Client.pendingTransactionInformation(txid).max(max).do();
 });
@@ -1640,14 +1628,6 @@ When('we make a Get Block call against block number {int} with format {string}',
         assert.fail("this SDK only supports format msgpack for this function");
     }
     await this.v2Client.block(blockNum).do();
-});
-
-When('we make any Shutdown call', function () {
-    this.v2Client.shutdown().do();
-});
-
-When('we make any Register Participation Keys call', function () {
-    this.v2Client.registerParticipationKey().do();
 });
 
 let anyPendingTransactionInfoResponse;
