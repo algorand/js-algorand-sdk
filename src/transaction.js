@@ -18,7 +18,9 @@ class Transaction {
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
-                 freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false, suggestedParams=undefined}) {
+                 freezeAccount, freezeState, assetRevocationTarget,
+                 type="pay", flatFee=false, suggestedParams=undefined,
+                 reKeyTo=undefined}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
@@ -40,6 +42,7 @@ class Transaction {
         if (assetClawback !== undefined) assetClawback = address.decode(assetClawback);
         if (assetRevocationTarget !== undefined) assetRevocationTarget = address.decode(assetRevocationTarget);
         if (freezeAccount !== undefined) freezeAccount = address.decode(freezeAccount);
+        if (reKeyTo !== undefined) reKeyTo = address.decode(reKeyTo);
         if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
 
         genesisHash = Buffer.from(genesisHash, 'base64');
@@ -77,7 +80,7 @@ class Transaction {
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
-            freezeAccount, freezeState, assetRevocationTarget, type
+            freezeAccount, freezeState, assetRevocationTarget, type, reKeyTo
         });
 
         // Modify Fee
@@ -107,6 +110,7 @@ class Transaction {
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
+                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
 
             // parse close address
@@ -121,7 +125,7 @@ class Transaction {
             if (!txn.gen) delete txn.gen;
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.lx.length) delete txn.lx;
-
+            if (!txn.rekey) delete txn.rekey;
             return txn;
         }
         else if (this.type == "keyreg") {
@@ -140,14 +144,15 @@ class Transaction {
                 "selkey": this.selectionKey,
                 "votefst": this.voteFirst,
                 "votelst": this.voteLast,
-                "votekd": this.voteKeyDilution
+                "votekd": this.voteKeyDilution,
+                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.lx.length) delete txn.lx;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-
+            if (!txn.rekey) delete txn.rekey;
             if (txn.grp === undefined) delete txn.grp;
 
             return txn;
@@ -166,6 +171,7 @@ class Transaction {
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
                 "caid": this.assetIndex,
+                "rekey": Buffer.from(this.reKeyTo.publicKey),
                 "apar": {
                     "t": this.assetTotal,
                     "df": this.assetDefaultFrozen,
@@ -187,7 +193,7 @@ class Transaction {
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-
+            if (!txn.rekey) delete txn.rekey;
 
             if (!txn.caid) delete txn.caid;
             if ((!txn.apar.t) &&
@@ -235,7 +241,8 @@ class Transaction {
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
-                "xaid": this.assetIndex
+                "xaid": this.assetIndex,
+                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
             if (this.assetRevocationTarget !== undefined) txn.asnd = Buffer.from(this.assetRevocationTarget.publicKey);
@@ -249,6 +256,7 @@ class Transaction {
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
+            if (!txn.rekey) delete txn.rekey;
             return txn;
         }
         else if (this.type == "afrz") {
@@ -265,7 +273,8 @@ class Transaction {
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
                 "faid": this.assetIndex,
-                "afrz": this.freezeState
+                "afrz": this.freezeState,
+                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
             if (this.freezeAccount !== undefined) txn.fadd = Buffer.from(this.freezeAccount.publicKey);
             // allowed zero values
@@ -276,7 +285,7 @@ class Transaction {
             if (!txn.gen) delete txn.gen;
             if (!txn.afrz) delete txn.afrz;
             if (txn.grp === undefined) delete txn.grp;
-
+            if (!txn.rekey) delete txn.rekey;
             return txn;
         }
     }
@@ -296,6 +305,7 @@ class Transaction {
         txn.lease = new Uint8Array(txnForEnc.lx);
         txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
         if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
+        if (txnForEnc.rekey !== undefined) txn.reKeyTo = address.decode(address.encode(new Uint8Array(txnForEnc.rekey)));
 
         if (txnForEnc.type === "pay") {
             txn.amount = txnForEnc.amt;
@@ -408,6 +418,15 @@ class Transaction {
             lease = new Uint8Array(0);
         }
         this.lease = lease;
+        if (feePerByte !== 0) {
+            this.fee += 37 * feePerByte; // 32 bytes + 5 byte label
+        }
+    }
+
+    // add the rekey-to field to a transaction not yet having it
+    // supply feePerByte to increment fee accordingly
+    addRekey(reKeyTo, feePerByte=0) {
+        if (reKeyTo !== undefined) this.reKeyTo = address.decode(reKeyTo);
         if (feePerByte !== 0) {
             this.fee += 37 * feePerByte; // 32 bytes + 5 byte label
         }
