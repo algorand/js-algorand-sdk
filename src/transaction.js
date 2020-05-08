@@ -110,12 +110,14 @@ class Transaction {
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
-                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
 
             // parse close address
             if ((this.closeRemainderTo !== undefined) && (address.encode(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
                 txn.close = Buffer.from(this.closeRemainderTo.publicKey);
+            }
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
             }
             // allowed zero values
             if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
@@ -145,16 +147,16 @@ class Transaction {
                 "votefst": this.voteFirst,
                 "votelst": this.voteLast,
                 "votekd": this.voteKeyDilution,
-                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.lx.length) delete txn.lx;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-            if (!txn.rekey) delete txn.rekey;
             if (txn.grp === undefined) delete txn.grp;
-
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
             return txn;
         }
         else if (this.type == "acfg") {
@@ -171,7 +173,6 @@ class Transaction {
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
                 "caid": this.assetIndex,
-                "rekey": Buffer.from(this.reKeyTo.publicKey),
                 "apar": {
                     "t": this.assetTotal,
                     "df": this.assetDefaultFrozen,
@@ -193,7 +194,9 @@ class Transaction {
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-            if (!txn.rekey) delete txn.rekey;
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
 
             if (!txn.caid) delete txn.caid;
             if ((!txn.apar.t) &&
@@ -242,7 +245,6 @@ class Transaction {
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
                 "xaid": this.assetIndex,
-                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
             if (this.assetRevocationTarget !== undefined) txn.asnd = Buffer.from(this.assetRevocationTarget.publicKey);
@@ -257,6 +259,9 @@ class Transaction {
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
             if (!txn.rekey) delete txn.rekey;
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
             return txn;
         }
         else if (this.type == "afrz") {
@@ -274,7 +279,6 @@ class Transaction {
                 "grp": this.group,
                 "faid": this.assetIndex,
                 "afrz": this.freezeState,
-                "rekey": Buffer.from(this.reKeyTo.publicKey)
             };
             if (this.freezeAccount !== undefined) txn.fadd = Buffer.from(this.freezeAccount.publicKey);
             // allowed zero values
@@ -285,7 +289,9 @@ class Transaction {
             if (!txn.gen) delete txn.gen;
             if (!txn.afrz) delete txn.afrz;
             if (txn.grp === undefined) delete txn.grp;
-            if (!txn.rekey) delete txn.rekey;
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
             return txn;
         }
     }
