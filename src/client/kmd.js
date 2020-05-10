@@ -247,9 +247,10 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
      * @param walletHandle
      * @param walletPassword
      * @param transaction
+     * @param publicKey optional sign the txn with the key corresponding to publicKey (for example, if working with a rekeyed addr)
      * @returns {Promise<*>}
      */
-    this.signTransaction = async function (walletHandle, walletPassword, transaction) {
+    this.signTransaction = async function (walletHandle, walletPassword, transaction, publicKey=undefined) {
 
         let tx = new txn.Transaction(transaction);
 
@@ -258,6 +259,9 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
             "wallet_password": walletPassword,
             "transaction": Buffer.from(tx.toByte()).toString('base64')
         };
+        if (publicKey !== undefined) {
+            req["public_key"] = Buffer.from(publicKey).toString('base64')
+        }
         let res = await c.post("/v1/transaction/sign", req);
 
         if (res.statusCode === 200) {
