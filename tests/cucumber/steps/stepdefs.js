@@ -1577,7 +1577,6 @@ Then('expect the path used to be {string}', function (expectedRequestPath) {
         actualRequestPath = algodSeenRequests[0]['url'];
     } else if (indexerSeenRequests.length != 0) {
         actualRequestPath = indexerSeenRequests[0]['url'];
-        actualRequestPath = decodeURIComponent(actualRequestPath);
     }
     assert.equal(expectedRequestPath, actualRequestPath);
 });
