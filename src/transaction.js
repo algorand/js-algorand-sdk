@@ -9,7 +9,7 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 const ALGORAND_MAX_ASSET_DECIMALS = 19;
-
+const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the number of bytes added to a txn after signing it
 /**
  * Transaction enables construction of Algorand transactions
  * */
@@ -371,10 +371,7 @@ class Transaction {
     }
 
     estimateSize() {
-        // Generate random key
-        let key = nacl.keyPair();
-        return this.signTxn(key.secretKey).length;
-
+        return (this.toByte().length + NUM_ADDL_BYTES_AFTER_SIGNING)
     }
 
     bytesToSign() {
