@@ -94,18 +94,6 @@ class LookupAccountTransactions {
 		return this;
 	}
 
-	// combined with address, defines what address to filter on, as string
-	addressRole(role) {
-		this.query["address-role"] = role;
-		return this;
-	}
-
-	// whether or not to consider the close-to field as a receiver when filtering transactions, as bool. set to true to ignore close-to
-	excludeCloseTo(exclude) {
-		this.query["exclude-close-to"] = exclude;
-		return this;
-	}
-
 	// used for pagination
 	nextToken(nextToken) {
 		this.query['next'] = nextToken;
