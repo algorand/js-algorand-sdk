@@ -12,7 +12,6 @@ const sac = require('../indexer/searchAccounts');
 
 class IndexerClient {
     constructor(token, baseServer = "http://127.0.0.1", port = 8080, headers={}) {
-        let versionPrefix = "/v2"
         // workaround to allow backwards compatibility for multiple headers
         let tokenHeader = token;
         if (typeof (tokenHeader) == 'string') {
