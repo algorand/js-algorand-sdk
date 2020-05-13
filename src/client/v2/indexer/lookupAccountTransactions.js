@@ -36,7 +36,7 @@ class LookupAccountTransactions {
 
 	// txid to filter with, as string
 	txid(txid) {
-		this.query["tx-id"] = txid;
+		this.query["txid"] = txid;
 		return this;
 	}
 
@@ -91,18 +91,6 @@ class LookupAccountTransactions {
 	// filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
 	currencyLessThan(lesser) {
 		this.query["currency-less-than"] = lesser;
-		return this;
-	}
-
-	// combined with address, defines what address to filter on, as string
-	addressRole(role) {
-		this.query["address-role"] = role;
-		return this;
-	}
-
-	// whether or not to consider the close-to field as a receiver when filtering transactions, as bool. set to true to ignore close-to
-	excludeCloseTo(exclude) {
-		this.query["exclude-close-to"] = exclude;
 		return this;
 	}
 
