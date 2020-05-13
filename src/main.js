@@ -84,7 +84,7 @@ function masterDerivationKeyToMnemonic(mdk) {
  * signTransaction takes an object with either payment or key registration fields and 
  * a secret key and returns a signed blob.
  * 
- * Payment transaction fields: to, amount, fee, firstRound, lastRound, genesisHash,
+ * Payment transaction fields: from, to, amount, fee, firstRound, lastRound, genesisHash,
  * note(optional), GenesisID(optional), closeRemainderTo(optional)
  * 
  * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
@@ -94,9 +94,11 @@ function masterDerivationKeyToMnemonic(mdk) {
  * @returns object contains the binary signed transaction and its txID
  */
 function signTransaction(txn, sk) {
-    // Get pk from sk
-    let key = nacl.keyPairFromSecretKey(sk);
-    txn.from = address.encode(key.publicKey);
+    if (!txn.from) {
+        // Get pk from sk if no sender specified
+        let key = nacl.keyPairFromSecretKey(sk);
+        txn.from = address.encode(key.publicKey);
+    }
     let algoTxn = new txnBuilder.Transaction(txn);
 
     return {"txID": algoTxn.txID().toString(), "blob": algoTxn.signTxn(sk)};

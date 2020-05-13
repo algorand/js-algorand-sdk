@@ -2253,3 +2253,21 @@ Then('there are {int} assets in the response, the first is {int}.', function (nu
     }
     assert.equal(firstAssetId, integrationSearchAssetsResponse['assets'][0]['index']);
 });
+
+////////////////////////////////////
+// begin rekey test helpers
+////////////////////////////////////
+
+When('I add a rekeyTo field with address {string}', function (address) {
+    this.txn["reKeyTo"] = address;
+});
+
+When('I add a rekeyTo field with the private key algorand address', function () {
+    let keypair = nacl.keyPairFromSecretKey(this.sk);
+    let pubKeyFromSk = keypair["publicKey"];
+    this.txn["reKeyTo"] = address.encode(pubKeyFromSk);
+});
+
+When('I set the from address to {string}', function (from) {
+    this.txn["from"] = from;
+});

@@ -399,6 +399,12 @@ class Transaction {
             "sig": this.rawSignTxn(sk),
             "txn": this.get_obj_for_encoding(),
         };
+        // add AuthAddr if signing with a different key than From indicates
+        let keypair = nacl.keyPairFromSecretKey(sk);
+        let pubKeyFromSk = keypair["publicKey"];
+        if (address.encode(pubKeyFromSk) != address.encode(this.from["publicKey"])) {
+            sTxn["sgnr"] = Buffer.from(pubKeyFromSk);
+        }
         return new Uint8Array(encoding.encode(sTxn));
     }
 
