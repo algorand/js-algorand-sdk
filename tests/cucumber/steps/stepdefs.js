@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
+const {BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
 let algosdk = require("../../../src/main");
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const address = require("../../../src/encoding/address");
@@ -10,6 +10,7 @@ const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
 const clientv2 = require("../../../src/client/v2/algod/algod");
 const indexer = require("../../../src/client/v2/indexer/indexer");
+const nacl = require("../../../src/nacl/naclWrappers");
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
@@ -602,11 +603,11 @@ When("I send the multisig transaction", async function(){
 Then("the transaction should go through", async function(){
     info = await this.acl.pendingTransactionInformation(this.txid)
     assert.deepStrictEqual(true, "type" in info)
+    // let localParams = await this.acl.getTransactionParams();
+    // this.lastRound = localParams.lastRound;
     await this.acl.statusAfterBlock(this.lastRound + 2)
-    info = await this.acl.transactionInformation(this.pk, this.txid)
-    assert.deepStrictEqual(true, "type" in info)
     info = await this.acl.transactionById(this.txid)
-    assert.deepStrictEqual(true, "type" in info)
+    assert.deepStrictEqual(true, "type" in info);
 });
 
 
