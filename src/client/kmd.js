@@ -267,6 +267,34 @@ function Kmd(token, baseServer = "http://127.0.0.1", port = 7833) {
     };
 
     /**
+     * signTransactionWithSpecificPublicKey accepts a wallet handle, wallet password, a transaction, and a public key,
+     * and returns and SignTransactionResponse containing an encoded, signed
+     * transaction. The transaction is signed using the key corresponding to the
+     * publicKey arg.
+     * @param walletHandle
+     * @param walletPassword
+     * @param transaction
+     * @param publicKey sign the txn with the key corresponding to publicKey (used for working with a rekeyed addr)
+     * @returns {Promise<*>}
+     */
+    this.signTransactionWithSpecificPublicKey = async function (walletHandle, walletPassword, transaction, publicKey) {
+
+        let tx = new txn.Transaction(transaction);
+
+        let req = {
+            "wallet_handle_token": walletHandle,
+            "wallet_password": walletPassword,
+            "transaction": Buffer.from(tx.toByte()).toString('base64'),
+            "public_key": Buffer.from(publicKey).toString('base64')
+        };
+        let res = await c.post("/v1/transaction/sign", req);
+
+        if (res.statusCode === 200) {
+            return Buffer.from(res.body.signed_transaction, 'base64')
+        }
+        return res.body;
+    };
+    /**
      * listMultisig accepts a wallet handle and returns a ListMultisigResponse
      * containing the multisig addresses whose preimages are stored in this wallet.
      * A preimage is the information needed to reconstruct this multisig address,
