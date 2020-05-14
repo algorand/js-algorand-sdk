@@ -10,7 +10,7 @@ class LookupBlock {
 	 * @returns Promise<*>
 	 */
 	async do (headers = {}) {
-		let res = await this.c.get("/blocks/" + this.round, {}, headers);
+		let res = await this.c.get("/v2/blocks/" + this.round, {}, headers);
 		return res.body;
 	};
 }

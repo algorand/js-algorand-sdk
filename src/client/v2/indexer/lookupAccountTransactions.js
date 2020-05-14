@@ -12,7 +12,7 @@ class LookupAccountTransactions {
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/accounts/" + this.account + "/transactions", this.query, headers);
+		let res = await this.c.get("/v2/accounts/" + this.account + "/transactions", this.query, headers);
 		return res.body;
 	};
 

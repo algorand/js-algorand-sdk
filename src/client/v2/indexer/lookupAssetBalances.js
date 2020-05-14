@@ -11,7 +11,7 @@ class LookupAssetBalances {
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/assets/" + this.index + "/balances", this.query, headers);
+		let res = await this.c.get("/v2/assets/" + this.index + "/balances", this.query, headers);
 		return res.body;
 	};
 
