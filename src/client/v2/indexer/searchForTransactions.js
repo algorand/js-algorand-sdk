@@ -10,7 +10,7 @@ class SearchForTransactions {
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/transactions", this.query, headers);
+		let res = await this.c.get("/v2/transactions", this.query, headers);
 		return res.body;
 	};
 

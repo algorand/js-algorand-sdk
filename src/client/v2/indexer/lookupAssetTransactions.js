@@ -11,7 +11,7 @@ class LookupAssetTransactions {
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/assets/" + this.index + "/transactions", this.query, headers);
+		let res = await this.c.get("/v2/assets/" + this.index + "/transactions", this.query, headers);
 		return res.body;
 	};
 
@@ -35,7 +35,7 @@ class LookupAssetTransactions {
 
 	// txid to filter with, as string
 	txid(txid) {
-		this.query["tx-id"] = txid;
+		this.query["txid"] = txid;
 		return this;
 	}
 

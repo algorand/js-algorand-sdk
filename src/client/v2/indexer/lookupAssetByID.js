@@ -10,7 +10,7 @@ class LookupAssetByID {
 	 * @returns Promise<*>
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get("/assets/" + this.index, {}, headers);
+		let res = await this.c.get("/v2/assets/" + this.index, {}, headers);
 		return res.body;
 	};
 }
