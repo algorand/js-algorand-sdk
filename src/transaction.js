@@ -10,6 +10,9 @@ const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 const ALGORAND_MAX_ASSET_DECIMALS = 19;
 const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the number of bytes added to a txn after signing it
+const ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH = 5
+const ALGORAND_TRANSACTION_ADDRESS_LENGTH = 32;
+const ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH = 5;
 /**
  * Transaction enables construction of Algorand transactions
  * */
@@ -428,16 +431,18 @@ class Transaction {
         }
         this.lease = lease;
         if (feePerByte !== 0) {
-            this.fee += 37 * feePerByte; // 32 bytes + 5 byte label
+            this.fee += (ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH + ALGORAND_TRANSACTION_LEASE_LENGTH) * feePerByte;
         }
     }
 
     // add the rekey-to field to a transaction not yet having it
     // supply feePerByte to increment fee accordingly
     addRekey(reKeyTo, feePerByte=0) {
-        if (reKeyTo !== undefined) this.reKeyTo = address.decode(reKeyTo);
+        if (reKeyTo !== undefined) {
+            this.reKeyTo = address.decode(reKeyTo);
+        }
         if (feePerByte !== 0) {
-            this.fee += 37 * feePerByte; // 32 bytes + 5 byte label
+            this.fee += (ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH + ALGORAND_TRANSACTION_ADDRESS_LENGTH) * feePerByte;
         }
     }
 }
