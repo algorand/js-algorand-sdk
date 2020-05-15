@@ -1945,6 +1945,18 @@ Given('indexer client {int} at {string} port {int} with token {string}', functio
     indexerIntegrationClients[clientNum] = new indexer.IndexerClient(indexerToken, indexerHost, indexerPort, {})
 });
 
+let integrationHealthCheck;
+
+When('I use {int} to check the services health', async function (clientNum) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationHealthCheck = await ic.makeHealthCheck().do();
+});
+
+Then('I receive status code {int}', async function(code) {
+    // Currently only supports the good case. code != 200 should throw an exception.
+    assert.equal(code, 200)
+});
+
 let integrationBlockResponse;
 
 When('I use {int} to lookup block {int}', async function (clientNum, blockNum) {

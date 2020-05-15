@@ -1,4 +1,5 @@
 const client = require('../../client');
+const mhc = require('../indexer/makeHealthCheck');
 const lacbid = require('../indexer/lookupAccountByID');
 const lact = require('../indexer/lookupAccountTransactions');
 const lasb = require('../indexer/lookupAssetBalances');
@@ -19,6 +20,10 @@ class IndexerClient {
         }
 
         let c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
+
+        this.makeHealthCheck = function() {
+            return new mhc.MakeHealthCheck(c);
+        };
 
         this.lookupAssetBalances = function(index) {
             return new lasb.LookupAssetBalances(c, index);
