@@ -4,7 +4,7 @@ class MakeHealthCheck{
 	}
 
 	/**
-	 * returns the block for the passed round
+	 * returns the health object for the service
 	 * @param headers, optional
 	 * @returns Promise<*>
 	 */
