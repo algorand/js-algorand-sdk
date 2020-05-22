@@ -17,6 +17,10 @@ Include this line in your HTML.
 <script src="algosdk.min.js"/>
 ```
 
+## SDK Development
+
+Run tests with `make docker-test`
+
 ## Quick Start
 ```javascript
 const token = "Your algod API token";
