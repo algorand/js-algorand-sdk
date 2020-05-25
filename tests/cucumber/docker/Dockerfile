@@ -10,4 +10,4 @@ RUN npm install
 ENV UNITTESTDIR=$HOME/js-algorand-sdk/tests/cucumber/features/unit
 
 # Run integration tests
-CMD ["/bin/bash", "-c", "node_modules/.bin/cucumber-js tests/cucumber/features --require tests/cucumber/steps/*"]
+CMD ["/bin/bash", "-c", "make unit && make integration"]
