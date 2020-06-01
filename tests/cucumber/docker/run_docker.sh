@@ -2,15 +2,22 @@
 
 set -e
 
-rm -rf temp
+# cleanup last test run
+rm -rf test-harness
 rm -rf tests/cucumber/features
-git clone --single-branch --branch templates https://github.com/algorand/algorand-sdk-testing.git temp
 
-cp tests/cucumber/docker/sdk.py temp/docker
-mv temp/features tests/cucumber/features
+# clone test harness
+git clone --single-branch --branch develop https://github.com/algorand/algorand-sdk-testing.git test-harness
 
-docker build -t sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)"
+# move feature files and example files to destination
+mv test-harness/features tests/cucumber/features
+
+# build test environment
+docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)"
+
+# Start test harness environment
+./test-harness/scripts/up.sh
 
 docker run -it \
-     -v "$(pwd)":/opt/js-algorand-sdk \
-     sdk-testing:latest 
+     --network host \
+     js-sdk-testing:latest

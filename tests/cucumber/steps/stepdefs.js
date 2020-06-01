@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { Before, Given, When, Then, setDefaultTimeout } = require('cucumber');
+const { BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
 let algosdk = require("../../../src/main");
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const address = require("../../../src/encoding/address");
@@ -8,63 +8,45 @@ const htlcTemplate = require("../../../src/logicTemplates/htlc");
 const periodicPayTemplate = require("../../../src/logicTemplates/periodicpayment");
 const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
+const clientv2 = require("../../../src/client/v2/algod/algod");
+const indexer = require("../../../src/client/v2/indexer/indexer");
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)))
-const homedir = require('os').homedir()
+const ServerMock = require("mock-http-server");
 
 setDefaultTimeout(60000)
 
-Before(async function () {
-    // You can use this hook to write code that will run before each scenario,
+BeforeAll(async function () {
+    // You can use this hook to write code that will run one time before all scenarios,
     // before even the Background steps
+    createIndexerMockServers();
+    createAlgodV2MockServers();
+});
+
+After(async function () {
+    // this code is run after each individual scenario
+    resetIndexerMockServers();
+    resetAlgodV2MockServers();
+});
+
+AfterAll(async function () {
+    // this cleanup code is run after all scenarios are done
+    cleanupIndexerMockServers();
+    cleanupAlgodV2MockServers();
 });
 
 Given("an algod client", async function(){
-    data_dir_path = "file://" + process.env.NODE_DIR + "/";
-    algod_token = "";
-    algod_address = "";
-
-    xml = new XMLHttpRequest();
-    xml.open("GET", data_dir_path + "algod.net", false);
-    xml.onreadystatechange = function () {
-        algod_address = xml.responseText.trim();
-    };
-    xml.send();
-
-    xml.open("GET", data_dir_path + "algod.token", false);
-    xml.onreadystatechange = function () {
-        algod_token = xml.responseText.trim();
-    };
-    xml.send();
-
-    this.acl = new algosdk.Algod(algod_token, algod_address.split(":")[0], algod_address.split(":")[1]);
+    algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    this.acl = new algosdk.Algod(algod_token, "http://localhost", 60000);
     return this.acl
 })
 
 Given("a kmd client", function(){
-    data_dir_path = "file://" + process.env.NODE_DIR + "/";
-    kmd_folder_name = process.env.KMD_DIR + "/";
-    kmd_token = "";
-    kmd_address = "";
-
-    xml.open("GET", data_dir_path + kmd_folder_name + "kmd.net", false);
-    xml.onreadystatechange = function () {
-        kmd_address = xml.responseText.trim();
-    };
-    xml.send();
-
-    xml.open("GET", data_dir_path + kmd_folder_name + "kmd.token", false);
-    xml.onreadystatechange = function () {
-        kmd_token = xml.responseText.trim();
-    };
-    xml.send();
-
-    this.kcl = new algosdk.Kmd(kmd_token, kmd_address.split(":")[0], kmd_address.split(":")[1])
-
+    kmd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    this.kcl = new algosdk.Kmd(kmd_token, "http://localhost", 60001)
     return this.kcl
-
 });
 
 Given("wallet information", async function(){
@@ -768,6 +750,10 @@ When('I get recent transactions, limited by {int} transactions', function (int) 
     this.acl.transactionByAddress(this.accounts[0], parseInt(int));
 });
 
+////////////////////////////////////
+// begin asset tests
+////////////////////////////////////
+
 Given("asset test fixture", function() {
     this.assetTestFixture = {
         "creator": "",
@@ -1207,6 +1193,10 @@ When('I create a transaction revoking {int} assets from a second account to crea
     this.pk = this.assetTestFixture.creator;
 });
 
+////////////////////////////////////
+// begin teal contract template tests
+////////////////////////////////////
+
 Given('contract test fixture', function () {
     this.contractTestFixture = {
         "split": undefined,
@@ -1409,7 +1399,6 @@ Given('I send the dynamic fee transactions', async function () {
     if (this.fv == 0) {
         this.fv = 1 ;
     }
-    console.log(this.fv);
     this.lv = this.fv + 1000;
     this.lastRound = this.params.lastRound;
     this.gh = this.params.genesishashb64;
@@ -1423,4 +1412,838 @@ Given('I send the dynamic fee transactions', async function () {
     this.txid = await this.acl.sendRawTransaction(txnBytes);
     this.txid = this.txid.txId;
     this.pk = this.accounts[0];
+});
+
+////////////////////////////////////
+// begin indexer and algodv2 unit tests
+////////////////////////////////////
+
+let globalErrForExamination = "";
+let algodMockServerResponder;
+let indexerMockServerResponder;
+let algodMockServerPathRecorder;
+let indexerMockServerPathRecorder;
+const mockAlgodResponderPort = 31337;
+const mockAlgodResponderHost = "localhost";
+const mockIndexerResponderPort = 31338;
+const mockIndexerResponderHost = "localhost";
+const mockAlgodPathRecorderPort = 31339;
+const mockAlgodPathRecorderHost = "localhost";
+const mockIndexerPathRecorderPort = 31340;
+const mockIndexerPathRecorderHost = "localhost";
+
+function createIndexerMockServers() {
+    indexerMockServerResponder = new ServerMock({ host: mockIndexerResponderHost, port: mockIndexerResponderPort });
+    indexerMockServerResponder.start(emptyFunctionForMockServer);
+    indexerMockServerPathRecorder = new ServerMock({host: mockIndexerPathRecorderHost, port: mockIndexerPathRecorderPort});
+    indexerMockServerPathRecorder.start(emptyFunctionForMockServer);
+}
+
+function createAlgodV2MockServers() {
+    algodMockServerResponder = new ServerMock({host: mockAlgodResponderHost, port: mockAlgodResponderPort});
+    algodMockServerResponder.start(emptyFunctionForMockServer);
+    algodMockServerPathRecorder = new ServerMock({host: mockAlgodPathRecorderHost, port: mockAlgodPathRecorderPort});
+    algodMockServerPathRecorder.start(emptyFunctionForMockServer);
+}
+
+function resetIndexerMockServers() {
+    if (indexerMockServerPathRecorder != undefined) {
+        indexerMockServerPathRecorder.reset();
+    }
+    if (indexerMockServerResponder != undefined) {
+        indexerMockServerResponder.reset();
+    }
+}
+
+function resetAlgodV2MockServers() {
+    if (algodMockServerPathRecorder != undefined) {
+        algodMockServerPathRecorder.reset();
+    }
+    if (algodMockServerResponder != undefined) {
+        algodMockServerResponder.reset();
+    }
+}
+
+function cleanupIndexerMockServers() {
+    if (indexerMockServerPathRecorder != undefined) {
+        indexerMockServerPathRecorder.stop(emptyFunctionForMockServer);
+    }
+    if (indexerMockServerResponder != undefined) {
+        indexerMockServerResponder.stop(emptyFunctionForMockServer);
+    }
+}
+
+function cleanupAlgodV2MockServers() {
+    if (algodMockServerPathRecorder != undefined) {
+        algodMockServerPathRecorder.stop(emptyFunctionForMockServer);
+    }
+    if (algodMockServerResponder != undefined) {
+        algodMockServerResponder.stop(emptyFunctionForMockServer);
+    }
+}
+
+function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/" + jsonDirectory + "/" + fileName; // TODO EJR ensure docker sets UNITTESTDIR correctly
+    let resultString = "";
+    let xml = new XMLHttpRequest();
+    xml.open("GET", mockResponsePath, false);
+    xml.onreadystatechange = function () {
+        resultString = xml.responseText.trim();
+    };
+    xml.send();
+
+    let headers;  // example headers: { "content-type": "application/json" }
+    let body;  // example body: JSON.stringify({ hello: "world" }
+    if (fileName.endsWith("json")) {
+        headers = { "content-type": "application/json" };
+        body = resultString;
+    }
+    if (fileName.endsWith("base64")) {
+        headers = { "content-type": "application/msgpack"};
+        body = Buffer.from(resultString, 'base64');
+    }
+    mockServer.on({
+        method: 'GET',
+        path: '*',
+        reply: {
+            status:  200,
+            headers: headers,
+            body:    body
+        }
+    });
+    mockServer.on({
+        method: 'POST',
+        path: '*',
+        reply: {
+            status:  200,
+            headers: headers,
+            body:    body
+        }
+    });
+}
+
+function emptyFunctionForMockServer() {}
+
+function setupMockServerForPaths(mockServer) {
+    mockServer.on({
+        method: 'GET',
+        path: '*',
+        reply: {
+            status:  200
+        }
+    });
+    mockServer.on({
+        method: 'POST',
+        path: '*',
+        reply: {
+            status:  200
+        }
+    });
+}
+
+Given('mock http responses in {string} loaded from {string}', function (fileName, jsonDirectory) {
+    setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
+    setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
+    this.v2Client = new clientv2.AlgodClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+});
+
+Then('expect error string to contain {string}', function (expectedErrorString) {
+    if (expectedErrorString == 'nil') {
+        assert.equal("", globalErrForExamination);
+        return;
+    }
+    assert.equal(expectedErrorString, globalErrForExamination);
+});
+
+Given('mock server recording request paths', function () {
+    setupMockServerForPaths(algodMockServerPathRecorder);
+    setupMockServerForPaths(indexerMockServerPathRecorder);
+    this.v2Client = new clientv2.AlgodClient('', mockAlgodPathRecorderHost, mockAlgodPathRecorderPort, {});
+    this.indexerClient = new indexer.IndexerClient('', mockIndexerPathRecorderHost, mockIndexerPathRecorderPort, {});
+});
+
+Then('expect the path used to be {string}', function (expectedRequestPath) {
+    // get all requests the mockservers have seen since reset
+    let algodSeenRequests = algodMockServerPathRecorder.requests();
+    let indexerSeenRequests = indexerMockServerPathRecorder.requests();
+    let actualRequestPath;
+    if (algodSeenRequests.length != 0) {
+        actualRequestPath = algodSeenRequests[0]['url'];
+    } else if (indexerSeenRequests.length != 0) {
+        actualRequestPath = indexerSeenRequests[0]['url'];
+    }
+    assert.equal(expectedRequestPath, actualRequestPath);
+});
+
+When('we make a Pending Transaction Information against txid {string} with max {int}', function (txid, max) {
+    this.v2Client.pendingTransactionInformation(txid).max(max).do();
+});
+
+When('we make a Pending Transaction Information against txid {string} with format {string}', async function (txid, format) {
+    if (format != "msgpack") {
+        assert.fail("this SDK only supports format msgpack for this function");
+    }
+    await this.v2Client.pendingTransactionInformation(txid).do();
+});
+
+When('we make a Pending Transaction Information with max {int} and format {string}', async function (max, format) {
+    if (format != "msgpack") {
+        assert.fail("this SDK only supports format msgpack for this function");
+    }
+    await this.v2Client.pendingTransactionsInformation().max(max).do()
+});
+
+When('we make a Pending Transactions By Address call against account {string} and max {int}', function (account, max) {
+    this.v2Client.pendingTransactionByAddress(account).max(max).do();
+});
+
+When('we make a Pending Transactions By Address call against account {string} and max {int} and format {string}', async function (account, max, format) {
+    if (format != "msgpack") {
+        assert.fail("this SDK only supports format msgpack for this function");
+    }
+    await this.v2Client.pendingTransactionByAddress(account).max(max).do();
+});
+
+When('we make a Status after Block call with round {int}', async function (round) {
+    await this.v2Client.statusAfterBlock(round).do();
+});
+
+When('we make an Account Information call against account {string}', async function (account) {
+    await this.v2Client.accountInformation(account).do();
+});
+
+When('we make a Get Block call against block number {int}', function (blockNum) {
+    this.v2Client.block(blockNum).do();
+});
+
+When('we make a Get Block call against block number {int} with format {string}', async function (blockNum, format) {
+    if (format != "msgpack") {
+        assert.fail("this SDK only supports format msgpack for this function");
+    }
+    await this.v2Client.block(blockNum).do();
+});
+
+let anyPendingTransactionInfoResponse;
+
+When('we make any Pending Transaction Information call', async function () {
+    anyPendingTransactionInfoResponse = await this.v2Client.pendingTransactionInformation().do();
+});
+
+Then('the parsed Pending Transaction Information response should have sender {string}', function (sender) {
+    let actualSender = address.encode(anyPendingTransactionInfoResponse['txn']['txn']['snd']);
+    assert.equal(sender, actualSender);
+});
+
+let anyPendingTransactionsInfoResponse;
+
+When('we make any Pending Transactions Information call', async function () {
+    anyPendingTransactionsInfoResponse = await this.v2Client.pendingTransactionsInformation().do();
+});
+
+Then('the parsed Pending Transactions Information response should contain an array of len {int} and element number {int} should have sender {string}', function (len, idx, sender) {
+    assert.equal(len, anyPendingTransactionsInfoResponse['top-transactions'].length);
+    if (len != 0) {
+        assert.equal(sender, address.encode(anyPendingTransactionsInfoResponse['top-transactions'][idx]['txn']['snd']));
+    }
+});
+
+let anySendRawTransactionResponse;
+
+When('we make any Send Raw Transaction call', async function () {
+    anySendRawTransactionResponse = await this.v2Client.sendRawTransaction(new Uint8Array(0)).do()
+});
+
+Then('the parsed Send Raw Transaction response should have txid {string}', function (txid) {
+    assert.equal(txid, anySendRawTransactionResponse['txId']);
+});
+
+let anyPendingTransactionsByAddressResponse;
+
+When('we make any Pending Transactions By Address call', async function () {
+    anyPendingTransactionsByAddressResponse = await this.v2Client.pendingTransactionByAddress().do();
+});
+
+Then('the parsed Pending Transactions By Address response should contain an array of len {int} and element number {int} should have sender {string}', function (len, idx, sender) {
+    assert.equal(len, anyPendingTransactionsByAddressResponse['total-transactions']);
+    if (len == 0) {
+        return
+    }
+    let actualSender = anyPendingTransactionsByAddressResponse['top-transactions'][idx]['txn']['snd']
+    actualSender = address.encode(actualSender);
+    assert.equal(sender, actualSender);
+});
+
+let anyNodeStatusResponse;
+
+When('we make any Node Status call', async function () {
+    anyNodeStatusResponse = await this.v2Client.status().do();
+});
+
+Then('the parsed Node Status response should have a last round of {int}', function (lastRound) {
+    assert.equal(lastRound, anyNodeStatusResponse["last-round"]);
+});
+
+let anyLedgerSupplyResponse;
+
+When('we make any Ledger Supply call', async function () {
+    anyLedgerSupplyResponse = await this.v2Client.supply().do();
+});
+
+Then('the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}', function (totalMoney, onlineMoney, round) {
+    assert.equal(totalMoney, anyLedgerSupplyResponse['total-money']);
+    assert.equal(onlineMoney, anyLedgerSupplyResponse['online-money']);
+    assert.equal(round, anyLedgerSupplyResponse['current_round']);
+});
+
+When('we make any Status After Block call', async function () {
+    anyNodeStatusResponse = await this.v2Client.statusAfterBlock(1).do();
+});
+
+Then('the parsed Status After Block response should have a last round of {int}', function (lastRound) {
+    assert.equal(lastRound, anyNodeStatusResponse['last-round']);
+});
+
+let anyAccountInformationResponse;
+
+When('we make any Account Information call', async function () {
+    anyAccountInformationResponse = await this.v2Client.accountInformation().do();
+});
+
+Then('the parsed Account Information response should have address {string}', function (address) {
+    assert.equal(address, anyAccountInformationResponse.address);
+});
+
+let anyBlockResponse;
+
+When('we make any Get Block call', async function () {
+    anyBlockResponse = await this.v2Client.block(1).do();
+});
+
+Then('the parsed Get Block response should have rewards pool {string}', function (rewardsPoolAddress) {
+    let rewardsPoolB64String = anyBlockResponse['block']['rwd'].toString('base64');
+    assert.equal(rewardsPoolAddress, rewardsPoolB64String);
+});
+
+let anySuggestedTransactionsResponse;
+
+When('we make any Suggested Transaction Parameters call', async function () {
+    anySuggestedTransactionsResponse = await this.v2Client.getTransactionParams().do();
+});
+
+Then('the parsed Suggested Transaction Parameters response should have first round valid of {int}', function (firstRound) {
+    assert.equal(firstRound, anySuggestedTransactionsResponse.firstRound);
+});
+
+When('we make a Lookup Asset Balances call against asset index {int} with limit {int} nextToken {string} round {int} currencyGreaterThan {int} currencyLessThan {int}', async function (index, limit, nextToken, round, currencyGreater, currencyLesser) {
+    await this.indexerClient.lookupAssetBalances(index).limit(limit).round(round).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).nextToken(nextToken).do();
+});
+
+When('we make a Lookup Asset Balances call against asset index {int} with limit {int} afterAddress {string} round {int} currencyGreaterThan {int} currencyLessThan {int}', async function (index, limit, afterAddress, round, currencyGreater, currencyLesser) {
+    await this.indexerClient.lookupAssetBalances(index).limit(limit).round(round).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).do();
+});
+
+When('we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string}', async function (assetIndex, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    await this.indexerClient.lookupAssetTransactions(assetIndex).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
+});
+
+When('we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string}', async function (assetIndex, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    await this.indexerClient.lookupAssetTransactions(assetIndex).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
+});
+
+When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int}',async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex) {
+    await this.indexerClient.lookupAccountTransactions(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).do();
+});
+
+When('we make a Lookup Block call against round {int}', async function (round) {
+    await this.indexerClient.lookupBlock(round).do();
+});
+
+When('we make a Lookup Account by ID call against account {string} with round {int}', async function (account, round) {
+    await this.indexerClient.lookupAccountByID(account).round(round).do();
+});
+
+When('we make a Lookup Asset by ID call against asset index {int}', async function (assetIndex) {
+    await this.indexerClient.lookupAssetByID(assetIndex).do();
+});
+
+When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}', async function (assetIndex, limit, currencyGreater, currencyLesser, nextToken) {
+    await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).nextToken(nextToken).do();
+});
+
+When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and round {int}', async function (assetIndex, limit, currencyGreater, currencyLesser, round) {
+    await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).round(round).do();
+});
+When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
+});
+
+When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
+});
+
+When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and nextToken {string}', async function (limit, creator, name, unit, index, nextToken) {
+    await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).nextToken(nextToken).do();
+});
+When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}', async function (limit, creator, name, unit, index) {
+    await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).do();
+});
+
+let anyLookupAssetBalancesResponse;
+
+When('we make any LookupAssetBalances call', async function () {
+    anyLookupAssetBalancesResponse = await this.indexerClient.lookupAssetBalances().do();
+});
+
+Then('the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}', function (round, length, idx, address, amount, frozenStateAsString) {
+    assert.equal(round, anyLookupAssetBalancesResponse['current-round']);
+    assert.equal(length, anyLookupAssetBalancesResponse['balances'].length);
+    if (length == 0) {
+        return
+    }
+    let frozenState = false;
+    if (frozenStateAsString === "true") {
+        frozenState = true;
+    }
+    assert.equal(amount, anyLookupAssetBalancesResponse['balances'][idx]['amount']);
+    assert.equal(frozenState, anyLookupAssetBalancesResponse['balances'][idx]['is-frozen']);
+});
+
+let anyLookupAssetTransactionsResponse;
+
+When('we make any LookupAssetTransactions call', async function () {
+    anyLookupAssetTransactionsResponse = await this.indexerClient.lookupAssetTransactions().do();
+});
+
+Then('the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (round, length, idx, sender) {
+    assert.equal(round, anyLookupAssetTransactionsResponse['current-round']);
+    assert.equal(length, anyLookupAssetTransactionsResponse['transactions'].length);
+    if (length == 0) {
+        return
+    }
+    assert.equal(sender, anyLookupAssetTransactionsResponse['transactions'][idx]['sender']);
+});
+
+let anyLookupAccountTransactionsResponse;
+
+When('we make any LookupAccountTransactions call', async function () {
+    anyLookupAccountTransactionsResponse = await this.indexerClient.lookupAccountTransactions().do();
+});
+
+Then('the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (round, length, idx, sender) {
+    assert.equal(round, anyLookupAccountTransactionsResponse['current-round']);
+    assert.equal(length, anyLookupAccountTransactionsResponse['transactions'].length);
+    if (length == 0) {
+        return
+    }
+    assert.equal(sender, anyLookupAccountTransactionsResponse['transactions'][idx]['sender']);
+});
+
+let anyLookupBlockResponse;
+
+When('we make any LookupBlock call', async function () {
+    anyLookupBlockResponse = await this.indexerClient.lookupBlock().do();
+});
+
+Then('the parsed LookupBlock response should have previous block hash {string}', function (prevHash) {
+    assert.equal(prevHash, anyLookupBlockResponse['previous-block-hash']);
+});
+
+let anyLookupAccountByIDResponse;
+
+When('we make any LookupAccountByID call', async function () {
+    anyLookupAccountByIDResponse = await this.indexerClient.lookupAccountByID().do();
+});
+
+Then('the parsed LookupAccountByID response should have address {string}', function (address) {
+    assert.equal(address, anyLookupAccountByIDResponse['account']['address'])
+});
+
+let anyLookupAssetByIDResponse;
+
+When('we make any LookupAssetByID call', async function () {
+    anyLookupAssetByIDResponse = await this.indexerClient.lookupAssetByID().do();
+});
+
+Then('the parsed LookupAssetByID response should have index {int}', function (idx) {
+    assert.equal(idx, anyLookupAssetByIDResponse["asset"]["index"]);
+});
+
+let anySearchAccountsResponse;
+
+When('we make any SearchAccounts call', async function () {
+    anySearchAccountsResponse = await this.indexerClient.searchAccounts().do();
+});
+
+Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}', function (round, length, idx, address) {
+    assert.equal(round, anySearchAccountsResponse['current-round']);
+    assert.equal(length, anySearchAccountsResponse['accounts'].length);
+    if (length == 0) {
+        return;
+    }
+    assert.equal(address, anySearchAccountsResponse['accounts'][idx]['address']);
+});
+
+let anySearchForTransactionsResponse;
+
+When('we make any SearchForTransactions call', async function () {
+    anySearchForTransactionsResponse = await this.indexerClient.searchForTransactions().do();
+});
+
+Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}', function (round, length, idx, sender) {
+    assert.equal(round, anySearchForTransactionsResponse['current-round']);
+    assert.equal(length, anySearchForTransactionsResponse['transactions'].length);
+    if (length == 0) {
+        return;
+    }
+    assert.equal(sender, anySearchForTransactionsResponse['transactions'][idx]['sender']);
+});
+
+let anySearchForAssetsResponse;
+
+When('we make any SearchForAssets call', async function () {
+    anySearchForAssetsResponse = await this.indexerClient.searchForAssets().do();
+});
+
+Then('the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}', function (round, length, idx, assetIndex) {
+    assert.equal(round, anySearchForAssetsResponse['current-round']);
+    assert.equal(length, anySearchForAssetsResponse['assets'].length);
+    if (length == 0) {
+        return;
+    }
+    assert.equal(assetIndex, anySearchForAssetsResponse['assets'][idx]['index']);
+});
+
+////////////////////////////////////
+// begin indexer and integration tests
+////////////////////////////////////
+
+let indexerIntegrationClients = {};
+
+Given('indexer client {int} at {string} port {int} with token {string}', function (clientNum, indexerHost, indexerPort, indexerToken) {
+    indexerIntegrationClients[clientNum] = new indexer.IndexerClient(indexerToken, indexerHost, indexerPort, {})
+});
+
+let integrationHealthCheck;
+
+When('I use {int} to check the services health', async function (clientNum) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationHealthCheck = await ic.makeHealthCheck().do();
+});
+
+Then('I receive status code {int}', async function(code) {
+    // Currently only supports the good case. code != 200 should throw an exception.
+    assert.equal(code, 200)
+});
+
+let integrationBlockResponse;
+
+When('I use {int} to lookup block {int}', async function (clientNum, blockNum) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationBlockResponse = await ic.lookupBlock(blockNum).do();
+});
+
+Then('The block was confirmed at {int}, contains {int} transactions, has the previous block hash {string}', function (timestamp, numTransactions, prevHash) {
+    assert.equal(timestamp, integrationBlockResponse['timestamp']);
+    assert.equal(numTransactions, integrationBlockResponse['transactions'].length);
+    assert.equal(prevHash, integrationBlockResponse['previous-block-hash']);
+});
+
+let integrationLookupAccountResponse;
+
+When('I use {int} to lookup account {string} at round {int}', async function (clientNum, account, round) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationLookupAccountResponse = await ic.lookupAccountByID(account).round(round).do();
+});
+
+Then('The account has {int} assets, the first is asset {int} has a frozen status of {string} and amount {int}.', function (numAssets, firstAssetIndex, firstAssetFrozenStatus, firstAssetAmount) {
+    let firstAssetFrozenBool = (firstAssetFrozenStatus == "true");
+    assert.equal(numAssets, integrationLookupAccountResponse['account']['assets'].length);
+    if (numAssets == 0) {
+        return
+    }
+    let scrutinizedAsset = integrationLookupAccountResponse['account']['assets'][0];
+    assert.equal(firstAssetIndex, scrutinizedAsset['asset-id']);
+    assert.equal(firstAssetFrozenBool, scrutinizedAsset['is-frozen']);
+    assert.equal(firstAssetAmount, scrutinizedAsset['amount']);
+});
+
+Then('The account created {int} assets, the first is asset {int} is named {string} with a total amount of {int} {string}', function (numCreatedAssets, firstCreatedAssetIndex, assetName, assetIssuance, assetUnit) {
+    assert.equal(numCreatedAssets, integrationLookupAccountResponse['account']['created-assets'].length);
+    let scrutinizedAsset = integrationLookupAccountResponse['account']['created-assets'][0];
+    assert.equal(firstCreatedAssetIndex, scrutinizedAsset['index']);
+    assert.equal(assetName, scrutinizedAsset['params']['name']);
+    assert.equal(assetIssuance, scrutinizedAsset['params']['total']);
+    assert.equal(assetUnit, scrutinizedAsset['params']['unit-name']);
+});
+
+Then('The account has {int} μalgos and {int} assets, {int} has {int}', function (microAlgos, numAssets, assetIndexToScrutinize, assetAmount) {
+    assert.equal(microAlgos, integrationLookupAccountResponse['account']['amount']);
+    if (numAssets == 0) {
+        return
+    }
+    assert.equal(numAssets, integrationLookupAccountResponse['account']['assets'].length);
+    if (assetIndexToScrutinize == 0) {
+        return
+    }
+    for (idx = 0; idx < integrationLookupAccountResponse['account']['assets'].length; idx++) {
+        let scrutinizedAsset = integrationLookupAccountResponse['account']['assets'][idx];
+        if (scrutinizedAsset['index'] == assetIndexToScrutinize) {
+            assert.equal(assetAmount, scrutinizedAsset['amount'])
+        }
+    }
+});
+
+let integrationLookupAssetResponse;
+
+When('I use {int} to lookup asset {int}', async function (clientNum, assetIndex) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationLookupAssetResponse = await ic.lookupAssetByID(assetIndex).do();
+});
+
+Then('The asset found has: {string}, {string}, {string}, {int}, {string}, {int}, {string}', function (name, units, creator, decimals, defaultFrozen, totalIssuance, clawback) {
+    let assetParams = integrationLookupAssetResponse['asset']['params'];
+    assert.equal(name, assetParams['name']);
+    assert.equal(units, assetParams['unit-name']);
+    assert.equal(creator, assetParams['creator']);
+    assert.equal(decimals, assetParams['decimals']);
+    let defaultFrozenBool = (defaultFrozen == "true");
+    assert.equal(defaultFrozenBool, assetParams['default-frozen']);
+    assert.equal(totalIssuance, assetParams['total']);
+    assert.equal(clawback, assetParams['clawback']);
+});
+
+let integrationLookupAssetBalancesResponse;
+
+When('I use {int} to lookup asset balances for {int} with {int}, {int}, {int} and token {string}', async function (clientNum, assetIndex, currencyGreater, currencyLesser, limit, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationLookupAssetBalancesResponse = await ic.lookupAssetBalances(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).nextToken(nextToken).do();
+});
+
+When('I get the next page using {int} to lookup asset balances for {int} with {int}, {int}, {int}', async function (clientNum, assetIndex, currencyGreater, currencyLesser, limit) {
+    let ic = indexerIntegrationClients[clientNum];
+    let nextToken = integrationLookupAssetBalancesResponse['next-token'];
+    integrationLookupAssetBalancesResponse = await ic.lookupAssetBalances(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).nextToken(nextToken).do();
+});
+
+Then('There are {int} with the asset, the first is {string} has {string} and {int}', function (numAccounts, firstAccountAddress, isFrozenString, accountAmount) {
+    assert.equal(numAccounts, integrationLookupAssetBalancesResponse['balances'].length)
+    if (numAccounts == 0) {
+        return
+    }
+    let firstHolder = integrationLookupAssetBalancesResponse['balances'][0];
+    assert.equal(firstAccountAddress, firstHolder['address']);
+    let isFrozenBool = (isFrozenString == "true");
+    assert.equal(isFrozenBool, firstHolder['is-frozen']);
+    assert.equal(accountAmount, firstHolder['amount']);
+});
+
+let integrationSearchAccountsResponse;
+
+When('I use {int} to search for an account with {int}, {int}, {int}, {int} and token {string}', async function (clientNum, assetIndex, limit, currencyGreater, currencyLesser, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).nextToken(nextToken).do();
+});
+
+Then('There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}, {string}, {string}', function (numAccounts, pendingRewards, rewardsBase, rewards, withoutRewards, address, amount, status, type) {
+    assert.equal(numAccounts, integrationSearchAccountsResponse['accounts'].length)
+    if (numAccounts == 0) {
+        return;
+    }
+    let scrutinizedAccount = integrationSearchAccountsResponse['accounts'][0];
+    assert.equal(pendingRewards,scrutinizedAccount['pending-rewards'])
+    assert.equal(rewardsBase,scrutinizedAccount['reward-base'])
+    assert.equal(rewards,scrutinizedAccount['rewards'])
+    assert.equal(withoutRewards,scrutinizedAccount['amount-without-pending-rewards'])
+    assert.equal(address,scrutinizedAccount['address'])
+    assert.equal(amount,scrutinizedAccount['amount'])
+    assert.equal(status,scrutinizedAccount['status'])
+    if (type) {
+        assert.equal(type,scrutinizedAccount['sig-type'])
+    }
+});
+
+Then('I get the next page using {int} to search for an account with {int}, {int}, {int} and {int}', async function (clientNum, assetIndex, limit, currencyGreater, currencyLesser) {
+    let ic = indexerIntegrationClients[clientNum];
+    let nextToken = integrationSearchAccountsResponse['next-token'];
+    integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).nextToken(nextToken).do();
+});
+
+Then('The first account is online and has {string}, {int}, {int}, {int}, {string}, {string}', function (address, keyDilution, firstValid, lastValid, voteKey, selKey) {
+    let scrutinizedAccount = integrationSearchAccountsResponse['accounts'][0];
+    assert.equal("Online",scrutinizedAccount['status'])
+    assert.equal(address,scrutinizedAccount['address'])
+    assert.equal(keyDilution,scrutinizedAccount['participation']['vote-key-dilution'])
+    assert.equal(firstValid,scrutinizedAccount['participation']['vote-first-valid'])
+    assert.equal(lastValid,scrutinizedAccount['participation']['vote-last-valid'])
+    assert.equal(voteKey,scrutinizedAccount['participation']['vote-participation-key'])
+    assert.equal(selKey,scrutinizedAccount['participation']['selection-participation-key'])
+});
+
+let integrationSearchTransactionsResponse;
+
+When('I use {int} to search for transactions with {int}, {string}, {string}, {string}, {string}, {int}, {int}, {int}, {int}, {string}, {string}, {int}, {int}, {string}, {string}, {string} and token {string}', async function (clientNum, limit, notePrefix, txType, sigType, txid, round, minRound, maxRound, assetId, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToString, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    let excludeCloseToBool = (excludeCloseToString == "true");
+    integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).assetID(assetId).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseToBool).nextToken(nextToken).do();
+});
+
+When('I use {int} to search for all {string} transactions', async function (clientNum, account) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationSearchTransactionsResponse = await ic.searchForTransactions().address(account).do();
+});
+
+When('I use {int} to search for all {int} asset transactions', async function (clientNum, assetIndex) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationSearchTransactionsResponse = await ic.searchForTransactions().assetID(assetIndex).do();
+});
+
+When('I get the next page using {int} to search for transactions with {int} and {int}', async function (clientNum, limit, maxRound) {
+    let ic = indexerIntegrationClients[clientNum];
+    let nextToken = integrationSearchTransactionsResponse['next-token'];
+    integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).maxRound(maxRound).nextToken(nextToken).do();
+});
+
+Then('there are {int} transactions in the response, the first is {string}.', function (numTransactions, txid) {
+    assert.equal(numTransactions, integrationSearchTransactionsResponse['transactions'].length);
+    if (numTransactions == 0) {
+        return;
+    }
+    assert.equal(txid, integrationSearchTransactionsResponse['transactions'][0]['id']);
+});
+
+Then('Every transaction has tx-type {string}', function (txType) {
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.equal(txType, scrutinizedTxn['tx-type']);
+    }
+});
+
+
+Then('Every transaction has sig-type {string}', function (sigType) {
+    function getSigTypeFromTxnResponse(txn) {
+        if (txn['signature']['logicsig']) {
+            return "lsig";
+        }
+        if (txn['signature']['sig']) {
+            return "sig";
+        }
+        if (txn['signature']['multisig']) {
+            return "msig";
+        }
+        return "did not recognize sigtype of txn";
+    }
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.equal(sigType, getSigTypeFromTxnResponse(scrutinizedTxn))
+    }
+});
+
+Then('Every transaction has round {int}', function (round) {
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.equal(round, scrutinizedTxn['confirmed-round']);
+    }
+});
+
+Then('Every transaction has round >= {int}', function (round) {
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.ok(round <= scrutinizedTxn['confirmed-round']);
+    }
+});
+
+Then('Every transaction has round <= {int}', function (round) {
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.ok(round >= scrutinizedTxn['confirmed-round']);
+    }
+});
+
+
+Then('Every transaction works with asset-id {int}', function (assetId) {
+    function extractIdFromTransaction (txn) {
+        if (txn['created-asset-index']) {
+            return txn['created-asset-index']
+        }
+        if (txn['asset-config-transaction']) {
+            return txn['asset-config-transaction']['asset-id']
+        }
+        if (txn['asset-transfer-transaction']) {
+            return txn['asset-transfer-transaction']['asset-id']
+        }
+        if (txn['asset-freeze-transaction']) {
+            return txn['asset-freeze-transaction']['asset-id']
+        }
+        return "could not find asset id within txn"
+    }
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.equal(assetId, extractIdFromTransaction(scrutinizedTxn));
+    }
+});
+
+Then('Every transaction is older than {string}', function (olderThan) {
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.ok(scrutinizedTxn['round-time'] < (Date.parse(olderThan)/1000));
+    }
+});
+
+Then('Every transaction is newer than {string}', function (newerThan) {
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        assert.ok(scrutinizedTxn['round-time'] > (Date.parse(newerThan)/1000));
+    }
+});
+
+Then('Every transaction moves between {int} and {int} currency', function (lowerBound, upperBound) {
+    function getAmountMoved(txn) {
+        if (txn['payment-transaction']) {
+            return txn['payment-transaction']['amount']
+        }
+        if (txn['asset-transfer-transaction']) {
+            return txn['asset-transfer-transaction']['amount']
+        }
+        return "could not get amount moved from txn"
+    }
+    for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
+        let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
+        let amountMoved = getAmountMoved(scrutinizedTxn);
+        if (upperBound != 0) {
+            assert.ok(amountMoved <= upperBound);
+        }
+        assert.ok(amountMoved >= lowerBound);
+    }
+});
+
+let integrationSearchAssetsResponse;
+
+When('I use {int} to search for assets with {int}, {int}, {string}, {string}, {string}, and token {string}', async function (clientNum, zero, assetId, creator, name, unit, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationSearchAssetsResponse = await ic.searchForAssets().index(assetId).creator(creator).name(name).unit(unit).nextToken(nextToken).do();
+});
+
+Then('there are {int} assets in the response, the first is {int}.', function (numAssets, firstAssetId) {
+    assert.equal(numAssets, integrationSearchAssetsResponse['assets'].length);
+    if (numAssets == 0) {
+        return
+    }
+    assert.equal(firstAssetId, integrationSearchAssetsResponse['assets'][0]['index']);
 });

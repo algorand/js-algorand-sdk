@@ -23,6 +23,21 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     }
 
     /**
+     * Sets the default header (if not previously set) for sending a raw
+     * transaction.
+     * @param headers
+     * @returns {*}
+     */
+    function setSendTransactionHeaders(headers) {
+        let hdrs = headers;
+        if (Object.keys(hdrs).every(key=> key.toLowerCase() !== 'content-type')) {
+            hdrs = {...headers};
+            hdrs['Content-Type'] = 'application/x-binary';
+        }
+        return hdrs;
+    }
+
+    /**
      * status retrieves the StatusResponse from the running node
      * @param headers, optional
      * @returns {Promise<*>}
@@ -222,7 +237,8 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      * @returns {Promise<*>}
      */
     this.sendRawTransaction = async function (txn, headers={}) {
-        let res = await c.post("/v1/transactions", Buffer.from(txn), headers);
+        let txHeaders = setSendTransactionHeaders(headers);
+        let res = await c.post("/v1/transactions", Buffer.from(txn), txHeaders);
         return res.body;
     };
 
@@ -233,8 +249,9 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      * @returns {Promise<*>}
      */
     this.sendRawTransactions = async function (txns, headers={}) {
+        let txHeaders = setSendTransactionHeaders(headers);
         const merged = Array.prototype.concat(...txns.map(arr => Array.from(arr)));
-        let res = await c.post("/v1/transactions", Buffer.from(merged), headers);
+        let res = await c.post("/v1/transactions", Buffer.from(merged), txHeaders);
         return res.body;
     };
 

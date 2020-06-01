@@ -6,6 +6,7 @@ let passphrase = require("../src/mnemonic/mnemonic");
 let nacl = require("../src/nacl/naclWrappers");
 let transaction = require("../src/transaction");
 let logicsig = require("../src/logicsig");
+let v2client = require("../src/client/v2/algod/algod");
 
 describe('Algosdk (AKA end to end)', function () {
     describe('#mnemonic', function () {

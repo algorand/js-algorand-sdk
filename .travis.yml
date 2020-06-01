@@ -7,4 +7,4 @@ node_js:
 script:
   - set -e
   - npm test
-  - ./tests/cucumber/docker/run_docker.sh
+  - make docker-test
