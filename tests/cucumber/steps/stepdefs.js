@@ -39,19 +39,14 @@ AfterAll(async function () {
 
 Given("an algod client", async function(){
     algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-
     this.acl = new algosdk.Algod(algod_token, "http://localhost", 60000);
     return this.acl
 })
 
 Given("a kmd client", function(){
     kmd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-
-
     this.kcl = new algosdk.Kmd(kmd_token, "http://localhost", 60001)
-
     return this.kcl
-
 });
 
 Given("wallet information", async function(){
