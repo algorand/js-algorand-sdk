@@ -99,6 +99,12 @@ class LookupAccountTransactions {
 		this.query['next'] = nextToken;
 		return this;
 	}
+
+	// whether or not to include rekeying transactions
+	rekeyTo(rekeyTo) {
+		this.query['rekey-to'] = rekeyTo;
+		return this;
+	}
 }
 
 module.exports = {LookupAccountTransactions};

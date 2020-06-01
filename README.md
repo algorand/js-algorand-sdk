@@ -463,5 +463,18 @@ let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revo
     fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
 ```
 
+## Rekeying
+To rekey an account to a new address, simply call the `addRekey` function on any transaction.
+```javascript
+//...
+let txn = algosdk.makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams);
+// From now, every transaction needs to be sign the SK of the following address
+txn.addRekey("47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU")
+//...
+```
+
+When submitting a transaction from an account that was rekeying, simply use relevant SK. `algosdk.signTransaction`/`transaction.signTxn` will detect 
+that the SK corresponding address is different than the sender's and will set the `AuthAddr` accordingly. Alternatively, you can use `kmdclient.signTransactionWithSpecificPublicKey`.
+
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.

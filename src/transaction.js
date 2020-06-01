@@ -9,7 +9,10 @@ const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 const ALGORAND_MAX_ASSET_DECIMALS = 19;
-
+const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the number of bytes added to a txn after signing it
+const ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH = 5
+const ALGORAND_TRANSACTION_ADDRESS_LENGTH = 32;
+const ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH = 5;
 /**
  * Transaction enables construction of Algorand transactions
  * */
@@ -18,7 +21,9 @@ class Transaction {
                  closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
-                 freezeAccount, freezeState, assetRevocationTarget, type="pay", flatFee=false, suggestedParams=undefined}) {
+                 freezeAccount, freezeState, assetRevocationTarget,
+                 type="pay", flatFee=false, suggestedParams=undefined,
+                 reKeyTo=undefined}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
@@ -40,6 +45,7 @@ class Transaction {
         if (assetClawback !== undefined) assetClawback = address.decode(assetClawback);
         if (assetRevocationTarget !== undefined) assetRevocationTarget = address.decode(assetRevocationTarget);
         if (freezeAccount !== undefined) freezeAccount = address.decode(freezeAccount);
+        if (reKeyTo !== undefined) reKeyTo = address.decode(reKeyTo);
         if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
 
         genesisHash = Buffer.from(genesisHash, 'base64');
@@ -77,7 +83,7 @@ class Transaction {
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
-            freezeAccount, freezeState, assetRevocationTarget, type
+            freezeAccount, freezeState, assetRevocationTarget, type, reKeyTo
         });
 
         // Modify Fee
@@ -113,6 +119,9 @@ class Transaction {
             if ((this.closeRemainderTo !== undefined) && (address.encode(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
                 txn.close = Buffer.from(this.closeRemainderTo.publicKey);
             }
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
             // allowed zero values
             if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
             if (!txn.note.length) delete txn.note;
@@ -121,7 +130,7 @@ class Transaction {
             if (!txn.gen) delete txn.gen;
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.lx.length) delete txn.lx;
-
+            if (!txn.rekey) delete txn.rekey;
             return txn;
         }
         else if (this.type == "keyreg") {
@@ -140,16 +149,17 @@ class Transaction {
                 "selkey": this.selectionKey,
                 "votefst": this.voteFirst,
                 "votelst": this.voteLast,
-                "votekd": this.voteKeyDilution
+                "votekd": this.voteKeyDilution,
             };
             // allowed zero values
             if (!txn.note.length) delete txn.note;
             if (!txn.lx.length) delete txn.lx;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-
             if (txn.grp === undefined) delete txn.grp;
-
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
             return txn;
         }
         else if (this.type == "acfg") {
@@ -187,7 +197,9 @@ class Transaction {
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
 
             if (!txn.caid) delete txn.caid;
             if ((!txn.apar.t) &&
@@ -235,7 +247,7 @@ class Transaction {
                 "gh": this.genesisHash,
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
-                "xaid": this.assetIndex
+                "xaid": this.assetIndex,
             };
             if (this.closeRemainderTo !== undefined) txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
             if (this.assetRevocationTarget !== undefined) txn.asnd = Buffer.from(this.assetRevocationTarget.publicKey);
@@ -249,6 +261,10 @@ class Transaction {
             if (txn.grp === undefined) delete txn.grp;
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
+            if (!txn.rekey) delete txn.rekey;
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
             return txn;
         }
         else if (this.type == "afrz") {
@@ -265,7 +281,7 @@ class Transaction {
                 "lx": Buffer.from(this.lease),
                 "grp": this.group,
                 "faid": this.assetIndex,
-                "afrz": this.freezeState
+                "afrz": this.freezeState,
             };
             if (this.freezeAccount !== undefined) txn.fadd = Buffer.from(this.freezeAccount.publicKey);
             // allowed zero values
@@ -276,7 +292,9 @@ class Transaction {
             if (!txn.gen) delete txn.gen;
             if (!txn.afrz) delete txn.afrz;
             if (txn.grp === undefined) delete txn.grp;
-
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
             return txn;
         }
     }
@@ -296,6 +314,7 @@ class Transaction {
         txn.lease = new Uint8Array(txnForEnc.lx);
         txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
         if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
+        if (txnForEnc.rekey !== undefined) txn.reKeyTo = address.decode(address.encode(new Uint8Array(txnForEnc.rekey)));
 
         if (txnForEnc.type === "pay") {
             txn.amount = txnForEnc.amt;
@@ -355,10 +374,7 @@ class Transaction {
     }
 
     estimateSize() {
-        // Generate random key
-        let key = nacl.keyPair();
-        return this.signTxn(key.secretKey).length;
-
+        return (this.toByte().length + NUM_ADDL_BYTES_AFTER_SIGNING)
     }
 
     bytesToSign() {
@@ -383,6 +399,12 @@ class Transaction {
             "sig": this.rawSignTxn(sk),
             "txn": this.get_obj_for_encoding(),
         };
+        // add AuthAddr if signing with a different key than From indicates
+        let keypair = nacl.keyPairFromSecretKey(sk);
+        let pubKeyFromSk = keypair["publicKey"];
+        if (address.encode(pubKeyFromSk) != address.encode(this.from["publicKey"])) {
+            sTxn["sgnr"] = Buffer.from(pubKeyFromSk);
+        }
         return new Uint8Array(encoding.encode(sTxn));
     }
 
@@ -409,7 +431,18 @@ class Transaction {
         }
         this.lease = lease;
         if (feePerByte !== 0) {
-            this.fee += 37 * feePerByte; // 32 bytes + 5 byte label
+            this.fee += (ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH + ALGORAND_TRANSACTION_LEASE_LENGTH) * feePerByte;
+        }
+    }
+
+    // add the rekey-to field to a transaction not yet having it
+    // supply feePerByte to increment fee accordingly
+    addRekey(reKeyTo, feePerByte=0) {
+        if (reKeyTo !== undefined) {
+            this.reKeyTo = address.decode(reKeyTo);
+        }
+        if (feePerByte !== 0) {
+            this.fee += (ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH + ALGORAND_TRANSACTION_ADDRESS_LENGTH) * feePerByte;
         }
     }
 }

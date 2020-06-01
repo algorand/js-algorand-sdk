@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
+const {BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
 let algosdk = require("../../../src/main");
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const address = require("../../../src/encoding/address");
@@ -10,6 +10,7 @@ const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
 const clientv2 = require("../../../src/client/v2/algod/algod");
 const indexer = require("../../../src/client/v2/indexer/indexer");
+const nacl = require("../../../src/nacl/naclWrappers");
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
@@ -597,11 +598,11 @@ When("I send the multisig transaction", async function(){
 Then("the transaction should go through", async function(){
     info = await this.acl.pendingTransactionInformation(this.txid)
     assert.deepStrictEqual(true, "type" in info)
+    // let localParams = await this.acl.getTransactionParams();
+    // this.lastRound = localParams.lastRound;
     await this.acl.statusAfterBlock(this.lastRound + 2)
-    info = await this.acl.transactionInformation(this.pk, this.txid)
-    assert.deepStrictEqual(true, "type" in info)
     info = await this.acl.transactionById(this.txid)
-    assert.deepStrictEqual(true, "type" in info)
+    assert.deepStrictEqual(true, "type" in info);
 });
 
 
@@ -1759,8 +1760,28 @@ When('we make a Lookup Asset Transactions call against asset index {int} with No
     await this.indexerClient.lookupAssetTransactions(assetIndex).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
 });
 
+When('we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string} RekeyTo {string}', async function (assetIndex, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToAsString, rekeyToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    let rekeyTo = false;
+    if (rekeyToAsString === "true") {
+        rekeyTo = true;
+    }
+    await this.indexerClient.lookupAssetTransactions(assetIndex).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseTo).rekeyTo(rekeyTo).do();
+});
+
 When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int}',async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex) {
     await this.indexerClient.lookupAccountTransactions(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).do();
+});
+
+When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} rekeyTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, rekeyToAsString) {
+    let rekeyTo = false;
+    if (rekeyToAsString === "true") {
+        rekeyTo = true;
+    }
+    await this.indexerClient.lookupAccountTransactions(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).rekeyTo(rekeyTo).do();
 });
 
 When('we make a Lookup Block call against round {int}', async function (round) {
@@ -1782,6 +1803,11 @@ When('we make a Search Accounts call with assetID {int} limit {int} currencyGrea
 When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and round {int}', async function (assetIndex, limit, currencyGreater, currencyLesser, round) {
     await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).round(round).do();
 });
+
+When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} round {int} and authenticating address {string}', async function (assetIndex, limit, currencyGreater, currencyLesser, round, authAddress) {
+    await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).round(round).authAddr(authAddress).do();
+});
+
 When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
     let excludeCloseTo = false;
     if (excludeCloseToAsString === "true") {
@@ -1798,9 +1824,22 @@ When('we make a Search For Transactions call with account {string} NotePrefix {s
     await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
 });
 
+When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string} rekeyTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString, rekeyToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    let rekeyTo = false;
+    if (rekeyToAsString === "true") {
+        rekeyTo = true;
+    }
+    await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).rekeyTo(rekeyTo).do();
+});
+
 When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and nextToken {string}', async function (limit, creator, name, unit, index, nextToken) {
     await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).nextToken(nextToken).do();
 });
+
 When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}', async function (limit, creator, name, unit, index) {
     await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).do();
 });
@@ -1900,6 +1939,15 @@ Then('the parsed SearchAccounts response should be valid on round {int} and the 
     assert.equal(address, anySearchAccountsResponse['accounts'][idx]['address']);
 });
 
+Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have authorizing address {string}', function (round, length, idx, authAddress) {
+    assert.equal(round, anySearchAccountsResponse['current-round']);
+    assert.equal(length, anySearchAccountsResponse['accounts'].length);
+    if (length == 0) {
+        return;
+    }
+    assert.equal(authAddress, anySearchAccountsResponse['accounts'][idx]['auth-addr']);
+});
+
 let anySearchForTransactionsResponse;
 
 When('we make any SearchForTransactions call', async function () {
@@ -1913,6 +1961,15 @@ Then('the parsed SearchForTransactions response should be valid on round {int} a
         return;
     }
     assert.equal(sender, anySearchForTransactionsResponse['transactions'][idx]['sender']);
+});
+
+Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have rekey-to {string}', function (round, length, idx, rekeyTo) {
+    assert.equal(round, anySearchForTransactionsResponse['current-round']);
+    assert.equal(length, anySearchForTransactionsResponse['transactions'].length);
+    if (length == 0) {
+        return;
+    }
+    assert.equal(rekeyTo, anySearchForTransactionsResponse['transactions'][idx]['rekey-to']);
 });
 
 let anySearchForAssetsResponse;
@@ -2246,4 +2303,22 @@ Then('there are {int} assets in the response, the first is {int}.', function (nu
         return
     }
     assert.equal(firstAssetId, integrationSearchAssetsResponse['assets'][0]['index']);
+});
+
+////////////////////////////////////
+// begin rekey test helpers
+////////////////////////////////////
+
+When('I add a rekeyTo field with address {string}', function (address) {
+    this.txn["reKeyTo"] = address;
+});
+
+When('I add a rekeyTo field with the private key algorand address', function () {
+    let keypair = nacl.keyPairFromSecretKey(this.sk);
+    let pubKeyFromSk = keypair["publicKey"];
+    this.txn["reKeyTo"] = address.encode(pubKeyFromSk);
+});
+
+When('I set the from address to {string}', function (from) {
+    this.txn["from"] = from;
 });

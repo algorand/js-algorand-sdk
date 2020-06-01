@@ -49,6 +49,12 @@ class SearchAccounts {
 		this.query['round'] = round;
 		return this;
 	}
+
+	// include accounts that use this spending key
+	authAddr(authAddr) {
+		this.query['auth-addr'] = authAddr;
+		return this;
+	}
 }
 
 module.exports = {SearchAccounts};
