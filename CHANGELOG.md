@@ -1,3 +1,6 @@
+# 1.6.1
+## Fixed
+- Fixed bug where Indexer and algod V2 clients were omitted from module exports.
 # 1.6.0
 # Added
 - Clients for Indexer and algod V2
