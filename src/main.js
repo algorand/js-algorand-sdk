@@ -9,9 +9,13 @@ const algod = require('./client/algod');
 const kmd = require('./client/kmd');
 const utils = require('./utils/utils');
 const logicsig = require('./logicsig');
+const algodv2 = require('./client/v2/algod/algod')
+const indexer = require('./client/v2/indexer/indexer')
 
 let Algod = algod.Algod;
 let Kmd = kmd.Kmd;
+let Algodv2 = algodv2.AlgodClient
+let Indexer = indexer.IndexerClient
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 const MICROALGOS_TO_ALGOS_RATIO = 1e6;
@@ -827,6 +831,8 @@ module.exports = {
     decodeObj,
     Algod,
     Kmd,
+    Algodv2,
+    Indexer,
     mnemonicToMasterDerivationKey,
     masterDerivationKeyToMnemonic,
     appendSignMultisigTransaction,
