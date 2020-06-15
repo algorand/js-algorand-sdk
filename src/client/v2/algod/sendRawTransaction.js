@@ -2,7 +2,7 @@ class SendRawTransaction {
 	constructor(c, stx_or_stxs) {
 		let forPosting = stx_or_stxs;
 		if (Array.isArray(stx_or_stxs)) {
-			forPosting = Array.prototype.concat(...txns.map(arr => Array.from(arr)));
+			forPosting = Array.prototype.concat(...stx_or_stxs.map(arr => Array.from(arr)));
 		}
 		this.txnBytesToPost = forPosting;
 		this.c = c;
