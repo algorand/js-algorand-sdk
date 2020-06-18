@@ -546,7 +546,7 @@ describe('Algosdk (AKA end to end)', function () {
         });
         it('should throw on invalid program', function () {
             let program = Uint8Array.from([1, 32, 1, 1, 34]);
-            program[0] = 2;
+            program[0] = 128;
             assert.throws(
                 () => algosdk.makeLogicSig(program)
             );

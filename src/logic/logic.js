@@ -185,5 +185,7 @@ module.exports = {
     readProgram,
     parseUvarint,
     checkIntConstBlock,
-    checkByteConstBlock
+    checkByteConstBlock,
+    langspecEvalMaxVersion: langspec.EvalMaxVersion,
+    langspecLogicSigVersion: langspec.LogicSigVersion,
 };
