@@ -1,3 +1,6 @@
+# 1.6.2
+## Fixed
+- Fixed bug where submitting an array of transactions to v2 client's sendRawTransaction would cause an error. 
 # 1.6.1
 ## Fixed
 - Fixed bug where Indexer and algod V2 clients were omitted from module exports.
