@@ -21,7 +21,7 @@ function removeEmpty(obj) {
  * @returns {string}
  */
 function getAccceptFormat(query) {
-    if (query.hasOwnProperty('format'))
+    if (typeof query !== "undefined" && query.hasOwnProperty('format'))
         switch(query['format']) {
             case 'msgpack':
                 return 'application/msgpack';
