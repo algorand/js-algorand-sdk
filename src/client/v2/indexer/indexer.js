@@ -2,11 +2,13 @@ const client = require('../../client');
 const mhc = require('../indexer/makeHealthCheck');
 const lacbid = require('../indexer/lookupAccountByID');
 const lact = require('../indexer/lookupAccountTransactions');
+const lapp = require('../indexer/lookupApplications')
 const lasb = require('../indexer/lookupAssetBalances');
 const lasbid = require('../indexer/lookupAssetByID');
 const last = require('../indexer/lookupAssetTransactions');
 const lb = require('../indexer/lookupBlock');
 const sfas = require('../indexer/searchForAssets');
+const sfapp = require('../indexer/searchForApplications')
 const sft = require('../indexer/searchForTransactions');
 const sac = require('../indexer/searchAccounts');
 
@@ -49,6 +51,10 @@ class IndexerClient {
             return new lasbid.LookupAssetByID(c, index);
         };
 
+        this.lookupApplications = function(index) {
+            return new lapp.LookupApplications(c, index);
+        }
+
         this.searchAccounts = function() {
             return new sac.SearchAccounts(c);
         };
@@ -60,6 +66,10 @@ class IndexerClient {
         this.searchForAssets = function() {
             return new sfas.SearchForAssets(c);
         };
+
+        this.searchForApplications = function() {
+            return new sfapp.SearchForApplications(c);
+        }
     }
 }
 module.exports = {IndexerClient};

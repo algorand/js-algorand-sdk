@@ -11,6 +11,7 @@ const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
 const clientv2 = require("../../../src/client/v2/algod/algod");
 const indexer = require("../../../src/client/v2/indexer/indexer");
 const nacl = require("../../../src/nacl/naclWrappers");
+const transaction = require("../../../src/transaction");
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
@@ -1577,6 +1578,19 @@ Then('expect the path used to be {string}', function (expectedRequestPath) {
     assert.equal(expectedRequestPath, actualRequestPath);
 });
 
+Then('we expect the path used to be {string}', function (expectedRequestPath) {
+    // get all requests the mockservers have seen since reset
+    let algodSeenRequests = algodMockServerPathRecorder.requests();
+    let indexerSeenRequests = indexerMockServerPathRecorder.requests();
+    let actualRequestPath;
+    if (algodSeenRequests.length != 0) {
+        actualRequestPath = algodSeenRequests[0]['url'];
+    } else if (indexerSeenRequests.length != 0) {
+        actualRequestPath = indexerSeenRequests[0]['url'];
+    }
+    assert.equal(expectedRequestPath, actualRequestPath);
+});
+
 When('we make a Pending Transaction Information against txid {string} with max {int}', function (txid, max) {
     this.v2Client.pendingTransactionInformation(txid).max(max).do();
 });
@@ -1796,6 +1810,10 @@ When('we make a Lookup Asset by ID call against asset index {int}', async functi
     await this.indexerClient.lookupAssetByID(assetIndex).do();
 });
 
+When('we make a LookupApplications call with {int} and {int}', async function (index, round) {
+    await this.indexerClient.lookupApplications(index).round(round).do();
+});
+
 When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}', async function (assetIndex, limit, currencyGreater, currencyLesser, nextToken) {
     await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).nextToken(nextToken).do();
 });
@@ -1814,6 +1832,10 @@ When('we make a Search For Transactions call with account {string} NotePrefix {s
         excludeCloseTo = true;
     }
     await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
+});
+
+When('we make a SearchForApplications call with {int} and {int}', async function (index, round) {
+    await this.indexerClient.searchForApplications().index(index).round(round).do();
 });
 
 When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
@@ -2322,3 +2344,126 @@ When('I add a rekeyTo field with the private key algorand address', function () 
 When('I set the from address to {string}', function (from) {
     this.txn["from"] = from;
 });
+
+////////////////////////////////////
+// begin application test helpers
+////////////////////////////////////
+
+Given('a signing account with address {string} and mnemonic {string}', function (address, mnemonic) {
+    this.signingMnemonic = mnemonic
+});
+
+function operationStringToEnum(inString) {
+    switch(inString) {
+        case "call":
+            return algosdk.OnApplicationComplete.NoOpOC;
+        case "create":
+            return algosdk.OnApplicationComplete.NoOpOC;
+        case "update":
+            return algosdk.OnApplicationComplete.UpdateApplicationOC;
+        case "optin":
+            return algosdk.OnApplicationComplete.OptInOC;
+        case "delete":
+            return algosdk.OnApplicationComplete.DeleteApplicationOC;
+        case "clear":
+            return algosdk.OnApplicationComplete.ClearStateOC;
+        case "closeout":
+            return algosdk.OnApplicationComplete.CloseOutOC;
+        default:
+            throw Error("did not recognize application operation string " + inString);
+    }
+}
+
+function splitAndProcessAppArgs(inArgs) {
+    let splitArgs = inArgs.split(",");
+    let subArgs = [];
+    splitArgs.forEach((subArg) => {
+       subArgs.push(subArg.split(":"));
+    });
+    let appArgs = [];
+    subArgs.forEach((subArg) => {
+       switch (subArg[0]) {
+           case "str":
+               appArgs.push(new Uint8Array(Buffer.from(subArg[1])));
+               break;
+           case "int":
+
+               appArgs.push(new Uint8Array([parseInt(subArg[1])]));
+               break;
+           case "addr":
+               appArgs.push(address.decode(subArg[1])["publicKey"]);
+               break;
+           default:
+               throw Error("did not recognize app arg of type" + subArg[0])
+       }
+    });
+    return appArgs;
+}
+
+When('I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}', function (operationString, appIndex, sender, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, appAccountsCommaSeparatedString, fee, firstValid, lastValid, genesisHashBase64) {
+    // operation string to enum
+    let operation = operationStringToEnum(operationString);
+    // open and load in approval program
+    let approvalProgramBytes = undefined;
+    if (approvalProgramFile !== "") {
+        let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
+        approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+    }
+    // open and load in clear program
+    let clearProgramBytes = undefined;
+    if (clearProgramFile !== "") {
+        let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
+        clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+    }
+    // split and process app args
+    let appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    // split and process foreign apps
+    let foreignApps = undefined;
+    if (foreignAppsCommaSeparatedString !== "") {
+        foreignApps = [];
+        foreignAppsCommaSeparatedString.split(",").forEach((foreignAppAsString) => {
+           foreignApps.push(parseInt(foreignAppAsString));
+        });
+    }
+    // split and process app accounts
+    let appAccounts = undefined;
+    if (appAccountsCommaSeparatedString !== "") {
+        appAccounts = appAccountsCommaSeparatedString.split(",");
+    }
+    // build suggested params object
+    let sp = {
+        "genesisHash": genesisHashBase64,
+        "firstRound": firstValid,
+        "lastRound": lastValid,
+        "fee": fee,
+        "flatFee": true,
+    }
+    let o = {
+        "from": sender,
+        "appIndex": appIndex,
+        "appOnComplete": operation,
+        "appLocalInts": numLocalInts,
+        "appLocalByteSlices": numLocalByteSlices,
+        "appGlobalInts": numGlobalInts,
+        "appGlobalByteSlices": numGlobalByteSlices,
+        "appApprovalProgram": approvalProgramBytes,
+        "appClearProgram": clearProgramBytes,
+        "appArgs": appArgs,
+        "appAccounts" : appAccounts,
+        "appForeignApps": foreignApps,
+        "type": "appl",
+        "suggestedParams": sp
+    }
+    this.txn = new transaction.Transaction(o);
+});
+
+When('sign the transaction', function () {
+    let result = algosdk.mnemonicToSecretKey(this.signingMnemonic)
+    this.stx = this.txn.signTxn(result.sk);
+});
+
+Then('the base{int} encoded signed transaction should equal {string}', function (base, base64golden) {
+    let actualBase64 = Buffer.from(this.stx).toString("base64");
+    assert.equal(base64golden, actualBase64)
+});
+
