@@ -11,6 +11,8 @@ const sab = require('../algod/statusAfterBlock');
 const sp = require('../algod/suggestedParams');
 const supply = require('../algod/supply');
 const versions = require('../algod/versions');
+const compile = require('./compile');
+const dryrun = require('./dryrun');
 
 class AlgodClient {
     constructor(token = '', baseServer = "http://r2.algorand.network", port = 4180, headers = {}) {
@@ -69,6 +71,14 @@ class AlgodClient {
 
         this.supply = function () {
             return new supply.Supply(c)
+        };
+
+        this.compile = function (source) {
+            return new compile.Compile(c, source)
+        };
+
+        this.dryrun = function (dr) {
+            return new dryrun.Dryrun(c, dr)
         };
     }
 }
