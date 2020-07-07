@@ -2490,7 +2490,7 @@ Given('I create a new transient account and fund it with {int} microalgos.', asy
     let fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
     await this.v2Client.statusAfterBlock(sp["firstRound"] + 2);
     // console.log("getting tx by id")
-    // let fundingConfirmation = await this.acl.transactionById(fundingResponse["txId"])
+    // let fundingConfirmation = await this.acl.transactionById(fundingResponse["txId"]) // causes internal server error for some reason? but `this.acl` exists.
     // assert.deepStrictEqual(true, "type" in fundingConfirmation);
 });
 
