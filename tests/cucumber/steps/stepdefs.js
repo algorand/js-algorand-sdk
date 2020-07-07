@@ -2416,7 +2416,10 @@ When('I build an application transaction with operation {string}, application-id
         clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
     }
     // split and process app args
-    let appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    let appArgs = undefined;
+    if (appArgsCommaSeparatedString !== "") {
+        appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    }
     // split and process foreign apps
     let foreignApps = undefined;
     if (foreignAppsCommaSeparatedString !== "") {
@@ -2467,3 +2470,113 @@ Then('the base{int} encoded signed transaction should equal {string}', function 
     assert.equal(base64golden, actualBase64)
 });
 
+Given('an algod v{int} client connected to {string} port {int} with token {string}', function (clientVersion, host, port, token) {
+    this.v2Client = new clientv2.AlgodClient(token, host, port, {});
+});
+
+Given('I create a new transient account and fund it with {int} microalgos.', async function (fundingAmount) {
+    let generatedResult = algosdk.generateAccount()
+    this.transientSecretKey = generatedResult.sk;
+    this.transientAddress = generatedResult.addr;
+    let sp = await this.v2Client.getTransactionParams().do();
+    if (sp["firstRound"] == 0) sp["firstRound"] = 1;
+    let fundingTxnArgs = {
+        "from": this.accounts[0],
+        "to": this.transientAddress,
+        "amount": fundingAmount,
+        "suggestedParams": sp
+    };
+    let stxKmd = await this.kcl.signTransaction(this.handle, this.wallet_pswd, fundingTxnArgs);
+    let fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2);
+    // console.log("getting tx by id")
+    // let fundingConfirmation = await this.acl.transactionById(fundingResponse["txId"])
+    // assert.deepStrictEqual(true, "type" in fundingConfirmation);
+});
+
+Given('I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, app-accounts {string}', async function (operationString, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, appAccountsCommaSeparatedString) {
+    // operation string to enum
+    let operation = operationStringToEnum(operationString);
+    // open and load in approval program
+    let approvalProgramBytes = undefined;
+    if (approvalProgramFile !== "") {
+        let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
+        approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+    }
+    // open and load in clear program
+    let clearProgramBytes = undefined;
+    if (clearProgramFile !== "") {
+        let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
+        clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+    }
+    // split and process app args
+    let appArgs = undefined;
+    if (appArgsCommaSeparatedString !== "") {
+        appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    }
+    // split and process foreign apps
+    let foreignApps = undefined;
+    if (foreignAppsCommaSeparatedString !== "") {
+        foreignApps = [];
+        foreignAppsCommaSeparatedString.split(",").forEach((foreignAppAsString) => {
+            foreignApps.push(parseInt(foreignAppAsString));
+        });
+    }
+    // split and process app accounts
+    let appAccounts = undefined;
+    if (appAccountsCommaSeparatedString !== "") {
+        appAccounts = appAccountsCommaSeparatedString.split(",");
+    }
+    let sp = await this.v2Client.getTransactionParams().do();
+    if (sp["firstRound"] == 0) sp["firstRound"] = 1;
+    let o = {
+        "from": this.transientAddress,
+        "appIndex": this.currentApplicationIndex,
+        "appOnComplete": operation,
+        "appLocalInts": numLocalInts,
+        "appLocalByteSlices": numLocalByteSlices,
+        "appGlobalInts": numGlobalInts,
+        "appGlobalByteSlices": numGlobalByteSlices,
+        "appApprovalProgram": approvalProgramBytes,
+        "appClearProgram": clearProgramBytes,
+        "appArgs": appArgs,
+        "appAccounts" : appAccounts,
+        "appForeignApps": foreignApps,
+        "type": "appl",
+        "suggestedParams": sp
+    }
+    this.txn = new transaction.Transaction(o);
+    console.log(this.txn)
+});
+
+Given('I sign and submit the transaction, saving the txid. If there is an error it is {string}.', async function (errorString) {
+    try {
+        let appStx = this.txn.signTxn(this.transientSecretKey);
+        this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
+    }
+    catch(err) {
+        if (errorString !== "") {
+            // error was expected. check that err.text includes expected string.
+            let errorContainsString = err.text.includes(errorString);
+            assert.deepStrictEqual(true, errorContainsString)
+        } else {
+            // unexpected error, rethrow.
+            throw err;
+        }
+    }
+});
+
+Given('I wait for the transaction to be confirmed.', async function () {
+    let sp = await this.v2Client.getTransactionParams().do();
+    // console.log("about to do status after")
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2);
+    // console.log("about to get txid by id. app txid is:")
+    // console.log(this.appTxid["txId"])
+    // let transactionInfo = await this.acl.transactionById(this.appTxid["txId"]);
+    // assert.deepStrictEqual(true, "type" in transactionInfo);
+});
+
+Given('I remember the new application ID.', async function () {
+    let infoResult = await this.acl.pendingTransactionInformation(this.appTxid["txId"]);
+    this.currentApplicationIndex = infoResult["txresults"]["createdapp"];
+});

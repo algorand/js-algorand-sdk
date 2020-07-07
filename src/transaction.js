@@ -390,6 +390,7 @@ class Transaction {
             if ((!txn.apls.nui) && (!txn.apls.nbs)) delete txn.apls;
             if (!txn.apgs.nui) delete txn.apgs.nui;
             if (!txn.apgs.nbs) delete txn.apgs.nbs;
+            if (!txn.apaa || !txn.apaa.length) delete txn.apaa;
             if ((!txn.apgs.nui) && (!txn.apgs.nbs)) delete txn.apgs;
             if (!txn.apap) delete txn.apap;
             if (!txn.apsu) delete txn.apsu;
