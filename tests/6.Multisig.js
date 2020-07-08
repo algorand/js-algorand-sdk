@@ -39,7 +39,7 @@ describe('Multisig Functionality', function () {
                 "note": Buffer.from("RSYiABhShvs=", "base64")
             };
 
-            let msigTxn = multisig.MultiSigTransaction.from_obj_for_encoding(o);
+            let msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(o);
             let seed = passphrase.seedFromMnemonic(mnem1);
             let sk = nacl.keyPairFromSeed(seed).secretKey;
             let msigBlob = msigTxn.partialSignTxn(params, sk);
@@ -79,7 +79,7 @@ describe('Multisig Functionality', function () {
                 "note": Buffer.from("RSYiABhShvs=", "base64")
             };
 
-            let msigTxn = multisig.MultiSigTransaction.from_obj_for_encoding(o);
+            let msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(o);
             let seed = passphrase.seedFromMnemonic(mnem2);
             let sk = nacl.keyPairFromSeed(seed).secretKey;
             let msigBlob = msigTxn.partialSignTxn(params, sk);
@@ -104,7 +104,7 @@ describe('Multisig Functionality', function () {
                 ],
             };
             const decRawTx = encoding.decode(rawTxBlob).txn;
-            let msigTxn = multisig.MultiSigTransaction.from_obj_for_encoding(decRawTx);
+            let msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(decRawTx);
             let mnem1 = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
             let seed = passphrase.seedFromMnemonic(mnem1);
             let sk = nacl.keyPairFromSeed(seed).secretKey;
@@ -126,7 +126,7 @@ describe('Multisig Functionality', function () {
                 ],
             };
             const decRawTx = encoding.decode(rawOneSigTxBlob).txn;
-            let msigTxn = multisig.MultiSigTransaction.from_obj_for_encoding(decRawTx);
+            let msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(decRawTx);
             let mnem3 = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
             let seed = passphrase.seedFromMnemonic(mnem3);
             let sk = nacl.keyPairFromSeed(seed).secretKey;

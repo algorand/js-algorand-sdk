@@ -1,9 +1,13 @@
 
-# exclude WebStorm
 .idea/
+.vscode
 
 # npm
 node_modules/
 
 # bitgo
 build/
+
+# Testing files
+*.feature
+temp

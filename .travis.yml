@@ -1,3 +1,10 @@
+dist: bionic
 language: node_js
+
 node_js:
-  - "9"
+  - "12"
+
+script:
+  - set -e
+  - npm test
+  - make docker-test

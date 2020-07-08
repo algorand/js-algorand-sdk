@@ -1,3 +1,50 @@
+# 1.6.2
+## Fixed
+- Fixed bug where submitting an array of transactions to v2 client's sendRawTransaction would cause an error. 
+# 1.6.1
+## Fixed
+- Fixed bug where Indexer and algod V2 clients were omitted from module exports.
+# 1.6.0
+# Added
+- Clients for Indexer and algod V2
+# 1.5.0
+# Added
+-  additional Algorand Smart Contracts (ASC)
+    -  support for Dynamic Fee contract
+    -  support for Limit Order contract
+    -  support for Periodic Payment contract
+- support for Suggested Params
+# 1.4.1
+# Added
+- Added asset decimals field. 
+# 1.4.0
+# Added
+- Added support for Algorand Standardized Assets (ASA)
+- Added support for Algorand Smart Contracts (ASC) 
+    - Added support for Hashed Time Lock Contract (HTLC) 
+    - Added support for Split contract
+- Added support for Group Transactions
+- Added support for leases
+# 1.3.1
+## Changed 
+- msgpack lib was replaced with the official https://github.com/msgpack/msgpack-javascript
+## Fixed 
+- algod.transactionById returns the note as Uint8Array and not as base64   
+# 1.3.0
+## Added 
+- Support for key registration transactions
+- Support for flat fees
+- Signing and verifying bytes
+## Fixed 
+- deleteMultisig uses post instead of get
+- "MultiSig" standardized to "Multisig"
+# 1.2.2
+## Added 
+- Support for Optional Parameters for GetTransactionsByAddress
+# 1.2.1
+## Added 
+- Support for GetTransactionByID 
+- Handle the case of undeclared noteField
 # 1.2.0
 ## Added 
 - Support of GenesisHash and Close Remainder To fields 
