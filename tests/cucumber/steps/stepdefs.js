@@ -2488,10 +2488,9 @@ Given('I create a new transient account and fund it with {int} microalgos.', asy
     };
     let stxKmd = await this.kcl.signTransaction(this.handle, this.wallet_pswd, fundingTxnArgs);
     let fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
-    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2);
-    // console.log("getting tx by id")
-    // let fundingConfirmation = await this.acl.transactionById(fundingResponse["txId"]) // causes internal server error for some reason? but `this.acl` exists.
-    // assert.deepStrictEqual(true, "type" in fundingConfirmation);
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2).do();
+    let fundingConfirmation = await this.acl.transactionById(fundingResponse["txId"]);
+    assert.deepStrictEqual(true, "type" in fundingConfirmation);
 });
 
 Given('I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, app-accounts {string}', async function (operationString, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, appAccountsCommaSeparatedString) {
@@ -2546,7 +2545,6 @@ Given('I build an application transaction with the transient account, the curren
         "suggestedParams": sp
     }
     this.txn = new transaction.Transaction(o);
-    console.log(this.txn)
 });
 
 Given('I sign and submit the transaction, saving the txid. If there is an error it is {string}.', async function (errorString) {
@@ -2568,12 +2566,9 @@ Given('I sign and submit the transaction, saving the txid. If there is an error 
 
 Given('I wait for the transaction to be confirmed.', async function () {
     let sp = await this.v2Client.getTransactionParams().do();
-    // console.log("about to do status after")
-    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2);
-    // console.log("about to get txid by id. app txid is:")
-    // console.log(this.appTxid["txId"])
-    // let transactionInfo = await this.acl.transactionById(this.appTxid["txId"]);
-    // assert.deepStrictEqual(true, "type" in transactionInfo);
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2).do();
+    let confirmation = await this.acl.transactionById(this.appTxid["txId"]);
+    assert.deepStrictEqual(true, "type" in confirmation);
 });
 
 Given('I remember the new application ID.', async function () {
