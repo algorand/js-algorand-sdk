@@ -9,6 +9,7 @@ const periodicPayTemplate = require("../../../src/logicTemplates/periodicpayment
 const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
 const clientv2 = require("../../../src/client/v2/algod/algod");
+const modelsv2 = require("../../../src/client/v2/algod/models/types");
 const indexer = require("../../../src/client/v2/indexer/indexer");
 const nacl = require("../../../src/nacl/naclWrappers");
 const transaction = require("../../../src/transaction");
@@ -17,6 +18,8 @@ const fs = require('fs');
 const path = require("path")
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)))
 const ServerMock = require("mock-http-server");
+const txnBuilder = require('../../../src/transaction');
+const logicsig = require('../../../src/logicsig');
 
 setDefaultTimeout(60000)
 
@@ -39,16 +42,21 @@ AfterAll(async function () {
     cleanupAlgodV2MockServers();
 });
 
+const algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const kmd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
 Given("an algod client", async function(){
-    algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     this.acl = new algosdk.Algod(algod_token, "http://localhost", 60000);
     return this.acl
 })
 
 Given("a kmd client", function(){
-    kmd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     this.kcl = new algosdk.Kmd(kmd_token, "http://localhost", 60001)
     return this.kcl
+});
+
+Given('an algod v2 client', function () {
+    this.v2Client = new clientv2.AlgodClient(algod_token, "http://localhost", 60000);
 });
 
 Given("wallet information", async function(){
@@ -1485,7 +1493,10 @@ function cleanupAlgodV2MockServers() {
 }
 
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
-    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/" + jsonDirectory + "/" + fileName; // TODO EJR ensure docker sets UNITTESTDIR correctly
+    if (process.env.UNITTESTDIR === undefined) {
+        throw Error("UNITTESTDIR env var not set");
+    }
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/" + jsonDirectory + "/" + fileName;
     let resultString = "";
     let xml = new XMLHttpRequest();
     xml.open("GET", mockResponsePath, false);
@@ -2343,6 +2354,129 @@ When('I add a rekeyTo field with the private key algorand address', function () 
 
 When('I set the from address to {string}', function (from) {
     this.txn["from"] = from;
+});
+
+let dryrunResponse;
+
+When('we make any Dryrun call', async function () {
+    const dr = new modelsv2.DryrunRequest({});
+    dryrunResponse = await this.v2Client.dryrun(dr).do();
+});
+
+Then('the parsed Dryrun Response should have global delta {string} with {int}', function (key, action) {
+    assert.equal(dryrunResponse.txns[0]["global-delta"][0].key, key);
+    assert.equal(dryrunResponse.txns[0]["global-delta"][0].value.action, action)
+});
+
+function loadResource(res) {
+    const p = path.join(maindir, "tests", "cucumber", "features", "resources", res)
+    return fs.readFileSync(p);
+}
+
+When('I dryrun a {string} program {string}', async function (kind, program) {
+    const data = loadResource(program);
+    const algoTxn = new txnBuilder.Transaction({
+        from: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+        fee: 1000,
+        amount: 1000,
+        firstRound: 1,
+        lastRound: 1000,
+        type: "pay",
+        genesisHash: "ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=",
+    });
+    let txns;
+    let sources;
+
+    switch (kind) {
+        case "compiled":
+            txns = [{
+                lsig: new logicsig.LogicSig(data),
+                txn: algoTxn,
+            }];
+            break
+        case "source":
+            txns = [{
+                txn: algoTxn,
+            }];
+            sources = [new modelsv2.DryrunSource("lsig", data.toString("utf8"), 0)]
+            break
+        default:
+            throw Error(`kind ${kind} not in (source, compiled)`)
+    }
+
+    const dr = new modelsv2.DryrunRequest({
+        txns: txns,
+        sources: sources,
+    })
+    dryrunResponse = await this.v2Client.dryrun(dr).do();
+});
+
+Then('I get execution result {string}', function (result) {
+    let msgs;
+    const res = dryrunResponse["txns"][0]
+    if (res["logic-sig-messages"] !== undefined && res["logic-sig-messages"].length > 0) {
+        msgs = res["logic-sig-messages"]
+    } else if (res["app-call-messages"] !== undefined && res["app-call-messages"].length > 0) {
+        msgs = res["app-call-messages"]
+    }
+    assert.ok(msgs.length > 0);
+    assert.equal(msgs[0], result);
+});
+
+let compileStatusCode;
+let compileResponse;
+
+When('I compile a teal program {string}', async function (program) {
+    const data = loadResource(program);
+    try {
+        compileResponse = await this.v2Client.compile(data).do();
+        compileStatusCode = 200
+    } catch (e) {
+        compileStatusCode = e.statusCode;
+        compileResponse = {
+            result: "",
+            hash: ""
+        };
+    }
+});
+
+Then('it is compiled with {int} and {string} and {string}', function (status, result, hash) {
+    assert.equal(status, compileStatusCode);
+    assert.equal(result, compileResponse.result);
+    assert.equal(hash, compileResponse.hash);
+});
+
+////////////////////////////////////
+// TealSign tests
+////////////////////////////////////
+
+Given('base64 encoded data to sign {string}', function (data) {
+    this.data = Buffer.from(data, "base64");
+});
+
+Given('program hash {string}', function (contractAddress) {
+    this.contractAddress = contractAddress;
+});
+
+Given('base64 encoded program {string}', function (programEncoded) {
+    const program = Buffer.from(programEncoded, "base64");
+    const lsig = algosdk.makeLogicSig(program);
+    this.contractAddress = lsig.address();
+});
+
+Given('base64 encoded private key {string}', function (keyEncoded) {
+    const seed = Buffer.from(keyEncoded, "base64");
+    const keys = nacl.keyPairFromSeed(seed);
+    this.sk = keys.secretKey;
+});
+
+When('I perform tealsign', function () {
+    this.sig = algosdk.tealSign(this.sk, this.data, this.contractAddress);
+});
+
+Then('the signature should be equal to {string}', function (expectedEncoded) {
+    const expected = new Uint8Array(Buffer.from(expectedEncoded, "base64"));
+    assert.deepStrictEqual(this.sig, expected);
 });
 
 ////////////////////////////////////
