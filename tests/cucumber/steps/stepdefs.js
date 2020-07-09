@@ -2322,3 +2322,36 @@ When('I add a rekeyTo field with the private key algorand address', function () 
 When('I set the from address to {string}', function (from) {
     this.txn["from"] = from;
 });
+
+////////////////////////////////////
+// TealSign tests
+////////////////////////////////////
+
+Given('base64 encoded data to sign {string}', function (data) {
+    this.data = Buffer.from(data, "base64");
+});
+
+Given('program hash {string}', function (contractAddress) {
+    this.contractAddress = contractAddress;
+});
+
+Given('base64 encoded program {string}', function (programEncoded) {
+    const program = Buffer.from(programEncoded, "base64");
+    const lsig = algosdk.makeLogicSig(program);
+    this.contractAddress = lsig.address();
+});
+
+Given('base64 encoded private key {string}', function (keyEncoded) {
+    const seed = Buffer.from(keyEncoded, "base64");
+    const keys = nacl.keyPairFromSeed(seed);
+    this.sk = keys.secretKey;
+});
+
+When('I perform tealsign', function () {
+    this.sig = algosdk.tealSign(this.sk, this.data, this.contractAddress);
+});
+
+Then('the signature should be equal to {string}', function (expectedEncoded) {
+    const expected = new Uint8Array(Buffer.from(expectedEncoded, "base64"));
+    assert.deepStrictEqual(this.sig, expected);
+});
