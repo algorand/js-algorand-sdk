@@ -6,6 +6,7 @@ let passphrase = require("../src/mnemonic/mnemonic");
 let nacl = require("../src/nacl/naclWrappers");
 let transaction = require("../src/transaction");
 let logicsig = require("../src/logicsig");
+let utils = require('../src/utils/utils');
 let v2client = require("../src/client/v2/algod/algod");
 
 describe('Algosdk (AKA end to end)', function () {
@@ -670,4 +671,26 @@ describe('Algosdk (AKA end to end)', function () {
             let verified = lsig.verify(sender_pk);
             assert.equal(verified, true);
         });
-    });});
+    });
+    describe('tealSign', function () {
+        it('should produce verifiable signature', function () {
+            const data = Buffer.from("Ux8jntyBJQarjKGF8A==", "base64");
+            const seed = Buffer.from("5Pf7eGMA52qfMT4R4/vYCt7con/7U3yejkdXkrcb26Q=", "base64");
+            const prog = Buffer.from("ASABASI=", "base64");
+
+            const keys = nacl.keyPairFromSeed(seed);
+            const pk = keys.publicKey;
+            const sk = keys.secretKey;
+            const addr = algosdk.makeLogicSig(prog).address();
+            const sig1 = algosdk.tealSign(sk, data, addr);
+            const sig2 = algosdk.tealSignFromProgram(sk, data, prog);
+
+            assert.deepStrictEqual(sig1, sig2);
+
+            const parts = utils.concatArrays(address.decode(addr).publicKey, data);
+            const toBeVerified = Buffer.from(utils.concatArrays(Buffer.from("ProgData"), parts));
+            const verified = nacl.verify(toBeVerified, sig1, pk);
+            assert.equal(verified, true);
+        });
+    });
+});

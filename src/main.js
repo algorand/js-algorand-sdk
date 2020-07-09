@@ -18,6 +18,7 @@ let Algodv2 = algodv2.AlgodClient
 let Indexer = indexer.IndexerClient
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
+const SIGN_PROGRAM_DATA_PREFIX = Buffer.from("ProgData");
 const MICROALGOS_TO_ALGOS_RATIO = 1e6;
 // Errors
 const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
@@ -358,6 +359,29 @@ function logicSigFromByte(encoded) {
     return logicsig.LogicSig.fromByte(encoded);
 }
 
+/**
+ * tealSign creates a signature compatible with ed25519verify opcode from contract address
+ * @param sk - uint8array with secret key
+ * @param data - buffer with data to sign
+ * @param contractAddress string representation of teal contract address (program hash)
+ */
+function tealSign(sk, data, contractAddress) {
+    const parts = utils.concatArrays(address.decode(contractAddress).publicKey, data);
+    const toBeSigned = Buffer.from(utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts));
+    return nacl.sign(toBeSigned, sk);
+}
+
+/**
+ * tealSignFromProgram creates a signature compatible with ed25519verify opcode from raw program bytes
+ * @param sk - uint8array with secret key
+ * @param data - buffer with data to sign
+ * @param program - buffer with teal program
+ */
+function tealSignFromProgram(sk, data, program) {
+    const lsig = makeLogicSig(program);
+    const contractAddress = lsig.address();
+    return tealSign(sk, data, contractAddress);
+}
 
 /**
  * makePaymentTxn takes payment arguments and returns a Transaction object
@@ -851,6 +875,8 @@ module.exports = {
     signLogicSigTransaction,
     signLogicSigTransactionObject,
     logicSigFromByte,
+    tealSign,
+    tealSignFromProgram,
     makePaymentTxn,
     makeKeyRegistrationTxn,
     makeAssetCreateTxn,
