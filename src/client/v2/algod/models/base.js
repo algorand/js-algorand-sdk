@@ -48,6 +48,46 @@ class BaseModel {
         }
         return obj;
     }
+
+    static from_obj_for_encoding(obj) {
+        const target = {};
+        for (const key of Object.keys(obj)) {
+            if (this.openapi_types[key] === undefined) {
+                throw Error("Unknown key " + key);
+            }
+            const value = obj[key];
+            const targetKey = this.openapi_attribute_map[key];
+            let targetType = this.openapi_types[key];
+            if (
+                Array.isArray(value) && !Array.isArray(targetType) ||
+                Array.isArray(targetType) && !Array.isArray(value)
+            ) {
+                throw Error("Types are not compatible: " + typeof value + " " + typeof targetType);
+            }
+            if (Array.isArray(value)) {
+                target[targetKey] = new Array();
+                targetType = targetType[0];
+                for (const elem of value) {
+                    if (typeof targetType.from_obj_for_encoding === "function") {
+                        target[targetKey].push(targetType.from_obj_for_encoding(elem));
+                    } else if (targetType === String || targetType == Number) {
+                        target[targetKey].push(targetType(elem));
+                    } else {
+                        throw Error("Unknown array element: " + targetType);
+                    }
+                }
+            } else {
+                if (typeof targetType.from_obj_for_encoding === "function") {
+                    target[targetKey] = targetType.from_obj_for_encoding(value);
+                } else if (targetType === String || targetType == Number) {
+                    target[targetKey] = targetType(value);
+                } else {
+                    throw Error("Unknown value type: " + targetType);
+                }
+            }
+        }
+        return Object.assign(new this({}), target);
+    }
 }
 
 module.exports = {BaseModel};

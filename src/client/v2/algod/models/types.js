@@ -151,11 +151,24 @@ class TealKeyValue extends base.BaseModel {
 }
 
 class TealValue extends base.BaseModel {
+    static openapi_types = {
+        "type": Number,
+        "bytes": String,
+        "uint": Number
+    }
+
+    static openapi_attribute_map = {
+        "type": "type",
+        "bytes": "bytes",
+        "uint": "uint"
+    }
+
     attribute_map = {
         "type": "type",
         "bytes": "bytes",
         "uint": "uint"
     }
+
     constructor(type, bytes, uint) {
         super();
         this.type = type;
@@ -274,6 +287,187 @@ class Account extends base.BaseModel {
     }
 }
 
+class EvalDelta extends base.BaseModel {
+    static openapi_types = {
+        "action": Number,
+        "bytes": String,
+        "uint": Number
+    }
+
+    static openapi_attribute_map = {
+        "action": "action",
+        "bytes": "bytes",
+        "uint": "uint"
+    }
+
+    attribute_map = {
+        "action": "action",
+        "bytes": "bytes",
+        "uint": "uint"
+    }
+
+    constructor(action, bytes, uint) {
+        super();
+        this.action = action;
+        this.bytes = bytes;
+        this.uint = uint;
+    }
+}
+
+class EvalDeltaKeyValue extends base.BaseModel {
+    static openapi_types = {
+        "key": String,
+        "value": EvalDelta
+    }
+
+    static openapi_attribute_map = {
+        "key": "key",
+        "value": "value"
+    }
+
+    attribute_map = {
+        "key": "key",
+        "value": "value"
+    }
+
+    constructor(key, value) {
+        super();
+        this.key = key;
+        this.value = value;
+    }
+}
+
+class AccountStateDelta extends base.BaseModel {
+    static openapi_types = {
+        "address": String,
+        "delta": [EvalDeltaKeyValue]
+    }
+
+    static openapi_attribute_map = {
+        "address": "address",
+        "delta": "delta"
+    }
+
+    attribute_map = {
+        "address": "address",
+        "delta": "delta"
+    }
+
+    constructor(address, delta) {
+        super();
+        this.address = address;
+        this.delta = delta;
+    }
+}
+
+class DryrunState extends base.BaseModel {
+    static openapi_types = {
+        "line": Number,
+        "pc": Number,
+        "stack": [TealValue],
+        "scratch": [TealValue],
+        "error": String
+    }
+
+    static openapi_attribute_map = {
+        "line": "line",
+        "pc": "pc",
+        "stack": "stack",
+        "scratch": "scratch",
+        "error": "error"
+    }
+
+    attribute_map = {
+        "line": "line",
+        "pc": "pc",
+        "stack": "stack",
+        "scratch": "scratch",
+        "error": "error"
+    }
+
+    constructor({line, pc, stack, scratch, error}) {
+        super();
+        this.line = line;
+        this.pc = pc;
+        this.stack = stack;
+        this.scratch = scratch;
+        this.error = error;
+    }
+}
+
+class DryrunTxnResult extends base.BaseModel {
+    static openapi_types = {
+        "disassembly": [String],
+        "logic-sig-trace": [DryrunState],
+        "logic-sig-messages": [String],
+        "app-call-trace": [DryrunState],
+        "app-call-messages": [String],
+        "global-delta": [EvalDeltaKeyValue],
+        "local-deltas": [AccountStateDelta]
+    }
+
+    static openapi_attribute_map = {
+        "disassembly": "disassembly",
+        "logic-sig-trace": "logicSigTrace",
+        "logic-sig-messages": "logicSigMessages",
+        "app-call-trace": "appCallTrace",
+        "app-call-messages": "appCallMessages",
+        "global-delta": "globalDelta",
+        "local-deltas": "localDeltas"
+    }
+
+    attribute_map = {
+        "disassembly": "disassembly",
+        "logicSigTrace": "logic-sig-trace",
+        "logicSigMessages": "logic-sig-messages",
+        "appCallTrace": "app-call-trace",
+        "appCallMessages": "app-call-messages",
+        "globalDelta": "global-delta",
+        "localDeltas": "local-deltas"
+    }
+
+    constructor({
+        disassembly, logicSigTrace, logicSigMessages,
+        appCallTrace, appCallMessages, globalDelta, localDeltas
+    }) {
+        super();
+        this.disassembly = disassembly;
+        this.logicSigTrace = logicSigTrace;
+        this.logicSigMessages = logicSigMessages;
+        this.appCallTrace = appCallTrace;
+        this.appCallMessages = appCallMessages;
+        this.globalDelta = globalDelta;
+        this.localDeltas = localDeltas;
+    }
+}
+
+class DryrunResponse extends base.BaseModel {
+    static openapi_types = {
+        "txns": [DryrunTxnResult],
+        "error": String,
+        "protocol-version": String
+    }
+
+    static openapi_attribute_map = {
+        "txns": "txns",
+        "error": "error",
+        "protocol-version": "protocolVersion"
+    }
+
+    attribute_map = {
+        "txns": "txns",
+        "error": "error",
+        "protocolVersion": "protocol-version"
+    }
+
+    constructor(txns, error, protocolVersion) {
+        super();
+        this.txns = txns;
+        this.error = error;
+        this.protocolVersion = protocolVersion;
+    }
+}
+
 module.exports = {
     DryrunRequest, DryrunSource,
     Account,
@@ -281,4 +475,5 @@ module.exports = {
     Asset, AssetParams,
     AssetHolding, ApplicationLocalState, ApplicationStateSchema,
     TealKeyValue, TealValue,
+    DryrunResponse, DryrunTxnResult, DryrunState,
 };
