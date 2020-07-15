@@ -32,17 +32,17 @@ describe('encoding', function () {
             let a = {"a": 0, "B": []};
             assert.throws(() => {
                 encoding.encode(a);
-            }, (err) => err === encoding.ERROR_CONTAINS_EMPTY);
+            }, (err) => err.toString().includes(encoding.ERROR_CONTAINS_EMPTY_STRING));
 
             let b = {"a": 4, "B": []};
             assert.throws(() => {
                 encoding.encode(b);
-            }, (err) => err === encoding.ERROR_CONTAINS_EMPTY);
+            }, (err) => err.toString().includes(encoding.ERROR_CONTAINS_EMPTY_STRING));
 
             let c = {"a": 4, "B": 0};
             assert.throws(() => {
                 encoding.encode(c);
-            }, (err) => err === encoding.ERROR_CONTAINS_EMPTY);
+            }, (err) => err.toString().includes(encoding.ERROR_CONTAINS_EMPTY_STRING));
         });
 
         it('should encode Binary blob should be used for binary data and string for strings', function () {
