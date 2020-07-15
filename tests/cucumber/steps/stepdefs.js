@@ -1650,6 +1650,14 @@ When('we make a Get Block call against block number {int} with format {string}',
     await this.v2Client.block(blockNum).do();
 });
 
+When('we make a GetAssetByID call for assetID {int}', async function (index) {
+    await this.v2Client.getAssetByID(index).do();
+});
+
+When('we make a GetApplicationByID call for applicationID {int}', async function (index) {
+    await this.v2Client.getApplicationByID(index).do();
+});
+
 let anyPendingTransactionInfoResponse;
 
 When('we make any Pending Transaction Information call', async function () {
@@ -1875,6 +1883,14 @@ When('we make a SearchForAssets call with limit {int} creator {string} name {str
 
 When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}', async function (limit, creator, name, unit, index) {
     await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).do();
+});
+
+When('we make a SearchForApplications call with applicationID {int}', async function (index) {
+    await this.indexerClient.searchForApplications().index(index).do();
+});
+
+When('we make a LookupApplications call with applicationID {int}', async function (index) {
+    await this.indexerClient.lookupApplications(index).do();
 });
 
 let anyLookupAssetBalancesResponse;

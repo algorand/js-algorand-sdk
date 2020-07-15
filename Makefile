@@ -1,6 +1,5 @@
 unit:
-	node_modules/.bin/cucumber-js --tags "@unit.offline or @unit.algod or @unit.indexer or @unit.rekey or @unit.tealsign or @unit.dryrun or @unit.applications" tests/cucumber/features --require tests/cucumber/steps/*
-
+	node_modules/.bin/cucumber-js --tags "@unit.offline or @unit.algod or @unit.indexer or @unit.rekey or @unit.tealsign or @unit.dryrun or @unit.applications or @unit.responses" tests/cucumber/features --require tests/cucumber/steps/*
 integration:
 	node_modules/.bin/cucumber-js --tags "@algod or @assets or @auction or @kmd or @send or @template or @indexer or @rekey or @dryrun or @compile or @applications" tests/cucumber/features --require tests/cucumber/steps/*
 
