@@ -2635,23 +2635,32 @@ When('I build an application transaction with operation {string}, application-id
         "fee": fee,
         "flatFee": true,
     }
-    let o = {
-        "from": sender,
-        "appIndex": appIndex,
-        "appOnComplete": operation,
-        "appLocalInts": numLocalInts,
-        "appLocalByteSlices": numLocalByteSlices,
-        "appGlobalInts": numGlobalInts,
-        "appGlobalByteSlices": numGlobalByteSlices,
-        "appApprovalProgram": approvalProgramBytes,
-        "appClearProgram": clearProgramBytes,
-        "appArgs": appArgs,
-        "appAccounts" : appAccounts,
-        "appForeignApps": foreignApps,
-        "type": "appl",
-        "suggestedParams": sp
+
+    switch(operationString) {
+        case "call":
+            this.txn = algosdk.makeApplicationNoOpTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "create":
+            this.txn = algosdk.makeApplicationCreateTxn(sender, sp, operation, approvalProgramBytes, clearProgramBytes, numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices, appArgs, appAccounts, foreignApps);
+            return;
+        case "update":
+            this.txn = algosdk.makeApplicationUpdateTxn(sender, sp, appIndex, approvalProgramBytes, clearProgramBytes, appArgs, appAccounts, foreignApps);
+            return;
+        case "optin":
+            this.txn = algosdk.makeApplicationOptInTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "delete":
+            this.txn = algosdk.makeApplicationDeleteTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "clear":
+            this.txn = algosdk.makeApplicationClearStateTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "closeout":
+            this.txn = algosdk.makeApplicationCloseOutTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        default:
+            throw Error("did not recognize application operation string " + operationString);
     }
-    this.txn = new transaction.Transaction(o);
 });
 
 When('sign the transaction', function () {
