@@ -1601,7 +1601,7 @@ When('we make any {string} call to {string}.', async function (client, endpoint)
 
 Then('the parsed response should equal the mock response.', function () {
     if (this.expectedMockResponseCode == 200) {
-        assert.equal(JSON.stringify((JSON.parse(expectedMockResponse)), JSON.stringify(this.actualMockResponse)));
+        assert.equal(JSON.stringify(JSON.parse(expectedMockResponse)), JSON.stringify(this.actualMockResponse));
     }
 });
 
