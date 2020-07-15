@@ -1491,12 +1491,12 @@ function cleanupAlgodV2MockServers() {
         algodMockServerResponder.stop(emptyFunctionForMockServer);
     }
 }
-
+let expectedMockResponse;
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
     if (process.env.UNITTESTDIR === undefined) {
         throw Error("UNITTESTDIR env var not set");
     }
-    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/" + jsonDirectory + "/" + fileName;
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonDirectory + "/" + fileName;
     let resultString = "";
     let xml = new XMLHttpRequest();
     xml.open("GET", mockResponsePath, false);
@@ -1515,11 +1515,15 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
         headers = { "content-type": "application/msgpack"};
         body = Buffer.from(resultString, 'base64');
     }
+    let statusCode = 200;
+    if (fileName.indexOf("Error") > -1) {
+        statusCode = 500;
+    }
     mockServer.on({
         method: 'GET',
         path: '*',
         reply: {
-            status:  200,
+            status:  statusCode,
             headers: headers,
             body:    body
         }
@@ -1528,11 +1532,14 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
         method: 'POST',
         path: '*',
         reply: {
-            status:  200,
+            status:  statusCode,
             headers: headers,
             body:    body
         }
     });
+    if (body != undefined) {
+        expectedMockResponse = body;
+    }
 }
 
 function emptyFunctionForMockServer() {}
@@ -1559,6 +1566,43 @@ Given('mock http responses in {string} loaded from {string}', function (fileName
     setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
     this.v2Client = new clientv2.AlgodClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
     this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+});
+
+Given('mock http responses in {string} loaded from {string} with status {int}.', function (fileName, jsonDirectory, status) {
+    setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
+    setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
+    this.v2Client = new clientv2.AlgodClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.expectedMockResponseCode = status;
+});
+
+When('we make any {string} call to {string}.', async function (client, endpoint) {
+    try {
+        if (client == "algod") {
+            // endpoints are ignored by mock server, see setupMockServerForResponses
+            this.actualMockResponse = await this.v2Client.status().do();
+        } else if (client == "indexer") {
+            // endpoints are ignored by mock server, see setupMockServerForResponses
+            this.actualMockResponse = await this.indexerClient.makeHealthCheck().do();
+        } else {
+            throw Error("did not recognize desired client \"" + client + "\"");
+        }
+    } catch (err) {
+        if (this.expectedMockResponseCode == 200) {
+            throw err;
+        }
+        if (this.expectedMockResponseCode == 500) {
+            if (!err.toString().includes("Internal Server Error")) {
+                throw Error("expected response code 500 implies error Internal Server Error but instead had error: " + err)
+            }
+        }
+    }
+});
+
+Then('the parsed response should equal the mock response.', function () {
+    if (this.expectedMockResponseCode == 200) {
+        assert.equal(JSON.stringify((JSON.parse(expectedMockResponse)), JSON.stringify(this.actualMockResponse)));
+    }
 });
 
 Then('expect error string to contain {string}', function (expectedErrorString) {
