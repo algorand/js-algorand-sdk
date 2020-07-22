@@ -22,6 +22,9 @@ class Transaction {
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
                  freezeAccount, freezeState, assetRevocationTarget,
+                 appIndex, appOnComplete, appLocalInts, appLocalByteSlices,
+                 appGlobalInts, appGlobalByteSlices, appApprovalProgram, appClearProgram,
+                 appArgs, appAccounts, appForeignApps,
                  type="pay", flatFee=false, suggestedParams=undefined,
                  reKeyTo=undefined}) {
         this.name = "Transaction";
@@ -57,6 +60,35 @@ class Transaction {
         if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^53-1");
         if (assetDecimals !== undefined && (!Number.isSafeInteger(assetDecimals) || assetDecimals < 0 || assetDecimals > ALGORAND_MAX_ASSET_DECIMALS)) throw Error("assetDecimals must be a positive number and smaller than " + ALGORAND_MAX_ASSET_DECIMALS.toString());
         if (assetIndex !== undefined && (!Number.isSafeInteger(assetIndex) || assetIndex < 0)) throw Error("Asset index must be a positive number and smaller than 2^53-1");
+        if (appIndex !== undefined && (!Number.isSafeInteger(appIndex) || appIndex < 0)) throw Error("Application index must be a positive number and smaller than 2^53-1");
+        if (appLocalInts !== undefined && (!Number.isSafeInteger(appLocalInts) || appLocalInts < 0)) throw Error("Application local ints count must be a positive number and smaller than 2^53-1");
+        if (appLocalByteSlices !== undefined && (!Number.isSafeInteger(appLocalByteSlices) || appLocalByteSlices < 0)) throw Error("Application local byte slices count must be a positive number and smaller than 2^53-1");
+        if (appGlobalInts !== undefined && (!Number.isSafeInteger(appGlobalInts) || appGlobalInts < 0)) throw Error("Application global ints count must be a positive number and smaller than 2^53-1");
+        if (appGlobalByteSlices !== undefined && (!Number.isSafeInteger(appGlobalByteSlices) || appGlobalByteSlices < 0)) throw Error("Application global byte slices count must be a positive number and smaller than 2^53-1")
+        if (appApprovalProgram !== undefined) {
+            if (appApprovalProgram.constructor !== Uint8Array) throw Error("appApprovalProgram must be a Uint8Array.");
+        }
+        if (appClearProgram !== undefined) {
+            if (appClearProgram.constructor !== Uint8Array) throw Error("appClearProgram must be a Uint8Array.");
+        }
+        if (appArgs !== undefined) {
+            if (appArgs.constructor !== Array) throw Error("appArgs must be an Array of Uint8Array.");
+            appArgs.forEach((arg) => {
+                if (arg.constructor !== Uint8Array) throw Error("each element of AppArgs must be a Uint8Array.");
+            });
+        } else {
+            appArgs = new Uint8Array(0);
+        }
+        if (appAccounts !== undefined) {
+            appAccounts.forEach((addressAsString, index) => {
+               appAccounts[index] = address.decode(addressAsString);
+            })
+        }
+        if (appForeignApps !== undefined) {
+            appForeignApps.forEach((foreignAppIndex) => {
+               if (!Number.isSafeInteger(foreignAppIndex) || foreignAppIndex < 0) throw Error("each foreign application index must be a positive number and smaller than 2^53-1");
+            });
+        }
 
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
@@ -83,7 +115,10 @@ class Transaction {
             closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
             assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
-            freezeAccount, freezeState, assetRevocationTarget, type, reKeyTo
+            freezeAccount, freezeState, assetRevocationTarget,
+            appIndex, appOnComplete, appLocalInts, appLocalByteSlices, appGlobalInts, appGlobalByteSlices,
+            appApprovalProgram, appClearProgram, appArgs, appAccounts, appForeignApps,
+            type, reKeyTo
         });
 
         // Modify Fee
@@ -297,6 +332,73 @@ class Transaction {
             }
             return txn;
         }
+        else if (this.type == "appl") {
+            // application call of some kind
+            let txn = {
+                "fee": this.fee,
+                "fv": this.firstRound,
+                "lv": this.lastRound,
+                "note": Buffer.from(this.note),
+                "snd": Buffer.from(this.from.publicKey),
+                "type": this.type,
+                "gen": this.genesisID,
+                "gh": this.genesisHash,
+                "lx": Buffer.from(this.lease),
+                "grp": this.group,
+                "apid": this.appIndex,
+                "apan": this.appOnComplete,
+                "apls": {
+                    "nui": this.appLocalInts,
+                    "nbs": this.appLocalByteSlices
+                },
+                "apgs": {
+                    "nui": this.appGlobalInts,
+                    "nbs": this.appGlobalByteSlices
+                },
+                "apfa": this.appForeignApps,
+            };
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
+            if (this.appApprovalProgram !== undefined) {
+                txn.apap = Buffer.from(this.appApprovalProgram);
+            }
+            if (this.appClearProgram !== undefined) {
+                txn.apsu = Buffer.from(this.appClearProgram);
+            }
+            if (this.appArgs !== undefined) {
+                txn.apaa = [];
+                this.appArgs.forEach((arg) => {
+                    txn.apaa.push(Buffer.from(arg));
+                });
+            }
+            if (this.appAccounts !== undefined) {
+                txn.apat = [];
+                this.appAccounts.forEach((decodedAddress) => {
+                    txn.apat.push(Buffer.from(decodedAddress.publicKey));
+                });
+            }
+            // allowed zero values
+            if (!txn.note.length) delete txn.note;
+            if (!txn.lx.length) delete txn.lx;
+            if (!txn.amt) delete txn.amt;
+            if (!txn.fee) delete txn.fee;
+            if (!txn.gen) delete txn.gen;
+            if (!txn.apid) delete txn.apid;
+            if (!txn.apls.nui) delete txn.apls.nui;
+            if (!txn.apls.nbs) delete txn.apls.nbs;
+            if ((!txn.apls.nui) && (!txn.apls.nbs)) delete txn.apls;
+            if (!txn.apgs.nui) delete txn.apgs.nui;
+            if (!txn.apgs.nbs) delete txn.apgs.nbs;
+            if (!txn.apaa || !txn.apaa.length) delete txn.apaa;
+            if ((!txn.apgs.nui) && (!txn.apgs.nbs)) delete txn.apgs;
+            if (!txn.apap) delete txn.apap;
+            if (!txn.apsu) delete txn.apsu;
+            if (!txn.apan) delete txn.apan;
+            if (!txn.apfa) delete txn.apfa;
+            if (txn.grp === undefined) delete txn.grp;
+            return txn;
+        }
     }
 
     static from_obj_for_encoding(txnForEnc) {
@@ -369,6 +471,42 @@ class Transaction {
                 txn.assetIndex = txnForEnc.faid;
             }
             txn.freezeAccount = address.decode(address.encode(new Uint8Array(txnForEnc.fadd)));
+        } else if (txnForEnc.type === "appl") {
+            if (txnForEnc.apid !== undefined) {
+                txn.appIndex = txnForEnc.apid;
+            }
+            if (txnForEnc.apan !== undefined) {
+                txn.appOnComplete = txnForEnc.apan;
+            }
+            if (txnForEnc.apls !== undefined) {
+                if (txnForEnc.apls.nui !== undefined) txn.appLocalInts = txnForEnc.apls.nui;
+                if (txnForEnc.apls.nbs !== undefined) txn.appLocalByteSlices = txnForEnc.apls.nbs;
+            }
+            if (txnForEnc.apgs !== undefined) {
+                if (txnForEnc.apgs.nui !== undefined) txn.appGlobalInts = txnForEnc.apgs.nui;
+                if (txnForEnc.apgs.nbs !== undefined) txn.appGlobalByteSlices = txnForEnc.apgs.nbs;
+            }
+            if (txnForEnc.apap !== undefined) {
+                txn.appApprovalProgram = new Uint8Array(txnForEnc.apap);
+            }
+            if (txnForEnc.apsu !== undefined) {
+                txn.appClearProgram = new Uint8Array(txnForEnc.apsu);
+            }
+            if (txnForEnc.apaa !== undefined) {
+                txn.appArgs = [];
+                txnForEnc.apaa.forEach((arg) => {
+                    txn.appArgs.push(new Uint8Array(arg));
+                });
+            }
+            if (txnForEnc.apat !== undefined) {
+                txn.appAccounts = [];
+                txnForEnc.apat.forEach((addressBytes) => {
+                   txn.appAccounts.push(address.decode(address.encode(new Uint8Array(addressBytes))));
+                });
+            }
+            if (txnForEnc.apfa !== undefined) {
+                txn.appForeignApps = txnForEnc.apfa;
+            }
         }
         return txn;
     }
@@ -446,6 +584,7 @@ class Transaction {
         }
     }
 }
+
 
 /**
  * Aux class for group id calculation of a group of transactions

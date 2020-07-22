@@ -1,3 +1,4 @@
+
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
 const mnemonic = require('./mnemonic/mnemonic');
@@ -817,7 +818,6 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
  * @param amount - integer amount of assets to send
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
- * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
@@ -843,6 +843,308 @@ function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, rev
     return new txnBuilder.Transaction(o);
 }
 
+/*
+ * Enums for application transactions on-transaction-complete behavior
+ */
+let OnApplicationComplete = {
+    // NoOpOC indicates that an application transaction will simply call its
+    // ApprovalProgram
+    NoOpOC : 0,
+    // OptInOC indicates that an application transaction will allocate some
+    // LocalState for the application in the sender's account
+    OptInOC : 1,
+    // CloseOutOC indicates that an application transaction will deallocate
+    // some LocalState for the application from the user's account
+    CloseOutOC : 2,
+    // ClearStateOC is similar to CloseOutOC, but may never fail. This
+    // allows users to reclaim their minimum balance from an application
+    // they no longer wish to opt in to.
+    ClearStateOC : 3,
+    // UpdateApplicationOC indicates that an application transaction will
+    // update the ApprovalProgram and ClearStateProgram for the application
+    UpdateApplicationOC : 4,
+    // DeleteApplicationOC indicates that an application transaction will
+    // delete the AppParams for the application from the creator's balance
+    // record
+    DeleteApplicationOC : 5
+}
+
+/**
+ * Make a transaction that will create an application.
+ * @param from - address of sender
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param onComplete - algosdk.OnApplicationComplete, what application should do once the program is done being run
+ * @param approvalProgram - Uint8Array, the compiled TEAL that approves a transaction
+ * @param clearProgram - Uint8Array, the compiled TEAL that runs when clearing state
+ * @param numLocalInts - restricts number of ints in per-user local state
+ * @param numLocalByteSlices - restricts number of byte slices in per-user local state
+ * @param numGlobalInts - restricts number of ints in global state
+ * @param numGlobalByteSlices - restricts number of byte slices in global state
+ * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
+ * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param note, optional
+ * @param lease, optional
+ * @param rekeyTo, optional
+ */
+function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalProgram, clearProgram,
+                                  numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices,
+                                  appArgs= undefined, accounts= undefined, foreignApps= undefined,
+                                  note = undefined, lease = undefined, rekeyTo = undefined) {
+    let o = {
+        "type" : "appl",
+        "from": from,
+        "suggestedParams": suggestedParams,
+        "appIndex": 0,
+        "appOnComplete": onComplete,
+        "appLocalInts": numLocalInts,
+        "appLocalByteSlices": numLocalByteSlices,
+        "appGlobalInts": numGlobalInts,
+        "appGlobalByteSlices": numGlobalByteSlices,
+        "appApprovalProgram": approvalProgram,
+        "appClearProgram": clearProgram,
+        "appArgs": appArgs,
+        "appAccounts": accounts,
+        "appForeignApps": foreignApps,
+        "note": note,
+        "lease": lease,
+        "reKeyTo": rekeyTo
+    }
+    return new txnBuilder.Transaction(o);
+}
+
+
+/**
+ * Make a transaction that changes an application's approval and clear programs
+ * @param from - address of sender
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param appIndex - the ID of the app to be updated
+ * @param approvalProgram - Uint8Array, the compiled TEAL that approves a transaction
+ * @param clearProgram - Uint8Array, the compiled TEAL that runs when clearing state
+ * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
+ * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param note, optional
+ * @param lease, optional
+ * @param rekeyTo, optional
+ */
+function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgram, clearProgram,
+                                  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                  note = undefined, lease = undefined, rekeyTo = undefined) {
+    let o = {
+        "type" : "appl",
+        "from": from,
+        "suggestedParams": suggestedParams,
+        "appIndex": appIndex,
+        "appApprovalProgram": approvalProgram,
+        "appOnComplete": OnApplicationComplete.UpdateApplicationOC,
+        "appClearProgram": clearProgram,
+        "appArgs": appArgs,
+        "appAccounts": accounts,
+        "appForeignApps": foreignApps,
+        "note": note,
+        "lease": lease,
+        "reKeyTo": rekeyTo
+    }
+    return new txnBuilder.Transaction(o);
+}
+
+/**
+ * Make a transaction that deletes an application
+ * @param from - address of sender
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param appIndex - the ID of the app to be deleted
+ * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
+ * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param note, optional
+ * @param lease, optional
+ * @param rekeyTo, optional
+ */
+function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
+                                  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                  note = undefined, lease = undefined, rekeyTo = undefined) {
+    let o = {
+        "type" : "appl",
+        "from": from,
+        "suggestedParams": suggestedParams,
+        "appIndex": appIndex,
+        "appOnComplete": OnApplicationComplete.DeleteApplicationOC,
+        "appArgs": appArgs,
+        "appAccounts": accounts,
+        "appForeignApps": foreignApps,
+        "note": note,
+        "lease": lease,
+        "reKeyTo": rekeyTo
+    }
+    return new txnBuilder.Transaction(o);
+}
+
+/**
+ * Make a transaction that opts in to use an application
+ * @param from - address of sender
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param appIndex - the ID of the app to join
+ * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
+ * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param note, optional
+ * @param lease, optional
+ * @param rekeyTo, optional
+ */
+function makeApplicationOptInTxn(from, suggestedParams, appIndex,
+                                 appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                 note = undefined, lease = undefined, rekeyTo = undefined) {
+    let o = {
+        "type" : "appl",
+        "from": from,
+        "suggestedParams": suggestedParams,
+        "appIndex": appIndex,
+        "appOnComplete": OnApplicationComplete.OptInOC,
+        "appArgs": appArgs,
+        "appAccounts": accounts,
+        "appForeignApps": foreignApps,
+        "note": note,
+        "lease": lease,
+        "reKeyTo": rekeyTo
+    }
+    return new txnBuilder.Transaction(o);
+}
+
+/**
+ * Make a transaction that closes out a user's state in an application
+ * @param from - address of sender
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param appIndex - the ID of the app to use
+ * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
+ * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param note, optional
+ * @param lease, optional
+ * @param rekeyTo, optional
+ */
+function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
+                                    appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                    note = undefined, lease = undefined, rekeyTo = undefined) {
+    let o = {
+        "type" : "appl",
+        "from": from,
+        "suggestedParams": suggestedParams,
+        "appIndex": appIndex,
+        "appOnComplete": OnApplicationComplete.CloseOutOC,
+        "appArgs": appArgs,
+        "appAccounts": accounts,
+        "appForeignApps": foreignApps,
+        "note": note,
+        "lease": lease,
+        "reKeyTo": rekeyTo
+    }
+    return new txnBuilder.Transaction(o);
+}
+
+/**
+ * Make a transaction that clears a user's state in an application
+ * @param from - address of sender
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param appIndex - the ID of the app to use
+ * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
+ * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param note, optional
+ * @param lease, optional
+ * @param rekeyTo, optional
+ */
+function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
+                                      appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                      note = undefined, lease = undefined, rekeyTo = undefined) {
+    let o = {
+        "type" : "appl",
+        "from": from,
+        "suggestedParams": suggestedParams,
+        "appIndex": appIndex,
+        "appOnComplete": OnApplicationComplete.ClearStateOC,
+        "appArgs": appArgs,
+        "appAccounts": accounts,
+        "appForeignApps": foreignApps,
+        "note": note,
+        "lease": lease,
+        "reKeyTo": rekeyTo
+    }
+    return new txnBuilder.Transaction(o);
+}
+
+/**
+ * Make a transaction that just calls an application, doing nothing on completion
+ * @param from - address of sender
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param appIndex - the ID of the app to use
+ * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
+ * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param note, optional
+ * @param lease, optional
+ * @param rekeyTo, optional
+ */
+function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
+                                appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                note = undefined, lease = undefined, rekeyTo = undefined) {
+    let o = {
+        "type" : "appl",
+        "from": from,
+        "suggestedParams": suggestedParams,
+        "appIndex": appIndex,
+        "appOnComplete": OnApplicationComplete.NoOpOC,
+        "appArgs": appArgs,
+        "appAccounts": accounts,
+        "appForeignApps": foreignApps,
+        "note": note,
+        "lease": lease,
+        "reKeyTo": rekeyTo
+    }
+    return new txnBuilder.Transaction(o);
+}
 
 module.exports = {
     isValidAddress,
@@ -890,5 +1192,13 @@ module.exports = {
     makeAssetConfigTxnWithSuggestedParams,
     makeAssetDestroyTxnWithSuggestedParams,
     makeAssetFreezeTxnWithSuggestedParams,
-    makeAssetTransferTxnWithSuggestedParams
+    makeAssetTransferTxnWithSuggestedParams,
+    OnApplicationComplete,
+    makeApplicationCreateTxn,
+    makeApplicationUpdateTxn,
+    makeApplicationDeleteTxn,
+    makeApplicationOptInTxn,
+    makeApplicationCloseOutTxn,
+    makeApplicationClearStateTxn,
+    makeApplicationNoOpTxn
 };

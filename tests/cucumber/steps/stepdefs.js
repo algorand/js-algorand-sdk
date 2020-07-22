@@ -12,6 +12,7 @@ const clientv2 = require("../../../src/client/v2/algod/algod");
 const modelsv2 = require("../../../src/client/v2/algod/models/types");
 const indexer = require("../../../src/client/v2/indexer/indexer");
 const nacl = require("../../../src/nacl/naclWrappers");
+const transaction = require("../../../src/transaction");
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
@@ -1490,12 +1491,12 @@ function cleanupAlgodV2MockServers() {
         algodMockServerResponder.stop(emptyFunctionForMockServer);
     }
 }
-
+let expectedMockResponse;
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
     if (process.env.UNITTESTDIR === undefined) {
         throw Error("UNITTESTDIR env var not set");
     }
-    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/" + jsonDirectory + "/" + fileName;
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonDirectory + "/" + fileName;
     let resultString = "";
     let xml = new XMLHttpRequest();
     xml.open("GET", mockResponsePath, false);
@@ -1514,11 +1515,15 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
         headers = { "content-type": "application/msgpack"};
         body = Buffer.from(resultString, 'base64');
     }
+    let statusCode = 200;
+    if (fileName.indexOf("Error") > -1) {
+        statusCode = 500;
+    }
     mockServer.on({
         method: 'GET',
         path: '*',
         reply: {
-            status:  200,
+            status:  statusCode,
             headers: headers,
             body:    body
         }
@@ -1527,11 +1532,14 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
         method: 'POST',
         path: '*',
         reply: {
-            status:  200,
+            status:  statusCode,
             headers: headers,
             body:    body
         }
     });
+    if (body != undefined) {
+        expectedMockResponse = body;
+    }
 }
 
 function emptyFunctionForMockServer() {}
@@ -1560,6 +1568,43 @@ Given('mock http responses in {string} loaded from {string}', function (fileName
     this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
 });
 
+Given('mock http responses in {string} loaded from {string} with status {int}.', function (fileName, jsonDirectory, status) {
+    setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
+    setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
+    this.v2Client = new clientv2.AlgodClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.expectedMockResponseCode = status;
+});
+
+When('we make any {string} call to {string}.', async function (client, endpoint) {
+    try {
+        if (client == "algod") {
+            // endpoints are ignored by mock server, see setupMockServerForResponses
+            this.actualMockResponse = await this.v2Client.status().do();
+        } else if (client == "indexer") {
+            // endpoints are ignored by mock server, see setupMockServerForResponses
+            this.actualMockResponse = await this.indexerClient.makeHealthCheck().do();
+        } else {
+            throw Error("did not recognize desired client \"" + client + "\"");
+        }
+    } catch (err) {
+        if (this.expectedMockResponseCode == 200) {
+            throw err;
+        }
+        if (this.expectedMockResponseCode == 500) {
+            if (!err.toString().includes("Internal Server Error")) {
+                throw Error("expected response code 500 implies error Internal Server Error but instead had error: " + err)
+            }
+        }
+    }
+});
+
+Then('the parsed response should equal the mock response.', function () {
+    if (this.expectedMockResponseCode == 200) {
+        assert.equal(JSON.stringify(JSON.parse(expectedMockResponse)), JSON.stringify(this.actualMockResponse));
+    }
+});
+
 Then('expect error string to contain {string}', function (expectedErrorString) {
     if (expectedErrorString == 'nil') {
         assert.equal("", globalErrForExamination);
@@ -1576,6 +1621,19 @@ Given('mock server recording request paths', function () {
 });
 
 Then('expect the path used to be {string}', function (expectedRequestPath) {
+    // get all requests the mockservers have seen since reset
+    let algodSeenRequests = algodMockServerPathRecorder.requests();
+    let indexerSeenRequests = indexerMockServerPathRecorder.requests();
+    let actualRequestPath;
+    if (algodSeenRequests.length != 0) {
+        actualRequestPath = algodSeenRequests[0]['url'];
+    } else if (indexerSeenRequests.length != 0) {
+        actualRequestPath = indexerSeenRequests[0]['url'];
+    }
+    assert.equal(expectedRequestPath, actualRequestPath);
+});
+
+Then('we expect the path used to be {string}', function (expectedRequestPath) {
     // get all requests the mockservers have seen since reset
     let algodSeenRequests = algodMockServerPathRecorder.requests();
     let indexerSeenRequests = indexerMockServerPathRecorder.requests();
@@ -1634,6 +1692,14 @@ When('we make a Get Block call against block number {int} with format {string}',
         assert.fail("this SDK only supports format msgpack for this function");
     }
     await this.v2Client.block(blockNum).do();
+});
+
+When('we make a GetAssetByID call for assetID {int}', async function (index) {
+    await this.v2Client.getAssetByID(index).do();
+});
+
+When('we make a GetApplicationByID call for applicationID {int}', async function (index) {
+    await this.v2Client.getApplicationByID(index).do();
 });
 
 let anyPendingTransactionInfoResponse;
@@ -1807,6 +1873,10 @@ When('we make a Lookup Asset by ID call against asset index {int}', async functi
     await this.indexerClient.lookupAssetByID(assetIndex).do();
 });
 
+When('we make a LookupApplications call with {int} and {int}', async function (index, round) {
+    await this.indexerClient.lookupApplications(index).round(round).do();
+});
+
 When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}', async function (assetIndex, limit, currencyGreater, currencyLesser, nextToken) {
     await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).nextToken(nextToken).do();
 });
@@ -1825,6 +1895,10 @@ When('we make a Search For Transactions call with account {string} NotePrefix {s
         excludeCloseTo = true;
     }
     await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
+});
+
+When('we make a SearchForApplications call with {int} and {int}', async function (index, round) {
+    await this.indexerClient.searchForApplications().index(index).round(round).do();
 });
 
 When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
@@ -1853,6 +1927,14 @@ When('we make a SearchForAssets call with limit {int} creator {string} name {str
 
 When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}', async function (limit, creator, name, unit, index) {
     await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).do();
+});
+
+When('we make a SearchForApplications call with applicationID {int}', async function (index) {
+    await this.indexerClient.searchForApplications().index(index).do();
+});
+
+When('we make a LookupApplications call with applicationID {int}', async function (index) {
+    await this.indexerClient.lookupApplications(index).do();
 });
 
 let anyLookupAssetBalancesResponse;
@@ -2455,4 +2537,244 @@ When('I perform tealsign', function () {
 Then('the signature should be equal to {string}', function (expectedEncoded) {
     const expected = new Uint8Array(Buffer.from(expectedEncoded, "base64"));
     assert.deepStrictEqual(this.sig, expected);
+});
+
+////////////////////////////////////
+// begin application test helpers
+////////////////////////////////////
+
+Given('a signing account with address {string} and mnemonic {string}', function (address, mnemonic) {
+    this.signingMnemonic = mnemonic
+});
+
+function operationStringToEnum(inString) {
+    switch(inString) {
+        case "call":
+            return algosdk.OnApplicationComplete.NoOpOC;
+        case "create":
+            return algosdk.OnApplicationComplete.NoOpOC;
+        case "update":
+            return algosdk.OnApplicationComplete.UpdateApplicationOC;
+        case "optin":
+            return algosdk.OnApplicationComplete.OptInOC;
+        case "delete":
+            return algosdk.OnApplicationComplete.DeleteApplicationOC;
+        case "clear":
+            return algosdk.OnApplicationComplete.ClearStateOC;
+        case "closeout":
+            return algosdk.OnApplicationComplete.CloseOutOC;
+        default:
+            throw Error("did not recognize application operation string " + inString);
+    }
+}
+
+function splitAndProcessAppArgs(inArgs) {
+    let splitArgs = inArgs.split(",");
+    let subArgs = [];
+    splitArgs.forEach((subArg) => {
+       subArgs.push(subArg.split(":"));
+    });
+    let appArgs = [];
+    subArgs.forEach((subArg) => {
+       switch (subArg[0]) {
+           case "str":
+               appArgs.push(new Uint8Array(Buffer.from(subArg[1])));
+               break;
+           case "int":
+
+               appArgs.push(new Uint8Array([parseInt(subArg[1])]));
+               break;
+           case "addr":
+               appArgs.push(address.decode(subArg[1])["publicKey"]);
+               break;
+           default:
+               throw Error("did not recognize app arg of type" + subArg[0])
+       }
+    });
+    return appArgs;
+}
+
+When('I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}', function (operationString, appIndex, sender, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, appAccountsCommaSeparatedString, fee, firstValid, lastValid, genesisHashBase64) {
+    // operation string to enum
+    let operation = operationStringToEnum(operationString);
+    // open and load in approval program
+    let approvalProgramBytes = undefined;
+    if (approvalProgramFile !== "") {
+        let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
+        approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+    }
+    // open and load in clear program
+    let clearProgramBytes = undefined;
+    if (clearProgramFile !== "") {
+        let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
+        clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+    }
+    // split and process app args
+    let appArgs = undefined;
+    if (appArgsCommaSeparatedString !== "") {
+        appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    }
+    // split and process foreign apps
+    let foreignApps = undefined;
+    if (foreignAppsCommaSeparatedString !== "") {
+        foreignApps = [];
+        foreignAppsCommaSeparatedString.split(",").forEach((foreignAppAsString) => {
+           foreignApps.push(parseInt(foreignAppAsString));
+        });
+    }
+    // split and process app accounts
+    let appAccounts = undefined;
+    if (appAccountsCommaSeparatedString !== "") {
+        appAccounts = appAccountsCommaSeparatedString.split(",");
+    }
+    // build suggested params object
+    let sp = {
+        "genesisHash": genesisHashBase64,
+        "firstRound": firstValid,
+        "lastRound": lastValid,
+        "fee": fee,
+        "flatFee": true,
+    }
+
+    switch(operationString) {
+        case "call":
+            this.txn = algosdk.makeApplicationNoOpTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "create":
+            this.txn = algosdk.makeApplicationCreateTxn(sender, sp, operation, approvalProgramBytes, clearProgramBytes, numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices, appArgs, appAccounts, foreignApps);
+            return;
+        case "update":
+            this.txn = algosdk.makeApplicationUpdateTxn(sender, sp, appIndex, approvalProgramBytes, clearProgramBytes, appArgs, appAccounts, foreignApps);
+            return;
+        case "optin":
+            this.txn = algosdk.makeApplicationOptInTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "delete":
+            this.txn = algosdk.makeApplicationDeleteTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "clear":
+            this.txn = algosdk.makeApplicationClearStateTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        case "closeout":
+            this.txn = algosdk.makeApplicationCloseOutTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            return;
+        default:
+            throw Error("did not recognize application operation string " + operationString);
+    }
+});
+
+When('sign the transaction', function () {
+    let result = algosdk.mnemonicToSecretKey(this.signingMnemonic)
+    this.stx = this.txn.signTxn(result.sk);
+});
+
+Then('the base{int} encoded signed transaction should equal {string}', function (base, base64golden) {
+    let actualBase64 = Buffer.from(this.stx).toString("base64");
+    assert.equal(base64golden, actualBase64)
+});
+
+Given('an algod v{int} client connected to {string} port {int} with token {string}', function (clientVersion, host, port, token) {
+    this.v2Client = new clientv2.AlgodClient(token, host, port, {});
+});
+
+Given('I create a new transient account and fund it with {int} microalgos.', async function (fundingAmount) {
+    let generatedResult = algosdk.generateAccount()
+    this.transientSecretKey = generatedResult.sk;
+    this.transientAddress = generatedResult.addr;
+    let sp = await this.v2Client.getTransactionParams().do();
+    if (sp["firstRound"] == 0) sp["firstRound"] = 1;
+    let fundingTxnArgs = {
+        "from": this.accounts[0],
+        "to": this.transientAddress,
+        "amount": fundingAmount,
+        "suggestedParams": sp
+    };
+    let stxKmd = await this.kcl.signTransaction(this.handle, this.wallet_pswd, fundingTxnArgs);
+    let fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2).do();
+    let fundingConfirmation = await this.acl.transactionById(fundingResponse["txId"]);
+    assert.deepStrictEqual(true, "type" in fundingConfirmation);
+});
+
+Given('I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, app-accounts {string}', async function (operationString, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, appAccountsCommaSeparatedString) {
+    // operation string to enum
+    let operation = operationStringToEnum(operationString);
+    // open and load in approval program
+    let approvalProgramBytes = undefined;
+    if (approvalProgramFile !== "") {
+        let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
+        approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+    }
+    // open and load in clear program
+    let clearProgramBytes = undefined;
+    if (clearProgramFile !== "") {
+        let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
+        clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+    }
+    // split and process app args
+    let appArgs = undefined;
+    if (appArgsCommaSeparatedString !== "") {
+        appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    }
+    // split and process foreign apps
+    let foreignApps = undefined;
+    if (foreignAppsCommaSeparatedString !== "") {
+        foreignApps = [];
+        foreignAppsCommaSeparatedString.split(",").forEach((foreignAppAsString) => {
+            foreignApps.push(parseInt(foreignAppAsString));
+        });
+    }
+    // split and process app accounts
+    let appAccounts = undefined;
+    if (appAccountsCommaSeparatedString !== "") {
+        appAccounts = appAccountsCommaSeparatedString.split(",");
+    }
+    let sp = await this.v2Client.getTransactionParams().do();
+    if (sp["firstRound"] == 0) sp["firstRound"] = 1;
+    let o = {
+        "from": this.transientAddress,
+        "appIndex": this.currentApplicationIndex,
+        "appOnComplete": operation,
+        "appLocalInts": numLocalInts,
+        "appLocalByteSlices": numLocalByteSlices,
+        "appGlobalInts": numGlobalInts,
+        "appGlobalByteSlices": numGlobalByteSlices,
+        "appApprovalProgram": approvalProgramBytes,
+        "appClearProgram": clearProgramBytes,
+        "appArgs": appArgs,
+        "appAccounts" : appAccounts,
+        "appForeignApps": foreignApps,
+        "type": "appl",
+        "suggestedParams": sp
+    }
+    this.txn = new transaction.Transaction(o);
+});
+
+Given('I sign and submit the transaction, saving the txid. If there is an error it is {string}.', async function (errorString) {
+    try {
+        let appStx = this.txn.signTxn(this.transientSecretKey);
+        this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
+    }
+    catch(err) {
+        if (errorString !== "") {
+            // error was expected. check that err.text includes expected string.
+            let errorContainsString = err.text.includes(errorString);
+            assert.deepStrictEqual(true, errorContainsString)
+        } else {
+            // unexpected error, rethrow.
+            throw err;
+        }
+    }
+});
+
+Given('I wait for the transaction to be confirmed.', async function () {
+    let sp = await this.v2Client.getTransactionParams().do();
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2).do();
+    let confirmation = await this.acl.transactionById(this.appTxid["txId"]);
+    assert.deepStrictEqual(true, "type" in confirmation);
+});
+
+Given('I remember the new application ID.', async function () {
+    let infoResult = await this.acl.pendingTransactionInformation(this.appTxid["txId"]);
+    this.currentApplicationIndex = infoResult["txresults"]["createdapp"];
 });

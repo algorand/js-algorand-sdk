@@ -13,32 +13,35 @@
 const msgpack = require("@msgpack/msgpack");
 
 // Errors
-const ERROR_CONTAINS_EMPTY = new Error("The object contains empty or 0 values");
+const ERROR_CONTAINS_EMPTY_STRING = "The object contains empty or 0 values. First empty or 0 value encountered during encoding: ";
 
 /**
  * containsEmpty returns true if any of the object's values are empty, false otherwise.
  * Empty arrays considered empty
  * @param obj
- * @returns {boolean} true if contains empty, false otherwise
+ * @returns {{firstEmptyKey: string, containsEmpty: boolean}} {true, empty key} if contains empty, {false, undefined} otherwise
  */
 function containsEmpty(obj) {
     for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
-            if (!obj[key] || obj[key].length === 0) return true;
+            if (!obj[key] || obj[key].length === 0) {
+              return {containsEmpty : true, firstEmptyKey: key}
+            }
         }
     }
-    return false;
+    return {containsEmpty : false, firstEmptyKey: undefined};
 }
 
 /**
  * encode encodes objects using msgpack
  * @param obj a dictionary to be encoded. Must not contain empty or 0 values.
  * @returns {Uint8Array} msgpack representation of the object
- * @throws ERROR_CONTAINS_EMPTY if the object contains empty or zero values
+ * @throws Error containing ERROR_CONTAINS_EMPTY_STRING if the object contains empty or zero values
  */
 function encode(obj) {
     // Check for empty values
-    if (containsEmpty(obj)) {throw ERROR_CONTAINS_EMPTY;}
+    let emptyCheck = containsEmpty(obj);
+    if (emptyCheck["containsEmpty"]) {throw new Error(ERROR_CONTAINS_EMPTY_STRING + emptyCheck["firstEmptyKey"]);}
 
     // enable the canonical option
     let options = {sortKeys: true};
@@ -49,4 +52,4 @@ function decode(obj) {
     return msgpack.decode(obj);
 }
 
-module.exports = {encode, decode, ERROR_CONTAINS_EMPTY};
+module.exports = {encode, decode, ERROR_CONTAINS_EMPTY_STRING};
