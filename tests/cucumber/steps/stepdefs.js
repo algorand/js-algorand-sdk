@@ -2780,13 +2780,11 @@ Given('I remember the new application ID.', async function () {
 });
 
 Then('The transient account should have the created app {string} and total schema byte-slices {int} and uints {int},' +
-    'the application {string} state contains key {string} with value {string}', async function (appCreatedBoolAsString,
+    ' the application {string} state contains key {string} with value {string}', async function (appCreatedBoolAsString,
                                                                                           numByteSlices, numUints,
                                                                                           applicationState, stateKey,
                                                                                           stateValue) {
-    // Write code here that turns the phrase above into concrete actions
-    return 'pending';
-    let accountInfo = await this.acl.accountInformation(this.transientAddress);
+    let accountInfo = await this.v2Client.accountInformation(this.transientAddress).do();
     let appTotalSchema = accountInfo['apps-total-schema'];
     assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
     assert.strictEqual(appTotalSchema['num-uint'], numUints);
@@ -2811,10 +2809,6 @@ Then('The transient account should have the created app {string} and total schem
     if (stateKey == "") {
         return;
     }
-
-    // convert input strings to base64ed versions:
-    stateKey = btoa(stateKey);
-    stateValue = btoa(stateValue);
 
     let foundValueForKey = false;
     let keyValues = [];
