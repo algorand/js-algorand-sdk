@@ -2211,6 +2211,11 @@ When('I use {int} to search for an account with {int}, {int}, {int}, {int} and t
     integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).nextToken(nextToken).do();
 });
 
+When('I use {int} to search for an account with {int}, {int}, {int}, {int}, {string}, {int} and token {string}', async function (clientNum, assetIndex, limit, currencyGreater, currencyLesser, authAddr, appID, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).authAddr(authAddr).applicationID(appID).nextToken(nextToken).do();
+});
+
 Then('There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}, {string}, {string}', function (numAccounts, pendingRewards, rewardsBase, rewards, withoutRewards, address, amount, status, type) {
     assert.equal(numAccounts, integrationSearchAccountsResponse['accounts'].length)
     if (numAccounts == 0) {
@@ -2254,6 +2259,12 @@ When('I use {int} to search for transactions with {int}, {string}, {string}, {st
     integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).assetID(assetId).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseToBool).nextToken(nextToken).do();
 });
 
+When('I use {int} to search for transactions with {int}, {string}, {string}, {string}, {string}, {int}, {int}, {int}, {int}, {string}, {string}, {int}, {int}, {string}, {string}, {string}, {int} and token {string}', async function (clientNum, limit, notePrefix, txType, sigType, txid, round, minRound, maxRound, assetId, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToString, appID, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    let excludeCloseToBool = (excludeCloseToString == "true");
+    integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).assetID(assetId).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseToBool).nextToken(nextToken).do();
+});
+
 When('I use {int} to search for all {string} transactions', async function (clientNum, account) {
     let ic = indexerIntegrationClients[clientNum];
     integrationSearchTransactionsResponse = await ic.searchForTransactions().address(account).do();
@@ -2262,6 +2273,34 @@ When('I use {int} to search for all {string} transactions', async function (clie
 When('I use {int} to search for all {int} asset transactions', async function (clientNum, assetIndex) {
     let ic = indexerIntegrationClients[clientNum];
     integrationSearchTransactionsResponse = await ic.searchForTransactions().assetID(assetIndex).do();
+});
+
+When('I use {int} to search for applications with {int}, {int}, and token {string}', async function (clientNum, limit, appID, token) {
+    let ic = indexerIntegrationClients[clientNum];
+    this.responseForDirectJsonComparison = await ic.searchForApplications().limit(limit).index(appID).nextToken(token).do();
+});
+
+When('I use {int} to lookup application with {int}', async function (clientNum, appID) {
+    let ic = indexerIntegrationClients[clientNum];
+    this.responseForDirectJsonComparison = await ic.lookupApplications(appID).do();
+});
+
+Then('the parsed response should equal {string}.', function (jsonFile) {
+    let responseFromFile = "";
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonFile;
+    console.log("jsonfile:");
+    console.log(mockResponsePath);
+    let xml = new XMLHttpRequest();
+    xml.open("GET", mockResponsePath, false);
+    xml.onreadystatechange = function () {
+        responseFromFile = xml.responseText.trim();
+    };
+    xml.send();
+    console.log("responseFromFile:");
+    console.log(responseFromFile);
+    console.log("for comparison against:");
+    console.log(this.responseForDirectJsonComparison);
+    assert.strictEqual(this.responseForDirectJsonComparison, responseFromFile);
 });
 
 When('I get the next page using {int} to search for transactions with {int} and {int}', async function (clientNum, limit, maxRound) {

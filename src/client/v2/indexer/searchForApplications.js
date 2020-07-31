@@ -25,6 +25,17 @@ class SearchForApplications{
         this.query['round'] = round;
         return this;
     }
+
+    // token for pagination
+    nextToken(next) {
+        this.query['next'] = next
+        return this;
+    }
+
+    // limit results for pagination
+    limit(limit) {
+        this.query['limit'] = limit;
+    }
 }
 
 module.exports = {SearchForApplications};
