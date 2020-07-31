@@ -2300,7 +2300,7 @@ Then('the parsed response should equal {string}.', function (jsonFile) {
     console.log(responseFromFile);
     console.log("for comparison against:");
     console.log(this.responseForDirectJsonComparison);
-    assert.strictEqual(this.responseForDirectJsonComparison, responseFromFile);
+    assert.strictEqual(this.responseForDirectJsonComparison, JSON.parse(responseFromFile));
 });
 
 When('I get the next page using {int} to search for transactions with {int} and {int}', async function (clientNum, limit, maxRound) {

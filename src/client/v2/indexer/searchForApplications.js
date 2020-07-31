@@ -35,6 +35,7 @@ class SearchForApplications{
     // limit results for pagination
     limit(limit) {
         this.query['limit'] = limit;
+        return this;
     }
 }
 
