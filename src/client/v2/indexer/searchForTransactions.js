@@ -121,6 +121,12 @@ class SearchForTransactions {
 		this.query['rekey-to'] = rekeyTo;
 		return this;
 	}
+
+	// filter for this application
+	applicationID(applicationID) {
+		this.query['application-id'] = applicationID;
+		return this;
+	}
 }
 
 module.exports = {SearchForTransactions};

@@ -2211,6 +2211,12 @@ When('I use {int} to search for an account with {int}, {int}, {int}, {int} and t
     integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).nextToken(nextToken).do();
 });
 
+When('I use {int} to search for an account with {int}, {int}, {int}, {int}, {string}, {int} and token {string}', async function (clientNum, assetIndex, limit, currencyGreater, currencyLesser, authAddr, appID, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).authAddr(authAddr).applicationID(appID).nextToken(nextToken).do();
+    this.responseForDirectJsonComparison = integrationSearchAccountsResponse;
+});
+
 Then('There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}, {string}, {string}', function (numAccounts, pendingRewards, rewardsBase, rewards, withoutRewards, address, amount, status, type) {
     assert.equal(numAccounts, integrationSearchAccountsResponse['accounts'].length)
     if (numAccounts == 0) {
@@ -2254,6 +2260,13 @@ When('I use {int} to search for transactions with {int}, {string}, {string}, {st
     integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).assetID(assetId).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseToBool).nextToken(nextToken).do();
 });
 
+When('I use {int} to search for transactions with {int}, {string}, {string}, {string}, {string}, {int}, {int}, {int}, {int}, {string}, {string}, {int}, {int}, {string}, {string}, {string}, {int} and token {string}', async function (clientNum, limit, notePrefix, txType, sigType, txid, round, minRound, maxRound, assetId, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToString, appID, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    let excludeCloseToBool = (excludeCloseToString == "true");
+    integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).assetID(assetId).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseToBool).applicationID(appID).nextToken(nextToken).do();
+    this.responseForDirectJsonComparison = integrationSearchTransactionsResponse;
+});
+
 When('I use {int} to search for all {string} transactions', async function (clientNum, account) {
     let ic = indexerIntegrationClients[clientNum];
     integrationSearchTransactionsResponse = await ic.searchForTransactions().address(account).do();
@@ -2262,6 +2275,28 @@ When('I use {int} to search for all {string} transactions', async function (clie
 When('I use {int} to search for all {int} asset transactions', async function (clientNum, assetIndex) {
     let ic = indexerIntegrationClients[clientNum];
     integrationSearchTransactionsResponse = await ic.searchForTransactions().assetID(assetIndex).do();
+});
+
+When('I use {int} to search for applications with {int}, {int}, and token {string}', async function (clientNum, limit, appID, token) {
+    let ic = indexerIntegrationClients[clientNum];
+    this.responseForDirectJsonComparison = await ic.searchForApplications().limit(limit).index(appID).nextToken(token).do();
+});
+
+When('I use {int} to lookup application with {int}', async function (clientNum, appID) {
+    let ic = indexerIntegrationClients[clientNum];
+    this.responseForDirectJsonComparison = await ic.lookupApplications(appID).do();
+});
+
+Then('the parsed response should equal {string}.', function (jsonFile) {
+    let responseFromFile = "";
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonFile;
+    let xml = new XMLHttpRequest();
+    xml.open("GET", mockResponsePath, false);
+    xml.onreadystatechange = function () {
+        responseFromFile = xml.responseText.trim();
+    };
+    xml.send();
+    assert.strictEqual(JSON.stringify(this.responseForDirectJsonComparison), JSON.stringify(JSON.parse(responseFromFile)));
 });
 
 When('I get the next page using {int} to search for transactions with {int} and {int}', async function (clientNum, limit, maxRound) {
@@ -2777,4 +2812,79 @@ Given('I wait for the transaction to be confirmed.', async function () {
 Given('I remember the new application ID.', async function () {
     let infoResult = await this.acl.pendingTransactionInformation(this.appTxid["txId"]);
     this.currentApplicationIndex = infoResult["txresults"]["createdapp"];
+});
+
+Then('The transient account should have the created app {string} and total schema byte-slices {int} and uints {int},' +
+    ' the application {string} state contains key {string} with value {string}', async function (appCreatedBoolAsString,
+                                                                                          numByteSlices, numUints,
+                                                                                          applicationState, stateKey,
+                                                                                          stateValue) {
+    let accountInfo = await this.v2Client.accountInformation(this.transientAddress).do();
+    let appTotalSchema = accountInfo['apps-total-schema'];
+    assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
+    assert.strictEqual(appTotalSchema['num-uint'], numUints);
+
+    let appCreated = appCreatedBoolAsString == 'true';
+    let createdApps = accountInfo['created-apps'];
+    //  If we don't expect the app to exist, verify that it isn't there and exit.
+    if (!appCreated) {
+        for (i = 0; i < createdApps.length; i++){
+            assert.notStrictEqual(createdApps[i]['id'], this.currentApplicationIndex);
+        }
+        return;
+    }
+
+    let foundApp = false;
+    for (i = 0; i < createdApps.length; i++) {
+        foundApp = foundApp || (createdApps[i]['id'] == this.currentApplicationIndex);
+    }
+    assert.ok(foundApp);
+
+    // If there is no key to check, we're done.
+    if (stateKey == "") {
+        return;
+    }
+
+    let foundValueForKey = false;
+    let keyValues = [];
+    if (applicationState == "local") {
+        let counter = 0;
+        for (i = 0; i < accountInfo['apps-local-state'].length; i++) {
+            let localState = accountInfo['apps-local-state'][i]
+            if (localState['id'] == this.currentApplicationIndex) {
+                keyValues = localState['key-value'];
+                counter++;
+            }
+        }
+        assert.strictEqual(counter, 1);
+    } else if (applicationState == "global") {
+        let counter = 0;
+        for (i = 0; i < accountInfo['created-apps'].length; i++) {
+            let createdApp = accountInfo['created-apps'][i];
+            if (createdApp['id'] == this.currentApplicationIndex) {
+                keyValues = createdApp['params']['global-state'];
+                counter++;
+            }
+        }
+        assert.strictEqual(counter, 1);
+    } else {
+        assert.fail("test does not understand given application state: " + applicationState);
+    }
+
+    assert.ok(keyValues.length > 0);
+
+    for (i = 0; i < keyValues.length; i++) {
+        let keyValue = keyValues[i];
+        let foundKey = keyValue['key'];
+        if (foundKey == stateKey) {
+            foundValueForKey = true;
+            let foundValue = keyValue['value'];
+            if (foundValue['type'] == 1) {
+                assert.strictEqual(foundValue['bytes'], stateValue);
+            } else if (foundValue['type'] == 0) {
+                assert.strictEqual(foundValue['uint'], stateValue);
+            }
+        }
+    }
+    assert.ok(foundValueForKey)
 });
