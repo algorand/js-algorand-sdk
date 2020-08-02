@@ -2629,7 +2629,8 @@ function splitAndProcessAppArgs(inArgs) {
     return appArgs;
 }
 
-When('I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}', function (operationString, appIndex, sender, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, appAccountsCommaSeparatedString, fee, firstValid, lastValid, genesisHashBase64) {
+
+When('I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}', function (operationString, appIndex, sender, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, foreignAssetsCommaSeparatedString, appAccountsCommaSeparatedString, fee, firstValid, lastValid, genesisHashBase64) {
     // operation string to enum
     let operation = operationStringToEnum(operationString);
     // open and load in approval program
@@ -2654,7 +2655,15 @@ When('I build an application transaction with operation {string}, application-id
     if (foreignAppsCommaSeparatedString !== "") {
         foreignApps = [];
         foreignAppsCommaSeparatedString.split(",").forEach((foreignAppAsString) => {
-           foreignApps.push(parseInt(foreignAppAsString));
+            foreignApps.push(parseInt(foreignAppAsString));
+        });
+    }
+    // split and process foreign assets
+    let foreignAssets = undefined;
+    if (foreignAssetsCommaSeparatedString !== "") {
+        foreignAssets = [];
+        foreignAssetsCommaSeparatedString.split(",").forEach((foreignAssetAsString) => {
+            foreignAssets.push(parseInt(foreignAssetAsString));
         });
     }
     // split and process app accounts
@@ -2673,25 +2682,25 @@ When('I build an application transaction with operation {string}, application-id
 
     switch(operationString) {
         case "call":
-            this.txn = algosdk.makeApplicationNoOpTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            this.txn = algosdk.makeApplicationNoOpTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
             return;
         case "create":
-            this.txn = algosdk.makeApplicationCreateTxn(sender, sp, operation, approvalProgramBytes, clearProgramBytes, numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices, appArgs, appAccounts, foreignApps);
+            this.txn = algosdk.makeApplicationCreateTxn(sender, sp, operation, approvalProgramBytes, clearProgramBytes, numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices, appArgs, appAccounts, foreignApps, foreignAssets);
             return;
         case "update":
-            this.txn = algosdk.makeApplicationUpdateTxn(sender, sp, appIndex, approvalProgramBytes, clearProgramBytes, appArgs, appAccounts, foreignApps);
+            this.txn = algosdk.makeApplicationUpdateTxn(sender, sp, appIndex, approvalProgramBytes, clearProgramBytes, appArgs, appAccounts, foreignApps, foreignAssets);
             return;
         case "optin":
-            this.txn = algosdk.makeApplicationOptInTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            this.txn = algosdk.makeApplicationOptInTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
             return;
         case "delete":
-            this.txn = algosdk.makeApplicationDeleteTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            this.txn = algosdk.makeApplicationDeleteTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
             return;
         case "clear":
-            this.txn = algosdk.makeApplicationClearStateTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            this.txn = algosdk.makeApplicationClearStateTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
             return;
         case "closeout":
-            this.txn = algosdk.makeApplicationCloseOutTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps);
+            this.txn = algosdk.makeApplicationCloseOutTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
             return;
         default:
             throw Error("did not recognize application operation string " + operationString);

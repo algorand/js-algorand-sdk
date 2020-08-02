@@ -890,6 +890,7 @@ let OnApplicationComplete = {
  * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
  * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
  * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
  * @param note, optional
  * @param lease, optional
  * @param rekeyTo, optional
@@ -897,6 +898,7 @@ let OnApplicationComplete = {
 function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalProgram, clearProgram,
                                   numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices,
                                   appArgs= undefined, accounts= undefined, foreignApps= undefined,
+                                  foreignAssets = undefined,
                                   note = undefined, lease = undefined, rekeyTo = undefined) {
     let o = {
         "type" : "appl",
@@ -913,6 +915,7 @@ function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalPro
         "appArgs": appArgs,
         "appAccounts": accounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
         "reKeyTo": rekeyTo
@@ -937,12 +940,14 @@ function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalPro
  * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
  * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
  * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
  * @param note, optional
  * @param lease, optional
  * @param rekeyTo, optional
  */
 function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgram, clearProgram,
                                   appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                  foreignAssets = undefined,
                                   note = undefined, lease = undefined, rekeyTo = undefined) {
     let o = {
         "type" : "appl",
@@ -955,6 +960,7 @@ function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgr
         "appArgs": appArgs,
         "appAccounts": accounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
         "reKeyTo": rekeyTo
@@ -976,12 +982,14 @@ function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgr
  * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
  * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
  * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
  * @param note, optional
  * @param lease, optional
  * @param rekeyTo, optional
  */
 function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
                                   appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                  foreignAssets = undefined,
                                   note = undefined, lease = undefined, rekeyTo = undefined) {
     let o = {
         "type" : "appl",
@@ -992,6 +1000,7 @@ function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
         "appArgs": appArgs,
         "appAccounts": accounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
         "reKeyTo": rekeyTo
@@ -1013,12 +1022,14 @@ function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
  * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
  * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
  * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
  * @param note, optional
  * @param lease, optional
  * @param rekeyTo, optional
  */
 function makeApplicationOptInTxn(from, suggestedParams, appIndex,
                                  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                 foreignAssets = undefined,
                                  note = undefined, lease = undefined, rekeyTo = undefined) {
     let o = {
         "type" : "appl",
@@ -1029,6 +1040,7 @@ function makeApplicationOptInTxn(from, suggestedParams, appIndex,
         "appArgs": appArgs,
         "appAccounts": accounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
         "reKeyTo": rekeyTo
@@ -1050,12 +1062,14 @@ function makeApplicationOptInTxn(from, suggestedParams, appIndex,
  * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
  * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
  * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
  * @param note, optional
  * @param lease, optional
  * @param rekeyTo, optional
  */
 function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
                                     appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                    foreignAssets = undefined,
                                     note = undefined, lease = undefined, rekeyTo = undefined) {
     let o = {
         "type" : "appl",
@@ -1066,6 +1080,7 @@ function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
         "appArgs": appArgs,
         "appAccounts": accounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
         "reKeyTo": rekeyTo
@@ -1087,12 +1102,14 @@ function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
  * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
  * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
  * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
  * @param note, optional
  * @param lease, optional
  * @param rekeyTo, optional
  */
 function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
                                       appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                      foreignAssets = undefined,
                                       note = undefined, lease = undefined, rekeyTo = undefined) {
     let o = {
         "type" : "appl",
@@ -1103,6 +1120,7 @@ function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
         "appArgs": appArgs,
         "appAccounts": accounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
         "reKeyTo": rekeyTo
@@ -1124,12 +1142,14 @@ function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
  * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
  * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
  * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
  * @param note, optional
  * @param lease, optional
  * @param rekeyTo, optional
  */
 function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
                                 appArgs = undefined, accounts = undefined, foreignApps = undefined,
+                                foreignAssets = undefined,
                                 note = undefined, lease = undefined, rekeyTo = undefined) {
     let o = {
         "type" : "appl",
@@ -1140,6 +1160,7 @@ function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
         "appArgs": appArgs,
         "appAccounts": accounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
         "reKeyTo": rekeyTo

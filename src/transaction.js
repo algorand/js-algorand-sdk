@@ -24,7 +24,7 @@ class Transaction {
                  freezeAccount, freezeState, assetRevocationTarget,
                  appIndex, appOnComplete, appLocalInts, appLocalByteSlices,
                  appGlobalInts, appGlobalByteSlices, appApprovalProgram, appClearProgram,
-                 appArgs, appAccounts, appForeignApps,
+                 appArgs, appAccounts, appForeignApps, appForeignAssets,
                  type="pay", flatFee=false, suggestedParams=undefined,
                  reKeyTo=undefined}) {
         this.name = "Transaction";
@@ -89,7 +89,11 @@ class Transaction {
                if (!Number.isSafeInteger(foreignAppIndex) || foreignAppIndex < 0) throw Error("each foreign application index must be a positive number and smaller than 2^53-1");
             });
         }
-
+        if (appForeignAssets !== undefined) {
+            appForeignAssets.forEach((foreignAssetIndex) => {
+                if (!Number.isSafeInteger(foreignAssetIndex) || foreignAssetIndex < 0) throw Error("each foreign asset index must be a positive number and smaller than 2^53-1");
+            });
+        }
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
         }
@@ -117,7 +121,7 @@ class Transaction {
             assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
             freezeAccount, freezeState, assetRevocationTarget,
             appIndex, appOnComplete, appLocalInts, appLocalByteSlices, appGlobalInts, appGlobalByteSlices,
-            appApprovalProgram, appClearProgram, appArgs, appAccounts, appForeignApps,
+            appApprovalProgram, appClearProgram, appArgs, appAccounts, appForeignApps, appForeignAssets,
             type, reKeyTo
         });
 
@@ -356,6 +360,7 @@ class Transaction {
                     "nbs": this.appGlobalByteSlices
                 },
                 "apfa": this.appForeignApps,
+                "apas": this.appForeignAssets,
             };
             if ((this.reKeyTo !== undefined)) {
                 txn.rekey = Buffer.from(this.reKeyTo.publicKey)
@@ -396,6 +401,7 @@ class Transaction {
             if (!txn.apsu) delete txn.apsu;
             if (!txn.apan) delete txn.apan;
             if (!txn.apfa) delete txn.apfa;
+            if (!txn.apas) delete txn.apas;
             if (txn.grp === undefined) delete txn.grp;
             return txn;
         }
@@ -506,6 +512,9 @@ class Transaction {
             }
             if (txnForEnc.apfa !== undefined) {
                 txn.appForeignApps = txnForEnc.apfa;
+            }
+            if (txnForEnc.apas !== undefined) {
+                txn.appForeignAssets = txnForEnc.apas;
             }
         }
         return txn;
