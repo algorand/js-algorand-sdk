@@ -2740,7 +2740,7 @@ Given('I create a new transient account and fund it with {int} microalgos.', asy
     assert.deepStrictEqual(true, "type" in fundingConfirmation);
 });
 
-Given('I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, app-accounts {string}', async function (operationString, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, appAccountsCommaSeparatedString) {
+Given('I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}', async function (operationString, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, foreignAssetsCommaSeparatedString, appAccountsCommaSeparatedString) {
     // operation string to enum
     let operation = operationStringToEnum(operationString);
     // open and load in approval program
@@ -2768,6 +2768,14 @@ Given('I build an application transaction with the transient account, the curren
             foreignApps.push(parseInt(foreignAppAsString));
         });
     }
+    // split and process foreign assets
+    let foreignAssets = undefined;
+    if (foreignAssetsCommaSeparatedString !== "") {
+        foreignAssets = [];
+        foreignAssetsCommaSeparatedString.split(",").forEach((foreignAssetAsString) => {
+            foreignAssets.push(parseInt(foreignAssetAsString));
+        });
+    }
     // split and process app accounts
     let appAccounts = undefined;
     if (appAccountsCommaSeparatedString !== "") {
@@ -2788,6 +2796,7 @@ Given('I build an application transaction with the transient account, the curren
         "appArgs": appArgs,
         "appAccounts" : appAccounts,
         "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
         "type": "appl",
         "suggestedParams": sp
     }
