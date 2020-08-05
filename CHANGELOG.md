@@ -1,3 +1,14 @@
+# 1.7.0
+## Added
+- Support for Application Call Transactions, also known as Stateful TEAL
+- Support for TEAL Compile and Dryrun
+- Support for Rekeying Transactions
+- More Cucumber/Behave tests
+- More endpoints for v2 Clients
+- Package algosdk.modelsv2 describing data models for APIv2 endpoints 
+## Fixed
+- An encoding failure due to an empty field will now indicate which field was empty
+- Browserify can now handle newly exported modelsv2 package
 # 1.6.2
 ## Fixed
 - Fixed bug where submitting an array of transactions to v2 client's sendRawTransaction would cause an error. 
