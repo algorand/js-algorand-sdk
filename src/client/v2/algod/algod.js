@@ -1,7 +1,11 @@
 const client = require('../../client');
 const ai = require('../algod/accountInformation');
-const hc = require('../algod/healthCheck');
 const blk = require('../algod/block');
+const compile = require('./compile');
+const dryrun = require('./dryrun');
+const gasbid = require('./getAssetByID');
+const gapbid = require('./getApplicationByID');
+const hc = require('../algod/healthCheck');
 const pti = require('../algod/pendingTransactionInformation');
 const pt = require('../algod/pendingTransactions');
 const ptba = require('../algod/pendingTransactionsByAddress');
@@ -28,11 +32,11 @@ class AlgodClient {
         };
 
         this.versionsCheck = function () {
-            return new versions.Versions(c)
+            return new versions.Versions(c);
         };
 
         this.sendRawTransaction = function(stx_or_stxs) {
-            return new srt.SendRawTransaction(c, stx_or_stxs)
+            return new srt.SendRawTransaction(c, stx_or_stxs);
         };
 
         this.accountInformation = function(account) {
@@ -40,36 +44,52 @@ class AlgodClient {
         };
 
         this.block = function(roundNumber) {
-            return new blk.Block(c, roundNumber)
+            return new blk.Block(c, roundNumber);
         };
 
         this.pendingTransactionInformation = function(txid) {
-            return new pti.PendingTransactionInformation(c, txid)
+            return new pti.PendingTransactionInformation(c, txid);
         };
 
         this.pendingTransactionsInformation = function() {
-            return new pt.PendingTransactions(c)
+            return new pt.PendingTransactions(c);
         };
 
         this.pendingTransactionByAddress = function(address) {
-            return new ptba.PendingTransactionsByAddress(c, address)
+            return new ptba.PendingTransactionsByAddress(c, address);
         };
 
         this.status = function() {
-            return new status.Status(c)
+            return new status.Status(c);
         };
 
         this.statusAfterBlock = function (round) {
-            return new sab.StatusAfterBlock(c, round)
+            return new sab.StatusAfterBlock(c, round);
         };
 
         this.getTransactionParams = function () {
-            return new sp.SuggestedParams(c)
+            return new sp.SuggestedParams(c);
         };
 
         this.supply = function () {
-            return new supply.Supply(c)
+            return new supply.Supply(c);
         };
+
+        this.compile = function (source) {
+            return new compile.Compile(c, source);
+        };
+
+        this.dryrun = function (dr) {
+            return new dryrun.Dryrun(c, dr);
+        };
+
+        this.getAssetByID = function (index) {
+            return new gasbid.GetAssetByID(c, index);
+        }
+
+        this.getApplicationByID = function (index) {
+            return new gapbid.GetApplicationByID(c, index);
+        }
     }
 }
 

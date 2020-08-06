@@ -115,6 +115,18 @@ class SearchForTransactions {
 		this.query['next'] = nextToken;
 		return this;
 	}
+
+	// whether or not to include rekeying transactions
+	rekeyTo(rekeyTo) {
+		this.query['rekey-to'] = rekeyTo;
+		return this;
+	}
+
+	// filter for this application
+	applicationID(applicationID) {
+		this.query['application-id'] = applicationID;
+		return this;
+	}
 }
 
 module.exports = {SearchForTransactions};

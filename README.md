@@ -463,5 +463,72 @@ let txn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revo
     fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
 ```
 
+## Rekeying
+To rekey an account to a new address, simply call the `addRekey` function on any transaction.
+```javascript
+//...
+let txn = algosdk.makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams);
+// From now, every transaction needs to be sign the SK of the following address
+txn.addRekey("47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU")
+//...
+```
+
+When submitting a transaction from an account that was rekeying, simply use relevant SK. `algosdk.signTransaction`/`transaction.signTxn` will detect 
+that the SK corresponding address is different than the sender's and will set the `AuthAddr` accordingly. Alternatively, you can use `kmdclient.signTransactionWithSpecificPublicKey`.
+
+## Application Calls
+The Algorand protocol allows users to define stateful TEAL contracts, also known as applications. 
+
+The `makeApplicationCreateTxn` allows you to create an application:
+```javascript
+let from = "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU"
+// suggestedParams received from suggestedParams endpoint
+// onComplete is an option from algosdk.OnApplicationComplete, usually NoOpOC if creating
+let approvalProgram = getApprovalProgram(); // perhaps stored as a file, or compiled elsewhere in an app using TEAL compile. This is bytecode that will determine if a transaction is approved
+let clearProgram = getClearProgram(); // like approvalProgram this is bytecode, it is run when a user clears their state.
+// the following four ints define the created application's storage
+let numLocalInts = 1; // number of ints in per-user local state
+let numLocalByteSlices = 1; // number of byte slices in per-user local state
+let numGlobalInts = 1; // number of ints in app's global state
+let numGlobalByteSlices = 1; // number of byte slices in app's global state
+let createTxn = algosdk.makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalProgram, clearProgram,
+                                            numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices);
+// signing and submission omitted
+// can get created app index by querying information about confirmed createTxn, and inspecting txresults
+```
+
+Once created, an application can have its approval and clear programs updated with `makeApplicationUpdateTxn`:
+```javascript
+let updateTxn = algosdk.makeApplicationUpdateTxn(from, suggestedParams, appIndex, newApprovalProgram, newClearProgram);
+```
+
+Likewise, the application can later be deleted by its creator: 
+```javascript
+let deleteTxn = algosdk.makeApplicationDeleteTxn(from, suggestedParams, appIndex);
+```
+
+Users have several transaction types for interacting with applications. To begin using an application, a user must first opt in with an opt-in transaction, similar to opting in to an asset:
+```javascript
+let optInTxn = algosdk.makeApplicationOptInTxn(userAddress, suggestedParams, appIndex);
+```
+
+After opting in, a user can call the application with a no-op transaction:
+```javascript
+let callAppTxn = algosdk.makeApplicationNoOpTxn(userAddress, suggestedParams, appIndex);
+```
+
+The user also has two options for opting back out of an application. Closing out is the default way of opting out, clearing the user's state in the application, but it is subject to the `approvalProgram` and so may fail:
+```javascript
+// this txn may or may not be rejected by the approval program
+let closeOutTxn = algosdk.makeApplicationCloseOutTxn(userAddress, suggestedParams, appIndex);
+```
+For a forced opt-out, the user also has the option of submitting a clear state transaction, guaranteeing the user can reclaim their `minBalance`.
+```java
+// this txn is not subject to the approval program
+let clearStateTxn = algosdk.makeApplicationClearStateTxn(userAddress, suggestedParams, appIndex);
+```
+
+These application transaction-making functions also support additional optional fields like the `note` field - see each function's comments for more information.
+
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.

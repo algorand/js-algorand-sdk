@@ -6,7 +6,9 @@ let passphrase = require("../src/mnemonic/mnemonic");
 let nacl = require("../src/nacl/naclWrappers");
 let transaction = require("../src/transaction");
 let logicsig = require("../src/logicsig");
+let utils = require('../src/utils/utils');
 let v2client = require("../src/client/v2/algod/algod");
+let v2models = require("../src/client/v2/algod/models/types");
 
 describe('Algosdk (AKA end to end)', function () {
     describe('#mnemonic', function () {
@@ -546,7 +548,7 @@ describe('Algosdk (AKA end to end)', function () {
         });
         it('should throw on invalid program', function () {
             let program = Uint8Array.from([1, 32, 1, 1, 34]);
-            program[0] = 2;
+            program[0] = 128;
             assert.throws(
                 () => algosdk.makeLogicSig(program)
             );
@@ -670,4 +672,78 @@ describe('Algosdk (AKA end to end)', function () {
             let verified = lsig.verify(sender_pk);
             assert.equal(verified, true);
         });
-    });});
+    });
+
+    describe('tealSign', function () {
+        it('should produce verifiable signature', function () {
+            const data = Buffer.from("Ux8jntyBJQarjKGF8A==", "base64");
+            const seed = Buffer.from("5Pf7eGMA52qfMT4R4/vYCt7con/7U3yejkdXkrcb26Q=", "base64");
+            const prog = Buffer.from("ASABASI=", "base64");
+
+            const keys = nacl.keyPairFromSeed(seed);
+            const pk = keys.publicKey;
+            const sk = keys.secretKey;
+            const addr = algosdk.makeLogicSig(prog).address();
+            const sig1 = algosdk.tealSign(sk, data, addr);
+            const sig2 = algosdk.tealSignFromProgram(sk, data, prog);
+
+            assert.deepStrictEqual(sig1, sig2);
+
+            const parts = utils.concatArrays(address.decode(addr).publicKey, data);
+            const toBeVerified = Buffer.from(utils.concatArrays(Buffer.from("ProgData"), parts));
+            const verified = nacl.verify(toBeVerified, sig1, pk);
+            assert.equal(verified, true);
+        });
+    });
+
+    describe('v2 Dryrun models', function () {
+        it('should be properly serialized', function () {
+            const schema = new v2models.ApplicationStateSchema(5, 5);
+            const acc = new v2models.Account({
+                address: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+                amount: 5002280000000000,
+                amountWithoutPendingRewards: 5000000000000000,
+                pendingRewards: 2280000000000,
+                rewardBase: 456,
+                rewards: 2280000000000,
+                round: 18241,
+                status: "Online",
+            });
+            const params = new v2models.ApplicationParams({
+                creator: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+                approvalProgram: "AiABASI=",
+                clearStateProgram: "AiABASI=",
+                localStateSchema: schema,
+                globalStateSchema: schema,
+            });
+            const app = new v2models.Application(1380011588, params);
+            // make a raw txn
+            const txn = {
+                apsu: "AiABASI=",
+                fee: 1000,
+                fv: 18242,
+                gh: "ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=",
+                lv: 19242,
+                note: "tjpNge78JD8=",
+                snd: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+                type: "appl"
+            };
+            const req = new v2models.DryrunRequest({
+                accounts: [acc],
+                apps: [app],
+                round: 18241,
+                protocolVersion: "future",
+                latestTimestamp: 1592537757,
+                sources: null,
+                txns: [{txn: txn}],
+            });
+            const actual = req.get_obj_for_encoding();
+
+            const golden = "ewogICJhY2NvdW50cyI6IFsKICAgIHsKICAgICAgImFkZHJlc3MiOiAiVUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TSIsCiAgICAgICJhbW91bnQiOiA1MDAyMjgwMDAwMDAwMDAwLAogICAgICAiYW1vdW50LXdpdGhvdXQtcGVuZGluZy1yZXdhcmRzIjogNTAwMDAwMDAwMDAwMDAwMCwKICAgICAgInBlbmRpbmctcmV3YXJkcyI6IDIyODAwMDAwMDAwMDAsCiAgICAgICJyZXdhcmQtYmFzZSI6IDQ1NiwKICAgICAgInJld2FyZHMiOiAyMjgwMDAwMDAwMDAwLAogICAgICAicm91bmQiOiAxODI0MSwKICAgICAgInN0YXR1cyI6ICJPbmxpbmUiCiAgICB9CiAgXSwKICAiYXBwcyI6IFsKICAgIHsKICAgICAgImlkIjogMTM4MDAxMTU4OCwKICAgICAgInBhcmFtcyI6IHsKICAgICAgICAiY3JlYXRvciI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAiYXBwcm92YWwtcHJvZ3JhbSI6ICJBaUFCQVNJPSIsCiAgICAgICAgImNsZWFyLXN0YXRlLXByb2dyYW0iOiAiQWlBQkFTST0iLAogICAgICAgICJnbG9iYWwtc3RhdGUtc2NoZW1hIjogewogICAgICAgICAgIm51bS1ieXRlLXNsaWNlIjogNSwKICAgICAgICAgICJudW0tdWludCI6IDUKICAgICAgICB9LAogICAgICAgICJsb2NhbC1zdGF0ZS1zY2hlbWEiOiB7CiAgICAgICAgICAibnVtLWJ5dGUtc2xpY2UiOiA1LAogICAgICAgICAgIm51bS11aW50IjogNQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImxhdGVzdC10aW1lc3RhbXAiOiAxNTkyNTM3NzU3LAogICJwcm90b2NvbC12ZXJzaW9uIjogImZ1dHVyZSIsCiAgInJvdW5kIjogMTgyNDEsCiAgInNvdXJjZXMiOiBudWxsLAogICJ0eG5zIjogWwogICAgewogICAgICAidHhuIjogewogICAgICAgICJhcHN1IjogIkFpQUJBU0k9IiwKICAgICAgICAiZmVlIjogMTAwMCwKICAgICAgICAiZnYiOiAxODI0MiwKICAgICAgICAiZ2giOiAiWklrUHM4cFREeGJSSnNGQjF5Sjdndm5wRHUwUTg1RlJrbDJOQ2tFQVFMVT0iLAogICAgICAgICJsdiI6IDE5MjQyLAogICAgICAgICJub3RlIjogInRqcE5nZTc4SkQ4PSIsCiAgICAgICAgInNuZCI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAidHlwZSI6ICJhcHBsIgogICAgICB9CiAgICB9CiAgXQp9Cg==";
+            const json = Buffer.from(golden, "base64").toString('utf8');
+            const expected = JSON.parse(json);
+
+            assert.deepStrictEqual(actual, expected);
+        });
+    });
+});

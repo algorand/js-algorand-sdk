@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
+const {BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
 let algosdk = require("../../../src/main");
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const address = require("../../../src/encoding/address");
@@ -9,12 +9,17 @@ const periodicPayTemplate = require("../../../src/logicTemplates/periodicpayment
 const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
 const clientv2 = require("../../../src/client/v2/algod/algod");
+const modelsv2 = require("../../../src/client/v2/algod/models/types");
 const indexer = require("../../../src/client/v2/indexer/indexer");
+const nacl = require("../../../src/nacl/naclWrappers");
+const transaction = require("../../../src/transaction");
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require("path")
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)))
 const ServerMock = require("mock-http-server");
+const txnBuilder = require('../../../src/transaction');
+const logicsig = require('../../../src/logicsig');
 
 setDefaultTimeout(60000)
 
@@ -37,16 +42,21 @@ AfterAll(async function () {
     cleanupAlgodV2MockServers();
 });
 
+const algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const kmd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
 Given("an algod client", async function(){
-    algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     this.acl = new algosdk.Algod(algod_token, "http://localhost", 60000);
     return this.acl
 })
 
 Given("a kmd client", function(){
-    kmd_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     this.kcl = new algosdk.Kmd(kmd_token, "http://localhost", 60001)
     return this.kcl
+});
+
+Given('an algod v2 client', function () {
+    this.v2Client = new clientv2.AlgodClient(algod_token, "http://localhost", 60000);
 });
 
 Given("wallet information", async function(){
@@ -597,11 +607,11 @@ When("I send the multisig transaction", async function(){
 Then("the transaction should go through", async function(){
     info = await this.acl.pendingTransactionInformation(this.txid)
     assert.deepStrictEqual(true, "type" in info)
+    // let localParams = await this.acl.getTransactionParams();
+    // this.lastRound = localParams.lastRound;
     await this.acl.statusAfterBlock(this.lastRound + 2)
-    info = await this.acl.transactionInformation(this.pk, this.txid)
-    assert.deepStrictEqual(true, "type" in info)
     info = await this.acl.transactionById(this.txid)
-    assert.deepStrictEqual(true, "type" in info)
+    assert.deepStrictEqual(true, "type" in info);
 });
 
 
@@ -1481,9 +1491,12 @@ function cleanupAlgodV2MockServers() {
         algodMockServerResponder.stop(emptyFunctionForMockServer);
     }
 }
-
+let expectedMockResponse;
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
-    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/" + jsonDirectory + "/" + fileName; // TODO EJR ensure docker sets UNITTESTDIR correctly
+    if (process.env.UNITTESTDIR === undefined) {
+        throw Error("UNITTESTDIR env var not set");
+    }
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonDirectory + "/" + fileName;
     let resultString = "";
     let xml = new XMLHttpRequest();
     xml.open("GET", mockResponsePath, false);
@@ -1502,11 +1515,15 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
         headers = { "content-type": "application/msgpack"};
         body = Buffer.from(resultString, 'base64');
     }
+    let statusCode = 200;
+    if (fileName.indexOf("Error") > -1) {
+        statusCode = 500;
+    }
     mockServer.on({
         method: 'GET',
         path: '*',
         reply: {
-            status:  200,
+            status:  statusCode,
             headers: headers,
             body:    body
         }
@@ -1515,11 +1532,14 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
         method: 'POST',
         path: '*',
         reply: {
-            status:  200,
+            status:  statusCode,
             headers: headers,
             body:    body
         }
     });
+    if (body != undefined) {
+        expectedMockResponse = body;
+    }
 }
 
 function emptyFunctionForMockServer() {}
@@ -1548,6 +1568,43 @@ Given('mock http responses in {string} loaded from {string}', function (fileName
     this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
 });
 
+Given('mock http responses in {string} loaded from {string} with status {int}.', function (fileName, jsonDirectory, status) {
+    setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
+    setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
+    this.v2Client = new clientv2.AlgodClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.expectedMockResponseCode = status;
+});
+
+When('we make any {string} call to {string}.', async function (client, endpoint) {
+    try {
+        if (client == "algod") {
+            // endpoints are ignored by mock server, see setupMockServerForResponses
+            this.actualMockResponse = await this.v2Client.status().do();
+        } else if (client == "indexer") {
+            // endpoints are ignored by mock server, see setupMockServerForResponses
+            this.actualMockResponse = await this.indexerClient.makeHealthCheck().do();
+        } else {
+            throw Error("did not recognize desired client \"" + client + "\"");
+        }
+    } catch (err) {
+        if (this.expectedMockResponseCode == 200) {
+            throw err;
+        }
+        if (this.expectedMockResponseCode == 500) {
+            if (!err.toString().includes("Internal Server Error")) {
+                throw Error("expected response code 500 implies error Internal Server Error but instead had error: " + err)
+            }
+        }
+    }
+});
+
+Then('the parsed response should equal the mock response.', function () {
+    if (this.expectedMockResponseCode == 200) {
+        assert.equal(JSON.stringify(JSON.parse(expectedMockResponse)), JSON.stringify(this.actualMockResponse));
+    }
+});
+
 Then('expect error string to contain {string}', function (expectedErrorString) {
     if (expectedErrorString == 'nil') {
         assert.equal("", globalErrForExamination);
@@ -1564,6 +1621,19 @@ Given('mock server recording request paths', function () {
 });
 
 Then('expect the path used to be {string}', function (expectedRequestPath) {
+    // get all requests the mockservers have seen since reset
+    let algodSeenRequests = algodMockServerPathRecorder.requests();
+    let indexerSeenRequests = indexerMockServerPathRecorder.requests();
+    let actualRequestPath;
+    if (algodSeenRequests.length != 0) {
+        actualRequestPath = algodSeenRequests[0]['url'];
+    } else if (indexerSeenRequests.length != 0) {
+        actualRequestPath = indexerSeenRequests[0]['url'];
+    }
+    assert.equal(expectedRequestPath, actualRequestPath);
+});
+
+Then('we expect the path used to be {string}', function (expectedRequestPath) {
     // get all requests the mockservers have seen since reset
     let algodSeenRequests = algodMockServerPathRecorder.requests();
     let indexerSeenRequests = indexerMockServerPathRecorder.requests();
@@ -1622,6 +1692,14 @@ When('we make a Get Block call against block number {int} with format {string}',
         assert.fail("this SDK only supports format msgpack for this function");
     }
     await this.v2Client.block(blockNum).do();
+});
+
+When('we make a GetAssetByID call for assetID {int}', async function (index) {
+    await this.v2Client.getAssetByID(index).do();
+});
+
+When('we make a GetApplicationByID call for applicationID {int}', async function (index) {
+    await this.v2Client.getApplicationByID(index).do();
 });
 
 let anyPendingTransactionInfoResponse;
@@ -1759,8 +1837,28 @@ When('we make a Lookup Asset Transactions call against asset index {int} with No
     await this.indexerClient.lookupAssetTransactions(assetIndex).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
 });
 
+When('we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string} RekeyTo {string}', async function (assetIndex, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToAsString, rekeyToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    let rekeyTo = false;
+    if (rekeyToAsString === "true") {
+        rekeyTo = true;
+    }
+    await this.indexerClient.lookupAssetTransactions(assetIndex).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseTo).rekeyTo(rekeyTo).do();
+});
+
 When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int}',async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex) {
     await this.indexerClient.lookupAccountTransactions(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).do();
+});
+
+When('we make a Lookup Account Transactions call against account {string} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} rekeyTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, rekeyToAsString) {
+    let rekeyTo = false;
+    if (rekeyToAsString === "true") {
+        rekeyTo = true;
+    }
+    await this.indexerClient.lookupAccountTransactions(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).rekeyTo(rekeyTo).do();
 });
 
 When('we make a Lookup Block call against round {int}', async function (round) {
@@ -1775,6 +1873,10 @@ When('we make a Lookup Asset by ID call against asset index {int}', async functi
     await this.indexerClient.lookupAssetByID(assetIndex).do();
 });
 
+When('we make a LookupApplications call with {int} and {int}', async function (index, round) {
+    await this.indexerClient.lookupApplications(index).round(round).do();
+});
+
 When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}', async function (assetIndex, limit, currencyGreater, currencyLesser, nextToken) {
     await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).nextToken(nextToken).do();
 });
@@ -1782,12 +1884,21 @@ When('we make a Search Accounts call with assetID {int} limit {int} currencyGrea
 When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and round {int}', async function (assetIndex, limit, currencyGreater, currencyLesser, round) {
     await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).round(round).do();
 });
+
+When('we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} round {int} and authenticating address {string}', async function (assetIndex, limit, currencyGreater, currencyLesser, round, authAddress) {
+    await this.indexerClient.searchAccounts().assetID(assetIndex).limit(limit).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).round(round).authAddr(authAddress).do();
+});
+
 When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
     let excludeCloseTo = false;
     if (excludeCloseToAsString === "true") {
         excludeCloseTo = true;
     }
     await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
+});
+
+When('we make a SearchForApplications call with {int} and {int}', async function (index, round) {
+    await this.indexerClient.searchForApplications().index(index).round(round).do();
 });
 
 When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString) {
@@ -1798,11 +1909,32 @@ When('we make a Search For Transactions call with account {string} NotePrefix {s
     await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).do();
 });
 
+When('we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string} rekeyTo {string}', async function (account, notePrefix, txType, sigType, txid, round, minRound, maxRound, limit, beforeTime, afterTime, currencyGreater, currencyLesser, assetIndex, addressRole, excludeCloseToAsString, rekeyToAsString) {
+    let excludeCloseTo = false;
+    if (excludeCloseToAsString === "true") {
+        excludeCloseTo = true;
+    }
+    let rekeyTo = false;
+    if (rekeyToAsString === "true") {
+        rekeyTo = true;
+    }
+    await this.indexerClient.searchForTransactions().address(account).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).limit(limit).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).assetID(assetIndex).addressRole(addressRole).excludeCloseTo(excludeCloseTo).rekeyTo(rekeyTo).do();
+});
+
 When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and nextToken {string}', async function (limit, creator, name, unit, index, nextToken) {
     await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).nextToken(nextToken).do();
 });
+
 When('we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}', async function (limit, creator, name, unit, index) {
     await this.indexerClient.searchForAssets().limit(limit).creator(creator).name(name).unit(unit).index(index).do();
+});
+
+When('we make a SearchForApplications call with applicationID {int}', async function (index) {
+    await this.indexerClient.searchForApplications().index(index).do();
+});
+
+When('we make a LookupApplications call with applicationID {int}', async function (index) {
+    await this.indexerClient.lookupApplications(index).do();
 });
 
 let anyLookupAssetBalancesResponse;
@@ -1900,6 +2032,15 @@ Then('the parsed SearchAccounts response should be valid on round {int} and the 
     assert.equal(address, anySearchAccountsResponse['accounts'][idx]['address']);
 });
 
+Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have authorizing address {string}', function (round, length, idx, authAddress) {
+    assert.equal(round, anySearchAccountsResponse['current-round']);
+    assert.equal(length, anySearchAccountsResponse['accounts'].length);
+    if (length == 0) {
+        return;
+    }
+    assert.equal(authAddress, anySearchAccountsResponse['accounts'][idx]['auth-addr']);
+});
+
 let anySearchForTransactionsResponse;
 
 When('we make any SearchForTransactions call', async function () {
@@ -1913,6 +2054,15 @@ Then('the parsed SearchForTransactions response should be valid on round {int} a
         return;
     }
     assert.equal(sender, anySearchForTransactionsResponse['transactions'][idx]['sender']);
+});
+
+Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have rekey-to {string}', function (round, length, idx, rekeyTo) {
+    assert.equal(round, anySearchForTransactionsResponse['current-round']);
+    assert.equal(length, anySearchForTransactionsResponse['transactions'].length);
+    if (length == 0) {
+        return;
+    }
+    assert.equal(rekeyTo, anySearchForTransactionsResponse['transactions'][idx]['rekey-to']);
 });
 
 let anySearchForAssetsResponse;
@@ -2061,6 +2211,12 @@ When('I use {int} to search for an account with {int}, {int}, {int}, {int} and t
     integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).nextToken(nextToken).do();
 });
 
+When('I use {int} to search for an account with {int}, {int}, {int}, {int}, {string}, {int} and token {string}', async function (clientNum, assetIndex, limit, currencyGreater, currencyLesser, authAddr, appID, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    integrationSearchAccountsResponse = await ic.searchAccounts().assetID(assetIndex).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).limit(limit).authAddr(authAddr).applicationID(appID).nextToken(nextToken).do();
+    this.responseForDirectJsonComparison = integrationSearchAccountsResponse;
+});
+
 Then('There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}, {string}, {string}', function (numAccounts, pendingRewards, rewardsBase, rewards, withoutRewards, address, amount, status, type) {
     assert.equal(numAccounts, integrationSearchAccountsResponse['accounts'].length)
     if (numAccounts == 0) {
@@ -2104,6 +2260,13 @@ When('I use {int} to search for transactions with {int}, {string}, {string}, {st
     integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).assetID(assetId).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseToBool).nextToken(nextToken).do();
 });
 
+When('I use {int} to search for transactions with {int}, {string}, {string}, {string}, {string}, {int}, {int}, {int}, {int}, {string}, {string}, {int}, {int}, {string}, {string}, {string}, {int} and token {string}', async function (clientNum, limit, notePrefix, txType, sigType, txid, round, minRound, maxRound, assetId, beforeTime, afterTime, currencyGreater, currencyLesser, address, addressRole, excludeCloseToString, appID, nextToken) {
+    let ic = indexerIntegrationClients[clientNum];
+    let excludeCloseToBool = (excludeCloseToString == "true");
+    integrationSearchTransactionsResponse = await ic.searchForTransactions().limit(limit).notePrefix(notePrefix).txType(txType).sigType(sigType).txid(txid).round(round).minRound(minRound).maxRound(maxRound).assetID(assetId).beforeTime(beforeTime).afterTime(afterTime).currencyGreaterThan(currencyGreater).currencyLessThan(currencyLesser).address(address).addressRole(addressRole).excludeCloseTo(excludeCloseToBool).applicationID(appID).nextToken(nextToken).do();
+    this.responseForDirectJsonComparison = integrationSearchTransactionsResponse;
+});
+
 When('I use {int} to search for all {string} transactions', async function (clientNum, account) {
     let ic = indexerIntegrationClients[clientNum];
     integrationSearchTransactionsResponse = await ic.searchForTransactions().address(account).do();
@@ -2112,6 +2275,28 @@ When('I use {int} to search for all {string} transactions', async function (clie
 When('I use {int} to search for all {int} asset transactions', async function (clientNum, assetIndex) {
     let ic = indexerIntegrationClients[clientNum];
     integrationSearchTransactionsResponse = await ic.searchForTransactions().assetID(assetIndex).do();
+});
+
+When('I use {int} to search for applications with {int}, {int}, and token {string}', async function (clientNum, limit, appID, token) {
+    let ic = indexerIntegrationClients[clientNum];
+    this.responseForDirectJsonComparison = await ic.searchForApplications().limit(limit).index(appID).nextToken(token).do();
+});
+
+When('I use {int} to lookup application with {int}', async function (clientNum, appID) {
+    let ic = indexerIntegrationClients[clientNum];
+    this.responseForDirectJsonComparison = await ic.lookupApplications(appID).do();
+});
+
+Then('the parsed response should equal {string}.', function (jsonFile) {
+    let responseFromFile = "";
+    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonFile;
+    let xml = new XMLHttpRequest();
+    xml.open("GET", mockResponsePath, false);
+    xml.onreadystatechange = function () {
+        responseFromFile = xml.responseText.trim();
+    };
+    xml.send();
+    assert.strictEqual(JSON.stringify(this.responseForDirectJsonComparison), JSON.stringify(JSON.parse(responseFromFile)));
 });
 
 When('I get the next page using {int} to search for transactions with {int} and {int}', async function (clientNum, limit, maxRound) {
@@ -2246,4 +2431,478 @@ Then('there are {int} assets in the response, the first is {int}.', function (nu
         return
     }
     assert.equal(firstAssetId, integrationSearchAssetsResponse['assets'][0]['index']);
+});
+
+////////////////////////////////////
+// begin rekey test helpers
+////////////////////////////////////
+
+When('I add a rekeyTo field with address {string}', function (address) {
+    this.txn["reKeyTo"] = address;
+});
+
+When('I add a rekeyTo field with the private key algorand address', function () {
+    let keypair = nacl.keyPairFromSecretKey(this.sk);
+    let pubKeyFromSk = keypair["publicKey"];
+    this.txn["reKeyTo"] = address.encode(pubKeyFromSk);
+});
+
+When('I set the from address to {string}', function (from) {
+    this.txn["from"] = from;
+});
+
+let dryrunResponse;
+
+When('we make any Dryrun call', async function () {
+    const dr = new modelsv2.DryrunRequest({});
+    dryrunResponse = await this.v2Client.dryrun(dr).do();
+});
+
+Then('the parsed Dryrun Response should have global delta {string} with {int}', function (key, action) {
+    assert.equal(dryrunResponse.txns[0]["global-delta"][0].key, key);
+    assert.equal(dryrunResponse.txns[0]["global-delta"][0].value.action, action)
+});
+
+function loadResource(res) {
+    const p = path.join(maindir, "tests", "cucumber", "features", "resources", res)
+    return fs.readFileSync(p);
+}
+
+When('I dryrun a {string} program {string}', async function (kind, program) {
+    const data = loadResource(program);
+    const algoTxn = new txnBuilder.Transaction({
+        from: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+        fee: 1000,
+        amount: 1000,
+        firstRound: 1,
+        lastRound: 1000,
+        type: "pay",
+        genesisHash: "ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=",
+    });
+    let txns;
+    let sources;
+
+    switch (kind) {
+        case "compiled":
+            txns = [{
+                lsig: new logicsig.LogicSig(data),
+                txn: algoTxn,
+            }];
+            break
+        case "source":
+            txns = [{
+                txn: algoTxn,
+            }];
+            sources = [new modelsv2.DryrunSource("lsig", data.toString("utf8"), 0)]
+            break
+        default:
+            throw Error(`kind ${kind} not in (source, compiled)`)
+    }
+
+    const dr = new modelsv2.DryrunRequest({
+        txns: txns,
+        sources: sources,
+    })
+    dryrunResponse = await this.v2Client.dryrun(dr).do();
+});
+
+Then('I get execution result {string}', function (result) {
+    let msgs;
+    const res = dryrunResponse["txns"][0]
+    if (res["logic-sig-messages"] !== undefined && res["logic-sig-messages"].length > 0) {
+        msgs = res["logic-sig-messages"]
+    } else if (res["app-call-messages"] !== undefined && res["app-call-messages"].length > 0) {
+        msgs = res["app-call-messages"]
+    }
+    assert.ok(msgs.length > 0);
+    assert.equal(msgs[0], result);
+});
+
+let compileStatusCode;
+let compileResponse;
+
+When('I compile a teal program {string}', async function (program) {
+    const data = loadResource(program);
+    try {
+        compileResponse = await this.v2Client.compile(data).do();
+        compileStatusCode = 200
+    } catch (e) {
+        compileStatusCode = e.statusCode;
+        compileResponse = {
+            result: "",
+            hash: ""
+        };
+    }
+});
+
+Then('it is compiled with {int} and {string} and {string}', function (status, result, hash) {
+    assert.equal(status, compileStatusCode);
+    assert.equal(result, compileResponse.result);
+    assert.equal(hash, compileResponse.hash);
+});
+
+////////////////////////////////////
+// TealSign tests
+////////////////////////////////////
+
+Given('base64 encoded data to sign {string}', function (data) {
+    this.data = Buffer.from(data, "base64");
+});
+
+Given('program hash {string}', function (contractAddress) {
+    this.contractAddress = contractAddress;
+});
+
+Given('base64 encoded program {string}', function (programEncoded) {
+    const program = Buffer.from(programEncoded, "base64");
+    const lsig = algosdk.makeLogicSig(program);
+    this.contractAddress = lsig.address();
+});
+
+Given('base64 encoded private key {string}', function (keyEncoded) {
+    const seed = Buffer.from(keyEncoded, "base64");
+    const keys = nacl.keyPairFromSeed(seed);
+    this.sk = keys.secretKey;
+});
+
+When('I perform tealsign', function () {
+    this.sig = algosdk.tealSign(this.sk, this.data, this.contractAddress);
+});
+
+Then('the signature should be equal to {string}', function (expectedEncoded) {
+    const expected = new Uint8Array(Buffer.from(expectedEncoded, "base64"));
+    assert.deepStrictEqual(this.sig, expected);
+});
+
+////////////////////////////////////
+// begin application test helpers
+////////////////////////////////////
+
+Given('a signing account with address {string} and mnemonic {string}', function (address, mnemonic) {
+    this.signingMnemonic = mnemonic
+});
+
+function operationStringToEnum(inString) {
+    switch(inString) {
+        case "call":
+            return algosdk.OnApplicationComplete.NoOpOC;
+        case "create":
+            return algosdk.OnApplicationComplete.NoOpOC;
+        case "update":
+            return algosdk.OnApplicationComplete.UpdateApplicationOC;
+        case "optin":
+            return algosdk.OnApplicationComplete.OptInOC;
+        case "delete":
+            return algosdk.OnApplicationComplete.DeleteApplicationOC;
+        case "clear":
+            return algosdk.OnApplicationComplete.ClearStateOC;
+        case "closeout":
+            return algosdk.OnApplicationComplete.CloseOutOC;
+        default:
+            throw Error("did not recognize application operation string " + inString);
+    }
+}
+
+function splitAndProcessAppArgs(inArgs) {
+    let splitArgs = inArgs.split(",");
+    let subArgs = [];
+    splitArgs.forEach((subArg) => {
+       subArgs.push(subArg.split(":"));
+    });
+    let appArgs = [];
+    subArgs.forEach((subArg) => {
+       switch (subArg[0]) {
+           case "str":
+               appArgs.push(new Uint8Array(Buffer.from(subArg[1])));
+               break;
+           case "int":
+
+               appArgs.push(new Uint8Array([parseInt(subArg[1])]));
+               break;
+           case "addr":
+               appArgs.push(address.decode(subArg[1])["publicKey"]);
+               break;
+           default:
+               throw Error("did not recognize app arg of type" + subArg[0])
+       }
+    });
+    return appArgs;
+}
+
+
+When('I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}', function (operationString, appIndex, sender, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, foreignAssetsCommaSeparatedString, appAccountsCommaSeparatedString, fee, firstValid, lastValid, genesisHashBase64) {
+    // operation string to enum
+    let operation = operationStringToEnum(operationString);
+    // open and load in approval program
+    let approvalProgramBytes = undefined;
+    if (approvalProgramFile !== "") {
+        let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
+        approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+    }
+    // open and load in clear program
+    let clearProgramBytes = undefined;
+    if (clearProgramFile !== "") {
+        let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
+        clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+    }
+    // split and process app args
+    let appArgs = undefined;
+    if (appArgsCommaSeparatedString !== "") {
+        appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    }
+    // split and process foreign apps
+    let foreignApps = undefined;
+    if (foreignAppsCommaSeparatedString !== "") {
+        foreignApps = [];
+        foreignAppsCommaSeparatedString.split(",").forEach((foreignAppAsString) => {
+            foreignApps.push(parseInt(foreignAppAsString));
+        });
+    }
+    // split and process foreign assets
+    let foreignAssets = undefined;
+    if (foreignAssetsCommaSeparatedString !== "") {
+        foreignAssets = [];
+        foreignAssetsCommaSeparatedString.split(",").forEach((foreignAssetAsString) => {
+            foreignAssets.push(parseInt(foreignAssetAsString));
+        });
+    }
+    // split and process app accounts
+    let appAccounts = undefined;
+    if (appAccountsCommaSeparatedString !== "") {
+        appAccounts = appAccountsCommaSeparatedString.split(",");
+    }
+    // build suggested params object
+    let sp = {
+        "genesisHash": genesisHashBase64,
+        "firstRound": firstValid,
+        "lastRound": lastValid,
+        "fee": fee,
+        "flatFee": true,
+    }
+
+    switch(operationString) {
+        case "call":
+            this.txn = algosdk.makeApplicationNoOpTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
+            return;
+        case "create":
+            this.txn = algosdk.makeApplicationCreateTxn(sender, sp, operation, approvalProgramBytes, clearProgramBytes, numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices, appArgs, appAccounts, foreignApps, foreignAssets);
+            return;
+        case "update":
+            this.txn = algosdk.makeApplicationUpdateTxn(sender, sp, appIndex, approvalProgramBytes, clearProgramBytes, appArgs, appAccounts, foreignApps, foreignAssets);
+            return;
+        case "optin":
+            this.txn = algosdk.makeApplicationOptInTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
+            return;
+        case "delete":
+            this.txn = algosdk.makeApplicationDeleteTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
+            return;
+        case "clear":
+            this.txn = algosdk.makeApplicationClearStateTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
+            return;
+        case "closeout":
+            this.txn = algosdk.makeApplicationCloseOutTxn(sender, sp, appIndex, appArgs, appAccounts, foreignApps, foreignAssets);
+            return;
+        default:
+            throw Error("did not recognize application operation string " + operationString);
+    }
+});
+
+When('sign the transaction', function () {
+    let result = algosdk.mnemonicToSecretKey(this.signingMnemonic)
+    this.stx = this.txn.signTxn(result.sk);
+});
+
+Then('the base{int} encoded signed transaction should equal {string}', function (base, base64golden) {
+    let actualBase64 = Buffer.from(this.stx).toString("base64");
+    assert.equal(base64golden, actualBase64)
+});
+
+Given('an algod v{int} client connected to {string} port {int} with token {string}', function (clientVersion, host, port, token) {
+    this.v2Client = new clientv2.AlgodClient(token, host, port, {});
+});
+
+Given('I create a new transient account and fund it with {int} microalgos.', async function (fundingAmount) {
+    let generatedResult = algosdk.generateAccount()
+    this.transientSecretKey = generatedResult.sk;
+    this.transientAddress = generatedResult.addr;
+    let sp = await this.v2Client.getTransactionParams().do();
+    if (sp["firstRound"] == 0) sp["firstRound"] = 1;
+    let fundingTxnArgs = {
+        "from": this.accounts[0],
+        "to": this.transientAddress,
+        "amount": fundingAmount,
+        "suggestedParams": sp
+    };
+    let stxKmd = await this.kcl.signTransaction(this.handle, this.wallet_pswd, fundingTxnArgs);
+    let fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2).do();
+    let fundingConfirmation = await this.acl.transactionById(fundingResponse["txId"]);
+    assert.deepStrictEqual(true, "type" in fundingConfirmation);
+});
+
+Given('I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}', async function (operationString, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, foreignAssetsCommaSeparatedString, appAccountsCommaSeparatedString) {
+    // operation string to enum
+    let operation = operationStringToEnum(operationString);
+    // open and load in approval program
+    let approvalProgramBytes = undefined;
+    if (approvalProgramFile !== "") {
+        let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
+        approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+    }
+    // open and load in clear program
+    let clearProgramBytes = undefined;
+    if (clearProgramFile !== "") {
+        let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
+        clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+    }
+    // split and process app args
+    let appArgs = undefined;
+    if (appArgsCommaSeparatedString !== "") {
+        appArgs = splitAndProcessAppArgs(appArgsCommaSeparatedString);
+    }
+    // split and process foreign apps
+    let foreignApps = undefined;
+    if (foreignAppsCommaSeparatedString !== "") {
+        foreignApps = [];
+        foreignAppsCommaSeparatedString.split(",").forEach((foreignAppAsString) => {
+            foreignApps.push(parseInt(foreignAppAsString));
+        });
+    }
+    // split and process foreign assets
+    let foreignAssets = undefined;
+    if (foreignAssetsCommaSeparatedString !== "") {
+        foreignAssets = [];
+        foreignAssetsCommaSeparatedString.split(",").forEach((foreignAssetAsString) => {
+            foreignAssets.push(parseInt(foreignAssetAsString));
+        });
+    }
+    // split and process app accounts
+    let appAccounts = undefined;
+    if (appAccountsCommaSeparatedString !== "") {
+        appAccounts = appAccountsCommaSeparatedString.split(",");
+    }
+    let sp = await this.v2Client.getTransactionParams().do();
+    if (sp["firstRound"] == 0) sp["firstRound"] = 1;
+    let o = {
+        "from": this.transientAddress,
+        "appIndex": this.currentApplicationIndex,
+        "appOnComplete": operation,
+        "appLocalInts": numLocalInts,
+        "appLocalByteSlices": numLocalByteSlices,
+        "appGlobalInts": numGlobalInts,
+        "appGlobalByteSlices": numGlobalByteSlices,
+        "appApprovalProgram": approvalProgramBytes,
+        "appClearProgram": clearProgramBytes,
+        "appArgs": appArgs,
+        "appAccounts" : appAccounts,
+        "appForeignApps": foreignApps,
+        "appForeignAssets": foreignAssets,
+        "type": "appl",
+        "suggestedParams": sp
+    }
+    this.txn = new transaction.Transaction(o);
+});
+
+Given('I sign and submit the transaction, saving the txid. If there is an error it is {string}.', async function (errorString) {
+    try {
+        let appStx = this.txn.signTxn(this.transientSecretKey);
+        this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
+    }
+    catch(err) {
+        if (errorString !== "") {
+            // error was expected. check that err.text includes expected string.
+            let errorContainsString = err.text.includes(errorString);
+            assert.deepStrictEqual(true, errorContainsString)
+        } else {
+            // unexpected error, rethrow.
+            throw err;
+        }
+    }
+});
+
+Given('I wait for the transaction to be confirmed.', async function () {
+    let sp = await this.v2Client.getTransactionParams().do();
+    await this.v2Client.statusAfterBlock(sp["firstRound"] + 2).do();
+    let confirmation = await this.acl.transactionById(this.appTxid["txId"]);
+    assert.deepStrictEqual(true, "type" in confirmation);
+});
+
+Given('I remember the new application ID.', async function () {
+    let infoResult = await this.acl.pendingTransactionInformation(this.appTxid["txId"]);
+    this.currentApplicationIndex = infoResult["txresults"]["createdapp"];
+});
+
+Then('The transient account should have the created app {string} and total schema byte-slices {int} and uints {int},' +
+    ' the application {string} state contains key {string} with value {string}', async function (appCreatedBoolAsString,
+                                                                                          numByteSlices, numUints,
+                                                                                          applicationState, stateKey,
+                                                                                          stateValue) {
+    let accountInfo = await this.v2Client.accountInformation(this.transientAddress).do();
+    let appTotalSchema = accountInfo['apps-total-schema'];
+    assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
+    assert.strictEqual(appTotalSchema['num-uint'], numUints);
+
+    let appCreated = appCreatedBoolAsString == 'true';
+    let createdApps = accountInfo['created-apps'];
+    //  If we don't expect the app to exist, verify that it isn't there and exit.
+    if (!appCreated) {
+        for (i = 0; i < createdApps.length; i++){
+            assert.notStrictEqual(createdApps[i]['id'], this.currentApplicationIndex);
+        }
+        return;
+    }
+
+    let foundApp = false;
+    for (i = 0; i < createdApps.length; i++) {
+        foundApp = foundApp || (createdApps[i]['id'] == this.currentApplicationIndex);
+    }
+    assert.ok(foundApp);
+
+    // If there is no key to check, we're done.
+    if (stateKey == "") {
+        return;
+    }
+
+    let foundValueForKey = false;
+    let keyValues = [];
+    if (applicationState == "local") {
+        let counter = 0;
+        for (i = 0; i < accountInfo['apps-local-state'].length; i++) {
+            let localState = accountInfo['apps-local-state'][i]
+            if (localState['id'] == this.currentApplicationIndex) {
+                keyValues = localState['key-value'];
+                counter++;
+            }
+        }
+        assert.strictEqual(counter, 1);
+    } else if (applicationState == "global") {
+        let counter = 0;
+        for (i = 0; i < accountInfo['created-apps'].length; i++) {
+            let createdApp = accountInfo['created-apps'][i];
+            if (createdApp['id'] == this.currentApplicationIndex) {
+                keyValues = createdApp['params']['global-state'];
+                counter++;
+            }
+        }
+        assert.strictEqual(counter, 1);
+    } else {
+        assert.fail("test does not understand given application state: " + applicationState);
+    }
+
+    assert.ok(keyValues.length > 0);
+
+    for (i = 0; i < keyValues.length; i++) {
+        let keyValue = keyValues[i];
+        let foundKey = keyValue['key'];
+        if (foundKey == stateKey) {
+            foundValueForKey = true;
+            let foundValue = keyValue['value'];
+            if (foundValue['type'] == 1) {
+                assert.strictEqual(foundValue['bytes'], stateValue);
+            } else if (foundValue['type'] == 0) {
+                assert.strictEqual(foundValue['uint'], stateValue);
+            }
+        }
+    }
+    assert.ok(foundValueForKey)
 });
