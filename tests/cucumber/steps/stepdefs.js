@@ -2287,6 +2287,14 @@ When('I use {int} to lookup application with {int}', async function (clientNum, 
     this.responseForDirectJsonComparison = await ic.lookupApplications(appID).do();
 });
 
+function sortKeys(x) {
+    if (typeof x !== 'object' || !x)
+        return x;
+    if (Array.isArray(x))
+        return x.map(sortKeys);
+    return Object.keys(x).sort().reduce((o, k) => ({...o, [k]: sortKeys(x[k])}), {});
+}
+
 Then('the parsed response should equal {string}.', function (jsonFile) {
     let responseFromFile = "";
     let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonFile;
@@ -2296,6 +2304,7 @@ Then('the parsed response should equal {string}.', function (jsonFile) {
         responseFromFile = xml.responseText.trim();
     };
     xml.send();
+    this.responseForDirectJsonComparison = sortKeys(this.responseForDirectJsonComparison);
     assert.strictEqual(JSON.stringify(this.responseForDirectJsonComparison), JSON.stringify(JSON.parse(responseFromFile)));
 });
 
