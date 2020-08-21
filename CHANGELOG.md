@@ -1,3 +1,6 @@
+# 1.7.1
+## Fixed
+- Fixed set Accept on GET calls
 # 1.7.0
 ## Added
 - Support for Application Call Transactions, also known as Stateful TEAL
