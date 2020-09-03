@@ -165,19 +165,30 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
     // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
     let expectedFromRaw = address.fromMultisigPreImgAddrs({version, threshold, addrs});
     if (txn.hasOwnProperty('from')) {
-        if (txn.from !== expectedFromRaw) {
+        if ((txn.from !== expectedFromRaw) && (address.encode(txn.from.publicKey) !== expectedFromRaw)) {
             throw ERROR_MULTISIG_BAD_SENDER;
         }
     } else {
         txn.from = expectedFromRaw;
     }
-    let algoTxn = new multisig.MultisigTransaction(txn);
+    // build pks for partialSign
     const pks = addrs.map(addr => {
         return address.decode(addr).publicKey;
     });
+    // `txn` needs to be handled differently if it's a constructed `Transaction` vs a dict of constructor args
+    let txnAlreadyBuilt = (txn instanceof txnBuilder.Transaction);
+    let algoTxn;
+    let blob;
+    if (txnAlreadyBuilt) {
+        algoTxn = txn;
+        blob = multisig.MultisigTransaction.prototype.partialSignTxn.call(algoTxn, {version, threshold, pks}, sk);
+    } else {
+        algoTxn = new multisig.MultisigTransaction(txn);
+        blob = algoTxn.partialSignTxn({version, threshold, pks}, sk);
+    }
     return {
         "txID": algoTxn.txID().toString(),
-        "blob": algoTxn.partialSignTxn({version, threshold, pks}, sk),
+        "blob": blob
     };
 }
 
