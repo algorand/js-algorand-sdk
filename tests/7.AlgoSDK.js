@@ -196,6 +196,53 @@ describe('Algosdk (AKA end to end)', function () {
             let tx_golden = "TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A";
             assert.deepStrictEqual(js_dec.txID, tx_golden);
         });
+
+        it('should return the same blob whether using dict-of-args or algosdk.makeFooTransaction', function () {
+            const params = {
+                version: 1,
+                threshold: 2,
+                addrs: [
+                    "DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA",
+                    "BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM",
+                    "47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU",
+                ],
+            }; // msig address - RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM
+
+            let mnemonic = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
+            let seed = passphrase.seedFromMnemonic(mnemonic);
+            let keys = nacl.keyPairFromSeed(seed);
+            let sk = keys.secretKey;
+
+            let to_addr = "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI";
+            let from_addr = "RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM";
+            let fee = 4;
+            let amount = 1000;
+            let firstRound = 12466;
+            let lastRound = 13466;
+            let genesisID = "devnet-v33.0";
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let closeRemainder = "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA";
+            let note = new Uint8Array(Buffer.from("X4Bl4wQ9rCo=", "base64"))
+            let o_dict = {
+                "to": to_addr,
+                "from": from_addr,
+                "fee": fee,
+                "amount": amount,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "genesisID": genesisID,
+                "genesisHash": genesisHash,
+                "closeRemainderTo": closeRemainder,
+                "note": note
+            };
+            let o_obj = algosdk.makePaymentTxn(from_addr, to_addr, fee, amount, closeRemainder,
+                firstRound, lastRound, note, genesisHash, genesisID);
+
+            let o_dict_output = algosdk.signMultisigTransaction(o_dict, params, sk);
+            let o_obj_output = algosdk.signMultisigTransaction(o_obj, params, sk);
+            assert.deepStrictEqual(o_dict_output.txID, o_obj_output.txID);
+            assert.deepStrictEqual(o_dict_output.blob, o_obj_output.blob);
+        });
     });
 
 
