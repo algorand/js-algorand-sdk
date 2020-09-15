@@ -14,6 +14,26 @@ function removeEmpty(obj) {
     return obj;
 }
 
+/**
+ * getAccceptFormat returns the correct Accept header depending on the
+ * requested format.
+ * @param query
+ * @returns {string}
+ */
+function getAccceptFormat(query) {
+    if (query !== undefined && query.hasOwnProperty('format'))
+        switch(query.format) {
+            case 'msgpack':
+                return 'application/msgpack';
+            case 'json':
+                return 'application/json';
+            default:
+                return 'application/json';
+        }
+    else
+        return "application/json"
+ }
+
 function HTTPClient(token, baseServer, port, headers={}) {
     // Do not need colon if port is empty
     if (port !== '') {
@@ -30,7 +50,7 @@ function HTTPClient(token, baseServer, port, headers={}) {
                 .set(this.token)
                 .set(this.defaultHeaders)
                 .set(requestHeaders)
-                .set('Accept', 'application/json')
+                .set('Accept', getAccceptFormat(query))
                 .query(removeEmpty(query));
         } catch (e) {
             throw e;
