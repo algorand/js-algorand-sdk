@@ -22,7 +22,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
-    "@babel/plugin-proposal-class-properties": "^7.10.4",
     "@babel/preset-env": "^7.6.0",
     "babel-core": "^6.26.3",
     "babel-minify": "^0.5.1",
@@ -44,7 +43,7 @@
   ],
   "scripts": {
     "test": "mocha -R spec tests/",
-    "build": "browserify --transform [babelify --plugins [ @babel/plugin-proposal-class-properties ] ] src/main.js -s algosdk | minify --simplify --mangle.keepClassName --deadcode.keepFnArgs --comments false --outFile dist/algosdk.min.js"
+    "build": "browserify src/main.js -s algosdk | minify --simplify --mangle.keepClassName --deadcode.keepFnArgs --comments false --outFile dist/algosdk.min.js"
   },
   "author": "Algorand, llc",
   "license": "MIT"
