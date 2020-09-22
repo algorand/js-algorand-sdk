@@ -15,7 +15,7 @@ class PendingTransactionInformation {
 	 */
 	async do(headers={}){
 		let res = await this.c.get("/v2/transactions/pending/" + this.txid, this.query, headers);
-		if (res.body && res.body.length > 0) {
+		if (res.body && res.body.byteLength > 0) {
 			return encoding.decode(res.body);
 		}
 		return undefined;

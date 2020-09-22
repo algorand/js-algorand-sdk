@@ -15,7 +15,7 @@ class Block {
 	 */
 	async do(headers={}) {
 		let res = await this.c.get("/v2/blocks/" + this.round, this.query, headers);
-		if (res.body && res.body.length > 0) {
+		if (res.body && res.body.byteLength > 0) {
 			return encoding.decode(res.body);
 		}
 		return undefined;
