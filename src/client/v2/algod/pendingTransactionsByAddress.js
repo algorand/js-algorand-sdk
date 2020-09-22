@@ -14,7 +14,7 @@ class PendingTransactionsByAddress {
 	 */
 	async do(headers={}) {
 		let res = await this.c.get("/v2/accounts/" + this.address + "/transactions/pending", this.query, headers);
-		if (res.body) {
+		if (res.body && res.body.length > 0) {
 			return encoding.decode(res.body);
 		}
 		return undefined;
