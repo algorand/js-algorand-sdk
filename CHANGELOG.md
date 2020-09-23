@@ -1,3 +1,8 @@
+# 1.7.1
+## Fixed
+- Fixed set Accept on GET calls
+## Changed
+- Change algosdk.signMultisigTransaction to accept either a built Transaction or a dict of constructor args
 # 1.7.0
 ## Added
 - Support for Application Call Transactions, also known as Stateful TEAL
