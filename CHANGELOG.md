@@ -1,3 +1,9 @@
+# 1.7.2
+## Fixed
+- Fixed msgpack endpoints returning undefined in browsers (#210 and #215).
+- Removed use of class properties (#213).
+## Changed
+- Remove unneeded dependency js-yaml and changed mock-http-server to a dev dependency (#214 and #212).
 # 1.7.1
 ## Fixed
 - Fixed set Accept on GET calls
