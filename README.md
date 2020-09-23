@@ -57,7 +57,7 @@ Example result
 "gorilla fortune learn marble essay uphold defense hover index effort ice atom figure will improve mom indoor mansion people elder hill material donkey abandon gown"
 ```
 
-#### Mnemonic to secret sey
+#### Mnemonic to secret key
 ```javascript
 var secret_key = algosdk.mnemonicToSecretKey(mnemonic);
 ```
@@ -73,6 +73,28 @@ var isValid = algosdk.isValidAddress("IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6X
 Example result
 ```text
 true
+```
+
+#### Encode/decode addresses
+These two functions let you convert addresses between their string and binary representations.
+```javascript
+var decoded = algosdk.decodeAddress("IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U");
+var encoded = algosdk.encodeAddress(decoded.publicKey);
+console.log('Decoded:', decoded);
+console.log('Encoded:', encoded);
+```
+Result
+```text
+Decoded: {
+  publicKey: Uint8Array(32) [
+     64, 118, 212, 129, 119,  88, 239, 212,
+    175,   2,  31,  38, 201, 177, 117,  18,
+    135,  28, 182,  92,  75, 154, 118,  34,
+    195, 245, 217, 241, 201,  88, 143, 217
+  ],
+  checksum: Uint8Array(4) [ 99, 163, 200, 253 ]
+}
+Encoded: IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U
 ```
 
 #### Sign a transaction 
