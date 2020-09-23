@@ -45,13 +45,20 @@ function HTTPClient(token, baseServer, port, headers={}) {
 
     this.get = async function (path, query, requestHeaders={}) {
         try {
-            return await request
+            const format = getAccceptFormat(query);
+            let r = request
                 .get(this.address + path)
                 .set(this.token)
                 .set(this.defaultHeaders)
                 .set(requestHeaders)
-                .set('Accept', getAccceptFormat(query))
+                .set('Accept', format)
                 .query(removeEmpty(query));
+            
+            if (format === 'application/msgpack') {
+                r = r.responseType('arraybuffer');
+            }
+            
+            return await r;
         } catch (e) {
             throw e;
         }
