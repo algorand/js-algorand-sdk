@@ -5,7 +5,7 @@ RUN mkdir -p $HOME/js-algorand-sdk
 COPY . $HOME/js-algorand-sdk
 WORKDIR $HOME/js-algorand-sdk
 
-RUN npm install
+RUN npm ci
 
 ENV UNITTESTDIR=$HOME/js-algorand-sdk/tests/cucumber/features/unit
 
