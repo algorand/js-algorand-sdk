@@ -33,6 +33,45 @@ describe('Algosdk (AKA end to end)', function () {
             let o = "Hi there";
             assert.deepStrictEqual(o, algosdk.decodeObj(algosdk.encodeObj(o)));
         });
+
+        it('should not mutate unsigned transaction when going to or from encoded buffer', function () {
+            let to = "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI";
+            let fee = 4;
+            let amount = 1000;
+            let firstRound = 12466;
+            let lastRound = 13466;
+            let genesisID = "devnet-v33.0";
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let closeRemainderTo = "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA";
+            let note = new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64"))
+            let from = to;
+            let txnAsObj = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
+            let txnAsBuffer = algosdk.unsignedTransactionToBuffer(txnAsObj);
+            let txnAsObjRecovered = algosdk.bufferToUnsignedTransaction(txnAsBuffer);
+            let txnAsBufferRecovered = algosdk.unsignedTransactionToBuffer(txnAsObjRecovered);
+            assert.deepStrictEqual(txnAsBuffer, txnAsBufferRecovered);
+        });
+
+        it('should not mutate signed transaction when going to or from encoded buffer', function () {
+            let to = "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI";
+            let fee = 4;
+            let amount = 1000;
+            let firstRound = 12466;
+            let lastRound = 13466;
+            let genesisID = "devnet-v33.0";
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let closeRemainderTo = "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA";
+            let note = new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64"))
+            let from = to;
+            let txnAsObj = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
+            let sk = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
+            sk = algosdk.mnemonicToSecretKey(sk);
+            let initialSignedTxnBytes = txnAsObj.signTxn(sk.sk);
+            let signedTxnRecovered = algosdk.bufferToSignedTransaction(initialSignedTxnBytes);
+            let txnAsObjRecovered = signedTxnRecovered.txn;
+            let recoveredSignedTxnBytes = txnAsObjRecovered.signTxn(sk.sk);
+            assert.deepStrictEqual(initialSignedTxnBytes, recoveredSignedTxnBytes);
+        });
     });
 
     describe('Sign', function () {
