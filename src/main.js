@@ -37,11 +37,29 @@ function generateAccount() {
 
 /**
  * isValidAddress takes an Algorand address and checks if valid.
- * @param addr Algorand address
+ * @param {string} addr Algorand address
  * @returns {boolean} true if valid, false otherwise
  */
 function isValidAddress(addr) {
     return address.isValidAddress(addr);
+}
+
+/**
+ * encodeAddress takes an Algorand address as a Uint8Array and encodes it into a string with checksum.
+ * @param {Uint8Array} addr a raw Algorand address
+ * @returns {string} the address and checksum encoded as a string.
+ */
+function encodeAddress(addr) {
+    return address.encode(addr);
+}
+
+/**
+ * decodeAddress takes an Algorand address in string form and decodes it into a Uint8Array.
+ * @param {string} addr an Algorand address with checksum.
+ * @returns {{publicKey: Uint8Array, checksum: Uint8Array}} the decoded form of the address's public key and checksum
+ */
+function decodeAddress(addr) {
+    return address.decode(addr)
 }
 
 /**
@@ -1181,6 +1199,8 @@ function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
 
 module.exports = {
     isValidAddress,
+    encodeAddress,
+    decodeAddress,
     generateAccount,
     secretKeyToMnemonic,
     mnemonicToSecretKey,
