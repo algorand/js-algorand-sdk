@@ -46,10 +46,12 @@ describe('Algosdk (AKA end to end)', function () {
             let note = new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64"))
             let from = to;
             let txnAsObj = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
-            let txnAsBuffer = algosdk.unsignedTransactionToBuffer(txnAsObj);
-            let txnAsObjRecovered = algosdk.bufferToUnsignedTransaction(txnAsBuffer);
-            let txnAsBufferRecovered = algosdk.unsignedTransactionToBuffer(txnAsObjRecovered);
+            let txnAsBuffer = algosdk.encodeUnsignedTransaction(txnAsObj);
+            let txnAsObjRecovered = algosdk.decodeUnsignedTransaction(txnAsBuffer);
+            let txnAsBufferRecovered = algosdk.encodeUnsignedTransaction(txnAsObjRecovered);
             assert.deepStrictEqual(txnAsBuffer, txnAsBufferRecovered);
+            let txnAsBufferGolden = new Uint8Array(Buffer.from("i6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=", "base64"));
+            assert.deepStrictEqual(txnAsBufferGolden, txnAsBufferRecovered);
         });
 
         it('should not mutate signed transaction when going to or from encoded buffer', function () {
@@ -67,10 +69,13 @@ describe('Algosdk (AKA end to end)', function () {
             let sk = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
             sk = algosdk.mnemonicToSecretKey(sk);
             let initialSignedTxnBytes = txnAsObj.signTxn(sk.sk);
-            let signedTxnRecovered = algosdk.bufferToSignedTransaction(initialSignedTxnBytes);
+            let signedTxnRecovered = algosdk.decodeSignedTransaction(initialSignedTxnBytes);
             let txnAsObjRecovered = signedTxnRecovered.txn;
             let recoveredSignedTxnBytes = txnAsObjRecovered.signTxn(sk.sk);
             assert.deepStrictEqual(initialSignedTxnBytes, recoveredSignedTxnBytes);
+            let signedTxnBytesGolden = new Uint8Array(Buffer.from("g6RzZ25yxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaNzaWfEQDJHtrytU9p3nhRH1XS8tX+KmeKGyekigG7M704dOkBMTqiOJFuukbK2gUViJtivsPrKNiV0+WIrdbBk7gmNkgGjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=","base64"));
+            console.log(Buffer.from(recoveredSignedTxnBytes).toString('base64'));
+            assert.deepStrictEqual(signedTxnBytesGolden, recoveredSignedTxnBytes)
         });
     });
 
