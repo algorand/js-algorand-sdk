@@ -74,7 +74,6 @@ describe('Algosdk (AKA end to end)', function () {
             let recoveredSignedTxnBytes = txnAsObjRecovered.signTxn(sk.sk);
             assert.deepStrictEqual(initialSignedTxnBytes, recoveredSignedTxnBytes);
             let signedTxnBytesGolden = new Uint8Array(Buffer.from("g6RzZ25yxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaNzaWfEQDJHtrytU9p3nhRH1XS8tX+KmeKGyekigG7M704dOkBMTqiOJFuukbK2gUViJtivsPrKNiV0+WIrdbBk7gmNkgGjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=","base64"));
-            console.log(Buffer.from(recoveredSignedTxnBytes).toString('base64'));
             assert.deepStrictEqual(signedTxnBytesGolden, recoveredSignedTxnBytes)
         });
     });
