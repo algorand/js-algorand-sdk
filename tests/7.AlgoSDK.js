@@ -33,6 +33,49 @@ describe('Algosdk (AKA end to end)', function () {
             let o = "Hi there";
             assert.deepStrictEqual(o, algosdk.decodeObj(algosdk.encodeObj(o)));
         });
+
+        it('should not mutate unsigned transaction when going to or from encoded buffer', function () {
+            let to = "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI";
+            let fee = 4;
+            let amount = 1000;
+            let firstRound = 12466;
+            let lastRound = 13466;
+            let genesisID = "devnet-v33.0";
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let closeRemainderTo = "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA";
+            let note = new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64"))
+            let from = to;
+            let txnAsObj = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
+            let txnAsBuffer = algosdk.encodeUnsignedTransaction(txnAsObj);
+            let txnAsObjRecovered = algosdk.decodeUnsignedTransaction(txnAsBuffer);
+            let txnAsBufferRecovered = algosdk.encodeUnsignedTransaction(txnAsObjRecovered);
+            assert.deepStrictEqual(txnAsBuffer, txnAsBufferRecovered);
+            let txnAsBufferGolden = new Uint8Array(Buffer.from("i6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=", "base64"));
+            assert.deepStrictEqual(txnAsBufferGolden, txnAsBufferRecovered);
+        });
+
+        it('should not mutate signed transaction when going to or from encoded buffer', function () {
+            let to = "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI";
+            let fee = 4;
+            let amount = 1000;
+            let firstRound = 12466;
+            let lastRound = 13466;
+            let genesisID = "devnet-v33.0";
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let closeRemainderTo = "IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA";
+            let note = new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64"))
+            let from = to;
+            let txnAsObj = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
+            let sk = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
+            sk = algosdk.mnemonicToSecretKey(sk);
+            let initialSignedTxnBytes = txnAsObj.signTxn(sk.sk);
+            let signedTxnRecovered = algosdk.decodeSignedTransaction(initialSignedTxnBytes);
+            let txnAsObjRecovered = signedTxnRecovered.txn;
+            let recoveredSignedTxnBytes = txnAsObjRecovered.signTxn(sk.sk);
+            assert.deepStrictEqual(initialSignedTxnBytes, recoveredSignedTxnBytes);
+            let signedTxnBytesGolden = new Uint8Array(Buffer.from("g6RzZ25yxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaNzaWfEQDJHtrytU9p3nhRH1XS8tX+KmeKGyekigG7M704dOkBMTqiOJFuukbK2gUViJtivsPrKNiV0+WIrdbBk7gmNkgGjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=","base64"));
+            assert.deepStrictEqual(signedTxnBytesGolden, recoveredSignedTxnBytes)
+        });
     });
 
     describe('Sign', function () {

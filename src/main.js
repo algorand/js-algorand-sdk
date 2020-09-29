@@ -1197,6 +1197,39 @@ function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
     return new txnBuilder.Transaction(o);
 }
 
+/**
+ * encodeUnsignedTransaction takes a completed txnBuilder.Transaction object, such as from the makeFoo
+ * family of transactions, and converts it to a Buffer
+ * @param transactionObject the completed Transaction object
+ * @returns {Uint8Array}
+ */
+function encodeUnsignedTransaction(transactionObject) {
+    let objToEncode = transactionObject.get_obj_for_encoding();
+    return encoding.encode(objToEncode);
+}
+
+/**
+ * decodeUnsignedTransaction takes a Buffer (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
+ * @param transactionBuffer the Uint8Array containing a transaction
+ * @returns {Transaction}
+ */
+function decodeUnsignedTransaction(transactionBuffer) {
+    let partlyDecodedObject = encoding.decode(transactionBuffer);
+    return txnBuilder.Transaction.from_obj_for_encoding(partlyDecodedObject);
+}
+
+/**
+ * decodeSignedTransaction takes a Buffer (from transaction.signTxn) and converts it to an object
+ * containing the Transaction (txn), the signature (sig), and the auth-addr field if applicable (sgnr)
+ * @param transactionBuffer the Uint8Array containing a transaction
+ * @returns {Object} containing a Transaction, the signature, and possibly an auth-addr field
+ */
+function decodeSignedTransaction(transactionBuffer) {
+    let stxnDecoded = encoding.decode(transactionBuffer);
+    stxnDecoded.txn = txnBuilder.Transaction.from_obj_for_encoding(stxnDecoded.txn);
+    return stxnDecoded;
+}
+
 module.exports = {
     isValidAddress,
     encodeAddress,
@@ -1254,5 +1287,8 @@ module.exports = {
     makeApplicationOptInTxn,
     makeApplicationCloseOutTxn,
     makeApplicationClearStateTxn,
-    makeApplicationNoOpTxn
+    makeApplicationNoOpTxn,
+    encodeUnsignedTransaction,
+    decodeUnsignedTransaction,
+    decodeSignedTransaction
 };
