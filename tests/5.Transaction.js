@@ -346,6 +346,7 @@ describe('Sign', function () {
             let note = new Uint8Array([123, 12, 200]);
             let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
             let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
             let closeRemainderTo = undefined;
             let o = {
                 "from": from,
@@ -357,10 +358,11 @@ describe('Sign', function () {
                 "lastRound": lastRound,
                 "note": note,
                 "genesisHash": genesisHash,
-                "genesisID": genesisID
+                "genesisID": genesisID,
+                "rekeyTo": rekeyTo
             };
             let expectedTxn = new transaction.Transaction(o);
-            let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
+            let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -372,6 +374,7 @@ describe('Sign', function () {
             let note = new Uint8Array([123, 12, 200]);
             let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
             let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
             let voteKey = "5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=";
             let selectionKey = "oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=";
             let voteKeyDilution = 1234;
@@ -390,11 +393,12 @@ describe('Sign', function () {
                 "voteLast": voteLast,
                 "voteKeyDilution": voteKeyDilution,
                 "genesisID": genesisID,
+                "rekeyTo": rekeyTo,
                 "type": "keyreg"
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution);
+                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -416,6 +420,7 @@ describe('Sign', function () {
             let firstRound = 322575;
             let lastRound = 322575;
             let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
             let o = {
                 "from": addr,
                 "fee": fee,
@@ -435,11 +440,12 @@ describe('Sign', function () {
                 "assetFreeze": freeze,
                 "assetClawback": clawback,
                 "genesisID": genesisID,
+                "rekeyTo": rekeyTo,
                 "type": "acfg"
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash);
+                total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -456,6 +462,7 @@ describe('Sign', function () {
             let firstRound = 322575;
             let lastRound = 322575;
             let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
             let o = {
                 "from": addr,
                 "fee": fee,
@@ -469,11 +476,12 @@ describe('Sign', function () {
                 "assetFreeze": freeze,
                 "assetClawback": clawback,
                 "type": "acfg",
-                "note": note
+                "note": note,
+                "rekeyTo": rekeyTo
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                assetIndex, manager, reserve, freeze, clawback);
+                assetIndex, manager, reserve, freeze, clawback, true, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -509,6 +517,7 @@ describe('Sign', function () {
             let firstRound = 322575;
             let lastRound = 322575;
             let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
             let o = {
                 "from": addr,
                 "fee": fee,
@@ -518,11 +527,12 @@ describe('Sign', function () {
                 "genesisID": genesisID,
                 "assetIndex": assetIndex,
                 "type": "acfg",
-                "note": note
+                "note": note,
+                "rekeyTo": rekeyTo
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                assetIndex);
+                assetIndex, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -541,6 +551,7 @@ describe('Sign', function () {
             let firstRound = 322575;
             let lastRound = 322575;
             let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
             let o = {
                 "type": "axfer",
                 "from": sender,
@@ -554,11 +565,12 @@ describe('Sign', function () {
                 "assetIndex": assetIndex,
                 "note": note,
                 "assetRevocationTarget": revocationTarget,
-                "closeRemainderTo": closeRemainderTo
+                "closeRemainderTo": closeRemainderTo,
+                "rekeyTo": rekeyTo
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
-                fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex);
+                fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
@@ -574,6 +586,7 @@ describe('Sign', function () {
             let lastRound = 322575;
             let freezeState = true;
             let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
             let o = {
                 "from": addr,
                 "fee": fee,
@@ -586,11 +599,12 @@ describe('Sign', function () {
                 "creator" : creator,
                 "freezeState" : freezeState,
                 "note": note,
-                "genesisID": genesisID
+                "genesisID": genesisID,
+                "rekeyTo": rekeyTo
             };
             let expectedTxn = new transaction.Transaction(o);
             let actualTxn = algosdk.makeAssetFreezeTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                assetIndex, freezeTarget, freezeState);
+                assetIndex, freezeTarget, freezeState, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
     });
