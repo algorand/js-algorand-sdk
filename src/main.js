@@ -426,10 +426,11 @@ function tealSignFromProgram(sk, data, program) {
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID) {
+function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo=undefined) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -437,7 +438,7 @@ function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, las
         "lastRound": lastRound,
         "fee": fee
     };
-    return makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams);
+    return makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams, rekeyTo);
 }
 
 /**
@@ -454,10 +455,11 @@ function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, las
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams) {
+function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams, rekeyTo=undefined) {
     let o = {
         "from": from,
         "to": to,
@@ -465,7 +467,8 @@ function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, n
         "closeRemainderTo": closeRemainderTo,
         "note": note,
         "suggestedParams": suggestedParams,
-        "type": "pay"
+        "type": "pay",
+        "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -486,11 +489,12 @@ function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, n
  * @param voteFirst - first round on which voteKey is valid
  * @param voteLast - last round on which voteKey is valid
  * @param voteKeyDilution - integer
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution) {
+                                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, rekeyTo=undefined) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -498,7 +502,7 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
         "lastRound": lastRound,
         "fee": fee
     };
-    return makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams);
+    return makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo);
 }
 
 /**
@@ -519,10 +523,11 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams) {
+function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo=undefined) {
     let o = {
         "from": from,
         "note": note,
@@ -532,7 +537,8 @@ function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectio
         "voteLast": voteLast,
         "voteKeyDilution": voteKeyDilution,
         "suggestedParams": suggestedParams,
-        "type": "keyreg"
+        "type": "keyreg",
+        "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -558,12 +564,13 @@ function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectio
  * @param assetName - string name for this asset
  * @param assetURL - string URL relating to this asset
  * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                             total, decimals, defaultFrozen, manager, reserve, freeze,
-                            clawback, unitName, assetName, assetURL, assetMetadataHash) {
+                            clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo=undefined) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -572,7 +579,7 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "fee": fee
     };
     return makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defaultFrozen, manager, reserve, freeze, clawback,
-        unitName, assetName, assetURL, assetMetadataHash, suggestedParams);
+        unitName, assetName, assetURL, assetMetadataHash, suggestedParams, rekeyTo);
 }
 
 /** makeAssetCreateTxnWithSuggestedParams takes asset creation arguments and returns a Transaction object
@@ -598,10 +605,11 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
 function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defaultFrozen, manager, reserve, freeze,
-                            clawback, unitName, assetName, assetURL, assetMetadataHash, suggestedParams) {
+                            clawback, unitName, assetName, assetURL, assetMetadataHash, suggestedParams, rekeyTo=undefined) {
     let o = {
         "from": from,
         "note": note,
@@ -617,7 +625,8 @@ function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defa
         "assetReserve": reserve,
         "assetFreeze": freeze,
         "assetClawback": clawback,
-        "type": "acfg"
+        "type": "acfg",
+        "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -639,11 +648,12 @@ function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defa
  * @param freeze - string representation of new freeze manager Algorand address
  * @param clawback - string representation of new revocation manager Algorand address
  * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            assetIndex, manager, reserve, freeze, clawback, strictEmptyAddressChecking=true) {
+                            assetIndex, manager, reserve, freeze, clawback, strictEmptyAddressChecking=true, rekeyTo=undefined) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -651,7 +661,7 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "lastRound": lastRound,
         "fee": fee
     };
-    return makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex, manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking);
+    return makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex, manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking, rekeyTo);
 }
 
 /** makeAssetConfigTxnWithSuggestedParams can be issued by the asset manager to change the manager, reserve, freeze, or clawback
@@ -673,10 +683,11 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
 function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
-                                      manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking=true) {
+                                      manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking=true, rekeyTo=undefined) {
     if (strictEmptyAddressChecking && ((manager === undefined) || (reserve === undefined) || (freeze === undefined) || (clawback === undefined))) {
         throw Error("strict empty address checking was turned on, but at least one empty address was provided");
     }
@@ -689,7 +700,8 @@ function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
         "assetFreeze": freeze,
         "assetClawback": clawback,
         "type": "acfg",
-        "note": note
+        "note": note,
+        "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -705,10 +717,11 @@ function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param assetIndex - int asset index uniquely specifying the asset
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
+function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, rekeyTo=undefined) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -716,7 +729,7 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
         "lastRound": lastRound,
         "fee": fee
     };
-    return makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams);
+    return makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams, rekeyTo);
 }
 
 /** makeAssetDestroyTxnWithSuggestedParams will allow the asset's manager to remove this asset from the ledger, so long
@@ -732,15 +745,17 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams) {
+function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams, rekeyTo=undefined) {
     let o = {
         "from": from,
         "suggestedParams": suggestedParams,
         "assetIndex": assetIndex,
         "type": "acfg",
-        "note": note
+        "note": note,
+        "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -758,11 +773,12 @@ function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggeste
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
  * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                            assetIndex, freezeTarget, freezeState) {
+                            assetIndex, freezeTarget, freezeState, rekeyTo=undefined) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -770,7 +786,7 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
         "lastRound": lastRound,
         "fee": fee
     };
-    return makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams);
+    return makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams, rekeyTo);
 }
 
 /** makeAssetFreezeTxnWithSuggestedParams will allow the asset's freeze manager to freeze or un-freeze an account,
@@ -788,9 +804,10 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams) {
+function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams, rekeyTo=undefined) {
     let o = {
         "from": from,
         "type": "afrz",
@@ -798,7 +815,8 @@ function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTar
         "assetIndex": assetIndex,
         "freezeState" : freezeState,
         "note": note,
-        "suggestedParams": suggestedParams
+        "suggestedParams": suggestedParams,
+        "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -821,11 +839,12 @@ function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTar
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
  * @param assetIndex - int asset index uniquely specifying the asset
+ * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
-                              fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex) {
+                              fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, rekeyTo=undefined) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -833,7 +852,7 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
         "lastRound": lastRound,
         "fee": fee
     };
-    return makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, revocationTarget, amount, note, assetIndex, suggestedParams);
+    return makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, revocationTarget, amount, note, assetIndex, suggestedParams, rekeyTo);
 }
 
 /** makeAssetTransferTxnWithSuggestedParams allows for the creation of an asset transfer transaction.
@@ -855,10 +874,11 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
 function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, revocationTarget,
-                              amount, note, assetIndex, suggestedParams) {
+                              amount, note, assetIndex, suggestedParams, rekeyTo=undefined) {
     let o = {
         "type": "axfer",
         "from": from,
@@ -868,7 +888,8 @@ function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, rev
         "assetIndex": assetIndex,
         "note": note,
         "assetRevocationTarget": revocationTarget,
-        "closeRemainderTo": closeRemainderTo
+        "closeRemainderTo": closeRemainderTo,
+        "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
