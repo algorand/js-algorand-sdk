@@ -2,15 +2,11 @@ const assert = require('assert');
 const {BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
 let algosdk = require("../../../src/main");
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-const address = require("../../../src/encoding/address");
 const splitTemplate = require("../../../src/logicTemplates/split");
 const htlcTemplate = require("../../../src/logicTemplates/htlc");
 const periodicPayTemplate = require("../../../src/logicTemplates/periodicpayment");
 const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
-const clientv2 = require("../../../src/client/v2/algod/algod");
-const modelsv2 = require("../../../src/client/v2/algod/models/types");
-const indexer = require("../../../src/client/v2/indexer/indexer");
 const nacl = require("../../../src/nacl/naclWrappers");
 const transaction = require("../../../src/transaction");
 const sha256 = require('js-sha256');
@@ -18,8 +14,6 @@ const fs = require('fs');
 const path = require("path")
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)))
 const ServerMock = require("mock-http-server");
-const txnBuilder = require('../../../src/transaction');
-const logicsig = require('../../../src/logicsig');
 
 setDefaultTimeout(60000)
 
@@ -56,7 +50,7 @@ Given("a kmd client", function(){
 });
 
 Given('an algod v2 client', function () {
-    this.v2Client = new clientv2.AlgodClient(algod_token, "http://localhost", 60000);
+    this.v2Client = new algosdk.Algodv2(algod_token, "http://localhost", 60000);
 });
 
 Given("wallet information", async function(){
@@ -189,11 +183,11 @@ When("I sign the transaction with kmd", async function(){
 When("I sign the multisig transaction with kmd", async function(){
     addrs = [];
     for(i = 0; i < this.msig.addrs.length; i++){
-        addrs.push(Buffer.from(address.decode(this.msig.addrs[i]).publicKey).toString("base64"))
+        addrs.push(Buffer.from(algosdk.decodeAddress(this.msig.addrs[i]).publicKey).toString("base64"))
     }
     await this.kcl.importMultisig(this.handle, this.msig.version, this.msig.threshold, addrs)
 
-    key = address.decode(this.pk).publicKey
+    key = algosdk.decodeAddress(this.pk).publicKey
     this.stxKmd = await this.kcl.signMultisigTransaction(this.handle, this.wallet_pswd, this.txn, key, null)
     this.stxKmd = this.stxKmd.multisig
     return this.stxKmd
@@ -319,7 +313,7 @@ When("I import the multisig", async function(){
 
     addrs = [];
     for(i = 0; i < this.msig.addrs.length; i++){
-        addrs.push(Buffer.from(address.decode(this.msig.addrs[i]).publicKey).toString("base64"))
+        addrs.push(Buffer.from(algosdk.decodeAddress(this.msig.addrs[i]).publicKey).toString("base64"))
     }
     return await this.kcl.importMultisig(this.handle, this.msig.version, this.msig.threshold, addrs)
 })
@@ -358,7 +352,7 @@ When("I delete the multisig", async function(){
 
 Then("the multisig should equal the exported multisig", function(){
     for(i = 0; i < this.msigExp.length; i++){
-        assert.deepStrictEqual(address.encode(Buffer.from(this.msigExp[i], "base64")), this.msig.addrs[i])
+        assert.deepStrictEqual(algosdk.encodeAddress(Buffer.from(this.msigExp[i], "base64")), this.msig.addrs[i])
     }
 })
 
@@ -454,12 +448,12 @@ Then('the bid should still be the same', function () {
 
 When('I decode the address', function () {
     this.old = this.pk
-    this.addrBytes = address.decode(this.pk).publicKey
+    this.addrBytes = algosdk.decodeAddress(this.pk).publicKey
 });
 
 
 When('I encode the address', function () {
-    this.pk = address.encode(this.addrBytes)
+    this.pk = algosdk.encodeAddress(this.addrBytes)
 });
 
 
@@ -521,7 +515,7 @@ Given('encoded multisig transaction {string}', function (encTxn) {
 When('I append a signature to the multisig transaction', function () {
     addresses = this.stx.msig.subsig.slice()
     for (i=0; i < addresses.length; i++){
-        addresses[i] = address.encode(addresses[i].pk)
+        addresses[i] = algosdk.encodeAddress(addresses[i].pk)
     }
     msig = {
         version: this.stx.msig.v,
@@ -1564,15 +1558,15 @@ function setupMockServerForPaths(mockServer) {
 Given('mock http responses in {string} loaded from {string}', function (fileName, jsonDirectory) {
     setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
     setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
-    this.v2Client = new clientv2.AlgodClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
-    this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.v2Client = new algosdk.Algodv2('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.indexerClient = new algosdk.Indexer('', mockAlgodResponderHost, mockAlgodResponderPort, {});
 });
 
 Given('mock http responses in {string} loaded from {string} with status {int}.', function (fileName, jsonDirectory, status) {
     setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
     setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
-    this.v2Client = new clientv2.AlgodClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
-    this.indexerClient = new indexer.IndexerClient('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.v2Client = new algosdk.Algodv2('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+    this.indexerClient = new algosdk.Indexer('', mockAlgodResponderHost, mockAlgodResponderPort, {});
     this.expectedMockResponseCode = status;
 });
 
@@ -1616,8 +1610,8 @@ Then('expect error string to contain {string}', function (expectedErrorString) {
 Given('mock server recording request paths', function () {
     setupMockServerForPaths(algodMockServerPathRecorder);
     setupMockServerForPaths(indexerMockServerPathRecorder);
-    this.v2Client = new clientv2.AlgodClient('', mockAlgodPathRecorderHost, mockAlgodPathRecorderPort, {});
-    this.indexerClient = new indexer.IndexerClient('', mockIndexerPathRecorderHost, mockIndexerPathRecorderPort, {});
+    this.v2Client = new algosdk.Algodv2('', mockAlgodPathRecorderHost, mockAlgodPathRecorderPort, {});
+    this.indexerClient = new algosdk.Indexer('', mockIndexerPathRecorderHost, mockIndexerPathRecorderPort, {});
 });
 
 Then('expect the path used to be {string}', function (expectedRequestPath) {
@@ -1709,7 +1703,7 @@ When('we make any Pending Transaction Information call', async function () {
 });
 
 Then('the parsed Pending Transaction Information response should have sender {string}', function (sender) {
-    let actualSender = address.encode(anyPendingTransactionInfoResponse['txn']['txn']['snd']);
+    let actualSender = algosdk.encodeAddress(anyPendingTransactionInfoResponse['txn']['txn']['snd']);
     assert.equal(sender, actualSender);
 });
 
@@ -1722,7 +1716,7 @@ When('we make any Pending Transactions Information call', async function () {
 Then('the parsed Pending Transactions Information response should contain an array of len {int} and element number {int} should have sender {string}', function (len, idx, sender) {
     assert.equal(len, anyPendingTransactionsInfoResponse['top-transactions'].length);
     if (len != 0) {
-        assert.equal(sender, address.encode(anyPendingTransactionsInfoResponse['top-transactions'][idx]['txn']['snd']));
+        assert.equal(sender, algosdk.encodeAddress(anyPendingTransactionsInfoResponse['top-transactions'][idx]['txn']['snd']));
     }
 });
 
@@ -1748,7 +1742,7 @@ Then('the parsed Pending Transactions By Address response should contain an arra
         return
     }
     let actualSender = anyPendingTransactionsByAddressResponse['top-transactions'][idx]['txn']['snd']
-    actualSender = address.encode(actualSender);
+    actualSender = algosdk.encodeAddress(actualSender);
     assert.equal(sender, actualSender);
 });
 
@@ -2087,7 +2081,7 @@ Then('the parsed SearchForAssets response should be valid on round {int} and the
 let indexerIntegrationClients = {};
 
 Given('indexer client {int} at {string} port {int} with token {string}', function (clientNum, indexerHost, indexerPort, indexerToken) {
-    indexerIntegrationClients[clientNum] = new indexer.IndexerClient(indexerToken, indexerHost, indexerPort, {})
+    indexerIntegrationClients[clientNum] = new algosdk.Indexer(indexerToken, indexerHost, indexerPort, {})
 });
 
 let integrationHealthCheck;
@@ -2459,7 +2453,7 @@ When('I add a rekeyTo field with address {string}', function (address) {
 When('I add a rekeyTo field with the private key algorand address', function () {
     let keypair = nacl.keyPairFromSecretKey(this.sk);
     let pubKeyFromSk = keypair["publicKey"];
-    this.txn["reKeyTo"] = address.encode(pubKeyFromSk);
+    this.txn["reKeyTo"] = algosdk.encodeAddress(pubKeyFromSk);
 });
 
 When('I set the from address to {string}', function (from) {
@@ -2469,7 +2463,7 @@ When('I set the from address to {string}', function (from) {
 let dryrunResponse;
 
 When('we make any Dryrun call', async function () {
-    const dr = new modelsv2.DryrunRequest({});
+    const dr = new algosdk.modelsv2.DryrunRequest({});
     dryrunResponse = await this.v2Client.dryrun(dr).do();
 });
 
@@ -2485,7 +2479,7 @@ function loadResource(res) {
 
 When('I dryrun a {string} program {string}', async function (kind, program) {
     const data = loadResource(program);
-    const algoTxn = new txnBuilder.Transaction({
+    const algoTxn = new transaction.Transaction({
         from: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
         fee: 1000,
         amount: 1000,
@@ -2500,7 +2494,7 @@ When('I dryrun a {string} program {string}', async function (kind, program) {
     switch (kind) {
         case "compiled":
             txns = [{
-                lsig: new logicsig.LogicSig(data),
+                lsig: algosdk.makeLogicSig(data),
                 txn: algoTxn,
             }];
             break
@@ -2508,13 +2502,13 @@ When('I dryrun a {string} program {string}', async function (kind, program) {
             txns = [{
                 txn: algoTxn,
             }];
-            sources = [new modelsv2.DryrunSource("lsig", data.toString("utf8"), 0)]
+            sources = [new algosdk.modelsv2.DryrunSource("lsig", data.toString("utf8"), 0)]
             break
         default:
             throw Error(`kind ${kind} not in (source, compiled)`)
     }
 
-    const dr = new modelsv2.DryrunRequest({
+    const dr = new algosdk.modelsv2.DryrunRequest({
         txns: txns,
         sources: sources,
     })
@@ -2635,7 +2629,7 @@ function splitAndProcessAppArgs(inArgs) {
                appArgs.push(new Uint8Array([parseInt(subArg[1])]));
                break;
            case "addr":
-               appArgs.push(address.decode(subArg[1])["publicKey"]);
+               appArgs.push(algosdk.decodeAddress(subArg[1])["publicKey"]);
                break;
            default:
                throw Error("did not recognize app arg of type" + subArg[0])
@@ -2733,7 +2727,7 @@ Then('the base{int} encoded signed transaction should equal {string}', function 
 });
 
 Given('an algod v{int} client connected to {string} port {int} with token {string}', function (clientVersion, host, port, token) {
-    this.v2Client = new clientv2.AlgodClient(token, host, port, {});
+    this.v2Client = new algosdk.Algodv2(token, host, port, {});
 });
 
 Given('I create a new transient account and fund it with {int} microalgos.', async function (fundingAmount) {
