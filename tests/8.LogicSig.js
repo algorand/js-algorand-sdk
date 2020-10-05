@@ -203,7 +203,7 @@ describe('Template logic validation', function () {
         });
     });
     describe('HTLC', function () {
-        it('should match the goldens', function () {
+        it('sha256 should match the goldens', function () {
             // Inputs
             let owner = "726KBOYUJJNE5J5UHCSGQGWIBZWKCBN4WYD7YVSTEXEVNFPWUIJ7TAEOPM";
             let receiver = "42NJMHTPFVPXVSDGA6JGKUV6TARV5UZTMPFIREMLXHETRKIVW34QFSDFRE";
@@ -234,6 +234,48 @@ describe('Template logic validation', function () {
             let preImageAsBase64 = "cHJlaW1hZ2U=";
             let actualTxn = htlcTemplate.signTransactionWithHTLCUnlock(htlc.getProgram(), o, preImageAsBase64);
             assert.deepEqual(Buffer.from(goldenLtxn, 'base64'), actualTxn.blob);
+        });
+        it('keccak256 should match the goldens', function () {
+            // Inputs
+            let owner = "726KBOYUJJNE5J5UHCSGQGWIBZWKCBN4WYD7YVSTEXEVNFPWUIJ7TAEOPM";
+            let receiver = "42NJMHTPFVPXVSDGA6JGKUV6TARV5UZTMPFIREMLXHETRKIVW34QFSDFRE";
+            let hashFn = "keccak256";
+            let hashImg = "D7d4MrvBrOSyNSmUs0kzucuJ+/9DbLkA6OOOocywoAc=";
+            let expiryRound = 600000;
+            let maxFee = 1000;
+            let htlc = new htlcTemplate.HTLC(owner, receiver, hashFn, hashImg, expiryRound, maxFee);
+            // Outputs
+            let goldenProgram = "ASAE6AcBAMDPJCYDIOaalh5vLV96yGYHkmVSvpgjXtMzY8qIkYu5yTipFbb5IA+3eDK7wazksjUplLNJM7nLifv/Q2y5AOjjjqHMsKAHIP68oLsUSlpOp7Q4pGgayA5soQW8tgf8VlMlyVaV9qITMQEiDjEQIxIQMQcyAxIQMQgkEhAxCSgSLQIpEhAxCSoSMQIlDRAREA==";
+            let goldenBytes = Buffer.from(goldenProgram, 'base64');
+            let actualBytes = htlc.getProgram();
+            assert.deepStrictEqual(goldenBytes, actualBytes);
+            let goldenAddress = "3MJ6JY3P6AU4R6I2RASYSAOPNI3QMWPZ7HYXJRNRGBIAXCHAY7QZRBH5PQ";
+            assert.deepStrictEqual(goldenAddress, htlc.getAddress());
+            let goldenLtxn = "gqRsc2lngqNhcmeRxAhwcmVpbWFnZaFsxJcBIAToBwEAwM8kJgMg5pqWHm8tX3rIZgeSZVK+mCNe0zNjyoiRi7nJOKkVtvkgD7d4MrvBrOSyNSmUs0kzucuJ+/9DbLkA6OOOocywoAcg/ryguxRKWk6ntDikaBrIDmyhBby2B/xWUyXJVpX2ohMxASIOMRAjEhAxBzIDEhAxCCQSEDEJKBItAikSEDEJKhIxAiUNEBEQo3R4boelY2xvc2XEIOaalh5vLV96yGYHkmVSvpgjXtMzY8qIkYu5yTipFbb5o2ZlZc0D6KJmdgGiZ2jEIH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpomx2ZKNzbmTEINsT5ONv8CnI+RqIJYkBz2o3Bln5+fF0xbEwUAuI4MfhpHR5cGWjcGF5";
+            let o = {
+                "from": goldenAddress,
+                "to": receiver,
+                "fee": 0,
+                "amount": 0,
+                "closeRemainderTo": receiver,
+                "firstRound": 1,
+                "lastRound": 100,
+                "genesisHash": "f4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGk=",
+                "type": "pay"
+            };
+            let preImageAsBase64 = "cHJlaW1hZ2U=";
+            let actualTxn = htlcTemplate.signTransactionWithHTLCUnlock(htlc.getProgram(), o, preImageAsBase64);
+            assert.deepEqual(Buffer.from(goldenLtxn, 'base64'), actualTxn.blob);
+        });
+        it('other hash function should fail', function () {
+            // Inputs
+            let owner = "726KBOYUJJNE5J5UHCSGQGWIBZWKCBN4WYD7YVSTEXEVNFPWUIJ7TAEOPM";
+            let receiver = "42NJMHTPFVPXVSDGA6JGKUV6TARV5UZTMPFIREMLXHETRKIVW34QFSDFRE";
+            let hashFn = "made-up-hash-fn";
+            let hashImg = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+            let expiryRound = 600000;
+            let maxFee = 1000;
+            assert.throws(() => new htlcTemplate.HTLC(owner, receiver, hashFn, hashImg, expiryRound, maxFee));
         });
     });
     describe('Limit Order', function () {
