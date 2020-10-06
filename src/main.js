@@ -1335,5 +1335,6 @@ module.exports = {
     makeApplicationNoOpTxn,
     encodeUnsignedTransaction,
     decodeUnsignedTransaction,
-    decodeSignedTransaction
+    decodeSignedTransaction,
+    Transaction: txnBuilder.Transaction
 };

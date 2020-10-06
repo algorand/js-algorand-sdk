@@ -7,7 +7,5 @@ WORKDIR $HOME/js-algorand-sdk
 
 RUN npm ci
 
-ENV UNITTESTDIR=$HOME/js-algorand-sdk/tests/cucumber/features/unit
-
 # Run integration tests
 CMD ["/bin/bash", "-c", "make unit && make integration"]

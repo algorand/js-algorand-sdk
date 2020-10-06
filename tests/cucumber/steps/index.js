@@ -1,7 +1,11 @@
+const path = require('path');
+const fs = require('fs');
 const { BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const ServerMock = require("mock-http-server");
 const getSteps = require("./steps");
+
+const cucumberPath = path.dirname(__dirname);
 
 setDefaultTimeout(60000);
 
@@ -95,17 +99,7 @@ function cleanupAlgodV2MockServers() {
 function emptyFunctionForMockServer() {}
 
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
-    if (process.env.UNITTESTDIR === undefined) {
-        throw Error("UNITTESTDIR env var not set");
-    }
-    let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonDirectory + "/" + fileName;
-    let resultString = "";
-    let xml = new XMLHttpRequest();
-    xml.open("GET", mockResponsePath, false);
-    xml.onreadystatechange = function () {
-        resultString = xml.responseText.trim();
-    };
-    xml.send();
+    const resultString = fs.readFileSync(path.join(cucumberPath, 'features', 'resources', jsonDirectory, fileName)).toString();
 
     let headers;  // example headers: { "content-type": "application/json" }
     let body;  // example body: JSON.stringify({ hello: "world" }

@@ -1,25 +1,36 @@
 const assert = require('assert');
 const algosdk = require("../../../src/main");
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const splitTemplate = require("../../../src/logicTemplates/split");
 const htlcTemplate = require("../../../src/logicTemplates/htlc");
 const periodicPayTemplate = require("../../../src/logicTemplates/periodicpayment");
 const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
 const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
 const nacl = require("../../../src/nacl/naclWrappers");
-const transaction = require("../../../src/transaction");
 const sha256 = require('js-sha256');
 const fs = require('fs');
-const path = require("path")
-const maindir = path.dirname(path.dirname(path.dirname(__dirname)))
+const path = require("path");
+const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
+
+function keyPairFromSecretKey(sk) {
+    return nacl.keyPairFromSecretKey(sk);
+}
+
+function keyPairFromSeed(seed) {
+    return nacl.keyPairFromSeed(seed);
+}
+
+async function loadResource(res) {
+    const p = path.join(maindir, "tests", "cucumber", "features", "resources", res)
+    return fs.readFileSync(p);
+}
+
+const steps = {
+    given: {},
+    when: {},
+    then: {}
+};
 
 module.exports = function getSteps(options) {
-    const steps = {
-        given: {},
-        when: {},
-        then: {}
-    };
-    
     function Given(name, fn) {
         if (steps.given.hasOwnProperty(name)) {
             throw new Error("Duplicate step: given " + name);
@@ -686,28 +697,28 @@ module.exports = function getSteps(options) {
         assert.deepStrictEqual(true, this.err)
     })
     
-    When("I read a transaction {string} from file {string}", function(string, num){
-        this.num = num
-        this.txn = algosdk.decodeObj(new Uint8Array(fs.readFileSync(maindir + '/temp/raw' + num + '.tx')));
-        return this.txn
-    })
+    // When("I read a transaction {string} from file {string}", function(string, num){
+    //     this.num = num
+    //     this.txn = algosdk.decodeObj(new Uint8Array(fs.readFileSync(maindir + '/temp/raw' + num + '.tx')));
+    //     return this.txn
+    // })
     
-    When("I write the transaction to file", function(){
-        fs.writeFileSync(maindir + '/temp/raw' + this.num + '.tx', Buffer.from(algosdk.encodeObj(this.txn)));
-    })
+    // When("I write the transaction to file", function(){
+    //     fs.writeFileSync(maindir + '/temp/raw' + this.num + '.tx', Buffer.from(algosdk.encodeObj(this.txn)));
+    // })
     
-    Then("the transaction should still be the same", function(){
-        stxnew = new Uint8Array(fs.readFileSync(maindir + '/temp/raw' + this.num + '.tx'));
-        stxold = new Uint8Array(fs.readFileSync(maindir + '/temp/old' + this.num + '.tx'));
-        assert.deepStrictEqual(stxnew, stxold)
-    })
+    // Then("the transaction should still be the same", function(){
+    //     stxnew = new Uint8Array(fs.readFileSync(maindir + '/temp/raw' + this.num + '.tx'));
+    //     stxold = new Uint8Array(fs.readFileSync(maindir + '/temp/old' + this.num + '.tx'));
+    //     assert.deepStrictEqual(stxnew, stxold)
+    // })
     
-    Then("I do my part", async function(){
-        stx = new Uint8Array(fs.readFileSync(maindir + '/temp/txn.tx'));
-        this.txid = await this.acl.sendRawTransaction(stx)
-        this.txid = this.txid.txId
-        return this.txid
-    })
+    // Then("I do my part", async function(){
+    //     stx = new Uint8Array(fs.readFileSync(maindir + '/temp/txn.tx'));
+    //     this.txid = await this.acl.sendRawTransaction(stx)
+    //     this.txid = this.txid.txId
+    //     return this.txid
+    // })
     
     Then("I get account information", async function(){
        return await this.acl.accountInformation(this.accounts[0])
@@ -2176,17 +2187,10 @@ module.exports = function getSteps(options) {
         return Object.keys(x).sort().reduce((o, k) => ({...o, [k]: sortKeys(x[k])}), {});
     }
     
-    Then('the parsed response should equal {string}.', function (jsonFile) {
-        let responseFromFile = "";
-        let mockResponsePath = "file://" + process.env.UNITTESTDIR + "/../resources/" + jsonFile;
-        let xml = new XMLHttpRequest();
-        xml.open("GET", mockResponsePath, false);
-        xml.onreadystatechange = function () {
-            responseFromFile = xml.responseText.trim();
-        };
-        xml.send();
+    Then('the parsed response should equal {string}.', async function (jsonFile) {
+        const rawResponse = await loadResource(jsonFile);
+        const responseFromFile = sortKeys(JSON.parse(rawResponse.toString()));
         this.responseForDirectJsonComparison = sortKeys(this.responseForDirectJsonComparison);
-        responseFromFile = sortKeys(JSON.parse(responseFromFile));
         assert.strictEqual(JSON.stringify(this.responseForDirectJsonComparison), JSON.stringify(responseFromFile));
     });
     
@@ -2333,7 +2337,7 @@ module.exports = function getSteps(options) {
     });
     
     When('I add a rekeyTo field with the private key algorand address', function () {
-        let keypair = nacl.keyPairFromSecretKey(this.sk);
+        let keypair = keyPairFromSecretKey(this.sk);
         let pubKeyFromSk = keypair["publicKey"];
         this.txn["reKeyTo"] = algosdk.encodeAddress(pubKeyFromSk);
     });
@@ -2354,14 +2358,9 @@ module.exports = function getSteps(options) {
         assert.equal(dryrunResponse.txns[0]["global-delta"][0].value.action, action)
     });
     
-    function loadResource(res) {
-        const p = path.join(maindir, "tests", "cucumber", "features", "resources", res)
-        return fs.readFileSync(p);
-    }
-    
     When('I dryrun a {string} program {string}', async function (kind, program) {
-        const data = loadResource(program);
-        const algoTxn = new transaction.Transaction({
+        const data = await loadResource(program);
+        const algoTxn = new algosdk.Transaction({
             from: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
             fee: 1000,
             amount: 1000,
@@ -2413,7 +2412,7 @@ module.exports = function getSteps(options) {
     let compileResponse;
     
     When('I compile a teal program {string}', async function (program) {
-        const data = loadResource(program);
+        const data = await loadResource(program);
         try {
             compileResponse = await this.v2Client.compile(data).do();
             compileStatusCode = 200
@@ -2452,7 +2451,7 @@ module.exports = function getSteps(options) {
     
     Given('base64 encoded private key {string}', function (keyEncoded) {
         const seed = Buffer.from(keyEncoded, "base64");
-        const keys = nacl.keyPairFromSeed(seed);
+        const keys = keyPairFromSeed(seed);
         this.sk = keys.secretKey;
     });
     
@@ -2521,20 +2520,20 @@ module.exports = function getSteps(options) {
     }
     
     
-    When('I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}', function (operationString, appIndex, sender, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, foreignAssetsCommaSeparatedString, appAccountsCommaSeparatedString, fee, firstValid, lastValid, genesisHashBase64) {
+    When('I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}', async function (operationString, appIndex, sender, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, foreignAssetsCommaSeparatedString, appAccountsCommaSeparatedString, fee, firstValid, lastValid, genesisHashBase64) {
         // operation string to enum
         let operation = operationStringToEnum(operationString);
         // open and load in approval program
         let approvalProgramBytes = undefined;
         if (approvalProgramFile !== "") {
-            let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
-            approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+            const resource = await loadResource(approvalProgramFile);
+            approvalProgramBytes = new Uint8Array(resource);
         }
         // open and load in clear program
         let clearProgramBytes = undefined;
         if (clearProgramFile !== "") {
-            let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
-            clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+            const resource = await loadResource(clearProgramFile);
+            clearProgramBytes = new Uint8Array(resource);
         }
         // split and process app args
         let appArgs = undefined;
@@ -2637,14 +2636,14 @@ module.exports = function getSteps(options) {
         // open and load in approval program
         let approvalProgramBytes = undefined;
         if (approvalProgramFile !== "") {
-            let approvalProgramPath = maindir + "/tests/cucumber/features/resources/" + approvalProgramFile;
-            approvalProgramBytes = new Uint8Array(fs.readFileSync(approvalProgramPath));
+            const resouce = await loadResource(approvalProgramFile);
+            approvalProgramBytes = new Uint8Array(resouce);
         }
         // open and load in clear program
         let clearProgramBytes = undefined;
         if (clearProgramFile !== "") {
-            let clearProgramPath = maindir + "/tests/cucumber/features/resources/" + clearProgramFile;
-            clearProgramBytes = new Uint8Array(fs.readFileSync(clearProgramPath));
+            const resouce = await loadResource(clearProgramFile);
+            clearProgramBytes = new Uint8Array(resouce);
         }
         // split and process app args
         let appArgs = undefined;
@@ -2691,7 +2690,7 @@ module.exports = function getSteps(options) {
             "type": "appl",
             "suggestedParams": sp
         }
-        this.txn = new transaction.Transaction(o);
+        this.txn = new algosdk.Transaction(o);
     });
     
     Given('I sign and submit the transaction, saving the txid. If there is an error it is {string}.', async function (errorString) {
