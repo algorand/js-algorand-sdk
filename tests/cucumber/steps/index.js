@@ -1,19 +1,62 @@
 const path = require('path');
 const fs = require('fs');
 const { BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout } = require('cucumber');
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const express = require('express');
 const ServerMock = require("mock-http-server");
 const getSteps = require("./steps");
 
 const cucumberPath = path.dirname(__dirname);
+const browser = !!process.env.TEST_BROWSER;
+
+let driver;
+if (browser) {
+    require('chromedriver');
+    const webdriver = require('selenium-webdriver');
+    driver = new webdriver.Builder()
+        .forBrowser('chrome')
+        .build();
+    
+    console.log('Webdriver set up for browser testing');
+}
+
+const browserServerPort = 8080;
+let browserServer;
+
+function startBrowserServer() {
+    const app = express();
+    app.use(express.static(cucumberPath));
+    browserServer = app.listen(browserServerPort);
+}
+
+function stopBrowserServer() {
+    if (browserServer) {
+        browserServer.close();
+    }
+}
 
 setDefaultTimeout(60000);
 
 BeforeAll(async function () {
     // You can use this hook to write code that will run one time before all scenarios,
     // before even the Background steps
-    createIndexerMockServers();
-    createAlgodV2MockServers();
+    await createIndexerMockServers();
+    await createAlgodV2MockServers();
+
+    if (browser) {
+        startBrowserServer();
+        
+        await driver.get(`http://localhost:${browserServerPort}/browser/index.html`);
+        const title = await driver.getTitle();
+
+        if (title !== "Algosdk Browser Testing") {
+            throw new Error('Incorrect title: ' + title);
+        }
+
+        // populate steps in browser context
+        await driver.executeScript(getSteps, stepOptions);
+        
+        console.log('Browser at test page');
+    }
 });
 
 After(async function () {
@@ -24,8 +67,15 @@ After(async function () {
 
 AfterAll(async function () {
     // this cleanup code is run after all scenarios are done
-    cleanupIndexerMockServers();
-    cleanupAlgodV2MockServers();
+
+    if (browser) {
+        await driver.sleep(30 * 1000);
+        await driver.quit();
+        stopBrowserServer();
+    }
+
+    await cleanupIndexerMockServers();
+    await cleanupAlgodV2MockServers();
 });
 
 let algodMockServerResponder;
@@ -46,18 +96,28 @@ const stepOptions = {
     mockIndexerPathRecorderHost: "localhost"
 };
 
-function createIndexerMockServers() {
+async function createIndexerMockServers() {
     indexerMockServerResponder = new ServerMock({ host: stepOptions.mockIndexerResponderHost, port: stepOptions.mockIndexerResponderPort });
-    indexerMockServerResponder.start(emptyFunctionForMockServer);
+    await new Promise((resolve, reject) => {
+        indexerMockServerResponder.start(resolve);
+    });
+
     indexerMockServerPathRecorder = new ServerMock({host: stepOptions.mockIndexerPathRecorderHost, port: stepOptions.mockIndexerPathRecorderPort});
-    indexerMockServerPathRecorder.start(emptyFunctionForMockServer);
+    await new Promise((resolve, reject) => {
+        indexerMockServerPathRecorder.start(resolve);
+    });
 }
 
-function createAlgodV2MockServers() {
+async function createAlgodV2MockServers() {
     algodMockServerResponder = new ServerMock({host: stepOptions.mockAlgodResponderHost, port: stepOptions.mockAlgodResponderPort});
-    algodMockServerResponder.start(emptyFunctionForMockServer);
+    await new Promise((resolve, reject) => {
+        algodMockServerResponder.start(resolve);
+    });
+
     algodMockServerPathRecorder = new ServerMock({host: stepOptions.mockAlgodPathRecorderHost, port: stepOptions.mockAlgodPathRecorderPort});
-    algodMockServerPathRecorder.start(emptyFunctionForMockServer);
+    await new Promise((resolve, reject) => {
+        algodMockServerPathRecorder.start(resolve);
+    });
 }
 
 function resetIndexerMockServers() {
@@ -69,7 +129,7 @@ function resetIndexerMockServers() {
     }
 }
 
-function resetAlgodV2MockServers() {
+async function resetAlgodV2MockServers() {
     if (algodMockServerPathRecorder != undefined) {
         algodMockServerPathRecorder.reset();
     }
@@ -78,25 +138,31 @@ function resetAlgodV2MockServers() {
     }
 }
 
-function cleanupIndexerMockServers() {
+async function cleanupIndexerMockServers() {
     if (indexerMockServerPathRecorder != undefined) {
-        indexerMockServerPathRecorder.stop(emptyFunctionForMockServer);
+        await new Promise((resolve, reject) => {
+            indexerMockServerPathRecorder.stop(resolve);
+        });
     }
     if (indexerMockServerResponder != undefined) {
-        indexerMockServerResponder.stop(emptyFunctionForMockServer);
+        await new Promise((resolve, reject) => {
+            indexerMockServerResponder.stop(resolve);
+        });
     }
 }
 
-function cleanupAlgodV2MockServers() {
+async function cleanupAlgodV2MockServers() {
     if (algodMockServerPathRecorder != undefined) {
-        algodMockServerPathRecorder.stop(emptyFunctionForMockServer);
+        await new Promise((resolve, reject) => {
+            algodMockServerPathRecorder.stop(resolve);
+        });
     }
     if (algodMockServerResponder != undefined) {
-        algodMockServerResponder.stop(emptyFunctionForMockServer);
+        await new Promise((resolve, reject) => {
+            algodMockServerResponder.stop(resolve);
+        });
     }
 }
-
-function emptyFunctionForMockServer() {}
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -178,26 +244,87 @@ function setupMockServerForPaths(mockServer) {
     });
 }
 
+function getMockServerRequestUrls(mockServer) {
+    return mockServer
+        .requests()
+        .filter(req => req.method !== "OPTIONS") // ignore cors preflight requests from the browser
+        .map(req => req.url);
+}
+
+function isFunction(functionToCheck) {
+    return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+}
+
 const steps = getSteps(stepOptions);
+
+if (browser) {
+    for (const type of Object.keys(steps)) {
+        for (const name of Object.keys(steps[type])) {
+            const originalFn = steps[type][name];
+
+            // have to return a promise here instead of making rcpFn async because internally cucumber
+            // uses bluebird.race to resolve this, and for some reason that leaks rejections when this
+            // is async ¯\_(ツ)_/¯
+            const rpcFn = function(...args) {
+
+                const asyncRpcFn = async () => {
+                    let rpcArgs = args;
+                    if (isFunction(rpcArgs[rpcArgs.length - 1])) {
+                        // get rid of callback cucumber provides
+                        rpcArgs = args.slice(0, rpcArgs.length - 1);
+                    }
+
+                    const { error } = await driver.executeAsyncScript(async function runTestInBrowser(type, name, ...rest) {
+                        const done = rest[rest.length - 1];
+                        try {
+                            const testArgs = rest.slice(0, rest.length - 1);
+                            const test = getStep(type, name);
+                            await test.apply(testWorld, testArgs);
+                            done({ error: null });
+                        } catch (err) {
+                            console.error(err);
+                            done({ error: err.stack });
+                        }
+                    }, type, name, ...rpcArgs);
+
+                    if (error) {
+                        throw new Error(`Error from test '${type} ${name}': ${error}\n    ^ --- browser ---`);
+                    }
+                };
+
+                return asyncRpcFn();
+            };
+
+            // Need to make it look like rcpFn takes the same number of args as originalFn for cucumber
+            Object.defineProperty(rpcFn, 'length', {
+                value: originalFn.length,
+                writable: false
+            });
+
+            steps[type][name] = rpcFn.bind(null);
+        }
+    }
+}
+
 for (const name of Object.keys(steps.given)) {
     const fn = steps.given[name];
     if (name === "mock http responses in {string} loaded from {string}") {
         Given(name, function (fileName, jsonDirectory) {
             const body1 = setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
             const body2 = setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
-            fn.call(this, body2 || body1);
+            return fn.call(this, body2 || body1);
         });
     } else if (name === "mock http responses in {string} loaded from {string} with status {int}.") {
         Given(name, function (fileName, jsonDirectory, status) {
             const body1 = setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
             const body2 = setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
-            fn.call(this, body2 || body1, status);
+            return fn.call(this, body2 || body1, status);
         });
     } else if (name === "mock server recording request paths") {
         Given(name, function () {
             setupMockServerForPaths(algodMockServerPathRecorder);
             setupMockServerForPaths(indexerMockServerPathRecorder);
-            fn.call(this);
+            return fn.call(this);
         });
     } else {
         Given(name, fn);
@@ -212,16 +339,16 @@ for (const name of Object.keys(steps.then)) {
     if (name === "expect the path used to be {string}") {
         Then(name, function (expectedRequestPath) {
             // get all requests the mockservers have seen since reset
-            const algodSeenRequests = algodMockServerPathRecorder.requests().map(req => req.url);
-            const indexerSeenRequests = indexerMockServerPathRecorder.requests().map(req => req.url);
-            fn.call(this, algodSeenRequests, indexerSeenRequests, expectedRequestPath);
+            const algodSeenRequests = getMockServerRequestUrls(algodMockServerPathRecorder);
+            const indexerSeenRequests = getMockServerRequestUrls(indexerMockServerPathRecorder);
+            return fn.call(this, algodSeenRequests, indexerSeenRequests, expectedRequestPath);
         });
     } else if (name === "we expect the path used to be {string}") {
         Then(name, function (expectedRequestPath) {
             // get all requests the mockservers have seen since reset
-            const algodSeenRequests = algodMockServerPathRecorder.requests().map(req => req.url);
-            const indexerSeenRequests = indexerMockServerPathRecorder.requests().map(req => req.url);
-            fn.call(this, algodSeenRequests, indexerSeenRequests, expectedRequestPath);
+            const algodSeenRequests = getMockServerRequestUrls(algodMockServerPathRecorder);
+            const indexerSeenRequests = getMockServerRequestUrls(indexerMockServerPathRecorder);
+            return fn.call(this, algodSeenRequests, indexerSeenRequests, expectedRequestPath);
         });
     } else {
         Then(name, fn);

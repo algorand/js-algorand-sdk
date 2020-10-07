@@ -1515,12 +1515,12 @@ module.exports = function getSteps(options) {
     
     Then('expect the path used to be {string}', function (algodSeenRequests, indexerSeenRequests, expectedRequestPath) {
         let actualRequestPath;
-        if (algodSeenRequests.length != 0) {
+        if (algodSeenRequests.length !== 0) {
             actualRequestPath = algodSeenRequests[0];
-        } else if (indexerSeenRequests.length != 0) {
+        } else if (indexerSeenRequests.length !== 0) {
             actualRequestPath = indexerSeenRequests[0];
         }
-        assert.equal(expectedRequestPath, actualRequestPath);
+        assert.strictEqual(actualRequestPath, expectedRequestPath);
     });
     
     Then('we expect the path used to be {string}', function (algodSeenRequests, indexerSeenRequests, expectedRequestPath) {
