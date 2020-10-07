@@ -1458,16 +1458,16 @@ module.exports = function getSteps(options) {
         if (expectedBody != null) {
             expectedMockResponse = expectedBody;
         }
-        this.v2Client = new algosdk.Algodv2('', mockAlgodResponderHost, mockAlgodResponderPort, {});
-        this.indexerClient = new algosdk.Indexer('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+        this.v2Client = new algosdk.Algodv2('', 'http://' + mockAlgodResponderHost, mockAlgodResponderPort, {});
+        this.indexerClient = new algosdk.Indexer('', 'http://' + mockAlgodResponderHost, mockAlgodResponderPort, {});
     });
     
     Given('mock http responses in {string} loaded from {string} with status {int}.', function (expectedBody, status) {
         if (expectedBody != null) {
             expectedMockResponse = expectedBody;
         }
-        this.v2Client = new algosdk.Algodv2('', mockAlgodResponderHost, mockAlgodResponderPort, {});
-        this.indexerClient = new algosdk.Indexer('', mockAlgodResponderHost, mockAlgodResponderPort, {});
+        this.v2Client = new algosdk.Algodv2('', 'http://' + mockAlgodResponderHost, mockAlgodResponderPort, {});
+        this.indexerClient = new algosdk.Indexer('', 'http://' + mockAlgodResponderHost, mockAlgodResponderPort, {});
         this.expectedMockResponseCode = status;
     });
     
@@ -1509,8 +1509,8 @@ module.exports = function getSteps(options) {
     });
     
     Given('mock server recording request paths', function () {
-        this.v2Client = new algosdk.Algodv2('', mockAlgodPathRecorderHost, mockAlgodPathRecorderPort, {});
-        this.indexerClient = new algosdk.Indexer('', mockIndexerPathRecorderHost, mockIndexerPathRecorderPort, {});
+        this.v2Client = new algosdk.Algodv2('', 'http://' + mockAlgodPathRecorderHost, mockAlgodPathRecorderPort, {});
+        this.indexerClient = new algosdk.Indexer('', 'http://' + mockIndexerPathRecorderHost, mockIndexerPathRecorderPort, {});
     });
     
     Then('expect the path used to be {string}', function (algodSeenRequests, indexerSeenRequests, expectedRequestPath) {

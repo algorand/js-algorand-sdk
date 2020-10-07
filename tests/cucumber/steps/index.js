@@ -98,23 +98,38 @@ function cleanupAlgodV2MockServers() {
 
 function emptyFunctionForMockServer() {}
 
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "OPTIONS, POST, GET",
+    "Access-Control-Allow-Headers": "X-Algo-API-Token, X-Indexer-API-Token, Content-Type",
+    "Access-Control-Max-Age": 2592000
+};
+
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
     const resultString = fs.readFileSync(path.join(cucumberPath, 'features', 'resources', jsonDirectory, fileName)).toString();
 
-    let headers;  // example headers: { "content-type": "application/json" }
+    let headers = corsHeaders;  // example headers: { "content-type": "application/json" }
     let body;  // example body: JSON.stringify({ hello: "world" }
     if (fileName.endsWith("json")) {
-        headers = { "content-type": "application/json" };
+        headers = Object.assign({ "content-type": "application/json" }, corsHeaders);
         body = resultString;
     }
     if (fileName.endsWith("base64")) {
-        headers = { "content-type": "application/msgpack"};
+        headers = Object.assign({ "content-type": "application/msgpack"}, corsHeaders);
         body = Buffer.from(resultString, 'base64');
     }
     let statusCode = 200;
     if (fileName.indexOf("Error") > -1) {
         statusCode = 500;
     }
+    mockServer.on({
+        method: 'OPTIONS',
+        path: '*',
+        reply: {
+            status:  204,
+            headers: corsHeaders
+        }
+    })
     mockServer.on({
         method: 'GET',
         path: '*',
@@ -138,17 +153,27 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
 
 function setupMockServerForPaths(mockServer) {
     mockServer.on({
+        method: 'OPTIONS',
+        path: '*',
+        reply: {
+            headers: corsHeaders,
+            status:  204,
+        }
+    });
+    mockServer.on({
         method: 'GET',
         path: '*',
         reply: {
-            status:  200
+            headers: corsHeaders,
+            status:  200,
         }
     });
     mockServer.on({
         method: 'POST',
         path: '*',
         reply: {
-            status:  200
+            headers: corsHeaders,
+            status:  200,
         }
     });
 }
