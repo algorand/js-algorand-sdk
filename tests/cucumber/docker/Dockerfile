@@ -6,6 +6,10 @@ COPY . $HOME/js-algorand-sdk
 WORKDIR $HOME/js-algorand-sdk
 
 RUN npm ci
+RUN npm run test:browser:prepare
+
+ARG TEST_BROWSER
+ENV TEST_BROWSER=${TEST_BROWSER}
 
 # Run integration tests
 CMD ["/bin/bash", "-c", "make unit && make integration"]

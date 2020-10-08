@@ -1,7 +1,6 @@
 const assert = require('assert');
 const sha256 = require('js-sha256');
 const nacl = require('tweetnacl');
-const steps = require('../steps/steps');
 
 window.assert = assert;
 window.sha256 = sha256;

@@ -9,12 +9,18 @@ const cucumberPath = path.dirname(__dirname);
 const browser = !!process.env.TEST_BROWSER;
 
 let driver;
+let driverBuilder;
 if (browser) {
     require('chromedriver');
     const webdriver = require('selenium-webdriver');
-    driver = new webdriver.Builder()
-        .forBrowser('chrome')
-        .build();
+    const chrome = require('selenium-webdriver/chrome');
+
+    driverBuilder = new webdriver.Builder()
+        .forBrowser('chrome');
+
+    if (process.env.CI) {
+        driverBuilder = driverBuilder.setChromeOptions(new chrome.Options().addArguments(['--no-sandbox','--headless','--disable-gpu']));
+    }
     
     console.log('Webdriver set up for browser testing');
 }
@@ -22,10 +28,12 @@ if (browser) {
 const browserServerPort = 8080;
 let browserServer;
 
-function startBrowserServer() {
+async function startBrowserServer() {
     const app = express();
     app.use(express.static(cucumberPath));
-    browserServer = app.listen(browserServerPort);
+    await new Promise((resolve, reject) => {
+        browserServer = app.listen(browserServerPort, undefined, resolve);
+    });
 }
 
 function stopBrowserServer() {
@@ -43,17 +51,24 @@ BeforeAll(async function () {
     await createAlgodV2MockServers();
 
     if (browser) {
-        startBrowserServer();
+        await startBrowserServer();
+
+        driver = await driverBuilder.build();
         
         await driver.get(`http://localhost:${browserServerPort}/browser/index.html`);
+
+        await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+
         const title = await driver.getTitle();
 
         if (title !== "Algosdk Browser Testing") {
             throw new Error('Incorrect title: ' + title);
         }
 
+        const options = Object.assign({ ignoreReturn: true }, stepOptions);
+
         // populate steps in browser context
-        await driver.executeScript(getSteps, stepOptions);
+        await driver.executeScript(getSteps, options);
         
         console.log('Browser at test page');
     }

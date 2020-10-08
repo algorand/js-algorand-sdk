@@ -2797,5 +2797,7 @@ module.exports = function getSteps(options) {
         assert.ok(foundValueForKey)
     });
     
-    return steps;
+    if (!options.ignoreReturn) {
+        return steps;
+    }
 }

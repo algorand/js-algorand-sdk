@@ -8,3 +8,13 @@ script:
   - set -e
   - npm test
   - make docker-test
+
+jobs:
+  include:
+    - stage: test
+      name: Node test
+    - stage: test
+      name: Browser test
+      env: TEST_BROWSER=true
+      addons:
+        chrome: stable
