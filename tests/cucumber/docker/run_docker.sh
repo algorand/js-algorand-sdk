@@ -20,7 +20,7 @@ mv test-harness/features tests/cucumber/features
 
 npm run test:browser:prepare
 
-make unit
+make unit && make integration
 # docker run -it \
 #      --network host \
 #      js-sdk-testing:latest

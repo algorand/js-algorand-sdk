@@ -1974,6 +1974,9 @@ module.exports = function getSteps(options) {
     let indexerIntegrationClients = {};
     
     Given('indexer client {int} at {string} port {int} with token {string}', function (clientNum, indexerHost, indexerPort, indexerToken) {
+        if (!indexerHost.startsWith('http')) {
+            indexerHost = 'http://' + indexerHost;
+        }
         indexerIntegrationClients[clientNum] = new algosdk.Indexer(indexerToken, indexerHost, indexerPort, {})
     });
     
@@ -2608,6 +2611,9 @@ module.exports = function getSteps(options) {
     });
     
     Given('an algod v{int} client connected to {string} port {int} with token {string}', function (clientVersion, host, port, token) {
+        if (!host.startsWith('http')) {
+            host = 'http://' + host;
+        }
         this.v2Client = new algosdk.Algodv2(token, host, port, {});
     });
     
