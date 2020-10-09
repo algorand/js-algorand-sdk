@@ -1,10 +1,5 @@
 const assert = require('assert');
-const algosdk = require("../../../src/main");
-const splitTemplate = require("../../../src/logicTemplates/split");
-const htlcTemplate = require("../../../src/logicTemplates/htlc");
-const periodicPayTemplate = require("../../../src/logicTemplates/periodicpayment");
-const limitOrderTemplate = require("../../../src/logicTemplates/limitorder");
-const dynamicFeeTemplate = require("../../../src/logicTemplates/dynamicfee");
+const algosdk = require("../../../index");
 const nacl = require("../../../src/nacl/naclWrappers");
 const sha256 = require('js-sha256');
 const fs = require('fs');
@@ -1281,7 +1276,7 @@ module.exports = function getSteps(options) {
         this.contractTestFixture.splitRat1 = parseInt(rat1);
         this.contractTestFixture.splitRat2 = parseInt(rat2);
         this.contractTestFixture.splitMin = parseInt(minPay);
-        this.contractTestFixture.split = new splitTemplate.Split(owner, receivers[0], receivers[1], this.contractTestFixture.splitRat1, this.contractTestFixture.splitRat2, expiryRound, this.contractTestFixture.splitMin, maxFee)
+        this.contractTestFixture.split = new algosdk.LogicTemplates.Split(owner, receivers[0], receivers[1], this.contractTestFixture.splitRat1, this.contractTestFixture.splitRat2, expiryRound, this.contractTestFixture.splitMin, maxFee)
         this.contractTestFixture.activeAddress = this.contractTestFixture.split.getAddress();
         this.contractTestFixture.contractFundAmount = minPay * (rat1 + rat2) * 10
     });
@@ -1295,7 +1290,7 @@ module.exports = function getSteps(options) {
         this.lv = this.fv + 1000;
         this.lastRound = this.params.lastRound;
         let amount = this.contractTestFixture.splitMin * (this.contractTestFixture.splitRat1 + this.contractTestFixture.splitRat2);
-        let txnBytes = splitTemplate.getSplitFundsTransaction(contractCode, amount, this.fv, this.lv, this.fee, this.params.genesishashb64);
+        let txnBytes = algosdk.LogicTemplates.getSplitFundsTransaction(contractCode, amount, this.fv, this.lv, this.fee, this.params.genesishashb64);
         this.txid = await this.acl.sendRawTransaction(txnBytes);
         this.txid = this.txid.txId;
         this.pk = this.contractTestFixture.activeAddress;
@@ -1313,7 +1308,7 @@ module.exports = function getSteps(options) {
         let receiver = this.accounts[1];
         let expiryRound = 100;
         let maxFee = 1000000;
-        this.contractTestFixture.htlc = new htlcTemplate.HTLC(owner, receiver, hashFn, hashB64String, expiryRound, maxFee);
+        this.contractTestFixture.htlc = new algosdk.LogicTemplates.HTLC(owner, receiver, hashFn, hashB64String, expiryRound, maxFee);
         this.contractTestFixture.activeAddress = this.contractTestFixture.htlc.getAddress();
         this.contractTestFixture.contractFundAmount = 100000000;
     });
@@ -1335,7 +1330,7 @@ module.exports = function getSteps(options) {
             "genesisHash": this.params.genesishashb64,
             "type": "pay"
         };
-        let txnBytes = htlcTemplate.signTransactionWithHTLCUnlock(this.contractTestFixture.htlc.getProgram(), payTxn, this.contractTestFixture.htlcPreimage);
+        let txnBytes = algosdk.LogicTemplates.signTransactionWithHTLCUnlock(this.contractTestFixture.htlc.getProgram(), payTxn, this.contractTestFixture.htlcPreimage);
         this.txid = await this.acl.sendRawTransaction(txnBytes.blob);
         this.txid = this.txid.txId;
         this.pk = this.contractTestFixture.activeAddress;
@@ -1346,7 +1341,7 @@ module.exports = function getSteps(options) {
         let amount = 10000000;
         let expiryRound = 100;
         let maxFee = 1000000000000;
-        this.contractTestFixture.periodicPay = new periodicPayTemplate.PeriodicPayment(receiver, amount, parseInt(withdrawWindow), parseInt(period), expiryRound, maxFee, undefined)
+        this.contractTestFixture.periodicPay = new algosdk.LogicTemplates.PeriodicPayment(receiver, amount, parseInt(withdrawWindow), parseInt(period), expiryRound, maxFee, undefined)
         this.contractTestFixture.activeAddress = this.contractTestFixture.periodicPay.getAddress();
         this.contractTestFixture.contractFundAmount = amount * 10;
         this.contractTestFixture.periodicPayPeriod = parseInt(period);
@@ -1361,7 +1356,7 @@ module.exports = function getSteps(options) {
         this.lv = this.fv + 1000;
         this.lastRound = this.params.lastRound;
         this.gh = this.params.genesishashb64;
-        let txnBytes = periodicPayTemplate.getPeriodicPaymentWithdrawalTransaction(this.contractTestFixture.periodicPay.getProgram(), this.fee, this.fv, this.gh);
+        let txnBytes = algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(this.contractTestFixture.periodicPay.getProgram(), this.fee, this.fv, this.gh);
         this.txid = await this.acl.sendRawTransaction(txnBytes.blob);
         this.txid = this.txid.txId;
         this.pk = this.contractTestFixture.activeAddress;
@@ -1378,7 +1373,7 @@ module.exports = function getSteps(options) {
             this.contractTestFixture.contractFundAmount = 1000000;
         }
         let assetid = parseInt(this.assetTestFixture.index);
-        this.contractTestFixture.limitOrder = new limitOrderTemplate.LimitOrder(this.accounts[0], assetid, parseInt(ratn), parseInt(ratd), expiryRound, parseInt(minTrade), maxFee);
+        this.contractTestFixture.limitOrder = new algosdk.LogicTemplates.LimitOrder(this.accounts[0], assetid, parseInt(ratn), parseInt(ratd), expiryRound, parseInt(minTrade), maxFee);
         this.contractTestFixture.activeAddress = this.contractTestFixture.limitOrder.getAddress();
     });
     
@@ -1393,7 +1388,7 @@ module.exports = function getSteps(options) {
         this.lv = this.fv + 1000;
         this.lastRound = this.params.lastRound;
         this.gh = this.params.genesishashb64;
-        let txnBytes = limitOrderTemplate.getSwapAssetsTransaction(this.contractTestFixture.limitOrder.getProgram(), assetAmount, microAlgoAmount, secretKey, this.fee, this.fv, this.lv, this.gh);
+        let txnBytes = algosdk.LogicTemplates.getSwapAssetsTransaction(this.contractTestFixture.limitOrder.getProgram(), assetAmount, microAlgoAmount, secretKey, this.fee, this.fv, this.lv, this.gh);
         this.txid = await this.acl.sendRawTransaction(txnBytes);
         this.txid = this.txid.txId;
         this.pk = this.contractTestFixture.activeAddress;
@@ -1410,7 +1405,7 @@ module.exports = function getSteps(options) {
         this.lastRound = this.params.lastRound;
         this.gh = this.params.genesishashb64;
         this.contractTestFixture.contractFundAmount = parseInt(amount);
-        this.contractTestFixture.dynamicFee = new dynamicFeeTemplate.DynamicFee(this.accounts[1], parseInt(amount), this.fv, this.lv); // intentionally leave optional args undefined
+        this.contractTestFixture.dynamicFee = new algosdk.LogicTemplates.DynamicFee(this.accounts[1], parseInt(amount), this.fv, this.lv); // intentionally leave optional args undefined
         this.contractTestFixture.activeAddress = this.contractTestFixture.dynamicFee.getAddress();
     });
     
@@ -1427,10 +1422,10 @@ module.exports = function getSteps(options) {
     
         let firstResponse = await this.kcl.exportKey(this.handle, this.wallet_pswd, this.accounts[0]);
         let secretKeyOne = firstResponse.private_key;
-        let txnAndLsig = dynamicFeeTemplate.signDynamicFee(this.contractTestFixture.dynamicFee.getProgram(), secretKeyOne, this.gh);
+        let txnAndLsig = algosdk.LogicTemplates.signDynamicFee(this.contractTestFixture.dynamicFee.getProgram(), secretKeyOne, this.gh);
         let secondResponse = await this.kcl.exportKey(this.handle, this.wallet_pswd, this.accounts[1]);
         let secretKeyTwo = secondResponse.private_key;
-        let txnBytes = dynamicFeeTemplate.getDynamicFeeTransactions(txnAndLsig.txn, txnAndLsig.lsig, secretKeyTwo, this.fee);
+        let txnBytes = algosdk.LogicTemplates.getDynamicFeeTransactions(txnAndLsig.txn, txnAndLsig.lsig, secretKeyTwo, this.fee);
         this.txid = await this.acl.sendRawTransaction(txnBytes);
         this.txid = this.txid.txId;
         this.pk = this.accounts[0];

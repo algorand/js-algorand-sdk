@@ -10,6 +10,7 @@ const algod = require('./client/algod');
 const kmd = require('./client/kmd');
 const utils = require('./utils/utils');
 const logicsig = require('./logicsig');
+const LogicTemplates = require('./logicTemplates');
 const algodv2 = require('./client/v2/algod/algod')
 const modelsv2 = require('./client/v2/algod/models/types')
 const indexer = require('./client/v2/indexer/indexer')
@@ -1336,5 +1337,6 @@ module.exports = {
     encodeUnsignedTransaction,
     decodeUnsignedTransaction,
     decodeSignedTransaction,
-    Transaction: txnBuilder.Transaction
+    Transaction: txnBuilder.Transaction,
+    LogicTemplates,
 };
