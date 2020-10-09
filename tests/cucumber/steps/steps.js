@@ -1686,8 +1686,8 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Get Block response should have rewards pool {string}', function (rewardsPoolAddress) {
-        let rewardsPoolB64String = anyBlockResponse['block']['rwd'].toString('base64');
-        assert.equal(rewardsPoolAddress, rewardsPoolB64String);
+        let rewardsPoolB64String = Buffer.from(anyBlockResponse['block']['rwd']).toString('base64');
+        assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
     });
     
     let anySuggestedTransactionsResponse;
