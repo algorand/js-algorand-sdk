@@ -8,3 +8,7 @@ node_modules/
 # Testing files
 *.feature
 temp
+
+tests/cucumber/features/
+tests/cucumber/browser/build
+tests/browser/bundle.js
