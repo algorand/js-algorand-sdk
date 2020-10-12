@@ -1,6 +1,6 @@
 const address = require('../encoding/address');
-const algosdk = require('../main');
 const encoding = require('../encoding/encoding');
+const group = require('../group');
 const logic = require('../logic/logic');
 const logicSig = require('../logicsig');
 const nacl = require('../nacl/naclWrappers');
@@ -78,11 +78,11 @@ function signDynamicFee(contract, secretKey, genesisHash) {
     let ints = programOutputs[0];
     let byteArrays = programOutputs[1];
     let keys = nacl.keyPairFromSecretKey(secretKey);
-    let from = address.encode(keys.publicKey);
-    let to = address.encode(byteArrays[0]);
+    let from = address.encodeAddress(keys.publicKey);
+    let to = address.encodeAddress(byteArrays[0]);
     let fee = 0;
     let amount = ints[2];
-    let closeRemainderTo = address.encode(byteArrays[1]);
+    let closeRemainderTo = address.encodeAddress(byteArrays[1]);
     let firstRound = ints[3];
     let lastRound = ints[4];
     let lease = new Uint8Array(byteArrays[2]);
@@ -117,7 +117,7 @@ function signDynamicFee(contract, secretKey, genesisHash) {
  * @throws on invalid lsig
  */
 function getDynamicFeeTransactions (txn, lsig, privateKey, fee) {
-    if (!lsig.verify(address.decode(txn.from).publicKey)) {
+    if (!lsig.verify(address.decodeAddress(txn.from).publicKey)) {
         throw new Error("invalid signature");
     }
 
@@ -127,7 +127,7 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee) {
     }
 
     let keys = nacl.keyPairFromSecretKey(privateKey);
-    let from = address.encode(keys.publicKey);
+    let from = address.encodeAddress(keys.publicKey);
 
     // must remove lease and re-add using addLease so that fee calculation will match other SDKs
     let lease = txn.lease;
@@ -149,7 +149,7 @@ function getDynamicFeeTransactions (txn, lsig, privateKey, fee) {
     let feePayTxnObj = new transaction.Transaction(feePayTxn);
     feePayTxnObj.addLease(lease, fee);
 
-    let txnGroup = algosdk.assignGroupID([feePayTxnObj, txnObj], undefined);
+    let txnGroup = group.assignGroupID([feePayTxnObj, txnObj], undefined);
     let feePayTxnWithGroup = txnGroup[0];
     let txnObjWithGroup = txnGroup[1];
 

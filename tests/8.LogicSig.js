@@ -1,10 +1,6 @@
 const assert = require('assert');
-const algosdk = require("../src/main");
-const address = require("../src/encoding/address");
-const encoding = require("../src/encoding/encoding");
-const logicsig = require("../src/logicsig");
+const algosdk = require("../index");
 const logic = require("../src/logic/logic");
-const transaction = require("../src/transaction");
 const utils = require("../src/utils/utils");
 
 describe('LogicSig functionality', function () {
@@ -12,8 +8,8 @@ describe('LogicSig functionality', function () {
         it('should work on valid program', function () {
             let program = Uint8Array.from([1, 32, 1, 1, 34]);
             let programHash = "6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY";
-            let pk = address.decode(programHash).publicKey;
-            let lsig = new logicsig.LogicSig(program);
+            let pk = algosdk.decodeAddress(programHash).publicKey;
+            let lsig = algosdk.makeLogicSig(program);
             assert.equal(lsig.logic, program);
             assert.equal(lsig.args, undefined);
             assert.equal(lsig.sig, undefined);
@@ -27,7 +23,7 @@ describe('LogicSig functionality', function () {
                 Uint8Array.from([1, 2, 3]),
                 Uint8Array.from([4, 5, 6])
             ];
-            lsig = new logicsig.LogicSig(program, args);
+            lsig = algosdk.makeLogicSig(program, args);
             assert.equal(lsig.logic, program);
             assert.equal(lsig.args, args);
             assert.equal(lsig.sig, undefined);
@@ -38,17 +34,17 @@ describe('LogicSig functionality', function () {
 
             // check serialization
             let encoded = lsig.toByte();
-            let decoded = logicsig.LogicSig.fromByte(encoded);
+            let decoded = algosdk.logicSigFromByte(encoded);
             assert.deepStrictEqual(decoded, lsig);
 
         });
         it('should fail on tampered program', function () {
             let program = Uint8Array.from([1, 32, 1, 1, 34]);
             let programHash = "6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY";
-            let pk = address.decode(programHash).publicKey;
+            let pk = algosdk.decodeAddress(programHash).publicKey;
 
             program[3] = 2;
-            let lsig = new logicsig.LogicSig(program);
+            let lsig = algosdk.makeLogicSig(program);
             let verified = lsig.verify(pk);
             assert.equal(verified, false);
         });
@@ -56,7 +52,7 @@ describe('LogicSig functionality', function () {
             let program = Uint8Array.from([1, 32, 1, 1, 34]);
             program[0] = 128;
             assert.throws(
-                () => logicsig.LogicSig(program)
+                () => algosdk.makeLogicSig(program)
             );
         });
     });
@@ -322,8 +318,8 @@ describe('Template logic validation', function () {
             let goldenStx = "gqRsc2lngaFsxJkBIAcB6AdkAF+gwh68o5UBJgIgAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIAQIDBAUGBwggkq+RhOQTPAl/ZqvMk7ERGxKiAb2dDMo+SkihzhPM9MUxECISMQEjDhAxAiQYJRIQMQQhBDECCBIQMQYoEhAxCTIDEjEHKRIQMQghBRIQMQkpEjEHMgMSEDECIQYNEDEIJRIQERCjdHhuiaNhbXTOAAehIKNmZWXNA+iiZnbNBLCiZ2jEIH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpomx2zQUPomx4xCABAgMEBQYHCAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCKNyY3bEIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFo3NuZMQgSyW1cXI76LA1KKwDMg39flXjnYOEuOUdDD0znzkLw7akdHlwZaNwYXk=";
             let goldenStxBlob = Buffer.from(goldenStx, 'base64');
             let stx = algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(actualBytes, 0, 1200, goldenGenesisHash);
-            let expectedDict = encoding.decode(goldenStxBlob);
-            let actualDict = encoding.decode(stx['blob']);
+            let expectedDict = algosdk.decodeObj(goldenStxBlob);
+            let actualDict = algosdk.decodeObj(stx['blob']);
             assert.deepEqual(expectedDict, actualDict);
         });
     });
@@ -369,8 +365,8 @@ describe('Template logic validation', function () {
             let goldenStx = "gqRsc2lngaFsxJkBIAcB6AdkAF+gwh68o5UBJgIgAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIAQIDBAUGBwggkq+RhOQTPAl/ZqvMk7ERGxKiAb2dDMo+SkihzhPM9MUxECISMQEjDhAxAiQYJRIQMQQhBDECCBIQMQYoEhAxCTIDEjEHKRIQMQghBRIQMQkpEjEHMgMSEDECIQYNEDEIJRIQERCjdHhuiaNhbXTOAAehIKNmZWXNA+iiZnbNBLCiZ2jEIH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpomx2zQUPomx4xCABAgMEBQYHCAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCKNyY3bEIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFo3NuZMQgSyW1cXI76LA1KKwDMg39flXjnYOEuOUdDD0znzkLw7akdHlwZaNwYXk=";
             let goldenStxBlob = Buffer.from(goldenStx, 'base64');
             let stx = algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(actualBytes, 0, 1200, goldenGenesisHash);
-            let expectedDict = encoding.decode(goldenStxBlob);
-            let actualDict = encoding.decode(stx['blob']);
+            let expectedDict = algosdk.decodeObj(goldenStxBlob);
+            let actualDict = algosdk.decodeObj(stx['blob']);
             assert.deepEqual(expectedDict, actualDict);
         });
     });
@@ -397,7 +393,7 @@ describe('Template logic validation', function () {
             let goldenGenesisHash = "f4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGk=";
             let txnAndLsig = algosdk.LogicTemplates.signDynamicFee(actualBytes, privateKeyOne, goldenGenesisHash);
             let txnDict = txnAndLsig['txn'];
-            let txnObj = new transaction.Transaction(txnDict);
+            let txnObj = new algosdk.Transaction(txnDict);
             let txnBytes = txnObj.toByte();
             let goldenTxn = "iqNhbXTNE4ilY2xvc2XEIOaalh5vLV96yGYHkmVSvpgjXtMzY8qIkYu5yTipFbb5o2ZlZc0D6KJmds0wOaJnaMQgf4OxZX/x/FO5LcGBSKHWXfwtSx+j1ncoSt3SABJtkGmibHbNMDqibHjEIH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpo3JjdsQg/ryguxRKWk6ntDikaBrIDmyhBby2B/xWUyXJVpX2ohOjc25kxCCFPYdMJymqcGoxdDeyuM8t6Kxixfq0PJCyJP71uhYT76R0eXBlo3BheQ==";
             assert.deepStrictEqual(new Uint8Array(Buffer.from(goldenTxn, 'base64')), txnBytes);

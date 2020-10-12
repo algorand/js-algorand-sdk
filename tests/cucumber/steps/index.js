@@ -6,21 +6,34 @@ const ServerMock = require("mock-http-server");
 const getSteps = require("./steps");
 
 const cucumberPath = path.dirname(__dirname);
-const browser = !!process.env.TEST_BROWSER;
+const browser = process.env.TEST_BROWSER;
+
+console.log('TEST_BROWSER is', browser);
 
 let driver;
 let driverBuilder;
 if (browser) {
-    require('chromedriver');
+    if (browser === 'chrome') {
+        require('chromedriver');
+    } else if (browser === 'firefox') {
+        require('geckodriver');
+    }
     const webdriver = require('selenium-webdriver');
     const chrome = require('selenium-webdriver/chrome');
+    const firefox = require('selenium-webdriver/firefox');
 
-    driverBuilder = new webdriver.Builder()
-        .forBrowser('chrome');
+    const chromeOptions = new chrome.Options();
+    const firefoxOptions = new firefox.Options();
 
     if (process.env.CI) {
-        driverBuilder = driverBuilder.setChromeOptions(new chrome.Options().addArguments(['--no-sandbox','--headless','--disable-gpu']));
+        chromeOptions.addArguments(['--no-sandbox','--headless','--disable-gpu']);
+        firefoxOptions.addArguments(['-headless']);
     }
+
+    driverBuilder = new webdriver.Builder()
+        .setChromeOptions(chromeOptions)
+        .setFirefoxOptions(firefoxOptions)
+        .forBrowser(browser);
     
     console.log('Webdriver set up for browser testing');
 }
@@ -57,8 +70,6 @@ BeforeAll(async function () {
         
         await driver.get(`http://localhost:${browserServerPort}/browser/index.html`);
 
-        await new Promise((resolve, reject) => setTimeout(resolve, 5000));
-
         const title = await driver.getTitle();
 
         if (title !== "Algosdk Browser Testing") {
@@ -84,7 +95,6 @@ AfterAll(async function () {
     // this cleanup code is run after all scenarios are done
 
     if (browser) {
-        await driver.sleep(30 * 1000);
         await driver.quit();
         stopBrowserServer();
     }
@@ -298,7 +308,7 @@ if (browser) {
                             done({ error: null });
                         } catch (err) {
                             console.error(err);
-                            done({ error: err.stack });
+                            done({ error: err.toString() + '\n' + err.stack });
                         }
                     }, type, name, ...rpcArgs);
 

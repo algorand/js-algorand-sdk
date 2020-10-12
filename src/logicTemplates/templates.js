@@ -43,7 +43,7 @@ function inject(orig, offsets, values, valueTypes) {
                 res = replace(res, intBuf, offsets[i], 1);
                 break;
             case valTypes.ADDRESS:
-                val = address.decode(val);
+                val = address.decodeAddress(val);
                 res = replace(res, val.publicKey, offsets[i], 32);
                 break;
             case valTypes.BASE64:

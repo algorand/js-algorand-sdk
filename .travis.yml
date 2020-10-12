@@ -10,11 +10,16 @@ script:
   - make docker-test
 
 jobs:
+  allow_failures:
+    - name: Firefox test
   include:
-    - stage: test
+    - stage: Testing
       name: Node test
-    - stage: test
-      name: Browser test
-      env: TEST_BROWSER=true
+    - name: Chrome test
+      env: TEST_BROWSER=chrome
       addons:
         chrome: stable
+    - name: Firefox test
+      env: TEST_BROWSER=firefox
+      addons:
+        firefox: latest

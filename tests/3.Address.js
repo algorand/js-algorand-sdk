@@ -1,7 +1,6 @@
-let assert = require('assert');
-let nacl = require("../src/nacl/naclWrappers");
-let address = require("../src/encoding/address");
-let algosdk = require("../src/main");
+const assert = require('assert');
+const nacl = require("../src/nacl/naclWrappers");
+const algosdk = require('../index');
 
 describe('address', function () {
     describe('#isValid', function () {
@@ -31,19 +30,18 @@ describe('address', function () {
 
     describe('from multisig preimage', function () {
         it('should match main repo code', function () {
-            const addr1 = algosdk.decodeAddress("XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU");
-            const addr2 = algosdk.decodeAddress("HTNOX33OCQI2JCOLZ2IRM3BC2WZ6JUILSLEORBPFI6W7GU5Q4ZW6LINHLA");
-            const addr3 = algosdk.decodeAddress("E6JSNTY4PVCY3IRZ6XEDHEO6VIHCQ5KGXCIQKFQCMB2N6HXRY4IB43VSHI");
+            const addr1 = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
+            const addr2 = "HTNOX33OCQI2JCOLZ2IRM3BC2WZ6JUILSLEORBPFI6W7GU5Q4ZW6LINHLA";
+            const addr3 = "E6JSNTY4PVCY3IRZ6XEDHEO6VIHCQ5KGXCIQKFQCMB2N6HXRY4IB43VSHI";
             const params = {
                 version: 1,
                 threshold: 2,
-                pks: [addr1.publicKey, addr2.publicKey, addr3.publicKey],
+                addrs: [addr1, addr2, addr3],
             };
             const expectAddr = "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM";
-            let actualAddr = address.fromMultisigPreImg(params);
-            let actualAddrEnc = algosdk.encodeAddress(actualAddr);
-            assert.ok(algosdk.isValidAddress(actualAddrEnc));
-            assert.deepStrictEqual(actualAddrEnc, expectAddr);
+            let actualAddr = algosdk.multisigAddress(params);
+            assert.ok(algosdk.isValidAddress(actualAddr));
+            assert.deepStrictEqual(actualAddr, expectAddr);
         });
     })
 });

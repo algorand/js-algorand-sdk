@@ -19,7 +19,7 @@ const UNEXPECTED_PK_LEN = new Error("nacl public key length is not 32 bytes");
 /**
  * isValidAddress takes an Algorand address and checks if valid.
  * @param address Algorand address
- * @returns {boolean}n true if valid, false otherwise
+ * @returns {boolean} true if valid, false otherwise
  */
 function isValidAddress(address) {
     if (typeof address !== "string") return false;
@@ -29,7 +29,7 @@ function isValidAddress(address) {
     // Try to decode
     let decoded;
     try {
-        decoded = decode(address);
+        decoded = decodeAddress(address);
     } catch (e) {
         return false;
     }
@@ -41,7 +41,12 @@ function isValidAddress(address) {
     return utils.arrayEqual(checksum, decoded.checksum);
 }
 
-function decode(address) {
+/**
+ * decodeAddress takes an Algorand address in string form and decodes it into a Uint8Array.
+ * @param {string} address an Algorand address with checksum.
+ * @returns {{publicKey: Uint8Array, checksum: Uint8Array}} the decoded form of the address's public key and checksum
+ */
+function decodeAddress(address) {
     if (!(typeof address === "string" || address instanceof String)) throw MALFORMED_ADDRESS_ERROR;
 
     //try to decode
@@ -56,7 +61,12 @@ function decode(address) {
     return {"publicKey": pk, "checksum": cs}
 }
 
-function encode(address) {
+/**
+ * encodeAddress takes an Algorand address as a Uint8Array and encodes it into a string with checksum.
+ * @param {Uint8Array} address a raw Algorand address
+ * @returns {string} the address and checksum encoded as a string.
+ */
+function encodeAddress(address) {
     //compute checksum
     let checksum = nacl.genericHash(address).slice(nacl.PUBLIC_KEY_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH, nacl.PUBLIC_KEY_LENGTH);
     let addr = base32.encode(utils.concatArrays(address, checksum));
@@ -107,10 +117,21 @@ function fromMultisigPreImg({version, threshold, pks}) {
  */
 function fromMultisigPreImgAddrs({version, threshold, addrs}) {
     const pks = addrs.map(addr => {
-        return decode(addr).publicKey;
+        return decodeAddress(addr).publicKey;
     });
-    return encode(fromMultisigPreImg({version, threshold, pks}));
+    return encodeAddress(fromMultisigPreImg({version, threshold, pks}));
 }
 
-module.exports = {isValidAddress, decode, encode, fromMultisigPreImg, fromMultisigPreImgAddrs, MALFORMED_ADDRESS_ERROR,
-    INVALID_MSIG_VERSION, INVALID_MSIG_THRESHOLD, INVALID_MSIG_PK, UNEXPECTED_PK_LEN, ALGORAND_ZERO_ADDRESS_STRING};
+module.exports = {
+    isValidAddress,
+    decodeAddress,
+    encodeAddress,
+    fromMultisigPreImg,
+    fromMultisigPreImgAddrs,
+    MALFORMED_ADDRESS_ERROR,
+    INVALID_MSIG_VERSION,
+    INVALID_MSIG_THRESHOLD,
+    INVALID_MSIG_PK,
+    UNEXPECTED_PK_LEN,
+    ALGORAND_ZERO_ADDRESS_STRING
+};

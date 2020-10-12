@@ -1,5 +1,6 @@
 const english = require("./wordlists/english");
 const nacl = require("../nacl/naclWrappers");
+const address = require("../encoding/address");
 
 const ERROR_FAIL_TO_DECODE_MNEMONIC = Error('failed to decode mnemonic');
 const ERROR_NOT_IN_WORDS_LIST = Error('the mnemonic contains a word that is not in the wordlist');
@@ -133,4 +134,56 @@ function toUint8Array(buffer11) {
     return new Uint8Array(buffer8);
 }
 
-module.exports = {mnemonicFromSeed, seedFromMnemonic, ERROR_FAIL_TO_DECODE_MNEMONIC, ERROR_NOT_IN_WORDS_LIST};
+/**
+ * mnemonicToSecretKey takes a mnemonic string and returns the corresponding Algorand address and its secret key.
+ * @param mn 25 words Algorand mnemonic
+ * @returns {{sk: Uint8Array, addr: string}}
+ * @throws error if fails to decode the mnemonic
+ */
+function mnemonicToSecretKey(mn) {
+    let seed = seedFromMnemonic(mn);
+    let keys = nacl.keyPairFromSeed(seed);
+    let encodedPk = address.encodeAddress(keys.publicKey);
+    return {addr: encodedPk, sk: keys.secretKey};
+}
+
+/**
+ * secretKeyToMnemonic takes an Algorand secret key and returns the corresponding mnemonic.
+ * @param sk Uint8Array
+ * @returns string mnemonic
+ */
+function secretKeyToMnemonic(sk) {
+    // get the seed from the sk
+    let seed = sk.slice(0, nacl.SEED_BTYES_LENGTH);
+    return mnemonicFromSeed(seed);
+}
+
+/**
+ * mnemonicToMasterDerivationKey takes a mnemonic string and returns the corresponding master derivation key.
+ * @param mn 25 words Algorand mnemonic
+ * @returns Uint8Array
+ * @throws error if fails to decode the mnemonic
+ */
+function mnemonicToMasterDerivationKey(mn) {
+    return seedFromMnemonic(mn);
+}
+
+/**
+ * masterDerivationKeyToMnemonic takes a master derivation key and returns the corresponding mnemonic.
+ * @param mdk Uint8Array
+ * @returns string mnemonic
+ */
+function masterDerivationKeyToMnemonic(mdk) {
+    return mnemonicFromSeed(mdk);
+}
+
+module.exports = {
+    mnemonicFromSeed,
+    seedFromMnemonic,
+    ERROR_FAIL_TO_DECODE_MNEMONIC,
+    ERROR_NOT_IN_WORDS_LIST,
+    mnemonicToSecretKey,
+    secretKeyToMnemonic,
+    mnemonicToMasterDerivationKey,
+    masterDerivationKeyToMnemonic,
+};
