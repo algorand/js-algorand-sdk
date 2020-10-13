@@ -51,6 +51,18 @@ describe('encoding', function () {
             assert.notStrictEqual(encoding.encode(o), golden);
         });
 
+        it('should safely encode/decode bigints', function () {
+            let beforeZero = BigInt("0")
+            let afterZero = encoding.decode(encoding.encode(beforeZero));
+            assert.ok(beforeZero == afterZero); //after is a Number because 0 fits into a Number - so we do this loose comparison
+            let beforeLarge = BigInt("18446744073709551612"); // larger than a Number, but fits into a uint64
+            let afterLarge = encoding.decode(encoding.encode(beforeLarge));
+            assert.strictEqual(beforeLarge, afterLarge);
+            let beforeTooLarge = BigInt("18446744073709551616") // larger than even fits into a uint64. we do not want to work with these too-large numbers
+            let afterTooLarge = encoding.decode(encoding.encode(beforeTooLarge));
+            assert.notStrictEqual(beforeTooLarge, afterTooLarge)
+        });
+
         it('should match our go code', function () {
             let golden = new Uint8Array([134, 163, 97, 109, 116, 205, 3, 79, 163, 102, 101, 101, 10, 162, 102, 118, 51, 162, 108, 118, 61, 163, 114, 99, 118, 196, 32, 145, 154, 160, 178, 192, 112, 147, 3, 73, 200, 52, 23, 24, 49, 180, 79, 91, 78, 35, 190, 125, 207, 231, 37, 41, 131, 96, 252, 244, 221, 54, 208, 163, 115, 110, 100, 196, 32, 145, 154, 160, 178, 192, 112, 147, 3, 73, 200, 52, 23, 24, 49, 180, 79, 91, 78, 35, 190, 125, 207, 231, 37, 41, 131, 96, 252, 244, 221, 54, 208]);
            let ad = "SGNKBMWAOCJQGSOIGQLRQMNUJ5NU4I56PXH6OJJJQNQPZ5G5G3IOVLI5VM";
