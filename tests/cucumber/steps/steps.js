@@ -2632,6 +2632,10 @@ module.exports = function getSteps(options) {
     });
     
     Given('I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}', async function (operationString, approvalProgramFile, clearProgramFile, numGlobalByteSlices, numGlobalInts, numLocalByteSlices, numLocalInts, appArgsCommaSeparatedString, foreignAppsCommaSeparatedString, foreignAssetsCommaSeparatedString, appAccountsCommaSeparatedString) {
+        if (operationString === "create") {
+            this.currentApplicationIndex = 0;
+        }
+        
         // operation string to enum
         let operation = operationStringToEnum(operationString);
         // open and load in approval program

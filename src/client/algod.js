@@ -54,7 +54,10 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
      */
     this.healthCheck = async function (headers={}) {
         let res = await c.get("/health", {}, headers);
-        return res.body;
+        if (!res.ok) {
+            throw new Error("Health response: " + res.status);
+        }
+        return {};
     };
 
     /**
