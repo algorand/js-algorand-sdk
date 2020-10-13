@@ -10,7 +10,7 @@
  *  5. Binary blob should be used for binary data and string for strings
  *  */
 
-const msgpack = require("@msgpack/msgpack");
+const msgpack = require("algo-msgpack-with-bigint");
 
 // Errors
 const ERROR_CONTAINS_EMPTY_STRING = "The object contains empty or 0 values. First empty or 0 value encountered during encoding: ";
