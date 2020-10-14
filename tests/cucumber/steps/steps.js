@@ -15,8 +15,16 @@ function keyPairFromSeed(seed) {
 }
 
 async function loadResource(res) {
-    const p = path.join(maindir, "tests", "cucumber", "features", "resources", res)
-    return fs.readFileSync(p);
+    const p = path.join(maindir, "tests", "cucumber", "features", "resources", res);
+    return await new Promise((resolve, reject) => {
+        fs.readFile(p, (err, content) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(content);
+            }
+        })
+    });
 }
 
 const steps = {
@@ -25,6 +33,19 @@ const steps = {
     then: {}
 };
 
+/**
+ * The getSteps function defines the cucumber steps and returns them.
+ * 
+ * IMPORTANT: This function is made to run in the context of this script in Node and by itself in
+ * browsers. In order to keep it working in both contexts, make sure each context provides all the
+ * necessary external functions and variables. That means every time you add import a module or add
+ * a new helper function or variable above, you should also add an equivalent function or variable
+ * to tests/cucumber/browser/test.js.
+ * 
+ * You should also avoid using any Node-specific features in this function. Instead, create a helper
+ * function like loadResource. In Node it uses fs to load a file, and in the browser it sends an
+ * HTTP GET request to load a file.
+ */
 module.exports = function getSteps(options) {
     function Given(name, fn) {
         if (steps.given.hasOwnProperty(name)) {
