@@ -12,9 +12,6 @@ git clone --single-branch --branch master https://github.com/algorand/algorand-s
 # move feature files and example files to destination
 mv test-harness/features tests/cucumber/features
 
-# build test environment
-# docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile --build-arg TEST_BROWSER=$TEST_BROWSER "$(pwd)"
-
 # Start test harness environment
 ./test-harness/scripts/up.sh
 
