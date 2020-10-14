@@ -18,9 +18,4 @@ mv test-harness/features tests/cucumber/features
 # Start test harness environment
 ./test-harness/scripts/up.sh
 
-npm run test:browser:prepare
-
 make unit && make integration
-# docker run -it \
-#      --network host \
-#      js-sdk-testing:latest

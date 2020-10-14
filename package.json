@@ -49,8 +49,8 @@
   },
   "scripts": {
     "test": "node tests/mocha.js",
-    "test:browser:prepare": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/algosdk.min.js tests/cucumber/browser/build/algosdk.min.js && browserify tests/cucumber/browser/test.js -o tests/cucumber/browser/build/test.js",
-    "test:browser": "TEST_BROWSER=chrome npm run test:browser:prepare && make unit",
+    "predocker-test": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/algosdk.min.js tests/cucumber/browser/build/algosdk.min.js && browserify tests/cucumber/browser/test.js -o tests/cucumber/browser/build/test.js",
+    "docker-test": "./tests/cucumber/docker/run_docker.sh",
     "build": "browserify src/main.js -s algosdk | minify --simplify --mangle.keepClassName --deadcode.keepFnArgs --comments false --outFile dist/algosdk.min.js"
   },
   "author": "Algorand, llc",
