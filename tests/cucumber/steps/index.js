@@ -35,7 +35,9 @@ if (browser) {
         .setFirefoxOptions(firefoxOptions)
         .forBrowser(browser);
     
-    console.log('Webdriver set up for browser testing');
+    console.log('Testing in browser');
+} else {
+    console.log('Testing in node');
 }
 
 const browserServerPort = 8080;
