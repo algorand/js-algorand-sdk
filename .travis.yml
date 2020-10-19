@@ -7,7 +7,7 @@ node_js:
 script:
   - set -e
   - npm test
-  - npm run docker-test
+  - make docker-test
 
 jobs:
   allow_failures:
