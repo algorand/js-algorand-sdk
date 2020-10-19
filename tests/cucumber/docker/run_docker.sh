@@ -19,9 +19,9 @@ docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)" --bu
 ./test-harness/scripts/up.sh
 
 if [ "$TEST_BROWSER" == "chrome" ]; then
-  docker run -d -p 4444:4444 --network host --shm-size 2g selenium/standalone-chrome:86.0
+  docker run -d --name selenium -p 4444:4444 --network test-harness --shm-size 2g selenium/standalone-chrome:86.0
 elif [ "$TEST_BROWSER" == "firefox" ]; then
-  docker run -d -p 4444:4444 --network host --shm-size 2g selenium/standalone-firefox:81.0
+  docker run -d --name selenium -p 4444:4444 --network test-harness --shm-size 2g selenium/standalone-firefox:81.0
 elif [ -n "$TEST_BROWSER" ]; then
   echo "Unknown value for TEST_BROWSER"
   exit 1
