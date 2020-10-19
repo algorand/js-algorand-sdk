@@ -39,13 +39,13 @@ npm test
 
 To run the SDK test suite in Node, run:
 ```bash
-npm run docker-test
+make docker-test
 ```
 
 #### Browsers
 
 The test suites can also run in browsers. To do so, set the environment variable `TEST_BROWSER` to
-one of our supported browsers. Right now we only support testing in `chrome` and `firefox`. When
+one of our supported browsers. Currently we support testing in `chrome` and `firefox`. When
 `TEST_BROWSER` is set, the mocha and SDK test suites will run in that browser.
 
 For example, to run mocha tests in Chrome:
@@ -55,7 +55,7 @@ TEST_BROWSER=chrome npm test
 
 And to run SDK tests in Firefox:
 ```bash
-TEST_BROWSER=firefox npm run docker-test
+TEST_BROWSER=firefox make docker-test
 ```
 
 ## Quick Start

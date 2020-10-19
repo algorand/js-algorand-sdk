@@ -13,11 +13,6 @@ console.log('TEST_BROWSER is', browser);
 let driver;
 let driverBuilder;
 if (browser) {
-    if (browser === 'chrome') {
-        require('chromedriver');
-    } else if (browser === 'firefox') {
-        require('geckodriver');
-    }
     const webdriver = require('selenium-webdriver');
     const chrome = require('selenium-webdriver/chrome');
     const firefox = require('selenium-webdriver/firefox');
@@ -34,6 +29,16 @@ if (browser) {
         .setChromeOptions(chromeOptions)
         .setFirefoxOptions(firefoxOptions)
         .forBrowser(browser);
+    
+    if (process.env.SELENIUM_SERVER_URL) {
+        driverBuilder = driverBuilder.usingServer(process.env.SELENIUM_SERVER_URL);
+    } else {
+        if (browser === 'chrome') {
+            require('chromedriver');
+        } else if (browser === 'firefox') {
+            require('geckodriver');
+        }
+    }
     
     console.log('Testing in browser');
 } else {
@@ -82,8 +87,6 @@ BeforeAll(async function () {
 
         // populate steps in browser context
         await driver.executeScript(getSteps, options);
-        
-        console.log('Browser at test page');
     }
 });
 
