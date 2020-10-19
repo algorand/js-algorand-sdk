@@ -8,7 +8,7 @@ WORKDIR $HOME/js-algorand-sdk
 ARG TEST_BROWSER
 ENV TEST_BROWSER=$TEST_BROWSER
 
-ENV SELENIUM_SERVER_URL=http://selenium:4444/wd/hub
+ENV SELENIUM_SERVER_URL=http://localhost:4444/wd/hub
 
 RUN npm ci
 RUN npm run prepare-browser-tests
