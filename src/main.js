@@ -228,7 +228,6 @@ module.exports = {
     ERROR_INVALID_MICROALGOS: convert.ERROR_INVALID_MICROALGOS,
     microalgosToAlgos: convert.microalgosToAlgos,
     algosToMicroalgos: convert.algosToMicroalgos,
-    TxGroup: group.TxGroup,
     computeGroupID: group.computeGroupID,
     assignGroupID: group.assignGroupID,
     makeLogicSig: logicsig.makeLogicSig,

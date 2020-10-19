@@ -1,6 +1,7 @@
 
 const assert = require('assert');
 const algosdk = require('../index');
+const group = require('../src/group');
 
 describe('Sign', function () {
     it('should not complain on a missing note', function () {
@@ -309,11 +310,11 @@ describe('Sign', function () {
             let tx = new algosdk.Transaction(o);
 
             {
-                let expectedTxg = new algosdk.TxGroup([tx.rawTxID(), tx.rawTxID()])
+                let expectedTxg = new group.TxGroup([tx.rawTxID(), tx.rawTxID()])
                 let encRep = expectedTxg.get_obj_for_encoding();
                 const encTxg = algosdk.encodeObj(encRep);
                 const decEncRep = algosdk.decodeObj(encTxg);
-                let decTxg = algosdk.TxGroup.from_obj_for_encoding(decEncRep);
+                let decTxg = group.TxGroup.from_obj_for_encoding(decEncRep);
                 const reencRep = decTxg.get_obj_for_encoding();
                 assert.deepStrictEqual(reencRep, encRep);
             }
