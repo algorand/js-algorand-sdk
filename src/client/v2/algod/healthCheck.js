@@ -11,7 +11,10 @@ class HealthCheck {
 	 */
 	async do(headers={}) {
 		let res = await this.c.get("/health", {}, headers);
-		return res.body;
+		if (!res.ok) {
+			throw new Error("Health response: " + res.status);
+		}
+		return {};
 	}
 }
 

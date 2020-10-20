@@ -1,14 +1,7 @@
-let assert = require('assert');
-let algosdk = require("../src/main");
-let address = require("../src/encoding/address");
-let encoding = require("../src/encoding/encoding");
-let passphrase = require("../src/mnemonic/mnemonic");
-let nacl = require("../src/nacl/naclWrappers");
-let transaction = require("../src/transaction");
-let logicsig = require("../src/logicsig");
-let utils = require('../src/utils/utils');
-let v2client = require("../src/client/v2/algod/algod");
-let v2models = require("../src/client/v2/algod/models/types");
+const assert = require('assert');
+const algosdk = require("../index");
+const nacl = require("../src/nacl/naclWrappers");
+const utils = require('../src/utils/utils');
 
 describe('Algosdk (AKA end to end)', function () {
     describe('#mnemonic', function () {
@@ -172,7 +165,7 @@ describe('Algosdk (AKA end to end)', function () {
             let note = new Uint8Array(Buffer.from("6gAVR0Nsv5Y=", "base64"))
             sk = algosdk.mnemonicToSecretKey(sk);
             let key = nacl.keyPairFromSecretKey(sk.sk);
-            let from = address.encode(key.publicKey);
+            let from = algosdk.encodeAddress(key.publicKey);
             let txn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID);
             txn.addLease(lease, fee);
 
@@ -214,9 +207,7 @@ describe('Algosdk (AKA end to end)', function () {
             }; // msig address - RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM
 
             let mnem3 = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
-            let seed = passphrase.seedFromMnemonic(mnem3);
-            let keys = nacl.keyPairFromSeed(seed);
-            let sk = keys.secretKey;
+            let sk = algosdk.mnemonicToSecretKey(mnem3).sk;
 
             let o = {
                 "to": "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI",
@@ -252,9 +243,7 @@ describe('Algosdk (AKA end to end)', function () {
             }; // msig address - RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM
 
             let mnemonic = "advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor";
-            let seed = passphrase.seedFromMnemonic(mnemonic);
-            let keys = nacl.keyPairFromSeed(seed);
-            let sk = keys.secretKey;
+            let sk = algosdk.mnemonicToSecretKey(mnemonic).sk;
 
             let to_addr = "PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI";
             let from_addr = "RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM";
@@ -301,8 +290,7 @@ describe('Algosdk (AKA end to end)', function () {
                 ],
             };
             let mnem1 = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
-            let seed = passphrase.seedFromMnemonic(mnem1);
-            let sk = nacl.keyPairFromSeed(seed).secretKey;
+            let sk = algosdk.mnemonicToSecretKey(mnem1).sk;
 
             // this is a multisig transaction with an existing signature
             let o = Buffer.from("gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==", "base64");
@@ -377,12 +365,12 @@ describe('Algosdk (AKA end to end)', function () {
             const goldenTx1 = "gaN0eG6Ko2FtdM0H0KNmZWXNA+iiZnbOAArW/6NnZW6rZGV2bmV0LXYxLjCiZ2jEILAtz+3tknW6iiStLW4gnSvbXUqW3ul3ghinaDc5pY9Bomx2zgAK2uekbm90ZcQIwRKw5cJ0CMqjcmN2xCCj8AKs8kPYlx63ppj1w5410qkMRGZ9FYofNYPXxGpNLKNzbmTEIKPwAqzyQ9iXHremmPXDnjXSqQxEZn0Vih81g9fEak0spHR5cGWjcGF5";
             const goldenTx2 = "gaN0eG6Ko2FtdM0H0KNmZWXNA+iiZnbOAArXc6NnZW6rZGV2bmV0LXYxLjCiZ2jEILAtz+3tknW6iiStLW4gnSvbXUqW3ul3ghinaDc5pY9Bomx2zgAK21ukbm90ZcQIdBlHI6BdrIijcmN2xCCj8AKs8kPYlx63ppj1w5410qkMRGZ9FYofNYPXxGpNLKNzbmTEIKPwAqzyQ9iXHremmPXDnjXSqQxEZn0Vih81g9fEak0spHR5cGWjcGF5";
 
-            let tx1 = new transaction.Transaction(o1);
-            let tx2 = new transaction.Transaction(o2);
+            let tx1 = new algosdk.Transaction(o1);
+            let tx2 = new algosdk.Transaction(o2);
 
             // goal clerk send dumps unsigned transaction as signed with empty signature in order to save tx type
-            let stx1 = Buffer.from(encoding.encode({txn: tx1.get_obj_for_encoding()}));
-            let stx2 = Buffer.from(encoding.encode({txn: tx2.get_obj_for_encoding()}));
+            let stx1 = Buffer.from(algosdk.encodeObj({txn: tx1.get_obj_for_encoding()}));
+            let stx2 = Buffer.from(algosdk.encodeObj({txn: tx2.get_obj_for_encoding()}));
             assert.deepStrictEqual(stx1, Buffer.from(goldenTx1, "base64"));
             assert.deepStrictEqual(stx2, Buffer.from(goldenTx2, "base64"));
 
@@ -394,8 +382,8 @@ describe('Algosdk (AKA end to end)', function () {
                 const gid = algosdk.computeGroupID([tx1, tx2]);
                 tx1.group = gid;
                 tx2.group = gid;
-                stx1 = encoding.encode({txn: tx1.get_obj_for_encoding()});
-                stx2 = encoding.encode({txn: tx2.get_obj_for_encoding()});
+                stx1 = algosdk.encodeObj({txn: tx1.get_obj_for_encoding()});
+                stx2 = algosdk.encodeObj({txn: tx2.get_obj_for_encoding()});
                 const concat = Buffer.concat([stx1, stx2]);
                 assert.deepStrictEqual(concat, Buffer.from(goldenTxg, "base64"));
             }
@@ -405,8 +393,8 @@ describe('Algosdk (AKA end to end)', function () {
                 const gid = algosdk.computeGroupID([o1, o2]);
                 tx1.group = gid;
                 tx2.group = gid;
-                stx1 = encoding.encode({txn: tx1.get_obj_for_encoding()});
-                stx2 = encoding.encode({txn: tx2.get_obj_for_encoding()});
+                stx1 = algosdk.encodeObj({txn: tx1.get_obj_for_encoding()});
+                stx2 = algosdk.encodeObj({txn: tx2.get_obj_for_encoding()});
                 const concat = Buffer.concat([stx1, stx2]);
                 assert.deepStrictEqual(concat, Buffer.from(goldenTxg, "base64"));
             }
@@ -539,9 +527,7 @@ describe('Algosdk (AKA end to end)', function () {
             };
 
             let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
-            let seed = passphrase.seedFromMnemonic(mnem);
-            let keys = nacl.keyPairFromSeed(seed);
-            let sk = keys.secretKey;
+            let sk = algosdk.mnemonicToSecretKey(mnem).sk;
             let js_dec = algosdk.signTransaction(o, sk);
             let golden = Buffer.from("gqNzaWfEQAhru5V2Xvr19s4pGnI0aslqwY4lA2skzpYtDTAN9DKSH5+qsfQQhm4oq+9VHVj7e1rQC49S28vQZmzDTVnYDQGjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkAaNmZWXNCRqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
@@ -563,9 +549,7 @@ describe('Algosdk (AKA end to end)', function () {
             };
 
             let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
-            let seed = passphrase.seedFromMnemonic(mnem);
-            let keys = nacl.keyPairFromSeed(seed);
-            let sk = keys.secretKey;
+            let sk = algosdk.mnemonicToSecretKey(mnem).sk;
             let js_dec = algosdk.signTransaction(o, sk);
             let golden = Buffer.from("gqNzaWfEQNkEs3WdfFq6IQKJdF1n0/hbV9waLsvojy9pM1T4fvwfMNdjGQDy+LeesuQUfQVTneJD4VfMP7zKx4OUlItbrwSjdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0KvqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkAQ==", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
@@ -586,9 +570,7 @@ describe('Algosdk (AKA end to end)', function () {
             };
 
             let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
-            let seed = passphrase.seedFromMnemonic(mnem);
-            let keys = nacl.keyPairFromSeed(seed);
-            let sk = keys.secretKey;
+            let sk = algosdk.mnemonicToSecretKey(mnem).sk;
             let js_dec = algosdk.signTransaction(o, sk);
             let golden = Buffer.from("gqNzaWfEQJ7q2rOT8Sb/wB0F87ld+1zMprxVlYqbUbe+oz0WM63FctIi+K9eYFSqT26XBZ4Rr3+VTJpBE+JLKs8nctl9hgijdHhuiKRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCOiiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
@@ -610,9 +592,7 @@ describe('Algosdk (AKA end to end)', function () {
             };
 
             let mnem = "awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred";
-            let seed = passphrase.seedFromMnemonic(mnem);
-            let keys = nacl.keyPairFromSeed(seed);
-            let sk = keys.secretKey;
+            let sk = algosdk.mnemonicToSecretKey(mnem).sk;
             let js_dec = algosdk.signTransaction(o, sk);
             let golden = Buffer.from("gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=", "base64");
             assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
@@ -650,13 +630,12 @@ describe('Algosdk (AKA end to end)', function () {
             let keys = algosdk.generateAccount();
             let lsig = algosdk.makeLogicSig(program);
             lsig.sign(keys.sk);
-            let verified = lsig.verify(address.decode(keys.addr).publicKey);
+            let verified = lsig.verify(algosdk.decodeAddress(keys.addr).publicKey);
             assert.equal(verified, true);
 
             // check serialization
             let encoded = lsig.toByte();
-            let obj = encoding.decode(encoded);
-            let decoded = logicsig.LogicSig.from_obj_for_encoding(obj);
+            let decoded = algosdk.logicSigFromByte(encoded);
             assert.deepStrictEqual(decoded, lsig);
         });
     });
@@ -681,7 +660,7 @@ describe('Algosdk (AKA end to end)', function () {
                 ],
             };
             const outAddr = algosdk.multisigAddress(params);
-            const msig_pk = address.decode(outAddr).publicKey;
+            const msig_pk = algosdk.decodeAddress(outAddr).publicKey;
             const mn1 = "auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch";
             const mn2 = "since during average anxiety protect cherry club long lawsuit loan expand embark forum theory winter park twenty ball kangaroo cram burst board host ability left";
             const sk1 = algosdk.mnemonicToSecretKey(mn1);
@@ -711,7 +690,7 @@ describe('Algosdk (AKA end to end)', function () {
 
             // check serialization
             let encoded = lsig.toByte();
-            let decoded = logicsig.LogicSig.fromByte(encoded);
+            let decoded = algosdk.logicSigFromByte(encoded);
             assert.deepStrictEqual(decoded, lsig);
         });
     });
@@ -758,7 +737,7 @@ describe('Algosdk (AKA end to end)', function () {
             const golden = "gqRsc2lng6NhcmeSxAMxMjPEAzQ1NqFsxAUBIAEBIqNzaWfEQE6HXaI5K0lcq50o/y3bWOYsyw9TLi/oorZB4xaNdn1Z14351u2f6JTON478fl+JhIP4HNRRAIh/I8EWXBPpJQ2jdHhuiqNhbXTNB9CjZmVlzQPoomZ2zgAfeyGjZ2Vuq2Rldm5ldC12MS4womdoxCCwLc/t7ZJ1uookrS1uIJ0r211Klt7pd4IYp2g3OaWPQaJsds4AH38JpG5vdGXECPMTAk7i0PNdo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaR0eXBlo3BheQ=="
 
             assert.deepStrictEqual(Buffer.from(js_dec.blob), Buffer.from(golden, "base64"));
-            let sender_pk = address.decode(fromAddress).publicKey;
+            let sender_pk = algosdk.decodeAddress(fromAddress).publicKey;
             let verified = lsig.verify(sender_pk);
             assert.equal(verified, true);
         });
@@ -779,7 +758,7 @@ describe('Algosdk (AKA end to end)', function () {
 
             assert.deepStrictEqual(sig1, sig2);
 
-            const parts = utils.concatArrays(address.decode(addr).publicKey, data);
+            const parts = utils.concatArrays(algosdk.decodeAddress(addr).publicKey, data);
             const toBeVerified = Buffer.from(utils.concatArrays(Buffer.from("ProgData"), parts));
             const verified = nacl.verify(toBeVerified, sig1, pk);
             assert.equal(verified, true);
@@ -788,8 +767,8 @@ describe('Algosdk (AKA end to end)', function () {
 
     describe('v2 Dryrun models', function () {
         it('should be properly serialized', function () {
-            const schema = new v2models.ApplicationStateSchema(5, 5);
-            const acc = new v2models.Account({
+            const schema = new algosdk.modelsv2.ApplicationStateSchema(5, 5);
+            const acc = new algosdk.modelsv2.Account({
                 address: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
                 amount: 5002280000000000,
                 amountWithoutPendingRewards: 5000000000000000,
@@ -799,14 +778,14 @@ describe('Algosdk (AKA end to end)', function () {
                 round: 18241,
                 status: "Online",
             });
-            const params = new v2models.ApplicationParams({
+            const params = new algosdk.modelsv2.ApplicationParams({
                 creator: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
                 approvalProgram: "AiABASI=",
                 clearStateProgram: "AiABASI=",
                 localStateSchema: schema,
                 globalStateSchema: schema,
             });
-            const app = new v2models.Application(1380011588, params);
+            const app = new algosdk.modelsv2.Application(1380011588, params);
             // make a raw txn
             const txn = {
                 apsu: "AiABASI=",
@@ -818,7 +797,7 @@ describe('Algosdk (AKA end to end)', function () {
                 snd: "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
                 type: "appl"
             };
-            const req = new v2models.DryrunRequest({
+            const req = new algosdk.modelsv2.DryrunRequest({
                 accounts: [acc],
                 apps: [app],
                 round: 18241,

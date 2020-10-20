@@ -1,9 +1,7 @@
 
-let assert = require('assert');
-
-let transaction = require("../src/transaction");
-let encoding = require("../src/encoding/encoding");
-let algosdk = require("../src/main");
+const assert = require('assert');
+const algosdk = require('../index');
+const group = require('../src/group');
 
 describe('Sign', function () {
     it('should not complain on a missing note', function () {
@@ -17,7 +15,7 @@ describe('Sign', function () {
             "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
             "note": new Uint8Array(0)
         };
-        let txn = new transaction.Transaction(o);
+        let txn = new algosdk.Transaction(o);
     });
 
     it('should respect min tx fee', function () {
@@ -31,7 +29,7 @@ describe('Sign', function () {
             "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
             "note": new Uint8Array([123, 12, 200])
         };
-        let txn = new transaction.Transaction(o);
+        let txn = new algosdk.Transaction(o);
         assert.equal(txn.fee, 1000); // 1000 is the v5 min txn fee
         let txnEnc = txn.get_obj_for_encoding();
         assert.equal(txnEnc.fee, 1000);
@@ -49,7 +47,7 @@ describe('Sign', function () {
             "note": new Uint8Array([123, 12, 200])
         };
 
-        let txn = new transaction.Transaction(o);
+        let txn = new algosdk.Transaction(o);
 
     });
 
@@ -66,7 +64,7 @@ describe('Sign', function () {
             "genesisID": ""
         };
 
-        let txn = new transaction.Transaction(o);
+        let txn = new algosdk.Transaction(o);
 
     });
 
@@ -83,7 +81,7 @@ describe('Sign', function () {
             "note": "new Uint8Array(0)"
         };
         assert.throws(() => {
-            let txn = new transaction.Transaction(o);
+            let txn = new algosdk.Transaction(o);
         }, (err) => err.toString() === "Error: note must be a Uint8Array.");
 
 
@@ -102,11 +100,11 @@ describe('Sign', function () {
                 "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
                 "genesisID": ""
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
@@ -124,11 +122,11 @@ describe('Sign', function () {
                 "genesisID": "",
                 "flatFee": true
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
@@ -149,17 +147,17 @@ describe('Sign', function () {
                 "genesisID": "",
                 "type": "keyreg"
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
 
         it('should correctly serialize and deserialize an asset configuration transaction from msgpack representation', function() {
-            address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
+            const address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
             let o = {
                 "from": address,
                 "fee": 10,
@@ -173,17 +171,17 @@ describe('Sign', function () {
                 "assetClawback": address,
                 "type": "acfg"
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
 
         it('should correctly serialize and deserialize an asset creation transaction from msgpack representation', function() {
-            address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
+            const address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
             let o = {
                 "from": address,
                 "fee": 10,
@@ -202,17 +200,17 @@ describe('Sign', function () {
                 "assetClawback": address,
                 "type": "acfg"
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
 
         it('should correctly serialize and deserialize an asset transfer transaction from msgpack representation', function() {
-            address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
+            const address = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4"
             let o = {
                 "type": "axfer",
                 "from": address,
@@ -226,11 +224,11 @@ describe('Sign', function () {
                 "assetRevocationTarget": address,
                 "closeRemainderTo": address
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
@@ -249,11 +247,11 @@ describe('Sign', function () {
                 "freezeState" : true
             };
 
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
@@ -269,11 +267,11 @@ describe('Sign', function () {
                 "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
                 "note": new Uint8Array([123, 12, 200]),
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
@@ -289,11 +287,11 @@ describe('Sign', function () {
                 "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
                 "note": new Uint8Array([123, 12, 200]),
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let encRep = expectedTxn.get_obj_for_encoding();
-            const encTxn = encoding.encode(encRep);
-            const decEncRep = encoding.decode(encTxn);
-            let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+            const encTxn = algosdk.encodeObj(encRep);
+            const decEncRep = algosdk.decodeObj(encTxn);
+            let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
             const reencRep = decTxn.get_obj_for_encoding();
             assert.deepStrictEqual(reencRep, encRep);
         });
@@ -309,14 +307,14 @@ describe('Sign', function () {
                 "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
                 "note": new Uint8Array([123, 12, 200]),
             };
-            let tx = new transaction.Transaction(o);
+            let tx = new algosdk.Transaction(o);
 
             {
-                let expectedTxg = new transaction.TxGroup([tx.rawTxID(), tx.rawTxID()])
+                let expectedTxg = new group.TxGroup([tx.rawTxID(), tx.rawTxID()])
                 let encRep = expectedTxg.get_obj_for_encoding();
-                const encTxg = encoding.encode(encRep);
-                const decEncRep = encoding.decode(encTxg);
-                let decTxg = transaction.TxGroup.from_obj_for_encoding(decEncRep);
+                const encTxg = algosdk.encodeObj(encRep);
+                const decEncRep = algosdk.decodeObj(encTxg);
+                let decTxg = group.TxGroup.from_obj_for_encoding(decEncRep);
                 const reencRep = decTxg.get_obj_for_encoding();
                 assert.deepStrictEqual(reencRep, encRep);
             }
@@ -325,9 +323,9 @@ describe('Sign', function () {
                 let expectedTxn = tx;
                 expectedTxn.group = tx.rawTxID();
                 let encRep = expectedTxn.get_obj_for_encoding();
-                const encTxn = encoding.encode(encRep);
-                const decEncRep = encoding.decode(encTxn);
-                let decTxn = transaction.Transaction.from_obj_for_encoding(decEncRep);
+                const encTxn = algosdk.encodeObj(encRep);
+                const decEncRep = algosdk.decodeObj(encTxn);
+                let decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
                 const reencRep = decTxn.get_obj_for_encoding();
                 assert.deepStrictEqual(reencRep, encRep);
             }
@@ -361,7 +359,7 @@ describe('Sign', function () {
                 "genesisID": genesisID,
                 "rekeyTo": rekeyTo
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
@@ -396,7 +394,7 @@ describe('Sign', function () {
                 "rekeyTo": rekeyTo,
                 "type": "keyreg"
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
                 voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -443,7 +441,7 @@ describe('Sign', function () {
                 "rekeyTo": rekeyTo,
                 "type": "acfg"
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
                 total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -479,7 +477,7 @@ describe('Sign', function () {
                 "note": note,
                 "rekeyTo": rekeyTo
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
                 assetIndex, manager, reserve, freeze, clawback, true, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -530,7 +528,7 @@ describe('Sign', function () {
                 "note": note,
                 "rekeyTo": rekeyTo
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
                 assetIndex, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -568,7 +566,7 @@ describe('Sign', function () {
                 "closeRemainderTo": closeRemainderTo,
                 "rekeyTo": rekeyTo
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
                 fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -602,7 +600,7 @@ describe('Sign', function () {
                 "genesisID": genesisID,
                 "rekeyTo": rekeyTo
             };
-            let expectedTxn = new transaction.Transaction(o);
+            let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetFreezeTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
                 assetIndex, freezeTarget, freezeState, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);

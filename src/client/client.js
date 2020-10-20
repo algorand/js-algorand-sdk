@@ -58,7 +58,16 @@ function HTTPClient(token, baseServer, port, headers={}) {
                 r = r.responseType('arraybuffer');
             }
             
-            return await r;
+            const res = await r;
+            if (Buffer.isBuffer(res.body)) {
+                // In node res.body will be a Buffer, but in the browser it will be an ArrayBuffer
+                // (thanks superagent...), so convert it to an ArrayBuffer for consistency.
+                const underlyingArrayBuffer = res.body.buffer;
+                const start = res.body.byteOffset;
+                const end = start + res.body.byteLength;
+                res.body = underlyingArrayBuffer.slice(start, end);
+            }
+            return res;
         } catch (e) {
             throw e;
         }

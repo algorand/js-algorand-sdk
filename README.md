@@ -19,7 +19,44 @@ Include this line in your HTML.
 
 ## SDK Development
 
-Run tests with `make docker-test`
+### Building
+
+To build a new version of the library for browsers, run:
+```bash
+npm build
+```
+
+### Testing
+
+We have two test suites: mocha tests in this repo, and the Algorand SDK test suite from https://github.com/algorand/algorand-sdk-testing.
+
+#### Node
+
+To run the mocha tests in Node, run:
+```bash
+npm test
+```
+
+To run the SDK test suite in Node, run:
+```bash
+make docker-test
+```
+
+#### Browsers
+
+The test suites can also run in browsers. To do so, set the environment variable `TEST_BROWSER` to
+one of our supported browsers. Currently we support testing in `chrome` and `firefox`. When
+`TEST_BROWSER` is set, the mocha and SDK test suites will run in that browser.
+
+For example, to run mocha tests in Chrome:
+```bash
+TEST_BROWSER=chrome npm test
+```
+
+And to run SDK tests in Firefox:
+```bash
+TEST_BROWSER=firefox make docker-test
+```
 
 ## Quick Start
 ```javascript

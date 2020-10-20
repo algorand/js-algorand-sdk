@@ -1,4 +1,3 @@
-const algosdk = require('../main');
 const logic = require('../logic/logic');
 const logicSig = require('../logicsig');
 const templates = require('./templates');
@@ -120,7 +119,7 @@ function signTransactionWithHTLCUnlock(contract, txn, preImageAsBase64) {
         throw new Error("final fee of payment transaction" + tempTxn.fee.toString() + "greater than transaction max fee" + maxFee.toString())
     }
 
-    return algosdk.signLogicSigTransaction(txn, lsig);
+    return logicSig.signLogicSigTransaction(txn, lsig);
 }
 
 module.exports = {

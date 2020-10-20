@@ -5,6 +5,7 @@ const encoding = require('./encoding/encoding');
 const logic = require('./logic/logic');
 const multisig = require('./multisig');
 const utils = require('./utils/utils');
+const txnBuilder = require('./transaction');
 
 /**
  LogicSig implementation
@@ -81,7 +82,7 @@ class LogicSig {
     address() {
         let toBeSigned = utils.concatArrays(this.tag, this.logic);
         let hash = nacl.genericHash(toBeSigned);
-        return address.encode(hash);
+        return address.encodeAddress(hash);
     }
 
     /**
@@ -94,7 +95,7 @@ class LogicSig {
             this.sig = this.signProgram(secretKey);
         } else {
             let subsigs = msig.addrs.map(addr => {
-                return {"pk": address.decode(addr).publicKey};
+                return {"pk": address.decodeAddress(addr).publicKey};
             });
 
             this.msig = {
@@ -153,6 +154,92 @@ class LogicSig {
     }
 }
 
+/**
+ * makeLogicSig creates LogicSig object from program and arguments
+ *
+ * @param {Uint8Array} program Program to make LogicSig from
+ * @param {[Uint8Array]} args Arguments as array of Uint8Array
+ * @returns {LogicSig} LogicSig object
+ */
+function makeLogicSig(program, args) {
+    return new LogicSig(program, args);
+}
+
+/**
+ * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
+ * transaction which is a blob representing a transaction and logicsig object.
+ * @param {Object} dictionary containing constructor arguments for a transaction
+ * @param {LogicSig} lsig logicsig object
+ * @returns {Object} Object containing txID and blob representing signed transaction.
+ * @throws error on failure
+ */
+function signLogicSigTransaction(txn, lsig) {
+    if (!lsig.verify(address.decodeAddress(txn.from).publicKey)) {
+        throw new Error("invalid signature");
+    }
+    let algoTxn = new txnBuilder.Transaction(txn);
+    return signLogicSigTransactionObject(algoTxn, lsig);
+}
+
+/**
+ * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
+ * transaction which is a blob representing a transaction and logicsig object.
+ * @param {Object} txn transaction.Transaction
+ * @param {LogicSig} lsig logicsig object
+ * @returns {Object} Object containing txID and blob representing signed transaction.
+ */
+function signLogicSigTransactionObject(txn, lsig) {
+    let lstx = {
+        lsig: lsig.get_obj_for_encoding(),
+        txn: txn.get_obj_for_encoding()
+    };
+
+    return {
+        "txID": txn.txID().toString(),
+        "blob": encoding.encode(lstx)
+    };
+}
+
+/**
+ * logicSigFromByte accepts encoded logic sig bytes and attempts to call logicsig.fromByte on it,
+ * returning the result
+ */
+function logicSigFromByte(encoded) {
+    return LogicSig.fromByte(encoded);
+}
+
+const SIGN_PROGRAM_DATA_PREFIX = Buffer.from("ProgData");
+
+/**
+ * tealSign creates a signature compatible with ed25519verify opcode from contract address
+ * @param sk - uint8array with secret key
+ * @param data - buffer with data to sign
+ * @param contractAddress string representation of teal contract address (program hash)
+ */
+function tealSign(sk, data, contractAddress) {
+    const parts = utils.concatArrays(address.decodeAddress(contractAddress).publicKey, data);
+    const toBeSigned = Buffer.from(utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts));
+    return nacl.sign(toBeSigned, sk);
+}
+
+/**
+ * tealSignFromProgram creates a signature compatible with ed25519verify opcode from raw program bytes
+ * @param sk - uint8array with secret key
+ * @param data - buffer with data to sign
+ * @param program - buffer with teal program
+ */
+function tealSignFromProgram(sk, data, program) {
+    const lsig = makeLogicSig(program);
+    const contractAddress = lsig.address();
+    return tealSign(sk, data, contractAddress);
+}
+
 module.exports = {
-    LogicSig
+    LogicSig,
+    makeLogicSig,
+    signLogicSigTransaction,
+    signLogicSigTransactionObject,
+    logicSigFromByte,
+    tealSign,
+    tealSignFromProgram,
 };
