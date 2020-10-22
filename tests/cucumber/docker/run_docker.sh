@@ -18,17 +18,6 @@ docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)" --bu
 # Start test harness environment
 ./test-harness/scripts/up.sh
 
-if [ "$TEST_BROWSER" == "chrome" ]; then
-  npx chromedriver --port=4444 &
-  # docker run -d --name selenium --network host --shm-size 2g selenium/standalone-chrome:86.0
-elif [ "$TEST_BROWSER" == "firefox" ]; then
-  npx geckodriver --port 4444 &
-  # docker run -d --name selenium --network host --shm-size 2g selenium/standalone-firefox:81.0
-elif [ -n "$TEST_BROWSER" ]; then
-  echo "Unknown value for TEST_BROWSER"
-  exit 1
-fi
-
 docker run -it \
      --network host \
      js-sdk-testing:latest
