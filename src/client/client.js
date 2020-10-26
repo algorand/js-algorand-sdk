@@ -82,7 +82,7 @@ function HTTPClient(token, baseServer, port, headers={}) {
                 .set(requestHeaders)
                 .send(data);
         } catch (e) {
-            throw e.response;
+            throw e;
         }
     };
 
@@ -95,7 +95,7 @@ function HTTPClient(token, baseServer, port, headers={}) {
                 .set(requestHeaders)
                 .send(data);
         } catch (e) {
-            throw e.response;
+            throw e;
         }
     };
 }

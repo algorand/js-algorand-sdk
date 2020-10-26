@@ -71,7 +71,7 @@ class Transaction {
             if (appClearProgram.constructor !== Uint8Array) throw Error("appClearProgram must be a Uint8Array.");
         }
         if (appArgs !== undefined) {
-            if (appArgs.constructor !== Array) throw Error("appArgs must be an Array of Uint8Array.");
+            if (!Array.isArray(appArgs)) throw Error("appArgs must be an Array of Uint8Array.");
             appArgs.forEach((arg) => {
                 if (arg.constructor !== Uint8Array) throw Error("each element of AppArgs must be a Uint8Array.");
             });

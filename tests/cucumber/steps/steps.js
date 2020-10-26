@@ -27,6 +27,22 @@ async function loadResource(res) {
     });
 }
 
+/**
+ * This function must be used instead of creating Uint8Arrays directly because of this firefox
+ * issue: https://github.com/mozilla/geckodriver/issues/1798
+ */
+function makeUint8Array(arg) {
+    return new Uint8Array(arg);
+}
+
+/**
+ * This function must be used instead of creating an empty object for use in assert.deepStructEqual
+ * because of this firefox issue: https://github.com/mozilla/geckodriver/issues/1798
+ */
+function makeEmptyObject() {
+    return {};
+}
+
 const steps = {
     given: {},
     when: {},
@@ -153,7 +169,7 @@ module.exports = function getSteps(options) {
             this.gen = gen
         }
         if (note !== "none") {
-            this.note = new Uint8Array(Buffer.from(note, "base64"))
+            this.note = makeUint8Array(Buffer.from(note, "base64"))
         }
     })
     
@@ -313,7 +329,7 @@ module.exports = function getSteps(options) {
                 "lastRound": result["lastRound"] + 1000,
                 "genesisHash": result["genesishashb64"],
                 "genesisID": result["genesisID"],
-                "note": new Uint8Array(Buffer.from(note, "base64")),
+                "note": makeUint8Array(Buffer.from(note, "base64")),
                 "amount": parseInt(amt)
             }
         return this.txn
@@ -337,7 +353,7 @@ module.exports = function getSteps(options) {
                 "lastRound": result["lastRound"] + 1000,
                 "genesisHash": result["genesishashb64"],
                 "genesisID": result["genesisID"],
-                "note": new Uint8Array(Buffer.from(note, "base64")),
+                "note": makeUint8Array(Buffer.from(note, "base64")),
                 "amount": parseInt(amt)
             }
         return this.txn
@@ -393,7 +409,7 @@ module.exports = function getSteps(options) {
     
     Then('the node should be healthy', async function () {
         health = await this.acl.healthCheck();
-        assert.deepStrictEqual(health, {});
+        assert.deepStrictEqual(health, makeEmptyObject());
     });
     
     
@@ -715,7 +731,7 @@ module.exports = function getSteps(options) {
     
     // When("I read a transaction {string} from file {string}", function(string, num){
     //     this.num = num
-    //     this.txn = algosdk.decodeObj(new Uint8Array(fs.readFileSync(maindir + '/temp/raw' + num + '.tx')));
+    //     this.txn = algosdk.decodeObj(makeUint8Array(fs.readFileSync(maindir + '/temp/raw' + num + '.tx')));
     //     return this.txn
     // })
     
@@ -724,13 +740,13 @@ module.exports = function getSteps(options) {
     // })
     
     // Then("the transaction should still be the same", function(){
-    //     stxnew = new Uint8Array(fs.readFileSync(maindir + '/temp/raw' + this.num + '.tx'));
-    //     stxold = new Uint8Array(fs.readFileSync(maindir + '/temp/old' + this.num + '.tx'));
+    //     stxnew = makeUint8Array(fs.readFileSync(maindir + '/temp/raw' + this.num + '.tx'));
+    //     stxold = makeUint8Array(fs.readFileSync(maindir + '/temp/old' + this.num + '.tx'));
     //     assert.deepStrictEqual(stxnew, stxold)
     // })
     
     // Then("I do my part", async function(){
-    //     stx = new Uint8Array(fs.readFileSync(maindir + '/temp/txn.tx'));
+    //     stx = makeUint8Array(fs.readFileSync(maindir + '/temp/txn.tx'));
     //     this.txid = await this.acl.sendRawTransaction(stx)
     //     this.txid = this.txid.txId
     //     return this.txid
@@ -754,7 +770,7 @@ module.exports = function getSteps(options) {
             this.gen = gen
         }
         if (note !== "none") {
-            this.note = new Uint8Array(Buffer.from(note, "base64"))
+            this.note = makeUint8Array(Buffer.from(note, "base64"))
         }
         this.votekey = votekey
         this.selkey = selkey
@@ -1632,7 +1648,7 @@ module.exports = function getSteps(options) {
     let anySendRawTransactionResponse;
     
     When('we make any Send Raw Transaction call', async function () {
-        anySendRawTransactionResponse = await this.v2Client.sendRawTransaction(new Uint8Array(0)).do()
+        anySendRawTransactionResponse = await this.v2Client.sendRawTransaction(makeUint8Array(0)).do()
     });
     
     Then('the parsed Send Raw Transaction response should have txid {string}', function (txid) {
@@ -2436,7 +2452,7 @@ module.exports = function getSteps(options) {
             compileResponse = await this.v2Client.compile(data).do();
             compileStatusCode = 200
         } catch (e) {
-            compileStatusCode = e.statusCode;
+            compileStatusCode = e.response.statusCode;
             compileResponse = {
                 result: "",
                 hash: ""
@@ -2479,7 +2495,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the signature should be equal to {string}', function (expectedEncoded) {
-        const expected = new Uint8Array(Buffer.from(expectedEncoded, "base64"));
+        const expected = makeUint8Array(Buffer.from(expectedEncoded, "base64"));
         assert.deepStrictEqual(this.sig, expected);
     });
     
@@ -2522,11 +2538,11 @@ module.exports = function getSteps(options) {
         subArgs.forEach((subArg) => {
            switch (subArg[0]) {
                case "str":
-                   appArgs.push(new Uint8Array(Buffer.from(subArg[1])));
+                   appArgs.push(makeUint8Array(Buffer.from(subArg[1])));
                    break;
                case "int":
     
-                   appArgs.push(new Uint8Array([parseInt(subArg[1])]));
+                   appArgs.push(makeUint8Array([parseInt(subArg[1])]));
                    break;
                case "addr":
                    appArgs.push(algosdk.decodeAddress(subArg[1])["publicKey"]);
@@ -2546,13 +2562,13 @@ module.exports = function getSteps(options) {
         let approvalProgramBytes = undefined;
         if (approvalProgramFile !== "") {
             const resource = await loadResource(approvalProgramFile);
-            approvalProgramBytes = new Uint8Array(resource);
+            approvalProgramBytes = makeUint8Array(resource);
         }
         // open and load in clear program
         let clearProgramBytes = undefined;
         if (clearProgramFile !== "") {
             const resource = await loadResource(clearProgramFile);
-            clearProgramBytes = new Uint8Array(resource);
+            clearProgramBytes = makeUint8Array(resource);
         }
         // split and process app args
         let appArgs = undefined;
@@ -2663,13 +2679,13 @@ module.exports = function getSteps(options) {
         let approvalProgramBytes = undefined;
         if (approvalProgramFile !== "") {
             const resouce = await loadResource(approvalProgramFile);
-            approvalProgramBytes = new Uint8Array(resouce);
+            approvalProgramBytes = makeUint8Array(resouce);
         }
         // open and load in clear program
         let clearProgramBytes = undefined;
         if (clearProgramFile !== "") {
             const resouce = await loadResource(clearProgramFile);
-            clearProgramBytes = new Uint8Array(resouce);
+            clearProgramBytes = makeUint8Array(resouce);
         }
         // split and process app args
         let appArgs = undefined;
@@ -2726,8 +2742,8 @@ module.exports = function getSteps(options) {
         }
         catch(err) {
             if (errorString !== "") {
-                // error was expected. check that err.text includes expected string.
-                let errorContainsString = err.text.includes(errorString);
+                // error was expected. check that err.response.text includes expected string.
+                let errorContainsString = err.response.text.includes(errorString);
                 assert.deepStrictEqual(true, errorContainsString)
             } else {
                 // unexpected error, rethrow.
