@@ -10,8 +10,6 @@ script:
   - make docker-test
 
 jobs:
-  allow_failures:
-    - name: Firefox test
   include:
     - stage: Testing
       name: Node test

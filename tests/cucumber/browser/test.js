@@ -37,3 +37,11 @@ window.getStep = function getStep(type, name) {
 }
 
 window.testWorld = {};
+
+window.makeUint8Array = function makeUint8Array(arg) {
+    return new Uint8Array(arg);
+}
+
+window.makeEmptyObject = function makeEmptyObject() {
+    return {};
+}
