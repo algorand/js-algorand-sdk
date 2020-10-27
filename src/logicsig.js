@@ -20,7 +20,7 @@ class LogicSig {
             assert(Array.isArray(args))
             function checkType(arg) {
                 let theType = typeof arg;
-                return ((theType == "string") || (theType == "number") || (arg.constructor == Uint8Array) || (arg.constructor == Buffer));
+                return ((theType == "string") || (theType == "number") || (arg.constructor == Uint8Array) || (Buffer.isBuffer(arg)));
             }
             assert(args.every(checkType))
         }
