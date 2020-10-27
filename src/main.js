@@ -50,7 +50,10 @@ function signTransaction(txn, sk) {
         let key = nacl.keyPairFromSecretKey(sk);
         txn.from = address.encodeAddress(key.publicKey);
     }
-    let algoTxn = new txnBuilder.Transaction(txn);
+    let algoTxn = txn;
+    if (! (txn instanceof txnBuilder.Transaction)) {
+        algoTxn = new txnBuilder.Transaction(txn);
+    }
 
     return {"txID": algoTxn.txID().toString(), "blob": algoTxn.signTxn(sk)};
 }

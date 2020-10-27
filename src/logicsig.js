@@ -16,6 +16,14 @@ class LogicSig {
         this.tag = Buffer.from("Program");
 
         assert(logic.checkProgram(program, args));
+        if (args) {
+            assert(Array.isArray(args))
+            function checkType(arg) {
+                let theType = typeof arg;
+                return ((theType == "string") || (theType == "number") || (arg.constructor == Uint8Array) || (Buffer.isBuffer(arg)));
+            }
+            assert(args.every(checkType))
+        }
 
         this.logic = program;
         this.args = args;
