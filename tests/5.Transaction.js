@@ -605,5 +605,41 @@ describe('Sign', function () {
                 assetIndex, freezeTarget, freezeState, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
+        it('should be able to use helper to assign group ID to mixed Transaction and Dict', function() {
+            let suggestedParams = {
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "genesisID": "",
+                "firstRound": 322575,
+                "lastRound": 322575 + 1000,
+                "fee": 1000,
+                "flatFee": true
+            };
+
+            let helperTx = algosdk.makePaymentTxnWithSuggestedParams("GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM",
+                "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM", 1000, undefined,
+                new Uint8Array(0), suggestedParams);
+
+            let dictTx = {
+                "from": "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM",
+                "to": "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM",
+                "fee": 1000,
+                "flatFee": true,
+                "amount": 0,
+                "firstRound": 322575,
+                "lastRound": 322575 + 1000,
+                "genesisID": "",
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+                "type": "pay"
+            };
+
+            // Store both transactions
+            let txns = [helperTx, dictTx];
+
+            // Group both transactions
+            let txgroup = algosdk.assignGroupID(txns);
+
+            assert.deepStrictEqual(txgroup[0].group, txgroup[1].group)
+
+        });
     });
 });
