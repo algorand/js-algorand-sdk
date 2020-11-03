@@ -17,7 +17,7 @@
     "js-sha512": "^0.8.0",
     "keccak": "^3.0.1",
     "superagent": "^4.1.0",
-    "tweetnacl": "^1.0.1"
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
