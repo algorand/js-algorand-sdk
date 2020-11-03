@@ -78,8 +78,12 @@ function computeGroupID(txns) {
 function assignGroupID(txns, from = undefined) {
     const gid = computeGroupID(txns);
     let result = [];
-    for (tx of txns) {
-        if (!from || address.encodeAddress(tx.from.publicKey) == from) {
+    for (let txn of txns) {
+        if (!from || address.encodeAddress(txn.from.publicKey) == from) {
+            let tx = txn;
+            if (!(tx instanceof txnBuilder.Transaction)) {
+                tx = new txnBuilder.Transaction(txn);
+            }
             tx.group = gid;
             result.push(tx);
         }
