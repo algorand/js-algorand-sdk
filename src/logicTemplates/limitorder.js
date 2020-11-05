@@ -1,5 +1,6 @@
 const address = require('../encoding/address');
-const algosdk = require('../main');
+const makeTxn = require('../makeTxn');
+const group = require('../group');
 const logic = require('../logic/logic');
 const logicSig = require('../logicsig');
 const nacl = require('../nacl/naclWrappers');
@@ -95,7 +96,7 @@ class LimitOrder {
  */
 function getSwapAssetsTransaction(contract, assetAmount, microAlgoAmount, secretKey, fee, firstRound, lastRound, genesisHash) {
     let buyerKeyPair = nacl.keyPairFromSecretKey(secretKey);
-    let buyerAddr = address.encode(buyerKeyPair.publicKey);
+    let buyerAddr = address.encodeAddress(buyerKeyPair.publicKey);
     let programOutputs = logic.readProgram(contract, undefined);
     let ints = programOutputs[0];
     let byteArrays = programOutputs[1];
@@ -103,13 +104,13 @@ function getSwapAssetsTransaction(contract, assetAmount, microAlgoAmount, secret
     let noCloseRemainder = undefined;
     let noAssetRevocationTarget = undefined;
     let contractAssetID = ints[6];
-    let contractOwner = address.encode(byteArrays[0]);
-    let lsig = algosdk.makeLogicSig(contract, undefined);
+    let contractOwner = address.encodeAddress(byteArrays[0]);
+    let lsig = logicSig.makeLogicSig(contract, undefined);
     let contractAddress = lsig.address();
-    let algosForAssets = algosdk.makePaymentTxn(contractAddress, buyerAddr, fee, microAlgoAmount, noCloseRemainder, firstRound, lastRound, undefined, genesisHash, undefined);
-    let assetsForAlgos = algosdk.makeAssetTransferTxn(buyerAddr, contractOwner, noCloseRemainder, noAssetRevocationTarget, fee, assetAmount, firstRound, lastRound, undefined, genesisHash, undefined, contractAssetID);
+    let algosForAssets = makeTxn.makePaymentTxn(contractAddress, buyerAddr, fee, microAlgoAmount, noCloseRemainder, firstRound, lastRound, undefined, genesisHash, undefined);
+    let assetsForAlgos = makeTxn.makeAssetTransferTxn(buyerAddr, contractOwner, noCloseRemainder, noAssetRevocationTarget, fee, assetAmount, firstRound, lastRound, undefined, genesisHash, undefined, contractAssetID);
     let txns = [algosForAssets, assetsForAlgos];
-    let txGroup = algosdk.assignGroupID(txns);
+    let txGroup = group.assignGroupID(txns);
 
     let ratd = ints[7];
     let ratn = ints[8];
@@ -128,7 +129,7 @@ function getSwapAssetsTransaction(contract, assetAmount, microAlgoAmount, secret
         throw new Error("final fee of asset transaction " + txGroup[1].fee.toString() + " greater than transaction max fee " + maxFee.toString())
     }
 
-    let algosForAssetsSigned = algosdk.signLogicSigTransactionObject(txGroup[0], lsig);
+    let algosForAssetsSigned = logicSig.signLogicSigTransactionObject(txGroup[0], lsig);
     let assetsForAlgosSigned = txGroup[1].signTxn(secretKey);
     return utils.concatArrays(algosForAssetsSigned.blob, assetsForAlgosSigned);
 }

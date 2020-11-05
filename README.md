@@ -1,5 +1,5 @@
 # js-algorand-sdk
-[![Build Status](https://travis-ci.com/algorand/js-algorand-sdk.svg?token=25XP72ADqbCQJ3TJVC9S&branch=master)](https://travis-ci.com/algorand/js-algorand-sdk) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://badge.fury.io/js/algosdk)
+[![Build Status](https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master)](https://travis-ci.com/algorand/js-algorand-sdk) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://badge.fury.io/js/algosdk)
 
 AlgoSDK is a javascript library for communicating with the Algorand network for modern browsers and node.js.
 
@@ -19,7 +19,44 @@ Include this line in your HTML.
 
 ## SDK Development
 
-Run tests with `make docker-test`
+### Building
+
+To build a new version of the library for browsers, run:
+```bash
+npm build
+```
+
+### Testing
+
+We have two test suites: mocha tests in this repo, and the Algorand SDK test suite from https://github.com/algorand/algorand-sdk-testing.
+
+#### Node
+
+To run the mocha tests in Node, run:
+```bash
+npm test
+```
+
+To run the SDK test suite in Node, run:
+```bash
+make docker-test
+```
+
+#### Browsers
+
+The test suites can also run in browsers. To do so, set the environment variable `TEST_BROWSER` to
+one of our supported browsers. Currently we support testing in `chrome` and `firefox`. When
+`TEST_BROWSER` is set, the mocha and SDK test suites will run in that browser.
+
+For example, to run mocha tests in Chrome:
+```bash
+TEST_BROWSER=chrome npm test
+```
+
+And to run SDK tests in Firefox:
+```bash
+TEST_BROWSER=firefox make docker-test
+```
 
 ## Quick Start
 ```javascript
@@ -57,7 +94,7 @@ Example result
 "gorilla fortune learn marble essay uphold defense hover index effort ice atom figure will improve mom indoor mansion people elder hill material donkey abandon gown"
 ```
 
-#### Mnemonic to secret sey
+#### Mnemonic to secret key
 ```javascript
 var secret_key = algosdk.mnemonicToSecretKey(mnemonic);
 ```
@@ -73,6 +110,28 @@ var isValid = algosdk.isValidAddress("IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6X
 Example result
 ```text
 true
+```
+
+#### Encode/decode addresses
+These two functions let you convert addresses between their string and binary representations.
+```javascript
+var decoded = algosdk.decodeAddress("IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U");
+var encoded = algosdk.encodeAddress(decoded.publicKey);
+console.log('Decoded:', decoded);
+console.log('Encoded:', encoded);
+```
+Result
+```text
+Decoded: {
+  publicKey: Uint8Array(32) [
+     64, 118, 212, 129, 119,  88, 239, 212,
+    175,   2,  31,  38, 201, 177, 117,  18,
+    135,  28, 182,  92,  75, 154, 118,  34,
+    195, 245, 217, 241, 201,  88, 143, 217
+  ],
+  checksum: Uint8Array(4) [ 99, 163, 200, 253 ]
+}
+Encoded: IB3NJALXLDX5JLYCD4TMTMLVCKDRZNS4JONHMIWD6XM7DSKYR7MWHI6I7U
 ```
 
 #### Sign a transaction 

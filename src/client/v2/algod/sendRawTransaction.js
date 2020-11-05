@@ -1,8 +1,16 @@
+const assert = require('assert');
+
 class SendRawTransaction {
 	constructor(c, stx_or_stxs) {
 		let forPosting = stx_or_stxs;
+		function isByteArray(array) {
+			return !!(array && array.byteLength !== undefined);
+		}
 		if (Array.isArray(stx_or_stxs)) {
+			assert(stx_or_stxs.every(isByteArray));
 			forPosting = Array.prototype.concat(...stx_or_stxs.map(arr => Array.from(arr)));
+		} else {
+			assert(isByteArray(forPosting));
 		}
 		this.txnBytesToPost = forPosting;
 		this.c = c;

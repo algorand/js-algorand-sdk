@@ -11,8 +11,8 @@ class Bid {
         this.name = "Bid";
         this.tag = Buffer.from([97, 66]); // "aB"
 
-        bidderKey = address.decode(bidderKey);
-        auctionKey = address.decode(auctionKey);
+        bidderKey = address.decodeAddress(bidderKey);
+        auctionKey = address.decodeAddress(auctionKey);
 
         if (!Number.isSafeInteger(bidAmount) || bidAmount < 0) throw Error("Bid amount must be positive and 2^53-1");
         if (!Number.isSafeInteger(bidID) || bidID < 0) throw Error("BidID must be positive and 2^53-1");

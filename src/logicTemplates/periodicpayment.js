@@ -1,5 +1,5 @@
 const address = require("../encoding/address");
-const algosdk = require('../main');
+const makeTxn = require('../makeTxn');
 const logic = require('../logic/logic');
 const logicSig = require('../logicsig');
 const nacl = require("../nacl/naclWrappers");
@@ -102,7 +102,7 @@ function getPeriodicPaymentWithdrawalTransaction(contract, fee, firstValid, gene
 
     // extract receiver and convert as needed
     let receiverBytes = byteArrays[1];
-    let receiver = address.encode(receiverBytes);
+    let receiver = address.encodeAddress(receiverBytes);
     // extract lease and convert
     let leaseBuffer = byteArrays[0];
     let lease = new Uint8Array(leaseBuffer);
@@ -110,7 +110,7 @@ function getPeriodicPaymentWithdrawalTransaction(contract, fee, firstValid, gene
     let to = receiver;
     let noCloseRemainder = undefined;
     let noNote = undefined;
-    let lsig = algosdk.makeLogicSig(contract, undefined);
+    let lsig = logicSig.makeLogicSig(contract, undefined);
     let from = lsig.address();
     let txn = {
         "from": from,
@@ -128,12 +128,12 @@ function getPeriodicPaymentWithdrawalTransaction(contract, fee, firstValid, gene
     };
 
     // check fee
-    let tempTxn = algosdk.makePaymentTxn(from, to, fee, amount, noCloseRemainder, firstValid, lastValid, noNote, genesisHash, "");
+    let tempTxn = makeTxn.makePaymentTxn(from, to, fee, amount, noCloseRemainder, firstValid, lastValid, noNote, genesisHash, "");
     if (tempTxn.fee > ints[1]) {
         throw new Error("final fee of payment transaction" + tempTxn.fee.toString() + "greater than transaction max fee" + ints[1].toString())
     }
 
-    return algosdk.signLogicSigTransaction(txn, lsig);
+    return logicSig.signLogicSigTransaction(txn, lsig);
 }
 module.exports = {
     PeriodicPayment,

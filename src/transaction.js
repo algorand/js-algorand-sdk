@@ -7,7 +7,6 @@ const base32 = require('hi-base32');
 const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
-const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 const ALGORAND_MAX_ASSET_DECIMALS = 19;
 const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the number of bytes added to a txn after signing it
 const ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH = 5
@@ -39,16 +38,16 @@ class Transaction {
             genesisID = suggestedParams.genesisID;
         }
 
-        from = address.decode(from);
-        if (to !== undefined) to = address.decode(to);
-        if (closeRemainderTo !== undefined) closeRemainderTo = address.decode(closeRemainderTo);
-        if (assetManager !== undefined) assetManager = address.decode(assetManager);
-        if (assetReserve !== undefined) assetReserve = address.decode(assetReserve);
-        if (assetFreeze !== undefined) assetFreeze = address.decode(assetFreeze);
-        if (assetClawback !== undefined) assetClawback = address.decode(assetClawback);
-        if (assetRevocationTarget !== undefined) assetRevocationTarget = address.decode(assetRevocationTarget);
-        if (freezeAccount !== undefined) freezeAccount = address.decode(freezeAccount);
-        if (reKeyTo !== undefined) reKeyTo = address.decode(reKeyTo);
+        from = address.decodeAddress(from);
+        if (to !== undefined) to = address.decodeAddress(to);
+        if (closeRemainderTo !== undefined) closeRemainderTo = address.decodeAddress(closeRemainderTo);
+        if (assetManager !== undefined) assetManager = address.decodeAddress(assetManager);
+        if (assetReserve !== undefined) assetReserve = address.decodeAddress(assetReserve);
+        if (assetFreeze !== undefined) assetFreeze = address.decodeAddress(assetFreeze);
+        if (assetClawback !== undefined) assetClawback = address.decodeAddress(assetClawback);
+        if (assetRevocationTarget !== undefined) assetRevocationTarget = address.decodeAddress(assetRevocationTarget);
+        if (freezeAccount !== undefined) freezeAccount = address.decodeAddress(freezeAccount);
+        if (reKeyTo !== undefined) reKeyTo = address.decodeAddress(reKeyTo);
         if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
 
         genesisHash = Buffer.from(genesisHash, 'base64');
@@ -72,7 +71,7 @@ class Transaction {
             if (appClearProgram.constructor !== Uint8Array) throw Error("appClearProgram must be a Uint8Array.");
         }
         if (appArgs !== undefined) {
-            if (appArgs.constructor !== Array) throw Error("appArgs must be an Array of Uint8Array.");
+            if (!Array.isArray(appArgs)) throw Error("appArgs must be an Array of Uint8Array.");
             appArgs.forEach((arg) => {
                 if (arg.constructor !== Uint8Array) throw Error("each element of AppArgs must be a Uint8Array.");
             });
@@ -81,7 +80,7 @@ class Transaction {
         }
         if (appAccounts !== undefined) {
             appAccounts.forEach((addressAsString, index) => {
-               appAccounts[index] = address.decode(addressAsString);
+               appAccounts[index] = address.decodeAddress(addressAsString);
             })
         }
         if (appForeignApps !== undefined) {
@@ -155,7 +154,7 @@ class Transaction {
             };
 
             // parse close address
-            if ((this.closeRemainderTo !== undefined) && (address.encode(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
+            if ((this.closeRemainderTo !== undefined) && (address.encodeAddress(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
                 txn.close = Buffer.from(this.closeRemainderTo.publicKey);
             }
             if ((this.reKeyTo !== undefined)) {
@@ -420,14 +419,14 @@ class Transaction {
         txn.lastRound = txnForEnc.lv;
         txn.note = new Uint8Array(txnForEnc.note);
         txn.lease = new Uint8Array(txnForEnc.lx);
-        txn.from = address.decode(address.encode(new Uint8Array(txnForEnc.snd)));
+        txn.from = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.snd)));
         if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
-        if (txnForEnc.rekey !== undefined) txn.reKeyTo = address.decode(address.encode(new Uint8Array(txnForEnc.rekey)));
+        if (txnForEnc.rekey !== undefined) txn.reKeyTo = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.rekey)));
 
         if (txnForEnc.type === "pay") {
             txn.amount = txnForEnc.amt;
-            txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.rcv)));
-            if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decode(address.encode(txnForEnc.close));
+            txn.to = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.rcv)));
+            if (txnForEnc.close !== undefined) txn.closeRemainderTo = address.decodeAddress(address.encodeAddress(txnForEnc.close));
         }
         else if (txnForEnc.type === "keyreg") {
             txn.voteKey = Buffer.from(txnForEnc.votekey);
@@ -445,10 +444,10 @@ class Transaction {
                 txn.assetTotal = txnForEnc.apar.t;
                 txn.assetDefaultFrozen = txnForEnc.apar.df;
                 if (txnForEnc.apar.dc !== undefined) txn.assetDecimals = txnForEnc.apar.dc;
-                if (txnForEnc.apar.m !== undefined) txn.assetManager = address.decode(address.encode(new Uint8Array(txnForEnc.apar.m)));
-                if (txnForEnc.apar.r !== undefined) txn.assetReserve = address.decode(address.encode(new Uint8Array(txnForEnc.apar.r)));
-                if (txnForEnc.apar.f !== undefined) txn.assetFreeze = address.decode(address.encode(new Uint8Array(txnForEnc.apar.f)));
-                if (txnForEnc.apar.c !== undefined) txn.assetClawback = address.decode(address.encode(new Uint8Array(txnForEnc.apar.c)));
+                if (txnForEnc.apar.m !== undefined) txn.assetManager = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.apar.m)));
+                if (txnForEnc.apar.r !== undefined) txn.assetReserve = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.apar.r)));
+                if (txnForEnc.apar.f !== undefined) txn.assetFreeze = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.apar.f)));
+                if (txnForEnc.apar.c !== undefined) txn.assetClawback = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.apar.c)));
                 if (txnForEnc.apar.un !== undefined) txn.assetUnitName = txnForEnc.apar.un;
                 if (txnForEnc.apar.an !== undefined) txn.assetName = txnForEnc.apar.an;
                 if (txnForEnc.apar.au !== undefined) txn.assetURL = txnForEnc.apar.au;
@@ -462,12 +461,12 @@ class Transaction {
             }
             if (txnForEnc.aamt !== undefined) txn.amount = txnForEnc.aamt;
             if (txnForEnc.aclose !== undefined) {
-                txn.closeRemainderTo = address.decode(address.encode(new Uint8Array(txnForEnc.aclose)));
+                txn.closeRemainderTo = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.aclose)));
             }
             if (txnForEnc.asnd !== undefined) {
-                txn.assetRevocationTarget = address.decode(address.encode(new Uint8Array(txnForEnc.asnd)));
+                txn.assetRevocationTarget = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.asnd)));
             }
-            txn.to = address.decode(address.encode(new Uint8Array(txnForEnc.arcv)));
+            txn.to = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.arcv)));
         }
         else if (txnForEnc.type === "afrz") {
             if (txnForEnc.afrz !== undefined) {
@@ -476,7 +475,7 @@ class Transaction {
             if (txnForEnc.faid !== undefined) {
                 txn.assetIndex = txnForEnc.faid;
             }
-            txn.freezeAccount = address.decode(address.encode(new Uint8Array(txnForEnc.fadd)));
+            txn.freezeAccount = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.fadd)));
         } else if (txnForEnc.type === "appl") {
             if (txnForEnc.apid !== undefined) {
                 txn.appIndex = txnForEnc.apid;
@@ -507,7 +506,7 @@ class Transaction {
             if (txnForEnc.apat !== undefined) {
                 txn.appAccounts = [];
                 txnForEnc.apat.forEach((addressBytes) => {
-                   txn.appAccounts.push(address.decode(address.encode(new Uint8Array(addressBytes))));
+                   txn.appAccounts.push(address.decodeAddress(address.encodeAddress(new Uint8Array(addressBytes))));
                 });
             }
             if (txnForEnc.apfa !== undefined) {
@@ -549,7 +548,7 @@ class Transaction {
         // add AuthAddr if signing with a different key than From indicates
         let keypair = nacl.keyPairFromSecretKey(sk);
         let pubKeyFromSk = keypair["publicKey"];
-        if (address.encode(pubKeyFromSk) != address.encode(this.from["publicKey"])) {
+        if (address.encodeAddress(pubKeyFromSk) != address.encodeAddress(this.from["publicKey"])) {
             sTxn["sgnr"] = Buffer.from(pubKeyFromSk);
         }
         return new Uint8Array(encoding.encode(sTxn));
@@ -586,7 +585,7 @@ class Transaction {
     // supply feePerByte to increment fee accordingly
     addRekey(reKeyTo, feePerByte=0) {
         if (reKeyTo !== undefined) {
-            this.reKeyTo = address.decode(reKeyTo);
+            this.reKeyTo = address.decodeAddress(reKeyTo);
         }
         if (feePerByte !== 0) {
             this.fee += (ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH + ALGORAND_TRANSACTION_ADDRESS_LENGTH) * feePerByte;
@@ -594,45 +593,43 @@ class Transaction {
     }
 }
 
-
 /**
- * Aux class for group id calculation of a group of transactions
+ * encodeUnsignedTransaction takes a completed txnBuilder.Transaction object, such as from the makeFoo
+ * family of transactions, and converts it to a Buffer
+ * @param transactionObject the completed Transaction object
+ * @returns {Uint8Array}
  */
-class TxGroup {
-    constructor(hashes) {
-        if (hashes.length > ALGORAND_MAX_TX_GROUP_SIZE) {
-            let errorMsg = hashes.length.toString() + " transactions grouped together but max group size is " + ALGORAND_MAX_TX_GROUP_SIZE.toString();
-            throw Error(errorMsg);
-        }
-
-        this.name = "Transaction group";
-        this.tag = Buffer.from("TG");
-
-        this.txGroupHashes = hashes;
-    }
-
-    get_obj_for_encoding() {
-        const txgroup = {
-            "txlist": this.txGroupHashes
-        };
-        return txgroup;
-    }
-
-    static from_obj_for_encoding(txgroupForEnc) {
-        const txn = Object.create(this.prototype);
-        txn.name = "Transaction group";
-        txn.tag = Buffer.from("TG");
-        txn.txGroupHashes = [];
-        for (let hash of txgroupForEnc.txlist) {
-            txn.txGroupHashes.push(new Buffer.from(hash));
-        }
-        return txn;
-    }
-
-    toByte() {
-        return encoding.encode(this.get_obj_for_encoding());
-    }
-
+function encodeUnsignedTransaction(transactionObject) {
+    let objToEncode = transactionObject.get_obj_for_encoding();
+    return encoding.encode(objToEncode);
 }
 
-module.exports = {Transaction, TxGroup, ALGORAND_MIN_TX_FEE};
+/**
+ * decodeUnsignedTransaction takes a Buffer (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
+ * @param transactionBuffer the Uint8Array containing a transaction
+ * @returns {Transaction}
+ */
+function decodeUnsignedTransaction(transactionBuffer) {
+    let partlyDecodedObject = encoding.decode(transactionBuffer);
+    return Transaction.from_obj_for_encoding(partlyDecodedObject);
+}
+
+/**
+ * decodeSignedTransaction takes a Buffer (from transaction.signTxn) and converts it to an object
+ * containing the Transaction (txn), the signature (sig), and the auth-addr field if applicable (sgnr)
+ * @param transactionBuffer the Uint8Array containing a transaction
+ * @returns {Object} containing a Transaction, the signature, and possibly an auth-addr field
+ */
+function decodeSignedTransaction(transactionBuffer) {
+    let stxnDecoded = encoding.decode(transactionBuffer);
+    stxnDecoded.txn = Transaction.from_obj_for_encoding(stxnDecoded.txn);
+    return stxnDecoded;
+}
+
+module.exports = {
+    Transaction,
+    ALGORAND_MIN_TX_FEE,
+    encodeUnsignedTransaction,
+    decodeUnsignedTransaction,
+    decodeSignedTransaction,
+};

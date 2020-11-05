@@ -1,9 +1,29 @@
+# 1.8.0
+## Added
+- Add `encodeAddress` and `decodeAddress` to convert between the binary and text form of Algorand
+  addresses ([#216](https://github.com/algorand/js-algorand-sdk/pull/216)).
+- Add `encodeUnsignedTransaction`, `decodeUnsignedTransaction`, `decodeSignedTransaction` to convert
+  between binary transactions and transaction objects ([#218](https://github.com/algorand/js-algorand-sdk/pull/218)).
+- Add optional `rekeyTo` parameter to transaction builder functions ([#221](https://github.com/algorand/js-algorand-sdk/pull/221)).
+- Support testing on Chrome and Firefox in addition to Node ([#228](https://github.com/algorand/js-algorand-sdk/pull/228) and [#235](https://github.com/algorand/js-algorand-sdk/pull/235)).
+## Fixed
+- Update [keccak](https://www.npmjs.com/package/keccak) to 3.0.1, which fixes a build error that
+  would occur every time the package was installed ([#151](https://github.com/algorand/js-algorand-sdk/pull/151)).
+- Allow `assignGroupID` to accept raw transaction objects and instances of the `Transaction` class
+  ([#236](https://github.com/algorand/js-algorand-sdk/pull/236)).
+- Allow `signTransaction` to accept instances of the `Transaction` class ([#233](https://github.com/algorand/js-algorand-sdk/pull/233)).
+- Improve type checking and documentation ([#233](https://github.com/algorand/js-algorand-sdk/pull/233) and [#231](https://github.com/algorand/js-algorand-sdk/pull/231)).
+## Changed
+- Switch to using [algo-msgpack-with-bigint](https://www.npmjs.com/package/algo-msgpack-with-bigint),
+  which is a fork of [@msgpack/msgpack](https://www.npmjs.com/package/@msgpack/msgpack) with support
+  for encoding and decoding BigInts ([#229](https://github.com/algorand/js-algorand-sdk/pull/229)).
+- Update dependencies ([#237](https://github.com/algorand/js-algorand-sdk/pull/237)).
 # 1.7.2
 ## Fixed
-- Fixed msgpack endpoints returning undefined in browsers (#210 and #215).
-- Removed use of class properties (#213).
+- Fixed msgpack endpoints returning undefined in browsers ([#210](https://github.com/algorand/js-algorand-sdk/pull/210) and [#215](https://github.com/algorand/js-algorand-sdk/pull/215)).
+- Removed use of class properties ([#213](https://github.com/algorand/js-algorand-sdk/pull/213)).
 ## Changed
-- Remove unneeded dependency js-yaml and changed mock-http-server to a dev dependency (#214 and #212).
+- Remove unneeded dependency js-yaml and changed mock-http-server to a dev dependency ([#214](https://github.com/algorand/js-algorand-sdk/pull/214) and [#212](https://github.com/algorand/js-algorand-sdk/pull/212)).
 # 1.7.1
 ## Fixed
 - Fixed set Accept on GET calls

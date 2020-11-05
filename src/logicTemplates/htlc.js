@@ -1,10 +1,9 @@
-const algosdk = require('../main');
 const logic = require('../logic/logic');
 const logicSig = require('../logicsig');
 const templates = require('./templates');
 const transaction = require('../transaction');
 const sha256 = require('js-sha256');
-const keccak256 = require('keccak256');
+const createKeccakHash = require('keccak');
 
 class HTLC {
     /**
@@ -98,7 +97,7 @@ function signTransactionWithHTLCUnlock(contract, txn, preImageAsBase64) {
             throw new Error("sha256 hash of preimage did not match stored contract hash")
         }
     } else if (hashFunction == 2) {
-        let actualHashedOutput = keccak256(preImageBytes);
+        let actualHashedOutput = createKeccakHash('keccak256').update(preImageBytes).digest();
         if (!actualHashedOutput.equals(expectedHashedOutput)) {
             throw new Error("keccak256 hash of preimage did not match stored contract hash")
         }
@@ -120,7 +119,7 @@ function signTransactionWithHTLCUnlock(contract, txn, preImageAsBase64) {
         throw new Error("final fee of payment transaction" + tempTxn.fee.toString() + "greater than transaction max fee" + maxFee.toString())
     }
 
-    return algosdk.signLogicSigTransaction(txn, lsig);
+    return logicSig.signLogicSigTransaction(txn, lsig);
 }
 
 module.exports = {

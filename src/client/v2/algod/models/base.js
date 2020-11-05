@@ -14,12 +14,12 @@ class BaseModel {
         let targetPropValue;
         if (typeof val.get_obj_for_encoding === "function") {
             targetPropValue = val.get_obj_for_encoding();
-        } else if (val instanceof Array) {
-            targetPropValue = new Array();
+        } else if (Array.isArray(val)) {
+            targetPropValue = [];
             for (const elem of val) {
                 targetPropValue.push(this._get_obj_for_encoding(elem))
             }
-        } else if (typeof val == "object") {
+        } else if (typeof val === "object") {
             const obj = {};
             for (const prop of Object.keys(val)) {
                 obj[prop] = this._get_obj_for_encoding(val[prop])

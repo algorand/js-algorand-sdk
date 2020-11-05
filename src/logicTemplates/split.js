@@ -1,5 +1,7 @@
 const address = require('../encoding/address');
-const algosdk = require('../main');
+const makeTxn = require('../makeTxn');
+const group = require('../group');
+const logicsig = require('../logicsig');
 const logic = require('../logic/logic');
 const templates = require('./templates');
 const utils = require('../utils/utils');
@@ -45,7 +47,7 @@ class Split {
         let injectionTypes = [templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.INT, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS, templates.valTypes.ADDRESS];
         let injectedBytes = templates.inject(referenceProgramBytes, referenceOffsets, injectionVector, injectionTypes);
         this.programBytes = injectedBytes;
-        let lsig = algosdk.makeLogicSig(injectedBytes, undefined);
+        let lsig = logicsig.makeLogicSig(injectedBytes, undefined);
         this.address = lsig.address();
     }
 
@@ -101,18 +103,18 @@ function getSplitFundsTransaction(contract, amount, firstRound, lastRound, fee, 
         throw Error("could not split funds in a way that satisfied the contract ratio");
     }
 
-    let logicSig = algosdk.makeLogicSig(contract, undefined); // no args
+    let logicSig = logicsig.makeLogicSig(contract, undefined); // no args
     let from = logicSig.address();
-    let receiverOne = address.encode(byteArrays[1]);
-    let receiverTwo = address.encode(byteArrays[2]);
-    let tx1 = algosdk.makePaymentTxn(from, receiverOne, fee, amountForReceiverOne, undefined, firstRound, lastRound, undefined, genesisHash);
-    let tx2 = algosdk.makePaymentTxn(from, receiverTwo, fee, amountForReceiverTwo, undefined, firstRound, lastRound, undefined, genesisHash);
+    let receiverOne = address.encodeAddress(byteArrays[1]);
+    let receiverTwo = address.encodeAddress(byteArrays[2]);
+    let tx1 = makeTxn.makePaymentTxn(from, receiverOne, fee, amountForReceiverOne, undefined, firstRound, lastRound, undefined, genesisHash);
+    let tx2 = makeTxn.makePaymentTxn(from, receiverTwo, fee, amountForReceiverTwo, undefined, firstRound, lastRound, undefined, genesisHash);
     let txns = [tx1, tx2];
-    let txGroup = algosdk.assignGroupID(txns);
+    let txGroup = group.assignGroupID(txns);
 
     let signedTxns = [];
     for (let idx in txGroup) {
-        let stxn = algosdk.signLogicSigTransactionObject(txGroup[idx], logicSig);
+        let stxn = logicsig.signLogicSigTransactionObject(txGroup[idx], logicSig);
         signedTxns.push(stxn.blob)
     }
     return utils.concatArrays(signedTxns[0], signedTxns[1]);

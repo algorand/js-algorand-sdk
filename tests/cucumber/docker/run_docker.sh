@@ -13,7 +13,7 @@ git clone --single-branch --branch master https://github.com/algorand/algorand-s
 mv test-harness/features tests/cucumber/features
 
 # build test environment
-docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)"
+docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)" --build-arg TEST_BROWSER --build-arg CI=true
 
 # Start test harness environment
 ./test-harness/scripts/up.sh

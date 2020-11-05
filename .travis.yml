@@ -8,3 +8,16 @@ script:
   - set -e
   - npm test
   - make docker-test
+
+jobs:
+  include:
+    - stage: Testing
+      name: Node test
+    - name: Chrome test
+      env: TEST_BROWSER=chrome
+      addons:
+        chrome: stable
+    - name: Firefox test
+      env: TEST_BROWSER=firefox
+      addons:
+        firefox: latest

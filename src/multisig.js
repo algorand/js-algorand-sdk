@@ -54,7 +54,7 @@ class MultisigTransaction extends txnBuilder.Transaction {
         // verify one more time that the from field is correct
         if (!this.hasOwnProperty("objForEncoding")) {
             let expectedFromRaw = address.fromMultisigPreImg({version, threshold, pks});
-            if (address.encode(this.from.publicKey) !== address.encode(expectedFromRaw)) {
+            if (address.encodeAddress(this.from.publicKey) !== address.encodeAddress(expectedFromRaw)) {
                 throw ERROR_MULTISIG_BAD_FROM_FIELD;
             }
         }
@@ -118,7 +118,7 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
     const refSigTx = encoding.decode(multisigTxnBlobs[0]);
     const refSigAlgoTx = MultisigTransaction.from_obj_for_encoding(refSigTx.txn);
     const refTxIDStr = refSigAlgoTx.txID().toString();
-    const from = address.encode(refSigTx.txn.snd);
+    const from = address.encodeAddress(refSigTx.txn.snd);
 
     let newSubsigs = refSigTx.msig.subsig;
     for (let i = 0; i < multisigTxnBlobs.length; i++) {
@@ -138,7 +138,7 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
                 return subsig.pk;
             }),
         };
-        if (from !== address.encode(address.fromMultisigPreImg(preimg))) {
+        if (from !== address.encodeAddress(address.fromMultisigPreImg(preimg))) {
             throw ERROR_MULTISIG_MERGE_WRONG_PREIMAGE;
         }
         // now, we can merge
