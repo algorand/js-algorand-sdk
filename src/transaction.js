@@ -592,7 +592,8 @@ class Transaction {
         }
     }
 
-    getDictForDisplay() {
+    // build display dict for prettyPrint and toString
+    _getDictForDisplay() {
         let forPrinting = {
             ...this
         };
@@ -613,12 +614,12 @@ class Transaction {
 
     // pretty print the transaction to console
     prettyPrint() {
-        console.log(this.getDictForDisplay());
+        console.log(this._getDictForDisplay());
     }
 
     // get string representation
     toString() {
-        return JSON.stringify(this.getDictForDisplay());
+        return JSON.stringify(this._getDictForDisplay());
     }
 }
 
