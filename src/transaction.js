@@ -592,8 +592,7 @@ class Transaction {
         }
     }
 
-    // pretty print the transaction to console
-    prettyPrint() {
+    getDictForDisplay() {
         let forPrinting = {
             ...this
         };
@@ -609,8 +608,17 @@ class Transaction {
         if (forPrinting.assetRevocationTarget !== undefined) forPrinting.assetRevocationTarget = address.encodeAddress(forPrinting.assetRevocationTarget.publicKey);
         if (forPrinting.reKeyTo !== undefined) forPrinting.reKeyTo = address.encodeAddress(forPrinting.reKeyTo.publicKey);
         forPrinting.genesisHash = forPrinting.genesisHash.toString('base64');
+        return forPrinting;
+    }
 
-        console.log(forPrinting);
+    // pretty print the transaction to console
+    prettyPrint() {
+        console.log(this.getDictForDisplay());
+    }
+
+    // get string representation
+    toString() {
+        return JSON.stringify(this.getDictForDisplay());
     }
 }
 

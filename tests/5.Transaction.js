@@ -87,7 +87,7 @@ describe('Sign', function () {
 
     });
 
-    it('should be able to prettyprint without throwing', function() {
+    it('should be able to prettyprint and go toString without throwing', function() {
         let o = {
             "from": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
             "to": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
@@ -101,6 +101,7 @@ describe('Sign', function () {
         let txn = new algosdk.Transaction(o);
         // assert package recommends just calling prettyPrint over using assert.doesNotThrow
         txn.prettyPrint(); // should not throw
+        let dummyString = txn.toString(); // also should not throw
     });
 
     describe('should correctly serialize and deserialize from msgpack representation', function () {
