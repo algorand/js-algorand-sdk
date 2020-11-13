@@ -591,6 +591,36 @@ class Transaction {
             this.fee += (ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH + ALGORAND_TRANSACTION_ADDRESS_LENGTH) * feePerByte;
         }
     }
+
+    // build display dict for prettyPrint and toString
+    _getDictForDisplay() {
+        let forPrinting = {
+            ...this
+        };
+        forPrinting.tag = forPrinting.tag.toString();
+        forPrinting.from = address.encodeAddress(forPrinting.from.publicKey);
+        if (forPrinting.to !== undefined) forPrinting.to = address.encodeAddress(forPrinting.to.publicKey);
+        // things that need fixing:
+        if (forPrinting.closeRemainderTo !== undefined) forPrinting.closeRemainderTo = address.encodeAddress(forPrinting.closeRemainderTo.publicKey);
+        if (forPrinting.assetManager !== undefined) forPrinting.assetManager = address.encodeAddress(forPrinting.assetManager.publicKey);
+        if (forPrinting.assetReserve !== undefined) forPrinting.assetReserve = address.encodeAddress(forPrinting.assetReserve.publicKey);
+        if (forPrinting.assetFreeze !== undefined) forPrinting.assetFreeze = address.encodeAddress(forPrinting.assetFreeze.publicKey);
+        if (forPrinting.assetClawback !== undefined) forPrinting.assetClawback = address.encodeAddress(forPrinting.assetClawback.publicKey);
+        if (forPrinting.assetRevocationTarget !== undefined) forPrinting.assetRevocationTarget = address.encodeAddress(forPrinting.assetRevocationTarget.publicKey);
+        if (forPrinting.reKeyTo !== undefined) forPrinting.reKeyTo = address.encodeAddress(forPrinting.reKeyTo.publicKey);
+        forPrinting.genesisHash = forPrinting.genesisHash.toString('base64');
+        return forPrinting;
+    }
+
+    // pretty print the transaction to console
+    prettyPrint() {
+        console.log(this._getDictForDisplay());
+    }
+
+    // get string representation
+    toString() {
+        return JSON.stringify(this._getDictForDisplay());
+    }
 }
 
 /**
