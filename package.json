@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "assert": "^2.0.0",
-    "chromedriver": "^85.0.1",
+    "chromedriver": "^87.0.0",
     "coveralls": "^3.0.6",
     "cucumber": "^5.1.0",
     "express": "^4.17.1",
