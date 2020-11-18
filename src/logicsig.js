@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { Buffer } = require('buffer');
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
@@ -15,14 +15,17 @@ class LogicSig {
     constructor(program, args) {
         this.tag = Buffer.from("Program");
 
-        assert(logic.checkProgram(program, args));
+        if (!logic.checkProgram(program, args)) {
+            throw new Error("Invalid program");
+        }
         if (args) {
-            assert(Array.isArray(args))
             function checkType(arg) {
                 let theType = typeof arg;
                 return ((theType == "string") || (theType == "number") || (arg.constructor == Uint8Array) || (Buffer.isBuffer(arg)));
             }
-            assert(args.every(checkType))
+            if (!Array.isArray(args) || !args.every(checkType)) {
+                throw new TypeError("Invalid arguments");
+            }
         }
 
         this.logic = program;

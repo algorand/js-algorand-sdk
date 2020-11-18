@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { Buffer } = require('buffer');
 const algosdk = require('../index');
 
 const ERROR_CONTAINS_EMPTY_STRING = "The object contains empty or 0 values. First empty or 0 value encountered during encoding: ";

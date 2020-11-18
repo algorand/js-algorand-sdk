@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { Buffer } = require('buffer');
 const algosdk = require("../index");
 const logic = require("../src/logic/logic");
 const utils = require("../src/utils/utils");

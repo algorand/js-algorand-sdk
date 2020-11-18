@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { Buffer } = require('buffer');
 
 class SendRawTransaction {
 	constructor(c, stx_or_stxs) {
@@ -7,10 +7,14 @@ class SendRawTransaction {
 			return !!(array && array.byteLength !== undefined);
 		}
 		if (Array.isArray(stx_or_stxs)) {
-			assert(stx_or_stxs.every(isByteArray));
+			if (!stx_or_stxs.every(isByteArray)) {
+				throw new TypeError("Array elements must be byte arrays");
+			}
 			forPosting = Array.prototype.concat(...stx_or_stxs.map(arr => Array.from(arr)));
 		} else {
-			assert(isByteArray(forPosting));
+			if (!isByteArray(forPosting)) {
+				throw new TypeError("Argument must be byte array");
+			}
 		}
 		this.txnBytesToPost = forPosting;
 		this.c = c;

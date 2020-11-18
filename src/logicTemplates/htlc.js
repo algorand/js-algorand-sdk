@@ -1,9 +1,10 @@
+const { Buffer } = require('buffer');
 const logic = require('../logic/logic');
 const logicSig = require('../logicsig');
 const templates = require('./templates');
 const transaction = require('../transaction');
 const sha256 = require('js-sha256');
-const createKeccakHash = require('keccak');
+const keccak256 = require('js-sha3').keccak256;
 
 class HTLC {
     /**
@@ -89,15 +90,17 @@ function signTransactionWithHTLCUnlock(contract, txn, preImageAsBase64) {
     let byteArrays = readResult[1];
     let expectedHashedOutput = byteArrays[1];
     let hashFunction = contract[contract.length - 15];
-    if (hashFunction == 1) {
+    if (hashFunction === 1) {
         let hash = sha256.create();
         hash.update(preImageBytes);
         let actualHashedOutput = Buffer.from(hash.hex(), 'hex');
         if (!actualHashedOutput.equals(expectedHashedOutput)) {
             throw new Error("sha256 hash of preimage did not match stored contract hash")
         }
-    } else if (hashFunction == 2) {
-        let actualHashedOutput = createKeccakHash('keccak256').update(preImageBytes).digest();
+    } else if (hashFunction === 2) {
+        let hash = keccak256.create();
+        hash.update(preImageBytes);
+        let actualHashedOutput = Buffer.from(hash.hex(), 'hex');
         if (!actualHashedOutput.equals(expectedHashedOutput)) {
             throw new Error("keccak256 hash of preimage did not match stored contract hash")
         }

@@ -1,3 +1,4 @@
+const { Buffer } = require('buffer');
 const client = require('./client');
 
 function Algod(token = '', baseServer = "http://r2.algorand.network", port = 4180, headers = {}) {

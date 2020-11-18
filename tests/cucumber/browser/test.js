@@ -2,6 +2,9 @@ const assert = require('assert');
 const sha256 = require('js-sha256');
 const nacl = require('tweetnacl');
 
+// this is necessary to get assert to work, since assert uses util and util checks process.env.NODE_DEBUG
+window.process = { env: {} };
+
 window.assert = assert;
 window.sha256 = sha256;
 window.Buffer = Buffer;
