@@ -61,6 +61,12 @@ function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, n
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makePaymentTxnWithSuggestedParams, instead accepting an arguments object
+function makePaymentTxnWithSuggestedParamsFromObject(o) {
+    return makePaymentTxnWithSuggestedParams(o.from, o.to, o.amount, o.closeRemainderTo,
+        o.note, o.suggestedParams, o.rekeyTo);
+}
+
 /**
  * makeKeyRegistrationTxn takes key registration arguments and returns a Transaction object for
  * that key registration operation
@@ -131,6 +137,12 @@ function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectio
         "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
+}
+
+// helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
+function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
+    return makeKeyRegistrationTxnWithSuggestedParams(o.from, o.note, o.voteKey, o.selectionKey, o.voteFirst, o.voteLast,
+        o.voteKeyDilution, o.suggestedParams, o.rekeyTo);
 }
 
 /** makeAssetCreateTxn takes asset creation arguments and returns a Transaction object
@@ -223,6 +235,13 @@ function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defa
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeAssetCreateTxnWithSuggestedParams, instead accepting an arguments object
+function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
+    return makeAssetCreateTxnWithSuggestedParams(o.from, o.note, o.total, o.decimals, o.defaultFrozen, o.manager,
+        o.reserve, o.freeze, o.clawback, o.unitName, o.assetName, o.assetURL, o.assetMetadataHash, o.suggestedParams,
+        o.rekeyTo) ;
+}
+
 /** makeAssetConfigTxn can be issued by the asset manager to change the manager, reserve, freeze, or clawback
  * you must respecify existing addresses to keep them the same; leaving a field blank is the same as turning
  * that feature off for this asset
@@ -300,6 +319,12 @@ function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeAssetConfigTxnWithSuggestedParams, instead accepting an arguments object
+function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
+    return makeAssetConfigTxnWithSuggestedParams(o.from, o.note, o.assetIndex,
+        o.manager, o.reserve, o.freeze, o.clawback, o.suggestedParams, o.strictEmptyAddressChecking, o.rekeyTo) ;
+}
+
 /** makeAssetDestroyTxn will allow the asset's manager to remove this asset from the ledger, so long
  * as all outstanding assets are held by the creator.
  *
@@ -354,6 +379,11 @@ function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggeste
         "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
+}
+
+// helper for above makeAssetDestroyTxnWithSuggestedParams, instead accepting an arguments object
+function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
+    return makeAssetDestroyTxnWithSuggestedParams(o.from, o.note, o.assetIndex, o.suggestedParams, o.rekeyTo);
 }
 
 /** makeAssetFreezeTxn will allow the asset's freeze manager to freeze or un-freeze an account,
@@ -419,6 +449,11 @@ function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTar
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeAssetFreezeTxnWithSuggestedParams, instead accepting an arguments object
+function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
+    return makeAssetFreezeTxnWithSuggestedParams(o.from, o.note, o.assetIndex, o.freezeTarget,
+        o.freezeState, o.suggestedParams, o.rekeyTo);
+}
 
 /** makeAssetTransferTxn allows for the creation of an asset transfer transaction.
  * Special case: to begin accepting assets, set amount=0 and from=to.
@@ -492,6 +527,12 @@ function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, rev
         "rekeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
+}
+
+// helper for above makeAssetTransferTxnWithSuggestedParams, instead accepting an arguments object
+function makeAssetTransferTxnWithSuggestedParamsFromObject(o) {
+    return makeAssetTransferTxnWithSuggestedParams(o.from, o.to, o.closeRemainderTo, o.revocationTarget,
+        o.amount, o.note, o.assetIndex, o.suggestedParams, o.rekeyTo);
 }
 
 /*
@@ -574,6 +615,12 @@ function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalPro
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeApplicationCreateTxn, instead accepting an arguments object
+function makeApplicationCreateTxnFromObject(o) {
+    return makeApplicationCreateTxn(o.from, o.suggestedParams, o.onComplete, o.approvalProgram, o.clearProgram,
+        o.numLocalInts, o.numLocalByteSlices, o.numGlobalInts, o.numGlobalByteSlices,
+        o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+}
 
 /**
  * Make a transaction that changes an application's approval and clear programs
@@ -620,6 +667,12 @@ function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgr
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeApplicationUpdateTxn, instead accepting an arguments object
+function makeApplicationUpdateTxnFromObject(o) {
+    return makeApplicationUpdateTxn(o.from, o.suggestedParams, o.appIndex, o.approvalProgram, o.clearProgram,
+        o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+}
+
 /**
  * Make a transaction that deletes an application
  * @param from - address of sender
@@ -659,6 +712,12 @@ function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
         "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
+}
+
+// helper for above makeApplicationDeleteTxn, instead accepting an arguments object
+function makeApplicationDeleteTxnFromObject(o) {
+   return makeApplicationDeleteTxn(o.from, o.suggestedParams, o.appIndex,
+       o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
 }
 
 /**
@@ -702,6 +761,12 @@ function makeApplicationOptInTxn(from, suggestedParams, appIndex,
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeApplicationOptInTxn, instead accepting an argument object
+function makeApplicationOptInTxnFromObject(o) {
+    return makeApplicationOptInTxn(o.from, o.suggestedParams, o.appIndex,
+        o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+}
+
 /**
  * Make a transaction that closes out a user's state in an application
  * @param from - address of sender
@@ -742,6 +807,13 @@ function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
     }
     return new txnBuilder.Transaction(o);
 }
+
+// helper for above makeApplicationCloseOutTxn, instead accepting an argument object
+function makeApplicationCloseOutTxnFromObject(o) {
+    return makeApplicationCloseOutTxn(o.from, o.suggestedParams, o.appIndex,
+        o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+}
+
 
 /**
  * Make a transaction that clears a user's state in an application
@@ -784,6 +856,13 @@ function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeApplicationClearStateTxn, instead accepting an argument object
+function makeApplicationClearStateTxnFromObject(o) {
+    return makeApplicationClearStateTxn(o.from, o.suggestedParams, o.appIndex,
+        o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo)
+}
+
+
 /**
  * Make a transaction that just calls an application, doing nothing on completion
  * @param from - address of sender
@@ -825,27 +904,47 @@ function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
     return new txnBuilder.Transaction(o);
 }
 
+// helper for above makeApplicationNoOpTxn, instead accepting an argument object
+function makeApplicationNoOpTxnFromObject(o) {
+    return makeApplicationNoOpTxn(o.from, o.suggestedParams, o.appIndex,
+        o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+}
+
 module.exports = {
     makePaymentTxn,
     makePaymentTxnWithSuggestedParams,
+    makePaymentTxnWithSuggestedParamsFromObject,
     makeKeyRegistrationTxn,
     makeKeyRegistrationTxnWithSuggestedParams,
+    makeKeyRegistrationTxnWithSuggestedParamsFromObject,
     makeAssetCreateTxn,
     makeAssetCreateTxnWithSuggestedParams,
+    makeAssetCreateTxnWithSuggestedParamsFromObject,
     makeAssetConfigTxn,
     makeAssetConfigTxnWithSuggestedParams,
+    makeAssetConfigTxnWithSuggestedParamsFromObject,
     makeAssetDestroyTxn,
     makeAssetDestroyTxnWithSuggestedParams,
+    makeAssetDestroyTxnWithSuggestedParamsFromObject,
     makeAssetFreezeTxn,
     makeAssetFreezeTxnWithSuggestedParams,
+    makeAssetFreezeTxnWithSuggestedParamsFromObject,
     makeAssetTransferTxn,
     makeAssetTransferTxnWithSuggestedParams,
+    makeAssetTransferTxnWithSuggestedParamsFromObject,
     OnApplicationComplete,
     makeApplicationCreateTxn,
+    makeApplicationCreateTxnFromObject,
     makeApplicationUpdateTxn,
+    makeApplicationUpdateTxnFromObject,
     makeApplicationDeleteTxn,
+    makeApplicationDeleteTxnFromObject,
     makeApplicationOptInTxn,
+    makeApplicationOptInTxnFromObject,
     makeApplicationCloseOutTxn,
+    makeApplicationCloseOutTxnFromObject
     makeApplicationClearStateTxn,
+    makeApplicationClearStateTxnFromObject,
     makeApplicationNoOpTxn,
+    makeApplicationNoOpTxnFromObject,
 };
