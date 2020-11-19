@@ -40,7 +40,7 @@
   ],
   "scripts": {
     "test": "node tests/mocha.js",
-    "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/algosdk.min.js tests/cucumber/browser/build/algosdk.min.js && webpack --config tests/cucumber/browser/webpack.config.js",
+    "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
     "build": "webpack --config webpack.config.js"
   },
   "author": "Algorand, llc",
