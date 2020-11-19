@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { Buffer } = require('buffer');
 const algosdk = require('../index');
 let multisig = require("../src/multisig");
 

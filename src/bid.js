@@ -1,3 +1,4 @@
+const { Buffer } = require("buffer");
 const address = require("./encoding/address");
 const encoding = require("./encoding/encoding");
 const nacl = require("./nacl/naclWrappers");

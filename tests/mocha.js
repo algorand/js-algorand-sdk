@@ -1,5 +1,5 @@
 const Mocha = require('mocha');
-const Browserify = require('browserify');
+const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
@@ -15,24 +15,21 @@ async function testRunner() {
     if (browser) {
         const browserEntry = path.join(__dirname, 'browser', 'index.html');
         const bundleLocation = path.join(__dirname, 'browser', 'bundle.js');
-        const browserify = Browserify();
-
-        testFiles.forEach((file) => browserify.add(file));
 
         await new Promise((resolve, reject) => {
-            browserify.bundle((err, bundle) => {
-                if (err) {
-                    return reject(err);
+            webpack({
+                entry: testFiles,
+                output: {
+                    filename: path.basename(bundleLocation),
+                    path: path.dirname(bundleLocation),
+                },
+                devtool: "source-map",
+            }, (err, stats) => {
+                if (err || stats.hasErrors()) {
+                    return reject(err || stats.toJson());
                 }
-
-                fs.writeFile(bundleLocation, bundle, (err) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            });
+                resolve();
+            })
         });
 
         console.log('Testing in browser');
@@ -98,9 +95,7 @@ async function testRunner() {
         console.log('Testing in Node');
 
         const mocha = new Mocha();
-        fs.readdirSync(__dirname)
-            .filter((file) => file !== 'mocha.js' && file.endsWith('.js'))
-            .forEach((file) => mocha.addFile(path.join(__dirname, file)));
+        testFiles.forEach((file) => mocha.addFile(file));
 
         mocha.run((failures) => {
             process.exitCode = failures ? 1 : 0;

@@ -1,4 +1,5 @@
-var request = require("superagent");
+const { Buffer } = require("buffer");
+const request = require("superagent");
 
 /**
  * removeEmpty gets a dictionary and removes empty values

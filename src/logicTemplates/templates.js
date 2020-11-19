@@ -1,4 +1,4 @@
-const assert = require('assert');
+const { Buffer } = require('buffer');
 const address = require("../encoding/address");
 
 function putUvarint(buf, x){
@@ -19,8 +19,9 @@ const valTypes = {
 };
 
 function inject(orig, offsets, values, valueTypes) {
-    assert.strictEqual(offsets.length, values.length);
-    assert.strictEqual(offsets.length, valueTypes.length);
+    if (offsets.length !== values.length || offsets.length !== valueTypes.length) {
+        throw new Error("Lengths do not match");
+    }
 
     let res = orig;
 

@@ -13,6 +13,9 @@
     <script src="../../node_modules/mocha/mocha.js"></script>
 
     <script class="mocha-init">
+      // this is necessary to get assert to work, since assert uses util and util checks process.env.NODE_DEBUG
+      window.process = { env: {} };
+
       mocha.setup('bdd');
     </script>
     <script src="bundle.js"></script>
