@@ -942,7 +942,7 @@ module.exports = {
     makeApplicationOptInTxn,
     makeApplicationOptInTxnFromObject,
     makeApplicationCloseOutTxn,
-    makeApplicationCloseOutTxnFromObject
+    makeApplicationCloseOutTxnFromObject,
     makeApplicationClearStateTxn,
     makeApplicationClearStateTxnFromObject,
     makeApplicationNoOpTxn,
