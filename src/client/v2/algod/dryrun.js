@@ -1,3 +1,4 @@
+const { Buffer } = require('buffer');
 const encoding = require('../../../encoding/encoding');
 
 class Dryrun {

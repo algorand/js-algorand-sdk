@@ -1,3 +1,4 @@
+.DS_Store
 
 .idea/
 .vscode
@@ -11,4 +12,4 @@ temp
 
 tests/cucumber/features/
 tests/cucumber/browser/build
-tests/browser/bundle.js
+tests/browser/bundle.*

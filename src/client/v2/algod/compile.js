@@ -1,3 +1,5 @@
+const { Buffer } = require('buffer');
+
 class Compile {
 	constructor(c, source) {
 		this.c = c;

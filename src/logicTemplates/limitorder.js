@@ -1,3 +1,4 @@
+const { Buffer } = require('buffer');
 const address = require('../encoding/address');
 const makeTxn = require('../makeTxn');
 const group = require('../group');
