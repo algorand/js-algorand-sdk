@@ -1,3 +1,9 @@
+# 1.8.1
+## Added
+- Added `toString` and print methods to Transaction ([#243](https://github.com/algorand/js-algorand-sdk/pull/243)).
+- Added functions to create Transactions from objects ([#246](https://github.com/algorand/js-algorand-sdk/pull/246)).
+## Fixed
+- Fixed issues using the library with webpack, including switching dependencies from `keccak` to `js-sha3` ([#247](https://github.com/algorand/js-algorand-sdk/pull/247)).
 # 1.8.0
 ## Added
 - Add `encodeAddress` and `decodeAddress` to convert between the binary and text form of Algorand
