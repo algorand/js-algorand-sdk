@@ -1,3 +1,4 @@
+const { Buffer } = require('buffer');
 const client = require('./client');
 const txn = require("../transaction");
 
