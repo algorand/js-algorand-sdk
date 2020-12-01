@@ -1,5 +1,6 @@
 
 const assert = require('assert');
+const { Buffer } = require('buffer');
 const algosdk = require('../index');
 const group = require('../src/group');
 
