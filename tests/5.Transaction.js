@@ -210,7 +210,7 @@ describe('Sign', function () {
                 "assetUnitName": "tests",
                 "assetName": "testcoin",
                 "assetURL": "testURL",
-                "assetMetadataHash": "metadatahash",
+                "assetMetadataHash": new Uint8Array(Buffer.from("ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=", "base64")),
                 "assetManager": address,
                 "assetReserve": address,
                 "assetFreeze": address,
@@ -430,7 +430,7 @@ describe('Sign', function () {
             let unitName = "tst";
             let assetName = "testcoin";
             let assetURL = "testURL";
-            let assetMetadataHash = "testhash";
+            let assetMetadataHash = new Uint8Array(Buffer.from("dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "base64"));
             let genesisID = "";
             let firstRound = 322575;
             let lastRound = 322575;
@@ -462,6 +462,103 @@ describe('Sign', function () {
             let actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
                 total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo);
             assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should fail to make an asset create transaction with an invalid assetMetadataHash', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let defaultFrozen = false;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let total = 100;
+            let decimals = 0;
+            let reserve = addr;
+            let freeze = addr;
+            let clawback = addr;
+            let unitName = "tst";
+            let assetName = "testcoin";
+            let assetURL = "testURL";
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let txnTemplate = {
+                "from": addr,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "assetTotal": total,
+                "assetDecimals": decimals,
+                "assetDefaultFrozen": defaultFrozen,
+                "assetUnitName": unitName,
+                "assetName": assetName,
+                "assetURL": assetURL,
+                "assetManager": addr,
+                "assetReserve": reserve,
+                "assetFreeze": freeze,
+                "assetClawback": clawback,
+                "genesisID": genesisID,
+                "rekeyTo": rekeyTo,
+                "type": "acfg"
+            };
+            assert.doesNotThrow(() => {
+                let txnParams = {
+                    assetMetadataHash: '',
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
+            assert.throws(() => {
+                let txnParams = {
+                    assetMetadataHash: 'abc',
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
+            assert.doesNotThrow(() => {
+                let txnParams = {
+                    assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh',
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
+            assert.throws(() => {
+                let txnParams = {
+                    assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh1',
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
+            assert.doesNotThrow(() => {
+                let txnParams = {
+                    assetMetadataHash: new Uint8Array(0),
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
+            assert.throws(() => {
+                let txnParams = {
+                    assetMetadataHash: new Uint8Array([1, 2, 3]),
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
+            assert.doesNotThrow(() => {
+                let txnParams = {
+                    assetMetadataHash: new Uint8Array(32),
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
+            assert.throws(() => {
+                let txnParams = {
+                    assetMetadataHash: new Uint8Array(33),
+                    ...txnTemplate
+                };
+                new algosdk.Transaction(txnParams);
+            });
         });
 
         it('should be able to use helper to make an asset config transaction', function() {

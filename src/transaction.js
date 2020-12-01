@@ -94,6 +94,18 @@ class Transaction {
                 if (!Number.isSafeInteger(foreignAssetIndex) || foreignAssetIndex < 0) throw Error("each foreign asset index must be a positive number and smaller than 2^53-1");
             });
         }
+        if (assetMetadataHash !== undefined && assetMetadataHash.length !== 0) {
+            if (typeof(assetMetadataHash) === 'string') {
+                const encoded = Buffer.from(assetMetadataHash);
+                if (encoded.byteLength !== 32) {
+                    throw Error("assetMetadataHash must be a 32 byte Uint8Array or string.");
+                }
+                assetMetadataHash = new Uint8Array(encoded);
+            } else if (assetMetadataHash.constructor !== Uint8Array || assetMetadataHash.byteLength !== 32)
+                throw Error("assetMetadataHash must be a 32 byte Uint8Array or string.");
+        } else {
+            assetMetadataHash = undefined;
+        }
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
         }
