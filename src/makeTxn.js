@@ -166,7 +166,7 @@ function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
  * @param unitName - string units name for this asset
  * @param assetName - string name for this asset
  * @param assetURL - string URL relating to this asset
- * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
+ * @param assetMetadataHash - Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
@@ -200,7 +200,7 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param unitName - string units name for this asset
  * @param assetName - string name for this asset
  * @param assetURL - string URL relating to this asset
- * @param assetMetadataHash - string representation of some sort of hash commitment with respect to the asset
+ * @param assetMetadataHash - Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
