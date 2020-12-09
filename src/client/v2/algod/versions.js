@@ -9,7 +9,7 @@ class Versions {
 	 * @returns {Promise<*>}
 	 */
 	async do(headers={}) {
-		let res = await c.get("/versions", {}, headers);
+		let res = await this.c.get("/versions", {}, headers);
 		return res.body;
 	};
 }
