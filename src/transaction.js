@@ -13,6 +13,7 @@ const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the 
 const ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH = 5
 const ALGORAND_TRANSACTION_ADDRESS_LENGTH = 32;
 const ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH = 5;
+const ASSET_METADATA_HASH_LENGTH = 32;
 /**
  * Transaction enables construction of Algorand transactions
  * */
@@ -93,6 +94,18 @@ class Transaction {
             appForeignAssets.forEach((foreignAssetIndex) => {
                 if (!Number.isSafeInteger(foreignAssetIndex) || foreignAssetIndex < 0) throw Error("each foreign asset index must be a positive number and smaller than 2^53-1");
             });
+        }
+        if (assetMetadataHash !== undefined && assetMetadataHash.length !== 0) {
+            if (typeof(assetMetadataHash) === 'string') {
+                const encoded = Buffer.from(assetMetadataHash);
+                if (encoded.byteLength !== ASSET_METADATA_HASH_LENGTH) {
+                    throw Error("assetMetadataHash must be a " + ASSET_METADATA_HASH_LENGTH + " byte Uint8Array or string.");
+                }
+                assetMetadataHash = new Uint8Array(encoded);
+            } else if (assetMetadataHash.constructor !== Uint8Array || assetMetadataHash.byteLength !== ASSET_METADATA_HASH_LENGTH)
+                throw Error("assetMetadataHash must be a " + ASSET_METADATA_HASH_LENGTH + " byte Uint8Array or string.");
+        } else {
+            assetMetadataHash = undefined;
         }
         if (note !== undefined) {
             if (note.constructor !== Uint8Array) throw Error("note must be a Uint8Array.");
