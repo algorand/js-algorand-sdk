@@ -146,7 +146,11 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
         newSubsigs = unisig.msig.subsig.map((uniSubsig, index) => {
             let current = newSubsigs[index];
             if (current.s) {
-                if (uniSubsig.s && Buffer.compare(uniSubsig.s, current.s) !== 0) {
+                // we convert the Uint8Arrays uniSubsig.s and current.s to Buffers here because (as
+                // of Dec 2020) React overrides the buffer package with an older version that does
+                // not support Uint8Arrays in the comparison function. See this thread for more
+                // info: https://github.com/algorand/js-algorand-sdk/issues/252
+                if (uniSubsig.s && Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0) {
                     // mismatch
                     throw ERROR_MULTISIG_MERGE_SIG_MISMATCH;
                 }
