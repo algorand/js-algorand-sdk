@@ -1,6 +1,7 @@
 const assert = require('assert');
 const { Buffer } = require('buffer');
 const algosdk = require('../index');
+const utils = require('../src/utils/utils');
 
 const ERROR_CONTAINS_EMPTY_STRING = "The object contains empty or 0 values. First empty or 0 value encountered during encoding: ";
 
@@ -82,4 +83,81 @@ describe('encoding', function () {
         });
     });
 
+    describe('JSON parse BigInt', function () {
+        it('should parse empty object', function () {
+            const input = '{}';
+
+            const actual = utils.JSONParseWithBigInt(input);
+            const expected = {};
+
+            assert.deepStrictEqual(actual, expected);
+        });
+
+        it('should parse populated object', function () {
+            const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{}}';
+
+            const actual = utils.JSONParseWithBigInt(input);
+            const expected = {
+                a: 1,
+                b: 'value',
+                c: [1,2,3],
+                d: null,
+                e: {}
+            };
+
+            assert.deepStrictEqual(actual, expected);
+        });
+
+        it('should parse object with BigInt', function () {
+            const input = '{"a":0,"b":9007199254740991,"c":9007199254740992,"d":9223372036854775807}';
+
+            const actual = utils.JSONParseWithBigInt(input);
+            const expected = {
+                a: 0,
+                b: 9007199254740991,
+                c: 9007199254740992n,
+                d: 9223372036854775807n
+            };
+
+            assert.deepStrictEqual(actual, expected);
+        });
+
+        it('should parse empty array', function () {
+            const input = '[]';
+
+            const actual = utils.JSONParseWithBigInt(input);
+            const expected = [];
+
+            assert.deepStrictEqual(actual, expected);
+        });
+
+        it('should parse populated array', function () {
+            const input = '["test",2,null,[7],{"a":9.0}]';
+
+            const actual = utils.JSONParseWithBigInt(input);
+            const expected = [
+                'test',
+                2,
+                null,
+                [7],
+                {a: 9.0}
+            ];
+
+            assert.deepStrictEqual(actual, expected);
+        });
+
+        it('should parse array with BigInt', function () {
+            const input = '[0,9007199254740991,9007199254740992,9223372036854775807]';
+
+            const actual = utils.JSONParseWithBigInt(input);
+            const expected = [
+                0,
+                9007199254740991,
+                9007199254740992n,
+                9223372036854775807n
+            ];
+
+            assert.deepStrictEqual(actual, expected);
+        });
+    });
 });

@@ -1,3 +1,5 @@
+const utils = require('../../../utils/utils');
+
 class GetAssetByID {
     constructor(c, index) {
         this.c = c;
@@ -11,7 +13,10 @@ class GetAssetByID {
      * @returns {Promise<*>}
      */
     async do(headers={}) {
-        let res = await this.c.get("/v2/assets/" + this.index, this.query, headers);
+        const res = await this.c.get("/v2/assets/" + this.index, this.query, headers);
+        if (res.text) {
+            res.body = utils.JSONParseWithBigInt(res.text);
+        }
         return res.body;
     }
 }

@@ -1,3 +1,5 @@
+const utils = require('../../../utils/utils');
+
 class AccountInformation {
 	constructor(c, account) {
 	    this.c = c;
@@ -10,7 +12,10 @@ class AccountInformation {
      * @returns {Promise<*>}
      */
     async do(headers={}) {
-        let res = await this.c.get("/v2/accounts/" + this.account, {}, headers);
+        const res = await this.c.get("/v2/accounts/" + this.account, {}, headers);
+        if (res.text) {
+            res.body = utils.JSONParseWithBigInt(res.text);
+        }
         return res.body;
     }
 }
