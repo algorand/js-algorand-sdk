@@ -16,9 +16,9 @@ class JSONRequest {
     }
 
     /**
-	 * returns holder balances for the given asset
+	 * Execute the request.
 	 * @param {object} headers Additional headers to send in the request. Optional.
-	 * @returns {Promise<*>}
+	 * @returns {Promise<object>} A promise which resolves to the response data.
 	 */
 	async do(headers = {}) {
 		let res = await this.c.get(this._path(), this.query, headers, this.requestBigInt);
