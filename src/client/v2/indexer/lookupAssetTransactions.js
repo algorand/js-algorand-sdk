@@ -1,19 +1,14 @@
-class LookupAssetTransactions {
+const { JSONRequest } = require('../jsonrequest');
+
+class LookupAssetTransactions extends JSONRequest {
 	constructor (c, index) {
-		this.c = c;
+		super(c);
 		this.index = index;
-		this.query = {};
 	}
 
-	/**
-	 * returns information about the passed asset
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do(headers = {}) {
-		let res = await this.c.get("/v2/assets/" + this.index + "/transactions", this.query, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/assets/" + this.index + "/transactions";
+	}
 
 	// notePrefix to filter with, as uint8array
 	notePrefix(prefix) {

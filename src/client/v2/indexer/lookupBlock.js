@@ -1,18 +1,14 @@
-class LookupBlock {
+const { JSONRequest } = require('../jsonrequest');
+
+class LookupBlock extends JSONRequest {
 	constructor(c, round) {
-		this.c = c;
+		super(c);
 		this.round = round;
 	}
 
-	/**
-	 * returns the block for the passed round
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do (headers = {}) {
-		let res = await this.c.get("/v2/blocks/" + this.round, {}, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/blocks/" + this.round;
+	}
 }
 
 module.exports = {LookupBlock};

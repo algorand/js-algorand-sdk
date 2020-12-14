@@ -1,19 +1,14 @@
-class LookupAssetBalances {
+const { JSONRequest } = require('../jsonrequest');
+
+class LookupAssetBalances extends JSONRequest {
 	constructor(c, index) {
-		this.c = c;
+		super(c);
 		this.index = index;
-		this.query = {}
 	}
 
-	/**
-	 * returns holder balances for the given asset
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do(headers = {}) {
-		let res = await this.c.get("/v2/assets/" + this.index + "/balances", this.query, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/assets/" + this.index + "/balances";
+	}
 
 	// limit for filter, as int
 	limit(limit) {

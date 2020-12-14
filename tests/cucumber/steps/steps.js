@@ -1859,7 +1859,10 @@ module.exports = function getSteps(options) {
     let anyLookupAssetBalancesResponse;
     
     When('we make any LookupAssetBalances call', async function () {
-        anyLookupAssetBalancesResponse = await this.indexerClient.lookupAssetBalances().do();
+        anyLookupAssetBalancesResponse = await this.indexerClient
+            .lookupAssetBalances()
+            .useBigInt(true)
+            .do();
     });
     
     Then('the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}', function (round, length, idx, address, amount, frozenStateAsString) {
@@ -1879,7 +1882,10 @@ module.exports = function getSteps(options) {
     let anyLookupAssetTransactionsResponse;
     
     When('we make any LookupAssetTransactions call', async function () {
-        anyLookupAssetTransactionsResponse = await this.indexerClient.lookupAssetTransactions().do();
+        anyLookupAssetTransactionsResponse = await this.indexerClient
+            .lookupAssetTransactions()
+            .useBigInt(true)
+            .do();
     });
     
     Then('the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (round, length, idx, sender) {
@@ -1929,7 +1935,10 @@ module.exports = function getSteps(options) {
     let anyLookupAssetByIDResponse;
     
     When('we make any LookupAssetByID call', async function () {
-        anyLookupAssetByIDResponse = await this.indexerClient.lookupAssetByID().do();
+        anyLookupAssetByIDResponse = await this.indexerClient
+            .lookupAssetByID()
+            .useBigInt(true)
+            .do();
     });
     
     Then('the parsed LookupAssetByID response should have index {int}', function (idx) {
