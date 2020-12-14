@@ -3,15 +3,14 @@ const request = require("superagent");
 const utils = require("../utils/utils");
 
 function createJSONParser(options) {
-    return (value, fn) => {
-        if (fn == null) {
+    return (res, fn) => {
+        if (typeof fn === 'string') {
             // in browser
-            return utils.parseJSON(value, options);
+            return utils.parseJSON(fn, options);
         }
 
         // in node
         // based off https://github.com/visionmedia/superagent/blob/1277a880c32191e300b229e352e0633e421046c8/src/node/parsers/json.js
-        const res = value;
         res.text = '';
         res.setEncoding('utf8');
         res.on('data', (chunk) => {
@@ -92,7 +91,11 @@ function HTTPClient(token, baseServer, port, headers={}) {
             if (format === 'application/msgpack') {
                 r = r.responseType('arraybuffer');
             } else if (format === 'application/json') {
-                r = r.buffer(true).parse(createJSONParser({ useBigInt }));
+                if (r.buffer !== r.ca) {
+                    // in node, need to set buffer
+                    r = r.buffer(true);
+                }
+                r = r.parse(createJSONParser({ useBigInt }));
             }
             
             const res = await r;
