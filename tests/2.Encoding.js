@@ -84,80 +84,137 @@ describe('encoding', function () {
     });
 
     describe('JSON parse BigInt', function () {
+        it('should parse null', function () {
+            const input = 'null';
+
+            const actualDefault = utils.parseJSON(input);
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
+            const expected = null;
+
+            assert.deepStrictEqual(actualDefault, expected);
+            assert.deepStrictEqual(actualBigInt, expected);
+        });
+
+        it('should parse number', function () {
+            const input = '17';
+
+            const actualDefault = utils.parseJSON(input);
+            const expectedDefault = 17;
+
+            assert.deepStrictEqual(actualDefault, expectedDefault);
+
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
+            const expectedBigInt = 17n;
+            
+            assert.deepStrictEqual(actualBigInt, expectedBigInt);
+        });
+
         it('should parse empty object', function () {
             const input = '{}';
 
-            const actual = utils.JSONParseWithBigInt(input);
+            const actualDefault = utils.parseJSON(input);
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
             const expected = {};
 
-            assert.deepStrictEqual(actual, expected);
+            assert.deepStrictEqual(actualDefault, expected);
+            assert.deepStrictEqual(actualBigInt, expected);
         });
 
         it('should parse populated object', function () {
-            const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{}}';
+            const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{},"f":true}';
 
-            const actual = utils.JSONParseWithBigInt(input);
-            const expected = {
+            const actualDefault = utils.parseJSON(input);
+            const expectedDefault = {
                 a: 1,
                 b: 'value',
                 c: [1,2,3],
                 d: null,
-                e: {}
+                e: {},
+                f: true
             };
 
-            assert.deepStrictEqual(actual, expected);
+            assert.deepStrictEqual(actualDefault, expectedDefault);
+
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
+            const expectedBigInt = {
+                a: 1n,
+                b: 'value',
+                c: [1n,2n,3n],
+                d: null,
+                e: {},
+                f: true
+            };
+
+            assert.deepStrictEqual(actualBigInt, expectedBigInt);
         });
 
         it('should parse object with BigInt', function () {
             const input = '{"a":0,"b":9007199254740991,"c":9007199254740992,"d":9223372036854775807}';
 
-            const actual = utils.JSONParseWithBigInt(input);
-            const expected = {
-                a: 0,
-                b: 9007199254740991,
+            assert.throws(() => utils.parseJSON(input));
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
+            const expectedBigInt = {
+                a: 0n,
+                b: 9007199254740991n,
                 c: 9007199254740992n,
                 d: 9223372036854775807n
             };
 
-            assert.deepStrictEqual(actual, expected);
+            assert.deepStrictEqual(actualBigInt, expectedBigInt);
         });
 
         it('should parse empty array', function () {
             const input = '[]';
 
-            const actual = utils.JSONParseWithBigInt(input);
+            const actualDefault = utils.parseJSON(input);
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
             const expected = [];
 
-            assert.deepStrictEqual(actual, expected);
+            assert.deepStrictEqual(actualDefault, expected);
+            assert.deepStrictEqual(actualBigInt, expected);
         });
 
         it('should parse populated array', function () {
-            const input = '["test",2,null,[7],{"a":9.0}]';
+            const input = '["test",2,null,[7],{"a":9.5},true]';
 
-            const actual = utils.JSONParseWithBigInt(input);
-            const expected = [
+            const actualDefault = utils.parseJSON(input);
+            const expectedDefault = [
                 'test',
                 2,
                 null,
                 [7],
-                {a: 9.0}
+                {a: 9.5},
+                true
             ];
 
-            assert.deepStrictEqual(actual, expected);
+            assert.deepStrictEqual(actualDefault, expectedDefault);
+
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
+            const expectedBigInt = [
+                'test',
+                2n,
+                null,
+                [7n],
+                {a: 9.5},
+                true
+            ];
+
+            assert.deepStrictEqual(actualBigInt, expectedBigInt);
         });
 
         it('should parse array with BigInt', function () {
             const input = '[0,9007199254740991,9007199254740992,9223372036854775807]';
 
-            const actual = utils.JSONParseWithBigInt(input);
-            const expected = [
-                0,
-                9007199254740991,
+            assert.throws(() => utils.parseJSON(input));
+            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
+            const expectedBigInt = [
+                0n,
+                9007199254740991n,
                 9007199254740992n,
                 9223372036854775807n
             ];
 
-            assert.deepStrictEqual(actual, expected);
+            assert.deepStrictEqual(actualBigInt, expectedBigInt);
         });
     });
 });

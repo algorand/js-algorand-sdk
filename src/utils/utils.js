@@ -1,21 +1,36 @@
 const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
 
 /**
- * Parse JSON with support for BigInts. Any integers greater than Number.MAX_SAFE_INTEGER will be
- * parsed as BigInts.
- * @param {string} value The stringified JSON to parse. 
+ * Parse JSON with additional options.
+ * @param {string} str The JSON string to parse.
+ * @param {object} options Parsing options.
+ * @param {boolean} options.useBigInt If true, this option will cause all integers in the JSON
+ *   string to be parsed as BigInts. If false, this option will parse integers as Numbers but will
+ *   throw an error if an integer larger than Number.MAX_SAFE_INTEGER is included in the JSON.
+ *   Defaults to false.
  */
-function JSONParseWithBigInt(value) {
-    const parsed = JSONbig.parse(value, function (_, value) {
+function parseJSON(str, options=undefined) {
+    const useBigInt = options ? options.useBigInt : false;
+    const parsed = JSONbig.parse(str, function (_, value) {
         if (value != null && typeof value === 'object' && Object.getPrototypeOf(value) == null) {
             // for some reason the Objects returned by JSONbig.parse have a null prototype, so we
             // need to fix that.
             Object.setPrototypeOf(value, Object.prototype);
         } else if (typeof value === 'bigint') {
+            if (useBigInt) {
+                return value;
+            }
+
             // JSONbig.parse converts number to BigInts if they are >= 10**15. This is smaller than
             // Number.MAX_SAFE_INTEGER, so we can convert some BigInts back to normal numbers.
             if (value <= Number.MAX_SAFE_INTEGER) {
                 return Number(value);
+            }
+
+            throw new Error("Integer exceeds maximum safe integer: " + value.toString() + ". Try parsing with the useBigInt option enabled.");
+        } else if (typeof value === 'number') {
+            if (useBigInt && Number.isInteger(value)) {
+                return BigInt(value);
             }
         }
         return value;
@@ -46,7 +61,7 @@ function concatArrays(a, b) {
 }
 
 module.exports = {
-    JSONParseWithBigInt,
+    parseJSON,
     arrayEqual,
     concatArrays
 };
