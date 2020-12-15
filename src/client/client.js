@@ -6,7 +6,7 @@ function createJSONParser(options) {
     return (res, fn) => {
         if (typeof fn === 'string') {
             // in browser
-            return utils.parseJSON(fn, options);
+            return fn && utils.parseJSON(fn, options);
         }
 
         // in node
