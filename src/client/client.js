@@ -77,7 +77,20 @@ function HTTPClient(token, baseServer, port, headers={}) {
     this.token = token;
     this.defaultHeaders = headers;
 
-    this.get = async function (path, query, requestHeaders={}, useBigInt=false) {
+    /**
+     * Send a GET request.
+     * @param {string} path The path of the request.
+     * @param {object} query An object containing the query paramters of the request.
+     * @param {object} requestHeaders An object containing additional request headers to use.
+     * @param {boolean} useBigInt If true and the response for this request returns JSON, the all
+     *   integers in the response will be decoded as BigInts. If false and the request returns JSON,
+     *   all integers will be decoded as Numbers and if the response contains any integers greater
+     *   than Number.MAX_SAFE_INTEGER an error will be thrown. If this parameter is omitted, the
+     *   JSON response will be parsed regularly and no additional checks on integer values will be
+     *   performed.
+     * @returns {Promise<object>} Response object.
+     */
+    this.get = async function (path, query, requestHeaders={}, useBigInt=undefined) {
         try {
             const format = getAccceptFormat(query);
             let r = request
@@ -90,7 +103,7 @@ function HTTPClient(token, baseServer, port, headers={}) {
             
             if (format === 'application/msgpack') {
                 r = r.responseType('arraybuffer');
-            } else if (format === 'application/json') {
+            } else if (format === 'application/json' && useBigInt != null) {
                 if (r.buffer !== r.ca) {
                     // in node, need to set buffer
                     r = r.buffer(true);
