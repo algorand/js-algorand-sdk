@@ -26,13 +26,14 @@ class JSONRequest {
 	};
 
     /**
-     * Set the useBigInt option. If not set, defaults to false.
-     * @param {boolean} useBigInt If true, all integers in the response will be decoded as BigInts.
-     *   If false, all integers will be decoded as Numbers and if the response contains integers
-     *   greater than Number.MAX_SAFE_INTEGER, an error will be thrown.
+     * Configure the useBigInt option. If this option is set for a request, all integers in the
+     * response will be decoded as BigInts. If this option is not set, all integers will be decoded
+     * as Numbers and if the response contains any integers greater than Number.MAX_SAFE_INTEGER an
+     * error will be thrown.
+     * @param {boolean} enabled Whether to enable BigInt support for this request. Defaults to true.
      */
-    useBigInt(useBigInt) {
-        this.requestBigInt = useBigInt;
+    useBigInt(enabled=true) {
+        this.requestBigInt = enabled;
         return this;
     }
 }

@@ -1861,7 +1861,7 @@ module.exports = function getSteps(options) {
     When('we make any LookupAssetBalances call', async function () {
         anyLookupAssetBalancesResponse = await this.indexerClient
             .lookupAssetBalances()
-            .useBigInt(true)
+            .useBigInt()
             .do();
     });
     
@@ -1884,7 +1884,7 @@ module.exports = function getSteps(options) {
     When('we make any LookupAssetTransactions call', async function () {
         anyLookupAssetTransactionsResponse = await this.indexerClient
             .lookupAssetTransactions()
-            .useBigInt(true)
+            .useBigInt()
             .do();
     });
     
@@ -1937,7 +1937,7 @@ module.exports = function getSteps(options) {
     When('we make any LookupAssetByID call', async function () {
         anyLookupAssetByIDResponse = await this.indexerClient
             .lookupAssetByID()
-            .useBigInt(true)
+            .useBigInt()
             .do();
     });
     
