@@ -54,7 +54,7 @@ class Transaction {
 
         genesisHash = Buffer.from(genesisHash, 'base64');
 
-        if (amount !== undefined && (!Number.isSafeInteger(amount) || amount < 0)) throw Error("Amount must be a positive number and smaller than 2^53-1");
+        if (amount !== undefined && (!(Number.isSafeInteger(amount) || (typeof(amount) === 'bigint' && amount <= 0xFFFFFFFFFFFFFFFFn)) || amount < 0)) throw Error("Amount must be a positive number and smaller than 2^64-1");
         if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");

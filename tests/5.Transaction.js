@@ -382,6 +382,64 @@ describe('Sign', function () {
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
+        it('should be able to use helper to make a payment transaction with BigInt amount', function() {
+            let from = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
+            let to = "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM";
+            let fee = 10;
+            let amount = 0xFFFFFFFFFFFFFFFFn;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let closeRemainderTo = undefined;
+            let o = {
+                "from": from,
+                "to": to,
+                "fee": fee,
+                "amount": amount,
+                "closeRemainderTo": closeRemainderTo,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+                "rekeyTo": rekeyTo
+            };
+            let expectedTxn = new algosdk.Transaction(o);
+            let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should throw if payment amount is too large', function() {
+            let from = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
+            let to = "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM";
+            let fee = 10;
+            let amount = 0x10000000000000000n;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let closeRemainderTo = undefined;
+            let o = {
+                "from": from,
+                "to": to,
+                "fee": fee,
+                "amount": amount,
+                "closeRemainderTo": closeRemainderTo,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+                "rekeyTo": rekeyTo
+            };
+            assert.throws(() => new algosdk.Transaction(o), new Error('Amount must be a positive number and smaller than 2^64-1'));
+        });
+
         it('should be able to use helper to make a keyreg transaction', function() {
             let from = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
             let fee = 10;
