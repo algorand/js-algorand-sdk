@@ -58,7 +58,7 @@ class Transaction {
         if (!Number.isSafeInteger(fee) || fee < 0) throw Error("fee must be a positive number and smaller than 2^53-1");
         if (!Number.isSafeInteger(firstRound) || firstRound < 0) throw Error("firstRound must be a positive number");
         if (!Number.isSafeInteger(lastRound) || lastRound < 0) throw Error("lastRound must be a positive number");
-        if (assetTotal !== undefined && (!Number.isSafeInteger(assetTotal) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^53-1");
+        if (assetTotal !== undefined && (!(Number.isSafeInteger(assetTotal) || (typeof(assetTotal) === 'bigint' && assetTotal <= 0xFFFFFFFFFFFFFFFFn)) || assetTotal < 0)) throw Error("Total asset issuance must be a positive number and smaller than 2^64-1");
         if (assetDecimals !== undefined && (!Number.isSafeInteger(assetDecimals) || assetDecimals < 0 || assetDecimals > ALGORAND_MAX_ASSET_DECIMALS)) throw Error("assetDecimals must be a positive number and smaller than " + ALGORAND_MAX_ASSET_DECIMALS.toString());
         if (assetIndex !== undefined && (!Number.isSafeInteger(assetIndex) || assetIndex < 0)) throw Error("Asset index must be a positive number and smaller than 2^53-1");
         if (appIndex !== undefined && (!Number.isSafeInteger(appIndex) || appIndex < 0)) throw Error("Application index must be a positive number and smaller than 2^53-1");

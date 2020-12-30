@@ -465,6 +465,97 @@ describe('Sign', function () {
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
+        it('should be able to use helper to make an asset create transaction with BigInt total', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let defaultFrozen = false;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let total = 0xFFFFFFFFFFFFFFFFn;
+            let decimals = 0;
+            let reserve = addr;
+            let freeze = addr;
+            let clawback = addr;
+            let unitName = "tst";
+            let assetName = "testcoin";
+            let assetURL = "testURL";
+            let assetMetadataHash = new Uint8Array(Buffer.from("dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "base64"));
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let o = {
+                "from": addr,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "assetTotal": total,
+                "assetDecimals": decimals,
+                "assetDefaultFrozen": defaultFrozen,
+                "assetUnitName": unitName,
+                "assetName": assetName,
+                "assetURL": assetURL,
+                "assetMetadataHash": assetMetadataHash,
+                "assetManager": addr,
+                "assetReserve": reserve,
+                "assetFreeze": freeze,
+                "assetClawback": clawback,
+                "genesisID": genesisID,
+                "rekeyTo": rekeyTo,
+                "type": "acfg"
+            };
+            let expectedTxn = new algosdk.Transaction(o);
+            let actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
+        it('should throw if asset creation total is too large', function() {
+            let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
+            let fee = 10;
+            let defaultFrozen = false;
+            let genesisHash = "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=";
+            let total = 0x10000000000000000n;
+            let decimals = 0;
+            let reserve = addr;
+            let freeze = addr;
+            let clawback = addr;
+            let unitName = "tst";
+            let assetName = "testcoin";
+            let assetURL = "testURL";
+            let assetMetadataHash = new Uint8Array(Buffer.from("dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "base64"));
+            let genesisID = "";
+            let firstRound = 322575;
+            let lastRound = 322575;
+            let note = new Uint8Array([123, 12, 200]);
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let o = {
+                "from": addr,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "assetTotal": total,
+                "assetDecimals": decimals,
+                "assetDefaultFrozen": defaultFrozen,
+                "assetUnitName": unitName,
+                "assetName": assetName,
+                "assetURL": assetURL,
+                "assetMetadataHash": assetMetadataHash,
+                "assetManager": addr,
+                "assetReserve": reserve,
+                "assetFreeze": freeze,
+                "assetClawback": clawback,
+                "genesisID": genesisID,
+                "rekeyTo": rekeyTo,
+                "type": "acfg"
+            };
+            assert.throws(() => new algosdk.Transaction(o), new Error('Total asset issuance must be a positive number and smaller than 2^64-1'));
+        });
+
         it('should fail to make an asset create transaction with an invalid assetMetadataHash', function() {
             let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
             let fee = 10;
