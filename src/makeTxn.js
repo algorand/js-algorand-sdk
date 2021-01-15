@@ -610,7 +610,7 @@ function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalPro
         "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
 }
@@ -662,7 +662,7 @@ function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgr
         "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
 }
@@ -709,7 +709,7 @@ function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
         "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
 }
@@ -756,7 +756,7 @@ function makeApplicationOptInTxn(from, suggestedParams, appIndex,
         "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
 }
@@ -803,7 +803,7 @@ function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
         "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
 }
@@ -851,7 +851,7 @@ function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
         "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
 }
@@ -899,7 +899,7 @@ function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
         "appForeignAssets": foreignAssets,
         "note": note,
         "lease": lease,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     }
     return new txnBuilder.Transaction(o);
 }

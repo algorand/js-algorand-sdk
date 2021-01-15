@@ -27,7 +27,7 @@ class Transaction {
                  appGlobalInts, appGlobalByteSlices, appApprovalProgram, appClearProgram,
                  appArgs, appAccounts, appForeignApps, appForeignAssets,
                  type="pay", flatFee=false, suggestedParams=undefined,
-                 rekeyTo=undefined}) {
+                 reKeyTo=undefined}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
@@ -49,7 +49,7 @@ class Transaction {
         if (assetClawback !== undefined) assetClawback = address.decodeAddress(assetClawback);
         if (assetRevocationTarget !== undefined) assetRevocationTarget = address.decodeAddress(assetRevocationTarget);
         if (freezeAccount !== undefined) freezeAccount = address.decodeAddress(freezeAccount);
-        if (rekeyTo !== undefined) rekeyTo = address.decodeAddress(rekeyTo);
+        if (reKeyTo !== undefined) reKeyTo = address.decodeAddress(reKeyTo);
         if (genesisHash === undefined) throw Error("genesis hash must be specified and in a base64 string.");
 
         genesisHash = Buffer.from(genesisHash, 'base64');
@@ -135,7 +135,7 @@ class Transaction {
             freezeAccount, freezeState, assetRevocationTarget,
             appIndex, appOnComplete, appLocalInts, appLocalByteSlices, appGlobalInts, appGlobalByteSlices,
             appApprovalProgram, appClearProgram, appArgs, appAccounts, appForeignApps, appForeignAssets,
-            type, rekeyTo
+            type, reKeyTo
         });
 
         // Modify Fee
@@ -171,8 +171,8 @@ class Transaction {
             if ((this.closeRemainderTo !== undefined) && (address.encodeAddress(this.closeRemainderTo.publicKey) !== address.ALGORAND_ZERO_ADDRESS_STRING)) {
                 txn.close = Buffer.from(this.closeRemainderTo.publicKey);
             }
-            if ((this.rekeyTo !== undefined)) {
-                txn.rekey = Buffer.from(this.rekeyTo.publicKey)
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
             }
             // allowed zero values
             if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
@@ -209,8 +209,8 @@ class Transaction {
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
             if (txn.grp === undefined) delete txn.grp;
-            if ((this.rekeyTo !== undefined)) {
-                txn.rekey = Buffer.from(this.rekeyTo.publicKey)
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
             }
             return txn;
         }
@@ -249,8 +249,8 @@ class Transaction {
             if (!txn.amt) delete txn.amt;
             if (!txn.fee) delete txn.fee;
             if (!txn.gen) delete txn.gen;
-            if ((this.rekeyTo !== undefined)) {
-                txn.rekey = Buffer.from(this.rekeyTo.publicKey)
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
             }
 
             if (!txn.caid) delete txn.caid;
@@ -314,8 +314,8 @@ class Transaction {
             if (!txn.aclose) delete txn.aclose;
             if (!txn.asnd) delete txn.asnd;
             if (!txn.rekey) delete txn.rekey;
-            if ((this.rekeyTo !== undefined)) {
-                txn.rekey = Buffer.from(this.rekeyTo.publicKey)
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
             }
             return txn;
         }
@@ -344,8 +344,8 @@ class Transaction {
             if (!txn.gen) delete txn.gen;
             if (!txn.afrz) delete txn.afrz;
             if (txn.grp === undefined) delete txn.grp;
-            if ((this.rekeyTo !== undefined)) {
-                txn.rekey = Buffer.from(this.rekeyTo.publicKey)
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
             }
             return txn;
         }
@@ -375,8 +375,8 @@ class Transaction {
                 "apfa": this.appForeignApps,
                 "apas": this.appForeignAssets,
             };
-            if ((this.rekeyTo !== undefined)) {
-                txn.rekey = Buffer.from(this.rekeyTo.publicKey)
+            if ((this.reKeyTo !== undefined)) {
+                txn.rekey = Buffer.from(this.reKeyTo.publicKey)
             }
             if (this.appApprovalProgram !== undefined) {
                 txn.apap = Buffer.from(this.appApprovalProgram);
@@ -435,7 +435,7 @@ class Transaction {
         txn.lease = new Uint8Array(txnForEnc.lx);
         txn.from = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.snd)));
         if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
-        if (txnForEnc.rekey !== undefined) txn.rekeyTo = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.rekey)));
+        if (txnForEnc.rekey !== undefined) txn.reKeyTo = address.decodeAddress(address.encodeAddress(new Uint8Array(txnForEnc.rekey)));
 
         if (txnForEnc.type === "pay") {
             txn.amount = txnForEnc.amt;
@@ -597,9 +597,9 @@ class Transaction {
 
     // add the rekey-to field to a transaction not yet having it
     // supply feePerByte to increment fee accordingly
-    addRekey(rekeyTo, feePerByte=0) {
-        if (rekeyTo !== undefined) {
-            this.rekeyTo = address.decodeAddress(rekeyTo);
+    addRekey(reKeyTo, feePerByte=0) {
+        if (reKeyTo !== undefined) {
+            this.reKeyTo = address.decodeAddress(reKeyTo);
         }
         if (feePerByte !== 0) {
             this.fee += (ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH + ALGORAND_TRANSACTION_ADDRESS_LENGTH) * feePerByte;
@@ -621,7 +621,7 @@ class Transaction {
         if (forPrinting.assetFreeze !== undefined) forPrinting.assetFreeze = address.encodeAddress(forPrinting.assetFreeze.publicKey);
         if (forPrinting.assetClawback !== undefined) forPrinting.assetClawback = address.encodeAddress(forPrinting.assetClawback.publicKey);
         if (forPrinting.assetRevocationTarget !== undefined) forPrinting.assetRevocationTarget = address.encodeAddress(forPrinting.assetRevocationTarget.publicKey);
-        if (forPrinting.rekeyTo !== undefined) forPrinting.rekeyTo = address.encodeAddress(forPrinting.rekeyTo.publicKey);
+        if (forPrinting.reKeyTo !== undefined) forPrinting.reKeyTo = address.encodeAddress(forPrinting.reKeyTo.publicKey);
         forPrinting.genesisHash = forPrinting.genesisHash.toString('base64');
         return forPrinting;
     }
