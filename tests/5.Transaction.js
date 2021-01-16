@@ -375,7 +375,7 @@ describe('Sign', function () {
                 "note": note,
                 "genesisHash": genesisHash,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo
+                "reKeyTo": rekeyTo
             };
             let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo);
@@ -405,7 +405,7 @@ describe('Sign', function () {
                 "note": note,
                 "genesisHash": genesisHash,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo
+                "reKeyTo": rekeyTo
             };
             let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo);
@@ -435,7 +435,7 @@ describe('Sign', function () {
                 "note": note,
                 "genesisHash": genesisHash,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo
+                "reKeyTo": rekeyTo
             };
             assert.throws(() => new algosdk.Transaction(o), new Error('Amount must be a positive number and smaller than 2^64-1'));
         });
@@ -467,7 +467,7 @@ describe('Sign', function () {
                 "voteLast": voteLast,
                 "voteKeyDilution": voteKeyDilution,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo,
+                "reKeyTo": rekeyTo,
                 "type": "keyreg"
             };
             let expectedTxn = new algosdk.Transaction(o);
@@ -514,7 +514,7 @@ describe('Sign', function () {
                 "assetFreeze": freeze,
                 "assetClawback": clawback,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo,
+                "reKeyTo": rekeyTo,
                 "type": "acfg"
             };
             let expectedTxn = new algosdk.Transaction(o);
@@ -561,7 +561,7 @@ describe('Sign', function () {
                 "assetFreeze": freeze,
                 "assetClawback": clawback,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo,
+                "reKeyTo": rekeyTo,
                 "type": "acfg"
             };
             let expectedTxn = new algosdk.Transaction(o);
@@ -608,7 +608,7 @@ describe('Sign', function () {
                 "assetFreeze": freeze,
                 "assetClawback": clawback,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo,
+                "reKeyTo": rekeyTo,
                 "type": "acfg"
             };
             assert.throws(() => new algosdk.Transaction(o), new Error('Total asset issuance must be a positive number and smaller than 2^64-1'));
@@ -650,7 +650,7 @@ describe('Sign', function () {
                 "assetFreeze": freeze,
                 "assetClawback": clawback,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo,
+                "reKeyTo": rekeyTo,
                 "type": "acfg"
             };
             assert.doesNotThrow(() => {
@@ -739,7 +739,7 @@ describe('Sign', function () {
                 "assetClawback": clawback,
                 "type": "acfg",
                 "note": note,
-                "rekeyTo": rekeyTo
+                "reKeyTo": rekeyTo
             };
             let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
@@ -790,7 +790,7 @@ describe('Sign', function () {
                 "assetIndex": assetIndex,
                 "type": "acfg",
                 "note": note,
-                "rekeyTo": rekeyTo
+                "reKeyTo": rekeyTo
             };
             let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
@@ -828,7 +828,7 @@ describe('Sign', function () {
                 "note": note,
                 "assetRevocationTarget": revocationTarget,
                 "closeRemainderTo": closeRemainderTo,
-                "rekeyTo": rekeyTo
+                "reKeyTo": rekeyTo
             };
             let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
@@ -862,7 +862,7 @@ describe('Sign', function () {
                 "freezeState" : freezeState,
                 "note": note,
                 "genesisID": genesisID,
-                "rekeyTo": rekeyTo
+                "reKeyTo": rekeyTo
             };
             let expectedTxn = new algosdk.Transaction(o);
             let actualTxn = algosdk.makeAssetFreezeTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
