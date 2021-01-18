@@ -56,7 +56,7 @@ function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, n
         "note": note,
         "suggestedParams": suggestedParams,
         "type": "pay",
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -134,7 +134,7 @@ function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectio
         "voteKeyDilution": voteKeyDilution,
         "suggestedParams": suggestedParams,
         "type": "keyreg",
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -230,7 +230,7 @@ function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defa
         "assetFreeze": freeze,
         "assetClawback": clawback,
         "type": "acfg",
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -314,7 +314,7 @@ function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
         "assetClawback": clawback,
         "type": "acfg",
         "note": note,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -376,7 +376,7 @@ function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggeste
         "assetIndex": assetIndex,
         "type": "acfg",
         "note": note,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -444,7 +444,7 @@ function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTar
         "freezeState" : freezeState,
         "note": note,
         "suggestedParams": suggestedParams,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
@@ -524,7 +524,7 @@ function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, rev
         "note": note,
         "assetRevocationTarget": revocationTarget,
         "closeRemainderTo": closeRemainderTo,
-        "rekeyTo": rekeyTo
+        "reKeyTo": rekeyTo
     };
     return new txnBuilder.Transaction(o);
 }
