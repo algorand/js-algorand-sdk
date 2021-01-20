@@ -185,9 +185,6 @@ function makeLogicSig(program, args) {
  * @throws error on failure
  */
 function signLogicSigTransaction(txn, lsig) {
-    if (!lsig.verify(address.decodeAddress(txn.from).publicKey)) {
-        throw new Error("invalid signature");
-    }
     let algoTxn = new txnBuilder.Transaction(txn);
     return signLogicSigTransactionObject(algoTxn, lsig);
 }
@@ -200,10 +197,23 @@ function signLogicSigTransaction(txn, lsig) {
  * @returns {Object} Object containing txID and blob representing signed transaction.
  */
 function signLogicSigTransactionObject(txn, lsig) {
-    let lstx = {
+    const lstx = {
         lsig: lsig.get_obj_for_encoding(),
         txn: txn.get_obj_for_encoding()
     };
+
+    const isDelegated = lsig.sig || lsig.msig;
+    if (isDelegated) {
+        if (!lsig.verify(txn.from.publicKey)) {
+            throw new Error("invalid signature");
+        }
+    } else {
+        // add AuthAddr if signing with a different program than From indicates for non-delegated LogicSig
+        const programAddr = lsig.address();
+        if (programAddr !== address.encodeAddress(txn.from.publicKey)) {
+            lstx.sgnr = Buffer.from(address.decodeAddress(programAddr).publicKey);
+        }
+    }
 
     return {
         "txID": txn.txID().toString(),
