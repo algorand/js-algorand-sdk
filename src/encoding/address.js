@@ -17,28 +17,18 @@ const INVALID_MSIG_PK = new Error("bad multisig public key - wrong length");
 const UNEXPECTED_PK_LEN = new Error("nacl public key length is not 32 bytes");
 
 /**
- * isValidAddress takes an Algorand address and checks if valid.
- * @param address Algorand address
+ * isValidAddress checks if a string is a valid Algorand address.
+ * @param {string} address an Algorand address with checksum.
  * @returns {boolean} true if valid, false otherwise
  */
 function isValidAddress(address) {
-    if (typeof address !== "string") return false;
-
-    if (address.length !== ALGORAND_ADDRESS_LENGTH) return false;
-
     // Try to decode
-    let decoded;
     try {
-        decoded = decodeAddress(address);
+        decodeAddress(address);
     } catch (e) {
         return false;
     }
-
-    // Compute checksum
-    let checksum = nacl.genericHash(decoded.publicKey).slice(nacl.HASH_BYTES_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH,nacl.HASH_BYTES_LENGTH);
-
-    // Check if the checksum and the address are equal
-    return utils.arrayEqual(checksum, decoded.checksum);
+    return true;
 }
 
 /**
@@ -47,7 +37,8 @@ function isValidAddress(address) {
  * @returns {{publicKey: Uint8Array, checksum: Uint8Array}} the decoded form of the address's public key and checksum
  */
 function decodeAddress(address) {
-    if (!(typeof address === "string" || address instanceof String)) throw MALFORMED_ADDRESS_ERROR;
+    if (!(typeof address === "string" || address instanceof String) || address.length !== ALGORAND_ADDRESS_LENGTH)
+        throw MALFORMED_ADDRESS_ERROR;
 
     //try to decode
     let decoded = base32.decode.asBytes(address);
@@ -55,8 +46,15 @@ function decodeAddress(address) {
     // Sanity check
     if (decoded.length !== ALGORAND_ADDRESS_BYTE_LENGTH) throw MALFORMED_ADDRESS_ERROR;
 
+    // Find publickey and checksum
     let pk = new Uint8Array(decoded.slice(0, ALGORAND_ADDRESS_BYTE_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH));
     let cs = new Uint8Array(decoded.slice(nacl.PUBLIC_KEY_LENGTH, ALGORAND_ADDRESS_BYTE_LENGTH));
+
+    // Compute checksum
+    let checksum = nacl.genericHash(pk).slice(nacl.HASH_BYTES_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH,nacl.HASH_BYTES_LENGTH);
+
+    // Check if the checksum and the address are equal
+    if(!utils.arrayEqual(checksum, cs)) throw MALFORMED_ADDRESS_ERROR;
 
     return {"publicKey": pk, "checksum": cs}
 }
