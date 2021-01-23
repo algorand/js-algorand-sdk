@@ -11,6 +11,7 @@ const ALGORAND_ZERO_ADDRESS_STRING = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 const MULTISIG_PREIMG2ADDR_PREFIX = new Uint8Array([77, 117, 108, 116, 105, 115, 105, 103, 65, 100, 100, 114]);
 
 const MALFORMED_ADDRESS_ERROR = new Error("address seems to be malformed");
+const CHECKSUM_ADDRESS_ERROR = new Error("wrong checksum for address");
 const INVALID_MSIG_VERSION = new Error("invalid multisig version");
 const INVALID_MSIG_THRESHOLD = new Error("bad multisig threshold");
 const INVALID_MSIG_PK = new Error("bad multisig public key - wrong length");
@@ -54,7 +55,7 @@ function decodeAddress(address) {
     let checksum = nacl.genericHash(pk).slice(nacl.HASH_BYTES_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH,nacl.HASH_BYTES_LENGTH);
 
     // Check if the checksum and the address are equal
-    if(!utils.arrayEqual(checksum, cs)) throw MALFORMED_ADDRESS_ERROR;
+    if(!utils.arrayEqual(checksum, cs)) throw CHECKSUM_ADDRESS_ERROR;
 
     return {"publicKey": pk, "checksum": cs}
 }
@@ -127,6 +128,7 @@ module.exports = {
     fromMultisigPreImg,
     fromMultisigPreImgAddrs,
     MALFORMED_ADDRESS_ERROR,
+    CHECKSUM_ADDRESS_ERROR,
     INVALID_MSIG_VERSION,
     INVALID_MSIG_THRESHOLD,
     INVALID_MSIG_PK,

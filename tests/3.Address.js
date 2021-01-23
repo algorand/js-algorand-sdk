@@ -1,16 +1,48 @@
 const assert = require('assert');
 const nacl = require("../src/nacl/naclWrappers");
 const algosdk = require('../index');
+const address = require('../src/encoding/address')
 
 describe('address', function () {
     describe('#isValid', function () {
+
+        const corret_address = "MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI";
+        const correct_publickey = new Uint8Array([
+            99, 180, 127, 102, 156, 252,  55, 227, 39, 198, 169, 232, 163,  16,  36, 130,
+            26, 223, 230, 213,   0, 153, 108, 192, 200, 197,  28,  77, 196,  50, 141, 112 ]);
+        const correct_checksum = new Uint8Array([ 122, 240, 2, 74 ]);
+        const malformed_address1 = "MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJ";
+        const malformed_address2 = 123;
+        const malformed_address3 = "MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACererZQGI113RBSRVYHV4ACJI";
+        const wrong_checksum_address = "MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJG";
+
+        // Check core functions
         it('should verify a valid Algorand address', function () {
-            assert.ok(algosdk.isValidAddress("MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI"));
+            const decoded_address = algosdk.decodeAddress(corret_address);
+            assert.deepStrictEqual(decoded_address.publicKey, correct_publickey);
+            assert.deepStrictEqual(decoded_address.checksum, correct_checksum);
+        });
+
+        it('should fail to verify a malformed Algorand address', function () {
+            assert.throws(() => { algosdk.decodeAddress(malformed_address1) }, (err) => err === address.MALFORMED_ADDRESS_ERROR);
+            assert.throws(() => { algosdk.decodeAddress(malformed_address2) }, (err) => err === address.MALFORMED_ADDRESS_ERROR);
+            // Catch an exception possibly thrown by base32 decoding function
+            assert.throws(() => { algosdk.decodeAddress(malformed_address3) }, (err) => err.message === "Invalid base32 characters");
+        });
+
+        it('should fail to verify a checksum for an invalid Algorand address', function () {
+            assert.throws(() => { algosdk.decodeAddress(wrong_checksum_address) }, (err) => err === address.CHECKSUM_ADDRESS_ERROR);
+       });
+
+        // Check helper functions
+        it('should verify a valid Algorand address', function () {
+            assert.ok(algosdk.isValidAddress(corret_address));
         });
 
         it('should fail to verify an invalid Algorand address', function () {
-            assert.strictEqual(algosdk.isValidAddress("MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJG"), false);
+            assert.strictEqual(algosdk.isValidAddress(malformed_address1), false);
         });
+
     });
 
     describe('encode, decode', function () {
