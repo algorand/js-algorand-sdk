@@ -23,7 +23,7 @@ Include this line in your HTML.
 
 To build a new version of the library for browsers, run:
 ```bash
-npm build
+npm run build
 ```
 
 ### Testing
