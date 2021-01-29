@@ -4,32 +4,41 @@ const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
  * Parse JSON with additional options.
  * @param {string} str The JSON string to parse.
  * @param {object} options Parsing options.
- * @param {boolean} options.useBigInt If true, this option will cause all integers in the JSON
- *   string to be parsed as BigInts. If false, this option will parse integers as Numbers but will
- *   throw an error if an integer larger than Number.MAX_SAFE_INTEGER is included in the JSON.
- *   Defaults to false.
+ * @param {"default" | "safe" | "mixed" | "bigint"} options.intDecoding Configure how integers in
+ *   this request's JSON response will be decoded.
+ * 
+ *   The options are:
+ *   * "default": All integers will be decoded as Numbers, meaning any values greater than
+ *     Number.MAX_SAFE_INTEGER will lose precision.
+ *   * "safe": All integers will be decoded as Numbers, but if any values are greater than
+ *     Number.MAX_SAFE_INTEGER an error will be thrown.
+ *   * "mixed": Integers will be decoded as Numbers if they are less than or equal to
+ *     Number.MAX_SAFE_INTEGER, otherwise they will be decoded as BigInts.
+ *   * "bigint": All integers will be decoded as BigInts.
+ *   
+ *   Defaults to "default" if not included.
  */
 function parseJSON(str, options=undefined) {
-    const useBigInt = options ? options.useBigInt : false;
+    const intDecoding = options && options.intDecoding ? options.intDecoding : 'default';
     const parsed = JSONbig.parse(str, function (_, value) {
         if (value != null && typeof value === 'object' && Object.getPrototypeOf(value) == null) {
             // for some reason the Objects returned by JSONbig.parse have a null prototype, so we
             // need to fix that.
             Object.setPrototypeOf(value, Object.prototype);
         } else if (typeof value === 'bigint') {
-            if (useBigInt) {
+            if (intDecoding === 'bigint' || (intDecoding === 'mixed' && value > Number.MAX_SAFE_INTEGER)) {
                 return value;
             }
 
             // JSONbig.parse converts number to BigInts if they are >= 10**15. This is smaller than
             // Number.MAX_SAFE_INTEGER, so we can convert some BigInts back to normal numbers.
-            if (value <= Number.MAX_SAFE_INTEGER) {
+            if (intDecoding === 'default' || intDecoding === 'mixed') {
                 return Number(value);
             }
 
-            throw new Error("Integer exceeds maximum safe integer: " + value.toString() + ". Try parsing with the useBigInt option enabled.");
+            throw new Error("Integer exceeds maximum safe integer: " + value.toString() + ". Try parsing with a different intDecoding option.");
         } else if (typeof value === 'number') {
-            if (useBigInt && Number.isInteger(value)) {
+            if (intDecoding === 'bigint' && Number.isInteger(value)) {
                 return BigInt(value);
             }
         }

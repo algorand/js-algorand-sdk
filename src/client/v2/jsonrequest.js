@@ -5,7 +5,7 @@ class JSONRequest {
     constructor(client) {
         this.c = client;
         this.query = {};
-        this.requestBigInt = false;
+        this.intDecoding = 'default';
     }
 
     /**
@@ -21,19 +21,33 @@ class JSONRequest {
 	 * @returns {Promise<object>} A promise which resolves to the response data.
 	 */
 	async do(headers = {}) {
-		let res = await this.c.get(this._path(), this.query, headers, this.requestBigInt);
+        const jsonOptions = {};
+        if (this.intDecoding !== 'default') {
+            jsonOptions.intDecoding = this.intDecoding;
+        }
+		const res = await this.c.get(this._path(), this.query, headers, jsonOptions);
 		return res.body;
 	};
 
     /**
-     * Configure the useBigInt option. If this option is set for a request, all integers in the
-     * response will be decoded as BigInts. If this option is not set, all integers will be decoded
-     * as Numbers and if the response contains any integers greater than Number.MAX_SAFE_INTEGER an
-     * error will be thrown.
-     * @param {boolean} enabled Whether to enable BigInt support for this request. Defaults to true.
+     * Configure how integers in this request's JSON response will be decoded.
+     * 
+     * The options are:
+     * * "default": Integers will be decoded according to JSON.parse, meaning they will all be
+     *   Numbers and any values greater than Number.MAX_SAFE_INTEGER will lose precision.
+     * * "safe": All integers will be decoded as Numbers, but if any values are greater than
+     *   Number.MAX_SAFE_INTEGER an error will be thrown.
+     * * "mixed": Integers will be decoded as Numbers if they are less than or equal to
+     *   Number.MAX_SAFE_INTEGER, otherwise they will be decoded as BigInts.
+     * * "bigint": All integers will be decoded as BigInts.
+     * 
+     * @param {"default" | "safe" | "mixed" | "bigint"} method The method to use when parsing the
+     *   response for this request. Must be one of "default", "safe", "mixed", or "bigint".
      */
-    useBigInt(enabled=true) {
-        this.requestBigInt = enabled;
+    setIntDecoding(method) {
+        if (method !== 'default' && method !== 'safe' && method !== 'mixed' && method !== 'bigint')
+            throw new Error(`Invalid method for int decoding: ${method}`);
+        this.intDecoding = method;
         return this;
     }
 }

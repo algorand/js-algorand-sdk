@@ -976,7 +976,7 @@ module.exports = function getSteps(options) {
     
     Then("the asset info should match the expected asset info", function () {
         for (var k in this.assetTestFixture.expectedParams) {
-            assert.equal(true, this.assetTestFixture.expectedParams[k] === this.assetTestFixture.queriedParams[k] || ((!this.assetTestFixture.expectedParams[k]) && (!this.assetTestFixture.queriedParams[k])))
+            assert.strictEqual(true, this.assetTestFixture.expectedParams[k] === this.assetTestFixture.queriedParams[k] || ((!this.assetTestFixture.expectedParams[k]) && (!this.assetTestFixture.queriedParams[k])))
         }
     });
     
@@ -1528,16 +1528,16 @@ module.exports = function getSteps(options) {
     
     Then('the parsed response should equal the mock response.', function () {
         if (this.expectedMockResponseCode == 200) {
-            assert.equal(JSON.stringify(JSON.parse(expectedMockResponse)), JSON.stringify(this.actualMockResponse));
+            assert.strictEqual(JSON.stringify(JSON.parse(expectedMockResponse)), JSON.stringify(this.actualMockResponse));
         }
     });
     
     Then('expect error string to contain {string}', function (expectedErrorString) {
         if (expectedErrorString == 'nil') {
-            assert.equal("", globalErrForExamination);
+            assert.strictEqual("", globalErrForExamination);
             return;
         }
-        assert.equal(expectedErrorString, globalErrForExamination);
+        assert.strictEqual(expectedErrorString, globalErrForExamination);
     });
     
     Given('mock server recording request paths', function () {
@@ -1562,7 +1562,7 @@ module.exports = function getSteps(options) {
         } else if (indexerSeenRequests.length != 0) {
             actualRequestPath = indexerSeenRequests[0]['url'];
         }
-        assert.equal(expectedRequestPath, actualRequestPath);
+        assert.strictEqual(expectedRequestPath, actualRequestPath);
     });
     
     When('we make a Pending Transaction Information against txid {string} with max {int}', function (txid, max) {
@@ -1629,7 +1629,7 @@ module.exports = function getSteps(options) {
     
     Then('the parsed Pending Transaction Information response should have sender {string}', function (sender) {
         let actualSender = algosdk.encodeAddress(anyPendingTransactionInfoResponse['txn']['txn']['snd']);
-        assert.equal(sender, actualSender);
+        assert.strictEqual(sender, actualSender);
     });
     
     let anyPendingTransactionsInfoResponse;
@@ -1639,9 +1639,9 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Pending Transactions Information response should contain an array of len {int} and element number {int} should have sender {string}', function (len, idx, sender) {
-        assert.equal(len, anyPendingTransactionsInfoResponse['top-transactions'].length);
+        assert.strictEqual(len, anyPendingTransactionsInfoResponse['top-transactions'].length);
         if (len != 0) {
-            assert.equal(sender, algosdk.encodeAddress(anyPendingTransactionsInfoResponse['top-transactions'][idx]['txn']['snd']));
+            assert.strictEqual(sender, algosdk.encodeAddress(anyPendingTransactionsInfoResponse['top-transactions'][idx]['txn']['snd']));
         }
     });
     
@@ -1652,7 +1652,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Send Raw Transaction response should have txid {string}', function (txid) {
-        assert.equal(txid, anySendRawTransactionResponse['txId']);
+        assert.strictEqual(txid, anySendRawTransactionResponse['txId']);
     });
     
     let anyPendingTransactionsByAddressResponse;
@@ -1662,13 +1662,13 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Pending Transactions By Address response should contain an array of len {int} and element number {int} should have sender {string}', function (len, idx, sender) {
-        assert.equal(len, anyPendingTransactionsByAddressResponse['total-transactions']);
+        assert.strictEqual(len, anyPendingTransactionsByAddressResponse['total-transactions']);
         if (len == 0) {
             return
         }
         let actualSender = anyPendingTransactionsByAddressResponse['top-transactions'][idx]['txn']['snd']
         actualSender = algosdk.encodeAddress(actualSender);
-        assert.equal(sender, actualSender);
+        assert.strictEqual(sender, actualSender);
     });
     
     let anyNodeStatusResponse;
@@ -1678,7 +1678,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Node Status response should have a last round of {int}', function (lastRound) {
-        assert.equal(lastRound, anyNodeStatusResponse["last-round"]);
+        assert.strictEqual(lastRound, anyNodeStatusResponse["last-round"]);
     });
     
     let anyLedgerSupplyResponse;
@@ -1688,9 +1688,9 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}', function (totalMoney, onlineMoney, round) {
-        assert.equal(totalMoney, anyLedgerSupplyResponse['total-money']);
-        assert.equal(onlineMoney, anyLedgerSupplyResponse['online-money']);
-        assert.equal(round, anyLedgerSupplyResponse['current_round']);
+        assert.strictEqual(totalMoney, anyLedgerSupplyResponse['total-money']);
+        assert.strictEqual(onlineMoney, anyLedgerSupplyResponse['online-money']);
+        assert.strictEqual(round, anyLedgerSupplyResponse['current_round']);
     });
     
     When('we make any Status After Block call', async function () {
@@ -1698,7 +1698,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Status After Block response should have a last round of {int}', function (lastRound) {
-        assert.equal(lastRound, anyNodeStatusResponse['last-round']);
+        assert.strictEqual(lastRound, anyNodeStatusResponse['last-round']);
     });
     
     let anyAccountInformationResponse;
@@ -1708,7 +1708,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Account Information response should have address {string}', function (address) {
-        assert.equal(address, anyAccountInformationResponse.address);
+        assert.strictEqual(address, anyAccountInformationResponse.address);
     });
     
     let anyBlockResponse;
@@ -1729,7 +1729,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Suggested Transaction Parameters response should have first round valid of {int}', function (firstRound) {
-        assert.equal(firstRound, anySuggestedTransactionsResponse.firstRound);
+        assert.strictEqual(firstRound, anySuggestedTransactionsResponse.firstRound);
     });
     
     When('we make a Lookup Asset Balances call against asset index {int} with limit {int} nextToken {string} round {int} currencyGreaterThan {int} currencyLessThan {int}', async function (index, limit, nextToken, round, currencyGreater, currencyLesser) {
@@ -1861,22 +1861,22 @@ module.exports = function getSteps(options) {
     When('we make any LookupAssetBalances call', async function () {
         anyLookupAssetBalancesResponse = await this.indexerClient
             .lookupAssetBalances()
-            .useBigInt()
+            .setIntDecoding('mixed')
             .do();
     });
     
     Then('the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}', function (round, length, idx, address, amount, frozenStateAsString) {
-        assert.equal(round, anyLookupAssetBalancesResponse['current-round']);
-        assert.equal(length, anyLookupAssetBalancesResponse['balances'].length);
-        if (length == 0) {
+        assert.strictEqual(round, anyLookupAssetBalancesResponse['current-round']);
+        assert.strictEqual(length, anyLookupAssetBalancesResponse['balances'].length);
+        if (length === 0) {
             return
         }
         let frozenState = false;
         if (frozenStateAsString === "true") {
             frozenState = true;
         }
-        assert.equal(amount, anyLookupAssetBalancesResponse['balances'][idx]['amount']);
-        assert.equal(frozenState, anyLookupAssetBalancesResponse['balances'][idx]['is-frozen']);
+        assert.strictEqual(amount, anyLookupAssetBalancesResponse['balances'][idx]['amount']);
+        assert.strictEqual(frozenState, anyLookupAssetBalancesResponse['balances'][idx]['is-frozen']);
     });
     
     let anyLookupAssetTransactionsResponse;
@@ -1884,17 +1884,17 @@ module.exports = function getSteps(options) {
     When('we make any LookupAssetTransactions call', async function () {
         anyLookupAssetTransactionsResponse = await this.indexerClient
             .lookupAssetTransactions()
-            .useBigInt()
+            .setIntDecoding('mixed')
             .do();
     });
     
     Then('the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (round, length, idx, sender) {
-        assert.equal(round, anyLookupAssetTransactionsResponse['current-round']);
-        assert.equal(length, anyLookupAssetTransactionsResponse['transactions'].length);
-        if (length == 0) {
+        assert.strictEqual(round, anyLookupAssetTransactionsResponse['current-round']);
+        assert.strictEqual(length, anyLookupAssetTransactionsResponse['transactions'].length);
+        if (length === 0) {
             return
         }
-        assert.equal(sender, anyLookupAssetTransactionsResponse['transactions'][idx]['sender']);
+        assert.strictEqual(sender, anyLookupAssetTransactionsResponse['transactions'][idx]['sender']);
     });
     
     let anyLookupAccountTransactionsResponse;
@@ -1904,12 +1904,12 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}', function (round, length, idx, sender) {
-        assert.equal(round, anyLookupAccountTransactionsResponse['current-round']);
-        assert.equal(length, anyLookupAccountTransactionsResponse['transactions'].length);
+        assert.strictEqual(round, anyLookupAccountTransactionsResponse['current-round']);
+        assert.strictEqual(length, anyLookupAccountTransactionsResponse['transactions'].length);
         if (length == 0) {
             return
         }
-        assert.equal(sender, anyLookupAccountTransactionsResponse['transactions'][idx]['sender']);
+        assert.strictEqual(sender, anyLookupAccountTransactionsResponse['transactions'][idx]['sender']);
     });
     
     let anyLookupBlockResponse;
@@ -1919,7 +1919,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed LookupBlock response should have previous block hash {string}', function (prevHash) {
-        assert.equal(prevHash, anyLookupBlockResponse['previous-block-hash']);
+        assert.strictEqual(prevHash, anyLookupBlockResponse['previous-block-hash']);
     });
     
     let anyLookupAccountByIDResponse;
@@ -1929,7 +1929,7 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed LookupAccountByID response should have address {string}', function (address) {
-        assert.equal(address, anyLookupAccountByIDResponse['account']['address'])
+        assert.strictEqual(address, anyLookupAccountByIDResponse['account']['address'])
     });
     
     let anyLookupAssetByIDResponse;
@@ -1937,12 +1937,12 @@ module.exports = function getSteps(options) {
     When('we make any LookupAssetByID call', async function () {
         anyLookupAssetByIDResponse = await this.indexerClient
             .lookupAssetByID()
-            .useBigInt()
+            .setIntDecoding('mixed')
             .do();
     });
     
     Then('the parsed LookupAssetByID response should have index {int}', function (idx) {
-        assert.equal(idx, anyLookupAssetByIDResponse["asset"]["index"]);
+        assert.strictEqual(idx, anyLookupAssetByIDResponse["asset"]["index"]);
     });
     
     let anySearchAccountsResponse;
@@ -1952,21 +1952,21 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}', function (round, length, idx, address) {
-        assert.equal(round, anySearchAccountsResponse['current-round']);
-        assert.equal(length, anySearchAccountsResponse['accounts'].length);
+        assert.strictEqual(round, anySearchAccountsResponse['current-round']);
+        assert.strictEqual(length, anySearchAccountsResponse['accounts'].length);
         if (length == 0) {
             return;
         }
-        assert.equal(address, anySearchAccountsResponse['accounts'][idx]['address']);
+        assert.strictEqual(address, anySearchAccountsResponse['accounts'][idx]['address']);
     });
     
     Then('the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have authorizing address {string}', function (round, length, idx, authAddress) {
-        assert.equal(round, anySearchAccountsResponse['current-round']);
-        assert.equal(length, anySearchAccountsResponse['accounts'].length);
+        assert.strictEqual(round, anySearchAccountsResponse['current-round']);
+        assert.strictEqual(length, anySearchAccountsResponse['accounts'].length);
         if (length == 0) {
             return;
         }
-        assert.equal(authAddress, anySearchAccountsResponse['accounts'][idx]['auth-addr']);
+        assert.strictEqual(authAddress, anySearchAccountsResponse['accounts'][idx]['auth-addr']);
     });
     
     let anySearchForTransactionsResponse;
@@ -1976,21 +1976,21 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}', function (round, length, idx, sender) {
-        assert.equal(round, anySearchForTransactionsResponse['current-round']);
-        assert.equal(length, anySearchForTransactionsResponse['transactions'].length);
+        assert.strictEqual(round, anySearchForTransactionsResponse['current-round']);
+        assert.strictEqual(length, anySearchForTransactionsResponse['transactions'].length);
         if (length == 0) {
             return;
         }
-        assert.equal(sender, anySearchForTransactionsResponse['transactions'][idx]['sender']);
+        assert.strictEqual(sender, anySearchForTransactionsResponse['transactions'][idx]['sender']);
     });
     
     Then('the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have rekey-to {string}', function (round, length, idx, rekeyTo) {
-        assert.equal(round, anySearchForTransactionsResponse['current-round']);
-        assert.equal(length, anySearchForTransactionsResponse['transactions'].length);
+        assert.strictEqual(round, anySearchForTransactionsResponse['current-round']);
+        assert.strictEqual(length, anySearchForTransactionsResponse['transactions'].length);
         if (length == 0) {
             return;
         }
-        assert.equal(rekeyTo, anySearchForTransactionsResponse['transactions'][idx]['rekey-to']);
+        assert.strictEqual(rekeyTo, anySearchForTransactionsResponse['transactions'][idx]['rekey-to']);
     });
     
     let anySearchForAssetsResponse;
@@ -2000,12 +2000,12 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}', function (round, length, idx, assetIndex) {
-        assert.equal(round, anySearchForAssetsResponse['current-round']);
-        assert.equal(length, anySearchForAssetsResponse['assets'].length);
+        assert.strictEqual(round, anySearchForAssetsResponse['current-round']);
+        assert.strictEqual(length, anySearchForAssetsResponse['assets'].length);
         if (length == 0) {
             return;
         }
-        assert.equal(assetIndex, anySearchForAssetsResponse['assets'][idx]['index']);
+        assert.strictEqual(assetIndex, anySearchForAssetsResponse['assets'][idx]['index']);
     });
     
     ////////////////////////////////////
@@ -2030,7 +2030,7 @@ module.exports = function getSteps(options) {
     
     Then('I receive status code {int}', async function(code) {
         // Currently only supports the good case. code != 200 should throw an exception.
-        assert.equal(code, 200)
+        assert.strictEqual(code, 200)
     });
     
     let integrationBlockResponse;
@@ -2041,9 +2041,9 @@ module.exports = function getSteps(options) {
     });
     
     Then('The block was confirmed at {int}, contains {int} transactions, has the previous block hash {string}', function (timestamp, numTransactions, prevHash) {
-        assert.equal(timestamp, integrationBlockResponse['timestamp']);
-        assert.equal(numTransactions, integrationBlockResponse['transactions'].length);
-        assert.equal(prevHash, integrationBlockResponse['previous-block-hash']);
+        assert.strictEqual(timestamp, integrationBlockResponse['timestamp']);
+        assert.strictEqual(numTransactions, integrationBlockResponse['transactions'].length);
+        assert.strictEqual(prevHash, integrationBlockResponse['previous-block-hash']);
     });
     
     let integrationLookupAccountResponse;
@@ -2055,38 +2055,38 @@ module.exports = function getSteps(options) {
     
     Then('The account has {int} assets, the first is asset {int} has a frozen status of {string} and amount {int}.', function (numAssets, firstAssetIndex, firstAssetFrozenStatus, firstAssetAmount) {
         let firstAssetFrozenBool = (firstAssetFrozenStatus == "true");
-        assert.equal(numAssets, integrationLookupAccountResponse['account']['assets'].length);
+        assert.strictEqual(numAssets, integrationLookupAccountResponse['account']['assets'].length);
         if (numAssets == 0) {
             return
         }
         let scrutinizedAsset = integrationLookupAccountResponse['account']['assets'][0];
-        assert.equal(firstAssetIndex, scrutinizedAsset['asset-id']);
-        assert.equal(firstAssetFrozenBool, scrutinizedAsset['is-frozen']);
-        assert.equal(firstAssetAmount, scrutinizedAsset['amount']);
+        assert.strictEqual(firstAssetIndex, scrutinizedAsset['asset-id']);
+        assert.strictEqual(firstAssetFrozenBool, scrutinizedAsset['is-frozen']);
+        assert.strictEqual(firstAssetAmount, scrutinizedAsset['amount']);
     });
     
     Then('The account created {int} assets, the first is asset {int} is named {string} with a total amount of {int} {string}', function (numCreatedAssets, firstCreatedAssetIndex, assetName, assetIssuance, assetUnit) {
-        assert.equal(numCreatedAssets, integrationLookupAccountResponse['account']['created-assets'].length);
+        assert.strictEqual(numCreatedAssets, integrationLookupAccountResponse['account']['created-assets'].length);
         let scrutinizedAsset = integrationLookupAccountResponse['account']['created-assets'][0];
-        assert.equal(firstCreatedAssetIndex, scrutinizedAsset['index']);
-        assert.equal(assetName, scrutinizedAsset['params']['name']);
-        assert.equal(assetIssuance, scrutinizedAsset['params']['total']);
-        assert.equal(assetUnit, scrutinizedAsset['params']['unit-name']);
+        assert.strictEqual(firstCreatedAssetIndex, scrutinizedAsset['index']);
+        assert.strictEqual(assetName, scrutinizedAsset['params']['name']);
+        assert.strictEqual(assetIssuance, scrutinizedAsset['params']['total']);
+        assert.strictEqual(assetUnit, scrutinizedAsset['params']['unit-name']);
     });
     
     Then('The account has {int} μalgos and {int} assets, {int} has {int}', function (microAlgos, numAssets, assetIndexToScrutinize, assetAmount) {
-        assert.equal(microAlgos, integrationLookupAccountResponse['account']['amount']);
+        assert.strictEqual(microAlgos, integrationLookupAccountResponse['account']['amount']);
         if (numAssets == 0) {
             return
         }
-        assert.equal(numAssets, integrationLookupAccountResponse['account']['assets'].length);
+        assert.strictEqual(numAssets, integrationLookupAccountResponse['account']['assets'].length);
         if (assetIndexToScrutinize == 0) {
             return
         }
         for (idx = 0; idx < integrationLookupAccountResponse['account']['assets'].length; idx++) {
             let scrutinizedAsset = integrationLookupAccountResponse['account']['assets'][idx];
             if (scrutinizedAsset['index'] == assetIndexToScrutinize) {
-                assert.equal(assetAmount, scrutinizedAsset['amount'])
+                assert.strictEqual(assetAmount, scrutinizedAsset['amount'])
             }
         }
     });
@@ -2100,14 +2100,14 @@ module.exports = function getSteps(options) {
     
     Then('The asset found has: {string}, {string}, {string}, {int}, {string}, {int}, {string}', function (name, units, creator, decimals, defaultFrozen, totalIssuance, clawback) {
         let assetParams = integrationLookupAssetResponse['asset']['params'];
-        assert.equal(name, assetParams['name']);
-        assert.equal(units, assetParams['unit-name']);
-        assert.equal(creator, assetParams['creator']);
-        assert.equal(decimals, assetParams['decimals']);
+        assert.strictEqual(name, assetParams['name']);
+        assert.strictEqual(units, assetParams['unit-name']);
+        assert.strictEqual(creator, assetParams['creator']);
+        assert.strictEqual(decimals, assetParams['decimals']);
         let defaultFrozenBool = (defaultFrozen == "true");
-        assert.equal(defaultFrozenBool, assetParams['default-frozen']);
-        assert.equal(totalIssuance, assetParams['total']);
-        assert.equal(clawback, assetParams['clawback']);
+        assert.strictEqual(defaultFrozenBool, assetParams['default-frozen']);
+        assert.strictEqual(totalIssuance, assetParams['total']);
+        assert.strictEqual(clawback, assetParams['clawback']);
     });
     
     let integrationLookupAssetBalancesResponse;
@@ -2124,15 +2124,15 @@ module.exports = function getSteps(options) {
     });
     
     Then('There are {int} with the asset, the first is {string} has {string} and {int}', function (numAccounts, firstAccountAddress, isFrozenString, accountAmount) {
-        assert.equal(numAccounts, integrationLookupAssetBalancesResponse['balances'].length)
+        assert.strictEqual(numAccounts, integrationLookupAssetBalancesResponse['balances'].length)
         if (numAccounts == 0) {
             return
         }
         let firstHolder = integrationLookupAssetBalancesResponse['balances'][0];
-        assert.equal(firstAccountAddress, firstHolder['address']);
+        assert.strictEqual(firstAccountAddress, firstHolder['address']);
         let isFrozenBool = (isFrozenString == "true");
-        assert.equal(isFrozenBool, firstHolder['is-frozen']);
-        assert.equal(accountAmount, firstHolder['amount']);
+        assert.strictEqual(isFrozenBool, firstHolder['is-frozen']);
+        assert.strictEqual(accountAmount, firstHolder['amount']);
     });
     
     let integrationSearchAccountsResponse;
@@ -2149,20 +2149,20 @@ module.exports = function getSteps(options) {
     });
     
     Then('There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}, {string}, {string}', function (numAccounts, pendingRewards, rewardsBase, rewards, withoutRewards, address, amount, status, type) {
-        assert.equal(numAccounts, integrationSearchAccountsResponse['accounts'].length)
+        assert.strictEqual(numAccounts, integrationSearchAccountsResponse['accounts'].length)
         if (numAccounts == 0) {
             return;
         }
         let scrutinizedAccount = integrationSearchAccountsResponse['accounts'][0];
-        assert.equal(pendingRewards,scrutinizedAccount['pending-rewards'])
-        assert.equal(rewardsBase,scrutinizedAccount['reward-base'])
-        assert.equal(rewards,scrutinizedAccount['rewards'])
-        assert.equal(withoutRewards,scrutinizedAccount['amount-without-pending-rewards'])
-        assert.equal(address,scrutinizedAccount['address'])
-        assert.equal(amount,scrutinizedAccount['amount'])
-        assert.equal(status,scrutinizedAccount['status'])
+        assert.strictEqual(pendingRewards,scrutinizedAccount['pending-rewards'])
+        assert.strictEqual(rewardsBase,scrutinizedAccount['reward-base'])
+        assert.strictEqual(rewards,scrutinizedAccount['rewards'])
+        assert.strictEqual(withoutRewards,scrutinizedAccount['amount-without-pending-rewards'])
+        assert.strictEqual(address,scrutinizedAccount['address'])
+        assert.strictEqual(amount,scrutinizedAccount['amount'])
+        assert.strictEqual(status,scrutinizedAccount['status'])
         if (type) {
-            assert.equal(type,scrutinizedAccount['sig-type'])
+            assert.strictEqual(type,scrutinizedAccount['sig-type'])
         }
     });
     
@@ -2174,13 +2174,13 @@ module.exports = function getSteps(options) {
     
     Then('The first account is online and has {string}, {int}, {int}, {int}, {string}, {string}', function (address, keyDilution, firstValid, lastValid, voteKey, selKey) {
         let scrutinizedAccount = integrationSearchAccountsResponse['accounts'][0];
-        assert.equal("Online",scrutinizedAccount['status'])
-        assert.equal(address,scrutinizedAccount['address'])
-        assert.equal(keyDilution,scrutinizedAccount['participation']['vote-key-dilution'])
-        assert.equal(firstValid,scrutinizedAccount['participation']['vote-first-valid'])
-        assert.equal(lastValid,scrutinizedAccount['participation']['vote-last-valid'])
-        assert.equal(voteKey,scrutinizedAccount['participation']['vote-participation-key'])
-        assert.equal(selKey,scrutinizedAccount['participation']['selection-participation-key'])
+        assert.strictEqual("Online",scrutinizedAccount['status'])
+        assert.strictEqual(address,scrutinizedAccount['address'])
+        assert.strictEqual(keyDilution,scrutinizedAccount['participation']['vote-key-dilution'])
+        assert.strictEqual(firstValid,scrutinizedAccount['participation']['vote-first-valid'])
+        assert.strictEqual(lastValid,scrutinizedAccount['participation']['vote-last-valid'])
+        assert.strictEqual(voteKey,scrutinizedAccount['participation']['vote-participation-key'])
+        assert.strictEqual(selKey,scrutinizedAccount['participation']['selection-participation-key'])
     });
     
     let integrationSearchTransactionsResponse;
@@ -2245,17 +2245,17 @@ module.exports = function getSteps(options) {
     });
     
     Then('there are {int} transactions in the response, the first is {string}.', function (numTransactions, txid) {
-        assert.equal(numTransactions, integrationSearchTransactionsResponse['transactions'].length);
+        assert.strictEqual(numTransactions, integrationSearchTransactionsResponse['transactions'].length);
         if (numTransactions == 0) {
             return;
         }
-        assert.equal(txid, integrationSearchTransactionsResponse['transactions'][0]['id']);
+        assert.strictEqual(txid, integrationSearchTransactionsResponse['transactions'][0]['id']);
     });
     
     Then('Every transaction has tx-type {string}', function (txType) {
         for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
             let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
-            assert.equal(txType, scrutinizedTxn['tx-type']);
+            assert.strictEqual(txType, scrutinizedTxn['tx-type']);
         }
     });
     
@@ -2275,14 +2275,14 @@ module.exports = function getSteps(options) {
         }
         for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
             let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
-            assert.equal(sigType, getSigTypeFromTxnResponse(scrutinizedTxn))
+            assert.strictEqual(sigType, getSigTypeFromTxnResponse(scrutinizedTxn))
         }
     });
     
     Then('Every transaction has round {int}', function (round) {
         for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
             let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
-            assert.equal(round, scrutinizedTxn['confirmed-round']);
+            assert.strictEqual(round, scrutinizedTxn['confirmed-round']);
         }
     });
     
@@ -2319,7 +2319,7 @@ module.exports = function getSteps(options) {
         }
         for (idx = 0; idx < integrationSearchTransactionsResponse['transactions'].length; idx++) {
             let scrutinizedTxn = integrationSearchTransactionsResponse['transactions'][idx];
-            assert.equal(assetId, extractIdFromTransaction(scrutinizedTxn));
+            assert.strictEqual(assetId, extractIdFromTransaction(scrutinizedTxn));
         }
     });
     
@@ -2365,11 +2365,11 @@ module.exports = function getSteps(options) {
     });
     
     Then('there are {int} assets in the response, the first is {int}.', function (numAssets, firstAssetId) {
-        assert.equal(numAssets, integrationSearchAssetsResponse['assets'].length);
+        assert.strictEqual(numAssets, integrationSearchAssetsResponse['assets'].length);
         if (numAssets == 0) {
             return
         }
-        assert.equal(firstAssetId, integrationSearchAssetsResponse['assets'][0]['index']);
+        assert.strictEqual(firstAssetId, integrationSearchAssetsResponse['assets'][0]['index']);
     });
     
     ////////////////////////////////////
@@ -2398,8 +2398,8 @@ module.exports = function getSteps(options) {
     });
     
     Then('the parsed Dryrun Response should have global delta {string} with {int}', function (key, action) {
-        assert.equal(dryrunResponse.txns[0]["global-delta"][0].key, key);
-        assert.equal(dryrunResponse.txns[0]["global-delta"][0].value.action, action)
+        assert.strictEqual(dryrunResponse.txns[0]["global-delta"][0].key, key);
+        assert.strictEqual(dryrunResponse.txns[0]["global-delta"][0].value.action, action)
     });
     
     When('I dryrun a {string} program {string}', async function (kind, program) {
@@ -2449,7 +2449,7 @@ module.exports = function getSteps(options) {
             msgs = res["app-call-messages"]
         }
         assert.ok(msgs.length > 0);
-        assert.equal(msgs[0], result);
+        assert.strictEqual(msgs[0], result);
     });
     
     let compileStatusCode;
@@ -2470,9 +2470,9 @@ module.exports = function getSteps(options) {
     });
     
     Then('it is compiled with {int} and {string} and {string}', function (status, result, hash) {
-        assert.equal(status, compileStatusCode);
-        assert.equal(result, compileResponse.result);
-        assert.equal(hash, compileResponse.hash);
+        assert.strictEqual(status, compileStatusCode);
+        assert.strictEqual(result, compileResponse.result);
+        assert.strictEqual(hash, compileResponse.hash);
     });
     
     ////////////////////////////////////
@@ -2648,7 +2648,7 @@ module.exports = function getSteps(options) {
     
     Then('the base{int} encoded signed transaction should equal {string}', function (base, base64golden) {
         let actualBase64 = Buffer.from(this.stx).toString("base64");
-        assert.equal(base64golden, actualBase64)
+        assert.strictEqual(base64golden, actualBase64)
     });
     
     Given('an algod v{int} client connected to {string} port {int} with token {string}', function (clientVersion, host, port, token) {

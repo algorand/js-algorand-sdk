@@ -1,5 +1,6 @@
 const assert = require('assert');
 const { Buffer } = require('buffer');
+const e = require('express');
 const algosdk = require('../index');
 const utils = require('../src/utils/utils');
 
@@ -87,134 +88,179 @@ describe('encoding', function () {
         it('should parse null', function () {
             const input = 'null';
 
-            const actualDefault = utils.parseJSON(input);
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expected = null;
+            for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
+                const expected = null;
 
-            assert.deepStrictEqual(actualDefault, expected);
-            assert.deepStrictEqual(actualBigInt, expected);
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
 
         it('should parse number', function () {
             const input = '17';
 
-            const actualDefault = utils.parseJSON(input);
-            const expectedDefault = 17;
+            for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
+                const expected = intDecoding === 'bigint' ? 17n : 17;
 
-            assert.deepStrictEqual(actualDefault, expectedDefault);
-
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expectedBigInt = 17n;
-            
-            assert.deepStrictEqual(actualBigInt, expectedBigInt);
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
 
         it('should parse empty object', function () {
             const input = '{}';
 
-            const actualDefault = utils.parseJSON(input);
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expected = {};
+            for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
+                const expected = {};
 
-            assert.deepStrictEqual(actualDefault, expected);
-            assert.deepStrictEqual(actualBigInt, expected);
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
 
         it('should parse populated object', function () {
             const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{},"f":true}';
 
-            const actualDefault = utils.parseJSON(input);
-            const expectedDefault = {
-                a: 1,
-                b: 'value',
-                c: [1,2,3],
-                d: null,
-                e: {},
-                f: true
-            };
+            for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
 
-            assert.deepStrictEqual(actualDefault, expectedDefault);
+                let expected;
+                if (intDecoding === 'bigint') {
+                    expected = {
+                        a: 1n,
+                        b: 'value',
+                        c: [1n,2n,3n],
+                        d: null,
+                        e: {},
+                        f: true
+                    };
+                } else {
+                    expected = {
+                        a: 1,
+                        b: 'value',
+                        c: [1,2,3],
+                        d: null,
+                        e: {},
+                        f: true
+                    };
+                }
 
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expectedBigInt = {
-                a: 1n,
-                b: 'value',
-                c: [1n,2n,3n],
-                d: null,
-                e: {},
-                f: true
-            };
-
-            assert.deepStrictEqual(actualBigInt, expectedBigInt);
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
 
         it('should parse object with BigInt', function () {
             const input = '{"a":0,"b":9007199254740991,"c":9007199254740992,"d":9223372036854775807}';
 
-            assert.throws(() => utils.parseJSON(input));
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expectedBigInt = {
-                a: 0n,
-                b: 9007199254740991n,
-                c: 9007199254740992n,
-                d: 9223372036854775807n
-            };
+            assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
 
-            assert.deepStrictEqual(actualBigInt, expectedBigInt);
+            for (const intDecoding of ['default', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
+
+                let expected;
+                if (intDecoding === 'bigint') {
+                    expected = {
+                        a: 0n,
+                        b: 9007199254740991n,
+                        c: 9007199254740992n,
+                        d: 9223372036854775807n
+                    };
+                } else if (intDecoding === 'mixed') {
+                    expected = {
+                        a: 0,
+                        b: 9007199254740991,
+                        c: 9007199254740992n,
+                        d: 9223372036854775807n
+                    };
+                } else {
+                    expected = {
+                        a: 0,
+                        b: 9007199254740991,
+                        c: Number(9007199254740992n),
+                        d: Number(9223372036854775807n)
+                    };
+                }
+
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
 
         it('should parse empty array', function () {
             const input = '[]';
 
-            const actualDefault = utils.parseJSON(input);
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expected = [];
+            for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
+                const expected = [];
 
-            assert.deepStrictEqual(actualDefault, expected);
-            assert.deepStrictEqual(actualBigInt, expected);
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
 
         it('should parse populated array', function () {
             const input = '["test",2,null,[7],{"a":9.5},true]';
 
-            const actualDefault = utils.parseJSON(input);
-            const expectedDefault = [
-                'test',
-                2,
-                null,
-                [7],
-                {a: 9.5},
-                true
-            ];
+            for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
 
-            assert.deepStrictEqual(actualDefault, expectedDefault);
+                let expected;
+                if (intDecoding === 'bigint') {
+                    expected = [
+                        'test',
+                        2n,
+                        null,
+                        [7n],
+                        {a: 9.5},
+                        true
+                    ];
+                } else {
+                    expected = [
+                        'test',
+                        2,
+                        null,
+                        [7],
+                        {a: 9.5},
+                        true
+                    ];
+                }
 
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expectedBigInt = [
-                'test',
-                2n,
-                null,
-                [7n],
-                {a: 9.5},
-                true
-            ];
-
-            assert.deepStrictEqual(actualBigInt, expectedBigInt);
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
 
         it('should parse array with BigInt', function () {
             const input = '[0,9007199254740991,9007199254740992,9223372036854775807]';
 
-            assert.throws(() => utils.parseJSON(input));
-            const actualBigInt = utils.parseJSON(input, { useBigInt: true });
-            const expectedBigInt = [
-                0n,
-                9007199254740991n,
-                9007199254740992n,
-                9223372036854775807n
-            ];
+            assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
 
-            assert.deepStrictEqual(actualBigInt, expectedBigInt);
+            for (const intDecoding of ['default', 'mixed', 'bigint']) {
+                const actual = utils.parseJSON(input, { intDecoding });
+
+                let expected;
+                if (intDecoding === 'bigint') {
+                    expected = [
+                        0n,
+                        9007199254740991n,
+                        9007199254740992n,
+                        9223372036854775807n
+                    ];
+                } else if (intDecoding === 'mixed') {
+                    expected = [
+                        0,
+                        9007199254740991,
+                        9007199254740992n,
+                        9223372036854775807n
+                    ];
+                } else {
+                    expected = [
+                        0,
+                        9007199254740991,
+                        Number(9007199254740992n),
+                        Number(9223372036854775807n)
+                    ];
+                }
+
+                assert.deepStrictEqual(actual, expected, `Error when intDecoding = ${intDecoding}`);
+            }
         });
     });
 });
