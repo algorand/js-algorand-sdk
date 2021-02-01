@@ -1,8 +1,8 @@
 const { JSONRequest } = require('../jsonrequest');
 
 class SearchForTransactions extends JSONRequest {
-	constructor(c) {
-		super(c);
+	constructor(c, intDecoding) {
+		super(c, intDecoding);
 	}
 
 	_path() {

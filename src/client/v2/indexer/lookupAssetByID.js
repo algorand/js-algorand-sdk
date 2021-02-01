@@ -1,8 +1,8 @@
 const { JSONRequest } = require('../jsonrequest');
 
 class LookupAssetByID extends JSONRequest {
-	constructor(c, index){
-		super(c);
+	constructor(c, intDecoding, index){
+		super(c, intDecoding);
 		this.index = index;
 	}
 

@@ -21,98 +21,117 @@ class IndexerClient {
             tokenHeader = {"X-Indexer-API-Token": tokenHeader};
         }
 
-        let c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
+        this.c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
 
-        /**
-         * Returns the health object for the service.
-         */
-        this.makeHealthCheck = function() {
-            return new mhc.MakeHealthCheck(c);
-        };
+        this.intDecoding = 'default';
+    }
 
-        /**
-         * Returns holder balances for the given asset.
-         * @param {number} index The asset ID to look up.
-         */
-        this.lookupAssetBalances = function(index) {
-            return new lasb.LookupAssetBalances(c, index);
-        };
+    /**
+     * Set the default int decoding method for all JSON requests this client creates.
+     * @param {"default" | "safe" | "mixed" | "bigint"} method The method to use when parsing the
+     *   response for request. Must be one of "default", "safe", "mixed", or "bigint". See
+     *   JSONRequest.setIntDecoding for more details about what each method does.
+     */
+    setIntEncoding(method) {
+        this.intDecoding = method;
+    }
 
-        /**
-         * Returns transactions relating to the given asset.
-         * @param {number} index The asset ID to look up.
-         */
-        this.lookupAssetTransactions = function (index) {
-            return new last.LookupAssetTransactions(c, index);
-        };
+    /**
+     * Get the default int decoding method for all JSON requests this client creates.
+     */
+    getIntEncoding() {
+        return this.intDecoding;
+    }
 
-        /**
-         * Returns transactions relating to the given account.
-         * @param {string} account The address of the account.
-         */
-        this.lookupAccountTransactions = function(account) {
-            return new lact.LookupAccountTransactions(c, account);
-        };
+    /**
+     * Returns the health object for the service.
+     */
+    makeHealthCheck() {
+        return new mhc.MakeHealthCheck(this.c, this.intDecoding);
+    }
 
-        /**
-         * Returns the block for the passed round.
-         * @param {number} round The number of the round to look up.
-         */
-        this.lookupBlock = function(round) {
-            return new lb.LookupBlock(c, round);
-        };
+    /**
+     * Returns holder balances for the given asset.
+     * @param {number} index The asset ID to look up.
+     */
+    lookupAssetBalances(index) {
+        return new lasb.LookupAssetBalances(this.c, this.intDecoding, index);
+    }
 
-        /**
-         * Returns information about the given account.
-         * @param {string} account The address of the account to look up.
-         */
-        this.lookupAccountByID = function(account){
-            return new lacbid.LookupAccountByID(c, account);
-        };
+    /**
+     * Returns transactions relating to the given asset.
+     * @param {number} index The asset ID to look up.
+     */
+    lookupAssetTransactions(index) {
+        return new last.LookupAssetTransactions(this.c, this.intDecoding, index);
+    }
 
-        /**
-         * Returns information about the passed asset.
-         * @param {number} index The ID of the asset ot look up.
-         */
-        this.lookupAssetByID = function(index) {
-            return new lasbid.LookupAssetByID(c, index);
-        };
+    /**
+     * Returns transactions relating to the given account.
+     * @param {string} account The address of the account.
+     */
+    lookupAccountTransactions(account) {
+        return new lact.LookupAccountTransactions(this.c, this.intDecoding, account);
+    }
 
-        /**
-         * Returns information about the passed application.
-         * @param {number} index The ID of the application to look up. 
-         */
-        this.lookupApplications = function(index) {
-            return new lapp.LookupApplications(c, index);
-        }
+    /**
+     * Returns the block for the passed round.
+     * @param {number} round The number of the round to look up.
+     */
+    lookupBlock(round) {
+        return new lb.LookupBlock(this.c, this.intDecoding, round);
+    }
 
-        /**
-         * Returns information about indexed accounts.
-         */
-        this.searchAccounts = function() {
-            return new sac.SearchAccounts(c);
-        };
+    /**
+     * Returns information about the given account.
+     * @param {string} account The address of the account to look up.
+     */
+    lookupAccountByID(account){
+        return new lacbid.LookupAccountByID(this.c, this.intDecoding, account);
+    }
 
-        /**
-         * Returns information about indexed transactions.
-         */
-        this.searchForTransactions = function() {
-            return new sft.SearchForTransactions(c);
-        };
+    /**
+     * Returns information about the passed asset.
+     * @param {number} index The ID of the asset ot look up.
+     */
+    lookupAssetByID(index) {
+        return new lasbid.LookupAssetByID(this.c, this.intDecoding, index);
+    }
 
-        /**
-         * Returns information about indexed assets.
-         */
-        this.searchForAssets = function() {
-            return new sfas.SearchForAssets(c);
-        };
+    /**
+     * Returns information about the passed application.
+     * @param {number} index The ID of the application to look up. 
+     */
+    lookupApplications(index) {
+        return new lapp.LookupApplications(this.c, this.intDecoding, index);
+    }
 
-        /**
-         * Returns information about indexed applications.
-         */
-        this.searchForApplications = function() {
-            return new sfapp.SearchForApplications(c);
-        }
+    /**
+     * Returns information about indexed accounts.
+     */
+    searchAccounts() {
+        return new sac.SearchAccounts(this.c, this.intDecoding);
+    }
+
+    /**
+     * Returns information about indexed transactions.
+     */
+    searchForTransactions() {
+        return new sft.SearchForTransactions(this.c, this.intDecoding);
+    }
+
+    /**
+     * Returns information about indexed assets.
+     */
+    searchForAssets() {
+        return new sfas.SearchForAssets(this.c, this.intDecoding);
+    }
+
+    /**
+     * Returns information about indexed applications.
+     */
+    searchForApplications() {
+        return new sfapp.SearchForApplications(this.c, this.intDecoding);
     }
 }
 module.exports = {IndexerClient};

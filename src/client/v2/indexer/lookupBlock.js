@@ -1,8 +1,8 @@
 const { JSONRequest } = require('../jsonrequest');
 
 class LookupBlock extends JSONRequest {
-	constructor(c, round) {
-		super(c);
+	constructor(c, intDecoding, round) {
+		super(c, intDecoding);
 		this.round = round;
 	}
 

@@ -1,11 +1,14 @@
 class JSONRequest {
     /**
      * @param {HttpClient} client HTTPClient object.
+     * @param {"default" | "safe" | "mixed" | "bigint" | undefined} intDecoding The method to use
+     *   for decoding integers from this request's response. See the setIntDecoding method for more
+     *   details.
      */
-    constructor(client) {
+    constructor(client, intDecoding = undefined) {
         this.c = client;
         this.query = {};
-        this.intDecoding = 'default';
+        this.intDecoding = intDecoding || 'default';
     }
 
     /**

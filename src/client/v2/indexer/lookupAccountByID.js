@@ -1,8 +1,8 @@
 const { JSONRequest } = require('../jsonrequest');
 
 class LookupAccountByID extends JSONRequest {
-	constructor(c, account) {
-		super(c);
+	constructor(c, intDecoding, account) {
+		super(c, intDecoding);
 		this.account = account;
 	}
 
