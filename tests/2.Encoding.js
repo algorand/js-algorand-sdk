@@ -1,6 +1,5 @@
 const assert = require('assert');
 const { Buffer } = require('buffer');
-const e = require('express');
 const algosdk = require('../index');
 const utils = require('../src/utils/utils');
 
