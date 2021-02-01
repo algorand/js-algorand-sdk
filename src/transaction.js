@@ -19,7 +19,7 @@ const ASSET_METADATA_HASH_LENGTH = 32;
  * */
 class Transaction {
     constructor({from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
-                 closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, 
+                 closeRemainderTo, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
                  assetIndex, assetTotal, assetDecimals, assetDefaultFrozen, assetManager, assetReserve,
                  assetFreeze, assetClawback, assetUnitName, assetName, assetURL, assetMetadataHash,
                  freezeAccount, freezeState, assetRevocationTarget,
@@ -27,7 +27,7 @@ class Transaction {
                  appGlobalInts, appGlobalByteSlices, appApprovalProgram, appClearProgram,
                  appArgs, appAccounts, appForeignApps, appForeignAssets,
                  type="pay", flatFee=false, suggestedParams=undefined,
-                 reKeyTo=undefined}) {
+                 reKeyTo=undefined, nonParticipation=false}) {
         this.name = "Transaction";
         this.tag = Buffer.from("TX");
 
@@ -126,6 +126,9 @@ class Transaction {
         if (selectionKey !== undefined) {
             selectionKey = Buffer.from(selectionKey, "base64");
         }
+        if (nonParticipation && (voteKey || selectionKey || voteFirst || voteLast || voteKeyDilution)) {
+            throw new Error('nonParticipation is true but participation params are present.');
+        }
 
         Object.assign(this, {
             from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,
@@ -135,7 +138,7 @@ class Transaction {
             freezeAccount, freezeState, assetRevocationTarget,
             appIndex, appOnComplete, appLocalInts, appLocalByteSlices, appGlobalInts, appGlobalByteSlices,
             appApprovalProgram, appClearProgram, appArgs, appAccounts, appForeignApps, appForeignAssets,
-            type, reKeyTo
+            type, reKeyTo, nonParticipation
         });
 
         // Modify Fee
@@ -211,6 +214,14 @@ class Transaction {
             if (txn.grp === undefined) delete txn.grp;
             if ((this.reKeyTo !== undefined)) {
                 txn.rekey = Buffer.from(this.reKeyTo.publicKey)
+            }
+            if (this.nonParticipation) {
+                txn.nonpart = true;
+                delete txn.votekey;
+                delete txn.selkey;
+                delete txn.votefst;
+                delete txn.votelst;
+                delete txn.votekd;
             }
             return txn;
         }
@@ -448,6 +459,7 @@ class Transaction {
             txn.voteKeyDilution = txnForEnc.votekd;
             txn.voteFirst = txnForEnc.votefst;
             txn.voteLast = txnForEnc.votelst;
+            txn.nonParticipation = txnForEnc.nonpart;
         }
         else if (txnForEnc.type === "acfg") {
             // asset creation, or asset reconfigure, or asset destruction

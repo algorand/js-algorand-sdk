@@ -44,7 +44,6 @@ function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, las
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams, rekeyTo=undefined) {
@@ -85,11 +84,13 @@ function makePaymentTxnWithSuggestedParamsFromObject(o) {
  * @param voteLast - last round on which voteKey is valid
  * @param voteKeyDilution - integer
  * @param rekeyTo - rekeyTo address, optional
+ * @param nonParticipation - configure whether the address wants to stop participating. If true,
+ *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
 function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-                                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, rekeyTo=undefined) {
+                                voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, rekeyTo=undefined, nonParticipation=false) {
     let suggestedParams = {
         "genesisHash": genesisHash,
         "genesisID": genesisID,
@@ -97,7 +98,7 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
         "lastRound": lastRound,
         "fee": fee
     };
-    return makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo);
+    return makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo, nonParticipation);
 }
 
 /**
@@ -120,10 +121,11 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
+ * @param nonParticipation - configure whether the address wants to stop participating. If true,
+ *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @returns {Transaction}
  */
-function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo=undefined) {
+function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo=undefined, nonParticipation=false) {
     let o = {
         "from": from,
         "note": note,
@@ -134,7 +136,8 @@ function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectio
         "voteKeyDilution": voteKeyDilution,
         "suggestedParams": suggestedParams,
         "type": "keyreg",
-        "reKeyTo": rekeyTo
+        "reKeyTo": rekeyTo,
+        "nonParticipation": nonParticipation,
     };
     return new txnBuilder.Transaction(o);
 }
@@ -142,7 +145,7 @@ function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectio
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
 function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
     return makeKeyRegistrationTxnWithSuggestedParams(o.from, o.note, o.voteKey, o.selectionKey, o.voteFirst, o.voteLast,
-        o.voteKeyDilution, o.suggestedParams, o.rekeyTo);
+        o.voteKeyDilution, o.suggestedParams, o.rekeyTo, o.nonParticipation);
 }
 
 /** makeAssetCreateTxn takes asset creation arguments and returns a Transaction object
