@@ -48,15 +48,15 @@ class AlgodClient {
     }
 
     healthCheck() {
-        return new hc.HealthCheck(this.c, this.intDecoding);
+        return new hc.HealthCheck(this.c);
     }
 
     versionsCheck() {
-        return new versions.Versions(this.c, this.intDecoding);
+        return new versions.Versions(this.c);
     }
 
     sendRawTransaction(stx_or_stxs) {
-        return new srt.SendRawTransaction(this.c, this.intDecoding, stx_or_stxs);
+        return new srt.SendRawTransaction(this.c, stx_or_stxs);
     }
 
     /**
@@ -72,7 +72,7 @@ class AlgodClient {
      * @param {number} roundNumber The round number of the block to get.
      */
     block(roundNumber) {
-        return new blk.Block(this.c, this.intDecoding, roundNumber);
+        return new blk.Block(this.c, roundNumber);
     }
 
     /**
@@ -80,14 +80,14 @@ class AlgodClient {
      * @param {string} txid The TxID string of the pending transaction to look up.
      */
     pendingTransactionInformation(txid) {
-        return new pti.PendingTransactionInformation(this.c, this.intDecoding, txid);
+        return new pti.PendingTransactionInformation(this.c, txid);
     }
 
     /**
      * Returns transactions that are pending in the pool.
      */
     pendingTransactionsInformation() {
-        return new pt.PendingTransactions(this.c, this.intDecoding);
+        return new pt.PendingTransactions(this.c);
     }
 
     /**
@@ -95,7 +95,7 @@ class AlgodClient {
      * @param {string} address The address of the sender.
      */
     pendingTransactionByAddress(address) {
-        return new ptba.PendingTransactionsByAddress(this.c, this.intDecoding, address);
+        return new ptba.PendingTransactionsByAddress(this.c, address);
     }
 
     /**
@@ -117,7 +117,7 @@ class AlgodClient {
      * Returns the common needed parameters for a new transaction.
      */
     getTransactionParams() {
-        return new sp.SuggestedParams(this.c, this.intDecoding);
+        return new sp.SuggestedParams(this.c);
     }
 
     /**
@@ -128,11 +128,11 @@ class AlgodClient {
     }
 
     compile(source) {
-        return new compile.Compile(this.c, this.intDecoding, source);
+        return new compile.Compile(this.c, source);
     }
 
     dryrun(dr) {
-        return new dryrun.Dryrun(this.c, this.intDecoding, dr);
+        return new dryrun.Dryrun(this.c, dr);
     }
 
     /**
