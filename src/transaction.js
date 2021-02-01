@@ -126,6 +126,9 @@ class Transaction {
         if (selectionKey !== undefined) {
             selectionKey = Buffer.from(selectionKey, "base64");
         }
+        if (nonParticipation && (voteKey || selectionKey || voteFirst || voteLast || voteKeyDilution)) {
+            throw new Error('nonParticipation is true but participation params are present.');
+        }
 
         Object.assign(this, {
             from, to, fee, amount, firstRound, lastRound, note, genesisID, genesisHash, lease,

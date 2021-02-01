@@ -476,6 +476,45 @@ describe('Sign', function () {
             assert.deepStrictEqual(expectedTxn, actualTxn);
         });
 
+        it('should be able to use helper to make a nonparticipating keyreg transaction', function() {
+            let from = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
+            let fee = 10;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let voteKey = "5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=";
+            let selectionKey = "oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=";
+            let voteKeyDilution = 1234;
+            let voteFirst = 123;
+            let voteLast = 456;
+            let nonParticipation = true;
+            let o = {
+                "from": from,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "nonParticipation": nonParticipation,
+                "genesisID": genesisID,
+                "reKeyTo": rekeyTo,
+                "type": "keyreg"
+            };
+            
+            assert.throws(
+                () => new algosdk.Transaction({ ...o, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution }),
+                new Error("nonParticipation is true but participation params are present.")
+            );
+
+            let expectedTxn = new algosdk.Transaction(o);
+            let actualTxn = algosdk.makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
+                undefined, undefined, undefined, undefined, undefined, rekeyTo, nonParticipation);
+            assert.deepStrictEqual(expectedTxn, actualTxn);
+        });
+
         it('should be able to use helper to make an asset create transaction', function() {
             let addr = "BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4";
             let fee = 10;
