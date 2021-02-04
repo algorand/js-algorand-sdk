@@ -14,14 +14,33 @@ const sac = require('../indexer/searchAccounts');
 
 
 class IndexerClient {
-    constructor(token, baseServer = "http://127.0.0.1", port = 8080, headers={}) {
-        // workaround to allow backwards compatibility for multiple headers
-        let tokenHeader = token;
-        if (typeof (tokenHeader) == 'string') {
-            tokenHeader = {"X-Indexer-API-Token": tokenHeader};
-        }
+    /**
+     * Creates a client for Indexer nodes
+     * Requires to be provided ONLY ONE of:
+     * - Connection Params (token, baseServer, port, headers)
+     * - HttpClient with 'get' and 'post' methods
+     * @param token api token
+     * @param baseServer node server address
+     * @param port node server port
+     * @param headers headers to be sent on every request
+     * @param customClient custom HttpClient to make the calls
+     * @returns IndexerClient 
+     */
+    constructor(token, baseServer = "http://127.0.0.1", port = 8080, headers = {}, customClient = undefined) {
+        let c;
 
-        let c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
+        if (customClient !== undefined) {
+            c = customClient;
+        } else {    
+            // workaround to allow backwards compatibility for multiple headers
+            let tokenHeader = token;
+            if (typeof (tokenHeader) == 'string') {
+                tokenHeader = {"X-Indexer-API-Token": tokenHeader};
+            }
+
+            // Get client
+            c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
+        }
 
         this.makeHealthCheck = function() {
             return new mhc.MakeHealthCheck(c);
