@@ -57,6 +57,84 @@ describe('LogicSig functionality', function () {
             );
         });
     });
+
+    describe('Signatures', function () {
+        it('should sign a basic transaction', function () {
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);
+            let lsig = algosdk.makeLogicSig(program);
+
+            let from = lsig.address();
+            let to = "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM";
+            let fee = 10;
+            let amount = 847;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let closeRemainderTo = undefined;
+            let txn = {
+                "from": from,
+                "to": to,
+                "fee": fee,
+                "amount": amount,
+                "closeRemainderTo": closeRemainderTo,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+                "reKeyTo": rekeyTo
+            };
+            
+            const actual = algosdk.signLogicSigTransaction(txn, lsig);
+            const expected = {
+                txID: 'D7H6THOHOCEWJYNWMKHVOR2W36KAJXSGG6DMNTHTBWONBCG4XATA',
+                blob: new Uint8Array(Buffer.from('gqRsc2lngaFsxAUBIAEBIqN0eG6Ko2FtdM0DT6NmZWXNCniiZnYzomdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsdj2kbm90ZcQDewzIo3JjdsQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6lcmVrZXnEIDAhUOuXI/Dnhg1MAE4rbltxOOB+7lUduJbsxucZf2DUo3NuZMQg9nYtrHWxmX1sLJYYBoBQdJDXlREv/n+3YLJzivnH8a2kdHlwZaNwYXk=', 'base64')),
+            };
+
+            assert.deepStrictEqual(actual, expected);
+        });
+
+        it('should sign a transaction with a different AuthAddr', function () {
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);
+            let lsig = algosdk.makeLogicSig(program);
+
+            let from = "XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU";
+            let to = "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM";
+            let fee = 10;
+            let amount = 847;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let closeRemainderTo = undefined;
+            let txn = {
+                "from": from,
+                "to": to,
+                "fee": fee,
+                "amount": amount,
+                "closeRemainderTo": closeRemainderTo,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "note": note,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+                "reKeyTo": rekeyTo
+            };
+            
+            const actual = algosdk.signLogicSigTransaction(txn, lsig);
+            const expected = {
+                txID: 'A6G4CMEV7QHLTMWDGU6BRYYVG3IXSSFTVDISEPALUHKIP4DNHQ4A',
+                blob: new Uint8Array(Buffer.from('g6Rsc2lngaFsxAUBIAEBIqRzZ25yxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraN0eG6Ko2FtdM0DT6NmZWXNCniiZnYzomdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsdj2kbm90ZcQDewzIo3JjdsQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6lcmVrZXnEIDAhUOuXI/Dnhg1MAE4rbltxOOB+7lUduJbsxucZf2DUo3NuZMQguw62NBVKGAtqJ03XdSlcNtO6eq5rXbDMEMVGLbDzMN+kdHlwZaNwYXk=', 'base64')),
+            };
+
+            assert.deepStrictEqual(actual, expected);
+        });
+    });
 });
 
 describe('Logic validation', function () {
