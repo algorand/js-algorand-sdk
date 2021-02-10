@@ -74,6 +74,7 @@ class Transaction {
         }
         if (appArgs !== undefined) {
             if (!Array.isArray(appArgs)) throw Error("appArgs must be an Array of Uint8Array.");
+            appArgs = appArgs.slice();
             appArgs.forEach((arg) => {
                 if (arg.constructor !== Uint8Array) throw Error("each element of AppArgs must be a Uint8Array.");
             });
@@ -81,16 +82,19 @@ class Transaction {
             appArgs = new Uint8Array(0);
         }
         if (appAccounts !== undefined) {
-            appAccounts.forEach((addressAsString, index) => {
-               appAccounts[index] = address.decodeAddress(addressAsString);
-            })
+            if (!Array.isArray(appAccounts)) throw Error("appAccounts must be an Array of addresses.");
+            appAccounts = appAccounts.map(addressAsString => address.decodeAddress(addressAsString));
         }
         if (appForeignApps !== undefined) {
+            if (!Array.isArray(appForeignApps)) throw Error("appForeignApps must be an Array of integers.");
+            appForeignApps = appForeignApps.slice();
             appForeignApps.forEach((foreignAppIndex) => {
                if (!Number.isSafeInteger(foreignAppIndex) || foreignAppIndex < 0) throw Error("each foreign application index must be a positive number and smaller than 2^53-1");
             });
         }
         if (appForeignAssets !== undefined) {
+            if (!Array.isArray(appForeignAssets)) throw Error("appForeignAssets must be an Array of integers.");
+            appForeignAssets = appForeignAssets.slice();
             appForeignAssets.forEach((foreignAssetIndex) => {
                 if (!Number.isSafeInteger(foreignAssetIndex) || foreignAssetIndex < 0) throw Error("each foreign asset index must be a positive number and smaller than 2^53-1");
             });
@@ -396,16 +400,10 @@ class Transaction {
                 txn.apsu = Buffer.from(this.appClearProgram);
             }
             if (this.appArgs !== undefined) {
-                txn.apaa = [];
-                this.appArgs.forEach((arg) => {
-                    txn.apaa.push(Buffer.from(arg));
-                });
+                txn.apaa = this.appArgs.map(arg => Buffer.from(arg));
             }
             if (this.appAccounts !== undefined) {
-                txn.apat = [];
-                this.appAccounts.forEach((decodedAddress) => {
-                    txn.apat.push(Buffer.from(decodedAddress.publicKey));
-                });
+                txn.apat = this.appAccounts.map(decodedAddress => Buffer.from(decodedAddress.publicKey));
             }
             // allowed zero values
             if (!txn.note.length) delete txn.note;
@@ -524,16 +522,10 @@ class Transaction {
                 txn.appClearProgram = new Uint8Array(txnForEnc.apsu);
             }
             if (txnForEnc.apaa !== undefined) {
-                txn.appArgs = [];
-                txnForEnc.apaa.forEach((arg) => {
-                    txn.appArgs.push(new Uint8Array(arg));
-                });
+                txn.appArgs = txnForEnc.apaa.map(arg => new Uint8Array(arg));
             }
             if (txnForEnc.apat !== undefined) {
-                txn.appAccounts = [];
-                txnForEnc.apat.forEach((addressBytes) => {
-                   txn.appAccounts.push(address.decodeAddress(address.encodeAddress(new Uint8Array(addressBytes))));
-                });
+                txn.appAccounts = txnForEnc.apat.map(addressBytes => address.decodeAddress(address.encodeAddress(new Uint8Array(addressBytes))));
             }
             if (txnForEnc.apfa !== undefined) {
                 txn.appForeignApps = txnForEnc.apfa;

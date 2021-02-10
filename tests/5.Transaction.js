@@ -5,6 +5,36 @@ const algosdk = require('../index');
 const group = require('../src/group');
 
 describe('Sign', function () {
+    it('should not modify input arrays', function () {
+        const appArgs = [Uint8Array.from([1, 2]), Uint8Array.from([3, 4])];
+        const appAccounts = ["7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q", "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM"];
+        const appForeignApps = [17, 200];
+        const appForeignAssets = [7, 8, 9];
+        const o = {
+            "from": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
+            "fee": 10,
+            "firstRound": 51,
+            "lastRound": 61,
+            "genesisHash": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+            "note": new Uint8Array(0),
+            "type": "appl",
+            "appIndex": 5,
+            "appArgs": appArgs,
+            "appAccounts": appAccounts,
+            "appForeignApps": appForeignApps,
+            "appForeignAssets": appForeignAssets,
+        };
+        const txn = new algosdk.Transaction(o);
+        assert.deepStrictEqual(appArgs, [Uint8Array.from([1, 2]), Uint8Array.from([3, 4])]);
+        assert.deepStrictEqual(appAccounts, ["7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q", "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM"]);
+        assert.deepStrictEqual(appForeignApps, [17, 200]);
+        assert.deepStrictEqual(appForeignAssets, [7, 8, 9]);
+        assert.ok(txn.appArgs !== appArgs);
+        assert.ok(txn.appAccounts !== appAccounts);
+        assert.ok(txn.appForeignApps !== appForeignApps);
+        assert.ok(txn.appForeignAssets !== appForeignAssets);
+    });
+
     it('should not complain on a missing note', function () {
         let o = {
             "from": "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q",
