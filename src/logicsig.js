@@ -205,7 +205,7 @@ function signLogicSigTransactionObject(txn, lsig) {
     const isDelegated = lsig.sig || lsig.msig;
     if (isDelegated) {
         if (!lsig.verify(txn.from.publicKey)) {
-            throw new Error("invalid signature");
+            throw new Error("Logic signature verification failed. Ensure the program is valid and the transaction sender is the program's delegated address.");
         }
     } else {
         // add AuthAddr if signing with a different program than From indicates for non-delegated LogicSig
