@@ -25,71 +25,132 @@ class AlgodClient {
         }
 
         // Get client
-        let c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
+        this.c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
 
-        this.healthCheck = function () {
-            return new hc.HealthCheck(c);
-        };
+        this.intDecoding = 'default';
+    }
 
-        this.versionsCheck = function () {
-            return new versions.Versions(c);
-        };
+    /**
+     * Set the default int decoding method for all JSON requests this client creates.
+     * @param {"default" | "safe" | "mixed" | "bigint"} method The method to use when parsing the
+     *   response for request. Must be one of "default", "safe", "mixed", or "bigint". See
+     *   JSONRequest.setIntDecoding for more details about what each method does.
+     */
+    setIntEncoding(method) {
+        this.intDecoding = method;
+    }
 
-        this.sendRawTransaction = function(stx_or_stxs) {
-            return new srt.SendRawTransaction(c, stx_or_stxs);
-        };
+    /**
+     * Get the default int decoding method for all JSON requests this client creates.
+     */
+    getIntEncoding() {
+        return this.intDecoding;
+    }
 
-        this.accountInformation = function(account) {
-            return new ai.AccountInformation(c, account);
-        };
+    healthCheck() {
+        return new hc.HealthCheck(this.c);
+    }
 
-        this.block = function(roundNumber) {
-            return new blk.Block(c, roundNumber);
-        };
+    versionsCheck() {
+        return new versions.Versions(this.c);
+    }
 
-        this.pendingTransactionInformation = function(txid) {
-            return new pti.PendingTransactionInformation(c, txid);
-        };
+    sendRawTransaction(stx_or_stxs) {
+        return new srt.SendRawTransaction(this.c, stx_or_stxs);
+    }
 
-        this.pendingTransactionsInformation = function() {
-            return new pt.PendingTransactions(c);
-        };
+    /**
+     * Returns the given account's information.
+     * @param {string} account The address of the account to look up.
+     */
+    accountInformation(account) {
+        return new ai.AccountInformation(this.c, this.intDecoding, account);
+    }
 
-        this.pendingTransactionByAddress = function(address) {
-            return new ptba.PendingTransactionsByAddress(c, address);
-        };
+    /**
+     * Gets the block info for the given round.
+     * @param {number} roundNumber The round number of the block to get.
+     */
+    block(roundNumber) {
+        return new blk.Block(this.c, roundNumber);
+    }
 
-        this.status = function() {
-            return new status.Status(c);
-        };
+    /**
+     * Returns the transaction information for a specific pending transaction.
+     * @param {string} txid The TxID string of the pending transaction to look up.
+     */
+    pendingTransactionInformation(txid) {
+        return new pti.PendingTransactionInformation(this.c, txid);
+    }
 
-        this.statusAfterBlock = function (round) {
-            return new sab.StatusAfterBlock(c, round);
-        };
+    /**
+     * Returns transactions that are pending in the pool.
+     */
+    pendingTransactionsInformation() {
+        return new pt.PendingTransactions(this.c);
+    }
 
-        this.getTransactionParams = function () {
-            return new sp.SuggestedParams(c);
-        };
+    /**
+     * Returns transactions that are pending in the pool sent by a specific sender.
+     * @param {string} address The address of the sender.
+     */
+    pendingTransactionByAddress(address) {
+        return new ptba.PendingTransactionsByAddress(this.c, address);
+    }
 
-        this.supply = function () {
-            return new supply.Supply(c);
-        };
+    /**
+     * Retrieves the StatusResponse from the running node.
+     */
+    status() {
+        return new status.Status(this.c, this.intDecoding);
+    }
 
-        this.compile = function (source) {
-            return new compile.Compile(c, source);
-        };
+    /**
+     * Waits for a specific round to occur then returns the StatusResponse for that round.
+     * @param {number} round The number of the round to wait for.
+     */
+    statusAfterBlock(round) {
+        return new sab.StatusAfterBlock(this.c, this.intDecoding, round);
+    }
 
-        this.dryrun = function (dr) {
-            return new dryrun.Dryrun(c, dr);
-        };
+    /**
+     * Returns the common needed parameters for a new transaction.
+     */
+    getTransactionParams() {
+        return new sp.SuggestedParams(this.c);
+    }
 
-        this.getAssetByID = function (index) {
-            return new gasbid.GetAssetByID(c, index);
-        }
+    /**
+     * Gets the supply details for the specified node's ledger.
+     */
+    supply() {
+        return new supply.Supply(this.c, this.intDecoding);
+    }
 
-        this.getApplicationByID = function (index) {
-            return new gapbid.GetApplicationByID(c, index);
-        }
+    compile(source) {
+        return new compile.Compile(this.c, source);
+    }
+
+    dryrun(dr) {
+        return new dryrun.Dryrun(this.c, dr);
+    }
+
+    /**
+     * Given an asset ID, return asset information including creator, name, total supply and
+     * special addresses.
+     * @param {number} index The asset ID to look up.
+     */
+    getAssetByID(index) {
+        return new gasbid.GetAssetByID(this.c, this.intDecoding, index);
+    }
+
+    /**
+     * Given an application ID, it returns application information including creator, approval
+     * and clear programs, global and local schemas, and global state.
+     * @param {number} index The application ID to look up.
+     */
+    getApplicationByID(index) {
+        return new gapbid.GetApplicationByID(this.c, this.intDecoding, index);
     }
 }
 

@@ -1,18 +1,13 @@
-class SearchForTransactions {
-	constructor(c) {
-		this.c = c;
-		this.query = {};
+const { JSONRequest } = require('../jsonrequest');
+
+class SearchForTransactions extends JSONRequest {
+	constructor(c, intDecoding) {
+		super(c, intDecoding);
 	}
 
-	/**
-	 * returns information about indexed transactions
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do(headers = {}) {
-		let res = await this.c.get("/v2/transactions", this.query, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/transactions";
+	}
 
 	// notePrefix to filter with, as uint8array
 	notePrefix(prefix) {

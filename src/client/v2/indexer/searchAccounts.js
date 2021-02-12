@@ -1,18 +1,13 @@
-class SearchAccounts {
-	constructor(c) {
-		this.c = c;
-		this.query = {};
+const { JSONRequest } = require('../jsonrequest');
+
+class SearchAccounts extends JSONRequest{
+	constructor(c, intDecoding) {
+		super(c, intDecoding);
 	}
 
-	/**
-	 * returns information about indexed accounts
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do(headers = {}) {
-		let res = await this.c.get("/v2/accounts", this.query, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/accounts";
+	}
 
 	// filtered results should have an amount greater than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
 	currencyGreaterThan(greater) {

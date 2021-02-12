@@ -1,17 +1,13 @@
-class Supply {
-	constructor(c) {
-		this.c = c;
+const { JSONRequest } = require('../jsonrequest');
+
+class Supply extends JSONRequest {
+	constructor(c, intDecoding) {
+		super(c, intDecoding);
 	}
 
-	/**
-	 * gets the supply details for the specified node's ledger
-	 * @param headers, optional
-	 * @returns {Promise<*>}
-	 */
-	async do(headers={}) {
-		let res = await this.c.get("/v2/ledger/supply", {}, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/ledger/supply";
+	}
 }
 
 module.exports = { Supply };

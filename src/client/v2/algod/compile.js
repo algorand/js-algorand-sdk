@@ -21,7 +21,7 @@ class Compile {
 	}
 
 	/**
-	 * Executes dryrun
+	 * Executes compile
 	 * @param headers, optional
 	 * @returns {Promise<*>}
 	 */

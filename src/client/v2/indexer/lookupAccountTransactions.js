@@ -1,20 +1,14 @@
+const { JSONRequest } = require('../jsonrequest');
 
-class LookupAccountTransactions {
-	constructor(c, account) {
-		this.c = c;
+class LookupAccountTransactions extends JSONRequest {
+	constructor(c, intDecoding, account) {
+		super(c, intDecoding);
 		this.account = account;
-		this.query = {}
 	}
 
-	/**
-	 * returns transactions relating to the given account
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do(headers = {}) {
-		let res = await this.c.get("/v2/accounts/" + this.account + "/transactions", this.query, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/accounts/" + this.account + "/transactions";
+	}
 
 	// notePrefix to filter with, as uint8array
 	notePrefix(prefix) {

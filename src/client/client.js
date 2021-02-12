@@ -1,5 +1,38 @@
 const { Buffer } = require("buffer");
 const request = require("superagent");
+const utils = require("../utils/utils");
+
+function createJSONParser(options) {
+    return (res, fn) => {
+        if (typeof fn === 'string') {
+            // in browser
+            return fn && utils.parseJSON(fn, options);
+        }
+
+        // in node
+        // based off https://github.com/visionmedia/superagent/blob/1277a880c32191e300b229e352e0633e421046c8/src/node/parsers/json.js
+        res.text = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+            res.text += chunk;
+        });
+        res.on('end', () => {
+            let body;
+            let err;
+            try {
+                body = res.text && utils.parseJSON(res.text, options);
+            } catch (err_) {
+                err = err_;
+                // issue #675: return the raw response if the response parsing fails
+                err.rawResponse = res.text || null;
+                // issue #876: return the http status code if the response parsing fails
+                err.statusCode = res.statusCode;
+            } finally {
+                fn(err, body);
+            }
+        });
+    };
+}
 
 /**
  * removeEmpty gets a dictionary and removes empty values
@@ -44,7 +77,16 @@ function HTTPClient(token, baseServer, port, headers={}) {
     this.token = token;
     this.defaultHeaders = headers;
 
-    this.get = async function (path, query, requestHeaders={}) {
+    /**
+     * Send a GET request.
+     * @param {string} path The path of the request.
+     * @param {object} query An object containing the query paramters of the request.
+     * @param {object} requestHeaders An object containing additional request headers to use.
+     * @param {object} jsonOptions Options object to use to decode JSON responses. See
+     *   utils.parseJSON for the options available.
+     * @returns {Promise<object>} Response object.
+     */
+    this.get = async function (path, query, requestHeaders={}, jsonOptions={}) {
         try {
             const format = getAccceptFormat(query);
             let r = request
@@ -57,6 +99,12 @@ function HTTPClient(token, baseServer, port, headers={}) {
             
             if (format === 'application/msgpack') {
                 r = r.responseType('arraybuffer');
+            } else if (format === 'application/json' && Object.keys(jsonOptions).length !== 0) {
+                if (r.buffer !== r.ca) {
+                    // in node, need to set buffer
+                    r = r.buffer(true);
+                }
+                r = r.parse(createJSONParser(jsonOptions));
             }
             
             const res = await r;
