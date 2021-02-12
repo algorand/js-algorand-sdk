@@ -25,7 +25,9 @@ function parseJSON(str, options=undefined) {
             // for some reason the Objects returned by JSONbig.parse have a null prototype, so we
             // need to fix that.
             Object.setPrototypeOf(value, Object.prototype);
-        } else if (typeof value === 'bigint') {
+        }
+        
+        if (typeof value === 'bigint') {
             if (intDecoding === 'bigint' || (intDecoding === 'mixed' && value > Number.MAX_SAFE_INTEGER)) {
                 return value;
             }
@@ -37,11 +39,14 @@ function parseJSON(str, options=undefined) {
             }
 
             throw new Error("Integer exceeds maximum safe integer: " + value.toString() + ". Try parsing with a different intDecoding option.");
-        } else if (typeof value === 'number') {
+        }
+        
+        if (typeof value === 'number') {
             if (intDecoding === 'bigint' && Number.isInteger(value)) {
                 return BigInt(value);
             }
         }
+        
         return value;
     });
     return parsed;
