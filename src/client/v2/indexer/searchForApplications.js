@@ -1,18 +1,13 @@
-class SearchForApplications{
-    constructor(c) {
-        this.c = c;
-        this.query = {}
+const { JSONRequest } = require('../jsonrequest');
+
+class SearchForApplications extends JSONRequest {
+    constructor(c, intDecoding) {
+        super(c, intDecoding);
     }
 
-    /**
-     * returns information about indexed applications
-     * @param headers, optional
-     * @returns Promise<*>
-     */
-    async do(headers = {}) {
-        let res = await this.c.get("/v2/applications", this.query, headers);
-        return res.body;
-    };
+    _path() {
+        return "/v2/applications";
+    }
 
     // application ID for filter, as int
     index(index) {

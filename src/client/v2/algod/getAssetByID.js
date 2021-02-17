@@ -1,18 +1,13 @@
-class GetAssetByID {
-    constructor(c, index) {
-        this.c = c;
+const { JSONRequest } = require('../jsonrequest');
+
+class GetAssetByID extends JSONRequest {
+    constructor(c, intDecoding, index) {
+        super(c, intDecoding,);
         this.index = index;
-        this.query = {};
     }
 
-    /**
-     * Given an asset id, return asset information including creator, name, total supply and special addresses
-     * @param headers, optional
-     * @returns {Promise<*>}
-     */
-    async do(headers={}) {
-        let res = await this.c.get("/v2/assets/" + this.index, this.query, headers);
-        return res.body;
+    _path() {
+        return "/v2/assets/" + this.index;
     }
 }
 

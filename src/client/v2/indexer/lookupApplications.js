@@ -1,19 +1,14 @@
-class LookupApplications {
-    constructor(c, index) {
-        this.c = c;
-        this.query = {};
+const { JSONRequest } = require('../jsonrequest');
+
+class LookupApplications extends JSONRequest {
+    constructor(c, intDecoding, index) {
+        super(c, intDecoding);
         this.index = index;
     }
 
-    /**
-     * returns information about indexed applications
-     * @param headers, optional
-     * @returns Promise<*>
-     */
-    async do(headers = {}) {
-        let res = await this.c.get("/v2/applications/" + this.index, this.query, headers);
-        return res.body;
-    };
+    _path() {
+        return "/v2/applications/" + this.index;
+    }
 
     // specific round to search
     round(round) {

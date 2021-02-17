@@ -1,18 +1,14 @@
-class LookupAssetByID {
-	constructor(c, index){
-		this.c = c;
+const { JSONRequest } = require('../jsonrequest');
+
+class LookupAssetByID extends JSONRequest {
+	constructor(c, intDecoding, index){
+		super(c, intDecoding);
 		this.index = index;
 	}
 
-	/**
-	 * returns information about the passed asset
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do(headers = {}) {
-		let res = await this.c.get("/v2/assets/" + this.index, {}, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/assets/" + this.index;
+	}
 }
 
 module.exports = {LookupAssetByID};

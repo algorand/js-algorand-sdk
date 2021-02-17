@@ -1,17 +1,13 @@
-class Status {
-	constructor(c) {
-		this.c = c
+const { JSONRequest } = require('../jsonrequest');
+
+class Status extends JSONRequest {
+	constructor(c, intDecoding) {
+		super(c, intDecoding);
 	}
 
-	/**
-	 * retrieves the StatusResponse from the running node
-	 * @param headers, optional
-	 * @returns {Promise<*>}
-	 */
-	async do(headers={}) {
-		let res = await this.c.get("/v2/status", {}, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/status";
+	}
 }
 
 module.exports = { Status };

@@ -1,18 +1,13 @@
-class SearchForAssets{
-	constructor(c) {
-		this.c = c;
-		this.query = {}
+const { JSONRequest } = require('../jsonrequest');
+
+class SearchForAssets extends JSONRequest {
+	constructor(c, intDecoding) {
+		super(c, intDecoding);
 	}
 
-	/**
-	 * returns information about indexed assets
-	 * @param headers, optional
-	 * @returns Promise<*>
-	 */
-	async do(headers = {}) {
-		let res = await this.c.get("/v2/assets", this.query, headers);
-		return res.body;
-	};
+	_path() {
+		return "/v2/assets";
+	}
 
 	// limit for filter, as int
 	limit(limit) {
