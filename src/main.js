@@ -1,6 +1,7 @@
 const { Buffer } = require('buffer');
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
+const uint64Encoding = require('./encoding/uint64');
 const mnemonic = require('./mnemonic/mnemonic');
 const encoding = require('./encoding/encoding');
 const account = require('./account');
@@ -207,6 +208,8 @@ module.exports = {
     isValidAddress: address.isValidAddress,
     encodeAddress: address.encodeAddress,
     decodeAddress: address.decodeAddress,
+    encodeUint64: uint64Encoding.encodeUint64,
+    decodeUint64: uint64Encoding.decodeUint64,
     generateAccount: account.generateAccount,
     secretKeyToMnemonic: mnemonic.secretKeyToMnemonic,
     mnemonicToSecretKey: mnemonic.mnemonicToSecretKey,
