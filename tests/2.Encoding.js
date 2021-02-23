@@ -83,6 +83,146 @@ describe('encoding', function () {
         });
     });
 
+    describe('uint64', function () {
+        it('should encode properly', function () {
+            const testcases = [
+                [0,                                  Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])],
+                [0n,                                 Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])],
+                [1,                                  Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1])],
+                [1n,                                 Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1])],
+                [255,                                Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 255])],
+                [255n,                               Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 255])],
+                [256,                                Uint8Array.from([0, 0, 0, 0, 0, 0, 1, 0])],
+                [256n,                               Uint8Array.from([0, 0, 0, 0, 0, 0, 1, 0])],
+                [Number.MAX_SAFE_INTEGER,            Uint8Array.from([0, 31, 255, 255, 255, 255, 255, 255])],
+                [BigInt(Number.MAX_SAFE_INTEGER),    Uint8Array.from([0, 31, 255, 255, 255, 255, 255, 255])],
+                [BigInt(Number.MAX_SAFE_INTEGER)+1n, Uint8Array.from([0, 32, 0, 0, 0, 0, 0, 0])],
+                [0xFFFFFFFFFFFFFFFFn,                Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255])],
+            ];
+
+            for (const [input, expected] of testcases) {
+                const actual = algosdk.encodeUint64(input);
+                assert.deepStrictEqual(actual, expected, `Incorrect encoding of ${typeof input} ${input}`);
+            }
+        });
+
+        it('should not encode negative numbers', function () {
+            assert.throws(() => algosdk.encodeUint64(-1));
+            assert.throws(() => algosdk.encodeUint64(-1n));
+            assert.throws(() => algosdk.encodeUint64(Number.MIN_SAFE_INTEGER));
+            assert.throws(() => algosdk.encodeUint64(BigInt(Number.MIN_SAFE_INTEGER)));
+        });
+
+        it('should not encode numbers larger than 2^64', function () {
+            assert.throws(() => algosdk.encodeUint64(0xFFFFFFFFFFFFFFFFn + 1n));
+        });
+
+        it('should not encode decimals', function () {
+            assert.throws(() => algosdk.encodeUint64(0.01));
+            assert.throws(() => algosdk.encodeUint64(9999.99));
+        });
+
+        it('should decode properly in default mode', function () {
+            // should be the same as safe mode
+            const testcases = [
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]),              0],
+                [Uint8Array.from([0]),                                   0],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]),              1],
+                [Uint8Array.from([0, 0, 1]),                             1],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 255]),            255],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 1, 0]),              256],
+                [Uint8Array.from([31, 255, 255, 255, 255, 255, 255]),    Number.MAX_SAFE_INTEGER],
+                [Uint8Array.from([0, 31, 255, 255, 255, 255, 255, 255]), Number.MAX_SAFE_INTEGER],
+            ];
+
+            for (const [input, expected] of testcases) {
+                const actual = algosdk.decodeUint64(input);
+                assert.deepStrictEqual(actual, expected, `Incorrect decoding of ${Array.from(input)}`);
+            }
+        });
+
+        it('should throw an error when decoding large values in default mode', function () {
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([0, 32, 0, 0, 0, 0, 0, 0])));
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([0, 32, 0, 0, 0, 0, 0, 1])));
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255])));
+        });
+
+        it('should decode properly in safe mode', function () {
+            const testcases = [
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]),              0],
+                [Uint8Array.from([0]),                                   0],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]),              1],
+                [Uint8Array.from([0, 0, 1]),                             1],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 255]),            255],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 1, 0]),              256],
+                [Uint8Array.from([31, 255, 255, 255, 255, 255, 255]),    Number.MAX_SAFE_INTEGER],
+                [Uint8Array.from([0, 31, 255, 255, 255, 255, 255, 255]), Number.MAX_SAFE_INTEGER],
+            ];
+
+            for (const [input, expected] of testcases) {
+                const actual = algosdk.decodeUint64(input, 'safe');
+                assert.deepStrictEqual(actual, expected, `Incorrect decoding of ${Array.from(input)}`);
+            }
+        });
+
+        it('should throw an error when decoding large values in safe mode', function () {
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([0, 32, 0, 0, 0, 0, 0, 0]), 'safe'));
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([0, 32, 0, 0, 0, 0, 0, 1]), 'safe'));
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255]), 'safe'));
+        });
+
+        it('should decode properly in mixed mode', function () {
+            const testcases = [
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]),                 0],
+                [Uint8Array.from([0]),                                      0],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]),                 1],
+                [Uint8Array.from([0, 0, 1]),                                1],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 255]),               255],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 1, 0]),                 256],
+                [Uint8Array.from([31, 255, 255, 255, 255, 255, 255]),       Number.MAX_SAFE_INTEGER],
+                [Uint8Array.from([0, 31, 255, 255, 255, 255, 255, 255]),    Number.MAX_SAFE_INTEGER],
+                [Uint8Array.from([0, 32, 0, 0, 0, 0, 0, 0]),                BigInt(Number.MAX_SAFE_INTEGER)+1n],
+                [Uint8Array.from([32, 0, 0, 0, 0, 0, 0]),                   BigInt(Number.MAX_SAFE_INTEGER)+1n],
+                [Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255]), 0xFFFFFFFFFFFFFFFFn],
+            ];
+
+            for (const [input, expected] of testcases) {
+                const actual = algosdk.decodeUint64(input, 'mixed');
+                assert.deepStrictEqual(actual, expected, `Incorrect decoding of ${Array.from(input)}`);
+            }
+        });
+
+        it('should decode properly in bigint mode', function () {
+            const testcases = [
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]),                 0n],
+                [Uint8Array.from([0]),                                      0n],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]),                 1n],
+                [Uint8Array.from([0, 0, 1]),                                1n],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 255]),               255n],
+                [Uint8Array.from([0, 0, 0, 0, 0, 0, 1, 0]),                 256n],
+                [Uint8Array.from([31, 255, 255, 255, 255, 255, 255]),       BigInt(Number.MAX_SAFE_INTEGER)],
+                [Uint8Array.from([0, 31, 255, 255, 255, 255, 255, 255]),    BigInt(Number.MAX_SAFE_INTEGER)],
+                [Uint8Array.from([0, 32, 0, 0, 0, 0, 0, 0]),                BigInt(Number.MAX_SAFE_INTEGER)+1n],
+                [Uint8Array.from([32, 0, 0, 0, 0, 0, 0]),                   BigInt(Number.MAX_SAFE_INTEGER)+1n],
+                [Uint8Array.from([255, 255, 255, 255, 255, 255, 255, 255]), 0xFFFFFFFFFFFFFFFFn],
+            ];
+
+            for (const [input, expected] of testcases) {
+                const actual = algosdk.decodeUint64(input, 'bigint');
+                assert.deepStrictEqual(actual, expected, `Incorrect decoding of ${Array.from(input)}`);
+            }
+        });
+
+        it('should throw an error when decoding data with wrong length', function () {
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([])));
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0, 0])));
+        });
+
+        it('should throw an error when decoding with an unknown mode', function () {
+            assert.throws(() => algosdk.decodeUint64(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 'unknown'));
+        });
+    });
+
     describe('JSON parse BigInt', function () {
         it('should parse null', function () {
             const input = 'null';
