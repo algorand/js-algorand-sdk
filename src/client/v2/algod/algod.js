@@ -19,9 +19,9 @@ const versions = require('../algod/versions');
 class AlgodClient {
     constructor(token = '', baseServer = "http://r2.algorand.network", port = 4180, headers = {}) {
         // workaround to allow backwards compatibility for multiple headers
-        let tokenHeader = token;
-        if (typeof (tokenHeader) == 'string') {
-            tokenHeader = {"X-Algo-API-Token": tokenHeader};
+        let tokenHeader = {};
+        if (typeof (token) == 'string' && token !== '') {
+            tokenHeader = {"X-Algo-API-Token": token};
         }
 
         // Get client

@@ -3,9 +3,9 @@ const client = require('./client');
 
 function Algod(token = '', baseServer = "http://r2.algorand.network", port = 4180, headers = {}) {
     // workaround to allow backwards compatibility for multiple headers
-    let tokenHeader = token;
-    if (typeof (tokenHeader) == 'string') {
-        tokenHeader = {"X-Algo-API-Token": tokenHeader};
+    let tokenHeader = {};
+    if (typeof (token) == 'string' && token !== '') {
+        tokenHeader = {"X-Algo-API-Token": token};
     }
 
     // Get client
@@ -139,7 +139,7 @@ function Algod(token = '', baseServer = "http://r2.algorand.network", port = 418
     };
 
     /**
-     * transactionsByAddressAndDate returns all transactions for a PK [addr] in the [fromDate, toDate] date range. 
+     * transactionsByAddressAndDate returns all transactions for a PK [addr] in the [fromDate, toDate] date range.
      * The date is a string in the YYYY-MM-DD format.
      * @param addr string
      * @param fromDate string
