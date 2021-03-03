@@ -5,7 +5,7 @@
 function ensureEnvVariablesSet(list) {
   list.forEach((envVarName) => {
     // Throw an error if the variable is not defined
-    if (!typeof process.env[envVarName] === 'string') {
+    if (typeof process.env[envVarName] !== 'string') {
       throw new Error(`"${envVarName}" environment variable not set.`);
     }
   });
@@ -46,10 +46,11 @@ function retrieveBaseConfig() {
   if (!(
     typeof ALGOD_INSTANCE.token === 'string'
     && typeof ALGOD_INSTANCE.server === 'string'
+    && !isNaN(ALGOD_INSTANCE.port)
     && typeof SENDER.mnemonic === 'string'
     && typeof RECEIVER.mnemonic === 'string'
   )) {
-    throw new Error('Invalid configuration.');
+    throw new Error('Invalid configuration. Perhaps you forgot to source the environment file?');
   }
 
   return { ALGOD_INSTANCE, SENDER, RECEIVER };
