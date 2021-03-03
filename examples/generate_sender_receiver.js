@@ -15,6 +15,7 @@ const { sk: receiverSk, addr: receiverAddr } = algosdk.generateAccount();
 const senderMnemonic = algosdk.secretKeyToMnemonic(senderSk);
 const receiverMnemonic = algosdk.secretKeyToMnemonic(receiverSk);
 
+// Formatting codes to adjust font qualities
 const fmt = {
   bold: "\x1b[1m",
   dim: "\x1b[2m",
