@@ -10,6 +10,9 @@ node_modules/
 *.feature
 temp
 
+# Environment information
+examples/.env
+
 tests/cucumber/features/
 tests/cucumber/browser/build
 tests/browser/bundle.*
