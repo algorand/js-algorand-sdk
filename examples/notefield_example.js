@@ -11,13 +11,14 @@ const utils = require('./utils');
 const { ALGOD_INSTANCE, SENDER, RECEIVER } = utils.retrieveBaseConfig();
 
 async function main () {
+  // initialize an algod client
   const client =  new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
     ALGOD_INSTANCE.port,
   );
   
-  // generate a sender and receiver
+  // retrieve sender and receiver
   const { sk, addr } = algosdk.mnemonicToSecretKey(SENDER.mnemonic);
   const { addr: receiver } = algosdk.mnemonicToSecretKey(RECEIVER.mnemonic);
   
@@ -45,7 +46,8 @@ async function main () {
 
   // wait for confirmation – timeout after 2 rounds
   console.log('Awaiting confirmation (this will take several seconds)...');
-  const confirmation = await utils.waitForConfirmation(client, txId, 2);
+  const roundTimeout = 2;
+  const confirmation = await utils.waitForConfirmation(client, txId, roundTimeout);
   console.log('Transaction successful.');
   
   // log the note included on the transaction
