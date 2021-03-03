@@ -8,11 +8,12 @@
 const algosdk = require('../');
 
 // generate accounts
-const { sk, addr: senderAddr } = algosdk.generateAccount();
-const { addr: receiverAddr } = algosdk.generateAccount();
+const { sk: senderSk, addr: senderAddr } = algosdk.generateAccount();
+const { sk: receiverSk, addr: receiverAddr } = algosdk.generateAccount();
 
-// log the mnemonic and addresses
-const mnemonic = algosdk.secretKeyToMnemonic(sk);
+// log the mnemonics and addresses
+const senderMnemonic = algosdk.secretKeyToMnemonic(senderSk);
+const receiverMnemonic = algosdk.secretKeyToMnemonic(receiverSk);
 
 const fmt = {
   bold: "\x1b[1m",
@@ -22,17 +23,18 @@ const fmt = {
 
 console.log(`
 ${fmt.bold}Sender:${fmt.reset}
-${fmt.dim}Mnemonic:${fmt.reset} ${mnemonic}
+${fmt.dim}Mnemonic:${fmt.reset} ${senderMnemonic}
 ${fmt.dim}Address:${fmt.reset} ${senderAddr}
 
 ${fmt.dim}--------------------${fmt.reset}
 
 ${fmt.bold}Receiver:${fmt.reset}
+${fmt.dim}Mnemonic:${fmt.reset} ${receiverMnemonic}
 ${fmt.dim}Address:${fmt.reset} ${receiverAddr}
 
 ${fmt.dim}--------------------${fmt.reset}
 
-${fmt.bold}TIP:${fmt.reset} You can send funds to your sender account using the testnet and betanet dispensers listed below:
+${fmt.bold}TIP:${fmt.reset} You can send funds to your accounts using the testnet and betanet dispensers listed below:
 * https://bank.testnet.algorand.network
 * https://bank.betanet.algodev.network/
 `);

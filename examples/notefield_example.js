@@ -8,46 +8,9 @@
 const algosdk = require('../');
 const utils = require('./utils');
 
-// ------------------------------
-// > Configuration
-// ------------------------------
-
-utils.ensureEnvVariablesSet([
-  'ALGOD_TOKEN',
-  'ALGOD_SERVER',
-  'SENDER_MNEMONIC',
-  'RECEIVER_ADDRESS',
-]);
-
-const ALGOD_INSTANCE = {
-  token: process.env.ALGOD_TOKEN,
-  server: process.env.ALGOD_SERVER,
-  port: process.env.ALGOD_PORT && parseInt(process.env.ALGOD_PORT),
-};
-
-const SENDER = {
-  mnemonic: process.env.SENDER_MNEMONIC,
-};
-
-const RECEIVER = {
-  address: process.env.RECEIVER_ADDRESS,
-};
-
-// ------------------------------
-// > Example
-// ------------------------------
+const { ALGOD_INSTANCE, SENDER, RECEIVER } = utils.retrieveBaseConfig();
 
 async function main () {
-  // test for invalid configuration
-  if (!(
-    typeof ALGOD_INSTANCE.token === 'string'
-    && typeof ALGOD_INSTANCE.server === 'string'
-    && typeof SENDER.mnemonic === 'string'
-    && typeof RECEIVER.address === 'string'
-  )) {
-    throw new Error('Invalid configuration.');
-  }
-
   const client =  new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
@@ -56,7 +19,7 @@ async function main () {
   
   // generate a sender and receiver
   const { sk, addr } = algosdk.mnemonicToSecretKey(SENDER.mnemonic);
-  const receiver = RECEIVER.address;
+  const { addr: receiver } = algosdk.mnemonicToSecretKey(RECEIVER.mnemonic);
   
   // get suggested parameters
   const suggestedParams = await client.getTransactionParams().do();
@@ -75,7 +38,7 @@ async function main () {
   
   const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
   
-  // send transaction
+  // send transaction (note that the sender account needs to be funded for this to work)
   console.log('Sending transaction...');
   const signedTxn = txn.signTxn(sk);
   const { txId } = await client.sendRawTransaction(signedTxn).do();

@@ -12,6 +12,50 @@ function ensureEnvVariablesSet(list) {
 }
 
 /**
+ * Read the base configuration from environment variables.
+ * Returns:
+ * - Algod Instance
+ * - Sender Account
+ * - Receiver Account
+ */
+function retrieveBaseConfig() {
+  // check that environment variables are set
+  ensureEnvVariablesSet([
+    'ALGOD_TOKEN',
+    'ALGOD_SERVER',
+    'SENDER_MNEMONIC',
+    'RECEIVER_MNEMONIC',
+  ]);
+  
+  // structure into objects
+  const ALGOD_INSTANCE = {
+    token: process.env.ALGOD_TOKEN,
+    server: process.env.ALGOD_SERVER,
+    port: process.env.ALGOD_PORT && parseInt(process.env.ALGOD_PORT),
+  };
+  
+  const SENDER = {
+    mnemonic: process.env.SENDER_MNEMONIC,
+  };
+  
+  const RECEIVER = {
+    mnemonic: process.env.RECEIVER_MNEMONIC,
+  };
+
+  // test for invalid configuration
+  if (!(
+    typeof ALGOD_INSTANCE.token === 'string'
+    && typeof ALGOD_INSTANCE.server === 'string'
+    && typeof SENDER.mnemonic === 'string'
+    && typeof RECEIVER.mnemonic === 'string'
+  )) {
+    throw new Error('Invalid configuration.');
+  }
+
+  return { ALGOD_INSTANCE, SENDER, RECEIVER };
+}
+
+/**
  * utility function to wait on a transaction to be confirmed
  * the timeout parameter indicates how many rounds do you wish to check pending transactions for
  */
@@ -54,5 +98,6 @@ async function waitForConfirmation(algodclient, txId, timeout) {
 
 module.exports = {
   ensureEnvVariablesSet,
+  retrieveBaseConfig,
   waitForConfirmation,
 };

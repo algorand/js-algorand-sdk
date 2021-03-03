@@ -25,7 +25,7 @@ export ALGOD_PORT="4180" # Leave blank if no port
 export SENDER_MNEMONIC="<generate this with examples/generate_sender_receiver.js>"
 
 # Receiver
-export RECEIVER_ADDRESS="<generate this with examples/generate_sender_receiver.js>"
+export RECEIVER_MNEMONIC="<generate this with examples/generate_sender_receiver.js>"
 ```
 
 Make sure to source the file before running the examples:
