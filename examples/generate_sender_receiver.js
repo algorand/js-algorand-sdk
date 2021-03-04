@@ -6,6 +6,7 @@
  */
 
 const algosdk = require('../');
+const { fmt } = require('./utils');
 
 // generate accounts
 const { sk: senderSk, addr: senderAddr } = algosdk.generateAccount();
@@ -14,13 +15,6 @@ const { sk: receiverSk, addr: receiverAddr } = algosdk.generateAccount();
 // log the mnemonics and addresses
 const senderMnemonic = algosdk.secretKeyToMnemonic(senderSk);
 const receiverMnemonic = algosdk.secretKeyToMnemonic(receiverSk);
-
-// Formatting codes to adjust font qualities
-const fmt = {
-  bold: "\x1b[1m",
-  dim: "\x1b[2m",
-  reset: "\x1b[0m",
-};
 
 console.log(`
 ${fmt.bold}Sender:${fmt.reset}

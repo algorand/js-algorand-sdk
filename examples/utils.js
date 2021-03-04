@@ -70,7 +70,7 @@ async function waitForConfirmation(algodclient, txId, timeout) {
   // pending transaction information, or throws an error if the transaction
   // is not confirmed or rejected in the next timeout rounds
   if (algodclient == null || txId == null || timeout < 0) {
-      throw "Bad arguments.";
+      throw new Error("Bad arguments.");
   }
   let status = (await algodclient.status().do());
   if (status == undefined) throw new Error("Unable to get node status");
@@ -97,8 +97,16 @@ async function waitForConfirmation(algodclient, txId, timeout) {
   throw new Error("Transaction not confirmed after " + timeout + " rounds!");
 };
 
+// Formatting codes to adjust font qualities
+const fmt = {
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  reset: "\x1b[0m",
+};
+
 module.exports = {
   ensureEnvVariablesSet,
   retrieveBaseConfig,
   waitForConfirmation,
+  fmt,
 };
