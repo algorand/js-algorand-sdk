@@ -17,6 +17,29 @@ Include this line in your HTML.
 <script src="algosdk.min.js"/>
 ```
 
+## Quick Start
+```javascript
+const token = "Your algod API token";
+const server = "http://127.0.0.1";
+const port = 8080;
+const client = new algosdk.Algod(token, server, port);
+
+(async () => {
+    console.log(await client.status());
+})().catch(e => {
+    console.log(e);
+});
+```
+
+## Documentation
+For detailed information about the different API calls in `client`, visit https://developer.algorand.org
+
+## Examples
+
+Running examples requires access to a running node. Follow the instructions in Algorand's [developer resources](https://developer.algorand.org/docs/run-a-node/setup/install/) to install a node on your computer.
+
+Please refer to the instructions described in the [examples/README.md](examples/README.md) file for more information regarding running the examples.
+
 ## SDK Development
 
 ### Building
@@ -57,31 +80,6 @@ And to run SDK tests in Firefox:
 ```bash
 TEST_BROWSER=firefox make docker-test
 ```
-
-## Quick Start
-```javascript
-const token = "Your algod API token";
-const server = "http://127.0.0.1";
-const port = 8080;
-const client = new algosdk.Algod(token, server, port);
-
-(async () => {
-    console.log(await client.status());
-})().catch(e => {
-    console.log(e);
-});
-```
-
-## Documentation
-For detailed information about the different API calls in `client`, visit https://developer.algorand.org
-
-## Examples
-
-Running examples requires access to a running node. Follow the instructions in Algorand's [developer resources](https://developer.algorand.org/docs/run-a-node/setup/install/) to install a node on your computer.
-
-Please refer to the instructions described in the [examples/README.md](examples/README.md) file for more information regarding running the examples.
-
-
 
 ## License
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
