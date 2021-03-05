@@ -24,14 +24,14 @@ describe('address', function () {
         });
 
         it('should fail to verify a malformed Algorand address', function () {
-            assert.throws(() => { algosdk.decodeAddress(malformed_address1) }, (err) => err === address.MALFORMED_ADDRESS_ERROR);
-            assert.throws(() => { algosdk.decodeAddress(malformed_address2) }, (err) => err === address.MALFORMED_ADDRESS_ERROR);
+            assert.throws(() => { algosdk.decodeAddress(malformed_address1) }, (err) => err.message === address.MALFORMED_ADDRESS_ERROR_MSG);
+            assert.throws(() => { algosdk.decodeAddress(malformed_address2) }, (err) => err.message === address.MALFORMED_ADDRESS_ERROR_MSG);
             // Catch an exception possibly thrown by base32 decoding function
             assert.throws(() => { algosdk.decodeAddress(malformed_address3) }, (err) => err.message === "Invalid base32 characters");
         });
 
         it('should fail to verify a checksum for an invalid Algorand address', function () {
-            assert.throws(() => { algosdk.decodeAddress(wrong_checksum_address) }, (err) => err === address.CHECKSUM_ADDRESS_ERROR);
+            assert.throws(() => { algosdk.decodeAddress(wrong_checksum_address) }, (err) => err.message === address.CHECKSUM_ADDRESS_ERROR_MSG);
        });
 
         // Check helper functions

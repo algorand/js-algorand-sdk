@@ -36,21 +36,21 @@ describe('#mnemonic', function () {
         mn = mn.substring(0, mn.length - 2) + lastChar;
         assert.throws(() => {
             passphrase.seedFromMnemonic(mn)
-        }, (err) => err === passphrase.ERROR_FAIL_TO_DECODE_MNEMONIC);
+        }, (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
     });
 
     it('should fail to verify an invalid mnemonic', function () {
         let mn = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venue abandon abandon abandon abandon abandon abandon abandon abandon abandon invest"
         assert.throws(() => {
             passphrase.seedFromMnemonic(mn);
-        }, (err) => err === passphrase.ERROR_FAIL_TO_DECODE_MNEMONIC);
+        }, (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
 
     });
     it('should fail to verify an mnemonic with a word that is not in the list ', function () {
         let mn = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venues abandon abandon abandon abandon abandon abandon abandon abandon abandon invest"
         assert.throws(() => {
             passphrase.seedFromMnemonic(mn);
-        }, (err) => err === passphrase.ERROR_NOT_IN_WORDS_LIST);
+        }, (err) => err.message === passphrase.NOT_IN_WORDS_LIST_ERROR_MSG);
 
     });
 });

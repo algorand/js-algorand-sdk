@@ -2,8 +2,8 @@ const english = require("./wordlists/english");
 const nacl = require("../nacl/naclWrappers");
 const address = require("../encoding/address");
 
-const ERROR_FAIL_TO_DECODE_MNEMONIC = Error('failed to decode mnemonic');
-const ERROR_NOT_IN_WORDS_LIST = Error('the mnemonic contains a word that is not in the wordlist');
+const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
+const NOT_IN_WORDS_LIST_ERROR_MSG = 'the mnemonic contains a word that is not in the wordlist';
 
 /**
  * mnemonicFromSeed converts a 32-byte key into a 25 word mnemonic. The generated mnemonic includes a checksum.
@@ -36,7 +36,7 @@ function seedFromMnemonic(mnemonic) {
 
     //Check that all words are in list
     for (let w of key) {
-        if (english.indexOf(w) === -1) throw ERROR_NOT_IN_WORDS_LIST;
+        if (english.indexOf(w) === -1) throw new Error(NOT_IN_WORDS_LIST_ERROR_MSG);
     }
 
     const checksum = words[words.length - 1];
@@ -52,10 +52,10 @@ function seedFromMnemonic(mnemonic) {
     // While converting back to byte array, our new 264 bits array is divisible by 8 but the last byte is just the padding.
 
     // check that we have 33 bytes long array as expected
-    if (uint8Array.length !== 33) throw ERROR_FAIL_TO_DECODE_MNEMONIC;
+    if (uint8Array.length !== 33) throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
 
     // check that the last byte is actually 0x0
-    if (uint8Array[uint8Array.length - 1] !== 0x0) throw ERROR_FAIL_TO_DECODE_MNEMONIC;
+    if (uint8Array[uint8Array.length - 1] !== 0x0) throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
 
     // chop it !
     uint8Array = uint8Array.slice(0, uint8Array.length - 1);
@@ -67,7 +67,7 @@ function seedFromMnemonic(mnemonic) {
     // success!
     if (cs === checksum) return uint8Array;
 
-    throw ERROR_FAIL_TO_DECODE_MNEMONIC;
+    throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
 }
 
 function computeChecksum(seed) {
@@ -180,8 +180,8 @@ function masterDerivationKeyToMnemonic(mdk) {
 module.exports = {
     mnemonicFromSeed,
     seedFromMnemonic,
-    ERROR_FAIL_TO_DECODE_MNEMONIC,
-    ERROR_NOT_IN_WORDS_LIST,
+    FAIL_TO_DECODE_MNEMONIC_ERROR_MSG,
+    NOT_IN_WORDS_LIST_ERROR_MSG,
     mnemonicToSecretKey,
     secretKeyToMnemonic,
     mnemonicToMasterDerivationKey,

@@ -1,5 +1,5 @@
 const MICROALGOS_TO_ALGOS_RATIO = 1e6;
-const ERROR_INVALID_MICROALGOS = new Error("Microalgos should be positive and less than 2^53 - 1.");
+const INVALID_MICROALGOS_ERROR_MSG = "Microalgos should be positive and less than 2^53 - 1.";
 
 /**
  * microalgosToAlgos converts microalgos to algos
@@ -8,7 +8,7 @@ const ERROR_INVALID_MICROALGOS = new Error("Microalgos should be positive and le
  */
 function microalgosToAlgos(microalgos) {
     if (microalgos < 0 || !Number.isSafeInteger(microalgos)){
-        throw ERROR_INVALID_MICROALGOS;
+        throw new Error(INVALID_MICROALGOS_ERROR_MSG);
     }
     return microalgos/MICROALGOS_TO_ALGOS_RATIO
 }
@@ -26,5 +26,5 @@ function algosToMicroalgos(algos) {
 module.exports = {
     microalgosToAlgos,
     algosToMicroalgos,
-    ERROR_INVALID_MICROALGOS,
+    INVALID_MICROALGOS_ERROR_MSG,
 };
