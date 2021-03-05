@@ -85,8 +85,51 @@ describe('LogicSig functionality', function () {
                 "note": note,
                 "genesisHash": genesisHash,
                 "genesisID": genesisID,
-                "reKeyTo": rekeyTo
+                "reKeyTo": rekeyTo,
             };
+            
+            const actual = algosdk.signLogicSigTransaction(txn, lsig);
+            const expected = {
+                txID: 'D7H6THOHOCEWJYNWMKHVOR2W36KAJXSGG6DMNTHTBWONBCG4XATA',
+                blob: new Uint8Array(Buffer.from('gqRsc2lngaFsxAUBIAEBIqN0eG6Ko2FtdM0DT6NmZWXNCniiZnYzomdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsdj2kbm90ZcQDewzIo3JjdsQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6lcmVrZXnEIDAhUOuXI/Dnhg1MAE4rbltxOOB+7lUduJbsxucZf2DUo3NuZMQg9nYtrHWxmX1sLJYYBoBQdJDXlREv/n+3YLJzivnH8a2kdHlwZaNwYXk=', 'base64')),
+            };
+
+            assert.deepStrictEqual(actual, expected);
+        });
+
+        it('should sign an already built transaction', function () {
+            let program = Uint8Array.from([1, 32, 1, 1, 34]);
+            let lsig = algosdk.makeLogicSig(program);
+
+            let from = lsig.address();
+            let to = "UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM";
+            let fee = 10;
+            let amount = 847;
+            let firstRound = 51;
+            let lastRound = 61;
+            let note = new Uint8Array([123, 12, 200]);
+            let genesisHash = "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=";
+            let genesisID = "";
+            let rekeyTo = "GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM";
+            let closeRemainderTo = undefined;
+            let suggestedParams = {
+                "flatFee": false,
+                "fee": fee,
+                "firstRound": firstRound,
+                "lastRound": lastRound,
+                "genesisHash": genesisHash,
+                "genesisID": genesisID,
+            };
+            let txnObject = {
+                "from": from,
+                "to": to,
+                "amount": amount,
+                "suggestedParams": suggestedParams,
+                "closeRemainderTo": closeRemainderTo,
+                "note": note,
+                "rekeyTo": rekeyTo
+            };
+            const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txnObject);
             
             const actual = algosdk.signLogicSigTransaction(txn, lsig);
             const expected = {
