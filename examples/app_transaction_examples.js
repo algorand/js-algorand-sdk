@@ -1,5 +1,10 @@
 // Example: various application transactions
 
+// NOTE: Though we passed arguments directly to functions in 
+// this example to show that it is possible, we'd recommend using the
+// makeApplicationCreateTxnFromObject, makeApplicationOptInTxnFromObject, etc. 
+// counterparts in your code for readability. 
+
 const algosdk = require('..');
 const utils = require('./utils');
 
