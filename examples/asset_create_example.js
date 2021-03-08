@@ -20,10 +20,11 @@ async function main () {
   const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
 
   const total = 100; // how many of this asset there will be
+  const decimals = 0; // units of this asset are whole-integer amounts
   const assetName = "assetname";
   const unitName = "unitname";
   const url = "website";
-  const metadata = "fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh"; // should be a 32-byte hash
+  const metadata = new Uint8Array(Buffer.from("664143504f346e52674f35356a316e64414b3357365367633441506b63794668", "hex")); // should be a 32-byte hash
   const defaultFrozen = false; // whether accounts should be frozen by default
   
   // create suggested parameters
@@ -38,17 +39,18 @@ async function main () {
   // create the asset creation transaction
   const txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
     from: sender.addr,
-    assetTotal: total,
+    total,
+    decimals,
     assetName,
-    assetUnitName: unitName,
+    unitName,
     assetURL: url,
     assetMetadataHash: metadata,
-    assetDefaultFrozen: defaultFrozen,
+    defaultFrozen,
 
-    assetFreeze: freezeAddr,
-    assetManager: managerAddr,
-    assetClawback: clawbackAddr,
-    assetReserve: reserveAddr,
+    freeze: freezeAddr,
+    manager: managerAddr,
+    clawback: clawbackAddr,
+    reserve: reserveAddr,
 
     suggestedParams,
   });
