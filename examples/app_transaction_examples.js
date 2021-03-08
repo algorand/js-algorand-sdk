@@ -122,6 +122,21 @@ async function main () {
   await verboseWaitForConfirmation(client, callTxnId);
 
   // ------------------------------
+  // > Close out application
+  // ------------------------------
+
+  // Close out (opt account out) from the application
+  const closeOutTxn = algosdk.makeApplicationCloseOutTxn(receiver.addr, suggestedParams, appId, appArgs);
+
+  // send the transaction
+  logBold('Sending application close out transaction.');
+  const signedCloseOutTxn = closeOutTxn.signTxn(receiver.sk);
+  const { txId: closeOutTxnId } = await client.sendRawTransaction(signedCloseOutTxn).do();
+
+  // wait for confirmation
+  await verboseWaitForConfirmation(client, closeOutTxnId);
+
+  // ------------------------------
   // > Delete application
   // ------------------------------
 
