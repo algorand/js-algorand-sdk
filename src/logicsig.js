@@ -179,12 +179,16 @@ function makeLogicSig(program, args) {
 /**
  * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} dictionary containing constructor arguments for a transaction
+ * @param {Object} txn containing constructor arguments for a transaction
  * @param {LogicSig} lsig logicsig object
  * @returns {Object} Object containing txID and blob representing signed transaction.
  * @throws error on failure
  */
 function signLogicSigTransaction(txn, lsig) {
+    // use signLogicSigTransactionObject directly if transaction already built
+    if (txn instanceof txnBuilder.Transaction) {
+        return signLogicSigTransactionObject(txn, lsig);
+    }
     let algoTxn = new txnBuilder.Transaction(txn);
     return signLogicSigTransactionObject(algoTxn, lsig);
 }
