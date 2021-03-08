@@ -2,15 +2,14 @@
 
     const atoken = "YOUR-ALGOD-API-TOKEN";
     const aserver = "http://ALGOD-ADDRESS";
-    const aport = ALGOD-PORT;
+    const aport = "ALGOD-PORT";
     const kmdtoken = "YOUR-KMD-API-TOKEN";
     const kmdserver = "http://KMD-ADDRESS";
-    const kmdport = KMD-PORT;
+    const kmdport = "KMD-PORT";
     var from = document.getElementById('from');
     var to = document.getElementById('to');
-    to.value = "7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q"
     var algos = document.getElementById('algos');
-    algos.value = 739000;
+    algos.value = 10000;
     var tb = document.getElementById('block');
     var ta = document.getElementById('ta');
     var ga = document.getElementById('account');
@@ -40,7 +39,7 @@
     if (adetails) {
         adetails.onclick = function () {
             ta.innerHTML = "";
-            const algodclient = new algosdk.Algod(atoken, aserver, aport);
+            const algodclient = new algosdk.Algodv2(atoken, aserver, aport);
 
             (async () => {
                 let tx = (await algodclient.accountInformation(account));
@@ -58,11 +57,11 @@
     if (tb) {
         tb.onclick = function () {
             ta.innerHTML = "";
-            const algodclient = new algosdk.Algod(atoken, aserver, aport);
+            const algodclient = new algosdk.Algodv2(atoken, aserver, aport);
 
             (async () => {
-                let lastround = (await algodclient.status()).lastRound;
-                let block = (await algodclient.block(lastround));
+                let lastround = (await algodclient.status().do())['last-round'];
+                let block = (await algodclient.block(lastround).do());
                 fround.value = lastround;
                 lround.value = lastround + 1000;
                 var textedJson = JSON.stringify(block, undefined, 4);
@@ -111,7 +110,7 @@
             ta.innerHTML = "Account created. Set value in the From Input box"
             account = recovered_account.addr;
             signKey = recovered_account.sk;
-            let algodclient = new algosdk.Algod(atoken, aserver, aport);
+            let algodclient = new algosdk.Algodv2(atoken, aserver, aport);
             (async () => {
                 let tx = (await algodclient.accountInformation(recovered_account.addr));
                 var textedJson = JSON.stringify(tx, undefined, 4);
@@ -129,24 +128,28 @@
     if (st) {
         st.onclick = function () {
             ta.innerHTML = "";
-             var person = { firstName: "John", lastName: "Doe", age: 50, eyeColor: "blue" };
+            var person = { firstName: "John", lastName: "Doe", age: 50, eyeColor: "blue" };
             var note = algosdk.encodeObj(person);
-            txn = {
-                "from": account,
-                "to": to.value.toString(),
+            const suggestedParams = {
+                "flatFee": false,
                 "fee": 1000,
-                "amount": parseInt(algos.value),
                 "firstRound": parseInt(fround.value),
                 "lastRound": parseInt(lround.value),
-                "note": algosdk.encodeObj(person),
                 "genesisID": "testnet-v1.0",
-                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="
+                "genesisHash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
             };
-            var signedTxn = algosdk.signTransaction(txn, signKey);
-            console.log(signedTxn.txID);
-            let algodclient = new algosdk.Algod(atoken, aserver, aport);
+            const transactionOptions = {
+                "from": from.value,
+                "to": to.value,
+                "note": note,
+                "suggestedParams": suggestedParams,
+            };
+            const { sk } = algosdk.mnemonicToSecretKey(bu.value);
+            var txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
+            const signedTxn = txn.signTxn(sk);
+            let algodclient = new algosdk.Algodv2(atoken, aserver, aport);
             (async () => {
-                let tx = (await algodclient.sendRawTransaction(signedTxn.blob));
+                let tx = (await algodclient.sendRawTransaction(signedTxn).do());
                 var textedJson = JSON.stringify(tx, undefined, 4);
                 console.log(textedJson);
                 ta.innerHTML = textedJson;
@@ -168,13 +171,13 @@
 
             ta.innerHTML = "";
 
-            let algodclient = new algosdk.Algod(atoken, aserver, aport);
+            let algodclient = new algosdk.Algodv2(atoken, aserver, aport);
             (async () => {
-                 let tx = (await algodclient.transactionInformation(account, txid.value));
+                 let tx = (await algodclient.pendingTransactionInformation(txid.value).do());
                   var textedJson = JSON.stringify(tx, undefined, 4);
                 console.log(textedJson);
  
-                var encodednote = algosdk.decodeObj(tx.note);
+                var encodednote = algosdk.decodeObj(tx.txn.txn.note);
                  ta.innerHTML = JSON.stringify(encodednote, undefined, 4);
 
             })().catch(e => {
