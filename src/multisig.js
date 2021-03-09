@@ -15,11 +15,26 @@ const MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG = "Cannot merge txs. Multisig prei
 const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG = "Cannot merge txs. subsigs are mismatched.";
 const MULTISIG_BAD_FROM_FIELD_ERROR_MSG = "The transaction from field and multisig preimage do not match.";
 const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = "Key does not exist";
+const MULTISIG_NO_MUTATE_ERROR_MSG = "Cannot mutate a multisig field as it would invalidate all existing signatures.";
 
 /**
  * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
  */
 class MultisigTransaction extends txnBuilder.Transaction {
+    /**
+     * Override inherited method to throw an error, as mutating transactions are prohibited in this context
+     */
+    addLease() {
+        throw new Error(MULTISIG_NO_MUTATE_ERROR_MSG);
+    }
+
+    /**
+     * Override inherited method to throw an error, as mutating transactions are prohibited in this context
+     */
+    addRekey() {
+        throw new Error(MULTISIG_NO_MUTATE_ERROR_MSG);
+    }
+
     /**
      * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
      * encoded with msgpack as a typed array.
@@ -213,4 +228,5 @@ module.exports = {
     MULTISIG_MERGE_MISMATCH_ERROR_MSG,
     MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG,
     MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG,
+    MULTISIG_NO_MUTATE_ERROR_MSG,
 };

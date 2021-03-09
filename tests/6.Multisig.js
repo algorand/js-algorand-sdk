@@ -207,4 +207,56 @@ describe('Multisig Functionality', function () {
             assert.strictEqual(stdKeyregTxn.toString(), msigKeyregTxn.toString());
         });
     });
+
+    describe('inherited MultisigTransaction methods that mutate transactions should throw errors', function() {
+        let msigPaymentTxn;
+        let msigKeyregTxn;
+
+        // Create a multisig transaction to use for each test
+        beforeEach(function () {
+            let paymentTxnObj = {
+                "snd": Buffer.from(algosdk.decodeAddress("RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM").publicKey),
+                "rcv": Buffer.from(algosdk.decodeAddress("PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI").publicKey),
+                "fee": 1000,
+                "amt": 1000,
+                "close": Buffer.from(algosdk.decodeAddress("IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA").publicKey),
+                "gh": Buffer.from("/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0=", "base64"),
+                "fv": 62229,
+                "lv": 63229,
+                "gen": 'devnet-v38.0',
+                "type": 'pay',
+                "note": Buffer.from("RSYiABhShvs=", "base64")
+            };
+            
+
+            let keyregTxnObj = {
+                "snd": Buffer.from(algosdk.decodeAddress("RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM").publicKey),
+                "fee": 10,
+                "fv": 51,
+                "lv": 61,
+                "note": Buffer.from([123, 12, 200]),
+                "gh": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+                "votekey": "5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=",
+                "selkey": "oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=",
+                "votefst": 123,
+                "votelst": 456,
+                "votekd": 1234,
+                "gen": "devnet-v38.0",
+                "type": "keyreg"
+            };
+
+            msigPaymentTxn = multisig.MultisigTransaction.from_obj_for_encoding(paymentTxnObj);
+            msigKeyregTxn = multisig.MultisigTransaction.from_obj_for_encoding(keyregTxnObj);
+        });
+        
+        it('error should be thrown when attempting to add a lease to a transaction', function() {
+            assert.throws(msigPaymentTxn.addLease, (err) => err.message === multisig.MULTISIG_NO_MUTATE_ERROR_MSG);
+            assert.throws(msigKeyregTxn.addLease, (err) => err.message === multisig.MULTISIG_NO_MUTATE_ERROR_MSG);
+        });
+
+        it('error should be thrown when attempting to add a rekey to a transaction', function() {
+            assert.throws(msigPaymentTxn.addRekey, (err) => err.message === multisig.MULTISIG_NO_MUTATE_ERROR_MSG);
+            assert.throws(msigKeyregTxn.addRekey, (err) => err.message === multisig.MULTISIG_NO_MUTATE_ERROR_MSG);
+        });
+    });
 });
