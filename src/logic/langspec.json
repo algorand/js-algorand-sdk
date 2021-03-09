@@ -1,6 +1,6 @@
 {
-  "EvalMaxVersion": 2,
-  "LogicSigVersion": 2,
+  "EvalMaxVersion": 3,
+  "LogicSigVersion": 3,
   "Ops": [
     {
       "Opcode": 0,
@@ -59,7 +59,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A plus B. Panic on overflow.",
-      "DocExtra": "Overflow is an error condition which halts execution and fails the transaction. Full precision is available from `plusw`.",
+      "DocExtra": "Overflow is an error condition which halts execution and fails the transaction. Full precision is available from `addw`.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -276,7 +276,7 @@
     },
     {
       "Opcode": 30,
-      "Name": "plusw",
+      "Name": "addw",
       "Args": "UU",
       "Returns": "UU",
       "Cost": 1,
@@ -289,7 +289,7 @@
       "Name": "intcblock",
       "Cost": 1,
       "Size": 0,
-      "Doc": "load block of uint64 constants",
+      "Doc": "prepare block of uint64 constants for use by intc",
       "DocExtra": "`intcblock` loads following program bytes into an array of integer constants in the evaluator. These integer constants can be referred to by `intc` and `intc_*` which will push the value onto the stack. Subsequent calls to `intcblock` reset and replace the integer constants available to the script.",
       "ImmediateNote": "{varuint length} [{varuint value}, ...]",
       "Groups": ["Loading Values"]
@@ -300,7 +300,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 2,
-      "Doc": "push value from uint64 constants to stack by index into constants",
+      "Doc": "push Ith constant from intcblock to stack",
       "ImmediateNote": "{uint8 int constant index}",
       "Groups": ["Loading Values"]
     },
@@ -345,8 +345,8 @@
       "Name": "bytecblock",
       "Cost": 1,
       "Size": 0,
-      "Doc": "load block of byte-array constants",
-      "DocExtra": "`bytecblock` loads the following program bytes into an array of byte string constants in the evaluator. These constants can be referred to by `bytec` and `bytec_*` which will push the value onto the stack. Subsequent calls to `bytecblock` reset and replace the bytes constants available to the script.",
+      "Doc": "prepare block of byte-array constants for use by bytec",
+      "DocExtra": "`bytecblock` loads the following program bytes into an array of byte-array constants in the evaluator. These constants can be referred to by `bytec` and `bytec_*` which will push the value onto the stack. Subsequent calls to `bytecblock` reset and replace the bytes constants available to the script.",
       "ImmediateNote": "{varuint length} [({varuint value length} bytes), ...]",
       "Groups": ["Loading Values"]
     },
@@ -356,7 +356,7 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 2,
-      "Doc": "push bytes constant to stack by index into constants",
+      "Doc": "push Ith constant from bytecblock to stack",
       "ImmediateNote": "{uint8 byte constant index}",
       "Groups": ["Loading Values"]
     },
@@ -402,7 +402,7 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 2,
-      "Doc": "push Args[N] value to stack by index",
+      "Doc": "push Nth LogicSig argument to stack",
       "ImmediateNote": "{uint8 arg index N}",
       "Groups": ["Loading Values"]
     },
@@ -412,7 +412,7 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "push Args[0] to stack",
+      "Doc": "push LogicSig argument 0 to stack",
       "Groups": ["Loading Values"]
     },
     {
@@ -421,7 +421,7 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "push Args[1] to stack",
+      "Doc": "push LogicSig argument 1 to stack",
       "Groups": ["Loading Values"]
     },
     {
@@ -430,7 +430,7 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "push Args[2] to stack",
+      "Doc": "push LogicSig argument 2 to stack",
       "Groups": ["Loading Values"]
     },
     {
@@ -439,7 +439,7 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "push Args[3] to stack",
+      "Doc": "push LogicSig argument 3 to stack",
       "Groups": ["Loading Values"]
     },
     {
@@ -496,10 +496,18 @@
         "ConfigAssetClawback",
         "FreezeAsset",
         "FreezeAssetAccount",
-        "FreezeAssetFrozen"
+        "FreezeAssetFrozen",
+        "Assets",
+        "NumAssets",
+        "Applications",
+        "NumApplications",
+        "GlobalNumUint",
+        "GlobalNumByteSlice",
+        "LocalNumUint",
+        "LocalNumByteSlice"
       ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBU",
-      "Doc": "push field from current transaction to stack",
+      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUU",
+      "Doc": "push field F of current transaction to stack",
       "DocExtra": "FirstValidTime causes the program to fail. The field is reserved for future use.",
       "ImmediateNote": "{uint8 transaction field index}",
       "Groups": ["Loading Values"]
@@ -518,9 +526,11 @@
         "GroupSize",
         "LogicSigVersion",
         "Round",
-        "LatestTimestamp"
+        "LatestTimestamp",
+        "CurrentApplicationID",
+        "CreatorAddress"
       ],
-      "ArgEnumTypes": "UUUBUUUU",
+      "ArgEnumTypes": "UUUBUUUUUB",
       "Doc": "push value from globals to stack",
       "ImmediateNote": "{uint8 global field index}",
       "Groups": ["Loading Values"]
@@ -579,12 +589,20 @@
         "ConfigAssetClawback",
         "FreezeAsset",
         "FreezeAssetAccount",
-        "FreezeAssetFrozen"
+        "FreezeAssetFrozen",
+        "Assets",
+        "NumAssets",
+        "Applications",
+        "NumApplications",
+        "GlobalNumUint",
+        "GlobalNumByteSlice",
+        "LocalNumUint",
+        "LocalNumByteSlice"
       ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBU",
-      "Doc": "push field to the stack from a transaction in the current transaction group",
+      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUU",
+      "Doc": "push field F of the Tth transaction in the current group",
       "DocExtra": "for notes on transaction fields available, see `txn`. If this transaction is _i_ in the group, `gtxn i field` is equivalent to `txn field`.",
-      "ImmediateNote": "{uint8 transaction group index}{uint8 transaction field index}",
+      "ImmediateNote": "{uint8 transaction group index} {uint8 transaction field index}",
       "Groups": ["Loading Values"]
     },
     {
@@ -614,9 +632,9 @@
       "Cost": 1,
       "Size": 3,
       "ArgEnum": ["ApplicationArgs", "Accounts"],
-      "ArgEnumTypes": "BB",
-      "Doc": "push value of an array field from current transaction to stack",
-      "ImmediateNote": "{uint8 transaction field index}{uint8 transaction field array index}",
+      "ArgEnumTypes": "BBUU",
+      "Doc": "push Ith value of the array field F of the current transaction",
+      "ImmediateNote": "{uint8 transaction field index} {uint8 transaction field array index}",
       "Groups": ["Loading Values"]
     },
     {
@@ -626,9 +644,32 @@
       "Cost": 1,
       "Size": 4,
       "ArgEnum": ["ApplicationArgs", "Accounts"],
-      "ArgEnumTypes": "BB",
-      "Doc": "push value of a field to the stack from a transaction in the current transaction group",
-      "ImmediateNote": "{uint8 transaction group index}{uint8 transaction field index}{uint8 transaction field array index}",
+      "ArgEnumTypes": "BBUU",
+      "Doc": "push Ith value of the array field F from the Tth transaction in the current group",
+      "ImmediateNote": "{uint8 transaction group index} {uint8 transaction field index} {uint8 transaction field array index}",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 56,
+      "Name": "gtxns",
+      "Args": "U",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 2,
+      "Doc": "push field F of the Ath transaction in the current group",
+      "DocExtra": "for notes on transaction fields available, see `txn`. If top of stack is _i_, `gtxns field` is equivalent to `gtxn _i_ field`. gtxns exists so that _i_ can be calculated, often based on the index of the current transaction.",
+      "ImmediateNote": "{uint8 transaction field index}",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 57,
+      "Name": "gtxnsa",
+      "Args": "U",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 3,
+      "Doc": "push Ith value of the array field F from the Ath transaction in the current group",
+      "ImmediateNote": "{uint8 transaction field index} {uint8 transaction field array index}",
       "Groups": ["Loading Values"]
     },
     {
@@ -637,8 +678,8 @@
       "Args": "U",
       "Cost": 1,
       "Size": 3,
-      "Doc": "branch if value X is not zero",
-      "DocExtra": "The `bnz` instruction opcode 0x40 is followed by two immediate data bytes which are a high byte first and low byte second which together form a 16 bit offset which the instruction may branch to. For a bnz instruction at `pc`, if the last element of the stack is not zero then branch to instruction at `pc + 3 + N`, else proceed to next instruction at `pc + 3`. Branch targets must be well aligned instructions. (e.g. Branching to the second byte of a 2 byte op will be rejected.) Branch offsets are currently limited to forward branches only, 0-0x7fff. A future expansion might make this a signed 16 bit integer allowing for backward branches and looping.\n\nAt LogicSigVersion 2 it became allowed to branch to the end of the program exactly after the last instruction, removing the need for a last instruction or no-op as a branch target at the end. Branching beyond that may still fail the program.",
+      "Doc": "branch to TARGET if value X is not zero",
+      "DocExtra": "The `bnz` instruction opcode 0x40 is followed by two immediate data bytes which are a high byte first and low byte second which together form a 16 bit offset which the instruction may branch to. For a bnz instruction at `pc`, if the last element of the stack is not zero then branch to instruction at `pc + 3 + N`, else proceed to next instruction at `pc + 3`. Branch targets must be well aligned instructions. (e.g. Branching to the second byte of a 2 byte op will be rejected.) Branch offsets are currently limited to forward branches only, 0-0x7fff. A future expansion might make this a signed 16 bit integer allowing for backward branches and looping.\n\nAt LogicSigVersion 2 it became allowed to branch to the end of the program exactly after the last instruction: bnz to byte N (with 0-indexing) was illegal for a TEAL program with N bytes before LogicSigVersion 2, and is legal after it. This change eliminates the need for a last instruction of no-op as a branch target at the end. (Branching beyond the end--in other words, to a byte larger than N--is still illegal and will cause the program to fail.)",
       "ImmediateNote": "{0..0x7fff forward branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
@@ -648,7 +689,7 @@
       "Args": "U",
       "Cost": 1,
       "Size": 3,
-      "Doc": "branch if value X is zero",
+      "Doc": "branch to TARGET if value X is zero",
       "DocExtra": "See `bnz` for details on how branches work. `bz` inverts the behavior of `bnz`.",
       "ImmediateNote": "{0..0x7fff forward branch offset, big endian}",
       "Groups": ["Flow Control"]
@@ -658,7 +699,7 @@
       "Name": "b",
       "Cost": 1,
       "Size": 3,
-      "Doc": "branch unconditionally to offset",
+      "Doc": "branch unconditionally to TARGET",
       "DocExtra": "See `bnz` for details on how branches work. `b` always jumps to the offset.",
       "ImmediateNote": "{0..0x7fff forward branch offset, big endian}",
       "Groups": ["Flow Control"]
@@ -670,6 +711,15 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "use last value on stack as success value; end",
+      "Groups": ["Flow Control"]
+    },
+    {
+      "Opcode": 68,
+      "Name": "assert",
+      "Args": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "immediately fail unless value X is a non-zero number",
       "Groups": ["Flow Control"]
     },
     {
@@ -702,13 +752,44 @@
       "Groups": ["Flow Control"]
     },
     {
+      "Opcode": 75,
+      "Name": "dig",
+      "Args": ".",
+      "Returns": "..",
+      "Cost": 1,
+      "Size": 2,
+      "Doc": "push the Nth value from the top of the stack. dig 0 is equivalent to dup",
+      "ImmediateNote": "{uint8 depth}",
+      "Groups": ["Flow Control"]
+    },
+    {
+      "Opcode": 76,
+      "Name": "swap",
+      "Args": "..",
+      "Returns": "..",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "swaps two last values on stack: A, B -\u003e B, A",
+      "Groups": ["Flow Control"]
+    },
+    {
+      "Opcode": 77,
+      "Name": "select",
+      "Args": "..U",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "selects one of two values based on top-of-stack: A, B, C -\u003e (if C != 0 then B else A)",
+      "Groups": ["Flow Control"]
+    },
+    {
       "Opcode": 80,
       "Name": "concat",
       "Args": "BB",
       "Returns": "B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "pop two byte strings A and B and join them, push the result",
+      "Doc": "pop two byte-arrays A and B and join them, push the result",
       "DocExtra": "`concat` panics if the result would be greater than 4096 bytes.",
       "Groups": ["Arithmetic"]
     },
@@ -719,8 +800,8 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 3,
-      "Doc": "pop a byte string X. For immediate values in 0..255 N and M: extract a range of bytes from it starting at N up to but not including M, push the substring result",
-      "ImmediateNote": "{uint8 start position}{uint8 end position}",
+      "Doc": "pop a byte-array A. For immediate values in 0..255 S and E: extract a range of bytes from A starting at S up to but not including E, push the substring result. If E \u003c S, or either is larger than the array length, the program fails",
+      "ImmediateNote": "{uint8 start position} {uint8 end position}",
       "Groups": ["Arithmetic"]
     },
     {
@@ -730,7 +811,49 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "pop a byte string A and two integers B and C. Extract a range of bytes from A starting at B up to but not including C, push the substring result",
+      "Doc": "pop a byte-array A and two integers B and C. Extract a range of bytes from A starting at B up to but not including C, push the substring result. If C \u003c B, or either is larger than the array length, the program fails",
+      "Groups": ["Arithmetic"]
+    },
+    {
+      "Opcode": 83,
+      "Name": "getbit",
+      "Args": ".U",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a target A (integer or byte-array), and index B. Push the Bth bit of A.",
+      "DocExtra": "see explanation of bit ordering in setbit",
+      "Groups": ["Arithmetic"]
+    },
+    {
+      "Opcode": 84,
+      "Name": "setbit",
+      "Args": ".UU",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a target A, index B, and bit C. Set the Bth bit of A to C, and push the result",
+      "DocExtra": "bit indexing begins with low-order bits in integers. Setting bit 4 to 1 on the integer 0 yields 16 (`int 0x0010`, or 2^4). Indexing begins in the first bytes of a byte-string (as seen in getbyte and substring). Setting bits 0 through 11 to 1 in a 4 byte-array of 0s yields `byte 0xfff00000`",
+      "Groups": ["Arithmetic"]
+    },
+    {
+      "Opcode": 85,
+      "Name": "getbyte",
+      "Args": "BU",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a byte-array A and integer B. Extract the Bth byte of A and push it as an integer",
+      "Groups": ["Arithmetic"]
+    },
+    {
+      "Opcode": 86,
+      "Name": "setbyte",
+      "Args": "BUU",
+      "Returns": "B",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a byte-array A, integer B, and small integer C (between 0..255). Set the Bth byte of A to C, and push the result",
       "Groups": ["Arithmetic"]
     },
     {
@@ -740,7 +863,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "get balance for the requested account specified by Txn.Accounts[A] in microalgos. A is specified as an account index in the Accounts field of the ApplicationCall transaction",
+      "Doc": "get balance for the requested account specified by Txn.Accounts[A] in microalgos. A is specified as an account index in the Accounts field of the ApplicationCall transaction, zero index means the sender. The balance is observed after the effects of previous transactions in the group, and after the fee for the current transaction is deducted.",
       "Groups": ["State Access"]
     },
     {
@@ -762,18 +885,18 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "read from account specified by Txn.Accounts[A] from local state of the current application key B =\u003e value",
-      "DocExtra": "params: account index, state key. Return: value. The value is zero if the key does not exist.",
+      "DocExtra": "params: account index, state key. Return: value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 99,
       "Name": "app_local_get_ex",
       "Args": "UUB",
-      "Returns": "U.",
+      "Returns": ".U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "read from account specified by Txn.Accounts[A] from local state of the application B key C =\u003e {0 or 1 (top), value}",
-      "DocExtra": "params: account index, application id, state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value.",
+      "Doc": "read from account specified by Txn.Accounts[A] from local state of the application B key C =\u003e [*... stack*, value, 0 or 1]",
+      "DocExtra": "params: account index, application id, state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
@@ -784,18 +907,18 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "read key A from global state of a current application =\u003e value",
-      "DocExtra": "params: state key. Return: value. The value is zero if the key does not exist.",
+      "DocExtra": "params: state key. Return: value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 101,
       "Name": "app_global_get_ex",
       "Args": "UB",
-      "Returns": "U.",
+      "Returns": ".U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "read from application A global state key B =\u003e {0 or 1 (top), value}",
-      "DocExtra": "params: application id, state key. Return: value.",
+      "Doc": "read from application Txn.ForeignApps[A] global state key B =\u003e [*... stack*, value, 0 or 1]. A is specified as an account index in the ForeignApps field of the ApplicationCall transaction, zero index means this app",
+      "DocExtra": "params: application index, state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
@@ -824,7 +947,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "delete from account specified by Txn.Accounts[A] local state key B of the current application",
-      "DocExtra": "params: account index, state key.",
+      "DocExtra": "params: account index, state key.\n\nDeleting a key which is already absent has no effect on the application local state. (In particular, it does _not_ cause the program to fail.)",
       "Groups": ["State Access"]
     },
     {
@@ -834,14 +957,14 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "delete key A from a global state of the current application",
-      "DocExtra": "params: state key.",
+      "DocExtra": "params: state key.\n\nDeleting a key which is already absent has no effect on the application global state. (In particular, it does _not_ cause the program to fail.)",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 112,
       "Name": "asset_holding_get",
       "Args": "UU",
-      "Returns": "U.",
+      "Returns": ".U",
       "Cost": 1,
       "Size": 2,
       "ArgEnum": ["AssetBalance", "AssetFrozen"],
@@ -854,8 +977,8 @@
     {
       "Opcode": 113,
       "Name": "asset_params_get",
-      "Args": "UU",
-      "Returns": "U.",
+      "Args": "U",
+      "Returns": ".U",
       "Cost": 1,
       "Size": 2,
       "ArgEnum": [
@@ -872,10 +995,40 @@
         "AssetClawback"
       ],
       "ArgEnumTypes": "UUUBBBBBBBB",
-      "Doc": "read from account specified by Txn.Accounts[A] and asset B params field X (imm arg) =\u003e {0 or 1 (top), value}",
-      "DocExtra": "params: account index, asset id. Return: did_exist flag (1 if exist and 0 otherwise), value.",
+      "Doc": "read from asset Txn.ForeignAssets[A] params field X (imm arg) =\u003e {0 or 1 (top), value}",
+      "DocExtra": "params: txn.ForeignAssets offset. Return: did_exist flag (1 if exist and 0 otherwise), value.",
       "ImmediateNote": "{uint8 asset params field index}",
       "Groups": ["State Access"]
+    },
+    {
+      "Opcode": 120,
+      "Name": "min_balance",
+      "Args": "U",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "get minimum required balance for the requested account specified by Txn.Accounts[A] in microalgos. A is specified as an account index in the Accounts field of the ApplicationCall transaction, zero index means the sender. Required balance is affected by [ASA](https://developer.algorand.org/docs/features/asa/#assets-overview) and [App](https://developer.algorand.org/docs/features/asc1/stateful/#minimum-balance-requirement-for-a-smart-contract) usage. When creating or opting into an app, the minimum balance grows before the app code runs, therefore the increase is visible there. When deleting or closing out, the minimum balance decreases after the app executes.",
+      "Groups": ["State Access"]
+    },
+    {
+      "Opcode": 128,
+      "Name": "pushbytes",
+      "Returns": "B",
+      "Cost": 1,
+      "Size": 0,
+      "Doc": "push the following program bytes to the stack",
+      "ImmediateNote": "{varuint length} {bytes}",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 129,
+      "Name": "pushint",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 0,
+      "Doc": "push immediate UINT to the stack as an integer",
+      "ImmediateNote": "{varuint int}",
+      "Groups": ["Loading Values"]
     }
   ]
 }
