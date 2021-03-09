@@ -20,28 +20,6 @@ const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = "Key does not exist";
  * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
  */
 class MultisigTransaction extends txnBuilder.Transaction {
-    get_obj_for_encoding() {
-        if (this.hasOwnProperty("objForEncoding")) {
-            // if set, use the value for encoding. This allows us to sign existing non-payment type transactions.
-            return this.objForEncoding;
-        }
-        return super.get_obj_for_encoding();
-    }
-
-    static from_obj_for_encoding(txnForEnc) {
-        if (txnForEnc.type !== "pay") {
-            // we don't support decoding this txn yet - but we can keep signing it since we have the
-            // encoded format. We trust that the caller knows what they are trying to sign.
-            let txn = Object.create(this.prototype);
-            txn.name = "Transaction";
-            txn.tag = Buffer.from([84, 88]); // "TX"
-
-            txn.objForEncoding = txnForEnc;
-            return txn;
-        }
-        return super.from_obj_for_encoding(txnForEnc);
-    }
-
     /**
      * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
      * encoded with msgpack as a typed array.
@@ -52,13 +30,11 @@ class MultisigTransaction extends txnBuilder.Transaction {
      * @returns an encoded, partially signed multisig transaction.
      */
     partialSignTxn({version, threshold, pks}, sk) {
-        // verify one more time that the from field is correct
-        if (!this.hasOwnProperty("objForEncoding")) {
-            let expectedFromRaw = address.fromMultisigPreImg({version, threshold, pks});
-            if (address.encodeAddress(this.from.publicKey) !== address.encodeAddress(expectedFromRaw)) {
-                throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
-            }
+        let expectedFromRaw = address.fromMultisigPreImg({version, threshold, pks});
+        if (address.encodeAddress(this.from.publicKey) !== address.encodeAddress(expectedFromRaw)) {
+            throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
         }
+
         // get signature verifier
         let myPk = nacl.keyPairFromSecretKey(sk).publicKey;
         return createMultisigTransaction(
