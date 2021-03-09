@@ -9,12 +9,12 @@ const utils = require('./utils/utils');
  Utilities for manipulating multisig transaction blobs.
  */
 
-const ERROR_MULTISIG_MERGE_LESSTHANTWO = new Error("Not enough multisig transactions to merge. Need at least two");
-const ERROR_MULTISIG_MERGE_MISMATCH = new Error("Cannot merge txs. txIDs differ");
-const ERROR_MULTISIG_MERGE_WRONG_PREIMAGE = new Error("Cannot merge txs. Multisig preimages differ");
-const ERROR_MULTISIG_MERGE_SIG_MISMATCH = new Error("Cannot merge txs. subsigs are mismatched.");
-const ERROR_MULTISIG_BAD_FROM_FIELD = new Error("The transaction from field and multisig preimage do not match.");
-const ERROR_MULTISIG_KEY_NOT_EXIST = new Error("Key does not exist");
+const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG = "Not enough multisig transactions to merge. Need at least two";
+const MULTISIG_MERGE_MISMATCH_ERROR_MSG = "Cannot merge txs. txIDs differ";
+const MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG = "Cannot merge txs. Multisig preimages differ";
+const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG = "Cannot merge txs. subsigs are mismatched.";
+const MULTISIG_BAD_FROM_FIELD_ERROR_MSG = "The transaction from field and multisig preimage do not match.";
+const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = "Key does not exist";
 
 /**
  * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
@@ -56,7 +56,7 @@ class MultisigTransaction extends txnBuilder.Transaction {
         if (!this.hasOwnProperty("objForEncoding")) {
             let expectedFromRaw = address.fromMultisigPreImg({version, threshold, pks});
             if (address.encodeAddress(this.from.publicKey) !== address.encodeAddress(expectedFromRaw)) {
-                throw ERROR_MULTISIG_BAD_FROM_FIELD;
+                throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
             }
         }
         // get signature verifier
@@ -93,7 +93,7 @@ function createMultisigTransaction(txnForEncoding, {rawSig, myPk}, {version, thr
         return {"pk": Buffer.from(pk)};
     });
     if (keyExist === false) {
-        throw ERROR_MULTISIG_KEY_NOT_EXIST;
+        throw new Error(MULTISIG_KEY_NOT_EXIST_ERROR_MSG);
     }
     let msig = {
         "v": version,
@@ -114,7 +114,7 @@ function createMultisigTransaction(txnForEncoding, {rawSig, myPk}, {version, thr
  */
 function mergeMultisigTransactions(multisigTxnBlobs) {
     if (multisigTxnBlobs.length < 2) {
-        throw ERROR_MULTISIG_MERGE_LESSTHANTWO;
+        throw new Error(MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG);
     }
     const refSigTx = encoding.decode(multisigTxnBlobs[0]);
     const refSigAlgoTx = MultisigTransaction.from_obj_for_encoding(refSigTx.txn);
@@ -126,11 +126,11 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
         let unisig = encoding.decode(multisigTxnBlobs[i]);
         let unisigAlgoTxn = MultisigTransaction.from_obj_for_encoding(unisig.txn);
         if (unisigAlgoTxn.txID().toString() !== refTxIDStr) {
-            throw ERROR_MULTISIG_MERGE_MISMATCH;
+            throw new Error(MULTISIG_MERGE_MISMATCH_ERROR_MSG);
         }
         // check multisig has same preimage as reference
         if (unisig.msig.subsig.length !== refSigTx.msig.subsig.length) {
-            throw ERROR_MULTISIG_MERGE_WRONG_PREIMAGE;
+            throw new Error(MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG);
         }
         let preimg = {
             "version": unisig.msig.v,
@@ -140,7 +140,7 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
             }),
         };
         if (from !== address.encodeAddress(address.fromMultisigPreImg(preimg))) {
-            throw ERROR_MULTISIG_MERGE_WRONG_PREIMAGE;
+            throw new Error(MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG);
         }
         // now, we can merge
         newSubsigs = unisig.msig.subsig.map((uniSubsig, index) => {
@@ -152,7 +152,7 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
                 // info: https://github.com/algorand/js-algorand-sdk/issues/252
                 if (uniSubsig.s && Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0) {
                     // mismatch
-                    throw ERROR_MULTISIG_MERGE_SIG_MISMATCH;
+                    throw new Error(MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG);
                 }
                 return {
                     "pk": current.pk,
@@ -233,8 +233,8 @@ module.exports = {
     mergeMultisigTransactions,
     createMultisigTransaction,
     verifyMultisig,
-    ERROR_MULTISIG_MERGE_LESSTHANTWO,
-    ERROR_MULTISIG_MERGE_MISMATCH,
-    ERROR_MULTISIG_MERGE_WRONG_PREIMAGE,
-    ERROR_MULTISIG_MERGE_SIG_MISMATCH,
+    MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG,
+    MULTISIG_MERGE_MISMATCH_ERROR_MSG,
+    MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG,
+    MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG,
 };

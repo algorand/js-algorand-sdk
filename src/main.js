@@ -28,7 +28,7 @@ let Indexer = indexer.IndexerClient
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
 // Errors
-const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
+const MULTISIG_BAD_SENDER_ERROR_MSG = "The transaction sender address and multisig preimage do not match.";
 
 /**
  * signTransaction takes an object with either payment or key registration fields and 
@@ -115,7 +115,7 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
     let expectedFromRaw = address.fromMultisigPreImgAddrs({version, threshold, addrs});
     if (txn.hasOwnProperty('from')) {
         if ((txn.from !== expectedFromRaw) && (address.encodeAddress(txn.from.publicKey) !== expectedFromRaw)) {
-            throw ERROR_MULTISIG_BAD_SENDER;
+            throw new Error(MULTISIG_BAD_SENDER_ERROR_MSG);
         }
     } else {
         txn.from = expectedFromRaw;
@@ -230,8 +230,10 @@ module.exports = {
     mergeMultisigTransactions,
     signMultisigTransaction,
     multisigAddress,
-    ERROR_MULTISIG_BAD_SENDER,
-    ERROR_INVALID_MICROALGOS: convert.ERROR_INVALID_MICROALGOS,
+    MULTISIG_BAD_SENDER_ERROR_MSG,
+    ERROR_MULTISIG_BAD_SENDER: new Error(MULTISIG_BAD_SENDER_ERROR_MSG),
+    INVALID_MICROALGOS_ERROR_MSG: convert.ERROR_INVALID_MICROALGOS,
+    ERROR_INVALID_MICROALGOS: new Error(convert.ERROR_INVALID_MICROALGOS),
     microalgosToAlgos: convert.microalgosToAlgos,
     algosToMicroalgos: convert.algosToMicroalgos,
     computeGroupID: group.computeGroupID,
