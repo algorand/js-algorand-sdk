@@ -92,6 +92,21 @@ And to run SDK tests in Firefox:
 TEST_BROWSER=firefox make docker-test
 ```
 
+### Code Style
+
+This project enforces a modified version of the [Airbnb code style](https://github.com/airbnb/javascript).
+
+We've setup linters and formatters to help catch errors and improve the development experience:
+
+- [Prettier](https://prettier.io/) – ensures that code is formatted in a readable way.
+- [ESLint](https://eslint.org/) — checks code for antipatterns as well as formatting.
+
+> If using the Visual Studio Code editor with the [recommended extensions](.vscode/extensions.json), ESLint errors should be highlighted in red and the Prettier extension should format code on every save.
+
+#### Precommit Hook
+
+The linters and formatters listed above should run automatically on each commit to catch errors early and save CI running time.
+
 ## License
 
 js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
