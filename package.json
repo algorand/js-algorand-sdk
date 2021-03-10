@@ -50,7 +50,10 @@
   "scripts": {
     "test": "node tests/mocha.js",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write ."
   },
   "author": "Algorand, llc",
   "license": "MIT"
