@@ -14,10 +14,10 @@ describe('#mnemonic', () => {
     for (let i = 0; i < 50; i++) {
       const seed = nacl.randomBytes(32);
       const mn = passphrase.mnemonicFromSeed(seed);
-      const key_target = passphrase.seedFromMnemonic(mn);
+      const keyTarget = passphrase.seedFromMnemonic(mn);
       const truncatedKey = new Uint8Array(seed);
 
-      assert.deepStrictEqual(key_target, truncatedKey);
+      assert.deepStrictEqual(keyTarget, truncatedKey);
     }
   });
 
@@ -58,8 +58,8 @@ describe('#mnemonic', () => {
     ]);
     const mn =
       'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
-    const key_target = passphrase.mnemonicFromSeed(key);
-    assert.deepStrictEqual(key_target, mn);
+    const keyTarget = passphrase.mnemonicFromSeed(key);
+    assert.deepStrictEqual(keyTarget, mn);
   });
 
   it('should fail with the wrong checksum', () => {

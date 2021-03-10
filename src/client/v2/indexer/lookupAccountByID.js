@@ -6,6 +6,7 @@ class LookupAccountByID extends JSONRequest {
     this.account = account;
   }
 
+  // eslint-disable-next-line no-underscore-dangle
   _path() {
     return `/v2/accounts/${this.account}`;
   }

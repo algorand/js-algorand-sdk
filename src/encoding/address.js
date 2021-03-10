@@ -32,21 +32,6 @@ const INVALID_MSIG_PK_ERROR_MSG = 'bad multisig public key - wrong length';
 const UNEXPECTED_PK_LEN_ERROR_MSG = 'nacl public key length is not 32 bytes';
 
 /**
- * isValidAddress checks if a string is a valid Algorand address.
- * @param {string} address an Algorand address with checksum.
- * @returns {boolean} true if valid, false otherwise
- */
-function isValidAddress(address) {
-  // Try to decode
-  try {
-    decodeAddress(address);
-  } catch (e) {
-    return false;
-  }
-  return true;
-}
-
-/**
  * decodeAddress takes an Algorand address in string form and decodes it into a Uint8Array.
  * @param {string} address an Algorand address with checksum.
  * @returns {{publicKey: Uint8Array, checksum: Uint8Array}} the decoded form of the address's public key and checksum
@@ -89,6 +74,21 @@ function decodeAddress(address) {
     throw new Error(CHECKSUM_ADDRESS_ERROR_MSG);
 
   return { publicKey: pk, checksum: cs };
+}
+
+/**
+ * isValidAddress checks if a string is a valid Algorand address.
+ * @param {string} address an Algorand address with checksum.
+ * @returns {boolean} true if valid, false otherwise
+ */
+function isValidAddress(address) {
+  // Try to decode
+  try {
+    decodeAddress(address);
+  } catch (e) {
+    return false;
+  }
+  return true;
 }
 
 /**

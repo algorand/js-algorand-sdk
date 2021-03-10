@@ -23,6 +23,7 @@ class TxGroup {
     this.txGroupHashes = hashes;
   }
 
+  // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
     const txgroup = {
       txlist: this.txGroupHashes,
@@ -30,13 +31,14 @@ class TxGroup {
     return txgroup;
   }
 
+  // eslint-disable-next-line camelcase
   static from_obj_for_encoding(txgroupForEnc) {
     const txn = Object.create(this.prototype);
     txn.name = 'Transaction group';
     txn.tag = Buffer.from('TG');
     txn.txGroupHashes = [];
     for (const hash of txgroupForEnc.txlist) {
-      txn.txGroupHashes.push(new Buffer.from(hash));
+      txn.txGroupHashes.push(Buffer.from(hash));
     }
     return txn;
   }
@@ -79,7 +81,7 @@ function assignGroupID(txns, from = undefined) {
   const gid = computeGroupID(txns);
   const result = [];
   for (const txn of txns) {
-    if (!from || address.encodeAddress(txn.from.publicKey) == from) {
+    if (!from || address.encodeAddress(txn.from.publicKey) === from) {
       let tx = txn;
       if (!(tx instanceof txnBuilder.Transaction)) {
         tx = new txnBuilder.Transaction(txn);

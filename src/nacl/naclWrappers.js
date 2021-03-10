@@ -9,13 +9,13 @@ function randomBytes(length) {
   return nacl.randomBytes(length);
 }
 
+function keyPairFromSeed(seed) {
+  return nacl.sign.keyPair.fromSeed(seed);
+}
+
 function keyPair() {
   const seed = randomBytes(nacl.box.secretKeyLength);
   return keyPairFromSeed(seed);
-}
-
-function keyPairFromSeed(seed) {
-  return nacl.sign.keyPair.fromSeed(seed);
 }
 
 function keyPairFromSecretKey(sk) {

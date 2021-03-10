@@ -1,10 +1,12 @@
 /**
  * Base class for models
  */
+
+/* eslint-disable no-underscore-dangle,camelcase,class-methods-use-this */
 class BaseModel {
   _is_primitive(val) {
     return (
-      val == undefined ||
+      val === undefined ||
       val == null ||
       (typeof val !== 'object' && typeof val !== 'function')
     );
@@ -40,15 +42,11 @@ class BaseModel {
   get_obj_for_encoding() {
     const obj = {};
     for (const prop of Object.keys(this)) {
-      if (prop == 'attribute_map') {
-        continue;
-      }
       const val = this[prop];
-      if (val === undefined) {
-        continue;
+      if (prop !== 'attribute_map' && typeof val !== 'undefined') {
+        const name = this.attribute_map[prop];
+        obj[name] = val === null ? null : this._get_obj_for_encoding(val);
       }
-      const name = this.attribute_map[prop];
-      obj[name] = val === null ? null : this._get_obj_for_encoding(val);
     }
     return obj;
   }

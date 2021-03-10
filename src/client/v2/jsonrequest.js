@@ -14,6 +14,7 @@ class JSONRequest {
   /**
    * @returns {string} The path of this request.
    */
+  // eslint-disable-next-line no-underscore-dangle,class-methods-use-this
   _path() {
     throw new Error('Must be overriden by implementing class.');
   }
@@ -29,6 +30,7 @@ class JSONRequest {
       jsonOptions.intDecoding = this.intDecoding;
     }
     const res = await this.c.get(
+      // eslint-disable-next-line no-underscore-dangle
       this._path(),
       this.query,
       headers,

@@ -18,19 +18,19 @@ class LogicSig {
     if (!logic.checkProgram(program, args)) {
       throw new Error('Invalid program');
     }
-    if (args) {
-      function checkType(arg) {
-        const theType = typeof arg;
-        return (
-          theType == 'string' ||
-          theType == 'number' ||
-          arg.constructor == Uint8Array ||
-          Buffer.isBuffer(arg)
-        );
-      }
-      if (!Array.isArray(args) || !args.every(checkType)) {
-        throw new TypeError('Invalid arguments');
-      }
+
+    function checkType(arg) {
+      const theType = typeof arg;
+      return (
+        theType === 'string' ||
+        theType === 'number' ||
+        arg.constructor === Uint8Array ||
+        Buffer.isBuffer(arg)
+      );
+    }
+
+    if (args && (!Array.isArray(args) || !args.every(checkType))) {
+      throw new TypeError('Invalid arguments');
     }
 
     this.logic = program;
@@ -39,6 +39,7 @@ class LogicSig {
     this.msig = undefined;
   }
 
+  // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
     const obj = {
       l: this.logic,
@@ -54,6 +55,7 @@ class LogicSig {
     return obj;
   }
 
+  // eslint-disable-next-line camelcase
   static from_obj_for_encoding(encoded) {
     const lsig = new LogicSig(encoded.l, encoded.arg);
     lsig.sig = encoded.sig;
@@ -153,7 +155,7 @@ class LogicSig {
         break;
       }
     }
-    if (index == -1) {
+    if (index === -1) {
       throw new Error('invalid secret key');
     }
     const sig = this.signProgram(secretKey);
@@ -165,8 +167,8 @@ class LogicSig {
   }
 
   static fromByte(encoded) {
-    const decoded_obj = encoding.decode(encoded);
-    return LogicSig.from_obj_for_encoding(decoded_obj);
+    const decodedObj = encoding.decode(encoded);
+    return LogicSig.from_obj_for_encoding(decodedObj);
   }
 }
 
@@ -179,23 +181,6 @@ class LogicSig {
  */
 function makeLogicSig(program, args) {
   return new LogicSig(program, args);
-}
-
-/**
- * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
- * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} txn containing constructor arguments for a transaction
- * @param {LogicSig} lsig logicsig object
- * @returns {Object} Object containing txID and blob representing signed transaction.
- * @throws error on failure
- */
-function signLogicSigTransaction(txn, lsig) {
-  // use signLogicSigTransactionObject directly if transaction already built
-  if (txn instanceof txnBuilder.Transaction) {
-    return signLogicSigTransactionObject(txn, lsig);
-  }
-  const algoTxn = new txnBuilder.Transaction(txn);
-  return signLogicSigTransactionObject(algoTxn, lsig);
 }
 
 /**
@@ -230,6 +215,23 @@ function signLogicSigTransactionObject(txn, lsig) {
     txID: txn.txID().toString(),
     blob: encoding.encode(lstx),
   };
+}
+
+/**
+ * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
+ * transaction which is a blob representing a transaction and logicsig object.
+ * @param {Object} txn containing constructor arguments for a transaction
+ * @param {LogicSig} lsig logicsig object
+ * @returns {Object} Object containing txID and blob representing signed transaction.
+ * @throws error on failure
+ */
+function signLogicSigTransaction(txn, lsig) {
+  // use signLogicSigTransactionObject directly if transaction already built
+  if (txn instanceof txnBuilder.Transaction) {
+    return signLogicSigTransactionObject(txn, lsig);
+  }
+  const algoTxn = new txnBuilder.Transaction(txn);
+  return signLogicSigTransactionObject(algoTxn, lsig);
 }
 
 /**

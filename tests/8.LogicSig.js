@@ -315,6 +315,7 @@ describe('Logic validation', () => {
       assert.equal(result, true);
 
       // app_opted_in
+      /* eslint-disable no-sparse-arrays */
       program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, , 0x22, 0x61]); // int 0; int 0; app_opted_in
       result = logic.checkProgram(program);
       assert.equal(result, true);
@@ -333,6 +334,7 @@ describe('Logic validation', () => {
       ]); // int 0; int 0; asset_holding_get Balance
       result = logic.checkProgram(program);
       assert.equal(result, true);
+      /* eslint-disable no-sparse-arrays */
     });
   });
 });

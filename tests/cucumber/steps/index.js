@@ -1,3 +1,4 @@
+/* eslint-disable no-console,global-require,no-loop-func,func-names */
 const path = require('path');
 const fs = require('fs');
 const {
@@ -51,13 +52,112 @@ if (browser) {
   console.log('Testing in node');
 }
 
+let algodMockServerResponder;
+let indexerMockServerResponder;
+let algodMockServerPathRecorder;
+let indexerMockServerPathRecorder;
+
+const stepOptions = {
+  algod_token:
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  kmd_token: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  mockAlgodResponderPort: 31337,
+  mockAlgodResponderHost: 'localhost',
+  mockIndexerResponderPort: 31338,
+  mockIndexerResponderHost: 'localhost',
+  mockAlgodPathRecorderPort: 31339,
+  mockAlgodPathRecorderHost: 'localhost',
+  mockIndexerPathRecorderPort: 31340,
+  mockIndexerPathRecorderHost: 'localhost',
+};
+
+async function createIndexerMockServers() {
+  indexerMockServerResponder = new ServerMock({
+    host: stepOptions.mockIndexerResponderHost,
+    port: stepOptions.mockIndexerResponderPort,
+  });
+  await new Promise((resolve) => {
+    indexerMockServerResponder.start(resolve);
+  });
+
+  indexerMockServerPathRecorder = new ServerMock({
+    host: stepOptions.mockIndexerPathRecorderHost,
+    port: stepOptions.mockIndexerPathRecorderPort,
+  });
+  await new Promise((resolve) => {
+    indexerMockServerPathRecorder.start(resolve);
+  });
+}
+
+async function createAlgodV2MockServers() {
+  algodMockServerResponder = new ServerMock({
+    host: stepOptions.mockAlgodResponderHost,
+    port: stepOptions.mockAlgodResponderPort,
+  });
+  await new Promise((resolve) => {
+    algodMockServerResponder.start(resolve);
+  });
+
+  algodMockServerPathRecorder = new ServerMock({
+    host: stepOptions.mockAlgodPathRecorderHost,
+    port: stepOptions.mockAlgodPathRecorderPort,
+  });
+  await new Promise((resolve) => {
+    algodMockServerPathRecorder.start(resolve);
+  });
+}
+
+function resetIndexerMockServers() {
+  if (indexerMockServerPathRecorder !== undefined) {
+    indexerMockServerPathRecorder.reset();
+  }
+  if (indexerMockServerResponder !== undefined) {
+    indexerMockServerResponder.reset();
+  }
+}
+
+async function resetAlgodV2MockServers() {
+  if (algodMockServerPathRecorder !== undefined) {
+    algodMockServerPathRecorder.reset();
+  }
+  if (algodMockServerResponder !== undefined) {
+    algodMockServerResponder.reset();
+  }
+}
+
+async function cleanupIndexerMockServers() {
+  if (indexerMockServerPathRecorder !== undefined) {
+    await new Promise((resolve) => {
+      indexerMockServerPathRecorder.stop(resolve);
+    });
+  }
+  if (indexerMockServerResponder !== undefined) {
+    await new Promise((resolve) => {
+      indexerMockServerResponder.stop(resolve);
+    });
+  }
+}
+
+async function cleanupAlgodV2MockServers() {
+  if (algodMockServerPathRecorder !== undefined) {
+    await new Promise((resolve) => {
+      algodMockServerPathRecorder.stop(resolve);
+    });
+  }
+  if (algodMockServerResponder !== undefined) {
+    await new Promise((resolve) => {
+      algodMockServerResponder.stop(resolve);
+    });
+  }
+}
+
 const browserServerPort = 8080;
 let browserServer;
 
 async function startBrowserServer() {
   const app = express();
   app.use(express.static(cucumberPath));
-  await new Promise((resolve, reject) => {
+  await new Promise((resolve) => {
     browserServer = app.listen(browserServerPort, undefined, resolve);
   });
 }
@@ -115,105 +215,6 @@ AfterAll(async () => {
   await cleanupIndexerMockServers();
   await cleanupAlgodV2MockServers();
 });
-
-let algodMockServerResponder;
-let indexerMockServerResponder;
-let algodMockServerPathRecorder;
-let indexerMockServerPathRecorder;
-
-const stepOptions = {
-  algod_token:
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  kmd_token: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  mockAlgodResponderPort: 31337,
-  mockAlgodResponderHost: 'localhost',
-  mockIndexerResponderPort: 31338,
-  mockIndexerResponderHost: 'localhost',
-  mockAlgodPathRecorderPort: 31339,
-  mockAlgodPathRecorderHost: 'localhost',
-  mockIndexerPathRecorderPort: 31340,
-  mockIndexerPathRecorderHost: 'localhost',
-};
-
-async function createIndexerMockServers() {
-  indexerMockServerResponder = new ServerMock({
-    host: stepOptions.mockIndexerResponderHost,
-    port: stepOptions.mockIndexerResponderPort,
-  });
-  await new Promise((resolve, reject) => {
-    indexerMockServerResponder.start(resolve);
-  });
-
-  indexerMockServerPathRecorder = new ServerMock({
-    host: stepOptions.mockIndexerPathRecorderHost,
-    port: stepOptions.mockIndexerPathRecorderPort,
-  });
-  await new Promise((resolve, reject) => {
-    indexerMockServerPathRecorder.start(resolve);
-  });
-}
-
-async function createAlgodV2MockServers() {
-  algodMockServerResponder = new ServerMock({
-    host: stepOptions.mockAlgodResponderHost,
-    port: stepOptions.mockAlgodResponderPort,
-  });
-  await new Promise((resolve, reject) => {
-    algodMockServerResponder.start(resolve);
-  });
-
-  algodMockServerPathRecorder = new ServerMock({
-    host: stepOptions.mockAlgodPathRecorderHost,
-    port: stepOptions.mockAlgodPathRecorderPort,
-  });
-  await new Promise((resolve, reject) => {
-    algodMockServerPathRecorder.start(resolve);
-  });
-}
-
-function resetIndexerMockServers() {
-  if (indexerMockServerPathRecorder != undefined) {
-    indexerMockServerPathRecorder.reset();
-  }
-  if (indexerMockServerResponder != undefined) {
-    indexerMockServerResponder.reset();
-  }
-}
-
-async function resetAlgodV2MockServers() {
-  if (algodMockServerPathRecorder != undefined) {
-    algodMockServerPathRecorder.reset();
-  }
-  if (algodMockServerResponder != undefined) {
-    algodMockServerResponder.reset();
-  }
-}
-
-async function cleanupIndexerMockServers() {
-  if (indexerMockServerPathRecorder != undefined) {
-    await new Promise((resolve, reject) => {
-      indexerMockServerPathRecorder.stop(resolve);
-    });
-  }
-  if (indexerMockServerResponder != undefined) {
-    await new Promise((resolve, reject) => {
-      indexerMockServerResponder.stop(resolve);
-    });
-  }
-}
-
-async function cleanupAlgodV2MockServers() {
-  if (algodMockServerPathRecorder != undefined) {
-    await new Promise((resolve, reject) => {
-      algodMockServerPathRecorder.stop(resolve);
-    });
-  }
-  if (algodMockServerResponder != undefined) {
-    await new Promise((resolve, reject) => {
-      algodMockServerResponder.stop(resolve);
-    });
-  }
-}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -323,7 +324,7 @@ if (browser) {
       // have to return a promise here instead of making rcpFn async because internally cucumber
       // uses bluebird.race to resolve this, and for some reason that leaks rejections when this
       // is async ¯\_(ツ)_/¯
-      const rpcFn = function (...args) {
+      const rpcFn = (...args) => {
         const asyncRpcFn = async () => {
           let rpcArgs = args;
           if (isFunction(rpcArgs[rpcArgs.length - 1])) {
@@ -332,12 +333,13 @@ if (browser) {
           }
 
           const { error } = await driver.executeAsyncScript(
-            async (type, name, ...rest) => {
+            // variables are `scoped` because they exist in the upper scope
+            async (scopedType, scopedName, ...rest) => {
               const done = rest[rest.length - 1];
               try {
                 const testArgs = rest.slice(0, rest.length - 1);
-                const test = getStep(type, name);
-                await test.apply(testWorld, testArgs);
+                const test = window.getStep(scopedType, scopedName);
+                await test.apply(window.testWorld, testArgs);
                 done({ error: null });
               } catch (err) {
                 console.error(err);

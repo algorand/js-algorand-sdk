@@ -6,6 +6,7 @@ class LookupBlock extends JSONRequest {
     this.round = round;
   }
 
+  // eslint-disable-next-line no-underscore-dangle
   _path() {
     return `/v2/blocks/${this.round}`;
   }

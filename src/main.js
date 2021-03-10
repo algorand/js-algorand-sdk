@@ -47,9 +47,10 @@ const MULTISIG_BAD_SENDER_ERROR_MSG =
  * @returns object contains the binary signed transaction and its txID
  */
 function signTransaction(txn, sk) {
-  if (!txn.from) {
+  if (typeof txn.from === 'undefined') {
     // Get pk from sk if no sender specified
     const key = nacl.keyPairFromSecretKey(sk);
+    // eslint-disable-next-line no-param-reassign
     txn.from = address.encodeAddress(key.publicKey);
   }
   let algoTxn = txn;
@@ -94,7 +95,9 @@ function signBytes(bytes, sk) {
  * @returns bool
  */
 function verifyBytes(bytes, signature, addr) {
-  toBeVerified = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
+  const toBeVerified = Buffer.from(
+    utils.concatArrays(SIGN_BYTES_PREFIX, bytes)
+  );
   const pk = address.decodeAddress(addr).publicKey;
   return nacl.verify(toBeVerified, signature, pk);
 }
@@ -118,7 +121,7 @@ function signMultisigTransaction(txn, { version, threshold, addrs }, sk) {
     threshold,
     addrs,
   });
-  if (txn.hasOwnProperty('from')) {
+  if (Object.prototype.hasOwnProperty.call(txn, 'from')) {
     if (
       txn.from !== expectedFromRaw &&
       address.encodeAddress(txn.from.publicKey) !== expectedFromRaw
@@ -126,6 +129,7 @@ function signMultisigTransaction(txn, { version, threshold, addrs }, sk) {
       throw new Error(MULTISIG_BAD_SENDER_ERROR_MSG);
     }
   } else {
+    // eslint-disable-next-line no-param-reassign
     txn.from = expectedFromRaw;
   }
   // build pks for partialSign
@@ -149,6 +153,15 @@ function signMultisigTransaction(txn, { version, threshold, addrs }, sk) {
     txID: algoTxn.txID().toString(),
     blob,
   };
+}
+
+/**
+ * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
+ * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
+ * @returns blob representing encoded multisig txn
+ */
+function mergeMultisigTransactions(multisigTxnBlobs) {
+  return multisig.mergeMultisigTransactions(multisigTxnBlobs);
 }
 
 /**
@@ -181,15 +194,6 @@ function appendSignMultisigTransaction(
     txID: msigTxn.txID().toString(),
     blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
   };
-}
-
-/**
- * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
- * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
- * @returns blob representing encoded multisig txn
- */
-function mergeMultisigTransactions(multisigTxnBlobs) {
-  return multisig.mergeMultisigTransactions(multisigTxnBlobs);
 }
 
 /**

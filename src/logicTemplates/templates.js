@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 const { Buffer } = require('buffer');
 const address = require('../encoding/address');
 
@@ -5,6 +6,7 @@ function putUvarint(buf, x) {
   let i = 0;
   while (x > 0x80) {
     buf.push((x & 0xff) | 0x80);
+    // eslint-disable-next-line no-param-reassign
     x >>= 7;
     i += 1;
   }
@@ -42,6 +44,7 @@ function inject(orig, offsets, values, valueTypes) {
 
     switch (valType) {
       case valTypes.INT:
+        // eslint-disable-next-line no-case-declarations
         const intBuf = [];
         decodedLength = putUvarint(intBuf, val);
         res = replace(res, intBuf, offsets[i], 1);
@@ -51,6 +54,7 @@ function inject(orig, offsets, values, valueTypes) {
         res = replace(res, val.publicKey, offsets[i], 32);
         break;
       case valTypes.BASE64:
+        // eslint-disable-next-line no-case-declarations
         const lenBuf = [];
         val = Buffer.from(val, 'base64');
         putUvarint(lenBuf, val.length);
@@ -58,11 +62,12 @@ function inject(orig, offsets, values, valueTypes) {
         res = replace(res, val, offsets[i], 33);
         break;
       default:
-        throw 'unrecognized value type';
+        throw new Error('unrecognized value type');
     }
 
     if (decodedLength !== 0) {
       for (let o = 0; o < offsets.length; o++) {
+        // eslint-disable-next-line no-param-reassign
         offsets[o] += decodedLength - 1;
       }
     }

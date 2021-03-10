@@ -7,6 +7,7 @@ class StatusAfterBlock extends JSONRequest {
     this.round = round;
   }
 
+  // eslint-disable-next-line no-underscore-dangle
   _path() {
     return `/v2/status/wait-for-block-after/${this.round}`;
   }

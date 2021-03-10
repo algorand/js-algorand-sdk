@@ -19,8 +19,8 @@ class Bid {
     this.name = 'Bid';
     this.tag = Buffer.from([97, 66]); // "aB"
 
-    bidderKey = address.decodeAddress(bidderKey);
-    auctionKey = address.decodeAddress(auctionKey);
+    const decodedBidderKey = address.decodeAddress(bidderKey);
+    const decodedAuctionKey = address.decodeAddress(auctionKey);
 
     if (!Number.isSafeInteger(bidAmount) || bidAmount < 0)
       throw Error('Bid amount must be positive and 2^53-1');
@@ -30,8 +30,8 @@ class Bid {
       throw Error('auctionID must be positive');
 
     Object.assign(this, {
-      bidderKey,
-      auctionKey,
+      bidderKey: decodedBidderKey,
+      auctionKey: decodedAuctionKey,
       bidAmount,
       maxPrice,
       bidID,
@@ -39,6 +39,7 @@ class Bid {
     });
   }
 
+  // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
     return {
       bidder: Buffer.from(this.bidderKey.publicKey),

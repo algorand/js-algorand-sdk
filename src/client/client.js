@@ -3,6 +3,7 @@ const request = require('superagent');
 const utils = require('../utils/utils');
 
 function createJSONParser(options) {
+  // eslint-disable-next-line consistent-return
   return (res, fn) => {
     if (typeof fn === 'string') {
       // in browser
@@ -41,7 +42,8 @@ function createJSONParser(options) {
  */
 function removeEmpty(obj) {
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      // eslint-disable-next-line no-param-reassign
       if (!obj[key] || obj[key].length === 0) delete obj[key];
     }
   }
@@ -55,7 +57,10 @@ function removeEmpty(obj) {
  * @returns {string}
  */
 function getAccceptFormat(query) {
-  if (query !== undefined && query.hasOwnProperty('format')) {
+  if (
+    query !== undefined &&
+    Object.prototype.hasOwnProperty.call(query, 'format')
+  ) {
     switch (query.format) {
       case 'msgpack':
         return 'application/msgpack';
@@ -69,10 +74,11 @@ function getAccceptFormat(query) {
 
 function HTTPClient(token, baseServer, port, headers = {}) {
   // Do not need colon if port is empty
+  let baseServerWithPort = baseServer;
   if (port !== '') {
-    baseServer += `:${port.toString()}`;
+    baseServerWithPort += `:${port.toString()}`;
   }
-  this.address = baseServer;
+  this.address = baseServerWithPort;
   this.token = token;
   this.defaultHeaders = headers;
 
@@ -85,75 +91,56 @@ function HTTPClient(token, baseServer, port, headers = {}) {
    *   utils.parseJSON for the options available.
    * @returns {Promise<object>} Response object.
    */
-  this.get = async function (
-    path,
-    query,
-    requestHeaders = {},
-    jsonOptions = {}
-  ) {
-    try {
-      const format = getAccceptFormat(query);
-      let r = request
-        .get(this.address + path)
-        .set(this.token)
-        .set(this.defaultHeaders)
-        .set(requestHeaders)
-        .set('Accept', format)
-        .query(removeEmpty(query));
+  this.get = async (path, query, requestHeaders = {}, jsonOptions = {}) => {
+    const format = getAccceptFormat(query);
+    let r = request
+      .get(this.address + path)
+      .set(this.token)
+      .set(this.defaultHeaders)
+      .set(requestHeaders)
+      .set('Accept', format)
+      .query(removeEmpty(query));
 
-      if (format === 'application/msgpack') {
-        r = r.responseType('arraybuffer');
-      } else if (
-        format === 'application/json' &&
-        Object.keys(jsonOptions).length !== 0
-      ) {
-        if (r.buffer !== r.ca) {
-          // in node, need to set buffer
-          r = r.buffer(true);
-        }
-        r = r.parse(createJSONParser(jsonOptions));
+    if (format === 'application/msgpack') {
+      r = r.responseType('arraybuffer');
+    } else if (
+      format === 'application/json' &&
+      Object.keys(jsonOptions).length !== 0
+    ) {
+      if (r.buffer !== r.ca) {
+        // in node, need to set buffer
+        r = r.buffer(true);
       }
-
-      const res = await r;
-      if (Buffer.isBuffer(res.body)) {
-        // In node res.body will be a Buffer, but in the browser it will be an ArrayBuffer
-        // (thanks superagent...), so convert it to an ArrayBuffer for consistency.
-        const underlyingArrayBuffer = res.body.buffer;
-        const start = res.body.byteOffset;
-        const end = start + res.body.byteLength;
-        res.body = underlyingArrayBuffer.slice(start, end);
-      }
-      return res;
-    } catch (e) {
-      throw e;
+      r = r.parse(createJSONParser(jsonOptions));
     }
+
+    const res = await r;
+    if (Buffer.isBuffer(res.body)) {
+      // In node res.body will be a Buffer, but in the browser it will be an ArrayBuffer
+      // (thanks superagent...), so convert it to an ArrayBuffer for consistency.
+      const underlyingArrayBuffer = res.body.buffer;
+      const start = res.body.byteOffset;
+      const end = start + res.body.byteLength;
+      res.body = underlyingArrayBuffer.slice(start, end);
+    }
+    return res;
   };
 
-  this.post = async function (path, data, requestHeaders = {}) {
-    try {
-      return await request
-        .post(this.address + path)
-        .set(this.token)
-        .set(this.defaultHeaders)
-        .set(requestHeaders)
-        .send(data);
-    } catch (e) {
-      throw e;
-    }
-  };
+  this.post = async (path, data, requestHeaders = {}) =>
+    request
+      .post(this.address + path)
+      .set(this.token)
+      .set(this.defaultHeaders)
+      .set(requestHeaders)
+      .send(data);
 
-  this.delete = async function (path, data, requestHeaders = {}) {
-    try {
-      return await request
-        .delete(this.address + path)
-        .set(this.token)
-        .set(this.defaultHeaders)
-        .set(requestHeaders)
-        .send(data);
-    } catch (e) {
-      throw e;
-    }
-  };
+  this.delete = async (path, data, requestHeaders = {}) =>
+    request
+      .delete(this.address + path)
+      .set(this.token)
+      .set(this.defaultHeaders)
+      .set(requestHeaders)
+      .send(data);
 }
 
 module.exports = { HTTPClient };

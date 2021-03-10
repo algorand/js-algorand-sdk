@@ -37,6 +37,10 @@ async function main() {
 
   // sign the transaction
   const signedTxn = txn.signTxn(account.sk);
+
+  // print transaction data
+  const decoded = algosdk.decodeSignedTransaction(signedTxn);
+  console.log(decoded);
 }
 
 main().catch(console.error);

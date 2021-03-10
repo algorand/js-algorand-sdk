@@ -1,5 +1,6 @@
 const { Buffer } = require('buffer');
 const client = require('./client');
+const { setSendTransactionHeaders } = require('./v2/algod/sendRawTransaction');
 
 function Algod(
   token = '',
@@ -23,45 +24,29 @@ function Algod(
    */
   function noteb64ToNote(o) {
     if (!(o.noteb64 === undefined || o.noteb64 === null)) {
+      // eslint-disable-next-line no-param-reassign
       o.note = Buffer.from(o.noteb64, 'base64');
     }
     return o;
   }
 
   /**
-   * Sets the default header (if not previously set) for sending a raw
-   * transaction.
-   * @param headers
-   * @returns {*}
-   */
-  function setSendTransactionHeaders(headers) {
-    let hdrs = headers;
-    if (
-      Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')
-    ) {
-      hdrs = { ...headers };
-      hdrs['Content-Type'] = 'application/x-binary';
-    }
-    return hdrs;
-  }
-
-  /**
    * status retrieves the StatusResponse from the running node
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.status = async function (headers = {}) {
-    const res = await c.get('/v1/status', {}, headers);
+  this.status = async (headerObj = {}) => {
+    const res = await c.get('/v1/status', {}, headerObj);
     return res.body;
   };
 
   /**
    * healthCheck returns an empty object iff the node is running
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.healthCheck = async function (headers = {}) {
-    const res = await c.get('/health', {}, headers);
+  this.healthCheck = async (headerObj = {}) => {
+    const res = await c.get('/health', {}, headerObj);
     if (!res.ok) {
       throw new Error(`Health response: ${res.status}`);
     }
@@ -72,16 +57,16 @@ function Algod(
    * statusAfterBlock waits for round roundNumber to occur then returns the StatusResponse for this round.
    * This call blocks
    * @param roundNumber
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.statusAfterBlock = async function (roundNumber, headers = {}) {
+  this.statusAfterBlock = async (roundNumber, headerObj = {}) => {
     if (!Number.isInteger(roundNumber))
       throw Error('roundNumber should be an integer');
     const res = await c.get(
       `/v1/status/wait-for-block-after/${roundNumber}`,
       {},
-      headers
+      headerObj
     );
     return res.body;
   };
@@ -90,15 +75,15 @@ function Algod(
    * pendingTransactions asks algod for a snapshot of current pending txns on the node, bounded by maxTxns.
    * If maxTxns = 0, fetches as many transactions as possible.
    * @param maxTxns number
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.pendingTransactions = async function (maxTxns, headers = {}) {
+  this.pendingTransactions = async (maxTxns, headerObj = {}) => {
     if (!Number.isInteger(maxTxns)) throw Error('maxTxns should be an integer');
     const res = await c.get(
       '/v1/transactions/pending',
       { max: maxTxns },
-      headers
+      headerObj
     );
     if (
       res.statusCode === 200 &&
@@ -115,21 +100,21 @@ function Algod(
 
   /**
    * versions retrieves the VersionResponse from the running node
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.versions = async function (headers = {}) {
-    const res = await c.get('/versions', {}, headers);
+  this.versions = async (headerObj = {}) => {
+    const res = await c.get('/versions', {}, headerObj);
     return res.body;
   };
 
   /**
    * LedgerSupply gets the supply details for the specified node's Ledger
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.ledgerSupply = async function (headers = {}) {
-    const res = await c.get('/v1/ledger/supply', {}, headers);
+  this.ledgerSupply = async (headerObj = {}) => {
+    const res = await c.get('/v1/ledger/supply', {}, headerObj);
     return res.body;
   };
 
@@ -142,13 +127,13 @@ function Algod(
    * @param headers, optional
    * @returns {Promise<*>}
    */
-  this.transactionByAddress = async function (
+  this.transactionByAddress = async (
     addr,
     first = null,
     last = null,
     maxTxns = null,
-    headers = {}
-  ) {
+    headerObj = {}
+  ) => {
     if (first !== null && !Number.isInteger(first)) {
       throw Error('first round should be an integer');
     }
@@ -158,7 +143,7 @@ function Algod(
     const res = await c.get(
       `/v1/account/${addr}/transactions`,
       { firstRound: first, lastRound: last, max: maxTxns },
-      headers
+      headerObj
     );
     if (res.statusCode === 200 && res.body.transactions !== undefined) {
       for (let i = 0; i < res.body.transactions.length; i++) {
@@ -175,20 +160,20 @@ function Algod(
    * @param fromDate string
    * @param toDate string
    * @param maxTxns number, optional
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.transactionByAddressAndDate = async function (
+  this.transactionByAddressAndDate = async (
     addr,
     fromDate,
     toDate,
     maxTxns = null,
-    headers = {}
-  ) {
+    headerObj = {}
+  ) => {
     const res = await c.get(
       `/v1/account/${addr}/transactions`,
       { fromDate, toDate, max: maxTxns },
-      headers
+      headerObj
     );
     if (res.statusCode === 200 && res.body.transactions !== undefined) {
       for (let i = 0; i < res.body.transactions.length; i++) {
@@ -202,11 +187,11 @@ function Algod(
    * transactionById returns the a transaction information of a specific txid [txId]
    * Note - This method is allowed only when Indexer is enabled.
    * @param txid
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.transactionById = async function (txid, headers = {}) {
-    const res = await c.get(`/v1/transaction/${txid}`, {}, headers);
+  this.transactionById = async (txid, headerObj = {}) => {
+    const res = await c.get(`/v1/transaction/${txid}`, {}, headerObj);
     if (res.statusCode === 200) {
       res.body = noteb64ToNote(res.body);
     }
@@ -217,14 +202,14 @@ function Algod(
    * transactionInformation returns the transaction information of a specific txid and an address
    * @param addr
    * @param txid
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.transactionInformation = async function (addr, txid, headers = {}) {
+  this.transactionInformation = async (addr, txid, headerObj = {}) => {
     const res = await c.get(
       `/v1/account/${addr}/transaction/${txid}`,
       {},
-      headers
+      headerObj
     );
     if (res.statusCode === 200) {
       res.body = noteb64ToNote(res.body);
@@ -235,11 +220,11 @@ function Algod(
   /**
    * pendingTransactionInformation returns the transaction information for a specific txid of a pending transaction
    * @param txid
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.pendingTransactionInformation = async function (txid, headers = {}) {
-    const res = await c.get(`/v1/transactions/pending/${txid}`, {}, headers);
+  this.pendingTransactionInformation = async (txid, headerObj = {}) => {
+    const res = await c.get(`/v1/transactions/pending/${txid}`, {}, headerObj);
     if (res.statusCode === 200) {
       res.body = noteb64ToNote(res.body);
     }
@@ -249,43 +234,43 @@ function Algod(
   /**
    * accountInformation returns the passed account's information
    * @param addr string
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.accountInformation = async function (addr, headers = {}) {
-    const res = await c.get(`/v1/account/${addr}`, {}, headers);
+  this.accountInformation = async (addr, headerObj = {}) => {
+    const res = await c.get(`/v1/account/${addr}`, {}, headerObj);
     return res.body;
   };
 
   /**
    * assetInformation returns the information for the asset with the passed creator and index
    * @param index number
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.assetInformation = async function (index, headers = {}) {
-    const res = await c.get(`/v1/asset/${index}`, {}, headers);
+  this.assetInformation = async (index, headerObj = {}) => {
+    const res = await c.get(`/v1/asset/${index}`, {}, headerObj);
     return res.body;
   };
 
   /**
    * suggestedFee gets the recommended transaction fee from the node
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.suggestedFee = async function (headers = {}) {
-    const res = await c.get('/v1/transactions/fee', {}, headers);
+  this.suggestedFee = async (headerObj = {}) => {
+    const res = await c.get('/v1/transactions/fee', {}, headerObj);
     return res.body;
   };
 
   /**
    * sendRawTransaction gets an encoded SignedTxn and broadcasts it to the network
    * @param txn Uin8Array
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.sendRawTransaction = async function (txn, headers = {}) {
-    const txHeaders = setSendTransactionHeaders(headers);
+  this.sendRawTransaction = async (txn, headerObj = {}) => {
+    const txHeaders = setSendTransactionHeaders(headerObj);
     const res = await c.post('/v1/transactions', Buffer.from(txn), txHeaders);
     return res.body;
   };
@@ -293,11 +278,11 @@ function Algod(
   /**
    * sendRawTransactions gets a list of encoded SignedTxns and broadcasts it to the network
    * @param txn Array of Uin8Array
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.sendRawTransactions = async function (txns, headers = {}) {
-    const txHeaders = setSendTransactionHeaders(headers);
+  this.sendRawTransactions = async (txns, headerObj = {}) => {
+    const txHeaders = setSendTransactionHeaders(headerObj);
     const merged = Array.prototype.concat(
       ...txns.map((arr) => Array.from(arr))
     );
@@ -311,21 +296,21 @@ function Algod(
 
   /**
    * getTransactionParams returns to common needed parameters for a new transaction
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.getTransactionParams = async function (headers = {}) {
-    const res = await c.get('/v1/transactions/params', {}, headers);
+  this.getTransactionParams = async (headerObj = {}) => {
+    const res = await c.get('/v1/transactions/params', {}, headerObj);
     return res.body;
   };
 
   /**
    * suggestParams returns to common needed parameters for a new transaction, in a format the transaction builder expects
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Object}
    */
-  this.suggestParams = async function (headers = {}) {
-    const result = await this.getTransactionParams(headers);
+  this.suggestParams = async (headerObj = {}) => {
+    const result = await this.getTransactionParams(headerObj);
     return {
       flatFee: false,
       fee: result.fee,
@@ -339,13 +324,13 @@ function Algod(
   /**
    * block gets the block info for the given round This call blocks
    * @param roundNumber
-   * @param headers, optional
+   * @param headerObj, optional
    * @returns {Promise<*>}
    */
-  this.block = async function (roundNumber, headers = {}) {
+  this.block = async (roundNumber, headerObj = {}) => {
     if (!Number.isInteger(roundNumber))
       throw Error('roundNumber should be an integer');
-    const res = await c.get(`/v1/block/${roundNumber}`, {}, headers);
+    const res = await c.get(`/v1/block/${roundNumber}`, {}, headerObj);
     if (res.statusCode === 200 && res.body.txns.transactions !== undefined) {
       for (let i = 0; i < res.body.txns.transactions.length; i++) {
         res.body.txns.transactions[i] = noteb64ToNote(

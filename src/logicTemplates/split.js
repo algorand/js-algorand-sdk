@@ -142,9 +142,9 @@ function getSplitFundsTransaction(
   let rat1 = ints[5];
   let amountForReceiverOne = 0;
   // reduce fractions
-  const gcdFn = function (a, b) {
+  const gcdFn = (a, b) => {
     if (typeof a !== 'number' || typeof b !== 'number')
-      throw 'gcd operates only on positive integers';
+      throw new Error('gcd operates only on positive integers');
     if (!b) {
       return a;
     }
@@ -156,7 +156,7 @@ function getSplitFundsTransaction(
   const ratio = rat1 / rat2;
   amountForReceiverOne = Math.round(amount / (1 + ratio));
   const amountForReceiverTwo = amount - amountForReceiverOne;
-  if (rat1 * amountForReceiverOne != rat2 * amountForReceiverTwo) {
+  if (rat1 * amountForReceiverOne !== rat2 * amountForReceiverTwo) {
     throw Error(
       'could not split funds in a way that satisfied the contract ratio'
     );
@@ -191,11 +191,9 @@ function getSplitFundsTransaction(
   const txns = [tx1, tx2];
   const txGroup = group.assignGroupID(txns);
 
-  const signedTxns = [];
-  for (const idx in txGroup) {
-    const stxn = logicsig.signLogicSigTransactionObject(txGroup[idx], logicSig);
-    signedTxns.push(stxn.blob);
-  }
+  const signedTxns = txGroup.map(
+    (txn) => logicsig.signLogicSigTransactionObject(txn, logicsig).blob
+  );
   return utils.concatArrays(signedTxns[0], signedTxns[1]);
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable */
 (function () {
   const atoken = 'YOUR-ALGOD-API-TOKEN';
   const aserver = 'http://ALGOD-ADDRESS';

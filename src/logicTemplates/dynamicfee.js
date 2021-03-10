@@ -36,11 +36,13 @@ class DynamicFee {
         'lastValid must be a positive number and smaller than 2^53-1'
       );
 
-    if (closeRemainder === undefined) {
+    if (typeof closeRemainder === 'undefined') {
+      // eslint-disable-next-line no-param-reassign
       closeRemainder = address.ALGORAND_ZERO_ADDRESS_STRING;
     }
-    if (lease === undefined) {
+    if (typeof lease === 'undefined') {
       const leaseBytes = nacl.randomBytes(32);
+      // eslint-disable-next-line no-param-reassign
       lease = Buffer.from(leaseBytes).toString('base64');
     }
 
@@ -149,6 +151,7 @@ function signDynamicFee(contract, secretKey, genesisHash) {
  *
  * @throws on invalid lsig
  */
+/* eslint-disable no-param-reassign */
 function getDynamicFeeTransactions(txn, lsig, privateKey, fee) {
   if (!lsig.verify(address.decodeAddress(txn.from).publicKey)) {
     throw new Error('invalid signature');
@@ -200,6 +203,7 @@ function getDynamicFeeTransactions(txn, lsig, privateKey, fee) {
 
   return concatStx;
 }
+/* eslint-enable no-param-reassign */
 
 module.exports = {
   DynamicFee,

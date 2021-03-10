@@ -132,15 +132,15 @@ describe('Algosdk (AKA end to end)', () => {
 
       sk = algosdk.mnemonicToSecretKey(sk);
 
-      const js_dec = algosdk.signTransaction(o, sk.sk);
+      const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(
-        Buffer.from(js_dec.blob),
+        Buffer.from(jsDec.blob),
         Buffer.from(golden, 'base64')
       );
 
       // // Check txid
-      const tx_golden = '5FJDJD5LMZC3EHUYYJNH5I23U4X6H2KXABNDGPIL557ZMJ33GZHQ';
-      assert.deepStrictEqual(js_dec.txID, tx_golden);
+      const txGolden = '5FJDJD5LMZC3EHUYYJNH5I23U4X6H2KXABNDGPIL557ZMJ33GZHQ';
+      assert.deepStrictEqual(jsDec.txID, txGolden);
     });
 
     it('should return a blob that matches the go code when using a flat fee', () => {
@@ -164,15 +164,15 @@ describe('Algosdk (AKA end to end)', () => {
 
       sk = algosdk.mnemonicToSecretKey(sk);
 
-      const js_dec = algosdk.signTransaction(o, sk.sk);
+      const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(
-        Buffer.from(js_dec.blob),
+        Buffer.from(jsDec.blob),
         Buffer.from(golden, 'base64')
       );
 
       // // Check txid
-      const tx_golden = '5FJDJD5LMZC3EHUYYJNH5I23U4X6H2KXABNDGPIL557ZMJ33GZHQ';
-      assert.deepStrictEqual(js_dec.txID, tx_golden);
+      const txGolden = '5FJDJD5LMZC3EHUYYJNH5I23U4X6H2KXABNDGPIL557ZMJ33GZHQ';
+      assert.deepStrictEqual(jsDec.txID, txGolden);
     });
 
     it('should return a blob that matches the go code when constructing with a lease', () => {
@@ -230,15 +230,15 @@ describe('Algosdk (AKA end to end)', () => {
 
       sk = algosdk.mnemonicToSecretKey(sk);
 
-      const js_dec = algosdk.signTransaction(o, sk.sk);
+      const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(
-        Buffer.from(js_dec.blob),
+        Buffer.from(jsDec.blob),
         Buffer.from(golden, 'base64')
       );
 
       // Check txid
-      const tx_golden = '7BG6COBZKF6I6W5XY72ZE4HXV6LLZ6ENSR6DASEGSTXYXR4XJOOQ';
-      assert.deepStrictEqual(js_dec.txID, tx_golden);
+      const txGolden = '7BG6COBZKF6I6W5XY72ZE4HXV6LLZ6ENSR6DASEGSTXYXR4XJOOQ';
+      assert.deepStrictEqual(jsDec.txID, txGolden);
     });
 
     it('should return a blob that matches the go code when adding a lease', () => {
@@ -314,8 +314,8 @@ describe('Algosdk (AKA end to end)', () => {
       );
 
       // Check txid
-      const tx_golden = '7BG6COBZKF6I6W5XY72ZE4HXV6LLZ6ENSR6DASEGSTXYXR4XJOOQ';
-      assert.deepStrictEqual(txn.txID().toString(), tx_golden);
+      const txGolden = '7BG6COBZKF6I6W5XY72ZE4HXV6LLZ6ENSR6DASEGSTXYXR4XJOOQ';
+      assert.deepStrictEqual(txn.txID().toString(), txGolden);
     });
   });
 
@@ -364,17 +364,17 @@ describe('Algosdk (AKA end to end)', () => {
         note: new Uint8Array(Buffer.from('X4Bl4wQ9rCo=', 'base64')),
       };
 
-      const js_dec = algosdk.signMultisigTransaction(o, params, sk);
+      const jsDec = algosdk.signMultisigTransaction(o, params, sk);
       // this golden also contains the correct multisig address
       const golden = Buffer.from(
         'gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==',
         'base64'
       );
-      assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
 
       // Check txid
-      const tx_golden = 'TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A';
-      assert.deepStrictEqual(js_dec.txID, tx_golden);
+      const txGolden = 'TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A';
+      assert.deepStrictEqual(jsDec.txID, txGolden);
     });
 
     it('should return the same blob whether using dict-of-args or algosdk.makeFooTransaction', () => {
@@ -392,9 +392,9 @@ describe('Algosdk (AKA end to end)', () => {
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
       const { sk } = algosdk.mnemonicToSecretKey(mnemonic);
 
-      const to_addr =
+      const toAddr =
         'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
-      const from_addr =
+      const fromAddr =
         'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM';
       const fee = 4;
       const amount = 1000;
@@ -405,9 +405,9 @@ describe('Algosdk (AKA end to end)', () => {
       const closeRemainder =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(Buffer.from('X4Bl4wQ9rCo=', 'base64'));
-      const o_dict = {
-        to: to_addr,
-        from: from_addr,
+      const oDict = {
+        to: toAddr,
+        from: fromAddr,
         fee,
         amount,
         firstRound,
@@ -417,9 +417,9 @@ describe('Algosdk (AKA end to end)', () => {
         closeRemainderTo: closeRemainder,
         note,
       };
-      const o_obj = algosdk.makePaymentTxn(
-        from_addr,
-        to_addr,
+      const oObj = algosdk.makePaymentTxn(
+        fromAddr,
+        toAddr,
         fee,
         amount,
         closeRemainder,
@@ -430,10 +430,10 @@ describe('Algosdk (AKA end to end)', () => {
         genesisID
       );
 
-      const o_dict_output = algosdk.signMultisigTransaction(o_dict, params, sk);
-      const o_obj_output = algosdk.signMultisigTransaction(o_obj, params, sk);
-      assert.deepStrictEqual(o_dict_output.txID, o_obj_output.txID);
-      assert.deepStrictEqual(o_dict_output.blob, o_obj_output.blob);
+      const oDictOutput = algosdk.signMultisigTransaction(oDict, params, sk);
+      const oObjOutput = algosdk.signMultisigTransaction(oObj, params, sk);
+      assert.deepStrictEqual(oDictOutput.txID, oObjOutput.txID);
+      assert.deepStrictEqual(oDictOutput.blob, oObjOutput.blob);
     });
   });
 
@@ -458,16 +458,16 @@ describe('Algosdk (AKA end to end)', () => {
         'base64'
       );
 
-      const js_dec = algosdk.appendSignMultisigTransaction(o, params, sk);
+      const jsDec = algosdk.appendSignMultisigTransaction(o, params, sk);
       const golden = Buffer.from(
         'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAjmG2MILQVLoKg8q7jAYpu0r42zu9edYHrkkuSAikJAnDPplY1Pq90/ssyFhpKLrmvDDcSwNAwTGBjqtSOFYUAIGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgqJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGhc8RAXqddnsKAid3WHs1Wykg8Vk2GQ8v68YWlM3AfcSH2DA8zyl/UQ9Md8++N/XixLvE3uZMr7CvPs52Gnit1YE1QBKN0aHICoXYBo3R4boujYW10zQPopWNsb3NlxCBA6TSSiCVky86cWaabZ1Qmiemhw6Kp6ltlpuikQh/8V6NmZWXNBJiiZnbNMLKjZ2VurGRldm5ldC12MzMuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbNNJqkbm90ZcQIX4Bl4wQ9rCqjcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5',
         'base64'
       );
-      assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
 
       // Check txid
-      const tx_golden = 'TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A';
-      assert.deepStrictEqual(js_dec.txID, tx_golden);
+      const txGolden = 'TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A';
+      assert.deepStrictEqual(jsDec.txID, txGolden);
     });
   });
 
@@ -620,9 +620,9 @@ describe('Algosdk (AKA end to end)', () => {
         type: 'acfg',
       };
       sk = algosdk.mnemonicToSecretKey(sk);
-      const js_dec_create = algosdk.signTransaction(createTxn, sk.sk);
+      const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
       assert.deepStrictEqual(
-        Buffer.from(js_dec_create.blob),
+        Buffer.from(jsDecCreate.blob),
         Buffer.from(golden, 'base64')
       );
     });
@@ -654,9 +654,9 @@ describe('Algosdk (AKA end to end)', () => {
         type: 'acfg',
       };
       sk = algosdk.mnemonicToSecretKey(sk);
-      const js_dec_create = algosdk.signTransaction(createTxn, sk.sk);
+      const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
       assert.deepStrictEqual(
-        Buffer.from(js_dec_create.blob),
+        Buffer.from(jsDecCreate.blob),
         Buffer.from(golden, 'base64')
       );
     });
@@ -682,9 +682,9 @@ describe('Algosdk (AKA end to end)', () => {
         type: 'acfg',
       };
       sk = algosdk.mnemonicToSecretKey(sk);
-      const js_dec = algosdk.signTransaction(o, sk.sk);
+      const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(
-        Buffer.from(js_dec.blob),
+        Buffer.from(jsDec.blob),
         Buffer.from(golden, 'base64')
       );
     });
@@ -706,9 +706,9 @@ describe('Algosdk (AKA end to end)', () => {
         type: 'acfg',
       };
       sk = algosdk.mnemonicToSecretKey(sk);
-      const js_dec = algosdk.signTransaction(o, sk.sk);
+      const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(
-        Buffer.from(js_dec.blob),
+        Buffer.from(jsDec.blob),
         Buffer.from(golden, 'base64')
       );
     });
@@ -729,12 +729,12 @@ describe('Algosdk (AKA end to end)', () => {
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const js_dec = algosdk.signTransaction(o, sk);
+      const jsDec = algosdk.signTransaction(o, sk);
       const golden = Buffer.from(
         'gqNzaWfEQAhru5V2Xvr19s4pGnI0aslqwY4lA2skzpYtDTAN9DKSH5+qsfQQhm4oq+9VHVj7e1rQC49S28vQZmzDTVnYDQGjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkAaNmZWXNCRqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==',
         'base64'
       );
-      assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
     });
     it('should return a blob that matches the go code for asset transfer', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -755,12 +755,12 @@ describe('Algosdk (AKA end to end)', () => {
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const js_dec = algosdk.signTransaction(o, sk);
+      const jsDec = algosdk.signTransaction(o, sk);
       const golden = Buffer.from(
         'gqNzaWfEQNkEs3WdfFq6IQKJdF1n0/hbV9waLsvojy9pM1T4fvwfMNdjGQDy+LeesuQUfQVTneJD4VfMP7zKx4OUlItbrwSjdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0KvqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkAQ==',
         'base64'
       );
-      assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
     });
     it('should return a blob that matches the go code for asset accept', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -780,12 +780,12 @@ describe('Algosdk (AKA end to end)', () => {
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const js_dec = algosdk.signTransaction(o, sk);
+      const jsDec = algosdk.signTransaction(o, sk);
       const golden = Buffer.from(
         'gqNzaWfEQJ7q2rOT8Sb/wB0F87ld+1zMprxVlYqbUbe+oz0WM63FctIi+K9eYFSqT26XBZ4Rr3+VTJpBE+JLKs8nctl9hgijdHhuiKRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCOiiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=',
         'base64'
       );
-      assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
     });
     it('should return a blob that matches the go code for asset revoke', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -806,12 +806,12 @@ describe('Algosdk (AKA end to end)', () => {
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const js_dec = algosdk.signTransaction(o, sk);
+      const jsDec = algosdk.signTransaction(o, sk);
       const golden = Buffer.from(
         'gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=',
         'base64'
       );
-      assert.deepStrictEqual(Buffer.from(js_dec.blob), golden);
+      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
     });
   });
 
@@ -868,7 +868,7 @@ describe('Algosdk (AKA end to end)', () => {
         ],
       };
       const outAddr = algosdk.multisigAddress(params);
-      const msig_pk = algosdk.decodeAddress(outAddr).publicKey;
+      const msigPk = algosdk.decodeAddress(outAddr).publicKey;
       const mn1 =
         'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch';
       const mn2 =
@@ -882,18 +882,18 @@ describe('Algosdk (AKA end to end)', () => {
       assert.throws(() => lsig.appendToMultisig(keys.sk));
 
       lsig.appendToMultisig(sk2.sk);
-      let verified = lsig.verify(msig_pk);
+      let verified = lsig.verify(msigPk);
       assert.equal(verified, true);
 
       // combine sig and msig
       const lsigf = algosdk.makeLogicSig(program);
       lsigf.sign(keys.sk);
       lsig.sig = lsigf.sig;
-      verified = lsig.verify(msig_pk);
+      verified = lsig.verify(msigPk);
       assert.equal(verified, false);
 
       lsig.sig = undefined;
-      verified = lsig.verify(msig_pk);
+      verified = lsig.verify(msigPk);
       assert.equal(verified, true);
 
       // check serialization
@@ -940,7 +940,7 @@ describe('Algosdk (AKA end to end)', () => {
       const sk = algosdk.mnemonicToSecretKey(mn);
       lsig.sign(sk.sk);
 
-      const js_dec = algosdk.signLogicSigTransaction(txn, lsig);
+      const jsDec = algosdk.signLogicSigTransaction(txn, lsig);
 
       // goal clerk send -o tx3 -a 2000 --fee 1000 -d ~/.algorand -w test -L sig.lsig --argb64 MTIz --argb64 NDU2 \
       // -f 47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU \
@@ -949,11 +949,11 @@ describe('Algosdk (AKA end to end)', () => {
         'gqRsc2lng6NhcmeSxAMxMjPEAzQ1NqFsxAUBIAEBIqNzaWfEQE6HXaI5K0lcq50o/y3bWOYsyw9TLi/oorZB4xaNdn1Z14351u2f6JTON478fl+JhIP4HNRRAIh/I8EWXBPpJQ2jdHhuiqNhbXTNB9CjZmVlzQPoomZ2zgAfeyGjZ2Vuq2Rldm5ldC12MS4womdoxCCwLc/t7ZJ1uookrS1uIJ0r211Klt7pd4IYp2g3OaWPQaJsds4AH38JpG5vdGXECPMTAk7i0PNdo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaR0eXBlo3BheQ==';
 
       assert.deepStrictEqual(
-        Buffer.from(js_dec.blob),
+        Buffer.from(jsDec.blob),
         Buffer.from(golden, 'base64')
       );
-      const sender_pk = algosdk.decodeAddress(fromAddress).publicKey;
-      const verified = lsig.verify(sender_pk);
+      const senderPk = algosdk.decodeAddress(fromAddress).publicKey;
+      const verified = lsig.verify(senderPk);
       assert.equal(verified, true);
     });
   });

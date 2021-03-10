@@ -1,5 +1,6 @@
 const { Buffer } = require('buffer');
 const encoding = require('../../../encoding/encoding');
+const { setHeaders } = require('./compile');
 
 class Dryrun {
   constructor(c, dr) {
@@ -8,28 +9,12 @@ class Dryrun {
   }
 
   /**
-   * Sets the default header (if not previously set)
-   * @param headers
-   * @returns {*}
-   */
-  setHeaders(headers) {
-    let hdrs = headers;
-    if (
-      Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')
-    ) {
-      hdrs = { ...headers };
-      hdrs['Content-Type'] = 'application/msgpack';
-    }
-    return hdrs;
-  }
-
-  /**
    * Executes dryrun
    * @param headers, optional
    * @returns {Promise<*>}
    */
   async do(headers = {}) {
-    const txHeaders = this.setHeaders(headers);
+    const txHeaders = setHeaders(headers);
     const res = await this.c.post(
       '/v2/teal/dryrun',
       Buffer.from(this.blob),

@@ -39,6 +39,10 @@ async function main() {
 
   // sign the transaction
   const signedTxn = txn.signTxn(freezePrivateKey);
+
+  // print transaction data
+  const decoded = algosdk.decodeSignedTransaction(signedTxn);
+  console.log(decoded);
 }
 
 main().catch(console.error);

@@ -24,7 +24,7 @@ const ERROR_CONTAINS_EMPTY_STRING =
  */
 function containsEmpty(obj) {
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (!obj[key] || obj[key].length === 0) {
         return { containsEmpty: true, firstEmptyKey: key };
       }

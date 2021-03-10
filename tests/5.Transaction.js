@@ -54,7 +54,7 @@ describe('Sign', () => {
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(0),
     };
-    const txn = new algosdk.Transaction(o);
+    assert.doesNotThrow(() => new algosdk.Transaction(o));
   });
 
   it('should respect min tx fee', () => {
@@ -86,7 +86,7 @@ describe('Sign', () => {
       note: new Uint8Array([123, 12, 200]),
     };
 
-    const txn = new algosdk.Transaction(o);
+    assert.doesNotThrow(() => new algosdk.Transaction(o));
   });
 
   it('should not complain on an empty genesisID', () => {
@@ -102,7 +102,7 @@ describe('Sign', () => {
       genesisID: '',
     };
 
-    const txn = new algosdk.Transaction(o);
+    assert.doesNotThrow(() => new algosdk.Transaction(o));
   });
 
   it('should complain if note isnt Uint8Array', () => {
@@ -117,9 +117,7 @@ describe('Sign', () => {
       note: 'new Uint8Array(0)',
     };
     assert.throws(
-      () => {
-        const txn = new algosdk.Transaction(o);
-      },
+      () => new algosdk.Transaction(o),
       (err) => err.toString() === 'Error: note must be a Uint8Array.'
     );
   });
@@ -138,7 +136,7 @@ describe('Sign', () => {
     const txn = new algosdk.Transaction(o);
     // assert package recommends just calling prettyPrint over using assert.doesNotThrow
     txn.prettyPrint(); // should not throw
-    const dummyString = txn.toString(); // also should not throw
+    txn.toString(); // also should not throw
   });
 
   describe('should correctly serialize and deserialize from msgpack representation', () => {
@@ -293,7 +291,8 @@ describe('Sign', () => {
     });
 
     it('should correctly serialize and deserialize an asset freeze transaction from msgpack representation', () => {
-      address = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+      const address =
+        'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
         from: address,
         fee: 10,
@@ -859,56 +858,56 @@ describe('Sign', () => {
           assetMetadataHash: '',
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
         const txnParams = {
           assetMetadataHash: 'abc',
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
       assert.doesNotThrow(() => {
         const txnParams = {
           assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh',
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
         const txnParams = {
           assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh1',
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
       assert.doesNotThrow(() => {
         const txnParams = {
           assetMetadataHash: new Uint8Array(0),
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
         const txnParams = {
           assetMetadataHash: new Uint8Array([1, 2, 3]),
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
       assert.doesNotThrow(() => {
         const txnParams = {
           assetMetadataHash: new Uint8Array(32),
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
         const txnParams = {
           assetMetadataHash: new Uint8Array(33),
           ...txnTemplate,
         };
-        new algosdk.Transaction(txnParams);
+        return new algosdk.Transaction(txnParams);
       });
     });
 
@@ -1046,7 +1045,6 @@ describe('Sign', () => {
       const assetIndex = 1234;
       const amount = 100;
       const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-      const creator = addr;
       const genesisID = '';
       const firstRound = 322575;
       const lastRound = 322575;

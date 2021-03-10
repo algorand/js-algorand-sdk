@@ -21,66 +21,6 @@ const MULTISIG_BAD_FROM_FIELD_ERROR_MSG =
 const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = 'Key does not exist';
 
 /**
- * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
- */
-class MultisigTransaction extends txnBuilder.Transaction {
-  get_obj_for_encoding() {
-    if (this.hasOwnProperty('objForEncoding')) {
-      // if set, use the value for encoding. This allows us to sign existing non-payment type transactions.
-      return this.objForEncoding;
-    }
-    return super.get_obj_for_encoding();
-  }
-
-  static from_obj_for_encoding(txnForEnc) {
-    if (txnForEnc.type !== 'pay') {
-      // we don't support decoding this txn yet - but we can keep signing it since we have the
-      // encoded format. We trust that the caller knows what they are trying to sign.
-      const txn = Object.create(this.prototype);
-      txn.name = 'Transaction';
-      txn.tag = Buffer.from([84, 88]); // "TX"
-
-      txn.objForEncoding = txnForEnc;
-      return txn;
-    }
-    return super.from_obj_for_encoding(txnForEnc);
-  }
-
-  /**
-   * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
-   * encoded with msgpack as a typed array.
-   * @param version multisig version
-   * @param threshold multisig threshold
-   * @param pks multisig public key list, order is important.
-   * @param sk an Algorand secret key to sign with.
-   * @returns an encoded, partially signed multisig transaction.
-   */
-  partialSignTxn({ version, threshold, pks }, sk) {
-    // verify one more time that the from field is correct
-    if (!this.hasOwnProperty('objForEncoding')) {
-      const expectedFromRaw = address.fromMultisigPreImg({
-        version,
-        threshold,
-        pks,
-      });
-      if (
-        address.encodeAddress(this.from.publicKey) !==
-        address.encodeAddress(expectedFromRaw)
-      ) {
-        throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
-      }
-    }
-    // get signature verifier
-    const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
-    return createMultisigTransaction(
-      this.get_obj_for_encoding(),
-      { rawSig: this.rawSignTxn(sk), myPk },
-      { version, threshold, pks }
-    );
-  }
-}
-
-/**
  * createMultisigTransaction creates a multisig transaction blob.
  * @param txnForEncoding the actual transaction to sign.
  * @param rawSig a Buffer raw signature of that transaction
@@ -123,6 +63,68 @@ function createMultisigTransaction(
 }
 
 /**
+ * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
+ */
+class MultisigTransaction extends txnBuilder.Transaction {
+  // eslint-disable-next-line camelcase
+  get_obj_for_encoding() {
+    if (Object.prototype.hasOwnProperty.call(this, 'objForEncoding')) {
+      // if set, use the value for encoding. This allows us to sign existing non-payment type transactions.
+      return this.objForEncoding;
+    }
+    return super.get_obj_for_encoding();
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(txnForEnc) {
+    if (txnForEnc.type !== 'pay') {
+      // we don't support decoding this txn yet - but we can keep signing it since we have the
+      // encoded format. We trust that the caller knows what they are trying to sign.
+      const txn = Object.create(this.prototype);
+      txn.name = 'Transaction';
+      txn.tag = Buffer.from([84, 88]); // "TX"
+
+      txn.objForEncoding = txnForEnc;
+      return txn;
+    }
+    return super.from_obj_for_encoding(txnForEnc);
+  }
+
+  /**
+   * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
+   * encoded with msgpack as a typed array.
+   * @param version multisig version
+   * @param threshold multisig threshold
+   * @param pks multisig public key list, order is important.
+   * @param sk an Algorand secret key to sign with.
+   * @returns an encoded, partially signed multisig transaction.
+   */
+  partialSignTxn({ version, threshold, pks }, sk) {
+    // verify one more time that the from field is correct
+    if (!Object.hasOwnProperty.call(this, 'objForEncoding')) {
+      const expectedFromRaw = address.fromMultisigPreImg({
+        version,
+        threshold,
+        pks,
+      });
+      if (
+        address.encodeAddress(this.from.publicKey) !==
+        address.encodeAddress(expectedFromRaw)
+      ) {
+        throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
+      }
+    }
+    // get signature verifier
+    const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
+    return createMultisigTransaction(
+      this.get_obj_for_encoding(),
+      { rawSig: this.rawSignTxn(sk), myPk },
+      { version, threshold, pks }
+    );
+  }
+}
+
+/**
  * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
  * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
  * @returns typed array msg-pack encoded multisig txn
@@ -157,7 +159,7 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
     }
     // now, we can merge
     newSubsigs = unisig.msig.subsig.map((uniSubsig, index) => {
-      const current = newSubsigs[index];
+      const current = refSigTx.msig.subsig[index];
       if (current.s) {
         // we convert the Uint8Arrays uniSubsig.s and current.s to Buffers here because (as
         // of Dec 2020) React overrides the buffer package with an older version that does

@@ -31,7 +31,7 @@ function retrieveBaseConfig() {
   const ALGOD_INSTANCE = {
     token: process.env.ALGOD_TOKEN,
     server: process.env.ALGOD_SERVER,
-    port: process.env.ALGOD_PORT && parseInt(process.env.ALGOD_PORT),
+    port: process.env.ALGOD_PORT && parseInt(process.env.ALGOD_PORT, 10),
   };
 
   const SENDER = {
@@ -47,7 +47,7 @@ function retrieveBaseConfig() {
     !(
       typeof ALGOD_INSTANCE.token === 'string' &&
       typeof ALGOD_INSTANCE.server === 'string' &&
-      !isNaN(ALGOD_INSTANCE.port) &&
+      !Number.isNaN(ALGOD_INSTANCE.port) &&
       typeof SENDER.mnemonic === 'string' &&
       typeof RECEIVER.mnemonic === 'string'
     )
@@ -77,15 +77,17 @@ async function waitForConfirmation(algodclient, txId, timeout) {
     throw new Error('Bad arguments.');
   }
   const status = await algodclient.status().do();
-  if (status == undefined) throw new Error('Unable to get node status');
+  if (typeof status === 'undefined')
+    throw new Error('Unable to get node status');
   const startround = status['last-round'] + 1;
   let currentround = startround;
 
+  /* eslint-disable no-await-in-loop */
   while (currentround < startround + timeout) {
     const pendingInfo = await algodclient
       .pendingTransactionInformation(txId)
       .do();
-    if (pendingInfo != undefined) {
+    if (pendingInfo !== undefined) {
       if (
         pendingInfo['confirmed-round'] !== null &&
         pendingInfo['confirmed-round'] > 0
@@ -100,15 +102,14 @@ async function waitForConfirmation(algodclient, txId, timeout) {
       ) {
         // If there was a pool error, then the transaction has been rejected!
         throw new Error(
-          `${'Transaction Rejected' + ' pool error'}${
-            pendingInfo['pool-error']
-          }`
+          `Transaction Rejected pool error${pendingInfo['pool-error']}`
         );
       }
     }
     await algodclient.statusAfterBlock(currentround).do();
-    currentround++;
+    currentround += 1;
   }
+  /* eslint-enable no-await-in-loop */
   throw new Error(`Transaction not confirmed after ${timeout} rounds!`);
 }
 

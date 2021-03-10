@@ -1,6 +1,46 @@
 const txnBuilder = require('./transaction');
 
 /**
+ * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
+ * @param from - string representation of Algorand address of sender
+ * @param to - string representation of Algorand address of recipient
+ * @param amount - integer amount to send, in microAlgos
+ * @param closeRemainderTo - optionally close out remaining account balance to this account, represented as string rep of Algorand address
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ *      If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
+ * @returns {Transaction}
+ */
+function makePaymentTxnWithSuggestedParams(
+  from,
+  to,
+  amount,
+  closeRemainderTo,
+  note,
+  suggestedParams,
+  rekeyTo = undefined
+) {
+  const o = {
+    from,
+    to,
+    amount,
+    closeRemainderTo,
+    note,
+    suggestedParams,
+    type: 'pay',
+    reKeyTo: rekeyTo,
+  };
+  return new txnBuilder.Transaction(o);
+}
+
+/**
  * makePaymentTxn takes payment arguments and returns a Transaction object
  * @param from - string representation of Algorand address of sender
  * @param to - string representation of Algorand address of recipient
@@ -48,46 +88,6 @@ function makePaymentTxn(
   );
 }
 
-/**
- * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
- * @param from - string representation of Algorand address of sender
- * @param to - string representation of Algorand address of recipient
- * @param amount - integer amount to send, in microAlgos
- * @param closeRemainderTo - optionally close out remaining account balance to this account, represented as string rep of Algorand address
- * @param note - uint8array of arbitrary data for sender to store
- * @param suggestedParams - a dict holding common-to-all-txns args:
- * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
- * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *      If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
- * genesisHash - string specifies hash genesis block of network in use
- * genesisID - string specifies genesis ID of network in use
- * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
- */
-function makePaymentTxnWithSuggestedParams(
-  from,
-  to,
-  amount,
-  closeRemainderTo,
-  note,
-  suggestedParams,
-  rekeyTo = undefined
-) {
-  const o = {
-    from,
-    to,
-    amount,
-    closeRemainderTo,
-    note,
-    suggestedParams,
-    type: 'pay',
-    reKeyTo: rekeyTo,
-  };
-  return new txnBuilder.Transaction(o);
-}
-
 // helper for above makePaymentTxnWithSuggestedParams, instead accepting an arguments object
 function makePaymentTxnWithSuggestedParamsFromObject(o) {
   return makePaymentTxnWithSuggestedParams(
@@ -99,6 +99,58 @@ function makePaymentTxnWithSuggestedParamsFromObject(o) {
     o.suggestedParams,
     o.rekeyTo
   );
+}
+
+/**
+ * makeKeyRegistrationTxnWithSuggestedParams takes key registration arguments and returns a Transaction object for
+ * that key registration operation
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param voteKey - string representation of voting key. for key deregistration, leave undefined
+ * @param selectionKey - string representation of selection key. for key deregistration, leave undefined
+ * @param voteFirst - first round on which voteKey is valid
+ * @param voteLast - last round on which voteKey is valid
+ * @param voteKeyDilution - integer
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
+ * @param nonParticipation - configure whether the address wants to stop participating. If true,
+ *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
+ * @returns {Transaction}
+ */
+function makeKeyRegistrationTxnWithSuggestedParams(
+  from,
+  note,
+  voteKey,
+  selectionKey,
+  voteFirst,
+  voteLast,
+  voteKeyDilution,
+  suggestedParams,
+  rekeyTo = undefined,
+  nonParticipation = false
+) {
+  const o = {
+    from,
+    note,
+    voteKey,
+    selectionKey,
+    voteFirst,
+    voteLast,
+    voteKeyDilution,
+    suggestedParams,
+    type: 'keyreg',
+    reKeyTo: rekeyTo,
+    nonParticipation,
+  };
+  return new txnBuilder.Transaction(o);
 }
 
 /**
@@ -161,58 +213,6 @@ function makeKeyRegistrationTxn(
   );
 }
 
-/**
- * makeKeyRegistrationTxnWithSuggestedParams takes key registration arguments and returns a Transaction object for
- * that key registration operation
- *
- * @param from - string representation of Algorand address of sender
- * @param note - uint8array of arbitrary data for sender to store
- * @param voteKey - string representation of voting key. for key deregistration, leave undefined
- * @param selectionKey - string representation of selection key. for key deregistration, leave undefined
- * @param voteFirst - first round on which voteKey is valid
- * @param voteLast - last round on which voteKey is valid
- * @param voteKeyDilution - integer
- * @param suggestedParams - a dict holding common-to-all-txns args:
- * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
- * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
- * genesisHash - string specifies hash genesis block of network in use
- * genesisID - string specifies genesis ID of network in use
- * @param rekeyTo - rekeyTo address, optional
- * @param nonParticipation - configure whether the address wants to stop participating. If true,
- *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
- * @returns {Transaction}
- */
-function makeKeyRegistrationTxnWithSuggestedParams(
-  from,
-  note,
-  voteKey,
-  selectionKey,
-  voteFirst,
-  voteLast,
-  voteKeyDilution,
-  suggestedParams,
-  rekeyTo = undefined,
-  nonParticipation = false
-) {
-  const o = {
-    from,
-    note,
-    voteKey,
-    selectionKey,
-    voteFirst,
-    voteLast,
-    voteKeyDilution,
-    suggestedParams,
-    type: 'keyreg',
-    reKeyTo: rekeyTo,
-    nonParticipation,
-  };
-  return new txnBuilder.Transaction(o);
-}
-
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
 function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
   return makeKeyRegistrationTxnWithSuggestedParams(
@@ -227,6 +227,71 @@ function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
     o.rekeyTo,
     o.nonParticipation
   );
+}
+
+/** makeAssetCreateTxnWithSuggestedParams takes asset creation arguments and returns a Transaction object
+ * for creating that asset
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param total - integer total supply of the asset
+ * @param decimals - integer number of decimals for asset unit calculation
+ * @param defaultFrozen - boolean whether asset accounts should default to being frozen
+ * @param manager - string representation of Algorand address in charge of reserve, freeze, clawback, destruction, etc
+ * @param reserve - string representation of Algorand address representing asset reserve
+ * @param freeze - string representation of Algorand address with power to freeze/unfreeze asset holdings
+ * @param clawback - string representation of Algorand address with power to revoke asset holdings
+ * @param unitName - string units name for this asset
+ * @param assetName - string name for this asset
+ * @param assetURL - string URL relating to this asset
+ * @param assetMetadataHash - Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
+ * @returns {Transaction}
+ */
+function makeAssetCreateTxnWithSuggestedParams(
+  from,
+  note,
+  total,
+  decimals,
+  defaultFrozen,
+  manager,
+  reserve,
+  freeze,
+  clawback,
+  unitName,
+  assetName,
+  assetURL,
+  assetMetadataHash,
+  suggestedParams,
+  rekeyTo = undefined
+) {
+  const o = {
+    from,
+    note,
+    suggestedParams,
+    assetTotal: total,
+    assetDecimals: decimals,
+    assetDefaultFrozen: defaultFrozen,
+    assetUnitName: unitName,
+    assetName,
+    assetURL,
+    assetMetadataHash,
+    assetManager: manager,
+    assetReserve: reserve,
+    assetFreeze: freeze,
+    assetClawback: clawback,
+    type: 'acfg',
+    reKeyTo: rekeyTo,
+  };
+  return new txnBuilder.Transaction(o);
 }
 
 /** makeAssetCreateTxn takes asset creation arguments and returns a Transaction object
@@ -302,71 +367,6 @@ function makeAssetCreateTxn(
   );
 }
 
-/** makeAssetCreateTxnWithSuggestedParams takes asset creation arguments and returns a Transaction object
- * for creating that asset
- *
- * @param from - string representation of Algorand address of sender
- * @param note - uint8array of arbitrary data for sender to store
- * @param total - integer total supply of the asset
- * @param decimals - integer number of decimals for asset unit calculation
- * @param defaultFrozen - boolean whether asset accounts should default to being frozen
- * @param manager - string representation of Algorand address in charge of reserve, freeze, clawback, destruction, etc
- * @param reserve - string representation of Algorand address representing asset reserve
- * @param freeze - string representation of Algorand address with power to freeze/unfreeze asset holdings
- * @param clawback - string representation of Algorand address with power to revoke asset holdings
- * @param unitName - string units name for this asset
- * @param assetName - string name for this asset
- * @param assetURL - string URL relating to this asset
- * @param assetMetadataHash - Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
- * @param suggestedParams - a dict holding common-to-all-txns args:
- * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
- * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
- * genesisHash - string specifies hash genesis block of network in use
- * genesisID - string specifies genesis ID of network in use
- * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
- */
-function makeAssetCreateTxnWithSuggestedParams(
-  from,
-  note,
-  total,
-  decimals,
-  defaultFrozen,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  unitName,
-  assetName,
-  assetURL,
-  assetMetadataHash,
-  suggestedParams,
-  rekeyTo = undefined
-) {
-  const o = {
-    from,
-    note,
-    suggestedParams,
-    assetTotal: total,
-    assetDecimals: decimals,
-    assetDefaultFrozen: defaultFrozen,
-    assetUnitName: unitName,
-    assetName,
-    assetURL,
-    assetMetadataHash,
-    assetManager: manager,
-    assetReserve: reserve,
-    assetFreeze: freeze,
-    assetClawback: clawback,
-    type: 'acfg',
-    reKeyTo: rekeyTo,
-  };
-  return new txnBuilder.Transaction(o);
-}
-
 // helper for above makeAssetCreateTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
   return makeAssetCreateTxnWithSuggestedParams(
@@ -385,65 +385,6 @@ function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
     o.assetMetadataHash,
     o.suggestedParams,
     o.rekeyTo
-  );
-}
-
-/** makeAssetConfigTxn can be issued by the asset manager to change the manager, reserve, freeze, or clawback
- * you must respecify existing addresses to keep them the same; leaving a field blank is the same as turning
- * that feature off for this asset
- *
- * @param from - string representation of Algorand address of sender
- * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
- * @param firstRound - integer first protocol round on which this txn is valid
- * @param lastRound - integer last protocol round on which this txn is valid
- * @param note - uint8array of arbitrary data for sender to store
- * @param genesisHash - string specifies hash genesis block of network in use
- * @param genesisID - string specifies genesis ID of network in use
- * @param assetIndex - int asset index uniquely specifying the asset
- * @param manager - string representation of new asset manager Algorand address
- * @param reserve - string representation of new reserve Algorand address
- * @param freeze - string representation of new freeze manager Algorand address
- * @param clawback - string representation of new revocation manager Algorand address
- * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
- * @param rekeyTo - rekeyTo address, optional
- * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
- */
-function makeAssetConfigTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  strictEmptyAddressChecking = true,
-  rekeyTo = undefined
-) {
-  const suggestedParams = {
-    genesisHash,
-    genesisID,
-    firstRound,
-    lastRound,
-    fee,
-  };
-  return makeAssetConfigTxnWithSuggestedParams(
-    from,
-    note,
-    assetIndex,
-    manager,
-    reserve,
-    freeze,
-    clawback,
-    suggestedParams,
-    strictEmptyAddressChecking,
-    rekeyTo
   );
 }
 
@@ -508,6 +449,65 @@ function makeAssetConfigTxnWithSuggestedParams(
   return new txnBuilder.Transaction(o);
 }
 
+/** makeAssetConfigTxn can be issued by the asset manager to change the manager, reserve, freeze, or clawback
+ * you must respecify existing addresses to keep them the same; leaving a field blank is the same as turning
+ * that feature off for this asset
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param fee - integer fee per byte, in microAlgos. for a flat fee, overwrite the fee property on the returned object
+ *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * @param firstRound - integer first protocol round on which this txn is valid
+ * @param lastRound - integer last protocol round on which this txn is valid
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param genesisHash - string specifies hash genesis block of network in use
+ * @param genesisID - string specifies genesis ID of network in use
+ * @param assetIndex - int asset index uniquely specifying the asset
+ * @param manager - string representation of new asset manager Algorand address
+ * @param reserve - string representation of new reserve Algorand address
+ * @param freeze - string representation of new freeze manager Algorand address
+ * @param clawback - string representation of new revocation manager Algorand address
+ * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
+ * @param rekeyTo - rekeyTo address, optional
+ * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
+ * @returns {Transaction}
+ */
+function makeAssetConfigTxn(
+  from,
+  fee,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  assetIndex,
+  manager,
+  reserve,
+  freeze,
+  clawback,
+  strictEmptyAddressChecking = true,
+  rekeyTo = undefined
+) {
+  const suggestedParams = {
+    genesisHash,
+    genesisID,
+    firstRound,
+    lastRound,
+    fee,
+  };
+  return makeAssetConfigTxnWithSuggestedParams(
+    from,
+    note,
+    assetIndex,
+    manager,
+    reserve,
+    freeze,
+    clawback,
+    suggestedParams,
+    strictEmptyAddressChecking,
+    rekeyTo
+  );
+}
+
 // helper for above makeAssetConfigTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
   return makeAssetConfigTxnWithSuggestedParams(
@@ -522,6 +522,41 @@ function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
     o.strictEmptyAddressChecking,
     o.rekeyTo
   );
+}
+
+/** makeAssetDestroyTxnWithSuggestedParams will allow the asset's manager to remove this asset from the ledger, so long
+ * as all outstanding assets are held by the creator.
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param assetIndex - int asset index uniquely specifying the asset
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
+ * @returns {Transaction}
+ */
+function makeAssetDestroyTxnWithSuggestedParams(
+  from,
+  note,
+  assetIndex,
+  suggestedParams,
+  rekeyTo = undefined
+) {
+  const o = {
+    from,
+    suggestedParams,
+    assetIndex,
+    type: 'acfg',
+    note,
+    reKeyTo: rekeyTo,
+  };
+  return new txnBuilder.Transaction(o);
 }
 
 /** makeAssetDestroyTxn will allow the asset's manager to remove this asset from the ledger, so long
@@ -567,12 +602,25 @@ function makeAssetDestroyTxn(
   );
 }
 
-/** makeAssetDestroyTxnWithSuggestedParams will allow the asset's manager to remove this asset from the ledger, so long
- * as all outstanding assets are held by the creator.
+// helper for above makeAssetDestroyTxnWithSuggestedParams, instead accepting an arguments object
+function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
+  return makeAssetDestroyTxnWithSuggestedParams(
+    o.from,
+    o.note,
+    o.assetIndex,
+    o.suggestedParams,
+    o.rekeyTo
+  );
+}
+
+/** makeAssetFreezeTxnWithSuggestedParams will allow the asset's freeze manager to freeze or un-freeze an account,
+ * blocking or allowing asset transfers to and from the targeted account.
  *
  * @param from - string representation of Algorand address of sender
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
+ * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
+ * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
@@ -584,33 +632,26 @@ function makeAssetDestroyTxn(
  * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetDestroyTxnWithSuggestedParams(
+function makeAssetFreezeTxnWithSuggestedParams(
   from,
   note,
   assetIndex,
+  freezeTarget,
+  freezeState,
   suggestedParams,
   rekeyTo = undefined
 ) {
   const o = {
     from,
-    suggestedParams,
+    type: 'afrz',
+    freezeAccount: freezeTarget,
     assetIndex,
-    type: 'acfg',
+    freezeState,
     note,
+    suggestedParams,
     reKeyTo: rekeyTo,
   };
   return new txnBuilder.Transaction(o);
-}
-
-// helper for above makeAssetDestroyTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
-  return makeAssetDestroyTxnWithSuggestedParams(
-    o.from,
-    o.note,
-    o.assetIndex,
-    o.suggestedParams,
-    o.rekeyTo
-  );
 }
 
 /** makeAssetFreezeTxn will allow the asset's freeze manager to freeze or un-freeze an account,
@@ -662,47 +703,6 @@ function makeAssetFreezeTxn(
   );
 }
 
-/** makeAssetFreezeTxnWithSuggestedParams will allow the asset's freeze manager to freeze or un-freeze an account,
- * blocking or allowing asset transfers to and from the targeted account.
- *
- * @param from - string representation of Algorand address of sender
- * @param note - uint8array of arbitrary data for sender to store
- * @param assetIndex - int asset index uniquely specifying the asset
- * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
- * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
- * @param suggestedParams - a dict holding common-to-all-txns args:
- * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
- * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
- * genesisHash - string specifies hash genesis block of network in use
- * genesisID - string specifies genesis ID of network in use
- * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
- */
-function makeAssetFreezeTxnWithSuggestedParams(
-  from,
-  note,
-  assetIndex,
-  freezeTarget,
-  freezeState,
-  suggestedParams,
-  rekeyTo = undefined
-) {
-  const o = {
-    from,
-    type: 'afrz',
-    freezeAccount: freezeTarget,
-    assetIndex,
-    freezeState,
-    note,
-    suggestedParams,
-    reKeyTo: rekeyTo,
-  };
-  return new txnBuilder.Transaction(o);
-}
-
 // helper for above makeAssetFreezeTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
   return makeAssetFreezeTxnWithSuggestedParams(
@@ -714,6 +714,55 @@ function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
     o.suggestedParams,
     o.rekeyTo
   );
+}
+
+/** makeAssetTransferTxnWithSuggestedParams allows for the creation of an asset transfer transaction.
+ * Special case: to begin accepting assets, set amount=0 and from=to.
+ *
+ * @param from - string representation of Algorand address of sender
+ * @param to - string representation of Algorand address of asset recipient
+ * @param closeRemainderTo - optional - string representation of Algorand address - if provided,
+ * send all remaining assets after transfer to the "closeRemainderTo" address and close "from"'s asset holdings
+ * @param revocationTarget - optional - string representation of Algorand address - if provided,
+ * and if "from" is the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
+ * @param amount - integer amount of assets to send
+ * @param note - uint8array of arbitrary data for sender to store
+ * @param assetIndex - int asset index uniquely specifying the asset
+ * @param suggestedParams - a dict holding common-to-all-txns args:
+ * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
+ * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * firstRound - integer first protocol round on which this txn is valid
+ * lastRound - integer last protocol round on which this txn is valid
+ * genesisHash - string specifies hash genesis block of network in use
+ * genesisID - string specifies genesis ID of network in use
+ * @param rekeyTo - rekeyTo address, optional
+ * @returns {Transaction}
+ */
+function makeAssetTransferTxnWithSuggestedParams(
+  from,
+  to,
+  closeRemainderTo,
+  revocationTarget,
+  amount,
+  note,
+  assetIndex,
+  suggestedParams,
+  rekeyTo = undefined
+) {
+  const o = {
+    type: 'axfer',
+    from,
+    to,
+    amount,
+    suggestedParams,
+    assetIndex,
+    note,
+    assetRevocationTarget: revocationTarget,
+    closeRemainderTo,
+    reKeyTo: rekeyTo,
+  };
+  return new txnBuilder.Transaction(o);
 }
 
 /** makeAssetTransferTxn allows for the creation of an asset transfer transaction.
@@ -771,55 +820,6 @@ function makeAssetTransferTxn(
     suggestedParams,
     rekeyTo
   );
-}
-
-/** makeAssetTransferTxnWithSuggestedParams allows for the creation of an asset transfer transaction.
- * Special case: to begin accepting assets, set amount=0 and from=to.
- *
- * @param from - string representation of Algorand address of sender
- * @param to - string representation of Algorand address of asset recipient
- * @param closeRemainderTo - optional - string representation of Algorand address - if provided,
- * send all remaining assets after transfer to the "closeRemainderTo" address and close "from"'s asset holdings
- * @param revocationTarget - optional - string representation of Algorand address - if provided,
- * and if "from" is the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
- * @param amount - integer amount of assets to send
- * @param note - uint8array of arbitrary data for sender to store
- * @param assetIndex - int asset index uniquely specifying the asset
- * @param suggestedParams - a dict holding common-to-all-txns args:
- * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
- * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
- * genesisHash - string specifies hash genesis block of network in use
- * genesisID - string specifies genesis ID of network in use
- * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
- */
-function makeAssetTransferTxnWithSuggestedParams(
-  from,
-  to,
-  closeRemainderTo,
-  revocationTarget,
-  amount,
-  note,
-  assetIndex,
-  suggestedParams,
-  rekeyTo = undefined
-) {
-  const o = {
-    type: 'axfer',
-    from,
-    to,
-    amount,
-    suggestedParams,
-    assetIndex,
-    note,
-    assetRevocationTarget: revocationTarget,
-    closeRemainderTo,
-    reKeyTo: rekeyTo,
-  };
-  return new txnBuilder.Transaction(o);
 }
 
 // helper for above makeAssetTransferTxnWithSuggestedParams, instead accepting an arguments object

@@ -60,8 +60,8 @@ class AlgodClient {
     return new versions.Versions(this.c);
   }
 
-  sendRawTransaction(stx_or_stxs) {
-    return new srt.SendRawTransaction(this.c, stx_or_stxs);
+  sendRawTransaction(stxOrStxs) {
+    return new srt.SendRawTransaction(this.c, stxOrStxs);
   }
 
   /**

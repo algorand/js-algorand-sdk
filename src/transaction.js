@@ -18,6 +18,7 @@ const ASSET_METADATA_HASH_LENGTH = 32;
  * Transaction enables construction of Algorand transactions
  * */
 class Transaction {
+  /* eslint-disable no-param-reassign */
   constructor({
     from,
     to,
@@ -339,9 +340,11 @@ class Transaction {
     // say we are aware of groups
     this.group = undefined;
   }
+  /* eslint-disable no-param-reassign */
 
+  // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
-    if (this.type == 'pay') {
+    if (this.type === 'pay') {
       const txn = {
         amt: this.amount,
         fee: this.fee,
@@ -378,7 +381,7 @@ class Transaction {
       if (!txn.rekey) delete txn.rekey;
       return txn;
     }
-    if (this.type == 'keyreg') {
+    if (this.type === 'keyreg') {
       const txn = {
         fee: this.fee,
         fv: this.firstRound,
@@ -415,7 +418,7 @@ class Transaction {
       }
       return txn;
     }
-    if (this.type == 'acfg') {
+    if (this.type === 'acfg') {
       // asset creation, or asset reconfigure, or asset destruction
       const txn = {
         fee: this.fee,
@@ -491,7 +494,7 @@ class Transaction {
 
       return txn;
     }
-    if (this.type == 'axfer') {
+    if (this.type === 'axfer') {
       // asset transfer, acceptance, revocation, mint, or burn
       const txn = {
         aamt: this.amount,
@@ -528,7 +531,7 @@ class Transaction {
       }
       return txn;
     }
-    if (this.type == 'afrz') {
+    if (this.type === 'afrz') {
       // asset freeze or unfreeze
       const txn = {
         fee: this.fee,
@@ -559,7 +562,7 @@ class Transaction {
       }
       return txn;
     }
-    if (this.type == 'appl') {
+    if (this.type === 'appl') {
       // application call of some kind
       const txn = {
         fee: this.fee,
@@ -624,8 +627,11 @@ class Transaction {
       if (txn.grp === undefined) delete txn.grp;
       return txn;
     }
+
+    return undefined;
   }
 
+  // eslint-disable-next-line camelcase
   static from_obj_for_encoding(txnForEnc) {
     const txn = Object.create(this.prototype);
     txn.name = 'Transaction';
@@ -801,7 +807,7 @@ class Transaction {
     const keypair = nacl.keyPairFromSecretKey(sk);
     const pubKeyFromSk = keypair.publicKey;
     if (
-      address.encodeAddress(pubKeyFromSk) !=
+      address.encodeAddress(pubKeyFromSk) !==
       address.encodeAddress(this.from.publicKey)
     ) {
       sTxn.sgnr = Buffer.from(pubKeyFromSk);
@@ -810,8 +816,8 @@ class Transaction {
   }
 
   rawTxID() {
-    const en_msg = this.toByte();
-    const gh = Buffer.from(utils.concatArrays(this.tag, en_msg));
+    const enMsg = this.toByte();
+    const gh = Buffer.from(utils.concatArrays(this.tag, enMsg));
     return Buffer.from(nacl.genericHash(gh));
   }
 
@@ -857,6 +863,7 @@ class Transaction {
   }
 
   // build display dict for prettyPrint and toString
+  // eslint-disable-next-line no-underscore-dangle
   _getDictForDisplay() {
     const forPrinting = {
       ...this,
@@ -900,11 +907,13 @@ class Transaction {
 
   // pretty print the transaction to console
   prettyPrint() {
+    // eslint-disable-next-line no-underscore-dangle,no-console
     console.log(this._getDictForDisplay());
   }
 
   // get string representation
   toString() {
+    // eslint-disable-next-line no-underscore-dangle
     return JSON.stringify(this._getDictForDisplay());
   }
 }

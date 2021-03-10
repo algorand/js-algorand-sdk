@@ -140,6 +140,7 @@ function signTransactionWithHTLCUnlock(contract, txn, preImageAsBase64) {
 
   const lsig = new logicSig.LogicSig(contract, args);
   // clear out receiver just in case
+  // eslint-disable-next-line no-param-reassign
   delete txn.to;
 
   const maxFee = ints[0];

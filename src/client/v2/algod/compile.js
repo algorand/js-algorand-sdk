@@ -1,25 +1,23 @@
 const { Buffer } = require('buffer');
 
+/**
+ * Sets the default header (if not previously set)
+ * @param headers
+ * @returns {*}
+ */
+function setHeaders(headers) {
+  let hdrs = headers;
+  if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
+    hdrs = { ...headers };
+    hdrs['Content-Type'] = 'text/plain';
+  }
+  return hdrs;
+}
+
 class Compile {
   constructor(c, source) {
     this.c = c;
     this.source = source;
-  }
-
-  /**
-   * Sets the default header (if not previously set)
-   * @param headers
-   * @returns {*}
-   */
-  setHeaders(headers) {
-    let hdrs = headers;
-    if (
-      Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')
-    ) {
-      hdrs = { ...headers };
-      hdrs['Content-Type'] = 'text/plain';
-    }
-    return hdrs;
   }
 
   /**
@@ -38,4 +36,4 @@ class Compile {
   }
 }
 
-module.exports = { Compile };
+module.exports = { Compile, setHeaders };

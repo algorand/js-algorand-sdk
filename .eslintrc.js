@@ -14,6 +14,7 @@ module.exports = {
   rules: {
     'no-restricted-syntax': ['error', 'LabeledStatement', 'WithStatement'],
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
+    'max-classes-per-file': 'off',
   },
   ignorePatterns: ['dist/'],
 };

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const Mocha = require('mocha');
 const webpack = require('webpack');
 const fs = require('fs');
@@ -31,18 +32,21 @@ async function testRunner() {
           if (err || stats.hasErrors()) {
             return reject(err || stats.toJson());
           }
-          resolve();
+          return resolve();
         }
       );
     });
 
     console.log('Testing in browser');
 
+    /* eslint-disable global-require */
     if (browser === 'chrome') {
       require('chromedriver');
     } else if (browser === 'firefox') {
       require('geckodriver');
     }
+    /* eslint-disable global-require */
+
     const webdriver = require('selenium-webdriver');
     const chrome = require('selenium-webdriver/chrome');
     const firefox = require('selenium-webdriver/firefox');
@@ -71,19 +75,22 @@ async function testRunner() {
 
     const { passed, failures } = await driver.executeAsyncScript(
       async (done) => {
-        const failures = [];
-        let passed = 0;
+        const failuresSeen = [];
+        let testsPassed = 0;
 
         const runner = mocha.run(() => {
-          done({ passed, failures });
+          done({
+            passed: testsPassed,
+            failures: failuresSeen,
+          });
         });
 
         runner.on('pass', () => {
-          passed += 1;
+          testsPassed += 1;
         });
 
         runner.on('fail', (test, err) => {
-          failures.push({
+          failuresSeen.push({
             test: test.fullTitle(),
             error: `${err.toString()}\n${err.stack}`,
           });

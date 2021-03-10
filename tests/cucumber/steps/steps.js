@@ -1,3 +1,4 @@
+/* eslint-disable func-names,radix */
 const assert = require('assert');
 const sha256 = require('js-sha256');
 const fs = require('fs');
@@ -24,7 +25,7 @@ async function loadResource(res) {
     'resources',
     res
   );
-  return await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     fs.readFile(p, (err, content) => {
       if (err) {
         reject(err);
@@ -72,50 +73,50 @@ const steps = {
  */
 module.exports = function getSteps(options) {
   function Given(name, fn) {
-    if (steps.given.hasOwnProperty(name)) {
+    if (Object.prototype.hasOwnProperty.call(steps.given, name)) {
       throw new Error(`Duplicate step: given ${name}`);
     }
     steps.given[name] = fn;
   }
 
   function When(name, fn) {
-    if (steps.when.hasOwnProperty(name)) {
+    if (Object.prototype.hasOwnProperty.call(steps.when, name)) {
       throw new Error(`Duplicate step: when ${name}`);
     }
     steps.when[name] = fn;
   }
 
   function Then(name, fn) {
-    if (steps.then.hasOwnProperty(name)) {
+    if (Object.prototype.hasOwnProperty.call(steps.then, name)) {
       throw new Error(`Duplicate step: then ${name}`);
     }
     steps.then[name] = fn;
   }
 
-  const { algod_token, kmd_token } = options;
+  const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
   Given('an algod client', async function () {
-    this.acl = new algosdk.Algod(algod_token, 'http://localhost', 60000);
+    this.acl = new algosdk.Algod(algodToken, 'http://localhost', 60000);
     return this.acl;
   });
 
   Given('a kmd client', function () {
-    this.kcl = new algosdk.Kmd(kmd_token, 'http://localhost', 60001);
+    this.kcl = new algosdk.Kmd(kmdToken, 'http://localhost', 60001);
     return this.kcl;
   });
 
   Given('an algod v2 client', function () {
-    this.v2Client = new algosdk.Algodv2(algod_token, 'http://localhost', 60000);
+    this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
   });
 
   Given('wallet information', async function () {
     this.wallet_name = 'unencrypted-default-wallet';
     this.wallet_pswd = '';
 
-    result = await this.kcl.listWallets();
+    const result = await this.kcl.listWallets();
     for (let i = 0; i < result.wallets.length; i++) {
       const w = result.wallets[i];
-      if (w.name == this.wallet_name) {
+      if (w.name === this.wallet_name) {
         this.wallet_id = w.id;
         break;
       }
@@ -183,14 +184,14 @@ module.exports = function getSteps(options) {
   );
 
   Given('mnemonic for private key {string}', function (mn) {
-    result = algosdk.mnemonicToSecretKey(mn);
+    const result = algosdk.mnemonicToSecretKey(mn);
     this.pk = result.addr;
 
     this.sk = result.sk;
   });
 
   Given('multisig addresses {string}', function (addresses) {
-    addrlist = addresses.split(' ');
+    const addrlist = addresses.split(' ');
     this.msig = {
       version: 1,
       threshold: 2,
@@ -242,8 +243,8 @@ module.exports = function getSteps(options) {
   });
 
   When('I sign the multisig transaction with kmd', async function () {
-    addrs = [];
-    for (i = 0; i < this.msig.addrs.length; i++) {
+    const addrs = [];
+    for (let i = 0; i < this.msig.addrs.length; i++) {
       addrs.push(
         Buffer.from(
           algosdk.decodeAddress(this.msig.addrs[i]).publicKey
@@ -257,7 +258,7 @@ module.exports = function getSteps(options) {
       addrs
     );
 
-    key = algosdk.decodeAddress(this.pk).publicKey;
+    const key = algosdk.decodeAddress(this.pk).publicKey;
     this.stxKmd = await this.kcl.signMultisigTransaction(
       this.handle,
       this.wallet_pswd,
@@ -311,8 +312,8 @@ module.exports = function getSteps(options) {
         this.wallet_pswd,
         algosdk.multisigAddress(this.msig)
       );
-      s = algosdk.decodeObj(this.stx);
-      m = algosdk.encodeObj(s.msig);
+      const s = algosdk.decodeObj(this.stx);
+      const m = algosdk.encodeObj(s.msig);
       assert.deepStrictEqual(
         Buffer.from(m),
         Buffer.from(this.stxKmd, 'base64')
@@ -327,18 +328,18 @@ module.exports = function getSteps(options) {
   });
 
   Then('the key should be in the wallet', async function () {
-    keys = await this.kcl.listKeys(this.handle);
+    let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
     assert.deepStrictEqual(true, keys.indexOf(this.pk) >= 0);
     return keys;
   });
 
   When('I delete the key', async function () {
-    return await this.kcl.deleteKey(this.handle, this.wallet_pswd, this.pk);
+    return this.kcl.deleteKey(this.handle, this.wallet_pswd, this.pk);
   });
 
   Then('the key should not be in the wallet', async function () {
-    keys = await this.kcl.listKeys(this.handle);
+    let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
     assert.deepStrictEqual(false, keys.indexOf(this.pk) >= 0);
     return keys;
@@ -351,24 +352,28 @@ module.exports = function getSteps(options) {
   });
 
   When('I import the key', async function () {
-    return await this.kcl.importKey(this.handle, this.sk);
+    return this.kcl.importKey(this.handle, this.sk);
   });
 
   Then(
     'the private key should be equal to the exported private key',
     async function () {
-      exp = await this.kcl.exportKey(this.handle, this.wallet_pswd, this.pk);
+      let exp = await this.kcl.exportKey(
+        this.handle,
+        this.wallet_pswd,
+        this.pk
+      );
       exp = exp.private_key;
       assert.deepStrictEqual(
         Buffer.from(exp).toString('base64'),
         Buffer.from(this.sk).toString('base64')
       );
-      return await this.kcl.deleteKey(this.handle, this.wallet_pswd, this.pk);
+      return this.kcl.deleteKey(this.handle, this.wallet_pswd, this.pk);
     }
   );
 
   When('I get the private key', async function () {
-    sk = await this.kcl.exportKey(this.handle, this.wallet_pswd, this.pk);
+    const sk = await this.kcl.exportKey(this.handle, this.wallet_pswd, this.pk);
     this.sk = sk.private_key;
     return this.sk;
   });
@@ -376,8 +381,8 @@ module.exports = function getSteps(options) {
   Given(
     'default transaction with parameters {int} {string}',
     async function (amt, note) {
-      this.pk = this.accounts[0];
-      result = await this.acl.getTransactionParams();
+      [this.pk] = this.accounts;
+      const result = await this.acl.getTransactionParams();
       this.lastRound = result.lastRound;
       this.txn = {
         from: this.accounts[0],
@@ -397,8 +402,8 @@ module.exports = function getSteps(options) {
   Given(
     'default multisig transaction with parameters {int} {string}',
     async function (amt, note) {
-      this.pk = this.accounts[0];
-      result = await this.acl.getTransactionParams();
+      [this.pk] = this.accounts;
+      const result = await this.acl.getTransactionParams();
       this.msig = {
         version: 1,
         threshold: 1,
@@ -421,15 +426,15 @@ module.exports = function getSteps(options) {
   );
 
   When('I import the multisig', async function () {
-    addrs = [];
-    for (i = 0; i < this.msig.addrs.length; i++) {
+    const addrs = [];
+    for (let i = 0; i < this.msig.addrs.length; i++) {
       addrs.push(
         Buffer.from(
           algosdk.decodeAddress(this.msig.addrs[i]).publicKey
         ).toString('base64')
       );
     }
-    return await this.kcl.importMultisig(
+    return this.kcl.importMultisig(
       this.handle,
       this.msig.version,
       this.msig.threshold,
@@ -438,7 +443,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the multisig should be in the wallet', async function () {
-    keys = await this.kcl.listMultisig(this.handle);
+    let keys = await this.kcl.listMultisig(this.handle);
     keys = keys.addresses;
     assert.deepStrictEqual(
       true,
@@ -448,7 +453,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the multisig should not be in the wallet', async function () {
-    keys = await this.kcl.listMultisig(this.handle);
+    let keys = await this.kcl.listMultisig(this.handle);
     if (typeof keys.addresses === 'undefined') {
       return true;
     }
@@ -470,7 +475,7 @@ module.exports = function getSteps(options) {
   });
 
   When('I delete the multisig', async function () {
-    return await this.kcl.deleteMultisig(
+    return this.kcl.deleteMultisig(
       this.handle,
       this.wallet_pswd,
       algosdk.multisigAddress(this.msig)
@@ -478,7 +483,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the multisig should equal the exported multisig', function () {
-    for (i = 0; i < this.msigExp.length; i++) {
+    for (let i = 0; i < this.msigExp.length; i++) {
       assert.deepStrictEqual(
         algosdk.encodeAddress(Buffer.from(this.msigExp[i], 'base64')),
         this.msig.addrs[i]
@@ -487,17 +492,17 @@ module.exports = function getSteps(options) {
   });
 
   Then('the node should be healthy', async function () {
-    health = await this.acl.healthCheck();
+    const health = await this.acl.healthCheck();
     assert.deepStrictEqual(health, makeEmptyObject());
   });
 
   Then('I get the ledger supply', async function () {
-    return await this.acl.ledgerSupply();
+    return this.acl.ledgerSupply();
   });
 
   Then('I get transactions by address and round', async function () {
-    lastRound = await this.acl.status();
-    transactions = await this.acl.transactionByAddress(
+    const lastRound = await this.acl.status();
+    const transactions = await this.acl.transactionByAddress(
       this.accounts[0],
       1,
       lastRound.lastRound
@@ -510,8 +515,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('I get transactions by address only', async function () {
-    lastRound = await this.acl.status();
-    transactions = await this.acl.transactionByAddress(this.accounts[0]);
+    const transactions = await this.acl.transactionByAddress(this.accounts[0]);
     assert.deepStrictEqual(
       true,
       Object.entries(transactions).length === 0 ||
@@ -520,8 +524,9 @@ module.exports = function getSteps(options) {
   });
 
   Then('I get transactions by address and date', async function () {
-    fromDate = new Date().toISOString().split('T')[0];
-    transactions = await this.acl.transactionByAddressAndDate(this.accounts[0]);
+    const transactions = await this.acl.transactionByAddressAndDate(
+      this.accounts[0]
+    );
     assert.deepStrictEqual(
       true,
       Object.entries(transactions).length === 0 ||
@@ -530,7 +535,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('I get pending transactions', async function () {
-    transactions = await this.acl.pendingTransactions(10);
+    const transactions = await this.acl.pendingTransactions(10);
     assert.deepStrictEqual(
       true,
       Object.entries(transactions).length === 0 ||
@@ -557,7 +562,7 @@ module.exports = function getSteps(options) {
   );
 
   When('I create a bid', function () {
-    addr = algosdk.generateAccount();
+    let addr = algosdk.generateAccount();
     this.sk = addr.sk;
     addr = addr.addr;
     this.bid = {
@@ -646,11 +651,11 @@ module.exports = function getSteps(options) {
   });
 
   When('I append a signature to the multisig transaction', function () {
-    addresses = this.stx.msig.subsig.slice();
-    for (i = 0; i < addresses.length; i++) {
+    const addresses = this.stx.msig.subsig.slice();
+    for (let i = 0; i < addresses.length; i++) {
       addresses[i] = algosdk.encodeAddress(addresses[i].pk);
     }
-    msig = {
+    const msig = {
       version: this.stx.msig.v,
       threshold: this.stx.msig.thr,
       addrs: addresses,
@@ -681,8 +686,8 @@ module.exports = function getSteps(options) {
 
   Given('encoded multisig transactions {string}', function (encTxns) {
     this.mtxs = [];
-    mtxs = encTxns.split(' ');
-    for (i = 0; i < mtxs.length; i++) {
+    const mtxs = encTxns.split(' ');
+    for (let i = 0; i < mtxs.length; i++) {
       this.mtxs.push(Buffer.from(mtxs[i], 'base64'));
     }
   });
@@ -723,6 +728,7 @@ module.exports = function getSteps(options) {
     return this.txid;
   });
 
+  // eslint-disable-next-line consistent-return
   When('I send the multisig transaction', async function () {
     try {
       this.txid = await this.acl.sendRawTransaction(this.stx);
@@ -734,7 +740,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the transaction should go through', async function () {
-    info = await this.acl.pendingTransactionInformation(this.txid);
+    let info = await this.acl.pendingTransactionInformation(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
     // let localParams = await this.acl.getTransactionParams();
     // this.lastRound = localParams.lastRound;
@@ -745,7 +751,7 @@ module.exports = function getSteps(options) {
 
   Then('I can get the transaction by ID', async function () {
     await this.acl.statusAfterBlock(this.lastRound + 2);
-    info = await this.acl.transactionById(this.txid);
+    const info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
 
@@ -765,11 +771,11 @@ module.exports = function getSteps(options) {
   });
 
   Then('the wallet should exist', async function () {
-    result = await this.kcl.listWallets();
-    exists = false;
+    const result = await this.kcl.listWallets();
+    let exists = false;
     for (let i = 0; i < result.wallets.length; i++) {
       const w = result.wallets[i];
-      if (w.name == this.wallet_name) {
+      if (w.name === this.wallet_name) {
         exists = true;
       }
     }
@@ -786,7 +792,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('I can get the master derivation key', async function () {
-    mdk = await this.kcl.exportMasterDerivationKey(
+    const mdk = await this.kcl.exportMasterDerivationKey(
       this.handle,
       this.wallet_pswd
     );
@@ -795,7 +801,7 @@ module.exports = function getSteps(options) {
 
   When('I rename the wallet', async function () {
     this.wallet_name = 'Walletjs_new';
-    return await this.kcl.renameWallet(
+    return this.kcl.renameWallet(
       this.wallet_id,
       this.wallet_pswd,
       this.wallet_name
@@ -805,16 +811,16 @@ module.exports = function getSteps(options) {
   Then(
     'I can still get the wallet information with the same handle',
     async function () {
-      return await this.kcl.getWallet(this.handle);
+      return this.kcl.getWallet(this.handle);
     }
   );
 
   When('I renew the wallet handle', async function () {
-    return await this.kcl.renewWalletHandle(this.handle);
+    return this.kcl.renewWalletHandle(this.handle);
   });
 
   When('I release the wallet handle', async function () {
-    return await this.kcl.releaseWalletHandle(this.handle);
+    return this.kcl.releaseWalletHandle(this.handle);
   });
 
   Then('the wallet handle should not work', async function () {
@@ -828,20 +834,25 @@ module.exports = function getSteps(options) {
   });
 
   // When("I read a transaction {string} from file {string}", function(string, num){
-  //     this.num = num
-  //     this.txn = algosdk.decodeObj(makeUint8Array(fs.readFileSync(maindir + '/temp/raw' + num + '.tx')));
-  //     return this.txn
-  // })
+  //   this.num = num
+  //   this.txn = algosdk.decodeObj(
+  //     makeUint8Array(fs.readFileSync(maindir + '/temp/raw' + num + '.tx'))
+  //   );
+  //   return this.txn
+  // });
 
   // When("I write the transaction to file", function(){
-  //     fs.writeFileSync(maindir + '/temp/raw' + this.num + '.tx', Buffer.from(algosdk.encodeObj(this.txn)));
-  // })
+  //   fs.writeFileSync(
+  //     maindir + '/temp/raw' + this.num + '.tx',
+  //     Buffer.from(algosdk.encodeObj(this.txn))
+  //   );
+  // });
 
   // Then("the transaction should still be the same", function(){
-  //     stxnew = makeUint8Array(fs.readFileSync(maindir + '/temp/raw' + this.num + '.tx'));
-  //     stxold = makeUint8Array(fs.readFileSync(maindir + '/temp/old' + this.num + '.tx'));
-  //     assert.deepStrictEqual(stxnew, stxold)
-  // })
+  //   stxnew = makeUint8Array(fs.readFileSync(maindir + '/temp/raw' + this.num + '.tx'));
+  //   stxold = makeUint8Array(fs.readFileSync(maindir + '/temp/old' + this.num + '.tx'));
+  //   assert.deepStrictEqual(stxnew, stxold);
+  // });
 
   // Then("I do my part", async function(){
   //     stx = makeUint8Array(fs.readFileSync(maindir + '/temp/txn.tx'));
@@ -851,7 +862,7 @@ module.exports = function getSteps(options) {
   // })
 
   Then('I get account information', async function () {
-    return await this.acl.accountInformation(this.accounts[0]);
+    return this.acl.accountInformation(this.accounts[0]);
   });
 
   Then('I can get account information', async function () {
@@ -941,14 +952,14 @@ module.exports = function getSteps(options) {
   Given(
     'default asset creation transaction with total issuance {int}',
     async function (issuance) {
-      this.assetTestFixture.creator = this.accounts[0];
+      [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.acl.getTransactionParams();
       this.fee = this.params.fee;
       this.fv = this.params.lastRound;
       this.lv = this.fv + 1000;
       this.note = undefined;
       this.gh = this.params.genesishashb64;
-      issuance = parseInt(issuance);
+      const parsedIssuance = parseInt(issuance);
       const decimals = 0;
       const defaultFrozen = false;
       const assetName = this.assetTestFixture.name;
@@ -969,7 +980,7 @@ module.exports = function getSteps(options) {
         lastRound: this.lv,
         note: this.note,
         genesisHash: this.gh,
-        assetTotal: issuance,
+        assetTotal: parsedIssuance,
         assetDecimals: decimals,
         assetDefaultFrozen: defaultFrozen,
         assetUnitName: unitName,
@@ -986,7 +997,7 @@ module.exports = function getSteps(options) {
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
-        total: issuance,
+        total: parsedIssuance,
         defaultfrozen: defaultFrozen,
         unitname: unitName,
         assetname: assetName,
@@ -1000,21 +1011,21 @@ module.exports = function getSteps(options) {
       };
       this.txn = this.assetTestFixture.lastTxn;
       this.lastRound = this.params.lastRound;
-      this.pk = this.accounts[0];
+      [this.pk] = this.accounts;
     }
   );
 
   Given(
     'default-frozen asset creation transaction with total issuance {int}',
     async function (issuance) {
-      this.assetTestFixture.creator = this.accounts[0];
+      [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.acl.getTransactionParams();
       this.fee = this.params.fee;
       this.fv = this.params.lastRound;
       this.lv = this.fv + 1000;
       this.note = undefined;
       this.gh = this.params.genesishashb64;
-      issuance = parseInt(issuance);
+      const parsedIssuance = parseInt(issuance);
       const decimals = 0;
       const defaultFrozen = true;
       const assetName = this.assetTestFixture.name;
@@ -1035,7 +1046,7 @@ module.exports = function getSteps(options) {
         lastRound: this.lv,
         note: this.note,
         genesisHash: this.gh,
-        assetTotal: issuance,
+        assetTotal: parsedIssuance,
         assetDecimals: decimals,
         assetDefaultFrozen: defaultFrozen,
         assetUnitName: unitName,
@@ -1052,7 +1063,7 @@ module.exports = function getSteps(options) {
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
-        total: issuance,
+        total: parsedIssuance,
         defaultfrozen: defaultFrozen,
         unitname: unitName,
         assetname: assetName,
@@ -1066,11 +1077,12 @@ module.exports = function getSteps(options) {
       };
       this.txn = this.assetTestFixture.lastTxn;
       this.lastRound = this.params.lastRound;
-      this.pk = this.accounts[0];
+      [this.pk] = this.accounts;
     }
   );
 
-  // a lambda "return a-b" would suffice for keys.sort, below, but define it separately for readability
+  // a lambda "return a-b" would suffice for keys.sort, below,
+  // but define it separately for readability
   function sortKeysAscending(a, b) {
     if (a > b) {
       return 1;
@@ -1086,11 +1098,12 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.creator
     );
     const heldAssets = accountResponse.thisassettotal;
-    let keys = [];
-    for (const k in heldAssets) keys.push(parseInt(k));
+    let keys = Object.keys(heldAssets).map((key) => parseInt(key));
     keys = keys.sort(sortKeysAscending);
     const assetIndex = keys[keys.length - 1];
-    this.assetTestFixture.index = assetIndex.toString(); // this is stored as a string so it can be used as a key later.
+
+    // this is stored as a string so it can be used as a key later.
+    this.assetTestFixture.index = assetIndex.toString();
   });
 
   When('I get the asset info', async function () {
@@ -1100,21 +1113,21 @@ module.exports = function getSteps(options) {
   });
 
   Then('the asset info should match the expected asset info', function () {
-    for (const k in this.assetTestFixture.expectedParams) {
+    Object.keys(this.assetTestFixture.expectedParams).forEach((key) => {
       assert.strictEqual(
         true,
-        this.assetTestFixture.expectedParams[k] ===
-          this.assetTestFixture.queriedParams[k] ||
-          (!this.assetTestFixture.expectedParams[k] &&
-            !this.assetTestFixture.queriedParams[k])
+        this.assetTestFixture.expectedParams[key] ===
+          this.assetTestFixture.queriedParams[key] ||
+          typeof this.assetTestFixture.expectedParams[key] === 'undefined' ||
+          typeof this.assetTestFixture.queriedParams[key] === 'undefined'
       );
-    }
+    });
   });
 
   When(
     'I create a no-managers asset reconfigure transaction',
     async function () {
-      this.assetTestFixture.creator = this.accounts[0];
+      [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.acl.getTransactionParams();
       this.fee = this.params.fee;
       this.fv = this.params.lastRound;
@@ -1151,12 +1164,12 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.expectedParams.clawbackaddr = '';
       this.txn = this.assetTestFixture.lastTxn;
       this.lastRound = this.params.lastRound;
-      this.pk = this.accounts[0];
+      [this.pk] = this.accounts;
     }
   );
 
   When('I create an asset destroy transaction', async function () {
-    this.assetTestFixture.creator = this.accounts[0];
+    [this.assetTestFixture.creator] = this.accounts;
     this.params = await this.acl.getTransactionParams();
     this.fee = this.params.fee;
     this.fv = this.params.lastRound;
@@ -1180,7 +1193,7 @@ module.exports = function getSteps(options) {
     // update vars used by other helpers
     this.txn = this.assetTestFixture.lastTxn;
     this.lastRound = this.params.lastRound;
-    this.pk = this.accounts[0];
+    [this.pk] = this.accounts;
   });
 
   Then('I should be unable to get the asset info', async function () {
@@ -1286,7 +1299,7 @@ module.exports = function getSteps(options) {
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
       this.lastRound = this.params.lastRound;
-      this.pk = this.accounts[1];
+      [this.pk] = this.accounts;
     }
   );
 
@@ -1304,7 +1317,7 @@ module.exports = function getSteps(options) {
   When('I send the bogus kmd-signed transaction', async function () {
     this.err = false;
     try {
-      response = await this.acl.sendRawTransaction(this.stxKmd);
+      await this.acl.sendRawTransaction(this.stxKmd);
     } catch (e) {
       this.err = true;
     }
@@ -1434,7 +1447,7 @@ module.exports = function getSteps(options) {
     this.params = await this.acl.getTransactionParams();
     this.fee = this.params.fee;
     this.fv = this.params.lastRound;
-    if (this.fv == 0) {
+    if (this.fv === 0) {
       this.fv = 1;
     }
     this.lv = this.fv + 1000;
@@ -1451,7 +1464,7 @@ module.exports = function getSteps(options) {
       genesisHash: this.gh,
       type: 'pay',
     };
-    stxKmd = await this.kcl.signTransaction(
+    const stxKmd = await this.kcl.signTransaction(
       this.handle,
       this.wallet_pswd,
       this.txn
@@ -1459,7 +1472,7 @@ module.exports = function getSteps(options) {
     this.txid = await this.acl.sendRawTransaction(stxKmd);
     this.txid = this.txid.txId;
     await this.acl.statusAfterBlock(this.lastRound + 2);
-    info = await this.acl.transactionInformation(from, this.txid);
+    let info = await this.acl.transactionInformation(from, this.txid);
     assert.deepStrictEqual(true, 'type' in info);
     info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
@@ -1673,7 +1686,7 @@ module.exports = function getSteps(options) {
     this.params = await this.acl.getTransactionParams();
     this.fee = this.params.fee;
     this.fv = this.params.lastRound;
-    if (this.fv == 0) {
+    if (this.fv === 0) {
       this.fv = 1;
     }
     this.lv = this.fv + 1000;
@@ -1693,7 +1706,7 @@ module.exports = function getSteps(options) {
     this.params = await this.acl.getTransactionParams();
     this.fee = this.params.fee;
     this.fv = this.params.lastRound;
-    if (this.fv == 0) {
+    if (this.fv === 0) {
       this.fv = 1;
     }
     this.lv = this.fv + 1000;
@@ -1725,7 +1738,7 @@ module.exports = function getSteps(options) {
     );
     this.txid = await this.acl.sendRawTransaction(txnBytes);
     this.txid = this.txid.txId;
-    this.pk = this.accounts[0];
+    [this.pk] = this.accounts;
   });
 
   /// /////////////////////////////////
@@ -1736,8 +1749,6 @@ module.exports = function getSteps(options) {
   const {
     mockAlgodResponderPort,
     mockAlgodResponderHost,
-    mockIndexerResponderPort,
-    mockIndexerResponderHost,
     mockAlgodPathRecorderPort,
     mockAlgodPathRecorderHost,
     mockIndexerPathRecorderPort,
@@ -1749,7 +1760,7 @@ module.exports = function getSteps(options) {
   Given(
     'mock http responses in {string} loaded from {string}',
     function (expectedBody) {
-      if (expectedBody != null) {
+      if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
       }
       this.v2Client = new algosdk.Algodv2(
@@ -1770,7 +1781,7 @@ module.exports = function getSteps(options) {
   Given(
     'mock http responses in {string} loaded from {string} with status {int}.',
     function (expectedBody, status) {
-      if (expectedBody != null) {
+      if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
       }
       this.v2Client = new algosdk.Algodv2(
@@ -1791,12 +1802,13 @@ module.exports = function getSteps(options) {
 
   When(
     'we make any {string} call to {string}.',
-    async function (client, endpoint) {
+    // eslint-disable-next-line no-unused-vars
+    async function (client, _endpoint) {
       try {
-        if (client == 'algod') {
+        if (client === 'algod') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
           this.actualMockResponse = await this.v2Client.status().do();
-        } else if (client == 'indexer') {
+        } else if (client === 'indexer') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
           this.actualMockResponse = await this.indexerClient
             .makeHealthCheck()
@@ -1805,10 +1817,10 @@ module.exports = function getSteps(options) {
           throw Error(`did not recognize desired client "${client}"`);
         }
       } catch (err) {
-        if (this.expectedMockResponseCode == 200) {
+        if (this.expectedMockResponseCode === 200) {
           throw err;
         }
-        if (this.expectedMockResponseCode == 500) {
+        if (this.expectedMockResponseCode === 500) {
           if (!err.toString().includes('Internal Server Error')) {
             throw Error(
               `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
@@ -1820,7 +1832,7 @@ module.exports = function getSteps(options) {
   );
 
   Then('the parsed response should equal the mock response.', function () {
-    if (this.expectedMockResponseCode == 200) {
+    if (this.expectedMockResponseCode === 200) {
       assert.strictEqual(
         JSON.stringify(JSON.parse(expectedMockResponse)),
         JSON.stringify(this.actualMockResponse)
@@ -1829,7 +1841,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('expect error string to contain {string}', (expectedErrorString) => {
-    if (expectedErrorString == 'nil') {
+    if (expectedErrorString === 'nil') {
       assert.strictEqual('', globalErrForExamination);
       return;
     }
@@ -1856,9 +1868,9 @@ module.exports = function getSteps(options) {
     (algodSeenRequests, indexerSeenRequests, expectedRequestPath) => {
       let actualRequestPath;
       if (algodSeenRequests.length !== 0) {
-        actualRequestPath = algodSeenRequests[0];
+        [actualRequestPath] = algodSeenRequests;
       } else if (indexerSeenRequests.length !== 0) {
-        actualRequestPath = indexerSeenRequests[0];
+        [actualRequestPath] = indexerSeenRequests;
       }
       assert.strictEqual(actualRequestPath, expectedRequestPath);
     }
@@ -1868,9 +1880,9 @@ module.exports = function getSteps(options) {
     'we expect the path used to be {string}',
     (algodSeenRequests, indexerSeenRequests, expectedRequestPath) => {
       let actualRequestPath;
-      if (algodSeenRequests.length != 0) {
+      if (algodSeenRequests.length !== 0) {
         actualRequestPath = algodSeenRequests[0].url;
-      } else if (indexerSeenRequests.length != 0) {
+      } else if (indexerSeenRequests.length !== 0) {
         actualRequestPath = indexerSeenRequests[0].url;
       }
       assert.strictEqual(expectedRequestPath, actualRequestPath);
@@ -1887,7 +1899,7 @@ module.exports = function getSteps(options) {
   When(
     'we make a Pending Transaction Information against txid {string} with format {string}',
     async function (txid, format) {
-      if (format != 'msgpack') {
+      if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
       await this.v2Client.pendingTransactionInformation(txid).do();
@@ -1897,7 +1909,7 @@ module.exports = function getSteps(options) {
   When(
     'we make a Pending Transaction Information with max {int} and format {string}',
     async function (max, format) {
-      if (format != 'msgpack') {
+      if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
       await this.v2Client.pendingTransactionsInformation().max(max).do();
@@ -1914,7 +1926,7 @@ module.exports = function getSteps(options) {
   When(
     'we make a Pending Transactions By Address call against account {string} and max {int} and format {string}',
     async function (account, max, format) {
-      if (format != 'msgpack') {
+      if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
       await this.v2Client.pendingTransactionByAddress(account).max(max).do();
@@ -1945,7 +1957,7 @@ module.exports = function getSteps(options) {
   When(
     'we make a Get Block call against block number {int} with format {string}',
     async function (blockNum, format) {
-      if (format != 'msgpack') {
+      if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
       await this.v2Client.block(blockNum).do();
@@ -1996,7 +2008,7 @@ module.exports = function getSteps(options) {
         len,
         anyPendingTransactionsInfoResponse['top-transactions'].length
       );
-      if (len != 0) {
+      if (len !== 0) {
         assert.strictEqual(
           sender,
           algosdk.encodeAddress(
@@ -2037,7 +2049,7 @@ module.exports = function getSteps(options) {
         len,
         anyPendingTransactionsByAddressResponse['total-transactions']
       );
-      if (len == 0) {
+      if (len === 0) {
         return;
       }
       let actualSender =
@@ -2767,7 +2779,7 @@ module.exports = function getSteps(options) {
         length,
         anyLookupAccountTransactionsResponse.transactions.length
       );
-      if (length == 0) {
+      if (length === 0) {
         return;
       }
       assert.strictEqual(
@@ -2832,7 +2844,7 @@ module.exports = function getSteps(options) {
     (round, length, idx, address) => {
       assert.strictEqual(round, anySearchAccountsResponse['current-round']);
       assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
-      if (length == 0) {
+      if (length === 0) {
         return;
       }
       assert.strictEqual(
@@ -2847,7 +2859,7 @@ module.exports = function getSteps(options) {
     (round, length, idx, authAddress) => {
       assert.strictEqual(round, anySearchAccountsResponse['current-round']);
       assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
-      if (length == 0) {
+      if (length === 0) {
         return;
       }
       assert.strictEqual(
@@ -2876,7 +2888,7 @@ module.exports = function getSteps(options) {
         length,
         anySearchForTransactionsResponse.transactions.length
       );
-      if (length == 0) {
+      if (length === 0) {
         return;
       }
       assert.strictEqual(
@@ -2897,7 +2909,7 @@ module.exports = function getSteps(options) {
         length,
         anySearchForTransactionsResponse.transactions.length
       );
-      if (length == 0) {
+      if (length === 0) {
         return;
       }
       assert.strictEqual(
@@ -2920,7 +2932,7 @@ module.exports = function getSteps(options) {
     (round, length, idx, assetIndex) => {
       assert.strictEqual(round, anySearchForAssetsResponse['current-round']);
       assert.strictEqual(length, anySearchForAssetsResponse.assets.length);
-      if (length == 0) {
+      if (length === 0) {
         return;
       }
       assert.strictEqual(
@@ -2939,23 +2951,23 @@ module.exports = function getSteps(options) {
   Given(
     'indexer client {int} at {string} port {int} with token {string}',
     (clientNum, indexerHost, indexerPort, indexerToken) => {
-      if (!indexerHost.startsWith('http')) {
-        indexerHost = `http://${indexerHost}`;
+      let mutableIndexerHost = indexerHost;
+
+      if (!mutableIndexerHost.startsWith('http')) {
+        mutableIndexerHost = `http://${mutableIndexerHost}`;
       }
       indexerIntegrationClients[clientNum] = new algosdk.Indexer(
         indexerToken,
-        indexerHost,
+        mutableIndexerHost,
         indexerPort,
         {}
       );
     }
   );
 
-  let integrationHealthCheck;
-
   When('I use {int} to check the services health', async (clientNum) => {
     const ic = indexerIntegrationClients[clientNum];
-    integrationHealthCheck = await ic.makeHealthCheck().do();
+    await ic.makeHealthCheck().do();
   });
 
   Then('I receive status code {int}', async (code) => {
@@ -3001,12 +3013,12 @@ module.exports = function getSteps(options) {
   Then(
     'The account has {int} assets, the first is asset {int} has a frozen status of {string} and amount {int}.',
     (numAssets, firstAssetIndex, firstAssetFrozenStatus, firstAssetAmount) => {
-      const firstAssetFrozenBool = firstAssetFrozenStatus == 'true';
+      const firstAssetFrozenBool = firstAssetFrozenStatus === 'true';
       assert.strictEqual(
         numAssets,
         integrationLookupAccountResponse.account.assets.length
       );
-      if (numAssets == 0) {
+      if (numAssets === 0) {
         return;
       }
       const scrutinizedAsset =
@@ -3046,24 +3058,24 @@ module.exports = function getSteps(options) {
         microAlgos,
         integrationLookupAccountResponse.account.amount
       );
-      if (numAssets == 0) {
+      if (numAssets === 0) {
         return;
       }
       assert.strictEqual(
         numAssets,
         integrationLookupAccountResponse.account.assets.length
       );
-      if (assetIndexToScrutinize == 0) {
+      if (assetIndexToScrutinize === 0) {
         return;
       }
       for (
-        idx = 0;
+        let idx = 0;
         idx < integrationLookupAccountResponse.account.assets.length;
         idx++
       ) {
         const scrutinizedAsset =
           integrationLookupAccountResponse.account.assets[idx];
-        if (scrutinizedAsset.index == assetIndexToScrutinize) {
+        if (scrutinizedAsset.index === assetIndexToScrutinize) {
           assert.strictEqual(assetAmount, scrutinizedAsset.amount);
         }
       }
@@ -3093,7 +3105,7 @@ module.exports = function getSteps(options) {
       assert.strictEqual(units, assetParams['unit-name']);
       assert.strictEqual(creator, assetParams.creator);
       assert.strictEqual(decimals, assetParams.decimals);
-      const defaultFrozenBool = defaultFrozen == 'true';
+      const defaultFrozenBool = defaultFrozen === 'true';
       assert.strictEqual(defaultFrozenBool, assetParams['default-frozen']);
       assert.strictEqual(totalIssuance, assetParams.total);
       assert.strictEqual(clawback, assetParams.clawback);
@@ -3145,12 +3157,12 @@ module.exports = function getSteps(options) {
         numAccounts,
         integrationLookupAssetBalancesResponse.balances.length
       );
-      if (numAccounts == 0) {
+      if (numAccounts === 0) {
         return;
       }
       const firstHolder = integrationLookupAssetBalancesResponse.balances[0];
       assert.strictEqual(firstAccountAddress, firstHolder.address);
-      const isFrozenBool = isFrozenString == 'true';
+      const isFrozenBool = isFrozenString === 'true';
       assert.strictEqual(isFrozenBool, firstHolder['is-frozen']);
       assert.strictEqual(accountAmount, firstHolder.amount);
     }
@@ -3224,7 +3236,7 @@ module.exports = function getSteps(options) {
         numAccounts,
         integrationSearchAccountsResponse.accounts.length
       );
-      if (numAccounts == 0) {
+      if (numAccounts === 0) {
         return;
       }
       const scrutinizedAccount = integrationSearchAccountsResponse.accounts[0];
@@ -3314,7 +3326,7 @@ module.exports = function getSteps(options) {
       nextToken
     ) => {
       const ic = indexerIntegrationClients[clientNum];
-      const excludeCloseToBool = excludeCloseToString == 'true';
+      const excludeCloseToBool = excludeCloseToString === 'true';
       integrationSearchTransactionsResponse = await ic
         .searchForTransactions()
         .limit(limit)
@@ -3362,7 +3374,7 @@ module.exports = function getSteps(options) {
       nextToken
     ) {
       const ic = indexerIntegrationClients[clientNum];
-      const excludeCloseToBool = excludeCloseToString == 'true';
+      const excludeCloseToBool = excludeCloseToString === 'true';
       integrationSearchTransactionsResponse = await ic
         .searchForTransactions()
         .limit(limit)
@@ -3441,7 +3453,8 @@ module.exports = function getSteps(options) {
       if (
         x.every(
           (subobject) =>
-            typeof subobject === 'object' && subobject.hasOwnProperty('key')
+            typeof subobject === 'object' &&
+            Object.prototype.hasOwnProperty.call(subobject, 'key')
         )
       ) {
         return x.sort((a, b) => (a.key > b.key ? 1 : -1));
@@ -3486,7 +3499,7 @@ module.exports = function getSteps(options) {
         numTransactions,
         integrationSearchTransactionsResponse.transactions.length
       );
-      if (numTransactions == 0) {
+      if (numTransactions === 0) {
         return;
       }
       assert.strictEqual(
@@ -3498,7 +3511,7 @@ module.exports = function getSteps(options) {
 
   Then('Every transaction has tx-type {string}', (txType) => {
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3522,7 +3535,7 @@ module.exports = function getSteps(options) {
       return 'did not recognize sigtype of txn';
     }
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3534,7 +3547,7 @@ module.exports = function getSteps(options) {
 
   Then('Every transaction has round {int}', (round) => {
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3546,7 +3559,7 @@ module.exports = function getSteps(options) {
 
   Then('Every transaction has round >= {int}', (round) => {
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3558,7 +3571,7 @@ module.exports = function getSteps(options) {
 
   Then('Every transaction has round <= {int}', (round) => {
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3585,7 +3598,7 @@ module.exports = function getSteps(options) {
       return 'could not find asset id within txn';
     }
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3597,7 +3610,7 @@ module.exports = function getSteps(options) {
 
   Then('Every transaction is older than {string}', (olderThan) => {
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3609,7 +3622,7 @@ module.exports = function getSteps(options) {
 
   Then('Every transaction is newer than {string}', (newerThan) => {
     for (
-      idx = 0;
+      let idx = 0;
       idx < integrationSearchTransactionsResponse.transactions.length;
       idx++
     ) {
@@ -3632,14 +3645,14 @@ module.exports = function getSteps(options) {
         return 'could not get amount moved from txn';
       }
       for (
-        idx = 0;
+        let idx = 0;
         idx < integrationSearchTransactionsResponse.transactions.length;
         idx++
       ) {
         const scrutinizedTxn =
           integrationSearchTransactionsResponse.transactions[idx];
         const amountMoved = getAmountMoved(scrutinizedTxn);
-        if (upperBound != 0) {
+        if (upperBound !== 0) {
           assert.ok(amountMoved <= upperBound);
         }
         assert.ok(amountMoved >= lowerBound);
@@ -3671,7 +3684,7 @@ module.exports = function getSteps(options) {
         numAssets,
         integrationSearchAssetsResponse.assets.length
       );
-      if (numAssets == 0) {
+      if (numAssets === 0) {
         return;
       }
       assert.strictEqual(
@@ -4084,10 +4097,12 @@ module.exports = function getSteps(options) {
   Given(
     'an algod v{int} client connected to {string} port {int} with token {string}',
     function (clientVersion, host, port, token) {
-      if (!host.startsWith('http')) {
-        host = `http://${host}`;
+      let mutableHost = host;
+
+      if (!mutableHost.startsWith('http')) {
+        mutableHost = `http://${mutableHost}`;
       }
-      this.v2Client = new algosdk.Algodv2(token, host, port, {});
+      this.v2Client = new algosdk.Algodv2(token, mutableHost, port, {});
     }
   );
 
@@ -4098,7 +4113,7 @@ module.exports = function getSteps(options) {
       this.transientSecretKey = generatedResult.sk;
       this.transientAddress = generatedResult.addr;
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound == 0) sp.firstRound = 1;
+      if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
         from: this.accounts[0],
         to: this.transientAddress,
@@ -4185,7 +4200,7 @@ module.exports = function getSteps(options) {
         appAccounts = appAccountsCommaSeparatedString.split(',');
       }
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound == 0) sp.firstRound = 1;
+      if (sp.firstRound === 0) sp.firstRound = 1;
       const o = {
         from: this.transientAddress,
         appIndex: this.currentApplicationIndex,
@@ -4258,11 +4273,11 @@ module.exports = function getSteps(options) {
       assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
       assert.strictEqual(appTotalSchema['num-uint'], numUints);
 
-      const appCreated = appCreatedBoolAsString == 'true';
+      const appCreated = appCreatedBoolAsString === 'true';
       const createdApps = accountInfo['created-apps'];
       //  If we don't expect the app to exist, verify that it isn't there and exit.
       if (!appCreated) {
-        for (i = 0; i < createdApps.length; i++) {
+        for (let i = 0; i < createdApps.length; i++) {
           assert.notStrictEqual(
             createdApps[i].id,
             this.currentApplicationIndex
@@ -4272,36 +4287,36 @@ module.exports = function getSteps(options) {
       }
 
       let foundApp = false;
-      for (i = 0; i < createdApps.length; i++) {
+      for (let i = 0; i < createdApps.length; i++) {
         foundApp =
-          foundApp || createdApps[i].id == this.currentApplicationIndex;
+          foundApp || createdApps[i].id === this.currentApplicationIndex;
       }
       assert.ok(foundApp);
 
       // If there is no key to check, we're done.
-      if (stateKey == '') {
+      if (stateKey === '') {
         return;
       }
 
       let foundValueForKey = false;
       let keyValues = [];
-      if (applicationState == 'local') {
+      if (applicationState === 'local') {
         let counter = 0;
-        for (i = 0; i < accountInfo['apps-local-state'].length; i++) {
+        for (let i = 0; i < accountInfo['apps-local-state'].length; i++) {
           const localState = accountInfo['apps-local-state'][i];
-          if (localState.id == this.currentApplicationIndex) {
+          if (localState.id === this.currentApplicationIndex) {
             keyValues = localState['key-value'];
-            counter++;
+            counter += 1;
           }
         }
         assert.strictEqual(counter, 1);
-      } else if (applicationState == 'global') {
+      } else if (applicationState === 'global') {
         let counter = 0;
-        for (i = 0; i < accountInfo['created-apps'].length; i++) {
+        for (let i = 0; i < accountInfo['created-apps'].length; i++) {
           const createdApp = accountInfo['created-apps'][i];
-          if (createdApp.id == this.currentApplicationIndex) {
+          if (createdApp.id === this.currentApplicationIndex) {
             keyValues = createdApp.params['global-state'];
-            counter++;
+            counter += 1;
           }
         }
         assert.strictEqual(counter, 1);
@@ -4313,15 +4328,15 @@ module.exports = function getSteps(options) {
 
       assert.ok(keyValues.length > 0);
 
-      for (i = 0; i < keyValues.length; i++) {
+      for (let i = 0; i < keyValues.length; i++) {
         const keyValue = keyValues[i];
         const foundKey = keyValue.key;
-        if (foundKey == stateKey) {
+        if (foundKey === stateKey) {
           foundValueForKey = true;
           const foundValue = keyValue.value;
-          if (foundValue.type == 1) {
+          if (foundValue.type === 1) {
             assert.strictEqual(foundValue.bytes, stateValue);
-          } else if (foundValue.type == 0) {
+          } else if (foundValue.type === 0) {
             assert.strictEqual(foundValue.uint, stateValue);
           }
         }
@@ -4333,4 +4348,6 @@ module.exports = function getSteps(options) {
   if (!options.ignoreReturn) {
     return steps;
   }
+
+  return undefined;
 };

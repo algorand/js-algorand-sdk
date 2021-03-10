@@ -82,6 +82,7 @@ describe('encoding', () => {
     it('should safely encode/decode bigints', () => {
       const beforeZero = BigInt('0');
       const afterZero = algosdk.decodeObj(algosdk.encodeObj(beforeZero));
+      // eslint-disable-next-line eqeqeq
       assert.ok(beforeZero == afterZero); // after is a Number because 0 fits into a Number - so we do this loose comparison
       const beforeLarge = BigInt('18446744073709551612'); // larger than a Number, but fits into a uint64
       const afterLarge = algosdk.decodeObj(algosdk.encodeObj(beforeLarge));
@@ -203,8 +204,8 @@ describe('encoding', () => {
         lv: 61,
       };
 
-      const js_enc = algosdk.encodeObj(o);
-      assert.deepStrictEqual(js_enc, golden);
+      const jsEnc = algosdk.encodeObj(o);
+      assert.deepStrictEqual(jsEnc, golden);
     });
   });
 

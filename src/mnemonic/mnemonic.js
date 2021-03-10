@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 const english = require('./wordlists/english');
 const nacl = require('../nacl/naclWrappers');
 const address = require('../encoding/address');
@@ -5,6 +6,43 @@ const address = require('../encoding/address');
 const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 const NOT_IN_WORDS_LIST_ERROR_MSG =
   'the mnemonic contains a word that is not in the wordlist';
+
+// https://stackoverflow.com/a/51452614
+function toUint11Array(buffer8) {
+  const buffer11 = [];
+  let acc = 0;
+  let accBits = 0;
+  function add(octet) {
+    acc |= octet << accBits;
+    accBits += 8;
+    if (accBits >= 11) {
+      buffer11.push(acc & 0x7ff);
+      acc >>= 11;
+      accBits -= 11;
+    }
+  }
+  function flush() {
+    if (accBits) {
+      buffer11.push(acc);
+    }
+  }
+
+  buffer8.forEach(add);
+  flush();
+  return buffer11;
+}
+
+function applyWords(nums) {
+  return nums.map((n) => english[n]);
+}
+
+function computeChecksum(seed) {
+  const hashBuffer = nacl.genericHash(seed);
+  const uint11Hash = toUint11Array(hashBuffer);
+  const words = applyWords(uint11Hash);
+
+  return words[0];
+}
 
 /**
  * mnemonicFromSeed converts a 32-byte key into a 25 word mnemonic. The generated mnemonic includes a checksum.
@@ -23,6 +61,32 @@ function mnemonicFromSeed(seed) {
   const checksumWord = computeChecksum(seed);
 
   return `${words.join(' ')} ${checksumWord}`;
+}
+
+// from Uint11Array
+// https://stackoverflow.com/a/51452614
+function toUint8Array(buffer11) {
+  const buffer8 = [];
+  let acc = 0;
+  let accBits = 0;
+  function add(ui11) {
+    acc |= ui11 << accBits;
+    accBits += 11;
+    while (accBits >= 8) {
+      buffer8.push(acc & 0xff);
+      acc >>= 8;
+      accBits -= 8;
+    }
+  }
+  function flush() {
+    if (accBits) {
+      buffer8.push(acc);
+    }
+  }
+
+  buffer11.forEach(add);
+  flush();
+  return new Uint8Array(buffer8);
 }
 
 /**
@@ -71,69 +135,6 @@ function seedFromMnemonic(mnemonic) {
   if (cs === checksum) return uint8Array;
 
   throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
-}
-
-function computeChecksum(seed) {
-  const hashBuffer = nacl.genericHash(seed);
-  const uint11Hash = toUint11Array(hashBuffer);
-  const words = applyWords(uint11Hash);
-
-  return words[0];
-}
-
-function applyWords(nums) {
-  return nums.map((n) => english[n]);
-}
-
-// https://stackoverflow.com/a/51452614
-function toUint11Array(buffer8) {
-  const buffer11 = [];
-  let acc = 0;
-  let accBits = 0;
-  function add(octet) {
-    acc = (octet << accBits) | acc;
-    accBits += 8;
-    if (accBits >= 11) {
-      buffer11.push(acc & 0x7ff);
-      acc >>= 11;
-      accBits -= 11;
-    }
-  }
-  function flush() {
-    if (accBits) {
-      buffer11.push(acc);
-    }
-  }
-
-  buffer8.forEach(add);
-  flush();
-  return buffer11;
-}
-
-// from Uint11Array
-// https://stackoverflow.com/a/51452614
-function toUint8Array(buffer11) {
-  const buffer8 = [];
-  let acc = 0;
-  let accBits = 0;
-  function add(ui11) {
-    acc = (ui11 << accBits) | acc;
-    accBits += 11;
-    while (accBits >= 8) {
-      buffer8.push(acc & 0xff);
-      acc >>= 8;
-      accBits -= 8;
-    }
-  }
-  function flush() {
-    if (accBits) {
-      buffer8.push(acc);
-    }
-  }
-
-  buffer11.forEach(add);
-  flush();
-  return new Uint8Array(buffer8);
 }
 
 /**

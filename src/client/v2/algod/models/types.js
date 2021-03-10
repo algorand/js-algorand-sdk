@@ -184,6 +184,8 @@ class TealValue extends base.BaseModel {
 
 class AssetHolding extends base.BaseModel {
   constructor(amount, assetId, creator, isFrozen) {
+    super();
+
     this.amount = amount;
     this.assetId = assetId;
     this.creator = creator;
@@ -200,6 +202,8 @@ class AssetHolding extends base.BaseModel {
 
 class Asset extends base.BaseModel {
   constructor(index, params) {
+    super();
+
     this.amount = index;
     this.assetId = params;
 
@@ -225,6 +229,8 @@ class AssetParams extends base.BaseModel {
     unitName,
     url,
   }) {
+    super();
+
     this.clawback = clawback;
     this.creator = creator;
     this.decimals = decimals;

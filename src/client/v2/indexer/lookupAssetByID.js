@@ -6,6 +6,7 @@ class LookupAssetByID extends JSONRequest {
     this.index = index;
   }
 
+  // eslint-disable-next-line no-underscore-dangle
   _path() {
     return `/v2/assets/${this.index}`;
   }
