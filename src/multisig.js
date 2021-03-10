@@ -19,6 +19,10 @@ const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG =
 const MULTISIG_BAD_FROM_FIELD_ERROR_MSG =
   'The transaction from field and multisig preimage do not match.';
 const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = 'Key does not exist';
+const MULTISIG_NO_MUTATE_ERROR_MSG =
+  'Cannot mutate a multisig field as it would invalidate all existing signatures.';
+const MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG =
+  'Cannot sign a multisig transaction using `signTxn`. Use `partialSignTxn` instead.';
 
 /**
  * createMultisigTransaction creates a multisig transaction blob.
@@ -66,29 +70,28 @@ function createMultisigTransaction(
  * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
  */
 class MultisigTransaction extends txnBuilder.Transaction {
-  // eslint-disable-next-line camelcase
-  get_obj_for_encoding() {
-    if (Object.prototype.hasOwnProperty.call(this, 'objForEncoding')) {
-      // if set, use the value for encoding. This allows us to sign existing non-payment type transactions.
-      return this.objForEncoding;
-    }
-    return super.get_obj_for_encoding();
+  /* eslint-disable class-methods-use-this */
+  /**
+   * Override inherited method to throw an error, as mutating transactions are prohibited in this context
+   */
+  addLease() {
+    throw new Error(MULTISIG_NO_MUTATE_ERROR_MSG);
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(txnForEnc) {
-    if (txnForEnc.type !== 'pay') {
-      // we don't support decoding this txn yet - but we can keep signing it since we have the
-      // encoded format. We trust that the caller knows what they are trying to sign.
-      const txn = Object.create(this.prototype);
-      txn.name = 'Transaction';
-      txn.tag = Buffer.from([84, 88]); // "TX"
-
-      txn.objForEncoding = txnForEnc;
-      return txn;
-    }
-    return super.from_obj_for_encoding(txnForEnc);
+  /**
+   * Override inherited method to throw an error, as mutating transactions are prohibited in this context
+   */
+  addRekey() {
+    throw new Error(MULTISIG_NO_MUTATE_ERROR_MSG);
   }
+
+  /**
+   * Override inherited method to throw an error, as traditional signing is not allowed
+   */
+  signTxn() {
+    throw new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG);
+  }
+  /* eslint-enable class-methods-use-this */
 
   /**
    * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
@@ -100,20 +103,18 @@ class MultisigTransaction extends txnBuilder.Transaction {
    * @returns an encoded, partially signed multisig transaction.
    */
   partialSignTxn({ version, threshold, pks }, sk) {
-    // verify one more time that the from field is correct
-    if (!Object.hasOwnProperty.call(this, 'objForEncoding')) {
-      const expectedFromRaw = address.fromMultisigPreImg({
-        version,
-        threshold,
-        pks,
-      });
-      if (
-        address.encodeAddress(this.from.publicKey) !==
-        address.encodeAddress(expectedFromRaw)
-      ) {
-        throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
-      }
+    const expectedFromRaw = address.fromMultisigPreImg({
+      version,
+      threshold,
+      pks,
+    });
+    if (
+      address.encodeAddress(this.from.publicKey) !==
+      address.encodeAddress(expectedFromRaw)
+    ) {
+      throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
     }
+
     // get signature verifier
     const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
     return createMultisigTransaction(
@@ -254,4 +255,6 @@ module.exports = {
   MULTISIG_MERGE_MISMATCH_ERROR_MSG,
   MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG,
   MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG,
+  MULTISIG_NO_MUTATE_ERROR_MSG,
+  MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG,
 };
