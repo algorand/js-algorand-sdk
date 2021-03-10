@@ -1,14 +1,14 @@
 const { JSONRequest } = require('../jsonrequest');
 
 class AccountInformation extends JSONRequest {
-	constructor(c, intDecoding, account) {
+  constructor(c, intDecoding, account) {
 	    super(c, intDecoding);
-        this.account = account;
-    }
+    this.account = account;
+  }
 
-    _path() {
-        return "/v2/accounts/" + this.account;
-    }
+  _path() {
+    return `/v2/accounts/${this.account}`;
+  }
 }
 
 module.exports = { AccountInformation };

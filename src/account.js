@@ -6,9 +6,9 @@ const address = require('./encoding/address');
  * @returns {{sk: Uint8Array, addr: string}}
  */
 function generateAccount() {
-    let keys = nacl.keyPair();
-    let encodedPk = address.encodeAddress(keys.publicKey);
-    return {addr: encodedPk, sk: keys.secretKey};
+  const keys = nacl.keyPair();
+  const encodedPk = address.encodeAddress(keys.publicKey);
+  return { addr: encodedPk, sk: keys.secretKey };
 }
 
 module.exports = { generateAccount };
