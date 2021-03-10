@@ -15,7 +15,7 @@ async function main() {
   const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
-    ALGOD_INSTANCE.port,
+    ALGOD_INSTANCE.port
   );
 
   // retrieve sender and receiver
@@ -37,7 +37,9 @@ async function main() {
     suggestedParams,
   };
 
-  const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
+  const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // send transaction (note that the sender account needs to be funded for this to work)
   console.log('Sending transaction...');
@@ -47,7 +49,11 @@ async function main() {
   // wait for confirmation – timeout after 2 rounds
   console.log('Awaiting confirmation (this will take several seconds)...');
   const roundTimeout = 2;
-  const confirmation = await utils.waitForConfirmation(client, txId, roundTimeout);
+  const confirmation = await utils.waitForConfirmation(
+    client,
+    txId,
+    roundTimeout
+  );
   console.log('Transaction successful.');
 
   // log the note included on the transaction
@@ -56,5 +62,4 @@ async function main() {
   console.log(`Note received: ${receivedNote}`);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

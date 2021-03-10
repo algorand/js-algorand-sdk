@@ -17,7 +17,19 @@ const txnBuilder = require('./transaction');
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo = undefined) {
+function makePaymentTxn(
+  from,
+  to,
+  fee,
+  amount,
+  closeRemainderTo,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  rekeyTo = undefined
+) {
   const suggestedParams = {
     genesisHash,
     genesisID,
@@ -25,7 +37,15 @@ function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, las
     lastRound,
     fee,
   };
-  return makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams, rekeyTo);
+  return makePaymentTxnWithSuggestedParams(
+    from,
+    to,
+    amount,
+    closeRemainderTo,
+    note,
+    suggestedParams,
+    rekeyTo
+  );
 }
 
 /**
@@ -46,7 +66,15 @@ function makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, las
  * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, note, suggestedParams, rekeyTo = undefined) {
+function makePaymentTxnWithSuggestedParams(
+  from,
+  to,
+  amount,
+  closeRemainderTo,
+  note,
+  suggestedParams,
+  rekeyTo = undefined
+) {
   const o = {
     from,
     to,
@@ -62,8 +90,15 @@ function makePaymentTxnWithSuggestedParams(from, to, amount, closeRemainderTo, n
 
 // helper for above makePaymentTxnWithSuggestedParams, instead accepting an arguments object
 function makePaymentTxnWithSuggestedParamsFromObject(o) {
-  return makePaymentTxnWithSuggestedParams(o.from, o.to, o.amount, o.closeRemainderTo,
-    o.note, o.suggestedParams, o.rekeyTo);
+  return makePaymentTxnWithSuggestedParams(
+    o.from,
+    o.to,
+    o.amount,
+    o.closeRemainderTo,
+    o.note,
+    o.suggestedParams,
+    o.rekeyTo
+  );
 }
 
 /**
@@ -89,8 +124,22 @@ function makePaymentTxnWithSuggestedParamsFromObject(o) {
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-  voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, rekeyTo = undefined, nonParticipation = false) {
+function makeKeyRegistrationTxn(
+  from,
+  fee,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  voteKey,
+  selectionKey,
+  voteFirst,
+  voteLast,
+  voteKeyDilution,
+  rekeyTo = undefined,
+  nonParticipation = false
+) {
   const suggestedParams = {
     genesisHash,
     genesisID,
@@ -98,7 +147,18 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
     lastRound,
     fee,
   };
-  return makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo, nonParticipation);
+  return makeKeyRegistrationTxnWithSuggestedParams(
+    from,
+    note,
+    voteKey,
+    selectionKey,
+    voteFirst,
+    voteLast,
+    voteKeyDilution,
+    suggestedParams,
+    rekeyTo,
+    nonParticipation
+  );
 }
 
 /**
@@ -125,7 +185,18 @@ function makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisH
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @returns {Transaction}
  */
-function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, suggestedParams, rekeyTo = undefined, nonParticipation = false) {
+function makeKeyRegistrationTxnWithSuggestedParams(
+  from,
+  note,
+  voteKey,
+  selectionKey,
+  voteFirst,
+  voteLast,
+  voteKeyDilution,
+  suggestedParams,
+  rekeyTo = undefined,
+  nonParticipation = false
+) {
   const o = {
     from,
     note,
@@ -144,8 +215,18 @@ function makeKeyRegistrationTxnWithSuggestedParams(from, note, voteKey, selectio
 
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
 function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
-  return makeKeyRegistrationTxnWithSuggestedParams(o.from, o.note, o.voteKey, o.selectionKey, o.voteFirst, o.voteLast,
-    o.voteKeyDilution, o.suggestedParams, o.rekeyTo, o.nonParticipation);
+  return makeKeyRegistrationTxnWithSuggestedParams(
+    o.from,
+    o.note,
+    o.voteKey,
+    o.selectionKey,
+    o.voteFirst,
+    o.voteLast,
+    o.voteKeyDilution,
+    o.suggestedParams,
+    o.rekeyTo,
+    o.nonParticipation
+  );
 }
 
 /** makeAssetCreateTxn takes asset creation arguments and returns a Transaction object
@@ -174,9 +255,27 @@ function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-  total, decimals, defaultFrozen, manager, reserve, freeze,
-  clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo = undefined) {
+function makeAssetCreateTxn(
+  from,
+  fee,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  total,
+  decimals,
+  defaultFrozen,
+  manager,
+  reserve,
+  freeze,
+  clawback,
+  unitName,
+  assetName,
+  assetURL,
+  assetMetadataHash,
+  rekeyTo = undefined
+) {
   const suggestedParams = {
     genesisHash,
     genesisID,
@@ -184,8 +283,23 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
     lastRound,
     fee,
   };
-  return makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defaultFrozen, manager, reserve, freeze, clawback,
-    unitName, assetName, assetURL, assetMetadataHash, suggestedParams, rekeyTo);
+  return makeAssetCreateTxnWithSuggestedParams(
+    from,
+    note,
+    total,
+    decimals,
+    defaultFrozen,
+    manager,
+    reserve,
+    freeze,
+    clawback,
+    unitName,
+    assetName,
+    assetURL,
+    assetMetadataHash,
+    suggestedParams,
+    rekeyTo
+  );
 }
 
 /** makeAssetCreateTxnWithSuggestedParams takes asset creation arguments and returns a Transaction object
@@ -215,8 +329,23 @@ function makeAssetCreateTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defaultFrozen, manager, reserve, freeze,
-  clawback, unitName, assetName, assetURL, assetMetadataHash, suggestedParams, rekeyTo = undefined) {
+function makeAssetCreateTxnWithSuggestedParams(
+  from,
+  note,
+  total,
+  decimals,
+  defaultFrozen,
+  manager,
+  reserve,
+  freeze,
+  clawback,
+  unitName,
+  assetName,
+  assetURL,
+  assetMetadataHash,
+  suggestedParams,
+  rekeyTo = undefined
+) {
   const o = {
     from,
     note,
@@ -240,9 +369,23 @@ function makeAssetCreateTxnWithSuggestedParams(from, note, total, decimals, defa
 
 // helper for above makeAssetCreateTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
-  return makeAssetCreateTxnWithSuggestedParams(o.from, o.note, o.total, o.decimals, o.defaultFrozen, o.manager,
-    o.reserve, o.freeze, o.clawback, o.unitName, o.assetName, o.assetURL, o.assetMetadataHash, o.suggestedParams,
-    o.rekeyTo);
+  return makeAssetCreateTxnWithSuggestedParams(
+    o.from,
+    o.note,
+    o.total,
+    o.decimals,
+    o.defaultFrozen,
+    o.manager,
+    o.reserve,
+    o.freeze,
+    o.clawback,
+    o.unitName,
+    o.assetName,
+    o.assetURL,
+    o.assetMetadataHash,
+    o.suggestedParams,
+    o.rekeyTo
+  );
 }
 
 /** makeAssetConfigTxn can be issued by the asset manager to change the manager, reserve, freeze, or clawback
@@ -267,8 +410,22 @@ function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-  assetIndex, manager, reserve, freeze, clawback, strictEmptyAddressChecking = true, rekeyTo = undefined) {
+function makeAssetConfigTxn(
+  from,
+  fee,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  assetIndex,
+  manager,
+  reserve,
+  freeze,
+  clawback,
+  strictEmptyAddressChecking = true,
+  rekeyTo = undefined
+) {
   const suggestedParams = {
     genesisHash,
     genesisID,
@@ -276,7 +433,18 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
     lastRound,
     fee,
   };
-  return makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex, manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking, rekeyTo);
+  return makeAssetConfigTxnWithSuggestedParams(
+    from,
+    note,
+    assetIndex,
+    manager,
+    reserve,
+    freeze,
+    clawback,
+    suggestedParams,
+    strictEmptyAddressChecking,
+    rekeyTo
+  );
 }
 
 /** makeAssetConfigTxnWithSuggestedParams can be issued by the asset manager to change the manager, reserve, freeze, or clawback
@@ -302,10 +470,28 @@ function makeAssetConfigTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
-  manager, reserve, freeze, clawback, suggestedParams, strictEmptyAddressChecking = true, rekeyTo = undefined) {
-  if (strictEmptyAddressChecking && ((manager === undefined) || (reserve === undefined) || (freeze === undefined) || (clawback === undefined))) {
-    throw Error('strict empty address checking was turned on, but at least one empty address was provided');
+function makeAssetConfigTxnWithSuggestedParams(
+  from,
+  note,
+  assetIndex,
+  manager,
+  reserve,
+  freeze,
+  clawback,
+  suggestedParams,
+  strictEmptyAddressChecking = true,
+  rekeyTo = undefined
+) {
+  if (
+    strictEmptyAddressChecking &&
+    (manager === undefined ||
+      reserve === undefined ||
+      freeze === undefined ||
+      clawback === undefined)
+  ) {
+    throw Error(
+      'strict empty address checking was turned on, but at least one empty address was provided'
+    );
   }
   const o = {
     from,
@@ -324,8 +510,18 @@ function makeAssetConfigTxnWithSuggestedParams(from, note, assetIndex,
 
 // helper for above makeAssetConfigTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
-  return makeAssetConfigTxnWithSuggestedParams(o.from, o.note, o.assetIndex,
-    o.manager, o.reserve, o.freeze, o.clawback, o.suggestedParams, o.strictEmptyAddressChecking, o.rekeyTo);
+  return makeAssetConfigTxnWithSuggestedParams(
+    o.from,
+    o.note,
+    o.assetIndex,
+    o.manager,
+    o.reserve,
+    o.freeze,
+    o.clawback,
+    o.suggestedParams,
+    o.strictEmptyAddressChecking,
+    o.rekeyTo
+  );
 }
 
 /** makeAssetDestroyTxn will allow the asset's manager to remove this asset from the ledger, so long
@@ -344,7 +540,17 @@ function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, rekeyTo = undefined) {
+function makeAssetDestroyTxn(
+  from,
+  fee,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  assetIndex,
+  rekeyTo = undefined
+) {
   const suggestedParams = {
     genesisHash,
     genesisID,
@@ -352,7 +558,13 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
     lastRound,
     fee,
   };
-  return makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams, rekeyTo);
+  return makeAssetDestroyTxnWithSuggestedParams(
+    from,
+    note,
+    assetIndex,
+    suggestedParams,
+    rekeyTo
+  );
 }
 
 /** makeAssetDestroyTxnWithSuggestedParams will allow the asset's manager to remove this asset from the ledger, so long
@@ -372,7 +584,13 @@ function makeAssetDestroyTxn(from, fee, firstRound, lastRound, note, genesisHash
  * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggestedParams, rekeyTo = undefined) {
+function makeAssetDestroyTxnWithSuggestedParams(
+  from,
+  note,
+  assetIndex,
+  suggestedParams,
+  rekeyTo = undefined
+) {
   const o = {
     from,
     suggestedParams,
@@ -386,7 +604,13 @@ function makeAssetDestroyTxnWithSuggestedParams(from, note, assetIndex, suggeste
 
 // helper for above makeAssetDestroyTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
-  return makeAssetDestroyTxnWithSuggestedParams(o.from, o.note, o.assetIndex, o.suggestedParams, o.rekeyTo);
+  return makeAssetDestroyTxnWithSuggestedParams(
+    o.from,
+    o.note,
+    o.assetIndex,
+    o.suggestedParams,
+    o.rekeyTo
+  );
 }
 
 /** makeAssetFreezeTxn will allow the asset's freeze manager to freeze or un-freeze an account,
@@ -407,8 +631,19 @@ function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-  assetIndex, freezeTarget, freezeState, rekeyTo = undefined) {
+function makeAssetFreezeTxn(
+  from,
+  fee,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  assetIndex,
+  freezeTarget,
+  freezeState,
+  rekeyTo = undefined
+) {
   const suggestedParams = {
     genesisHash,
     genesisID,
@@ -416,7 +651,15 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
     lastRound,
     fee,
   };
-  return makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams, rekeyTo);
+  return makeAssetFreezeTxnWithSuggestedParams(
+    from,
+    note,
+    assetIndex,
+    freezeTarget,
+    freezeState,
+    suggestedParams,
+    rekeyTo
+  );
 }
 
 /** makeAssetFreezeTxnWithSuggestedParams will allow the asset's freeze manager to freeze or un-freeze an account,
@@ -438,7 +681,15 @@ function makeAssetFreezeTxn(from, fee, firstRound, lastRound, note, genesisHash,
  * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTarget, freezeState, suggestedParams, rekeyTo = undefined) {
+function makeAssetFreezeTxnWithSuggestedParams(
+  from,
+  note,
+  assetIndex,
+  freezeTarget,
+  freezeState,
+  suggestedParams,
+  rekeyTo = undefined
+) {
   const o = {
     from,
     type: 'afrz',
@@ -454,8 +705,15 @@ function makeAssetFreezeTxnWithSuggestedParams(from, note, assetIndex, freezeTar
 
 // helper for above makeAssetFreezeTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
-  return makeAssetFreezeTxnWithSuggestedParams(o.from, o.note, o.assetIndex, o.freezeTarget,
-    o.freezeState, o.suggestedParams, o.rekeyTo);
+  return makeAssetFreezeTxnWithSuggestedParams(
+    o.from,
+    o.note,
+    o.assetIndex,
+    o.freezeTarget,
+    o.freezeState,
+    o.suggestedParams,
+    o.rekeyTo
+  );
 }
 
 /** makeAssetTransferTxn allows for the creation of an asset transfer transaction.
@@ -480,8 +738,21 @@ function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  * @returns {Transaction}
  */
-function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
-  fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, rekeyTo = undefined) {
+function makeAssetTransferTxn(
+  from,
+  to,
+  closeRemainderTo,
+  revocationTarget,
+  fee,
+  amount,
+  firstRound,
+  lastRound,
+  note,
+  genesisHash,
+  genesisID,
+  assetIndex,
+  rekeyTo = undefined
+) {
   const suggestedParams = {
     genesisHash,
     genesisID,
@@ -489,7 +760,17 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
     lastRound,
     fee,
   };
-  return makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, revocationTarget, amount, note, assetIndex, suggestedParams, rekeyTo);
+  return makeAssetTransferTxnWithSuggestedParams(
+    from,
+    to,
+    closeRemainderTo,
+    revocationTarget,
+    amount,
+    note,
+    assetIndex,
+    suggestedParams,
+    rekeyTo
+  );
 }
 
 /** makeAssetTransferTxnWithSuggestedParams allows for the creation of an asset transfer transaction.
@@ -515,8 +796,17 @@ function makeAssetTransferTxn(from, to, closeRemainderTo, revocationTarget,
  * @param rekeyTo - rekeyTo address, optional
  * @returns {Transaction}
  */
-function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, revocationTarget,
-  amount, note, assetIndex, suggestedParams, rekeyTo = undefined) {
+function makeAssetTransferTxnWithSuggestedParams(
+  from,
+  to,
+  closeRemainderTo,
+  revocationTarget,
+  amount,
+  note,
+  assetIndex,
+  suggestedParams,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'axfer',
     from,
@@ -534,8 +824,17 @@ function makeAssetTransferTxnWithSuggestedParams(from, to, closeRemainderTo, rev
 
 // helper for above makeAssetTransferTxnWithSuggestedParams, instead accepting an arguments object
 function makeAssetTransferTxnWithSuggestedParamsFromObject(o) {
-  return makeAssetTransferTxnWithSuggestedParams(o.from, o.to, o.closeRemainderTo, o.revocationTarget,
-    o.amount, o.note, o.assetIndex, o.suggestedParams, o.rekeyTo);
+  return makeAssetTransferTxnWithSuggestedParams(
+    o.from,
+    o.to,
+    o.closeRemainderTo,
+    o.revocationTarget,
+    o.amount,
+    o.note,
+    o.assetIndex,
+    o.suggestedParams,
+    o.rekeyTo
+  );
 }
 
 /*
@@ -590,11 +889,24 @@ const OnApplicationComplete = {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalProgram, clearProgram,
-  numLocalInts, numLocalByteSlices, numGlobalInts, numGlobalByteSlices,
-  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+function makeApplicationCreateTxn(
+  from,
+  suggestedParams,
+  onComplete,
+  approvalProgram,
+  clearProgram,
+  numLocalInts,
+  numLocalByteSlices,
+  numGlobalInts,
+  numGlobalByteSlices,
+  appArgs = undefined,
+  accounts = undefined,
+  foreignApps = undefined,
   foreignAssets = undefined,
-  note = undefined, lease = undefined, rekeyTo = undefined) {
+  note = undefined,
+  lease = undefined,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'appl',
     from,
@@ -620,9 +932,24 @@ function makeApplicationCreateTxn(from, suggestedParams, onComplete, approvalPro
 
 // helper for above makeApplicationCreateTxn, instead accepting an arguments object
 function makeApplicationCreateTxnFromObject(o) {
-  return makeApplicationCreateTxn(o.from, o.suggestedParams, o.onComplete, o.approvalProgram, o.clearProgram,
-    o.numLocalInts, o.numLocalByteSlices, o.numGlobalInts, o.numGlobalByteSlices,
-    o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+  return makeApplicationCreateTxn(
+    o.from,
+    o.suggestedParams,
+    o.onComplete,
+    o.approvalProgram,
+    o.clearProgram,
+    o.numLocalInts,
+    o.numLocalByteSlices,
+    o.numGlobalInts,
+    o.numGlobalByteSlices,
+    o.appArgs,
+    o.accounts,
+    o.foreignApps,
+    o.foreignAssets,
+    o.note,
+    o.lease,
+    o.rekeyTo
+  );
 }
 
 /**
@@ -647,10 +974,20 @@ function makeApplicationCreateTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgram, clearProgram,
-  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+function makeApplicationUpdateTxn(
+  from,
+  suggestedParams,
+  appIndex,
+  approvalProgram,
+  clearProgram,
+  appArgs = undefined,
+  accounts = undefined,
+  foreignApps = undefined,
   foreignAssets = undefined,
-  note = undefined, lease = undefined, rekeyTo = undefined) {
+  note = undefined,
+  lease = undefined,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'appl',
     from,
@@ -672,8 +1009,20 @@ function makeApplicationUpdateTxn(from, suggestedParams, appIndex, approvalProgr
 
 // helper for above makeApplicationUpdateTxn, instead accepting an arguments object
 function makeApplicationUpdateTxnFromObject(o) {
-  return makeApplicationUpdateTxn(o.from, o.suggestedParams, o.appIndex, o.approvalProgram, o.clearProgram,
-    o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+  return makeApplicationUpdateTxn(
+    o.from,
+    o.suggestedParams,
+    o.appIndex,
+    o.approvalProgram,
+    o.clearProgram,
+    o.appArgs,
+    o.accounts,
+    o.foreignApps,
+    o.foreignAssets,
+    o.note,
+    o.lease,
+    o.rekeyTo
+  );
 }
 
 /**
@@ -696,10 +1045,18 @@ function makeApplicationUpdateTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
-  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+function makeApplicationDeleteTxn(
+  from,
+  suggestedParams,
+  appIndex,
+  appArgs = undefined,
+  accounts = undefined,
+  foreignApps = undefined,
   foreignAssets = undefined,
-  note = undefined, lease = undefined, rekeyTo = undefined) {
+  note = undefined,
+  lease = undefined,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'appl',
     from,
@@ -719,8 +1076,18 @@ function makeApplicationDeleteTxn(from, suggestedParams, appIndex,
 
 // helper for above makeApplicationDeleteTxn, instead accepting an arguments object
 function makeApplicationDeleteTxnFromObject(o) {
-  return makeApplicationDeleteTxn(o.from, o.suggestedParams, o.appIndex,
-    o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+  return makeApplicationDeleteTxn(
+    o.from,
+    o.suggestedParams,
+    o.appIndex,
+    o.appArgs,
+    o.accounts,
+    o.foreignApps,
+    o.foreignAssets,
+    o.note,
+    o.lease,
+    o.rekeyTo
+  );
 }
 
 /**
@@ -743,10 +1110,18 @@ function makeApplicationDeleteTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationOptInTxn(from, suggestedParams, appIndex,
-  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+function makeApplicationOptInTxn(
+  from,
+  suggestedParams,
+  appIndex,
+  appArgs = undefined,
+  accounts = undefined,
+  foreignApps = undefined,
   foreignAssets = undefined,
-  note = undefined, lease = undefined, rekeyTo = undefined) {
+  note = undefined,
+  lease = undefined,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'appl',
     from,
@@ -766,8 +1141,18 @@ function makeApplicationOptInTxn(from, suggestedParams, appIndex,
 
 // helper for above makeApplicationOptInTxn, instead accepting an argument object
 function makeApplicationOptInTxnFromObject(o) {
-  return makeApplicationOptInTxn(o.from, o.suggestedParams, o.appIndex,
-    o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+  return makeApplicationOptInTxn(
+    o.from,
+    o.suggestedParams,
+    o.appIndex,
+    o.appArgs,
+    o.accounts,
+    o.foreignApps,
+    o.foreignAssets,
+    o.note,
+    o.lease,
+    o.rekeyTo
+  );
 }
 
 /**
@@ -790,10 +1175,18 @@ function makeApplicationOptInTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
-  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+function makeApplicationCloseOutTxn(
+  from,
+  suggestedParams,
+  appIndex,
+  appArgs = undefined,
+  accounts = undefined,
+  foreignApps = undefined,
   foreignAssets = undefined,
-  note = undefined, lease = undefined, rekeyTo = undefined) {
+  note = undefined,
+  lease = undefined,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'appl',
     from,
@@ -813,8 +1206,18 @@ function makeApplicationCloseOutTxn(from, suggestedParams, appIndex,
 
 // helper for above makeApplicationCloseOutTxn, instead accepting an argument object
 function makeApplicationCloseOutTxnFromObject(o) {
-  return makeApplicationCloseOutTxn(o.from, o.suggestedParams, o.appIndex,
-    o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+  return makeApplicationCloseOutTxn(
+    o.from,
+    o.suggestedParams,
+    o.appIndex,
+    o.appArgs,
+    o.accounts,
+    o.foreignApps,
+    o.foreignAssets,
+    o.note,
+    o.lease,
+    o.rekeyTo
+  );
 }
 
 /**
@@ -837,10 +1240,18 @@ function makeApplicationCloseOutTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
-  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+function makeApplicationClearStateTxn(
+  from,
+  suggestedParams,
+  appIndex,
+  appArgs = undefined,
+  accounts = undefined,
+  foreignApps = undefined,
   foreignAssets = undefined,
-  note = undefined, lease = undefined, rekeyTo = undefined) {
+  note = undefined,
+  lease = undefined,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'appl',
     from,
@@ -860,8 +1271,18 @@ function makeApplicationClearStateTxn(from, suggestedParams, appIndex,
 
 // helper for above makeApplicationClearStateTxn, instead accepting an argument object
 function makeApplicationClearStateTxnFromObject(o) {
-  return makeApplicationClearStateTxn(o.from, o.suggestedParams, o.appIndex,
-    o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+  return makeApplicationClearStateTxn(
+    o.from,
+    o.suggestedParams,
+    o.appIndex,
+    o.appArgs,
+    o.accounts,
+    o.foreignApps,
+    o.foreignAssets,
+    o.note,
+    o.lease,
+    o.rekeyTo
+  );
 }
 
 /**
@@ -884,10 +1305,18 @@ function makeApplicationClearStateTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
-  appArgs = undefined, accounts = undefined, foreignApps = undefined,
+function makeApplicationNoOpTxn(
+  from,
+  suggestedParams,
+  appIndex,
+  appArgs = undefined,
+  accounts = undefined,
+  foreignApps = undefined,
   foreignAssets = undefined,
-  note = undefined, lease = undefined, rekeyTo = undefined) {
+  note = undefined,
+  lease = undefined,
+  rekeyTo = undefined
+) {
   const o = {
     type: 'appl',
     from,
@@ -907,8 +1336,18 @@ function makeApplicationNoOpTxn(from, suggestedParams, appIndex,
 
 // helper for above makeApplicationNoOpTxn, instead accepting an argument object
 function makeApplicationNoOpTxnFromObject(o) {
-  return makeApplicationNoOpTxn(o.from, o.suggestedParams, o.appIndex,
-    o.appArgs, o.accounts, o.foreignApps, o.foreignAssets, o.note, o.lease, o.rekeyTo);
+  return makeApplicationNoOpTxn(
+    o.from,
+    o.suggestedParams,
+    o.appIndex,
+    o.appArgs,
+    o.accounts,
+    o.foreignApps,
+    o.foreignAssets,
+    o.note,
+    o.lease,
+    o.rekeyTo
+  );
 }
 
 module.exports = {

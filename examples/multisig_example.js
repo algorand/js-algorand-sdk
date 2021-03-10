@@ -10,7 +10,7 @@ async function main() {
   const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
-    ALGOD_INSTANCE.port,
+    ALGOD_INSTANCE.port
   );
 
   // retrieve a sender and receiver
@@ -41,14 +41,24 @@ async function main() {
   });
 
   // sign transaction
-  const signature1 = algosdk.signMultisigTransaction(txn, multiSigOptions, signer1.sk);
-  const signature2 = algosdk.signMultisigTransaction(txn, multiSigOptions, signer2.sk);
-  const stxn = algosdk.mergeMultisigTransactions([signature1.blob, signature2.blob]);
+  const signature1 = algosdk.signMultisigTransaction(
+    txn,
+    multiSigOptions,
+    signer1.sk
+  );
+  const signature2 = algosdk.signMultisigTransaction(
+    txn,
+    multiSigOptions,
+    signer2.sk
+  );
+  const stxn = algosdk.mergeMultisigTransactions([
+    signature1.blob,
+    signature2.blob,
+  ]);
 
   // print transaction data
   const decoded = algosdk.decodeSignedTransaction(stxn);
   console.log(decoded);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

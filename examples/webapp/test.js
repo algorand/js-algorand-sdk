@@ -27,9 +27,11 @@
 
   function createWalletName() {
     let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const possible =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-    for (let i = 0; i < 10; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
+    for (let i = 0; i < 10; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
 
     return text;
   }
@@ -40,7 +42,7 @@
       const algodclient = new algosdk.Algodv2(atoken, aserver, aport);
 
       (async () => {
-        const tx = (await algodclient.accountInformation(account));
+        const tx = await algodclient.accountInformation(account);
         const textedJson = JSON.stringify(tx, undefined, 4);
         console.log(textedJson);
         ta.innerHTML = textedJson;
@@ -57,7 +59,7 @@
 
       (async () => {
         const lastround = (await algodclient.status().do())['last-round'];
-        const block = (await algodclient.block(lastround).do());
+        const block = await algodclient.block(lastround).do();
         fround.value = lastround;
         lround.value = lastround + 1000;
         const textedJson = JSON.stringify(block, undefined, 4);
@@ -105,7 +107,7 @@
       signKey = recovered_account.sk;
       const algodclient = new algosdk.Algodv2(atoken, aserver, aport);
       (async () => {
-        const tx = (await algodclient.accountInformation(recovered_account.addr));
+        const tx = await algodclient.accountInformation(recovered_account.addr);
         const textedJson = JSON.stringify(tx, undefined, 4);
         console.log(textedJson);
         ta.innerHTML = textedJson;
@@ -120,7 +122,10 @@
     st.onclick = function () {
       ta.innerHTML = '';
       const person = {
-        firstName: 'John', lastName: 'Doe', age: 50, eyeColor: 'blue',
+        firstName: 'John',
+        lastName: 'Doe',
+        age: 50,
+        eyeColor: 'blue',
       };
       const note = algosdk.encodeObj(person);
       const suggestedParams = {
@@ -138,11 +143,13 @@
         suggestedParams,
       };
       const { sk } = algosdk.mnemonicToSecretKey(bu.value);
-      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
+      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
+        transactionOptions
+      );
       const signedTxn = txn.signTxn(sk);
       const algodclient = new algosdk.Algodv2(atoken, aserver, aport);
       (async () => {
-        const tx = (await algodclient.sendRawTransaction(signedTxn).do());
+        const tx = await algodclient.sendRawTransaction(signedTxn).do();
         const textedJson = JSON.stringify(tx, undefined, 4);
         console.log(textedJson);
         ta.innerHTML = textedJson;
@@ -162,7 +169,9 @@
 
       const algodclient = new algosdk.Algodv2(atoken, aserver, aport);
       (async () => {
-        const tx = (await algodclient.pendingTransactionInformation(txid.value).do());
+        const tx = await algodclient
+          .pendingTransactionInformation(txid.value)
+          .do();
         const textedJson = JSON.stringify(tx, undefined, 4);
         console.log(textedJson);
 
@@ -176,4 +185,4 @@
       });
     };
   }
-}());
+})();

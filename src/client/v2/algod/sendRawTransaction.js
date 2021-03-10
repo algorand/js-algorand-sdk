@@ -10,7 +10,9 @@ class SendRawTransaction {
       if (!stx_or_stxs.every(isByteArray)) {
         throw new TypeError('Array elements must be byte arrays');
       }
-      forPosting = Array.prototype.concat(...stx_or_stxs.map((arr) => Array.from(arr)));
+      forPosting = Array.prototype.concat(
+        ...stx_or_stxs.map((arr) => Array.from(arr))
+      );
     } else if (!isByteArray(forPosting)) {
       throw new TypeError('Argument must be byte array');
     }
@@ -19,14 +21,16 @@ class SendRawTransaction {
   }
 
   /**
-	 * Sets the default header (if not previously set) for sending a raw
-	 * transaction.
-	 * @param headers
-	 * @returns {*}
-	 */
-	 setSendTransactionHeaders(headers) {
+   * Sets the default header (if not previously set) for sending a raw
+   * transaction.
+   * @param headers
+   * @returns {*}
+   */
+  setSendTransactionHeaders(headers) {
     let hdrs = headers;
-    if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
+    if (
+      Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')
+    ) {
       hdrs = { ...headers };
       hdrs['Content-Type'] = 'application/x-binary';
     }
@@ -34,13 +38,17 @@ class SendRawTransaction {
   }
 
   /**
-	 * broadcasts the passed signed txns to the network
-	 * @param headers, optional
-	 * @returns {Promise<*>}
-	 */
+   * broadcasts the passed signed txns to the network
+   * @param headers, optional
+   * @returns {Promise<*>}
+   */
   async do(headers = {}) {
     const txHeaders = this.setSendTransactionHeaders(headers);
-    const res = await this.c.post('/v2/transactions', Buffer.from(this.txnBytesToPost), txHeaders);
+    const res = await this.c.post(
+      '/v2/transactions',
+      Buffer.from(this.txnBytesToPost),
+      txHeaders
+    );
     return res.body;
   }
 }

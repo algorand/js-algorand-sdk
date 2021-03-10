@@ -10,7 +10,7 @@ async function main() {
   const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
-    ALGOD_INSTANCE.port,
+    ALGOD_INSTANCE.port
   );
 
   // compile the program
@@ -19,7 +19,9 @@ async function main() {
   //       > https://developer.algorand.org/docs/reference/node/config/
   const program = 'int 0';
   const compiledProgram = await client.compile(program).do();
-  const programBytes = new Uint8Array(Buffer.from(compiledProgram.result, 'base64'));
+  const programBytes = new Uint8Array(
+    Buffer.from(compiledProgram.result, 'base64')
+  );
 
   // create a logic signature
   const lsig = algosdk.makeLogicSig(programBytes);
@@ -49,5 +51,4 @@ async function main() {
   await client.sendRawTransaction(lstx.blob).do();
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

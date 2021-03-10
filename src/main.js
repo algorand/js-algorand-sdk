@@ -28,7 +28,8 @@ const Indexer = indexer.IndexerClient;
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
 // Errors
-const MULTISIG_BAD_SENDER_ERROR_MSG = 'The transaction sender address and multisig preimage do not match.';
+const MULTISIG_BAD_SENDER_ERROR_MSG =
+  'The transaction sender address and multisig preimage do not match.';
 
 /**
  * signTransaction takes an object with either payment or key registration fields and
@@ -112,9 +113,16 @@ function verifyBytes(bytes, signature, addr) {
  */
 function signMultisigTransaction(txn, { version, threshold, addrs }, sk) {
   // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
-  const expectedFromRaw = address.fromMultisigPreImgAddrs({ version, threshold, addrs });
+  const expectedFromRaw = address.fromMultisigPreImgAddrs({
+    version,
+    threshold,
+    addrs,
+  });
   if (txn.hasOwnProperty('from')) {
-    if ((txn.from !== expectedFromRaw) && (address.encodeAddress(txn.from.publicKey) !== expectedFromRaw)) {
+    if (
+      txn.from !== expectedFromRaw &&
+      address.encodeAddress(txn.from.publicKey) !== expectedFromRaw
+    ) {
       throw new Error(MULTISIG_BAD_SENDER_ERROR_MSG);
     }
   } else {
@@ -123,12 +131,16 @@ function signMultisigTransaction(txn, { version, threshold, addrs }, sk) {
   // build pks for partialSign
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
   // `txn` needs to be handled differently if it's a constructed `Transaction` vs a dict of constructor args
-  const txnAlreadyBuilt = (txn instanceof txnBuilder.Transaction);
+  const txnAlreadyBuilt = txn instanceof txnBuilder.Transaction;
   let algoTxn;
   let blob;
   if (txnAlreadyBuilt) {
     algoTxn = txn;
-    blob = multisig.MultisigTransaction.prototype.partialSignTxn.call(algoTxn, { version, threshold, pks }, sk);
+    blob = multisig.MultisigTransaction.prototype.partialSignTxn.call(
+      algoTxn,
+      { version, threshold, pks },
+      sk
+    );
   } else {
     algoTxn = new multisig.MultisigTransaction(txn);
     blob = algoTxn.partialSignTxn({ version, threshold, pks }, sk);
@@ -150,12 +162,21 @@ function signMultisigTransaction(txn, { version, threshold, addrs }, sk) {
  * @param sk Algorand secret key
  * @returns object containing txID, and blob representing encoded multisig txn
  */
-function appendSignMultisigTransaction(multisigTxnBlob, { version, threshold, addrs }, sk) {
+function appendSignMultisigTransaction(
+  multisigTxnBlob,
+  { version, threshold, addrs },
+  sk
+) {
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
   // obtain underlying txn, sign it, and merge it
   const multisigTxObj = encoding.decode(multisigTxnBlob);
-  const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
-  const partialSignedBlob = msigTxn.partialSignTxn({ version, threshold, pks }, sk);
+  const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+    multisigTxObj.txn
+  );
+  const partialSignedBlob = msigTxn.partialSignTxn(
+    { version, threshold, pks },
+    sk
+  );
   return {
     txID: msigTxn.txID().toString(),
     blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
@@ -248,19 +269,32 @@ module.exports = {
   makeAssetFreezeTxn: makeTxn.makeAssetFreezeTxn,
   makeAssetTransferTxn: makeTxn.makeAssetTransferTxn,
   makePaymentTxnWithSuggestedParams: makeTxn.makePaymentTxnWithSuggestedParams,
-  makeKeyRegistrationTxnWithSuggestedParams: makeTxn.makeKeyRegistrationTxnWithSuggestedParams,
-  makeAssetCreateTxnWithSuggestedParams: makeTxn.makeAssetCreateTxnWithSuggestedParams,
-  makeAssetConfigTxnWithSuggestedParams: makeTxn.makeAssetConfigTxnWithSuggestedParams,
-  makeAssetDestroyTxnWithSuggestedParams: makeTxn.makeAssetDestroyTxnWithSuggestedParams,
-  makeAssetFreezeTxnWithSuggestedParams: makeTxn.makeAssetFreezeTxnWithSuggestedParams,
-  makeAssetTransferTxnWithSuggestedParams: makeTxn.makeAssetTransferTxnWithSuggestedParams,
-  makePaymentTxnWithSuggestedParamsFromObject: makeTxn.makePaymentTxnWithSuggestedParamsFromObject,
-  makeKeyRegistrationTxnWithSuggestedParamsFromObject: makeTxn.makeKeyRegistrationTxnWithSuggestedParamsFromObject,
-  makeAssetCreateTxnWithSuggestedParamsFromObject: makeTxn.makeAssetCreateTxnWithSuggestedParamsFromObject,
-  makeAssetConfigTxnWithSuggestedParamsFromObject: makeTxn.makeAssetConfigTxnWithSuggestedParamsFromObject,
-  makeAssetDestroyTxnWithSuggestedParamsFromObject: makeTxn.makeAssetDestroyTxnWithSuggestedParamsFromObject,
-  makeAssetFreezeTxnWithSuggestedParamsFromObject: makeTxn.makeAssetFreezeTxnWithSuggestedParamsFromObject,
-  makeAssetTransferTxnWithSuggestedParamsFromObject: makeTxn.makeAssetTransferTxnWithSuggestedParamsFromObject,
+  makeKeyRegistrationTxnWithSuggestedParams:
+    makeTxn.makeKeyRegistrationTxnWithSuggestedParams,
+  makeAssetCreateTxnWithSuggestedParams:
+    makeTxn.makeAssetCreateTxnWithSuggestedParams,
+  makeAssetConfigTxnWithSuggestedParams:
+    makeTxn.makeAssetConfigTxnWithSuggestedParams,
+  makeAssetDestroyTxnWithSuggestedParams:
+    makeTxn.makeAssetDestroyTxnWithSuggestedParams,
+  makeAssetFreezeTxnWithSuggestedParams:
+    makeTxn.makeAssetFreezeTxnWithSuggestedParams,
+  makeAssetTransferTxnWithSuggestedParams:
+    makeTxn.makeAssetTransferTxnWithSuggestedParams,
+  makePaymentTxnWithSuggestedParamsFromObject:
+    makeTxn.makePaymentTxnWithSuggestedParamsFromObject,
+  makeKeyRegistrationTxnWithSuggestedParamsFromObject:
+    makeTxn.makeKeyRegistrationTxnWithSuggestedParamsFromObject,
+  makeAssetCreateTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetCreateTxnWithSuggestedParamsFromObject,
+  makeAssetConfigTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetConfigTxnWithSuggestedParamsFromObject,
+  makeAssetDestroyTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetDestroyTxnWithSuggestedParamsFromObject,
+  makeAssetFreezeTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetFreezeTxnWithSuggestedParamsFromObject,
+  makeAssetTransferTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetTransferTxnWithSuggestedParamsFromObject,
   OnApplicationComplete: makeTxn.OnApplicationComplete,
   makeApplicationCreateTxn: makeTxn.makeApplicationCreateTxn,
   makeApplicationUpdateTxn: makeTxn.makeApplicationUpdateTxn,
@@ -269,12 +303,17 @@ module.exports = {
   makeApplicationCloseOutTxn: makeTxn.makeApplicationCloseOutTxn,
   makeApplicationClearStateTxn: makeTxn.makeApplicationClearStateTxn,
   makeApplicationNoOpTxn: makeTxn.makeApplicationNoOpTxn,
-  makeApplicationCreateTxnFromObject: makeTxn.makeApplicationCreateTxnFromObject,
-  makeApplicationUpdateTxnFromObject: makeTxn.makeApplicationUpdateTxnFromObject,
-  makeApplicationDeleteTxnFromObject: makeTxn.makeApplicationDeleteTxnFromObject,
+  makeApplicationCreateTxnFromObject:
+    makeTxn.makeApplicationCreateTxnFromObject,
+  makeApplicationUpdateTxnFromObject:
+    makeTxn.makeApplicationUpdateTxnFromObject,
+  makeApplicationDeleteTxnFromObject:
+    makeTxn.makeApplicationDeleteTxnFromObject,
   makeApplicationOptInTxnFromObject: makeTxn.makeApplicationOptInTxnFromObject,
-  makeApplicationCloseOutTxnFromObject: makeTxn.makeApplicationCloseOutTxnFromObject,
-  makeApplicationClearStateTxnFromObject: makeTxn.makeApplicationClearStateTxnFromObject,
+  makeApplicationCloseOutTxnFromObject:
+    makeTxn.makeApplicationCloseOutTxnFromObject,
+  makeApplicationClearStateTxnFromObject:
+    makeTxn.makeApplicationClearStateTxnFromObject,
   makeApplicationNoOpTxnFromObject: makeTxn.makeApplicationNoOpTxnFromObject,
   encodeUnsignedTransaction: txnBuilder.encodeUnsignedTransaction,
   decodeUnsignedTransaction: txnBuilder.decodeUnsignedTransaction,

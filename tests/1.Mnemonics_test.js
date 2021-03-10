@@ -22,8 +22,42 @@ describe('#mnemonic', () => {
   });
 
   it('should convert pass the zero vector test', () => {
-    const key = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-    const mn = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
+    const key = new Uint8Array([
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+    ]);
+    const mn =
+      'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
     const key_target = passphrase.mnemonicFromSeed(key);
     assert.deepStrictEqual(key_target, mn);
   });
@@ -34,21 +68,32 @@ describe('#mnemonic', () => {
     // Shuffle some bits
     const lastChar = mn.charAt(mn.length - 1) === 'h' ? 'i' : 'h';
     mn = mn.substring(0, mn.length - 2) + lastChar;
-    assert.throws(() => {
-      passphrase.seedFromMnemonic(mn);
-    }, (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
+    assert.throws(
+      () => {
+        passphrase.seedFromMnemonic(mn);
+      },
+      (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG
+    );
   });
 
   it('should fail to verify an invalid mnemonic', () => {
-    const mn = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venue abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
-    assert.throws(() => {
-      passphrase.seedFromMnemonic(mn);
-    }, (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
+    const mn =
+      'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venue abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
+    assert.throws(
+      () => {
+        passphrase.seedFromMnemonic(mn);
+      },
+      (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG
+    );
   });
   it('should fail to verify an mnemonic with a word that is not in the list ', () => {
-    const mn = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venues abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
-    assert.throws(() => {
-      passphrase.seedFromMnemonic(mn);
-    }, (err) => err.message === passphrase.NOT_IN_WORDS_LIST_ERROR_MSG);
+    const mn =
+      'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venues abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
+    assert.throws(
+      () => {
+        passphrase.seedFromMnemonic(mn);
+      },
+      (err) => err.message === passphrase.NOT_IN_WORDS_LIST_ERROR_MSG
+    );
   });
 });

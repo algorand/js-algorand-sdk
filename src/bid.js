@@ -9,7 +9,12 @@ const utils = require('./utils/utils');
  * */
 class Bid {
   constructor({
-    bidderKey, bidAmount, maxPrice, bidID, auctionKey, auctionID,
+    bidderKey,
+    bidAmount,
+    maxPrice,
+    bidID,
+    auctionKey,
+    auctionID,
   }) {
     this.name = 'Bid';
     this.tag = Buffer.from([97, 66]); // "aB"
@@ -17,12 +22,20 @@ class Bid {
     bidderKey = address.decodeAddress(bidderKey);
     auctionKey = address.decodeAddress(auctionKey);
 
-    if (!Number.isSafeInteger(bidAmount) || bidAmount < 0) throw Error('Bid amount must be positive and 2^53-1');
-    if (!Number.isSafeInteger(bidID) || bidID < 0) throw Error('BidID must be positive and 2^53-1');
-    if (!Number.isSafeInteger(auctionID) || auctionID < 0) throw Error('auctionID must be positive');
+    if (!Number.isSafeInteger(bidAmount) || bidAmount < 0)
+      throw Error('Bid amount must be positive and 2^53-1');
+    if (!Number.isSafeInteger(bidID) || bidID < 0)
+      throw Error('BidID must be positive and 2^53-1');
+    if (!Number.isSafeInteger(auctionID) || auctionID < 0)
+      throw Error('auctionID must be positive');
 
     Object.assign(this, {
-      bidderKey, auctionKey, bidAmount, maxPrice, bidID, auctionID,
+      bidderKey,
+      auctionKey,
+      bidAmount,
+      maxPrice,
+      bidID,
+      auctionID,
     });
   }
 
@@ -46,7 +59,6 @@ class Bid {
     const sBid = {
       sig: Buffer.from(sig),
       bid: this.get_obj_for_encoding(),
-
     };
 
     const note = {

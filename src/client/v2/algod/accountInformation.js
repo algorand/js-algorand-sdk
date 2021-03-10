@@ -2,7 +2,7 @@ const { JSONRequest } = require('../jsonrequest');
 
 class AccountInformation extends JSONRequest {
   constructor(c, intDecoding, account) {
-	    super(c, intDecoding);
+    super(c, intDecoding);
     this.account = account;
   }
 

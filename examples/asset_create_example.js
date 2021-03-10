@@ -24,7 +24,12 @@ async function main() {
   const assetName = 'assetname';
   const unitName = 'unitname';
   const url = 'website';
-  const metadata = new Uint8Array(Buffer.from('664143504f346e52674f35356a316e64414b3357365367633441506b63794668', 'hex')); // should be a 32-byte hash
+  const metadata = new Uint8Array(
+    Buffer.from(
+      '664143504f346e52674f35356a316e64414b3357365367633441506b63794668',
+      'hex'
+    )
+  ); // should be a 32-byte hash
   const defaultFrozen = false; // whether accounts should be frozen by default
 
   // create suggested parameters
@@ -63,5 +68,4 @@ async function main() {
   console.log(decoded);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

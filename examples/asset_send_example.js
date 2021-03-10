@@ -36,11 +36,12 @@ async function main() {
     suggestedParams,
   };
 
-  const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(transactionOptions);
+  const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // sign the transaction
   const signedTxn = txn.signTxn(senderPrivateKey);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

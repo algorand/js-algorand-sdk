@@ -1,18 +1,16 @@
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Algosdk Browser Testing</title>
+    <script>
+      // this is necessary to get assert to work, since assert uses util and util checks process.env.NODE_DEBUG
+      window.process = { env: {} };
+    </script>
+    <script src="build/algosdk.min.js"></script>
+    <script src="build/test.js"></script>
+  </head>
 
-<head>
-   <meta charset="utf-8">
-   <title>Algosdk Browser Testing</title>
-   <script>
-       // this is necessary to get assert to work, since assert uses util and util checks process.env.NODE_DEBUG
-        window.process = { env: {} };
-   </script>
-   <script src="build/algosdk.min.js"></script>
-   <script src="build/test.js"></script>
-</head>
-
-<body>
+  <body>
     <h1>Algosdk Browser Testing</h1>
-</body>
-
+  </body>
 </html>

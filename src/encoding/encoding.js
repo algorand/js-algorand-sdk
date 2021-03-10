@@ -13,7 +13,8 @@
 const msgpack = require('algo-msgpack-with-bigint');
 
 // Errors
-const ERROR_CONTAINS_EMPTY_STRING = 'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
+const ERROR_CONTAINS_EMPTY_STRING =
+  'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
 
 /**
  * containsEmpty returns true if any of the object's values are empty, false otherwise.
@@ -41,7 +42,9 @@ function containsEmpty(obj) {
 function encode(obj) {
   // Check for empty values
   const emptyCheck = containsEmpty(obj);
-  if (emptyCheck.containsEmpty) { throw new Error(ERROR_CONTAINS_EMPTY_STRING + emptyCheck.firstEmptyKey); }
+  if (emptyCheck.containsEmpty) {
+    throw new Error(ERROR_CONTAINS_EMPTY_STRING + emptyCheck.firstEmptyKey);
+  }
 
   // enable the canonical option
   const options = { sortKeys: true };

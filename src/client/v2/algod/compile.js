@@ -7,13 +7,15 @@ class Compile {
   }
 
   /**
-	 * Sets the default header (if not previously set)
-	 * @param headers
-	 * @returns {*}
-	 */
-	 setHeaders(headers) {
+   * Sets the default header (if not previously set)
+   * @param headers
+   * @returns {*}
+   */
+  setHeaders(headers) {
     let hdrs = headers;
-    if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
+    if (
+      Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')
+    ) {
       hdrs = { ...headers };
       hdrs['Content-Type'] = 'text/plain';
     }
@@ -21,13 +23,17 @@ class Compile {
   }
 
   /**
-	 * Executes compile
-	 * @param headers, optional
-	 * @returns {Promise<*>}
-	 */
+   * Executes compile
+   * @param headers, optional
+   * @returns {Promise<*>}
+   */
   async do(headers = {}) {
     const txHeaders = this.setHeaders(headers);
-    const res = await this.c.post('/v2/teal/compile', Buffer.from(this.source), txHeaders);
+    const res = await this.c.post(
+      '/v2/teal/compile',
+      Buffer.from(this.source),
+      txHeaders
+    );
     return res.body;
   }
 }

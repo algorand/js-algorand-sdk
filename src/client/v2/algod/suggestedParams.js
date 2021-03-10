@@ -4,10 +4,10 @@ class SuggestedParams {
   }
 
   /**
-	 * returns the common needed parameters for a new transaction, in a format the transaction builder expects
-	 * @param headers, optional
-	 * @returns {Object}
-	 */
+   * returns the common needed parameters for a new transaction, in a format the transaction builder expects
+   * @param headers, optional
+   * @returns {Object}
+   */
   async do(headers = {}) {
     const res = await this.c.get('/v2/transactions/params', {}, headers);
     return {

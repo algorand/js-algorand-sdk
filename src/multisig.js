@@ -9,11 +9,15 @@ const utils = require('./utils/utils');
  Utilities for manipulating multisig transaction blobs.
  */
 
-const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG = 'Not enough multisig transactions to merge. Need at least two';
+const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
+  'Not enough multisig transactions to merge. Need at least two';
 const MULTISIG_MERGE_MISMATCH_ERROR_MSG = 'Cannot merge txs. txIDs differ';
-const MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG = 'Cannot merge txs. Multisig preimages differ';
-const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG = 'Cannot merge txs. subsigs are mismatched.';
-const MULTISIG_BAD_FROM_FIELD_ERROR_MSG = 'The transaction from field and multisig preimage do not match.';
+const MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG =
+  'Cannot merge txs. Multisig preimages differ';
+const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG =
+  'Cannot merge txs. subsigs are mismatched.';
+const MULTISIG_BAD_FROM_FIELD_ERROR_MSG =
+  'The transaction from field and multisig preimage do not match.';
 const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = 'Key does not exist';
 
 /**
@@ -43,19 +47,26 @@ class MultisigTransaction extends txnBuilder.Transaction {
   }
 
   /**
-     * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
-     * encoded with msgpack as a typed array.
-     * @param version multisig version
-     * @param threshold multisig threshold
-     * @param pks multisig public key list, order is important.
-     * @param sk an Algorand secret key to sign with.
-     * @returns an encoded, partially signed multisig transaction.
-     */
+   * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
+   * encoded with msgpack as a typed array.
+   * @param version multisig version
+   * @param threshold multisig threshold
+   * @param pks multisig public key list, order is important.
+   * @param sk an Algorand secret key to sign with.
+   * @returns an encoded, partially signed multisig transaction.
+   */
   partialSignTxn({ version, threshold, pks }, sk) {
     // verify one more time that the from field is correct
     if (!this.hasOwnProperty('objForEncoding')) {
-      const expectedFromRaw = address.fromMultisigPreImg({ version, threshold, pks });
-      if (address.encodeAddress(this.from.publicKey) !== address.encodeAddress(expectedFromRaw)) {
+      const expectedFromRaw = address.fromMultisigPreImg({
+        version,
+        threshold,
+        pks,
+      });
+      if (
+        address.encodeAddress(this.from.publicKey) !==
+        address.encodeAddress(expectedFromRaw)
+      ) {
         throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
       }
     }
@@ -64,7 +75,7 @@ class MultisigTransaction extends txnBuilder.Transaction {
     return createMultisigTransaction(
       this.get_obj_for_encoding(),
       { rawSig: this.rawSignTxn(sk), myPk },
-      { version, threshold, pks },
+      { version, threshold, pks }
     );
   }
 }
@@ -79,7 +90,11 @@ class MultisigTransaction extends txnBuilder.Transaction {
  * @param pks ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
-function createMultisigTransaction(txnForEncoding, { rawSig, myPk }, { version, threshold, pks }) {
+function createMultisigTransaction(
+  txnForEncoding,
+  { rawSig, myPk },
+  { version, threshold, pks }
+) {
   let keyExist = false;
   // construct the appendable multisigned transaction format
   const subsigs = pks.map((pk) => {
@@ -148,7 +163,10 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
         // of Dec 2020) React overrides the buffer package with an older version that does
         // not support Uint8Arrays in the comparison function. See this thread for more
         // info: https://github.com/algorand/js-algorand-sdk/issues/252
-        if (uniSubsig.s && Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0) {
+        if (
+          uniSubsig.s &&
+          Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0
+        ) {
           // mismatch
           throw new Error(MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG);
         }
@@ -156,7 +174,8 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
           pk: current.pk,
           s: current.s,
         };
-      } if (uniSubsig.s) {
+      }
+      if (uniSubsig.s) {
         return {
           pk: current.pk,
           s: uniSubsig.s,
@@ -182,9 +201,7 @@ function verifyMultisig(toBeVerified, msig, publicKey) {
   const threshold = msig.thr;
   const subsigs = msig.subsig;
 
-  const pks = subsigs.map(
-    (subsig) => subsig.pk,
-  );
+  const pks = subsigs.map((subsig) => subsig.pk);
   if (msig.subsig.length < threshold) {
     return false;
   }

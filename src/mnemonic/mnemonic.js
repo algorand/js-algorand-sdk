@@ -3,7 +3,8 @@ const nacl = require('../nacl/naclWrappers');
 const address = require('../encoding/address');
 
 const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
-const NOT_IN_WORDS_LIST_ERROR_MSG = 'the mnemonic contains a word that is not in the wordlist';
+const NOT_IN_WORDS_LIST_ERROR_MSG =
+  'the mnemonic contains a word that is not in the wordlist';
 
 /**
  * mnemonicFromSeed converts a 32-byte key into a 25 word mnemonic. The generated mnemonic includes a checksum.
@@ -14,8 +15,7 @@ const NOT_IN_WORDS_LIST_ERROR_MSG = 'the mnemonic contains a word that is not in
 function mnemonicFromSeed(seed) {
   // Sanity length check
   if (seed.length !== nacl.SEED_BTYES_LENGTH) {
-    throw new RangeError(`Seed length must be ${
-      nacl.SEED_BTYES_LENGTH}`);
+    throw new RangeError(`Seed length must be ${nacl.SEED_BTYES_LENGTH}`);
   }
 
   const uint11Array = toUint11Array(seed);
@@ -54,10 +54,12 @@ function seedFromMnemonic(mnemonic) {
   // While converting back to byte array, our new 264 bits array is divisible by 8 but the last byte is just the padding.
 
   // check that we have 33 bytes long array as expected
-  if (uint8Array.length !== 33) throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
+  if (uint8Array.length !== 33)
+    throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
 
   // check that the last byte is actually 0x0
-  if (uint8Array[uint8Array.length - 1] !== 0x0) throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
+  if (uint8Array[uint8Array.length - 1] !== 0x0)
+    throw new Error(FAIL_TO_DECODE_MNEMONIC_ERROR_MSG);
 
   // chop it !
   uint8Array = uint8Array.slice(0, uint8Array.length - 1);

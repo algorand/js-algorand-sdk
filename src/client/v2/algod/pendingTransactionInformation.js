@@ -9,12 +9,16 @@ class PendingTransactionInformation {
   }
 
   /**
-	 * returns the transaction information for a specific txid of a pending transaction
-	 * @param headers, optional
-	 * @returns {Promise<*>}
-	 */
+   * returns the transaction information for a specific txid of a pending transaction
+   * @param headers, optional
+   * @returns {Promise<*>}
+   */
   async do(headers = {}) {
-    const res = await this.c.get(`/v2/transactions/pending/${this.txid}`, this.query, headers);
+    const res = await this.c.get(
+      `/v2/transactions/pending/${this.txid}`,
+      this.query,
+      headers
+    );
     if (res.body && res.body.byteLength > 0) {
       return encoding.decode(res.body);
     }

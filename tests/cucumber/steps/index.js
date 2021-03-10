@@ -1,7 +1,13 @@
 const path = require('path');
 const fs = require('fs');
 const {
-  BeforeAll, After, AfterAll, Given, When, Then, setDefaultTimeout,
+  BeforeAll,
+  After,
+  AfterAll,
+  Given,
+  When,
+  Then,
+  setDefaultTimeout,
 } = require('cucumber');
 const express = require('express');
 const ServerMock = require('mock-http-server');
@@ -75,7 +81,9 @@ BeforeAll(async () => {
 
     driver = await driverBuilder.build();
 
-    await driver.get(`http://localhost:${browserServerPort}/browser/index.html`);
+    await driver.get(
+      `http://localhost:${browserServerPort}/browser/index.html`
+    );
 
     const title = await driver.getTitle();
 
@@ -114,7 +122,8 @@ let algodMockServerPathRecorder;
 let indexerMockServerPathRecorder;
 
 const stepOptions = {
-  algod_token: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  algod_token:
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   kmd_token: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   mockAlgodResponderPort: 31337,
   mockAlgodResponderHost: 'localhost',
@@ -127,24 +136,36 @@ const stepOptions = {
 };
 
 async function createIndexerMockServers() {
-  indexerMockServerResponder = new ServerMock({ host: stepOptions.mockIndexerResponderHost, port: stepOptions.mockIndexerResponderPort });
+  indexerMockServerResponder = new ServerMock({
+    host: stepOptions.mockIndexerResponderHost,
+    port: stepOptions.mockIndexerResponderPort,
+  });
   await new Promise((resolve, reject) => {
     indexerMockServerResponder.start(resolve);
   });
 
-  indexerMockServerPathRecorder = new ServerMock({ host: stepOptions.mockIndexerPathRecorderHost, port: stepOptions.mockIndexerPathRecorderPort });
+  indexerMockServerPathRecorder = new ServerMock({
+    host: stepOptions.mockIndexerPathRecorderHost,
+    port: stepOptions.mockIndexerPathRecorderPort,
+  });
   await new Promise((resolve, reject) => {
     indexerMockServerPathRecorder.start(resolve);
   });
 }
 
 async function createAlgodV2MockServers() {
-  algodMockServerResponder = new ServerMock({ host: stepOptions.mockAlgodResponderHost, port: stepOptions.mockAlgodResponderPort });
+  algodMockServerResponder = new ServerMock({
+    host: stepOptions.mockAlgodResponderHost,
+    port: stepOptions.mockAlgodResponderPort,
+  });
   await new Promise((resolve, reject) => {
     algodMockServerResponder.start(resolve);
   });
 
-  algodMockServerPathRecorder = new ServerMock({ host: stepOptions.mockAlgodPathRecorderHost, port: stepOptions.mockAlgodPathRecorderPort });
+  algodMockServerPathRecorder = new ServerMock({
+    host: stepOptions.mockAlgodPathRecorderHost,
+    port: stepOptions.mockAlgodPathRecorderPort,
+  });
   await new Promise((resolve, reject) => {
     algodMockServerPathRecorder.start(resolve);
   });
@@ -197,12 +218,17 @@ async function cleanupAlgodV2MockServers() {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
-  'Access-Control-Allow-Headers': 'X-Algo-API-Token, X-Indexer-API-Token, Content-Type',
+  'Access-Control-Allow-Headers':
+    'X-Algo-API-Token, X-Indexer-API-Token, Content-Type',
   'Access-Control-Max-Age': 2592000,
 };
 
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
-  const resultString = fs.readFileSync(path.join(cucumberPath, 'features', 'resources', jsonDirectory, fileName)).toString();
+  const resultString = fs
+    .readFileSync(
+      path.join(cucumberPath, 'features', 'resources', jsonDirectory, fileName)
+    )
+    .toString();
 
   let headers = corsHeaders; // example headers: { "content-type": "application/json" }
   let body; // example body: JSON.stringify({ hello: "world" }
@@ -282,7 +308,9 @@ function getMockServerRequestUrls(mockServer) {
 }
 
 function isFunction(functionToCheck) {
-  return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+  return (
+    functionToCheck && {}.toString.call(functionToCheck) === '[object Function]'
+  );
 }
 
 const steps = getSteps(stepOptions);
@@ -303,21 +331,28 @@ if (browser) {
             rpcArgs = args.slice(0, rpcArgs.length - 1);
           }
 
-          const { error } = await driver.executeAsyncScript(async (type, name, ...rest) => {
-            const done = rest[rest.length - 1];
-            try {
-              const testArgs = rest.slice(0, rest.length - 1);
-              const test = getStep(type, name);
-              await test.apply(testWorld, testArgs);
-              done({ error: null });
-            } catch (err) {
-              console.error(err);
-              done({ error: `${err.toString()}\n${err.stack}` });
-            }
-          }, type, name, ...rpcArgs);
+          const { error } = await driver.executeAsyncScript(
+            async (type, name, ...rest) => {
+              const done = rest[rest.length - 1];
+              try {
+                const testArgs = rest.slice(0, rest.length - 1);
+                const test = getStep(type, name);
+                await test.apply(testWorld, testArgs);
+                done({ error: null });
+              } catch (err) {
+                console.error(err);
+                done({ error: `${err.toString()}\n${err.stack}` });
+              }
+            },
+            type,
+            name,
+            ...rpcArgs
+          );
 
           if (error) {
-            throw new Error(`Error from test '${type} ${name}': ${error}\n    ^ --- browser ---`);
+            throw new Error(
+              `Error from test '${type} ${name}': ${error}\n    ^ --- browser ---`
+            );
           }
         };
 
@@ -339,14 +374,33 @@ for (const name of Object.keys(steps.given)) {
   const fn = steps.given[name];
   if (name === 'mock http responses in {string} loaded from {string}') {
     Given(name, function (fileName, jsonDirectory) {
-      const body1 = setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
-      const body2 = setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
+      const body1 = setupMockServerForResponses(
+        fileName,
+        jsonDirectory,
+        algodMockServerResponder
+      );
+      const body2 = setupMockServerForResponses(
+        fileName,
+        jsonDirectory,
+        indexerMockServerResponder
+      );
       return fn.call(this, body2 || body1);
     });
-  } else if (name === 'mock http responses in {string} loaded from {string} with status {int}.') {
+  } else if (
+    name ===
+    'mock http responses in {string} loaded from {string} with status {int}.'
+  ) {
     Given(name, function (fileName, jsonDirectory, status) {
-      const body1 = setupMockServerForResponses(fileName, jsonDirectory, algodMockServerResponder);
-      const body2 = setupMockServerForResponses(fileName, jsonDirectory, indexerMockServerResponder);
+      const body1 = setupMockServerForResponses(
+        fileName,
+        jsonDirectory,
+        algodMockServerResponder
+      );
+      const body2 = setupMockServerForResponses(
+        fileName,
+        jsonDirectory,
+        indexerMockServerResponder
+      );
       return fn.call(this, body2 || body1, status);
     });
   } else if (name === 'mock server recording request paths') {
@@ -368,16 +422,34 @@ for (const name of Object.keys(steps.then)) {
   if (name === 'expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrls(algodMockServerPathRecorder);
-      const indexerSeenRequests = getMockServerRequestUrls(indexerMockServerPathRecorder);
-      return fn.call(this, algodSeenRequests, indexerSeenRequests, expectedRequestPath);
+      const algodSeenRequests = getMockServerRequestUrls(
+        algodMockServerPathRecorder
+      );
+      const indexerSeenRequests = getMockServerRequestUrls(
+        indexerMockServerPathRecorder
+      );
+      return fn.call(
+        this,
+        algodSeenRequests,
+        indexerSeenRequests,
+        expectedRequestPath
+      );
     });
   } else if (name === 'we expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrls(algodMockServerPathRecorder);
-      const indexerSeenRequests = getMockServerRequestUrls(indexerMockServerPathRecorder);
-      return fn.call(this, algodSeenRequests, indexerSeenRequests, expectedRequestPath);
+      const algodSeenRequests = getMockServerRequestUrls(
+        algodMockServerPathRecorder
+      );
+      const indexerSeenRequests = getMockServerRequestUrls(
+        indexerMockServerPathRecorder
+      );
+      return fn.call(
+        this,
+        algodSeenRequests,
+        indexerSeenRequests,
+        expectedRequestPath
+      );
     });
   } else {
     Then(name, fn);

@@ -123,7 +123,9 @@ function readIntConstBlock(program, pc) {
     }
     const [numberFound, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
-      throw new Error(`could not decode int const[${i}] block size at pc=${pc + size}`);
+      throw new Error(
+        `could not decode int const[${i}] block size at pc=${pc + size}`
+      );
     }
     ints.push(numberFound);
     size += bytesUsed;
@@ -140,7 +142,9 @@ function readByteConstBlock(program, pc) {
   let size = 1;
   const [numInts, bytesUsed] = parseUvarint(program.slice(pc + size));
   if (bytesUsed <= 0) {
-    throw new Error(`could not decode []byte const block size at pc=${pc + size}`);
+    throw new Error(
+      `could not decode []byte const block size at pc=${pc + size}`
+    );
   }
   const byteArrays = [];
   size += bytesUsed;
@@ -150,7 +154,9 @@ function readByteConstBlock(program, pc) {
     }
     const [itemLen, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
-      throw new Error(`could not decode []byte] const[${i}] block size at pc=${pc + size}`);
+      throw new Error(
+        `could not decode []byte] const[${i}] block size at pc=${pc + size}`
+      );
     }
     size += bytesUsed;
     if (pc + size >= program.length) {
@@ -169,10 +175,10 @@ function parseUvarint(array) {
   for (let i = 0; i < array.length; i++) {
     b = array[i];
     if (b < 0x80) {
-      if (i > 9 || i == 9 && b > 1) {
+      if (i > 9 || (i == 9 && b > 1)) {
         return [0, -(i + 1)];
       }
-      return [x | b << s, i + 1];
+      return [x | (b << s), i + 1];
     }
     x += (b & 0x7f) << s;
     s += 7;

@@ -10,7 +10,7 @@ async function main() {
   const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
-    ALGOD_INSTANCE.port,
+    ALGOD_INSTANCE.port
   );
 
   // retrieve sender and generate a new rekey account
@@ -32,12 +32,15 @@ async function main() {
     suggestedParams,
   };
 
-  const rekeyingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
+  const rekeyingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // print transaction data
   console.log(rekeyingTxn);
-  console.log('Rekey transaction created successfully. Unsent transaction included above.');
+  console.log(
+    'Rekey transaction created successfully. Unsent transaction included above.'
+  );
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

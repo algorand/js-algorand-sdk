@@ -77,15 +77,20 @@ function HTTPClient(token, baseServer, port, headers = {}) {
   this.defaultHeaders = headers;
 
   /**
-     * Send a GET request.
-     * @param {string} path The path of the request.
-     * @param {object} query An object containing the query paramters of the request.
-     * @param {object} requestHeaders An object containing additional request headers to use.
-     * @param {object} jsonOptions Options object to use to decode JSON responses. See
-     *   utils.parseJSON for the options available.
-     * @returns {Promise<object>} Response object.
-     */
-  this.get = async function (path, query, requestHeaders = {}, jsonOptions = {}) {
+   * Send a GET request.
+   * @param {string} path The path of the request.
+   * @param {object} query An object containing the query paramters of the request.
+   * @param {object} requestHeaders An object containing additional request headers to use.
+   * @param {object} jsonOptions Options object to use to decode JSON responses. See
+   *   utils.parseJSON for the options available.
+   * @returns {Promise<object>} Response object.
+   */
+  this.get = async function (
+    path,
+    query,
+    requestHeaders = {},
+    jsonOptions = {}
+  ) {
     try {
       const format = getAccceptFormat(query);
       let r = request
@@ -98,7 +103,10 @@ function HTTPClient(token, baseServer, port, headers = {}) {
 
       if (format === 'application/msgpack') {
         r = r.responseType('arraybuffer');
-      } else if (format === 'application/json' && Object.keys(jsonOptions).length !== 0) {
+      } else if (
+        format === 'application/json' &&
+        Object.keys(jsonOptions).length !== 0
+      ) {
         if (r.buffer !== r.ca) {
           // in node, need to set buffer
           r = r.buffer(true);

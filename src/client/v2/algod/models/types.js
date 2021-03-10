@@ -6,18 +6,24 @@ const base = require('./base');
  */
 class DryrunRequest extends base.BaseModel {
   /**
-     * Creates a new <code>DryrunRequest</code> object.
-     * @param txns {Array.<str>}
-     * @param accounts {Array.<Account>}
-     * @param apps {Array.<DryrunApp>}
-     * @param protocolVersion {String} ProtocolVersion specifies a specific version string to operate under, otherwise whatever the current protocol of the network this algod is running in.
-     * @param round {Number} Round is available to some TEAL scripts. Defaults to the current round on the network this algod is attached to.
-     * @param latestTimestamp {Number} LatestTimestamp is available to some TEAL scripts. Defaults to the latest confirmed timestamp this algod is attached to.
-     * @param sources {Array.<DryrunSource>}
-     */
+   * Creates a new <code>DryrunRequest</code> object.
+   * @param txns {Array.<str>}
+   * @param accounts {Array.<Account>}
+   * @param apps {Array.<DryrunApp>}
+   * @param protocolVersion {String} ProtocolVersion specifies a specific version string to operate under, otherwise whatever the current protocol of the network this algod is running in.
+   * @param round {Number} Round is available to some TEAL scripts. Defaults to the current round on the network this algod is attached to.
+   * @param latestTimestamp {Number} LatestTimestamp is available to some TEAL scripts. Defaults to the latest confirmed timestamp this algod is attached to.
+   * @param sources {Array.<DryrunSource>}
+   */
 
   constructor({
-    txns, accounts, apps, protocolVersion, round, latestTimestamp, sources,
+    txns,
+    accounts,
+    apps,
+    protocolVersion,
+    round,
+    latestTimestamp,
+    sources,
   }) {
     super();
     this.txns = txns;
@@ -46,12 +52,12 @@ class DryrunRequest extends base.BaseModel {
  */
 class DryrunSource extends base.BaseModel {
   /**
-     * Creates a new <code>DryrunSource</code> object.
-     * @param fieldName {String} FieldName is what kind of sources this is. If lsig then it goes into the transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the Approval Program or Clear State Program of application[this.AppIndex].
-     * @param source {String}
-     * @param txnIndex {Number}
-     * @param appIndex {Number}
-     */
+   * Creates a new <code>DryrunSource</code> object.
+   * @param fieldName {String} FieldName is what kind of sources this is. If lsig then it goes into the transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the Approval Program or Clear State Program of application[this.AppIndex].
+   * @param source {String}
+   * @param txnIndex {Number}
+   * @param appIndex {Number}
+   */
   constructor(fieldName, source, txnIndex, appIndex) {
     super();
     this.fieldName = fieldName;
@@ -83,8 +89,12 @@ class Application extends base.BaseModel {
 
 class ApplicationParams extends base.BaseModel {
   constructor({
-    creator, approvalProgram, clearStateProgram,
-    localStateSchema, globalStateSchema, globalState,
+    creator,
+    approvalProgram,
+    clearStateProgram,
+    localStateSchema,
+    globalStateSchema,
+    globalState,
   }) {
     super();
     this.creator = creator;
@@ -202,8 +212,18 @@ class Asset extends base.BaseModel {
 
 class AssetParams extends base.BaseModel {
   constructor({
-    clawback, creator, decimals, defaultFrozen, freeze, manager,
-    metadataHash, name, reserve, total, unitName, url,
+    clawback,
+    creator,
+    decimals,
+    defaultFrozen,
+    freeze,
+    manager,
+    metadataHash,
+    name,
+    reserve,
+    total,
+    unitName,
+    url,
   }) {
     this.clawback = clawback;
     this.creator = creator;
@@ -237,10 +257,22 @@ class AssetParams extends base.BaseModel {
 
 class Account extends base.BaseModel {
   constructor({
-    address, amount, amountWithoutPendingRewards, appsLocalState, appsTotalSchema,
-    assets, createdApps, createdAssets, participation,
-    pendingRewards, rewardBase, rewards,
-    round, status, sigType, authAddr,
+    address,
+    amount,
+    amountWithoutPendingRewards,
+    appsLocalState,
+    appsTotalSchema,
+    assets,
+    createdApps,
+    createdAssets,
+    participation,
+    pendingRewards,
+    rewardBase,
+    rewards,
+    round,
+    status,
+    sigType,
+    authAddr,
   }) {
     super();
     this.address = address;

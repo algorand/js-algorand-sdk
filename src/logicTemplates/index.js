@@ -15,5 +15,6 @@ module.exports = {
   Split: splitTemplate.Split,
   getSplitFundsTransaction: splitTemplate.getSplitFundsTransaction,
   PeriodicPayment: periodicPayTemplate.PeriodicPayment,
-  getPeriodicPaymentWithdrawalTransaction: periodicPayTemplate.getPeriodicPaymentWithdrawalTransaction,
+  getPeriodicPaymentWithdrawalTransaction:
+    periodicPayTemplate.getPeriodicPaymentWithdrawalTransaction,
 };

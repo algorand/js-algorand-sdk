@@ -19,16 +19,24 @@ const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
  *   Defaults to "default" if not included.
  */
 function parseJSON(str, options = undefined) {
-  const intDecoding = options && options.intDecoding ? options.intDecoding : 'default';
+  const intDecoding =
+    options && options.intDecoding ? options.intDecoding : 'default';
   const parsed = JSONbig.parse(str, (_, value) => {
-    if (value != null && typeof value === 'object' && Object.getPrototypeOf(value) == null) {
+    if (
+      value != null &&
+      typeof value === 'object' &&
+      Object.getPrototypeOf(value) == null
+    ) {
       // for some reason the Objects returned by JSONbig.parse have a null prototype, so we
       // need to fix that.
       Object.setPrototypeOf(value, Object.prototype);
     }
 
     if (typeof value === 'bigint') {
-      if (intDecoding === 'bigint' || (intDecoding === 'mixed' && value > Number.MAX_SAFE_INTEGER)) {
+      if (
+        intDecoding === 'bigint' ||
+        (intDecoding === 'mixed' && value > Number.MAX_SAFE_INTEGER)
+      ) {
         return value;
       }
 
@@ -38,7 +46,9 @@ function parseJSON(str, options = undefined) {
         return Number(value);
       }
 
-      throw new Error(`Integer exceeds maximum safe integer: ${value.toString()}. Try parsing with a different intDecoding option.`);
+      throw new Error(
+        `Integer exceeds maximum safe integer: ${value.toString()}. Try parsing with a different intDecoding option.`
+      );
     }
 
     if (typeof value === 'number') {
@@ -57,7 +67,9 @@ function parseJSON(str, options = undefined) {
  * @return {boolean}
  */
 function arrayEqual(a, b) {
-  if (a.length !== b.length) { return false; }
+  if (a.length !== b.length) {
+    return false;
+  }
   return a.every((val, i) => val === b[i]);
 }
 

@@ -6,7 +6,10 @@ const group = require('../src/group');
 describe('Sign', () => {
   it('should not modify input arrays', () => {
     const appArgs = [Uint8Array.from([1, 2]), Uint8Array.from([3, 4])];
-    const appAccounts = ['7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q', 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM'];
+    const appAccounts = [
+      '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+    ];
     const appForeignApps = [17, 200];
     const appForeignAssets = [7, 8, 9];
     const o = {
@@ -24,8 +27,14 @@ describe('Sign', () => {
       appForeignAssets,
     };
     const txn = new algosdk.Transaction(o);
-    assert.deepStrictEqual(appArgs, [Uint8Array.from([1, 2]), Uint8Array.from([3, 4])]);
-    assert.deepStrictEqual(appAccounts, ['7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q', 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM']);
+    assert.deepStrictEqual(appArgs, [
+      Uint8Array.from([1, 2]),
+      Uint8Array.from([3, 4]),
+    ]);
+    assert.deepStrictEqual(appAccounts, [
+      '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+    ]);
     assert.deepStrictEqual(appForeignApps, [17, 200]);
     assert.deepStrictEqual(appForeignAssets, [7, 8, 9]);
     assert.ok(txn.appArgs !== appArgs);
@@ -107,9 +116,12 @@ describe('Sign', () => {
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: 'new Uint8Array(0)',
     };
-    assert.throws(() => {
-      const txn = new algosdk.Transaction(o);
-    }, (err) => err.toString() === 'Error: note must be a Uint8Array.');
+    assert.throws(
+      () => {
+        const txn = new algosdk.Transaction(o);
+      },
+      (err) => err.toString() === 'Error: note must be a Uint8Array.'
+    );
   });
 
   it('should be able to prettyprint and go toString without throwing', () => {
@@ -199,7 +211,8 @@ describe('Sign', () => {
     });
 
     it('should correctly serialize and deserialize an asset configuration transaction from msgpack representation', () => {
-      const address = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+      const address =
+        'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
         from: address,
         fee: 10,
@@ -223,7 +236,8 @@ describe('Sign', () => {
     });
 
     it('should correctly serialize and deserialize an asset creation transaction from msgpack representation', () => {
-      const address = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+      const address =
+        'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
         from: address,
         fee: 10,
@@ -235,7 +249,9 @@ describe('Sign', () => {
         assetUnitName: 'tests',
         assetName: 'testcoin',
         assetURL: 'testURL',
-        assetMetadataHash: new Uint8Array(Buffer.from('ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=', 'base64')),
+        assetMetadataHash: new Uint8Array(
+          Buffer.from('ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=', 'base64')
+        ),
         assetManager: address,
         assetReserve: address,
         assetFreeze: address,
@@ -252,7 +268,8 @@ describe('Sign', () => {
     });
 
     it('should correctly serialize and deserialize an asset transfer transaction from msgpack representation', () => {
-      const address = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+      const address =
+        'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
         type: 'axfer',
         from: address,
@@ -385,7 +402,8 @@ describe('Sign', () => {
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       let closeRemainderTo;
       const o = {
         from,
@@ -401,7 +419,19 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo);
+      const actualTxn = algosdk.makePaymentTxn(
+        from,
+        to,
+        fee,
+        amount,
+        closeRemainderTo,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -409,13 +439,14 @@ describe('Sign', () => {
       const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
       const fee = 10;
-      const amount = 0xFFFFFFFFFFFFFFFFn;
+      const amount = 0xffffffffffffffffn;
       const firstRound = 51;
       const lastRound = 61;
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       let closeRemainderTo;
       const o = {
         from,
@@ -431,7 +462,19 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makePaymentTxn(from, to, fee, amount, closeRemainderTo, firstRound, lastRound, note, genesisHash, genesisID, rekeyTo);
+      const actualTxn = algosdk.makePaymentTxn(
+        from,
+        to,
+        fee,
+        amount,
+        closeRemainderTo,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -445,7 +488,8 @@ describe('Sign', () => {
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       let closeRemainderTo;
       const o = {
         from,
@@ -460,7 +504,10 @@ describe('Sign', () => {
         genesisID,
         reKeyTo: rekeyTo,
       };
-      assert.throws(() => new algosdk.Transaction(o), new Error('Amount must be a positive number and smaller than 2^64-1'));
+      assert.throws(
+        () => new algosdk.Transaction(o),
+        new Error('Amount must be a positive number and smaller than 2^64-1')
+      );
     });
 
     it('should be able to use helper to make a keyreg transaction', () => {
@@ -471,7 +518,8 @@ describe('Sign', () => {
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const voteKey = '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=';
       const selectionKey = 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=';
       const voteKeyDilution = 1234;
@@ -494,8 +542,21 @@ describe('Sign', () => {
         type: 'keyreg',
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-        voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution, rekeyTo);
+      const actualTxn = algosdk.makeKeyRegistrationTxn(
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        voteKey,
+        selectionKey,
+        voteFirst,
+        voteLast,
+        voteKeyDilution,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -507,7 +568,8 @@ describe('Sign', () => {
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const voteKey = '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=';
       const selectionKey = 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=';
       const voteKeyDilution = 1234;
@@ -528,15 +590,37 @@ describe('Sign', () => {
       };
 
       assert.throws(
-        () => new algosdk.Transaction({
-          ...o, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution,
-        }),
-        new Error('nonParticipation is true but participation params are present.'),
+        () =>
+          new algosdk.Transaction({
+            ...o,
+            voteKey,
+            selectionKey,
+            voteFirst,
+            voteLast,
+            voteKeyDilution,
+          }),
+        new Error(
+          'nonParticipation is true but participation params are present.'
+        )
       );
 
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeKeyRegistrationTxn(from, fee, firstRound, lastRound, note, genesisHash, genesisID,
-        undefined, undefined, undefined, undefined, undefined, rekeyTo, nonParticipation);
+      const actualTxn = algosdk.makeKeyRegistrationTxn(
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        rekeyTo,
+        nonParticipation
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -553,12 +637,15 @@ describe('Sign', () => {
       const unitName = 'tst';
       const assetName = 'testcoin';
       const assetURL = 'testURL';
-      const assetMetadataHash = new Uint8Array(Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64'));
+      const assetMetadataHash = new Uint8Array(
+        Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64')
+      );
       const genesisID = '';
       const firstRound = 322575;
       const lastRound = 322575;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
@@ -582,8 +669,27 @@ describe('Sign', () => {
         type: 'acfg',
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-        total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo);
+      const actualTxn = algosdk.makeAssetCreateTxn(
+        addr,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        total,
+        decimals,
+        defaultFrozen,
+        addr,
+        reserve,
+        freeze,
+        clawback,
+        unitName,
+        assetName,
+        assetURL,
+        assetMetadataHash,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -592,7 +698,7 @@ describe('Sign', () => {
       const fee = 10;
       const defaultFrozen = false;
       const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-      const total = 0xFFFFFFFFFFFFFFFFn;
+      const total = 0xffffffffffffffffn;
       const decimals = 0;
       const reserve = addr;
       const freeze = addr;
@@ -600,12 +706,15 @@ describe('Sign', () => {
       const unitName = 'tst';
       const assetName = 'testcoin';
       const assetURL = 'testURL';
-      const assetMetadataHash = new Uint8Array(Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64'));
+      const assetMetadataHash = new Uint8Array(
+        Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64')
+      );
       const genesisID = '';
       const firstRound = 322575;
       const lastRound = 322575;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
@@ -629,8 +738,27 @@ describe('Sign', () => {
         type: 'acfg',
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetCreateTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-        total, decimals, defaultFrozen, addr, reserve, freeze, clawback, unitName, assetName, assetURL, assetMetadataHash, rekeyTo);
+      const actualTxn = algosdk.makeAssetCreateTxn(
+        addr,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        total,
+        decimals,
+        defaultFrozen,
+        addr,
+        reserve,
+        freeze,
+        clawback,
+        unitName,
+        assetName,
+        assetURL,
+        assetMetadataHash,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -647,12 +775,15 @@ describe('Sign', () => {
       const unitName = 'tst';
       const assetName = 'testcoin';
       const assetURL = 'testURL';
-      const assetMetadataHash = new Uint8Array(Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64'));
+      const assetMetadataHash = new Uint8Array(
+        Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64')
+      );
       const genesisID = '';
       const firstRound = 322575;
       const lastRound = 322575;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
@@ -675,7 +806,12 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
         type: 'acfg',
       };
-      assert.throws(() => new algosdk.Transaction(o), new Error('Total asset issuance must be a positive number and smaller than 2^64-1'));
+      assert.throws(
+        () => new algosdk.Transaction(o),
+        new Error(
+          'Total asset issuance must be a positive number and smaller than 2^64-1'
+        )
+      );
     });
 
     it('should fail to make an asset create transaction with an invalid assetMetadataHash', () => {
@@ -695,7 +831,8 @@ describe('Sign', () => {
       const firstRound = 322575;
       const lastRound = 322575;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const txnTemplate = {
         from: addr,
         fee,
@@ -788,7 +925,8 @@ describe('Sign', () => {
       const firstRound = 322575;
       const lastRound = 322575;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
@@ -806,8 +944,22 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-        assetIndex, manager, reserve, freeze, clawback, true, rekeyTo);
+      const actualTxn = algosdk.makeAssetConfigTxn(
+        addr,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        assetIndex,
+        manager,
+        reserve,
+        freeze,
+        clawback,
+        true,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -826,8 +978,20 @@ describe('Sign', () => {
       const note = new Uint8Array([123, 12, 200]);
       let threw = false;
       try {
-        algosdk.makeAssetConfigTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-          assetIndex, manager, reserve, freeze, clawback);
+        algosdk.makeAssetConfigTxn(
+          addr,
+          fee,
+          firstRound,
+          lastRound,
+          note,
+          genesisHash,
+          genesisID,
+          assetIndex,
+          manager,
+          reserve,
+          freeze,
+          clawback
+        );
       } catch {
         threw = true;
       }
@@ -843,7 +1007,8 @@ describe('Sign', () => {
       const firstRound = 322575;
       const lastRound = 322575;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
@@ -857,8 +1022,17 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetDestroyTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-        assetIndex, rekeyTo);
+      const actualTxn = algosdk.makeAssetDestroyTxn(
+        addr,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        assetIndex,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -877,7 +1051,8 @@ describe('Sign', () => {
       const firstRound = 322575;
       const lastRound = 322575;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         type: 'axfer',
         from: sender,
@@ -895,8 +1070,21 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetTransferTxn(sender, recipient, closeRemainderTo, revocationTarget,
-        fee, amount, firstRound, lastRound, note, genesisHash, genesisID, assetIndex, rekeyTo);
+      const actualTxn = algosdk.makeAssetTransferTxn(
+        sender,
+        recipient,
+        closeRemainderTo,
+        revocationTarget,
+        fee,
+        amount,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        assetIndex,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
 
@@ -912,7 +1100,8 @@ describe('Sign', () => {
       const lastRound = 322575;
       const freezeState = true;
       const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo = 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
@@ -929,8 +1118,19 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetFreezeTxn(addr, fee, firstRound, lastRound, note, genesisHash, genesisID,
-        assetIndex, freezeTarget, freezeState, rekeyTo);
+      const actualTxn = algosdk.makeAssetFreezeTxn(
+        addr,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        assetIndex,
+        freezeTarget,
+        freezeState,
+        rekeyTo
+      );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
     it('should be able to use helper to assign group ID to mixed Transaction and Dict', () => {
@@ -943,9 +1143,14 @@ describe('Sign', () => {
         flatFee: true,
       };
 
-      const helperTx = algosdk.makePaymentTxnWithSuggestedParams('GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
-        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM', 1000, undefined,
-        new Uint8Array(0), suggestedParams);
+      const helperTx = algosdk.makePaymentTxnWithSuggestedParams(
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
+        1000,
+        undefined,
+        new Uint8Array(0),
+        suggestedParams
+      );
 
       const dictTx = {
         from: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',

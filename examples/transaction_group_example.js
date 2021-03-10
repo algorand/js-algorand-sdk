@@ -10,7 +10,7 @@ async function main() {
   const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
-    ALGOD_INSTANCE.port,
+    ALGOD_INSTANCE.port
   );
 
   // retrieve a sender and receiver
@@ -53,5 +53,4 @@ async function main() {
   console.log('Transactions successful.');
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

@@ -4,10 +4,10 @@ class HealthCheck {
   }
 
   /**
-	 * healthCheck returns an empty object iff the node is running
-	 * @param headers, optional
-	 * @returns {Promise<*>}
-	 */
+   * healthCheck returns an empty object iff the node is running
+   * @param headers, optional
+   * @returns {Promise<*>}
+   */
   async do(headers = {}) {
     const res = await this.c.get('/health', {}, headers);
     if (!res.ok) {

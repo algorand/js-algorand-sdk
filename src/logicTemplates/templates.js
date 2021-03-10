@@ -4,11 +4,11 @@ const address = require('../encoding/address');
 function putUvarint(buf, x) {
   let i = 0;
   while (x > 0x80) {
-    buf.push((x & 0xFF) | 0x80);
+    buf.push((x & 0xff) | 0x80);
     x >>= 7;
     i += 1;
   }
-  buf.push(x & 0xFF);
+  buf.push(x & 0xff);
   return i + 1;
 }
 
@@ -19,7 +19,10 @@ const valTypes = {
 };
 
 function inject(orig, offsets, values, valueTypes) {
-  if (offsets.length !== values.length || offsets.length !== valueTypes.length) {
+  if (
+    offsets.length !== values.length ||
+    offsets.length !== valueTypes.length
+  ) {
     throw new Error('Lengths do not match');
   }
 

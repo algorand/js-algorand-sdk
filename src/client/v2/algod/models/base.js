@@ -3,7 +3,11 @@
  */
 class BaseModel {
   _is_primitive(val) {
-    return val == undefined || val == null || (typeof val !== 'object' && typeof val !== 'function');
+    return (
+      val == undefined ||
+      val == null ||
+      (typeof val !== 'object' && typeof val !== 'function')
+    );
   }
 
   _is_address(val) {
@@ -44,7 +48,7 @@ class BaseModel {
         continue;
       }
       const name = this.attribute_map[prop];
-      obj[name] = (val === null) ? null : this._get_obj_for_encoding(val);
+      obj[name] = val === null ? null : this._get_obj_for_encoding(val);
     }
     return obj;
   }

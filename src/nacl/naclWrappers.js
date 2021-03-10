@@ -35,7 +35,14 @@ function verify(message, signature, verifyKey) {
 }
 
 module.exports = {
-  genericHash, randomBytes, keyPair, sign, keyPairFromSeed, keyPairFromSecretKey, bytesEqual, verify,
+  genericHash,
+  randomBytes,
+  keyPair,
+  sign,
+  keyPairFromSeed,
+  keyPairFromSecretKey,
+  bytesEqual,
+  verify,
 };
 
 // constants

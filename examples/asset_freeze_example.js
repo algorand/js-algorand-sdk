@@ -13,9 +13,7 @@ async function main() {
   const lastValidRound = 2000;
   const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
 
-  const {
-    addr: freezeTarget,
-  } = algosdk.generateAccount();
+  const { addr: freezeTarget } = algosdk.generateAccount();
 
   const assetIndex = 1234; // identifying index of the asset
 
@@ -35,11 +33,12 @@ async function main() {
     suggestedParams,
   };
 
-  const txn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(transactionOptions);
+  const txn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // sign the transaction
   const signedTxn = txn.signTxn(freezePrivateKey);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

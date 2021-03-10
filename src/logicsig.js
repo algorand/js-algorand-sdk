@@ -21,7 +21,12 @@ class LogicSig {
     if (args) {
       function checkType(arg) {
         const theType = typeof arg;
-        return ((theType == 'string') || (theType == 'number') || (arg.constructor == Uint8Array) || (Buffer.isBuffer(arg)));
+        return (
+          theType == 'string' ||
+          theType == 'number' ||
+          arg.constructor == Uint8Array ||
+          Buffer.isBuffer(arg)
+        );
       }
       if (!Array.isArray(args) || !args.every(checkType)) {
         throw new TypeError('Invalid arguments');
@@ -57,10 +62,10 @@ class LogicSig {
   }
 
   /**
-     * Performs signature verification
-     * @param {Uint8Array} publicKey Verification key (derived from sender address or escrow address)
-     * @returns {boolean}
-     */
+   * Performs signature verification
+   * @param {Uint8Array} publicKey Verification key (derived from sender address or escrow address)
+   * @returns {boolean}
+   */
   verify(publicKey) {
     if (this.sig && this.msig) {
       return false;
@@ -87,9 +92,9 @@ class LogicSig {
   }
 
   /**
-     * Compute hash of the logic sig program (that is the same as escrow account address) as string address
-     * @returns {string} String representation of the address
-     */
+   * Compute hash of the logic sig program (that is the same as escrow account address) as string address
+   * @returns {string} String representation of the address
+   */
   address() {
     const toBeSigned = utils.concatArrays(this.tag, this.logic);
     const hash = nacl.genericHash(toBeSigned);
@@ -97,15 +102,17 @@ class LogicSig {
   }
 
   /**
-     * Creates signature (if no msig provided) or multi signature otherwise
-     * @param {Uint8Array} secretKey Secret key to sign with
-     * @param {Object} msig Multisig account as {version, threshold, addrs}
-     */
+   * Creates signature (if no msig provided) or multi signature otherwise
+   * @param {Uint8Array} secretKey Secret key to sign with
+   * @param {Object} msig Multisig account as {version, threshold, addrs}
+   */
   sign(secretKey, msig) {
     if (msig === undefined) {
       this.sig = this.signProgram(secretKey);
     } else {
-      const subsigs = msig.addrs.map((addr) => ({ pk: address.decodeAddress(addr).publicKey }));
+      const subsigs = msig.addrs.map((addr) => ({
+        pk: address.decodeAddress(addr).publicKey,
+      }));
 
       this.msig = {
         v: msig.version,
@@ -119,9 +126,9 @@ class LogicSig {
   }
 
   /**
-     * Appends a signature to multi signature
-     * @param {Uint8Array} secretKey Secret key to sign with
-     */
+   * Appends a signature to multi signature
+   * @param {Uint8Array} secretKey Secret key to sign with
+   */
   appendToMultisig(secretKey) {
     if (this.msig === undefined) {
       throw new Error('no multisig present');
@@ -207,7 +214,9 @@ function signLogicSigTransactionObject(txn, lsig) {
   const isDelegated = lsig.sig || lsig.msig;
   if (isDelegated) {
     if (!lsig.verify(txn.from.publicKey)) {
-      throw new Error("Logic signature verification failed. Ensure the program is valid and the transaction sender is the program's delegated address.");
+      throw new Error(
+        "Logic signature verification failed. Ensure the program is valid and the transaction sender is the program's delegated address."
+      );
     }
   } else {
     // add AuthAddr if signing with a different program than From indicates for non-delegated LogicSig
@@ -240,8 +249,13 @@ const SIGN_PROGRAM_DATA_PREFIX = Buffer.from('ProgData');
  * @param contractAddress string representation of teal contract address (program hash)
  */
 function tealSign(sk, data, contractAddress) {
-  const parts = utils.concatArrays(address.decodeAddress(contractAddress).publicKey, data);
-  const toBeSigned = Buffer.from(utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts));
+  const parts = utils.concatArrays(
+    address.decodeAddress(contractAddress).publicKey,
+    data
+  );
+  const toBeSigned = Buffer.from(
+    utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
+  );
   return nacl.sign(toBeSigned, sk);
 }
 

@@ -1,5 +1,6 @@
 const MICROALGOS_TO_ALGOS_RATIO = 1e6;
-const INVALID_MICROALGOS_ERROR_MSG = 'Microalgos should be positive and less than 2^53 - 1.';
+const INVALID_MICROALGOS_ERROR_MSG =
+  'Microalgos should be positive and less than 2^53 - 1.';
 
 /**
  * microalgosToAlgos converts microalgos to algos

@@ -38,11 +38,12 @@ async function main() {
     suggestedParams,
   };
 
-  const txn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject(transactionOptions);
+  const txn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // sign the transaction
   const signedTxn = txn.signTxn(managerPrivateKey);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

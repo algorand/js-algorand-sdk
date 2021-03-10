@@ -8,12 +8,16 @@ class PendingTransactions {
   }
 
   /**
-	 * pendingTransactionsInformation returns transactions that are pending in the pool
-	 * @param headers, optional
-	 * @returns {Promise<*>}
-	 */
+   * pendingTransactionsInformation returns transactions that are pending in the pool
+   * @param headers, optional
+   * @returns {Promise<*>}
+   */
   async do(headers = {}) {
-    const res = await this.c.get('/v2/transactions/pending', this.query, headers);
+    const res = await this.c.get(
+      '/v2/transactions/pending',
+      this.query,
+      headers
+    );
     if (res.body && res.body.byteLength > 0) {
       return encoding.decode(res.body);
     }
