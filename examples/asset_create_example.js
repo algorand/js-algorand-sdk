@@ -1,11 +1,11 @@
 // Example: creating an asset
 
-const algosdk = require('../');
+const algosdk = require('..');
 const utils = require('./utils');
 
 const { SENDER } = utils.retrieveBaseConfig();
 
-async function main () {
+async function main() {
   const sender = algosdk.mnemonicToSecretKey(SENDER.mnemonic);
 
   // generate accounts
@@ -21,21 +21,21 @@ async function main () {
 
   const total = 100; // how many of this asset there will be
   const decimals = 0; // units of this asset are whole-integer amounts
-  const assetName = "assetname";
-  const unitName = "unitname";
-  const url = "website";
-  const metadata = new Uint8Array(Buffer.from("664143504f346e52674f35356a316e64414b3357365367633441506b63794668", "hex")); // should be a 32-byte hash
+  const assetName = 'assetname';
+  const unitName = 'unitname';
+  const url = 'website';
+  const metadata = new Uint8Array(Buffer.from('664143504f346e52674f35356a316e64414b3357365367633441506b63794668', 'hex')); // should be a 32-byte hash
   const defaultFrozen = false; // whether accounts should be frozen by default
-  
+
   // create suggested parameters
   const suggestedParams = {
     flatFee: false,
     fee: feePerByte,
     firstRound: firstValidRound,
     lastRound: lastValidRound,
-    genesisHash: genesisHash,
+    genesisHash,
   };
-  
+
   // create the asset creation transaction
   const txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
     from: sender.addr,

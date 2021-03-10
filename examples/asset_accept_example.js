@@ -1,8 +1,8 @@
 // Example: accepting assets
 
-const algosdk = require('../');
+const algosdk = require('..');
 
-async function main () {
+async function main() {
   const account = algosdk.generateAccount();
 
   const feePerByte = 10;
@@ -13,7 +13,7 @@ async function main () {
   const amount = 0; // to start accepting assets, set amount to 0
 
   const assetIndex = 1234; // identifying index of the asset
-  
+
   // set suggested parameters
   const suggestedParams = {
     fee: feePerByte,
@@ -30,7 +30,7 @@ async function main () {
     amount,
     suggestedParams,
   };
-  
+
   const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(transactionOptions);
 
   // sign the transaction

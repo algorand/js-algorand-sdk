@@ -1,6 +1,6 @@
 /**
  * Ensure that all of the required environment variables are set, throws an error otherwise
- * @param {string[]} list 
+ * @param {string[]} list
  */
 function ensureEnvVariablesSet(list) {
   list.forEach((envVarName) => {
@@ -26,18 +26,18 @@ function retrieveBaseConfig() {
     'SENDER_MNEMONIC',
     'RECEIVER_MNEMONIC',
   ]);
-  
+
   // structure into objects
   const ALGOD_INSTANCE = {
     token: process.env.ALGOD_TOKEN,
     server: process.env.ALGOD_SERVER,
     port: process.env.ALGOD_PORT && parseInt(process.env.ALGOD_PORT),
   };
-  
+
   const SENDER = {
     mnemonic: process.env.SENDER_MNEMONIC,
   };
-  
+
   const RECEIVER = {
     mnemonic: process.env.RECEIVER_MNEMONIC,
   };
@@ -70,38 +70,37 @@ async function waitForConfirmation(algodclient, txId, timeout) {
   // pending transaction information, or throws an error if the transaction
   // is not confirmed or rejected in the next timeout rounds
   if (algodclient == null || txId == null || timeout < 0) {
-      throw new Error("Bad arguments.");
+    throw new Error('Bad arguments.');
   }
-  let status = (await algodclient.status().do());
-  if (status == undefined) throw new Error("Unable to get node status");
-  let startround = status["last-round"] + 1;   
+  const status = (await algodclient.status().do());
+  if (status == undefined) throw new Error('Unable to get node status');
+  const startround = status['last-round'] + 1;
   let currentround = startround;
 
   while (currentround < (startround + timeout)) {
-      let pendingInfo = await algodclient.pendingTransactionInformation(txId).do();      
-      if (pendingInfo != undefined) {
-          if (pendingInfo["confirmed-round"] !== null && pendingInfo["confirmed-round"] > 0) {
-              //Got the completed Transaction
-              return pendingInfo;
-          }
-          else {
-              if (pendingInfo["pool-error"] != null && pendingInfo["pool-error"].length > 0) {
-                  // If there was a pool error, then the transaction has been rejected!
-                  throw new Error("Transaction Rejected" + " pool error" + pendingInfo["pool-error"]);
-              }
-          }
-      } 
-      await algodclient.statusAfterBlock(currentround).do();
-      currentround++;
+    const pendingInfo = await algodclient.pendingTransactionInformation(txId).do();
+    if (pendingInfo != undefined) {
+      if (pendingInfo['confirmed-round'] !== null && pendingInfo['confirmed-round'] > 0) {
+        // Got the completed Transaction
+        return pendingInfo;
+      }
+
+      if (pendingInfo['pool-error'] != null && pendingInfo['pool-error'].length > 0) {
+        // If there was a pool error, then the transaction has been rejected!
+        throw new Error(`${'Transaction Rejected' + ' pool error'}${pendingInfo['pool-error']}`);
+      }
+    }
+    await algodclient.statusAfterBlock(currentround).do();
+    currentround++;
   }
-  throw new Error("Transaction not confirmed after " + timeout + " rounds!");
-};
+  throw new Error(`Transaction not confirmed after ${timeout} rounds!`);
+}
 
 // Formatting codes to adjust font qualities
 const fmt = {
-  bold: "\x1b[1m",
-  dim: "\x1b[2m",
-  reset: "\x1b[0m",
+  bold: '\x1b[1m',
+  dim: '\x1b[2m',
+  reset: '\x1b[0m',
 };
 
 module.exports = {

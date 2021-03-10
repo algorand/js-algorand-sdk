@@ -1,11 +1,11 @@
-/** 
+/**
  * Example: generating sender and receiver accounts
  * This example demonstrates generating multiple accounts. Please
  * feel free to use this example to generate test accounts needed
  * for some of the other examples.
  */
 
-const algosdk = require('../');
+const algosdk = require('..');
 const { fmt } = require('./utils');
 
 // generate accounts

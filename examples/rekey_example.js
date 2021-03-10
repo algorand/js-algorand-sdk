@@ -1,23 +1,23 @@
 // Example: rekeying
 
-const algosdk = require('../');
+const algosdk = require('..');
 const utils = require('./utils');
 
 const { ALGOD_INSTANCE, SENDER } = utils.retrieveBaseConfig();
 
-async function main () {
+async function main() {
   // initialize an algod client
-  const client =  new algosdk.Algodv2(
+  const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
     ALGOD_INSTANCE.port,
   );
-  
+
   // retrieve sender and generate a new rekey account
   const sender = algosdk.mnemonicToSecretKey(SENDER.mnemonic);
   const rekeyAccount = algosdk.generateAccount();
   const receiver = sender;
-  
+
   // get suggested parameters
   const suggestedParams = await client.getTransactionParams().do();
 
@@ -31,7 +31,7 @@ async function main () {
     amount,
     suggestedParams,
   };
-  
+
   const rekeyingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
 
   // print transaction data

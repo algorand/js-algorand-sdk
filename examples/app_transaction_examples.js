@@ -1,9 +1,9 @@
 // Example: various application transactions
 
-// NOTE: Though we passed arguments directly to functions in 
+// NOTE: Though we passed arguments directly to functions in
 // this example to show that it is possible, we'd recommend using the
-// makeApplicationCreateTxnFromObject, makeApplicationOptInTxnFromObject, etc. 
-// counterparts in your code for readability. 
+// makeApplicationCreateTxnFromObject, makeApplicationOptInTxnFromObject, etc.
+// counterparts in your code for readability.
 
 const algosdk = require('..');
 const utils = require('./utils');
@@ -16,7 +16,7 @@ const { ALGOD_INSTANCE, SENDER, RECEIVER } = utils.retrieveBaseConfig();
  *       > https://developer.algorand.org/docs/reference/node/config/
  */
 async function getBasicProgramBytes(client) {
-  const program = `#pragma version 2\nint 1`;
+  const program = '#pragma version 2\nint 1';
 
   // use algod to compile the program
   const compiledProgram = await client.compile(program).do();
@@ -41,9 +41,9 @@ function logBold(message) {
   console.log(`${utils.fmt.bold}${message}${utils.fmt.reset}`);
 }
 
-async function main () {
+async function main() {
   // initialize an algod client
-  const client =  new algosdk.Algodv2(
+  const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
     ALGOD_INSTANCE.port,
