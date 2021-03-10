@@ -6,6 +6,7 @@ node_js:
 
 script:
   - set -e
+  - if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
   - npm test
   - make docker-test
 
@@ -21,3 +22,7 @@ jobs:
       env: TEST_BROWSER=firefox
       addons:
         firefox: latest
+env:
+  global:
+  - secure: CNZSqSglsDSMYKwxyTxoj6FrSCshvsl/9aXdnlFXl8Y/+zDIKCdV5Py0TgboPmhQtMBtYqkxLv7nItlB4jRjVHWXQ26J7tNhqZX4SEKvfmyKv94y10/HdV/rXJdYJLemobt2C2iheqBMMbg+py0Pyh5kyZfdORvyqukeh4XldhFbqmhSHomh2/juo7AiqRhk9L68TGWPkIvYjKvCx43SLu8c8eJXosdllFoOp69c1IjEEwlfBAUTXAyytZnogBkuzhCzjJgEbWT8x4umpud46vHvtUwmRExGa/wqhWlAo4KSeR59wX7T/BhG15w2DxqVWuzjn7s+26Il+crT3rKCPfrInDmu6A6dtFcYGl9+g8DYlXczs0hIPHRUvA8ieQpO2wMKMBUcR+4qsiXe8510ISy3WJRzJDmW2XwfrJ/tiLomeaA4MGWrOWsszxVQddTREKVP0PQeszLJQFA/RgyaYMzeZQPn9xXD+tJS7aAwlszdHgq+Hm1JIA8763b7jnuEPLimdZwrY4z3B9/y8or9I0tVhcRRbVipJKVQDCZrJpZE+Rh6oCnZ/GRGUrAiPJqKExO8HtH37025KTAxuCCYkHGHb1hEw3P0a63KUvaRzO4/5ElWp/sFJq1LxDehFyuONBdrOo3DY3scEs27GhTMtXUq1Z2kkTMi9AV5L/NYxK0=
+  - secure: GtSY5hon4bWzHTTVNB6CFPYgM+umWgiECPj0gnw/d6bmypwUxVnydBx4j6p+GYzwd6u7eByGXwPWQhrqsv5SLNS5683GS7qf89ab0bRhiQsW3J7s/QlmdRbMosw0mZ4E9JeQAC+IK/yAuqS+m0YcQuqks9ausJUgz0NjgjcJKvZTPjhi7up+kdJZ9nOkyIlJEJ6d4IJLYZT0RK3T5RapfTkw/NF15keYMtVV/Paf4vYyV0sqHwAt1DdT6bjpEj/2eN6WG+ISVKvzXWYhCcq86Yk89TqqY6hECTYRe+1pJqmTIJe2RNgNk9+W2NlOfpTswCG8bzLZbK08ph/QD61KzHIaya/IpCXnaEriW3wda7kkSoTPVOE4eiIQr7uG0zHY6nVO3EnxxM7YMRdaMUcCF//+SCjSIbbMKhUwKhz2gjbDQT0iPfgIPs5Hb75OhidcVWbqVmlWSiAQBEiCTYpVtx4HwNDZdozYCIS0Jw+I5aR7fVp4e1TrzbZ7OIIDgwrGmX1ZB4UXO1EMovWlkwRo4YylWafjrs/euqmQqMrG4XiTaWGvZUxuA/9qmDTNCGksn/idC8VVCN6/9MCrNSjjbbQBuIHaymHw/CUL8hbp80Ih6i+9Srq1QPaGBAPUEIDeHxljeyc1VJUcHB14883U2JRJPvAls1u+wRB9DsPpsoc=
