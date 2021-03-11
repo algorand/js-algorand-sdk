@@ -321,17 +321,8 @@ describe('Logic validation', () => {
       assert.equal(result, true);
 
       // 800x keccak256 more is to costly
-      program = Uint8Array.from([
-        0x02,
-        0x20,
-        0x01,
-        0x00,
-        0x22,
-        ,
-        0x22,
-        0x70,
-        0x00,
-      ]); // int 0; int 0; asset_holding_get Balance
+      // prettier-ignore
+      program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, , 0x22, 0x70, 0x00, ]); // int 0; int 0; asset_holding_get Balance
       result = logic.checkProgram(program);
       assert.equal(result, true);
       /* eslint-disable no-sparse-arrays */

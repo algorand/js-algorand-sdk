@@ -22,40 +22,8 @@ describe('#mnemonic', () => {
   });
 
   it('should convert pass the zero vector test', () => {
-    const key = new Uint8Array([
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-    ]);
+    // A zero Uint8Array of length 32
+    const key = new Uint8Array(Array.from({ length: 32 }, () => 0));
     const mn =
       'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
     const keyTarget = passphrase.mnemonicFromSeed(key);

@@ -7,40 +7,8 @@ describe('address', () => {
   describe('#isValid', () => {
     const correctCase =
       'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI';
-    const correctPublicKey = new Uint8Array([
-      99,
-      180,
-      127,
-      102,
-      156,
-      252,
-      55,
-      227,
-      39,
-      198,
-      169,
-      232,
-      163,
-      16,
-      36,
-      130,
-      26,
-      223,
-      230,
-      213,
-      0,
-      153,
-      108,
-      192,
-      200,
-      197,
-      28,
-      77,
-      196,
-      50,
-      141,
-      112,
-    ]);
+    // prettier-ignore
+    const correctPublicKey = new Uint8Array([99, 180, 127, 102, 156, 252, 55, 227, 39, 198, 169, 232, 163, 16, 36, 130, 26, 223, 230, 213, 0, 153, 108, 192, 200, 197, 28, 77, 196, 50, 141, 112]);
     const correctChecksum = new Uint8Array([122, 240, 2, 74]);
     const malformedAddress1 =
       'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJ';
