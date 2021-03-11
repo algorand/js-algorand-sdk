@@ -28,6 +28,7 @@
     "chromedriver": "^89.0.0",
     "coveralls": "^3.0.6",
     "cucumber": "^5.1.0",
+    "es-abstract": "^1.17.7",
     "eslint": "^7.21.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.1.0",
