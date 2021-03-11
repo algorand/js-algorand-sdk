@@ -1,8 +1,8 @@
 // Example: sending assets
 
-const algosdk = require('../');
+const algosdk = require('..');
 
-async function main () {
+async function main() {
   const {
     sk: senderPrivateKey,
     addr: senderAddress,
@@ -17,7 +17,7 @@ async function main () {
   const amount = 100; // amount of assets to transfer
 
   const assetIndex = 1234; // identifying index of the asset
-  
+
   // set suggested parameters
   const suggestedParams = {
     fee: feePerByte,
@@ -35,12 +35,17 @@ async function main () {
     assetIndex,
     suggestedParams,
   };
-  
-  const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(transactionOptions);
+
+  const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // sign the transaction
   const signedTxn = txn.signTxn(senderPrivateKey);
+
+  // print transaction data
+  const decoded = algosdk.decodeSignedTransaction(signedTxn);
+  console.log(decoded);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

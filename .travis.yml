@@ -2,7 +2,7 @@ dist: bionic
 language: node_js
 
 node_js:
-  - "12"
+  - '12'
 
 script:
   - set -e
@@ -12,6 +12,11 @@ script:
 
 jobs:
   include:
+    - stage: Code Style
+      name: ESLint
+      script: npm run lint
+    - name: Prettier
+      script: prettier --check .
     - stage: Testing
       name: Node test
     - name: Chrome test

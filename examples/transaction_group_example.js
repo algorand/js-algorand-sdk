@@ -1,25 +1,25 @@
-// Example: working with transaction groups 
+// Example: working with transaction groups
 
-const algosdk = require('../');
+const algosdk = require('..');
 const utils = require('./utils');
 
 const { ALGOD_INSTANCE, SENDER, RECEIVER } = utils.retrieveBaseConfig();
 
-async function main () {
+async function main() {
   // initialize an algod client
-  const client =  new algosdk.Algodv2(
+  const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
-    ALGOD_INSTANCE.port,
+    ALGOD_INSTANCE.port
   );
-  
+
   // retrieve a sender and receiver
   const sender = algosdk.mnemonicToSecretKey(SENDER.mnemonic);
   const receiver = algosdk.mnemonicToSecretKey(RECEIVER.mnemonic);
-  
+
   // get suggested parameters
   const suggestedParams = await client.getTransactionParams().do();
-  
+
   // create the transactions
   const amount = 100000;
   const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -41,7 +41,7 @@ async function main () {
   // sign transactions
   const stxn1 = txn1.signTxn(sender.sk);
   const stxn2 = txn2.signTxn(receiver.sk);
-  
+
   // send transactions (note that the accounts need to be funded for this to work)
   console.log('Sending transactions...');
   const { txId } = await client.sendRawTransaction([stxn1, stxn2]).do();
@@ -53,5 +53,4 @@ async function main () {
   console.log('Transactions successful.');
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

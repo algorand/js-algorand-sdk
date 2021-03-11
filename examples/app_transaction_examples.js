@@ -1,9 +1,9 @@
 // Example: various application transactions
 
-// NOTE: Though we passed arguments directly to functions in 
+// NOTE: Though we passed arguments directly to functions in
 // this example to show that it is possible, we'd recommend using the
-// makeApplicationCreateTxnFromObject, makeApplicationOptInTxnFromObject, etc. 
-// counterparts in your code for readability. 
+// makeApplicationCreateTxnFromObject, makeApplicationOptInTxnFromObject, etc.
+// counterparts in your code for readability.
 
 const algosdk = require('..');
 const utils = require('./utils');
@@ -16,7 +16,7 @@ const { ALGOD_INSTANCE, SENDER, RECEIVER } = utils.retrieveBaseConfig();
  *       > https://developer.algorand.org/docs/reference/node/config/
  */
 async function getBasicProgramBytes(client) {
-  const program = `#pragma version 2\nint 1`;
+  const program = '#pragma version 2\nint 1';
 
   // use algod to compile the program
   const compiledProgram = await client.compile(program).do();
@@ -29,7 +29,11 @@ async function getBasicProgramBytes(client) {
 async function verboseWaitForConfirmation(client, txnId) {
   console.log('Awaiting confirmation (this will take several seconds)...');
   const roundTimeout = 2;
-  const completedTx = await utils.waitForConfirmation(client, txnId, roundTimeout);
+  const completedTx = await utils.waitForConfirmation(
+    client,
+    txnId,
+    roundTimeout
+  );
   console.log('Transaction successful.');
   return completedTx;
 }
@@ -41,12 +45,12 @@ function logBold(message) {
   console.log(`${utils.fmt.bold}${message}${utils.fmt.reset}`);
 }
 
-async function main () {
+async function main() {
   // initialize an algod client
-  const client =  new algosdk.Algodv2(
+  const client = new algosdk.Algodv2(
     ALGOD_INSTANCE.token,
     ALGOD_INSTANCE.server,
-    ALGOD_INSTANCE.port,
+    ALGOD_INSTANCE.port
   );
 
   /** retrieve sender and receiver
@@ -84,13 +88,15 @@ async function main () {
     numLocalByteSlices,
     numGlobalInts,
     numGlobalByteSlices,
-    appArgs,
+    appArgs
   );
 
   // send the transaction
   logBold('Sending application creation transaction.');
   const signedCreateTxn = createTxn.signTxn(sender.sk);
-  const { txId: createTxId } = await client.sendRawTransaction(signedCreateTxn).do();
+  const { txId: createTxId } = await client
+    .sendRawTransaction(signedCreateTxn)
+    .do();
 
   // wait for confirmation
   const completedTx = await verboseWaitForConfirmation(client, createTxId);
@@ -101,12 +107,18 @@ async function main () {
 
   // opt in to the created application
   const appId = completedTx['application-index'];
-  const optInTxn = algosdk.makeApplicationOptInTxn(receiver.addr, suggestedParams, appId);
+  const optInTxn = algosdk.makeApplicationOptInTxn(
+    receiver.addr,
+    suggestedParams,
+    appId
+  );
 
   // send the transaction
   logBold('Sending application opt in transaction.');
   const signedOptInTxn = optInTxn.signTxn(receiver.sk);
-  const { txId: optInTxId } = await client.sendRawTransaction(signedOptInTxn).do();
+  const { txId: optInTxId } = await client
+    .sendRawTransaction(signedOptInTxn)
+    .do();
 
   // wait for confirmation
   await verboseWaitForConfirmation(client, optInTxId);
@@ -116,12 +128,19 @@ async function main () {
   // ------------------------------
 
   // call the created application
-  const callTxn = algosdk.makeApplicationNoOpTxn(receiver.addr, suggestedParams, appId, appArgs);
+  const callTxn = algosdk.makeApplicationNoOpTxn(
+    receiver.addr,
+    suggestedParams,
+    appId,
+    appArgs
+  );
 
   // send the transaction
   logBold('Sending application call transaction.');
   const signedCallTxn = callTxn.signTxn(receiver.sk);
-  const { txId: callTxnId } = await client.sendRawTransaction(signedCallTxn).do();
+  const { txId: callTxnId } = await client
+    .sendRawTransaction(signedCallTxn)
+    .do();
 
   // wait for confirmation
   await verboseWaitForConfirmation(client, callTxnId);
@@ -131,12 +150,19 @@ async function main () {
   // ------------------------------
 
   // Close out (opt account out) from the application
-  const closeOutTxn = algosdk.makeApplicationCloseOutTxn(receiver.addr, suggestedParams, appId, appArgs);
+  const closeOutTxn = algosdk.makeApplicationCloseOutTxn(
+    receiver.addr,
+    suggestedParams,
+    appId,
+    appArgs
+  );
 
   // send the transaction
   logBold('Sending application close out transaction.');
   const signedCloseOutTxn = closeOutTxn.signTxn(receiver.sk);
-  const { txId: closeOutTxnId } = await client.sendRawTransaction(signedCloseOutTxn).do();
+  const { txId: closeOutTxnId } = await client
+    .sendRawTransaction(signedCloseOutTxn)
+    .do();
 
   // wait for confirmation
   await verboseWaitForConfirmation(client, closeOutTxnId);
@@ -146,16 +172,21 @@ async function main () {
   // ------------------------------
 
   // delete the application
-  const deleteTxn = algosdk.makeApplicationDeleteTxn(sender.addr, suggestedParams, appId);
+  const deleteTxn = algosdk.makeApplicationDeleteTxn(
+    sender.addr,
+    suggestedParams,
+    appId
+  );
 
   // send the transaction
   logBold('Sending application delete transaction.');
   const signedDeleteTxn = deleteTxn.signTxn(sender.sk);
-  const { txId: deleteTxnId } = await client.sendRawTransaction(signedDeleteTxn).do();
+  const { txId: deleteTxnId } = await client
+    .sendRawTransaction(signedDeleteTxn)
+    .do();
 
   // wait for confirmation
   await verboseWaitForConfirmation(client, deleteTxnId);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

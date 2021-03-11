@@ -1,8 +1,8 @@
 // Example: freezing or unfreezing an account
 
-const algosdk = require('../');
+const algosdk = require('..');
 
-async function main () {
+async function main() {
   const {
     sk: freezePrivateKey,
     addr: freezeAddress,
@@ -13,12 +13,10 @@ async function main () {
   const lastValidRound = 2000;
   const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
 
-  const {
-    addr: freezeTarget,
-  } = algosdk.generateAccount();
+  const { addr: freezeTarget } = algosdk.generateAccount();
 
   const assetIndex = 1234; // identifying index of the asset
-  
+
   // set suggested parameters
   const suggestedParams = {
     fee: feePerByte,
@@ -34,12 +32,17 @@ async function main () {
     assetIndex,
     suggestedParams,
   };
-  
-  const txn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(transactionOptions);
+
+  const txn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // sign the transaction
   const signedTxn = txn.signTxn(freezePrivateKey);
+
+  // print transaction data
+  const decoded = algosdk.decodeSignedTransaction(signedTxn);
+  console.log(decoded);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

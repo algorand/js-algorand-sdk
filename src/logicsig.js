@@ -12,157 +12,164 @@ const txnBuilder = require('./transaction');
  */
 
 class LogicSig {
-    constructor(program, args) {
-        this.tag = Buffer.from("Program");
+  constructor(program, args) {
+    this.tag = Buffer.from('Program');
 
-        if (!logic.checkProgram(program, args)) {
-            throw new Error("Invalid program");
-        }
-        if (args) {
-            function checkType(arg) {
-                let theType = typeof arg;
-                return ((theType == "string") || (theType == "number") || (arg.constructor == Uint8Array) || (Buffer.isBuffer(arg)));
-            }
-            if (!Array.isArray(args) || !args.every(checkType)) {
-                throw new TypeError("Invalid arguments");
-            }
-        }
-
-        this.logic = program;
-        this.args = args;
-        this.sig = undefined;
-        this.msig = undefined;
+    if (!logic.checkProgram(program, args)) {
+      throw new Error('Invalid program');
     }
 
-    get_obj_for_encoding() {
-        let obj = {
-            l: this.logic,
-        }
-        if (this.args) {
-            obj["arg"] = this.args;
-        }
-        if (this.sig) {
-            obj["sig"] = this.sig;
-        } else if (this.msig) {
-            obj["msig"] = this.msig;
-        }
-        return obj;
+    function checkType(arg) {
+      const theType = typeof arg;
+      return (
+        theType === 'string' ||
+        theType === 'number' ||
+        arg.constructor === Uint8Array ||
+        Buffer.isBuffer(arg)
+      );
     }
 
-    static from_obj_for_encoding(encoded) {
-        let lsig = new LogicSig(encoded.l, encoded.arg);
-        lsig.sig = encoded.sig;
-        lsig.msig = encoded.msig;
-        return lsig;
+    if (args && (!Array.isArray(args) || !args.every(checkType))) {
+      throw new TypeError('Invalid arguments');
     }
 
-    /**
-     * Performs signature verification
-     * @param {Uint8Array} publicKey Verification key (derived from sender address or escrow address)
-     * @returns {boolean}
-     */
-    verify(publicKey) {
-        if (this.sig && this.msig) {
-            return false;
-        }
+    this.logic = program;
+    this.args = args;
+    this.sig = undefined;
+    this.msig = undefined;
+  }
 
-        try {
-            logic.checkProgram(this.logic, this.args);
-        } catch (e) {
-            return false;
-        }
+  // eslint-disable-next-line camelcase
+  get_obj_for_encoding() {
+    const obj = {
+      l: this.logic,
+    };
+    if (this.args) {
+      obj.arg = this.args;
+    }
+    if (this.sig) {
+      obj.sig = this.sig;
+    } else if (this.msig) {
+      obj.msig = this.msig;
+    }
+    return obj;
+  }
 
-        let toBeSigned = utils.concatArrays(this.tag, this.logic);
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(encoded) {
+    const lsig = new LogicSig(encoded.l, encoded.arg);
+    lsig.sig = encoded.sig;
+    lsig.msig = encoded.msig;
+    return lsig;
+  }
 
-        if (!this.sig && !this.msig) {
-            let hash = nacl.genericHash(toBeSigned);
-            return utils.arrayEqual(hash, publicKey)
-        }
-
-        if (this.sig) {
-            return nacl.verify(toBeSigned, this.sig, publicKey);
-        }
-
-        return multisig.verifyMultisig(toBeSigned, this.msig, publicKey);
+  /**
+   * Performs signature verification
+   * @param {Uint8Array} publicKey Verification key (derived from sender address or escrow address)
+   * @returns {boolean}
+   */
+  verify(publicKey) {
+    if (this.sig && this.msig) {
+      return false;
     }
 
-    /**
-     * Compute hash of the logic sig program (that is the same as escrow account address) as string address
-     * @returns {string} String representation of the address
-     */
-    address() {
-        let toBeSigned = utils.concatArrays(this.tag, this.logic);
-        let hash = nacl.genericHash(toBeSigned);
-        return address.encodeAddress(hash);
+    try {
+      logic.checkProgram(this.logic, this.args);
+    } catch (e) {
+      return false;
     }
 
-    /**
-     * Creates signature (if no msig provided) or multi signature otherwise
-     * @param {Uint8Array} secretKey Secret key to sign with
-     * @param {Object} msig Multisig account as {version, threshold, addrs}
-     */
-    sign(secretKey, msig) {
-        if (msig === undefined) {
-            this.sig = this.signProgram(secretKey);
-        } else {
-            let subsigs = msig.addrs.map(addr => {
-                return {"pk": address.decodeAddress(addr).publicKey};
-            });
+    const toBeSigned = utils.concatArrays(this.tag, this.logic);
 
-            this.msig = {
-                "v": msig.version,
-                "thr": msig.threshold,
-                "subsig": subsigs
-            };
-
-            let [sig, index] = this.singleSignMultisig(secretKey, this.msig);
-            this.msig.subsig[index].s = sig;
-        }
+    if (!this.sig && !this.msig) {
+      const hash = nacl.genericHash(toBeSigned);
+      return utils.arrayEqual(hash, publicKey);
     }
 
-    /**
-     * Appends a signature to multi signature
-     * @param {Uint8Array} secretKey Secret key to sign with
-     */
-    appendToMultisig(secretKey) {
-        if (this.msig === undefined) {
-            throw new Error("no multisig present");
-        }
-        let [sig, index] = this.singleSignMultisig(secretKey, this.msig);
-        this.msig.subsig[index].s = sig;
+    if (this.sig) {
+      return nacl.verify(toBeSigned, this.sig, publicKey);
     }
 
-    signProgram(secretKey) {
-        let toBeSigned = utils.concatArrays(this.tag, this.logic);
-        const sig = nacl.sign(toBeSigned, secretKey);
-        return sig;
-    }
+    return multisig.verifyMultisig(toBeSigned, this.msig, publicKey);
+  }
 
-    singleSignMultisig(secretKey, msig) {
-        let index = -1;
-        let myPk = nacl.keyPairFromSecretKey(secretKey).publicKey;
-        for (let i = 0; i < msig.subsig.length; i++) {
-            let pk = msig.subsig[i].pk;
-            if (utils.arrayEqual(pk, myPk)) {
-                index = i;
-                break;
-            }
-        }
-        if (index == -1) {
-            throw new Error("invalid secret key");
-        }
-        let sig = this.signProgram(secretKey);
-        return [sig, index];
-    }
+  /**
+   * Compute hash of the logic sig program (that is the same as escrow account address) as string address
+   * @returns {string} String representation of the address
+   */
+  address() {
+    const toBeSigned = utils.concatArrays(this.tag, this.logic);
+    const hash = nacl.genericHash(toBeSigned);
+    return address.encodeAddress(hash);
+  }
 
-    toByte() {
-        return encoding.encode(this.get_obj_for_encoding());
-    }
+  /**
+   * Creates signature (if no msig provided) or multi signature otherwise
+   * @param {Uint8Array} secretKey Secret key to sign with
+   * @param {Object} msig Multisig account as {version, threshold, addrs}
+   */
+  sign(secretKey, msig) {
+    if (msig === undefined) {
+      this.sig = this.signProgram(secretKey);
+    } else {
+      const subsigs = msig.addrs.map((addr) => ({
+        pk: address.decodeAddress(addr).publicKey,
+      }));
 
-    static fromByte(encoded) {
-        let decoded_obj = encoding.decode(encoded);
-        return LogicSig.from_obj_for_encoding(decoded_obj);
+      this.msig = {
+        v: msig.version,
+        thr: msig.threshold,
+        subsig: subsigs,
+      };
+
+      const [sig, index] = this.singleSignMultisig(secretKey, this.msig);
+      this.msig.subsig[index].s = sig;
     }
+  }
+
+  /**
+   * Appends a signature to multi signature
+   * @param {Uint8Array} secretKey Secret key to sign with
+   */
+  appendToMultisig(secretKey) {
+    if (this.msig === undefined) {
+      throw new Error('no multisig present');
+    }
+    const [sig, index] = this.singleSignMultisig(secretKey, this.msig);
+    this.msig.subsig[index].s = sig;
+  }
+
+  signProgram(secretKey) {
+    const toBeSigned = utils.concatArrays(this.tag, this.logic);
+    const sig = nacl.sign(toBeSigned, secretKey);
+    return sig;
+  }
+
+  singleSignMultisig(secretKey, msig) {
+    let index = -1;
+    const myPk = nacl.keyPairFromSecretKey(secretKey).publicKey;
+    for (let i = 0; i < msig.subsig.length; i++) {
+      const { pk } = msig.subsig[i];
+      if (utils.arrayEqual(pk, myPk)) {
+        index = i;
+        break;
+      }
+    }
+    if (index === -1) {
+      throw new Error('invalid secret key');
+    }
+    const sig = this.signProgram(secretKey);
+    return [sig, index];
+  }
+
+  toByte() {
+    return encoding.encode(this.get_obj_for_encoding());
+  }
+
+  static fromByte(encoded) {
+    const decodedObj = encoding.decode(encoded);
+    return LogicSig.from_obj_for_encoding(decodedObj);
+  }
 }
 
 /**
@@ -173,7 +180,41 @@ class LogicSig {
  * @returns {LogicSig} LogicSig object
  */
 function makeLogicSig(program, args) {
-    return new LogicSig(program, args);
+  return new LogicSig(program, args);
+}
+
+/**
+ * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
+ * transaction which is a blob representing a transaction and logicsig object.
+ * @param {Object} txn transaction.Transaction
+ * @param {LogicSig} lsig logicsig object
+ * @returns {Object} Object containing txID and blob representing signed transaction.
+ */
+function signLogicSigTransactionObject(txn, lsig) {
+  const lstx = {
+    lsig: lsig.get_obj_for_encoding(),
+    txn: txn.get_obj_for_encoding(),
+  };
+
+  const isDelegated = lsig.sig || lsig.msig;
+  if (isDelegated) {
+    if (!lsig.verify(txn.from.publicKey)) {
+      throw new Error(
+        "Logic signature verification failed. Ensure the program is valid and the transaction sender is the program's delegated address."
+      );
+    }
+  } else {
+    // add AuthAddr if signing with a different program than From indicates for non-delegated LogicSig
+    const programAddr = lsig.address();
+    if (programAddr !== address.encodeAddress(txn.from.publicKey)) {
+      lstx.sgnr = Buffer.from(address.decodeAddress(programAddr).publicKey);
+    }
+  }
+
+  return {
+    txID: txn.txID().toString(),
+    blob: encoding.encode(lstx),
+  };
 }
 
 /**
@@ -185,44 +226,12 @@ function makeLogicSig(program, args) {
  * @throws error on failure
  */
 function signLogicSigTransaction(txn, lsig) {
-    // use signLogicSigTransactionObject directly if transaction already built
-    if (txn instanceof txnBuilder.Transaction) {
-        return signLogicSigTransactionObject(txn, lsig);
-    }
-    let algoTxn = new txnBuilder.Transaction(txn);
-    return signLogicSigTransactionObject(algoTxn, lsig);
-}
-
-/**
- * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
- * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} txn transaction.Transaction
- * @param {LogicSig} lsig logicsig object
- * @returns {Object} Object containing txID and blob representing signed transaction.
- */
-function signLogicSigTransactionObject(txn, lsig) {
-    const lstx = {
-        lsig: lsig.get_obj_for_encoding(),
-        txn: txn.get_obj_for_encoding()
-    };
-
-    const isDelegated = lsig.sig || lsig.msig;
-    if (isDelegated) {
-        if (!lsig.verify(txn.from.publicKey)) {
-            throw new Error("Logic signature verification failed. Ensure the program is valid and the transaction sender is the program's delegated address.");
-        }
-    } else {
-        // add AuthAddr if signing with a different program than From indicates for non-delegated LogicSig
-        const programAddr = lsig.address();
-        if (programAddr !== address.encodeAddress(txn.from.publicKey)) {
-            lstx.sgnr = Buffer.from(address.decodeAddress(programAddr).publicKey);
-        }
-    }
-
-    return {
-        "txID": txn.txID().toString(),
-        "blob": encoding.encode(lstx)
-    };
+  // use signLogicSigTransactionObject directly if transaction already built
+  if (txn instanceof txnBuilder.Transaction) {
+    return signLogicSigTransactionObject(txn, lsig);
+  }
+  const algoTxn = new txnBuilder.Transaction(txn);
+  return signLogicSigTransactionObject(algoTxn, lsig);
 }
 
 /**
@@ -230,10 +239,10 @@ function signLogicSigTransactionObject(txn, lsig) {
  * returning the result
  */
 function logicSigFromByte(encoded) {
-    return LogicSig.fromByte(encoded);
+  return LogicSig.fromByte(encoded);
 }
 
-const SIGN_PROGRAM_DATA_PREFIX = Buffer.from("ProgData");
+const SIGN_PROGRAM_DATA_PREFIX = Buffer.from('ProgData');
 
 /**
  * tealSign creates a signature compatible with ed25519verify opcode from contract address
@@ -242,9 +251,14 @@ const SIGN_PROGRAM_DATA_PREFIX = Buffer.from("ProgData");
  * @param contractAddress string representation of teal contract address (program hash)
  */
 function tealSign(sk, data, contractAddress) {
-    const parts = utils.concatArrays(address.decodeAddress(contractAddress).publicKey, data);
-    const toBeSigned = Buffer.from(utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts));
-    return nacl.sign(toBeSigned, sk);
+  const parts = utils.concatArrays(
+    address.decodeAddress(contractAddress).publicKey,
+    data
+  );
+  const toBeSigned = Buffer.from(
+    utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
+  );
+  return nacl.sign(toBeSigned, sk);
 }
 
 /**
@@ -254,17 +268,17 @@ function tealSign(sk, data, contractAddress) {
  * @param program - buffer with teal program
  */
 function tealSignFromProgram(sk, data, program) {
-    const lsig = makeLogicSig(program);
-    const contractAddress = lsig.address();
-    return tealSign(sk, data, contractAddress);
+  const lsig = makeLogicSig(program);
+  const contractAddress = lsig.address();
+  return tealSign(sk, data, contractAddress);
 }
 
 module.exports = {
-    LogicSig,
-    makeLogicSig,
-    signLogicSigTransaction,
-    signLogicSigTransactionObject,
-    logicSigFromByte,
-    tealSign,
-    tealSignFromProgram,
+  LogicSig,
+  makeLogicSig,
+  signLogicSigTransaction,
+  signLogicSigTransactionObject,
+  logicSigFromByte,
+  tealSign,
+  tealSignFromProgram,
 };

@@ -10,10 +10,11 @@
  *  5. Binary blob should be used for binary data and string for strings
  *  */
 
-const msgpack = require("algo-msgpack-with-bigint");
+const msgpack = require('algo-msgpack-with-bigint');
 
 // Errors
-const ERROR_CONTAINS_EMPTY_STRING = "The object contains empty or 0 values. First empty or 0 value encountered during encoding: ";
+const ERROR_CONTAINS_EMPTY_STRING =
+  'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
 
 /**
  * containsEmpty returns true if any of the object's values are empty, false otherwise.
@@ -22,14 +23,14 @@ const ERROR_CONTAINS_EMPTY_STRING = "The object contains empty or 0 values. Firs
  * @returns {{firstEmptyKey: string, containsEmpty: boolean}} {true, empty key} if contains empty, {false, undefined} otherwise
  */
 function containsEmpty(obj) {
-    for (let key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            if (!obj[key] || obj[key].length === 0) {
-              return {containsEmpty : true, firstEmptyKey: key}
-            }
-        }
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (!obj[key] || obj[key].length === 0) {
+        return { containsEmpty: true, firstEmptyKey: key };
+      }
     }
-    return {containsEmpty : false, firstEmptyKey: undefined};
+  }
+  return { containsEmpty: false, firstEmptyKey: undefined };
 }
 
 /**
@@ -39,17 +40,19 @@ function containsEmpty(obj) {
  * @throws Error containing ERROR_CONTAINS_EMPTY_STRING if the object contains empty or zero values
  */
 function encode(obj) {
-    // Check for empty values
-    let emptyCheck = containsEmpty(obj);
-    if (emptyCheck["containsEmpty"]) {throw new Error(ERROR_CONTAINS_EMPTY_STRING + emptyCheck["firstEmptyKey"]);}
+  // Check for empty values
+  const emptyCheck = containsEmpty(obj);
+  if (emptyCheck.containsEmpty) {
+    throw new Error(ERROR_CONTAINS_EMPTY_STRING + emptyCheck.firstEmptyKey);
+  }
 
-    // enable the canonical option
-    let options = {sortKeys: true};
-    return msgpack.encode(obj, options);
+  // enable the canonical option
+  const options = { sortKeys: true };
+  return msgpack.encode(obj, options);
 }
 
 function decode(obj) {
-    return msgpack.decode(obj);
+  return msgpack.decode(obj);
 }
 
-module.exports = {encode, decode, ERROR_CONTAINS_EMPTY_STRING};
+module.exports = { encode, decode, ERROR_CONTAINS_EMPTY_STRING };
