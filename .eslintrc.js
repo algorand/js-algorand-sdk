@@ -16,5 +16,10 @@ module.exports = {
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
     'max-classes-per-file': 'off',
   },
-  ignorePatterns: ['dist/'],
+  ignorePatterns: [
+    'dist/',
+    'tests/cucumber/features/',
+    'tests/cucumber/build/',
+    'tests/browser/bundle.*',
+  ],
 };
