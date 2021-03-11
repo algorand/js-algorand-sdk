@@ -3219,6 +3219,39 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'I use {int} to search for an account with {int}, {int}, {int}, {int}, {string}, {int}, {string} and token {string}',
+    async function (
+      clientNum,
+      assetIndex,
+      limit,
+      currencyGreater,
+      currencyLesser,
+      authAddr,
+      appID,
+      includeAll,
+      nextToken
+    ) {
+      if (includeAll !== 'true' && includeAll !== 'false') {
+        throw new Error(`Unknown value for includeAll: ${includeAll}`);
+      }
+
+      const ic = indexerIntegrationClients[clientNum];
+      integrationSearchAccountsResponse = await ic
+        .searchAccounts()
+        .assetID(assetIndex)
+        .currencyGreaterThan(currencyGreater)
+        .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .authAddr(authAddr)
+        .applicationID(appID)
+        .includeAll(includeAll === 'true')
+        .nextToken(nextToken)
+        .do();
+      this.responseForDirectJsonComparison = integrationSearchAccountsResponse;
+    }
+  );
+
   Then(
     'There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}, {string}, {string}',
     (
@@ -3436,12 +3469,52 @@ module.exports = function getSteps(options) {
   );
 
   When(
+    'I use {int} to search for applications with {int}, {int}, {string} and token {string}',
+    async function (clientNum, limit, appID, includeAll, token) {
+      if (includeAll !== 'true' && includeAll !== 'false') {
+        throw new Error(`Unknown value for includeAll: ${includeAll}`);
+      }
+
+      const ic = indexerIntegrationClients[clientNum];
+      this.responseForDirectJsonComparison = await ic
+        .searchForApplications()
+        .limit(limit)
+        .index(appID)
+        .includeAll(includeAll === 'true')
+        .nextToken(token)
+        .do();
+    }
+  );
+
+  When(
     'I use {int} to lookup application with {int}',
     async function (clientNum, appID) {
       const ic = indexerIntegrationClients[clientNum];
       this.responseForDirectJsonComparison = await ic
         .lookupApplications(appID)
         .do();
+    }
+  );
+
+  When(
+    'I use {int} to lookup application with {int} and {string}',
+    async function (clientNum, appID, includeAll) {
+      if (includeAll !== 'true' && includeAll !== 'false') {
+        throw new Error(`Unknown value for includeAll: ${includeAll}`);
+      }
+
+      const ic = indexerIntegrationClients[clientNum];
+      try {
+        this.responseForDirectJsonComparison = await ic
+          .lookupApplications(appID)
+          .includeAll(includeAll === 'true')
+          .do();
+      } catch (err) {
+        if (err.status !== 404) {
+          throw err;
+        }
+        this.responseForDirectJsonComparison = err.response.body;
+      }
     }
   );
 

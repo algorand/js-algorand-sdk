@@ -10,6 +10,12 @@ class LookupAssetByID extends JSONRequest {
   _path() {
     return `/v2/assets/${this.index}`;
   }
+
+  // include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+  includeAll(value = true) {
+    this.query['include-all'] = value;
+    return this;
+  }
 }
 
 module.exports = { LookupAssetByID };
