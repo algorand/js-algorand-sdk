@@ -26,7 +26,7 @@ class Compile {
    * @returns {Promise<*>}
    */
   async do(headers = {}) {
-    const txHeaders = this.setHeaders(headers);
+    const txHeaders = setHeaders(headers);
     const res = await this.c.post(
       '/v2/teal/compile',
       Buffer.from(this.source),
