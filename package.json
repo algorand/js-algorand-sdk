@@ -42,6 +42,8 @@
     "mock-http-server": "^1.4.2",
     "prettier": "2.2.1",
     "selenium-webdriver": "^4.0.0-alpha.7",
+    "source-map-loader": "^2.0.1",
+    "ts-loader": "^8.0.18",
     "typescript": "^4.2.3",
     "webpack": "^5.5.1",
     "webpack-cli": "^4.2.0"
