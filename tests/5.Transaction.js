@@ -4,6 +4,30 @@ const algosdk = require('../index');
 const group = require('../src/group');
 
 describe('Sign', () => {
+  /* eslint-disable no-console */
+  const originalLogFunction = console.log;
+  let logs;
+
+  beforeEach(() => {
+    logs = '';
+
+    // Mock console.log to suppress logs during tests
+    console.log = (msg) => {
+      logs += `${msg}\n`;
+    };
+  });
+
+  afterEach(function Cleanup() {
+    // Unmock console.log
+    console.log = originalLogFunction;
+
+    // Unsuppress logs if the test failed
+    if (this.currentTest.state === 'failed') {
+      console.log(logs);
+    }
+  });
+  /* eslint-enable no-console */
+
   it('should not modify input arrays', () => {
     const appArgs = [Uint8Array.from([1, 2]), Uint8Array.from([3, 4])];
     const appAccounts = [
