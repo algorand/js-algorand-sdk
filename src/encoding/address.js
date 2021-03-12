@@ -1,6 +1,6 @@
 const base32 = require('hi-base32');
 const nacl = require('../nacl/naclWrappers');
-const utils = require('../utils/utils');
+const utils = require('../utils/utils.ts');
 
 const ALGORAND_ADDRESS_BYTE_LENGTH = 36;
 const ALGORAND_CHECKSUM_BYTE_LENGTH = 4;

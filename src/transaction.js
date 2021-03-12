@@ -3,7 +3,7 @@ const base32 = require('hi-base32');
 const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
 const nacl = require('./nacl/naclWrappers');
-const utils = require('./utils/utils');
+const utils = require('./utils/utils.ts');
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 const ALGORAND_MIN_TX_FEE = 1000; // version v5

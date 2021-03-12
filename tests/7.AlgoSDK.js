@@ -2,7 +2,7 @@ const assert = require('assert');
 const { Buffer } = require('buffer');
 const algosdk = require('../index');
 const nacl = require('../src/nacl/naclWrappers');
-const utils = require('../src/utils/utils');
+const utils = require('../src/utils/utils.ts');
 
 describe('Algosdk (AKA end to end)', () => {
   describe('#mnemonic', () => {

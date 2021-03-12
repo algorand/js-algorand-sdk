@@ -6,7 +6,7 @@ const logic = require('../logic/logic');
 const logicSig = require('../logicsig');
 const nacl = require('../nacl/naclWrappers');
 const templates = require('./templates');
-const utils = require('../utils/utils');
+const utils = require('../utils/utils.ts');
 
 class LimitOrder {
   /**
