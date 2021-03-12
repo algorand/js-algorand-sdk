@@ -1,4 +1,10 @@
-const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
+import JSONbigWithoutConfig from 'json-bigint';
+
+const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
+
+interface JSONOptions {
+  intDecoding: 'default' | 'safe' | 'mixed' | 'bigint';
+}
 
 /**
  * Parse JSON with additional options.
@@ -18,7 +24,7 @@ const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
  *
  *   Defaults to "default" if not included.
  */
-function parseJSON(str, options = undefined) {
+export function parseJSON(str: string, options?: JSONOptions) {
   const intDecoding =
     options && options.intDecoding ? options.intDecoding : 'default';
   const parsed = JSONbig.parse(str, (_, value) => {
@@ -64,9 +70,8 @@ function parseJSON(str, options = undefined) {
 
 /**
  * ArrayEqual takes two arrays and return true if equal, false otherwise
- * @return {boolean}
  */
-function arrayEqual(a, b) {
+export function arrayEqual<T>(a: T[], b: T[]) {
   if (a.length !== b.length) {
     return false;
   }
@@ -77,17 +82,11 @@ function arrayEqual(a, b) {
  * ConcatArrays takes two array and returns a joint array of both
  * @param a
  * @param b
- * @returns {Uint8Array} [a,b]
+ * @returns [a,b]
  */
-function concatArrays(a, b) {
+export function concatArrays(a: any[], b: any[]) {
   const c = new Uint8Array(a.length + b.length);
   c.set(a);
   c.set(b, a.length);
   return c;
 }
-
-module.exports = {
-  parseJSON,
-  arrayEqual,
-  concatArrays,
-};
