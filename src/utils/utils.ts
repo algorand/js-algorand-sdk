@@ -71,11 +71,11 @@ export function parseJSON(str: string, options?: JSONOptions) {
 /**
  * ArrayEqual takes two arrays and return true if equal, false otherwise
  */
-export function arrayEqual<T>(a: T[], b: T[]) {
+export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {
   if (a.length !== b.length) {
     return false;
   }
-  return a.every((val, i) => val === b[i]);
+  return Array.from(a).every((val, i) => val === b[i]);
 }
 
 /**
@@ -84,7 +84,7 @@ export function arrayEqual<T>(a: T[], b: T[]) {
  * @param b
  * @returns [a,b]
  */
-export function concatArrays(a: any[], b: any[]) {
+export function concatArrays(a: ArrayLike<any>, b: ArrayLike<any>) {
   const c = new Uint8Array(a.length + b.length);
   c.set(a);
   c.set(b, a.length);

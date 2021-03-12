@@ -3,7 +3,7 @@ const assert = require('assert');
 const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require('path');
-const nacl = require('../../../src/nacl/naclWrappers');
+const nacl = require('../../../src/nacl/naclWrappers.ts');
 const algosdk = require('../../../index');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
