@@ -1,5 +1,3 @@
-const { Buffer } = require('buffer');
-
 /**
  * Sets the default header (if not previously set)
  * @param headers

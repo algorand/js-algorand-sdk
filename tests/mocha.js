@@ -4,6 +4,8 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
+const webpackConfig = require('../webpack.config.js');
+
 const browser = process.env.TEST_BROWSER;
 
 async function testRunner() {
@@ -19,35 +21,21 @@ async function testRunner() {
     const bundleLocation = path.join(__dirname, 'browser', 'bundle.js');
 
     await new Promise((resolve, reject) => {
-      webpack(
-        {
-          entry: testFiles,
-          output: {
-            filename: path.basename(bundleLocation),
-            path: path.dirname(bundleLocation),
-          },
-          devtool: 'source-map',
-          resolve: {
-            // Add '.ts' as resolvable extensions
-            extensions: ['.ts', '.js'],
-          },
-          module: {
-            rules: [
-              // All files with a '.ts' extension will be handled by 'ts-loader'.
-              { test: /\.ts$/, loader: 'ts-loader' },
+      // Change entry and output for webpack config
+      const webpackTestConfig = Object.assign(webpackConfig);
 
-              // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-              { test: /\.js$/, loader: 'source-map-loader' },
-            ],
-          },
-        },
-        (err, stats) => {
-          if (err || stats.hasErrors()) {
-            return reject(err || stats.toJson());
-          }
-          return resolve();
+      webpackTestConfig.entry = testFiles;
+      webpackTestConfig.output = {
+        filename: path.basename(bundleLocation),
+        path: path.dirname(bundleLocation),
+      };
+
+      webpack(webpackTestConfig, (err, stats) => {
+        if (err || stats.hasErrors()) {
+          return reject(err || stats.toJson());
         }
-      );
+        return resolve();
+      });
     });
 
     console.log('Testing in browser');

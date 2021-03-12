@@ -1,5 +1,4 @@
 /* eslint-disable no-bitwise */
-const { Buffer } = require('buffer');
 const address = require('../encoding/address');
 
 function putUvarint(buf, x) {

@@ -1,4 +1,3 @@
-const { Buffer } = require('buffer');
 const request = require('superagent');
 const utils = require('../utils/utils.ts');
 

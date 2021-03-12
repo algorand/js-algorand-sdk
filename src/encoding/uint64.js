@@ -1,5 +1,3 @@
-const { Buffer } = require('buffer');
-
 /**
  * encodeUint64 converts an integer to its binary representation.
  * @param {number | bigint} num The number to convert. This must be an unsigned integer less than

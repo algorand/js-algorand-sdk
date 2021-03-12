@@ -1,4 +1,3 @@
-const { Buffer } = require('buffer');
 const base32 = require('hi-base32');
 const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
