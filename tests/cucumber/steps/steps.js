@@ -52,6 +52,14 @@ function makeEmptyObject() {
   return {};
 }
 
+function formatIncludeAll(includeAll) {
+  if (!['true', 'false'].includes(includeAll)) {
+    throw new Error(`Unknown value for includeAll: ${includeAll}`);
+  }
+
+  return includeAll === 'true';
+}
+
 const steps = {
   given: {},
   when: {},
@@ -3232,10 +3240,6 @@ module.exports = function getSteps(options) {
       includeAll,
       nextToken
     ) {
-      if (includeAll !== 'true' && includeAll !== 'false') {
-        throw new Error(`Unknown value for includeAll: ${includeAll}`);
-      }
-
       const ic = indexerIntegrationClients[clientNum];
       integrationSearchAccountsResponse = await ic
         .searchAccounts()
@@ -3245,7 +3249,7 @@ module.exports = function getSteps(options) {
         .limit(limit)
         .authAddr(authAddr)
         .applicationID(appID)
-        .includeAll(includeAll === 'true')
+        .includeAll(formatIncludeAll(includeAll))
         .nextToken(nextToken)
         .do();
       this.responseForDirectJsonComparison = integrationSearchAccountsResponse;
@@ -3471,16 +3475,12 @@ module.exports = function getSteps(options) {
   When(
     'I use {int} to search for applications with {int}, {int}, {string} and token {string}',
     async function (clientNum, limit, appID, includeAll, token) {
-      if (includeAll !== 'true' && includeAll !== 'false') {
-        throw new Error(`Unknown value for includeAll: ${includeAll}`);
-      }
-
       const ic = indexerIntegrationClients[clientNum];
       this.responseForDirectJsonComparison = await ic
         .searchForApplications()
         .limit(limit)
         .index(appID)
-        .includeAll(includeAll === 'true')
+        .includeAll(formatIncludeAll(includeAll))
         .nextToken(token)
         .do();
     }
@@ -3499,15 +3499,11 @@ module.exports = function getSteps(options) {
   When(
     'I use {int} to lookup application with {int} and {string}',
     async function (clientNum, appID, includeAll) {
-      if (includeAll !== 'true' && includeAll !== 'false') {
-        throw new Error(`Unknown value for includeAll: ${includeAll}`);
-      }
-
       const ic = indexerIntegrationClients[clientNum];
       try {
         this.responseForDirectJsonComparison = await ic
           .lookupApplications(appID)
-          .includeAll(includeAll === 'true')
+          .includeAll(formatIncludeAll(includeAll))
           .do();
       } catch (err) {
         if (err.status !== 404) {
