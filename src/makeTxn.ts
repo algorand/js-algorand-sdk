@@ -1,10 +1,16 @@
 import txnBuilder from './transaction';
 import {
-  PaymentTransaction,
+  // Transaction types
+  PaymentTxn,
+  KeyRegistrationTxn,
+
+  // Utilities
   TransactionType,
   SuggestedParams,
   MustHaveSuggestedParams,
+  MustHaveSuggestedParamsInline,
 } from './types/transactions';
+import { RenameProperty } from './types/utils';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
@@ -25,15 +31,15 @@ import {
  * @returns {Transaction}
  */
 function makePaymentTxnWithSuggestedParams(
-  from,
-  to,
-  amount,
-  closeRemainderTo,
-  note,
-  suggestedParams,
-  rekeyTo = undefined
+  from: PaymentTxn['from'],
+  to: PaymentTxn['to'],
+  amount: PaymentTxn['amount'],
+  closeRemainderTo: PaymentTxn['closeRemainderTo'],
+  note: PaymentTxn['note'],
+  suggestedParams: MustHaveSuggestedParams<PaymentTxn>['suggestedParams'],
+  rekeyTo: PaymentTxn['reKeyTo']
 ) {
-  const o: PaymentTransaction = {
+  const o: PaymentTxn = {
     from,
     to,
     amount,
@@ -64,17 +70,17 @@ function makePaymentTxnWithSuggestedParams(
  * @returns {Transaction}
  */
 function makePaymentTxn(
-  from,
-  to,
-  fee,
-  amount,
-  closeRemainderTo,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  rekeyTo = undefined
+  from: PaymentTxn['from'],
+  to: PaymentTxn['to'],
+  fee: MustHaveSuggestedParamsInline<PaymentTxn>['fee'],
+  amount: PaymentTxn['amount'],
+  closeRemainderTo: PaymentTxn['closeRemainderTo'],
+  firstRound: MustHaveSuggestedParamsInline<PaymentTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<PaymentTxn>['lastRound'],
+  note: PaymentTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<PaymentTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<PaymentTxn>['genesisID'],
+  reKeyTo: PaymentTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -90,14 +96,14 @@ function makePaymentTxn(
     closeRemainderTo,
     note,
     suggestedParams,
-    rekeyTo
+    reKeyTo
   );
 }
 
 // helper for above makePaymentTxnWithSuggestedParams, instead accepting an arguments object
 function makePaymentTxnWithSuggestedParamsFromObject(
   o: Pick<
-    MustHaveSuggestedParams<PaymentTransaction>,
+    MustHaveSuggestedParams<PaymentTxn>,
     | 'from'
     | 'to'
     | 'amount'
@@ -143,18 +149,18 @@ function makePaymentTxnWithSuggestedParamsFromObject(
  * @returns {Transaction}
  */
 function makeKeyRegistrationTxnWithSuggestedParams(
-  from,
-  note,
-  voteKey,
-  selectionKey,
-  voteFirst,
-  voteLast,
-  voteKeyDilution,
-  suggestedParams,
-  rekeyTo = undefined,
-  nonParticipation = false
+  from: KeyRegistrationTxn['from'],
+  note: KeyRegistrationTxn['note'],
+  voteKey: KeyRegistrationTxn['voteKey'],
+  selectionKey: KeyRegistrationTxn['selectionKey'],
+  voteFirst: KeyRegistrationTxn['voteFirst'],
+  voteLast: KeyRegistrationTxn['voteLast'],
+  voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
+  suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
+  rekeyTo: KeyRegistrationTxn['reKeyTo'],
+  nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
 ) {
-  const o = {
+  const o: KeyRegistrationTxn = {
     from,
     note,
     voteKey,
@@ -163,7 +169,7 @@ function makeKeyRegistrationTxnWithSuggestedParams(
     voteLast,
     voteKeyDilution,
     suggestedParams,
-    type: 'keyreg',
+    type: TransactionType.keyreg,
     reKeyTo: rekeyTo,
     nonParticipation,
   };
@@ -194,22 +200,22 @@ function makeKeyRegistrationTxnWithSuggestedParams(
  * @returns {Transaction}
  */
 function makeKeyRegistrationTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  voteKey,
-  selectionKey,
-  voteFirst,
-  voteLast,
-  voteKeyDilution,
-  rekeyTo = undefined,
-  nonParticipation = false
+  from: KeyRegistrationTxn['from'],
+  fee: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['lastRound'],
+  note: KeyRegistrationTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['genesisID'],
+  voteKey: KeyRegistrationTxn['voteKey'],
+  selectionKey: KeyRegistrationTxn['selectionKey'],
+  voteFirst: KeyRegistrationTxn['voteFirst'],
+  voteLast: KeyRegistrationTxn['voteLast'],
+  voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
+  rekeyTo: KeyRegistrationTxn['reKeyTo'],
+  nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -231,7 +237,25 @@ function makeKeyRegistrationTxn(
 }
 
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
-function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
+function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperty<
+      MustHaveSuggestedParams<KeyRegistrationTxn>,
+      'reKeyTo',
+      'rekeyTo'
+    >,
+    | 'from'
+    | 'note'
+    | 'voteKey'
+    | 'selectionKey'
+    | 'voteFirst'
+    | 'voteLast'
+    | 'voteKeyDilution'
+    | 'suggestedParams'
+    | 'rekeyTo'
+    | 'nonParticipation'
+  >
+) {
   return makeKeyRegistrationTxnWithSuggestedParams(
     o.from,
     o.note,

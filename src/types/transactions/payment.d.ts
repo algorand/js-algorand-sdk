@@ -1,8 +1,8 @@
-import { TransactionType, AvailableTransactionParams } from './base';
+import { TransactionType, TransactionParams } from './base';
 import { ConstructTransaction } from './builder';
 
 type SpecificParameters = Pick<
-  AvailableTransactionParams,
+  TransactionParams,
   'to' | 'amount' | 'closeRemainderTo'
 >;
 

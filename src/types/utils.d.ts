@@ -28,3 +28,13 @@ export type NeverAllow<T, K extends keyof T> = {
   // eslint-disable-next-line no-unused-vars
   [P in K]?: never;
 };
+
+/**
+ * Rename a specific property of a type to another name
+ *
+ * Usage: RenameProperty<{ a: string }, 'a', 'b'>
+ * -> { b: string }
+ */
+export type RenameProperty<T, K extends keyof T, R extends PropertyKey> = {
+  [P in keyof T as P extends K ? R : P]: T[P];
+};

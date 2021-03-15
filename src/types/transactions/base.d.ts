@@ -103,7 +103,7 @@ export interface SuggestedParams {
  * The full documentation is available at:
  * https://developer.algorand.org/docs/reference/transactions/#common-fields-header-and-type
  */
-export interface AvailableTransactionParams {
+export interface TransactionParams {
   /**
    * String representation of Algorand address of sender
    */

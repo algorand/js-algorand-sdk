@@ -1,11 +1,11 @@
 import { DistributiveOverwrite } from '../utils';
-import { AvailableTransactionParams, SuggestedParams } from './base';
+import { TransactionParams, SuggestedParams } from './base';
 
 /**
  * Transaction base with suggested params as object
  */
 type TransactionBaseWithSuggestedParams = Pick<
-  AvailableTransactionParams,
+  TransactionParams,
   'suggestedParams' | 'from' | 'type' | 'lease' | 'note' | 'reKeyTo'
 >;
 
@@ -13,7 +13,7 @@ type TransactionBaseWithSuggestedParams = Pick<
  * Transaction base with suggested params included as parameters
  */
 type TransactionBaseWithoutSuggestedParams = Pick<
-  AvailableTransactionParams,
+  TransactionParams,
   | 'fee'
   | 'firstRound'
   | 'lastRound'
@@ -56,5 +56,13 @@ export type MustHaveSuggestedParams<T extends ConstructTransaction> = Extract<
   T,
   { suggestedParams: SuggestedParams }
 >;
+
+/**
+ * Only accept transaction objects that include suggestedParams inline instead of being
+ * enclosed in its own property
+ */
+export type MustHaveSuggestedParamsInline<
+  T extends ConstructTransaction
+> = Extract<T, Pick<TransactionParams, keyof SuggestedParams>>;
 
 export default ConstructTransaction;
