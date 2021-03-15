@@ -61,7 +61,8 @@
     "build": "webpack --config webpack.config.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "example": "ts-node"
   },
   "author": "Algorand, llc",
   "license": "MIT"

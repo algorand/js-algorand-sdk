@@ -1,5 +1,13 @@
 # Instructions for running examples
 
+## Running examples
+
+Portions of the codebase are written in TypeScript, so running examples requires [`ts-node`](https://github.com/TypeStrong/ts-node), an npm package that runs TypeScript files directly. To make this easier for the user, we've included an `example` alias for `ts-node` in the project's `package.json` scripts:
+
+```sh
+$ npm run example examples/generate_sender_receiver.js
+```
+
 ## Configuration
 
 Many of the examples in this folder require configuration information such as:

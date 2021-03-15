@@ -44,7 +44,7 @@ For detailed information about the different API calls in `client`, visit https:
 
 Running examples requires access to a running node. Follow the instructions in Algorand's [developer resources](https://developer.algorand.org/docs/run-a-node/setup/install/) to install a node on your computer.
 
-Please refer to the instructions described in the [examples/README.md](examples/README.md) file for more information regarding running the examples.
+**As portions of the codebase are written in TypeScript, examples cannot be run directly using `node`**. Please refer to the instructions described in the [examples/README.md](examples/README.md) file for more information regarding running the examples.
 
 ## SDK Development
 
