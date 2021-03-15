@@ -1,4 +1,10 @@
-const txnBuilder = require('./transaction');
+import txnBuilder from './transaction';
+import {
+  PaymentTransaction,
+  TransactionType,
+  SuggestedParams,
+  MustHaveSuggestedParams,
+} from './types/transactions';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
@@ -27,14 +33,14 @@ function makePaymentTxnWithSuggestedParams(
   suggestedParams,
   rekeyTo = undefined
 ) {
-  const o = {
+  const o: PaymentTransaction = {
     from,
     to,
     amount,
     closeRemainderTo,
     note,
     suggestedParams,
-    type: 'pay',
+    type: TransactionType.pay,
     reKeyTo: rekeyTo,
   };
   return new txnBuilder.Transaction(o);
@@ -70,7 +76,7 @@ function makePaymentTxn(
   genesisID,
   rekeyTo = undefined
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -89,7 +95,18 @@ function makePaymentTxn(
 }
 
 // helper for above makePaymentTxnWithSuggestedParams, instead accepting an arguments object
-function makePaymentTxnWithSuggestedParamsFromObject(o) {
+function makePaymentTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    MustHaveSuggestedParams<PaymentTransaction>,
+    | 'from'
+    | 'to'
+    | 'amount'
+    | 'closeRemainderTo'
+    | 'note'
+    | 'suggestedParams'
+    | 'reKeyTo'
+  >
+) {
   return makePaymentTxnWithSuggestedParams(
     o.from,
     o.to,
@@ -97,7 +114,7 @@ function makePaymentTxnWithSuggestedParamsFromObject(o) {
     o.closeRemainderTo,
     o.note,
     o.suggestedParams,
-    o.rekeyTo
+    o.reKeyTo
   );
 }
 
