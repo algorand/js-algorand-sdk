@@ -1,4 +1,5 @@
 import txnBuilder from './transaction';
+import { OnApplicationComplete } from './types/transactions/base';
 import {
   // Transaction types
   PaymentTxn,
@@ -14,6 +15,8 @@ import {
   AssetDestroyTxn,
   AssetFreezeTxn,
   AssetTransferTxn,
+  AppCreateTxn,
+  AppUpdateTxn,
 } from './types/transactions';
 import { RenameProperties, RenameProperty } from './types/utils';
 
@@ -970,32 +973,6 @@ function makeAssetTransferTxnWithSuggestedParamsFromObject(
   );
 }
 
-/*
- * Enums for application transactions on-transaction-complete behavior
- */
-const OnApplicationComplete = {
-  // NoOpOC indicates that an application transaction will simply call its
-  // ApprovalProgram
-  NoOpOC: 0,
-  // OptInOC indicates that an application transaction will allocate some
-  // LocalState for the application in the sender's account
-  OptInOC: 1,
-  // CloseOutOC indicates that an application transaction will deallocate
-  // some LocalState for the application from the user's account
-  CloseOutOC: 2,
-  // ClearStateOC is similar to CloseOutOC, but may never fail. This
-  // allows users to reclaim their minimum balance from an application
-  // they no longer wish to opt in to.
-  ClearStateOC: 3,
-  // UpdateApplicationOC indicates that an application transaction will
-  // update the ApprovalProgram and ClearStateProgram for the application
-  UpdateApplicationOC: 4,
-  // DeleteApplicationOC indicates that an application transaction will
-  // delete the AppParams for the application from the creator's balance
-  // record
-  DeleteApplicationOC: 5,
-};
-
 /**
  * Make a transaction that will create an application.
  * @param from - address of sender
@@ -1023,25 +1000,25 @@ const OnApplicationComplete = {
  * @param rekeyTo, optional
  */
 function makeApplicationCreateTxn(
-  from,
-  suggestedParams,
-  onComplete,
-  approvalProgram,
-  clearProgram,
-  numLocalInts,
-  numLocalByteSlices,
-  numGlobalInts,
-  numGlobalByteSlices,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+  from: AppCreateTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppCreateTxn>['suggestedParams'],
+  onComplete: AppCreateTxn['appOnComplete'],
+  approvalProgram: AppCreateTxn['appApprovalProgram'],
+  clearProgram: AppCreateTxn['appClearProgram'],
+  numLocalInts: AppCreateTxn['appLocalInts'],
+  numLocalByteSlices: AppCreateTxn['appLocalByteSlices'],
+  numGlobalInts: AppCreateTxn['appGlobalInts'],
+  numGlobalByteSlices: AppCreateTxn['appGlobalByteSlices'],
+  appArgs: AppCreateTxn['appArgs'],
+  accounts: AppCreateTxn['appAccounts'],
+  foreignApps: AppCreateTxn['appForeignApps'],
+  foreignAssets: AppCreateTxn['appForeignAssets'],
+  note: AppCreateTxn['note'],
+  lease: AppCreateTxn['lease'],
+  rekeyTo: AppCreateTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppCreateTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex: 0,
@@ -1064,7 +1041,42 @@ function makeApplicationCreateTxn(
 }
 
 // helper for above makeApplicationCreateTxn, instead accepting an arguments object
-function makeApplicationCreateTxnFromObject(o) {
+function makeApplicationCreateTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppCreateTxn>,
+      {
+        appOnComplete: 'onComplete';
+        appApprovalProgram: 'approvalProgram';
+        appClearProgram: 'clearProgram';
+        appLocalInts: 'numLocalInts';
+        appLocalByteSlices: 'numLocalByteSlices';
+        appGlobalInts: 'numGlobalInts';
+        appGlobalByteSlices: 'numGlobalByteSlices';
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'onComplete'
+    | 'approvalProgram'
+    | 'clearProgram'
+    | 'numLocalInts'
+    | 'numLocalByteSlices'
+    | 'numGlobalInts'
+    | 'numGlobalByteSlices'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationCreateTxn(
     o.from,
     o.suggestedParams,
@@ -1108,21 +1120,21 @@ function makeApplicationCreateTxnFromObject(o) {
  * @param rekeyTo, optional
  */
 function makeApplicationUpdateTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  approvalProgram,
-  clearProgram,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+  from: AppUpdateTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppUpdateTxn>['suggestedParams'],
+  appIndex: AppUpdateTxn['appIndex'],
+  approvalProgram: AppUpdateTxn['appApprovalProgram'],
+  clearProgram: AppUpdateTxn['appClearProgram'],
+  appArgs: AppUpdateTxn['appArgs'],
+  accounts: AppUpdateTxn['appAccounts'],
+  foreignApps: AppUpdateTxn['appForeignApps'],
+  foreignAssets: AppUpdateTxn['appForeignAssets'],
+  note: AppUpdateTxn['note'],
+  lease: AppUpdateTxn['lease'],
+  rekeyTo: AppUpdateTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppUpdateTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1141,7 +1153,33 @@ function makeApplicationUpdateTxn(
 }
 
 // helper for above makeApplicationUpdateTxn, instead accepting an arguments object
-function makeApplicationUpdateTxnFromObject(o) {
+function makeApplicationUpdateTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppUpdateTxn>,
+      {
+        appApprovalProgram: 'approvalProgram';
+        appClearProgram: 'clearProgram';
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'approvalProgram'
+    | 'clearProgram'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationUpdateTxn(
     o.from,
     o.suggestedParams,

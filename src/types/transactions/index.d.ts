@@ -15,3 +15,7 @@ export {
   AssetFreezeTransaction as AssetFreezeTxn,
   AssetTransferTransaction as AssetTransferTxn,
 } from './asset';
+export {
+  ApplicationCreateTransaction as AppCreateTxn,
+  ApplicationUpdateTransaction as AppUpdateTxn,
+} from './application';
