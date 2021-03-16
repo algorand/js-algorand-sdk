@@ -1,6 +1,7 @@
 import base32 from 'hi-base32';
 import * as nacl from '../nacl/naclWrappers';
 import * as utils from '../utils/utils';
+import { Address } from '../types/address';
 
 const ALGORAND_ADDRESS_BYTE_LENGTH = 36;
 const ALGORAND_CHECKSUM_BYTE_LENGTH = 4;
@@ -38,7 +39,7 @@ export const UNEXPECTED_PK_LEN_ERROR_MSG =
  * @param address an Algorand address with checksum.
  * @returns the decoded form of the address's public key and checksum
  */
-export function decodeAddress(address: string | String) {
+export function decodeAddress(address: string | String): Address {
   if (
     !(typeof address === 'string' || address instanceof String) ||
     address.length !== ALGORAND_ADDRESS_LENGTH

@@ -84,18 +84,35 @@ export enum OnApplicationComplete {
  * A dict holding common-to-all-txns arguments
  */
 export interface SuggestedParams {
-  // Set this to true to specify fee as microalgos-per-txn
-  //   If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum
+  /**
+   * Set this to true to specify fee as microalgos-per-txn
+   *   If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum
+   */
   flatFee?: boolean;
-  // Integer fee per byte, in microAlgos. For a flat fee, set flatFee to true
+
+  /**
+   * Integer fee per byte, in microAlgos. For a flat fee, set flatFee to true
+   */
   fee: number;
-  // First protocol round on which this txn is valid
+
+  /**
+   * First protocol round on which this txn is valid
+   */
   firstRound: number;
-  // Last protocol round on which this txn is valid
+
+  /**
+   * Last protocol round on which this txn is valid
+   */
   lastRound: number;
-  // Specifies genesis ID of network in use
+
+  /**
+   * Specifies genesis ID of network in use
+   */
   genesisID: string;
-  // Specifies hash genesis block of network in use
+
+  /**
+   * Specifies hash genesis block of network in use
+   */
   genesisHash: string;
 }
 
@@ -331,7 +348,7 @@ export interface TransactionParams {
    *
    * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum
    */
-  flatFee: boolean;
+  flatFee?: boolean;
 
   /**
    * A dict holding common-to-all-txns arguments

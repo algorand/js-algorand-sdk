@@ -1,11 +1,23 @@
-const base32 = require('hi-base32');
-const address = require('./encoding/address');
-const encoding = require('./encoding/encoding');
-const nacl = require('./nacl/naclWrappers');
-const utils = require('./utils/utils.ts');
+import base32 from 'hi-base32';
+import * as address from './encoding/address';
+import * as encoding from './encoding/encoding';
+import * as nacl from './nacl/naclWrappers';
+import * as utils from './utils/utils';
+import {
+  OnApplicationComplete,
+  TransactionParams,
+  TransactionType,
+} from './types/transactions/base';
+import AnyTransaction, {
+  MustHaveSuggestedParams,
+  MustHaveSuggestedParamsInline,
+  EncodedTransaction,
+  EncodedSignedTransaction,
+} from './types/transactions';
+import { Address } from './types/address';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
-const ALGORAND_MIN_TX_FEE = 1000; // version v5
+export const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 const ALGORAND_MAX_ASSET_DECIMALS = 19;
 const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the number of bytes added to a txn after signing it
@@ -13,322 +25,411 @@ const ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH = 5;
 const ALGORAND_TRANSACTION_ADDRESS_LENGTH = 32;
 const ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH = 5;
 const ASSET_METADATA_HASH_LENGTH = 32;
+
+type AnyTransactionWithParams = MustHaveSuggestedParams<AnyTransaction>;
+type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransaction>;
+
+/**
+ * A modified version of the transaction params. Represents the internal structure that the Transaction class uses
+ * to store inputted transaction objects.
+ */
+// Omit allows overwriting properties
+interface TransactionStorageStructure
+  extends Omit<
+    TransactionParams,
+    | 'from'
+    | 'to'
+    | 'genesisHash'
+    | 'closeRemainderTo'
+    | 'voteKey'
+    | 'selectionKey'
+    | 'assetManager'
+    | 'assetReserve'
+    | 'assetFreeze'
+    | 'assetClawback'
+    | 'assetRevocationTarget'
+    | 'freezeAccount'
+    | 'appAccounts'
+    | 'suggestedParams'
+    | 'reKeyTo'
+  > {
+  from: string | Address;
+  to: string | Address;
+  fee: number;
+  amount: number;
+  firstRound: number;
+  lastRound: number;
+  note?: Uint8Array;
+  genesisID: string;
+  genesisHash: string | Buffer;
+  lease?: Uint8Array;
+  closeRemainderTo?: string | Address;
+  voteKey: string | Buffer;
+  selectionKey: string | Buffer;
+  voteFirst: number;
+  voteLast: number;
+  voteKeyDilution: number;
+  assetIndex: number;
+  assetTotal: number;
+  assetDecimals: number;
+  assetDefaultFrozen: boolean;
+  assetManager: string | Address;
+  assetReserve: string | Address;
+  assetFreeze: string | Address;
+  assetClawback: string | Address;
+  assetUnitName: string;
+  assetName: string;
+  assetURL: string;
+  assetMetadataHash: string | Uint8Array;
+  freezeAccount: string | Address;
+  freezeState: boolean;
+  assetRevocationTarget?: string | Address;
+  appIndex: number;
+  appOnComplete: OnApplicationComplete;
+  appLocalInts: number;
+  appLocalByteSlices: number;
+  appGlobalInts: number;
+  appGlobalByteSlices: number;
+  appApprovalProgram: Uint8Array;
+  appClearProgram: Uint8Array;
+  appArgs?: Uint8Array[];
+  appAccounts?: string[] | Address[];
+  appForeignApps?: number[];
+  appForeignAssets?: number[];
+  type?: TransactionType;
+  flatFee: boolean;
+  reKeyTo?: string | Address;
+  nonParticipation?: boolean;
+  group: undefined;
+}
+
 /**
  * Transaction enables construction of Algorand transactions
  * */
-class Transaction {
-  /* eslint-disable no-param-reassign */
-  constructor({
-    from,
-    to,
-    fee,
-    amount,
-    firstRound,
-    lastRound,
-    note,
-    genesisID,
-    genesisHash,
-    lease,
-    closeRemainderTo,
-    voteKey,
-    selectionKey,
-    voteFirst,
-    voteLast,
-    voteKeyDilution,
-    assetIndex,
-    assetTotal,
-    assetDecimals,
-    assetDefaultFrozen,
-    assetManager,
-    assetReserve,
-    assetFreeze,
-    assetClawback,
-    assetUnitName,
-    assetName,
-    assetURL,
-    assetMetadataHash,
-    freezeAccount,
-    freezeState,
-    assetRevocationTarget,
-    appIndex,
-    appOnComplete,
-    appLocalInts,
-    appLocalByteSlices,
-    appGlobalInts,
-    appGlobalByteSlices,
-    appApprovalProgram,
-    appClearProgram,
-    appArgs,
-    appAccounts,
-    appForeignApps,
-    appForeignAssets,
-    type = 'pay',
-    flatFee = false,
-    suggestedParams = undefined,
-    reKeyTo = undefined,
-    nonParticipation = false,
-  }) {
-    this.name = 'Transaction';
-    this.tag = Buffer.from('TX');
+export class Transaction implements TransactionStorageStructure {
+  name = 'Transaction';
+  tag = Buffer.from('TX');
 
-    if (suggestedParams !== undefined) {
-      genesisHash = suggestedParams.genesisHash;
-      fee = suggestedParams.fee;
-      if (suggestedParams.flatFee !== undefined)
-        flatFee = suggestedParams.flatFee;
-      firstRound = suggestedParams.firstRound;
-      lastRound = suggestedParams.lastRound;
-      genesisID = suggestedParams.genesisID;
+  // Implement transaction params
+  from: Address;
+  to: Address;
+  fee: number;
+  amount: number;
+  firstRound: number;
+  lastRound: number;
+  note?: Uint8Array;
+  genesisID: string;
+  genesisHash: Buffer;
+  lease?: Uint8Array;
+  closeRemainderTo?: Address;
+  voteKey: Buffer;
+  selectionKey: Buffer;
+  voteFirst: number;
+  voteLast: number;
+  voteKeyDilution: number;
+  assetIndex: number;
+  assetTotal: number;
+  assetDecimals: number;
+  assetDefaultFrozen: boolean;
+  assetManager: Address;
+  assetReserve: Address;
+  assetFreeze: Address;
+  assetClawback: Address;
+  assetUnitName: string;
+  assetName: string;
+  assetURL: string;
+  assetMetadataHash: Uint8Array;
+  freezeAccount: Address;
+  freezeState: boolean;
+  assetRevocationTarget?: Address;
+  appIndex: number;
+  appOnComplete: OnApplicationComplete;
+  appLocalInts: number;
+  appLocalByteSlices: number;
+  appGlobalInts: number;
+  appGlobalByteSlices: number;
+  appApprovalProgram: Uint8Array;
+  appClearProgram: Uint8Array;
+  appArgs?: Uint8Array[];
+  appAccounts?: Address[];
+  appForeignApps?: number[];
+  appForeignAssets?: number[];
+  type?: TransactionType;
+  flatFee: boolean;
+  reKeyTo?: Address;
+  nonParticipation?: boolean;
+  group: undefined;
+
+  constructor(transactionObj: AnyTransaction) {
+    // Create a mutable copy of the transaction object
+    const transaction: AnyTransaction = { ...transactionObj };
+
+    // Populate defaults
+    const defaults: Partial<TransactionParams> = {
+      type: TransactionType.pay,
+      flatFee: false,
+      nonParticipation: false,
+    };
+    // Default type
+    if (typeof transaction.type === 'undefined') {
+      transaction.type = defaults.type;
+    }
+    // Default flatFee
+    if (
+      typeof (transaction as AnyTransactionWithParamsInline).flatFee ===
+      'undefined'
+    ) {
+      (transaction as AnyTransactionWithParamsInline).flatFee =
+        defaults.flatFee;
+    }
+    // Default nonParticipation
+    if (
+      transaction.type === TransactionType.keyreg &&
+      typeof transaction.voteKey !== 'undefined' &&
+      typeof transaction.nonParticipation === 'undefined'
+    ) {
+      transaction.nonParticipation = defaults.nonParticipation;
     }
 
-    from = address.decodeAddress(from);
-    if (to !== undefined) to = address.decodeAddress(to);
-    if (closeRemainderTo !== undefined)
-      closeRemainderTo = address.decodeAddress(closeRemainderTo);
-    if (assetManager !== undefined)
-      assetManager = address.decodeAddress(assetManager);
-    if (assetReserve !== undefined)
-      assetReserve = address.decodeAddress(assetReserve);
-    if (assetFreeze !== undefined)
-      assetFreeze = address.decodeAddress(assetFreeze);
-    if (assetClawback !== undefined)
-      assetClawback = address.decodeAddress(assetClawback);
-    if (assetRevocationTarget !== undefined)
-      assetRevocationTarget = address.decodeAddress(assetRevocationTarget);
-    if (freezeAccount !== undefined)
-      freezeAccount = address.decodeAddress(freezeAccount);
-    if (reKeyTo !== undefined) reKeyTo = address.decodeAddress(reKeyTo);
-    if (genesisHash === undefined)
+    // Move suggested parameters from its object to inline
+    if (
+      (transaction as AnyTransactionWithParams).suggestedParams !== undefined
+    ) {
+      // Create a temporary reference to the transaction object that has params inline and also as a suggested params object
+      //   - Helpful for moving params from named object to inline
+      const reference = transaction as AnyTransactionWithParams &
+        AnyTransactionWithParamsInline;
+      reference.genesisHash = reference.suggestedParams.genesisHash;
+      reference.fee = reference.suggestedParams.fee;
+      if (reference.suggestedParams.flatFee !== undefined)
+        reference.flatFee = reference.suggestedParams.flatFee;
+      reference.firstRound = reference.suggestedParams.firstRound;
+      reference.lastRound = reference.suggestedParams.lastRound;
+      reference.genesisID = reference.suggestedParams.genesisID;
+    }
+
+    // At this point all suggestedParams have been moved to be inline, so we can reassign the transaction object type
+    // to one which is more useful as we prepare properties for storing
+    const txn = transaction as TransactionStorageStructure;
+
+    txn.from = address.decodeAddress(txn.from as string);
+    if (txn.to !== undefined) txn.to = address.decodeAddress(txn.to as string);
+    if (txn.closeRemainderTo !== undefined)
+      txn.closeRemainderTo = address.decodeAddress(
+        txn.closeRemainderTo as string
+      );
+    if (txn.assetManager !== undefined)
+      txn.assetManager = address.decodeAddress(txn.assetManager as string);
+    if (txn.assetReserve !== undefined)
+      txn.assetReserve = address.decodeAddress(txn.assetReserve as string);
+    if (txn.assetFreeze !== undefined)
+      txn.assetFreeze = address.decodeAddress(txn.assetFreeze as string);
+    if (txn.assetClawback !== undefined)
+      txn.assetClawback = address.decodeAddress(txn.assetClawback as string);
+    if (txn.assetRevocationTarget !== undefined)
+      txn.assetRevocationTarget = address.decodeAddress(
+        txn.assetRevocationTarget as string
+      );
+    if (txn.freezeAccount !== undefined)
+      txn.freezeAccount = address.decodeAddress(txn.freezeAccount as string);
+    if (txn.reKeyTo !== undefined)
+      txn.reKeyTo = address.decodeAddress(txn.reKeyTo as string);
+    if (txn.genesisHash === undefined)
       throw Error('genesis hash must be specified and in a base64 string.');
 
-    genesisHash = Buffer.from(genesisHash, 'base64');
+    txn.genesisHash = Buffer.from(txn.genesisHash as string, 'base64');
 
     if (
-      amount !== undefined &&
+      txn.amount !== undefined &&
       (!(
-        Number.isSafeInteger(amount) ||
-        (typeof amount === 'bigint' && amount <= 0xffffffffffffffffn)
+        Number.isSafeInteger(txn.amount) ||
+        (typeof txn.amount === 'bigint' && txn.amount <= 0xffffffffffffffffn)
       ) ||
-        amount < 0)
+        txn.amount < 0)
     )
       throw Error('Amount must be a positive number and smaller than 2^64-1');
-    if (!Number.isSafeInteger(fee) || fee < 0)
+    if (!Number.isSafeInteger(txn.fee) || txn.fee < 0)
       throw Error('fee must be a positive number and smaller than 2^53-1');
-    if (!Number.isSafeInteger(firstRound) || firstRound < 0)
+    if (!Number.isSafeInteger(txn.firstRound) || txn.firstRound < 0)
       throw Error('firstRound must be a positive number');
-    if (!Number.isSafeInteger(lastRound) || lastRound < 0)
+    if (!Number.isSafeInteger(txn.lastRound) || txn.lastRound < 0)
       throw Error('lastRound must be a positive number');
     if (
-      assetTotal !== undefined &&
+      txn.assetTotal !== undefined &&
       (!(
-        Number.isSafeInteger(assetTotal) ||
-        (typeof assetTotal === 'bigint' && assetTotal <= 0xffffffffffffffffn)
+        Number.isSafeInteger(txn.assetTotal) ||
+        (typeof txn.assetTotal === 'bigint' &&
+          txn.assetTotal <= 0xffffffffffffffffn)
       ) ||
-        assetTotal < 0)
+        txn.assetTotal < 0)
     )
       throw Error(
         'Total asset issuance must be a positive number and smaller than 2^64-1'
       );
     if (
-      assetDecimals !== undefined &&
-      (!Number.isSafeInteger(assetDecimals) ||
-        assetDecimals < 0 ||
-        assetDecimals > ALGORAND_MAX_ASSET_DECIMALS)
+      txn.assetDecimals !== undefined &&
+      (!Number.isSafeInteger(txn.assetDecimals) ||
+        txn.assetDecimals < 0 ||
+        txn.assetDecimals > ALGORAND_MAX_ASSET_DECIMALS)
     )
       throw Error(
         `assetDecimals must be a positive number and smaller than ${ALGORAND_MAX_ASSET_DECIMALS.toString()}`
       );
     if (
-      assetIndex !== undefined &&
-      (!Number.isSafeInteger(assetIndex) || assetIndex < 0)
+      txn.assetIndex !== undefined &&
+      (!Number.isSafeInteger(txn.assetIndex) || txn.assetIndex < 0)
     )
       throw Error(
         'Asset index must be a positive number and smaller than 2^53-1'
       );
     if (
-      appIndex !== undefined &&
-      (!Number.isSafeInteger(appIndex) || appIndex < 0)
+      txn.appIndex !== undefined &&
+      (!Number.isSafeInteger(txn.appIndex) || txn.appIndex < 0)
     )
       throw Error(
         'Application index must be a positive number and smaller than 2^53-1'
       );
     if (
-      appLocalInts !== undefined &&
-      (!Number.isSafeInteger(appLocalInts) || appLocalInts < 0)
+      txn.appLocalInts !== undefined &&
+      (!Number.isSafeInteger(txn.appLocalInts) || txn.appLocalInts < 0)
     )
       throw Error(
         'Application local ints count must be a positive number and smaller than 2^53-1'
       );
     if (
-      appLocalByteSlices !== undefined &&
-      (!Number.isSafeInteger(appLocalByteSlices) || appLocalByteSlices < 0)
+      txn.appLocalByteSlices !== undefined &&
+      (!Number.isSafeInteger(txn.appLocalByteSlices) ||
+        txn.appLocalByteSlices < 0)
     )
       throw Error(
         'Application local byte slices count must be a positive number and smaller than 2^53-1'
       );
     if (
-      appGlobalInts !== undefined &&
-      (!Number.isSafeInteger(appGlobalInts) || appGlobalInts < 0)
+      txn.appGlobalInts !== undefined &&
+      (!Number.isSafeInteger(txn.appGlobalInts) || txn.appGlobalInts < 0)
     )
       throw Error(
         'Application global ints count must be a positive number and smaller than 2^53-1'
       );
     if (
-      appGlobalByteSlices !== undefined &&
-      (!Number.isSafeInteger(appGlobalByteSlices) || appGlobalByteSlices < 0)
+      txn.appGlobalByteSlices !== undefined &&
+      (!Number.isSafeInteger(txn.appGlobalByteSlices) ||
+        txn.appGlobalByteSlices < 0)
     )
       throw Error(
         'Application global byte slices count must be a positive number and smaller than 2^53-1'
       );
-    if (appApprovalProgram !== undefined) {
-      if (appApprovalProgram.constructor !== Uint8Array)
+    if (txn.appApprovalProgram !== undefined) {
+      if (txn.appApprovalProgram.constructor !== Uint8Array)
         throw Error('appApprovalProgram must be a Uint8Array.');
     }
-    if (appClearProgram !== undefined) {
-      if (appClearProgram.constructor !== Uint8Array)
+    if (txn.appClearProgram !== undefined) {
+      if (txn.appClearProgram.constructor !== Uint8Array)
         throw Error('appClearProgram must be a Uint8Array.');
     }
-    if (appArgs !== undefined) {
-      if (!Array.isArray(appArgs))
+    if (txn.appArgs !== undefined) {
+      if (!Array.isArray(txn.appArgs))
         throw Error('appArgs must be an Array of Uint8Array.');
-      appArgs = appArgs.slice();
-      appArgs.forEach((arg) => {
+      txn.appArgs = txn.appArgs.slice();
+      txn.appArgs.forEach((arg) => {
         if (arg.constructor !== Uint8Array)
           throw Error('each element of AppArgs must be a Uint8Array.');
       });
     } else {
-      appArgs = new Uint8Array(0);
+      txn.appArgs = [];
     }
-    if (appAccounts !== undefined) {
-      if (!Array.isArray(appAccounts))
+    if (txn.appAccounts !== undefined) {
+      if (!Array.isArray(txn.appAccounts))
         throw Error('appAccounts must be an Array of addresses.');
-      appAccounts = appAccounts.map((addressAsString) =>
+      txn.appAccounts = txn.appAccounts.map((addressAsString) =>
         address.decodeAddress(addressAsString)
       );
     }
-    if (appForeignApps !== undefined) {
-      if (!Array.isArray(appForeignApps))
+    if (txn.appForeignApps !== undefined) {
+      if (!Array.isArray(txn.appForeignApps))
         throw Error('appForeignApps must be an Array of integers.');
-      appForeignApps = appForeignApps.slice();
-      appForeignApps.forEach((foreignAppIndex) => {
+      txn.appForeignApps = txn.appForeignApps.slice();
+      txn.appForeignApps.forEach((foreignAppIndex) => {
         if (!Number.isSafeInteger(foreignAppIndex) || foreignAppIndex < 0)
           throw Error(
             'each foreign application index must be a positive number and smaller than 2^53-1'
           );
       });
     }
-    if (appForeignAssets !== undefined) {
-      if (!Array.isArray(appForeignAssets))
+    if (txn.appForeignAssets !== undefined) {
+      if (!Array.isArray(txn.appForeignAssets))
         throw Error('appForeignAssets must be an Array of integers.');
-      appForeignAssets = appForeignAssets.slice();
-      appForeignAssets.forEach((foreignAssetIndex) => {
+      txn.appForeignAssets = txn.appForeignAssets.slice();
+      txn.appForeignAssets.forEach((foreignAssetIndex) => {
         if (!Number.isSafeInteger(foreignAssetIndex) || foreignAssetIndex < 0)
           throw Error(
             'each foreign asset index must be a positive number and smaller than 2^53-1'
           );
       });
     }
-    if (assetMetadataHash !== undefined && assetMetadataHash.length !== 0) {
-      if (typeof assetMetadataHash === 'string') {
-        const encoded = Buffer.from(assetMetadataHash);
+    if (
+      txn.assetMetadataHash !== undefined &&
+      txn.assetMetadataHash.length !== 0
+    ) {
+      if (typeof txn.assetMetadataHash === 'string') {
+        const encoded = Buffer.from(txn.assetMetadataHash);
         if (encoded.byteLength !== ASSET_METADATA_HASH_LENGTH) {
           throw Error(
             `assetMetadataHash must be a ${ASSET_METADATA_HASH_LENGTH} byte Uint8Array or string.`
           );
         }
-        assetMetadataHash = new Uint8Array(encoded);
+        txn.assetMetadataHash = new Uint8Array(encoded);
       } else if (
-        assetMetadataHash.constructor !== Uint8Array ||
-        assetMetadataHash.byteLength !== ASSET_METADATA_HASH_LENGTH
+        txn.assetMetadataHash.constructor !== Uint8Array ||
+        txn.assetMetadataHash.byteLength !== ASSET_METADATA_HASH_LENGTH
       )
         throw Error(
           `assetMetadataHash must be a ${ASSET_METADATA_HASH_LENGTH} byte Uint8Array or string.`
         );
     } else {
-      assetMetadataHash = undefined;
+      txn.assetMetadataHash = undefined;
     }
-    if (note !== undefined) {
-      if (note.constructor !== Uint8Array)
+    if (txn.note !== undefined) {
+      if (txn.note.constructor !== Uint8Array)
         throw Error('note must be a Uint8Array.');
     } else {
-      note = new Uint8Array(0);
+      txn.note = new Uint8Array(0);
     }
-    if (lease !== undefined) {
-      if (lease.constructor !== Uint8Array)
+    if (txn.lease !== undefined) {
+      if (txn.lease.constructor !== Uint8Array)
         throw Error('lease must be a Uint8Array.');
-      if (lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH)
+      if (txn.lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH)
         throw Error(
           `lease must be of length ${ALGORAND_TRANSACTION_LEASE_LENGTH.toString()}.`
         );
     } else {
-      lease = new Uint8Array(0);
+      txn.lease = new Uint8Array(0);
     }
-    if (voteKey !== undefined) {
-      voteKey = Buffer.from(voteKey, 'base64');
+    if (typeof txn.voteKey !== 'undefined') {
+      txn.voteKey = Buffer.from(txn.voteKey as string, 'base64');
     }
-    if (selectionKey !== undefined) {
-      selectionKey = Buffer.from(selectionKey, 'base64');
+    if (txn.selectionKey !== undefined) {
+      txn.selectionKey = Buffer.from(txn.selectionKey as string, 'base64');
     }
     if (
-      nonParticipation &&
-      (voteKey || selectionKey || voteFirst || voteLast || voteKeyDilution)
+      txn.nonParticipation &&
+      (txn.voteKey ||
+        txn.selectionKey ||
+        txn.voteFirst ||
+        txn.voteLast ||
+        txn.voteKeyDilution)
     ) {
       throw new Error(
         'nonParticipation is true but participation params are present.'
       );
     }
 
-    Object.assign(this, {
-      from,
-      to,
-      fee,
-      amount,
-      firstRound,
-      lastRound,
-      note,
-      genesisID,
-      genesisHash,
-      lease,
-      closeRemainderTo,
-      voteKey,
-      selectionKey,
-      voteFirst,
-      voteLast,
-      voteKeyDilution,
-      assetIndex,
-      assetTotal,
-      assetDecimals,
-      assetDefaultFrozen,
-      assetManager,
-      assetReserve,
-      assetFreeze,
-      assetClawback,
-      assetUnitName,
-      assetName,
-      assetURL,
-      assetMetadataHash,
-      freezeAccount,
-      freezeState,
-      assetRevocationTarget,
-      appIndex,
-      appOnComplete,
-      appLocalInts,
-      appLocalByteSlices,
-      appGlobalInts,
-      appGlobalByteSlices,
-      appApprovalProgram,
-      appClearProgram,
-      appArgs,
-      appAccounts,
-      appForeignApps,
-      appForeignAssets,
-      type,
-      reKeyTo,
-      nonParticipation,
-    });
+    // Remove unwanted properties and store transaction on instance
+    delete ((txn as unknown) as AnyTransactionWithParams).suggestedParams;
+    Object.assign(this, utils.removeUndefinedProperties(txn));
 
     // Modify Fee
-    if (!flatFee) {
+    if (!txn.flatFee) {
       this.fee *= this.estimateSize();
     }
     // If suggested fee too small and will be rejected, set to min tx fee
@@ -339,12 +440,11 @@ class Transaction {
     // say we are aware of groups
     this.group = undefined;
   }
-  /* eslint-disable no-param-reassign */
 
   // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
     if (this.type === 'pay') {
-      const txn = {
+      const txn: EncodedTransaction = {
         amt: this.amount,
         fee: this.fee,
         fv: this.firstRound,
@@ -381,7 +481,7 @@ class Transaction {
       return txn;
     }
     if (this.type === 'keyreg') {
-      const txn = {
+      const txn: EncodedTransaction = {
         fee: this.fee,
         fv: this.firstRound,
         lv: this.lastRound,
@@ -419,7 +519,7 @@ class Transaction {
     }
     if (this.type === 'acfg') {
       // asset creation, or asset reconfigure, or asset destruction
-      const txn = {
+      const txn: EncodedTransaction = {
         fee: this.fee,
         fv: this.firstRound,
         lv: this.lastRound,
@@ -495,7 +595,7 @@ class Transaction {
     }
     if (this.type === 'axfer') {
       // asset transfer, acceptance, revocation, mint, or burn
-      const txn = {
+      const txn: EncodedTransaction = {
         aamt: this.amount,
         fee: this.fee,
         fv: this.firstRound,
@@ -532,7 +632,7 @@ class Transaction {
     }
     if (this.type === 'afrz') {
       // asset freeze or unfreeze
-      const txn = {
+      const txn: EncodedTransaction = {
         fee: this.fee,
         fv: this.firstRound,
         lv: this.lastRound,
@@ -563,7 +663,7 @@ class Transaction {
     }
     if (this.type === 'appl') {
       // application call of some kind
-      const txn = {
+      const txn: EncodedTransaction = {
         fee: this.fee,
         fv: this.firstRound,
         lv: this.lastRound,
@@ -631,7 +731,7 @@ class Transaction {
   }
 
   // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(txnForEnc) {
+  static from_obj_for_encoding(txnForEnc: EncodedTransaction) {
     const txn = Object.create(this.prototype);
     txn.name = 'Transaction';
     txn.tag = Buffer.from('TX');
@@ -790,15 +890,15 @@ class Transaction {
   }
 
   // returns the raw signature
-  rawSignTxn(sk) {
+  rawSignTxn(sk: Uint8Array) {
     const toBeSigned = this.bytesToSign();
     const sig = nacl.sign(toBeSigned, sk);
     return Buffer.from(sig);
   }
 
-  signTxn(sk) {
+  signTxn(sk: Uint8Array) {
     // construct signed message
-    const sTxn = {
+    const sTxn: EncodedSignedTransaction = {
       sig: this.rawSignTxn(sk),
       txn: this.get_obj_for_encoding(),
     };
@@ -827,7 +927,9 @@ class Transaction {
 
   // add a lease to a transaction not yet having
   // supply feePerByte to increment fee accordingly
-  addLease(lease, feePerByte = 0) {
+  addLease(lease: Uint8Array, feePerByte = 0) {
+    let mutableLease: Uint8Array;
+
     if (lease !== undefined) {
       if (lease.constructor !== Uint8Array)
         throw Error('lease must be a Uint8Array.');
@@ -835,10 +937,12 @@ class Transaction {
         throw Error(
           `lease must be of length ${ALGORAND_TRANSACTION_LEASE_LENGTH.toString()}.`
         );
+
+      mutableLease = new Uint8Array(lease);
     } else {
-      lease = new Uint8Array(0);
+      mutableLease = new Uint8Array(0);
     }
-    this.lease = lease;
+    this.lease = mutableLease;
     if (feePerByte !== 0) {
       this.fee +=
         (ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH +
@@ -849,7 +953,7 @@ class Transaction {
 
   // add the rekey-to field to a transaction not yet having it
   // supply feePerByte to increment fee accordingly
-  addRekey(reKeyTo, feePerByte = 0) {
+  addRekey(reKeyTo: string, feePerByte = 0) {
     if (reKeyTo !== undefined) {
       this.reKeyTo = address.decodeAddress(reKeyTo);
     }
@@ -864,7 +968,7 @@ class Transaction {
   // build display dict for prettyPrint and toString
   // eslint-disable-next-line no-underscore-dangle
   _getDictForDisplay() {
-    const forPrinting = {
+    const forPrinting: Record<string, any> = {
       ...this,
     };
     forPrinting.tag = forPrinting.tag.toString();
@@ -921,9 +1025,8 @@ class Transaction {
  * encodeUnsignedTransaction takes a completed txnBuilder.Transaction object, such as from the makeFoo
  * family of transactions, and converts it to a Buffer
  * @param transactionObject the completed Transaction object
- * @returns {Uint8Array}
  */
-function encodeUnsignedTransaction(transactionObject) {
+export function encodeUnsignedTransaction(transactionObject: Transaction) {
   const objToEncode = transactionObject.get_obj_for_encoding();
   return encoding.encode(objToEncode);
 }
@@ -931,10 +1034,13 @@ function encodeUnsignedTransaction(transactionObject) {
 /**
  * decodeUnsignedTransaction takes a Buffer (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
  * @param transactionBuffer the Uint8Array containing a transaction
- * @returns {Transaction}
  */
-function decodeUnsignedTransaction(transactionBuffer) {
-  const partlyDecodedObject = encoding.decode(transactionBuffer);
+export function decodeUnsignedTransaction(
+  transactionBuffer: ArrayLike<number>
+) {
+  const partlyDecodedObject = encoding.decode(
+    transactionBuffer
+  ) as EncodedTransaction;
   return Transaction.from_obj_for_encoding(partlyDecodedObject);
 }
 
@@ -942,18 +1048,14 @@ function decodeUnsignedTransaction(transactionBuffer) {
  * decodeSignedTransaction takes a Buffer (from transaction.signTxn) and converts it to an object
  * containing the Transaction (txn), the signature (sig), and the auth-addr field if applicable (sgnr)
  * @param transactionBuffer the Uint8Array containing a transaction
- * @returns {Object} containing a Transaction, the signature, and possibly an auth-addr field
+ * @returns containing a Transaction, the signature, and possibly an auth-addr field
  */
-function decodeSignedTransaction(transactionBuffer) {
-  const stxnDecoded = encoding.decode(transactionBuffer);
+export function decodeSignedTransaction(transactionBuffer: Uint8Array) {
+  const stxnDecoded = encoding.decode(
+    transactionBuffer
+  ) as EncodedSignedTransaction;
   stxnDecoded.txn = Transaction.from_obj_for_encoding(stxnDecoded.txn);
   return stxnDecoded;
 }
 
-module.exports = {
-  Transaction,
-  ALGORAND_MIN_TX_FEE,
-  encodeUnsignedTransaction,
-  decodeUnsignedTransaction,
-  decodeSignedTransaction,
-};
+export default Transaction;

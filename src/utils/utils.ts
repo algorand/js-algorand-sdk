@@ -90,3 +90,18 @@ export function concatArrays(a: ArrayLike<any>, b: ArrayLike<any>) {
   c.set(b, a.length);
   return c;
 }
+
+/**
+ * Remove undefined properties from an object
+ * @param obj An object, preferably one with some undefined properties
+ * @returns A copy of the object with undefined properties removed
+ */
+export function removeUndefinedProperties(
+  obj: Record<string | number | symbol, any>
+) {
+  const mutableCopy = { ...obj };
+  Object.keys(mutableCopy).forEach((key) => {
+    if (typeof mutableCopy[key] === 'undefined') delete mutableCopy[key];
+  });
+  return mutableCopy;
+}

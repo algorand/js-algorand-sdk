@@ -14,6 +14,7 @@ type TransactionBaseWithSuggestedParams = Pick<
  */
 type TransactionBaseWithoutSuggestedParams = Pick<
   TransactionParams,
+  | 'flatFee'
   | 'fee'
   | 'firstRound'
   | 'lastRound'

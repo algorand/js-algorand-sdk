@@ -1,0 +1,309 @@
+/**
+ * Interfaces for the encoded transaction object. Every property is labelled with its associated Transaction type property
+ */
+
+export interface EncodedAssetParams {
+  /**
+   * assetTotal
+   */
+  t: number;
+
+  /**
+   * assetDefaultFrozen
+   */
+  df: boolean;
+
+  /**
+   * assetDecimals
+   */
+  dc: number;
+
+  /**
+   * assetManager
+   */
+  m?: Buffer;
+
+  /**
+   * assetReserve
+   */
+  r?: Buffer;
+
+  /**
+   * assetFreeze
+   */
+  f?: Buffer;
+
+  /**
+   * assetClawback
+   */
+  c?: Buffer;
+
+  /**
+   * assetName
+   */
+  an?: string;
+
+  /**
+   * assetUnitName
+   */
+  un?: string;
+
+  /**
+   * assetURL
+   */
+  au?: string;
+
+  /**
+   * assetMetadataHash
+   */
+  am?: Buffer;
+}
+
+export interface EncodedLocalStateSchema {
+  /**
+   * appLocalInts
+   */
+  nui: number;
+
+  /**
+   * appLocalByteSlices
+   */
+  nbs: number;
+}
+
+export interface EncodedGlobalStateSchema {
+  /**
+   * appGlobalInts
+   */
+  nui: number;
+
+  /**
+   * appGlobalByteSlices
+   */
+  nbs: number;
+}
+
+/**
+ * A rough structure for the encoded transaction object. Every property is labelled with its associated Transaction type property
+ */
+export interface EncodedTransaction {
+  /**
+   * fee
+   */
+  fee: number;
+
+  /**
+   * firstRound
+   */
+  fv: number;
+
+  /**
+   * lastRound
+   */
+  lv: number;
+
+  /**
+   * note
+   */
+  note: Buffer;
+
+  /**
+   * from
+   */
+  snd: Buffer;
+
+  /**
+   * type
+   */
+  type: string;
+
+  /**
+   * genesisID
+   */
+  gen: string;
+
+  /**
+   * genesisHash
+   */
+  gh: Buffer;
+
+  /**
+   * lease
+   */
+  lx: Buffer;
+
+  /**
+   * group
+   */
+  grp: undefined;
+
+  /**
+   * amount
+   */
+  amt?: number;
+
+  /**
+   * amount (but for asset transfers)
+   */
+  aamt?: number;
+
+  /**
+   * closeRemainderTo
+   */
+  close?: Buffer;
+
+  /**
+   * closeRemainderTo (but for asset transfers)
+   */
+  aclose?: Buffer;
+
+  /**
+   * reKeyTo
+   */
+  rekey?: Buffer;
+
+  /**
+   * to
+   */
+  rcv?: Buffer;
+
+  /**
+   * to (but for asset transfers)
+   */
+  arcv?: Buffer;
+
+  /**
+   * voteKey
+   */
+  votekey?: Buffer;
+
+  /**
+   * selectionKey
+   */
+  selkey?: Buffer;
+
+  /**
+   * voteFirst
+   */
+  votefst?: number;
+
+  /**
+   * voteLast
+   */
+  votelst?: number;
+
+  /**
+   * voteKeyDilution
+   */
+  votekd?: number;
+
+  /**
+   * nonParticipation
+   */
+  nonpart?: boolean;
+
+  /**
+   * assetIndex
+   */
+  caid?: number;
+
+  /**
+   * assetIndex (but for asset transfers)
+   */
+  xaid?: number;
+
+  /**
+   * assetIndex (but for asset freezing/unfreezing)
+   */
+  faid?: number;
+
+  /**
+   * freezeState
+   */
+  afrz?: boolean;
+
+  /**
+   * freezeAccount
+   */
+  fadd?: Buffer;
+
+  /**
+   * assetRevocationTarget
+   */
+  asnd?: Buffer;
+
+  /**
+   * See EncodedAssetParams type
+   */
+  apar?: EncodedAssetParams;
+
+  /**
+   * appIndex
+   */
+  apid?: number;
+
+  /**
+   * appOnComplete
+   */
+  apan?: number;
+
+  /**
+   * See EncodedLocalStateSchema type
+   */
+  apls?: EncodedLocalStateSchema;
+
+  /**
+   * See EncodedGlobalStateSchema type
+   */
+  apgs?: EncodedGlobalStateSchema;
+
+  /**
+   * appForeignApps
+   */
+  apfa?: number[];
+
+  /**
+   * appForeignAssets
+   */
+  apas?: number[];
+
+  /**
+   * appApprovalProgram
+   */
+  apap?: Buffer;
+
+  /**
+   * appClearProgram
+   */
+  apsu?: Buffer;
+
+  /**
+   * appArgs
+   */
+  apaa?: Buffer[];
+
+  /**
+   * appAccounts
+   */
+  apat?: Buffer[];
+}
+
+/**
+ * A structure for an encoded signed transaction object
+ */
+export interface EncodedSignedTransaction {
+  /**
+   * Transaction signature
+   */
+  sig: Buffer;
+
+  /**
+   * The transaction that was signed
+   */
+  txn: EncodedTransaction;
+
+  /**
+   * The signor, if signing with a different key than the Transaction type `from` property indicates
+   */
+  sgnr?: Buffer;
+}
