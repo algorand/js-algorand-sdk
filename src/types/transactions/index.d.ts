@@ -13,4 +13,5 @@ export {
   AssetConfigurationTransaction as AssetConfigTxn,
   AssetDestroyTransaction as AssetDestroyTxn,
   AssetFreezeTransaction as AssetFreezeTxn,
+  AssetTransferTransaction as AssetTransferTxn,
 } from './asset';

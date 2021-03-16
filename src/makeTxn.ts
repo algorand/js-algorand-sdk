@@ -13,6 +13,7 @@ import {
   AssetConfigTxn,
   AssetDestroyTxn,
   AssetFreezeTxn,
+  AssetTransferTxn,
 } from './types/transactions';
 import { RenameProperties, RenameProperty } from './types/utils';
 
@@ -854,18 +855,18 @@ function makeAssetFreezeTxnWithSuggestedParamsFromObject(
  * @param rekeyTo - rekeyTo address, optional
  */
 function makeAssetTransferTxnWithSuggestedParams(
-  from,
-  to,
-  closeRemainderTo,
-  revocationTarget,
-  amount,
-  note,
-  assetIndex,
-  suggestedParams,
-  rekeyTo = undefined
+  from: AssetTransferTxn['from'],
+  to: AssetTransferTxn['to'],
+  closeRemainderTo: AssetTransferTxn['closeRemainderTo'],
+  revocationTarget: AssetTransferTxn['assetRevocationTarget'],
+  amount: AssetTransferTxn['amount'],
+  note: AssetTransferTxn['note'],
+  assetIndex: AssetTransferTxn['assetIndex'],
+  suggestedParams: MustHaveSuggestedParams<AssetTransferTxn>['suggestedParams'],
+  rekeyTo: AssetTransferTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'axfer',
+  const o: AssetTransferTxn = {
+    type: TransactionType.axfer,
     from,
     to,
     amount,
@@ -899,24 +900,23 @@ function makeAssetTransferTxnWithSuggestedParams(
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
 function makeAssetTransferTxn(
-  from,
-  to,
-  closeRemainderTo,
-  revocationTarget,
-  fee,
-  amount,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  rekeyTo = undefined
+  from: AssetTransferTxn['from'],
+  to: AssetTransferTxn['to'],
+  closeRemainderTo: AssetTransferTxn['closeRemainderTo'],
+  revocationTarget: AssetTransferTxn['assetRevocationTarget'],
+  fee: MustHaveSuggestedParamsInline<AssetTransferTxn>['fee'],
+  amount: AssetTransferTxn['amount'],
+  firstRound: MustHaveSuggestedParamsInline<AssetTransferTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetTransferTxn>['lastRound'],
+  note: AssetTransferTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetTransferTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetTransferTxn>['genesisID'],
+  assetIndex: AssetTransferTxn['assetIndex'],
+  rekeyTo: AssetTransferTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -937,7 +937,26 @@ function makeAssetTransferTxn(
 }
 
 // helper for above makeAssetTransferTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetTransferTxnWithSuggestedParamsFromObject(o) {
+function makeAssetTransferTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetTransferTxn>,
+      {
+        assetRevocationTarget: 'revocationTarget';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'to'
+    | 'closeRemainderTo'
+    | 'revocationTarget'
+    | 'amount'
+    | 'note'
+    | 'assetIndex'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  >
+) {
   return makeAssetTransferTxnWithSuggestedParams(
     o.from,
     o.to,

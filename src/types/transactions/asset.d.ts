@@ -83,3 +83,26 @@ export type AssetFreezeTransaction = ConstructTransaction<
   SpecificParametersForFreeze,
   OverwritesForFreeze
 >;
+
+// ------------------------------
+// > Asset Transfer Transaction
+// ------------------------------
+
+type SpecificParametersForTransfer = Pick<
+  TransactionParams,
+  | 'from'
+  | 'to'
+  | 'closeRemainderTo'
+  | 'assetRevocationTarget'
+  | 'amount'
+  | 'assetIndex'
+>;
+
+interface OverwritesForTransfer {
+  type?: TransactionType.axfer;
+}
+
+export type AssetTransferTransaction = ConstructTransaction<
+  SpecificParametersForTransfer,
+  OverwritesForTransfer
+>;
