@@ -50,3 +50,36 @@ export type AssetConfigurationTransaction = ConstructTransaction<
   SpecificParametersForConfig,
   OverwritesForConfig
 >;
+
+// ------------------------------
+// > Asset Destroy Transaction
+// ------------------------------
+
+type SpecificParametersForDestroy = Pick<TransactionParams, 'assetIndex'>;
+
+interface OverwritesForDestroy {
+  type?: TransactionType.acfg;
+}
+
+export type AssetDestroyTransaction = ConstructTransaction<
+  SpecificParametersForDestroy,
+  OverwritesForDestroy
+>;
+
+// ------------------------------
+// > Asset Freeze Transaction
+// ------------------------------
+
+type SpecificParametersForFreeze = Pick<
+  TransactionParams,
+  'assetIndex' | 'freezeAccount' | 'freezeState'
+>;
+
+interface OverwritesForFreeze {
+  type?: TransactionType.afrz;
+}
+
+export type AssetFreezeTransaction = ConstructTransaction<
+  SpecificParametersForFreeze,
+  OverwritesForFreeze
+>;

@@ -11,4 +11,6 @@ export { default as KeyRegistrationTxn } from './keyreg';
 export {
   AssetCreateTransaction as AssetCreateTxn,
   AssetConfigurationTransaction as AssetConfigTxn,
+  AssetDestroyTransaction as AssetDestroyTxn,
+  AssetFreezeTransaction as AssetFreezeTxn,
 } from './asset';

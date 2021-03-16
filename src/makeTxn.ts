@@ -11,6 +11,8 @@ import {
   MustHaveSuggestedParamsInline,
   AssetCreateTxn,
   AssetConfigTxn,
+  AssetDestroyTxn,
+  AssetFreezeTxn,
 } from './types/transactions';
 import { RenameProperties, RenameProperty } from './types/utils';
 
@@ -630,20 +632,19 @@ function makeAssetConfigTxnWithSuggestedParamsFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
 function makeAssetDestroyTxnWithSuggestedParams(
-  from,
-  note,
-  assetIndex,
-  suggestedParams,
-  rekeyTo = undefined
+  from: AssetDestroyTxn['from'],
+  note: AssetDestroyTxn['note'],
+  assetIndex: AssetDestroyTxn['assetIndex'],
+  suggestedParams: MustHaveSuggestedParams<AssetDestroyTxn>['suggestedParams'],
+  rekeyTo: AssetDestroyTxn['reKeyTo']
 ) {
-  const o = {
+  const o: AssetDestroyTxn = {
     from,
     suggestedParams,
     assetIndex,
-    type: 'acfg',
+    type: TransactionType.acfg,
     note,
     reKeyTo: rekeyTo,
   };
@@ -664,20 +665,19 @@ function makeAssetDestroyTxnWithSuggestedParams(
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
 function makeAssetDestroyTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  rekeyTo = undefined
+  from: AssetDestroyTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetDestroyTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetDestroyTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetDestroyTxn>['lastRound'],
+  note: AssetDestroyTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetDestroyTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetDestroyTxn>['genesisID'],
+  assetIndex: AssetDestroyTxn['assetIndex'],
+  rekeyTo: AssetDestroyTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -694,7 +694,16 @@ function makeAssetDestroyTxn(
 }
 
 // helper for above makeAssetDestroyTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
+function makeAssetDestroyTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperty<
+      MustHaveSuggestedParams<AssetDestroyTxn>,
+      'reKeyTo',
+      'rekeyTo'
+    >,
+    'from' | 'note' | 'assetIndex' | 'suggestedParams' | 'rekeyTo'
+  >
+) {
   return makeAssetDestroyTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -721,20 +730,19 @@ function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
 function makeAssetFreezeTxnWithSuggestedParams(
-  from,
-  note,
-  assetIndex,
-  freezeTarget,
-  freezeState,
-  suggestedParams,
-  rekeyTo = undefined
+  from: AssetFreezeTxn['from'],
+  note: AssetFreezeTxn['note'],
+  assetIndex: AssetFreezeTxn['assetIndex'],
+  freezeTarget: AssetFreezeTxn['freezeAccount'],
+  freezeState: AssetFreezeTxn['freezeState'],
+  suggestedParams: MustHaveSuggestedParams<AssetFreezeTxn>['suggestedParams'],
+  rekeyTo: AssetFreezeTxn['reKeyTo']
 ) {
-  const o = {
+  const o: AssetFreezeTxn = {
     from,
-    type: 'afrz',
+    type: TransactionType.afrz,
     freezeAccount: freezeTarget,
     assetIndex,
     freezeState,
@@ -761,22 +769,21 @@ function makeAssetFreezeTxnWithSuggestedParams(
  * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
 function makeAssetFreezeTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  freezeTarget,
-  freezeState,
-  rekeyTo = undefined
+  from: AssetFreezeTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetFreezeTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetFreezeTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetFreezeTxn>['lastRound'],
+  note: MustHaveSuggestedParamsInline<AssetFreezeTxn>['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetFreezeTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetFreezeTxn>['genesisID'],
+  assetIndex: AssetFreezeTxn['assetIndex'],
+  freezeTarget: AssetFreezeTxn['freezeAccount'],
+  freezeState: AssetFreezeTxn['freezeState'],
+  rekeyTo: AssetFreezeTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -795,7 +802,24 @@ function makeAssetFreezeTxn(
 }
 
 // helper for above makeAssetFreezeTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
+function makeAssetFreezeTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetFreezeTxn>,
+      {
+        freezeAccount: 'freezeTarget';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'note'
+    | 'assetIndex'
+    | 'freezeTarget'
+    | 'freezeState'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  >
+) {
   return makeAssetFreezeTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -828,7 +852,6 @@ function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
 function makeAssetTransferTxnWithSuggestedParams(
   from,

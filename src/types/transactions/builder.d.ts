@@ -63,6 +63,6 @@ export type MustHaveSuggestedParams<T extends ConstructTransaction> = Extract<
  */
 export type MustHaveSuggestedParamsInline<
   T extends ConstructTransaction
-> = Extract<T, Pick<TransactionParams, keyof SuggestedParams>>;
+> = Extract<T, SuggestedParams>;
 
 export default ConstructTransaction;
