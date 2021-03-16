@@ -38,3 +38,16 @@ export type NeverAllow<T, K extends keyof T> = {
 export type RenameProperty<T, K extends keyof T, R extends PropertyKey> = {
   [P in keyof T as P extends K ? R : P]: T[P];
 };
+
+/**
+ * Rename multiple properties of one type to another name
+ *
+ * Usage: RenameProperties<{ a: string, b: number }, { a: 'c', b: 'd' }>
+ * -> { c: string, d: number }
+ */
+export type RenameProperties<
+  T,
+  R extends {
+    [K in keyof R]: K extends keyof T ? PropertyKey : 'Error: key not in T';
+  }
+> = { [P in keyof T as P extends keyof R ? R[P] : P]: T[P] };

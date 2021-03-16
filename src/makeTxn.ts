@@ -9,8 +9,10 @@ import {
   SuggestedParams,
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,
+  AssetCreateTxn,
+  AssetConfigTxn,
 } from './types/transactions';
-import { RenameProperty } from './types/utils';
+import { RenameProperties, RenameProperty } from './types/utils';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
@@ -28,7 +30,6 @@ import { RenameProperty } from './types/utils';
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
 function makePaymentTxnWithSuggestedParams(
   from: PaymentTxn['from'],
@@ -67,7 +68,6 @@ function makePaymentTxnWithSuggestedParams(
  * @param genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
 function makePaymentTxn(
   from: PaymentTxn['from'],
@@ -146,7 +146,6 @@ function makePaymentTxnWithSuggestedParamsFromObject(
  * @param rekeyTo - rekeyTo address, optional
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
- * @returns {Transaction}
  */
 function makeKeyRegistrationTxnWithSuggestedParams(
   from: KeyRegistrationTxn['from'],
@@ -197,7 +196,6 @@ function makeKeyRegistrationTxnWithSuggestedParams(
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
 function makeKeyRegistrationTxn(
   from: KeyRegistrationTxn['from'],
@@ -295,26 +293,25 @@ function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
 function makeAssetCreateTxnWithSuggestedParams(
-  from,
-  note,
-  total,
-  decimals,
-  defaultFrozen,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  unitName,
-  assetName,
-  assetURL,
-  assetMetadataHash,
-  suggestedParams,
-  rekeyTo = undefined
+  from: AssetCreateTxn['from'],
+  note: AssetCreateTxn['note'],
+  total: AssetCreateTxn['assetTotal'],
+  decimals: AssetCreateTxn['assetDecimals'],
+  defaultFrozen: AssetCreateTxn['assetDefaultFrozen'],
+  manager: AssetCreateTxn['assetManager'],
+  reserve: AssetCreateTxn['assetReserve'],
+  freeze: AssetCreateTxn['assetFreeze'],
+  clawback: AssetCreateTxn['assetClawback'],
+  unitName: AssetCreateTxn['assetUnitName'],
+  assetName: AssetCreateTxn['assetName'],
+  assetURL: AssetCreateTxn['assetURL'],
+  assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
+  suggestedParams: MustHaveSuggestedParams<AssetCreateTxn>['suggestedParams'],
+  rekeyTo: AssetCreateTxn['reKeyTo']
 ) {
-  const o = {
+  const o: AssetCreateTxn = {
     from,
     note,
     suggestedParams,
@@ -329,7 +326,7 @@ function makeAssetCreateTxnWithSuggestedParams(
     assetReserve: reserve,
     assetFreeze: freeze,
     assetClawback: clawback,
-    type: 'acfg',
+    type: TransactionType.acfg,
     reKeyTo: rekeyTo,
   };
   return new txnBuilder.Transaction(o);
@@ -359,30 +356,29 @@ function makeAssetCreateTxnWithSuggestedParams(
  * @param assetMetadataHash - Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
 function makeAssetCreateTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  total,
-  decimals,
-  defaultFrozen,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  unitName,
-  assetName,
-  assetURL,
-  assetMetadataHash,
-  rekeyTo = undefined
+  from: AssetCreateTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetCreateTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetCreateTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetCreateTxn>['lastRound'],
+  note: AssetCreateTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetCreateTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetCreateTxn>['genesisID'],
+  total: AssetCreateTxn['assetTotal'],
+  decimals: AssetCreateTxn['assetDecimals'],
+  defaultFrozen: AssetCreateTxn['assetDefaultFrozen'],
+  manager: AssetCreateTxn['assetManager'],
+  reserve: AssetCreateTxn['assetManager'],
+  freeze: AssetCreateTxn['assetFreeze'],
+  clawback: AssetCreateTxn['assetClawback'],
+  unitName: AssetCreateTxn['assetUnitName'],
+  assetName: AssetCreateTxn['assetName'],
+  assetURL: AssetCreateTxn['assetURL'],
+  assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
+  rekeyTo: AssetCreateTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -409,7 +405,39 @@ function makeAssetCreateTxn(
 }
 
 // helper for above makeAssetCreateTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
+function makeAssetCreateTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetCreateTxn>,
+      {
+        reKeyTo: 'rekeyTo';
+        assetTotal: 'total';
+        assetDecimals: 'decimals';
+        assetDefaultFrozen: 'defaultFrozen';
+        assetManager: 'manager';
+        assetReserve: 'reserve';
+        assetFreeze: 'freeze';
+        assetClawback: 'clawback';
+        assetUnitName: 'unitName';
+      }
+    >,
+    | 'from'
+    | 'note'
+    | 'total'
+    | 'decimals'
+    | 'defaultFrozen'
+    | 'manager'
+    | 'reserve'
+    | 'freeze'
+    | 'clawback'
+    | 'unitName'
+    | 'assetName'
+    | 'assetURL'
+    | 'assetMetadataHash'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  >
+) {
   return makeAssetCreateTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -450,19 +478,18 @@ function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
 function makeAssetConfigTxnWithSuggestedParams(
-  from,
-  note,
-  assetIndex,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  suggestedParams,
+  from: AssetConfigTxn['from'],
+  note: AssetConfigTxn['note'],
+  assetIndex: AssetConfigTxn['assetIndex'],
+  manager: AssetConfigTxn['assetManager'],
+  reserve: AssetConfigTxn['assetReserve'],
+  freeze: AssetConfigTxn['assetFreeze'],
+  clawback: AssetConfigTxn['assetClawback'],
+  suggestedParams: MustHaveSuggestedParams<AssetConfigTxn>['suggestedParams'],
   strictEmptyAddressChecking = true,
-  rekeyTo = undefined
+  rekeyTo: AssetConfigTxn['reKeyTo']
 ) {
   if (
     strictEmptyAddressChecking &&
@@ -475,7 +502,7 @@ function makeAssetConfigTxnWithSuggestedParams(
       'strict empty address checking was turned on, but at least one empty address was provided'
     );
   }
-  const o = {
+  const o: AssetConfigTxn = {
     from,
     suggestedParams,
     assetIndex,
@@ -483,7 +510,7 @@ function makeAssetConfigTxnWithSuggestedParams(
     assetReserve: reserve,
     assetFreeze: freeze,
     assetClawback: clawback,
-    type: 'acfg',
+    type: TransactionType.acfg,
     note,
     reKeyTo: rekeyTo,
   };
@@ -510,25 +537,24 @@ function makeAssetConfigTxnWithSuggestedParams(
  * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
 function makeAssetConfigTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  manager,
-  reserve,
-  freeze,
-  clawback,
+  from: AssetConfigTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetConfigTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetConfigTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetConfigTxn>['lastRound'],
+  note: AssetConfigTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetConfigTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetConfigTxn>['genesisID'],
+  assetIndex: AssetConfigTxn['assetIndex'],
+  manager: AssetConfigTxn['assetManager'],
+  reserve: AssetConfigTxn['assetReserve'],
+  freeze: AssetConfigTxn['assetFreeze'],
+  clawback: AssetConfigTxn['assetClawback'],
   strictEmptyAddressChecking = true,
-  rekeyTo = undefined
+  rekeyTo: AssetConfigTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -550,7 +576,31 @@ function makeAssetConfigTxn(
 }
 
 // helper for above makeAssetConfigTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
+function makeAssetConfigTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetConfigTxn>,
+      {
+        reKeyTo: 'rekeyTo';
+        assetManager: 'manager';
+        assetReserve: 'reserve';
+        assetFreeze: 'freeze';
+        assetClawback: 'clawback';
+      }
+    >,
+    | 'from'
+    | 'note'
+    | 'assetIndex'
+    | 'manager'
+    | 'reserve'
+    | 'freeze'
+    | 'clawback'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  > & {
+    strictEmptyAddressChecking: boolean;
+  }
+) {
   return makeAssetConfigTxnWithSuggestedParams(
     o.from,
     o.note,
