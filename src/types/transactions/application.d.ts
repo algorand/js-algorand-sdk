@@ -98,3 +98,10 @@ export type ApplicationCloseOutTransaction = ApplicationDeleteTransaction;
 
 // Same structure as the application delete transaction
 export type ApplicationClearStateTransaction = ApplicationDeleteTransaction;
+
+// --------------------------------------
+// > Application Call (NoOp) Transaction
+// --------------------------------------
+
+// Same structure as the application delete transaction
+export type ApplicationNoOpTransaction = ApplicationDeleteTransaction;

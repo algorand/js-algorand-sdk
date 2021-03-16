@@ -22,4 +22,5 @@ export {
   ApplicationOptInTransaction as AppOptInTxn,
   ApplicationCloseOutTransaction as AppCloseOutTxn,
   ApplicationClearStateTransaction as AppClearStateTxn,
+  ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';

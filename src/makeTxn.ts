@@ -21,6 +21,7 @@ import {
   AppOptInTxn,
   AppCloseOutTxn,
   AppClearStateTxn,
+  AppNoOpTxn,
 } from './types/transactions';
 import { RenameProperties, RenameProperty } from './types/utils';
 
@@ -1569,19 +1570,19 @@ function makeApplicationClearStateTxnFromObject(
  * @param rekeyTo, optional
  */
 function makeApplicationNoOpTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+  from: AppNoOpTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppNoOpTxn>['suggestedParams'],
+  appIndex: AppNoOpTxn['appIndex'],
+  appArgs: AppNoOpTxn['appArgs'],
+  accounts: AppNoOpTxn['appAccounts'],
+  foreignApps: AppNoOpTxn['appForeignApps'],
+  foreignAssets: AppNoOpTxn['appForeignAssets'],
+  note: AppNoOpTxn['note'],
+  lease: AppNoOpTxn['lease'],
+  rekeyTo: AppNoOpTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppNoOpTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1598,7 +1599,29 @@ function makeApplicationNoOpTxn(
 }
 
 // helper for above makeApplicationNoOpTxn, instead accepting an argument object
-function makeApplicationNoOpTxnFromObject(o) {
+function makeApplicationNoOpTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppOptInTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationNoOpTxn(
     o.from,
     o.suggestedParams,
