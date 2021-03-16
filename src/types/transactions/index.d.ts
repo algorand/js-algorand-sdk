@@ -20,4 +20,6 @@ export {
   ApplicationUpdateTransaction as AppUpdateTxn,
   ApplicationDeleteTransaction as AppDeleteTxn,
   ApplicationOptInTransaction as AppOptInTxn,
+  ApplicationCloseOutTransaction as AppCloseOutTxn,
+  ApplicationClearStateTransaction as AppClearStateTxn,
 } from './application';

@@ -84,3 +84,17 @@ export type ApplicationDeleteTransaction = ConstructTransaction<
 
 // Same structure as the application delete transaction
 export type ApplicationOptInTransaction = ApplicationDeleteTransaction;
+
+// -----------------------------------
+// > Application Close Out Transaction
+// -----------------------------------
+
+// Same structure as the application delete transaction
+export type ApplicationCloseOutTransaction = ApplicationDeleteTransaction;
+
+// --------------------------------------
+// > Application Clear State Transaction
+// --------------------------------------
+
+// Same structure as the application delete transaction
+export type ApplicationClearStateTransaction = ApplicationDeleteTransaction;
