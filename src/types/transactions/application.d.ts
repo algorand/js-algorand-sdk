@@ -54,3 +54,33 @@ export type ApplicationUpdateTransaction = ConstructTransaction<
   SpecificParametersForUpdate,
   OverwritesForUpdate
 >;
+
+// -----------------------------------
+// > Application Delete Transaction
+// -----------------------------------
+
+type SpecificParametersForDelete = Pick<
+  TransactionParams,
+  | 'appIndex'
+  | 'appOnComplete'
+  | 'appArgs'
+  | 'appAccounts'
+  | 'appForeignApps'
+  | 'appForeignAssets'
+>;
+
+interface OverwritesForDelete {
+  type?: TransactionType.appl;
+}
+
+export type ApplicationDeleteTransaction = ConstructTransaction<
+  SpecificParametersForDelete,
+  OverwritesForDelete
+>;
+
+// -----------------------------------
+// > Application Opt-In Transaction
+// -----------------------------------
+
+// Same structure as the application delete transaction
+export type ApplicationOptInTransaction = ApplicationDeleteTransaction;

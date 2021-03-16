@@ -17,6 +17,8 @@ import {
   AssetTransferTxn,
   AppCreateTxn,
   AppUpdateTxn,
+  AppDeleteTxn,
+  AppOptInTxn,
 } from './types/transactions';
 import { RenameProperties, RenameProperty } from './types/utils';
 
@@ -1217,19 +1219,19 @@ function makeApplicationUpdateTxnFromObject(
  * @param rekeyTo, optional
  */
 function makeApplicationDeleteTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+  from: AppDeleteTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppDeleteTxn>['suggestedParams'],
+  appIndex: AppDeleteTxn['appIndex'],
+  appArgs: AppDeleteTxn['appArgs'],
+  accounts: AppDeleteTxn['appAccounts'],
+  foreignApps: AppDeleteTxn['appForeignApps'],
+  foreignAssets: AppDeleteTxn['appForeignAssets'],
+  note: AppDeleteTxn['note'],
+  lease: AppDeleteTxn['lease'],
+  rekeyTo: AppDeleteTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppDeleteTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1246,7 +1248,29 @@ function makeApplicationDeleteTxn(
 }
 
 // helper for above makeApplicationDeleteTxn, instead accepting an arguments object
-function makeApplicationDeleteTxnFromObject(o) {
+function makeApplicationDeleteTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppDeleteTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationDeleteTxn(
     o.from,
     o.suggestedParams,
@@ -1282,19 +1306,19 @@ function makeApplicationDeleteTxnFromObject(o) {
  * @param rekeyTo, optional
  */
 function makeApplicationOptInTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+  from: AppOptInTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppOptInTxn>['suggestedParams'],
+  appIndex: AppOptInTxn['appIndex'],
+  appArgs: AppOptInTxn['appArgs'],
+  accounts: AppOptInTxn['appAccounts'],
+  foreignApps: AppOptInTxn['appForeignApps'],
+  foreignAssets: AppOptInTxn['appForeignApps'],
+  note: AppOptInTxn['note'],
+  lease: AppOptInTxn['lease'],
+  rekeyTo: AppOptInTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppOptInTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1311,7 +1335,29 @@ function makeApplicationOptInTxn(
 }
 
 // helper for above makeApplicationOptInTxn, instead accepting an argument object
-function makeApplicationOptInTxnFromObject(o) {
+function makeApplicationOptInTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppOptInTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationOptInTxn(
     o.from,
     o.suggestedParams,

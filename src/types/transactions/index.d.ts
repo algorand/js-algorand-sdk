@@ -18,4 +18,6 @@ export {
 export {
   ApplicationCreateTransaction as AppCreateTxn,
   ApplicationUpdateTransaction as AppUpdateTxn,
+  ApplicationDeleteTransaction as AppDeleteTxn,
+  ApplicationOptInTransaction as AppOptInTxn,
 } from './application';
