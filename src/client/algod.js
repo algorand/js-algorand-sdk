@@ -1,6 +1,6 @@
-const { Buffer } = require('buffer');
-const client = require('./client');
-const { setSendTransactionHeaders } = require('./v2/algod/sendRawTransaction');
+import { Buffer } from 'buffer';
+import client from './client';
+import { setSendTransactionHeaders } from './v2/algod/sendRawTransaction';
 
 function Algod(
   token = '',

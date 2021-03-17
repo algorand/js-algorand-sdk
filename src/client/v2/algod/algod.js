@@ -1,20 +1,20 @@
-const client = require('../../client');
-const ai = require('./accountInformation');
-const blk = require('./block');
-const compile = require('./compile');
-const dryrun = require('./dryrun');
-const gasbid = require('./getAssetByID');
-const gapbid = require('./getApplicationByID');
-const hc = require('./healthCheck');
-const pti = require('./pendingTransactionInformation');
-const pt = require('./pendingTransactions');
-const ptba = require('./pendingTransactionsByAddress');
-const srt = require('./sendRawTransaction');
-const status = require('./status');
-const sab = require('./statusAfterBlock');
-const sp = require('./suggestedParams');
-const supply = require('./supply');
-const versions = require('./versions');
+import client from '../../client';
+import ai from './accountInformation';
+import blk from './block';
+import compile from './compile';
+import dryrun from './dryrun';
+import gasbid from './getAssetByID';
+import gapbid from './getApplicationByID';
+import hc from './healthCheck';
+import pti from './pendingTransactionInformation';
+import pt from './pendingTransactions';
+import ptba from './pendingTransactionsByAddress';
+import srt from './sendRawTransaction';
+import status from './status';
+import sab from './statusAfterBlock';
+import sp from './suggestedParams';
+import supply from './supply';
+import versions from './versions';
 
 class AlgodClient {
   constructor(

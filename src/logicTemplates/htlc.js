@@ -1,10 +1,10 @@
-const { Buffer } = require('buffer');
-const sha256 = require('js-sha256');
-const { keccak256 } = require('js-sha3');
-const logic = require('../logic/logic');
-const logicSig = require('../logicsig');
-const templates = require('./templates');
-const transaction = require('../transaction');
+import { Buffer } from 'buffer';
+import sha256 from 'js-sha256';
+import { keccak256 } from 'js-sha3';
+import logic from '../logic/logic';
+import logicSig from '../logicsig';
+import templates from './templates';
+import transaction from '../transaction';
 
 class HTLC {
   /**

@@ -1,4 +1,4 @@
-const txnBuilder = require('./transaction');
+import txnBuilder from './transaction';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object

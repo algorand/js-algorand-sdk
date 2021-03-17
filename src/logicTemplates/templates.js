@@ -1,6 +1,7 @@
 /* eslint-disable no-bitwise */
-const { Buffer } = require('buffer');
-const address = require('../encoding/address');
+import { Buffer } from 'buffer';
+
+import address from '../encoding/address';
 
 function putUvarint(buf, x) {
   let i = 0;

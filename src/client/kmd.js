@@ -1,6 +1,6 @@
-const { Buffer } = require('buffer');
-const client = require('./client');
-const txn = require('../transaction');
+import { Buffer } from 'buffer';
+import client from './client';
+import txn from '../transaction';
 
 function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
   // Get client

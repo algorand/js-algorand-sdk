@@ -1,4 +1,9 @@
 /* eslint-disable no-console */
+
+require('@babel/register')({
+  extensions: ['.ts', '.js'],
+});
+
 const Mocha = require('mocha');
 const webpack = require('webpack');
 const fs = require('fs');

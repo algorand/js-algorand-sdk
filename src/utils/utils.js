@@ -1,4 +1,6 @@
-const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
+import JSONbigFactory from 'json-bigint';
+
+const JSONbig = JSONbigFactory({ useNativeBigInt: true, strict: true });
 
 /**
  * Parse JSON with additional options.

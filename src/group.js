@@ -1,9 +1,9 @@
-const { Buffer } = require('buffer');
-const txnBuilder = require('./transaction');
-const nacl = require('./nacl/naclWrappers');
-const encoding = require('./encoding/encoding');
-const address = require('./encoding/address');
-const utils = require('./utils/utils');
+import { Buffer } from 'buffer';
+import txnBuilder from './transaction';
+import nacl from './nacl/naclWrappers';
+import encoding from './encoding/encoding';
+import address from './encoding/address';
+import utils from './utils/utils';
 
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 

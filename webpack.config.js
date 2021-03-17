@@ -1,7 +1,8 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
+  // mode: 'production',
   entry: './index.js',
   output: {
     filename: 'algosdk.min.js',
@@ -12,4 +13,18 @@ module.exports = {
     },
   },
   devtool: 'source-map',
+  module: {
+    rules: [
+      {
+        test: /(\.(js|ts)?$)/,
+        include: /src/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'babel-loader',
+          },
+        ],
+      },
+    ],
+  },
 };

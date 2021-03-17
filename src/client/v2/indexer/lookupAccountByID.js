@@ -1,4 +1,4 @@
-const { JSONRequest } = require('../jsonrequest');
+import { JSONRequest } from '../jsonrequest';
 
 class LookupAccountByID extends JSONRequest {
   constructor(c, intDecoding, account) {

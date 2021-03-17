@@ -1,10 +1,10 @@
-const { Buffer } = require('buffer');
-const address = require('../encoding/address');
-const makeTxn = require('../makeTxn');
-const logic = require('../logic/logic');
-const logicSig = require('../logicsig');
-const nacl = require('../nacl/naclWrappers');
-const templates = require('./templates');
+import { Buffer } from 'buffer';
+import address from '../encoding/address';
+import makeTxn from '../makeTxn';
+import logic from '../logic/logic';
+import logicSig from '../logicsig';
+import nacl from '../nacl/naclWrappers';
+import templates from './templates';
 
 class PeriodicPayment {
   /**

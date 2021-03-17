@@ -1,8 +1,8 @@
-const dynamicFeeTemplate = require('./dynamicfee');
-const htlcTemplate = require('./htlc');
-const limitOrderTemplate = require('./limitorder');
-const splitTemplate = require('./split');
-const periodicPayTemplate = require('./periodicpayment');
+import dynamicFeeTemplate from './dynamicfee';
+import htlcTemplate from './htlc';
+import limitOrderTemplate from './limitorder';
+import splitTemplate from './split';
+import periodicPayTemplate from './periodicpayment';
 
 module.exports = {
   DynamicFee: dynamicFeeTemplate.DynamicFee,

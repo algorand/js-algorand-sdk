@@ -1,4 +1,4 @@
-const { JSONRequest } = require('../jsonrequest');
+import { JSONRequest } from '../jsonrequest';
 
 class StatusAfterBlock extends JSONRequest {
   constructor(c, intDecoding, round) {

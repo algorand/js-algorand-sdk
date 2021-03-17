@@ -1,12 +1,12 @@
-const { Buffer } = require('buffer');
-const address = require('../encoding/address');
-const makeTxn = require('../makeTxn');
-const group = require('../group');
-const logic = require('../logic/logic');
-const logicSig = require('../logicsig');
-const nacl = require('../nacl/naclWrappers');
-const templates = require('./templates');
-const utils = require('../utils/utils');
+import { Buffer } from 'buffer';
+import address from '../encoding/address';
+import makeTxn from '../makeTxn';
+import group from '../group';
+import logic from '../logic/logic';
+import logicSig from '../logicsig';
+import nacl from '../nacl/naclWrappers';
+import templates from './templates';
+import utils from '../utils/utils';
 
 class LimitOrder {
   /**

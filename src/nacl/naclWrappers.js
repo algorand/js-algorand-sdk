@@ -1,5 +1,5 @@
-const nacl = require('tweetnacl');
-const sha512 = require('js-sha512');
+import nacl from 'tweetnacl';
+import sha512 from 'js-sha512';
 
 function genericHash(arr) {
   return sha512.sha512_256.array(arr);

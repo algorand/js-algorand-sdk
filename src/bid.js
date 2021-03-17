@@ -1,8 +1,8 @@
-const { Buffer } = require('buffer');
-const address = require('./encoding/address');
-const encoding = require('./encoding/encoding');
-const nacl = require('./nacl/naclWrappers');
-const utils = require('./utils/utils');
+import { Buffer } from 'buffer';
+import address from './encoding/address';
+import encoding from './encoding/encoding';
+import nacl from './nacl/naclWrappers';
+import utils from './utils/utils';
 
 /**
  * Bid enables construction of Algorand Auctions Bids

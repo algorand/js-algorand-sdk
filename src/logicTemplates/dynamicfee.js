@@ -1,12 +1,12 @@
-const { Buffer } = require('buffer');
-const address = require('../encoding/address');
-const encoding = require('../encoding/encoding');
-const group = require('../group');
-const logic = require('../logic/logic');
-const logicSig = require('../logicsig');
-const nacl = require('../nacl/naclWrappers');
-const templates = require('./templates');
-const transaction = require('../transaction');
+import { Buffer } from 'buffer';
+import address from '../encoding/address';
+import encoding from '../encoding/encoding';
+import group from '../group';
+import logic from '../logic/logic';
+import logicSig from '../logicsig';
+import nacl from '../nacl/naclWrappers';
+import templates from './templates';
+import transaction from '../transaction';
 
 class DynamicFee {
   /**

@@ -1,4 +1,4 @@
-const encoding = require('../../../encoding/encoding');
+import encoding from '../../../encoding/encoding';
 
 class PendingTransactions {
   constructor(c) {

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "baseUrl": "src",
+    "declaration": true,
+    "incremental": true,
+    // "lib": ["dom"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "outDir": "dist",
+    "pretty": true,
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    // "strict": false,
+    "target": "es2015"
+  },
+  "include": ["src/**/*.js", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "examples"]
+}

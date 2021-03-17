@@ -1,4 +1,5 @@
 const assert = require('assert');
+
 const { Buffer } = require('buffer');
 const sha256 = require('js-sha256');
 const nacl = require('tweetnacl');

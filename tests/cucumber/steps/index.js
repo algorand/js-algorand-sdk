@@ -1,4 +1,10 @@
 /* eslint-disable no-console,global-require,no-loop-func,func-names */
+
+require('@babel/register')({
+  extensions: ['.ts', '.js'],
+  only: [/src/],
+});
+
 const path = require('path');
 const fs = require('fs');
 const {

@@ -1,16 +1,16 @@
-const client = require('../../client');
-const mhc = require('./makeHealthCheck');
-const lacbid = require('./lookupAccountByID');
-const lact = require('./lookupAccountTransactions');
-const lapp = require('./lookupApplications');
-const lasb = require('./lookupAssetBalances');
-const lasbid = require('./lookupAssetByID');
-const last = require('./lookupAssetTransactions');
-const lb = require('./lookupBlock');
-const sfas = require('./searchForAssets');
-const sfapp = require('./searchForApplications');
-const sft = require('./searchForTransactions');
-const sac = require('./searchAccounts');
+import client from '../../client';
+import mhc from './makeHealthCheck';
+import lacbid from './lookupAccountByID';
+import lact from './lookupAccountTransactions';
+import lapp from './lookupApplications';
+import lasb from './lookupAssetBalances';
+import lasbid from './lookupAssetByID';
+import last from './lookupAssetTransactions';
+import lb from './lookupBlock';
+import sfas from './searchForAssets';
+import sfapp from './searchForApplications';
+import sft from './searchForTransactions';
+import sac from './searchAccounts';
 
 class IndexerClient {
   constructor(

@@ -1,0 +1,14 @@
+{
+  "presets": [
+    [
+      "@babel/env",
+      {
+        "modules": false,
+        "useBuiltIns": "usage",
+        "corejs": 3
+      }
+    ],
+    "@babel/typescript"
+  ],
+  "plugins": ["@babel/plugin-transform-modules-commonjs"]
+}

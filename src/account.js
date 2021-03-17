@@ -1,5 +1,5 @@
-const nacl = require('./nacl/naclWrappers');
-const address = require('./encoding/address');
+import nacl from './nacl/naclWrappers';
+import address from './encoding/address';
 
 /**
  * generateAccount returns a new Algorand address and its corresponding secret key

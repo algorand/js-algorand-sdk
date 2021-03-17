@@ -1,11 +1,11 @@
-const { Buffer } = require('buffer');
-const address = require('../encoding/address');
-const makeTxn = require('../makeTxn');
-const group = require('../group');
-const logicsig = require('../logicsig');
-const logic = require('../logic/logic');
-const templates = require('./templates');
-const utils = require('../utils/utils');
+import { Buffer } from 'buffer';
+import address from '../encoding/address';
+import makeTxn from '../makeTxn';
+import group from '../group';
+import logicsig from '../logicsig';
+import logic from '../logic/logic';
+import templates from './templates';
+import utils from '../utils/utils';
 
 class Split {
   /**

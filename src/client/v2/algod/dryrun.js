@@ -1,6 +1,6 @@
-const { Buffer } = require('buffer');
-const encoding = require('../../../encoding/encoding');
-const { setHeaders } = require('./compile');
+import { Buffer } from 'buffer';
+import encoding from '../../../encoding/encoding';
+import { setHeaders } from './compile';
 
 class Dryrun {
   constructor(c, dr) {

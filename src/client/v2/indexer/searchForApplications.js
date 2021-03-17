@@ -1,4 +1,4 @@
-const { JSONRequest } = require('../jsonrequest');
+import { JSONRequest } from '../jsonrequest';
 
 class SearchForApplications extends JSONRequest {
   // eslint-disable-next-line no-underscore-dangle,class-methods-use-this

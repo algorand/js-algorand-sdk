@@ -21,3 +21,4 @@ tests/browser/bundle.*
 
 # Caches
 .eslintcache
+tsconfig.tsbuildinfo

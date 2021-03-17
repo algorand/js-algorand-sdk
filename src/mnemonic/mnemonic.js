@@ -1,7 +1,8 @@
 /* eslint-disable no-bitwise */
-const english = require('./wordlists/english');
-const nacl = require('../nacl/naclWrappers');
-const address = require('../encoding/address');
+import english from './wordlists/english';
+
+import nacl from '../nacl/naclWrappers';
+import address from '../encoding/address';
 
 const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 const NOT_IN_WORDS_LIST_ERROR_MSG =

@@ -1,4 +1,4 @@
-const base = require('./base');
+import base from './base';
 /**
  * Request data type for dryrun endpoint.
  * Given the Transactions and simulated ledger state upload,

@@ -1,4 +1,4 @@
-const { JSONRequest } = require('../jsonrequest');
+import { JSONRequest } from '../jsonrequest';
 
 class LookupBlock extends JSONRequest {
   constructor(c, intDecoding, round) {

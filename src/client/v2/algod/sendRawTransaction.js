@@ -1,4 +1,4 @@
-const { Buffer } = require('buffer');
+import { Buffer } from 'buffer';
 
 /**
  * Sets the default header (if not previously set) for sending a raw

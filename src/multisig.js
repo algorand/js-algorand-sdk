@@ -1,9 +1,9 @@
-const { Buffer } = require('buffer');
-const nacl = require('./nacl/naclWrappers');
-const address = require('./encoding/address');
-const encoding = require('./encoding/encoding');
-const txnBuilder = require('./transaction');
-const utils = require('./utils/utils');
+import { Buffer } from 'buffer';
+import nacl from './nacl/naclWrappers';
+import address from './encoding/address';
+import encoding from './encoding/encoding';
+import txnBuilder from './transaction';
+import utils from './utils/utils';
 
 /**
  Utilities for manipulating multisig transaction blobs.

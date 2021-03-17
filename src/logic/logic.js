@@ -3,7 +3,7 @@
  * Utilities for working with program bytes.
  */
 
-const langspec = require('./langspec.json');
+import langspec from './langspec.json';
 
 let opcodes;
 

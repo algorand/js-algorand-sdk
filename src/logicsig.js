@@ -1,11 +1,11 @@
-const { Buffer } = require('buffer');
-const nacl = require('./nacl/naclWrappers');
-const address = require('./encoding/address');
-const encoding = require('./encoding/encoding');
-const logic = require('./logic/logic');
-const multisig = require('./multisig');
-const utils = require('./utils/utils');
-const txnBuilder = require('./transaction');
+import { Buffer } from 'buffer';
+import nacl from './nacl/naclWrappers';
+import address from './encoding/address';
+import encoding from './encoding/encoding';
+import logic from './logic/logic';
+import multisig from './multisig';
+import utils from './utils/utils';
+import txnBuilder from './transaction';
 
 /**
  LogicSig implementation
