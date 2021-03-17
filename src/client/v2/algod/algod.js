@@ -15,6 +15,8 @@ const sab = require('./statusAfterBlock');
 const sp = require('./suggestedParams');
 const supply = require('./supply');
 const versions = require('./versions');
+const genesis = require('./genesis');
+const proof = require('./proof');
 
 class AlgodClient {
   constructor(
@@ -156,6 +158,22 @@ class AlgodClient {
    */
   getApplicationByID(index) {
     return new gapbid.GetApplicationByID(this.c, this.intDecoding, index);
+  }
+
+  /**
+   * Returns the entire genesis file.
+   */
+  genesis() {
+    return new genesis.Genesis(this.c, this.intDecoding);
+  }
+
+  /**
+   * Get the proof for a given transaction in a round.
+   * @param {number} round The round that the transaction occurred in.
+   * @param {string} txID The ID of the transaction.
+   */
+  getProof(round, txID) {
+    return new proof.Proof(this.c, this.intDecoding, round, txID);
   }
 }
 
