@@ -247,6 +247,7 @@ export const ERROR_INVALID_MICROALGOS = new Error(
   convert.INVALID_MICROALGOS_ERROR_MSG
 );
 
+export * from './types/transactions';
 export {
   isValidAddress,
   encodeAddress,

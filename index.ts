@@ -1,4 +1,4 @@
 import * as algosdk from './src/main';
 
-module.exports = algosdk;
+export * from './src/main';
 export default algosdk;
