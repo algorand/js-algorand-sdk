@@ -22,16 +22,27 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.17.0",
+    "@typescript-eslint/parser": "^4.17.0",
     "assert": "^2.0.0",
-    "chromedriver": "^87.0.0",
+    "chromedriver": "^89.0.0",
     "coveralls": "^3.0.6",
     "cucumber": "^5.1.0",
+    "es-abstract": "^1.17.7",
+    "eslint": "^7.21.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.22.1",
     "express": "^4.17.1",
     "geckodriver": "^1.20.0",
+    "husky": "^4.3.8",
+    "lint-staged": "^10.5.4",
     "mocha": "^5.2.0",
     "mocha-lcov-reporter": "^1.3.0",
     "mock-http-server": "^1.4.2",
+    "prettier": "2.2.1",
     "selenium-webdriver": "^4.0.0-alpha.7",
+    "typescript": "^4.2.3",
     "webpack": "^5.5.1",
     "webpack-cli": "^4.2.0"
   },
@@ -42,7 +53,10 @@
   "scripts": {
     "test": "node tests/mocha.js",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format": "prettier --write ."
   },
   "author": "Algorand, llc",
   "license": "MIT"

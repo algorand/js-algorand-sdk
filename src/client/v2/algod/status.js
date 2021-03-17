@@ -1,13 +1,10 @@
 const { JSONRequest } = require('../jsonrequest');
 
 class Status extends JSONRequest {
-	constructor(c, intDecoding) {
-		super(c, intDecoding);
-	}
-
-	_path() {
-		return "/v2/status";
-	}
+  // eslint-disable-next-line no-underscore-dangle,class-methods-use-this
+  _path() {
+    return '/v2/status';
+  }
 }
 
 module.exports = { Status };

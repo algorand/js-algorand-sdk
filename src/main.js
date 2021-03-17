@@ -1,6 +1,7 @@
 const { Buffer } = require('buffer');
 const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
+const uint64Encoding = require('./encoding/uint64');
 const mnemonic = require('./mnemonic/mnemonic');
 const encoding = require('./encoding/encoding');
 const account = require('./account');
@@ -15,27 +16,28 @@ const convert = require('./convert');
 const utils = require('./utils/utils');
 const logicsig = require('./logicsig');
 const LogicTemplates = require('./logicTemplates');
-const algodv2 = require('./client/v2/algod/algod')
-const modelsv2 = require('./client/v2/algod/models/types')
-const indexer = require('./client/v2/indexer/indexer')
+const algodv2 = require('./client/v2/algod/algod');
+const modelsv2 = require('./client/v2/algod/models/types');
+const indexer = require('./client/v2/indexer/indexer');
 
-let Algod = algod.Algod;
-let Kmd = kmd.Kmd;
-let Algodv2 = algodv2.AlgodClient
-let Indexer = indexer.IndexerClient
+const { Algod } = algod;
+const { Kmd } = kmd;
+const Algodv2 = algodv2.AlgodClient;
+const Indexer = indexer.IndexerClient;
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
 // Errors
-const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and multisig preimage do not match.");
+const MULTISIG_BAD_SENDER_ERROR_MSG =
+  'The transaction sender address and multisig preimage do not match.';
 
 /**
- * signTransaction takes an object with either payment or key registration fields and 
+ * signTransaction takes an object with either payment or key registration fields and
  * a secret key and returns a signed blob.
- * 
+ *
  * Payment transaction fields: from, to, amount, fee, firstRound, lastRound, genesisHash,
  * note(optional), GenesisID(optional), closeRemainderTo(optional)
- * 
+ *
  * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
  * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
  *
@@ -45,17 +47,18 @@ const ERROR_MULTISIG_BAD_SENDER = new Error("The transaction sender address and 
  * @returns object contains the binary signed transaction and its txID
  */
 function signTransaction(txn, sk) {
-    if (!txn.from) {
-        // Get pk from sk if no sender specified
-        let key = nacl.keyPairFromSecretKey(sk);
-        txn.from = address.encodeAddress(key.publicKey);
-    }
-    let algoTxn = txn;
-    if (! (txn instanceof txnBuilder.Transaction)) {
-        algoTxn = new txnBuilder.Transaction(txn);
-    }
+  if (typeof txn.from === 'undefined') {
+    // Get pk from sk if no sender specified
+    const key = nacl.keyPairFromSecretKey(sk);
+    // eslint-disable-next-line no-param-reassign
+    txn.from = address.encodeAddress(key.publicKey);
+  }
+  let algoTxn = txn;
+  if (!(txn instanceof txnBuilder.Transaction)) {
+    algoTxn = new txnBuilder.Transaction(txn);
+  }
 
-    return {"txID": algoTxn.txID().toString(), "blob": algoTxn.signTxn(sk)};
+  return { txID: algoTxn.txID().toString(), blob: algoTxn.signTxn(sk) };
 }
 
 /**
@@ -66,21 +69,21 @@ function signTransaction(txn, sk) {
  * @returns Uint8Array binary signed bid
  */
 function signBid(bid, sk) {
-    let signedBid = new bidBuilder.Bid(bid);
-    return signedBid.signBid(sk);
+  const signedBid = new bidBuilder.Bid(bid);
+  return signedBid.signBid(sk);
 }
 
 /**
- * signBytes takes arbitrary bytes and a secret key, prepends the bytes with "MX" for domain separation, signs the bytes 
+ * signBytes takes arbitrary bytes and a secret key, prepends the bytes with "MX" for domain separation, signs the bytes
  * with the private key, and returns the signature.
  * @param bytes Uint8array
  * @param sk Algorand secret key
  * @returns binary signature
  */
 function signBytes(bytes, sk) {
-    let toBeSigned = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
-    let sig = nacl.sign(toBeSigned, sk);
-    return sig;
+  const toBeSigned = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
+  const sig = nacl.sign(toBeSigned, sk);
+  return sig;
 }
 
 /**
@@ -92,9 +95,11 @@ function signBytes(bytes, sk) {
  * @returns bool
  */
 function verifyBytes(bytes, signature, addr) {
-    toBeVerified = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
-    let pk = address.decodeAddress(addr).publicKey;
-    return nacl.verify(toBeVerified, signature, pk);
+  const toBeVerified = Buffer.from(
+    utils.concatArrays(SIGN_BYTES_PREFIX, bytes)
+  );
+  const pk = address.decodeAddress(addr).publicKey;
+  return nacl.verify(toBeVerified, signature, pk);
 }
 
 /**
@@ -109,35 +114,54 @@ function verifyBytes(bytes, signature, addr) {
  * @returns object containing txID, and blob of partially signed multisig transaction (with multisig preimage information)
  * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
  */
-function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
-    // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
-    let expectedFromRaw = address.fromMultisigPreImgAddrs({version, threshold, addrs});
-    if (txn.hasOwnProperty('from')) {
-        if ((txn.from !== expectedFromRaw) && (address.encodeAddress(txn.from.publicKey) !== expectedFromRaw)) {
-            throw ERROR_MULTISIG_BAD_SENDER;
-        }
-    } else {
-        txn.from = expectedFromRaw;
+function signMultisigTransaction(txn, { version, threshold, addrs }, sk) {
+  // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
+  const expectedFromRaw = address.fromMultisigPreImgAddrs({
+    version,
+    threshold,
+    addrs,
+  });
+  if (Object.prototype.hasOwnProperty.call(txn, 'from')) {
+    if (
+      txn.from !== expectedFromRaw &&
+      address.encodeAddress(txn.from.publicKey) !== expectedFromRaw
+    ) {
+      throw new Error(MULTISIG_BAD_SENDER_ERROR_MSG);
     }
-    // build pks for partialSign
-    const pks = addrs.map(addr => {
-        return address.decodeAddress(addr).publicKey;
-    });
-    // `txn` needs to be handled differently if it's a constructed `Transaction` vs a dict of constructor args
-    let txnAlreadyBuilt = (txn instanceof txnBuilder.Transaction);
-    let algoTxn;
-    let blob;
-    if (txnAlreadyBuilt) {
-        algoTxn = txn;
-        blob = multisig.MultisigTransaction.prototype.partialSignTxn.call(algoTxn, {version, threshold, pks}, sk);
-    } else {
-        algoTxn = new multisig.MultisigTransaction(txn);
-        blob = algoTxn.partialSignTxn({version, threshold, pks}, sk);
-    }
-    return {
-        "txID": algoTxn.txID().toString(),
-        "blob": blob
-    };
+  } else {
+    // eslint-disable-next-line no-param-reassign
+    txn.from = expectedFromRaw;
+  }
+  // build pks for partialSign
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  // `txn` needs to be handled differently if it's a constructed `Transaction` vs a dict of constructor args
+  const txnAlreadyBuilt = txn instanceof txnBuilder.Transaction;
+  let algoTxn;
+  let blob;
+  if (txnAlreadyBuilt) {
+    algoTxn = txn;
+    blob = multisig.MultisigTransaction.prototype.partialSignTxn.call(
+      algoTxn,
+      { version, threshold, pks },
+      sk
+    );
+  } else {
+    algoTxn = new multisig.MultisigTransaction(txn);
+    blob = algoTxn.partialSignTxn({ version, threshold, pks }, sk);
+  }
+  return {
+    txID: algoTxn.txID().toString(),
+    blob,
+  };
+}
+
+/**
+ * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
+ * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
+ * @returns blob representing encoded multisig txn
+ */
+function mergeMultisigTransactions(multisigTxnBlobs) {
+  return multisig.mergeMultisigTransactions(multisigTxnBlobs);
 }
 
 /**
@@ -151,27 +175,25 @@ function signMultisigTransaction(txn, {version, threshold, addrs}, sk) {
  * @param sk Algorand secret key
  * @returns object containing txID, and blob representing encoded multisig txn
  */
-function appendSignMultisigTransaction(multisigTxnBlob, {version, threshold, addrs}, sk) {
-    const pks = addrs.map(addr => {
-        return address.decodeAddress(addr).publicKey;
-    });
-    // obtain underlying txn, sign it, and merge it
-    let multisigTxObj = encoding.decode(multisigTxnBlob);
-    let msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
-    let partialSignedBlob = msigTxn.partialSignTxn({version, threshold, pks}, sk);
-    return {
-        "txID": msigTxn.txID().toString(),
-        "blob": mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
-    };
-}
-
-/**
- * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
- * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
- * @returns blob representing encoded multisig txn
- */
-function mergeMultisigTransactions(multisigTxnBlobs) {
-    return multisig.mergeMultisigTransactions(multisigTxnBlobs);
+function appendSignMultisigTransaction(
+  multisigTxnBlob,
+  { version, threshold, addrs },
+  sk
+) {
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  // obtain underlying txn, sign it, and merge it
+  const multisigTxObj = encoding.decode(multisigTxnBlob);
+  const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+    multisigTxObj.txn
+  );
+  const partialSignedBlob = msigTxn.partialSignTxn(
+    { version, threshold, pks },
+    sk
+  );
+  return {
+    txID: msigTxn.txID().toString(),
+    blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
+  };
 }
 
 /**
@@ -180,8 +202,8 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
  * @param threshold multisig threshold
  * @param addrs list of Algorand addresses
  */
-function multisigAddress({version, threshold, addrs}) {
-    return address.fromMultisigPreImgAddrs({version, threshold, addrs});
+function multisigAddress({ version, threshold, addrs }) {
+  return address.fromMultisigPreImgAddrs({ version, threshold, addrs });
 }
 
 /**
@@ -191,7 +213,7 @@ function multisigAddress({version, threshold, addrs}) {
  * @returns Uint8Array binary representation
  */
 function encodeObj(o) {
-    return new Uint8Array(encoding.encode(o));
+  return new Uint8Array(encoding.encode(o));
 }
 
 /**
@@ -200,84 +222,106 @@ function encodeObj(o) {
  * @returns object
  */
 function decodeObj(o) {
-    return encoding.decode(o);
+  return encoding.decode(o);
 }
 
 module.exports = {
-    isValidAddress: address.isValidAddress,
-    encodeAddress: address.encodeAddress,
-    decodeAddress: address.decodeAddress,
-    generateAccount: account.generateAccount,
-    secretKeyToMnemonic: mnemonic.secretKeyToMnemonic,
-    mnemonicToSecretKey: mnemonic.mnemonicToSecretKey,
-    signTransaction,
-    signBid,
-    signBytes,
-    verifyBytes,
-    encodeObj,
-    decodeObj,
-    Algod,
-    Kmd,
-    Algodv2,
-    Indexer,
-    modelsv2,
-    mnemonicToMasterDerivationKey: mnemonic.mnemonicToMasterDerivationKey,
-    masterDerivationKeyToMnemonic: mnemonic.masterDerivationKeyToMnemonic,
-    appendSignMultisigTransaction,
-    mergeMultisigTransactions,
-    signMultisigTransaction,
-    multisigAddress,
-    ERROR_MULTISIG_BAD_SENDER,
-    ERROR_INVALID_MICROALGOS: convert.ERROR_INVALID_MICROALGOS,
-    microalgosToAlgos: convert.microalgosToAlgos,
-    algosToMicroalgos: convert.algosToMicroalgos,
-    computeGroupID: group.computeGroupID,
-    assignGroupID: group.assignGroupID,
-    makeLogicSig: logicsig.makeLogicSig,
-    signLogicSigTransaction: logicsig.signLogicSigTransaction,
-    signLogicSigTransactionObject: logicsig.signLogicSigTransactionObject,
-    logicSigFromByte: logicsig.logicSigFromByte,
-    tealSign: logicsig.tealSign,
-    tealSignFromProgram: logicsig.tealSignFromProgram,
-    makePaymentTxn: makeTxn.makePaymentTxn,
-    makeKeyRegistrationTxn: makeTxn.makeKeyRegistrationTxn,
-    makeAssetCreateTxn: makeTxn.makeAssetCreateTxn,
-    makeAssetConfigTxn: makeTxn.makeAssetConfigTxn,
-    makeAssetDestroyTxn: makeTxn.makeAssetDestroyTxn,
-    makeAssetFreezeTxn: makeTxn.makeAssetFreezeTxn,
-    makeAssetTransferTxn: makeTxn.makeAssetTransferTxn,
-    makePaymentTxnWithSuggestedParams: makeTxn.makePaymentTxnWithSuggestedParams,
-    makeKeyRegistrationTxnWithSuggestedParams: makeTxn.makeKeyRegistrationTxnWithSuggestedParams,
-    makeAssetCreateTxnWithSuggestedParams: makeTxn.makeAssetCreateTxnWithSuggestedParams,
-    makeAssetConfigTxnWithSuggestedParams: makeTxn.makeAssetConfigTxnWithSuggestedParams,
-    makeAssetDestroyTxnWithSuggestedParams: makeTxn.makeAssetDestroyTxnWithSuggestedParams,
-    makeAssetFreezeTxnWithSuggestedParams: makeTxn.makeAssetFreezeTxnWithSuggestedParams,
-    makeAssetTransferTxnWithSuggestedParams: makeTxn.makeAssetTransferTxnWithSuggestedParams,
-    makePaymentTxnWithSuggestedParamsFromObject: makeTxn.makePaymentTxnWithSuggestedParamsFromObject,
-    makeKeyRegistrationTxnWithSuggestedParamsFromObject: makeTxn.makeKeyRegistrationTxnWithSuggestedParamsFromObject,
-    makeAssetCreateTxnWithSuggestedParamsFromObject: makeTxn.makeAssetCreateTxnWithSuggestedParamsFromObject,
-    makeAssetConfigTxnWithSuggestedParamsFromObject: makeTxn.makeAssetConfigTxnWithSuggestedParamsFromObject,
-    makeAssetDestroyTxnWithSuggestedParamsFromObject: makeTxn.makeAssetDestroyTxnWithSuggestedParamsFromObject,
-    makeAssetFreezeTxnWithSuggestedParamsFromObject: makeTxn.makeAssetFreezeTxnWithSuggestedParamsFromObject,
-    makeAssetTransferTxnWithSuggestedParamsFromObject: makeTxn.makeAssetTransferTxnWithSuggestedParamsFromObject,
-    OnApplicationComplete: makeTxn.OnApplicationComplete,
-    makeApplicationCreateTxn: makeTxn.makeApplicationCreateTxn,
-    makeApplicationUpdateTxn: makeTxn.makeApplicationUpdateTxn,
-    makeApplicationDeleteTxn: makeTxn.makeApplicationDeleteTxn,
-    makeApplicationOptInTxn: makeTxn.makeApplicationOptInTxn,
-    makeApplicationCloseOutTxn: makeTxn.makeApplicationCloseOutTxn,
-    makeApplicationClearStateTxn: makeTxn.makeApplicationClearStateTxn,
-    makeApplicationNoOpTxn: makeTxn.makeApplicationNoOpTxn,
-    makeApplicationCreateTxnFromObject: makeTxn.makeApplicationCreateTxnFromObject,
-    makeApplicationUpdateTxnFromObject: makeTxn.makeApplicationUpdateTxnFromObject,
-    makeApplicationDeleteTxnFromObject: makeTxn.makeApplicationDeleteTxnFromObject,
-    makeApplicationOptInTxnFromObject: makeTxn.makeApplicationOptInTxnFromObject,
-    makeApplicationCloseOutTxnFromObject: makeTxn.makeApplicationCloseOutTxnFromObject,
-    makeApplicationClearStateTxnFromObject: makeTxn.makeApplicationClearStateTxnFromObject,
-    makeApplicationNoOpTxnFromObject: makeTxn.makeApplicationNoOpTxnFromObject,
-    encodeUnsignedTransaction: txnBuilder.encodeUnsignedTransaction,
-    decodeUnsignedTransaction: txnBuilder.decodeUnsignedTransaction,
-    decodeSignedTransaction: txnBuilder.decodeSignedTransaction,
-    Transaction: txnBuilder.Transaction,
-    LogicTemplates,
+  isValidAddress: address.isValidAddress,
+  encodeAddress: address.encodeAddress,
+  decodeAddress: address.decodeAddress,
+  encodeUint64: uint64Encoding.encodeUint64,
+  decodeUint64: uint64Encoding.decodeUint64,
+  generateAccount: account.generateAccount,
+  secretKeyToMnemonic: mnemonic.secretKeyToMnemonic,
+  mnemonicToSecretKey: mnemonic.mnemonicToSecretKey,
+  signTransaction,
+  signBid,
+  signBytes,
+  verifyBytes,
+  encodeObj,
+  decodeObj,
+  Algod,
+  Kmd,
+  Algodv2,
+  Indexer,
+  modelsv2,
+  mnemonicToMasterDerivationKey: mnemonic.mnemonicToMasterDerivationKey,
+  masterDerivationKeyToMnemonic: mnemonic.masterDerivationKeyToMnemonic,
+  appendSignMultisigTransaction,
+  mergeMultisigTransactions,
+  signMultisigTransaction,
+  multisigAddress,
+  MULTISIG_BAD_SENDER_ERROR_MSG,
+  ERROR_MULTISIG_BAD_SENDER: new Error(MULTISIG_BAD_SENDER_ERROR_MSG),
+  INVALID_MICROALGOS_ERROR_MSG: convert.ERROR_INVALID_MICROALGOS,
+  ERROR_INVALID_MICROALGOS: new Error(convert.ERROR_INVALID_MICROALGOS),
+  microalgosToAlgos: convert.microalgosToAlgos,
+  algosToMicroalgos: convert.algosToMicroalgos,
+  computeGroupID: group.computeGroupID,
+  assignGroupID: group.assignGroupID,
+  makeLogicSig: logicsig.makeLogicSig,
+  signLogicSigTransaction: logicsig.signLogicSigTransaction,
+  signLogicSigTransactionObject: logicsig.signLogicSigTransactionObject,
+  logicSigFromByte: logicsig.logicSigFromByte,
+  tealSign: logicsig.tealSign,
+  tealSignFromProgram: logicsig.tealSignFromProgram,
+  makePaymentTxn: makeTxn.makePaymentTxn,
+  makeKeyRegistrationTxn: makeTxn.makeKeyRegistrationTxn,
+  makeAssetCreateTxn: makeTxn.makeAssetCreateTxn,
+  makeAssetConfigTxn: makeTxn.makeAssetConfigTxn,
+  makeAssetDestroyTxn: makeTxn.makeAssetDestroyTxn,
+  makeAssetFreezeTxn: makeTxn.makeAssetFreezeTxn,
+  makeAssetTransferTxn: makeTxn.makeAssetTransferTxn,
+  makePaymentTxnWithSuggestedParams: makeTxn.makePaymentTxnWithSuggestedParams,
+  makeKeyRegistrationTxnWithSuggestedParams:
+    makeTxn.makeKeyRegistrationTxnWithSuggestedParams,
+  makeAssetCreateTxnWithSuggestedParams:
+    makeTxn.makeAssetCreateTxnWithSuggestedParams,
+  makeAssetConfigTxnWithSuggestedParams:
+    makeTxn.makeAssetConfigTxnWithSuggestedParams,
+  makeAssetDestroyTxnWithSuggestedParams:
+    makeTxn.makeAssetDestroyTxnWithSuggestedParams,
+  makeAssetFreezeTxnWithSuggestedParams:
+    makeTxn.makeAssetFreezeTxnWithSuggestedParams,
+  makeAssetTransferTxnWithSuggestedParams:
+    makeTxn.makeAssetTransferTxnWithSuggestedParams,
+  makePaymentTxnWithSuggestedParamsFromObject:
+    makeTxn.makePaymentTxnWithSuggestedParamsFromObject,
+  makeKeyRegistrationTxnWithSuggestedParamsFromObject:
+    makeTxn.makeKeyRegistrationTxnWithSuggestedParamsFromObject,
+  makeAssetCreateTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetCreateTxnWithSuggestedParamsFromObject,
+  makeAssetConfigTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetConfigTxnWithSuggestedParamsFromObject,
+  makeAssetDestroyTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetDestroyTxnWithSuggestedParamsFromObject,
+  makeAssetFreezeTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetFreezeTxnWithSuggestedParamsFromObject,
+  makeAssetTransferTxnWithSuggestedParamsFromObject:
+    makeTxn.makeAssetTransferTxnWithSuggestedParamsFromObject,
+  OnApplicationComplete: makeTxn.OnApplicationComplete,
+  makeApplicationCreateTxn: makeTxn.makeApplicationCreateTxn,
+  makeApplicationUpdateTxn: makeTxn.makeApplicationUpdateTxn,
+  makeApplicationDeleteTxn: makeTxn.makeApplicationDeleteTxn,
+  makeApplicationOptInTxn: makeTxn.makeApplicationOptInTxn,
+  makeApplicationCloseOutTxn: makeTxn.makeApplicationCloseOutTxn,
+  makeApplicationClearStateTxn: makeTxn.makeApplicationClearStateTxn,
+  makeApplicationNoOpTxn: makeTxn.makeApplicationNoOpTxn,
+  makeApplicationCreateTxnFromObject:
+    makeTxn.makeApplicationCreateTxnFromObject,
+  makeApplicationUpdateTxnFromObject:
+    makeTxn.makeApplicationUpdateTxnFromObject,
+  makeApplicationDeleteTxnFromObject:
+    makeTxn.makeApplicationDeleteTxnFromObject,
+  makeApplicationOptInTxnFromObject: makeTxn.makeApplicationOptInTxnFromObject,
+  makeApplicationCloseOutTxnFromObject:
+    makeTxn.makeApplicationCloseOutTxnFromObject,
+  makeApplicationClearStateTxnFromObject:
+    makeTxn.makeApplicationClearStateTxnFromObject,
+  makeApplicationNoOpTxnFromObject: makeTxn.makeApplicationNoOpTxnFromObject,
+  encodeUnsignedTransaction: txnBuilder.encodeUnsignedTransaction,
+  decodeUnsignedTransaction: txnBuilder.decodeUnsignedTransaction,
+  decodeSignedTransaction: txnBuilder.decodeSignedTransaction,
+  Transaction: txnBuilder.Transaction,
+  LogicTemplates,
 };

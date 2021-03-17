@@ -2,15 +2,21 @@ dist: bionic
 language: node_js
 
 node_js:
-  - "12"
+  - '12'
 
 script:
   - set -e
+  - if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
   - npm test
   - make docker-test
 
 jobs:
   include:
+    - stage: Code Style
+      name: ESLint
+      script: npm run lint
+    - name: Prettier
+      script: prettier --check .
     - stage: Testing
       name: Node test
     - name: Chrome test
@@ -21,3 +27,7 @@ jobs:
       env: TEST_BROWSER=firefox
       addons:
         firefox: latest
+env:
+  global:
+    - secure: CcCQWOq/afdYwF1RvF8tAkiXVRSgv0LDJC+74ER0YXgJTb6yVScMl5mFJzbUqTbZB5jeRNvw570VJF6PdKwKeiI7STgd0WkwuFMNgkFXFly/ADIGcSuueUozfR/7oBPaoG2yeLpPF9vt18Ci7pWQr27YGTeJCnAE/M6rZfhKp7Jcgts3bjrIwVCiPwmgv8acj3I1jwfwuyUzfD7Gcj7FwSGN9gwhEKFDDA+ImOxfK/C68xL8JWrJnGZqnMyAe6IISa9swozWRR5h0ILufOBh1lhsR8MTTW8IjY8LblFO18DzhD+kcdq77Ij5EhWLbcdcwvxASI5Wyhpt+O4BJVgC/XMCTBcQ4Zk8M5ZrNpfwFd3j74f4URxtTnuI0cNLE/qKXmGpATL6OlTjV5RSmhv2bM0L9d5UIhIW3OBF8ZUXuX1peCUw7O6nXuChYtxy7F/bZAZxCtZZ6qxQIpHT13zKilBHFwuuWvakgCDEK2WilId76Os8uJJ6t5JSMYxV2Y6GmtC0d+Wv11ys0aih2pPwoybVnYiVdxpd+ik1voyPSjQGF1BELcnQso3Jjc6kR0smi3MPgHoo5MPyGdNDE2GOlISxb5ke+hPgHYo3BrE3xPmDxv9fUxBuDnyEukuQVWAX0Xly2Ao5ZncTZOoD3/qpsTlpax7e2o4/1Fz0s6IIWDI=
+    - secure: A6OgcX3TY0ULXjht+lhLSQ6AcBNnzGrC4UiO4YPwx07DPDbFNbHW04JtT6OJhQOdXPHQDkhtipsMgti8Gc1A9qq5uSfn9W1akYY4Yrgh0/sOLcLYsJe8veW6WKA4ERsdVkLTJiT6BfDoCffW/Mv+1wdJ+qLn1dX/uZ8Qf95hTtN9JHe2FWBTfAfR70DnhrJ2kmeedrpyMXM/r8gqPWMzpnhNZhY2O7NscE8sITBzXwCT27pygd6pAx7gTzbnbj//E40FvqP9b9nMTv9SNaiLMnaGsj0MKCVVrRlh4+kbK2z/mqRuJPDXkAwbTre01IAJrvtCRGq6cUex0H/MVAvFRQhWkJViQHYb/5Qt5brgisAvSr7XcHryTH4b89feRVXZkpFFNefq0AmcTws1VKohyZ6t5i0etSGH0XZM8v6yOWAcRsJWjfXcdanwM1rTamzmSAVmWyyQVgGvXZIb1ftXb5WzaJh6UwWhL7JGA7BQsFhN8XSqLOZW9RCRC1V1owhzld+DSc+aGWxeh0K583kK0XHORL/6hltveznU9tDzVA5IQzwKpwVDaxwXxv5Hhe0w5axwIP6QvFywSoHO1MvTvAxUsjRczaXjlA0derfZ3XOhOnGtLmxun/PexAnEHGHx9r0m+wcIVr3z1bPyWYJeecsujiyu4o1s9vX3IQ/TgGc=
