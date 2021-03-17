@@ -91,7 +91,7 @@ export function makePaymentTxn(
   note: PaymentTxn['note'],
   genesisHash: MustHaveSuggestedParamsInline<PaymentTxn>['genesisHash'],
   genesisID: MustHaveSuggestedParamsInline<PaymentTxn>['genesisID'],
-  reKeyTo: PaymentTxn['reKeyTo']
+  rekeyTo: PaymentTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -107,7 +107,7 @@ export function makePaymentTxn(
     closeRemainderTo,
     note,
     suggestedParams,
-    reKeyTo
+    rekeyTo
   );
 }
 

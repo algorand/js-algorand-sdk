@@ -1,5 +1,5 @@
 const request = require('superagent');
-const utils = require('../utils/utils.ts');
+const utils = require('../utils/utils');
 
 function createJSONParser(options) {
   // eslint-disable-next-line consistent-return

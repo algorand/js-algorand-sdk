@@ -968,41 +968,45 @@ export class Transaction implements TransactionStorageStructure {
   // build display dict for prettyPrint and toString
   // eslint-disable-next-line no-underscore-dangle
   _getDictForDisplay() {
-    const forPrinting: Record<string, any> = {
+    const forPrinting: TransactionStorageStructure & Record<string, any> = {
       ...this,
     };
     forPrinting.tag = forPrinting.tag.toString();
-    forPrinting.from = address.encodeAddress(forPrinting.from.publicKey);
+    forPrinting.from = address.encodeAddress(
+      (forPrinting.from as Address).publicKey
+    );
     if (forPrinting.to !== undefined)
-      forPrinting.to = address.encodeAddress(forPrinting.to.publicKey);
+      forPrinting.to = address.encodeAddress(
+        (forPrinting.to as Address).publicKey
+      );
     // things that need fixing:
     if (forPrinting.closeRemainderTo !== undefined)
       forPrinting.closeRemainderTo = address.encodeAddress(
-        forPrinting.closeRemainderTo.publicKey
+        (forPrinting.closeRemainderTo as Address).publicKey
       );
     if (forPrinting.assetManager !== undefined)
       forPrinting.assetManager = address.encodeAddress(
-        forPrinting.assetManager.publicKey
+        (forPrinting.assetManager as Address).publicKey
       );
     if (forPrinting.assetReserve !== undefined)
       forPrinting.assetReserve = address.encodeAddress(
-        forPrinting.assetReserve.publicKey
+        (forPrinting.assetReserve as Address).publicKey
       );
     if (forPrinting.assetFreeze !== undefined)
       forPrinting.assetFreeze = address.encodeAddress(
-        forPrinting.assetFreeze.publicKey
+        (forPrinting.assetFreeze as Address).publicKey
       );
     if (forPrinting.assetClawback !== undefined)
       forPrinting.assetClawback = address.encodeAddress(
-        forPrinting.assetClawback.publicKey
+        (forPrinting.assetClawback as Address).publicKey
       );
     if (forPrinting.assetRevocationTarget !== undefined)
       forPrinting.assetRevocationTarget = address.encodeAddress(
-        forPrinting.assetRevocationTarget.publicKey
+        (forPrinting.assetRevocationTarget as Address).publicKey
       );
     if (forPrinting.reKeyTo !== undefined)
       forPrinting.reKeyTo = address.encodeAddress(
-        forPrinting.reKeyTo.publicKey
+        (forPrinting.reKeyTo as Address).publicKey
       );
     forPrinting.genesisHash = forPrinting.genesisHash.toString('base64');
     return forPrinting;

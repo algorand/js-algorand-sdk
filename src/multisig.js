@@ -2,7 +2,7 @@ const nacl = require('./nacl/naclWrappers');
 const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
 const txnBuilder = require('./transaction');
-const utils = require('./utils/utils.ts');
+const utils = require('./utils/utils');
 
 /**
  Utilities for manipulating multisig transaction blobs.

@@ -4,7 +4,7 @@ const group = require('../group');
 const logicsig = require('../logicsig');
 const logic = require('../logic/logic');
 const templates = require('./templates');
-const utils = require('../utils/utils.ts');
+const utils = require('../utils/utils');
 
 class Split {
   /**

@@ -1,7 +1,7 @@
 const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
 const nacl = require('./nacl/naclWrappers');
-const utils = require('./utils/utils.ts');
+const utils = require('./utils/utils');
 
 /**
  * Bid enables construction of Algorand Auctions Bids

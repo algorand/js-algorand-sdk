@@ -3,7 +3,7 @@ const address = require('./encoding/address');
 const encoding = require('./encoding/encoding');
 const logic = require('./logic/logic');
 const multisig = require('./multisig');
-const utils = require('./utils/utils.ts');
+const utils = require('./utils/utils');
 const txnBuilder = require('./transaction');
 
 /**

@@ -2,7 +2,7 @@ const txnBuilder = require('./transaction');
 const nacl = require('./nacl/naclWrappers');
 const encoding = require('./encoding/encoding');
 const address = require('./encoding/address');
-const utils = require('./utils/utils.ts');
+const utils = require('./utils/utils');
 
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 

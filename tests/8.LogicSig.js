@@ -1,7 +1,7 @@
 const assert = require('assert');
 const algosdk = require('../index');
 const logic = require('../src/logic/logic');
-const utils = require('../src/utils/utils.ts');
+const utils = require('../src/utils/utils');
 
 describe('LogicSig functionality', () => {
   describe('Basic logic sig', () => {
