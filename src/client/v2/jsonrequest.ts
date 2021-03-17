@@ -1,31 +1,38 @@
-class JSONRequest {
+import { HTTPClient } from '../client';
+import { IntDecoding } from '../../types/intDecoding';
+
+export default class JSONRequest {
+  c: HTTPClient;
+  query: Record<string, any>;
+  intDecoding: IntDecoding;
+
   /**
    * @param {HttpClient} client HTTPClient object.
    * @param {"default" | "safe" | "mixed" | "bigint" | undefined} intDecoding The method to use
    *   for decoding integers from this request's response. See the setIntDecoding method for more
    *   details.
    */
-  constructor(client, intDecoding = undefined) {
+  constructor(client: HTTPClient, intDecoding?: IntDecoding) {
     this.c = client;
     this.query = {};
     this.intDecoding = intDecoding || 'default';
   }
 
   /**
-   * @returns {string} The path of this request.
+   * @returns The path of this request.
    */
   // eslint-disable-next-line no-underscore-dangle,class-methods-use-this
-  _path() {
+  _path(): string {
     throw new Error('Must be overriden by implementing class.');
   }
 
   /**
    * Execute the request.
-   * @param {object} headers Additional headers to send in the request. Optional.
-   * @returns {Promise<object>} A promise which resolves to the response data.
+   * @param headers Additional headers to send in the request. Optional.
+   * @returns A promise which resolves to the response data.
    */
-  async do(headers = {}) {
-    const jsonOptions = {};
+  async do(headers: Record<string, any> = {}): Promise<Record<string, any>> {
+    const jsonOptions: Record<string, any> = {};
     if (this.intDecoding !== 'default') {
       jsonOptions.intDecoding = this.intDecoding;
     }
@@ -54,7 +61,7 @@ class JSONRequest {
    * @param {"default" | "safe" | "mixed" | "bigint"} method The method to use when parsing the
    *   response for this request. Must be one of "default", "safe", "mixed", or "bigint".
    */
-  setIntDecoding(method) {
+  setIntDecoding(method: IntDecoding) {
     if (
       method !== 'default' &&
       method !== 'safe' &&
@@ -66,5 +73,3 @@ class JSONRequest {
     return this;
   }
 }
-
-module.exports = { JSONRequest };
