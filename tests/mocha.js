@@ -2,6 +2,7 @@
 
 require('@babel/register')({
   extensions: ['.ts', '.js'],
+  only: [/src/],
 });
 
 const Mocha = require('mocha');
