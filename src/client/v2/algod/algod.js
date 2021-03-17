@@ -169,8 +169,8 @@ class AlgodClient {
 
   /**
    * Get the proof for a given transaction in a round.
-   * @param {number} round The round that the transaction occurred in.
-   * @param {string} txID The ID of the transaction.
+   * @param {number} round The round in which the transaction appears.
+   * @param {string} txID The transaction ID for which to generate a proof.
    */
   getProof(round, txID) {
     return new proof.Proof(this.c, this.intDecoding, round, txID);
