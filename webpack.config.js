@@ -1,8 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'development',
-  // mode: 'production',
+  mode: 'production',
   entry: './index.js',
   output: {
     filename: 'algosdk.min.js',
