@@ -1,7 +1,17 @@
 import { HTTPClient } from '../client';
 import { IntDecoding } from '../../types/intDecoding';
 
-export default class JSONRequest {
+/**
+ * Base abstract class for JSON requests.
+ *
+ * Data: The type returned from the `do()` method
+ *
+ * Body: The structure of the response's body
+ */
+export default abstract class JSONRequest<
+  Data = Record<string, any> | Uint8Array,
+  Body = Data
+> {
   c: HTTPClient;
   query: Record<string, any>;
   intDecoding: IntDecoding;
@@ -21,9 +31,18 @@ export default class JSONRequest {
   /**
    * @returns The path of this request.
    */
-  // eslint-disable-next-line no-underscore-dangle,class-methods-use-this
-  _path(): string {
-    throw new Error('Must be overriden by implementing class.');
+  abstract path(): string;
+
+  /**
+   * Prepare a JSON response before returning it.
+   *
+   * Use this method to change and restructure response
+   * data as needed after receiving it from the `do()` method.
+   * @param body Response body received
+   */
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Body): Data {
+    return (body as unknown) as Data;
   }
 
   /**
@@ -31,19 +50,19 @@ export default class JSONRequest {
    * @param headers Additional headers to send in the request. Optional.
    * @returns A promise which resolves to the response data.
    */
-  async do(headers: Record<string, any> = {}): Promise<Record<string, any>> {
+  async do(headers: Record<string, any> = {}): Promise<Data> {
     const jsonOptions: Record<string, any> = {};
     if (this.intDecoding !== 'default') {
       jsonOptions.intDecoding = this.intDecoding;
     }
     const res = await this.c.get(
       // eslint-disable-next-line no-underscore-dangle
-      this._path(),
+      this.path(),
       this.query,
       headers,
       jsonOptions
     );
-    return res.body;
+    return this.prepare(res.body);
   }
 
   /**
