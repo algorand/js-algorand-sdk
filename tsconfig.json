@@ -5,7 +5,9 @@
     "allowJs": true,
     "target": "es2020",
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": true
   },
   "include": ["src"]
 }
