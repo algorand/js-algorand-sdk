@@ -1,9 +1,11 @@
+import JSONRequest from '../jsonrequest';
+import { HTTPClient } from '../../client';
+
 /**
  * Sets the default header (if not previously set)
  * @param headers
- * @returns {*}
  */
-function setHeaders(headers) {
+export function setHeaders(headers = {}) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
@@ -12,26 +14,31 @@ function setHeaders(headers) {
   return hdrs;
 }
 
-class Compile {
-  constructor(c, source) {
-    this.c = c;
+/**
+ * Executes compile
+ */
+export default class Compile extends JSONRequest {
+  constructor(c: HTTPClient, private source: string) {
+    super(c);
     this.source = source;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  path() {
+    return `/v2/teal/compile`;
   }
 
   /**
    * Executes compile
    * @param headers, optional
-   * @returns {Promise<*>}
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
     const res = await this.c.post(
-      '/v2/teal/compile',
+      this.path(),
       Buffer.from(this.source),
       txHeaders
     );
     return res.body;
   }
 }
-
-module.exports = { Compile, setHeaders };
