@@ -78,7 +78,7 @@ function readByteConstBlock(program, pc) {
       );
     }
     size += bytesUsed;
-    if (pc + size >= program.length) {
+    if (pc + size + itemLen > program.length) {
       throw new Error('bytecblock ran past end of program');
     }
     const byteArray = program.slice(pc + size, pc + size + itemLen);
@@ -86,6 +86,33 @@ function readByteConstBlock(program, pc) {
     size += itemLen;
   }
   return [size, byteArrays];
+}
+
+function readPushIntOp(program, pc) {
+  let size = 1;
+  const [numberFound, bytesUsed] = parseUvarint(program.slice(pc + size));
+  if (bytesUsed <= 0) {
+    throw new Error(`could not decode push int const at pc=${pc + size}`);
+  }
+  size += bytesUsed;
+  return [size, numberFound];
+}
+
+function readPushByteOp(program, pc) {
+  let size = 1;
+  const [itemLen, bytesUsed] = parseUvarint(program.slice(pc + size));
+  if (bytesUsed <= 0) {
+    throw new Error(
+      `could not decode push []byte const size at pc=${pc + size}`
+    );
+  }
+  size += bytesUsed;
+  if (pc + size + itemLen > program.length) {
+    throw new Error('pushbytes ran past end of program');
+  }
+  const byteArray = program.slice(pc + size, pc + size + itemLen);
+  size += itemLen;
+  return [size, byteArray];
 }
 
 /** readProgram validates program for length and running cost,
@@ -98,6 +125,9 @@ function readByteConstBlock(program, pc) {
 function readProgram(program, args) {
   const intcblockOpcode = 32;
   const bytecblockOpcode = 38;
+  const pushbytesOpcode = 128;
+  const pushintOpcode = 129;
+
   if (!program) {
     throw new Error('empty program');
   }
@@ -159,6 +189,18 @@ function readProgram(program, args) {
           byteArrays = byteArrays.concat(foundByteArrays);
           break;
         }
+        case pushintOpcode: {
+          let foundInt;
+          [size, foundInt] = readPushIntOp(program, pc);
+          ints.push(foundInt);
+          break;
+        }
+        case pushbytesOpcode: {
+          let foundByteArray;
+          [size, foundByteArray] = readPushByteOp(program, pc);
+          byteArrays.push(foundByteArray);
+          break;
+        }
         default: {
           throw new Error('invalid instruction');
         }
@@ -196,12 +238,24 @@ function checkByteConstBlock(program, pc) {
   return size;
 }
 
+function checkPushIntOp(program, pc) {
+  const [size] = readPushIntOp(program, pc);
+  return size;
+}
+
+function checkPushByteOp(program, pc) {
+  const [size] = readPushByteOp(program, pc);
+  return size;
+}
+
 module.exports = {
   checkProgram,
   readProgram,
   parseUvarint,
   checkIntConstBlock,
   checkByteConstBlock,
+  checkPushIntOp,
+  checkPushByteOp,
   langspecEvalMaxVersion: langspec.EvalMaxVersion,
   langspecLogicSigVersion: langspec.LogicSigVersion,
 };

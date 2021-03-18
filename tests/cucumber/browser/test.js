@@ -45,3 +45,11 @@ window.makeUint8Array = function makeUint8Array(arg) {
 window.makeEmptyObject = function makeEmptyObject() {
   return {};
 };
+
+window.formatIncludeAll = function formatIncludeAll(includeAll) {
+  if (!['true', 'false'].includes(includeAll)) {
+    throw new Error(`Unknown value for includeAll: ${includeAll}`);
+  }
+
+  return includeAll === 'true';
+};

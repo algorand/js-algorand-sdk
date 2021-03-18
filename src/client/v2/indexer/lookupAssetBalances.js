@@ -40,6 +40,12 @@ class LookupAssetBalances extends JSONRequest {
     this.query.next = nextToken;
     return this;
   }
+
+  // include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+  includeAll(value = true) {
+    this.query['include-all'] = value;
+    return this;
+  }
 }
 
 module.exports = { LookupAssetBalances };

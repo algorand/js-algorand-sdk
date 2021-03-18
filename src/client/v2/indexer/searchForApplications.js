@@ -12,12 +12,6 @@ class SearchForApplications extends JSONRequest {
     return this;
   }
 
-  // specific round to search
-  round(round) {
-    this.query.round = round;
-    return this;
-  }
-
   // token for pagination
   nextToken(next) {
     this.query.next = next;
@@ -27,6 +21,12 @@ class SearchForApplications extends JSONRequest {
   // limit results for pagination
   limit(limit) {
     this.query.limit = limit;
+    return this;
+  }
+
+  // include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+  includeAll(value = true) {
+    this.query['include-all'] = value;
     return this;
   }
 }

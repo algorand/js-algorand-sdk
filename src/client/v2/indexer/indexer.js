@@ -7,6 +7,7 @@ const lasb = require('./lookupAssetBalances');
 const lasbid = require('./lookupAssetByID');
 const last = require('./lookupAssetTransactions');
 const lb = require('./lookupBlock');
+const ltbid = require('./lookupTransactionByID');
 const sfas = require('./searchForAssets');
 const sfapp = require('./searchForApplications');
 const sft = require('./searchForTransactions');
@@ -88,6 +89,14 @@ class IndexerClient {
    */
   lookupBlock(round) {
     return new lb.LookupBlock(this.c, this.intDecoding, round);
+  }
+
+  /**
+   * Returns information about the given transaction.
+   * @param {string} txID The ID of the transaction to look up.
+   */
+  lookupTransactionByID(txID) {
+    return new ltbid.LookupTransactionByID(this.c, this.intDecoding, txID);
   }
 
   /**
