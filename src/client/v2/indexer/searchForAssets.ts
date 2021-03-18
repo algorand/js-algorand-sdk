@@ -1,43 +1,43 @@
-const { JSONRequest } = require('../jsonrequest');
+import JSONRequest from '../jsonrequest';
 
-class SearchForAssets extends JSONRequest {
-  // eslint-disable-next-line no-underscore-dangle,class-methods-use-this
-  _path() {
+export default class SearchForAssets extends JSONRequest {
+  // eslint-disable-next-line class-methods-use-this
+  path() {
     return '/v2/assets';
   }
 
   // limit for filter, as int
-  limit(limit) {
+  limit(limit: number) {
     this.query.limit = limit;
     return this;
   }
 
   // asset creator address for filter, as string
-  creator(creator) {
+  creator(creator: string) {
     this.query.creator = creator;
     return this;
   }
 
   // asset name for filter, as string
-  name(name) {
+  name(name: string) {
     this.query.name = name;
     return this;
   }
 
   // asset unit name for filter, as string
-  unit(unit) {
+  unit(unit: string) {
     this.query.unit = unit;
     return this;
   }
 
   // asset ID for filter, as int
-  index(index) {
+  index(index: number) {
     this.query['asset-id'] = index;
     return this;
   }
 
   // used for pagination
-  nextToken(nextToken) {
+  nextToken(nextToken: string) {
     this.query.next = nextToken;
     return this;
   }
@@ -48,5 +48,3 @@ class SearchForAssets extends JSONRequest {
     return this;
   }
 }
-
-module.exports = { SearchForAssets };

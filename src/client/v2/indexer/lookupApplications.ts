@@ -1,13 +1,14 @@
-const { JSONRequest } = require('../jsonrequest');
+import JSONRequest from '../jsonrequest';
+import { HTTPClient } from '../../client';
+import { IntDecoding } from '../../../types/intDecoding';
 
-class LookupApplications extends JSONRequest {
-  constructor(c, intDecoding, index) {
+export default class LookupApplications extends JSONRequest {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
     super(c, intDecoding);
     this.index = index;
   }
 
-  // eslint-disable-next-line no-underscore-dangle
-  _path() {
+  path() {
     return `/v2/applications/${this.index}`;
   }
 
@@ -17,5 +18,3 @@ class LookupApplications extends JSONRequest {
     return this;
   }
 }
-
-module.exports = { LookupApplications };

@@ -1,55 +1,55 @@
-const { JSONRequest } = require('../jsonrequest');
+import JSONRequest from '../jsonrequest';
 
-class SearchAccounts extends JSONRequest {
-  // eslint-disable-next-line no-underscore-dangle,class-methods-use-this
-  _path() {
+export default class SearchAccounts extends JSONRequest {
+  // eslint-disable-next-line class-methods-use-this
+  path() {
     return '/v2/accounts';
   }
 
   // filtered results should have an amount greater than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
-  currencyGreaterThan(greater) {
+  currencyGreaterThan(greater: number) {
     this.query['currency-greater-than'] = greater;
     return this;
   }
 
   // filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
-  currencyLessThan(lesser) {
+  currencyLessThan(lesser: number) {
     this.query['currency-less-than'] = lesser;
     return this;
   }
 
   // limit for filter, as int
-  limit(limit) {
+  limit(limit: number) {
     this.query.limit = limit;
     return this;
   }
 
   // asset ID to filter with, as int
-  assetID(id) {
+  assetID(id: number) {
     this.query['asset-id'] = id;
     return this;
   }
 
   // used for pagination
-  nextToken(nextToken) {
+  nextToken(nextToken: string) {
     this.query.next = nextToken;
     return this;
   }
 
   // specific round to search
-  round(round) {
+  round(round: number) {
     this.query.round = round;
     return this;
   }
 
   // include accounts that use this spending key
-  authAddr(authAddr) {
+  authAddr(authAddr: string) {
     this.query['auth-addr'] = authAddr;
     return this;
   }
 
   // filter for this application
-  applicationID(applicationID) {
+  applicationID(applicationID: number) {
     this.query['application-id'] = applicationID;
     return this;
   }
@@ -60,5 +60,3 @@ class SearchAccounts extends JSONRequest {
     return this;
   }
 }
-
-module.exports = { SearchAccounts };

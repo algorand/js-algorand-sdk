@@ -1,25 +1,25 @@
-const { JSONRequest } = require('../jsonrequest');
+import JSONRequest from '../jsonrequest';
 
-class SearchForApplications extends JSONRequest {
-  // eslint-disable-next-line no-underscore-dangle,class-methods-use-this
-  _path() {
+export default class SearchForApplications extends JSONRequest {
+  // eslint-disable-next-line class-methods-use-this
+  path() {
     return '/v2/applications';
   }
 
   // application ID for filter, as int
-  index(index) {
+  index(index: number) {
     this.query['application-id'] = index;
     return this;
   }
 
   // token for pagination
-  nextToken(next) {
+  nextToken(next: string) {
     this.query.next = next;
     return this;
   }
 
   // limit results for pagination
-  limit(limit) {
+  limit(limit: number) {
     this.query.limit = limit;
     return this;
   }
@@ -30,5 +30,3 @@ class SearchForApplications extends JSONRequest {
     return this;
   }
 }
-
-module.exports = { SearchForApplications };

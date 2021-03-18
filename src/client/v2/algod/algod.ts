@@ -1,5 +1,5 @@
+import ServiceClient from '../serviceClient';
 import { HTTPClient } from '../../client';
-import { IntDecoding } from '../../../types/intDecoding';
 import modelsv2 from './models/types';
 import AccountInformation from './accountInformation';
 import Block from './block';
@@ -20,10 +20,7 @@ import Versions from './versions';
 import Genesis from './genesis';
 import Proof from './proof';
 
-export default class AlgodClient {
-  private c: HTTPClient;
-  private intDecoding: IntDecoding;
-
+export default class AlgodClient extends ServiceClient {
   constructor(
     token = '',
     baseServer = 'http://r2.algorand.network',
@@ -37,25 +34,8 @@ export default class AlgodClient {
     }
 
     // Get client
-    this.c = new HTTPClient(tokenHeader, baseServer, port, headers);
-    this.intDecoding = 'default';
-  }
-
-  /**
-   * Set the default int decoding method for all JSON requests this client creates.
-   * @param {"default" | "safe" | "mixed" | "bigint"} method The method to use when parsing the
-   *   response for request. Must be one of "default", "safe", "mixed", or "bigint". See
-   *   JSONRequest.setIntDecoding for more details about what each method does.
-   */
-  setIntEncoding(method: IntDecoding) {
-    this.intDecoding = method;
-  }
-
-  /**
-   * Get the default int decoding method for all JSON requests this client creates.
-   */
-  getIntEncoding() {
-    return this.intDecoding;
+    const httpClient = new HTTPClient(tokenHeader, baseServer, port, headers);
+    super(httpClient);
   }
 
   healthCheck() {
