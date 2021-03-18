@@ -246,6 +246,30 @@ describe('Logic validation', () => {
       const size = logic.checkByteConstBlock(data, 0);
       assert.equal(size, data.length);
     });
+    it('should parse int push op correctly', () => {
+      const data = Uint8Array.from([0x81, 0x80, 0x80, 0x04]);
+      const size = logic.checkPushIntOp(data, 0);
+      assert.strictEqual(size, data.length);
+    });
+    it('should parse byte push op correctly', () => {
+      const data = Uint8Array.from([
+        0x80,
+        0x0b,
+        0x68,
+        0x65,
+        0x6c,
+        0x6c,
+        0x6f,
+        0x20,
+        0x77,
+        0x6f,
+        0x72,
+        0x6c,
+        0x64,
+      ]);
+      const size = logic.checkPushByteOp(data, 0);
+      assert.strictEqual(size, data.length);
+    });
   });
   describe('Program checker', () => {
     it('should assess correct programs right', () => {
@@ -275,7 +299,7 @@ describe('Logic validation', () => {
       );
     });
     it('should fail on invalid program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34, 128]);
+      const program = Uint8Array.from([1, 32, 1, 1, 34, 255]);
       assert.throws(
         () => logic.checkProgram(program),
         new Error('invalid instruction')
@@ -315,17 +339,65 @@ describe('Logic validation', () => {
       assert.equal(result, true);
 
       // app_opted_in
-      /* eslint-disable no-sparse-arrays */
-      program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, , 0x22, 0x61]); // int 0; int 0; app_opted_in
+      program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x22, 0x61]); // int 0; int 0; app_opted_in
       result = logic.checkProgram(program);
       assert.equal(result, true);
 
       // 800x keccak256 more is to costly
       // prettier-ignore
-      program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, , 0x22, 0x70, 0x00, ]); // int 0; int 0; asset_holding_get Balance
+      program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x22, 0x70, 0x00 ]); // int 0; int 0; asset_holding_get Balance
       result = logic.checkProgram(program);
       assert.equal(result, true);
-      /* eslint-disable no-sparse-arrays */
+    });
+    it('should support TEAL v3 opcodes', () => {
+      assert.ok(logic.langspecEvalMaxVersion >= 3);
+      assert.ok(logic.langspecLogicSigVersion >= 3);
+
+      // min_balance
+      let program = Uint8Array.from([0x03, 0x20, 0x01, 0x00, 0x22, 0x78]); // int 0; min_balance
+      assert.ok(logic.checkProgram(program));
+
+      // pushbytes
+      program = Uint8Array.from([
+        0x03,
+        0x20,
+        0x01,
+        0x00,
+        0x22,
+        0x80,
+        0x02,
+        0x68,
+        0x69,
+        0x48,
+      ]); // int 0; pushbytes "hi"; pop
+      assert.ok(logic.checkProgram(program));
+
+      // pushint
+      program = Uint8Array.from([
+        0x03,
+        0x20,
+        0x01,
+        0x00,
+        0x22,
+        0x81,
+        0x01,
+        0x48,
+      ]); // int 0; pushint 1; pop
+      assert.ok(logic.checkProgram(program));
+
+      // swap
+      program = Uint8Array.from([
+        0x03,
+        0x20,
+        0x02,
+        0x00,
+        0x01,
+        0x22,
+        0x23,
+        0x4c,
+        0x48,
+      ]); // int 0; int 1; swap; pop
+      assert.ok(logic.checkProgram(program));
     });
   });
 });
