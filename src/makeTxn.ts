@@ -49,7 +49,7 @@ export function makePaymentTxnWithSuggestedParams(
   closeRemainderTo: PaymentTxn['closeRemainderTo'],
   note: PaymentTxn['note'],
   suggestedParams: MustHaveSuggestedParams<PaymentTxn>['suggestedParams'],
-  rekeyTo: PaymentTxn['reKeyTo']
+  rekeyTo?: PaymentTxn['reKeyTo']
 ) {
   const o: PaymentTxn = {
     from,
@@ -91,7 +91,7 @@ export function makePaymentTxn(
   note: PaymentTxn['note'],
   genesisHash: MustHaveSuggestedParamsInline<PaymentTxn>['genesisHash'],
   genesisID: MustHaveSuggestedParamsInline<PaymentTxn>['genesisID'],
-  rekeyTo: PaymentTxn['reKeyTo']
+  rekeyTo?: PaymentTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -167,7 +167,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteLast: KeyRegistrationTxn['voteLast'],
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
-  rekeyTo: KeyRegistrationTxn['reKeyTo'],
+  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
   nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
 ) {
   const o: KeyRegistrationTxn = {
@@ -221,7 +221,7 @@ export function makeKeyRegistrationTxn(
   voteFirst: KeyRegistrationTxn['voteFirst'],
   voteLast: KeyRegistrationTxn['voteLast'],
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
-  rekeyTo: KeyRegistrationTxn['reKeyTo'],
+  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
   nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
 ) {
   const suggestedParams: SuggestedParams = {
@@ -320,7 +320,7 @@ export function makeAssetCreateTxnWithSuggestedParams(
   assetURL: AssetCreateTxn['assetURL'],
   assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
   suggestedParams: MustHaveSuggestedParams<AssetCreateTxn>['suggestedParams'],
-  rekeyTo: AssetCreateTxn['reKeyTo']
+  rekeyTo?: AssetCreateTxn['reKeyTo']
 ) {
   const o: AssetCreateTxn = {
     from,
@@ -387,7 +387,7 @@ export function makeAssetCreateTxn(
   assetName: AssetCreateTxn['assetName'],
   assetURL: AssetCreateTxn['assetURL'],
   assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
-  rekeyTo: AssetCreateTxn['reKeyTo']
+  rekeyTo?: AssetCreateTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -500,7 +500,7 @@ export function makeAssetConfigTxnWithSuggestedParams(
   clawback: AssetConfigTxn['assetClawback'],
   suggestedParams: MustHaveSuggestedParams<AssetConfigTxn>['suggestedParams'],
   strictEmptyAddressChecking = true,
-  rekeyTo: AssetConfigTxn['reKeyTo']
+  rekeyTo?: AssetConfigTxn['reKeyTo']
 ) {
   if (
     strictEmptyAddressChecking &&
@@ -563,7 +563,7 @@ export function makeAssetConfigTxn(
   freeze: AssetConfigTxn['assetFreeze'],
   clawback: AssetConfigTxn['assetClawback'],
   strictEmptyAddressChecking = true,
-  rekeyTo: AssetConfigTxn['reKeyTo']
+  rekeyTo?: AssetConfigTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -647,7 +647,7 @@ export function makeAssetDestroyTxnWithSuggestedParams(
   note: AssetDestroyTxn['note'],
   assetIndex: AssetDestroyTxn['assetIndex'],
   suggestedParams: MustHaveSuggestedParams<AssetDestroyTxn>['suggestedParams'],
-  rekeyTo: AssetDestroyTxn['reKeyTo']
+  rekeyTo?: AssetDestroyTxn['reKeyTo']
 ) {
   const o: AssetDestroyTxn = {
     from,
@@ -684,7 +684,7 @@ export function makeAssetDestroyTxn(
   genesisHash: MustHaveSuggestedParamsInline<AssetDestroyTxn>['genesisHash'],
   genesisID: MustHaveSuggestedParamsInline<AssetDestroyTxn>['genesisID'],
   assetIndex: AssetDestroyTxn['assetIndex'],
-  rekeyTo: AssetDestroyTxn['reKeyTo']
+  rekeyTo?: AssetDestroyTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -747,7 +747,7 @@ export function makeAssetFreezeTxnWithSuggestedParams(
   freezeTarget: AssetFreezeTxn['freezeAccount'],
   freezeState: AssetFreezeTxn['freezeState'],
   suggestedParams: MustHaveSuggestedParams<AssetFreezeTxn>['suggestedParams'],
-  rekeyTo: AssetFreezeTxn['reKeyTo']
+  rekeyTo?: AssetFreezeTxn['reKeyTo']
 ) {
   const o: AssetFreezeTxn = {
     from,
@@ -790,7 +790,7 @@ export function makeAssetFreezeTxn(
   assetIndex: AssetFreezeTxn['assetIndex'],
   freezeTarget: AssetFreezeTxn['freezeAccount'],
   freezeState: AssetFreezeTxn['freezeState'],
-  rekeyTo: AssetFreezeTxn['reKeyTo']
+  rekeyTo?: AssetFreezeTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -871,7 +871,7 @@ export function makeAssetTransferTxnWithSuggestedParams(
   note: AssetTransferTxn['note'],
   assetIndex: AssetTransferTxn['assetIndex'],
   suggestedParams: MustHaveSuggestedParams<AssetTransferTxn>['suggestedParams'],
-  rekeyTo: AssetTransferTxn['reKeyTo']
+  rekeyTo?: AssetTransferTxn['reKeyTo']
 ) {
   const o: AssetTransferTxn = {
     type: TransactionType.axfer,
@@ -922,7 +922,7 @@ export function makeAssetTransferTxn(
   genesisHash: MustHaveSuggestedParamsInline<AssetTransferTxn>['genesisHash'],
   genesisID: MustHaveSuggestedParamsInline<AssetTransferTxn>['genesisID'],
   assetIndex: AssetTransferTxn['assetIndex'],
-  rekeyTo: AssetTransferTxn['reKeyTo']
+  rekeyTo?: AssetTransferTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -1020,7 +1020,7 @@ export function makeApplicationCreateTxn(
   foreignAssets: AppCreateTxn['appForeignAssets'],
   note: AppCreateTxn['note'],
   lease: AppCreateTxn['lease'],
-  rekeyTo: AppCreateTxn['reKeyTo']
+  rekeyTo?: AppCreateTxn['reKeyTo']
 ) {
   const o: AppCreateTxn = {
     type: TransactionType.appl,
@@ -1136,7 +1136,7 @@ export function makeApplicationUpdateTxn(
   foreignAssets: AppUpdateTxn['appForeignAssets'],
   note: AppUpdateTxn['note'],
   lease: AppUpdateTxn['lease'],
-  rekeyTo: AppUpdateTxn['reKeyTo']
+  rekeyTo?: AppUpdateTxn['reKeyTo']
 ) {
   const o: AppUpdateTxn = {
     type: TransactionType.appl,
@@ -1231,7 +1231,7 @@ export function makeApplicationDeleteTxn(
   foreignAssets: AppDeleteTxn['appForeignAssets'],
   note: AppDeleteTxn['note'],
   lease: AppDeleteTxn['lease'],
-  rekeyTo: AppDeleteTxn['reKeyTo']
+  rekeyTo?: AppDeleteTxn['reKeyTo']
 ) {
   const o: AppDeleteTxn = {
     type: TransactionType.appl,
@@ -1318,7 +1318,7 @@ export function makeApplicationOptInTxn(
   foreignAssets: AppOptInTxn['appForeignApps'],
   note: AppOptInTxn['note'],
   lease: AppOptInTxn['lease'],
-  rekeyTo: AppOptInTxn['reKeyTo']
+  rekeyTo?: AppOptInTxn['reKeyTo']
 ) {
   const o: AppOptInTxn = {
     type: TransactionType.appl,
@@ -1405,7 +1405,7 @@ export function makeApplicationCloseOutTxn(
   foreignAssets: AppCloseOutTxn['appForeignAssets'],
   note: AppCloseOutTxn['note'],
   lease: AppCloseOutTxn['lease'],
-  rekeyTo: AppCloseOutTxn['reKeyTo']
+  rekeyTo?: AppCloseOutTxn['reKeyTo']
 ) {
   const o: AppCloseOutTxn = {
     type: TransactionType.appl,
@@ -1492,7 +1492,7 @@ export function makeApplicationClearStateTxn(
   foreignAssets: AppClearStateTxn['appForeignAssets'],
   note: AppClearStateTxn['note'],
   lease: AppClearStateTxn['lease'],
-  rekeyTo: AppClearStateTxn['reKeyTo']
+  rekeyTo?: AppClearStateTxn['reKeyTo']
 ) {
   const o: AppClearStateTxn = {
     type: TransactionType.appl,
@@ -1579,7 +1579,7 @@ export function makeApplicationNoOpTxn(
   foreignAssets: AppNoOpTxn['appForeignAssets'],
   note: AppNoOpTxn['note'],
   lease: AppNoOpTxn['lease'],
-  rekeyTo: AppNoOpTxn['reKeyTo']
+  rekeyTo?: AppNoOpTxn['reKeyTo']
 ) {
   const o: AppNoOpTxn = {
     type: TransactionType.appl,

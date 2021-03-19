@@ -8,9 +8,9 @@ interface JSONOptions {
 
 /**
  * Parse JSON with additional options.
- * @param {string} str The JSON string to parse.
- * @param {object} options Parsing options.
- * @param {"default" | "safe" | "mixed" | "bigint"} options.intDecoding Configure how integers in
+ * @param str The JSON string to parse.
+ * @param options Parsing options.
+ * @param options.intDecoding Configure how integers in
  *   this request's JSON response will be decoded.
  *
  *   The options are:

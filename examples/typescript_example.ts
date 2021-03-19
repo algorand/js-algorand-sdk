@@ -40,7 +40,7 @@ async function main() {
   });
 
   const signedTxn = txn.signTxn(sk);
-  console.log(algosdk.decodeObj(signedTxn));
+  console.log(algosdk.decodeSignedTransaction(signedTxn));
 }
 
 main().catch(console.error);

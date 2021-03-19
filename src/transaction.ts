@@ -100,7 +100,7 @@ interface TransactionStorageStructure
   flatFee: boolean;
   reKeyTo?: string | Address;
   nonParticipation?: boolean;
-  group: undefined;
+  group?: Buffer;
 }
 
 /**
@@ -158,13 +158,11 @@ export class Transaction implements TransactionStorageStructure {
   flatFee: boolean;
   reKeyTo?: Address;
   nonParticipation?: boolean;
-  group: undefined;
+  group?: Buffer;
 
-  constructor(transactionObj: AnyTransaction) {
-    // Create a mutable copy of the transaction object
-    const transaction: AnyTransaction = { ...transactionObj };
-
+  constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
+    /* eslint-disable no-param-reassign */
     const defaults: Partial<TransactionParams> = {
       type: TransactionType.pay,
       flatFee: false,
@@ -190,6 +188,7 @@ export class Transaction implements TransactionStorageStructure {
     ) {
       transaction.nonParticipation = defaults.nonParticipation;
     }
+    /* eslint-enable no-param-reassign */
 
     // Move suggested parameters from its object to inline
     if (

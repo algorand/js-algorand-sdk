@@ -22,7 +22,7 @@ export const ERROR_CONTAINS_EMPTY_STRING =
  * @param obj
  * @returns / {true, empty key} if contains empty, {false, undefined} otherwise
  */
-export function containsEmpty(obj: Record<string | number | symbol, any>) {
+function containsEmpty(obj: Record<string | number | symbol, any>) {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (!obj[key] || obj[key].length === 0) {

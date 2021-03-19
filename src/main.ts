@@ -11,7 +11,6 @@ import * as utils from './utils/utils';
 import algodv2 from './client/v2/algod/algod';
 import indexer from './client/v2/indexer/indexer';
 import AnyTransaction from './types/transactions';
-import { Address } from './types/address';
 import { MultisigMetadata } from './types/multisig';
 
 export const { Algod } = algod;
@@ -50,10 +49,10 @@ export function signTransaction(
     // eslint-disable-next-line no-param-reassign
     txn.from = address.encodeAddress(key.publicKey);
   }
-  let algoTxn = txn;
-  if (!(txn instanceof txnBuilder.Transaction)) {
-    algoTxn = new txnBuilder.Transaction(txn);
-  }
+  const algoTxn =
+    txn instanceof txnBuilder.Transaction
+      ? txn
+      : new txnBuilder.Transaction(txn);
 
   return {
     txID: (algoTxn as txnBuilder.Transaction).txID().toString(),
@@ -133,10 +132,12 @@ export function signMultisigTransaction(
     addrs,
   });
   if (Object.prototype.hasOwnProperty.call(txn, 'from')) {
-    if (
-      txn.from !== expectedFromRaw &&
-      address.encodeAddress((txn.from as Address).publicKey) !== expectedFromRaw
-    ) {
+    const actualSender =
+      typeof txn.from === 'string'
+        ? txn.from
+        : address.encodeAddress(txn.from.publicKey);
+
+    if (actualSender !== expectedFromRaw) {
       throw new Error(MULTISIG_BAD_SENDER_ERROR_MSG);
     }
   } else {
