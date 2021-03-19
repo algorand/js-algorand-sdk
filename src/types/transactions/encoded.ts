@@ -135,7 +135,7 @@ export interface EncodedTransaction {
   /**
    * group
    */
-  grp: undefined;
+  grp?: Buffer;
 
   /**
    * amount

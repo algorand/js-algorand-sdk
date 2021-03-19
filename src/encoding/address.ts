@@ -153,7 +153,7 @@ export function fromMultisigPreImg({
     }
     merged.set(pks[i], MULTISIG_PREIMG2ADDR_PREFIX.length + 2 + i * pkLen);
   }
-  return nacl.genericHash(merged);
+  return new Uint8Array(nacl.genericHash(merged));
 }
 
 /**
