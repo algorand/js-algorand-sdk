@@ -1,11 +1,13 @@
-const base32 = require('hi-base32');
-const nacl = require('../nacl/naclWrappers');
-const utils = require('../utils/utils');
+import base32 from 'hi-base32';
+import * as nacl from '../nacl/naclWrappers';
+import * as utils from '../utils/utils';
+import { Address } from '../types/address';
+import { MultisigMetadata } from '../types/multisig';
 
 const ALGORAND_ADDRESS_BYTE_LENGTH = 36;
 const ALGORAND_CHECKSUM_BYTE_LENGTH = 4;
 const ALGORAND_ADDRESS_LENGTH = 58;
-const ALGORAND_ZERO_ADDRESS_STRING =
+export const ALGORAND_ZERO_ADDRESS_STRING =
   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ';
 
 // Convert "MultisigAddr" UTF-8 to byte array
@@ -24,28 +26,26 @@ const MULTISIG_PREIMG2ADDR_PREFIX = new Uint8Array([
   114,
 ]);
 
-const MALFORMED_ADDRESS_ERROR_MSG = 'address seems to be malformed';
-const CHECKSUM_ADDRESS_ERROR_MSG = 'wrong checksum for address';
-const INVALID_MSIG_VERSION_ERROR_MSG = 'invalid multisig version';
-const INVALID_MSIG_THRESHOLD_ERROR_MSG = 'bad multisig threshold';
-const INVALID_MSIG_PK_ERROR_MSG = 'bad multisig public key - wrong length';
-const UNEXPECTED_PK_LEN_ERROR_MSG = 'nacl public key length is not 32 bytes';
+export const MALFORMED_ADDRESS_ERROR_MSG = 'address seems to be malformed';
+export const CHECKSUM_ADDRESS_ERROR_MSG = 'wrong checksum for address';
+export const INVALID_MSIG_VERSION_ERROR_MSG = 'invalid multisig version';
+export const INVALID_MSIG_THRESHOLD_ERROR_MSG = 'bad multisig threshold';
+export const INVALID_MSIG_PK_ERROR_MSG =
+  'bad multisig public key - wrong length';
+export const UNEXPECTED_PK_LEN_ERROR_MSG =
+  'nacl public key length is not 32 bytes';
 
 /**
  * decodeAddress takes an Algorand address in string form and decodes it into a Uint8Array.
- * @param {string} address an Algorand address with checksum.
- * @returns {{publicKey: Uint8Array, checksum: Uint8Array}} the decoded form of the address's public key and checksum
+ * @param address an Algorand address with checksum.
+ * @returns the decoded form of the address's public key and checksum
  */
-function decodeAddress(address) {
-  if (
-    !(typeof address === 'string' || address instanceof String) ||
-    address.length !== ALGORAND_ADDRESS_LENGTH
-  )
+export function decodeAddress(address: string): Address {
+  if (typeof address !== 'string' || address.length !== ALGORAND_ADDRESS_LENGTH)
     throw new Error(MALFORMED_ADDRESS_ERROR_MSG);
 
   // try to decode
-  const decoded = base32.decode.asBytes(address);
-
+  const decoded = base32.decode.asBytes(address.toString());
   // Sanity check
   if (decoded.length !== ALGORAND_ADDRESS_BYTE_LENGTH)
     throw new Error(MALFORMED_ADDRESS_ERROR_MSG);
@@ -78,10 +78,10 @@ function decodeAddress(address) {
 
 /**
  * isValidAddress checks if a string is a valid Algorand address.
- * @param {string} address an Algorand address with checksum.
- * @returns {boolean} true if valid, false otherwise
+ * @param address an Algorand address with checksum.
+ * @returns true if valid, false otherwise
  */
-function isValidAddress(address) {
+export function isValidAddress(address: string) {
   // Try to decode
   try {
     decodeAddress(address);
@@ -93,10 +93,10 @@ function isValidAddress(address) {
 
 /**
  * encodeAddress takes an Algorand address as a Uint8Array and encodes it into a string with checksum.
- * @param {Uint8Array} address a raw Algorand address
- * @returns {string} the address and checksum encoded as a string.
+ * @param address a raw Algorand address
+ * @returns the address and checksum encoded as a string.
  */
-function encodeAddress(address) {
+export function encodeAddress(address: Uint8Array) {
   // compute checksum
   const checksum = nacl
     .genericHash(address)
@@ -118,7 +118,13 @@ function encodeAddress(address) {
  * @param threshold multisig threshold
  * @param pks array of typed array public keys
  */
-function fromMultisigPreImg({ version, threshold, pks }) {
+export function fromMultisigPreImg({
+  version,
+  threshold,
+  pks,
+}: Omit<MultisigMetadata, 'addrs'> & {
+  pks: Uint8Array[];
+}) {
   if (version !== 1 || version > 255 || version < 0) {
     // ^ a tad redundant, but in case in the future version != 1, still check for uint8
     throw new Error(INVALID_MSIG_VERSION_ERROR_MSG);
@@ -147,7 +153,7 @@ function fromMultisigPreImg({ version, threshold, pks }) {
     }
     merged.set(pks[i], MULTISIG_PREIMG2ADDR_PREFIX.length + 2 + i * pkLen);
   }
-  return nacl.genericHash(merged);
+  return new Uint8Array(nacl.genericHash(merged));
 }
 
 /**
@@ -157,22 +163,15 @@ function fromMultisigPreImg({ version, threshold, pks }) {
  * @param threshold multisig threshold
  * @param addrs array of encoded addresses
  */
-function fromMultisigPreImgAddrs({ version, threshold, addrs }) {
+export function fromMultisigPreImgAddrs({
+  version,
+  threshold,
+  addrs,
+}: {
+  version: number;
+  threshold: number;
+  addrs: string[];
+}) {
   const pks = addrs.map((addr) => decodeAddress(addr).publicKey);
   return encodeAddress(fromMultisigPreImg({ version, threshold, pks }));
 }
-
-module.exports = {
-  isValidAddress,
-  decodeAddress,
-  encodeAddress,
-  fromMultisigPreImg,
-  fromMultisigPreImgAddrs,
-  MALFORMED_ADDRESS_ERROR_MSG,
-  CHECKSUM_ADDRESS_ERROR_MSG,
-  INVALID_MSIG_VERSION_ERROR_MSG,
-  INVALID_MSIG_THRESHOLD_ERROR_MSG,
-  INVALID_MSIG_PK_ERROR_MSG,
-  UNEXPECTED_PK_LEN_ERROR_MSG,
-  ALGORAND_ZERO_ADDRESS_STRING,
-};

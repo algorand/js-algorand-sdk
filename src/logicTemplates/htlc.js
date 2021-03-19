@@ -1,4 +1,3 @@
-const { Buffer } = require('buffer');
 const sha256 = require('js-sha256');
 const { keccak256 } = require('js-sha3');
 const logic = require('../logic/logic');

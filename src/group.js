@@ -1,4 +1,3 @@
-const { Buffer } = require('buffer');
 const txnBuilder = require('./transaction');
 const nacl = require('./nacl/naclWrappers');
 const encoding = require('./encoding/encoding');

@@ -1,10 +1,16 @@
-const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
+import JSONbigWithoutConfig from 'json-bigint';
+
+const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
+
+interface JSONOptions {
+  intDecoding: 'default' | 'safe' | 'mixed' | 'bigint';
+}
 
 /**
  * Parse JSON with additional options.
- * @param {string} str The JSON string to parse.
- * @param {object} options Parsing options.
- * @param {"default" | "safe" | "mixed" | "bigint"} options.intDecoding Configure how integers in
+ * @param str The JSON string to parse.
+ * @param options Parsing options.
+ * @param options.intDecoding Configure how integers in
  *   this request's JSON response will be decoded.
  *
  *   The options are:
@@ -18,7 +24,7 @@ const JSONbig = require('json-bigint')({ useNativeBigInt: true, strict: true });
  *
  *   Defaults to "default" if not included.
  */
-function parseJSON(str, options = undefined) {
+export function parseJSON(str: string, options?: JSONOptions) {
   const intDecoding =
     options && options.intDecoding ? options.intDecoding : 'default';
   const parsed = JSONbig.parse(str, (_, value) => {
@@ -64,30 +70,38 @@ function parseJSON(str, options = undefined) {
 
 /**
  * ArrayEqual takes two arrays and return true if equal, false otherwise
- * @return {boolean}
  */
-function arrayEqual(a, b) {
+export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {
   if (a.length !== b.length) {
     return false;
   }
-  return a.every((val, i) => val === b[i]);
+  return Array.from(a).every((val, i) => val === b[i]);
 }
 
 /**
  * ConcatArrays takes two array and returns a joint array of both
  * @param a
  * @param b
- * @returns {Uint8Array} [a,b]
+ * @returns [a,b]
  */
-function concatArrays(a, b) {
+export function concatArrays(a: ArrayLike<any>, b: ArrayLike<any>) {
   const c = new Uint8Array(a.length + b.length);
   c.set(a);
   c.set(b, a.length);
   return c;
 }
 
-module.exports = {
-  parseJSON,
-  arrayEqual,
-  concatArrays,
-};
+/**
+ * Remove undefined properties from an object
+ * @param obj An object, preferably one with some undefined properties
+ * @returns A copy of the object with undefined properties removed
+ */
+export function removeUndefinedProperties(
+  obj: Record<string | number | symbol, any>
+) {
+  const mutableCopy = { ...obj };
+  Object.keys(mutableCopy).forEach((key) => {
+    if (typeof mutableCopy[key] === 'undefined') delete mutableCopy[key];
+  });
+  return mutableCopy;
+}

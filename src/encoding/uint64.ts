@@ -1,13 +1,11 @@
-const { Buffer } = require('buffer');
-
 /**
  * encodeUint64 converts an integer to its binary representation.
- * @param {number | bigint} num The number to convert. This must be an unsigned integer less than
+ * @param num The number to convert. This must be an unsigned integer less than
  *   2^64.
- * @returns {Uint8Array} An 8-byte typed array containing the big-endian encoding of the input
+ * @returns An 8-byte typed array containing the big-endian encoding of the input
  *   integer.
  */
-function encodeUint64(num) {
+export function encodeUint64(num: number | bigint) {
   const isInteger = typeof num === 'bigint' || Number.isInteger(num);
 
   if (!isInteger || num < 0 || num > 0xffffffffffffffffn) {
@@ -23,9 +21,9 @@ function encodeUint64(num) {
 
 /**
  * decodeUint64 produces an integer from a binary representation.
- * @param {Uint8Array} data An typed array containing the big-endian encoding of an unsigned integer
+ * @param data An typed array containing the big-endian encoding of an unsigned integer
  *   less than 2^64. This array must be at most 8 bytes long.
- * @param {"safe" | "mixed" | "bigint"} decodingMode Configure how the integer will be
+ * @param decodingMode Configure how the integer will be
  *   decoded.
  *
  *   The options are:
@@ -36,10 +34,18 @@ function encodeUint64(num) {
  *   * "bigint": The integer will always be decoded as a BigInt.
  *
  *   Defaults to "safe" if not included.
- * @returns {number | bigint} The integer that was encoded in the input data. The return type will
+ * @returns The integer that was encoded in the input data. The return type will
  *   be determined by the parameter decodingMode.
  */
-function decodeUint64(data, decodingMode = 'safe') {
+/* eslint-disable  no-unused-vars,no-redeclare */
+export function decodeUint64(data: Uint8Array, decodingMode: 'safe'): number;
+export function decodeUint64(
+  data: Uint8Array,
+  decodingMode: 'mixed'
+): number | bigint;
+export function decodeUint64(data: Uint8Array, decodingMode: 'bigint'): bigint;
+export function decodeUint64(data: any, decodingMode: any = 'safe') {
+  /* eslint-enable  no-unused-vars,no-redeclare */
   if (
     decodingMode !== 'safe' &&
     decodingMode !== 'mixed' &&
@@ -78,8 +84,3 @@ function decodeUint64(data, decodingMode = 'safe') {
 
   return num;
 }
-
-module.exports = {
-  encodeUint64,
-  decodeUint64,
-};

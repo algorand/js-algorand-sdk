@@ -1,4 +1,29 @@
-const txnBuilder = require('./transaction');
+import * as txnBuilder from './transaction';
+import { OnApplicationComplete } from './types/transactions/base';
+import {
+  // Transaction types
+  PaymentTxn,
+  KeyRegistrationTxn,
+
+  // Utilities
+  TransactionType,
+  SuggestedParams,
+  MustHaveSuggestedParams,
+  MustHaveSuggestedParamsInline,
+  AssetCreateTxn,
+  AssetConfigTxn,
+  AssetDestroyTxn,
+  AssetFreezeTxn,
+  AssetTransferTxn,
+  AppCreateTxn,
+  AppUpdateTxn,
+  AppDeleteTxn,
+  AppOptInTxn,
+  AppCloseOutTxn,
+  AppClearStateTxn,
+  AppNoOpTxn,
+} from './types/transactions';
+import { RenameProperties, RenameProperty } from './types/utils';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
@@ -16,25 +41,24 @@ const txnBuilder = require('./transaction');
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
-function makePaymentTxnWithSuggestedParams(
-  from,
-  to,
-  amount,
-  closeRemainderTo,
-  note,
-  suggestedParams,
-  rekeyTo = undefined
+export function makePaymentTxnWithSuggestedParams(
+  from: PaymentTxn['from'],
+  to: PaymentTxn['to'],
+  amount: PaymentTxn['amount'],
+  closeRemainderTo: PaymentTxn['closeRemainderTo'],
+  note: PaymentTxn['note'],
+  suggestedParams: MustHaveSuggestedParams<PaymentTxn>['suggestedParams'],
+  rekeyTo?: PaymentTxn['reKeyTo']
 ) {
-  const o = {
+  const o: PaymentTxn = {
     from,
     to,
     amount,
     closeRemainderTo,
     note,
     suggestedParams,
-    type: 'pay',
+    type: TransactionType.pay,
     reKeyTo: rekeyTo,
   };
   return new txnBuilder.Transaction(o);
@@ -55,22 +79,21 @@ function makePaymentTxnWithSuggestedParams(
  * @param genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
-function makePaymentTxn(
-  from,
-  to,
-  fee,
-  amount,
-  closeRemainderTo,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  rekeyTo = undefined
+export function makePaymentTxn(
+  from: PaymentTxn['from'],
+  to: PaymentTxn['to'],
+  fee: MustHaveSuggestedParamsInline<PaymentTxn>['fee'],
+  amount: PaymentTxn['amount'],
+  closeRemainderTo: PaymentTxn['closeRemainderTo'],
+  firstRound: MustHaveSuggestedParamsInline<PaymentTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<PaymentTxn>['lastRound'],
+  note: PaymentTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<PaymentTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<PaymentTxn>['genesisID'],
+  rekeyTo?: PaymentTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -89,7 +112,18 @@ function makePaymentTxn(
 }
 
 // helper for above makePaymentTxnWithSuggestedParams, instead accepting an arguments object
-function makePaymentTxnWithSuggestedParamsFromObject(o) {
+export function makePaymentTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperty<MustHaveSuggestedParams<PaymentTxn>, 'reKeyTo', 'rekeyTo'>,
+    | 'from'
+    | 'to'
+    | 'amount'
+    | 'closeRemainderTo'
+    | 'note'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  >
+) {
   return makePaymentTxnWithSuggestedParams(
     o.from,
     o.to,
@@ -123,21 +157,20 @@ function makePaymentTxnWithSuggestedParamsFromObject(o) {
  * @param rekeyTo - rekeyTo address, optional
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
- * @returns {Transaction}
  */
-function makeKeyRegistrationTxnWithSuggestedParams(
-  from,
-  note,
-  voteKey,
-  selectionKey,
-  voteFirst,
-  voteLast,
-  voteKeyDilution,
-  suggestedParams,
-  rekeyTo = undefined,
-  nonParticipation = false
+export function makeKeyRegistrationTxnWithSuggestedParams(
+  from: KeyRegistrationTxn['from'],
+  note: KeyRegistrationTxn['note'],
+  voteKey: KeyRegistrationTxn['voteKey'],
+  selectionKey: KeyRegistrationTxn['selectionKey'],
+  voteFirst: KeyRegistrationTxn['voteFirst'],
+  voteLast: KeyRegistrationTxn['voteLast'],
+  voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
+  suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
+  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
 ) {
-  const o = {
+  const o: KeyRegistrationTxn = {
     from,
     note,
     voteKey,
@@ -146,7 +179,7 @@ function makeKeyRegistrationTxnWithSuggestedParams(
     voteLast,
     voteKeyDilution,
     suggestedParams,
-    type: 'keyreg',
+    type: TransactionType.keyreg,
     reKeyTo: rekeyTo,
     nonParticipation,
   };
@@ -174,25 +207,24 @@ function makeKeyRegistrationTxnWithSuggestedParams(
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
-function makeKeyRegistrationTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  voteKey,
-  selectionKey,
-  voteFirst,
-  voteLast,
-  voteKeyDilution,
-  rekeyTo = undefined,
-  nonParticipation = false
+export function makeKeyRegistrationTxn(
+  from: KeyRegistrationTxn['from'],
+  fee: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['lastRound'],
+  note: KeyRegistrationTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['genesisID'],
+  voteKey: KeyRegistrationTxn['voteKey'],
+  selectionKey: KeyRegistrationTxn['selectionKey'],
+  voteFirst: KeyRegistrationTxn['voteFirst'],
+  voteLast: KeyRegistrationTxn['voteLast'],
+  voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
+  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -214,7 +246,25 @@ function makeKeyRegistrationTxn(
 }
 
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
-function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
+export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperty<
+      MustHaveSuggestedParams<KeyRegistrationTxn>,
+      'reKeyTo',
+      'rekeyTo'
+    >,
+    | 'from'
+    | 'note'
+    | 'voteKey'
+    | 'selectionKey'
+    | 'voteFirst'
+    | 'voteLast'
+    | 'voteKeyDilution'
+    | 'suggestedParams'
+    | 'rekeyTo'
+    | 'nonParticipation'
+  >
+) {
   return makeKeyRegistrationTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -254,26 +304,25 @@ function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
-function makeAssetCreateTxnWithSuggestedParams(
-  from,
-  note,
-  total,
-  decimals,
-  defaultFrozen,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  unitName,
-  assetName,
-  assetURL,
-  assetMetadataHash,
-  suggestedParams,
-  rekeyTo = undefined
+export function makeAssetCreateTxnWithSuggestedParams(
+  from: AssetCreateTxn['from'],
+  note: AssetCreateTxn['note'],
+  total: AssetCreateTxn['assetTotal'],
+  decimals: AssetCreateTxn['assetDecimals'],
+  defaultFrozen: AssetCreateTxn['assetDefaultFrozen'],
+  manager: AssetCreateTxn['assetManager'],
+  reserve: AssetCreateTxn['assetReserve'],
+  freeze: AssetCreateTxn['assetFreeze'],
+  clawback: AssetCreateTxn['assetClawback'],
+  unitName: AssetCreateTxn['assetUnitName'],
+  assetName: AssetCreateTxn['assetName'],
+  assetURL: AssetCreateTxn['assetURL'],
+  assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
+  suggestedParams: MustHaveSuggestedParams<AssetCreateTxn>['suggestedParams'],
+  rekeyTo?: AssetCreateTxn['reKeyTo']
 ) {
-  const o = {
+  const o: AssetCreateTxn = {
     from,
     note,
     suggestedParams,
@@ -288,7 +337,7 @@ function makeAssetCreateTxnWithSuggestedParams(
     assetReserve: reserve,
     assetFreeze: freeze,
     assetClawback: clawback,
-    type: 'acfg',
+    type: TransactionType.acfg,
     reKeyTo: rekeyTo,
   };
   return new txnBuilder.Transaction(o);
@@ -318,30 +367,29 @@ function makeAssetCreateTxnWithSuggestedParams(
  * @param assetMetadataHash - Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
-function makeAssetCreateTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  total,
-  decimals,
-  defaultFrozen,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  unitName,
-  assetName,
-  assetURL,
-  assetMetadataHash,
-  rekeyTo = undefined
+export function makeAssetCreateTxn(
+  from: AssetCreateTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetCreateTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetCreateTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetCreateTxn>['lastRound'],
+  note: AssetCreateTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetCreateTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetCreateTxn>['genesisID'],
+  total: AssetCreateTxn['assetTotal'],
+  decimals: AssetCreateTxn['assetDecimals'],
+  defaultFrozen: AssetCreateTxn['assetDefaultFrozen'],
+  manager: AssetCreateTxn['assetManager'],
+  reserve: AssetCreateTxn['assetManager'],
+  freeze: AssetCreateTxn['assetFreeze'],
+  clawback: AssetCreateTxn['assetClawback'],
+  unitName: AssetCreateTxn['assetUnitName'],
+  assetName: AssetCreateTxn['assetName'],
+  assetURL: AssetCreateTxn['assetURL'],
+  assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
+  rekeyTo?: AssetCreateTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -368,7 +416,39 @@ function makeAssetCreateTxn(
 }
 
 // helper for above makeAssetCreateTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
+export function makeAssetCreateTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetCreateTxn>,
+      {
+        reKeyTo: 'rekeyTo';
+        assetTotal: 'total';
+        assetDecimals: 'decimals';
+        assetDefaultFrozen: 'defaultFrozen';
+        assetManager: 'manager';
+        assetReserve: 'reserve';
+        assetFreeze: 'freeze';
+        assetClawback: 'clawback';
+        assetUnitName: 'unitName';
+      }
+    >,
+    | 'from'
+    | 'note'
+    | 'total'
+    | 'decimals'
+    | 'defaultFrozen'
+    | 'manager'
+    | 'reserve'
+    | 'freeze'
+    | 'clawback'
+    | 'unitName'
+    | 'assetName'
+    | 'assetURL'
+    | 'assetMetadataHash'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  >
+) {
   return makeAssetCreateTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -409,19 +489,18 @@ function makeAssetCreateTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
-function makeAssetConfigTxnWithSuggestedParams(
-  from,
-  note,
-  assetIndex,
-  manager,
-  reserve,
-  freeze,
-  clawback,
-  suggestedParams,
+export function makeAssetConfigTxnWithSuggestedParams(
+  from: AssetConfigTxn['from'],
+  note: AssetConfigTxn['note'],
+  assetIndex: AssetConfigTxn['assetIndex'],
+  manager: AssetConfigTxn['assetManager'],
+  reserve: AssetConfigTxn['assetReserve'],
+  freeze: AssetConfigTxn['assetFreeze'],
+  clawback: AssetConfigTxn['assetClawback'],
+  suggestedParams: MustHaveSuggestedParams<AssetConfigTxn>['suggestedParams'],
   strictEmptyAddressChecking = true,
-  rekeyTo = undefined
+  rekeyTo?: AssetConfigTxn['reKeyTo']
 ) {
   if (
     strictEmptyAddressChecking &&
@@ -434,7 +513,7 @@ function makeAssetConfigTxnWithSuggestedParams(
       'strict empty address checking was turned on, but at least one empty address was provided'
     );
   }
-  const o = {
+  const o: AssetConfigTxn = {
     from,
     suggestedParams,
     assetIndex,
@@ -442,7 +521,7 @@ function makeAssetConfigTxnWithSuggestedParams(
     assetReserve: reserve,
     assetFreeze: freeze,
     assetClawback: clawback,
-    type: 'acfg',
+    type: TransactionType.acfg,
     note,
     reKeyTo: rekeyTo,
   };
@@ -469,25 +548,24 @@ function makeAssetConfigTxnWithSuggestedParams(
  * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
-function makeAssetConfigTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  manager,
-  reserve,
-  freeze,
-  clawback,
+export function makeAssetConfigTxn(
+  from: AssetConfigTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetConfigTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetConfigTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetConfigTxn>['lastRound'],
+  note: AssetConfigTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetConfigTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetConfigTxn>['genesisID'],
+  assetIndex: AssetConfigTxn['assetIndex'],
+  manager: AssetConfigTxn['assetManager'],
+  reserve: AssetConfigTxn['assetReserve'],
+  freeze: AssetConfigTxn['assetFreeze'],
+  clawback: AssetConfigTxn['assetClawback'],
   strictEmptyAddressChecking = true,
-  rekeyTo = undefined
+  rekeyTo?: AssetConfigTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -509,7 +587,31 @@ function makeAssetConfigTxn(
 }
 
 // helper for above makeAssetConfigTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
+export function makeAssetConfigTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetConfigTxn>,
+      {
+        reKeyTo: 'rekeyTo';
+        assetManager: 'manager';
+        assetReserve: 'reserve';
+        assetFreeze: 'freeze';
+        assetClawback: 'clawback';
+      }
+    >,
+    | 'from'
+    | 'note'
+    | 'assetIndex'
+    | 'manager'
+    | 'reserve'
+    | 'freeze'
+    | 'clawback'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  > & {
+    strictEmptyAddressChecking: boolean;
+  }
+) {
   return makeAssetConfigTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -539,20 +641,19 @@ function makeAssetConfigTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
-function makeAssetDestroyTxnWithSuggestedParams(
-  from,
-  note,
-  assetIndex,
-  suggestedParams,
-  rekeyTo = undefined
+export function makeAssetDestroyTxnWithSuggestedParams(
+  from: AssetDestroyTxn['from'],
+  note: AssetDestroyTxn['note'],
+  assetIndex: AssetDestroyTxn['assetIndex'],
+  suggestedParams: MustHaveSuggestedParams<AssetDestroyTxn>['suggestedParams'],
+  rekeyTo?: AssetDestroyTxn['reKeyTo']
 ) {
-  const o = {
+  const o: AssetDestroyTxn = {
     from,
     suggestedParams,
     assetIndex,
-    type: 'acfg',
+    type: TransactionType.acfg,
     note,
     reKeyTo: rekeyTo,
   };
@@ -573,20 +674,19 @@ function makeAssetDestroyTxnWithSuggestedParams(
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
-function makeAssetDestroyTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  rekeyTo = undefined
+export function makeAssetDestroyTxn(
+  from: AssetDestroyTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetDestroyTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetDestroyTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetDestroyTxn>['lastRound'],
+  note: AssetDestroyTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetDestroyTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetDestroyTxn>['genesisID'],
+  assetIndex: AssetDestroyTxn['assetIndex'],
+  rekeyTo?: AssetDestroyTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -603,7 +703,16 @@ function makeAssetDestroyTxn(
 }
 
 // helper for above makeAssetDestroyTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
+export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperty<
+      MustHaveSuggestedParams<AssetDestroyTxn>,
+      'reKeyTo',
+      'rekeyTo'
+    >,
+    'from' | 'note' | 'assetIndex' | 'suggestedParams' | 'rekeyTo'
+  >
+) {
   return makeAssetDestroyTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -630,20 +739,19 @@ function makeAssetDestroyTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
-function makeAssetFreezeTxnWithSuggestedParams(
-  from,
-  note,
-  assetIndex,
-  freezeTarget,
-  freezeState,
-  suggestedParams,
-  rekeyTo = undefined
+export function makeAssetFreezeTxnWithSuggestedParams(
+  from: AssetFreezeTxn['from'],
+  note: AssetFreezeTxn['note'],
+  assetIndex: AssetFreezeTxn['assetIndex'],
+  freezeTarget: AssetFreezeTxn['freezeAccount'],
+  freezeState: AssetFreezeTxn['freezeState'],
+  suggestedParams: MustHaveSuggestedParams<AssetFreezeTxn>['suggestedParams'],
+  rekeyTo?: AssetFreezeTxn['reKeyTo']
 ) {
-  const o = {
+  const o: AssetFreezeTxn = {
     from,
-    type: 'afrz',
+    type: TransactionType.afrz,
     freezeAccount: freezeTarget,
     assetIndex,
     freezeState,
@@ -670,22 +778,21 @@ function makeAssetFreezeTxnWithSuggestedParams(
  * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
-function makeAssetFreezeTxn(
-  from,
-  fee,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  freezeTarget,
-  freezeState,
-  rekeyTo = undefined
+export function makeAssetFreezeTxn(
+  from: AssetFreezeTxn['from'],
+  fee: MustHaveSuggestedParamsInline<AssetFreezeTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<AssetFreezeTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetFreezeTxn>['lastRound'],
+  note: MustHaveSuggestedParamsInline<AssetFreezeTxn>['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetFreezeTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetFreezeTxn>['genesisID'],
+  assetIndex: AssetFreezeTxn['assetIndex'],
+  freezeTarget: AssetFreezeTxn['freezeAccount'],
+  freezeState: AssetFreezeTxn['freezeState'],
+  rekeyTo?: AssetFreezeTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -704,7 +811,24 @@ function makeAssetFreezeTxn(
 }
 
 // helper for above makeAssetFreezeTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
+export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetFreezeTxn>,
+      {
+        freezeAccount: 'freezeTarget';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'note'
+    | 'assetIndex'
+    | 'freezeTarget'
+    | 'freezeState'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  >
+) {
   return makeAssetFreezeTxnWithSuggestedParams(
     o.from,
     o.note,
@@ -737,21 +861,20 @@ function makeAssetFreezeTxnWithSuggestedParamsFromObject(o) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
- * @returns {Transaction}
  */
-function makeAssetTransferTxnWithSuggestedParams(
-  from,
-  to,
-  closeRemainderTo,
-  revocationTarget,
-  amount,
-  note,
-  assetIndex,
-  suggestedParams,
-  rekeyTo = undefined
+export function makeAssetTransferTxnWithSuggestedParams(
+  from: AssetTransferTxn['from'],
+  to: AssetTransferTxn['to'],
+  closeRemainderTo: AssetTransferTxn['closeRemainderTo'],
+  revocationTarget: AssetTransferTxn['assetRevocationTarget'],
+  amount: AssetTransferTxn['amount'],
+  note: AssetTransferTxn['note'],
+  assetIndex: AssetTransferTxn['assetIndex'],
+  suggestedParams: MustHaveSuggestedParams<AssetTransferTxn>['suggestedParams'],
+  rekeyTo?: AssetTransferTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'axfer',
+  const o: AssetTransferTxn = {
+    type: TransactionType.axfer,
     from,
     to,
     amount,
@@ -785,24 +908,23 @@ function makeAssetTransferTxnWithSuggestedParams(
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param rekeyTo - rekeyTo address, optional
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
- * @returns {Transaction}
  */
-function makeAssetTransferTxn(
-  from,
-  to,
-  closeRemainderTo,
-  revocationTarget,
-  fee,
-  amount,
-  firstRound,
-  lastRound,
-  note,
-  genesisHash,
-  genesisID,
-  assetIndex,
-  rekeyTo = undefined
+export function makeAssetTransferTxn(
+  from: AssetTransferTxn['from'],
+  to: AssetTransferTxn['to'],
+  closeRemainderTo: AssetTransferTxn['closeRemainderTo'],
+  revocationTarget: AssetTransferTxn['assetRevocationTarget'],
+  fee: MustHaveSuggestedParamsInline<AssetTransferTxn>['fee'],
+  amount: AssetTransferTxn['amount'],
+  firstRound: MustHaveSuggestedParamsInline<AssetTransferTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<AssetTransferTxn>['lastRound'],
+  note: AssetTransferTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<AssetTransferTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<AssetTransferTxn>['genesisID'],
+  assetIndex: AssetTransferTxn['assetIndex'],
+  rekeyTo?: AssetTransferTxn['reKeyTo']
 ) {
-  const suggestedParams = {
+  const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
     firstRound,
@@ -823,7 +945,26 @@ function makeAssetTransferTxn(
 }
 
 // helper for above makeAssetTransferTxnWithSuggestedParams, instead accepting an arguments object
-function makeAssetTransferTxnWithSuggestedParamsFromObject(o) {
+export function makeAssetTransferTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AssetTransferTxn>,
+      {
+        assetRevocationTarget: 'revocationTarget';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'to'
+    | 'closeRemainderTo'
+    | 'revocationTarget'
+    | 'amount'
+    | 'note'
+    | 'assetIndex'
+    | 'suggestedParams'
+    | 'rekeyTo'
+  >
+) {
   return makeAssetTransferTxnWithSuggestedParams(
     o.from,
     o.to,
@@ -836,32 +977,6 @@ function makeAssetTransferTxnWithSuggestedParamsFromObject(o) {
     o.rekeyTo
   );
 }
-
-/*
- * Enums for application transactions on-transaction-complete behavior
- */
-const OnApplicationComplete = {
-  // NoOpOC indicates that an application transaction will simply call its
-  // ApprovalProgram
-  NoOpOC: 0,
-  // OptInOC indicates that an application transaction will allocate some
-  // LocalState for the application in the sender's account
-  OptInOC: 1,
-  // CloseOutOC indicates that an application transaction will deallocate
-  // some LocalState for the application from the user's account
-  CloseOutOC: 2,
-  // ClearStateOC is similar to CloseOutOC, but may never fail. This
-  // allows users to reclaim their minimum balance from an application
-  // they no longer wish to opt in to.
-  ClearStateOC: 3,
-  // UpdateApplicationOC indicates that an application transaction will
-  // update the ApprovalProgram and ClearStateProgram for the application
-  UpdateApplicationOC: 4,
-  // DeleteApplicationOC indicates that an application transaction will
-  // delete the AppParams for the application from the creator's balance
-  // record
-  DeleteApplicationOC: 5,
-};
 
 /**
  * Make a transaction that will create an application.
@@ -889,26 +1004,26 @@ const OnApplicationComplete = {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationCreateTxn(
-  from,
-  suggestedParams,
-  onComplete,
-  approvalProgram,
-  clearProgram,
-  numLocalInts,
-  numLocalByteSlices,
-  numGlobalInts,
-  numGlobalByteSlices,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+export function makeApplicationCreateTxn(
+  from: AppCreateTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppCreateTxn>['suggestedParams'],
+  onComplete: AppCreateTxn['appOnComplete'],
+  approvalProgram: AppCreateTxn['appApprovalProgram'],
+  clearProgram: AppCreateTxn['appClearProgram'],
+  numLocalInts: AppCreateTxn['appLocalInts'],
+  numLocalByteSlices: AppCreateTxn['appLocalByteSlices'],
+  numGlobalInts: AppCreateTxn['appGlobalInts'],
+  numGlobalByteSlices: AppCreateTxn['appGlobalByteSlices'],
+  appArgs: AppCreateTxn['appArgs'],
+  accounts: AppCreateTxn['appAccounts'],
+  foreignApps: AppCreateTxn['appForeignApps'],
+  foreignAssets: AppCreateTxn['appForeignAssets'],
+  note: AppCreateTxn['note'],
+  lease: AppCreateTxn['lease'],
+  rekeyTo?: AppCreateTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppCreateTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex: 0,
@@ -931,7 +1046,42 @@ function makeApplicationCreateTxn(
 }
 
 // helper for above makeApplicationCreateTxn, instead accepting an arguments object
-function makeApplicationCreateTxnFromObject(o) {
+export function makeApplicationCreateTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppCreateTxn>,
+      {
+        appOnComplete: 'onComplete';
+        appApprovalProgram: 'approvalProgram';
+        appClearProgram: 'clearProgram';
+        appLocalInts: 'numLocalInts';
+        appLocalByteSlices: 'numLocalByteSlices';
+        appGlobalInts: 'numGlobalInts';
+        appGlobalByteSlices: 'numGlobalByteSlices';
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'onComplete'
+    | 'approvalProgram'
+    | 'clearProgram'
+    | 'numLocalInts'
+    | 'numLocalByteSlices'
+    | 'numGlobalInts'
+    | 'numGlobalByteSlices'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationCreateTxn(
     o.from,
     o.suggestedParams,
@@ -974,22 +1124,22 @@ function makeApplicationCreateTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationUpdateTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  approvalProgram,
-  clearProgram,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+export function makeApplicationUpdateTxn(
+  from: AppUpdateTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppUpdateTxn>['suggestedParams'],
+  appIndex: AppUpdateTxn['appIndex'],
+  approvalProgram: AppUpdateTxn['appApprovalProgram'],
+  clearProgram: AppUpdateTxn['appClearProgram'],
+  appArgs: AppUpdateTxn['appArgs'],
+  accounts: AppUpdateTxn['appAccounts'],
+  foreignApps: AppUpdateTxn['appForeignApps'],
+  foreignAssets: AppUpdateTxn['appForeignAssets'],
+  note: AppUpdateTxn['note'],
+  lease: AppUpdateTxn['lease'],
+  rekeyTo?: AppUpdateTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppUpdateTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1008,7 +1158,33 @@ function makeApplicationUpdateTxn(
 }
 
 // helper for above makeApplicationUpdateTxn, instead accepting an arguments object
-function makeApplicationUpdateTxnFromObject(o) {
+export function makeApplicationUpdateTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppUpdateTxn>,
+      {
+        appApprovalProgram: 'approvalProgram';
+        appClearProgram: 'clearProgram';
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'approvalProgram'
+    | 'clearProgram'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationUpdateTxn(
     o.from,
     o.suggestedParams,
@@ -1045,20 +1221,20 @@ function makeApplicationUpdateTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationDeleteTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+export function makeApplicationDeleteTxn(
+  from: AppDeleteTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppDeleteTxn>['suggestedParams'],
+  appIndex: AppDeleteTxn['appIndex'],
+  appArgs: AppDeleteTxn['appArgs'],
+  accounts: AppDeleteTxn['appAccounts'],
+  foreignApps: AppDeleteTxn['appForeignApps'],
+  foreignAssets: AppDeleteTxn['appForeignAssets'],
+  note: AppDeleteTxn['note'],
+  lease: AppDeleteTxn['lease'],
+  rekeyTo?: AppDeleteTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppDeleteTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1075,7 +1251,29 @@ function makeApplicationDeleteTxn(
 }
 
 // helper for above makeApplicationDeleteTxn, instead accepting an arguments object
-function makeApplicationDeleteTxnFromObject(o) {
+export function makeApplicationDeleteTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppDeleteTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationDeleteTxn(
     o.from,
     o.suggestedParams,
@@ -1110,20 +1308,20 @@ function makeApplicationDeleteTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationOptInTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+export function makeApplicationOptInTxn(
+  from: AppOptInTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppOptInTxn>['suggestedParams'],
+  appIndex: AppOptInTxn['appIndex'],
+  appArgs: AppOptInTxn['appArgs'],
+  accounts: AppOptInTxn['appAccounts'],
+  foreignApps: AppOptInTxn['appForeignApps'],
+  foreignAssets: AppOptInTxn['appForeignApps'],
+  note: AppOptInTxn['note'],
+  lease: AppOptInTxn['lease'],
+  rekeyTo?: AppOptInTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppOptInTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1140,7 +1338,29 @@ function makeApplicationOptInTxn(
 }
 
 // helper for above makeApplicationOptInTxn, instead accepting an argument object
-function makeApplicationOptInTxnFromObject(o) {
+export function makeApplicationOptInTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppOptInTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationOptInTxn(
     o.from,
     o.suggestedParams,
@@ -1175,20 +1395,20 @@ function makeApplicationOptInTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationCloseOutTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+export function makeApplicationCloseOutTxn(
+  from: AppCloseOutTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppCloseOutTxn>['suggestedParams'],
+  appIndex: AppCloseOutTxn['appIndex'],
+  appArgs: AppCloseOutTxn['appArgs'],
+  accounts: AppCloseOutTxn['appAccounts'],
+  foreignApps: AppCloseOutTxn['appForeignApps'],
+  foreignAssets: AppCloseOutTxn['appForeignAssets'],
+  note: AppCloseOutTxn['note'],
+  lease: AppCloseOutTxn['lease'],
+  rekeyTo?: AppCloseOutTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppCloseOutTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1205,7 +1425,29 @@ function makeApplicationCloseOutTxn(
 }
 
 // helper for above makeApplicationCloseOutTxn, instead accepting an argument object
-function makeApplicationCloseOutTxnFromObject(o) {
+export function makeApplicationCloseOutTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppOptInTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationCloseOutTxn(
     o.from,
     o.suggestedParams,
@@ -1240,20 +1482,20 @@ function makeApplicationCloseOutTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationClearStateTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+export function makeApplicationClearStateTxn(
+  from: AppClearStateTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppClearStateTxn>['suggestedParams'],
+  appIndex: AppClearStateTxn['appIndex'],
+  appArgs: AppClearStateTxn['appArgs'],
+  accounts: AppClearStateTxn['appAccounts'],
+  foreignApps: AppClearStateTxn['appForeignApps'],
+  foreignAssets: AppClearStateTxn['appForeignAssets'],
+  note: AppClearStateTxn['note'],
+  lease: AppClearStateTxn['lease'],
+  rekeyTo?: AppClearStateTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppClearStateTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1270,7 +1512,29 @@ function makeApplicationClearStateTxn(
 }
 
 // helper for above makeApplicationClearStateTxn, instead accepting an argument object
-function makeApplicationClearStateTxnFromObject(o) {
+export function makeApplicationClearStateTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppOptInTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationClearStateTxn(
     o.from,
     o.suggestedParams,
@@ -1305,20 +1569,20 @@ function makeApplicationClearStateTxnFromObject(o) {
  * @param lease, optional
  * @param rekeyTo, optional
  */
-function makeApplicationNoOpTxn(
-  from,
-  suggestedParams,
-  appIndex,
-  appArgs = undefined,
-  accounts = undefined,
-  foreignApps = undefined,
-  foreignAssets = undefined,
-  note = undefined,
-  lease = undefined,
-  rekeyTo = undefined
+export function makeApplicationNoOpTxn(
+  from: AppNoOpTxn['from'],
+  suggestedParams: MustHaveSuggestedParams<AppNoOpTxn>['suggestedParams'],
+  appIndex: AppNoOpTxn['appIndex'],
+  appArgs: AppNoOpTxn['appArgs'],
+  accounts: AppNoOpTxn['appAccounts'],
+  foreignApps: AppNoOpTxn['appForeignApps'],
+  foreignAssets: AppNoOpTxn['appForeignAssets'],
+  note: AppNoOpTxn['note'],
+  lease: AppNoOpTxn['lease'],
+  rekeyTo?: AppNoOpTxn['reKeyTo']
 ) {
-  const o = {
-    type: 'appl',
+  const o: AppNoOpTxn = {
+    type: TransactionType.appl,
     from,
     suggestedParams,
     appIndex,
@@ -1335,7 +1599,29 @@ function makeApplicationNoOpTxn(
 }
 
 // helper for above makeApplicationNoOpTxn, instead accepting an argument object
-function makeApplicationNoOpTxnFromObject(o) {
+export function makeApplicationNoOpTxnFromObject(
+  o: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppOptInTxn>,
+      {
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+  >
+) {
   return makeApplicationNoOpTxn(
     o.from,
     o.suggestedParams,
@@ -1350,41 +1636,4 @@ function makeApplicationNoOpTxnFromObject(o) {
   );
 }
 
-module.exports = {
-  makePaymentTxn,
-  makePaymentTxnWithSuggestedParams,
-  makePaymentTxnWithSuggestedParamsFromObject,
-  makeKeyRegistrationTxn,
-  makeKeyRegistrationTxnWithSuggestedParams,
-  makeKeyRegistrationTxnWithSuggestedParamsFromObject,
-  makeAssetCreateTxn,
-  makeAssetCreateTxnWithSuggestedParams,
-  makeAssetCreateTxnWithSuggestedParamsFromObject,
-  makeAssetConfigTxn,
-  makeAssetConfigTxnWithSuggestedParams,
-  makeAssetConfigTxnWithSuggestedParamsFromObject,
-  makeAssetDestroyTxn,
-  makeAssetDestroyTxnWithSuggestedParams,
-  makeAssetDestroyTxnWithSuggestedParamsFromObject,
-  makeAssetFreezeTxn,
-  makeAssetFreezeTxnWithSuggestedParams,
-  makeAssetFreezeTxnWithSuggestedParamsFromObject,
-  makeAssetTransferTxn,
-  makeAssetTransferTxnWithSuggestedParams,
-  makeAssetTransferTxnWithSuggestedParamsFromObject,
-  OnApplicationComplete,
-  makeApplicationCreateTxn,
-  makeApplicationCreateTxnFromObject,
-  makeApplicationUpdateTxn,
-  makeApplicationUpdateTxnFromObject,
-  makeApplicationDeleteTxn,
-  makeApplicationDeleteTxnFromObject,
-  makeApplicationOptInTxn,
-  makeApplicationOptInTxnFromObject,
-  makeApplicationCloseOutTxn,
-  makeApplicationCloseOutTxnFromObject,
-  makeApplicationClearStateTxn,
-  makeApplicationClearStateTxnFromObject,
-  makeApplicationNoOpTxn,
-  makeApplicationNoOpTxnFromObject,
-};
+export { OnApplicationComplete } from './types/transactions/base';

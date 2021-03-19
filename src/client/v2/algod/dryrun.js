@@ -1,4 +1,3 @@
-const { Buffer } = require('buffer');
 const encoding = require('../../../encoding/encoding');
 const { setHeaders } = require('./compile');
 

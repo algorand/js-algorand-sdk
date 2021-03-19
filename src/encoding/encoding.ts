@@ -10,19 +10,19 @@
  *  5. Binary blob should be used for binary data and string for strings
  *  */
 
-const msgpack = require('algo-msgpack-with-bigint');
+import * as msgpack from 'algo-msgpack-with-bigint';
 
 // Errors
-const ERROR_CONTAINS_EMPTY_STRING =
+export const ERROR_CONTAINS_EMPTY_STRING =
   'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
 
 /**
  * containsEmpty returns true if any of the object's values are empty, false otherwise.
  * Empty arrays considered empty
  * @param obj
- * @returns {{firstEmptyKey: string, containsEmpty: boolean}} {true, empty key} if contains empty, {false, undefined} otherwise
+ * @returns / {true, empty key} if contains empty, {false, undefined} otherwise
  */
-function containsEmpty(obj) {
+function containsEmpty(obj: Record<string | number | symbol, any>) {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (!obj[key] || obj[key].length === 0) {
@@ -36,10 +36,10 @@ function containsEmpty(obj) {
 /**
  * encode encodes objects using msgpack
  * @param obj a dictionary to be encoded. Must not contain empty or 0 values.
- * @returns {Uint8Array} msgpack representation of the object
+ * @returns msgpack representation of the object
  * @throws Error containing ERROR_CONTAINS_EMPTY_STRING if the object contains empty or zero values
  */
-function encode(obj) {
+export function encode(obj: Record<string | number | symbol, any>) {
   // Check for empty values
   const emptyCheck = containsEmpty(obj);
   if (emptyCheck.containsEmpty) {
@@ -51,8 +51,6 @@ function encode(obj) {
   return msgpack.encode(obj, options);
 }
 
-function decode(obj) {
-  return msgpack.decode(obj);
+export function decode(buffer: ArrayLike<number>) {
+  return msgpack.decode(buffer);
 }
-
-module.exports = { encode, decode, ERROR_CONTAINS_EMPTY_STRING };

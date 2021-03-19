@@ -1,5 +1,4 @@
 const assert = require('assert');
-const { Buffer } = require('buffer');
 const algosdk = require('../index');
 const group = require('../src/group');
 
@@ -1115,7 +1114,6 @@ describe('Sign', () => {
       const fee = 10;
       const assetIndex = 1234;
       const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-      const creator = addr;
       const freezeTarget = addr;
       const genesisID = '';
       const firstRound = 322575;
@@ -1133,7 +1131,6 @@ describe('Sign', () => {
         type: 'afrz',
         freezeAccount: freezeTarget,
         assetIndex,
-        creator,
         freezeState,
         note,
         genesisID,

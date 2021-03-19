@@ -1,4 +1,3 @@
-const { Buffer } = require('buffer');
 const client = require('./client');
 const { setSendTransactionHeaders } = require('./v2/algod/sendRawTransaction');
 
