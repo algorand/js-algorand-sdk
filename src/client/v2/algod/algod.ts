@@ -1,5 +1,4 @@
-import ServiceClient from '../serviceClient';
-import { HTTPClient } from '../../client';
+import HTTPClient, { TokenHeader } from '../../client';
 import modelsv2 from './models/types';
 import AccountInformation from './accountInformation';
 import Block from './block';
@@ -20,34 +19,26 @@ import Versions from './versions';
 import Genesis from './genesis';
 import Proof from './proof';
 
-export default class AlgodClient extends ServiceClient {
+export default class AlgodClient extends HTTPClient {
   constructor(
-    token = '',
+    token: string | TokenHeader,
     baseServer = 'http://r2.algorand.network',
     port = 4180,
     headers = {}
   ) {
-    // workaround to allow backwards compatibility for multiple headers
-    let tokenHeader: string | Record<string, string> = token;
-    if (typeof tokenHeader === 'string') {
-      tokenHeader = { 'X-Algo-API-Token': tokenHeader };
-    }
-
-    // Get client
-    const httpClient = new HTTPClient(tokenHeader, baseServer, port, headers);
-    super(httpClient);
+    super(token, baseServer, port, headers);
   }
 
   healthCheck() {
-    return new HealthCheck(this.c);
+    return new HealthCheck(this);
   }
 
   versionsCheck() {
-    return new Versions(this.c);
+    return new Versions(this);
   }
 
   sendRawTransaction(stxOrStxs: Uint8Array | Uint8Array[]) {
-    return new SendRawTransaction(this.c, stxOrStxs);
+    return new SendRawTransaction(this, stxOrStxs);
   }
 
   /**
@@ -55,7 +46,7 @@ export default class AlgodClient extends ServiceClient {
    * @param {string} account The address of the account to look up.
    */
   accountInformation(account: string) {
-    return new AccountInformation(this.c, this.intDecoding, account);
+    return new AccountInformation(this, this.intDecoding, account);
   }
 
   /**
@@ -63,7 +54,7 @@ export default class AlgodClient extends ServiceClient {
    * @param {number} roundNumber The round number of the block to get.
    */
   block(roundNumber: number) {
-    return new Block(this.c, roundNumber);
+    return new Block(this, roundNumber);
   }
 
   /**
@@ -71,14 +62,14 @@ export default class AlgodClient extends ServiceClient {
    * @param {string} txid The TxID string of the pending transaction to look up.
    */
   pendingTransactionInformation(txid: string) {
-    return new PendingTransactionInformation(this.c, txid);
+    return new PendingTransactionInformation(this, txid);
   }
 
   /**
    * Returns transactions that are pending in the pool.
    */
   pendingTransactionsInformation() {
-    return new PendingTransactions(this.c);
+    return new PendingTransactions(this);
   }
 
   /**
@@ -86,14 +77,14 @@ export default class AlgodClient extends ServiceClient {
    * @param {string} address The address of the sender.
    */
   pendingTransactionByAddress(address: string) {
-    return new PendingTransactionsByAddress(this.c, address);
+    return new PendingTransactionsByAddress(this, address);
   }
 
   /**
    * Retrieves the StatusResponse from the running node.
    */
   status() {
-    return new Status(this.c, this.intDecoding);
+    return new Status(this, this.intDecoding);
   }
 
   /**
@@ -101,29 +92,29 @@ export default class AlgodClient extends ServiceClient {
    * @param {number} round The number of the round to wait for.
    */
   statusAfterBlock(round: number) {
-    return new StatusAfterBlock(this.c, this.intDecoding, round);
+    return new StatusAfterBlock(this, this.intDecoding, round);
   }
 
   /**
    * Returns the common needed parameters for a new transaction.
    */
   getTransactionParams() {
-    return new SuggestedParams(this.c);
+    return new SuggestedParams(this);
   }
 
   /**
    * Gets the supply details for the specified node's ledger.
    */
   supply() {
-    return new Supply(this.c, this.intDecoding);
+    return new Supply(this, this.intDecoding);
   }
 
   compile(source: string) {
-    return new Compile(this.c, source);
+    return new Compile(this, source);
   }
 
   dryrun(dr: modelsv2.DryrunSource) {
-    return new Dryrun(this.c, dr);
+    return new Dryrun(this, dr);
   }
 
   /**
@@ -132,7 +123,7 @@ export default class AlgodClient extends ServiceClient {
    * @param {number} index The asset ID to look up.
    */
   getAssetByID(index: number) {
-    return new GetAssetByID(this.c, this.intDecoding, index);
+    return new GetAssetByID(this, this.intDecoding, index);
   }
 
   /**
@@ -141,14 +132,14 @@ export default class AlgodClient extends ServiceClient {
    * @param {number} index The application ID to look up.
    */
   getApplicationByID(index: number) {
-    return new GetApplicationByID(this.c, this.intDecoding, index);
+    return new GetApplicationByID(this, this.intDecoding, index);
   }
 
   /**
    * Returns the entire genesis file.
    */
   genesis() {
-    return new Genesis(this.c, this.intDecoding);
+    return new Genesis(this, this.intDecoding);
   }
 
   /**
@@ -157,6 +148,6 @@ export default class AlgodClient extends ServiceClient {
    * @param {string} txID The transaction ID for which to generate a proof.
    */
   getProof(round: number, txID: string) {
-    return new Proof(this.c, this.intDecoding, round, txID);
+    return new Proof(this, this.intDecoding, round, txID);
   }
 }

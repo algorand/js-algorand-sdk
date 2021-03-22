@@ -1,6 +1,9 @@
 const client = require('./client');
 const { setSendTransactionHeaders } = require('./v2/algod/sendRawTransaction');
 
+// Workaround — alias the default export to a named HTTPClient export
+client.HTTPClient = client.default;
+
 function Algod(
   token = '',
   baseServer = 'http://r2.algorand.network',
