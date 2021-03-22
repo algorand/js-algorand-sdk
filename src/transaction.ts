@@ -1061,4 +1061,15 @@ export function decodeSignedTransaction(transactionBuffer: Uint8Array) {
   return stxnDecoded;
 }
 
+/**
+ * Either a valid transaction object or an instance of the Transaction class
+ */
+export type TransactionLike = AnyTransaction | Transaction;
+
+export function instantiateTxnIfNeeded(transactionLike: TransactionLike) {
+  return transactionLike instanceof Transaction
+    ? transactionLike
+    : new Transaction(transactionLike);
+}
+
 export default Transaction;
