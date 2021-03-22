@@ -3,14 +3,36 @@
  * Utilities for working with program bytes.
  */
 
-const langspec = require('./langspec.json');
+import langspec from './langspec.json';
 
-let opcodes;
+/**
+ * Langspec Op Structure
+ */
+interface OpStructure {
+  Opcode: number;
+  Name: string;
+  Args?: string;
+  Returns?: string;
+  Cost: number;
+  Size: number;
+  ArgEnum?: string[];
+  ArgEnumTypes?: string;
+  Doc: string;
+  DocExtra?: string;
+  ImmediateNote?: string;
+  Groups: string[];
+}
+
+let opcodes: {
+  [key: number]: OpStructure;
+};
 
 const maxCost = 20000;
 const maxLength = 1000;
 
-function parseUvarint(array) {
+export function parseUvarint(
+  array: Uint8Array
+): [numberFound: number, size: number] {
   let x = 0;
   let s = 0;
   for (let i = 0; i < array.length; i++) {
@@ -27,7 +49,10 @@ function parseUvarint(array) {
   return [0, 0];
 }
 
-function readIntConstBlock(program, pc) {
+function readIntConstBlock(
+  program: Uint8Array,
+  pc: number
+): [size: number, ints: number[]] {
   let size = 1;
   const parsed = parseUvarint(program.slice(pc + size));
   const numInts = parsed[0];
@@ -35,13 +60,13 @@ function readIntConstBlock(program, pc) {
   if (bytesUsed <= 0) {
     throw new Error(`could not decode int const block size at pc=${pc + size}`);
   }
-  const ints = [];
+  const ints: number[] = [];
   size += bytesUsed;
   for (let i = 0; i < numInts; i++) {
     if (pc + size >= program.length) {
       throw new Error('intcblock ran past end of program');
     }
-    let numberFound;
+    let numberFound: number;
     [numberFound, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
       throw new Error(
@@ -54,7 +79,10 @@ function readIntConstBlock(program, pc) {
   return [size, ints];
 }
 
-function readByteConstBlock(program, pc) {
+function readByteConstBlock(
+  program: Uint8Array,
+  pc: number
+): [size: number, byteArrays: Uint8Array[]] {
   let size = 1;
   const parsed = parseUvarint(program.slice(pc + size));
   const numInts = parsed[0];
@@ -64,13 +92,13 @@ function readByteConstBlock(program, pc) {
       `could not decode []byte const block size at pc=${pc + size}`
     );
   }
-  const byteArrays = [];
+  const byteArrays: Uint8Array[] = [];
   size += bytesUsed;
   for (let i = 0; i < numInts; i++) {
     if (pc + size >= program.length) {
       throw new Error('bytecblock ran past end of program');
     }
-    let itemLen;
+    let itemLen: number;
     [itemLen, bytesUsed] = parseUvarint(program.slice(pc + size));
     if (bytesUsed <= 0) {
       throw new Error(
@@ -88,7 +116,10 @@ function readByteConstBlock(program, pc) {
   return [size, byteArrays];
 }
 
-function readPushIntOp(program, pc) {
+function readPushIntOp(
+  program: Uint8Array,
+  pc: number
+): [size: number, numberFound: number] {
   let size = 1;
   const [numberFound, bytesUsed] = parseUvarint(program.slice(pc + size));
   if (bytesUsed <= 0) {
@@ -98,7 +129,10 @@ function readPushIntOp(program, pc) {
   return [size, numberFound];
 }
 
-function readPushByteOp(program, pc) {
+function readPushByteOp(
+  program: Uint8Array,
+  pc: number
+): [size: number, byteArray: Uint8Array] {
   let size = 1;
   const [itemLen, bytesUsed] = parseUvarint(program.slice(pc + size));
   if (bytesUsed <= 0) {
@@ -122,7 +156,10 @@ function readPushByteOp(program, pc) {
  * @throws {Error}
  * @returns {[Uint8Array, [Uint8Array], boolean]}
  */
-function readProgram(program, args) {
+export function readProgram(
+  program: Uint8Array,
+  args: Uint8Array[]
+): [ints: number[], byteArrays: Uint8Array[], valid: boolean] {
   const intcblockOpcode = 32;
   const bytecblockOpcode = 38;
   const pushbytesOpcode = 128;
@@ -165,8 +202,8 @@ function readProgram(program, args) {
   }
 
   let pc = vlen;
-  let ints = [];
-  let byteArrays = [];
+  let ints: number[] = [];
+  let byteArrays: Uint8Array[] = [];
   while (pc < program.length) {
     const op = opcodes[program[pc]];
     if (op === undefined) {
@@ -178,19 +215,19 @@ function readProgram(program, args) {
     if (size === 0) {
       switch (op.Opcode) {
         case intcblockOpcode: {
-          let foundInts;
+          let foundInts: number[];
           [size, foundInts] = readIntConstBlock(program, pc);
           ints = ints.concat(foundInts);
           break;
         }
         case bytecblockOpcode: {
-          let foundByteArrays;
+          let foundByteArrays: Uint8Array[];
           [size, foundByteArrays] = readByteConstBlock(program, pc);
           byteArrays = byteArrays.concat(foundByteArrays);
           break;
         }
         case pushintOpcode: {
-          let foundInt;
+          let foundInt: number;
           [size, foundInt] = readPushIntOp(program, pc);
           ints.push(foundInt);
           break;
@@ -221,41 +258,32 @@ function readProgram(program, args) {
  * @param {Uint8Array} program Program to check
  * @param {[Uint8Array]} args Program arguments as array of Uint8Array arrays
  * @throws {Error}
- * @returns {boolean} true if success
+ * @returns true if success
  */
-function checkProgram(program, args) {
+export function checkProgram(program: Uint8Array, args: Uint8Array[]) {
   const [, , success] = readProgram(program, args);
   return success;
 }
 
-function checkIntConstBlock(program, pc) {
+export function checkIntConstBlock(program: Uint8Array, pc: number) {
   const [size] = readIntConstBlock(program, pc);
   return size;
 }
 
-function checkByteConstBlock(program, pc) {
+export function checkByteConstBlock(program: Uint8Array, pc: number) {
   const [size] = readByteConstBlock(program, pc);
   return size;
 }
 
-function checkPushIntOp(program, pc) {
+export function checkPushIntOp(program: Uint8Array, pc: number) {
   const [size] = readPushIntOp(program, pc);
   return size;
 }
 
-function checkPushByteOp(program, pc) {
+export function checkPushByteOp(program: Uint8Array, pc: number) {
   const [size] = readPushByteOp(program, pc);
   return size;
 }
 
-module.exports = {
-  checkProgram,
-  readProgram,
-  parseUvarint,
-  checkIntConstBlock,
-  checkByteConstBlock,
-  checkPushIntOp,
-  checkPushByteOp,
-  langspecEvalMaxVersion: langspec.EvalMaxVersion,
-  langspecLogicSigVersion: langspec.LogicSigVersion,
-};
+export const langspecEvalMaxVersion = langspec.EvalMaxVersion;
+export const langspecLogicSigVersion = langspec.LogicSigVersion;

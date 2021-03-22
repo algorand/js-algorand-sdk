@@ -5,6 +5,7 @@
     "allowJs": true,
     "target": "es2020",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,
     "declaration": true
