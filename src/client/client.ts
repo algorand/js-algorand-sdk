@@ -91,13 +91,17 @@ export interface TokenHeader {
   'X-Algo-API-Token': string;
 }
 
+export interface KMDTokenHeader {
+  'X-KMD-API-Token': string;
+}
+
 export default class HTTPClient {
   private address: string;
-  private tokenHeader: TokenHeader;
+  private tokenHeader: TokenHeader | KMDTokenHeader;
   public intDecoding: IntDecoding = 'default';
 
   constructor(
-    tokenHeader: string | TokenHeader,
+    tokenHeader: string | TokenHeader | KMDTokenHeader,
     baseServer: string,
     port?: number,
     private defaultHeaders: Record<string, any> = {}

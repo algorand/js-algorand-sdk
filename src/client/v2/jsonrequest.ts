@@ -13,8 +13,7 @@ export default abstract class JSONRequest<
   Body = Data
 > {
   c: HTTPClient;
-  query: Record<string, any>;
-  intDecoding: IntDecoding;
+  query: Record<string, any> = {};
 
   /**
    * @param {HttpClient} client HTTPClient object.
@@ -22,9 +21,8 @@ export default abstract class JSONRequest<
    *   for decoding integers from this request's response. See the setIntDecoding method for more
    *   details.
    */
-  constructor(client: HTTPClient, intDecoding?: IntDecoding) {
+  constructor(client: HTTPClient, public intDecoding?: IntDecoding) {
     this.c = client;
-    this.query = {};
     this.intDecoding = intDecoding || 'default';
   }
 
