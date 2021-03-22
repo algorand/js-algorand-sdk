@@ -2049,4 +2049,4 @@ const english = [
   'zoo',
 ];
 
-module.exports = english;
+export default english;
