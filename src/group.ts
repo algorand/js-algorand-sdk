@@ -3,7 +3,6 @@ import * as nacl from './nacl/naclWrappers';
 import * as encoding from './encoding/encoding';
 import * as address from './encoding/address';
 import * as utils from './utils/utils';
-import AnyTransaction from './types/transactions';
 
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 
