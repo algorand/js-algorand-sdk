@@ -1,37 +1,43 @@
-const txnBuilder = require('./transaction');
-const nacl = require('./nacl/naclWrappers');
-const encoding = require('./encoding/encoding');
-const address = require('./encoding/address');
-const utils = require('./utils/utils');
+import * as txnBuilder from './transaction';
+import * as nacl from './nacl/naclWrappers';
+import * as encoding from './encoding/encoding';
+import * as address from './encoding/address';
+import * as utils from './utils/utils';
+import AnyTransaction from './types/transactions';
 
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
+
+interface EncodedTxGroup {
+  txlist: Buffer[];
+}
 
 /**
  * Aux class for group id calculation of a group of transactions
  */
-class TxGroup {
-  constructor(hashes) {
+export class TxGroup {
+  name = 'Transaction group';
+  tag = Buffer.from('TG');
+  txGroupHashes: Buffer[];
+
+  constructor(hashes: Buffer[]) {
     if (hashes.length > ALGORAND_MAX_TX_GROUP_SIZE) {
       const errorMsg = `${hashes.length.toString()} transactions grouped together but max group size is ${ALGORAND_MAX_TX_GROUP_SIZE.toString()}`;
       throw Error(errorMsg);
     }
-
-    this.name = 'Transaction group';
-    this.tag = Buffer.from('TG');
 
     this.txGroupHashes = hashes;
   }
 
   // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
-    const txgroup = {
+    const txgroup: EncodedTxGroup = {
       txlist: this.txGroupHashes,
     };
     return txgroup;
   }
 
   // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(txgroupForEnc) {
+  static from_obj_for_encoding(txgroupForEnc: EncodedTxGroup) {
     const txn = Object.create(this.prototype);
     txn.name = 'Transaction group';
     txn.tag = Buffer.from('TG');
@@ -52,13 +58,10 @@ class TxGroup {
  * @param txns array of transactions (every element is a dict or Transaction)
  * @return Buffer
  */
-function computeGroupID(txns) {
+export function computeGroupID(txns: txnBuilder.TransactionLike[]) {
   const hashes = [];
   for (const txn of txns) {
-    let tx = txn;
-    if (!(txn instanceof txnBuilder.Transaction)) {
-      tx = new txnBuilder.Transaction(txn);
-    }
+    const tx = txnBuilder.instantiateTxnIfNeeded(txn);
     hashes.push(tx.rawTxID());
   }
 
@@ -76,15 +79,15 @@ function computeGroupID(txns) {
  * @param from optional sender address specifying which transaction return
  * @return possible list of matching transactions
  */
-function assignGroupID(txns, from = undefined) {
+export function assignGroupID(
+  txns: txnBuilder.TransactionLike[],
+  from?: string
+) {
   const gid = computeGroupID(txns);
   const result = [];
   for (const txn of txns) {
-    if (!from || address.encodeAddress(txn.from.publicKey) === from) {
-      let tx = txn;
-      if (!(tx instanceof txnBuilder.Transaction)) {
-        tx = new txnBuilder.Transaction(txn);
-      }
+    const tx = txnBuilder.instantiateTxnIfNeeded(txn);
+    if (!from || address.encodeAddress(tx.from.publicKey) === from) {
       tx.group = gid;
       result.push(tx);
     }
@@ -92,8 +95,4 @@ function assignGroupID(txns, from = undefined) {
   return result;
 }
 
-module.exports = {
-  TxGroup,
-  computeGroupID,
-  assignGroupID,
-};
+export default TxGroup;

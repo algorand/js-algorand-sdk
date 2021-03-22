@@ -6,7 +6,7 @@ import multisig from './multisig';
 import bidBuilder from './bid';
 import algod from './client/algod';
 import kmd from './client/kmd';
-import convert from './convert';
+import * as convert from './convert';
 import * as utils from './utils/utils';
 import algodv2 from './client/v2/algod/algod';
 import indexer from './client/v2/indexer/indexer';
@@ -40,7 +40,7 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * @returns object contains the binary signed transaction and its txID
  */
 export function signTransaction(
-  txn: AnyTransaction | txnBuilder.Transaction,
+  txn: txnBuilder.TransactionLike,
   sk: Uint8Array
 ) {
   if (typeof txn.from === 'undefined') {
@@ -49,10 +49,7 @@ export function signTransaction(
     // eslint-disable-next-line no-param-reassign
     txn.from = address.encodeAddress(key.publicKey);
   }
-  const algoTxn =
-    txn instanceof txnBuilder.Transaction
-      ? txn
-      : new txnBuilder.Transaction(txn);
+  const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
 
   return {
     txID: (algoTxn as txnBuilder.Transaction).txID().toString(),
@@ -121,7 +118,7 @@ export function verifyBytes(
  * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
  */
 export function signMultisigTransaction(
-  txn: AnyTransaction | txnBuilder.Transaction,
+  txn: txnBuilder.TransactionLike,
   { version, threshold, addrs }: MultisigMetadata,
   sk: Uint8Array
 ) {
@@ -255,7 +252,7 @@ export {
   decodeAddress,
 } from './encoding/address';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
-export { generateAccount } from './account';
+export { default as generateAccount } from './account';
 export { secretKeyToMnemonic, mnemonicToSecretKey } from './mnemonic/mnemonic';
 export { default as modelsv2 } from './client/v2/algod/models/types';
 export {
