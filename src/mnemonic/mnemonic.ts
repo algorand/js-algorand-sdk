@@ -1,14 +1,15 @@
 /* eslint-disable no-bitwise */
-const english = require('./wordlists/english');
-const nacl = require('../nacl/naclWrappers');
-const address = require('../encoding/address');
+import english from './wordlists/english';
+import * as nacl from '../nacl/naclWrappers';
+import * as address from '../encoding/address';
+import Account from '../types/account';
 
-const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
-const NOT_IN_WORDS_LIST_ERROR_MSG =
+export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
+export const NOT_IN_WORDS_LIST_ERROR_MSG =
   'the mnemonic contains a word that is not in the wordlist';
 
 // https://stackoverflow.com/a/51452614
-function toUint11Array(buffer8) {
+function toUint11Array(buffer8: Uint8Array | number[]) {
   const buffer11 = [];
   let acc = 0;
   let accBits = 0;
@@ -32,11 +33,11 @@ function toUint11Array(buffer8) {
   return buffer11;
 }
 
-function applyWords(nums) {
+function applyWords(nums: number[]) {
   return nums.map((n) => english[n]);
 }
 
-function computeChecksum(seed) {
+function computeChecksum(seed: Uint8Array) {
   const hashBuffer = nacl.genericHash(seed);
   const uint11Hash = toUint11Array(hashBuffer);
   const words = applyWords(uint11Hash);
@@ -48,9 +49,9 @@ function computeChecksum(seed) {
  * mnemonicFromSeed converts a 32-byte key into a 25 word mnemonic. The generated mnemonic includes a checksum.
  * Each word in the mnemonic represents 11 bits of data, and the last 11 bits are reserved for the checksum.
  * @param seed 32 bytes long seed
- * @returns {string} 25 words mnemonic
+ * @returns 25 words mnemonic
  */
-function mnemonicFromSeed(seed) {
+export function mnemonicFromSeed(seed: Uint8Array) {
   // Sanity length check
   if (seed.length !== nacl.SEED_BTYES_LENGTH) {
     throw new RangeError(`Seed length must be ${nacl.SEED_BTYES_LENGTH}`);
@@ -65,7 +66,7 @@ function mnemonicFromSeed(seed) {
 
 // from Uint11Array
 // https://stackoverflow.com/a/51452614
-function toUint8Array(buffer11) {
+function toUint8Array(buffer11: number[]) {
   const buffer8 = [];
   let acc = 0;
   let accBits = 0;
@@ -94,9 +95,9 @@ function toUint8Array(buffer11) {
  * It returns an error if the passed mnemonic has an incorrect checksum, if the number of words is unexpected, or if one
  * of the passed words is not found in the words list.
  * @param mnemonic 25 words mnemonic
- * @returns {Uint8Array} 32 bytes long seed
+ * @returns 32 bytes long seed
  */
-function seedFromMnemonic(mnemonic) {
+export function seedFromMnemonic(mnemonic: string) {
   const words = mnemonic.split(' ');
   const key = words.slice(0, 24);
 
@@ -140,10 +141,9 @@ function seedFromMnemonic(mnemonic) {
 /**
  * mnemonicToSecretKey takes a mnemonic string and returns the corresponding Algorand address and its secret key.
  * @param mn 25 words Algorand mnemonic
- * @returns {{sk: Uint8Array, addr: string}}
  * @throws error if fails to decode the mnemonic
  */
-function mnemonicToSecretKey(mn) {
+export function mnemonicToSecretKey(mn: string): Account {
   const seed = seedFromMnemonic(mn);
   const keys = nacl.keyPairFromSeed(seed);
   const encodedPk = address.encodeAddress(keys.publicKey);
@@ -152,10 +152,10 @@ function mnemonicToSecretKey(mn) {
 
 /**
  * secretKeyToMnemonic takes an Algorand secret key and returns the corresponding mnemonic.
- * @param sk Uint8Array
- * @returns string mnemonic
+ * @param sk Algorand secret key
+ * @returns Secret key's associated mnemonic
  */
-function secretKeyToMnemonic(sk) {
+export function secretKeyToMnemonic(sk: Uint8Array) {
   // get the seed from the sk
   const seed = sk.slice(0, nacl.SEED_BTYES_LENGTH);
   return mnemonicFromSeed(seed);
@@ -167,7 +167,7 @@ function secretKeyToMnemonic(sk) {
  * @returns Uint8Array
  * @throws error if fails to decode the mnemonic
  */
-function mnemonicToMasterDerivationKey(mn) {
+export function mnemonicToMasterDerivationKey(mn: string) {
   return seedFromMnemonic(mn);
 }
 
@@ -176,17 +176,6 @@ function mnemonicToMasterDerivationKey(mn) {
  * @param mdk Uint8Array
  * @returns string mnemonic
  */
-function masterDerivationKeyToMnemonic(mdk) {
+export function masterDerivationKeyToMnemonic(mdk: Uint8Array) {
   return mnemonicFromSeed(mdk);
 }
-
-module.exports = {
-  mnemonicFromSeed,
-  seedFromMnemonic,
-  FAIL_TO_DECODE_MNEMONIC_ERROR_MSG,
-  NOT_IN_WORDS_LIST_ERROR_MSG,
-  mnemonicToSecretKey,
-  secretKeyToMnemonic,
-  mnemonicToMasterDerivationKey,
-  masterDerivationKeyToMnemonic,
-};
