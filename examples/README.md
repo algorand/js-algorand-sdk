@@ -8,6 +8,8 @@ Portions of the codebase are written in TypeScript, so running examples requires
 $ npm run example examples/generate_sender_receiver.js
 ```
 
+> **Disclaimer:** `ts-node` is **not** required when importing this module from NPM. Code imported from the `algosdk` NPM module will be pre-compiled to plain JavaScript.
+
 ## Configuration
 
 Many of the examples in this folder require configuration information such as:
