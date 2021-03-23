@@ -1,5 +1,5 @@
 import { HTTPClient } from '../client';
-import { IntDecoding } from '../../types/intDecoding';
+import IntDecoding from '../../types/intDecoding';
 
 /**
  * Abstract service client to encapsulate shared AlgodClient and IndexerClient logic
@@ -10,7 +10,7 @@ export default abstract class ServiceClient {
 
   constructor(httpClient: HTTPClient) {
     this.c = httpClient;
-    this.intDecoding = 'default';
+    this.intDecoding = IntDecoding.DEFAULT;
   }
 
   /**

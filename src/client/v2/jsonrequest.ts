@@ -1,5 +1,5 @@
 import { HTTPClient } from '../client';
-import { IntDecoding } from '../../types/intDecoding';
+import IntDecoding from '../../types/intDecoding';
 
 /**
  * Base abstract class for JSON requests.
@@ -25,7 +25,7 @@ export default abstract class JSONRequest<
   constructor(client: HTTPClient, intDecoding?: IntDecoding) {
     this.c = client;
     this.query = {};
-    this.intDecoding = intDecoding || 'default';
+    this.intDecoding = intDecoding || IntDecoding.DEFAULT;
   }
 
   /**

@@ -1,5 +1,5 @@
 import JSONbigWithoutConfig from 'json-bigint';
-import { IntDecoding } from '../types/intDecoding';
+import IntDecoding from '../types/intDecoding';
 
 const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
 
@@ -27,7 +27,7 @@ interface JSONOptions {
  */
 export function parseJSON(str: string, options?: JSONOptions) {
   const intDecoding =
-    options && options.intDecoding ? options.intDecoding : 'default';
+    options && options.intDecoding ? options.intDecoding : IntDecoding.DEFAULT;
   const parsed = JSONbig.parse(str, (_, value) => {
     if (
       value != null &&

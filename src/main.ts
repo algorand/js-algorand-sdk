@@ -242,6 +242,7 @@ export const ERROR_INVALID_MICROALGOS = new Error(
 );
 
 export * from './types/transactions';
+export { default as IntDecoding } from './types/intDecoding';
 export { default as Algodv2 } from './client/v2/algod/algod';
 export { default as Indexer } from './client/v2/indexer/indexer';
 export {
