@@ -2,7 +2,7 @@ import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
-import multisig from './multisig';
+import * as multisig from './multisig';
 import Bid, { BidOptions } from './bid';
 import algod from './client/algod';
 import kmd from './client/kmd';
