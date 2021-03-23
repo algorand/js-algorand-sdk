@@ -3,7 +3,7 @@ import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
 import multisig from './multisig';
-import bidBuilder from './bid';
+import Bid, { BidOptions } from './bid';
 import algod from './client/algod';
 import kmd from './client/kmd';
 import * as convert from './convert';
@@ -64,11 +64,8 @@ export function signTransaction(
  * @param sk Algorand secret key
  * @returns Uint8Array binary signed bid
  */
-export function signBid(
-  bid: ConstructorParameters<typeof bidBuilder.Bid>[0],
-  sk: Uint8Array
-) {
-  const signedBid = new bidBuilder.Bid(bid);
+export function signBid(bid: BidOptions, sk: Uint8Array) {
+  const signedBid = new Bid(bid);
   return signedBid.signBid(sk);
 }
 
