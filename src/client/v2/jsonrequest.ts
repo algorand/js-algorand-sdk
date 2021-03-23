@@ -55,13 +55,7 @@ export default abstract class JSONRequest<
     if (this.intDecoding !== 'default') {
       jsonOptions.intDecoding = this.intDecoding;
     }
-    const res = await this.c.get(
-      // eslint-disable-next-line no-underscore-dangle
-      this.path(),
-      this.query,
-      headers,
-      jsonOptions
-    );
+    const res = await this.c.get(this.path(), this.query, headers, jsonOptions);
     return this.prepare(res.body);
   }
 

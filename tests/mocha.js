@@ -13,7 +13,10 @@ async function testRunner() {
 
   const testFiles = fs
     .readdirSync(__dirname)
-    .filter((file) => file !== 'mocha.js' && file.endsWith('.js'))
+    .filter(
+      (file) =>
+        file !== 'mocha.js' && (file.endsWith('.js') || file.endsWith('.ts'))
+    )
     .map((file) => path.join(__dirname, file));
 
   if (browser) {

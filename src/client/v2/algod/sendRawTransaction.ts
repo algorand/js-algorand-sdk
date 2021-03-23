@@ -1,11 +1,11 @@
 import JSONRequest from '../jsonrequest';
 import { HTTPClient } from '../../client';
+import { concatArrays } from '../../../utils/utils';
 
 /**
  * Sets the default header (if not previously set) for sending a raw
  * transaction.
  * @param headers
- * @returns {*}
  */
 export function setSendTransactionHeaders(headers = {}) {
   let hdrs = headers;
@@ -16,7 +16,7 @@ export function setSendTransactionHeaders(headers = {}) {
   return hdrs;
 }
 
-function isByteArray(array: Uint8Array) {
+function isByteArray(array: any): array is Uint8Array {
   return array && array.byteLength !== undefined;
 }
 
@@ -34,13 +34,12 @@ export default class SendRawTransaction extends JSONRequest {
       if (!stxOrStxs.every(isByteArray)) {
         throw new TypeError('Array elements must be byte arrays');
       }
-      forPosting = Array.prototype.concat(
-        ...stxOrStxs.map((arr) => Array.from(arr))
-      );
-    } else if (!isByteArray(forPosting as Uint8Array)) {
+      // Flatten into a single Uint8Array
+      forPosting = concatArrays(...stxOrStxs);
+    } else if (!isByteArray(forPosting)) {
       throw new TypeError('Argument must be byte array');
     }
-    this.txnBytesToPost = forPosting as Uint8Array;
+    this.txnBytesToPost = forPosting;
   }
 
   // eslint-disable-next-line class-methods-use-this

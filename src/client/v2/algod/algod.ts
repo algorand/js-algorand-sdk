@@ -52,7 +52,7 @@ export default class AlgodClient extends ServiceClient {
 
   /**
    * Returns the given account's information.
-   * @param {string} account The address of the account to look up.
+   * @param account The address of the account to look up.
    */
   accountInformation(account: string) {
     return new AccountInformation(this.c, this.intDecoding, account);
@@ -60,7 +60,7 @@ export default class AlgodClient extends ServiceClient {
 
   /**
    * Gets the block info for the given round.
-   * @param {number} roundNumber The round number of the block to get.
+   * @param roundNumber The round number of the block to get.
    */
   block(roundNumber: number) {
     return new Block(this.c, roundNumber);
@@ -68,7 +68,7 @@ export default class AlgodClient extends ServiceClient {
 
   /**
    * Returns the transaction information for a specific pending transaction.
-   * @param {string} txid The TxID string of the pending transaction to look up.
+   * @param txid The TxID string of the pending transaction to look up.
    */
   pendingTransactionInformation(txid: string) {
     return new PendingTransactionInformation(this.c, txid);
@@ -83,7 +83,7 @@ export default class AlgodClient extends ServiceClient {
 
   /**
    * Returns transactions that are pending in the pool sent by a specific sender.
-   * @param {string} address The address of the sender.
+   * @param address The address of the sender.
    */
   pendingTransactionByAddress(address: string) {
     return new PendingTransactionsByAddress(this.c, address);
@@ -98,7 +98,7 @@ export default class AlgodClient extends ServiceClient {
 
   /**
    * Waits for a specific round to occur then returns the StatusResponse for that round.
-   * @param {number} round The number of the round to wait for.
+   * @param round The number of the round to wait for.
    */
   statusAfterBlock(round: number) {
     return new StatusAfterBlock(this.c, this.intDecoding, round);
@@ -129,7 +129,7 @@ export default class AlgodClient extends ServiceClient {
   /**
    * Given an asset ID, return asset information including creator, name, total supply and
    * special addresses.
-   * @param {number} index The asset ID to look up.
+   * @param index The asset ID to look up.
    */
   getAssetByID(index: number) {
     return new GetAssetByID(this.c, this.intDecoding, index);
@@ -138,7 +138,7 @@ export default class AlgodClient extends ServiceClient {
   /**
    * Given an application ID, it returns application information including creator, approval
    * and clear programs, global and local schemas, and global state.
-   * @param {number} index The application ID to look up.
+   * @param index The application ID to look up.
    */
   getApplicationByID(index: number) {
     return new GetApplicationByID(this.c, this.intDecoding, index);
@@ -153,8 +153,8 @@ export default class AlgodClient extends ServiceClient {
 
   /**
    * Get the proof for a given transaction in a round.
-   * @param {number} round The round in which the transaction appears.
-   * @param {string} txID The transaction ID for which to generate a proof.
+   * @param round The round in which the transaction appears.
+   * @param txID The transaction ID for which to generate a proof.
    */
   getProof(round: number, txID: string) {
     return new Proof(this.c, this.intDecoding, round, txID);
