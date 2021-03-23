@@ -1,46 +1,66 @@
-const nacl = require('./nacl/naclWrappers');
-const address = require('./encoding/address');
-const encoding = require('./encoding/encoding');
-const logic = require('./logic/logic');
-const multisig = require('./multisig');
-const utils = require('./utils/utils');
-const txnBuilder = require('./transaction');
+import * as nacl from './nacl/naclWrappers';
+import * as address from './encoding/address';
+import * as encoding from './encoding/encoding';
+import * as logic from './logic/logic';
+import * as multisig from './multisig';
+import * as utils from './utils/utils';
+import * as txnBuilder from './transaction';
+import {
+  EncodedLogicSig,
+  EncodedMultisig,
+  EncodedTransaction,
+} from './types/transactions/encoded';
+import { MultisigMetadata } from './types/multisig';
+
+interface LogicSigStorageStructure {
+  logic: Uint8Array;
+  args: Uint8Array[];
+  sig?: Uint8Array;
+  msig?: EncodedMultisig;
+}
 
 /**
  LogicSig implementation
  */
+export class LogicSig implements LogicSigStorageStructure {
+  tag = Buffer.from('Program');
 
-class LogicSig {
-  constructor(program, args) {
-    this.tag = Buffer.from('Program');
+  logic: Uint8Array;
+  args: Uint8Array[];
+  sig?: Uint8Array;
+  msig?: EncodedMultisig;
+
+  constructor(
+    program: Uint8Array,
+    bufferOrUint8ArrArgs: Array<Uint8Array | Buffer> | undefined
+  ) {
+    let args: Uint8Array[] | undefined;
+    if (typeof bufferOrUint8ArrArgs !== 'undefined')
+      args = bufferOrUint8ArrArgs.map((arg) => new Uint8Array(arg));
 
     if (!logic.checkProgram(program, args)) {
       throw new Error('Invalid program');
     }
 
-    function checkType(arg) {
-      const theType = typeof arg;
-      return (
-        theType === 'string' ||
-        theType === 'number' ||
-        arg.constructor === Uint8Array ||
-        Buffer.isBuffer(arg)
-      );
+    function checkType(arg: any) {
+      return arg.constructor === Uint8Array || Buffer.isBuffer(arg);
     }
 
     if (args && (!Array.isArray(args) || !args.every(checkType))) {
       throw new TypeError('Invalid arguments');
     }
 
-    this.logic = program;
-    this.args = args;
-    this.sig = undefined;
-    this.msig = undefined;
+    Object.assign(this, {
+      logic: program,
+      args,
+      sig: undefined,
+      msig: undefined,
+    });
   }
 
   // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
-    const obj = {
+    const obj: EncodedLogicSig = {
       l: this.logic,
     };
     if (this.args) {
@@ -55,7 +75,7 @@ class LogicSig {
   }
 
   // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(encoded) {
+  static from_obj_for_encoding(encoded: EncodedLogicSig) {
     const lsig = new LogicSig(encoded.l, encoded.arg);
     lsig.sig = encoded.sig;
     lsig.msig = encoded.msig;
@@ -65,9 +85,8 @@ class LogicSig {
   /**
    * Performs signature verification
    * @param {Uint8Array} publicKey Verification key (derived from sender address or escrow address)
-   * @returns {boolean}
    */
-  verify(publicKey) {
+  verify(publicKey: Uint8Array) {
     if (this.sig && this.msig) {
       return false;
     }
@@ -94,12 +113,12 @@ class LogicSig {
 
   /**
    * Compute hash of the logic sig program (that is the same as escrow account address) as string address
-   * @returns {string} String representation of the address
+   * @returns String representation of the address
    */
   address() {
     const toBeSigned = utils.concatArrays(this.tag, this.logic);
     const hash = nacl.genericHash(toBeSigned);
-    return address.encodeAddress(hash);
+    return address.encodeAddress(new Uint8Array(hash));
   }
 
   /**
@@ -107,7 +126,7 @@ class LogicSig {
    * @param {Uint8Array} secretKey Secret key to sign with
    * @param {Object} msig Multisig account as {version, threshold, addrs}
    */
-  sign(secretKey, msig) {
+  sign(secretKey: Uint8Array, msig: MultisigMetadata) {
     if (msig === undefined) {
       this.sig = this.signProgram(secretKey);
     } else {
@@ -130,7 +149,7 @@ class LogicSig {
    * Appends a signature to multi signature
    * @param {Uint8Array} secretKey Secret key to sign with
    */
-  appendToMultisig(secretKey) {
+  appendToMultisig(secretKey: Uint8Array) {
     if (this.msig === undefined) {
       throw new Error('no multisig present');
     }
@@ -138,13 +157,16 @@ class LogicSig {
     this.msig.subsig[index].s = sig;
   }
 
-  signProgram(secretKey) {
+  signProgram(secretKey: Uint8Array) {
     const toBeSigned = utils.concatArrays(this.tag, this.logic);
     const sig = nacl.sign(toBeSigned, secretKey);
     return sig;
   }
 
-  singleSignMultisig(secretKey, msig) {
+  singleSignMultisig(
+    secretKey: Uint8Array,
+    msig: EncodedMultisig
+  ): [sig: Uint8Array, index: number] {
     let index = -1;
     const myPk = nacl.keyPairFromSecretKey(secretKey).publicKey;
     for (let i = 0; i < msig.subsig.length; i++) {
@@ -165,8 +187,8 @@ class LogicSig {
     return encoding.encode(this.get_obj_for_encoding());
   }
 
-  static fromByte(encoded) {
-    const decodedObj = encoding.decode(encoded);
+  static fromByte(encoded: ArrayLike<any>) {
+    const decodedObj = encoding.decode(encoded) as EncodedLogicSig;
     return LogicSig.from_obj_for_encoding(decodedObj);
   }
 }
@@ -176,9 +198,9 @@ class LogicSig {
  *
  * @param {Uint8Array} program Program to make LogicSig from
  * @param {[Uint8Array]} args Arguments as array of Uint8Array
- * @returns {LogicSig} LogicSig object
+ * @returns LogicSig object
  */
-function makeLogicSig(program, args) {
+export function makeLogicSig(program: Uint8Array, args?: Uint8Array[]) {
   return new LogicSig(program, args);
 }
 
@@ -187,10 +209,17 @@ function makeLogicSig(program, args) {
  * transaction which is a blob representing a transaction and logicsig object.
  * @param {Object} txn transaction.Transaction
  * @param {LogicSig} lsig logicsig object
- * @returns {Object} Object containing txID and blob representing signed transaction.
+ * @returns Object containing txID and blob representing signed transaction.
  */
-function signLogicSigTransactionObject(txn, lsig) {
-  const lstx = {
+export function signLogicSigTransactionObject(
+  txn: txnBuilder.Transaction,
+  lsig: LogicSig
+) {
+  const lstx: {
+    lsig: EncodedLogicSig;
+    txn: EncodedTransaction;
+    sgnr?: Buffer;
+  } = {
     lsig: lsig.get_obj_for_encoding(),
     txn: txn.get_obj_for_encoding(),
   };
@@ -217,19 +246,18 @@ function signLogicSigTransactionObject(txn, lsig) {
 }
 
 /**
- * signLogicSigTransaction takes  a raw transaction and a LogicSig object and returns a logicsig
+ * signLogicSigTransaction takes a raw transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
  * @param {Object} txn containing constructor arguments for a transaction
  * @param {LogicSig} lsig logicsig object
- * @returns {Object} Object containing txID and blob representing signed transaction.
+ * @returns Object containing txID and blob representing signed transaction.
  * @throws error on failure
  */
-function signLogicSigTransaction(txn, lsig) {
-  // use signLogicSigTransactionObject directly if transaction already built
-  if (txn instanceof txnBuilder.Transaction) {
-    return signLogicSigTransactionObject(txn, lsig);
-  }
-  const algoTxn = new txnBuilder.Transaction(txn);
+export function signLogicSigTransaction(
+  txn: txnBuilder.TransactionLike,
+  lsig: LogicSig
+) {
+  const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
   return signLogicSigTransactionObject(algoTxn, lsig);
 }
 
@@ -237,7 +265,7 @@ function signLogicSigTransaction(txn, lsig) {
  * logicSigFromByte accepts encoded logic sig bytes and attempts to call logicsig.fromByte on it,
  * returning the result
  */
-function logicSigFromByte(encoded) {
+export function logicSigFromByte(encoded: Uint8Array) {
   return LogicSig.fromByte(encoded);
 }
 
@@ -249,7 +277,11 @@ const SIGN_PROGRAM_DATA_PREFIX = Buffer.from('ProgData');
  * @param data - buffer with data to sign
  * @param contractAddress string representation of teal contract address (program hash)
  */
-function tealSign(sk, data, contractAddress) {
+export function tealSign(
+  sk: Uint8Array,
+  data: Uint8Array | Buffer,
+  contractAddress: string
+) {
   const parts = utils.concatArrays(
     address.decodeAddress(contractAddress).publicKey,
     data
@@ -266,18 +298,14 @@ function tealSign(sk, data, contractAddress) {
  * @param data - buffer with data to sign
  * @param program - buffer with teal program
  */
-function tealSignFromProgram(sk, data, program) {
+export function tealSignFromProgram(
+  sk: Uint8Array,
+  data: Uint8Array | Buffer,
+  program: Uint8Array
+) {
   const lsig = makeLogicSig(program);
   const contractAddress = lsig.address();
   return tealSign(sk, data, contractAddress);
 }
 
-module.exports = {
-  LogicSig,
-  makeLogicSig,
-  signLogicSigTransaction,
-  signLogicSigTransactionObject,
-  logicSigFromByte,
-  tealSign,
-  tealSignFromProgram,
-};
+export default LogicSig;

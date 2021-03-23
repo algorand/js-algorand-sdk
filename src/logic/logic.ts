@@ -158,7 +158,7 @@ function readPushByteOp(
  */
 export function readProgram(
   program: Uint8Array,
-  args: Uint8Array[]
+  args?: Uint8Array[]
 ): [ints: number[], byteArrays: Uint8Array[], valid: boolean] {
   const intcblockOpcode = 32;
   const bytecblockOpcode = 38;

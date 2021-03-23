@@ -23,7 +23,7 @@ describe('LogicSig functionality', () => {
       const args = [Uint8Array.from([1, 2, 3]), Uint8Array.from([4, 5, 6])];
       lsig = algosdk.makeLogicSig(program, args);
       assert.equal(lsig.logic, program);
-      assert.equal(lsig.args, args);
+      assert.deepEqual(lsig.args, args);
       assert.equal(lsig.sig, undefined);
       assert.equal(lsig.msig, undefined);
 
