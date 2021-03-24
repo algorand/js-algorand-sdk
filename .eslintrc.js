@@ -29,6 +29,14 @@ module.exports = {
       { exceptAfterSingleLine: true },
     ],
   },
+  overrides: [
+    {
+      files: ['**/*.ts'],
+      rules: {
+        'import/no-commonjs': 'error',
+      },
+    },
+  ],
   ignorePatterns: [
     'dist/',
     'tests/cucumber/features/',

@@ -1,9 +1,10 @@
 import JSONbigWithoutConfig from 'json-bigint';
+import IntDecoding from '../types/intDecoding';
 
 const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
 
 interface JSONOptions {
-  intDecoding: 'default' | 'safe' | 'mixed' | 'bigint';
+  intDecoding?: IntDecoding;
 }
 
 /**
@@ -26,7 +27,7 @@ interface JSONOptions {
  */
 export function parseJSON(str: string, options?: JSONOptions) {
   const intDecoding =
-    options && options.intDecoding ? options.intDecoding : 'default';
+    options && options.intDecoding ? options.intDecoding : IntDecoding.DEFAULT;
   const parsed = JSONbig.parse(str, (_, value) => {
     if (
       value != null &&
@@ -79,15 +80,20 @@ export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {
 }
 
 /**
- * ConcatArrays takes two array and returns a joint array of both
- * @param a
- * @param b
+ * ConcatArrays takes n number arrays and returns a joint Uint8Array
+ * @param arrs An arbitrary number of n array-like number list arguments
  * @returns [a,b]
  */
-export function concatArrays(a: ArrayLike<any>, b: ArrayLike<any>) {
-  const c = new Uint8Array(a.length + b.length);
-  c.set(a);
-  c.set(b, a.length);
+export function concatArrays(...arrs: ArrayLike<number>[]) {
+  const size = arrs.reduce((sum, arr) => sum + arr.length, 0);
+  const c = new Uint8Array(size);
+
+  let offset = 0;
+  for (let i = 0; i < arrs.length; i++) {
+    c.set(arrs[i], offset);
+    offset += arrs[i].length;
+  }
+
   return c;
 }
 

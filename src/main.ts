@@ -8,15 +8,11 @@ import algod from './client/algod';
 import kmd from './client/kmd';
 import * as convert from './convert';
 import * as utils from './utils/utils';
-import algodv2 from './client/v2/algod/algod';
-import indexer from './client/v2/indexer/indexer';
 import AnyTransaction from './types/transactions';
 import { MultisigMetadata } from './types/multisig';
 
 export const { Algod } = algod;
 export const { Kmd } = kmd;
-export const Algodv2 = algodv2.AlgodClient;
-export const Indexer = indexer.IndexerClient;
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
@@ -246,6 +242,9 @@ export const ERROR_INVALID_MICROALGOS = new Error(
 );
 
 export * from './types/transactions';
+export { default as IntDecoding } from './types/intDecoding';
+export { default as Algodv2 } from './client/v2/algod/algod';
+export { default as Indexer } from './client/v2/indexer/indexer';
 export {
   isValidAddress,
   encodeAddress,
