@@ -1,6 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import { HTTPClient } from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { base64StringFunnel } from './lookupAccountTransactions';
 
 export default class LookupAssetTransactions extends JSONRequest {
   constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
@@ -12,9 +13,12 @@ export default class LookupAssetTransactions extends JSONRequest {
     return `/v2/assets/${this.index}/transactions`;
   }
 
-  // notePrefix to filter with, as uint8array
-  notePrefix(prefix: string) {
-    this.query['note-prefix'] = prefix;
+  /**
+   * notePrefix to filter with
+   * @param prefix base64 string or uint8array
+   */
+  notePrefix(prefix: Uint8Array | string) {
+    this.query['note-prefix'] = base64StringFunnel(prefix);
     return this;
   }
 
