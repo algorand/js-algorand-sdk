@@ -1,4 +1,5 @@
 import JSONRequest from '../jsonrequest';
+import { base64StringFunnel } from './lookupAccountTransactions';
 
 export default class SearchForTransactions extends JSONRequest {
   // eslint-disable-next-line class-methods-use-this
@@ -6,9 +7,12 @@ export default class SearchForTransactions extends JSONRequest {
     return '/v2/transactions';
   }
 
-  // notePrefix to filter with, as uint8array
-  notePrefix(prefix: Uint8Array) {
-    this.query['note-prefix'] = prefix;
+  /**
+   * notePrefix to filter with
+   * @param prefix base64 string or uint8array
+   */
+  notePrefix(prefix: Uint8Array | string) {
+    this.query['note-prefix'] = base64StringFunnel(prefix);
     return this;
   }
 

@@ -1,5 +1,5 @@
 import HTTPClient from '../client';
-import { IntDecoding } from '../../types/intDecoding';
+import IntDecoding from '../../types/intDecoding';
 
 /**
  * Base abstract class for JSON requests.
@@ -13,7 +13,8 @@ export default abstract class JSONRequest<
   Body = Data
 > {
   c: HTTPClient;
-  query: Record<string, any> = {};
+  query: Record<string, any>;
+  intDecoding: IntDecoding;
 
   /**
    * @param {HttpClient} client HTTPClient object.
@@ -21,9 +22,10 @@ export default abstract class JSONRequest<
    *   for decoding integers from this request's response. See the setIntDecoding method for more
    *   details.
    */
-  constructor(client: HTTPClient, public intDecoding?: IntDecoding) {
+  constructor(client: HTTPClient, intDecoding?: IntDecoding) {
     this.c = client;
-    this.intDecoding = intDecoding || 'default';
+    this.query = {};
+    this.intDecoding = intDecoding || IntDecoding.DEFAULT;
   }
 
   /**
@@ -53,13 +55,7 @@ export default abstract class JSONRequest<
     if (this.intDecoding !== 'default') {
       jsonOptions.intDecoding = this.intDecoding;
     }
-    const res = await this.c.get(
-      // eslint-disable-next-line no-underscore-dangle
-      this.path(),
-      this.query,
-      headers,
-      jsonOptions
-    );
+    const res = await this.c.get(this.path(), this.query, headers, jsonOptions);
     return this.prepare(res.body);
   }
 

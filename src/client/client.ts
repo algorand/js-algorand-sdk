@@ -1,6 +1,6 @@
 import request from 'superagent';
 import * as utils from '../utils/utils';
-import { IntDecoding } from '../types/intDecoding';
+import IntDecoding from '../types/intDecoding';
 
 interface ErrorWithAdditionalInfo extends Error {
   rawResponse: string | null;
@@ -98,7 +98,7 @@ export interface KMDTokenHeader {
 export default class HTTPClient {
   private address: string;
   private tokenHeader: TokenHeader | KMDTokenHeader;
-  public intDecoding: IntDecoding = 'default';
+  public intDecoding: IntDecoding = IntDecoding.DEFAULT;
 
   constructor(
     tokenHeader: string | TokenHeader | KMDTokenHeader,
