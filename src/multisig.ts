@@ -1,27 +1,43 @@
-const nacl = require('./nacl/naclWrappers');
-const address = require('./encoding/address');
-const encoding = require('./encoding/encoding');
-const txnBuilder = require('./transaction');
-const utils = require('./utils/utils');
+import * as nacl from './nacl/naclWrappers';
+import * as address from './encoding/address';
+import * as encoding from './encoding/encoding';
+import * as txnBuilder from './transaction';
+import * as utils from './utils/utils';
+import { EncodedTransaction } from './types/transactions';
+import { MultisigMetadata } from './types/multisig';
+import {
+  EncodedMultisig,
+  EncodedMultisigBlob,
+} from './types/transactions/encoded';
 
 /**
  Utilities for manipulating multisig transaction blobs.
  */
 
-const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
+export const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
   'Not enough multisig transactions to merge. Need at least two';
-const MULTISIG_MERGE_MISMATCH_ERROR_MSG = 'Cannot merge txs. txIDs differ';
-const MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG =
+export const MULTISIG_MERGE_MISMATCH_ERROR_MSG =
+  'Cannot merge txs. txIDs differ';
+export const MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG =
   'Cannot merge txs. Multisig preimages differ';
-const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG =
+export const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG =
   'Cannot merge txs. subsigs are mismatched.';
 const MULTISIG_BAD_FROM_FIELD_ERROR_MSG =
   'The transaction from field and multisig preimage do not match.';
 const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = 'Key does not exist';
-const MULTISIG_NO_MUTATE_ERROR_MSG =
+export const MULTISIG_NO_MUTATE_ERROR_MSG =
   'Cannot mutate a multisig field as it would invalidate all existing signatures.';
-const MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG =
+export const MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG =
   'Cannot sign a multisig transaction using `signTxn`. Use `partialSignTxn` instead.';
+
+interface MultisigOptions {
+  rawSig: Uint8Array;
+  myPk: Uint8Array;
+}
+
+interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
+  pks: Uint8Array[];
+}
 
 /**
  * createMultisigTransaction creates a multisig transaction blob.
@@ -33,10 +49,10 @@ const MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG =
  * @param pks ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
-function createMultisigTransaction(
-  txnForEncoding,
-  { rawSig, myPk },
-  { version, threshold, pks }
+export function createMultisigTransaction(
+  txnForEncoding: EncodedTransaction,
+  { rawSig, myPk }: MultisigOptions,
+  { version, threshold, pks }: MultisigMetadataWithPks
 ) {
   let keyExist = false;
   // construct the appendable multisigned transaction format
@@ -53,12 +69,12 @@ function createMultisigTransaction(
   if (keyExist === false) {
     throw new Error(MULTISIG_KEY_NOT_EXIST_ERROR_MSG);
   }
-  const msig = {
+  const msig: EncodedMultisig = {
     v: version,
     thr: threshold,
     subsig: subsigs,
   };
-  const sTxn = {
+  const sTxn: EncodedMultisigBlob = {
     msig,
     txn: txnForEncoding,
   };
@@ -68,8 +84,8 @@ function createMultisigTransaction(
 /**
  * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
  */
-class MultisigTransaction extends txnBuilder.Transaction {
-  /* eslint-disable class-methods-use-this */
+export class MultisigTransaction extends txnBuilder.Transaction {
+  /* eslint-disable class-methods-use-this,no-unused-vars,no-dupe-class-members */
   /**
    * Override inherited method to throw an error, as mutating transactions are prohibited in this context
    */
@@ -87,10 +103,11 @@ class MultisigTransaction extends txnBuilder.Transaction {
   /**
    * Override inherited method to throw an error, as traditional signing is not allowed
    */
-  signTxn() {
+  signTxn(sk: Uint8Array): Uint8Array; // This overload ensures that the override has a compatible type definition with the parent method
+  signTxn(sk: any): any {
     throw new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG);
   }
-  /* eslint-enable class-methods-use-this */
+  /* eslint-enable class-methods-use-this,no-unused-vars,no-dupe-class-members */
 
   /**
    * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
@@ -101,7 +118,10 @@ class MultisigTransaction extends txnBuilder.Transaction {
    * @param sk an Algorand secret key to sign with.
    * @returns an encoded, partially signed multisig transaction.
    */
-  partialSignTxn({ version, threshold, pks }, sk) {
+  partialSignTxn(
+    { version, threshold, pks }: MultisigMetadataWithPks,
+    sk: Uint8Array
+  ) {
     const expectedFromRaw = address.fromMultisigPreImg({
       version,
       threshold,
@@ -129,18 +149,18 @@ class MultisigTransaction extends txnBuilder.Transaction {
  * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
  * @returns typed array msg-pack encoded multisig txn
  */
-function mergeMultisigTransactions(multisigTxnBlobs) {
+export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
   if (multisigTxnBlobs.length < 2) {
     throw new Error(MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG);
   }
-  const refSigTx = encoding.decode(multisigTxnBlobs[0]);
+  const refSigTx = encoding.decode(multisigTxnBlobs[0]) as EncodedMultisigBlob;
   const refSigAlgoTx = MultisigTransaction.from_obj_for_encoding(refSigTx.txn);
   const refTxIDStr = refSigAlgoTx.txID().toString();
   const from = address.encodeAddress(refSigTx.txn.snd);
 
   let newSubsigs = refSigTx.msig.subsig;
   for (let i = 0; i < multisigTxnBlobs.length; i++) {
-    const unisig = encoding.decode(multisigTxnBlobs[i]);
+    const unisig = encoding.decode(multisigTxnBlobs[i]) as EncodedMultisigBlob;
     const unisigAlgoTxn = MultisigTransaction.from_obj_for_encoding(unisig.txn);
     if (unisigAlgoTxn.txID().toString() !== refTxIDStr) {
       throw new Error(MULTISIG_MERGE_MISMATCH_ERROR_MSG);
@@ -149,7 +169,7 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
     if (unisig.msig.subsig.length !== refSigTx.msig.subsig.length) {
       throw new Error(MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG);
     }
-    const preimg = {
+    const preimg: MultisigMetadataWithPks = {
       version: unisig.msig.v,
       threshold: unisig.msig.thr,
       pks: unisig.msig.subsig.map((subsig) => subsig.pk),
@@ -186,19 +206,23 @@ function mergeMultisigTransactions(multisigTxnBlobs) {
       return current;
     });
   }
-  const msig = {
+  const msig: EncodedMultisig = {
     v: refSigTx.msig.v,
     thr: refSigTx.msig.thr,
     subsig: newSubsigs,
   };
-  const sTxn = {
+  const sTxn: EncodedMultisigBlob = {
     msig,
     txn: refSigTx.txn,
   };
   return new Uint8Array(encoding.encode(sTxn));
 }
 
-function verifyMultisig(toBeVerified, msig, publicKey) {
+export function verifyMultisig(
+  toBeVerified: Uint8Array,
+  msig: EncodedMultisig,
+  publicKey: Uint8Array
+) {
   const version = msig.v;
   const threshold = msig.thr;
   const subsigs = msig.subsig;
@@ -208,7 +232,7 @@ function verifyMultisig(toBeVerified, msig, publicKey) {
     return false;
   }
 
-  let pk;
+  let pk: Uint8Array;
   try {
     pk = address.fromMultisigPreImg({ version, threshold, pks });
   } catch (e) {
@@ -245,15 +269,4 @@ function verifyMultisig(toBeVerified, msig, publicKey) {
   return true;
 }
 
-module.exports = {
-  MultisigTransaction,
-  mergeMultisigTransactions,
-  createMultisigTransaction,
-  verifyMultisig,
-  MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG,
-  MULTISIG_MERGE_MISMATCH_ERROR_MSG,
-  MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG,
-  MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG,
-  MULTISIG_NO_MUTATE_ERROR_MSG,
-  MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG,
-};
+export default MultisigTransaction;

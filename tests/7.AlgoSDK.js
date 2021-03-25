@@ -762,7 +762,7 @@ describe('Algosdk (AKA end to end)', () => {
       const args = [Uint8Array.from('123'), Uint8Array.from('456')];
       lsig = algosdk.makeLogicSig(program, args);
       assert.equal(lsig.logic, program);
-      assert.equal(lsig.args, args);
+      assert.deepEqual(lsig.args, args);
     });
     it('should throw on invalid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);

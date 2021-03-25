@@ -307,3 +307,51 @@ export interface EncodedSignedTransaction {
    */
   sgnr?: Buffer;
 }
+
+interface EncodedSubsig {
+  pk: Uint8Array;
+  s?: Uint8Array;
+}
+
+/**
+ * A rough structure for the encoded multi signature transaction object.
+ * Every property is labelled with its associated `MultisigMetadata` type property
+ */
+export interface EncodedMultisig {
+  /**
+   * version
+   */
+  v: number;
+
+  /**
+   * threshold
+   */
+  thr: number;
+
+  /**
+   * Subset of signatures. A threshold of `thr` signors is required.
+   */
+  subsig: EncodedSubsig[];
+}
+
+/**
+ * An encoded multisig blob that contains the encoded multisig as well as a copy of the encoded transaction
+ */
+export interface EncodedMultisigBlob {
+  /**
+   * Encoded multisig
+   */
+  msig: EncodedMultisig;
+
+  /**
+   * Encoded transaction
+   */
+  txn: EncodedTransaction;
+}
+
+export interface EncodedLogicSig {
+  l: Uint8Array;
+  arg?: Uint8Array[];
+  sig?: Uint8Array;
+  msig?: EncodedMultisig;
+}

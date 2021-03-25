@@ -1,23 +1,48 @@
-const address = require('./encoding/address');
-const encoding = require('./encoding/encoding');
-const nacl = require('./nacl/naclWrappers');
-const utils = require('./utils/utils');
+import * as address from './encoding/address';
+import * as encoding from './encoding/encoding';
+import * as nacl from './nacl/naclWrappers';
+import * as utils from './utils/utils';
+import { Address } from './types/address';
+
+interface BidStorageStructure {
+  bidderKey: Address;
+  bidAmount: number;
+  bidID: number;
+  auctionKey: Address;
+  auctionID: number;
+  maxPrice: number;
+}
+
+export type BidOptions = Omit<
+  BidStorageStructure,
+  'bidderKey' | 'auctionKey'
+> & {
+  bidderKey: string;
+  auctionKey: string;
+};
 
 /**
  * Bid enables construction of Algorand Auctions Bids
  * */
-class Bid {
+export default class Bid implements BidStorageStructure {
+  name = 'Bid';
+  tag = Buffer.from([97, 66]); // "aB"
+
+  bidderKey: Address;
+  bidAmount: number;
+  bidID: number;
+  auctionKey: Address;
+  auctionID: number;
+  maxPrice: number;
+
   constructor({
     bidderKey,
     bidAmount,
-    maxPrice,
     bidID,
     auctionKey,
     auctionID,
-  }) {
-    this.name = 'Bid';
-    this.tag = Buffer.from([97, 66]); // "aB"
-
+    maxPrice,
+  }: BidOptions) {
     const decodedBidderKey = address.decodeAddress(bidderKey);
     const decodedAuctionKey = address.decodeAddress(auctionKey);
 
@@ -30,11 +55,11 @@ class Bid {
 
     Object.assign(this, {
       bidderKey: decodedBidderKey,
-      auctionKey: decodedAuctionKey,
       bidAmount,
-      maxPrice,
       bidID,
+      auctionKey: decodedAuctionKey,
       auctionID,
+      maxPrice,
     });
   }
 
@@ -50,7 +75,7 @@ class Bid {
     };
   }
 
-  signBid(sk) {
+  signBid(sk: Uint8Array) {
     const encodedMsg = encoding.encode(this.get_obj_for_encoding());
     const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
     const sig = nacl.sign(toBeSigned, sk);
@@ -68,5 +93,3 @@ class Bid {
     return new Uint8Array(encoding.encode(note));
   }
 }
-
-module.exports = { Bid };
