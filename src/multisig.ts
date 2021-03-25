@@ -232,7 +232,7 @@ export function verifyMultisig(
     return false;
   }
 
-  let pk: Uint8Array | undefined;
+  let pk: Uint8Array;
   try {
     pk = address.fromMultisigPreImg({ version, threshold, pks });
   } catch (e) {

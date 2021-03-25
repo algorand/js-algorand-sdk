@@ -26,7 +26,7 @@ export type BidOptions = Omit<
  * */
 export default class Bid implements BidStorageStructure {
   name = 'Bid';
-  tag = Buffer.from([97, 66]);
+  tag = Buffer.from([97, 66]); // "aB"
 
   bidderKey: Address;
   bidAmount: number;
