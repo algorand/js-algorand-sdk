@@ -1,6 +1,6 @@
 import ServiceClient from '../serviceClient';
 import { AlgodTokenHeader, CustomTokenHeader } from '../../client';
-import modelsv2 from './models/types';
+import * as modelsv2 from './models/types';
 import AccountInformation from './accountInformation';
 import Block from './block';
 import Compile from './compile';
