@@ -51,6 +51,7 @@ $unknown.type ## force a template failure with an unknown type
 #set( $new = "
 " )
 #set( $object_gt = $propFile.use_object_params_if_greater_than )
+#set( $reorder = $propFile.override_order_of_structs.split(",") )
 #set( $Integer = 0 )
 /**
  * NOTICE: This file was generated. Editing this file manually is not recommended.
@@ -64,6 +65,13 @@ import BlockHeader from '../../../../types/blockHeader';
 #foreach( $modelEntry in $models.entrySet() )
 #set( $def = $modelEntry.key )
 #set( $props = $def.propertiesSortedByRequired )
+#if ( $reorder.contains($def.name) )
+#set( $d = "$" )
+#set( $override_variable_name = "${d}propFile.override_${def.name}_order" )
+#set( $preferred_order_str = "#evaluate($override_variable_name)" )
+#set( $preferred_order = $preferred_order_str.split(",") )
+#set( $props = $order.propertiesWithOrdering($props, $preferred_order) )
+#end
 #set( $use_object_params = $props.size() > $Integer.parseInt($object_gt) )
 #if ($def.doc)
 /**

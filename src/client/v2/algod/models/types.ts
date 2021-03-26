@@ -502,17 +502,17 @@ export class Asset extends BaseModel {
 export class ApplicationStateSchema extends BaseModel {
   /**
    * Creates a new `ApplicationStateSchema` object.
-   * @param numByteSlice \[nbs\] num of byte slices.
    * @param numUint \[nui\] num of uints.
+   * @param numByteSlice \[nbs\] num of byte slices.
    */
-  constructor(public numByteSlice: number, public numUint: number) {
+  constructor(public numUint: number, public numByteSlice: number) {
     super();
-    this.numByteSlice = numByteSlice;
     this.numUint = numUint;
+    this.numByteSlice = numByteSlice;
 
     this.attribute_map = {
-      numByteSlice: 'num-byte-slice',
       numUint: 'num-uint',
+      numByteSlice: 'num-byte-slice',
     };
   }
 }
@@ -579,28 +579,28 @@ export class ApplicationLocalState extends BaseModel {
 export class DryrunSource extends BaseModel {
   /**
    * Creates a new `DryrunSource` object.
-   * @param appIndex
    * @param fieldName FieldName is what kind of sources this is. If lsig then it goes into the transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the Approval Program or Clear State Program of application[this.AppIndex].
    * @param source
    * @param txnIndex
+   * @param appIndex
    */
   constructor(
-    public appIndex: number,
     public fieldName: string,
     public source: string,
-    public txnIndex: number
+    public txnIndex: number,
+    public appIndex: number
   ) {
     super();
-    this.appIndex = appIndex;
     this.fieldName = fieldName;
     this.source = source;
     this.txnIndex = txnIndex;
+    this.appIndex = appIndex;
 
     this.attribute_map = {
-      appIndex: 'app-index',
       fieldName: 'field-name',
       source: 'source',
       txnIndex: 'txn-index',
+      appIndex: 'app-index',
     };
   }
 }
@@ -1182,19 +1182,19 @@ export class SupplyResponse extends BaseModel {
 export class TealValue extends BaseModel {
   /**
    * Creates a new `TealValue` object.
-   * @param bytes \[tb\] bytes value.
    * @param type \[tt\] value type.
+   * @param bytes \[tb\] bytes value.
    * @param uint \[ui\] uint value.
    */
-  constructor(public bytes: string, public type: number, public uint: number) {
+  constructor(public type: number, public bytes: string, public uint: number) {
     super();
-    this.bytes = bytes;
     this.type = type;
+    this.bytes = bytes;
     this.uint = uint;
 
     this.attribute_map = {
-      bytes: 'bytes',
       type: 'type',
+      bytes: 'bytes',
       uint: 'uint',
     };
   }
