@@ -50,46 +50,46 @@ export class AccountStateDelta extends BaseModel {
  * Stores the TEAL eval step data
  */
 export class DryrunState extends BaseModel {
-  public error?: string;
   public line: number;
   public pc: number;
-  public scratch?: TealValue[];
   public stack: TealValue[];
+  public error?: string;
+  public scratch?: TealValue[];
 
   /**
    * Creates a new `DryrunState` object.
-   * @param error Evaluation error if any
    * @param line Line number
    * @param pc Program counter
-   * @param scratch
    * @param stack
+   * @param error Evaluation error if any
+   * @param scratch
    */
   constructor({
-    error,
     line,
     pc,
-    scratch,
     stack,
+    error,
+    scratch,
   }: {
-    error?: string;
     line: number;
     pc: number;
-    scratch?: TealValue[];
     stack: TealValue[];
+    error?: string;
+    scratch?: TealValue[];
   }) {
     super();
-    this.error = error;
     this.line = line;
     this.pc = pc;
-    this.scratch = scratch;
     this.stack = stack;
+    this.error = error;
+    this.scratch = scratch;
 
     this.attribute_map = {
-      error: 'error',
       line: 'line',
       pc: 'pc',
-      scratch: 'scratch',
       stack: 'stack',
+      error: 'error',
+      scratch: 'scratch',
     };
   }
 }
@@ -206,14 +206,7 @@ export class AccountParticipation extends BaseModel {
  *
  */
 export class NodeStatusResponse extends BaseModel {
-  public catchpoint?: string;
-  public catchpointAcquiredBlocks?: number;
-  public catchpointProcessedAccounts?: number;
-  public catchpointTotalAccounts?: number;
-  public catchpointTotalBlocks?: number;
-  public catchpointVerifiedAccounts?: number;
   public catchupTime: number;
-  public lastCatchpoint?: string;
   public lastRound: number;
   public lastVersion: string;
   public nextVersion: string;
@@ -221,17 +214,17 @@ export class NodeStatusResponse extends BaseModel {
   public nextVersionSupported: boolean;
   public stoppedAtUnsupportedRound: boolean;
   public timeSinceLastRound: number;
+  public catchpoint?: string;
+  public catchpointAcquiredBlocks?: number;
+  public catchpointProcessedAccounts?: number;
+  public catchpointTotalAccounts?: number;
+  public catchpointTotalBlocks?: number;
+  public catchpointVerifiedAccounts?: number;
+  public lastCatchpoint?: string;
 
   /**
    * Creates a new `NodeStatusResponse` object.
-   * @param catchpoint The current catchpoint that is being caught up to
-   * @param catchpointAcquiredBlocks The number of blocks that have already been obtained by the node as part of the catchup
-   * @param catchpointProcessedAccounts The number of accounts from the current catchpoint that have been processed so far as part of the catchup
-   * @param catchpointTotalAccounts The total number of accounts included in the current catchpoint
-   * @param catchpointTotalBlocks The total number of blocks that are required to complete the current catchpoint catchup
-   * @param catchpointVerifiedAccounts The number of accounts from the current catchpoint that have been verified so far as part of the catchup
    * @param catchupTime CatchupTime in nanoseconds
-   * @param lastCatchpoint The last catchpoint seen by the node
    * @param lastRound LastRound indicates the last round seen
    * @param lastVersion LastVersion indicates the last consensus version supported
    * @param nextVersion NextVersion of consensus protocol to use
@@ -239,16 +232,16 @@ export class NodeStatusResponse extends BaseModel {
    * @param nextVersionSupported NextVersionSupported indicates whether the next consensus version is supported by this node
    * @param stoppedAtUnsupportedRound StoppedAtUnsupportedRound indicates that the node does not support the new rounds and has stopped making progress
    * @param timeSinceLastRound TimeSinceLastRound in nanoseconds
+   * @param catchpoint The current catchpoint that is being caught up to
+   * @param catchpointAcquiredBlocks The number of blocks that have already been obtained by the node as part of the catchup
+   * @param catchpointProcessedAccounts The number of accounts from the current catchpoint that have been processed so far as part of the catchup
+   * @param catchpointTotalAccounts The total number of accounts included in the current catchpoint
+   * @param catchpointTotalBlocks The total number of blocks that are required to complete the current catchpoint catchup
+   * @param catchpointVerifiedAccounts The number of accounts from the current catchpoint that have been verified so far as part of the catchup
+   * @param lastCatchpoint The last catchpoint seen by the node
    */
   constructor({
-    catchpoint,
-    catchpointAcquiredBlocks,
-    catchpointProcessedAccounts,
-    catchpointTotalAccounts,
-    catchpointTotalBlocks,
-    catchpointVerifiedAccounts,
     catchupTime,
-    lastCatchpoint,
     lastRound,
     lastVersion,
     nextVersion,
@@ -256,15 +249,15 @@ export class NodeStatusResponse extends BaseModel {
     nextVersionSupported,
     stoppedAtUnsupportedRound,
     timeSinceLastRound,
+    catchpoint,
+    catchpointAcquiredBlocks,
+    catchpointProcessedAccounts,
+    catchpointTotalAccounts,
+    catchpointTotalBlocks,
+    catchpointVerifiedAccounts,
+    lastCatchpoint,
   }: {
-    catchpoint?: string;
-    catchpointAcquiredBlocks?: number;
-    catchpointProcessedAccounts?: number;
-    catchpointTotalAccounts?: number;
-    catchpointTotalBlocks?: number;
-    catchpointVerifiedAccounts?: number;
     catchupTime: number;
-    lastCatchpoint?: string;
     lastRound: number;
     lastVersion: string;
     nextVersion: string;
@@ -272,16 +265,16 @@ export class NodeStatusResponse extends BaseModel {
     nextVersionSupported: boolean;
     stoppedAtUnsupportedRound: boolean;
     timeSinceLastRound: number;
+    catchpoint?: string;
+    catchpointAcquiredBlocks?: number;
+    catchpointProcessedAccounts?: number;
+    catchpointTotalAccounts?: number;
+    catchpointTotalBlocks?: number;
+    catchpointVerifiedAccounts?: number;
+    lastCatchpoint?: string;
   }) {
     super();
-    this.catchpoint = catchpoint;
-    this.catchpointAcquiredBlocks = catchpointAcquiredBlocks;
-    this.catchpointProcessedAccounts = catchpointProcessedAccounts;
-    this.catchpointTotalAccounts = catchpointTotalAccounts;
-    this.catchpointTotalBlocks = catchpointTotalBlocks;
-    this.catchpointVerifiedAccounts = catchpointVerifiedAccounts;
     this.catchupTime = catchupTime;
-    this.lastCatchpoint = lastCatchpoint;
     this.lastRound = lastRound;
     this.lastVersion = lastVersion;
     this.nextVersion = nextVersion;
@@ -289,16 +282,16 @@ export class NodeStatusResponse extends BaseModel {
     this.nextVersionSupported = nextVersionSupported;
     this.stoppedAtUnsupportedRound = stoppedAtUnsupportedRound;
     this.timeSinceLastRound = timeSinceLastRound;
+    this.catchpoint = catchpoint;
+    this.catchpointAcquiredBlocks = catchpointAcquiredBlocks;
+    this.catchpointProcessedAccounts = catchpointProcessedAccounts;
+    this.catchpointTotalAccounts = catchpointTotalAccounts;
+    this.catchpointTotalBlocks = catchpointTotalBlocks;
+    this.catchpointVerifiedAccounts = catchpointVerifiedAccounts;
+    this.lastCatchpoint = lastCatchpoint;
 
     this.attribute_map = {
-      catchpoint: 'catchpoint',
-      catchpointAcquiredBlocks: 'catchpoint-acquired-blocks',
-      catchpointProcessedAccounts: 'catchpoint-processed-accounts',
-      catchpointTotalAccounts: 'catchpoint-total-accounts',
-      catchpointTotalBlocks: 'catchpoint-total-blocks',
-      catchpointVerifiedAccounts: 'catchpoint-verified-accounts',
       catchupTime: 'catchup-time',
-      lastCatchpoint: 'last-catchpoint',
       lastRound: 'last-round',
       lastVersion: 'last-version',
       nextVersion: 'next-version',
@@ -306,6 +299,13 @@ export class NodeStatusResponse extends BaseModel {
       nextVersionSupported: 'next-version-supported',
       stoppedAtUnsupportedRound: 'stopped-at-unsupported-round',
       timeSinceLastRound: 'time-since-last-round',
+      catchpoint: 'catchpoint',
+      catchpointAcquiredBlocks: 'catchpoint-acquired-blocks',
+      catchpointProcessedAccounts: 'catchpoint-processed-accounts',
+      catchpointTotalAccounts: 'catchpoint-total-accounts',
+      catchpointTotalBlocks: 'catchpoint-total-blocks',
+      catchpointVerifiedAccounts: 'catchpoint-verified-accounts',
+      lastCatchpoint: 'last-catchpoint',
     };
   }
 }
@@ -404,17 +404,17 @@ export class DryrunResponse extends BaseModel {
 export class ErrorResponse extends BaseModel {
   /**
    * Creates a new `ErrorResponse` object.
-   * @param data
    * @param message
+   * @param data
    */
-  constructor(public data?: string, public message: string) {
+  constructor(public message: string, public data?: string) {
     super();
-    this.data = data;
     this.message = message;
+    this.data = data;
 
     this.attribute_map = {
-      data: 'data',
       message: 'message',
+      data: 'data',
     };
   }
 }
@@ -552,23 +552,23 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * Creates a new `ApplicationLocalState` object.
    * @param id The application which this local state is for.
-   * @param keyValue \[tkv\] storage.
    * @param schema \[hsch\] schema.
+   * @param keyValue \[tkv\] storage.
    */
   constructor(
     public id: number,
-    public keyValue?: TealKeyValue[],
-    public schema: ApplicationStateSchema
+    public schema: ApplicationStateSchema,
+    public keyValue?: TealKeyValue[]
   ) {
     super();
     this.id = id;
-    this.keyValue = keyValue;
     this.schema = schema;
+    this.keyValue = keyValue;
 
     this.attribute_map = {
       id: 'id',
-      keyValue: 'key-value',
       schema: 'schema',
+      keyValue: 'key-value',
     };
   }
 }
@@ -752,86 +752,86 @@ export class CatchpointStartResponse extends BaseModel {
  * data/transactions/asset.go : AssetParams
  */
 export class AssetParams extends BaseModel {
-  public clawback?: string;
   public creator: string;
   public decimals: number;
+  public total: number;
+  public clawback?: string;
   public defaultFrozen?: boolean;
   public freeze?: string;
   public manager?: string;
   public metadataHash?: string;
   public name?: string;
   public reserve?: string;
-  public total: number;
   public unitName?: string;
   public url?: string;
 
   /**
    * Creates a new `AssetParams` object.
-   * @param clawback \[c\] Address of account used to clawback holdings of this asset.  If empty, clawback is not permitted.
    * @param creator The address that created this asset. This is the address where the parameters for this asset can be found, and also the address where unwanted asset units can be sent in the worst case.
    * @param decimals \[dc\] The number of digits to use after the decimal point when displaying this asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths. If 2, the base unit of the asset is in hundredths, and so on. This value must be between 0 and 19 (inclusive).
+   * @param total \[t\] The total number of units of this asset.
+   * @param clawback \[c\] Address of account used to clawback holdings of this asset.  If empty, clawback is not permitted.
    * @param defaultFrozen \[df\] Whether holdings of this asset are frozen by default.
    * @param freeze \[f\] Address of account used to freeze holdings of this asset.  If empty, freezing is not permitted.
    * @param manager \[m\] Address of account used to manage the keys of this asset and to destroy it.
    * @param metadataHash \[am\] A commitment to some unspecified asset metadata. The format of this metadata is up to the application.
    * @param name \[an\] Name of this asset, as supplied by the creator.
    * @param reserve \[r\] Address of account holding reserve (non-minted) units of this asset.
-   * @param total \[t\] The total number of units of this asset.
    * @param unitName \[un\] Name of a unit of this asset, as supplied by the creator.
    * @param url \[au\] URL where more information about the asset can be retrieved.
    */
   constructor({
-    clawback,
     creator,
     decimals,
+    total,
+    clawback,
     defaultFrozen,
     freeze,
     manager,
     metadataHash,
     name,
     reserve,
-    total,
     unitName,
     url,
   }: {
-    clawback?: string;
     creator: string;
     decimals: number;
+    total: number;
+    clawback?: string;
     defaultFrozen?: boolean;
     freeze?: string;
     manager?: string;
     metadataHash?: string;
     name?: string;
     reserve?: string;
-    total: number;
     unitName?: string;
     url?: string;
   }) {
     super();
-    this.clawback = clawback;
     this.creator = creator;
     this.decimals = decimals;
+    this.total = total;
+    this.clawback = clawback;
     this.defaultFrozen = defaultFrozen;
     this.freeze = freeze;
     this.manager = manager;
     this.metadataHash = metadataHash;
     this.name = name;
     this.reserve = reserve;
-    this.total = total;
     this.unitName = unitName;
     this.url = url;
 
     this.attribute_map = {
-      clawback: 'clawback',
       creator: 'creator',
       decimals: 'decimals',
+      total: 'total',
+      clawback: 'clawback',
       defaultFrozen: 'default-frozen',
       freeze: 'freeze',
       manager: 'manager',
       metadataHash: 'metadata-hash',
       name: 'name',
       reserve: 'reserve',
-      total: 'total',
       unitName: 'unit-name',
       url: 'url',
     };
@@ -937,9 +937,9 @@ export class CompileResponse extends BaseModel {
  * DryrunTxnResult contains any LogicSig or ApplicationCall program debug information and state updates from a dryrun.
  */
 export class DryrunTxnResult extends BaseModel {
+  public disassembly: string[];
   public appCallMessages?: string[];
   public appCallTrace?: DryrunState[];
-  public disassembly: string[];
   public globalDelta?: EvalDeltaKeyValue[];
   public localDeltas?: AccountStateDelta[];
   public logicSigMessages?: string[];
@@ -947,44 +947,44 @@ export class DryrunTxnResult extends BaseModel {
 
   /**
    * Creates a new `DryrunTxnResult` object.
+   * @param disassembly Disassembled program line by line.
    * @param appCallMessages
    * @param appCallTrace
-   * @param disassembly Disassembled program line by line.
    * @param globalDelta Application state delta.
    * @param localDeltas
    * @param logicSigMessages
    * @param logicSigTrace
    */
   constructor({
+    disassembly,
     appCallMessages,
     appCallTrace,
-    disassembly,
     globalDelta,
     localDeltas,
     logicSigMessages,
     logicSigTrace,
   }: {
+    disassembly: string[];
     appCallMessages?: string[];
     appCallTrace?: DryrunState[];
-    disassembly: string[];
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigMessages?: string[];
     logicSigTrace?: DryrunState[];
   }) {
     super();
+    this.disassembly = disassembly;
     this.appCallMessages = appCallMessages;
     this.appCallTrace = appCallTrace;
-    this.disassembly = disassembly;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigMessages = logicSigMessages;
     this.logicSigTrace = logicSigTrace;
 
     this.attribute_map = {
+      disassembly: 'disassembly',
       appCallMessages: 'app-call-messages',
       appCallTrace: 'app-call-trace',
-      disassembly: 'disassembly',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',
       logicSigMessages: 'logic-sig-messages',
@@ -1025,6 +1025,10 @@ export class Account extends BaseModel {
   public address: string;
   public amount: number;
   public amountWithoutPendingRewards: number;
+  public pendingRewards: number;
+  public rewards: number;
+  public round: number;
+  public status: string;
   public appsLocalState?: ApplicationLocalState[];
   public appsTotalSchema?: ApplicationStateSchema;
   public assets?: AssetHolding[];
@@ -1032,18 +1036,21 @@ export class Account extends BaseModel {
   public createdApps?: Application[];
   public createdAssets?: Asset[];
   public participation?: AccountParticipation;
-  public pendingRewards: number;
   public rewardBase?: number;
-  public rewards: number;
-  public round: number;
   public sigType?: string;
-  public status: string;
 
   /**
    * Creates a new `Account` object.
    * @param address the account public key
    * @param amount \[algo\] total number of MicroAlgos in the account
    * @param amountWithoutPendingRewards specifies the amount of MicroAlgos in the account, without the pending rewards.
+   * @param pendingRewards amount of MicroAlgos of pending rewards in this account.
+   * @param rewards \[ern\] total rewards of MicroAlgos the account has received, including pending rewards.
+   * @param round The round for which this information is relevant.
+   * @param status \[onl\] delegation status of the account's MicroAlgos
+   * * Offline - indicates that the associated account is delegated.
+   * *  Online  - indicates that the associated account used as part of the delegation pool.
+   * *   NotParticipating - indicates that the associated account is neither a delegator nor a delegate.
    * @param appsLocalState \[appl\] applications local data stored in this account.
    *
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
@@ -1061,23 +1068,20 @@ export class Account extends BaseModel {
    *
    * Note: the raw account uses `map[int] -> Asset` for this type.
    * @param participation AccountParticipation describes the parameters used by this account in consensus protocol.
-   * @param pendingRewards amount of MicroAlgos of pending rewards in this account.
    * @param rewardBase \[ebase\] used as part of the rewards computation. Only applicable to accounts which are participating.
-   * @param rewards \[ern\] total rewards of MicroAlgos the account has received, including pending rewards.
-   * @param round The round for which this information is relevant.
    * @param sigType Indicates what type of signature is used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
-   * @param status \[onl\] delegation status of the account's MicroAlgos
-   * * Offline - indicates that the associated account is delegated.
-   * *  Online  - indicates that the associated account used as part of the delegation pool.
-   * *   NotParticipating - indicates that the associated account is neither a delegator nor a delegate.
    */
   constructor({
     address,
     amount,
     amountWithoutPendingRewards,
+    pendingRewards,
+    rewards,
+    round,
+    status,
     appsLocalState,
     appsTotalSchema,
     assets,
@@ -1085,16 +1089,16 @@ export class Account extends BaseModel {
     createdApps,
     createdAssets,
     participation,
-    pendingRewards,
     rewardBase,
-    rewards,
-    round,
     sigType,
-    status,
   }: {
     address: string;
     amount: number;
     amountWithoutPendingRewards: number;
+    pendingRewards: number;
+    rewards: number;
+    round: number;
+    status: string;
     appsLocalState?: ApplicationLocalState[];
     appsTotalSchema?: ApplicationStateSchema;
     assets?: AssetHolding[];
@@ -1102,17 +1106,17 @@ export class Account extends BaseModel {
     createdApps?: Application[];
     createdAssets?: Asset[];
     participation?: AccountParticipation;
-    pendingRewards: number;
     rewardBase?: number;
-    rewards: number;
-    round: number;
     sigType?: string;
-    status: string;
   }) {
     super();
     this.address = address;
     this.amount = amount;
     this.amountWithoutPendingRewards = amountWithoutPendingRewards;
+    this.pendingRewards = pendingRewards;
+    this.rewards = rewards;
+    this.round = round;
+    this.status = status;
     this.appsLocalState = appsLocalState;
     this.appsTotalSchema = appsTotalSchema;
     this.assets = assets;
@@ -1120,17 +1124,17 @@ export class Account extends BaseModel {
     this.createdApps = createdApps;
     this.createdAssets = createdAssets;
     this.participation = participation;
-    this.pendingRewards = pendingRewards;
     this.rewardBase = rewardBase;
-    this.rewards = rewards;
-    this.round = round;
     this.sigType = sigType;
-    this.status = status;
 
     this.attribute_map = {
       address: 'address',
       amount: 'amount',
       amountWithoutPendingRewards: 'amount-without-pending-rewards',
+      pendingRewards: 'pending-rewards',
+      rewards: 'rewards',
+      round: 'round',
+      status: 'status',
       appsLocalState: 'apps-local-state',
       appsTotalSchema: 'apps-total-schema',
       assets: 'assets',
@@ -1138,12 +1142,8 @@ export class Account extends BaseModel {
       createdApps: 'created-apps',
       createdAssets: 'created-assets',
       participation: 'participation',
-      pendingRewards: 'pending-rewards',
       rewardBase: 'reward-base',
-      rewards: 'rewards',
-      round: 'round',
       sigType: 'sig-type',
-      status: 'status',
     };
   }
 }
@@ -1209,6 +1209,8 @@ export class TealValue extends BaseModel {
  * Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
  */
 export class PendingTransactionResponse extends BaseModel {
+  public poolError: string;
+  public txn: EncodedSignedTransaction;
   public applicationIndex?: number;
   public assetClosingAmount?: number;
   public assetIndex?: number;
@@ -1217,13 +1219,14 @@ export class PendingTransactionResponse extends BaseModel {
   public confirmedRound?: number;
   public globalStateDelta?: EvalDeltaKeyValue[];
   public localStateDelta?: AccountStateDelta[];
-  public poolError: string;
   public receiverRewards?: number;
   public senderRewards?: number;
-  public txn: EncodedSignedTransaction;
 
   /**
    * Creates a new `PendingTransactionResponse` object.
+   * @param poolError Indicates that the transaction was kicked out of this node's transaction pool (and specifies why that happened).  An empty string indicates the transaction wasn't kicked out of this node's txpool due to an error.
+   *
+   * @param txn The raw signed transaction.
    * @param applicationIndex The application index if the transaction was found and it created an application.
    * @param assetClosingAmount The number of the asset's unit that were transferred to the close-to address.
    * @param assetIndex The asset index if the transaction was found and it created an asset.
@@ -1232,13 +1235,12 @@ export class PendingTransactionResponse extends BaseModel {
    * @param confirmedRound The round where this transaction was confirmed, if present.
    * @param globalStateDelta \[gd\] Global state key/value changes for the application being executed by this transaction.
    * @param localStateDelta \[ld\] Local state key/value changes for the application being executed by this transaction.
-   * @param poolError Indicates that the transaction was kicked out of this node's transaction pool (and specifies why that happened).  An empty string indicates the transaction wasn't kicked out of this node's txpool due to an error.
-   *
    * @param receiverRewards Rewards in microalgos applied to the receiver account.
    * @param senderRewards Rewards in microalgos applied to the sender account.
-   * @param txn The raw signed transaction.
    */
   constructor({
+    poolError,
+    txn,
     applicationIndex,
     assetClosingAmount,
     assetIndex,
@@ -1247,11 +1249,11 @@ export class PendingTransactionResponse extends BaseModel {
     confirmedRound,
     globalStateDelta,
     localStateDelta,
-    poolError,
     receiverRewards,
     senderRewards,
-    txn,
   }: {
+    poolError: string;
+    txn: EncodedSignedTransaction;
     applicationIndex?: number;
     assetClosingAmount?: number;
     assetIndex?: number;
@@ -1260,12 +1262,12 @@ export class PendingTransactionResponse extends BaseModel {
     confirmedRound?: number;
     globalStateDelta?: EvalDeltaKeyValue[];
     localStateDelta?: AccountStateDelta[];
-    poolError: string;
     receiverRewards?: number;
     senderRewards?: number;
-    txn: EncodedSignedTransaction;
   }) {
     super();
+    this.poolError = poolError;
+    this.txn = txn;
     this.applicationIndex = applicationIndex;
     this.assetClosingAmount = assetClosingAmount;
     this.assetIndex = assetIndex;
@@ -1274,12 +1276,12 @@ export class PendingTransactionResponse extends BaseModel {
     this.confirmedRound = confirmedRound;
     this.globalStateDelta = globalStateDelta;
     this.localStateDelta = localStateDelta;
-    this.poolError = poolError;
     this.receiverRewards = receiverRewards;
     this.senderRewards = senderRewards;
-    this.txn = txn;
 
     this.attribute_map = {
+      poolError: 'pool-error',
+      txn: 'txn',
       applicationIndex: 'application-index',
       assetClosingAmount: 'asset-closing-amount',
       assetIndex: 'asset-index',
@@ -1288,10 +1290,8 @@ export class PendingTransactionResponse extends BaseModel {
       confirmedRound: 'confirmed-round',
       globalStateDelta: 'global-state-delta',
       localStateDelta: 'local-state-delta',
-      poolError: 'pool-error',
       receiverRewards: 'receiver-rewards',
       senderRewards: 'sender-rewards',
-      txn: 'txn',
     };
   }
 }

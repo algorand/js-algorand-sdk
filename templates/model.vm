@@ -63,7 +63,7 @@ import BlockHeader from '../../../../types/blockHeader';
 
 #foreach( $modelEntry in $models.entrySet() )
 #set( $def = $modelEntry.key )
-#set( $props = $modelEntry.value )
+#set( $props = $def.propertiesSortedByRequired )
 #set( $use_object_params = $props.size() > $Integer.parseInt($object_gt) )
 #if ($def.doc)
 /**
