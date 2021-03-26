@@ -50,11 +50,13 @@ Running examples requires access to a running node. Follow the instructions in A
 
 ### Building
 
-To build a new version of the library for browsers, run:
+To build a new version of the library, run:
 
 ```bash
 npm run build
 ```
+
+> The `dist` directory has been removed from version control in releases after v1.8.1. Browser bundles for previous versions can be found by going to that version's tag and looking in the `dist` folder.
 
 ### Testing
 
