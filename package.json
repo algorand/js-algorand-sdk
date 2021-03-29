@@ -2,8 +2,12 @@
   "name": "algosdk",
   "version": "1.8.1",
   "description": "algosdk is Algorand's official javascript SDK",
-  "main": "dist/algosdk.min.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/umd/algosdk.min.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist/"
+  ],
   "directories": {
     "test": "tests"
   },
@@ -29,6 +33,7 @@
     "@typescript-eslint/parser": "^4.17.0",
     "assert": "^2.0.0",
     "chromedriver": "^89.0.0",
+    "concurrently": "^6.0.0",
     "coveralls": "^3.0.6",
     "cucumber": "^5.1.0",
     "es-abstract": "^1.17.7",
@@ -52,14 +57,10 @@
     "webpack": "^5.5.1",
     "webpack-cli": "^4.2.0"
   },
-  "files": [
-    "src/**/*",
-    "src/logic/langspec.json"
-  ],
   "scripts": {
     "test": "node -r ts-node/register tests/mocha.js",
-    "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
-    "build": "webpack --config webpack.config.js",
+    "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/umd/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
+    "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\"",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
