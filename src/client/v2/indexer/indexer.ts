@@ -21,7 +21,7 @@ export default class IndexerClient extends ServiceClient {
     port = 8080,
     headers = {}
   ) {
-    super(token, baseServer, port, headers);
+    super('X-Indexer-API-Token', token, baseServer, port, headers);
   }
 
   /**

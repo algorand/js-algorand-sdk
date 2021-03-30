@@ -1,29 +1,23 @@
 import HTTPClient, { TokenHeader } from '../client';
 import IntDecoding from '../../types/intDecoding';
 
+export type TokenHeaderIdentifier =
+  | 'X-Indexer-API-Token'
+  | 'X-MKD-API-Token'
+  | 'X-Algo-API-Token';
+
 /**
  * Convert a token string to a token header
  * @param token - The token string
+ * @param headerIdentifier - An identifier for the token header
  */
 function convertTokenStringToTokenHeader(
   token: string,
-  className: string
+  headerIdentifier: TokenHeaderIdentifier
 ): TokenHeader {
-  switch (className) {
-    case 'IndexerClient':
-      return {
-        'X-Indexer-API-Token': token,
-      };
-    case 'Kmd':
-      return {
-        'X-KMD-API-Token': token,
-      };
-    case 'AlgodClient':
-    default:
-      return {
-        'X-Algo-API-Token': token,
-      };
-  }
+  const tokenHeader = {};
+  tokenHeader[headerIdentifier] = token;
+  return tokenHeader as TokenHeader;
 }
 
 /**
@@ -34,6 +28,7 @@ export default abstract class ServiceClient {
   intDecoding: IntDecoding;
 
   constructor(
+    tokenHeaderIdentifier: TokenHeaderIdentifier,
     tokenHeaderOrStr: string | TokenHeader,
     baseServer: string,
     port?: number,
@@ -41,13 +36,15 @@ export default abstract class ServiceClient {
   ) {
     // Accept token header as string or object
     // - workaround to allow backwards compatibility for multiple headers
-    const tokenHeader =
-      typeof tokenHeaderOrStr === 'string'
-        ? convertTokenStringToTokenHeader(
-            tokenHeaderOrStr,
-            this.constructor.name
-          )
-        : tokenHeaderOrStr;
+    let tokenHeader: TokenHeader;
+    if (typeof tokenHeaderOrStr === 'string') {
+      tokenHeader = convertTokenStringToTokenHeader(
+        tokenHeaderOrStr,
+        tokenHeaderIdentifier
+      );
+    } else {
+      tokenHeader = tokenHeaderOrStr;
+    }
 
     this.c = new HTTPClient(tokenHeader, baseServer, port, defaultHeaders);
     this.intDecoding = IntDecoding.DEFAULT;

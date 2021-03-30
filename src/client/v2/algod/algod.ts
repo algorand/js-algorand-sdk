@@ -27,7 +27,7 @@ export default class AlgodClient extends ServiceClient {
     port = 4180,
     headers = {}
   ) {
-    super(token, baseServer, port, headers);
+    super('X-Algo-API-Token', token, baseServer, port, headers);
   }
 
   healthCheck() {
