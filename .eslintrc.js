@@ -10,7 +10,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 12,
   },
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'eslint-plugin-tsdoc'],
   rules: {
     'no-restricted-syntax': ['error', 'LabeledStatement', 'WithStatement'],
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
@@ -34,6 +34,7 @@ module.exports = {
       files: ['**/*.ts'],
       rules: {
         'import/no-commonjs': 'error',
+        'tsdoc/syntax': 'warn',
       },
     },
   ],

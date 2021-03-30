@@ -45,6 +45,7 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-tsdoc": "^0.2.11",
     "express": "^4.17.1",
     "geckodriver": "^1.20.0",
     "husky": "^4.3.8",
