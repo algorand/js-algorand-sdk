@@ -54,8 +54,8 @@ export class TxGroup {
 
 /**
  * computeGroupID returns group ID for a group of transactions
- * @param txns array of transactions (every element is a dict or Transaction)
- * @return Buffer
+ * @param txns - array of transactions (every element is a dict or Transaction)
+ * @returns Buffer
  */
 export function computeGroupID(txns: txnBuilder.TransactionLike[]) {
   const hashes = [];
@@ -74,9 +74,9 @@ export function computeGroupID(txns: txnBuilder.TransactionLike[]) {
 
 /**
  * assignGroupID assigns group id to a given list of unsigned transactions
- * @param txns array of transactions (every element is a dict or Transaction)
- * @param from optional sender address specifying which transaction return
- * @return possible list of matching transactions
+ * @param txns - array of transactions (every element is a dict or Transaction)
+ * @param from - optional sender address specifying which transaction return
+ * @returns possible list of matching transactions
  */
 export function assignGroupID(
   txns: txnBuilder.TransactionLike[],

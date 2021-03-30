@@ -996,13 +996,13 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * @param numLocalByteSlices - restricts number of byte slices in per-user local state
  * @param numGlobalInts - restricts number of ints in global state
  * @param numGlobalByteSlices - restricts number of byte slices in global state
- * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
- * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
- * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
- * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
- * @param note, optional
- * @param lease, optional
- * @param rekeyTo, optional
+ * @param appArgs - Array of Uint8Array, any additional arguments to the application
+ * @param accounts - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets - Array of int, any assets used by the application, identified by index
+ * @param note - Arbitrary data for sender to store
+ * @param lease - Lease a transaction
+ * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  */
 export function makeApplicationCreateTxn(
   from: AppCreateTxn['from'],
@@ -1014,12 +1014,12 @@ export function makeApplicationCreateTxn(
   numLocalByteSlices: AppCreateTxn['appLocalByteSlices'],
   numGlobalInts: AppCreateTxn['appGlobalInts'],
   numGlobalByteSlices: AppCreateTxn['appGlobalByteSlices'],
-  appArgs: AppCreateTxn['appArgs'],
-  accounts: AppCreateTxn['appAccounts'],
-  foreignApps: AppCreateTxn['appForeignApps'],
-  foreignAssets: AppCreateTxn['appForeignAssets'],
-  note: AppCreateTxn['note'],
-  lease: AppCreateTxn['lease'],
+  appArgs?: AppCreateTxn['appArgs'],
+  accounts?: AppCreateTxn['appAccounts'],
+  foreignApps?: AppCreateTxn['appForeignApps'],
+  foreignAssets?: AppCreateTxn['appForeignAssets'],
+  note?: AppCreateTxn['note'],
+  lease?: AppCreateTxn['lease'],
   rekeyTo?: AppCreateTxn['reKeyTo']
 ) {
   const o: AppCreateTxn = {
@@ -1116,13 +1116,13 @@ export function makeApplicationCreateTxnFromObject(
  * @param appIndex - the ID of the app to be updated
  * @param approvalProgram - Uint8Array, the compiled TEAL that approves a transaction
  * @param clearProgram - Uint8Array, the compiled TEAL that runs when clearing state
- * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
- * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
- * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
- * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
- * @param note, optional
- * @param lease, optional
- * @param rekeyTo, optional
+ * @param appArgs - Array of Uint8Array, any additional arguments to the application
+ * @param accounts - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets - Array of int, any assets used by the application, identified by index
+ * @param note - Arbitrary data for sender to store
+ * @param lease - Lease a transaction
+ * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  */
 export function makeApplicationUpdateTxn(
   from: AppUpdateTxn['from'],
@@ -1130,12 +1130,12 @@ export function makeApplicationUpdateTxn(
   appIndex: AppUpdateTxn['appIndex'],
   approvalProgram: AppUpdateTxn['appApprovalProgram'],
   clearProgram: AppUpdateTxn['appClearProgram'],
-  appArgs: AppUpdateTxn['appArgs'],
-  accounts: AppUpdateTxn['appAccounts'],
-  foreignApps: AppUpdateTxn['appForeignApps'],
-  foreignAssets: AppUpdateTxn['appForeignAssets'],
-  note: AppUpdateTxn['note'],
-  lease: AppUpdateTxn['lease'],
+  appArgs?: AppUpdateTxn['appArgs'],
+  accounts?: AppUpdateTxn['appAccounts'],
+  foreignApps?: AppUpdateTxn['appForeignApps'],
+  foreignAssets?: AppUpdateTxn['appForeignAssets'],
+  note?: AppUpdateTxn['note'],
+  lease?: AppUpdateTxn['lease'],
   rekeyTo?: AppUpdateTxn['reKeyTo']
 ) {
   const o: AppUpdateTxn = {
@@ -1213,24 +1213,24 @@ export function makeApplicationUpdateTxnFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to be deleted
- * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
- * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
- * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
- * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
- * @param note, optional
- * @param lease, optional
- * @param rekeyTo, optional
+ * @param appArgs - Array of Uint8Array, any additional arguments to the application
+ * @param accounts - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets - Array of int, any assets used by the application, identified by index
+ * @param note - Arbitrary data for sender to store
+ * @param lease - Lease a transaction
+ * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  */
 export function makeApplicationDeleteTxn(
   from: AppDeleteTxn['from'],
   suggestedParams: MustHaveSuggestedParams<AppDeleteTxn>['suggestedParams'],
   appIndex: AppDeleteTxn['appIndex'],
-  appArgs: AppDeleteTxn['appArgs'],
-  accounts: AppDeleteTxn['appAccounts'],
-  foreignApps: AppDeleteTxn['appForeignApps'],
-  foreignAssets: AppDeleteTxn['appForeignAssets'],
-  note: AppDeleteTxn['note'],
-  lease: AppDeleteTxn['lease'],
+  appArgs?: AppDeleteTxn['appArgs'],
+  accounts?: AppDeleteTxn['appAccounts'],
+  foreignApps?: AppDeleteTxn['appForeignApps'],
+  foreignAssets?: AppDeleteTxn['appForeignAssets'],
+  note?: AppDeleteTxn['note'],
+  lease?: AppDeleteTxn['lease'],
   rekeyTo?: AppDeleteTxn['reKeyTo']
 ) {
   const o: AppDeleteTxn = {
@@ -1300,24 +1300,24 @@ export function makeApplicationDeleteTxnFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to join
- * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
- * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
- * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
- * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
- * @param note, optional
- * @param lease, optional
- * @param rekeyTo, optional
+ * @param appArgs - Array of Uint8Array, any additional arguments to the application
+ * @param accounts - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets - Array of int, any assets used by the application, identified by index
+ * @param note - Arbitrary data for sender to store
+ * @param lease - Lease a transaction
+ * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  */
 export function makeApplicationOptInTxn(
   from: AppOptInTxn['from'],
   suggestedParams: MustHaveSuggestedParams<AppOptInTxn>['suggestedParams'],
   appIndex: AppOptInTxn['appIndex'],
-  appArgs: AppOptInTxn['appArgs'],
-  accounts: AppOptInTxn['appAccounts'],
-  foreignApps: AppOptInTxn['appForeignApps'],
-  foreignAssets: AppOptInTxn['appForeignApps'],
-  note: AppOptInTxn['note'],
-  lease: AppOptInTxn['lease'],
+  appArgs?: AppOptInTxn['appArgs'],
+  accounts?: AppOptInTxn['appAccounts'],
+  foreignApps?: AppOptInTxn['appForeignApps'],
+  foreignAssets?: AppOptInTxn['appForeignApps'],
+  note?: AppOptInTxn['note'],
+  lease?: AppOptInTxn['lease'],
   rekeyTo?: AppOptInTxn['reKeyTo']
 ) {
   const o: AppOptInTxn = {
@@ -1387,24 +1387,24 @@ export function makeApplicationOptInTxnFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
- * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
- * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
- * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
- * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
- * @param note, optional
- * @param lease, optional
- * @param rekeyTo, optional
+ * @param appArgs - Array of Uint8Array, any additional arguments to the application
+ * @param accounts - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets - Array of int, any assets used by the application, identified by index
+ * @param note - Arbitrary data for sender to store
+ * @param lease - Lease a transaction
+ * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  */
 export function makeApplicationCloseOutTxn(
   from: AppCloseOutTxn['from'],
   suggestedParams: MustHaveSuggestedParams<AppCloseOutTxn>['suggestedParams'],
   appIndex: AppCloseOutTxn['appIndex'],
-  appArgs: AppCloseOutTxn['appArgs'],
-  accounts: AppCloseOutTxn['appAccounts'],
-  foreignApps: AppCloseOutTxn['appForeignApps'],
-  foreignAssets: AppCloseOutTxn['appForeignAssets'],
-  note: AppCloseOutTxn['note'],
-  lease: AppCloseOutTxn['lease'],
+  appArgs?: AppCloseOutTxn['appArgs'],
+  accounts?: AppCloseOutTxn['appAccounts'],
+  foreignApps?: AppCloseOutTxn['appForeignApps'],
+  foreignAssets?: AppCloseOutTxn['appForeignAssets'],
+  note?: AppCloseOutTxn['note'],
+  lease?: AppCloseOutTxn['lease'],
   rekeyTo?: AppCloseOutTxn['reKeyTo']
 ) {
   const o: AppCloseOutTxn = {
@@ -1474,24 +1474,24 @@ export function makeApplicationCloseOutTxnFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
- * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
- * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
- * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
- * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
- * @param note, optional
- * @param lease, optional
- * @param rekeyTo, optional
+ * @param appArgs - Array of Uint8Array, any additional arguments to the application
+ * @param accounts - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets - Array of int, any assets used by the application, identified by index
+ * @param note - Arbitrary data for sender to store
+ * @param lease - Lease a transaction
+ * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  */
 export function makeApplicationClearStateTxn(
   from: AppClearStateTxn['from'],
   suggestedParams: MustHaveSuggestedParams<AppClearStateTxn>['suggestedParams'],
   appIndex: AppClearStateTxn['appIndex'],
-  appArgs: AppClearStateTxn['appArgs'],
-  accounts: AppClearStateTxn['appAccounts'],
-  foreignApps: AppClearStateTxn['appForeignApps'],
-  foreignAssets: AppClearStateTxn['appForeignAssets'],
-  note: AppClearStateTxn['note'],
-  lease: AppClearStateTxn['lease'],
+  appArgs?: AppClearStateTxn['appArgs'],
+  accounts?: AppClearStateTxn['appAccounts'],
+  foreignApps?: AppClearStateTxn['appForeignApps'],
+  foreignAssets?: AppClearStateTxn['appForeignAssets'],
+  note?: AppClearStateTxn['note'],
+  lease?: AppClearStateTxn['lease'],
   rekeyTo?: AppClearStateTxn['reKeyTo']
 ) {
   const o: AppClearStateTxn = {
@@ -1561,24 +1561,24 @@ export function makeApplicationClearStateTxnFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
- * @param appArgs, optional - Array of Uint8Array, any additional arguments to the application
- * @param accounts, optional - Array of Address strings, any additional accounts to supply to the application
- * @param foreignApps, optional - Array of int, any other apps used by the application, identified by index
- * @param foreignAssets, optional - Array of int, any assets used by the application, identified by index
- * @param note, optional
- * @param lease, optional
- * @param rekeyTo, optional
+ * @param appArgs - Array of Uint8Array, any additional arguments to the application
+ * @param accounts - Array of Address strings, any additional accounts to supply to the application
+ * @param foreignApps - Array of int, any other apps used by the application, identified by index
+ * @param foreignAssets - Array of int, any assets used by the application, identified by index
+ * @param note - Arbitrary data for sender to store
+ * @param lease - Lease a transaction
+ * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  */
 export function makeApplicationNoOpTxn(
   from: AppNoOpTxn['from'],
   suggestedParams: MustHaveSuggestedParams<AppNoOpTxn>['suggestedParams'],
   appIndex: AppNoOpTxn['appIndex'],
-  appArgs: AppNoOpTxn['appArgs'],
-  accounts: AppNoOpTxn['appAccounts'],
-  foreignApps: AppNoOpTxn['appForeignApps'],
-  foreignAssets: AppNoOpTxn['appForeignAssets'],
-  note: AppNoOpTxn['note'],
-  lease: AppNoOpTxn['lease'],
+  appArgs?: AppNoOpTxn['appArgs'],
+  accounts?: AppNoOpTxn['appAccounts'],
+  foreignApps?: AppNoOpTxn['appForeignApps'],
+  foreignAssets?: AppNoOpTxn['appForeignAssets'],
+  note?: AppNoOpTxn['note'],
+  lease?: AppNoOpTxn['lease'],
   rekeyTo?: AppNoOpTxn['reKeyTo']
 ) {
   const o: AppNoOpTxn = {

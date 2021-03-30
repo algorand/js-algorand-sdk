@@ -3,7 +3,7 @@ import HTTPClient from '../../client';
 
 /**
  * Sets the default header (if not previously set)
- * @param headers
+ * @param headers - A headers object
  */
 export function setHeaders(headers = {}) {
   let hdrs = headers;
@@ -30,7 +30,7 @@ export default class Compile extends JSONRequest {
 
   /**
    * Executes compile
-   * @param headers, optional
+   * @param headers - A headers object
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);

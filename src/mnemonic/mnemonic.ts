@@ -48,7 +48,7 @@ function computeChecksum(seed: Uint8Array) {
 /**
  * mnemonicFromSeed converts a 32-byte key into a 25 word mnemonic. The generated mnemonic includes a checksum.
  * Each word in the mnemonic represents 11 bits of data, and the last 11 bits are reserved for the checksum.
- * @param seed 32 bytes long seed
+ * @param seed - 32 bytes long seed
  * @returns 25 words mnemonic
  */
 export function mnemonicFromSeed(seed: Uint8Array) {
@@ -94,7 +94,7 @@ function toUint8Array(buffer11: number[]) {
  * seedFromMnemonic converts a mnemonic generated using this library into the source key used to create it.
  * It returns an error if the passed mnemonic has an incorrect checksum, if the number of words is unexpected, or if one
  * of the passed words is not found in the words list.
- * @param mnemonic 25 words mnemonic
+ * @param mnemonic - 25 words mnemonic
  * @returns 32 bytes long seed
  */
 export function seedFromMnemonic(mnemonic: string) {
@@ -140,7 +140,7 @@ export function seedFromMnemonic(mnemonic: string) {
 
 /**
  * mnemonicToSecretKey takes a mnemonic string and returns the corresponding Algorand address and its secret key.
- * @param mn 25 words Algorand mnemonic
+ * @param mn - 25 words Algorand mnemonic
  * @throws error if fails to decode the mnemonic
  */
 export function mnemonicToSecretKey(mn: string): Account {
@@ -152,7 +152,7 @@ export function mnemonicToSecretKey(mn: string): Account {
 
 /**
  * secretKeyToMnemonic takes an Algorand secret key and returns the corresponding mnemonic.
- * @param sk Algorand secret key
+ * @param sk - Algorand secret key
  * @returns Secret key's associated mnemonic
  */
 export function secretKeyToMnemonic(sk: Uint8Array) {
@@ -163,7 +163,7 @@ export function secretKeyToMnemonic(sk: Uint8Array) {
 
 /**
  * mnemonicToMasterDerivationKey takes a mnemonic string and returns the corresponding master derivation key.
- * @param mn 25 words Algorand mnemonic
+ * @param mn - 25 words Algorand mnemonic
  * @returns Uint8Array
  * @throws error if fails to decode the mnemonic
  */
@@ -173,7 +173,7 @@ export function mnemonicToMasterDerivationKey(mn: string) {
 
 /**
  * masterDerivationKeyToMnemonic takes a master derivation key and returns the corresponding mnemonic.
- * @param mdk Uint8Array
+ * @param mdk - Uint8Array
  * @returns string mnemonic
  */
 export function masterDerivationKeyToMnemonic(mdk: Uint8Array) {

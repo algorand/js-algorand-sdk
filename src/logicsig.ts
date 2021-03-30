@@ -84,7 +84,7 @@ export class LogicSig implements LogicSigStorageStructure {
 
   /**
    * Performs signature verification
-   * @param {Uint8Array} publicKey Verification key (derived from sender address or escrow address)
+   * @param publicKey - Verification key (derived from sender address or escrow address)
    */
   verify(publicKey: Uint8Array) {
     if (this.sig && this.msig) {
@@ -123,8 +123,8 @@ export class LogicSig implements LogicSigStorageStructure {
 
   /**
    * Creates signature (if no msig provided) or multi signature otherwise
-   * @param {Uint8Array} secretKey Secret key to sign with
-   * @param {Object} msig Multisig account as {version, threshold, addrs}
+   * @param secretKey - Secret key to sign with
+   * @param msig - Multisig account as \{version, threshold, addrs\}
    */
   sign(secretKey: Uint8Array, msig: MultisigMetadata) {
     if (msig === undefined) {
@@ -147,7 +147,7 @@ export class LogicSig implements LogicSigStorageStructure {
 
   /**
    * Appends a signature to multi signature
-   * @param {Uint8Array} secretKey Secret key to sign with
+   * @param secretKey - Secret key to sign with
    */
   appendToMultisig(secretKey: Uint8Array) {
     if (this.msig === undefined) {
@@ -196,8 +196,8 @@ export class LogicSig implements LogicSigStorageStructure {
 /**
  * makeLogicSig creates LogicSig object from program and arguments
  *
- * @param {Uint8Array} program Program to make LogicSig from
- * @param {[Uint8Array]} args Arguments as array of Uint8Array
+ * @param program - Program to make LogicSig from
+ * @param args - Arguments as array of Uint8Array
  * @returns LogicSig object
  */
 export function makeLogicSig(program: Uint8Array, args?: Uint8Array[]) {
@@ -207,8 +207,8 @@ export function makeLogicSig(program: Uint8Array, args?: Uint8Array[]) {
 /**
  * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} txn transaction.Transaction
- * @param {LogicSig} lsig logicsig object
+ * @param txn - transaction.Transaction
+ * @param lsig - logicsig object
  * @returns Object containing txID and blob representing signed transaction.
  */
 export function signLogicSigTransactionObject(
@@ -248,8 +248,8 @@ export function signLogicSigTransactionObject(
 /**
  * signLogicSigTransaction takes a raw transaction and a LogicSig object and returns a logicsig
  * transaction which is a blob representing a transaction and logicsig object.
- * @param {Object} txn containing constructor arguments for a transaction
- * @param {LogicSig} lsig logicsig object
+ * @param txn - containing constructor arguments for a transaction
+ * @param lsig -  logicsig object
  * @returns Object containing txID and blob representing signed transaction.
  * @throws error on failure
  */
@@ -275,7 +275,7 @@ const SIGN_PROGRAM_DATA_PREFIX = Buffer.from('ProgData');
  * tealSign creates a signature compatible with ed25519verify opcode from contract address
  * @param sk - uint8array with secret key
  * @param data - buffer with data to sign
- * @param contractAddress string representation of teal contract address (program hash)
+ * @param contractAddress - string representation of teal contract address (program hash)
  */
 export function tealSign(
   sk: Uint8Array,

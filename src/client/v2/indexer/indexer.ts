@@ -33,7 +33,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns holder balances for the given asset.
-   * @param {number} index The asset ID to look up.
+   * @param index - The asset ID to look up.
    */
   lookupAssetBalances(index: number) {
     return new LookupAssetBalances(this.c, this.intDecoding, index);
@@ -41,7 +41,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns transactions relating to the given asset.
-   * @param {number} index The asset ID to look up.
+   * @param index - The asset ID to look up.
    */
   lookupAssetTransactions(index: number) {
     return new LookupAssetTransactions(this.c, this.intDecoding, index);
@@ -49,7 +49,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns transactions relating to the given account.
-   * @param {string} account The address of the account.
+   * @param account - The address of the account.
    */
   lookupAccountTransactions(account: string) {
     return new LookupAccountTransactions(this.c, this.intDecoding, account);
@@ -57,7 +57,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns the block for the passed round.
-   * @param {number} round The number of the round to look up.
+   * @param round - The number of the round to look up.
    */
   lookupBlock(round: number) {
     return new LookupBlock(this.c, this.intDecoding, round);
@@ -65,7 +65,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns information about the given transaction.
-   * @param {string} txID The ID of the transaction to look up.
+   * @param txID - The ID of the transaction to look up.
    */
   lookupTransactionByID(txID: string) {
     return new LookupTransactionByID(this.c, this.intDecoding, txID);
@@ -73,7 +73,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns information about the given account.
-   * @param {string} account The address of the account to look up.
+   * @param account - The address of the account to look up.
    */
   lookupAccountByID(account: string) {
     return new LookupAccountByID(this.c, this.intDecoding, account);
@@ -81,7 +81,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns information about the passed asset.
-   * @param {number} index The ID of the asset ot look up.
+   * @param index - The ID of the asset ot look up.
    */
   lookupAssetByID(index: number) {
     return new LookupAssetByID(this.c, this.intDecoding, index);
@@ -89,7 +89,7 @@ export default class IndexerClient extends ServiceClient {
 
   /**
    * Returns information about the passed application.
-   * @param {number} index The ID of the application to look up.
+   * @param index - The ID of the application to look up.
    */
   lookupApplications(index: number) {
     return new LookupApplications(this.c, this.intDecoding, index);

@@ -13,7 +13,7 @@ const { ALGOD_INSTANCE, SENDER, RECEIVER } = utils.retrieveBaseConfig();
 /** Compile and return program bytes of a simple program that returns 1 always
  * NOTE: algod must have `EnableDeveloperAPI` set to true in its configuration
  *       in order to compile TEAL programs. Learn more about the config settings at:
- *       > https://developer.algorand.org/docs/reference/node/config/
+ *       \> https://developer.algorand.org/docs/reference/node/config/
  */
 async function getBasicProgramBytes(client) {
   const program = '#pragma version 2\nint 1';

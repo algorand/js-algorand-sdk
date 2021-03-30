@@ -1,6 +1,6 @@
 /**
  * encodeUint64 converts an integer to its binary representation.
- * @param num The number to convert. This must be an unsigned integer less than
+ * @param num - The number to convert. This must be an unsigned integer less than
  *   2^64.
  * @returns An 8-byte typed array containing the big-endian encoding of the input
  *   integer.
@@ -21,9 +21,9 @@ export function encodeUint64(num: number | bigint) {
 
 /**
  * decodeUint64 produces an integer from a binary representation.
- * @param data An typed array containing the big-endian encoding of an unsigned integer
+ * @param data - An typed array containing the big-endian encoding of an unsigned integer
  *   less than 2^64. This array must be at most 8 bytes long.
- * @param decodingMode Configure how the integer will be
+ * @param decodingMode - Configure how the integer will be
  *   decoded.
  *
  *   The options are:

@@ -37,7 +37,7 @@ export const UNEXPECTED_PK_LEN_ERROR_MSG =
 
 /**
  * decodeAddress takes an Algorand address in string form and decodes it into a Uint8Array.
- * @param address an Algorand address with checksum.
+ * @param address - an Algorand address with checksum.
  * @returns the decoded form of the address's public key and checksum
  */
 export function decodeAddress(address: string): Address {
@@ -78,7 +78,7 @@ export function decodeAddress(address: string): Address {
 
 /**
  * isValidAddress checks if a string is a valid Algorand address.
- * @param address an Algorand address with checksum.
+ * @param address - an Algorand address with checksum.
  * @returns true if valid, false otherwise
  */
 export function isValidAddress(address: string) {
@@ -93,7 +93,7 @@ export function isValidAddress(address: string) {
 
 /**
  * encodeAddress takes an Algorand address as a Uint8Array and encodes it into a string with checksum.
- * @param address a raw Algorand address
+ * @param address - a raw Algorand address
  * @returns the address and checksum encoded as a string.
  */
 export function encodeAddress(address: Uint8Array) {
@@ -114,9 +114,9 @@ export function encodeAddress(address: Uint8Array) {
  * representing an address that identifies the "exact group, version, and public keys" that are required for signing.
  * Hash("MultisigAddr" || version uint8 || threshold uint8 || PK1 || PK2 || ...)
  * Encoding this output yields a human readable address.
- * @param version multisig version
- * @param threshold multisig threshold
- * @param pks array of typed array public keys
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param pks - array of typed array public keys
  */
 export function fromMultisigPreImg({
   version,
@@ -159,9 +159,9 @@ export function fromMultisigPreImg({
 /**
  * fromMultisigPreImgAddrs takes multisig parameters and returns a human readable Algorand address.
  * This is equivalent to fromMultisigPreImg, but interfaces with encoded addresses.
- * @param version multisig version
- * @param threshold multisig threshold
- * @param addrs array of encoded addresses
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - array of encoded addresses
  */
 export function fromMultisigPreImgAddrs({
   version,

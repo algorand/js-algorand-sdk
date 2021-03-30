@@ -5,7 +5,7 @@ import { concatArrays } from '../../../utils/utils';
 /**
  * Sets the default header (if not previously set) for sending a raw
  * transaction.
- * @param headers
+ * @param headers - A headers object
  */
 export function setSendTransactionHeaders(headers = {}) {
   let hdrs = headers;

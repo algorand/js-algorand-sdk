@@ -32,8 +32,8 @@ export type NeverAllow<T, K extends keyof T> = {
 /**
  * Rename a specific property of a type to another name
  *
- * Usage: RenameProperty<{ a: string }, 'a', 'b'>
- * -> { b: string }
+ * Usage: RenameProperty\<\{ a: string \}, 'a', 'b'\>
+ * -\> \{ b: string \}
  */
 export type RenameProperty<T, K extends keyof T, R extends PropertyKey> = {
   [P in keyof T as P extends K ? R : P]: T[P];
@@ -42,8 +42,8 @@ export type RenameProperty<T, K extends keyof T, R extends PropertyKey> = {
 /**
  * Rename multiple properties of one type to another name
  *
- * Usage: RenameProperties<{ a: string, b: number }, { a: 'c', b: 'd' }>
- * -> { c: string, d: number }
+ * Usage: RenameProperties\<\{ a: string, b: number \}, \{ a: 'c', b: 'd' \}\>
+ * -\> \{ c: string, d: number \}
  */
 export type RenameProperties<
   T,

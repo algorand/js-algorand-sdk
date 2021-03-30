@@ -151,10 +151,10 @@ function readPushByteOp(
 
 /** readProgram validates program for length and running cost,
  * and additionally provides the found int variables and byte blocks
- * @param {Uint8Array} program Program to check
- * @param {[Uint8Array]} args Program arguments as array of Uint8Array arrays
- * @throws {Error}
- * @returns {[Uint8Array, [Uint8Array], boolean]}
+ * @param program - Program to check
+ * @param args - Program arguments as array of Uint8Array arrays
+ * @throws
+ * @returns
  */
 export function readProgram(
   program: Uint8Array,
@@ -255,9 +255,9 @@ export function readProgram(
 
 /**
  * checkProgram validates program for length and running cost
- * @param {Uint8Array} program Program to check
- * @param {[Uint8Array]} args Program arguments as array of Uint8Array arrays
- * @throws {Error}
+ * @param program - Program to check
+ * @param args - Program arguments as array of Uint8Array arrays
+ * @throws
  * @returns true if success
  */
 export function checkProgram(program: Uint8Array, args: Uint8Array[]) {

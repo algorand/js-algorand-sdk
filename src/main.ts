@@ -29,8 +29,8 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
  *
  * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
- * @param txn object with either payment or key registration fields
- * @param sk Algorand Secret Key
+ * @param txn - object with either payment or key registration fields
+ * @param sk - Algorand Secret Key
  * @returns object contains the binary signed transaction and its txID
  */
 export function signTransaction(
@@ -54,8 +54,8 @@ export function signTransaction(
 /**
  * signBid takes an object with the following fields: bidder key, bid amount, max price, bid ID, auctionKey, auction ID,
  * and a secret key and returns a signed blob to be inserted into a transaction Algorand note field.
- * @param bid Algorand Bid
- * @param sk Algorand secret key
+ * @param bid - Algorand Bid
+ * @param sk - Algorand secret key
  * @returns Uint8Array binary signed bid
  */
 export function signBid(bid: BidOptions, sk: Uint8Array) {
@@ -66,8 +66,8 @@ export function signBid(bid: BidOptions, sk: Uint8Array) {
 /**
  * signBytes takes arbitrary bytes and a secret key, prepends the bytes with "MX" for domain separation, signs the bytes
  * with the private key, and returns the signature.
- * @param bytes Uint8array
- * @param sk Algorand secret key
+ * @param bytes - Uint8array
+ * @param sk - Algorand secret key
  * @returns binary signature
  */
 export function signBytes(bytes: Uint8Array, sk: Uint8Array) {
@@ -79,9 +79,9 @@ export function signBytes(bytes: Uint8Array, sk: Uint8Array) {
 /**
  * verifyBytes takes array of bytes, an address, and a signature and verifies if the signature is correct for the public
  * key and the bytes (the bytes should have been signed with "MX" prepended for domain separation).
- * @param bytes Uint8Array
- * @param signature binary signature
- * @param addr string address
+ * @param bytes - Uint8Array
+ * @param signature - binary signature
+ * @param addr - string address
  * @returns bool
  */
 export function verifyBytes(
@@ -100,11 +100,11 @@ export function verifyBytes(
  * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
  * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
  * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendMultisigTransaction.
- * @param txn object with either payment or key registration fields
- * @param version multisig version
- * @param threshold multisig threshold
- * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
- * @param sk Algorand secret key. The corresponding pk should be in the pre image.
+ * @param txn - object with either payment or key registration fields
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param sk - Algorand secret key. The corresponding pk should be in the pre image.
  * @returns object containing txID, and blob of partially signed multisig transaction (with multisig preimage information)
  * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
  */
@@ -157,7 +157,7 @@ export function signMultisigTransaction(
 
 /**
  * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
- * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
+ * @param multisigTxnBlobs - a list of blobs representing encoded multisig txns
  * @returns blob representing encoded multisig txn
  */
 export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
@@ -168,11 +168,11 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
  * appendSignMultisigTransaction takes a multisig transaction blob, and appends our signature to it.
  * While we could derive public key preimagery from the partially-signed multisig transaction,
  * we ask the caller to pass it back in, to ensure they know what they are signing.
- * @param multisigTxnBlob an encoded multisig txn. Supports non-payment txn types.
- * @param version multisig version
- * @param threshold multisig threshold
- * @param addrs a list of Algorand addresses representing possible signers for this multisig. Order is important.
- * @param sk Algorand secret key
+ * @param multisigTxnBlob - an encoded multisig txn. Supports non-payment txn types.
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param sk - Algorand secret key
  * @returns object containing txID, and blob representing encoded multisig txn
  */
 export function appendSignMultisigTransaction(
@@ -198,9 +198,9 @@ export function appendSignMultisigTransaction(
 
 /**
  * multisigAddress takes multisig metadata (preimage) and returns the corresponding human readable Algorand address.
- * @param version mutlisig version
- * @param threshold multisig threshold
- * @param addrs list of Algorand addresses
+ * @param version - mutlisig version
+ * @param threshold - multisig threshold
+ * @param addrs - list of Algorand addresses
  */
 export function multisigAddress({
   version,
@@ -213,7 +213,7 @@ export function multisigAddress({
 /**
  * encodeObj takes a javascript object and returns its msgpack encoding
  * Note that the encoding sorts the fields alphabetically
- * @param o js obj
+ * @param o - js obj
  * @returns Uint8Array binary representation
  */
 export function encodeObj(o: Record<string | number | symbol, any>) {
@@ -222,7 +222,7 @@ export function encodeObj(o: Record<string | number | symbol, any>) {
 
 /**
  * decodeObj takes a Uint8Array and returns its javascript obj
- * @param o Uint8Array to decode
+ * @param o - Uint8Array to decode
  * @returns object
  */
 export function decodeObj(o: ArrayLike<number>) {

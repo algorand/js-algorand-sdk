@@ -15,7 +15,7 @@ export default class LookupAssetTransactions extends JSONRequest {
 
   /**
    * notePrefix to filter with
-   * @param prefix base64 string or uint8array
+   * @param prefix - base64 string or uint8array
    */
   notePrefix(prefix: Uint8Array | string) {
     this.query['note-prefix'] = base64StringFunnel(prefix);
