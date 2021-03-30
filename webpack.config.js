@@ -6,9 +6,9 @@ module.exports = {
   entry: './index.ts',
   output: {
     filename: 'algosdk.min.js',
-    path: path.resolve(__dirname, 'dist/umd'),
+    path: path.resolve(__dirname, 'dist/browser'),
     library: {
-      type: 'umd',
+      type: 'window',
       name: 'algosdk',
     },
     globalObject: 'this',
@@ -30,7 +30,7 @@ module.exports = {
         test: /\.ts$/,
         loader: 'ts-loader',
         options: {
-          configFile: path.resolve(__dirname, 'tsconfig-umd.json'),
+          configFile: path.resolve(__dirname, 'tsconfig-browser.json'),
         },
       },
 

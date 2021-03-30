@@ -4,6 +4,7 @@
   "description": "algosdk is Algorand's official javascript SDK",
   "main": "dist/umd/algosdk.min.js",
   "module": "dist/esm/index.js",
+  "browser": "dist/browser/algosdk.min.js",
   "types": "dist/types/index.d.ts",
   "files": [
     "dist/"
@@ -59,7 +60,7 @@
   },
   "scripts": {
     "test": "node -r ts-node/register tests/mocha.js",
-    "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/umd/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
+    "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
     "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\"",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
