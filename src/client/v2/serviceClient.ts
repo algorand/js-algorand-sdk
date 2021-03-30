@@ -1,4 +1,4 @@
-import HTTPClient, { TokenHeader, KMDTokenHeader } from '../client';
+import HTTPClient, { TokenHeader } from '../client';
 import IntDecoding from '../../types/intDecoding';
 
 /**
@@ -9,7 +9,7 @@ export default abstract class ServiceClient {
   intDecoding: IntDecoding;
 
   constructor(
-    tokenHeader: string | TokenHeader | KMDTokenHeader,
+    tokenHeader: string | TokenHeader,
     baseServer: string,
     port?: number,
     defaultHeaders: Record<string, any> = {}

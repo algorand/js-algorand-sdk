@@ -1,5 +1,5 @@
 import ServiceClient from '../serviceClient';
-import { TokenHeader } from '../../client';
+import { IndexerTokenHeader } from '../../client';
 import MakeHealthCheck from './makeHealthCheck';
 import LookupAssetBalances from './lookupAssetBalances';
 import LookupAssetTransactions from './lookupAssetTransactions';
@@ -16,7 +16,7 @@ import SearchForApplications from './searchForApplications';
 
 export default class IndexerClient extends ServiceClient {
   constructor(
-    token: string | TokenHeader,
+    token: string | IndexerTokenHeader,
     baseServer = 'http://127.0.0.1',
     port = 8080,
     headers = {}

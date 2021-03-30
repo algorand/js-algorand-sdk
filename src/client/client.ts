@@ -87,21 +87,30 @@ function getAcceptFormat(
   } else return 'application/json';
 }
 
-export interface TokenHeader {
+export interface AlgodTokenHeader {
   'X-Algo-API-Token': string;
+}
+
+export interface IndexerTokenHeader {
+  'X-Indexer-API-Token': string;
 }
 
 export interface KMDTokenHeader {
   'X-KMD-API-Token': string;
 }
 
+export type TokenHeader =
+  | AlgodTokenHeader
+  | IndexerTokenHeader
+  | KMDTokenHeader;
+
 export default class HTTPClient {
   private address: string;
-  private tokenHeader: TokenHeader | KMDTokenHeader;
+  private tokenHeader: TokenHeader;
   public intDecoding: IntDecoding = IntDecoding.DEFAULT;
 
   constructor(
-    tokenHeader: string | TokenHeader | KMDTokenHeader,
+    tokenHeader: string | TokenHeader,
     baseServer: string,
     port?: number,
     private defaultHeaders: Record<string, any> = {}
@@ -123,23 +132,6 @@ export default class HTTPClient {
     } else {
       this.tokenHeader = tokenHeader;
     }
-  }
-
-  /**
-   * Set the default int decoding method for all JSON requests this client creates.
-   * @param {"default" | "safe" | "mixed" | "bigint"} method The method to use when parsing the
-   *   response for request. Must be one of "default", "safe", "mixed", or "bigint". See
-   *   JSONRequest.setIntDecoding for more details about what each method does.
-   */
-  setIntEncoding(method: IntDecoding) {
-    this.intDecoding = method;
-  }
-
-  /**
-   * Get the default int decoding method for all JSON requests this client creates.
-   */
-  getIntEncoding() {
-    return this.intDecoding;
   }
 
   /**

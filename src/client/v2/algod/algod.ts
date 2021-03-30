@@ -1,5 +1,5 @@
 import ServiceClient from '../serviceClient';
-import { TokenHeader } from '../../client';
+import { AlgodTokenHeader } from '../../client';
 import modelsv2 from './models/types';
 import AccountInformation from './accountInformation';
 import Block from './block';
@@ -22,7 +22,7 @@ import Proof from './proof';
 
 export default class AlgodClient extends ServiceClient {
   constructor(
-    token: string | TokenHeader,
+    token: string | AlgodTokenHeader,
     baseServer = 'http://r2.algorand.network',
     port = 4180,
     headers = {}
