@@ -110,7 +110,7 @@ export default class HTTPClient {
   public intDecoding: IntDecoding = IntDecoding.DEFAULT;
 
   constructor(
-    tokenHeader: string | TokenHeader,
+    tokenHeader: TokenHeader,
     baseServer: string,
     port?: number,
     private defaultHeaders: Record<string, any> = {}
@@ -122,16 +122,7 @@ export default class HTTPClient {
     }
     this.address = baseServerWithPort;
     this.defaultHeaders = defaultHeaders;
-
-    // Accept token header as string or object
-    // - workaround to allow backwards compatibility for multiple headers
-    if (typeof tokenHeader === 'string') {
-      this.tokenHeader = {
-        'X-Algo-API-Token': tokenHeader,
-      };
-    } else {
-      this.tokenHeader = tokenHeader;
-    }
+    this.tokenHeader = tokenHeader;
   }
 
   /**
