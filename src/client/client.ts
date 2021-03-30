@@ -99,10 +99,15 @@ export interface KMDTokenHeader {
   'X-KMD-API-Token': string;
 }
 
+export interface CustomTokenHeader {
+  [headerName: string]: string;
+}
+
 export type TokenHeader =
   | AlgodTokenHeader
   | IndexerTokenHeader
-  | KMDTokenHeader;
+  | KMDTokenHeader
+  | CustomTokenHeader;
 
 export default class HTTPClient {
   private address: string;

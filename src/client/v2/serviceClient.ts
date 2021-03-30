@@ -3,8 +3,9 @@ import IntDecoding from '../../types/intDecoding';
 
 export type TokenHeaderIdentifier =
   | 'X-Indexer-API-Token'
-  | 'X-MKD-API-Token'
-  | 'X-Algo-API-Token';
+  | 'X-KMD-API-Token'
+  | 'X-Algo-API-Token'
+  | string;
 
 /**
  * Convert a token string to a token header

@@ -9,7 +9,7 @@ export default class Kmd extends ServiceClient {
     port = 7833,
     headers = {}
   ) {
-    super('X-MKD-API-Token', token, baseServer, port, headers);
+    super('X-KMD-API-Token', token, baseServer, port, headers);
   }
 
   /**
