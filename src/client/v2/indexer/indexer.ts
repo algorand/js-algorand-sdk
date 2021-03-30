@@ -1,4 +1,5 @@
-import HTTPClient, { TokenHeader } from '../../client';
+import ServiceClient from '../serviceClient';
+import { TokenHeader } from '../../client';
 import MakeHealthCheck from './makeHealthCheck';
 import LookupAssetBalances from './lookupAssetBalances';
 import LookupAssetTransactions from './lookupAssetTransactions';
@@ -13,7 +14,7 @@ import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
 import SearchForApplications from './searchForApplications';
 
-export default class IndexerClient extends HTTPClient {
+export default class IndexerClient extends ServiceClient {
   constructor(
     token: string | TokenHeader,
     baseServer = 'http://127.0.0.1',
@@ -27,7 +28,7 @@ export default class IndexerClient extends HTTPClient {
    * Returns the health object for the service.
    */
   makeHealthCheck() {
-    return new MakeHealthCheck(this, this.intDecoding);
+    return new MakeHealthCheck(this.c, this.intDecoding);
   }
 
   /**
@@ -35,7 +36,7 @@ export default class IndexerClient extends HTTPClient {
    * @param {number} index The asset ID to look up.
    */
   lookupAssetBalances(index: number) {
-    return new LookupAssetBalances(this, this.intDecoding, index);
+    return new LookupAssetBalances(this.c, this.intDecoding, index);
   }
 
   /**
@@ -43,7 +44,7 @@ export default class IndexerClient extends HTTPClient {
    * @param {number} index The asset ID to look up.
    */
   lookupAssetTransactions(index: number) {
-    return new LookupAssetTransactions(this, this.intDecoding, index);
+    return new LookupAssetTransactions(this.c, this.intDecoding, index);
   }
 
   /**
@@ -51,7 +52,7 @@ export default class IndexerClient extends HTTPClient {
    * @param {string} account The address of the account.
    */
   lookupAccountTransactions(account: string) {
-    return new LookupAccountTransactions(this, this.intDecoding, account);
+    return new LookupAccountTransactions(this.c, this.intDecoding, account);
   }
 
   /**
@@ -59,7 +60,7 @@ export default class IndexerClient extends HTTPClient {
    * @param {number} round The number of the round to look up.
    */
   lookupBlock(round: number) {
-    return new LookupBlock(this, this.intDecoding, round);
+    return new LookupBlock(this.c, this.intDecoding, round);
   }
 
   /**
@@ -67,7 +68,7 @@ export default class IndexerClient extends HTTPClient {
    * @param {string} txID The ID of the transaction to look up.
    */
   lookupTransactionByID(txID: string) {
-    return new LookupTransactionByID(this, this.intDecoding, txID);
+    return new LookupTransactionByID(this.c, this.intDecoding, txID);
   }
 
   /**
@@ -75,7 +76,7 @@ export default class IndexerClient extends HTTPClient {
    * @param {string} account The address of the account to look up.
    */
   lookupAccountByID(account: string) {
-    return new LookupAccountByID(this, this.intDecoding, account);
+    return new LookupAccountByID(this.c, this.intDecoding, account);
   }
 
   /**
@@ -83,7 +84,7 @@ export default class IndexerClient extends HTTPClient {
    * @param {number} index The ID of the asset ot look up.
    */
   lookupAssetByID(index: number) {
-    return new LookupAssetByID(this, this.intDecoding, index);
+    return new LookupAssetByID(this.c, this.intDecoding, index);
   }
 
   /**
@@ -91,34 +92,34 @@ export default class IndexerClient extends HTTPClient {
    * @param {number} index The ID of the application to look up.
    */
   lookupApplications(index: number) {
-    return new LookupApplications(this, this.intDecoding, index);
+    return new LookupApplications(this.c, this.intDecoding, index);
   }
 
   /**
    * Returns information about indexed accounts.
    */
   searchAccounts() {
-    return new SearchAccounts(this, this.intDecoding);
+    return new SearchAccounts(this.c, this.intDecoding);
   }
 
   /**
    * Returns information about indexed transactions.
    */
   searchForTransactions() {
-    return new SearchForTransactions(this, this.intDecoding);
+    return new SearchForTransactions(this.c, this.intDecoding);
   }
 
   /**
    * Returns information about indexed assets.
    */
   searchForAssets() {
-    return new SearchForAssets(this, this.intDecoding);
+    return new SearchForAssets(this.c, this.intDecoding);
   }
 
   /**
    * Returns information about indexed applications.
    */
   searchForApplications() {
-    return new SearchForApplications(this, this.intDecoding);
+    return new SearchForApplications(this.c, this.intDecoding);
   }
 }
