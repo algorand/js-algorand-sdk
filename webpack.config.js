@@ -11,7 +11,6 @@ module.exports = {
       type: 'window',
       name: 'algosdk',
     },
-    globalObject: 'this',
   },
   devtool: 'source-map',
   resolve: {
