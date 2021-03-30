@@ -13,7 +13,7 @@ import BlockHeader from '../../../../types/blockHeader';
 export class PostTransactionsResponse extends BaseModel {
   /**
    * Creates a new `PostTransactionsResponse` object.
-   * @param txid encoding of the transaction hash.
+   * @param txid - encoding of the transaction hash.
    */
   constructor(public txid: string) {
     super();
@@ -31,8 +31,8 @@ export class PostTransactionsResponse extends BaseModel {
 export class AccountStateDelta extends BaseModel {
   /**
    * Creates a new `AccountStateDelta` object.
-   * @param address
-   * @param delta Application state delta.
+   * @param address -
+   * @param delta - Application state delta.
    */
   constructor(public address: string, public delta: EvalDeltaKeyValue[]) {
     super();
@@ -58,11 +58,11 @@ export class DryrunState extends BaseModel {
 
   /**
    * Creates a new `DryrunState` object.
-   * @param line Line number
-   * @param pc Program counter
-   * @param stack
-   * @param error Evaluation error if any
-   * @param scratch
+   * @param line - Line number
+   * @param pc - Program counter
+   * @param stack -
+   * @param error - Evaluation error if any
+   * @param scratch -
    */
   constructor({
     line,
@@ -100,9 +100,9 @@ export class DryrunState extends BaseModel {
 export class ProofResponse extends BaseModel {
   /**
    * Creates a new `ProofResponse` object.
-   * @param idx Index of the transaction in the block's payset.
-   * @param proof Merkle proof of transaction membership.
-   * @param stibhash Hash of SignedTxnInBlock for verifying proof.
+   * @param idx - Index of the transaction in the block's payset.
+   * @param proof - Merkle proof of transaction membership.
+   * @param stibhash - Hash of SignedTxnInBlock for verifying proof.
    */
   constructor(
     public idx: number,
@@ -128,10 +128,10 @@ export class ProofResponse extends BaseModel {
 export class Version extends BaseModel {
   /**
    * Creates a new `Version` object.
-   * @param build
-   * @param genesisHashB64
-   * @param genesisId
-   * @param versions
+   * @param build -
+   * @param genesisHashB64 -
+   * @param genesisId -
+   * @param versions -
    */
   constructor(
     public build: BuildVersion,
@@ -155,7 +155,8 @@ export class Version extends BaseModel {
 }
 
 /**
- * AccountParticipation describes the parameters used by this account in consensus protocol.
+ * AccountParticipation describes the parameters used by this account in consensus
+ * protocol.
  */
 export class AccountParticipation extends BaseModel {
   public selectionParticipationKey: string;
@@ -166,11 +167,12 @@ export class AccountParticipation extends BaseModel {
 
   /**
    * Creates a new `AccountParticipation` object.
-   * @param selectionParticipationKey \[sel\] Selection public key (if any) currently registered for this round.
-   * @param voteFirstValid \[voteFst\] First round for which this participation is valid.
-   * @param voteKeyDilution \[voteKD\] Number of subkeys in each batch of participation keys.
-   * @param voteLastValid \[voteLst\] Last round for which this participation is valid.
-   * @param voteParticipationKey \[vote\] root participation public key (if any) currently registered for this round.
+   * @param selectionParticipationKey - (sel) Selection public key (if any) currently registered for this round.
+   * @param voteFirstValid - (voteFst) First round for which this participation is valid.
+   * @param voteKeyDilution - (voteKD) Number of subkeys in each batch of participation keys.
+   * @param voteLastValid - (voteLst) Last round for which this participation is valid.
+   * @param voteParticipationKey - (vote) root participation public key (if any) currently registered for this
+   * round.
    */
   constructor({
     selectionParticipationKey,
@@ -224,21 +226,27 @@ export class NodeStatusResponse extends BaseModel {
 
   /**
    * Creates a new `NodeStatusResponse` object.
-   * @param catchupTime CatchupTime in nanoseconds
-   * @param lastRound LastRound indicates the last round seen
-   * @param lastVersion LastVersion indicates the last consensus version supported
-   * @param nextVersion NextVersion of consensus protocol to use
-   * @param nextVersionRound NextVersionRound is the round at which the next consensus version will apply
-   * @param nextVersionSupported NextVersionSupported indicates whether the next consensus version is supported by this node
-   * @param stoppedAtUnsupportedRound StoppedAtUnsupportedRound indicates that the node does not support the new rounds and has stopped making progress
-   * @param timeSinceLastRound TimeSinceLastRound in nanoseconds
-   * @param catchpoint The current catchpoint that is being caught up to
-   * @param catchpointAcquiredBlocks The number of blocks that have already been obtained by the node as part of the catchup
-   * @param catchpointProcessedAccounts The number of accounts from the current catchpoint that have been processed so far as part of the catchup
-   * @param catchpointTotalAccounts The total number of accounts included in the current catchpoint
-   * @param catchpointTotalBlocks The total number of blocks that are required to complete the current catchpoint catchup
-   * @param catchpointVerifiedAccounts The number of accounts from the current catchpoint that have been verified so far as part of the catchup
-   * @param lastCatchpoint The last catchpoint seen by the node
+   * @param catchupTime - CatchupTime in nanoseconds
+   * @param lastRound - LastRound indicates the last round seen
+   * @param lastVersion - LastVersion indicates the last consensus version supported
+   * @param nextVersion - NextVersion of consensus protocol to use
+   * @param nextVersionRound - NextVersionRound is the round at which the next consensus version will apply
+   * @param nextVersionSupported - NextVersionSupported indicates whether the next consensus version is supported
+   * by this node
+   * @param stoppedAtUnsupportedRound - StoppedAtUnsupportedRound indicates that the node does not support the new
+   * rounds and has stopped making progress
+   * @param timeSinceLastRound - TimeSinceLastRound in nanoseconds
+   * @param catchpoint - The current catchpoint that is being caught up to
+   * @param catchpointAcquiredBlocks - The number of blocks that have already been obtained by the node as part of the
+   * catchup
+   * @param catchpointProcessedAccounts - The number of accounts from the current catchpoint that have been processed so
+   * far as part of the catchup
+   * @param catchpointTotalAccounts - The total number of accounts included in the current catchpoint
+   * @param catchpointTotalBlocks - The total number of blocks that are required to complete the current catchpoint
+   * catchup
+   * @param catchpointVerifiedAccounts - The number of accounts from the current catchpoint that have been verified so
+   * far as part of the catchup
+   * @param lastCatchpoint - The last catchpoint seen by the node
    */
   constructor({
     catchupTime,
@@ -311,26 +319,30 @@ export class NodeStatusResponse extends BaseModel {
 }
 
 /**
- * Request data type for dryrun endpoint. Given the Transactions and simulated ledger state upload, run TEAL scripts and return debugging information.
+ * Request data type for dryrun endpoint. Given the Transactions and simulated
+ * ledger state upload, run TEAL scripts and return debugging information.
  */
 export class DryrunRequest extends BaseModel {
   public accounts: Account[];
   public apps: Application[];
   public latestTimestamp: number;
   public protocolVersion: string;
-  public round: number;
+  public round: bigint;
   public sources: DryrunSource[];
   public txns: EncodedSignedTransaction[];
 
   /**
    * Creates a new `DryrunRequest` object.
-   * @param accounts
-   * @param apps
-   * @param latestTimestamp LatestTimestamp is available to some TEAL scripts. Defaults to the latest confirmed timestamp this algod is attached to.
-   * @param protocolVersion ProtocolVersion specifies a specific version string to operate under, otherwise whatever the current protocol of the network this algod is running in.
-   * @param round Round is available to some TEAL scripts. Defaults to the current round on the network this algod is attached to.
-   * @param sources
-   * @param txns
+   * @param accounts -
+   * @param apps -
+   * @param latestTimestamp - LatestTimestamp is available to some TEAL scripts. Defaults to the latest
+   * confirmed timestamp this algod is attached to.
+   * @param protocolVersion - ProtocolVersion specifies a specific version string to operate under, otherwise
+   * whatever the current protocol of the network this algod is running in.
+   * @param round - Round is available to some TEAL scripts. Defaults to the current round on the
+   * network this algod is attached to.
+   * @param sources -
+   * @param txns -
    */
   constructor({
     accounts,
@@ -345,7 +357,7 @@ export class DryrunRequest extends BaseModel {
     apps: Application[];
     latestTimestamp: number;
     protocolVersion: string;
-    round: number;
+    round: bigint;
     sources: DryrunSource[];
     txns: EncodedSignedTransaction[];
   }) {
@@ -376,9 +388,9 @@ export class DryrunRequest extends BaseModel {
 export class DryrunResponse extends BaseModel {
   /**
    * Creates a new `DryrunResponse` object.
-   * @param error
-   * @param protocolVersion Protocol version is the protocol version Dryrun was operated under.
-   * @param txns
+   * @param error -
+   * @param protocolVersion - Protocol version is the protocol version Dryrun was operated under.
+   * @param txns -
    */
   constructor(
     public error: string,
@@ -404,8 +416,8 @@ export class DryrunResponse extends BaseModel {
 export class ErrorResponse extends BaseModel {
   /**
    * Creates a new `ErrorResponse` object.
-   * @param message
-   * @param data
+   * @param message -
+   * @param data -
    */
   constructor(public message: string, public data?: string) {
     super();
@@ -429,12 +441,12 @@ export class BuildVersion extends BaseModel {
 
   /**
    * Creates a new `BuildVersion` object.
-   * @param branch
-   * @param buildNumber
-   * @param channel
-   * @param commitHash
-   * @param major
-   * @param minor
+   * @param branch -
+   * @param buildNumber -
+   * @param channel -
+   * @param commitHash -
+   * @param major -
+   * @param minor -
    */
   constructor({
     branch,
@@ -476,11 +488,9 @@ export class BuildVersion extends BaseModel {
 export class Asset extends BaseModel {
   /**
    * Creates a new `Asset` object.
-   * @param index unique asset identifier
-   * @param params AssetParams specifies the parameters for an asset.
-   *
-   * \[apar\] when part of an AssetConfig transaction.
-   *
+   * @param index - unique asset identifier
+   * @param params - AssetParams specifies the parameters for an asset.
+   * (apar) when part of an AssetConfig transaction.
    * Definition:
    * data/transactions/asset.go : AssetParams
    */
@@ -502,8 +512,8 @@ export class Asset extends BaseModel {
 export class ApplicationStateSchema extends BaseModel {
   /**
    * Creates a new `ApplicationStateSchema` object.
-   * @param numUint \[nui\] num of uints.
-   * @param numByteSlice \[nbs\] num of byte slices.
+   * @param numUint - (nui) num of uints.
+   * @param numByteSlice - (nbs) num of byte slices.
    */
   constructor(public numUint: number, public numByteSlice: number) {
     super();
@@ -523,14 +533,14 @@ export class ApplicationStateSchema extends BaseModel {
 export class EvalDelta extends BaseModel {
   /**
    * Creates a new `EvalDelta` object.
-   * @param action \[at\] delta action.
-   * @param bytes \[bs\] bytes value.
-   * @param uint \[ui\] uint value.
+   * @param action - (at) delta action.
+   * @param bytes - (bs) bytes value.
+   * @param uint - (ui) uint value.
    */
   constructor(
     public action: number,
     public bytes?: string,
-    public uint?: number
+    public uint?: bigint
   ) {
     super();
     this.action = action;
@@ -551,9 +561,9 @@ export class EvalDelta extends BaseModel {
 export class ApplicationLocalState extends BaseModel {
   /**
    * Creates a new `ApplicationLocalState` object.
-   * @param id The application which this local state is for.
-   * @param schema \[hsch\] schema.
-   * @param keyValue \[tkv\] storage.
+   * @param id - The application which this local state is for.
+   * @param schema - (hsch) schema.
+   * @param keyValue - (tkv) storage.
    */
   constructor(
     public id: number,
@@ -574,21 +584,24 @@ export class ApplicationLocalState extends BaseModel {
 }
 
 /**
- * DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
+ * DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into
+ * transactions or application state.
  */
 export class DryrunSource extends BaseModel {
   /**
    * Creates a new `DryrunSource` object.
-   * @param fieldName FieldName is what kind of sources this is. If lsig then it goes into the transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the Approval Program or Clear State Program of application[this.AppIndex].
-   * @param source
-   * @param txnIndex
-   * @param appIndex
+   * @param fieldName - FieldName is what kind of sources this is. If lsig then it goes into the
+   * transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the
+   * Approval Program or Clear State Program of application[this.AppIndex].
+   * @param source -
+   * @param txnIndex -
+   * @param appIndex -
    */
   constructor(
     public fieldName: string,
     public source: string,
     public txnIndex: number,
-    public appIndex: number
+    public appIndex: bigint
   ) {
     super();
     this.fieldName = fieldName;
@@ -618,12 +631,13 @@ export class ApplicationParams extends BaseModel {
 
   /**
    * Creates a new `ApplicationParams` object.
-   * @param approvalProgram \[approv\] approval program.
-   * @param clearStateProgram \[clearp\] approval program.
-   * @param creator The address that created this application. This is the address where the parameters and global state for this application can be found.
-   * @param globalState [\gs\] global schema
-   * @param globalStateSchema [\lsch\] global schema
-   * @param localStateSchema [\lsch\] local schema
+   * @param approvalProgram - (approv) approval program.
+   * @param clearStateProgram - (clearp) approval program.
+   * @param creator - The address that created this application. This is the address where the
+   * parameters and global state for this application can be found.
+   * @param globalState - [\gs) global schema
+   * @param globalStateSchema - [\lsch) global schema
+   * @param localStateSchema - [\lsch) local schema
    */
   constructor({
     approvalProgram,
@@ -665,8 +679,8 @@ export class ApplicationParams extends BaseModel {
 export class Application extends BaseModel {
   /**
    * Creates a new `Application` object.
-   * @param id \[appidx\] application index.
-   * @param params \[appparams\] application parameters.
+   * @param id - (appidx) application index.
+   * @param params - (appparams) application parameters.
    */
   constructor(public id: number, public params: ApplicationParams) {
     super();
@@ -681,13 +695,15 @@ export class Application extends BaseModel {
 }
 
 /**
- * A potentially truncated list of transactions currently in the node's transaction pool. You can compute whether or not the list is truncated if the number of elements in the **top-transactions** array is fewer than **total-transactions**.
+ * A potentially truncated list of transactions currently in the node's transaction
+ * pool. You can compute whether or not the list is truncated if the number of
+ * elements in the **top-transactions** array is fewer than **total-transactions**.
  */
 export class PendingTransactionsResponse extends BaseModel {
   /**
    * Creates a new `PendingTransactionsResponse` object.
-   * @param topTransactions An array of signed transaction objects.
-   * @param totalTransactions Total number of transactions in the pool.
+   * @param topTransactions - An array of signed transaction objects.
+   * @param totalTransactions - Total number of transactions in the pool.
    */
   constructor(
     public topTransactions: EncodedSignedTransaction[],
@@ -710,8 +726,8 @@ export class PendingTransactionsResponse extends BaseModel {
 export class EvalDeltaKeyValue extends BaseModel {
   /**
    * Creates a new `EvalDeltaKeyValue` object.
-   * @param key
-   * @param value Represents a TEAL value delta.
+   * @param key -
+   * @param value - Represents a TEAL value delta.
    */
   constructor(public key: string, public value: EvalDelta) {
     super();
@@ -731,7 +747,7 @@ export class EvalDeltaKeyValue extends BaseModel {
 export class CatchpointStartResponse extends BaseModel {
   /**
    * Creates a new `CatchpointStartResponse` object.
-   * @param catchupMessage Catchup start response string
+   * @param catchupMessage - Catchup start response string
    */
   constructor(public catchupMessage: string) {
     super();
@@ -745,16 +761,14 @@ export class CatchpointStartResponse extends BaseModel {
 
 /**
  * AssetParams specifies the parameters for an asset.
- *
- * \[apar\] when part of an AssetConfig transaction.
- *
+ * (apar) when part of an AssetConfig transaction.
  * Definition:
  * data/transactions/asset.go : AssetParams
  */
 export class AssetParams extends BaseModel {
   public creator: string;
   public decimals: number;
-  public total: number;
+  public total: bigint;
   public clawback?: string;
   public defaultFrozen?: boolean;
   public freeze?: string;
@@ -767,18 +781,26 @@ export class AssetParams extends BaseModel {
 
   /**
    * Creates a new `AssetParams` object.
-   * @param creator The address that created this asset. This is the address where the parameters for this asset can be found, and also the address where unwanted asset units can be sent in the worst case.
-   * @param decimals \[dc\] The number of digits to use after the decimal point when displaying this asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths. If 2, the base unit of the asset is in hundredths, and so on. This value must be between 0 and 19 (inclusive).
-   * @param total \[t\] The total number of units of this asset.
-   * @param clawback \[c\] Address of account used to clawback holdings of this asset.  If empty, clawback is not permitted.
-   * @param defaultFrozen \[df\] Whether holdings of this asset are frozen by default.
-   * @param freeze \[f\] Address of account used to freeze holdings of this asset.  If empty, freezing is not permitted.
-   * @param manager \[m\] Address of account used to manage the keys of this asset and to destroy it.
-   * @param metadataHash \[am\] A commitment to some unspecified asset metadata. The format of this metadata is up to the application.
-   * @param name \[an\] Name of this asset, as supplied by the creator.
-   * @param reserve \[r\] Address of account holding reserve (non-minted) units of this asset.
-   * @param unitName \[un\] Name of a unit of this asset, as supplied by the creator.
-   * @param url \[au\] URL where more information about the asset can be retrieved.
+   * @param creator - The address that created this asset. This is the address where the parameters
+   * for this asset can be found, and also the address where unwanted asset units can
+   * be sent in the worst case.
+   * @param decimals - (dc) The number of digits to use after the decimal point when displaying this
+   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
+   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
+   * must be between 0 and 19 (inclusive).
+   * @param total - (t) The total number of units of this asset.
+   * @param clawback - (c) Address of account used to clawback holdings of this asset. If empty,
+   * clawback is not permitted.
+   * @param defaultFrozen - (df) Whether holdings of this asset are frozen by default.
+   * @param freeze - (f) Address of account used to freeze holdings of this asset. If empty, freezing
+   * is not permitted.
+   * @param manager - (m) Address of account used to manage the keys of this asset and to destroy it.
+   * @param metadataHash - (am) A commitment to some unspecified asset metadata. The format of this
+   * metadata is up to the application.
+   * @param name - (an) Name of this asset, as supplied by the creator.
+   * @param reserve - (r) Address of account holding reserve (non-minted) units of this asset.
+   * @param unitName - (un) Name of a unit of this asset, as supplied by the creator.
+   * @param url - (au) URL where more information about the asset can be retrieved.
    */
   constructor({
     creator,
@@ -796,7 +818,7 @@ export class AssetParams extends BaseModel {
   }: {
     creator: string;
     decimals: number;
-    total: number;
+    total: bigint;
     clawback?: string;
     defaultFrozen?: boolean;
     freeze?: string;
@@ -844,8 +866,9 @@ export class AssetParams extends BaseModel {
 export class BlockResponse extends BaseModel {
   /**
    * Creates a new `BlockResponse` object.
-   * @param block Block header data.
-   * @param cert Optional certificate object. This is only included when the format is set to message pack.
+   * @param block - Block header data.
+   * @param cert - Optional certificate object. This is only included when the format is set to
+   * message pack.
    */
   constructor(public block: BlockHeader, public cert?: Record<string, any>) {
     super();
@@ -865,7 +888,7 @@ export class BlockResponse extends BaseModel {
 export class CatchpointAbortResponse extends BaseModel {
   /**
    * Creates a new `CatchpointAbortResponse` object.
-   * @param catchupMessage Catchup abort response string
+   * @param catchupMessage - Catchup abort response string
    */
   constructor(public catchupMessage: string) {
     super();
@@ -879,20 +902,21 @@ export class CatchpointAbortResponse extends BaseModel {
 
 /**
  * Describes an asset held by an account.
- *
  * Definition:
  * data/basics/userBalance.go : AssetHolding
  */
 export class AssetHolding extends BaseModel {
   /**
    * Creates a new `AssetHolding` object.
-   * @param amount \[a\] number of units held.
-   * @param assetId Asset ID of the holding.
-   * @param creator Address that created this asset. This is the address where the parameters for this asset can be found, and also the address where unwanted asset units can be sent in the worst case.
-   * @param isFrozen \[f\] whether or not the holding is frozen.
+   * @param amount - (a) number of units held.
+   * @param assetId - Asset ID of the holding.
+   * @param creator - Address that created this asset. This is the address where the parameters for
+   * this asset can be found, and also the address where unwanted asset units can be
+   * sent in the worst case.
+   * @param isFrozen - (f) whether or not the holding is frozen.
    */
   constructor(
-    public amount: number,
+    public amount: bigint,
     public assetId: number,
     public creator: string,
     public isFrozen: boolean
@@ -918,8 +942,8 @@ export class AssetHolding extends BaseModel {
 export class CompileResponse extends BaseModel {
   /**
    * Creates a new `CompileResponse` object.
-   * @param hash base32 SHA512_256 of program bytes (Address style)
-   * @param result base64 encoded program bytes
+   * @param hash - base32 SHA512_256 of program bytes (Address style)
+   * @param result - base64 encoded program bytes
    */
   constructor(public hash: string, public result: string) {
     super();
@@ -934,7 +958,8 @@ export class CompileResponse extends BaseModel {
 }
 
 /**
- * DryrunTxnResult contains any LogicSig or ApplicationCall program debug information and state updates from a dryrun.
+ * DryrunTxnResult contains any LogicSig or ApplicationCall program debug
+ * information and state updates from a dryrun.
  */
 export class DryrunTxnResult extends BaseModel {
   public disassembly: string[];
@@ -947,13 +972,13 @@ export class DryrunTxnResult extends BaseModel {
 
   /**
    * Creates a new `DryrunTxnResult` object.
-   * @param disassembly Disassembled program line by line.
-   * @param appCallMessages
-   * @param appCallTrace
-   * @param globalDelta Application state delta.
-   * @param localDeltas
-   * @param logicSigMessages
-   * @param logicSigTrace
+   * @param disassembly - Disassembled program line by line.
+   * @param appCallMessages -
+   * @param appCallTrace -
+   * @param globalDelta - Application state delta.
+   * @param localDeltas -
+   * @param logicSigMessages -
+   * @param logicSigTrace -
    */
   constructor({
     disassembly,
@@ -999,8 +1024,8 @@ export class DryrunTxnResult extends BaseModel {
 export class TealKeyValue extends BaseModel {
   /**
    * Creates a new `TealKeyValue` object.
-   * @param key
-   * @param value Represents a TEAL value.
+   * @param key -
+   * @param value - Represents a TEAL value.
    */
   constructor(public key: string, public value: TealValue) {
     super();
@@ -1016,10 +1041,8 @@ export class TealKeyValue extends BaseModel {
 
 /**
  * Account information at a given round.
- *
  * Definition:
  * data/basics/userBalance.go : AccountData
- *
  */
 export class Account extends BaseModel {
   public address: string;
@@ -1041,35 +1064,39 @@ export class Account extends BaseModel {
 
   /**
    * Creates a new `Account` object.
-   * @param address the account public key
-   * @param amount \[algo\] total number of MicroAlgos in the account
-   * @param amountWithoutPendingRewards specifies the amount of MicroAlgos in the account, without the pending rewards.
-   * @param pendingRewards amount of MicroAlgos of pending rewards in this account.
-   * @param rewards \[ern\] total rewards of MicroAlgos the account has received, including pending rewards.
-   * @param round The round for which this information is relevant.
-   * @param status \[onl\] delegation status of the account's MicroAlgos
+   * @param address - the account public key
+   * @param amount - (algo) total number of MicroAlgos in the account
+   * @param amountWithoutPendingRewards - specifies the amount of MicroAlgos in the account, without the pending rewards.
+   * @param pendingRewards - amount of MicroAlgos of pending rewards in this account.
+   * @param rewards - (ern) total rewards of MicroAlgos the account has received, including pending
+   * rewards.
+   * @param round - The round for which this information is relevant.
+   * @param status - (onl) delegation status of the account's MicroAlgos
    * * Offline - indicates that the associated account is delegated.
-   * *  Online  - indicates that the associated account used as part of the delegation pool.
-   * *   NotParticipating - indicates that the associated account is neither a delegator nor a delegate.
-   * @param appsLocalState \[appl\] applications local data stored in this account.
-   *
+   * * Online - indicates that the associated account used as part of the delegation
+   * pool.
+   * * NotParticipating - indicates that the associated account is neither a
+   * delegator nor a delegate.
+   * @param appsLocalState - (appl) applications local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
-   * @param appsTotalSchema \[tsch\] stores the sum of all of the local schemas and global schemas in this account.
-   *
+   * @param appsTotalSchema - (tsch) stores the sum of all of the local schemas and global schemas in this
+   * account.
    * Note: the raw account uses `StateSchema` for this type.
-   * @param assets \[asset\] assets held by this account.
-   *
+   * @param assets - (asset) assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
-   * @param authAddr \[spend\] the address against which signing should be checked. If empty, the address of the current account is used. This field can be updated in any transaction by setting the RekeyTo field.
-   * @param createdApps \[appp\] parameters of applications created by this account including app global data.
-   *
+   * @param authAddr - (spend) the address against which signing should be checked. If empty, the
+   * address of the current account is used. This field can be updated in any
+   * transaction by setting the RekeyTo field.
+   * @param createdApps - (appp) parameters of applications created by this account including app global
+   * data.
    * Note: the raw account uses `map[int] -> AppParams` for this type.
-   * @param createdAssets \[apar\] parameters of assets created by this account.
-   *
+   * @param createdAssets - (apar) parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
-   * @param participation AccountParticipation describes the parameters used by this account in consensus protocol.
-   * @param rewardBase \[ebase\] used as part of the rewards computation. Only applicable to accounts which are participating.
-   * @param sigType Indicates what type of signature is used by this account, must be one of:
+   * @param participation - AccountParticipation describes the parameters used by this account in consensus
+   * protocol.
+   * @param rewardBase - (ebase) used as part of the rewards computation. Only applicable to accounts
+   * which are participating.
+   * @param sigType - Indicates what type of signature is used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
@@ -1154,9 +1181,9 @@ export class Account extends BaseModel {
 export class SupplyResponse extends BaseModel {
   /**
    * Creates a new `SupplyResponse` object.
-   * @param currentRound Round
-   * @param onlineMoney OnlineMoney
-   * @param totalMoney TotalMoney
+   * @param currentRound - Round
+   * @param onlineMoney - OnlineMoney
+   * @param totalMoney - TotalMoney
    */
   constructor(
     public currentRound: number,
@@ -1182,11 +1209,11 @@ export class SupplyResponse extends BaseModel {
 export class TealValue extends BaseModel {
   /**
    * Creates a new `TealValue` object.
-   * @param type \[tt\] value type.
-   * @param bytes \[tb\] bytes value.
-   * @param uint \[ui\] uint value.
+   * @param type - (tt) value type.
+   * @param bytes - (tb) bytes value.
+   * @param uint - (ui) uint value.
    */
-  constructor(public type: number, public bytes: string, public uint: number) {
+  constructor(public type: number, public bytes: string, public uint: bigint) {
     super();
     this.type = type;
     this.bytes = bytes;
@@ -1201,12 +1228,14 @@ export class TealValue extends BaseModel {
 }
 
 /**
- * Given a transaction id of a recently submitted transaction, it returns information about it.  There are several cases when this might succeed:
+ * Given a transaction id of a recently submitted transaction, it returns
+ * information about it. There are several cases when this might succeed:
  * - transaction committed (committed round > 0)
  * - transaction still in the pool (committed round = 0, pool error = "")
- * - transaction removed from pool due to error (committed round = 0, pool error != "")
- *
- * Or the transaction may have happened sufficiently long ago that the node no longer remembers it, and this will return an error.
+ * - transaction removed from pool due to error (committed round = 0, pool error !=
+ * "")
+ * Or the transaction may have happened sufficiently long ago that the node no
+ * longer remembers it, and this will return an error.
  */
 export class PendingTransactionResponse extends BaseModel {
   public poolError: string;
@@ -1224,19 +1253,23 @@ export class PendingTransactionResponse extends BaseModel {
 
   /**
    * Creates a new `PendingTransactionResponse` object.
-   * @param poolError Indicates that the transaction was kicked out of this node's transaction pool (and specifies why that happened).  An empty string indicates the transaction wasn't kicked out of this node's txpool due to an error.
-   *
-   * @param txn The raw signed transaction.
-   * @param applicationIndex The application index if the transaction was found and it created an application.
-   * @param assetClosingAmount The number of the asset's unit that were transferred to the close-to address.
-   * @param assetIndex The asset index if the transaction was found and it created an asset.
-   * @param closeRewards Rewards in microalgos applied to the close remainder to account.
-   * @param closingAmount Closing amount for the transaction.
-   * @param confirmedRound The round where this transaction was confirmed, if present.
-   * @param globalStateDelta \[gd\] Global state key/value changes for the application being executed by this transaction.
-   * @param localStateDelta \[ld\] Local state key/value changes for the application being executed by this transaction.
-   * @param receiverRewards Rewards in microalgos applied to the receiver account.
-   * @param senderRewards Rewards in microalgos applied to the sender account.
+   * @param poolError - Indicates that the transaction was kicked out of this node's transaction pool
+   * (and specifies why that happened). An empty string indicates the transaction
+   * wasn't kicked out of this node's txpool due to an error.
+   * @param txn - The raw signed transaction.
+   * @param applicationIndex - The application index if the transaction was found and it created an
+   * application.
+   * @param assetClosingAmount - The number of the asset's unit that were transferred to the close-to address.
+   * @param assetIndex - The asset index if the transaction was found and it created an asset.
+   * @param closeRewards - Rewards in microalgos applied to the close remainder to account.
+   * @param closingAmount - Closing amount for the transaction.
+   * @param confirmedRound - The round where this transaction was confirmed, if present.
+   * @param globalStateDelta - (gd) Global state key/value changes for the application being executed by this
+   * transaction.
+   * @param localStateDelta - (ld) Local state key/value changes for the application being executed by this
+   * transaction.
+   * @param receiverRewards - Rewards in microalgos applied to the receiver account.
+   * @param senderRewards - Rewards in microalgos applied to the sender account.
    */
   constructor({
     poolError,
@@ -1297,7 +1330,8 @@ export class PendingTransactionResponse extends BaseModel {
 }
 
 /**
- * TransactionParams contains the parameters that help a client construct a new transaction.
+ * TransactionParams contains the parameters that help a client construct a new
+ * transaction.
  */
 export class TransactionParametersResponse extends BaseModel {
   public consensusVersion: string;
@@ -1309,16 +1343,16 @@ export class TransactionParametersResponse extends BaseModel {
 
   /**
    * Creates a new `TransactionParametersResponse` object.
-   * @param consensusVersion ConsensusVersion indicates the consensus protocol version
+   * @param consensusVersion - ConsensusVersion indicates the consensus protocol version
    * as of LastRound.
-   * @param fee Fee is the suggested transaction fee
+   * @param fee - Fee is the suggested transaction fee
    * Fee is in units of micro-Algos per byte.
    * Fee may fall to zero but transactions must still have a fee of
    * at least MinTxnFee for the current network protocol.
-   * @param genesisHash GenesisHash is the hash of the genesis block.
-   * @param genesisId GenesisID is an ID listed in the genesis block.
-   * @param lastRound LastRound indicates the last round seen
-   * @param minFee The minimum transaction fee (not per byte) required for the
+   * @param genesisHash - GenesisHash is the hash of the genesis block.
+   * @param genesisId - GenesisID is an ID listed in the genesis block.
+   * @param lastRound - LastRound indicates the last round seen
+   * @param minFee - The minimum transaction fee (not per byte) required for the
    * txn to validate for the current network protocol.
    */
   constructor({
