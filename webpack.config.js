@@ -21,6 +21,9 @@ module.exports = {
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
     }),
+    new webpack.ProvidePlugin({
+      URL: ['whatwg-url', 'URL'],
+    }),
   ],
   module: {
     rules: [

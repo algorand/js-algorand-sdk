@@ -1,4 +1,3 @@
-import { URL } from 'url';
 import request from 'superagent';
 import * as utils from '../utils/utils';
 import IntDecoding from '../types/intDecoding';
