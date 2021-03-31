@@ -130,6 +130,17 @@ export default class HTTPClient {
   }
 
   /**
+   * Compute the URL for a path relative to the instance's address
+   * @param path - A path string
+   * @returns A URL string
+   */
+  private addressWithPath(path: string) {
+    const mutableAddress = new URL(this.address);
+    mutableAddress.pathname = path;
+    return mutableAddress.toString();
+  }
+
+  /**
    * Send a GET request.
    * @param {string} path The path of the request.
    * @param {object} query An object containing the query paramters of the request.
@@ -146,7 +157,7 @@ export default class HTTPClient {
   ) {
     const format = getAcceptFormat(query);
     let r = request
-      .get(this.address + path)
+      .get(this.addressWithPath(path))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
@@ -184,7 +195,7 @@ export default class HTTPClient {
     requestHeaders: Record<string, any> = {}
   ) {
     return request
-      .post(this.address + path)
+      .post(this.addressWithPath(path))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
@@ -197,7 +208,7 @@ export default class HTTPClient {
     requestHeaders: Record<string, any> = {}
   ) {
     return request
-      .delete(this.address + path)
+      .delete(this.addressWithPath(path))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
