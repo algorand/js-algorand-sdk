@@ -13,7 +13,7 @@ export type TokenHeaderIdentifier =
  * @param headerIdentifier - An identifier for the token header
  */
 function convertTokenStringToTokenHeader(
-  token: string,
+  token: string = '',
   headerIdentifier: TokenHeaderIdentifier
 ): TokenHeader {
   const tokenHeader = {};

@@ -1,10 +1,10 @@
 import ServiceClient from './v2/serviceClient';
 import * as txn from '../transaction';
-import { KMDTokenHeader } from './client';
+import { CustomTokenHeader, KMDTokenHeader } from './client';
 
 export default class Kmd extends ServiceClient {
   constructor(
-    token: string | KMDTokenHeader,
+    token: string | KMDTokenHeader | CustomTokenHeader,
     baseServer = 'http://127.0.0.1',
     port = 7833,
     headers = {}
@@ -95,7 +95,7 @@ export default class Kmd extends ServiceClient {
    * seconds until expiration
    * @param walletHandle
    */
-  async renewWalletHandle(walletHandle) {
+  async renewWalletHandle(walletHandle: string) {
     const req = {
       wallet_handle_token: walletHandle,
     };
