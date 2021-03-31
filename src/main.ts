@@ -5,14 +5,12 @@ import * as txnBuilder from './transaction';
 import * as multisig from './multisig';
 import Bid, { BidOptions } from './bid';
 import algod from './client/algod';
-import kmd from './client/kmd';
 import * as convert from './convert';
 import * as utils from './utils/utils';
 import AnyTransaction from './types/transactions';
 import { MultisigMetadata } from './types/multisig';
 
 export const { Algod } = algod;
-export const { Kmd } = kmd;
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
@@ -239,8 +237,9 @@ export const ERROR_INVALID_MICROALGOS = new Error(
 );
 
 export * from './types/transactions';
-export { default as IntDecoding } from './types/intDecoding';
 export { default as Algodv2 } from './client/v2/algod/algod';
+export { default as Kmd } from './client/kmd';
+export { default as IntDecoding } from './types/intDecoding';
 export { default as Indexer } from './client/v2/indexer/indexer';
 export {
   isValidAddress,

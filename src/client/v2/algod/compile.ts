@@ -1,5 +1,5 @@
 import JSONRequest from '../jsonrequest';
-import { HTTPClient } from '../../client';
+import HTTPClient from '../../client';
 
 /**
  * Sets the default header (if not previously set)

@@ -1,32 +1,33 @@
-const client = require('./client');
-const txn = require('../transaction');
+import ServiceClient from './v2/serviceClient';
+import * as txn from '../transaction';
+import { CustomTokenHeader, KMDTokenHeader } from './client';
 
-function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
-  // Get client
-  const c = new client.HTTPClient(
-    { 'X-KMD-API-Token': token },
-    baseServer,
-    port
-  );
+export default class Kmd extends ServiceClient {
+  constructor(
+    token: string | KMDTokenHeader | CustomTokenHeader,
+    baseServer = 'http://127.0.0.1',
+    port = 7833,
+    headers = {}
+  ) {
+    super('X-KMD-API-Token', token, baseServer, port, headers);
+  }
 
   /**
    * version returns a VersionResponse containing a list of kmd API versions supported by this running kmd instance.
-   * @returns {Promise<*>}
    */
-  this.versions = async () => {
-    const res = await c.get('/versions');
+  async versions() {
+    const res = await this.c.get('/versions');
     return res.body;
-  };
+  }
 
   /**
    * listWallets returns a ListWalletsResponse containing the list of wallets known to kmd. Using a wallet ID
    * returned from this endpoint, you can initialize a wallet handle with client.InitWalletHandle
-   * @returns {Promise<*>}
    */
-  this.listWallets = async () => {
-    const res = await c.get('/v1/wallets');
+  async listWallets() {
+    const res = await this.c.get('/v1/wallets');
     return res.body;
-  };
+  }
 
   /**
    * createWallet creates a wallet with the specified name, password, driver,
@@ -37,23 +38,22 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletPassword
    * @param walletDriverName
    * @param walletMDK
-   * @returns {Promise<*>}
    */
-  this.createWallet = async (
-    walletName,
-    walletPassword,
+  async createWallet(
+    walletName: string,
+    walletPassword: string,
     walletMDK = '',
     walletDriverName = 'sqlite'
-  ) => {
+  ) {
     const req = {
       wallet_name: walletName,
       wallet_driver_name: walletDriverName,
       wallet_password: walletPassword,
       master_derivation_key: Buffer.from(walletMDK).toString('base64'),
     };
-    const res = await c.post('/v1/wallet', req);
+    const res = await this.c.post('/v1/wallet', req);
     return res.body;
-  };
+  }
 
   /**
    * initWalletHandle accepts a wallet ID and a wallet password, and returns an
@@ -65,30 +65,28 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * you're done interacting with this wallet.
    * @param walletID
    * @param walletPassword
-   * @returns {Promise<*>}
    */
-  this.initWalletHandle = async (walletID, walletPassword) => {
+  async initWalletHandle(walletID: string, walletPassword: string) {
     const req = {
       wallet_id: walletID,
       wallet_password: walletPassword,
     };
-    const res = await c.post('/v1/wallet/init', req);
+    const res = await this.c.post('/v1/wallet/init', req);
     return res.body;
-  };
+  }
 
   /**
    * releaseWalletHandle invalidates the passed wallet handle token, making
    * it unusuable for subsequent wallet operations.
    * @param walletHandle
-   * @returns {Promise<*>}
    */
-  this.releaseWalletHandle = async (walletHandle) => {
+  async releaseWalletHandle(walletHandle: string) {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await c.post('/v1/wallet/release', req);
+    const res = await this.c.post('/v1/wallet/release', req);
     return res.body;
-  };
+  }
 
   /**
    * renewWalletHandle accepts a wallet handle and attempts to renew it, moving
@@ -96,15 +94,14 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * RenewWalletHandleResponse containing the walletHandle and the number of
    * seconds until expiration
    * @param walletHandle
-   * @returns {Promise<*>}
    */
-  this.renewWalletHandle = async (walletHandle) => {
+  async renewWalletHandle(walletHandle: string) {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await c.post('/v1/wallet/renew', req);
+    const res = await this.c.post('/v1/wallet/renew', req);
     return res.body;
-  };
+  }
 
   /**
    * renameWallet accepts a wallet ID, wallet password, and a new wallet name,
@@ -112,31 +109,33 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletID
    * @param walletPassword
    * @param newWalletName
-   * @returns {Promise<*>}
    */
-  this.renameWallet = async (walletID, walletPassword, newWalletName) => {
+  async renameWallet(
+    walletID: string,
+    walletPassword: string,
+    newWalletName: string
+  ) {
     const req = {
       wallet_id: walletID,
       wallet_password: walletPassword,
       wallet_name: newWalletName,
     };
-    const res = await c.post('/v1/wallet/rename', req);
+    const res = await this.c.post('/v1/wallet/rename', req);
     return res.body;
-  };
+  }
 
   /**
    * getWallet accepts a wallet handle and returns high level information about
    * this wallet in a GetWalletResponse.
    * @param walletHandle
-   * @returns {Promise<*>}
    */
-  this.getWallet = async (walletHandle) => {
+  async getWallet(walletHandle: string) {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await c.post('/v1/wallet/info', req);
+    const res = await this.c.post('/v1/wallet/info', req);
     return res.body;
-  };
+  }
 
   /**
    * exportMasterDerivationKey accepts a wallet handle and a wallet password, and
@@ -146,21 +145,23 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * key can be encoded as a sequence of words using the mnemonic library, and
    * @param walletHandle
    * @param walletPassword
-   * @returns {Promise<*>}
    */
-  this.exportMasterDerivationKey = async (walletHandle, walletPassword) => {
+  async exportMasterDerivationKey(
+    walletHandle: string,
+    walletPassword: string
+  ) {
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
     };
-    const res = await c.post('/v1/master-key/export', req);
+    const res = await this.c.post('/v1/master-key/export', req);
     return {
       master_derivation_key: Buffer.from(
         res.body.master_derivation_key,
         'base64'
       ),
     };
-  };
+  }
 
   /**
    * importKey accepts a wallet handle and an ed25519 private key, and imports
@@ -168,16 +169,15 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * address corresponding to this private key.
    * @param walletHandle
    * @param secretKey
-   * @returns {Promise<*>}
    */
-  this.importKey = async (walletHandle, secretKey) => {
+  async importKey(walletHandle: string, secretKey: string) {
     const req = {
       wallet_handle_token: walletHandle,
       private_key: Buffer.from(secretKey).toString('base64'),
     };
-    const res = await c.post('/v1/key/import', req);
+    const res = await this.c.post('/v1/key/import', req);
     return res.body;
-  };
+  }
 
   /**
    * exportKey accepts a wallet handle, wallet password, and address, and returns
@@ -186,33 +186,31 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletHandle
    * @param walletPassword
    * @param addr
-   * @returns {Promise<*>}
    */
-  this.exportKey = async (walletHandle, walletPassword, addr) => {
+  async exportKey(walletHandle: string, walletPassword: string, addr: string) {
     const req = {
       wallet_handle_token: walletHandle,
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await c.post('/v1/key/export', req);
+    const res = await this.c.post('/v1/key/export', req);
     return { private_key: Buffer.from(res.body.private_key, 'base64') };
-  };
+  }
 
   /**
    * generateKey accepts a wallet handle, and then generates the next key in the
    * wallet using its internal master derivation key. Two wallets with the same
    * master derivation key will generate the same sequence of keys.
    * @param walletHandle
-   * @returns {Promise<*>}
    */
-  this.generateKey = async (walletHandle) => {
+  async generateKey(walletHandle: string) {
     const req = {
       wallet_handle_token: walletHandle,
       display_mnemonic: false,
     };
-    const res = await c.post('/v1/key', req);
+    const res = await this.c.post('/v1/key', req);
     return res.body;
-  };
+  }
 
   /**
    * deleteKey accepts a wallet handle, wallet password, and address, and deletes
@@ -224,31 +222,29 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletHandle
    * @param walletPassword
    * @param addr
-   * @returns {Promise<*>}
    */
-  this.deleteKey = async (walletHandle, walletPassword, addr) => {
+  async deleteKey(walletHandle: string, walletPassword: string, addr: string) {
     const req = {
       wallet_handle_token: walletHandle,
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await c.delete('/v1/key', req);
+    const res = await this.c.delete('/v1/key', req);
     return res.body;
-  };
+  }
 
   /**
    * ListKeys accepts a wallet handle and returns a ListKeysResponse containing
    * all of the addresses for which this wallet contains secret keys.
    * @param walletHandle
-   * @returns {Promise<*>}
    */
-  this.listKeys = async (walletHandle) => {
+  async listKeys(walletHandle: string) {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await c.post('/v1/key/list', req);
+    const res = await this.c.post('/v1/key/list', req);
     return res.body;
-  };
+  }
 
   /**
    * signTransaction accepts a wallet handle, wallet password, and a transaction,
@@ -258,23 +254,26 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletHandle
    * @param walletPassword
    * @param transaction
-   * @returns {Promise<*>}
    */
-  this.signTransaction = async (walletHandle, walletPassword, transaction) => {
-    const tx = new txn.Transaction(transaction);
+  async signTransaction(
+    walletHandle: string,
+    walletPassword: string,
+    transaction: txn.TransactionLike
+  ) {
+    const tx = txn.instantiateTxnIfNeeded(transaction);
 
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
       transaction: Buffer.from(tx.toByte()).toString('base64'),
     };
-    const res = await c.post('/v1/transaction/sign', req);
+    const res = await this.c.post('/v1/transaction/sign', req);
 
-    if (res.statusCode === 200) {
+    if (res.status === 200) {
       return Buffer.from(res.body.signed_transaction, 'base64');
     }
     return res.body;
-  };
+  }
 
   /**
    * signTransactionWithSpecificPublicKey accepts a wallet handle, wallet password, a transaction, and a public key,
@@ -285,15 +284,14 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletPassword
    * @param transaction
    * @param publicKey sign the txn with the key corresponding to publicKey (used for working with a rekeyed addr)
-   * @returns {Promise<*>}
    */
-  this.signTransactionWithSpecificPublicKey = async (
-    walletHandle,
-    walletPassword,
-    transaction,
-    publicKey
-  ) => {
-    const tx = new txn.Transaction(transaction);
+  async signTransactionWithSpecificPublicKey(
+    walletHandle: string,
+    walletPassword: string,
+    transaction: txn.TransactionLike,
+    publicKey: string
+  ) {
+    const tx = txn.instantiateTxnIfNeeded(transaction);
 
     const req = {
       wallet_handle_token: walletHandle,
@@ -301,13 +299,14 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
       transaction: Buffer.from(tx.toByte()).toString('base64'),
       public_key: Buffer.from(publicKey).toString('base64'),
     };
-    const res = await c.post('/v1/transaction/sign', req);
+    const res = await this.c.post('/v1/transaction/sign', req);
 
-    if (res.statusCode === 200) {
+    if (res.status === 200) {
       return Buffer.from(res.body.signed_transaction, 'base64');
     }
     return res.body;
-  };
+  }
+
   /**
    * listMultisig accepts a wallet handle and returns a ListMultisigResponse
    * containing the multisig addresses whose preimages are stored in this wallet.
@@ -315,15 +314,14 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * including multisig version information, threshold information, and a list
    * of public keys.
    * @param walletHandle
-   * @returns {Promise<*>}
    */
-  this.listMultisig = async (walletHandle) => {
+  async listMultisig(walletHandle: string) {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await c.post('/v1/multisig/list', req);
+    const res = await this.c.post('/v1/multisig/list', req);
     return res.body;
-  };
+  }
 
   /**
    * importMultisig accepts a wallet handle and the information required to
@@ -334,18 +332,22 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param version
    * @param threshold
    * @param pks
-   * @returns {Promise<*>}
    */
-  this.importMultisig = async (walletHandle, version, threshold, pks) => {
+  async importMultisig(
+    walletHandle: string,
+    version: number,
+    threshold: number,
+    pks: string[]
+  ) {
     const req = {
       wallet_handle_token: walletHandle,
       multisig_version: version,
       threshold,
       pks,
     };
-    const res = await c.post('/v1/multisig/import', req);
+    const res = await this.c.post('/v1/multisig/import', req);
     return res.body;
-  };
+  }
 
   /**
    * exportMultisig accepts a wallet handle, wallet password, and multisig
@@ -356,16 +358,15 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletHandle
    * @param walletPassword
    * @param addr
-   * @returns {Promise<*>}
    */
-  this.exportMultisig = async (walletHandle, addr) => {
+  async exportMultisig(walletHandle: string, addr: string) {
     const req = {
       wallet_handle_token: walletHandle,
       address: addr,
     };
-    const res = await c.post('/v1/multisig/export', req);
+    const res = await this.c.post('/v1/multisig/export', req);
     return res.body;
-  };
+  }
 
   /**
    * signMultisigTransaction accepts a wallet handle, wallet password,
@@ -378,16 +379,15 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param tx
    * @param pk
    * @param partial
-   * @returns {Promise<*>}
    */
-  this.signMultisigTransaction = async (
-    walletHandle,
-    pw,
-    transaction,
-    pk,
-    partial
-  ) => {
-    const tx = new txn.Transaction(transaction);
+  async signMultisigTransaction(
+    walletHandle: string,
+    pw: string,
+    transaction: txn.TransactionLike,
+    pk: string,
+    partial: string
+  ) {
+    const tx = txn.instantiateTxnIfNeeded(transaction);
     const req = {
       wallet_handle_token: walletHandle,
       transaction: Buffer.from(tx.toByte()).toString('base64'),
@@ -395,9 +395,9 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
       partial_multisig: partial,
       wallet_password: pw,
     };
-    const res = await c.post('/v1/multisig/sign', req);
+    const res = await this.c.post('/v1/multisig/sign', req);
     return res.body;
-  };
+  }
 
   /**
    * deleteMultisig accepts a wallet handle, wallet password, and multisig
@@ -406,16 +406,18 @@ function Kmd(token, baseServer = 'http://127.0.0.1', port = 7833) {
    * @param walletHandle
    * @param walletPassword
    * @param addr
-   * @returns {Promise<*>}
    */
-  this.deleteMultisig = async (walletHandle, walletPassword, addr) => {
+  async deleteMultisig(
+    walletHandle: string,
+    walletPassword: string,
+    addr: string
+  ) {
     const req = {
       wallet_handle_token: walletHandle,
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await c.delete('/v1/multisig', req);
+    const res = await this.c.delete('/v1/multisig', req);
     return res.body;
-  };
+  }
 }
-module.exports = { Kmd };

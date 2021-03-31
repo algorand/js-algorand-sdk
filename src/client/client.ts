@@ -1,12 +1,22 @@
-const request = require('superagent');
-const utils = require('../utils/utils');
+import request from 'superagent';
+import * as utils from '../utils/utils';
+import IntDecoding from '../types/intDecoding';
 
-function createJSONParser(options) {
-  // eslint-disable-next-line consistent-return
-  return (res, fn) => {
-    if (typeof fn === 'string') {
+interface ErrorWithAdditionalInfo extends Error {
+  rawResponse: string | null;
+  statusCode: number;
+}
+
+function createJSONParser(options: utils.JSONOptions) {
+  return (
+    res: request.Response,
+    // eslint-disable-next-line no-unused-vars
+    fnOrStr: string | ((err: Error, obj: any) => void)
+    // eslint-disable-next-line consistent-return
+  ) => {
+    if (typeof fnOrStr === 'string') {
       // in browser
-      return fn && utils.parseJSON(fn, options);
+      return fnOrStr && utils.parseJSON(fnOrStr, options);
     }
 
     // in node
@@ -17,8 +27,8 @@ function createJSONParser(options) {
       res.text += chunk;
     });
     res.on('end', () => {
-      let body;
-      let err;
+      let body: any;
+      let err: ErrorWithAdditionalInfo | null;
       try {
         body = res.text && utils.parseJSON(res.text, options);
       } catch (err_) {
@@ -26,20 +36,19 @@ function createJSONParser(options) {
         // issue #675: return the raw response if the response parsing fails
         err.rawResponse = res.text || null;
         // issue #876: return the http status code if the response parsing fails
-        err.statusCode = res.statusCode;
+        err.statusCode = res.status;
       } finally {
-        fn(err, body);
+        fnOrStr(err, body);
       }
     });
   };
 }
 
 /**
- * removeEmpty gets a dictionary and removes empty values
+ * Remove falsy values or values with a length of 0 from an object.
  * @param obj
- * @returns {*}
  */
-function removeEmpty(obj) {
+function removeFalsyOrEmpty(obj: Record<string, any>) {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       // eslint-disable-next-line no-param-reassign
@@ -49,13 +58,21 @@ function removeEmpty(obj) {
   return obj;
 }
 
+type Query<F> = {
+  format?: F;
+  [key: string]: any;
+};
+
 /**
- * getAccceptFormat returns the correct Accept header depending on the
+ * getAcceptFormat returns the correct Accept header depending on the
  * requested format.
  * @param query
- * @returns {string}
  */
-function getAccceptFormat(query) {
+/* eslint-disable no-redeclare,no-unused-vars */
+function getAcceptFormat(
+  query?: Query<'msgpack' | 'json'>
+): 'application/msgpack' | 'application/json' {
+  /* eslint-enable no-redeclare,no-unused-vars */
   if (
     query !== undefined &&
     Object.prototype.hasOwnProperty.call(query, 'format')
@@ -64,22 +81,54 @@ function getAccceptFormat(query) {
       case 'msgpack':
         return 'application/msgpack';
       case 'json':
-        return 'application/json';
       default:
         return 'application/json';
     }
   } else return 'application/json';
 }
 
-function HTTPClient(token, baseServer, port, headers = {}) {
-  // Do not need colon if port is empty
-  let baseServerWithPort = baseServer;
-  if (port !== '') {
-    baseServerWithPort += `:${port.toString()}`;
+export interface AlgodTokenHeader {
+  'X-Algo-API-Token': string;
+}
+
+export interface IndexerTokenHeader {
+  'X-Indexer-API-Token': string;
+}
+
+export interface KMDTokenHeader {
+  'X-KMD-API-Token': string;
+}
+
+export interface CustomTokenHeader {
+  [headerName: string]: string;
+}
+
+export type TokenHeader =
+  | AlgodTokenHeader
+  | IndexerTokenHeader
+  | KMDTokenHeader
+  | CustomTokenHeader;
+
+export default class HTTPClient {
+  private address: string;
+  private tokenHeader: TokenHeader;
+  public intDecoding: IntDecoding = IntDecoding.DEFAULT;
+
+  constructor(
+    tokenHeader: TokenHeader,
+    baseServer: string,
+    port?: number,
+    private defaultHeaders: Record<string, any> = {}
+  ) {
+    // Do not need colon if port is empty
+    let baseServerWithPort = baseServer;
+    if (typeof port !== 'undefined') {
+      baseServerWithPort += `:${port.toString()}`;
+    }
+    this.address = baseServerWithPort;
+    this.defaultHeaders = defaultHeaders;
+    this.tokenHeader = tokenHeader;
   }
-  this.address = baseServerWithPort;
-  this.token = token;
-  this.defaultHeaders = headers;
 
   /**
    * Send a GET request.
@@ -88,17 +137,22 @@ function HTTPClient(token, baseServer, port, headers = {}) {
    * @param {object} requestHeaders An object containing additional request headers to use.
    * @param {object} jsonOptions Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
-   * @returns {Promise<object>} Response object.
+   * @returns Response object.
    */
-  this.get = async (path, query, requestHeaders = {}, jsonOptions = {}) => {
-    const format = getAccceptFormat(query);
+  async get(
+    path: string,
+    query?: Query<any>,
+    requestHeaders: Record<string, any> = {},
+    jsonOptions: utils.JSONOptions = {}
+  ) {
+    const format = getAcceptFormat(query);
     let r = request
       .get(this.address + path)
-      .set(this.token)
+      .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
       .set('Accept', format)
-      .query(removeEmpty(query));
+      .query(removeFalsyOrEmpty(query));
 
     if (format === 'application/msgpack') {
       r = r.responseType('arraybuffer');
@@ -106,7 +160,7 @@ function HTTPClient(token, baseServer, port, headers = {}) {
       format === 'application/json' &&
       Object.keys(jsonOptions).length !== 0
     ) {
-      if (r.buffer !== r.ca) {
+      if (utils.isNode()) {
         // in node, need to set buffer
         r = r.buffer(true);
       }
@@ -123,23 +177,31 @@ function HTTPClient(token, baseServer, port, headers = {}) {
       res.body = underlyingArrayBuffer.slice(start, end);
     }
     return res;
-  };
+  }
 
-  this.post = async (path, data, requestHeaders = {}) =>
-    request
+  async post(
+    path: string,
+    data: string | object,
+    requestHeaders: Record<string, any> = {}
+  ) {
+    return request
       .post(this.address + path)
-      .set(this.token)
+      .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
       .send(data);
+  }
 
-  this.delete = async (path, data, requestHeaders = {}) =>
-    request
+  async delete(
+    path: string,
+    data: string | object,
+    requestHeaders: Record<string, any> = {}
+  ) {
+    return request
       .delete(this.address + path)
-      .set(this.token)
+      .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
       .send(data);
+  }
 }
-
-module.exports = { HTTPClient };

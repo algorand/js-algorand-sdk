@@ -1,5 +1,5 @@
 import JSONRequest from '../jsonrequest';
-import { HTTPClient } from '../../client';
+import HTTPClient from '../../client';
 import * as encoding from '../../../encoding/encoding';
 
 /**

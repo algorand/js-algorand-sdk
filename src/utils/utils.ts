@@ -3,7 +3,7 @@ import IntDecoding from '../types/intDecoding';
 
 const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
 
-interface JSONOptions {
+export interface JSONOptions {
   intDecoding?: IntDecoding;
 }
 
@@ -110,4 +110,16 @@ export function removeUndefinedProperties(
     if (typeof mutableCopy[key] === 'undefined') delete mutableCopy[key];
   });
   return mutableCopy;
+}
+
+/**
+ * Check whether the environment is Node.js (as opposed to the browser)
+ * @returns True if Node.js environment, false otherwise
+ */
+export function isNode() {
+  return (
+    typeof process === 'object' &&
+    typeof process.versions === 'object' &&
+    typeof process.versions.node !== 'undefined'
+  );
 }
