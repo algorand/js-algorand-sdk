@@ -80,7 +80,7 @@ interface TransactionStorageStructure
   assetUnitName: string;
   assetName: string;
   assetURL: string;
-  assetMetadataHash: string | Uint8Array;
+  assetMetadataHash?: string | Uint8Array;
   freezeAccount: string | Address;
   freezeState: boolean;
   assetRevocationTarget?: string | Address;
@@ -138,7 +138,7 @@ export class Transaction implements TransactionStorageStructure {
   assetUnitName: string;
   assetName: string;
   assetURL: string;
-  assetMetadataHash: Uint8Array;
+  assetMetadataHash?: Uint8Array;
   freezeAccount: Address;
   freezeState: boolean;
   assetRevocationTarget?: Address;
