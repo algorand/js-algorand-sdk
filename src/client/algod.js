@@ -1,4 +1,4 @@
-const client = require('./client');
+const { default: HTTPClient } = require('./client');
 const { setSendTransactionHeaders } = require('./v2/algod/sendRawTransaction');
 
 function Algod(
@@ -14,7 +14,7 @@ function Algod(
   }
 
   // Get client
-  const c = new client.HTTPClient(tokenHeader, baseServer, port, headers);
+  const c = new HTTPClient(tokenHeader, baseServer, port, headers);
 
   /**
    * Takes an object and convert its note field to Buffer, if exist.

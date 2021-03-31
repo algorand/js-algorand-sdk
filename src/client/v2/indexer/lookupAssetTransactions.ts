@@ -1,5 +1,5 @@
 import JSONRequest from '../jsonrequest';
-import { HTTPClient } from '../../client';
+import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { base64StringFunnel } from './lookupAccountTransactions';
 
@@ -41,7 +41,7 @@ export default class LookupAssetTransactions extends JSONRequest {
   }
 
   // round to filter with, as int
-  round(round) {
+  round(round: number) {
     this.query.round = round;
     return this;
   }

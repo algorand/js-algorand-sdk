@@ -1,5 +1,5 @@
 import ServiceClient from '../serviceClient';
-import { HTTPClient } from '../../client';
+import { CustomTokenHeader, IndexerTokenHeader } from '../../client';
 import MakeHealthCheck from './makeHealthCheck';
 import LookupAssetBalances from './lookupAssetBalances';
 import LookupAssetTransactions from './lookupAssetTransactions';
@@ -16,19 +16,12 @@ import SearchForApplications from './searchForApplications';
 
 export default class IndexerClient extends ServiceClient {
   constructor(
-    token: string,
+    token: string | IndexerTokenHeader | CustomTokenHeader,
     baseServer = 'http://127.0.0.1',
     port = 8080,
     headers = {}
   ) {
-    // workaround to allow backwards compatibility for multiple headers
-    let tokenHeader: string | Record<string, string> = token;
-    if (typeof tokenHeader === 'string') {
-      tokenHeader = { 'X-Indexer-API-Token': tokenHeader };
-    }
-
-    const httpClient = new HTTPClient(tokenHeader, baseServer, port, headers);
-    super(httpClient);
+    super('X-Indexer-API-Token', token, baseServer, port, headers);
   }
 
   /**
@@ -98,7 +91,7 @@ export default class IndexerClient extends ServiceClient {
    * Returns information about the passed application.
    * @param {number} index The ID of the application to look up.
    */
-  lookupApplications(index) {
+  lookupApplications(index: number) {
     return new LookupApplications(this.c, this.intDecoding, index);
   }
 

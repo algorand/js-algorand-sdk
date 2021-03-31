@@ -1,6 +1,6 @@
 import * as encoding from '../../../encoding/encoding';
 import JSONRequest from '../jsonrequest';
-import { HTTPClient } from '../../client';
+import HTTPClient from '../../client';
 
 /**
  * block gets the block info for the given round. this call may block
