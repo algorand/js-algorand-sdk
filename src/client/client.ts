@@ -117,7 +117,7 @@ export default class HTTPClient {
   constructor(
     tokenHeader: TokenHeader,
     baseServer: string,
-    port?: number,
+    port?: string | number,
     private defaultHeaders: Record<string, any> = {}
   ) {
     // Do not need colon if port is empty

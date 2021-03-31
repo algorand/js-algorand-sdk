@@ -18,7 +18,7 @@ export default class IndexerClient extends ServiceClient {
   constructor(
     token: string | IndexerTokenHeader | CustomTokenHeader,
     baseServer = 'http://127.0.0.1',
-    port = 8080,
+    port: string | number = 8080,
     headers = {}
   ) {
     super('X-Indexer-API-Token', token, baseServer, port, headers);
