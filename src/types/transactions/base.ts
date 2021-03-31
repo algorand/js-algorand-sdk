@@ -260,7 +260,7 @@ export interface TransactionParams {
   /**
    * Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
    */
-  assetMetadataHash: Uint8Array | string;
+  assetMetadataHash?: Uint8Array | string;
 
   /**
    * String representation of Algorand address being frozen or unfrozen
