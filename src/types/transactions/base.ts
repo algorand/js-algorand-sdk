@@ -141,7 +141,7 @@ export interface TransactionParams {
   /**
    * Integer amount to send
    */
-  amount: number;
+  amount: number | bigint;
 
   /**
    * Integer first protocol round on which this txn is valid
@@ -211,7 +211,7 @@ export interface TransactionParams {
   /**
    * Total supply of the asset
    */
-  assetTotal: number;
+  assetTotal: number | bigint;
 
   /**
    * Integer number of decimals for asset unit calcuation

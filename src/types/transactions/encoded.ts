@@ -6,7 +6,7 @@ export interface EncodedAssetParams {
   /**
    * assetTotal
    */
-  t: number;
+  t: number | bigint;
 
   /**
    * assetDefaultFrozen
@@ -140,12 +140,12 @@ export interface EncodedTransaction {
   /**
    * amount
    */
-  amt?: number;
+  amt?: number | bigint;
 
   /**
    * amount (but for asset transfers)
    */
-  aamt?: number;
+  aamt?: number | bigint;
 
   /**
    * closeRemainderTo

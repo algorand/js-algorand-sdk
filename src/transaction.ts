@@ -56,7 +56,7 @@ interface TransactionStorageStructure
   from: string | Address;
   to: string | Address;
   fee: number;
-  amount: number;
+  amount: number | bigint;
   firstRound: number;
   lastRound: number;
   note?: Uint8Array;
@@ -70,7 +70,7 @@ interface TransactionStorageStructure
   voteLast: number;
   voteKeyDilution: number;
   assetIndex: number;
-  assetTotal: number;
+  assetTotal: number | bigint;
   assetDecimals: number;
   assetDefaultFrozen: boolean;
   assetManager: string | Address;
@@ -114,7 +114,7 @@ export class Transaction implements TransactionStorageStructure {
   from: Address;
   to: Address;
   fee: number;
-  amount: number;
+  amount: number | bigint;
   firstRound: number;
   lastRound: number;
   note?: Uint8Array;
@@ -128,7 +128,7 @@ export class Transaction implements TransactionStorageStructure {
   voteLast: number;
   voteKeyDilution: number;
   assetIndex: number;
-  assetTotal: number;
+  assetTotal: number | bigint;
   assetDecimals: number;
   assetDefaultFrozen: boolean;
   assetManager: Address;
