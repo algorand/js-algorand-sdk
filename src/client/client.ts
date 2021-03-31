@@ -1,3 +1,4 @@
+import { URL } from 'url';
 import request from 'superagent';
 import * as utils from '../utils/utils';
 import IntDecoding from '../types/intDecoding';
@@ -120,12 +121,11 @@ export default class HTTPClient {
     port?: number,
     private defaultHeaders: Record<string, any> = {}
   ) {
-    // Do not need colon if port is empty
-    let baseServerWithPort = baseServer;
+    const baseServerURL = new URL(baseServer);
     if (typeof port !== 'undefined') {
-      baseServerWithPort += `:${port.toString()}`;
+      baseServerURL.port = port.toString();
     }
-    this.address = baseServerWithPort;
+    this.address = baseServerURL.toString();
     this.defaultHeaders = defaultHeaders;
     this.tokenHeader = tokenHeader;
   }
