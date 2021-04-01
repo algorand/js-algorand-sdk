@@ -1,4 +1,6 @@
+import path from 'path';
 import request from 'superagent';
+import Url from 'url-parse';
 import * as utils from '../utils/utils';
 import IntDecoding from '../types/intDecoding';
 
@@ -110,7 +112,7 @@ export type TokenHeader =
   | CustomTokenHeader;
 
 export default class HTTPClient {
-  private address: string;
+  private baseURL: Url;
   private tokenHeader: TokenHeader;
   public intDecoding: IntDecoding = IntDecoding.DEFAULT;
 
@@ -120,19 +122,31 @@ export default class HTTPClient {
     port?: number,
     private defaultHeaders: Record<string, any> = {}
   ) {
-    // Do not need colon if port is empty
-    let baseServerWithPort = baseServer;
+    const baseServerURL = new Url(baseServer);
     if (typeof port !== 'undefined') {
-      baseServerWithPort += `:${port.toString()}`;
+      baseServerURL.set('port', port.toString());
     }
-    this.address = baseServerWithPort;
+    this.baseURL = baseServerURL;
     this.defaultHeaders = defaultHeaders;
     this.tokenHeader = tokenHeader;
   }
 
   /**
+   * Compute the URL for a path relative to the instance's address
+   * @param relativePath - A path string
+   * @returns A URL string
+   */
+  private addressWithPath(relativePath: string) {
+    const address = new Url(
+      path.posix.join(this.baseURL.pathname, relativePath),
+      this.baseURL
+    );
+    return address.toString();
+  }
+
+  /**
    * Send a GET request.
-   * @param {string} path The path of the request.
+   * @param {string} relativePath The path of the request.
    * @param {object} query An object containing the query paramters of the request.
    * @param {object} requestHeaders An object containing additional request headers to use.
    * @param {object} jsonOptions Options object to use to decode JSON responses. See
@@ -140,14 +154,14 @@ export default class HTTPClient {
    * @returns Response object.
    */
   async get(
-    path: string,
+    relativePath: string,
     query?: Query<any>,
     requestHeaders: Record<string, any> = {},
     jsonOptions: utils.JSONOptions = {}
   ) {
     const format = getAcceptFormat(query);
     let r = request
-      .get(this.address + path)
+      .get(this.addressWithPath(relativePath))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
@@ -180,12 +194,12 @@ export default class HTTPClient {
   }
 
   async post(
-    path: string,
+    relativePath: string,
     data: string | object,
     requestHeaders: Record<string, any> = {}
   ) {
     return request
-      .post(this.address + path)
+      .post(this.addressWithPath(relativePath))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
@@ -193,12 +207,12 @@ export default class HTTPClient {
   }
 
   async delete(
-    path: string,
+    relativePath: string,
     data: string | object,
     requestHeaders: Record<string, any> = {}
   ) {
     return request
-      .delete(this.address + path)
+      .delete(this.addressWithPath(relativePath))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
