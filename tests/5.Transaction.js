@@ -145,6 +145,107 @@ describe('Sign', () => {
     );
   });
 
+  it('should not drop a note of all zeros', () => {
+    const txnWithNote = new algosdk.Transaction({
+      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      fee: 10,
+      amount: 847,
+      firstRound: 51,
+      lastRound: 61,
+      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      note: new Uint8Array(32),
+    });
+
+    const txnWithoutNote = new algosdk.Transaction({
+      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      fee: 10,
+      amount: 847,
+      firstRound: 51,
+      lastRound: 61,
+      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+    });
+
+    const serializedWithNote = algosdk.encodeUnsignedTransaction(txnWithNote);
+    const serializedWithoutNote = algosdk.encodeUnsignedTransaction(
+      txnWithoutNote
+    );
+
+    assert.notDeepStrictEqual(serializedWithNote, serializedWithoutNote);
+  });
+
+  it('should drop a lease of all zeros', () => {
+    const txnWithLease = new algosdk.Transaction({
+      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      fee: 10,
+      amount: 847,
+      firstRound: 51,
+      lastRound: 61,
+      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      lease: new Uint8Array(32),
+    });
+
+    const txnWithoutLease = new algosdk.Transaction({
+      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      fee: 10,
+      amount: 847,
+      firstRound: 51,
+      lastRound: 61,
+      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+    });
+
+    const serializedWithLease = algosdk.encodeUnsignedTransaction(txnWithLease);
+    const serializedWithoutLease = algosdk.encodeUnsignedTransaction(
+      txnWithoutLease
+    );
+
+    assert.deepStrictEqual(serializedWithLease, serializedWithoutLease);
+  });
+
+  it('should drop an assetMetadataHash of all zeros', () => {
+    const address =
+      'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+
+    const txnWithHash = new algosdk.Transaction({
+      from: address,
+      fee: 10,
+      firstRound: 322575,
+      lastRound: 323575,
+      genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+      assetIndex: 1234,
+      assetManager: address,
+      assetReserve: address,
+      assetFreeze: address,
+      assetClawback: address,
+      type: 'acfg',
+      assetMetadataHash: new Uint8Array(32),
+    });
+
+    const txnWithoutHash = new algosdk.Transaction({
+      from: address,
+      fee: 10,
+      firstRound: 322575,
+      lastRound: 323575,
+      genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+      assetIndex: 1234,
+      assetManager: address,
+      assetReserve: address,
+      assetFreeze: address,
+      assetClawback: address,
+      type: 'acfg',
+    });
+
+    const serializedWithHash = algosdk.encodeUnsignedTransaction(txnWithHash);
+    const serializedWithoutHash = algosdk.encodeUnsignedTransaction(
+      txnWithoutHash
+    );
+
+    assert.deepStrictEqual(serializedWithHash, serializedWithoutHash);
+  });
+
   it('should be able to prettyprint and go toString without throwing', () => {
     const o = {
       from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
