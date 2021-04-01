@@ -1,4 +1,6 @@
+import path from 'path';
 import request from 'superagent';
+import Url from 'url-parse';
 import * as utils from '../utils/utils';
 import IntDecoding from '../types/intDecoding';
 
@@ -110,7 +112,7 @@ export type TokenHeader =
   | CustomTokenHeader;
 
 export default class HTTPClient {
-  private address: string;
+  private baseURL: Url;
   private tokenHeader: TokenHeader;
   public intDecoding: IntDecoding = IntDecoding.DEFAULT;
 
@@ -120,11 +122,11 @@ export default class HTTPClient {
     port?: number,
     private defaultHeaders: Record<string, any> = {}
   ) {
-    const baseServerURL = new URL(baseServer);
+    const baseServerURL = new Url(baseServer);
     if (typeof port !== 'undefined') {
-      baseServerURL.port = port.toString();
+      baseServerURL.set('port', port.toString());
     }
-    this.address = baseServerURL.toString();
+    this.baseURL = baseServerURL;
     this.defaultHeaders = defaultHeaders;
     this.tokenHeader = tokenHeader;
   }
@@ -134,10 +136,12 @@ export default class HTTPClient {
    * @param path - A path string
    * @returns A URL string
    */
-  private addressWithPath(path: string) {
-    const mutableAddress = new URL(this.address);
-    mutableAddress.pathname = path;
-    return mutableAddress.toString();
+  private addressWithPath(relativePath: string) {
+    const address = new Url(
+      path.posix.join(this.baseURL.pathname, relativePath),
+      this.baseURL
+    );
+    return address.toString();
   }
 
   /**
@@ -150,14 +154,14 @@ export default class HTTPClient {
    * @returns Response object.
    */
   async get(
-    path: string,
+    relativePath: string,
     query?: Query<any>,
     requestHeaders: Record<string, any> = {},
     jsonOptions: utils.JSONOptions = {}
   ) {
     const format = getAcceptFormat(query);
     let r = request
-      .get(this.addressWithPath(path))
+      .get(this.addressWithPath(relativePath))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
@@ -190,12 +194,12 @@ export default class HTTPClient {
   }
 
   async post(
-    path: string,
+    relativePath: string,
     data: string | object,
     requestHeaders: Record<string, any> = {}
   ) {
     return request
-      .post(this.addressWithPath(path))
+      .post(this.addressWithPath(relativePath))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)
@@ -203,12 +207,12 @@ export default class HTTPClient {
   }
 
   async delete(
-    path: string,
+    relativePath: string,
     data: string | object,
     requestHeaders: Record<string, any> = {}
   ) {
     return request
-      .delete(this.addressWithPath(path))
+      .delete(this.addressWithPath(relativePath))
       .set(this.tokenHeader)
       .set(this.defaultHeaders)
       .set(requestHeaders)

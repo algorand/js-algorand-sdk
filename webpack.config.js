@@ -16,13 +16,15 @@ module.exports = {
   resolve: {
     // Add '.ts' as resolvable extensions
     extensions: ['.ts', '.js'],
+
+    // Support `path` in the browser
+    fallback: {
+      path: require.resolve('path-browserify'),
+    },
   },
   plugins: [
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
-    }),
-    new webpack.ProvidePlugin({
-      URL: ['whatwg-url', 'URL'],
     }),
   ],
   module: {
