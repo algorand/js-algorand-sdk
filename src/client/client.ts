@@ -133,7 +133,7 @@ export default class HTTPClient {
 
   /**
    * Compute the URL for a path relative to the instance's address
-   * @param path - A path string
+   * @param relativePath - A path string
    * @returns A URL string
    */
   private addressWithPath(relativePath: string) {
@@ -146,7 +146,7 @@ export default class HTTPClient {
 
   /**
    * Send a GET request.
-   * @param {string} path The path of the request.
+   * @param {string} relativePath The path of the request.
    * @param {object} query An object containing the query paramters of the request.
    * @param {object} requestHeaders An object containing additional request headers to use.
    * @param {object} jsonOptions Options object to use to decode JSON responses. See
