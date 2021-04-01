@@ -27,6 +27,19 @@ jobs:
       env: TEST_BROWSER=firefox
       addons:
         firefox: latest
+    - stage: Docs
+      name: GitHub Pages
+      script: npm run docs
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        keep_history: true
+        local_dir: docs
+        github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+        on:
+          branch: master
+      before_deploy: touch docs/.nojekyll
+
 env:
   global:
     - secure: CcCQWOq/afdYwF1RvF8tAkiXVRSgv0LDJC+74ER0YXgJTb6yVScMl5mFJzbUqTbZB5jeRNvw570VJF6PdKwKeiI7STgd0WkwuFMNgkFXFly/ADIGcSuueUozfR/7oBPaoG2yeLpPF9vt18Ci7pWQr27YGTeJCnAE/M6rZfhKp7Jcgts3bjrIwVCiPwmgv8acj3I1jwfwuyUzfD7Gcj7FwSGN9gwhEKFDDA+ImOxfK/C68xL8JWrJnGZqnMyAe6IISa9swozWRR5h0ILufOBh1lhsR8MTTW8IjY8LblFO18DzhD+kcdq77Ij5EhWLbcdcwvxASI5Wyhpt+O4BJVgC/XMCTBcQ4Zk8M5ZrNpfwFd3j74f4URxtTnuI0cNLE/qKXmGpATL6OlTjV5RSmhv2bM0L9d5UIhIW3OBF8ZUXuX1peCUw7O6nXuChYtxy7F/bZAZxCtZZ6qxQIpHT13zKilBHFwuuWvakgCDEK2WilId76Os8uJJ6t5JSMYxV2Y6GmtC0d+Wv11ys0aih2pPwoybVnYiVdxpd+ik1voyPSjQGF1BELcnQso3Jjc6kR0smi3MPgHoo5MPyGdNDE2GOlISxb5ke+hPgHYo3BrE3xPmDxv9fUxBuDnyEukuQVWAX0Xly2Ao5ZncTZOoD3/qpsTlpax7e2o4/1Fz0s6IIWDI=
