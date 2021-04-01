@@ -371,20 +371,24 @@ export class Transaction implements TransactionStorageStructure {
       txn.assetMetadataHash.length !== 0
     ) {
       if (typeof txn.assetMetadataHash === 'string') {
-        const encoded = Buffer.from(txn.assetMetadataHash);
-        if (encoded.byteLength !== ASSET_METADATA_HASH_LENGTH) {
-          throw Error(
-            `assetMetadataHash must be a ${ASSET_METADATA_HASH_LENGTH} byte Uint8Array or string.`
-          );
-        }
-        txn.assetMetadataHash = new Uint8Array(encoded);
-      } else if (
+        txn.assetMetadataHash = new Uint8Array(
+          Buffer.from(txn.assetMetadataHash)
+        );
+      }
+
+      if (
         txn.assetMetadataHash.constructor !== Uint8Array ||
         txn.assetMetadataHash.byteLength !== ASSET_METADATA_HASH_LENGTH
-      )
+      ) {
         throw Error(
           `assetMetadataHash must be a ${ASSET_METADATA_HASH_LENGTH} byte Uint8Array or string.`
         );
+      }
+
+      if (txn.assetMetadataHash.every((value) => value === 0)) {
+        // if hash contains all 0s, omit it
+        txn.assetMetadataHash = undefined;
+      }
     } else {
       txn.assetMetadataHash = undefined;
     }
@@ -401,6 +405,10 @@ export class Transaction implements TransactionStorageStructure {
         throw Error(
           `lease must be of length ${ALGORAND_TRANSACTION_LEASE_LENGTH.toString()}.`
         );
+      if (txn.lease.every((value) => value === 0)) {
+        // if lease contains all 0s, omit it
+        txn.lease = new Uint8Array(0);
+      }
     } else {
       txn.lease = new Uint8Array(0);
     }
