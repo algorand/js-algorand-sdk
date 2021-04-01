@@ -32,7 +32,7 @@ export default abstract class ServiceClient {
     tokenHeaderIdentifier: TokenHeaderIdentifier,
     tokenHeaderOrStr: string | TokenHeader,
     baseServer: string,
-    port?: number,
+    port?: string | number,
     defaultHeaders: Record<string, any> = {}
   ) {
     // Accept token header as string or object

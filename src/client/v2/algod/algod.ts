@@ -24,7 +24,7 @@ export default class AlgodClient extends ServiceClient {
   constructor(
     token: string | AlgodTokenHeader | CustomTokenHeader,
     baseServer = 'http://r2.algorand.network',
-    port = 4180,
+    port: string | number = 4180,
     headers = {}
   ) {
     super('X-Algo-API-Token', token, baseServer, port, headers);

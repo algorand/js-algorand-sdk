@@ -141,7 +141,7 @@ export interface TransactionParams {
   /**
    * Integer amount to send
    */
-  amount: number;
+  amount: number | bigint;
 
   /**
    * Integer first protocol round on which this txn is valid
@@ -211,7 +211,7 @@ export interface TransactionParams {
   /**
    * Total supply of the asset
    */
-  assetTotal: number;
+  assetTotal: number | bigint;
 
   /**
    * Integer number of decimals for asset unit calcuation
@@ -260,7 +260,7 @@ export interface TransactionParams {
   /**
    * Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
    */
-  assetMetadataHash: Uint8Array | string;
+  assetMetadataHash?: Uint8Array | string;
 
   /**
    * String representation of Algorand address being frozen or unfrozen

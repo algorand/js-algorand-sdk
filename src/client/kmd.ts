@@ -6,7 +6,7 @@ export default class Kmd extends ServiceClient {
   constructor(
     token: string | KMDTokenHeader | CustomTokenHeader,
     baseServer = 'http://127.0.0.1',
-    port = 7833,
+    port: string | number = 7833,
     headers = {}
   ) {
     super('X-KMD-API-Token', token, baseServer, port, headers);

@@ -318,7 +318,7 @@ export function makeAssetCreateTxnWithSuggestedParams(
   unitName: AssetCreateTxn['assetUnitName'],
   assetName: AssetCreateTxn['assetName'],
   assetURL: AssetCreateTxn['assetURL'],
-  assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
+  assetMetadataHash: AssetCreateTxn['assetMetadataHash'] | undefined,
   suggestedParams: MustHaveSuggestedParams<AssetCreateTxn>['suggestedParams'],
   rekeyTo?: AssetCreateTxn['reKeyTo']
 ) {
@@ -386,7 +386,7 @@ export function makeAssetCreateTxn(
   unitName: AssetCreateTxn['assetUnitName'],
   assetName: AssetCreateTxn['assetName'],
   assetURL: AssetCreateTxn['assetURL'],
-  assetMetadataHash: AssetCreateTxn['assetMetadataHash'],
+  assetMetadataHash?: AssetCreateTxn['assetMetadataHash'],
   rekeyTo?: AssetCreateTxn['reKeyTo']
 ) {
   const suggestedParams: SuggestedParams = {

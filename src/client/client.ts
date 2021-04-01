@@ -119,7 +119,7 @@ export default class HTTPClient {
   constructor(
     tokenHeader: TokenHeader,
     baseServer: string,
-    port?: number,
+    port?: string | number,
     private defaultHeaders: Record<string, any> = {}
   ) {
     const baseServerURL = new Url(baseServer);
