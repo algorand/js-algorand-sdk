@@ -29,6 +29,7 @@ jobs:
         firefox: latest
     - stage: Docs
       name: GitHub Pages
+      if: branch = master
       script: npm run docs
       deploy:
         provider: pages
@@ -36,8 +37,6 @@ jobs:
         keep_history: true
         local_dir: docs
         github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
-        on:
-          branch: master
       before_deploy: touch docs/.nojekyll
 
 env:

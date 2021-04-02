@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["es5", "es2015.promise", "dom", "es2015"],
+    "outDir": "./dist",
     "allowJs": true,
     "target": "es2020",
     "moduleResolution": "node",
