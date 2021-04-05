@@ -19,7 +19,7 @@ export default class Dryrun extends JSONRequest {
 
   /**
    * Executes dryrun
-   * @param headers, optional
+   * @param headers - A headers object
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);

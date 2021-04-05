@@ -73,7 +73,7 @@ function Algod(
   /**
    * pendingTransactions asks algod for a snapshot of current pending txns on the node, bounded by maxTxns.
    * If maxTxns = 0, fetches as many transactions as possible.
-   * @param maxTxns number
+   * @param maxTxns - number
    * @param headerObj, optional
    * @returns {Promise<*>}
    */
@@ -119,10 +119,10 @@ function Algod(
 
   /**
    * transactionsByAddress returns all transactions for a PK [addr] in the [first, last] rounds range.
-   * @param addr string
-   * @param first number, optional
-   * @param last number, optional
-   * @param maxTxns number, optional
+   * @param addr - string
+   * @param first - number, optional
+   * @param last - number, optional
+   * @param maxTxns - number, optional
    * @param headers, optional
    * @returns {Promise<*>}
    */
@@ -155,10 +155,10 @@ function Algod(
   /**
    * transactionsByAddressAndDate returns all transactions for a PK [addr] in the [fromDate, toDate] date range.
    * The date is a string in the YYYY-MM-DD format.
-   * @param addr string
-   * @param fromDate string
-   * @param toDate string
-   * @param maxTxns number, optional
+   * @param addr - string
+   * @param fromDate - string
+   * @param toDate - string
+   * @param maxTxns - number, optional
    * @param headerObj, optional
    * @returns {Promise<*>}
    */
@@ -232,7 +232,7 @@ function Algod(
 
   /**
    * accountInformation returns the passed account's information
-   * @param addr string
+   * @param addr - string
    * @param headerObj, optional
    * @returns {Promise<*>}
    */
@@ -243,7 +243,7 @@ function Algod(
 
   /**
    * assetInformation returns the information for the asset with the passed creator and index
-   * @param index number
+   * @param index - number
    * @param headerObj, optional
    * @returns {Promise<*>}
    */
@@ -264,7 +264,7 @@ function Algod(
 
   /**
    * sendRawTransaction gets an encoded SignedTxn and broadcasts it to the network
-   * @param txn Uin8Array
+   * @param txn - Uin8Array
    * @param headerObj, optional
    * @returns {Promise<*>}
    */
@@ -276,7 +276,7 @@ function Algod(
 
   /**
    * sendRawTransactions gets a list of encoded SignedTxns and broadcasts it to the network
-   * @param txn Array of Uin8Array
+   * @param txn - Array of Uin8Array
    * @param headerObj, optional
    * @returns {Promise<*>}
    */

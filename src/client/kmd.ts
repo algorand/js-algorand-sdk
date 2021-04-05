@@ -283,7 +283,7 @@ export default class Kmd extends ServiceClient {
    * @param walletHandle
    * @param walletPassword
    * @param transaction
-   * @param publicKey sign the txn with the key corresponding to publicKey (used for working with a rekeyed addr)
+   * @param publicKey - sign the txn with the key corresponding to publicKey (used for working with a rekeyed addr)
    */
   async signTransactionWithSpecificPublicKey(
     walletHandle: string,

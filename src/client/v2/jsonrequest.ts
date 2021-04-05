@@ -17,8 +17,8 @@ export default abstract class JSONRequest<
   intDecoding: IntDecoding;
 
   /**
-   * @param {HttpClient} client HTTPClient object.
-   * @param {"default" | "safe" | "mixed" | "bigint" | undefined} intDecoding The method to use
+   * @param client - HTTPClient object.
+   * @param intDecoding - The method to use
    *   for decoding integers from this request's response. See the setIntDecoding method for more
    *   details.
    */
@@ -38,7 +38,7 @@ export default abstract class JSONRequest<
    *
    * Use this method to change and restructure response
    * data as needed after receiving it from the `do()` method.
-   * @param body Response body received
+   * @param body - Response body received
    */
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Body): Data {
@@ -47,7 +47,7 @@ export default abstract class JSONRequest<
 
   /**
    * Execute the request.
-   * @param headers Additional headers to send in the request. Optional.
+   * @param headers - Additional headers to send in the request. Optional.
    * @returns A promise which resolves to the response data.
    */
   async do(headers: Record<string, any> = {}): Promise<Data> {
@@ -71,7 +71,7 @@ export default abstract class JSONRequest<
    *   Number.MAX_SAFE_INTEGER, otherwise they will be decoded as BigInts.
    * * "bigint": All integers will be decoded as BigInts.
    *
-   * @param {"default" | "safe" | "mixed" | "bigint"} method The method to use when parsing the
+   * @param method - The method to use when parsing the
    *   response for this request. Must be one of "default", "safe", "mixed", or "bigint".
    */
   setIntDecoding(method: IntDecoding) {

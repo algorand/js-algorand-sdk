@@ -1035,7 +1035,7 @@ export class Transaction implements TransactionStorageStructure {
 /**
  * encodeUnsignedTransaction takes a completed txnBuilder.Transaction object, such as from the makeFoo
  * family of transactions, and converts it to a Buffer
- * @param transactionObject the completed Transaction object
+ * @param transactionObject - the completed Transaction object
  */
 export function encodeUnsignedTransaction(transactionObject: Transaction) {
   const objToEncode = transactionObject.get_obj_for_encoding();
@@ -1044,7 +1044,7 @@ export function encodeUnsignedTransaction(transactionObject: Transaction) {
 
 /**
  * decodeUnsignedTransaction takes a Buffer (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
- * @param transactionBuffer the Uint8Array containing a transaction
+ * @param transactionBuffer - the Uint8Array containing a transaction
  */
 export function decodeUnsignedTransaction(
   transactionBuffer: ArrayLike<number>
@@ -1058,7 +1058,7 @@ export function decodeUnsignedTransaction(
 /**
  * decodeSignedTransaction takes a Buffer (from transaction.signTxn) and converts it to an object
  * containing the Transaction (txn), the signature (sig), and the auth-addr field if applicable (sgnr)
- * @param transactionBuffer the Uint8Array containing a transaction
+ * @param transactionBuffer - the Uint8Array containing a transaction
  * @returns containing a Transaction, the signature, and possibly an auth-addr field
  */
 export function decodeSignedTransaction(transactionBuffer: Uint8Array) {

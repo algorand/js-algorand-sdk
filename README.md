@@ -58,6 +58,16 @@ npm run build
 
 > The `dist` directory has been removed from version control in releases after v1.8.1. Browser bundles for previous versions can be found by going to that version's tag and looking in the `dist` folder.
 
+### Generating Documentation
+
+To generate the documentation website, run:
+
+```bash
+npm run docs
+```
+
+The static website will be located in the `docs/` directory.
+
 ### Testing
 
 We have two test suites: mocha tests in this repo, and the Algorand SDK test suite from https://github.com/algorand/algorand-sdk-testing.

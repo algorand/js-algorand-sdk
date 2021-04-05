@@ -4,7 +4,7 @@ import IntDecoding from '../../../types/intDecoding';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string
- * @param data Base64 string or Uint8Array
+ * @param data - Base64 string or Uint8Array
  * @returns The inputted base64 string, or a base64 string representation of the Uint8Array
  */
 export function base64StringFunnel(data: Uint8Array | string) {
@@ -30,7 +30,7 @@ export default class LookupAccountTransactions extends JSONRequest {
 
   /**
    * notePrefix to filter with
-   * @param prefix base64 string or uint8array
+   * @param prefix - base64 string or uint8array
    */
   notePrefix(prefix: Uint8Array | string) {
     this.query['note-prefix'] = base64StringFunnel(prefix);

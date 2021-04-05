@@ -4,7 +4,7 @@ export const INVALID_MICROALGOS_ERROR_MSG =
 
 /**
  * microalgosToAlgos converts microalgos to algos
- * @param microalgos number
+ * @param microalgos - number
  * @returns number
  */
 export function microalgosToAlgos(microalgos: number) {
@@ -16,7 +16,7 @@ export function microalgosToAlgos(microalgos: number) {
 
 /**
  * algosToMicroalgos converts algos to microalgos
- * @param algos number
+ * @param algos - number
  * @returns number
  */
 export function algosToMicroalgos(algos: number) {

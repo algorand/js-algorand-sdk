@@ -9,12 +9,12 @@ export interface JSONOptions {
 
 /**
  * Parse JSON with additional options.
- * @param str The JSON string to parse.
- * @param options Parsing options.
- * @param options.intDecoding Configure how integers in
- *   this request's JSON response will be decoded.
+ * @param str - The JSON string to parse.
+ * @param options - Parsing options.
+ * @param options - Options object to configure how integers in
+ *   this request's JSON response will be decoded. Use the `intDecoding`
+ *   property with one of the following options:
  *
- *   The options are:
  *   * "default": All integers will be decoded as Numbers, meaning any values greater than
  *     Number.MAX_SAFE_INTEGER will lose precision.
  *   * "safe": All integers will be decoded as Numbers, but if any values are greater than
@@ -81,7 +81,7 @@ export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {
 
 /**
  * ConcatArrays takes n number arrays and returns a joint Uint8Array
- * @param arrs An arbitrary number of n array-like number list arguments
+ * @param arrs - An arbitrary number of n array-like number list arguments
  * @returns [a,b]
  */
 export function concatArrays(...arrs: ArrayLike<number>[]) {
@@ -99,7 +99,7 @@ export function concatArrays(...arrs: ArrayLike<number>[]) {
 
 /**
  * Remove undefined properties from an object
- * @param obj An object, preferably one with some undefined properties
+ * @param obj - An object, preferably one with some undefined properties
  * @returns A copy of the object with undefined properties removed
  */
 export function removeUndefinedProperties(

@@ -41,12 +41,12 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
 
 /**
  * createMultisigTransaction creates a multisig transaction blob.
- * @param txnForEncoding the actual transaction to sign.
- * @param rawSig a Buffer raw signature of that transaction
- * @param myPk a public key that corresponds with rawSig
- * @param version multisig version
- * @param threshold mutlisig threshold
- * @param pks ordered list of public keys in this multisig
+ * @param txnForEncoding - the actual transaction to sign.
+ * @param rawSig - a Buffer raw signature of that transaction
+ * @param myPk - a public key that corresponds with rawSig
+ * @param version - multisig version
+ * @param threshold - mutlisig threshold
+ * @param pks - ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
 export function createMultisigTransaction(
@@ -112,10 +112,10 @@ export class MultisigTransaction extends txnBuilder.Transaction {
   /**
    * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
    * encoded with msgpack as a typed array.
-   * @param version multisig version
-   * @param threshold multisig threshold
-   * @param pks multisig public key list, order is important.
-   * @param sk an Algorand secret key to sign with.
+   * @param version - multisig version
+   * @param threshold - multisig threshold
+   * @param pks - multisig public key list, order is important.
+   * @param sk - an Algorand secret key to sign with.
    * @returns an encoded, partially signed multisig transaction.
    */
   partialSignTxn(
@@ -146,7 +146,7 @@ export class MultisigTransaction extends txnBuilder.Transaction {
 
 /**
  * mergeMultisigTransactions takes a list of multisig transaction blobs, and merges them.
- * @param multisigTxnBlobs a list of blobs representing encoded multisig txns
+ * @param multisigTxnBlobs - a list of blobs representing encoded multisig txns
  * @returns typed array msg-pack encoded multisig txn
  */
 export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {

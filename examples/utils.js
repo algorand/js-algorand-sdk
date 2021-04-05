@@ -1,6 +1,6 @@
 /**
  * Ensure that all of the required environment variables are set, throws an error otherwise
- * @param {string[]} list
+ * @param list
  */
 function ensureEnvVariablesSet(list) {
   list.forEach((envVarName) => {
