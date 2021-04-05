@@ -11,11 +11,11 @@ string##
 #elseif ( $param.algorandFormat == "BlockHeader" )
 BlockHeader##
 #elseif ( $param.algorandFormat == "uint64" )
-bigint##
+number | bigint##
 #elseif ( $param.type == "object" )
 Record<string, any>##
 #elseif ( $param.type == "integer" || $param.arrayType == "integer" )
-number##
+number | bigint##
 #elseif ( $param.type == "boolean" )
 boolean##
 #elseif( $param.type == "address" )
