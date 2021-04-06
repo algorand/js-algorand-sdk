@@ -249,7 +249,7 @@ export {
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
 export { default as generateAccount } from './account';
 export { secretKeyToMnemonic, mnemonicToSecretKey } from './mnemonic/mnemonic';
-export { default as modelsv2 } from './client/v2/algod/models/types';
+export * as modelsv2 from './client/v2/algod/models/types';
 export {
   mnemonicToMasterDerivationKey,
   masterDerivationKeyToMnemonic,

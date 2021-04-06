@@ -1,6 +1,6 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import modelsv2 from './models/types';
+import * as modelsv2 from './models/types';
 import * as encoding from '../../../encoding/encoding';
 import { setHeaders } from './compile';
 

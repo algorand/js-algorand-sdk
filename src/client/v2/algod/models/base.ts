@@ -1,10 +1,14 @@
+import { Address } from '../../../../types/address';
+
 /**
  * Base class for models
  */
 
 /* eslint-disable no-underscore-dangle,camelcase,class-methods-use-this */
-class BaseModel {
-  _is_primitive(val) {
+export default class BaseModel {
+  attribute_map: Record<string, string>;
+
+  _is_primitive(val: any): val is string | boolean | number | bigint {
     return (
       val === undefined ||
       val == null ||
@@ -12,12 +16,17 @@ class BaseModel {
     );
   }
 
-  _is_address(val) {
+  _is_address(val: any): val is Address {
     return val.publicKey !== undefined && val.checksum !== undefined;
   }
 
-  _get_obj_for_encoding(val) {
-    let targetPropValue;
+  /* eslint-disable no-dupe-class-members,no-unused-vars */
+  _get_obj_for_encoding(val: Function): Record<string, any>;
+  _get_obj_for_encoding(val: any[]): any[];
+  _get_obj_for_encoding(val: Record<string, any>): Record<string, any>;
+  _get_obj_for_encoding(val: any): any {
+    /* eslint-disable no-unused-vars */
+    let targetPropValue: any;
     if (typeof val.get_obj_for_encoding === 'function') {
       targetPropValue = val.get_obj_for_encoding();
     } else if (Array.isArray(val)) {
@@ -38,9 +47,10 @@ class BaseModel {
     }
     return targetPropValue;
   }
+  /* eslint-disable no-dupe-class-members */
 
   get_obj_for_encoding() {
-    const obj = {};
+    const obj: Record<string, any> = {};
     for (const prop of Object.keys(this)) {
       const val = this[prop];
       if (prop !== 'attribute_map' && typeof val !== 'undefined') {
@@ -51,5 +61,3 @@ class BaseModel {
     return obj;
   }
 }
-
-module.exports = { BaseModel };

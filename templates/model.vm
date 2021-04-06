@@ -1,0 +1,130 @@
+## Map generated name from spec to hand written name
+#macro ( paramName $param )
+$str.kebabToCamel($param.propertyName.replaceAll("_", "-"))##
+#end
+## Converts a parameter type into the SDK specific type.
+#macro ( toSdkType $param )
+#if ( $param.algorandFormat == "SignedTransaction" )
+EncodedSignedTransaction##
+#elseif ( $param.algorandFormat == "Address" ) ## No special handling for Address in go SDK
+string##
+#elseif ( $param.algorandFormat == "BlockHeader" )
+BlockHeader##
+#elseif ( $param.algorandFormat == "uint64" )
+number | bigint##
+#elseif ( $param.type == "object" )
+Record<string, any>##
+#elseif ( $param.type == "integer" || $param.arrayType == "integer" )
+number | bigint##
+#elseif ( $param.type == "boolean" )
+boolean##
+#elseif( $param.type == "address" )
+string##
+#elseif( $param.type == "binary" )
+Uint8Array##
+#elseif($param.arrayType && $param.format == "byte")
+Uint8Array##
+#elseif( $param.type == "string" && $param.format == "byte" )
+string##
+#elseif( $param.type == "string" || $param.arrayType == "string" )
+string##
+#elseif( $param.arrayType )
+${param.arrayType}##
+#elseif( $param.refType ) ## This is second because the old code avoids typedef of references
+${param.refType}##
+#else
+UNHANDLED TYPE
+- ref: $!param.refType
+- type: $!param.type
+- array type: $!param.arrayType
+- algorand format: $!param.algorandFormat
+- format: $!param.format
+$unknown.type ## force a template failure with an unknown type
+#end
+#if ($param.arrayType && $param.arrayType != "")[]#end## Add array postfix to arrays...
+#end
+#macro ( questionMarkIfOptional $param )
+#if ( ! $param.required )
+?##
+#end
+#end
+#set( $new = "
+" )
+#set( $object_gt = $propFile.use_object_params_if_greater_than )
+#set( $Integer = 0 )
+/**
+ * NOTICE: This file was generated. Editing this file manually is not recommended.
+ */
+
+/* eslint-disable no-use-before-define */
+import BaseModel from './base';
+import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
+import BlockHeader from '../../../../types/blockHeader';
+
+#foreach( $modelEntry in $models.entrySet() )
+#set( $def = $modelEntry.key )
+#set( $props = $def.propertiesSortedByRequired )
+#set( $d = "$" )
+#set( $e = "!" )
+#set( $override_variable_name = "${d}${e}propFile.override_${def.name}_order" )
+#set( $preferred_order_str = "#evaluate($override_variable_name)" )
+#if ( $preferred_order_str.length() > 0 )
+#set( $preferred_order = $preferred_order_str.split(",") )
+#set( $props = $order.propertiesWithOrdering($props, $preferred_order) )
+#end
+#set( $use_object_params = $props.size() > $Integer.parseInt($object_gt) )
+#if ($def.doc)
+/**
+ * $str.formatDoc($def.doc, " * ")
+ */
+#end
+export class $def.name extends BaseModel {
+#if ($use_object_params)
+#foreach( $prop in $props )
+  public #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop);
+#end
+
+#end
+  /**
+   * Creates a new `$def.name` object.
+#foreach( $prop in $props )
+   * @param #paramName($prop) - $str.formatDoc($prop.doc, "   * ")
+#end
+   */
+#if ($use_object_params)
+  constructor({
+#else
+  constructor(
+#end
+#foreach( $prop in $props )
+#if ($use_object_params)
+    #paramName($prop),
+#else
+    public #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop),
+#end
+#end
+#if ($use_object_params)
+  }: {
+#foreach ( $prop in $props )
+    #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop)
+
+#end
+  }) {
+#else
+  ) {
+#end
+    super();
+#foreach( $prop in $props )
+#set( $var = "#paramName($prop)" )
+    this.$var = $var;
+#end
+
+    this.attribute_map = {
+#foreach( $prop in $props )
+      #paramName($prop): '$prop.propertyName',
+#end
+    }
+  }
+}
+
+#end
