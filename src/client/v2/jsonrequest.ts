@@ -9,8 +9,8 @@ import IntDecoding from '../../types/intDecoding';
  * Body: The structure of the response's body
  */
 export default abstract class JSONRequest<
-  Data = Record<string, any> | Uint8Array,
-  Body = Data
+  Data = Record<string, any>,
+  Body = Data | Uint8Array
 > {
   c: HTTPClient;
   query: Record<string, any>;

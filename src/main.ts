@@ -240,6 +240,7 @@ export * from './types/transactions';
 export { default as Algodv2 } from './client/v2/algod/algod';
 export { default as Kmd } from './client/kmd';
 export { default as IntDecoding } from './types/intDecoding';
+export { default as Account } from './types/account';
 export { default as Indexer } from './client/v2/indexer/indexer';
 export {
   isValidAddress,
