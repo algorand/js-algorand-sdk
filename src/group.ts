@@ -83,7 +83,7 @@ export function assignGroupID(
   from?: string
 ) {
   const gid = computeGroupID(txns);
-  const result = [];
+  const result: txnBuilder.Transaction[] = [];
   for (const txn of txns) {
     const tx = txnBuilder.instantiateTxnIfNeeded(txn);
     if (!from || address.encodeAddress(tx.from.publicKey) === from) {
