@@ -122,7 +122,7 @@ export default class HTTPClient {
     port?: string | number,
     private defaultHeaders: Record<string, any> = {}
   ) {
-    const baseServerURL = new Url(baseServer);
+    const baseServerURL = new Url(baseServer, {});
     if (typeof port !== 'undefined') {
       baseServerURL.set('port', port.toString());
     }
