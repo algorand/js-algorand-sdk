@@ -158,6 +158,7 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  */
+/* eslint-disable no-unused-vars,no-redeclare */
 export function makeKeyRegistrationTxnWithSuggestedParams(
   from: KeyRegistrationTxn['from'],
   note: KeyRegistrationTxn['note'],
@@ -168,8 +169,33 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
   rekeyTo?: KeyRegistrationTxn['reKeyTo'],
-  nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
+  nonParticipation?: false
+): txnBuilder.Transaction;
+export function makeKeyRegistrationTxnWithSuggestedParams(
+  from: KeyRegistrationTxn['from'],
+  note: KeyRegistrationTxn['note'],
+  voteKey: undefined,
+  selectionKey: undefined,
+  voteFirst: undefined,
+  voteLast: undefined,
+  voteKeyDilution: undefined,
+  suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
+  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  nonParticipation?: true
+): txnBuilder.Transaction;
+export function makeKeyRegistrationTxnWithSuggestedParams(
+  from: any,
+  note: any,
+  voteKey: any,
+  selectionKey: any,
+  voteFirst: any,
+  voteLast: any,
+  voteKeyDilution: any,
+  suggestedParams: any,
+  rekeyTo?: any,
+  nonParticipation = false
 ) {
+  /* eslint-enable no-unused-vars,no-redeclare */
   const o: KeyRegistrationTxn = {
     from,
     note,
@@ -208,6 +234,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  */
+/* eslint-disable no-unused-vars,no-redeclare */
 export function makeKeyRegistrationTxn(
   from: KeyRegistrationTxn['from'],
   fee: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['fee'],
@@ -222,8 +249,41 @@ export function makeKeyRegistrationTxn(
   voteLast: KeyRegistrationTxn['voteLast'],
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
   rekeyTo?: KeyRegistrationTxn['reKeyTo'],
-  nonParticipation: KeyRegistrationTxn['nonParticipation'] = false
+  nonParticipation?: false
+): txnBuilder.Transaction;
+export function makeKeyRegistrationTxn(
+  from: KeyRegistrationTxn['from'],
+  fee: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['fee'],
+  firstRound: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['firstRound'],
+  lastRound: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['lastRound'],
+  note: KeyRegistrationTxn['note'],
+  genesisHash: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['genesisHash'],
+  genesisID: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['genesisID'],
+  voteKey: undefined,
+  selectionKey: undefined,
+  voteFirst: undefined,
+  voteLast: undefined,
+  voteKeyDilution: undefined,
+  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  nonParticipation?: true
+): txnBuilder.Transaction;
+export function makeKeyRegistrationTxn(
+  from: any,
+  fee: any,
+  firstRound: any,
+  lastRound: any,
+  note: any,
+  genesisHash: any,
+  genesisID: any,
+  voteKey: any,
+  selectionKey: any,
+  voteFirst: any,
+  voteLast: any,
+  voteKeyDilution: any,
+  rekeyTo?: any,
+  nonParticipation: any = false
 ) {
+  /* eslint-enable no-unused-vars,no-redeclare */
   const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
@@ -246,6 +306,7 @@ export function makeKeyRegistrationTxn(
 }
 
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
+/* eslint-disable no-unused-vars,no-redeclare */
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
   o: Pick<
     RenameProperty<
@@ -262,9 +323,24 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     | 'voteKeyDilution'
     | 'suggestedParams'
     | 'rekeyTo'
-    | 'nonParticipation'
-  >
-) {
+  > & {
+    nonParticipation?: false;
+  }
+): txnBuilder.Transaction;
+export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
+  o: Pick<
+    RenameProperty<
+      MustHaveSuggestedParams<KeyRegistrationTxn>,
+      'reKeyTo',
+      'rekeyTo'
+    >,
+    'from' | 'note' | 'suggestedParams' | 'rekeyTo'
+  > & {
+    nonParticipation?: true;
+  }
+): txnBuilder.Transaction;
+export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
+  /* eslint-enable no-unused-vars,no-redeclare */
   return makeKeyRegistrationTxnWithSuggestedParams(
     o.from,
     o.note,
