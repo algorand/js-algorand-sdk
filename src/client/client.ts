@@ -126,6 +126,11 @@ export default class HTTPClient {
     if (typeof port !== 'undefined') {
       baseServerURL.set('port', port.toString());
     }
+
+    if (baseServerURL.protocol.length === 0) {
+      throw new Error('Invalid base server URL, protocol must be defined.');
+    }
+
     this.baseURL = baseServerURL;
     this.defaultHeaders = defaultHeaders;
     this.tokenHeader = tokenHeader;

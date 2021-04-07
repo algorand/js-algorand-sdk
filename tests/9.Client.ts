@@ -53,6 +53,12 @@ describe('client', () => {
         }
       }
     });
+
+    it('should throw an error if protocol is the empty', () => {
+      const baseServer = 'localhost'; // should be http://localhost
+
+      assert.throws(() => new HTTPClient({}, baseServer));
+    });
     /* eslint-enable dot-notation */
   });
 });
