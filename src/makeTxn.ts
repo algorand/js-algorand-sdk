@@ -336,7 +336,7 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     >,
     'from' | 'note' | 'suggestedParams' | 'rekeyTo'
   > & {
-    nonParticipation?: true;
+    nonParticipation: true;
   }
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
