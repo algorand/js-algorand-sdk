@@ -1,3 +1,33 @@
+# 1.9.0-beta.1
+
+## Added
+
+- TypeScript support ([#302](https://github.com/algorand/js-algorand-sdk/pull/302), [#314](https://github.com/algorand/js-algorand-sdk/pull/314), [#315](https://github.com/algorand/js-algorand-sdk/pull/315), [#317](https://github.com/algorand/js-algorand-sdk/pull/317), [#313](https://github.com/algorand/js-algorand-sdk/pull/313), [#319](https://github.com/algorand/js-algorand-sdk/pull/319), [#323](https://github.com/algorand/js-algorand-sdk/pull/323), [#318](https://github.com/algorand/js-algorand-sdk/pull/318), [#331](https://github.com/algorand/js-algorand-sdk/pull/331), [#325](https://github.com/algorand/js-algorand-sdk/pull/325), [#337](https://github.com/algorand/js-algorand-sdk/pull/337)).
+- Allow BigInts to be used to construct Transactions ([#263](https://github.com/algorand/js-algorand-sdk/pull/263)).
+- `decodeAddress` now verifies the address checksum ([#269](https://github.com/algorand/js-algorand-sdk/pull/269)).
+- Add support for nonparticipating key registration transactions ([#271](https://github.com/algorand/js-algorand-sdk/pull/271)).
+- Allow LogicSigs to sign transactions with a different AuthAddr ([#268](https://github.com/algorand/js-algorand-sdk/pull/268)).
+- Support for decoding BigInts from API calls ([#260](https://github.com/algorand/js-algorand-sdk/pull/260)).
+- Add helper functions to encode and decode integers ([#281](https://github.com/algorand/js-algorand-sdk/pull/281)).
+- Support new features from indexer v2.3.2 ([#296](https://github.com/algorand/js-algorand-sdk/pull/296)).
+- Support TEAL 3 programs ([#294](https://github.com/algorand/js-algorand-sdk/pull/294)).
+
+## Fixed
+
+- Properly validate `assetMetadataHash` and `lease` ([#253](https://github.com/algorand/js-algorand-sdk/pull/253), [#280](https://github.com/algorand/js-algorand-sdk/pull/280)).
+- Fix the `Algodv2.versionsCheck().do()` method ([#258](https://github.com/algorand/js-algorand-sdk/pull/258)).
+- Fix an issue using `mergeMultisigTransactions` in React ([#259](https://github.com/algorand/js-algorand-sdk/pull/259)).
+- Fix the inability to specify rekey addresses in several makeTransaction functions ([#267](https://github.com/algorand/js-algorand-sdk/pull/267)).
+- Stop the Transaction constructor from modifying input arrays ([#279](https://github.com/algorand/js-algorand-sdk/pull/279)).
+- Allow `signLogicSigTransaction` to accept Transaction objects ([#290](https://github.com/algorand/js-algorand-sdk/pull/290)).
+
+## Changed
+
+- Update examples to use v2 endpoints ([#289](https://github.com/algorand/js-algorand-sdk/pull/289)).
+- Improve error trace reporting ([#291](https://github.com/algorand/js-algorand-sdk/pull/291)).
+- Establish consistent code style ([#299](https://github.com/algorand/js-algorand-sdk/pull/299)).
+- Remove `dist` folder from repo ([#326](https://github.com/algorand/js-algorand-sdk/pull/326)).
+
 # 1.8.1
 
 ## Added
