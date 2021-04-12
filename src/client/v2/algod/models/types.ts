@@ -50,10 +50,23 @@ export class AccountStateDelta extends BaseModel {
  * Stores the TEAL eval step data
  */
 export class DryrunState extends BaseModel {
+  /**
+   * Line number
+   */
   public line: number | bigint;
+
+  /**
+   * Program counter
+   */
   public pc: number | bigint;
+
   public stack: TealValue[];
+
+  /**
+   * Evaluation error if any
+   */
   public error?: string;
+
   public scratch?: TealValue[];
 
   /**
@@ -159,10 +172,30 @@ export class Version extends BaseModel {
  * protocol.
  */
 export class AccountParticipation extends BaseModel {
+  /**
+   * (sel) Selection public key (if any) currently registered for this round.
+   */
   public selectionParticipationKey: string;
+
+  /**
+   * (voteFst) First round for which this participation is valid.
+   */
   public voteFirstValid: number | bigint;
+
+  /**
+   * (voteKD) Number of subkeys in each batch of participation keys.
+   */
   public voteKeyDilution: number | bigint;
+
+  /**
+   * (voteLst) Last round for which this participation is valid.
+   */
   public voteLastValid: number | bigint;
+
+  /**
+   * (vote) root participation public key (if any) currently registered for this
+   * round.
+   */
   public voteParticipationKey: string;
 
   /**
@@ -208,20 +241,85 @@ export class AccountParticipation extends BaseModel {
  *
  */
 export class NodeStatusResponse extends BaseModel {
+  /**
+   * CatchupTime in nanoseconds
+   */
   public catchupTime: number | bigint;
+
+  /**
+   * LastRound indicates the last round seen
+   */
   public lastRound: number | bigint;
+
+  /**
+   * LastVersion indicates the last consensus version supported
+   */
   public lastVersion: string;
+
+  /**
+   * NextVersion of consensus protocol to use
+   */
   public nextVersion: string;
+
+  /**
+   * NextVersionRound is the round at which the next consensus version will apply
+   */
   public nextVersionRound: number | bigint;
+
+  /**
+   * NextVersionSupported indicates whether the next consensus version is supported
+   * by this node
+   */
   public nextVersionSupported: boolean;
+
+  /**
+   * StoppedAtUnsupportedRound indicates that the node does not support the new
+   * rounds and has stopped making progress
+   */
   public stoppedAtUnsupportedRound: boolean;
+
+  /**
+   * TimeSinceLastRound in nanoseconds
+   */
   public timeSinceLastRound: number | bigint;
+
+  /**
+   * The current catchpoint that is being caught up to
+   */
   public catchpoint?: string;
+
+  /**
+   * The number of blocks that have already been obtained by the node as part of the
+   * catchup
+   */
   public catchpointAcquiredBlocks?: number | bigint;
+
+  /**
+   * The number of accounts from the current catchpoint that have been processed so
+   * far as part of the catchup
+   */
   public catchpointProcessedAccounts?: number | bigint;
+
+  /**
+   * The total number of accounts included in the current catchpoint
+   */
   public catchpointTotalAccounts?: number | bigint;
+
+  /**
+   * The total number of blocks that are required to complete the current catchpoint
+   * catchup
+   */
   public catchpointTotalBlocks?: number | bigint;
+
+  /**
+   * The number of accounts from the current catchpoint that have been verified so
+   * far as part of the catchup
+   */
   public catchpointVerifiedAccounts?: number | bigint;
+
+  /**
+   * The last catchpoint seen by the node
+   */
   public lastCatchpoint?: string;
 
   /**
@@ -324,11 +422,29 @@ export class NodeStatusResponse extends BaseModel {
  */
 export class DryrunRequest extends BaseModel {
   public accounts: Account[];
+
   public apps: Application[];
+
+  /**
+   * LatestTimestamp is available to some TEAL scripts. Defaults to the latest
+   * confirmed timestamp this algod is attached to.
+   */
   public latestTimestamp: number | bigint;
+
+  /**
+   * ProtocolVersion specifies a specific version string to operate under, otherwise
+   * whatever the current protocol of the network this algod is running in.
+   */
   public protocolVersion: string;
+
+  /**
+   * Round is available to some TEAL scripts. Defaults to the current round on the
+   * network this algod is attached to.
+   */
   public round: number | bigint;
+
   public sources: DryrunSource[];
+
   public txns: EncodedSignedTransaction[];
 
   /**
@@ -433,10 +549,15 @@ export class ErrorResponse extends BaseModel {
 
 export class BuildVersion extends BaseModel {
   public branch: string;
+
   public buildNumber: number | bigint;
+
   public channel: string;
+
   public commitHash: string;
+
   public major: number | bigint;
+
   public minor: number | bigint;
 
   /**
@@ -625,11 +746,35 @@ export class DryrunSource extends BaseModel {
  * Stores the global information associated with an application.
  */
 export class ApplicationParams extends BaseModel {
+  /**
+   * (approv) approval program.
+   */
   public approvalProgram: string;
+
+  /**
+   * (clearp) approval program.
+   */
   public clearStateProgram: string;
+
+  /**
+   * The address that created this application. This is the address where the
+   * parameters and global state for this application can be found.
+   */
   public creator: string;
+
+  /**
+   * [\gs) global schema
+   */
   public globalState?: TealKeyValue[];
+
+  /**
+   * [\lsch) global schema
+   */
   public globalStateSchema?: ApplicationStateSchema;
+
+  /**
+   * [\lsch) local schema
+   */
   public localStateSchema?: ApplicationStateSchema;
 
   /**
@@ -769,17 +914,72 @@ export class CatchpointStartResponse extends BaseModel {
  * data/transactions/asset.go : AssetParams
  */
 export class AssetParams extends BaseModel {
+  /**
+   * The address that created this asset. This is the address where the parameters
+   * for this asset can be found, and also the address where unwanted asset units can
+   * be sent in the worst case.
+   */
   public creator: string;
+
+  /**
+   * (dc) The number of digits to use after the decimal point when displaying this
+   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
+   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
+   * must be between 0 and 19 (inclusive).
+   */
   public decimals: number | bigint;
+
+  /**
+   * (t) The total number of units of this asset.
+   */
   public total: number | bigint;
+
+  /**
+   * (c) Address of account used to clawback holdings of this asset. If empty,
+   * clawback is not permitted.
+   */
   public clawback?: string;
+
+  /**
+   * (df) Whether holdings of this asset are frozen by default.
+   */
   public defaultFrozen?: boolean;
+
+  /**
+   * (f) Address of account used to freeze holdings of this asset. If empty, freezing
+   * is not permitted.
+   */
   public freeze?: string;
+
+  /**
+   * (m) Address of account used to manage the keys of this asset and to destroy it.
+   */
   public manager?: string;
+
+  /**
+   * (am) A commitment to some unspecified asset metadata. The format of this
+   * metadata is up to the application.
+   */
   public metadataHash?: string;
+
+  /**
+   * (an) Name of this asset, as supplied by the creator.
+   */
   public name?: string;
+
+  /**
+   * (r) Address of account holding reserve (non-minted) units of this asset.
+   */
   public reserve?: string;
+
+  /**
+   * (un) Name of a unit of this asset, as supplied by the creator.
+   */
   public unitName?: string;
+
+  /**
+   * (au) URL where more information about the asset can be retrieved.
+   */
   public url?: string;
 
   /**
@@ -965,12 +1165,24 @@ export class CompileResponse extends BaseModel {
  * information and state updates from a dryrun.
  */
 export class DryrunTxnResult extends BaseModel {
+  /**
+   * Disassembled program line by line.
+   */
   public disassembly: string[];
+
   public appCallMessages?: string[];
+
   public appCallTrace?: DryrunState[];
+
+  /**
+   * Application state delta.
+   */
   public globalDelta?: EvalDeltaKeyValue[];
+
   public localDeltas?: AccountStateDelta[];
+
   public logicSigMessages?: string[];
+
   public logicSigTrace?: DryrunState[];
 
   /**
@@ -1048,21 +1260,104 @@ export class TealKeyValue extends BaseModel {
  * data/basics/userBalance.go : AccountData
  */
 export class Account extends BaseModel {
+  /**
+   * the account public key
+   */
   public address: string;
+
+  /**
+   * (algo) total number of MicroAlgos in the account
+   */
   public amount: number | bigint;
+
+  /**
+   * specifies the amount of MicroAlgos in the account, without the pending rewards.
+   */
   public amountWithoutPendingRewards: number | bigint;
+
+  /**
+   * amount of MicroAlgos of pending rewards in this account.
+   */
   public pendingRewards: number | bigint;
+
+  /**
+   * (ern) total rewards of MicroAlgos the account has received, including pending
+   * rewards.
+   */
   public rewards: number | bigint;
+
+  /**
+   * The round for which this information is relevant.
+   */
   public round: number | bigint;
+
+  /**
+   * (onl) delegation status of the account's MicroAlgos
+   * * Offline - indicates that the associated account is delegated.
+   * * Online - indicates that the associated account used as part of the delegation
+   * pool.
+   * * NotParticipating - indicates that the associated account is neither a
+   * delegator nor a delegate.
+   */
   public status: string;
+
+  /**
+   * (appl) applications local data stored in this account.
+   * Note the raw object uses `map[int] -> AppLocalState` for this type.
+   */
   public appsLocalState?: ApplicationLocalState[];
+
+  /**
+   * (tsch) stores the sum of all of the local schemas and global schemas in this
+   * account.
+   * Note: the raw account uses `StateSchema` for this type.
+   */
   public appsTotalSchema?: ApplicationStateSchema;
+
+  /**
+   * (asset) assets held by this account.
+   * Note the raw object uses `map[int] -> AssetHolding` for this type.
+   */
   public assets?: AssetHolding[];
+
+  /**
+   * (spend) the address against which signing should be checked. If empty, the
+   * address of the current account is used. This field can be updated in any
+   * transaction by setting the RekeyTo field.
+   */
   public authAddr?: string;
+
+  /**
+   * (appp) parameters of applications created by this account including app global
+   * data.
+   * Note: the raw account uses `map[int] -> AppParams` for this type.
+   */
   public createdApps?: Application[];
+
+  /**
+   * (apar) parameters of assets created by this account.
+   * Note: the raw account uses `map[int] -> Asset` for this type.
+   */
   public createdAssets?: Asset[];
+
+  /**
+   * AccountParticipation describes the parameters used by this account in consensus
+   * protocol.
+   */
   public participation?: AccountParticipation;
+
+  /**
+   * (ebase) used as part of the rewards computation. Only applicable to accounts
+   * which are participating.
+   */
   public rewardBase?: number | bigint;
+
+  /**
+   * Indicates what type of signature is used by this account, must be one of:
+   * * sig
+   * * msig
+   * * lsig
+   */
   public sigType?: string;
 
   /**
@@ -1245,17 +1540,69 @@ export class TealValue extends BaseModel {
  * longer remembers it, and this will return an error.
  */
 export class PendingTransactionResponse extends BaseModel {
+  /**
+   * Indicates that the transaction was kicked out of this node's transaction pool
+   * (and specifies why that happened). An empty string indicates the transaction
+   * wasn't kicked out of this node's txpool due to an error.
+   */
   public poolError: string;
+
+  /**
+   * The raw signed transaction.
+   */
   public txn: EncodedSignedTransaction;
+
+  /**
+   * The application index if the transaction was found and it created an
+   * application.
+   */
   public applicationIndex?: number | bigint;
+
+  /**
+   * The number of the asset's unit that were transferred to the close-to address.
+   */
   public assetClosingAmount?: number | bigint;
+
+  /**
+   * The asset index if the transaction was found and it created an asset.
+   */
   public assetIndex?: number | bigint;
+
+  /**
+   * Rewards in microalgos applied to the close remainder to account.
+   */
   public closeRewards?: number | bigint;
+
+  /**
+   * Closing amount for the transaction.
+   */
   public closingAmount?: number | bigint;
+
+  /**
+   * The round where this transaction was confirmed, if present.
+   */
   public confirmedRound?: number | bigint;
+
+  /**
+   * (gd) Global state key/value changes for the application being executed by this
+   * transaction.
+   */
   public globalStateDelta?: EvalDeltaKeyValue[];
+
+  /**
+   * (ld) Local state key/value changes for the application being executed by this
+   * transaction.
+   */
   public localStateDelta?: AccountStateDelta[];
+
+  /**
+   * Rewards in microalgos applied to the receiver account.
+   */
   public receiverRewards?: number | bigint;
+
+  /**
+   * Rewards in microalgos applied to the sender account.
+   */
   public senderRewards?: number | bigint;
 
   /**
@@ -1341,11 +1688,39 @@ export class PendingTransactionResponse extends BaseModel {
  * transaction.
  */
 export class TransactionParametersResponse extends BaseModel {
+  /**
+   * ConsensusVersion indicates the consensus protocol version
+   * as of LastRound.
+   */
   public consensusVersion: string;
+
+  /**
+   * Fee is the suggested transaction fee
+   * Fee is in units of micro-Algos per byte.
+   * Fee may fall to zero but transactions must still have a fee of
+   * at least MinTxnFee for the current network protocol.
+   */
   public fee: number | bigint;
+
+  /**
+   * GenesisHash is the hash of the genesis block.
+   */
   public genesisHash: string;
+
+  /**
+   * GenesisID is an ID listed in the genesis block.
+   */
   public genesisId: string;
+
+  /**
+   * LastRound indicates the last round seen
+   */
   public lastRound: number | bigint;
+
+  /**
+   * The minimum transaction fee (not per byte) required for the
+   * txn to validate for the current network protocol.
+   */
   public minFee: number | bigint;
 
   /**
