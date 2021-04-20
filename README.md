@@ -14,14 +14,15 @@ $ npm install algosdk
 
 ### Browser
 
-The [`dist` directory](https://github.com/algorand/js-algorand-sdk/tree/v1.8.1/dist) contains a minified version of the library - `algosdk.min.js`.
-Include this line in your HTML.
+Starting with version 1.9.0, a minified browser bundle can be obtained from npm CDNs such as [unpkg](https://unpkg.com/) or [jsDelivr](https://www.jsdelivr.com/). These bundles can be included directly in your HTML like so:
 
 ```html
-<script src="algosdk.min.js" />
+<script src="https://unpkg.com/algosdk@latest" /> <!-- or https://cdn.jsdelivr.net/npm/algosdk@latest -->
 ```
 
-> The `dist` directory has been removed from version control in releases after v1.8.1. In the future, users will be encouraged to use an npm CDN such as [unpkg](https://unpkg.com/) or [jsDelivr](https://www.jsdelivr.com/).
+> In production, it's recommended to pin a specific version instead of using `latest`.
+
+If you would instead prefer to host the package yourself, a minified browser bundle can be found in the `dist/browser/` folder of the published npm package starting with version 1.9.0. Prior versions do not include the browser bundle in the npm package. In order to access those, look in the `dist` folder on the version's GitHub tag, e.g. https://github.com/algorand/js-algorand-sdk/tree/v1.8.1/dist.
 
 ## Quick Start
 
