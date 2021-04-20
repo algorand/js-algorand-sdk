@@ -14,12 +14,14 @@ $ npm install algosdk
 
 ### Browser
 
-The `dist` directory contains a minified version of the library - `algosdk.min.js`.
+The [`dist` directory](https://github.com/algorand/js-algorand-sdk/tree/v1.8.1/dist) contains a minified version of the library - `algosdk.min.js`.
 Include this line in your HTML.
 
 ```html
 <script src="algosdk.min.js" />
 ```
+
+> The `dist` directory has been removed from version control in releases after v1.8.1. In the future, users will be encouraged to use an npm CDN such as [unpkg](https://unpkg.com/) or [jsDelivr](https://www.jsdelivr.com/).
 
 ## Quick Start
 
@@ -55,8 +57,6 @@ To build a new version of the library, run:
 ```bash
 npm run build
 ```
-
-> The `dist` directory has been removed from version control in releases after v1.8.1. Browser bundles for previous versions can be found by going to that version's tag and looking in the `dist` folder.
 
 ### Generating Documentation
 
