@@ -14,12 +14,16 @@ $ npm install algosdk
 
 ### Browser
 
-The `dist` directory contains a minified version of the library - `algosdk.min.js`.
-Include this line in your HTML.
+Include a minified browser bundle directly in your HTML like so:
 
 ```html
-<script src="algosdk.min.js" />
+<script src="https://unpkg.com/algosdk@latest" />
+<!-- or https://cdn.jsdelivr.net/npm/algosdk@latest -->
 ```
+
+> In production, it's recommended to pin a specific version instead of using `latest`.
+
+Information about hosting the package for yourself or finding the browser bundles of previous versions is [available here](FAQ.md).
 
 ## Quick Start
 
@@ -55,8 +59,6 @@ To build a new version of the library, run:
 ```bash
 npm run build
 ```
-
-> The `dist` directory has been removed from version control in releases after v1.8.1. Browser bundles for previous versions can be found by going to that version's tag and looking in the `dist` folder.
 
 ### Generating Documentation
 
