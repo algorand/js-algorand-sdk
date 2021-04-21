@@ -18,7 +18,7 @@ export function setHeaders(headers = {}) {
  * Executes compile
  */
 export default class Compile extends JSONRequest {
-  constructor(c: HTTPClient, private source: string) {
+  constructor(c: HTTPClient, private source: string | Uint8Array) {
     super(c);
     this.source = source;
   }
