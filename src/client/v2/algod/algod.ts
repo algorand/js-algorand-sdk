@@ -110,7 +110,7 @@ export default class AlgodClient extends ServiceClient {
     return new Supply(this.c, this.intDecoding);
   }
 
-  compile(source: string) {
+  compile(source: string | Uint8Array) {
     return new Compile(this.c, source);
   }
 
