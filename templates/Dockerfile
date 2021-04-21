@@ -18,7 +18,7 @@ COPY --from=generator /repo /repo
 WORKDIR /repo
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Format generated code
 RUN make format
