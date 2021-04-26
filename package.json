@@ -1,6 +1,6 @@
 {
   "name": "algosdk",
-  "version": "1.9.0-beta.1",
+  "version": "1.9.0",
   "description": "algosdk is Algorand's official javascript SDK",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
