@@ -1,8 +1,8 @@
 # js-algorand-sdk
 
-[![Build Status](https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master)](https://travis-ci.com/algorand/js-algorand-sdk) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://badge.fury.io/js/algosdk)
+[![Build Status](https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master)](https://travis-ci.com/algorand/js-algorand-sdk) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://www.npmjs.com/package/algosdk)
 
-AlgoSDK is a javascript library for communicating with the Algorand network for modern browsers and node.js.
+AlgoSDK is the official JavaScript library for communicating with the Algorand network. It's designed for modern browsers and node.js.
 
 ## Installation
 
@@ -11,6 +11,8 @@ AlgoSDK is a javascript library for communicating with the Algorand network for 
 ```
 $ npm install algosdk
 ```
+
+> This package provides TypeScript types, but you will need TypeScript version 4.2 or higher to use them properly.
 
 ### Browser
 
