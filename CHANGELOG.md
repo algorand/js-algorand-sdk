@@ -1,3 +1,10 @@
+# 1.9.1
+
+## Changed
+
+- Changed our browser bundle from webpack's `window` type to `UMD`, which fixes issues when using
+  the library from React ([#352](https://github.com/algorand/js-algorand-sdk/issues/352)).
+
 # 1.9.0
 
 ## Added
