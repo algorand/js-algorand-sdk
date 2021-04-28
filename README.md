@@ -6,13 +6,13 @@ AlgoSDK is the official JavaScript library for communicating with the Algorand n
 
 ## Installation
 
-> This package provides TypeScript types, but you will need TypeScript version 4.2 or higher to use them properly.
-
 ### node.js
 
 ```
 $ npm install algosdk
 ```
+
+> This package provides TypeScript types, but you will need TypeScript version 4.2 or higher to use them properly.
 
 ### Browser
 
