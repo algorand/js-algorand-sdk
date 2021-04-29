@@ -44,7 +44,7 @@ const client = new algosdk.Algod(token, server, port);
 
 ## Documentation
 
-Documention for this SDK is available here: https://algorand.github.io/js-algorand-sdk/. Additional resources are available on https://developer.algorand.org.
+Documentation for this SDK is available here: https://algorand.github.io/js-algorand-sdk/. Additional resources are available on https://developer.algorand.org.
 
 ## Examples
 
