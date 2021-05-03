@@ -226,36 +226,36 @@ export interface TransactionParams {
   /**
    * String representation of Algorand address in charge of reserve, freeze, clawback, destruction, etc.
    */
-  assetManager: string;
+  assetManager?: string;
 
   /**
    * String representation of Algorand address representing asset reserve
    */
-  assetReserve: string;
+  assetReserve?: string;
 
   /**
    * String representation of Algorand address with power to freeze/unfreeze asset holdings
    */
-  assetFreeze: string;
+  assetFreeze?: string;
 
   /**
    * String representation of Algorand address with power to revoke asset holdings
    */
-  assetClawback: string;
+  assetClawback?: string;
 
   /**
    * Unit name for this asset
    */
-  assetUnitName: string;
+  assetUnitName?: string;
   /**
    * Name for this asset
    */
-  assetName: string;
+  assetName?: string;
 
   /**
    * URL relating to this asset
    */
-  assetURL: string;
+  assetURL?: string;
 
   /**
    * Uint8Array or UTF-8 string representation of a hash commitment with respect to the asset. Must be exactly 32 bytes long.
