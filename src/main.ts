@@ -3,14 +3,12 @@ import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
 import * as multisig from './multisig';
+import * as LogicTemplatesCommonJSExport from './logicTemplates';
 import Bid, { BidOptions } from './bid';
-import algod from './client/algod';
 import * as convert from './convert';
 import * as utils from './utils/utils';
 import AnyTransaction from './types/transactions';
 import { MultisigMetadata } from './types/multisig';
-
-export const { Algod } = algod;
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
@@ -237,6 +235,7 @@ export const ERROR_INVALID_MICROALGOS = new Error(
 );
 
 export * from './types/transactions';
+export * from './client/algod';
 export { default as Algodv2 } from './client/v2/algod/algod';
 export { default as Kmd } from './client/kmd';
 export { default as IntDecoding } from './types/intDecoding';
@@ -269,7 +268,7 @@ export {
   tealSign,
   tealSignFromProgram,
 } from './logicsig';
-export { default as LogicTemplates } from './logicTemplates';
+export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
 export * from './makeTxn';
 export * from './transaction';
