@@ -369,6 +369,8 @@ export interface TransactionParams {
 
   /**
    * Int representing extra pages of memory to rent during an application create transaction.
+   *
+   * Each page is 2048 Bytes, shared between Application and Clear programs
    */
   extraPages?: number;
 }
