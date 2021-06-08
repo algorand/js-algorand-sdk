@@ -286,6 +286,11 @@ export interface EncodedTransaction {
    * appAccounts
    */
   apat?: Buffer[];
+
+  /**
+   * extraPages
+   */
+  expg?: number;
 }
 
 /**
