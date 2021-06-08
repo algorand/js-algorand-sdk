@@ -52,7 +52,6 @@ interface TransactionStorageStructure
     | 'appAccounts'
     | 'suggestedParams'
     | 'reKeyTo'
-    | 'extraPages'
   > {
   from: string | Address;
   to: string | Address;

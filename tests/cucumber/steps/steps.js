@@ -4211,7 +4211,7 @@ module.exports = function getSteps(options) {
   );
 
   Given(
-    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}',
+    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, extra-pages {int}',
     async function (
       operationString,
       approvalProgramFile,
@@ -4223,7 +4223,8 @@ module.exports = function getSteps(options) {
       appArgsCommaSeparatedString,
       foreignAppsCommaSeparatedString,
       foreignAssetsCommaSeparatedString,
-      appAccountsCommaSeparatedString
+      appAccountsCommaSeparatedString,
+      extraPages
     ) {
       if (operationString === 'create') {
         this.currentApplicationIndex = 0;
@@ -4276,7 +4277,9 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const o = {
+        type: 'appl',
         from: this.transientAddress,
+        suggestedParams: sp,
         appIndex: this.currentApplicationIndex,
         appOnComplete: operation,
         appLocalInts: numLocalInts,
@@ -4289,8 +4292,10 @@ module.exports = function getSteps(options) {
         appAccounts,
         appForeignApps: foreignApps,
         appForeignAssets: foreignAssets,
-        type: 'appl',
-        suggestedParams: sp,
+        note: undefined,
+        lease: undefined,
+        reKeyTo: undefined,
+        extraPages,
       };
       this.txn = new algosdk.Transaction(o);
     }
