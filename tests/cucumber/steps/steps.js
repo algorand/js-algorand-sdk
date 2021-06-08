@@ -4164,7 +4164,7 @@ module.exports = function getSteps(options) {
     'the base{int} encoded signed transaction should equal {string}',
     function (base, base64golden) {
       const actualBase64 = Buffer.from(this.stx).toString('base64');
-      assert.strictEqual(base64golden, actualBase64);
+      assert.strictEqual(actualBase64, base64golden);
     }
   );
 
