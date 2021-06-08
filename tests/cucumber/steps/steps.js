@@ -4292,9 +4292,6 @@ module.exports = function getSteps(options) {
         appAccounts,
         appForeignApps: foreignApps,
         appForeignAssets: foreignAssets,
-        note: undefined,
-        lease: undefined,
-        reKeyTo: undefined,
         extraPages,
       };
       this.txn = new algosdk.Transaction(o);

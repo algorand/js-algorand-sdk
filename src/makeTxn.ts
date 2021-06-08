@@ -1141,7 +1141,6 @@ export function makeApplicationCreateTxnFromObject(
         appForeignApps: 'foreignApps';
         appForeignAssets: 'foreignAssets';
         reKeyTo: 'rekeyTo';
-        extraPages: 'extraPages';
       }
     >,
     | 'from'
