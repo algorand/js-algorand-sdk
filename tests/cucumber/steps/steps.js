@@ -3983,7 +3983,7 @@ module.exports = function getSteps(options) {
   }
 
   When(
-    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, extra-pages {int}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}',
+    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}, extra-pages {int}',
     async function (
       operationString,
       appIndex,
@@ -3998,11 +3998,11 @@ module.exports = function getSteps(options) {
       foreignAppsCommaSeparatedString,
       foreignAssetsCommaSeparatedString,
       appAccountsCommaSeparatedString,
-      extraPages,
       fee,
       firstValid,
       lastValid,
-      genesisHashBase64
+      genesisHashBase64,
+      extraPages
     ) {
       // operation string to enum
       const operation = operationStringToEnum(operationString);

@@ -422,7 +422,6 @@ export class Transaction implements TransactionStorageStructure {
     if (txn.selectionKey !== undefined) {
       txn.selectionKey = Buffer.from(txn.selectionKey as string, 'base64');
     }
-
     if (
       txn.nonParticipation &&
       (txn.voteKey ||
