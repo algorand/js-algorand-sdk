@@ -290,7 +290,7 @@ export interface EncodedTransaction {
   /**
    * extraPages
    */
-  expg?: number;
+  apep?: number;
 }
 
 /**

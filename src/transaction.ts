@@ -701,7 +701,7 @@ export class Transaction implements TransactionStorageStructure {
         },
         apfa: this.appForeignApps,
         apas: this.appForeignAssets,
-        expg: this.extraPages,
+        apep: this.extraPages,
       };
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -739,7 +739,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.apan) delete txn.apan;
       if (!txn.apfa) delete txn.apfa;
       if (!txn.apas) delete txn.apas;
-      if (!txn.expg) delete txn.expg;
+      if (!txn.apep) delete txn.apep;
       if (txn.grp === undefined) delete txn.grp;
       return txn;
     }
