@@ -255,7 +255,7 @@ export class Transaction implements TransactionStorageStructure {
       throw Error('firstRound must be a positive number');
     if (!Number.isSafeInteger(txn.lastRound) || txn.lastRound < 0)
       throw Error('lastRound must be a positive number');
-    if (txn.extraPages < 0 || txn.extraPages > 3)
+    if (txn.extraPages != null && (!Number.isInteger(txn.extraPages) || txn.extraPages < 0 || txn.extraPages > 3))
       throw Error('extraPages must be an Integer between and including 0 to 3');
     if (
       txn.assetTotal !== undefined &&
