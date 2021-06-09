@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
-const webpackConfig = require('../webpack.config.js');
+const webpackConfig = require('../webpack.config');
 
 const browser = process.env.TEST_BROWSER;
 

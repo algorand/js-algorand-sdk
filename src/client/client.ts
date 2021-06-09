@@ -48,7 +48,7 @@ function createJSONParser(options: utils.JSONOptions) {
 
 /**
  * Remove falsy values or values with a length of 0 from an object.
- * @param obj
+ * @param obj -
  */
 function removeFalsyOrEmpty(obj: Record<string, any>) {
   for (const key in obj) {
@@ -68,7 +68,7 @@ type Query<F> = {
 /**
  * getAcceptFormat returns the correct Accept header depending on the
  * requested format.
- * @param query
+ * @param query -
  */
 /* eslint-disable no-redeclare,no-unused-vars */
 function getAcceptFormat(
@@ -151,10 +151,10 @@ export default class HTTPClient {
 
   /**
    * Send a GET request.
-   * @param {string} relativePath The path of the request.
-   * @param {object} query An object containing the query paramters of the request.
-   * @param {object} requestHeaders An object containing additional request headers to use.
-   * @param {object} jsonOptions Options object to use to decode JSON responses. See
+   * @param relativePath - string, The path of the request.
+   * @param query - An object containing the query paramters of the request.
+   * @param requestHeaders - An object containing additional request headers to use.
+   * @param jsonOptions - Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
    * @returns Response object.
    */
