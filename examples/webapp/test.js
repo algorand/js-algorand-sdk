@@ -144,9 +144,8 @@
         suggestedParams,
       };
       const { sk } = algosdk.mnemonicToSecretKey(bu.value);
-      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
-        transactionOptions
-      );
+      const txn =
+        algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
       const signedTxn = txn.signTxn(sk);
       const algodclient = new algosdk.Algodv2(atoken, aserver, aport);
       (async () => {

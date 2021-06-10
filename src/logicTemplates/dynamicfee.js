@@ -49,12 +49,8 @@ class DynamicFee {
       'ASAFAgEHBgUmAyD+vKC7FEpaTqe0OKRoGsgObKEFvLYH/FZTJclWlfaiEyDmmpYeby1feshmB5JlUr6YI17TM2PKiJGLuck4qRW2+SB/g7Flf/H8U7ktwYFIodZd/C1LH6PWdyhK3dIAEm2QaTIEIhIzABAjEhAzAAcxABIQMwAIMQESEDEWIxIQMRAjEhAxBygSEDEJKRIQMQgkEhAxAiUSEDEEIQQSEDEGKhIQ';
     const referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
     const referenceOffsets = [
-      5 /* firstValid */,
-      6 /* lastValid */,
-      7 /* receiver */,
-      11 /* closeRemainder */,
-      44 /* lease */,
-      76,
+      5 /* firstValid */, 6 /* lastValid */, 7 /* receiver */,
+      11 /* closeRemainder */, 44 /* lease */, 76,
     ];
     const injectionVector = [
       amount,

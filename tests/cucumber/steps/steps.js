@@ -1506,7 +1506,8 @@ module.exports = function getSteps(options) {
         this.contractTestFixture.splitMin,
         maxFee
       );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.split.getAddress();
+      this.contractTestFixture.activeAddress =
+        this.contractTestFixture.split.getAddress();
       this.contractTestFixture.contractFundAmount = minPay * (rat1 + rat2) * 10;
     }
   );
@@ -1556,7 +1557,8 @@ module.exports = function getSteps(options) {
         expiryRound,
         maxFee
       );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.htlc.getAddress();
+      this.contractTestFixture.activeAddress =
+        this.contractTestFixture.htlc.getAddress();
       this.contractTestFixture.contractFundAmount = 100000000;
     }
   );
@@ -1595,16 +1597,18 @@ module.exports = function getSteps(options) {
       const amount = 10000000;
       const expiryRound = 100;
       const maxFee = 1000000000000;
-      this.contractTestFixture.periodicPay = new algosdk.LogicTemplates.PeriodicPayment(
-        receiver,
-        amount,
-        parseInt(withdrawWindow),
-        parseInt(period),
-        expiryRound,
-        maxFee,
-        undefined
-      );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.periodicPay.getAddress();
+      this.contractTestFixture.periodicPay =
+        new algosdk.LogicTemplates.PeriodicPayment(
+          receiver,
+          amount,
+          parseInt(withdrawWindow),
+          parseInt(period),
+          expiryRound,
+          maxFee,
+          undefined
+        );
+      this.contractTestFixture.activeAddress =
+        this.contractTestFixture.periodicPay.getAddress();
       this.contractTestFixture.contractFundAmount = amount * 10;
       this.contractTestFixture.periodicPayPeriod = parseInt(period);
     }
@@ -1619,12 +1623,13 @@ module.exports = function getSteps(options) {
     this.lv = this.fv + 1000;
     this.lastRound = this.params.lastRound;
     this.gh = this.params.genesishashb64;
-    const txnBytes = algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(
-      this.contractTestFixture.periodicPay.getProgram(),
-      this.fee,
-      this.fv,
-      this.gh
-    );
+    const txnBytes =
+      algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(
+        this.contractTestFixture.periodicPay.getProgram(),
+        this.fee,
+        this.fv,
+        this.gh
+      );
     this.txid = await this.acl.sendRawTransaction(txnBytes.blob);
     this.txid = this.txid.txId;
     this.pk = this.contractTestFixture.activeAddress;
@@ -1643,16 +1648,18 @@ module.exports = function getSteps(options) {
         this.contractTestFixture.contractFundAmount = 1000000;
       }
       const assetid = parseInt(this.assetTestFixture.index);
-      this.contractTestFixture.limitOrder = new algosdk.LogicTemplates.LimitOrder(
-        this.accounts[0],
-        assetid,
-        parseInt(ratn),
-        parseInt(ratd),
-        expiryRound,
-        parseInt(minTrade),
-        maxFee
-      );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.limitOrder.getAddress();
+      this.contractTestFixture.limitOrder =
+        new algosdk.LogicTemplates.LimitOrder(
+          this.accounts[0],
+          assetid,
+          parseInt(ratn),
+          parseInt(ratd),
+          expiryRound,
+          parseInt(minTrade),
+          maxFee
+        );
+      this.contractTestFixture.activeAddress =
+        this.contractTestFixture.limitOrder.getAddress();
     }
   );
 
@@ -1707,7 +1714,8 @@ module.exports = function getSteps(options) {
       this.fv,
       this.lv
     ); // intentionally leave optional args undefined
-    this.contractTestFixture.activeAddress = this.contractTestFixture.dynamicFee.getAddress();
+    this.contractTestFixture.activeAddress =
+      this.contractTestFixture.dynamicFee.getAddress();
   });
 
   Given('I send the dynamic fee transactions', async function () {
@@ -3433,7 +3441,8 @@ module.exports = function getSteps(options) {
         .applicationID(appID)
         .nextToken(nextToken)
         .do();
-      this.responseForDirectJsonComparison = integrationSearchTransactionsResponse;
+      this.responseForDirectJsonComparison =
+        integrationSearchTransactionsResponse;
     }
   );
 

@@ -32,9 +32,8 @@ async function main() {
     suggestedParams,
   };
 
-  const rekeyingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
-    transactionOptions
-  );
+  const rekeyingTxn =
+    algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
 
   // print transaction data
   console.log(rekeyingTxn);

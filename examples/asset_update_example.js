@@ -3,10 +3,8 @@
 const algosdk = require('..');
 
 async function main() {
-  const {
-    sk: managerPrivateKey,
-    addr: managerAddress,
-  } = algosdk.generateAccount();
+  const { sk: managerPrivateKey, addr: managerAddress } =
+    algosdk.generateAccount();
   const { addr: newFreezeAddr } = algosdk.generateAccount();
   const { addr: newManagerAddr } = algosdk.generateAccount();
   const { addr: newClawbackAddr } = algosdk.generateAccount();
@@ -38,9 +36,8 @@ async function main() {
     suggestedParams,
   };
 
-  const txn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject(
-    transactionOptions
-  );
+  const txn =
+    algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject(transactionOptions);
 
   // sign the transaction
   const signedTxn = txn.signTxn(managerPrivateKey);

@@ -168,9 +168,8 @@ describe('Sign', () => {
     });
 
     const serializedWithNote = algosdk.encodeUnsignedTransaction(txnWithNote);
-    const serializedWithoutNote = algosdk.encodeUnsignedTransaction(
-      txnWithoutNote
-    );
+    const serializedWithoutNote =
+      algosdk.encodeUnsignedTransaction(txnWithoutNote);
 
     assert.notDeepStrictEqual(serializedWithNote, serializedWithoutNote);
   });
@@ -198,9 +197,8 @@ describe('Sign', () => {
     });
 
     const serializedWithLease = algosdk.encodeUnsignedTransaction(txnWithLease);
-    const serializedWithoutLease = algosdk.encodeUnsignedTransaction(
-      txnWithoutLease
-    );
+    const serializedWithoutLease =
+      algosdk.encodeUnsignedTransaction(txnWithoutLease);
 
     assert.deepStrictEqual(serializedWithLease, serializedWithoutLease);
   });
@@ -239,9 +237,8 @@ describe('Sign', () => {
     });
 
     const serializedWithHash = algosdk.encodeUnsignedTransaction(txnWithHash);
-    const serializedWithoutHash = algosdk.encodeUnsignedTransaction(
-      txnWithoutHash
-    );
+    const serializedWithoutHash =
+      algosdk.encodeUnsignedTransaction(txnWithoutHash);
 
     assert.deepStrictEqual(serializedWithHash, serializedWithoutHash);
   });

@@ -37,9 +37,8 @@ async function main() {
     suggestedParams,
   };
 
-  const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
-    transactionOptions
-  );
+  const txn =
+    algosdk.makePaymentTxnWithSuggestedParamsFromObject(transactionOptions);
 
   // send transaction (note that the sender account needs to be funded for this to work)
   console.log('Sending transaction...');
