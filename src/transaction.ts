@@ -896,6 +896,11 @@ export class Transaction implements TransactionStorageStructure {
     return encoding.encode(this.get_obj_for_encoding());
   }
 
+  // returns the base64 encoding of the canonical msgpack encoding
+  toBase64() {
+    return Buffer.from(this.toByte()).toString('base64');
+  }
+
   // returns the raw signature
   rawSignTxn(sk: Uint8Array) {
     const toBeSigned = this.bytesToSign();
@@ -1043,6 +1048,18 @@ export function encodeUnsignedTransaction(transactionObject: Transaction) {
 }
 
 /**
+ * encodeBase64UnsignedTransaction takes a completed txnBuilder.Transaction object, such as from the makeFoo
+ * family of transactions, and converts it to a base64 string
+ * equal to the base64 encoding of encodeUnsignedTransaction output
+ * @param transactionObject - the completed Transaction object
+ */
+export function encodeBase64UnsignedTransaction(
+  transactionObject: Transaction
+) {
+  return transactionObject.toBase64();
+}
+
+/**
  * decodeUnsignedTransaction takes a Buffer (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
  * @param transactionBuffer - the Uint8Array containing a transaction
  */
@@ -1053,6 +1070,15 @@ export function decodeUnsignedTransaction(
     transactionBuffer
   ) as EncodedTransaction;
   return Transaction.from_obj_for_encoding(partlyDecodedObject);
+}
+
+/**
+ * decodeBase64UnsignedTransaction takes a base64 string (as if from encodeBase64UnsignedTransaction)
+ * and converts it to a txnBuilder.Transaction object
+ * @param transactionBase64 - the base64 string containing a transaction
+ */
+export function decodeBase64UnsignedTransaction(transactionBase64: string) {
+  return decodeUnsignedTransaction(Buffer.from(transactionBase64, 'base64'));
 }
 
 /**

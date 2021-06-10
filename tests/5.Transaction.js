@@ -514,6 +514,63 @@ describe('Sign', () => {
     });
   });
 
+  describe('should correctly serialize and deserialize from base64 msgpack representation', () => {
+    it('should correctly serialize and deserialize from base64 msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        fee: 10,
+        amount: 847,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: '',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encBase64Txn1 = algosdk.encodeBase64UnsignedTransaction(
+        expectedTxn
+      );
+      const encBase64Txn2 = algosdk.encodeBase64UnsignedTransaction(
+        expectedTxn
+      );
+      assert.strictEqual(encBase64Txn2, encBase64Txn1);
+      const decTxn = algosdk.decodeBase64UnsignedTransaction(encBase64Txn1);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize to base64 msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        fee: 10,
+        amount: 847,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: '',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const encBase64Txn1 = algosdk.encodeBase64UnsignedTransaction(
+        expectedTxn
+      );
+      const encBase64Txn2 = algosdk.encodeBase64UnsignedTransaction(
+        expectedTxn
+      );
+      assert.strictEqual(encBase64Txn2, encBase64Txn1);
+      assert.strictEqual(
+        Buffer.from(encBase64Txn1, 'base64').toString('hex'),
+        Buffer.from(encTxn).toString('hex')
+      );
+      assert.strictEqual(encBase64Txn1, Buffer.from(encTxn).toString('base64'));
+    });
+  });
+
   describe('transaction making functions', () => {
     it('should be able to use helper to make a payment transaction', () => {
       const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';

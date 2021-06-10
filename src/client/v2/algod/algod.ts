@@ -20,6 +20,10 @@ import Versions from './versions';
 import Genesis from './genesis';
 import Proof from './proof';
 
+function isString(str: any): str is string {
+  return typeof str === 'string';
+}
+
 export default class AlgodClient extends ServiceClient {
   constructor(
     token: string | AlgodTokenHeader | CustomTokenHeader,
@@ -40,6 +44,28 @@ export default class AlgodClient extends ServiceClient {
 
   sendRawTransaction(stxOrStxs: Uint8Array | Uint8Array[]) {
     return new SendRawTransaction(this.c, stxOrStxs);
+  }
+
+  // sendBase64RawTransaction is similar to sendRawTransaction
+  // except that it takes as input a base64 string
+  // or an array of base64 strings instead of a byte array
+  // or an array of byte array
+  sendBase64RawTransaction(base64StxOrStxs: string | string[]) {
+    let base64Stxs;
+    if (Array.isArray(base64StxOrStxs)) {
+      if (!base64StxOrStxs.every(isString)) {
+        throw new TypeError('Array elements must be strings');
+      }
+      base64Stxs = base64StxOrStxs;
+    } else if (!isString(base64StxOrStxs)) {
+      throw new TypeError('Argument must be a string');
+    } else {
+      base64Stxs = [base64StxOrStxs];
+    }
+    const stxs = base64Stxs.map((base64Stx) =>
+      Buffer.from(base64Stx, 'base64')
+    );
+    return new SendRawTransaction(this.c, stxs);
   }
 
   /**
