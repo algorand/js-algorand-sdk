@@ -137,7 +137,7 @@ export function signMultisigTransaction(
   let algoTxn: multisig.MultisigTransaction;
   let blob: Uint8Array;
   if (txnAlreadyBuilt) {
-    algoTxn = (txn as unknown) as multisig.MultisigTransaction;
+    algoTxn = txn as unknown as multisig.MultisigTransaction;
     blob = multisig.MultisigTransaction.prototype.partialSignTxn.call(
       algoTxn,
       { version, threshold, pks },
