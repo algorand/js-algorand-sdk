@@ -400,7 +400,6 @@ describe('Logic validation', () => {
     });
     it('should support TEAL v4 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 4);
-      assert.ok(logic.langspecLogicSigVersion >= 3);
 
       // divmodw
       let program = Uint8Array.from([
