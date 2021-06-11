@@ -516,7 +516,7 @@
         "GlobalNumByteSlice",
         "LocalNumUint",
         "LocalNumByteSlice",
-        "AppProgramExtraPages"
+        "ExtraProgramPages"
       ],
       "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
       "Doc": "push field F of current transaction to stack",
@@ -610,7 +610,7 @@
         "GlobalNumByteSlice",
         "LocalNumUint",
         "LocalNumByteSlice",
-        "AppProgramExtraPages"
+        "ExtraProgramPages"
       ],
       "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
       "Doc": "push field F of the Tth transaction in the current group",
@@ -726,7 +726,7 @@
         "GlobalNumByteSlice",
         "LocalNumUint",
         "LocalNumByteSlice",
-        "AppProgramExtraPages"
+        "ExtraProgramPages"
       ],
       "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
       "Doc": "push field F of the Ath transaction in the current group",
@@ -768,6 +768,27 @@
       "Doc": "push Ith scratch space index of the Ath transaction in the current group",
       "DocExtra": "The `gloads` opcode can only access scratch spaces of previous app calls contained in the current group.",
       "ImmediateNote": "{uint8 position in scratch space to load from}",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 60,
+      "Name": "gaid",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 2,
+      "Doc": "push the ID of the asset or application created in the Tth transaction of the current group",
+      "DocExtra": "The `gaid` opcode can only access the ID of assets or applications created by previous txns in the current group.",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 61,
+      "Name": "gaids",
+      "Args": "U",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "push the ID of the asset or application created in the Ath transaction of the current group",
+      "DocExtra": "The `gaids` opcode can only access the ID of assets or applications created by previous txns in the current group.",
       "Groups": ["Loading Values"]
     },
     {
@@ -957,44 +978,45 @@
     {
       "Opcode": 96,
       "Name": "balance",
-      "Args": "U",
+      "Args": ".",
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "get balance for the requested account specified by Txn.Accounts[A] in microalgos. A is specified as an account index in the Accounts field of the ApplicationCall transaction, zero index means the sender. The balance is observed after the effects of previous transactions in the group, and after the fee for the current transaction is deducted.",
+      "Doc": "get balance account A, in microalgos. The balance is observed after the effects of previous transactions in the group, and after the fee for the current transaction is deducted.",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender). Return: value.",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 97,
       "Name": "app_opted_in",
-      "Args": "UU",
+      "Args": ".U",
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "check if account specified by Txn.Accounts[A] opted in for the application B =\u003e {0 or 1}",
-      "DocExtra": "params: account index, application id (top of the stack on opcode entry). Return: 1 if opted in and 0 otherwise.",
+      "Doc": "check if account A opted in for the application B =\u003e {0 or 1}",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), application id (or, since v4, a Txn.ForeignApps offset). Return: 1 if opted in and 0 otherwise.",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 98,
       "Name": "app_local_get",
-      "Args": "UB",
+      "Args": ".B",
       "Returns": ".",
       "Cost": 1,
       "Size": 1,
-      "Doc": "read from account specified by Txn.Accounts[A] from local state of the current application key B =\u003e value",
-      "DocExtra": "params: account index, state key. Return: value. The value is zero (of type uint64) if the key does not exist.",
+      "Doc": "read from account A from local state of the current application key B =\u003e value",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), state key. Return: value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 99,
       "Name": "app_local_get_ex",
-      "Args": "UUB",
+      "Args": ".UB",
       "Returns": ".U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "read from account specified by Txn.Accounts[A] from local state of the application B key C =\u003e [*... stack*, value, 0 or 1]",
-      "DocExtra": "params: account index, application id, state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
+      "Doc": "read from account A from local state of the application B key C =\u003e [*... stack*, value, 0 or 1]",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), application id (or, since v4, a Txn.ForeignApps offset), state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
@@ -1015,18 +1037,18 @@
       "Returns": ".U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "read from application Txn.ForeignApps[A] global state key B =\u003e [*... stack*, value, 0 or 1]. A is specified as an account index in the ForeignApps field of the ApplicationCall transaction, zero index means this app",
-      "DocExtra": "params: application index, state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
+      "Doc": "read from application A global state key B =\u003e [*... stack*, value, 0 or 1]",
+      "DocExtra": "params: Txn.ForeignApps offset (or, since v4, an application id that appears in Txn.ForeignApps or is the CurrentApplicationID), state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 102,
       "Name": "app_local_put",
-      "Args": "UB.",
+      "Args": ".B.",
       "Cost": 1,
       "Size": 1,
-      "Doc": "write to account specified by Txn.Accounts[A] to local state of a current application key B with value C",
-      "DocExtra": "params: account index, state key, value.",
+      "Doc": "write to account specified by A to local state of a current application key B with value C",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), state key, value.",
       "Groups": ["State Access"]
     },
     {
@@ -1041,11 +1063,11 @@
     {
       "Opcode": 104,
       "Name": "app_local_del",
-      "Args": "UB",
+      "Args": ".B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "delete from account specified by Txn.Accounts[A] local state key B of the current application",
-      "DocExtra": "params: account index, state key.\n\nDeleting a key which is already absent has no effect on the application local state. (In particular, it does _not_ cause the program to fail.)",
+      "Doc": "delete from account A local state key B of the current application",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), state key.\n\nDeleting a key which is already absent has no effect on the application local state. (In particular, it does _not_ cause the program to fail.)",
       "Groups": ["State Access"]
     },
     {
@@ -1061,14 +1083,14 @@
     {
       "Opcode": 112,
       "Name": "asset_holding_get",
-      "Args": "UU",
+      "Args": ".U",
       "Returns": ".U",
       "Cost": 1,
       "Size": 2,
       "ArgEnum": ["AssetBalance", "AssetFrozen"],
       "ArgEnumTypes": "UU",
-      "Doc": "read from account specified by Txn.Accounts[A] and asset B holding field X (imm arg) =\u003e {0 or 1 (top), value}",
-      "DocExtra": "params: account index, asset id. Return: did_exist flag (1 if exist and 0 otherwise), value.",
+      "Doc": "read from account A and asset B holding field X (imm arg) =\u003e {0 or 1 (top), value}",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), asset id (or, since v4, a Txn.ForeignAssets offset). Return: did_exist flag (1 if exist and 0 otherwise), value.",
       "ImmediateNote": "{uint8 asset holding field index}",
       "Groups": ["State Access"]
     },
@@ -1093,19 +1115,20 @@
         "AssetClawback"
       ],
       "ArgEnumTypes": "UUUBBBBBBBB",
-      "Doc": "read from asset Txn.ForeignAssets[A] params field X (imm arg) =\u003e {0 or 1 (top), value}",
-      "DocExtra": "params: txn.ForeignAssets offset. Return: did_exist flag (1 if exist and 0 otherwise), value.",
+      "Doc": "read from asset A params field X (imm arg) =\u003e {0 or 1 (top), value}",
+      "DocExtra": "params: Txn.ForeignAssets offset (or, since v4, an asset id that appears in Txn.ForeignAssets). Return: did_exist flag (1 if exist and 0 otherwise), value.",
       "ImmediateNote": "{uint8 asset params field index}",
       "Groups": ["State Access"]
     },
     {
       "Opcode": 120,
       "Name": "min_balance",
-      "Args": "U",
+      "Args": ".",
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "get minimum required balance for the requested account specified by Txn.Accounts[A] in microalgos. A is specified as an account index in the Accounts field of the ApplicationCall transaction, zero index means the sender. Required balance is affected by [ASA](https://developer.algorand.org/docs/features/asa/#assets-overview) and [App](https://developer.algorand.org/docs/features/asc1/stateful/#minimum-balance-requirement-for-a-smart-contract) usage. When creating or opting into an app, the minimum balance grows before the app code runs, therefore the increase is visible there. When deleting or closing out, the minimum balance decreases after the app executes.",
+      "Doc": "get minimum required balance account A, in microalgos. Required balance is affected by [ASA](https://developer.algorand.org/docs/features/asa/#assets-overview) and [App](https://developer.algorand.org/docs/features/asc1/stateful/#minimum-balance-requirement-for-a-smart-contract) usage. When creating or opting into an app, the minimum balance grows before the app code runs, therefore the increase is visible there. When deleting or closing out, the minimum balance decreases after the app executes.",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender). Return: value.",
       "Groups": ["State Access"]
     },
     {
