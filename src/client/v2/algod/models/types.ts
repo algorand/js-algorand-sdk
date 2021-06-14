@@ -387,17 +387,17 @@ export class ApplicationParams extends BaseModel {
   public creator: string;
 
   /**
-   * [gs) global schema
+   * [\gs) global schema
    */
   public globalState?: TealKeyValue[];
 
   /**
-   * [lsch) global schema
+   * [\lsch) global schema
    */
   public globalStateSchema?: ApplicationStateSchema;
 
   /**
-   * [lsch) local schema
+   * [\lsch) local schema
    */
   public localStateSchema?: ApplicationStateSchema;
 
@@ -407,9 +407,9 @@ export class ApplicationParams extends BaseModel {
    * @param clearStateProgram - (clearp) approval program.
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
-   * @param globalState - [gs) global schema
-   * @param globalStateSchema - [lsch) global schema
-   * @param localStateSchema - [lsch) local schema
+   * @param globalState - [\gs) global schema
+   * @param globalStateSchema - [\lsch) global schema
+   * @param localStateSchema - [\lsch) local schema
    */
   constructor({
     approvalProgram,
@@ -1351,7 +1351,7 @@ export class NodeStatusResponse extends BaseModel {
 /**
  * Given a transaction id of a recently submitted transaction, it returns
  * information about it. There are several cases when this might succeed:
- * - transaction committed (committed round \> 0)
+ * - transaction committed (committed round > 0)
  * - transaction still in the pool (committed round = 0, pool error = "")
  * - transaction removed from pool due to error (committed round = 0, pool error !=
  * "")
