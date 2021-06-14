@@ -62,7 +62,8 @@ export type MustHaveSuggestedParams<T extends ConstructTransaction> = Extract<
  * Only accept transaction objects that include suggestedParams inline instead of being
  * enclosed in its own property
  */
-export type MustHaveSuggestedParamsInline<T extends ConstructTransaction> =
-  Extract<T, SuggestedParams>;
+export type MustHaveSuggestedParamsInline<
+  T extends ConstructTransaction
+> = Extract<T, SuggestedParams>;
 
 export default ConstructTransaction;

@@ -59,8 +59,13 @@ class LimitOrder {
       'ASAKAAEFAgYEBwgJCiYBIP68oLsUSlpOp7Q4pGgayA5soQW8tgf8VlMlyVaV9qITMRYiEjEQIxIQMQEkDhAyBCMSQABVMgQlEjEIIQQNEDEJMgMSEDMBECEFEhAzAREhBhIQMwEUKBIQMwETMgMSEDMBEiEHHTUCNQExCCEIHTUENQM0ATQDDUAAJDQBNAMSNAI0BA8QQAAWADEJKBIxAiEJDRAxBzIDEhAxCCISEBA=';
     const referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
     const referenceOffsets = [
-      5 /* minTrade */, 7 /* assetID */, 9 /* ratd */, 10 /* ratn */,
-      11 /* expiryRound */, 12 /* owner */, 16,
+      5 /* minTrade */,
+      7 /* assetID */,
+      9 /* ratd */,
+      10 /* ratn */,
+      11 /* expiryRound */,
+      12 /* owner */,
+      16,
     ];
     const injectionVector = [
       maxFee,

@@ -60,8 +60,14 @@ class Split {
       'ASAIAQUCAAYHCAkmAyCztwQn0+DycN+vsk+vJWcsoz/b7NDS6i33HOkvTpf+YiC3qUpIgHGWE8/1LPh9SGCalSN7IaITeeWSXbfsS5wsXyC4kBQ38Z8zcwWVAym4S8vpFB/c0XC6R4mnPi9EBADsPDEQIhIxASMMEDIEJBJAABkxCSgSMQcyAxIQMQglEhAxAiEEDRAiQAAuMwAAMwEAEjEJMgMSEDMABykSEDMBByoSEDMACCEFCzMBCCEGCxIQMwAIIQcPEBA=';
     const referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
     const referenceOffsets = [
-      4 /* timeout */, 7 /* rat2 */, 8 /* rat1 */, 9 /* minPay */,
-      10 /* owner */, 14 /* receiver1 */, 47 /* receiver2 */, 80,
+      4 /* timeout */,
+      7 /* rat2 */,
+      8 /* rat1 */,
+      9 /* minPay */,
+      10 /* owner */,
+      14 /* receiver1 */,
+      47 /* receiver2 */,
+      80,
     ];
     const injectionVector = [
       maxFee,

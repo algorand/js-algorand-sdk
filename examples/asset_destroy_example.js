@@ -3,8 +3,10 @@
 const algosdk = require('..');
 
 async function main() {
-  const { sk: creatorPrivateKey, addr: creatorAddress } =
-    algosdk.generateAccount();
+  const {
+    sk: creatorPrivateKey,
+    addr: creatorAddress,
+  } = algosdk.generateAccount();
 
   const feePerByte = 10;
   const firstValidRound = 1000;
@@ -28,10 +30,9 @@ async function main() {
     suggestedParams,
   };
 
-  const txn =
-    algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject(
-      transactionOptions
-    );
+  const txn = algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // sign the transaction
   const signedTxn = txn.signTxn(creatorPrivateKey);

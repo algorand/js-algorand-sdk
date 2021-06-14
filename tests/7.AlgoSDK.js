@@ -53,8 +53,9 @@ describe('Algosdk (AKA end to end)', () => {
       );
       const txnAsBuffer = algosdk.encodeUnsignedTransaction(txnAsObj);
       const txnAsObjRecovered = algosdk.decodeUnsignedTransaction(txnAsBuffer);
-      const txnAsBufferRecovered =
-        algosdk.encodeUnsignedTransaction(txnAsObjRecovered);
+      const txnAsBufferRecovered = algosdk.encodeUnsignedTransaction(
+        txnAsObjRecovered
+      );
       assert.deepStrictEqual(txnAsBuffer, txnAsBufferRecovered);
       const txnAsBufferGolden = new Uint8Array(
         Buffer.from(

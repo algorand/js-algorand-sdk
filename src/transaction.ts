@@ -27,8 +27,7 @@ const ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH = 5;
 const ASSET_METADATA_HASH_LENGTH = 32;
 
 type AnyTransactionWithParams = MustHaveSuggestedParams<AnyTransaction>;
-type AnyTransactionWithParamsInline =
-  MustHaveSuggestedParamsInline<AnyTransaction>;
+type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransaction>;
 
 /**
  * A modified version of the transaction params. Represents the internal structure that the Transaction class uses
@@ -442,7 +441,7 @@ export class Transaction implements TransactionStorageStructure {
     }
 
     // Remove unwanted properties and store transaction on instance
-    delete (txn as unknown as AnyTransactionWithParams).suggestedParams;
+    delete ((txn as unknown) as AnyTransactionWithParams).suggestedParams;
     Object.assign(this, utils.removeUndefinedProperties(txn));
 
     // Modify Fee

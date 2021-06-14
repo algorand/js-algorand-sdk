@@ -79,8 +79,13 @@ class PeriodicPayment {
       'ASAHAQYFAAQDByYCIAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFMRAiEjEBIw4QMQIkGCUSEDEEIQQxAggSEDEGKBIQMQkyAxIxBykSEDEIIQUSEDEJKRIxBzIDEhAxAiEGDRAxCCUSEBEQ';
     const referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
     const referenceOffsets = [
-      4 /* period */, 5 /* withdrawWindow */, 7 /* amount */,
-      8 /* expiryRound */, 9 /* lease */, 12 /* receiver */, 46,
+      4 /* period */,
+      5 /* withdrawWindow */,
+      7 /* amount */,
+      8 /* expiryRound */,
+      9 /* lease */,
+      12 /* receiver */,
+      46,
     ];
     const injectionVector = [
       this.maxFee,

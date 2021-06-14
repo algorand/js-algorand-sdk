@@ -53,7 +53,10 @@ class HTLC {
 
     const referenceProgramBytes = Buffer.from(referenceProgramB64, 'base64');
     const referenceOffsets = [
-      3 /* expiryRound */, 6 /* receiver */, 10 /* hashImage */, 42 /* owner */,
+      3 /* expiryRound */,
+      6 /* receiver */,
+      10 /* hashImage */,
+      42 /* owner */,
       76,
     ];
     const injectionVector = [maxFee, expiryRound, receiver, hashImage, owner];

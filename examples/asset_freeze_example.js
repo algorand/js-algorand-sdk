@@ -3,8 +3,10 @@
 const algosdk = require('..');
 
 async function main() {
-  const { sk: freezePrivateKey, addr: freezeAddress } =
-    algosdk.generateAccount();
+  const {
+    sk: freezePrivateKey,
+    addr: freezeAddress,
+  } = algosdk.generateAccount();
 
   const feePerByte = 10;
   const firstValidRound = 1000;
@@ -31,8 +33,9 @@ async function main() {
     suggestedParams,
   };
 
-  const txn =
-    algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(transactionOptions);
+  const txn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(
+    transactionOptions
+  );
 
   // sign the transaction
   const signedTxn = txn.signTxn(freezePrivateKey);

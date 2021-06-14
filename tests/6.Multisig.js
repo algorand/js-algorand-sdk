@@ -171,8 +171,9 @@ describe('Multisig Functionality', () => {
         ],
       };
       const decRawTx = algosdk.decodeObj(rawTxBlob).txn;
-      const msigTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(decRawTx);
+      const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        decRawTx
+      );
       const mnem1 =
         'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch';
       const { sk } = algosdk.mnemonicToSecretKey(mnem1);
@@ -202,8 +203,9 @@ describe('Multisig Functionality', () => {
         ],
       };
       const decRawTx = algosdk.decodeObj(rawOneSigTxBlob).txn;
-      const msigTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(decRawTx);
+      const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        decRawTx
+      );
       const mnem3 =
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
       const { sk } = algosdk.mnemonicToSecretKey(mnem3);
@@ -276,8 +278,9 @@ describe('Multisig Functionality', () => {
       };
 
       stdPaymentTxn = algosdk.Transaction.from_obj_for_encoding(paymentTxnObj);
-      msigPaymentTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(paymentTxnObj);
+      msigPaymentTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        paymentTxnObj
+      );
 
       const keyregTxnObj = {
         snd: Buffer.from(
@@ -300,8 +303,9 @@ describe('Multisig Functionality', () => {
       };
 
       stdKeyregTxn = algosdk.Transaction.from_obj_for_encoding(keyregTxnObj);
-      msigKeyregTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(keyregTxnObj);
+      msigKeyregTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        keyregTxnObj
+      );
     });
 
     it('`estimateSize` method should match expected result', () => {
@@ -381,10 +385,12 @@ describe('Multisig Functionality', () => {
         type: 'keyreg',
       };
 
-      msigPaymentTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(paymentTxnObj);
-      msigKeyregTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(keyregTxnObj);
+      msigPaymentTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        paymentTxnObj
+      );
+      msigKeyregTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        keyregTxnObj
+      );
     });
 
     it('error should be thrown when attempting to add a lease to a transaction', () => {
@@ -465,10 +471,12 @@ describe('Multisig Functionality', () => {
         type: 'keyreg',
       };
 
-      msigPaymentTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(paymentTxnObj);
-      msigKeyregTxn =
-        multisig.MultisigTransaction.from_obj_for_encoding(keyregTxnObj);
+      msigPaymentTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        paymentTxnObj
+      );
+      msigKeyregTxn = multisig.MultisigTransaction.from_obj_for_encoding(
+        keyregTxnObj
+      );
     });
 
     it('signTxn method should throw an error', () => {

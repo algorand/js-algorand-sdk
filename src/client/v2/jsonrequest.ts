@@ -42,7 +42,7 @@ export default abstract class JSONRequest<
    */
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Body): Data {
-    return body as unknown as Data;
+    return (body as unknown) as Data;
   }
 
   /**
