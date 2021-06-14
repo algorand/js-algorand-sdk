@@ -1,5 +1,5 @@
 {
-  "EvalMaxVersion": 4,
+  "EvalMaxVersion": 3,
   "LogicSigVersion": 3,
   "Ops": [
     {
@@ -80,7 +80,6 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A divided by B. Panic if B == 0.",
-      "DocExtra": "`divmodw` is available to divide the two-element values produced by `mulw` and `addw`.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -283,16 +282,6 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A plus B out to 128-bit long result as sum (top) and carry-bit uint64 values on the stack",
-      "Groups": ["Arithmetic"]
-    },
-    {
-      "Opcode": 31,
-      "Name": "divmodw",
-      "Args": "UUUU",
-      "Returns": "UUUU",
-      "Cost": 20,
-      "Size": 1,
-      "Doc": "Pop four uint64 values.  The deepest two are interpreted as a uint128 dividend (deepest value is high word), the top two are interpreted as a uint128 divisor.  Four uint64 values are pushed to the stack. The deepest two are the quotient (deeper value is the high uint64). The top two are the remainder, low bits on top.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -515,10 +504,9 @@
         "GlobalNumUint",
         "GlobalNumByteSlice",
         "LocalNumUint",
-        "LocalNumByteSlice",
-        "AppProgramExtraPages"
+        "LocalNumByteSlice"
       ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
+      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUU",
       "Doc": "push field F of current transaction to stack",
       "DocExtra": "FirstValidTime causes the program to fail. The field is reserved for future use.",
       "ImmediateNote": "{uint8 transaction field index}",
@@ -609,10 +597,9 @@
         "GlobalNumUint",
         "GlobalNumByteSlice",
         "LocalNumUint",
-        "LocalNumByteSlice",
-        "AppProgramExtraPages"
+        "LocalNumByteSlice"
       ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
+      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUU",
       "Doc": "push field F of the Tth transaction in the current group",
       "DocExtra": "for notes on transaction fields available, see `txn`. If this transaction is _i_ in the group, `gtxn i field` is equivalent to `txn field`.",
       "ImmediateNote": "{uint8 transaction group index} {uint8 transaction field index}",
@@ -669,66 +656,6 @@
       "Returns": ".",
       "Cost": 1,
       "Size": 2,
-      "ArgEnum": [
-        "Sender",
-        "Fee",
-        "FirstValid",
-        "FirstValidTime",
-        "LastValid",
-        "Note",
-        "Lease",
-        "Receiver",
-        "Amount",
-        "CloseRemainderTo",
-        "VotePK",
-        "SelectionPK",
-        "VoteFirst",
-        "VoteLast",
-        "VoteKeyDilution",
-        "Type",
-        "TypeEnum",
-        "XferAsset",
-        "AssetAmount",
-        "AssetSender",
-        "AssetReceiver",
-        "AssetCloseTo",
-        "GroupIndex",
-        "TxID",
-        "ApplicationID",
-        "OnCompletion",
-        "ApplicationArgs",
-        "NumAppArgs",
-        "Accounts",
-        "NumAccounts",
-        "ApprovalProgram",
-        "ClearStateProgram",
-        "RekeyTo",
-        "ConfigAsset",
-        "ConfigAssetTotal",
-        "ConfigAssetDecimals",
-        "ConfigAssetDefaultFrozen",
-        "ConfigAssetUnitName",
-        "ConfigAssetName",
-        "ConfigAssetURL",
-        "ConfigAssetMetadataHash",
-        "ConfigAssetManager",
-        "ConfigAssetReserve",
-        "ConfigAssetFreeze",
-        "ConfigAssetClawback",
-        "FreezeAsset",
-        "FreezeAssetAccount",
-        "FreezeAssetFrozen",
-        "Assets",
-        "NumAssets",
-        "Applications",
-        "NumApplications",
-        "GlobalNumUint",
-        "GlobalNumByteSlice",
-        "LocalNumUint",
-        "LocalNumByteSlice",
-        "AppProgramExtraPages"
-      ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
       "Doc": "push field F of the Ath transaction in the current group",
       "DocExtra": "for notes on transaction fields available, see `txn`. If top of stack is _i_, `gtxns field` is equivalent to `gtxn _i_ field`. gtxns exists so that _i_ can be calculated, often based on the index of the current transaction.",
       "ImmediateNote": "{uint8 transaction field index}",
@@ -741,33 +668,8 @@
       "Returns": ".",
       "Cost": 1,
       "Size": 3,
-      "ArgEnum": ["ApplicationArgs", "Accounts"],
-      "ArgEnumTypes": "BBUU",
       "Doc": "push Ith value of the array field F from the Ath transaction in the current group",
       "ImmediateNote": "{uint8 transaction field index} {uint8 transaction field array index}",
-      "Groups": ["Loading Values"]
-    },
-    {
-      "Opcode": 58,
-      "Name": "gload",
-      "Returns": ".",
-      "Cost": 1,
-      "Size": 3,
-      "Doc": "push Ith scratch space index of the Tth transaction in the current group",
-      "DocExtra": "The `gload` opcode can only access scratch spaces of previous app calls contained in the current group.",
-      "ImmediateNote": "{uint8 transaction group index} {uint8 position in scratch space to load from}",
-      "Groups": ["Loading Values"]
-    },
-    {
-      "Opcode": 59,
-      "Name": "gloads",
-      "Args": "U",
-      "Returns": ".",
-      "Cost": 1,
-      "Size": 2,
-      "Doc": "push Ith scratch space index of the Ath transaction in the current group",
-      "DocExtra": "The `gloads` opcode can only access scratch spaces of previous app calls contained in the current group.",
-      "ImmediateNote": "{uint8 position in scratch space to load from}",
       "Groups": ["Loading Values"]
     },
     {
@@ -777,8 +679,8 @@
       "Cost": 1,
       "Size": 3,
       "Doc": "branch to TARGET if value X is not zero",
-      "DocExtra": "The `bnz` instruction opcode 0x40 is followed by two immediate data bytes which are a high byte first and low byte second which together form a 16 bit offset which the instruction may branch to. For a bnz instruction at `pc`, if the last element of the stack is not zero then branch to instruction at `pc + 3 + N`, else proceed to next instruction at `pc + 3`. Branch targets must be well aligned instructions. (e.g. Branching to the second byte of a 2 byte op will be rejected.) Branch offsets are limited to forward branches only, 0-0x7fff until v4. v4 treats offset as a signed 16 bit integer allowing for backward branches and looping.\n\nAt LogicSigVersion 2 it became allowed to branch to the end of the program exactly after the last instruction: bnz to byte N (with 0-indexing) was illegal for a TEAL program with N bytes before LogicSigVersion 2, and is legal after it. This change eliminates the need for a last instruction of no-op as a branch target at the end. (Branching beyond the end--in other words, to a byte larger than N--is still illegal and will cause the program to fail.)",
-      "ImmediateNote": "{int16 branch offset, big endian. (negative offsets are illegal before v4)}",
+      "DocExtra": "The `bnz` instruction opcode 0x40 is followed by two immediate data bytes which are a high byte first and low byte second which together form a 16 bit offset which the instruction may branch to. For a bnz instruction at `pc`, if the last element of the stack is not zero then branch to instruction at `pc + 3 + N`, else proceed to next instruction at `pc + 3`. Branch targets must be well aligned instructions. (e.g. Branching to the second byte of a 2 byte op will be rejected.) Branch offsets are currently limited to forward branches only, 0-0x7fff. A future expansion might make this a signed 16 bit integer allowing for backward branches and looping.\n\nAt LogicSigVersion 2 it became allowed to branch to the end of the program exactly after the last instruction: bnz to byte N (with 0-indexing) was illegal for a TEAL program with N bytes before LogicSigVersion 2, and is legal after it. This change eliminates the need for a last instruction of no-op as a branch target at the end. (Branching beyond the end--in other words, to a byte larger than N--is still illegal and will cause the program to fail.)",
+      "ImmediateNote": "{0..0x7fff forward branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
     {
@@ -789,7 +691,7 @@
       "Size": 3,
       "Doc": "branch to TARGET if value X is zero",
       "DocExtra": "See `bnz` for details on how branches work. `bz` inverts the behavior of `bnz`.",
-      "ImmediateNote": "{int16 branch offset, big endian. (negative offsets are illegal before v4)}",
+      "ImmediateNote": "{0..0x7fff forward branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
     {
@@ -799,7 +701,7 @@
       "Size": 3,
       "Doc": "branch unconditionally to TARGET",
       "DocExtra": "See `bnz` for details on how branches work. `b` always jumps to the offset.",
-      "ImmediateNote": "{int16 branch offset, big endian. (negative offsets are illegal before v4)}",
+      "ImmediateNote": "{0..0x7fff forward branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
     {
@@ -927,7 +829,7 @@
       "Opcode": 84,
       "Name": "setbit",
       "Args": ".UU",
-      "Returns": ".",
+      "Returns": "U",
       "Cost": 1,
       "Size": 1,
       "Doc": "pop a target A, index B, and bit C. Set the Bth bit of A to C, and push the result",
@@ -1115,7 +1017,6 @@
       "Cost": 1,
       "Size": 0,
       "Doc": "push the following program bytes to the stack",
-      "DocExtra": "pushbytes args are not added to the bytecblock during assembly processes",
       "ImmediateNote": "{varuint length} {bytes}",
       "Groups": ["Loading Values"]
     },
@@ -1126,247 +1027,7 @@
       "Cost": 1,
       "Size": 0,
       "Doc": "push immediate UINT to the stack as an integer",
-      "DocExtra": "pushint args are not added to the intcblock during assembly processes",
       "ImmediateNote": "{varuint int}",
-      "Groups": ["Loading Values"]
-    },
-    {
-      "Opcode": 136,
-      "Name": "callsub",
-      "Cost": 1,
-      "Size": 3,
-      "Doc": "branch unconditionally to TARGET, saving the next instruction on the call stack",
-      "DocExtra": "The call stack is separate from the data stack. Only `callsub` and `retsub` manipulate it.`",
-      "Groups": ["Flow Control"]
-    },
-    {
-      "Opcode": 137,
-      "Name": "retsub",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "pop the top instruction from the call stack and branch to it",
-      "DocExtra": "The call stack is separate from the data stack. Only `callsub` and `retsub` manipulate it.`",
-      "Groups": ["Flow Control"]
-    },
-    {
-      "Opcode": 144,
-      "Name": "shl",
-      "Args": "UU",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A times 2^B, modulo 2^64",
-      "Groups": ["Arithmetic"]
-    },
-    {
-      "Opcode": 145,
-      "Name": "shr",
-      "Args": "UU",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A divided by 2^B",
-      "Groups": ["Arithmetic"]
-    },
-    {
-      "Opcode": 146,
-      "Name": "sqrt",
-      "Args": "U",
-      "Returns": "U",
-      "Cost": 4,
-      "Size": 1,
-      "Doc": "The largest integer X such that X^2 \u003c= A",
-      "Groups": ["Arithmetic"]
-    },
-    {
-      "Opcode": 147,
-      "Name": "bitlen",
-      "Args": ".",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "The index of the highest bit in A. If A is a byte-array, it is interpreted as a big-endian unsigned integer",
-      "DocExtra": "bitlen interprets arrays as big-endian integers, unlike setbit/getbit",
-      "Groups": ["Arithmetic"]
-    },
-    {
-      "Opcode": 148,
-      "Name": "exp",
-      "Args": "UU",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A raised to the Bth power. Panic if A == B == 0 and on overflow",
-      "Groups": ["Arithmetic"]
-    },
-    {
-      "Opcode": 149,
-      "Name": "expw",
-      "Args": "UU",
-      "Returns": "UU",
-      "Cost": 10,
-      "Size": 1,
-      "Doc": "A raised to the Bth power as a 128-bit long result as low (top) and high uint64 values on the stack. Panic if A == B == 0 or if the results exceeds 2^128-1",
-      "Groups": ["Arithmetic"]
-    },
-    {
-      "Opcode": 160,
-      "Name": "b+",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 10,
-      "Size": 1,
-      "Doc": "A plus B, where A and B are byte-arrays interpreted as big-endian unsigned integers",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 161,
-      "Name": "b-",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 10,
-      "Size": 1,
-      "Doc": "A minus B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Panic on underflow.",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 162,
-      "Name": "b/",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 20,
-      "Size": 1,
-      "Doc": "A divided by B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Panic if B is zero.",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 163,
-      "Name": "b*",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 20,
-      "Size": 1,
-      "Doc": "A times B, where A and B are byte-arrays interpreted as big-endian unsigned integers.",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 164,
-      "Name": "b\u003c",
-      "Args": "BB",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A is less than B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 165,
-      "Name": "b\u003e",
-      "Args": "BB",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A is greater than B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 166,
-      "Name": "b\u003c=",
-      "Args": "BB",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A is less than or equal to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 167,
-      "Name": "b\u003e=",
-      "Args": "BB",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A is greater than or equal to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 168,
-      "Name": "b==",
-      "Args": "BB",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A is equals to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 169,
-      "Name": "b!=",
-      "Args": "BB",
-      "Returns": "U",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "A is not equal to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 170,
-      "Name": "b%",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 20,
-      "Size": 1,
-      "Doc": "A modulo B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Panic if B is zero.",
-      "Groups": ["Byteslice Arithmetic"]
-    },
-    {
-      "Opcode": 171,
-      "Name": "b|",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 6,
-      "Size": 1,
-      "Doc": "A bitwise-or B, where A and B are byte-arrays, zero-left extended to the greater of their lengths",
-      "Groups": ["Byteslice Logic"]
-    },
-    {
-      "Opcode": 172,
-      "Name": "b\u0026",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 6,
-      "Size": 1,
-      "Doc": "A bitwise-and B, where A and B are byte-arrays, zero-left extended to the greater of their lengths",
-      "Groups": ["Byteslice Logic"]
-    },
-    {
-      "Opcode": 173,
-      "Name": "b^",
-      "Args": "BB",
-      "Returns": "B",
-      "Cost": 6,
-      "Size": 1,
-      "Doc": "A bitwise-xor B, where A and B are byte-arrays, zero-left extended to the greater of their lengths",
-      "Groups": ["Byteslice Logic"]
-    },
-    {
-      "Opcode": 174,
-      "Name": "b~",
-      "Args": "B",
-      "Returns": "B",
-      "Cost": 4,
-      "Size": 1,
-      "Doc": "A with all bits inverted",
-      "Groups": ["Byteslice Logic"]
-    },
-    {
-      "Opcode": 175,
-      "Name": "bzero",
-      "Args": "U",
-      "Returns": "B",
-      "Cost": 1,
-      "Size": 1,
-      "Doc": "push a byte-array of length A, containing all zero bytes",
       "Groups": ["Loading Values"]
     }
   ]
