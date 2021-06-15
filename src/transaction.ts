@@ -52,6 +52,7 @@ interface TransactionStorageStructure
     | 'appAccounts'
     | 'suggestedParams'
     | 'reKeyTo'
+    | 'extraPages'
   > {
   from: string | Address;
   to: string | Address;
@@ -101,6 +102,7 @@ interface TransactionStorageStructure
   reKeyTo?: string | Address;
   nonParticipation?: boolean;
   group?: Buffer;
+  extraPages?: number;
 }
 
 /**
@@ -159,6 +161,7 @@ export class Transaction implements TransactionStorageStructure {
   reKeyTo?: Address;
   nonParticipation?: boolean;
   group?: Buffer;
+  extraPages?: number;
 
   constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
@@ -253,6 +256,10 @@ export class Transaction implements TransactionStorageStructure {
       throw Error('firstRound must be a positive number');
     if (!Number.isSafeInteger(txn.lastRound) || txn.lastRound < 0)
       throw Error('lastRound must be a positive number');
+    if (txn.extraPages < 0 || txn.extraPages > 3)
+      throw Error(
+        'extra-pages must be an Integer between and including 0 to 3'
+      );
     if (
       txn.assetTotal !== undefined &&
       (!(
@@ -418,6 +425,7 @@ export class Transaction implements TransactionStorageStructure {
     if (txn.selectionKey !== undefined) {
       txn.selectionKey = Buffer.from(txn.selectionKey as string, 'base64');
     }
+
     if (
       txn.nonParticipation &&
       (txn.voteKey ||
@@ -693,6 +701,7 @@ export class Transaction implements TransactionStorageStructure {
         },
         apfa: this.appForeignApps,
         apas: this.appForeignAssets,
+        expg: this.extraPages,
       };
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -730,6 +739,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.apan) delete txn.apan;
       if (!txn.apfa) delete txn.apfa;
       if (!txn.apas) delete txn.apas;
+      if (!txn.expg) delete txn.expg;
       if (txn.grp === undefined) delete txn.grp;
       return txn;
     }
