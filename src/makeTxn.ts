@@ -1079,6 +1079,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * @param note - Arbitrary data for sender to store
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
+ * @param extraPages - integer extra pages of memory to rent on creation of application
  */
 export function makeApplicationCreateTxn(
   from: AppCreateTxn['from'],
@@ -1096,7 +1097,8 @@ export function makeApplicationCreateTxn(
   foreignAssets?: AppCreateTxn['appForeignAssets'],
   note?: AppCreateTxn['note'],
   lease?: AppCreateTxn['lease'],
-  rekeyTo?: AppCreateTxn['reKeyTo']
+  rekeyTo?: AppCreateTxn['reKeyTo'],
+  extraPages?: AppCreateTxn['extraPages']
 ) {
   const o: AppCreateTxn = {
     type: TransactionType.appl,
@@ -1117,6 +1119,7 @@ export function makeApplicationCreateTxn(
     note,
     lease,
     reKeyTo: rekeyTo,
+    extraPages,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1156,6 +1159,7 @@ export function makeApplicationCreateTxnFromObject(
     | 'note'
     | 'lease'
     | 'rekeyTo'
+    | 'extraPages'
   >
 ) {
   return makeApplicationCreateTxn(
@@ -1174,7 +1178,8 @@ export function makeApplicationCreateTxnFromObject(
     o.foreignAssets,
     o.note,
     o.lease,
-    o.rekeyTo
+    o.rekeyTo,
+    o.extraPages
   );
 }
 

@@ -366,4 +366,9 @@ export interface TransactionParams {
    * All new Algorand accounts are participating by default. This means they earn rewards.
    */
   nonParticipation?: boolean;
+
+  /**
+   * Int representing extra pages of memory to rent during an application create transaction.
+   */
+  extraPages?: number;
 }
