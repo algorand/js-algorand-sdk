@@ -7,7 +7,7 @@ import { setHeaders } from './compile';
 export default class Dryrun extends JSONRequest {
   private blob: Uint8Array;
 
-  constructor(c: HTTPClient, dr: modelsv2.DryrunSource) {
+  constructor(c: HTTPClient, dr: modelsv2.DryrunRequest) {
     super(c);
     this.blob = encoding.encode(dr.get_obj_for_encoding());
   }
