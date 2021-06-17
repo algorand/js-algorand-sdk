@@ -114,7 +114,7 @@ export default class AlgodClient extends ServiceClient {
     return new Compile(this.c, source);
   }
 
-  dryrun(dr: modelsv2.DryrunSource) {
+  dryrun(dr: modelsv2.DryrunRequest) {
     return new Dryrun(this.c, dr);
   }
 
