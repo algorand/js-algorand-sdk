@@ -72,7 +72,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
-    "example": "ts-node"
+    "example": "ts-node",
+    "prepare": "npm run build"
   },
   "author": "Algorand, llc",
   "license": "MIT"
