@@ -2,7 +2,7 @@
  * Configure how integers in JSON response will be decoded.
  */
 /* eslint-disable no-unused-vars,no-shadow */
-enum IntDecoding {
+export enum IntDecoding {
   /**
    * All integers will be decoded as Numbers, meaning any values greater than
    * Number.MAX_SAFE_INTEGER will lose precision.

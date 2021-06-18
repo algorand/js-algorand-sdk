@@ -16,14 +16,33 @@ import {
   ApplicationClearStateTransaction as AppClearStateTxn,
   ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';
+import Account from '../account';
 
 // Utilities
-export { TransactionParams, TransactionType, SuggestedParams } from './base';
+export {
+  TransactionParams,
+  TransactionType,
+  SuggestedParams,
+  OnApplicationComplete,
+} from './base';
 export {
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,
 } from './builder';
-export { EncodedTransaction, EncodedSignedTransaction } from './encoded';
+export {
+  EncodedTransaction,
+  EncodedSignedTransaction,
+  EncodedAssetParams,
+  EncodedGlobalStateSchema,
+  EncodedLocalStateSchema,
+  EncodedLogicSig,
+  EncodedMultisig,
+  EncodedMultisigBlob,
+  EncodedSubsig,
+} from './encoded';
+export { MultisigMetadata } from '../multisig';
+export { IntDecoding } from '../intDecoding';
+export { Address } from '../address';
 
 // Transaction types
 export { default as PaymentTxn } from './payment';
@@ -61,4 +80,4 @@ type AnyTransaction =
   | AppCloseOutTxn
   | AppClearStateTxn
   | AppNoOpTxn;
-export default AnyTransaction;
+export { AnyTransaction, Account };
