@@ -81,4 +81,5 @@ type AnyTransaction =
   | AppCloseOutTxn
   | AppClearStateTxn
   | AppNoOpTxn;
-export { AnyTransaction, Account };
+export default AnyTransaction;
+export { Account };
