@@ -43,6 +43,7 @@ export {
 export { MultisigMetadata } from '../multisig';
 export { IntDecoding } from '../intDecoding';
 export { Address } from '../address';
+export * as v2Algod from '../../client/v2/algod/models/types';
 
 // Transaction types
 export { default as PaymentTxn } from './payment';
