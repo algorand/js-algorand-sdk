@@ -1,15 +1,12 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import * as modelsv2 from './models/types';
-import * as encoding from '../../../encoding/encoding';
+import { DryrunRequest } from './models/types';
 import { setHeaders } from './compile';
 
 export default class Dryrun extends JSONRequest {
-  private blob: Uint8Array;
-
-  constructor(c: HTTPClient, dr: modelsv2.DryrunRequest) {
+  constructor(c: HTTPClient, private dr: DryrunRequest) {
     super(c);
-    this.blob = encoding.encode(dr.get_obj_for_encoding());
+    this.dr = dr;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -23,11 +20,9 @@ export default class Dryrun extends JSONRequest {
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      Buffer.from(this.blob),
-      txHeaders
-    );
+    const body = JSON.stringify(this.dr.get_obj_for_encoding());
+
+    const res = await this.c.post(this.path(), body, txHeaders);
     return res.body;
   }
 }
