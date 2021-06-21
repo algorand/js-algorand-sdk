@@ -4448,13 +4448,13 @@ module.exports = function getSteps(options) {
 
   Then('fee field is in txn', async function () {
     const s = algosdk.decodeObj(this.stx);
-    const {txn} = s;
+    const { txn } = s;
     assert.strictEqual('fee' in txn, true);
   });
 
   Then('fee field not in txn', async function () {
     const s = algosdk.decodeObj(this.stx);
-    const {txn} = s;
+    const { txn } = s;
     assert.strictEqual(!('fee' in txn), true);
   });
 
