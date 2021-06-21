@@ -33,6 +33,7 @@ async function main() {
   const defaultFrozen = false; // whether accounts should be frozen by default
 
   // create suggested parameters
+  // usually these parameters are fetched using the `algosdk.getTransactionParams()` method
   const suggestedParams = {
     flatFee: false,
     fee: feePerByte,
