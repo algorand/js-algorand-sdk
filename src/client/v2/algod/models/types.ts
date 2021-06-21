@@ -1685,8 +1685,8 @@ export class TransactionParametersResponse extends BaseModel {
   /**
    * Fee is the suggested transaction fee
    * Fee is in units of micro-Algos per byte.
-   * Fee may fall to zero but transactions must still have a fee of
-   * at least MinTxnFee for the current network protocol.
+   * Fee may fall to zero but a group of N atomic transactions must
+   * still have a fee of at least N*MinTxnFee for the current network protocol.
    */
   public fee: number | bigint;
 
@@ -1717,8 +1717,8 @@ export class TransactionParametersResponse extends BaseModel {
    * as of LastRound.
    * @param fee - Fee is the suggested transaction fee
    * Fee is in units of micro-Algos per byte.
-   * Fee may fall to zero but transactions must still have a fee of
-   * at least MinTxnFee for the current network protocol.
+   * Fee may fall to zero but a group of N atomic transactions must
+   * still have a fee of at least N*MinTxnFee for the current network protocol.
    * @param genesisHash - GenesisHash is the hash of the genesis block.
    * @param genesisId - GenesisID is an ID listed in the genesis block.
    * @param lastRound - LastRound indicates the last round seen

@@ -85,6 +85,7 @@ describe('Sign', () => {
       from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 0,
+      flatFee: false,
       amount: 847,
       firstRound: 51,
       lastRound: 61,
@@ -95,6 +96,40 @@ describe('Sign', () => {
     assert.equal(txn.fee, 1000); // 1000 is the v5 min txn fee
     const txnEnc = txn.get_obj_for_encoding();
     assert.equal(txnEnc.fee, 1000);
+  });
+
+  it('should accept 0 fee', () => {
+    const o = {
+      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      fee: 0,
+      flatFee: true,
+      amount: 847,
+      firstRound: 51,
+      lastRound: 61,
+      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      note: new Uint8Array([123, 12, 200]),
+    };
+    const txn = new algosdk.Transaction(o);
+    assert.equal(txn.fee, 0);
+  });
+
+  it('should accept lower than min fee', () => {
+    const o = {
+      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      fee: 10,
+      flatFee: true,
+      amount: 847,
+      firstRound: 51,
+      lastRound: 61,
+      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      note: new Uint8Array([123, 12, 200]),
+    };
+    const txn = new algosdk.Transaction(o);
+    assert.equal(txn.fee, 10);
+    const txnEnc = txn.get_obj_for_encoding();
+    assert.equal(txnEnc.fee, 10);
   });
 
   it('should not complain on a missing genesisID', () => {

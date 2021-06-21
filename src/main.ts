@@ -26,7 +26,7 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
  * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
  *
- * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * If flatFee is not set and the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
  * @param txn - object with either payment or key registration fields
  * @param sk - Algorand Secret Key
  * @returns object contains the binary signed transaction and its txID

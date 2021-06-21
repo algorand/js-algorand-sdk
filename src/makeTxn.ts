@@ -35,7 +35,7 @@ import { RenameProperties, RenameProperty } from './types/utils';
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *      If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -149,7 +149,7 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -374,7 +374,7 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -559,7 +559,7 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -711,7 +711,7 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -809,7 +809,7 @@ export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -931,7 +931,9 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
+ * * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -1060,7 +1062,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -1189,7 +1191,7 @@ export function makeApplicationCreateTxnFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -1288,7 +1290,7 @@ export function makeApplicationUpdateTxnFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -1375,7 +1377,7 @@ export function makeApplicationDeleteTxnFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -1462,7 +1464,7 @@ export function makeApplicationOptInTxnFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -1549,7 +1551,7 @@ export function makeApplicationCloseOutTxnFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
@@ -1636,7 +1638,7 @@ export function makeApplicationClearStateTxnFromObject(
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
- *  If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE for the current network protocol
  * firstRound - integer first protocol round on which this txn is valid
  * lastRound - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
