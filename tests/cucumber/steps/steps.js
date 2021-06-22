@@ -724,6 +724,31 @@ module.exports = function getSteps(options) {
     return this.txn;
   });
 
+  When('I create the multisig payment transaction with zero fee', function () {
+    this.txn = {
+      from: algosdk.multisigAddress(this.msig),
+      to: this.to,
+      fee: this.fee,
+      flatFee: true,
+      firstRound: this.fv,
+      lastRound: this.lv,
+      genesisHash: this.gh,
+    };
+    if (this.gen) {
+      this.txn.genesisID = this.gen;
+    }
+    if (this.close) {
+      this.txn.closeRemainderTo = this.close;
+    }
+    if (this.note) {
+      this.txn.note = this.note;
+    }
+    if (this.amt) {
+      this.txn.amount = this.amt;
+    }
+    return this.txn;
+  });
+
   When('I send the transaction', async function () {
     this.txid = await this.acl.sendRawTransaction(this.stx);
     this.txid = this.txid.txId;
@@ -4420,6 +4445,18 @@ module.exports = function getSteps(options) {
       assert.ok(foundValueForKey);
     }
   );
+
+  Then('fee field is in txn', async function () {
+    const s = algosdk.decodeObj(this.stx);
+    const { txn } = s;
+    assert.strictEqual('fee' in txn, true);
+  });
+
+  Then('fee field not in txn', async function () {
+    const s = algosdk.decodeObj(this.stx);
+    const { txn } = s;
+    assert.strictEqual(!('fee' in txn), true);
+  });
 
   if (!options.ignoreReturn) {
     return steps;

@@ -447,10 +447,10 @@ export class Transaction implements TransactionStorageStructure {
     // Modify Fee
     if (!txn.flatFee) {
       this.fee *= this.estimateSize();
-    }
-    // If suggested fee too small and will be rejected, set to min tx fee
-    if (this.fee < ALGORAND_MIN_TX_FEE) {
-      this.fee = ALGORAND_MIN_TX_FEE;
+      // If suggested fee too small and will be rejected, set to min tx fee
+      if (this.fee < ALGORAND_MIN_TX_FEE) {
+        this.fee = ALGORAND_MIN_TX_FEE;
+      }
     }
 
     // say we are aware of groups
