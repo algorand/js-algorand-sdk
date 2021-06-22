@@ -487,6 +487,49 @@ describe('Logic validation', () => {
         0x12,
       ]); // byte 0x11; byte 0x10; b>=
       assert.ok(logic.checkProgram(program));
+
+      // callsub, retsub
+      program = Uint8Array.from([
+        0x04,
+        0x20,
+        0x02,
+        0x01,
+        0x02,
+        0x22,
+        0x88,
+        0x00,
+        0x03,
+        0x23,
+        0x12,
+        0x43,
+        0x49,
+        0x08,
+        0x89,
+      ]); // int 1; callsub double; int 2; ==; return; double: dup; +; retsub;
+      assert.ok(logic.checkProgram(program));
+
+      // loop
+      program = Uint8Array.from([
+        0x04,
+        0x20,
+        0x04,
+        0x01,
+        0x02,
+        0x0a,
+        0x10,
+        0x22,
+        0x23,
+        0x0b,
+        0x49,
+        0x24,
+        0x0c,
+        0x40,
+        0xff,
+        0xf8,
+        0x25,
+        0x12,
+      ]); // int 1; loop: int 2; *; dup; int 10; <; bnz loop; int 16; ==
+      assert.ok(logic.checkProgram(program));
     });
   });
 });
