@@ -20,7 +20,8 @@ async function main() {
   const assetIndex = 1234; // identifying index of the asset
 
   // set suggested parameters
-  // usually these parameters are fetched using the `algosdk.getTransactionParams()` method
+  // in most cases, we suggest fetching recommended transaction parameters
+  // using the `algosdk.Algodv2.getTransactionParams()` method
   const suggestedParams = {
     fee: feePerByte,
     firstRound: firstValidRound,
