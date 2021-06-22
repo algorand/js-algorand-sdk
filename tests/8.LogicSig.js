@@ -291,7 +291,7 @@ describe('Logic validation', () => {
       result = logic.checkProgram(program);
       assert.equal(result, true);
 
-      // 800x keccak256 more is to costly
+      // 800x keccak256 more is too costly
       program = utils.concatArrays(program, new Uint8Array(800).fill(2));
       const oldVersions = [0x1, 0x2, 0x3];
       let v;
