@@ -85,7 +85,6 @@ describe('Sign', () => {
       from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 0,
-      flatFee: false,
       amount: 847,
       firstRound: 51,
       lastRound: 61,
@@ -93,9 +92,9 @@ describe('Sign', () => {
       note: new Uint8Array([123, 12, 200]),
     };
     const txn = new algosdk.Transaction(o);
-    assert.equal(txn.fee, 1000); // 1000 is the v5 min txn fee
+    assert.strictEqual(txn.fee, 1000); // 1000 is the v5 min txn fee
     const txnEnc = txn.get_obj_for_encoding();
-    assert.equal(txnEnc.fee, 1000);
+    assert.strictEqual(txnEnc.fee, 1000);
   });
 
   it('should accept 0 fee', () => {
