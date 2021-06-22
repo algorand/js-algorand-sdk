@@ -302,6 +302,7 @@ describe('Logic validation', () => {
           new Error('program too costly to run')
         );
       }
+      //  new versions
       const newVersions = [0x4];
       for (v of newVersions) {
         program[0] = v;
