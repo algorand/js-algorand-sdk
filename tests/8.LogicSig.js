@@ -325,24 +325,21 @@ describe('Logic validation', () => {
       program = utils.concatArrays(program, new Uint8Array(800).fill(2));
       //  old versions
       const oldVersions = [0x1, 0x2, 0x3];
-      let v;
-      for (v of oldVersions) {
-        program[0] = v;
-        assert.throws(
-          () => logic.checkProgram(program),
-          new Error('program too costly to run')
-        );
-      }
-      //  new versions
-      const newVersions = [0x4];
-      for (v of newVersions) {
-        program[0] = v;
+      let i;
+      for (i = 0; i < oldVersions.length; i++) {
+        program[0] = oldVersions[i];
         assert.throws(
           () => logic.checkProgram(program),
           new Error(
             'program too costly for Teal version < 4. consider using v4.'
           )
         );
+      }
+      //  new versions
+      const newVersions = [0x4];
+      for (i = 0; i < newVersions.length; i++) {
+        program[0] = newVersions[i];
+        assert.ok(logic.checkProgram(program));
       }
     });
     it('should support TEAL v2 opcodes', () => {
