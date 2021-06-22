@@ -131,9 +131,8 @@ describe('LogicSig functionality', () => {
         note,
         rekeyTo,
       };
-      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
-        txnObject
-      );
+      const txn =
+        algosdk.makePaymentTxnWithSuggestedParamsFromObject(txnObject);
 
       const actual = algosdk.signLogicSigTransaction(txn, lsig);
       const expected = {
@@ -222,25 +221,7 @@ describe('Logic validation', () => {
     });
     it('should parse bytes const block correctly', () => {
       const data = Uint8Array.from([
-        38,
-        2,
-        13,
-        49,
-        50,
-        51,
-        52,
-        53,
-        54,
-        55,
-        56,
-        57,
-        48,
-        49,
-        50,
-        51,
-        2,
-        1,
-        2,
+        38, 2, 13, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 49, 50, 51, 2, 1, 2,
       ]);
       const size = logic.checkByteConstBlock(data, 0);
       assert.equal(size, data.length);
@@ -252,18 +233,7 @@ describe('Logic validation', () => {
     });
     it('should parse byte push op correctly', () => {
       const data = Uint8Array.from([
-        0x80,
-        0x0b,
-        0x68,
-        0x65,
-        0x6c,
-        0x6c,
-        0x6f,
-        0x20,
-        0x77,
-        0x6f,
-        0x72,
-        0x6c,
+        0x80, 0x0b, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x77, 0x6f, 0x72, 0x6c,
         0x64,
       ]);
       const size = logic.checkPushByteOp(data, 0);
@@ -323,10 +293,25 @@ describe('Logic validation', () => {
 
       // 800x keccak256 more is to costly
       program = utils.concatArrays(program, new Uint8Array(800).fill(2));
-      assert.throws(
-        () => logic.checkProgram(program),
-        new Error('program too costly to run')
-      );
+      const oldVersions = [0x1, 0x2, 0x3];
+      let v;
+      for (v of oldVersions) {
+        program[0] = v;
+        assert.throws(
+          () => logic.checkProgram(program),
+          new Error('program too costly to run')
+        );
+      }
+      const newVersions = [0x4];
+      for (v of newVersions) {
+        program[0] = v;
+        assert.throws(
+          () => logic.checkProgram(program),
+          new Error(
+            'program too costly for Teal version < 4. consider using v4.'
+          )
+        );
+      }
     });
     it('should support TEAL v2 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 2);
@@ -358,43 +343,19 @@ describe('Logic validation', () => {
 
       // pushbytes
       program = Uint8Array.from([
-        0x03,
-        0x20,
-        0x01,
-        0x00,
-        0x22,
-        0x80,
-        0x02,
-        0x68,
-        0x69,
-        0x48,
+        0x03, 0x20, 0x01, 0x00, 0x22, 0x80, 0x02, 0x68, 0x69, 0x48,
       ]); // int 0; pushbytes "hi"; pop
       assert.ok(logic.checkProgram(program));
 
       // pushint
       program = Uint8Array.from([
-        0x03,
-        0x20,
-        0x01,
-        0x00,
-        0x22,
-        0x81,
-        0x01,
-        0x48,
+        0x03, 0x20, 0x01, 0x00, 0x22, 0x81, 0x01, 0x48,
       ]); // int 0; pushint 1; pop
       assert.ok(logic.checkProgram(program));
 
       // swap
       program = Uint8Array.from([
-        0x03,
-        0x20,
-        0x02,
-        0x00,
-        0x01,
-        0x22,
-        0x23,
-        0x4c,
-        0x48,
+        0x03, 0x20, 0x02, 0x00, 0x01, 0x22, 0x23, 0x4c, 0x48,
       ]); // int 0; int 1; swap; pop
       assert.ok(logic.checkProgram(program));
     });
@@ -403,18 +364,7 @@ describe('Logic validation', () => {
 
       // divmodw
       let program = Uint8Array.from([
-        0x04,
-        0x20,
-        0x03,
-        0x01,
-        0x00,
-        0x02,
-        0x22,
-        0x81,
-        0xd0,
-        0x0f,
-        0x23,
-        0x24,
+        0x04, 0x20, 0x03, 0x01, 0x00, 0x02, 0x22, 0x81, 0xd0, 0x0f, 0x23, 0x24,
         0x1f,
       ]); // int 1; pushint 2000; int 0; int 2; divmodw
       assert.ok(logic.checkProgram(program));
@@ -425,52 +375,20 @@ describe('Logic validation', () => {
 
       // callsub
       program = Uint8Array.from([
-        0x04,
-        0x20,
-        0x02,
-        0x01,
-        0x02,
-        0x22,
-        0x88,
-        0x00,
-        0x02,
-        0x23,
-        0x12,
-        0x49,
+        0x04, 0x20, 0x02, 0x01, 0x02, 0x22, 0x88, 0x00, 0x02, 0x23, 0x12, 0x49,
       ]); // int 1; callsub double; int 2; ==; double: dup;
       assert.ok(logic.checkProgram(program));
 
       // b>=
       program = Uint8Array.from([
-        0x04,
-        0x26,
-        0x02,
-        0x01,
-        0x11,
-        0x01,
-        0x10,
-        0x28,
-        0x29,
-        0xa7,
+        0x04, 0x26, 0x02, 0x01, 0x11, 0x01, 0x10, 0x28, 0x29, 0xa7,
       ]); // byte 0x11; byte 0x10; b>=
       assert.ok(logic.checkProgram(program));
 
       // b^
       program = Uint8Array.from([
-        0x04,
-        0x26,
-        0x03,
-        0x01,
-        0x11,
-        0x01,
-        0x10,
-        0x01,
-        0x01,
-        0x28,
-        0x29,
-        0xad,
-        0x2a,
-        0x12,
+        0x04, 0x26, 0x03, 0x01, 0x11, 0x01, 0x10, 0x01, 0x01, 0x28, 0x29, 0xad,
+        0x2a, 0x12,
       ]); // byte 0x11; byte 0x10; b>=
       assert.ok(logic.checkProgram(program));
     });
@@ -721,12 +639,13 @@ describe('Template logic validation', () => {
       const goldenStx =
         'gqRsc2lngaFsxJkBIAcB6AdkAF+gwh68o5UBJgIgAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIAQIDBAUGBwggkq+RhOQTPAl/ZqvMk7ERGxKiAb2dDMo+SkihzhPM9MUxECISMQEjDhAxAiQYJRIQMQQhBDECCBIQMQYoEhAxCTIDEjEHKRIQMQghBRIQMQkpEjEHMgMSEDECIQYNEDEIJRIQERCjdHhuiaNhbXTOAAehIKNmZWXNA+iiZnbNBLCiZ2jEIH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpomx2zQUPomx4xCABAgMEBQYHCAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCKNyY3bEIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFo3NuZMQgSyW1cXI76LA1KKwDMg39flXjnYOEuOUdDD0znzkLw7akdHlwZaNwYXk=';
       const goldenStxBlob = Buffer.from(goldenStx, 'base64');
-      const stx = algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(
-        actualBytes,
-        0,
-        1200,
-        goldenGenesisHash
-      );
+      const stx =
+        algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(
+          actualBytes,
+          0,
+          1200,
+          goldenGenesisHash
+        );
       const expectedDict = algosdk.decodeObj(goldenStxBlob);
       const actualDict = algosdk.decodeObj(stx.blob);
       assert.deepEqual(expectedDict, actualDict);
@@ -796,12 +715,13 @@ describe('Template logic validation', () => {
       const goldenStx =
         'gqRsc2lngaFsxJkBIAcB6AdkAF+gwh68o5UBJgIgAQIDBAUGBwgBAgMEBQYHCAECAwQFBgcIAQIDBAUGBwggkq+RhOQTPAl/ZqvMk7ERGxKiAb2dDMo+SkihzhPM9MUxECISMQEjDhAxAiQYJRIQMQQhBDECCBIQMQYoEhAxCTIDEjEHKRIQMQghBRIQMQkpEjEHMgMSEDECIQYNEDEIJRIQERCjdHhuiaNhbXTOAAehIKNmZWXNA+iiZnbNBLCiZ2jEIH+DsWV/8fxTuS3BgUih1l38LUsfo9Z3KErd0gASbZBpomx2zQUPomx4xCABAgMEBQYHCAECAwQFBgcIAQIDBAUGBwgBAgMEBQYHCKNyY3bEIJKvkYTkEzwJf2arzJOxERsSogG9nQzKPkpIoc4TzPTFo3NuZMQgSyW1cXI76LA1KKwDMg39flXjnYOEuOUdDD0znzkLw7akdHlwZaNwYXk=';
       const goldenStxBlob = Buffer.from(goldenStx, 'base64');
-      const stx = algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(
-        actualBytes,
-        0,
-        1200,
-        goldenGenesisHash
-      );
+      const stx =
+        algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(
+          actualBytes,
+          0,
+          1200,
+          goldenGenesisHash
+        );
       const expectedDict = algosdk.decodeObj(goldenStxBlob);
       const actualDict = algosdk.decodeObj(stx.blob);
       assert.deepEqual(expectedDict, actualDict);
