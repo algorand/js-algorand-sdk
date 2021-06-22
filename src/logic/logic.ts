@@ -251,7 +251,6 @@ export function readProgram(
       'program too costly for Teal version < 4. consider using v4.'
     );
   }
-
   return [ints, byteArrays, true];
 }
 
