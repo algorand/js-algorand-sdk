@@ -245,11 +245,12 @@ export function readProgram(
     }
     pc += size;
   }
-
-  if (cost > maxCost) {
-    throw new Error('program too costly to run');
+  // costs calculated dynamically starting in v4
+  if (version < 4 && cost > maxCost) {
+    throw new Error(
+      'program too costly for Teal version < 4. consider using v4.'
+    );
   }
-
   return [ints, byteArrays, true];
 }
 
