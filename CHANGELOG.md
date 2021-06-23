@@ -1,3 +1,23 @@
+# 1.10.0
+
+## Added
+
+- Support for dynamic opcode accounting, backward jumps, loops, callsub, retsub
+- Ability to pool fees
+- Ability to pay for extra pages
+
+## Changed
+
+- Add link to docs in readme
+- Update examples on getting `suggestedParams`
+- Grammatical fixes
+
+## Fixed
+
+- Fix asset creation transaction types that should be optional
+- Remove synthetic default imports
+- Use DryrunRequest instead of DryrunSource in constructor
+
 # 1.9.1
 
 ## Changed
