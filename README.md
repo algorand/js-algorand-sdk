@@ -2,17 +2,17 @@
 
 [![Build Status](https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master)](https://travis-ci.com/algorand/js-algorand-sdk) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://www.npmjs.com/package/algosdk)
 
-AlgoSDK is the official JavaScript library for communicating with the Algorand network. It's designed for modern browsers and node.js.
+AlgoSDK is the official JavaScript library for communicating with the Algorand network. It's designed for modern browsers and Node.js.
 
 ## Installation
 
-### node.js
+### [Node.js](https://nodejs.org/en/download/)
 
 ```
 $ npm install algosdk
 ```
 
-> This package provides TypeScript types, but you will need TypeScript version 4.2 or higher to use them properly.
+> This package provides TypeScript types, but you will need [TypeScript](https://www.typescriptlang.org/) version 4.2 or higher to use them properly.
 
 ### Browser
 
@@ -44,7 +44,7 @@ const client = new algosdk.Algod(token, server, port);
 
 ## Documentation
 
-For detailed information about the different API calls in `client`, visit https://developer.algorand.org
+Documentation for this SDK is available here: https://algorand.github.io/js-algorand-sdk/. Additional resources are available on https://developer.algorand.org.
 
 ## Examples
 
@@ -76,15 +76,15 @@ The static website will be located in the `docs/` directory.
 
 We have two test suites: mocha tests in this repo, and the Algorand SDK test suite from https://github.com/algorand/algorand-sdk-testing.
 
-#### Node
+#### Node.js
 
-To run the mocha tests in Node, run:
+To run the mocha tests in Node.js, run:
 
 ```bash
 npm test
 ```
 
-To run the SDK test suite in Node, run:
+To run the SDK test suite in Node.js, run:
 
 ```bash
 make docker-test
@@ -125,4 +125,4 @@ The linters and formatters listed above should run automatically on each commit 
 
 ## License
 
-js-algorand-sdk is licensed under a MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.
+js-algorand-sdk is licensed under an MIT license. See the [LICENSE](https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE) file for details.

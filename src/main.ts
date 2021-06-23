@@ -3,14 +3,12 @@ import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
 import * as multisig from './multisig';
+import * as LogicTemplatesCommonJSExport from './logicTemplates';
 import Bid, { BidOptions } from './bid';
-import algod from './client/algod';
 import * as convert from './convert';
 import * as utils from './utils/utils';
 import AnyTransaction from './types/transactions';
 import { MultisigMetadata } from './types/multisig';
-
-export const { Algod } = algod;
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
@@ -28,7 +26,7 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
  * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
  *
- * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * If flatFee is not set and the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
  * @param txn - object with either payment or key registration fields
  * @param sk - Algorand Secret Key
  * @returns object contains the binary signed transaction and its txID
@@ -237,6 +235,7 @@ export const ERROR_INVALID_MICROALGOS = new Error(
 );
 
 export * from './types/transactions';
+export * from './client/algod';
 export { default as Algodv2 } from './client/v2/algod/algod';
 export { default as Kmd } from './client/kmd';
 export { default as IntDecoding } from './types/intDecoding';
@@ -269,7 +268,7 @@ export {
   tealSign,
   tealSignFromProgram,
 } from './logicsig';
-export { default as LogicTemplates } from './logicTemplates';
+export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
 export * from './makeTxn';
 export * from './transaction';

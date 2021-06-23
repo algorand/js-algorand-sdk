@@ -19,6 +19,7 @@ type SpecificParametersForCreate = Pick<
   | 'appAccounts'
   | 'appForeignApps'
   | 'appForeignAssets'
+  | 'extraPages'
 >;
 
 interface OverwritesForCreate {

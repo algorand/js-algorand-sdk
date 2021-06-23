@@ -724,6 +724,31 @@ module.exports = function getSteps(options) {
     return this.txn;
   });
 
+  When('I create the multisig payment transaction with zero fee', function () {
+    this.txn = {
+      from: algosdk.multisigAddress(this.msig),
+      to: this.to,
+      fee: this.fee,
+      flatFee: true,
+      firstRound: this.fv,
+      lastRound: this.lv,
+      genesisHash: this.gh,
+    };
+    if (this.gen) {
+      this.txn.genesisID = this.gen;
+    }
+    if (this.close) {
+      this.txn.closeRemainderTo = this.close;
+    }
+    if (this.note) {
+      this.txn.note = this.note;
+    }
+    if (this.amt) {
+      this.txn.amount = this.amt;
+    }
+    return this.txn;
+  });
+
   When('I send the transaction', async function () {
     this.txid = await this.acl.sendRawTransaction(this.stx);
     this.txid = this.txid.txId;
@@ -3983,7 +4008,7 @@ module.exports = function getSteps(options) {
   }
 
   When(
-    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}',
+    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}, extra-pages {int}',
     async function (
       operationString,
       appIndex,
@@ -4001,7 +4026,8 @@ module.exports = function getSteps(options) {
       fee,
       firstValid,
       lastValid,
-      genesisHashBase64
+      genesisHashBase64,
+      extraPages
     ) {
       // operation string to enum
       const operation = operationStringToEnum(operationString);
@@ -4082,7 +4108,11 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            undefined,
+            undefined,
+            undefined,
+            extraPages
           );
           return;
         case 'update':
@@ -4159,7 +4189,7 @@ module.exports = function getSteps(options) {
     'the base{int} encoded signed transaction should equal {string}',
     function (base, base64golden) {
       const actualBase64 = Buffer.from(this.stx).toString('base64');
-      assert.strictEqual(base64golden, actualBase64);
+      assert.strictEqual(actualBase64, base64golden);
     }
   );
 
@@ -4206,7 +4236,7 @@ module.exports = function getSteps(options) {
   );
 
   Given(
-    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}',
+    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, extra-pages {int}',
     async function (
       operationString,
       approvalProgramFile,
@@ -4218,7 +4248,8 @@ module.exports = function getSteps(options) {
       appArgsCommaSeparatedString,
       foreignAppsCommaSeparatedString,
       foreignAssetsCommaSeparatedString,
-      appAccountsCommaSeparatedString
+      appAccountsCommaSeparatedString,
+      extraPages
     ) {
       if (operationString === 'create') {
         this.currentApplicationIndex = 0;
@@ -4271,7 +4302,9 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const o = {
+        type: 'appl',
         from: this.transientAddress,
+        suggestedParams: sp,
         appIndex: this.currentApplicationIndex,
         appOnComplete: operation,
         appLocalInts: numLocalInts,
@@ -4284,8 +4317,7 @@ module.exports = function getSteps(options) {
         appAccounts,
         appForeignApps: foreignApps,
         appForeignAssets: foreignAssets,
-        type: 'appl',
-        suggestedParams: sp,
+        extraPages,
       };
       this.txn = new algosdk.Transaction(o);
     }
@@ -4413,6 +4445,18 @@ module.exports = function getSteps(options) {
       assert.ok(foundValueForKey);
     }
   );
+
+  Then('fee field is in txn', async function () {
+    const s = algosdk.decodeObj(this.stx);
+    const { txn } = s;
+    assert.strictEqual('fee' in txn, true);
+  });
+
+  Then('fee field not in txn', async function () {
+    const s = algosdk.decodeObj(this.stx);
+    const { txn } = s;
+    assert.strictEqual(!('fee' in txn), true);
+  });
 
   if (!options.ignoreReturn) {
     return steps;

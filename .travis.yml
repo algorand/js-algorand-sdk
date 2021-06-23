@@ -18,7 +18,11 @@ jobs:
     - name: Prettier
       script: prettier --check .
     - stage: Testing
-      name: Node test
+      name: Compile test
+      script:
+        - npm run build
+        - npx tsc -p tests/compile
+    - name: Node test
     - name: Chrome test
       env: TEST_BROWSER=chrome
       addons:
