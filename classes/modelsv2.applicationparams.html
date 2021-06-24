@@ -105,6 +105,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="modelsv2.applicationparams.html#attribute_map" class="tsd-kind-icon">attribute_<wbr>map</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.applicationparams.html#clearstateprogram" class="tsd-kind-icon">clear<wbr>State<wbr>Program</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.applicationparams.html#creator" class="tsd-kind-icon">creator</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.applicationparams.html#extraprogrampages" class="tsd-kind-icon">extra<wbr>Program<wbr>Pages</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.applicationparams.html#globalstate" class="tsd-kind-icon">global<wbr>State</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.applicationparams.html#globalstateschema" class="tsd-kind-icon">global<wbr>State<wbr>Schema</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.applicationparams.html#localstateschema" class="tsd-kind-icon">local<wbr>State<wbr>Schema</a></li>
@@ -128,14 +129,14 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Application<wbr>Params<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>approvalProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>clearStateProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>creator<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>globalState<span class="tsd-signature-symbol">?: </span><a href="modelsv2.tealkeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">TealKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>globalStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol">; </span>localStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modelsv2.applicationparams.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationParams</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Application<wbr>Params<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>approvalProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>clearStateProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>creator<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>extraProgramPages<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>globalState<span class="tsd-signature-symbol">?: </span><a href="modelsv2.tealkeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">TealKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>globalStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol">; </span>localStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modelsv2.applicationparams.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationParams</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides BaseModel.constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/types.ts#L402">client/v2/algod/models/types.ts:402</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L417">client/v2/algod/models/types.ts:417</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -146,7 +147,7 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span>approvalProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>clearStateProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>creator<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>globalState<span class="tsd-signature-symbol">?: </span><a href="modelsv2.tealkeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">TealKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>globalStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol">; </span>localStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol"> }</span></h5>
+									<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span>approvalProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>clearStateProgram<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>creator<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>extraProgramPages<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>globalState<span class="tsd-signature-symbol">?: </span><a href="modelsv2.tealkeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">TealKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>globalStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol">; </span>localStateSchema<span class="tsd-signature-symbol">?: </span><a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a><span class="tsd-signature-symbol"> }</span></h5>
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter">
 											<h5>approval<wbr>Program<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
@@ -165,6 +166,12 @@
 											<div class="tsd-comment tsd-typography">
 												<p>The address that created this application. This is the address where the
 												parameters and global state for this application can be found.</p>
+											</div>
+										</li>
+										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> extra<wbr>Program<wbr>Pages<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<p>(epp) the amount of extra program pages available to this app.</p>
 											</div>
 										</li>
 										<li class="tsd-parameter">
@@ -201,7 +208,7 @@
 					<div class="tsd-signature tsd-kind-icon">approval<wbr>Program<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/types.ts#L376">client/v2/algod/models/types.ts:376</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L386">client/v2/algod/models/types.ts:386</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -217,7 +224,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from BaseModel.attribute_map</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/base.ts#L9">client/v2/algod/models/base.ts:9</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/base.ts#L9">client/v2/algod/models/base.ts:9</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -227,7 +234,7 @@
 					<div class="tsd-signature tsd-kind-icon">clear<wbr>State<wbr>Program<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/types.ts#L381">client/v2/algod/models/types.ts:381</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L391">client/v2/algod/models/types.ts:391</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -242,7 +249,7 @@
 					<div class="tsd-signature tsd-kind-icon">creator<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/types.ts#L387">client/v2/algod/models/types.ts:387</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L397">client/v2/algod/models/types.ts:397</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -253,12 +260,27 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="extraprogrampages" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> extra<wbr>Program<wbr>Pages</h3>
+					<div class="tsd-signature tsd-kind-icon">extra<wbr>Program<wbr>Pages<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L402">client/v2/algod/models/types.ts:402</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>(epp) the amount of extra program pages available to this app.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="globalstate" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> global<wbr>State</h3>
 					<div class="tsd-signature tsd-kind-icon">global<wbr>State<span class="tsd-signature-symbol">:</span> <a href="modelsv2.tealkeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">TealKeyValue</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/types.ts#L392">client/v2/algod/models/types.ts:392</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L407">client/v2/algod/models/types.ts:407</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -273,7 +295,7 @@
 					<div class="tsd-signature tsd-kind-icon">global<wbr>State<wbr>Schema<span class="tsd-signature-symbol">:</span> <a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/types.ts#L397">client/v2/algod/models/types.ts:397</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L412">client/v2/algod/models/types.ts:412</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -288,7 +310,7 @@
 					<div class="tsd-signature tsd-kind-icon">local<wbr>State<wbr>Schema<span class="tsd-signature-symbol">:</span> <a href="modelsv2.applicationstateschema.html" class="tsd-signature-type" data-tsd-kind="Class">ApplicationStateSchema</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/types.ts#L402">client/v2/algod/models/types.ts:402</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/types.ts#L417">client/v2/algod/models/types.ts:417</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -313,7 +335,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseModel._get_obj_for_encoding</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/base.ts#L24">client/v2/algod/models/base.ts:24</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/base.ts#L24">client/v2/algod/models/base.ts:24</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -328,7 +350,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseModel._get_obj_for_encoding</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/base.ts#L25">client/v2/algod/models/base.ts:25</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/base.ts#L25">client/v2/algod/models/base.ts:25</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -343,7 +365,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseModel._get_obj_for_encoding</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/base.ts#L26">client/v2/algod/models/base.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/base.ts#L26">client/v2/algod/models/base.ts:26</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -367,7 +389,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseModel._is_address</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/base.ts#L19">client/v2/algod/models/base.ts:19</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/base.ts#L19">client/v2/algod/models/base.ts:19</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -391,7 +413,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseModel._is_primitive</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/base.ts#L11">client/v2/algod/models/base.ts:11</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/base.ts#L11">client/v2/algod/models/base.ts:11</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -415,7 +437,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseModel.get_obj_for_encoding</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/ff9604c/src/client/v2/algod/models/base.ts#L52">client/v2/algod/models/base.ts:52</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/eb0c7a6/src/client/v2/algod/models/base.ts#L52">client/v2/algod/models/base.ts:52</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -429,9 +451,6 @@
 				<ul>
 					<li class=" ">
 						<a href="../modules.html">Exports</a>
-					</li>
-					<li class=" tsd-kind-namespace">
-						<a href="../modules/logictemplates.html">Logic<wbr>Templates</a>
 					</li>
 					<li class="current tsd-kind-namespace">
 						<a href="../modules/modelsv2.html">modelsv2</a>
@@ -474,6 +493,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="modelsv2.applicationparams.html#creator" class="tsd-kind-icon">creator</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="modelsv2.applicationparams.html#extraprogrampages" class="tsd-kind-icon">extra<wbr>Program<wbr>Pages</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="modelsv2.applicationparams.html#globalstate" class="tsd-kind-icon">global<wbr>State</a>

@@ -62,17 +62,17 @@
 					<h1>js-algorand-sdk</h1>
 				</a>
 				<p><a href="https://travis-ci.com/algorand/js-algorand-sdk"><img src="https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master" alt="Build Status"></a> <a href="https://www.npmjs.com/package/algosdk"><img src="https://badge.fury.io/js/algosdk.svg" alt="npm version"></a></p>
-				<p>AlgoSDK is the official JavaScript library for communicating with the Algorand network. It&#39;s designed for modern browsers and node.js.</p>
+				<p>AlgoSDK is the official JavaScript library for communicating with the Algorand network. It&#39;s designed for modern browsers and Node.js.</p>
 				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
 					<h2>Installation</h2>
 				</a>
 				<a href="#nodejs" id="nodejs" style="color: inherit; text-decoration: none;">
-					<h3>node.js</h3>
+					<h3><a href="https://nodejs.org/en/download/">Node.js</a></h3>
 				</a>
 				<pre><code><span style="color: #001080">$</span><span style="color: #000000"> </span><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">install</span><span style="color: #000000"> </span><span style="color: #001080">algosdk</span>
 </code></pre>
 				<blockquote>
-					<p>This package provides TypeScript types, but you will need TypeScript version 4.2 or higher to use them properly.</p>
+					<p>This package provides TypeScript types, but you will need <a href="https://www.typescriptlang.org/">TypeScript</a> version 4.2 or higher to use them properly.</p>
 				</blockquote>
 				<a href="#browser" id="browser" style="color: inherit; text-decoration: none;">
 					<h3>Browser</h3>
@@ -102,7 +102,7 @@
 				<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
 					<h2>Documentation</h2>
 				</a>
-				<p>For detailed information about the different API calls in <code>client</code>, visit <a href="https://developer.algorand.org">https://developer.algorand.org</a></p>
+				<p>Documentation for this SDK is available here: <a href="https://algorand.github.io/js-algorand-sdk/">https://algorand.github.io/js-algorand-sdk/</a>. Additional resources are available on <a href="https://developer.algorand.org">https://developer.algorand.org</a>.</p>
 				<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
 					<h2>Examples</h2>
 				</a>
@@ -128,13 +128,13 @@
 					<h3>Testing</h3>
 				</a>
 				<p>We have two test suites: mocha tests in this repo, and the Algorand SDK test suite from <a href="https://github.com/algorand/algorand-sdk-testing">https://github.com/algorand/algorand-sdk-testing</a>.</p>
-				<a href="#node" id="node" style="color: inherit; text-decoration: none;">
-					<h4>Node</h4>
+				<a href="#nodejs-1" id="nodejs-1" style="color: inherit; text-decoration: none;">
+					<h4>Node.js</h4>
 				</a>
-				<p>To run the mocha tests in Node, run:</p>
+				<p>To run the mocha tests in Node.js, run:</p>
 				<pre><code class="language-bash"><span style="color: #000000">npm </span><span style="color: #795E26">test</span>
 </code></pre>
-				<p>To run the SDK test suite in Node, run:</p>
+				<p>To run the SDK test suite in Node.js, run:</p>
 				<pre><code class="language-bash"><span style="color: #000000">make docker-test</span>
 </code></pre>
 				<a href="#browsers" id="browsers" style="color: inherit; text-decoration: none;">
@@ -168,7 +168,7 @@
 				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
 					<h2>License</h2>
 				</a>
-				<p>js-algorand-sdk is licensed under a MIT license. See the <a href="https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE">LICENSE</a> file for details.</p>
+				<p>js-algorand-sdk is licensed under an MIT license. See the <a href="https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE">LICENSE</a> file for details.</p>
 			</div>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -176,9 +176,6 @@
 				<ul>
 					<li class=" ">
 						<a href="modules.html">Exports</a>
-					</li>
-					<li class=" tsd-kind-namespace">
-						<a href="modules/logictemplates.html">Logic<wbr>Templates</a>
 					</li>
 					<li class=" tsd-kind-namespace">
 						<a href="modules/modelsv2.html">modelsv2</a>
@@ -195,6 +192,9 @@
 					</li>
 					<li class=" tsd-kind-enum">
 						<a href="enums/transactiontype.html" class="tsd-kind-icon">Transaction<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/algod.html" class="tsd-kind-icon">Algod</a>
 					</li>
 					<li class=" tsd-kind-class">
 						<a href="classes/algodv2.html" class="tsd-kind-icon">Algodv2</a>
@@ -274,9 +274,6 @@
 					<li class=" tsd-kind-type-alias">
 						<a href="modules.html#transactionlike" class="tsd-kind-icon">Transaction<wbr>Like</a>
 					</li>
-					<li class=" tsd-kind-property">
-						<a href="modules.html#logictemplates" class="tsd-kind-icon">Logic<wbr>Templates</a>
-					</li>
 					<li class=" tsd-kind-variable">
 						<a href="modules.html#algorand_min_tx_fee" class="tsd-kind-icon">ALGORAND_<wbr>MIN_<wbr>TX_<wbr>FEE</a>
 					</li>
@@ -290,10 +287,10 @@
 						<a href="modules.html#invalid_microalgos_error_msg" class="tsd-kind-icon">INVALID_<wbr>MICROALGOS_<wbr>ERROR_<wbr>MSG</a>
 					</li>
 					<li class=" tsd-kind-variable">
-						<a href="modules.html#multisig_bad_sender_error_msg" class="tsd-kind-icon">MULTISIG_<wbr>BAD_<wbr>SENDER_<wbr>ERROR_<wbr>MSG</a>
+						<a href="modules.html#logictemplates" class="tsd-kind-icon">Logic<wbr>Templates</a>
 					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#algod" class="tsd-kind-icon">Algod</a>
+					<li class=" tsd-kind-variable">
+						<a href="modules.html#multisig_bad_sender_error_msg" class="tsd-kind-icon">MULTISIG_<wbr>BAD_<wbr>SENDER_<wbr>ERROR_<wbr>MSG</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#algostomicroalgos" class="tsd-kind-icon">algos<wbr>ToMicroalgos</a>
