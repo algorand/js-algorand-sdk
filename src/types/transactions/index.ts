@@ -17,7 +17,6 @@ import {
   ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';
 import Account from '../account';
-import SuggestedParamsRequest from '../../client/v2/algod/suggestedParams';
 
 // Utilities
 export {
@@ -101,4 +100,4 @@ type AnyTransaction =
   | AppClearStateTxn
   | AppNoOpTxn;
 export default AnyTransaction;
-export { Account, SuggestedParamsRequest };
+export { Account };
