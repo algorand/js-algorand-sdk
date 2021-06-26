@@ -594,7 +594,7 @@ export class Transaction implements TransactionStorageStructure {
         delete txn.apar;
       } else {
         if (!txn.apar.t) delete txn.apar.t;
-        if (!txn.apar.dc) delete txn.apar.dc;
+        if (txn.apar.dc === undefined) delete txn.apar.dc; // 0 is a valid value
         if (!txn.apar.un) delete txn.apar.un;
         if (!txn.apar.an) delete txn.apar.an;
         if (!txn.apar.df) delete txn.apar.df;
