@@ -245,7 +245,7 @@ export class Transaction implements TransactionStorageStructure {
       (!(
         Number.isSafeInteger(txn.amount) ||
         (typeof txn.amount === 'bigint' &&
-          txn.amount <= BigInt(0xffffffffffffffffn))
+          txn.amount <= BigInt('0xffffffffffffffff'))
       ) ||
         txn.amount < 0)
     )
@@ -268,7 +268,7 @@ export class Transaction implements TransactionStorageStructure {
       (!(
         Number.isSafeInteger(txn.assetTotal) ||
         (typeof txn.assetTotal === 'bigint' &&
-          txn.assetTotal <= BigInt(0xffffffffffffffffn))
+          txn.assetTotal <= BigInt('0xffffffffffffffff'))
       ) ||
         txn.assetTotal < 0)
     )
