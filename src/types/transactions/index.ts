@@ -16,7 +16,7 @@ import {
   ApplicationClearStateTransaction as AppClearStateTxn,
   ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';
-
+import SuggestedParamsRequest from '../../client/v2/algod/suggestedParams';
 // Utilities
 export { TransactionParams, TransactionType, SuggestedParams } from './base';
 export {
@@ -36,25 +36,6 @@ export {
 } from './encoded';
 export { MultisigMetadata } from '../multisig';
 export { Address } from '../address';
-export {
-  Asset,
-  AssetHolding,
-  AssetParams,
-  AccountStateDelta,
-  ApplicationStateSchema,
-  ApplicationLocalState,
-  ApplicationParams,
-  Application,
-  PendingTransactionResponse,
-  TransactionParametersResponse,
-  DryrunRequest,
-  DryrunSource,
-  CompileResponse,
-  NodeStatusResponse,
-  TealKeyValue,
-  TealValue,
-  Account as AccountState,
-} from '../../client/v2/algod/models/types';
 
 // Transaction types
 export { default as PaymentTxn } from './payment';
@@ -93,3 +74,4 @@ type AnyTransaction =
   | AppClearStateTxn
   | AppNoOpTxn;
 export default AnyTransaction;
+export { SuggestedParamsRequest };
