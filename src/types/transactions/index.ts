@@ -23,19 +23,7 @@ export {
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,
 } from './builder';
-export {
-  EncodedTransaction,
-  EncodedSignedTransaction,
-  EncodedAssetParams,
-  EncodedGlobalStateSchema,
-  EncodedLocalStateSchema,
-  EncodedLogicSig,
-  EncodedMultisig,
-  EncodedMultisigBlob,
-  EncodedSubsig,
-} from './encoded';
-export { MultisigMetadata } from '../multisig';
-export { Address } from '../address';
+export * from './encoded';
 
 // Transaction types
 export { default as PaymentTxn } from './payment';
