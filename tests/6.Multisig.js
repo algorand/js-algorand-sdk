@@ -21,7 +21,7 @@ describe('Multisig Functionality', () => {
           ).publicKey,
         ],
       };
-      /* eslint-disable no-unused-vars */
+      /* eslint-disable @typescript-eslint/no-unused-vars */
       const multisigAddr =
         'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM';
       const mnem1 =
@@ -30,7 +30,7 @@ describe('Multisig Functionality', () => {
         'since during average anxiety protect cherry club long lawsuit loan expand embark forum theory winter park twenty ball kangaroo cram burst board host ability left';
       const mnem3 =
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
-      /* eslint-enable no-unused-vars */
+      /* eslint-enable @typescript-eslint/no-unused-vars */
 
       const o = {
         snd: Buffer.from(
@@ -93,7 +93,7 @@ describe('Multisig Functionality', () => {
           ).publicKey,
         ],
       };
-      /* eslint-disable no-unused-vars */
+      /* eslint-disable @typescript-eslint/no-unused-vars */
       const multisigAddr =
         'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM';
       const mnem1 =
@@ -102,7 +102,7 @@ describe('Multisig Functionality', () => {
         'since during average anxiety protect cherry club long lawsuit loan expand embark forum theory winter park twenty ball kangaroo cram burst board host ability left';
       const mnem3 =
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
-      /* eslint-enable no-unused-vars */
+      /* eslint-enable @typescript-eslint/no-unused-vars */
 
       const o = {
         snd: Buffer.from(

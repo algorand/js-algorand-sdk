@@ -85,7 +85,7 @@ export function createMultisigTransaction(
  * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
  */
 export class MultisigTransaction extends txnBuilder.Transaction {
-  /* eslint-disable class-methods-use-this,no-unused-vars,no-dupe-class-members */
+  /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars,no-dupe-class-members */
   /**
    * Override inherited method to throw an error, as mutating transactions are prohibited in this context
    */
@@ -107,7 +107,7 @@ export class MultisigTransaction extends txnBuilder.Transaction {
   signTxn(sk: any): any {
     throw new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG);
   }
-  /* eslint-enable class-methods-use-this,no-unused-vars,no-dupe-class-members */
+  /* eslint-enable class-methods-use-this,@typescript-eslint/no-unused-vars,no-dupe-class-members */
 
   /**
    * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
