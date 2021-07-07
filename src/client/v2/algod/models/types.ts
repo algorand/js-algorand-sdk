@@ -61,6 +61,11 @@ export class Account extends BaseModel {
   public appsLocalState?: ApplicationLocalState[];
 
   /**
+   * (teap) the sum of all extra application program pages for this account.
+   */
+  public appsTotalExtraPages?: number | bigint;
+
+  /**
    * (tsch) stores the sum of all of the local schemas and global schemas in this
    * account.
    * Note: the raw account uses `StateSchema` for this type.
@@ -130,6 +135,7 @@ export class Account extends BaseModel {
    * delegator nor a delegate.
    * @param appsLocalState - (appl) applications local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
+   * @param appsTotalExtraPages - (teap) the sum of all extra application program pages for this account.
    * @param appsTotalSchema - (tsch) stores the sum of all of the local schemas and global schemas in this
    * account.
    * Note: the raw account uses `StateSchema` for this type.
@@ -161,6 +167,7 @@ export class Account extends BaseModel {
     round,
     status,
     appsLocalState,
+    appsTotalExtraPages,
     appsTotalSchema,
     assets,
     authAddr,
@@ -178,6 +185,7 @@ export class Account extends BaseModel {
     round: number | bigint;
     status: string;
     appsLocalState?: ApplicationLocalState[];
+    appsTotalExtraPages?: number | bigint;
     appsTotalSchema?: ApplicationStateSchema;
     assets?: AssetHolding[];
     authAddr?: string;
@@ -196,6 +204,7 @@ export class Account extends BaseModel {
     this.round = round;
     this.status = status;
     this.appsLocalState = appsLocalState;
+    this.appsTotalExtraPages = appsTotalExtraPages;
     this.appsTotalSchema = appsTotalSchema;
     this.assets = assets;
     this.authAddr = authAddr;
@@ -214,6 +223,7 @@ export class Account extends BaseModel {
       round: 'round',
       status: 'status',
       appsLocalState: 'apps-local-state',
+      appsTotalExtraPages: 'apps-total-extra-pages',
       appsTotalSchema: 'apps-total-schema',
       assets: 'assets',
       authAddr: 'auth-addr',
@@ -387,6 +397,11 @@ export class ApplicationParams extends BaseModel {
   public creator: string;
 
   /**
+   * (epp) the amount of extra program pages available to this app.
+   */
+  public extraProgramPages?: number | bigint;
+
+  /**
    * [\gs) global schema
    */
   public globalState?: TealKeyValue[];
@@ -407,6 +422,7 @@ export class ApplicationParams extends BaseModel {
    * @param clearStateProgram - (clearp) approval program.
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
+   * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
    * @param globalState - [\gs) global schema
    * @param globalStateSchema - [\lsch) global schema
    * @param localStateSchema - [\lsch) local schema
@@ -415,6 +431,7 @@ export class ApplicationParams extends BaseModel {
     approvalProgram,
     clearStateProgram,
     creator,
+    extraProgramPages,
     globalState,
     globalStateSchema,
     localStateSchema,
@@ -422,6 +439,7 @@ export class ApplicationParams extends BaseModel {
     approvalProgram: string;
     clearStateProgram: string;
     creator: string;
+    extraProgramPages?: number | bigint;
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
@@ -430,6 +448,7 @@ export class ApplicationParams extends BaseModel {
     this.approvalProgram = approvalProgram;
     this.clearStateProgram = clearStateProgram;
     this.creator = creator;
+    this.extraProgramPages = extraProgramPages;
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
@@ -438,6 +457,7 @@ export class ApplicationParams extends BaseModel {
       approvalProgram: 'approval-program',
       clearStateProgram: 'clear-state-program',
       creator: 'creator',
+      extraProgramPages: 'extra-program-pages',
       globalState: 'global-state',
       globalStateSchema: 'global-state-schema',
       localStateSchema: 'local-state-schema',

@@ -1,5 +1,5 @@
 import path from 'path';
-import request from 'superagent';
+import * as request from 'superagent';
 import Url from 'url-parse';
 import * as utils from '../utils/utils';
 import IntDecoding from '../types/intDecoding';

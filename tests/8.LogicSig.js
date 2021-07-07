@@ -321,12 +321,26 @@ describe('Logic validation', () => {
       result = logic.checkProgram(program);
       assert.equal(result, true);
 
-      // 800x keccak256 more is to costly
+      // 800x keccak256 more is too costly
       program = utils.concatArrays(program, new Uint8Array(800).fill(2));
-      assert.throws(
-        () => logic.checkProgram(program),
-        new Error('program too costly to run')
-      );
+      //  old versions
+      const oldVersions = [0x1, 0x2, 0x3];
+      let i;
+      for (i = 0; i < oldVersions.length; i++) {
+        program[0] = oldVersions[i];
+        assert.throws(
+          () => logic.checkProgram(program),
+          new Error(
+            'program too costly for Teal version < 4. consider using v4.'
+          )
+        );
+      }
+      //  new versions
+      const newVersions = [0x4];
+      for (i = 0; i < newVersions.length; i++) {
+        program[0] = newVersions[i];
+        assert.ok(logic.checkProgram(program));
+      }
     });
     it('should support TEAL v2 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 2);
@@ -396,6 +410,125 @@ describe('Logic validation', () => {
         0x4c,
         0x48,
       ]); // int 0; int 1; swap; pop
+      assert.ok(logic.checkProgram(program));
+    });
+    it('should support TEAL v4 opcodes', () => {
+      assert.ok(logic.langspecEvalMaxVersion >= 4);
+
+      // divmodw
+      let program = Uint8Array.from([
+        0x04,
+        0x20,
+        0x03,
+        0x01,
+        0x00,
+        0x02,
+        0x22,
+        0x81,
+        0xd0,
+        0x0f,
+        0x23,
+        0x24,
+        0x1f,
+      ]); // int 1; pushint 2000; int 0; int 2; divmodw
+      assert.ok(logic.checkProgram(program));
+
+      // gloads i
+      program = Uint8Array.from([0x04, 0x20, 0x01, 0x00, 0x22, 0x3b, 0x00]); // int 0; gloads 0
+      assert.ok(logic.checkProgram(program));
+
+      // callsub
+      program = Uint8Array.from([
+        0x04,
+        0x20,
+        0x02,
+        0x01,
+        0x02,
+        0x22,
+        0x88,
+        0x00,
+        0x02,
+        0x23,
+        0x12,
+        0x49,
+      ]); // int 1; callsub double; int 2; ==; double: dup;
+      assert.ok(logic.checkProgram(program));
+
+      // b>=
+      program = Uint8Array.from([
+        0x04,
+        0x26,
+        0x02,
+        0x01,
+        0x11,
+        0x01,
+        0x10,
+        0x28,
+        0x29,
+        0xa7,
+      ]); // byte 0x11; byte 0x10; b>=
+      assert.ok(logic.checkProgram(program));
+
+      // b^
+      program = Uint8Array.from([
+        0x04,
+        0x26,
+        0x03,
+        0x01,
+        0x11,
+        0x01,
+        0x10,
+        0x01,
+        0x01,
+        0x28,
+        0x29,
+        0xad,
+        0x2a,
+        0x12,
+      ]); // byte 0x11; byte 0x10; b>=
+      assert.ok(logic.checkProgram(program));
+
+      // callsub, retsub
+      program = Uint8Array.from([
+        0x04,
+        0x20,
+        0x02,
+        0x01,
+        0x02,
+        0x22,
+        0x88,
+        0x00,
+        0x03,
+        0x23,
+        0x12,
+        0x43,
+        0x49,
+        0x08,
+        0x89,
+      ]); // int 1; callsub double; int 2; ==; return; double: dup; +; retsub;
+      assert.ok(logic.checkProgram(program));
+
+      // loop
+      program = Uint8Array.from([
+        0x04,
+        0x20,
+        0x04,
+        0x01,
+        0x02,
+        0x0a,
+        0x10,
+        0x22,
+        0x23,
+        0x0b,
+        0x49,
+        0x24,
+        0x0c,
+        0x40,
+        0xff,
+        0xf8,
+        0x25,
+        0x12,
+      ]); // int 1; loop: int 2; *; dup; int 10; <; bnz loop; int 16; ==
       assert.ok(logic.checkProgram(program));
     });
   });

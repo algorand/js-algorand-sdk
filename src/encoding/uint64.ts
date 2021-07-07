@@ -8,7 +8,7 @@
 export function encodeUint64(num: number | bigint) {
   const isInteger = typeof num === 'bigint' || Number.isInteger(num);
 
-  if (!isInteger || num < 0 || num > 0xffffffffffffffffn) {
+  if (!isInteger || num < 0 || num > BigInt('0xffffffffffffffff')) {
     throw new Error('Input is not a 64-bit unsigned integer');
   }
 

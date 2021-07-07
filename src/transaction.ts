@@ -101,6 +101,7 @@ interface TransactionStorageStructure
   reKeyTo?: string | Address;
   nonParticipation?: boolean;
   group?: Buffer;
+  extraPages?: number;
 }
 
 /**
@@ -159,6 +160,7 @@ export class Transaction implements TransactionStorageStructure {
   reKeyTo?: Address;
   nonParticipation?: boolean;
   group?: Buffer;
+  extraPages?: number;
 
   constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
@@ -242,7 +244,8 @@ export class Transaction implements TransactionStorageStructure {
       txn.amount !== undefined &&
       (!(
         Number.isSafeInteger(txn.amount) ||
-        (typeof txn.amount === 'bigint' && txn.amount <= 0xffffffffffffffffn)
+        (typeof txn.amount === 'bigint' &&
+          txn.amount <= BigInt('0xffffffffffffffff'))
       ) ||
         txn.amount < 0)
     )
@@ -254,11 +257,18 @@ export class Transaction implements TransactionStorageStructure {
     if (!Number.isSafeInteger(txn.lastRound) || txn.lastRound < 0)
       throw Error('lastRound must be a positive number');
     if (
+      txn.extraPages !== undefined &&
+      (!Number.isInteger(txn.extraPages) ||
+        txn.extraPages < 0 ||
+        txn.extraPages > 3)
+    )
+      throw Error('extraPages must be an Integer between and including 0 to 3');
+    if (
       txn.assetTotal !== undefined &&
       (!(
         Number.isSafeInteger(txn.assetTotal) ||
         (typeof txn.assetTotal === 'bigint' &&
-          txn.assetTotal <= 0xffffffffffffffffn)
+          txn.assetTotal <= BigInt('0xffffffffffffffff'))
       ) ||
         txn.assetTotal < 0)
     )
@@ -438,10 +448,10 @@ export class Transaction implements TransactionStorageStructure {
     // Modify Fee
     if (!txn.flatFee) {
       this.fee *= this.estimateSize();
-    }
-    // If suggested fee too small and will be rejected, set to min tx fee
-    if (this.fee < ALGORAND_MIN_TX_FEE) {
-      this.fee = ALGORAND_MIN_TX_FEE;
+      // If suggested fee too small and will be rejected, set to min tx fee
+      if (this.fee < ALGORAND_MIN_TX_FEE) {
+        this.fee = ALGORAND_MIN_TX_FEE;
+      }
     }
 
     // say we are aware of groups
@@ -693,6 +703,7 @@ export class Transaction implements TransactionStorageStructure {
         },
         apfa: this.appForeignApps,
         apas: this.appForeignAssets,
+        apep: this.extraPages,
       };
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -730,6 +741,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.apan) delete txn.apan;
       if (!txn.apfa) delete txn.apfa;
       if (!txn.apas) delete txn.apas;
+      if (!txn.apep) delete txn.apep;
       if (txn.grp === undefined) delete txn.grp;
       return txn;
     }
