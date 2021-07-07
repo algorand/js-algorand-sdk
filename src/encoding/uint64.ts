@@ -37,7 +37,6 @@ export function encodeUint64(num: number | bigint) {
  * @returns The integer that was encoded in the input data. The return type will
  *   be determined by the parameter decodingMode.
  */
-/* eslint-disable  no-unused-vars,no-redeclare */
 export function decodeUint64(data: Uint8Array, decodingMode: 'safe'): number;
 export function decodeUint64(
   data: Uint8Array,
@@ -45,7 +44,6 @@ export function decodeUint64(
 ): number | bigint;
 export function decodeUint64(data: Uint8Array, decodingMode: 'bigint'): bigint;
 export function decodeUint64(data: any, decodingMode: any = 'safe') {
-  /* eslint-enable  no-unused-vars,no-redeclare */
   if (
     decodingMode !== 'safe' &&
     decodingMode !== 'mixed' &&

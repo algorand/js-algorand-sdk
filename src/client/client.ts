@@ -70,11 +70,9 @@ type Query<F> = {
  * requested format.
  * @param query
  */
-/* eslint-disable no-redeclare,no-unused-vars */
 function getAcceptFormat(
   query?: Query<'msgpack' | 'json'>
 ): 'application/msgpack' | 'application/json' {
-  /* eslint-enable no-redeclare,no-unused-vars */
   if (
     query !== undefined &&
     Object.prototype.hasOwnProperty.call(query, 'format')

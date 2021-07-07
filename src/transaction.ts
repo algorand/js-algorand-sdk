@@ -491,6 +491,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.note.length) delete txn.note;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
       if (!txn.lx.length) delete txn.lx;
@@ -519,6 +520,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.note.length) delete txn.note;
       if (!txn.lx.length) delete txn.lx;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
       if (this.reKeyTo !== undefined) {
@@ -573,6 +575,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.lx.length) delete txn.lx;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -637,6 +640,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.aamt) delete txn.aamt;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
       if (!txn.aclose) delete txn.aclose;
@@ -670,6 +674,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.lx.length) delete txn.lx;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (!txn.afrz) delete txn.afrz;
       if (txn.grp === undefined) delete txn.grp;
@@ -727,6 +732,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.lx.length) delete txn.lx;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (!txn.apid) delete txn.apid;
       if (!txn.apls.nui) delete txn.apls.nui;

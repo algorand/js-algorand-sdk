@@ -158,7 +158,6 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  */
-/* eslint-disable no-unused-vars,no-redeclare */
 export function makeKeyRegistrationTxnWithSuggestedParams(
   from: KeyRegistrationTxn['from'],
   note: KeyRegistrationTxn['note'],
@@ -195,7 +194,6 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   rekeyTo?: any,
   nonParticipation = false
 ) {
-  /* eslint-enable no-unused-vars,no-redeclare */
   const o: KeyRegistrationTxn = {
     from,
     note,
@@ -234,7 +232,6 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  */
-/* eslint-disable no-unused-vars,no-redeclare */
 export function makeKeyRegistrationTxn(
   from: KeyRegistrationTxn['from'],
   fee: MustHaveSuggestedParamsInline<KeyRegistrationTxn>['fee'],
@@ -283,7 +280,6 @@ export function makeKeyRegistrationTxn(
   rekeyTo?: any,
   nonParticipation: any = false
 ) {
-  /* eslint-enable no-unused-vars,no-redeclare */
   const suggestedParams: SuggestedParams = {
     genesisHash,
     genesisID,
@@ -306,7 +302,6 @@ export function makeKeyRegistrationTxn(
 }
 
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
-/* eslint-disable no-unused-vars,no-redeclare */
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
   o: Pick<
     RenameProperty<
@@ -340,7 +335,6 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
   }
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
-  /* eslint-enable no-unused-vars,no-redeclare */
   return makeKeyRegistrationTxnWithSuggestedParams(
     o.from,
     o.note,
