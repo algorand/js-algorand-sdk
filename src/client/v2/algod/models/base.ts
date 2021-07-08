@@ -3,8 +3,8 @@
  */
 
 /* eslint-disable no-underscore-dangle,camelcase */
-
 function _is_primitive(val: any): val is string | boolean | number | bigint {
+  /* eslint-enable no-underscore-dangle,camelcase */
   return (
     val === undefined ||
     val == null ||
@@ -12,7 +12,7 @@ function _is_primitive(val: any): val is string | boolean | number | bigint {
   );
 }
 
-/* eslint-disable no-redeclare,no-unused-vars */
+/* eslint-disable no-underscore-dangle,camelcase,no-redeclare,no-unused-vars */
 function _get_obj_for_encoding(
   val: Function,
   binary: boolean
@@ -23,6 +23,7 @@ function _get_obj_for_encoding(
   binary: boolean
 ): Record<string, any>;
 function _get_obj_for_encoding(val: any, binary: boolean): any {
+  /* eslint-enable no-underscore-dangle,camelcase,no-redeclare,no-unused-vars */
   let targetPropValue: any;
 
   if (val instanceof Uint8Array) {
@@ -47,9 +48,9 @@ function _get_obj_for_encoding(val: any, binary: boolean): any {
   }
   return targetPropValue;
 }
-/* eslint-enable no-redeclare,no-unused-vars */
 
 export default class BaseModel {
+  /* eslint-disable no-underscore-dangle,camelcase */
   attribute_map: Record<string, string>;
 
   /**
@@ -60,6 +61,7 @@ export default class BaseModel {
    *   be used for objects that will be encoded with JSON.
    */
   get_obj_for_encoding(binary = false) {
+    /* eslint-enable no-underscore-dangle,camelcase */
     const obj: Record<string, any> = {};
 
     for (const prop of Object.keys(this.attribute_map)) {
