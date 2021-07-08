@@ -244,7 +244,7 @@ export class AccountParticipation extends BaseModel {
   /**
    * (sel) Selection public key (if any) currently registered for this round.
    */
-  public selectionParticipationKey: string;
+  public selectionParticipationKey: Uint8Array;
 
   /**
    * (voteFst) First round for which this participation is valid.
@@ -265,7 +265,7 @@ export class AccountParticipation extends BaseModel {
    * (vote) root participation public key (if any) currently registered for this
    * round.
    */
-  public voteParticipationKey: string;
+  public voteParticipationKey: Uint8Array;
 
   /**
    * Creates a new `AccountParticipation` object.
@@ -283,18 +283,24 @@ export class AccountParticipation extends BaseModel {
     voteLastValid,
     voteParticipationKey,
   }: {
-    selectionParticipationKey: string;
+    selectionParticipationKey: string | Uint8Array;
     voteFirstValid: number | bigint;
     voteKeyDilution: number | bigint;
     voteLastValid: number | bigint;
-    voteParticipationKey: string;
+    voteParticipationKey: string | Uint8Array;
   }) {
     super();
-    this.selectionParticipationKey = selectionParticipationKey;
+    this.selectionParticipationKey =
+      typeof selectionParticipationKey === 'string'
+        ? new Uint8Array(Buffer.from(selectionParticipationKey, 'base64'))
+        : selectionParticipationKey;
     this.voteFirstValid = voteFirstValid;
     this.voteKeyDilution = voteKeyDilution;
     this.voteLastValid = voteLastValid;
-    this.voteParticipationKey = voteParticipationKey;
+    this.voteParticipationKey =
+      typeof voteParticipationKey === 'string'
+        ? new Uint8Array(Buffer.from(voteParticipationKey, 'base64'))
+        : voteParticipationKey;
 
     this.attribute_map = {
       selectionParticipationKey: 'selection-participation-key',
@@ -310,12 +316,19 @@ export class AccountParticipation extends BaseModel {
  * Application state delta.
  */
 export class AccountStateDelta extends BaseModel {
+  public address: string;
+
+  /**
+   * Application state delta.
+   */
+  public delta: EvalDeltaKeyValue[];
+
   /**
    * Creates a new `AccountStateDelta` object.
    * @param address -
    * @param delta - Application state delta.
    */
-  constructor(public address: string, public delta: EvalDeltaKeyValue[]) {
+  constructor(address: string, delta: EvalDeltaKeyValue[]) {
     super();
     this.address = address;
     this.delta = delta;
@@ -332,11 +345,21 @@ export class AccountStateDelta extends BaseModel {
  */
 export class Application extends BaseModel {
   /**
+   * (appidx) application index.
+   */
+  public id: number | bigint;
+
+  /**
+   * (appparams) application parameters.
+   */
+  public params: ApplicationParams;
+
+  /**
    * Creates a new `Application` object.
    * @param id - (appidx) application index.
    * @param params - (appparams) application parameters.
    */
-  constructor(public id: number | bigint, public params: ApplicationParams) {
+  constructor(id: number | bigint, params: ApplicationParams) {
     super();
     this.id = id;
     this.params = params;
@@ -353,15 +376,30 @@ export class Application extends BaseModel {
  */
 export class ApplicationLocalState extends BaseModel {
   /**
+   * The application which this local state is for.
+   */
+  public id: number | bigint;
+
+  /**
+   * (hsch) schema.
+   */
+  public schema: ApplicationStateSchema;
+
+  /**
+   * (tkv) storage.
+   */
+  public keyValue?: TealKeyValue[];
+
+  /**
    * Creates a new `ApplicationLocalState` object.
    * @param id - The application which this local state is for.
    * @param schema - (hsch) schema.
    * @param keyValue - (tkv) storage.
    */
   constructor(
-    public id: number | bigint,
-    public schema: ApplicationStateSchema,
-    public keyValue?: TealKeyValue[]
+    id: number | bigint,
+    schema: ApplicationStateSchema,
+    keyValue?: TealKeyValue[]
   ) {
     super();
     this.id = id;
@@ -383,12 +421,12 @@ export class ApplicationParams extends BaseModel {
   /**
    * (approv) approval program.
    */
-  public approvalProgram: string;
+  public approvalProgram: Uint8Array;
 
   /**
    * (clearp) approval program.
    */
-  public clearStateProgram: string;
+  public clearStateProgram: Uint8Array;
 
   /**
    * The address that created this application. This is the address where the
@@ -436,8 +474,8 @@ export class ApplicationParams extends BaseModel {
     globalStateSchema,
     localStateSchema,
   }: {
-    approvalProgram: string;
-    clearStateProgram: string;
+    approvalProgram: string | Uint8Array;
+    clearStateProgram: string | Uint8Array;
     creator: string;
     extraProgramPages?: number | bigint;
     globalState?: TealKeyValue[];
@@ -445,8 +483,14 @@ export class ApplicationParams extends BaseModel {
     localStateSchema?: ApplicationStateSchema;
   }) {
     super();
-    this.approvalProgram = approvalProgram;
-    this.clearStateProgram = clearStateProgram;
+    this.approvalProgram =
+      typeof approvalProgram === 'string'
+        ? new Uint8Array(Buffer.from(approvalProgram, 'base64'))
+        : approvalProgram;
+    this.clearStateProgram =
+      typeof clearStateProgram === 'string'
+        ? new Uint8Array(Buffer.from(clearStateProgram, 'base64'))
+        : clearStateProgram;
     this.creator = creator;
     this.extraProgramPages = extraProgramPages;
     this.globalState = globalState;
@@ -470,14 +514,21 @@ export class ApplicationParams extends BaseModel {
  */
 export class ApplicationStateSchema extends BaseModel {
   /**
+   * (nui) num of uints.
+   */
+  public numUint: number | bigint;
+
+  /**
+   * (nbs) num of byte slices.
+   */
+  public numByteSlice: number | bigint;
+
+  /**
    * Creates a new `ApplicationStateSchema` object.
    * @param numUint - (nui) num of uints.
    * @param numByteSlice - (nbs) num of byte slices.
    */
-  constructor(
-    public numUint: number | bigint,
-    public numByteSlice: number | bigint
-  ) {
+  constructor(numUint: number | bigint, numByteSlice: number | bigint) {
     super();
     this.numUint = numUint;
     this.numByteSlice = numByteSlice;
@@ -494,6 +545,19 @@ export class ApplicationStateSchema extends BaseModel {
  */
 export class Asset extends BaseModel {
   /**
+   * unique asset identifier
+   */
+  public index: number | bigint;
+
+  /**
+   * AssetParams specifies the parameters for an asset.
+   * (apar) when part of an AssetConfig transaction.
+   * Definition:
+   * data/transactions/asset.go : AssetParams
+   */
+  public params: AssetParams;
+
+  /**
    * Creates a new `Asset` object.
    * @param index - unique asset identifier
    * @param params - AssetParams specifies the parameters for an asset.
@@ -501,7 +565,7 @@ export class Asset extends BaseModel {
    * Definition:
    * data/transactions/asset.go : AssetParams
    */
-  constructor(public index: number | bigint, public params: AssetParams) {
+  constructor(index: number | bigint, params: AssetParams) {
     super();
     this.index = index;
     this.params = params;
@@ -520,6 +584,28 @@ export class Asset extends BaseModel {
  */
 export class AssetHolding extends BaseModel {
   /**
+   * (a) number of units held.
+   */
+  public amount: number | bigint;
+
+  /**
+   * Asset ID of the holding.
+   */
+  public assetId: number | bigint;
+
+  /**
+   * Address that created this asset. This is the address where the parameters for
+   * this asset can be found, and also the address where unwanted asset units can be
+   * sent in the worst case.
+   */
+  public creator: string;
+
+  /**
+   * (f) whether or not the holding is frozen.
+   */
+  public isFrozen: boolean;
+
+  /**
    * Creates a new `AssetHolding` object.
    * @param amount - (a) number of units held.
    * @param assetId - Asset ID of the holding.
@@ -529,10 +615,10 @@ export class AssetHolding extends BaseModel {
    * @param isFrozen - (f) whether or not the holding is frozen.
    */
   constructor(
-    public amount: number | bigint,
-    public assetId: number | bigint,
-    public creator: string,
-    public isFrozen: boolean
+    amount: number | bigint,
+    assetId: number | bigint,
+    creator: string,
+    isFrozen: boolean
   ) {
     super();
     this.amount = amount;
@@ -602,7 +688,7 @@ export class AssetParams extends BaseModel {
    * (am) A commitment to some unspecified asset metadata. The format of this
    * metadata is up to the application.
    */
-  public metadataHash?: string;
+  public metadataHash?: Uint8Array;
 
   /**
    * (an) Name of this asset, as supplied by the creator.
@@ -668,7 +754,7 @@ export class AssetParams extends BaseModel {
     defaultFrozen?: boolean;
     freeze?: string;
     manager?: string;
-    metadataHash?: string;
+    metadataHash?: string | Uint8Array;
     name?: string;
     reserve?: string;
     unitName?: string;
@@ -682,7 +768,10 @@ export class AssetParams extends BaseModel {
     this.defaultFrozen = defaultFrozen;
     this.freeze = freeze;
     this.manager = manager;
-    this.metadataHash = metadataHash;
+    this.metadataHash =
+      typeof metadataHash === 'string'
+        ? new Uint8Array(Buffer.from(metadataHash, 'base64'))
+        : metadataHash;
     this.name = name;
     this.reserve = reserve;
     this.unitName = unitName;
@@ -710,12 +799,23 @@ export class AssetParams extends BaseModel {
  */
 export class BlockResponse extends BaseModel {
   /**
+   * Block header data.
+   */
+  public block: BlockHeader;
+
+  /**
+   * Optional certificate object. This is only included when the format is set to
+   * message pack.
+   */
+  public cert?: Record<string, any>;
+
+  /**
    * Creates a new `BlockResponse` object.
    * @param block - Block header data.
    * @param cert - Optional certificate object. This is only included when the format is set to
    * message pack.
    */
-  constructor(public block: BlockHeader, public cert?: Record<string, any>) {
+  constructor(block: BlockHeader, cert?: Record<string, any>) {
     super();
     this.block = block;
     this.cert = cert;
@@ -788,10 +888,15 @@ export class BuildVersion extends BaseModel {
  */
 export class CatchpointAbortResponse extends BaseModel {
   /**
+   * Catchup abort response string
+   */
+  public catchupMessage: string;
+
+  /**
    * Creates a new `CatchpointAbortResponse` object.
    * @param catchupMessage - Catchup abort response string
    */
-  constructor(public catchupMessage: string) {
+  constructor(catchupMessage: string) {
     super();
     this.catchupMessage = catchupMessage;
 
@@ -806,10 +911,15 @@ export class CatchpointAbortResponse extends BaseModel {
  */
 export class CatchpointStartResponse extends BaseModel {
   /**
+   * Catchup start response string
+   */
+  public catchupMessage: string;
+
+  /**
    * Creates a new `CatchpointStartResponse` object.
    * @param catchupMessage - Catchup start response string
    */
-  constructor(public catchupMessage: string) {
+  constructor(catchupMessage: string) {
     super();
     this.catchupMessage = catchupMessage;
 
@@ -824,11 +934,21 @@ export class CatchpointStartResponse extends BaseModel {
  */
 export class CompileResponse extends BaseModel {
   /**
+   * base32 SHA512_256 of program bytes (Address style)
+   */
+  public hash: string;
+
+  /**
+   * base64 encoded program bytes
+   */
+  public result: string;
+
+  /**
    * Creates a new `CompileResponse` object.
    * @param hash - base32 SHA512_256 of program bytes (Address style)
    * @param result - base64 encoded program bytes
    */
-  constructor(public hash: string, public result: string) {
+  constructor(hash: string, result: string) {
     super();
     this.hash = hash;
     this.result = result;
@@ -926,17 +1046,22 @@ export class DryrunRequest extends BaseModel {
  * DryrunResponse contains per-txn debug information from a dryrun.
  */
 export class DryrunResponse extends BaseModel {
+  public error: string;
+
+  /**
+   * Protocol version is the protocol version Dryrun was operated under.
+   */
+  public protocolVersion: string;
+
+  public txns: DryrunTxnResult[];
+
   /**
    * Creates a new `DryrunResponse` object.
    * @param error -
    * @param protocolVersion - Protocol version is the protocol version Dryrun was operated under.
    * @param txns -
    */
-  constructor(
-    public error: string,
-    public protocolVersion: string,
-    public txns: DryrunTxnResult[]
-  ) {
+  constructor(error: string, protocolVersion: string, txns: DryrunTxnResult[]) {
     super();
     this.error = error;
     this.protocolVersion = protocolVersion;
@@ -956,6 +1081,19 @@ export class DryrunResponse extends BaseModel {
  */
 export class DryrunSource extends BaseModel {
   /**
+   * FieldName is what kind of sources this is. If lsig then it goes into the
+   * transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the
+   * Approval Program or Clear State Program of application[this.AppIndex].
+   */
+  public fieldName: string;
+
+  public source: string;
+
+  public txnIndex: number | bigint;
+
+  public appIndex: number | bigint;
+
+  /**
    * Creates a new `DryrunSource` object.
    * @param fieldName - FieldName is what kind of sources this is. If lsig then it goes into the
    * transactions[this.TxnIndex].LogicSig. If approv or clearp it goes into the
@@ -965,10 +1103,10 @@ export class DryrunSource extends BaseModel {
    * @param appIndex -
    */
   constructor(
-    public fieldName: string,
-    public source: string,
-    public txnIndex: number | bigint,
-    public appIndex: number | bigint
+    fieldName: string,
+    source: string,
+    txnIndex: number | bigint,
+    appIndex: number | bigint
   ) {
     super();
     this.fieldName = fieldName;
@@ -1123,12 +1261,16 @@ export class DryrunTxnResult extends BaseModel {
  * An error response with optional data field.
  */
 export class ErrorResponse extends BaseModel {
+  public message: string;
+
+  public data?: string;
+
   /**
    * Creates a new `ErrorResponse` object.
    * @param message -
    * @param data -
    */
-  constructor(public message: string, public data?: string) {
+  constructor(message: string, data?: string) {
     super();
     this.message = message;
     this.data = data;
@@ -1145,16 +1287,27 @@ export class ErrorResponse extends BaseModel {
  */
 export class EvalDelta extends BaseModel {
   /**
+   * (at) delta action.
+   */
+  public action: number | bigint;
+
+  /**
+   * (bs) bytes value.
+   */
+  public bytes?: string;
+
+  /**
+   * (ui) uint value.
+   */
+  public uint?: number | bigint;
+
+  /**
    * Creates a new `EvalDelta` object.
    * @param action - (at) delta action.
    * @param bytes - (bs) bytes value.
    * @param uint - (ui) uint value.
    */
-  constructor(
-    public action: number | bigint,
-    public bytes?: string,
-    public uint?: number | bigint
-  ) {
+  constructor(action: number | bigint, bytes?: string, uint?: number | bigint) {
     super();
     this.action = action;
     this.bytes = bytes;
@@ -1172,12 +1325,19 @@ export class EvalDelta extends BaseModel {
  * Key-value pairs for StateDelta.
  */
 export class EvalDeltaKeyValue extends BaseModel {
+  public key: string;
+
+  /**
+   * Represents a TEAL value delta.
+   */
+  public value: EvalDelta;
+
   /**
    * Creates a new `EvalDeltaKeyValue` object.
    * @param key -
    * @param value - Represents a TEAL value delta.
    */
-  constructor(public key: string, public value: EvalDelta) {
+  constructor(key: string, value: EvalDelta) {
     super();
     this.key = key;
     this.value = value;
@@ -1529,13 +1689,23 @@ export class PendingTransactionResponse extends BaseModel {
  */
 export class PendingTransactionsResponse extends BaseModel {
   /**
+   * An array of signed transaction objects.
+   */
+  public topTransactions: EncodedSignedTransaction[];
+
+  /**
+   * Total number of transactions in the pool.
+   */
+  public totalTransactions: number | bigint;
+
+  /**
    * Creates a new `PendingTransactionsResponse` object.
    * @param topTransactions - An array of signed transaction objects.
    * @param totalTransactions - Total number of transactions in the pool.
    */
   constructor(
-    public topTransactions: EncodedSignedTransaction[],
-    public totalTransactions: number | bigint
+    topTransactions: EncodedSignedTransaction[],
+    totalTransactions: number | bigint
   ) {
     super();
     this.topTransactions = topTransactions;
@@ -1553,10 +1723,15 @@ export class PendingTransactionsResponse extends BaseModel {
  */
 export class PostTransactionsResponse extends BaseModel {
   /**
+   * encoding of the transaction hash.
+   */
+  public txid: string;
+
+  /**
    * Creates a new `PostTransactionsResponse` object.
    * @param txid - encoding of the transaction hash.
    */
-  constructor(public txid: string) {
+  constructor(txid: string) {
     super();
     this.txid = txid;
 
@@ -1571,20 +1746,41 @@ export class PostTransactionsResponse extends BaseModel {
  */
 export class ProofResponse extends BaseModel {
   /**
+   * Index of the transaction in the block's payset.
+   */
+  public idx: number | bigint;
+
+  /**
+   * Merkle proof of transaction membership.
+   */
+  public proof: Uint8Array;
+
+  /**
+   * Hash of SignedTxnInBlock for verifying proof.
+   */
+  public stibhash: Uint8Array;
+
+  /**
    * Creates a new `ProofResponse` object.
    * @param idx - Index of the transaction in the block's payset.
    * @param proof - Merkle proof of transaction membership.
    * @param stibhash - Hash of SignedTxnInBlock for verifying proof.
    */
   constructor(
-    public idx: number | bigint,
-    public proof: string,
-    public stibhash: string
+    idx: number | bigint,
+    proof: string | Uint8Array,
+    stibhash: string | Uint8Array
   ) {
     super();
     this.idx = idx;
-    this.proof = proof;
-    this.stibhash = stibhash;
+    this.proof =
+      typeof proof === 'string'
+        ? new Uint8Array(Buffer.from(proof, 'base64'))
+        : proof;
+    this.stibhash =
+      typeof stibhash === 'string'
+        ? new Uint8Array(Buffer.from(stibhash, 'base64'))
+        : stibhash;
 
     this.attribute_map = {
       idx: 'idx',
@@ -1599,15 +1795,30 @@ export class ProofResponse extends BaseModel {
  */
 export class SupplyResponse extends BaseModel {
   /**
+   * Round
+   */
+  public currentRound: number | bigint;
+
+  /**
+   * OnlineMoney
+   */
+  public onlineMoney: number | bigint;
+
+  /**
+   * TotalMoney
+   */
+  public totalMoney: number | bigint;
+
+  /**
    * Creates a new `SupplyResponse` object.
    * @param currentRound - Round
    * @param onlineMoney - OnlineMoney
    * @param totalMoney - TotalMoney
    */
   constructor(
-    public currentRound: number | bigint,
-    public onlineMoney: number | bigint,
-    public totalMoney: number | bigint
+    currentRound: number | bigint,
+    onlineMoney: number | bigint,
+    totalMoney: number | bigint
   ) {
     super();
     this.currentRound = currentRound;
@@ -1626,12 +1837,19 @@ export class SupplyResponse extends BaseModel {
  * Represents a key-value pair in an application store.
  */
 export class TealKeyValue extends BaseModel {
+  public key: string;
+
+  /**
+   * Represents a TEAL value.
+   */
+  public value: TealValue;
+
   /**
    * Creates a new `TealKeyValue` object.
    * @param key -
    * @param value - Represents a TEAL value.
    */
-  constructor(public key: string, public value: TealValue) {
+  constructor(key: string, value: TealValue) {
     super();
     this.key = key;
     this.value = value;
@@ -1648,16 +1866,27 @@ export class TealKeyValue extends BaseModel {
  */
 export class TealValue extends BaseModel {
   /**
+   * (tt) value type.
+   */
+  public type: number | bigint;
+
+  /**
+   * (tb) bytes value.
+   */
+  public bytes: string;
+
+  /**
+   * (ui) uint value.
+   */
+  public uint: number | bigint;
+
+  /**
    * Creates a new `TealValue` object.
    * @param type - (tt) value type.
    * @param bytes - (tb) bytes value.
    * @param uint - (ui) uint value.
    */
-  constructor(
-    public type: number | bigint,
-    public bytes: string,
-    public uint: number | bigint
-  ) {
+  constructor(type: number | bigint, bytes: string, uint: number | bigint) {
     super();
     this.type = type;
     this.bytes = bytes;
@@ -1693,7 +1922,7 @@ export class TransactionParametersResponse extends BaseModel {
   /**
    * GenesisHash is the hash of the genesis block.
    */
-  public genesisHash: string;
+  public genesisHash: Uint8Array;
 
   /**
    * GenesisID is an ID listed in the genesis block.
@@ -1735,7 +1964,7 @@ export class TransactionParametersResponse extends BaseModel {
   }: {
     consensusVersion: string;
     fee: number | bigint;
-    genesisHash: string;
+    genesisHash: string | Uint8Array;
     genesisId: string;
     lastRound: number | bigint;
     minFee: number | bigint;
@@ -1743,7 +1972,10 @@ export class TransactionParametersResponse extends BaseModel {
     super();
     this.consensusVersion = consensusVersion;
     this.fee = fee;
-    this.genesisHash = genesisHash;
+    this.genesisHash =
+      typeof genesisHash === 'string'
+        ? new Uint8Array(Buffer.from(genesisHash, 'base64'))
+        : genesisHash;
     this.genesisId = genesisId;
     this.lastRound = lastRound;
     this.minFee = minFee;
@@ -1763,6 +1995,14 @@ export class TransactionParametersResponse extends BaseModel {
  * algod version information.
  */
 export class Version extends BaseModel {
+  public build: BuildVersion;
+
+  public genesisHashB64: Uint8Array;
+
+  public genesisId: string;
+
+  public versions: string[];
+
   /**
    * Creates a new `Version` object.
    * @param build -
@@ -1771,14 +2011,17 @@ export class Version extends BaseModel {
    * @param versions -
    */
   constructor(
-    public build: BuildVersion,
-    public genesisHashB64: string,
-    public genesisId: string,
-    public versions: string[]
+    build: BuildVersion,
+    genesisHashB64: string | Uint8Array,
+    genesisId: string,
+    versions: string[]
   ) {
     super();
     this.build = build;
-    this.genesisHashB64 = genesisHashB64;
+    this.genesisHashB64 =
+      typeof genesisHashB64 === 'string'
+        ? new Uint8Array(Buffer.from(genesisHashB64, 'base64'))
+        : genesisHashB64;
     this.genesisId = genesisId;
     this.versions = versions;
 
