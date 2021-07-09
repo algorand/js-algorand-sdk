@@ -313,7 +313,7 @@ export interface EncodedSignedTransaction {
   sgnr?: Buffer;
 }
 
-interface EncodedSubsig {
+export interface EncodedSubsig {
   pk: Uint8Array;
   s?: Uint8Array;
 }

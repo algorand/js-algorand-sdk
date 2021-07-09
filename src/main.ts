@@ -234,7 +234,6 @@ export const ERROR_INVALID_MICROALGOS = new Error(
   convert.INVALID_MICROALGOS_ERROR_MSG
 );
 
-export * from './types/transactions';
 export * from './client/algod';
 export { default as Algodv2 } from './client/v2/algod/algod';
 export { default as Kmd } from './client/kmd';
@@ -272,3 +271,4 @@ export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
 export * from './makeTxn';
 export * from './transaction';
+export * from './types';
