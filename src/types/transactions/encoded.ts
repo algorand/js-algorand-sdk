@@ -293,26 +293,6 @@ export interface EncodedTransaction {
   apep?: number;
 }
 
-/**
- * A structure for an encoded signed transaction object
- */
-export interface EncodedSignedTransaction {
-  /**
-   * Transaction signature
-   */
-  sig: Buffer;
-
-  /**
-   * The transaction that was signed
-   */
-  txn: EncodedTransaction;
-
-  /**
-   * The signor, if signing with a different key than the Transaction type `from` property indicates
-   */
-  sgnr?: Buffer;
-}
-
 export interface EncodedSubsig {
   pk: Uint8Array;
   s?: Uint8Array;
@@ -359,4 +339,34 @@ export interface EncodedLogicSig {
   arg?: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
+}
+
+/**
+ * A structure for an encoded signed transaction object
+ */
+export interface EncodedSignedTransaction {
+  /**
+   * Transaction signature
+   */
+  sig: Buffer;
+
+  /**
+   * The transaction that was signed
+   */
+  txn: EncodedTransaction;
+
+  /**
+   * Multisig structure
+   */
+  msig?: EncodedMultisig;
+
+  /**
+   * Logic signature
+   */
+  lsig?: EncodedLogicSig;
+
+  /**
+   * The signer, if signing with a different key than the Transaction type `from` property indicates
+   */
+  sgnr?: Buffer;
 }
