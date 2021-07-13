@@ -348,7 +348,7 @@ export interface EncodedSignedTransaction {
   /**
    * Transaction signature
    */
-  sig: Buffer;
+  sig?: Buffer;
 
   /**
    * The transaction that was signed
