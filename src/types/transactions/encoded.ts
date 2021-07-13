@@ -90,12 +90,12 @@ export interface EncodedTransaction {
   /**
    * fee
    */
-  fee: number;
+  fee?: number;
 
   /**
    * firstRound
    */
-  fv: number;
+  fv?: number;
 
   /**
    * lastRound
@@ -105,7 +105,7 @@ export interface EncodedTransaction {
   /**
    * note
    */
-  note: Buffer;
+  note?: Buffer;
 
   /**
    * from
@@ -130,7 +130,7 @@ export interface EncodedTransaction {
   /**
    * lease
    */
-  lx: Buffer;
+  lx?: Buffer;
 
   /**
    * group
