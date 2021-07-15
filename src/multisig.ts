@@ -49,7 +49,7 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
  * @param pks - ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
-export function createMultisigTransaction(
+function createMultisigTransaction(
   txnForEncoding: EncodedTransaction,
   { rawSig, myPk }: MultisigOptions,
   { version, threshold, pks }: MultisigMetadataWithPks
@@ -141,6 +141,13 @@ export class MultisigTransaction extends txnBuilder.Transaction {
       { rawSig: this.rawSignTxn(sk), myPk },
       { version, threshold, pks }
     );
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    txnForEnc: EncodedTransaction
+  ): MultisigTransaction {
+    return super.from_obj_for_encoding(txnForEnc) as MultisigTransaction;
   }
 }
 

@@ -13,6 +13,8 @@ import AnyTransaction, {
   MustHaveSuggestedParamsInline,
   EncodedTransaction,
   EncodedSignedTransaction,
+  EncodedMultisig,
+  EncodedLogicSig,
 } from './types/transactions';
 import { Address } from './types/address';
 
@@ -756,7 +758,7 @@ export class Transaction implements TransactionStorageStructure {
   }
 
   // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(txnForEnc: EncodedTransaction) {
+  static from_obj_for_encoding(txnForEnc: EncodedTransaction): Transaction {
     const txn = Object.create(this.prototype);
     txn.name = 'Transaction';
     txn.tag = Buffer.from('TX');
@@ -1074,17 +1076,52 @@ export function decodeUnsignedTransaction(
 }
 
 /**
+ * Object representing a transaction with a signature
+ */
+export interface SignedTransaction {
+  /**
+   * Transaction signature
+   */
+  sig?: Buffer;
+
+  /**
+   * The transaction that was signed
+   */
+  txn: Transaction;
+
+  /**
+   * Multisig structure
+   */
+  msig?: EncodedMultisig;
+
+  /**
+   * Logic signature
+   */
+  lsig?: EncodedLogicSig;
+
+  /**
+   * The signer, if signing with a different key than the Transaction type `from` property indicates
+   */
+  sgnr?: Buffer;
+}
+
+/**
  * decodeSignedTransaction takes a Buffer (from transaction.signTxn) and converts it to an object
  * containing the Transaction (txn), the signature (sig), and the auth-addr field if applicable (sgnr)
  * @param transactionBuffer - the Uint8Array containing a transaction
  * @returns containing a Transaction, the signature, and possibly an auth-addr field
  */
-export function decodeSignedTransaction(transactionBuffer: Uint8Array) {
+export function decodeSignedTransaction(
+  transactionBuffer: Uint8Array
+): SignedTransaction {
   const stxnDecoded = encoding.decode(
     transactionBuffer
   ) as EncodedSignedTransaction;
-  stxnDecoded.txn = Transaction.from_obj_for_encoding(stxnDecoded.txn);
-  return stxnDecoded;
+  const stxn: SignedTransaction = {
+    ...stxnDecoded,
+    txn: Transaction.from_obj_for_encoding(stxnDecoded.txn),
+  };
+  return stxn;
 }
 
 /**
