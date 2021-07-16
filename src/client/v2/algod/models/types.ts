@@ -691,9 +691,15 @@ export class AssetParams extends BaseModel {
   public metadataHash?: Uint8Array;
 
   /**
-   * (an) Name of this asset, as supplied by the creator.
+   * (an) Name of this asset, as supplied by the creator. Included only when the
+   * asset name is composed of printable utf-8 characters.
    */
   public name?: string;
+
+  /**
+   * (an64) base64 encoded name of this asset, as supplied by the creator.
+   */
+  public nameB64?: string;
 
   /**
    * (r) Address of account holding reserve (non-minted) units of this asset.
@@ -701,14 +707,27 @@ export class AssetParams extends BaseModel {
   public reserve?: string;
 
   /**
-   * (un) Name of a unit of this asset, as supplied by the creator.
+   * (un) Name of a unit of this asset, as supplied by the creator. Included only
+   * when the name of a unit of this asset is composed of printable utf-8 characters.
    */
   public unitName?: string;
 
   /**
-   * (au) URL where more information about the asset can be retrieved.
+   * (un64) base64 encoded name of a unit of this asset, as supplied by the creator.
+   */
+  public unitNameB64?: string;
+
+  /**
+   * (au) URL where more information about the asset can be retrieved. Included only
+   * when the URL is composed of printable utf-8 characters.
    */
   public url?: string;
+
+  /**
+   * (au64) base64 encoded URL where more information about the asset can be
+   * retrieved.
+   */
+  public urlB64?: string;
 
   /**
    * Creates a new `AssetParams` object.
@@ -728,10 +747,17 @@ export class AssetParams extends BaseModel {
    * @param manager - (m) Address of account used to manage the keys of this asset and to destroy it.
    * @param metadataHash - (am) A commitment to some unspecified asset metadata. The format of this
    * metadata is up to the application.
-   * @param name - (an) Name of this asset, as supplied by the creator.
+   * @param name - (an) Name of this asset, as supplied by the creator. Included only when the
+   * asset name is composed of printable utf-8 characters.
+   * @param nameB64 - (an64) base64 encoded name of this asset, as supplied by the creator.
    * @param reserve - (r) Address of account holding reserve (non-minted) units of this asset.
-   * @param unitName - (un) Name of a unit of this asset, as supplied by the creator.
-   * @param url - (au) URL where more information about the asset can be retrieved.
+   * @param unitName - (un) Name of a unit of this asset, as supplied by the creator. Included only
+   * when the name of a unit of this asset is composed of printable utf-8 characters.
+   * @param unitNameB64 - (un64) base64 encoded name of a unit of this asset, as supplied by the creator.
+   * @param url - (au) URL where more information about the asset can be retrieved. Included only
+   * when the URL is composed of printable utf-8 characters.
+   * @param urlB64 - (au64) base64 encoded URL where more information about the asset can be
+   * retrieved.
    */
   constructor({
     creator,
@@ -743,9 +769,12 @@ export class AssetParams extends BaseModel {
     manager,
     metadataHash,
     name,
+    nameB64,
     reserve,
     unitName,
+    unitNameB64,
     url,
+    urlB64,
   }: {
     creator: string;
     decimals: number | bigint;
@@ -756,9 +785,12 @@ export class AssetParams extends BaseModel {
     manager?: string;
     metadataHash?: string | Uint8Array;
     name?: string;
+    nameB64?: string;
     reserve?: string;
     unitName?: string;
+    unitNameB64?: string;
     url?: string;
+    urlB64?: string;
   }) {
     super();
     this.creator = creator;
@@ -773,9 +805,12 @@ export class AssetParams extends BaseModel {
         ? new Uint8Array(Buffer.from(metadataHash, 'base64'))
         : metadataHash;
     this.name = name;
+    this.nameB64 = nameB64;
     this.reserve = reserve;
     this.unitName = unitName;
+    this.unitNameB64 = unitNameB64;
     this.url = url;
+    this.urlB64 = urlB64;
 
     this.attribute_map = {
       creator: 'creator',
@@ -787,9 +822,12 @@ export class AssetParams extends BaseModel {
       manager: 'manager',
       metadataHash: 'metadata-hash',
       name: 'name',
+      nameB64: 'name_b64',
       reserve: 'reserve',
       unitName: 'unit-name',
+      unitNameB64: 'unit-name_b64',
       url: 'url',
+      urlB64: 'url_b64',
     };
   }
 }
