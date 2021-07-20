@@ -7,7 +7,7 @@ import { EncodedTransaction } from './types/transactions';
 import { MultisigMetadata } from './types/multisig';
 import {
   EncodedMultisig,
-  EncodedMultisigBlob,
+  EncodedSignedTransaction,
 } from './types/transactions/encoded';
 
 /**
@@ -18,12 +18,12 @@ export const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
   'Not enough multisig transactions to merge. Need at least two';
 export const MULTISIG_MERGE_MISMATCH_ERROR_MSG =
   'Cannot merge txs. txIDs differ';
+export const MULTISIG_MERGE_MISMATCH_AUTH_ADDR_MSG =
+  'Cannot merge txs. Auth addrs differ';
 export const MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG =
   'Cannot merge txs. Multisig preimages differ';
 export const MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG =
   'Cannot merge txs. subsigs are mismatched.';
-const MULTISIG_BAD_FROM_FIELD_ERROR_MSG =
-  'The transaction from field and multisig preimage do not match.';
 const MULTISIG_KEY_NOT_EXIST_ERROR_MSG = 'Key does not exist';
 export const MULTISIG_NO_MUTATE_ERROR_MSG =
   'Cannot mutate a multisig field as it would invalidate all existing signatures.';
@@ -69,16 +69,32 @@ function createMultisigTransaction(
   if (keyExist === false) {
     throw new Error(MULTISIG_KEY_NOT_EXIST_ERROR_MSG);
   }
+
   const msig: EncodedMultisig = {
     v: version,
     thr: threshold,
     subsig: subsigs,
   };
-  const sTxn: EncodedMultisigBlob = {
+  const signedTxn: EncodedSignedTransaction = {
     msig,
     txn: txnForEncoding,
   };
-  return new Uint8Array(encoding.encode(sTxn));
+
+  // if the address of this multisig is different from the transaction sender,
+  // we need to add the auth-addr field
+  const msigAddr = address.fromMultisigPreImg({
+    version,
+    threshold,
+    pks,
+  });
+  if (
+    address.encodeAddress(txnForEncoding.snd) !==
+    address.encodeAddress(msigAddr)
+  ) {
+    signedTxn.sgnr = Buffer.from(msigAddr);
+  }
+
+  return new Uint8Array(encoding.encode(signedTxn));
 }
 
 /**
@@ -122,18 +138,6 @@ export class MultisigTransaction extends txnBuilder.Transaction {
     { version, threshold, pks }: MultisigMetadataWithPks,
     sk: Uint8Array
   ) {
-    const expectedFromRaw = address.fromMultisigPreImg({
-      version,
-      threshold,
-      pks,
-    });
-    if (
-      address.encodeAddress(this.from.publicKey) !==
-      address.encodeAddress(expectedFromRaw)
-    ) {
-      throw new Error(MULTISIG_BAD_FROM_FIELD_ERROR_MSG);
-    }
-
     // get signature verifier
     const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
     return createMultisigTransaction(
@@ -160,18 +164,42 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
   if (multisigTxnBlobs.length < 2) {
     throw new Error(MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG);
   }
-  const refSigTx = encoding.decode(multisigTxnBlobs[0]) as EncodedMultisigBlob;
-  const refSigAlgoTx = MultisigTransaction.from_obj_for_encoding(refSigTx.txn);
-  const refTxIDStr = refSigAlgoTx.txID().toString();
-  const from = address.encodeAddress(refSigTx.txn.snd);
+  const refSigTx = encoding.decode(
+    multisigTxnBlobs[0]
+  ) as EncodedSignedTransaction;
+  const refTxID = MultisigTransaction.from_obj_for_encoding(
+    refSigTx.txn
+  ).txID();
+  const refAuthAddr = refSigTx.sgnr
+    ? address.encodeAddress(refSigTx.sgnr)
+    : undefined;
+  const refPreImage = {
+    version: refSigTx.msig.v,
+    threshold: refSigTx.msig.thr,
+    pks: refSigTx.msig.subsig.map((subsig) => subsig.pk),
+  };
+  const refMsigAddr = address.encodeAddress(
+    address.fromMultisigPreImg(refPreImage)
+  );
 
   let newSubsigs = refSigTx.msig.subsig;
   for (let i = 0; i < multisigTxnBlobs.length; i++) {
-    const unisig = encoding.decode(multisigTxnBlobs[i]) as EncodedMultisigBlob;
+    const unisig = encoding.decode(
+      multisigTxnBlobs[i]
+    ) as EncodedSignedTransaction;
+
     const unisigAlgoTxn = MultisigTransaction.from_obj_for_encoding(unisig.txn);
-    if (unisigAlgoTxn.txID().toString() !== refTxIDStr) {
+    if (unisigAlgoTxn.txID() !== refTxID) {
       throw new Error(MULTISIG_MERGE_MISMATCH_ERROR_MSG);
     }
+
+    const authAddr = unisig.sgnr
+      ? address.encodeAddress(unisig.sgnr)
+      : undefined;
+    if (refAuthAddr !== authAddr) {
+      throw new Error(MULTISIG_MERGE_MISMATCH_AUTH_ADDR_MSG);
+    }
+
     // check multisig has same preimage as reference
     if (unisig.msig.subsig.length !== refSigTx.msig.subsig.length) {
       throw new Error(MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG);
@@ -181,9 +209,11 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
       threshold: unisig.msig.thr,
       pks: unisig.msig.subsig.map((subsig) => subsig.pk),
     };
-    if (from !== address.encodeAddress(address.fromMultisigPreImg(preimg))) {
+    const msgigAddr = address.encodeAddress(address.fromMultisigPreImg(preimg));
+    if (refMsigAddr !== msgigAddr) {
       throw new Error(MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG);
     }
+
     // now, we can merge
     newSubsigs = unisig.msig.subsig.map((uniSubsig, index) => {
       const current = refSigTx.msig.subsig[index];
@@ -218,11 +248,14 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     thr: refSigTx.msig.thr,
     subsig: newSubsigs,
   };
-  const sTxn: EncodedMultisigBlob = {
+  const signedTxn: EncodedSignedTransaction = {
     msig,
     txn: refSigTx.txn,
   };
-  return new Uint8Array(encoding.encode(sTxn));
+  if (typeof refAuthAddr !== 'undefined') {
+    signedTxn.sgnr = Buffer.from(address.decodeAddress(refAuthAddr).publicKey);
+  }
+  return new Uint8Array(encoding.encode(signedTxn));
 }
 
 export function verifyMultisig(

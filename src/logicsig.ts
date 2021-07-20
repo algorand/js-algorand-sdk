@@ -8,7 +8,7 @@ import * as txnBuilder from './transaction';
 import {
   EncodedLogicSig,
   EncodedMultisig,
-  EncodedTransaction,
+  EncodedSignedTransaction,
 } from './types/transactions/encoded';
 import { MultisigMetadata } from './types/multisig';
 
@@ -215,11 +215,7 @@ export function signLogicSigTransactionObject(
   txn: txnBuilder.Transaction,
   lsig: LogicSig
 ) {
-  const lstx: {
-    lsig: EncodedLogicSig;
-    txn: EncodedTransaction;
-    sgnr?: Buffer;
-  } = {
+  const signedTxn: EncodedSignedTransaction = {
     lsig: lsig.get_obj_for_encoding(),
     txn: txn.get_obj_for_encoding(),
   };
@@ -235,13 +231,15 @@ export function signLogicSigTransactionObject(
     // add AuthAddr if signing with a different program than From indicates for non-delegated LogicSig
     const programAddr = lsig.address();
     if (programAddr !== address.encodeAddress(txn.from.publicKey)) {
-      lstx.sgnr = Buffer.from(address.decodeAddress(programAddr).publicKey);
+      signedTxn.sgnr = Buffer.from(
+        address.decodeAddress(programAddr).publicKey
+      );
     }
   }
 
   return {
     txID: txn.txID().toString(),
-    blob: encoding.encode(lstx),
+    blob: encoding.encode(signedTxn),
   };
 }
 
