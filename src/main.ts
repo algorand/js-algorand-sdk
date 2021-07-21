@@ -253,6 +253,7 @@ export {
 } from './convert';
 export { computeGroupID, assignGroupID } from './group';
 export {
+  LogicSigAccount,
   makeLogicSig,
   signLogicSigTransaction,
   signLogicSigTransactionObject,

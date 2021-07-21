@@ -350,6 +350,11 @@ export interface EncodedLogicSig {
   msig?: EncodedMultisig;
 }
 
+export interface EncodedLogicSigAccount {
+  lsig: EncodedLogicSig;
+  sigkey?: Uint8Array;
+}
+
 /**
  * A structure for an encoded signed transaction object
  */
