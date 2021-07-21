@@ -55,6 +55,8 @@ export class LogicSig implements LogicSigStorageStructure {
 
     this.logic = program;
     this.args = args;
+    this.sig = undefined;
+    this.msig = undefined;
   }
 
   // eslint-disable-next-line camelcase
@@ -76,8 +78,8 @@ export class LogicSig implements LogicSigStorageStructure {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(encoded: EncodedLogicSig) {
     const lsig = new LogicSig(encoded.l, encoded.arg);
-    if (encoded.sig) lsig.sig = encoded.sig;
-    if (encoded.msig) lsig.msig = encoded.msig;
+    lsig.sig = encoded.sig;
+    lsig.msig = encoded.msig;
     return lsig;
   }
 
@@ -210,6 +212,7 @@ export class LogicSigAccount {
    */
   constructor(program: Uint8Array, args?: Array<Uint8Array | Buffer> | null) {
     this.lsig = new LogicSig(program, args);
+    this.sigkey = undefined;
   }
 
   // eslint-disable-next-line camelcase
@@ -227,7 +230,7 @@ export class LogicSigAccount {
   static from_obj_for_encoding(encoded: EncodedLogicSigAccount) {
     const lsigAccount = new LogicSigAccount(encoded.lsig.l, encoded.lsig.arg);
     lsigAccount.lsig = LogicSig.from_obj_for_encoding(encoded.lsig);
-    if (encoded.sigkey) lsigAccount.sigkey = encoded.sigkey;
+    lsigAccount.sigkey = encoded.sigkey;
     return lsigAccount;
   }
 
