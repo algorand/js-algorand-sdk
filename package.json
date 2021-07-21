@@ -1,6 +1,6 @@
 {
   "name": "algosdk",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "The official JavaScript SDK for Algorand",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -66,6 +66,7 @@
   },
   "scripts": {
     "test": "node -r ts-node/register tests/mocha.js",
+    "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
     "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",
     "docs": "typedoc src/main.ts",

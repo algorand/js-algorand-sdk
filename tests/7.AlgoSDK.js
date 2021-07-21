@@ -924,52 +924,62 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('v2 Dryrun models', () => {
-    it('should be properly serialized', () => {
-      const schema = new algosdk.modelsv2.ApplicationStateSchema(5, 5);
-      const acc = new algosdk.modelsv2.Account({
-        address: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-        amount: 5002280000000000,
-        amountWithoutPendingRewards: 5000000000000000,
-        pendingRewards: 2280000000000,
-        rewardBase: 456,
-        rewards: 2280000000000,
-        round: 18241,
-        status: 'Online',
-      });
-      const params = new algosdk.modelsv2.ApplicationParams({
-        creator: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-        approvalProgram: 'AiABASI=',
-        clearStateProgram: 'AiABASI=',
-        localStateSchema: schema,
-        globalStateSchema: schema,
-      });
-      const app = new algosdk.modelsv2.Application(1380011588, params);
-      // make a raw txn
-      const txn = {
-        apsu: 'AiABASI=',
-        fee: 1000,
-        fv: 18242,
-        gh: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
-        lv: 19242,
-        note: 'tjpNge78JD8=',
-        snd: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-        type: 'appl',
-      };
-      const req = new algosdk.modelsv2.DryrunRequest({
-        accounts: [acc],
-        apps: [app],
-        round: 18241,
-        protocolVersion: 'future',
-        latestTimestamp: 1592537757,
-        sources: null,
-        txns: [{ txn }],
-      });
+    const schema = new algosdk.modelsv2.ApplicationStateSchema(5, 5);
+    const acc = new algosdk.modelsv2.Account({
+      address: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
+      amount: 5002280000000000,
+      amountWithoutPendingRewards: 5000000000000000,
+      pendingRewards: 2280000000000,
+      rewardBase: 456,
+      rewards: 2280000000000,
+      round: 18241,
+      status: 'Online',
+    });
+    const params = new algosdk.modelsv2.ApplicationParams({
+      creator: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
+      approvalProgram: 'AiABASI=',
+      clearStateProgram: 'AiABASI=',
+      localStateSchema: schema,
+      globalStateSchema: schema,
+    });
+    const app = new algosdk.modelsv2.Application(1380011588, params);
+    // make a raw txn
+    const txn = {
+      apsu: 'AiABASI=',
+      fee: 1000,
+      fv: 18242,
+      gh: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
+      lv: 19242,
+      note: 'tjpNge78JD8=',
+      snd: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
+      type: 'appl',
+    };
+    const req = new algosdk.modelsv2.DryrunRequest({
+      accounts: [acc],
+      apps: [app],
+      round: 18241,
+      protocolVersion: 'future',
+      latestTimestamp: 1592537757,
+      txns: [{ txn }],
+    });
+
+    it('should be properly serialized to JSON', () => {
       const actual = req.get_obj_for_encoding();
 
       const golden =
-        'ewogICJhY2NvdW50cyI6IFsKICAgIHsKICAgICAgImFkZHJlc3MiOiAiVUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TSIsCiAgICAgICJhbW91bnQiOiA1MDAyMjgwMDAwMDAwMDAwLAogICAgICAiYW1vdW50LXdpdGhvdXQtcGVuZGluZy1yZXdhcmRzIjogNTAwMDAwMDAwMDAwMDAwMCwKICAgICAgInBlbmRpbmctcmV3YXJkcyI6IDIyODAwMDAwMDAwMDAsCiAgICAgICJyZXdhcmQtYmFzZSI6IDQ1NiwKICAgICAgInJld2FyZHMiOiAyMjgwMDAwMDAwMDAwLAogICAgICAicm91bmQiOiAxODI0MSwKICAgICAgInN0YXR1cyI6ICJPbmxpbmUiCiAgICB9CiAgXSwKICAiYXBwcyI6IFsKICAgIHsKICAgICAgImlkIjogMTM4MDAxMTU4OCwKICAgICAgInBhcmFtcyI6IHsKICAgICAgICAiY3JlYXRvciI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAiYXBwcm92YWwtcHJvZ3JhbSI6ICJBaUFCQVNJPSIsCiAgICAgICAgImNsZWFyLXN0YXRlLXByb2dyYW0iOiAiQWlBQkFTST0iLAogICAgICAgICJnbG9iYWwtc3RhdGUtc2NoZW1hIjogewogICAgICAgICAgIm51bS1ieXRlLXNsaWNlIjogNSwKICAgICAgICAgICJudW0tdWludCI6IDUKICAgICAgICB9LAogICAgICAgICJsb2NhbC1zdGF0ZS1zY2hlbWEiOiB7CiAgICAgICAgICAibnVtLWJ5dGUtc2xpY2UiOiA1LAogICAgICAgICAgIm51bS11aW50IjogNQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImxhdGVzdC10aW1lc3RhbXAiOiAxNTkyNTM3NzU3LAogICJwcm90b2NvbC12ZXJzaW9uIjogImZ1dHVyZSIsCiAgInJvdW5kIjogMTgyNDEsCiAgInNvdXJjZXMiOiBudWxsLAogICJ0eG5zIjogWwogICAgewogICAgICAidHhuIjogewogICAgICAgICJhcHN1IjogIkFpQUJBU0k9IiwKICAgICAgICAiZmVlIjogMTAwMCwKICAgICAgICAiZnYiOiAxODI0MiwKICAgICAgICAiZ2giOiAiWklrUHM4cFREeGJSSnNGQjF5Sjdndm5wRHUwUTg1RlJrbDJOQ2tFQVFMVT0iLAogICAgICAgICJsdiI6IDE5MjQyLAogICAgICAgICJub3RlIjogInRqcE5nZTc4SkQ4PSIsCiAgICAgICAgInNuZCI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAidHlwZSI6ICJhcHBsIgogICAgICB9CiAgICB9CiAgXQp9Cg==';
-      const json = Buffer.from(golden, 'base64').toString('utf8');
-      const expected = JSON.parse(json);
+        'ewogICJhY2NvdW50cyI6IFsKICAgIHsKICAgICAgImFkZHJlc3MiOiAiVUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TSIsCiAgICAgICJhbW91bnQiOiA1MDAyMjgwMDAwMDAwMDAwLAogICAgICAiYW1vdW50LXdpdGhvdXQtcGVuZGluZy1yZXdhcmRzIjogNTAwMDAwMDAwMDAwMDAwMCwKICAgICAgInBlbmRpbmctcmV3YXJkcyI6IDIyODAwMDAwMDAwMDAsCiAgICAgICJyZXdhcmQtYmFzZSI6IDQ1NiwKICAgICAgInJld2FyZHMiOiAyMjgwMDAwMDAwMDAwLAogICAgICAicm91bmQiOiAxODI0MSwKICAgICAgInN0YXR1cyI6ICJPbmxpbmUiCiAgICB9CiAgXSwKICAiYXBwcyI6IFsKICAgIHsKICAgICAgImlkIjogMTM4MDAxMTU4OCwKICAgICAgInBhcmFtcyI6IHsKICAgICAgICAiY3JlYXRvciI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAiYXBwcm92YWwtcHJvZ3JhbSI6ICJBaUFCQVNJPSIsCiAgICAgICAgImNsZWFyLXN0YXRlLXByb2dyYW0iOiAiQWlBQkFTST0iLAogICAgICAgICJnbG9iYWwtc3RhdGUtc2NoZW1hIjogewogICAgICAgICAgIm51bS1ieXRlLXNsaWNlIjogNSwKICAgICAgICAgICJudW0tdWludCI6IDUKICAgICAgICB9LAogICAgICAgICJsb2NhbC1zdGF0ZS1zY2hlbWEiOiB7CiAgICAgICAgICAibnVtLWJ5dGUtc2xpY2UiOiA1LAogICAgICAgICAgIm51bS11aW50IjogNQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImxhdGVzdC10aW1lc3RhbXAiOiAxNTkyNTM3NzU3LAogICJwcm90b2NvbC12ZXJzaW9uIjogImZ1dHVyZSIsCiAgInJvdW5kIjogMTgyNDEsCiAgInR4bnMiOiBbCiAgICB7CiAgICAgICJ0eG4iOiB7CiAgICAgICAgImFwc3UiOiAiQWlBQkFTST0iLAogICAgICAgICJmZWUiOiAxMDAwLAogICAgICAgICJmdiI6IDE4MjQyLAogICAgICAgICJnaCI6ICJaSWtQczhwVER4YlJKc0ZCMXlKN2d2bnBEdTBRODVGUmtsMk5Da0VBUUxVPSIsCiAgICAgICAgImx2IjogMTkyNDIsCiAgICAgICAgIm5vdGUiOiAidGpwTmdlNzhKRDg9IiwKICAgICAgICAic25kIjogIlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN00iLAogICAgICAgICJ0eXBlIjogImFwcGwiCiAgICAgIH0KICAgIH0KICBdCn0K';
+      const goldenString = Buffer.from(golden, 'base64').toString('utf8');
+      const expected = JSON.parse(goldenString);
+
+      assert.deepStrictEqual(actual, expected);
+    });
+
+    it('should be properly serialized to msgpack', () => {
+      const actual = req.get_obj_for_encoding(true);
+      const golden =
+        'hqhhY2NvdW50c5GIp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAK9wZW5kaW5nLXJld2FyZHPPAAACEtqXEACrcmV3YXJkLWJhc2XNAcincmV3YXJkc88AAAIS2pcQAKVyb3VuZM1HQaZzdGF0dXOmT25saW5lpGFwcHORgqJpZM5SQU5EpnBhcmFtc4WwYXBwcm92YWwtcHJvZ3JhbcQFAiABASKzY2xlYXItc3RhdGUtcHJvZ3JhbcQFAiABASKnY3JlYXRvctk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TbNnbG9iYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsmxvY2FsLXN0YXRlLXNjaGVtYYKubnVtLWJ5dGUtc2xpY2UFqG51bS11aW50BbBsYXRlc3QtdGltZXN0YW1wzl7sMp2wcHJvdG9jb2wtdmVyc2lvbqZmdXR1cmWlcm91bmTNR0GkdHhuc5GBo3R4boikYXBzdahBaUFCQVNJPaNmZWXNA+iiZnbNR0KiZ2jZLFpJa1BzOHBURHhiUkpzRkIxeUo3Z3ZucER1MFE4NUZSa2wyTkNrRUFRTFU9omx2zUsqpG5vdGWsdGpwTmdlNzhKRDg9o3NuZNk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TaR0eXBlpGFwcGw=';
+      const goldenBinary = new Uint8Array(Buffer.from(golden, 'base64'));
+      const expected = algosdk.decodeObj(goldenBinary);
 
       assert.deepStrictEqual(actual, expected);
     });

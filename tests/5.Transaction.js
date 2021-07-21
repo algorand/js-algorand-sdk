@@ -472,6 +472,30 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize a first round of 0', () => {
+      const address =
+        'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+      const o = {
+        from: address,
+        fee: 10,
+        firstRound: 0,
+        lastRound: 1000,
+        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+        type: 'afrz',
+        freezeAccount: address,
+        assetIndex: 1,
+        freezeState: true,
+      };
+
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
     it('reserializes correctly no genesis ID', () => {
       const o = {
         from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',

@@ -13,6 +13,8 @@ import AnyTransaction, {
   MustHaveSuggestedParamsInline,
   EncodedTransaction,
   EncodedSignedTransaction,
+  EncodedMultisig,
+  EncodedLogicSig,
 } from './types/transactions';
 import { Address } from './types/address';
 
@@ -244,7 +246,8 @@ export class Transaction implements TransactionStorageStructure {
       txn.amount !== undefined &&
       (!(
         Number.isSafeInteger(txn.amount) ||
-        (typeof txn.amount === 'bigint' && txn.amount <= 0xffffffffffffffffn)
+        (typeof txn.amount === 'bigint' &&
+          txn.amount <= BigInt('0xffffffffffffffff'))
       ) ||
         txn.amount < 0)
     )
@@ -267,7 +270,7 @@ export class Transaction implements TransactionStorageStructure {
       (!(
         Number.isSafeInteger(txn.assetTotal) ||
         (typeof txn.assetTotal === 'bigint' &&
-          txn.assetTotal <= 0xffffffffffffffffn)
+          txn.assetTotal <= BigInt('0xffffffffffffffff'))
       ) ||
         txn.assetTotal < 0)
     )
@@ -490,6 +493,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.note.length) delete txn.note;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
       if (!txn.lx.length) delete txn.lx;
@@ -518,6 +522,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.note.length) delete txn.note;
       if (!txn.lx.length) delete txn.lx;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
       if (this.reKeyTo !== undefined) {
@@ -572,6 +577,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.lx.length) delete txn.lx;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -636,6 +642,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.aamt) delete txn.aamt;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
       if (!txn.aclose) delete txn.aclose;
@@ -669,6 +676,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.lx.length) delete txn.lx;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (!txn.afrz) delete txn.afrz;
       if (txn.grp === undefined) delete txn.grp;
@@ -726,6 +734,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.lx.length) delete txn.lx;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (!txn.apid) delete txn.apid;
       if (!txn.apls.nui) delete txn.apls.nui;
@@ -749,7 +758,7 @@ export class Transaction implements TransactionStorageStructure {
   }
 
   // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(txnForEnc: EncodedTransaction) {
+  static from_obj_for_encoding(txnForEnc: EncodedTransaction): Transaction {
     const txn = Object.create(this.prototype);
     txn.name = 'Transaction';
     txn.tag = Buffer.from('TX');
@@ -1067,17 +1076,52 @@ export function decodeUnsignedTransaction(
 }
 
 /**
+ * Object representing a transaction with a signature
+ */
+export interface SignedTransaction {
+  /**
+   * Transaction signature
+   */
+  sig?: Buffer;
+
+  /**
+   * The transaction that was signed
+   */
+  txn: Transaction;
+
+  /**
+   * Multisig structure
+   */
+  msig?: EncodedMultisig;
+
+  /**
+   * Logic signature
+   */
+  lsig?: EncodedLogicSig;
+
+  /**
+   * The signer, if signing with a different key than the Transaction type `from` property indicates
+   */
+  sgnr?: Buffer;
+}
+
+/**
  * decodeSignedTransaction takes a Buffer (from transaction.signTxn) and converts it to an object
  * containing the Transaction (txn), the signature (sig), and the auth-addr field if applicable (sgnr)
  * @param transactionBuffer - the Uint8Array containing a transaction
  * @returns containing a Transaction, the signature, and possibly an auth-addr field
  */
-export function decodeSignedTransaction(transactionBuffer: Uint8Array) {
+export function decodeSignedTransaction(
+  transactionBuffer: Uint8Array
+): SignedTransaction {
   const stxnDecoded = encoding.decode(
     transactionBuffer
   ) as EncodedSignedTransaction;
-  stxnDecoded.txn = Transaction.from_obj_for_encoding(stxnDecoded.txn);
-  return stxnDecoded;
+  const stxn: SignedTransaction = {
+    ...stxnDecoded,
+    txn: Transaction.from_obj_for_encoding(stxnDecoded.txn),
+  };
+  return stxn;
 }
 
 /**

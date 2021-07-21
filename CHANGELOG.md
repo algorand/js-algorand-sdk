@@ -1,3 +1,19 @@
+# 1.10.1
+
+## Added
+
+- Add missing fields `msig` and `lsig` to `EncodedSignedTransaction` type
+- Add the missing type `SignedTransaction`, which helped fix the `any` return value for `Transaction.from_obj_for_encoding`
+- More internal types are now exported
+- Support the new base64 asset fields in algod models
+- Add ability to install the package from a git URL with npm
+
+## Fixed
+
+- Remove BigInt literals from package
+- Support encoding transactions with a first round of zero
+- Fix msgpack encoding of dryrun objects
+
 # 1.10.0
 
 ## Added

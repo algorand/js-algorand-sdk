@@ -3,7 +3,7 @@
 $str.kebabToCamel($param.propertyName.replaceAll("_", "-"))##
 #end
 ## Converts a parameter type into the SDK specific type.
-#macro ( toSdkType $param )
+#macro ( toSdkType $param $isArgType )
 #if ( $param.algorandFormat == "SignedTransaction" )
 EncodedSignedTransaction##
 #elseif ( $param.algorandFormat == "Address" ) ## No special handling for Address in go SDK
@@ -25,7 +25,11 @@ Uint8Array##
 #elseif($param.arrayType && $param.format == "byte")
 Uint8Array##
 #elseif( $param.type == "string" && $param.format == "byte" )
-string##
+#if ( $isArgType )
+string | Uint8Array##
+#else
+Uint8Array##
+#end
 #elseif( $param.type == "string" || $param.arrayType == "string" )
 string##
 #elseif( $param.arrayType )
@@ -42,6 +46,24 @@ UNHANDLED TYPE
 $unknown.type ## force a template failure with an unknown type
 #end
 #if ($param.arrayType && $param.arrayType != "")[]#end## Add array postfix to arrays...
+#end
+## Converts a parameter type into the SDK specific type.
+#macro ( constructorAssignType $prop )
+#set( $argType = "#toSdkType($prop, true)" )
+#set( $fieldType = "#toSdkType($prop, false)" )
+#set( $name = "#paramName($prop)" )
+#if ( $argType == $fieldType )
+$name##
+#elseif ( $argType == "string | Uint8Array" && $fieldType == "Uint8Array" )
+typeof $name === 'string' ? new Uint8Array(Buffer.from($name, 'base64')) : $name##
+#else
+UNHANDLED CONSTRUCTOR TYPE CONVERSION
+- property: $prop
+- propertyName: $name
+- argType: $argType
+- fieldType type: $fieldType
+$unknown.type ## force a template failure with an unknown type
+#end
 #end
 #macro ( questionMarkIfOptional $param )
 #if ( ! $param.required )
@@ -79,16 +101,14 @@ import BlockHeader from '../../../../types/blockHeader';
  */
 #end
 export class $def.name extends BaseModel {
-#if ($use_object_params)
 #foreach( $prop in $props )
 #if ( !$prop.doc.isEmpty() )
   /**
    * $str.formatDoc($prop.doc, "   * ")
    */
 #end
-  public #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop);
+  public #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop, false);
 
-#end
 #end
   /**
    * Creates a new `$def.name` object.
@@ -105,13 +125,13 @@ export class $def.name extends BaseModel {
 #if ($use_object_params)
     #paramName($prop),
 #else
-    public #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop),
+    #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop, true),
 #end
 #end
 #if ($use_object_params)
   }: {
 #foreach ( $prop in $props )
-    #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop)
+    #paramName($prop)#questionMarkIfOptional($prop): #toSdkType($prop, true)
 
 #end
   }) {
@@ -121,7 +141,7 @@ export class $def.name extends BaseModel {
     super();
 #foreach( $prop in $props )
 #set( $var = "#paramName($prop)" )
-    this.$var = $var;
+    this.$var = #constructorAssignType($prop);
 #end
 
     this.attribute_map = {

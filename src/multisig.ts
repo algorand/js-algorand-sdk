@@ -49,7 +49,7 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
  * @param pks - ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
-export function createMultisigTransaction(
+function createMultisigTransaction(
   txnForEncoding: EncodedTransaction,
   { rawSig, myPk }: MultisigOptions,
   { version, threshold, pks }: MultisigMetadataWithPks
@@ -85,7 +85,7 @@ export function createMultisigTransaction(
  * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
  */
 export class MultisigTransaction extends txnBuilder.Transaction {
-  /* eslint-disable class-methods-use-this,no-unused-vars,no-dupe-class-members */
+  /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars,no-dupe-class-members */
   /**
    * Override inherited method to throw an error, as mutating transactions are prohibited in this context
    */
@@ -107,7 +107,7 @@ export class MultisigTransaction extends txnBuilder.Transaction {
   signTxn(sk: any): any {
     throw new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG);
   }
-  /* eslint-enable class-methods-use-this,no-unused-vars,no-dupe-class-members */
+  /* eslint-enable class-methods-use-this,@typescript-eslint/no-unused-vars,no-dupe-class-members */
 
   /**
    * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
@@ -141,6 +141,13 @@ export class MultisigTransaction extends txnBuilder.Transaction {
       { rawSig: this.rawSignTxn(sk), myPk },
       { version, threshold, pks }
     );
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    txnForEnc: EncodedTransaction
+  ): MultisigTransaction {
+    return super.from_obj_for_encoding(txnForEnc) as MultisigTransaction;
   }
 }
 

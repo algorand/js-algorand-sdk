@@ -23,7 +23,7 @@ export {
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,
 } from './builder';
-export { EncodedTransaction, EncodedSignedTransaction } from './encoded';
+export * from './encoded';
 
 // Transaction types
 export { default as PaymentTxn } from './payment';
