@@ -261,7 +261,7 @@ export function readProgram(
  * @throws
  * @returns true if success
  */
-export function checkProgram(program: Uint8Array, args: Uint8Array[]) {
+export function checkProgram(program: Uint8Array, args?: Uint8Array[]) {
   const [, , success] = readProgram(program, args);
   return success;
 }

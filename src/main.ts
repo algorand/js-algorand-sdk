@@ -7,7 +7,7 @@ import * as LogicTemplatesCommonJSExport from './logicTemplates';
 import Bid, { BidOptions } from './bid';
 import * as convert from './convert';
 import * as utils from './utils/utils';
-import AnyTransaction from './types/transactions';
+import AnyTransaction, { EncodedSignedTransaction } from './types/transactions';
 import { MultisigMetadata } from './types/multisig';
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
@@ -44,8 +44,8 @@ export function signTransaction(
   const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
 
   return {
-    txID: (algoTxn as txnBuilder.Transaction).txID().toString(),
-    blob: (algoTxn as txnBuilder.Transaction).signTxn(sk),
+    txID: algoTxn.txID().toString(),
+    blob: algoTxn.signTxn(sk),
   };
 }
 
@@ -117,16 +117,7 @@ export function signMultisigTransaction(
     threshold,
     addrs,
   });
-  if (Object.prototype.hasOwnProperty.call(txn, 'from')) {
-    const actualSender =
-      typeof txn.from === 'string'
-        ? txn.from
-        : address.encodeAddress(txn.from.publicKey);
-
-    if (actualSender !== expectedFromRaw) {
-      throw new Error(MULTISIG_BAD_SENDER_ERROR_MSG);
-    }
-  } else {
+  if (!Object.prototype.hasOwnProperty.call(txn, 'from')) {
     // eslint-disable-next-line no-param-reassign
     txn.from = expectedFromRaw;
   }
@@ -180,7 +171,9 @@ export function appendSignMultisigTransaction(
 ) {
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
   // obtain underlying txn, sign it, and merge it
-  const multisigTxObj: any = encoding.decode(multisigTxnBlob);
+  const multisigTxObj = encoding.decode(
+    multisigTxnBlob
+  ) as EncodedSignedTransaction;
   const msigTxn = multisig.MultisigTransaction.from_obj_for_encoding(
     multisigTxObj.txn
   );
@@ -260,6 +253,7 @@ export {
 } from './convert';
 export { computeGroupID, assignGroupID } from './group';
 export {
+  LogicSigAccount,
   makeLogicSig,
   signLogicSigTransaction,
   signLogicSigTransactionObject,

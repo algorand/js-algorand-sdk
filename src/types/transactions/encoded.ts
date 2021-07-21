@@ -294,7 +294,14 @@ export interface EncodedTransaction {
 }
 
 export interface EncodedSubsig {
+  /**
+   *  The public key
+   */
   pk: Uint8Array;
+
+  /**
+   * The signature provided by the public key, if any
+   */
   s?: Uint8Array;
 }
 
@@ -321,6 +328,8 @@ export interface EncodedMultisig {
 
 /**
  * An encoded multisig blob that contains the encoded multisig as well as a copy of the encoded transaction
+ *
+ * @deprecated Use EncodedSignedTransaction instead.
  */
 export interface EncodedMultisigBlob {
   /**
@@ -339,6 +348,11 @@ export interface EncodedLogicSig {
   arg?: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
+}
+
+export interface EncodedLogicSigAccount {
+  lsig: EncodedLogicSig;
+  sigkey?: Uint8Array;
 }
 
 /**

@@ -7,8 +7,9 @@ import * as utils from './utils/utils';
 import * as txnBuilder from './transaction';
 import {
   EncodedLogicSig,
+  EncodedLogicSigAccount,
   EncodedMultisig,
-  EncodedTransaction,
+  EncodedSignedTransaction,
 } from './types/transactions/encoded';
 import { MultisigMetadata } from './types/multisig';
 
@@ -32,30 +33,30 @@ export class LogicSig implements LogicSigStorageStructure {
 
   constructor(
     program: Uint8Array,
-    bufferOrUint8ArrArgs: Array<Uint8Array | Buffer> | undefined
+    programArgs?: Array<Uint8Array | Buffer> | null
   ) {
+    if (
+      programArgs &&
+      (!Array.isArray(programArgs) ||
+        !programArgs.every(
+          (arg) => arg.constructor === Uint8Array || Buffer.isBuffer(arg)
+        ))
+    ) {
+      throw new TypeError('Invalid arguments');
+    }
+
     let args: Uint8Array[] | undefined;
-    if (typeof bufferOrUint8ArrArgs !== 'undefined')
-      args = bufferOrUint8ArrArgs.map((arg) => new Uint8Array(arg));
+    if (programArgs != null)
+      args = programArgs.map((arg) => new Uint8Array(arg));
 
     if (!logic.checkProgram(program, args)) {
       throw new Error('Invalid program');
     }
 
-    function checkType(arg: any) {
-      return arg.constructor === Uint8Array || Buffer.isBuffer(arg);
-    }
-
-    if (args && (!Array.isArray(args) || !args.every(checkType))) {
-      throw new TypeError('Invalid arguments');
-    }
-
-    Object.assign(this, {
-      logic: program,
-      args,
-      sig: undefined,
-      msig: undefined,
-    });
+    this.logic = program;
+    this.args = args;
+    this.sig = undefined;
+    this.msig = undefined;
   }
 
   // eslint-disable-next-line camelcase
@@ -126,8 +127,8 @@ export class LogicSig implements LogicSigStorageStructure {
    * @param secretKey - Secret key to sign with
    * @param msig - Multisig account as \{version, threshold, addrs\}
    */
-  sign(secretKey: Uint8Array, msig: MultisigMetadata) {
-    if (msig === undefined) {
+  sign(secretKey: Uint8Array, msig?: MultisigMetadata) {
+    if (msig == null) {
       this.sig = this.signProgram(secretKey);
     } else {
       const subsigs = msig.addrs.map((addr) => ({
@@ -194,7 +195,160 @@ export class LogicSig implements LogicSigStorageStructure {
 }
 
 /**
+ * Represents an account that can sign with a LogicSig program.
+ */
+export class LogicSigAccount {
+  lsig: LogicSig;
+  sigkey?: Uint8Array;
+
+  /**
+   * Create a new LogicSigAccount. By default this will create an escrow
+   * LogicSig account. Call `sign` or `signMultisig` on the newly created
+   * LogicSigAccount to make it a delegated account.
+   *
+   * @param program - The compiled TEAL program which contains the logic for
+   *   this LogicSig.
+   * @param args - An optional array of arguments for the program.
+   */
+  constructor(program: Uint8Array, args?: Array<Uint8Array | Buffer> | null) {
+    this.lsig = new LogicSig(program, args);
+    this.sigkey = undefined;
+  }
+
+  // eslint-disable-next-line camelcase
+  get_obj_for_encoding() {
+    const obj: EncodedLogicSigAccount = {
+      lsig: this.lsig.get_obj_for_encoding(),
+    };
+    if (this.sigkey) {
+      obj.sigkey = this.sigkey;
+    }
+    return obj;
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(encoded: EncodedLogicSigAccount) {
+    const lsigAccount = new LogicSigAccount(encoded.lsig.l, encoded.lsig.arg);
+    lsigAccount.lsig = LogicSig.from_obj_for_encoding(encoded.lsig);
+    lsigAccount.sigkey = encoded.sigkey;
+    return lsigAccount;
+  }
+
+  /**
+   * Encode this object into msgpack.
+   */
+  toByte() {
+    return encoding.encode(this.get_obj_for_encoding());
+  }
+
+  /**
+   * Decode a msgpack object into a LogicSigAccount.
+   * @param encoded - The encoded LogicSigAccount.
+   */
+  static fromByte(encoded: ArrayLike<any>) {
+    const decodedObj = encoding.decode(encoded) as EncodedLogicSigAccount;
+    return LogicSigAccount.from_obj_for_encoding(decodedObj);
+  }
+
+  /**
+   * Check if this LogicSigAccount has been delegated to another account with a
+   * signature.
+   *
+   * Note this function only checks for the presence of a delegation signature.
+   * To verify the delegation signature, use `verify`.
+   */
+  isDelegated() {
+    return !!(this.lsig.sig || this.lsig.msig);
+  }
+
+  /**
+   * Verifies this LogicSig's program and signatures.
+   * @returns true if and only if the LogicSig program and signatures are valid.
+   */
+  verify() {
+    const addr = this.address();
+    return this.lsig.verify(address.decodeAddress(addr).publicKey);
+  }
+
+  /**
+   * Get the address of this LogicSigAccount.
+   *
+   * If the LogicSig is delegated to another account, this will return the
+   * address of that account.
+   *
+   * If the LogicSig is not delegated to another account, this will return an
+   *  escrow address that is the hash of the LogicSig's program code.
+   */
+  address() {
+    if (this.lsig.sig && this.lsig.msig) {
+      throw new Error(
+        'LogicSig has too many signatures. At most one of sig or msig may be present'
+      );
+    }
+
+    if (this.lsig.sig) {
+      if (!this.sigkey) {
+        throw new Error('Signing key for delegated account is missing');
+      }
+      return address.encodeAddress(this.sigkey);
+    }
+
+    if (this.lsig.msig) {
+      const msigMetadata = {
+        version: this.lsig.msig.v,
+        threshold: this.lsig.msig.thr,
+        pks: this.lsig.msig.subsig.map((subsig) => subsig.pk),
+      };
+      return address.encodeAddress(address.fromMultisigPreImg(msigMetadata));
+    }
+
+    return this.lsig.address();
+  }
+
+  /**
+   * Turns this LogicSigAccount into a delegated LogicSig. This type of LogicSig
+   * has the authority to sign transactions on behalf of another account, called
+   * the delegating account. Use this function if the delegating account is a
+   * multisig account.
+   *
+   * @param msig - The multisig delegating account
+   * @param secretKey - The secret key of one of the members of the delegating
+   *   multisig account. Use `appendToMultisig` to add additional signatures
+   *   from other members.
+   */
+  signMultisig(msig: MultisigMetadata, secretKey: Uint8Array) {
+    this.lsig.sign(secretKey, msig);
+  }
+
+  /**
+   * Adds an additional signature from a member of the delegating multisig
+   * account.
+   *
+   * @param secretKey - The secret key of one of the members of the delegating
+   *   multisig account.
+   */
+  appendToMultisig(secretKey: Uint8Array) {
+    this.lsig.appendToMultisig(secretKey);
+  }
+
+  /**
+   * Turns this LogicSigAccount into a delegated LogicSig. This type of LogicSig
+   * has the authority to sign transactions on behalf of another account, called
+   * the delegating account. If the delegating account is a multisig account,
+   * use `signMultisig` instead.
+   *
+   * @param secretKey - The secret key of the delegating account.
+   */
+  sign(secretKey: Uint8Array) {
+    this.lsig.sign(secretKey);
+    this.sigkey = nacl.keyPairFromSecretKey(secretKey).publicKey;
+  }
+}
+
+/**
  * makeLogicSig creates LogicSig object from program and arguments
+ *
+ * @deprecated Use new LogicSigAccount(...) instead
  *
  * @param program - Program to make LogicSig from
  * @param args - Arguments as array of Uint8Array
@@ -204,61 +358,91 @@ export function makeLogicSig(program: Uint8Array, args?: Uint8Array[]) {
   return new LogicSig(program, args);
 }
 
-/**
- * signLogicSigTransactionObject takes transaction.Transaction and a LogicSig object and returns a logicsig
- * transaction which is a blob representing a transaction and logicsig object.
- * @param txn - transaction.Transaction
- * @param lsig - logicsig object
- * @returns Object containing txID and blob representing signed transaction.
- */
-export function signLogicSigTransactionObject(
+function signLogicSigTransactionWithAddress(
   txn: txnBuilder.Transaction,
-  lsig: LogicSig
+  lsig: LogicSig,
+  lsigAddress: Uint8Array
 ) {
-  const lstx: {
-    lsig: EncodedLogicSig;
-    txn: EncodedTransaction;
-    sgnr?: Buffer;
-  } = {
+  if (!lsig.verify(lsigAddress)) {
+    throw new Error(
+      'Logic signature verification failed. Ensure the program and signature are valid.'
+    );
+  }
+
+  const signedTxn: EncodedSignedTransaction = {
     lsig: lsig.get_obj_for_encoding(),
     txn: txn.get_obj_for_encoding(),
   };
 
-  const isDelegated = lsig.sig || lsig.msig;
-  if (isDelegated) {
-    if (!lsig.verify(txn.from.publicKey)) {
-      throw new Error(
-        "Logic signature verification failed. Ensure the program is valid and the transaction sender is the program's delegated address."
-      );
-    }
-  } else {
-    // add AuthAddr if signing with a different program than From indicates for non-delegated LogicSig
-    const programAddr = lsig.address();
-    if (programAddr !== address.encodeAddress(txn.from.publicKey)) {
-      lstx.sgnr = Buffer.from(address.decodeAddress(programAddr).publicKey);
-    }
+  if (!nacl.bytesEqual(lsigAddress, txn.from.publicKey)) {
+    signedTxn.sgnr = Buffer.from(lsigAddress);
   }
 
   return {
     txID: txn.txID().toString(),
-    blob: encoding.encode(lstx),
+    blob: encoding.encode(signedTxn),
   };
 }
 
 /**
- * signLogicSigTransaction takes a raw transaction and a LogicSig object and returns a logicsig
- * transaction which is a blob representing a transaction and logicsig object.
- * @param txn - containing constructor arguments for a transaction
- * @param lsig -  logicsig object
+ * signLogicSigTransactionObject takes a transaction and a LogicSig object and
+ * returns a signed transaction.
+ *
+ * @param txn - The transaction to sign.
+ * @param lsigObject - The LogicSig object that will sign the transaction.
+ *
+ * @returns Object containing txID and blob representing signed transaction.
+ */
+export function signLogicSigTransactionObject(
+  txn: txnBuilder.Transaction,
+  lsigObject: LogicSig | LogicSigAccount
+) {
+  let lsig: LogicSig;
+  let lsigAddress: Uint8Array;
+
+  if (lsigObject instanceof LogicSigAccount) {
+    lsig = lsigObject.lsig;
+    lsigAddress = address.decodeAddress(lsigObject.address()).publicKey;
+  } else {
+    lsig = lsigObject;
+
+    if (lsig.sig) {
+      // For a LogicSig with a non-multisig delegating account, we cannot derive
+      // the address of that account from only its signature, so assume the
+      // delegating account is the sender. If that's not the case, the signing
+      // will fail.
+      lsigAddress = txn.from.publicKey;
+    } else if (lsig.msig) {
+      const msigMetadata = {
+        version: lsig.msig.v,
+        threshold: lsig.msig.thr,
+        pks: lsig.msig.subsig.map((subsig) => subsig.pk),
+      };
+      lsigAddress = address.fromMultisigPreImg(msigMetadata);
+    } else {
+      lsigAddress = address.decodeAddress(lsig.address()).publicKey;
+    }
+  }
+
+  return signLogicSigTransactionWithAddress(txn, lsig, lsigAddress);
+}
+
+/**
+ * signLogicSigTransaction takes a transaction and a LogicSig object and returns
+ * a signed transaction.
+ *
+ * @param txn - The transaction to sign.
+ * @param lsigObject - The LogicSig object that will sign the transaction.
+ *
  * @returns Object containing txID and blob representing signed transaction.
  * @throws error on failure
  */
 export function signLogicSigTransaction(
   txn: txnBuilder.TransactionLike,
-  lsig: LogicSig
+  lsigObject: LogicSig | LogicSigAccount
 ) {
   const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
-  return signLogicSigTransactionObject(algoTxn, lsig);
+  return signLogicSigTransactionObject(algoTxn, lsigObject);
 }
 
 /**
@@ -303,9 +487,7 @@ export function tealSignFromProgram(
   data: Uint8Array | Buffer,
   program: Uint8Array
 ) {
-  const lsig = makeLogicSig(program);
+  const lsig = new LogicSig(program);
   const contractAddress = lsig.address();
   return tealSign(sk, data, contractAddress);
 }
-
-export default LogicSig;
