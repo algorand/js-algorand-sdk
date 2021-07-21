@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>IntDecoding | algosdk</title>
+	<title>EncodedGlobalStateSchema | algosdk</title>
 	<meta name="description" content="Documentation for algosdk">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -55,101 +55,67 @@
 					<a href="../modules.html">algosdk</a>
 				</li>
 				<li>
-					<a href="intdecoding.html">IntDecoding</a>
+					<a href="encodedglobalstateschema.html">EncodedGlobalStateSchema</a>
 				</li>
 			</ul>
-			<h1>Enumeration IntDecoding</h1>
+			<h1>Interface EncodedGlobalStateSchema</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Configure how integers in JSON response will be decoded.</p>
-					</div>
-				</div>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">EncodedGlobalStateSchema</span>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>Enumeration members</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="intdecoding.html#bigint" class="tsd-kind-icon">BIGINT</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="intdecoding.html#default" class="tsd-kind-icon">DEFAULT</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="intdecoding.html#mixed" class="tsd-kind-icon">MIXED</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="intdecoding.html#safe" class="tsd-kind-icon">SAFE</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="encodedglobalstateschema.html#nbs" class="tsd-kind-icon">nbs</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="encodedglobalstateschema.html#nui" class="tsd-kind-icon">nui</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Enumeration members</h2>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="bigint" class="tsd-anchor"></a>
-					<h3>BIGINT</h3>
-					<div class="tsd-signature tsd-kind-icon">BIGINT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;bigint&quot;</span></div>
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="nbs" class="tsd-anchor"></a>
+					<h3>nbs</h3>
+					<div class="tsd-signature tsd-kind-icon">nbs<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/d009e8b/src/types/intDecoding.ts#L27">types/intDecoding.ts:27</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/d009e8b/src/types/transactions/encoded.ts#L83">types/transactions/encoded.ts:83</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>All integers will be decoded as BigInts.</p>
+							<p>appGlobalByteSlices</p>
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="default" class="tsd-anchor"></a>
-					<h3>DEFAULT</h3>
-					<div class="tsd-signature tsd-kind-icon">DEFAULT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;default&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="nui" class="tsd-anchor"></a>
+					<h3>nui</h3>
+					<div class="tsd-signature tsd-kind-icon">nui<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/d009e8b/src/types/intDecoding.ts#L10">types/intDecoding.ts:10</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/d009e8b/src/types/transactions/encoded.ts#L78">types/transactions/encoded.ts:78</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>All integers will be decoded as Numbers, meaning any values greater than
-							Number.MAX_SAFE_INTEGER will lose precision.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="mixed" class="tsd-anchor"></a>
-					<h3>MIXED</h3>
-					<div class="tsd-signature tsd-kind-icon">MIXED<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;mixed&quot;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/d009e8b/src/types/intDecoding.ts#L22">types/intDecoding.ts:22</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Integers will be decoded as Numbers if they are less than or equal to
-							Number.MAX_SAFE_INTEGER, otherwise they will be decoded as BigInts.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
-					<a name="safe" class="tsd-anchor"></a>
-					<h3>SAFE</h3>
-					<div class="tsd-signature tsd-kind-icon">SAFE<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> = &quot;safe&quot;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/d009e8b/src/types/intDecoding.ts#L16">types/intDecoding.ts:16</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>All integers will be decoded as Numbers, but if any values are greater than
-							Number.MAX_SAFE_INTEGER an error will be thrown.</p>
+							<p>appGlobalInts</p>
 						</div>
 					</div>
 				</section>
@@ -167,20 +133,14 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-enum">
-						<a href="intdecoding.html" class="tsd-kind-icon">Int<wbr>Decoding</a>
+					<li class="current tsd-kind-interface">
+						<a href="encodedglobalstateschema.html" class="tsd-kind-icon">Encoded<wbr>Global<wbr>State<wbr>Schema</a>
 						<ul>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-								<a href="intdecoding.html#bigint" class="tsd-kind-icon">BIGINT</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="encodedglobalstateschema.html#nbs" class="tsd-kind-icon">nbs</a>
 							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-								<a href="intdecoding.html#default" class="tsd-kind-icon">DEFAULT</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-								<a href="intdecoding.html#mixed" class="tsd-kind-icon">MIXED</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
-								<a href="intdecoding.html#safe" class="tsd-kind-icon">SAFE</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="encodedglobalstateschema.html#nui" class="tsd-kind-icon">nui</a>
 							</li>
 						</ul>
 					</li>
