@@ -1,7 +1,7 @@
-const assert = require('assert');
-const algosdk = require('../index');
-const logic = require('../src/logic/logic');
-const utils = require('../src/utils/utils');
+import assert from 'assert';
+import algosdk from '../index';
+import * as logic from '../src/logic/logic';
+import * as utils from '../src/utils/utils';
 
 describe('LogicSig functionality', () => {
   describe('Basic logic sig', () => {
@@ -11,24 +11,24 @@ describe('LogicSig functionality', () => {
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
       const pk = algosdk.decodeAddress(programHash).publicKey;
       let lsig = algosdk.makeLogicSig(program);
-      assert.equal(lsig.logic, program);
-      assert.equal(lsig.args, undefined);
-      assert.equal(lsig.sig, undefined);
-      assert.equal(lsig.msig, undefined);
-      assert.equal(lsig.address(), programHash);
+      assert.strictEqual(lsig.logic, program);
+      assert.strictEqual(lsig.args, undefined);
+      assert.strictEqual(lsig.sig, undefined);
+      assert.strictEqual(lsig.msig, undefined);
+      assert.strictEqual(lsig.address(), programHash);
 
       let verified = lsig.verify(pk);
-      assert.equal(verified, true);
+      assert.strictEqual(verified, true);
 
       const args = [Uint8Array.from([1, 2, 3]), Uint8Array.from([4, 5, 6])];
       lsig = algosdk.makeLogicSig(program, args);
-      assert.equal(lsig.logic, program);
-      assert.deepEqual(lsig.args, args);
-      assert.equal(lsig.sig, undefined);
-      assert.equal(lsig.msig, undefined);
+      assert.strictEqual(lsig.logic, program);
+      assert.deepStrictEqual(lsig.args, args);
+      assert.strictEqual(lsig.sig, undefined);
+      assert.strictEqual(lsig.msig, undefined);
 
       verified = lsig.verify(pk);
-      assert.equal(verified, true);
+      assert.strictEqual(verified, true);
 
       // check serialization
       const encoded = lsig.toByte();
@@ -44,7 +44,7 @@ describe('LogicSig functionality', () => {
       program[3] = 2;
       const lsig = algosdk.makeLogicSig(program);
       const verified = lsig.verify(pk);
-      assert.equal(verified, false);
+      assert.strictEqual(verified, false);
     });
     it('should fail on invalid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
@@ -200,25 +200,25 @@ describe('Logic validation', () => {
     it('should parse binary data correctly', () => {
       let data = Uint8Array.from([1]);
       let [value, length] = logic.parseUvarint(data);
-      assert.equal(length, 1);
-      assert.equal(value, 1);
+      assert.strictEqual(length, 1);
+      assert.strictEqual(value, 1);
 
       data = Uint8Array.from([123]);
       [value, length] = logic.parseUvarint(data);
-      assert.equal(length, 1);
-      assert.equal(value, 123);
+      assert.strictEqual(length, 1);
+      assert.strictEqual(value, 123);
 
       data = Uint8Array.from([200, 3]);
       [value, length] = logic.parseUvarint(data);
-      assert.equal(length, 2);
-      assert.equal(value, 456);
+      assert.strictEqual(length, 2);
+      assert.strictEqual(value, 456);
     });
   });
   describe('Const blocks', () => {
     it('should parse int const block correctly', () => {
       const data = Uint8Array.from([32, 5, 0, 1, 200, 3, 123, 2]);
       const size = logic.checkIntConstBlock(data, 0);
-      assert.equal(size, data.length);
+      assert.strictEqual(size, data.length);
     });
     it('should parse bytes const block correctly', () => {
       const data = Uint8Array.from([
@@ -243,7 +243,7 @@ describe('Logic validation', () => {
         2,
       ]);
       const size = logic.checkByteConstBlock(data, 0);
-      assert.equal(size, data.length);
+      assert.strictEqual(size, data.length);
     });
     it('should parse int push op correctly', () => {
       const data = Uint8Array.from([0x81, 0x80, 0x80, 0x04]);
@@ -274,17 +274,22 @@ describe('Logic validation', () => {
     it('should assess correct programs right', () => {
       let program = Uint8Array.from([1, 32, 1, 1, 34]);
       let result = logic.checkProgram(program);
-      assert.equal(result, true);
+      assert.strictEqual(result, true);
 
-      result = logic.checkProgram(program, [Uint8Array.from('a' * 10)]);
-      assert.equal(result, true);
+      const args = [Uint8Array.from([1, 2, 3])];
 
-      program = utils.concatArrays(program, Uint8Array.from('\x22' * 10));
-      result = logic.checkProgram(program, [Uint8Array.from('a' * 10)]);
-      assert.equal(result, true);
+      result = logic.checkProgram(program, args);
+      assert.strictEqual(result, true);
+
+      program = utils.concatArrays(program, new Array(10).fill(0x22));
+      result = logic.checkProgram(program, args);
+      assert.strictEqual(result, true);
     });
     it('should fail on long input', () => {
-      assert.throws(() => logic.checkProgram(), new Error('empty program'));
+      assert.throws(
+        () => (logic.checkProgram as any)(),
+        new Error('empty program')
+      );
       let program = Uint8Array.from([1, 32, 1, 1, 34]);
       assert.throws(
         () => logic.checkProgram(program, [new Uint8Array(1000).fill(55)]),
@@ -307,19 +312,19 @@ describe('Logic validation', () => {
     it('should fail on invalid args', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
       assert.throws(
-        () => logic.checkProgram(program, '123'),
+        () => logic.checkProgram(program, '123' as any),
         new Error('invalid arguments')
       );
     });
     it('should fail on costly program', () => {
       let program = Uint8Array.from([1, 38, 1, 1, 1, 40, 2]); // byte 0x01 + keccak256
       let result = logic.checkProgram(program);
-      assert.equal(result, true);
+      assert.strictEqual(result, true);
 
       // 10x keccak256 more is fine
       program = utils.concatArrays(program, new Uint8Array(10).fill(2));
       result = logic.checkProgram(program);
-      assert.equal(result, true);
+      assert.strictEqual(result, true);
 
       // 800x keccak256 more is too costly
       program = utils.concatArrays(program, new Uint8Array(800).fill(2));
@@ -349,18 +354,18 @@ describe('Logic validation', () => {
       // balance
       let program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x60]); // int 0; balance
       let result = logic.checkProgram(program);
-      assert.equal(result, true);
+      assert.strictEqual(result, true);
 
       // app_opted_in
       program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x22, 0x61]); // int 0; int 0; app_opted_in
       result = logic.checkProgram(program);
-      assert.equal(result, true);
+      assert.strictEqual(result, true);
 
       // 800x keccak256 more is to costly
       // prettier-ignore
       program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x22, 0x70, 0x00 ]); // int 0; int 0; asset_holding_get Balance
       result = logic.checkProgram(program);
-      assert.equal(result, true);
+      assert.strictEqual(result, true);
     });
     it('should support TEAL v3 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 3);
@@ -617,7 +622,10 @@ describe('Template logic validation', () => {
         o,
         preImageAsBase64
       );
-      assert.deepEqual(Buffer.from(goldenLtxn, 'base64'), actualTxn.blob);
+      assert.deepStrictEqual(
+        Buffer.from(goldenLtxn, 'base64'),
+        Buffer.from(actualTxn.blob)
+      );
     });
     it('keccak256 should match the goldens', () => {
       // Inputs
@@ -665,7 +673,10 @@ describe('Template logic validation', () => {
         o,
         preImageAsBase64
       );
-      assert.deepEqual(Buffer.from(goldenLtxn, 'base64'), actualTxn.blob);
+      assert.deepStrictEqual(
+        Buffer.from(goldenLtxn, 'base64'),
+        Buffer.from(actualTxn.blob)
+      );
     });
     it('other hash function should fail', () => {
       // Inputs
@@ -742,7 +753,7 @@ describe('Template logic validation', () => {
         'base64'
       );
       const expectedBlob = Buffer.concat([expectedTxn1, expectedTxn2]);
-      assert.deepEqual(expectedBlob, actualBlob);
+      assert.deepStrictEqual(expectedBlob, Buffer.from(actualBlob));
     });
   });
   describe('Periodic payment', () => {
@@ -784,9 +795,9 @@ describe('Template logic validation', () => {
         1200,
         goldenGenesisHash
       );
-      const expectedDict = algosdk.decodeObj(goldenStxBlob);
+      const expectedDict = algosdk.decodeObj(new Uint8Array(goldenStxBlob));
       const actualDict = algosdk.decodeObj(stx.blob);
-      assert.deepEqual(expectedDict, actualDict);
+      assert.deepStrictEqual(expectedDict, actualDict);
     });
   });
   describe('Limit Order', () => {
@@ -859,9 +870,9 @@ describe('Template logic validation', () => {
         1200,
         goldenGenesisHash
       );
-      const expectedDict = algosdk.decodeObj(goldenStxBlob);
+      const expectedDict = algosdk.decodeObj(new Uint8Array(goldenStxBlob));
       const actualDict = algosdk.decodeObj(stx.blob);
-      assert.deepEqual(expectedDict, actualDict);
+      assert.deepStrictEqual(expectedDict, actualDict);
     });
   });
   describe('Dynamic Fee', () => {
