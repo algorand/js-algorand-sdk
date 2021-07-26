@@ -266,6 +266,7 @@ export {
   logicSigFromByte,
   tealSign,
   tealSignFromProgram,
+  LogicSig,
 } from './logicsig';
 export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 

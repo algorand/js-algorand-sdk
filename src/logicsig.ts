@@ -126,7 +126,7 @@ export class LogicSig implements LogicSigStorageStructure {
    * @param secretKey - Secret key to sign with
    * @param msig - Multisig account as \{version, threshold, addrs\}
    */
-  sign(secretKey: Uint8Array, msig: MultisigMetadata) {
+  sign(secretKey: Uint8Array, msig?: MultisigMetadata) {
     if (msig === undefined) {
       this.sig = this.signProgram(secretKey);
     } else {

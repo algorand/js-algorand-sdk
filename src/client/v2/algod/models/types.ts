@@ -688,7 +688,7 @@ export class AssetParams extends BaseModel {
    * (am) A commitment to some unspecified asset metadata. The format of this
    * metadata is up to the application.
    */
-  public metadataHash?: Uint8Array;
+  public metadataHash?: Uint8Array | string;
 
   /**
    * (an) Name of this asset, as supplied by the creator. Included only when the
