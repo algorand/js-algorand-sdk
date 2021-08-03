@@ -1,3 +1,9 @@
+# 1.11.0
+
+## Added
+
+- Signing support for rekeying to LogicSig/MultiSig account
+
 # 1.10.1
 
 ## Added
