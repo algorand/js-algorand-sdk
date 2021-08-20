@@ -877,6 +877,9 @@ export class Transaction implements TransactionStorageStructure {
         if (txnForEnc.apgs.nbs !== undefined)
           txn.appGlobalByteSlices = txnForEnc.apgs.nbs;
       }
+      if (txnForEnc.apep !== undefined) {
+        txn.extraPages = txnForEnc.apep;
+      }
       if (txnForEnc.apap !== undefined) {
         txn.appApprovalProgram = new Uint8Array(txnForEnc.apap);
       }

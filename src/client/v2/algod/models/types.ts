@@ -1254,6 +1254,8 @@ export class DryrunTxnResult extends BaseModel {
 
   public logicSigTrace?: DryrunState[];
 
+  public logs?: LogItem[];
+
   /**
    * Creates a new `DryrunTxnResult` object.
    * @param disassembly - Disassembled program line by line.
@@ -1263,6 +1265,7 @@ export class DryrunTxnResult extends BaseModel {
    * @param localDeltas -
    * @param logicSigMessages -
    * @param logicSigTrace -
+   * @param logs -
    */
   constructor({
     disassembly,
@@ -1272,6 +1275,7 @@ export class DryrunTxnResult extends BaseModel {
     localDeltas,
     logicSigMessages,
     logicSigTrace,
+    logs,
   }: {
     disassembly: string[];
     appCallMessages?: string[];
@@ -1280,6 +1284,7 @@ export class DryrunTxnResult extends BaseModel {
     localDeltas?: AccountStateDelta[];
     logicSigMessages?: string[];
     logicSigTrace?: DryrunState[];
+    logs?: LogItem[];
   }) {
     super();
     this.disassembly = disassembly;
@@ -1289,6 +1294,7 @@ export class DryrunTxnResult extends BaseModel {
     this.localDeltas = localDeltas;
     this.logicSigMessages = logicSigMessages;
     this.logicSigTrace = logicSigTrace;
+    this.logs = logs;
 
     this.attribute_map = {
       disassembly: 'disassembly',
@@ -1298,6 +1304,7 @@ export class DryrunTxnResult extends BaseModel {
       localDeltas: 'local-deltas',
       logicSigMessages: 'logic-sig-messages',
       logicSigTrace: 'logic-sig-trace',
+      logs: 'logs',
     };
   }
 }
@@ -1389,6 +1396,37 @@ export class EvalDeltaKeyValue extends BaseModel {
 
     this.attribute_map = {
       key: 'key',
+      value: 'value',
+    };
+  }
+}
+
+/**
+ * Application Log
+ */
+export class LogItem extends BaseModel {
+  /**
+   * unique application identifier
+   */
+  public id: number | bigint;
+
+  /**
+   * base64 encoded log message
+   */
+  public value: string;
+
+  /**
+   * Creates a new `LogItem` object.
+   * @param id - unique application identifier
+   * @param value - base64 encoded log message
+   */
+  constructor(id: number | bigint, value: string) {
+    super();
+    this.id = id;
+    this.value = value;
+
+    this.attribute_map = {
+      id: 'id',
       value: 'value',
     };
   }
@@ -1640,6 +1678,11 @@ export class PendingTransactionResponse extends BaseModel {
   public localStateDelta?: AccountStateDelta[];
 
   /**
+   * (lg) Logs for the application being executed by this transaction.
+   */
+  public logs?: LogItem[];
+
+  /**
    * Rewards in microalgos applied to the receiver account.
    */
   public receiverRewards?: number | bigint;
@@ -1666,6 +1709,7 @@ export class PendingTransactionResponse extends BaseModel {
    * transaction.
    * @param localStateDelta - (ld) Local state key/value changes for the application being executed by this
    * transaction.
+   * @param logs - (lg) Logs for the application being executed by this transaction.
    * @param receiverRewards - Rewards in microalgos applied to the receiver account.
    * @param senderRewards - Rewards in microalgos applied to the sender account.
    */
@@ -1680,6 +1724,7 @@ export class PendingTransactionResponse extends BaseModel {
     confirmedRound,
     globalStateDelta,
     localStateDelta,
+    logs,
     receiverRewards,
     senderRewards,
   }: {
@@ -1693,6 +1738,7 @@ export class PendingTransactionResponse extends BaseModel {
     confirmedRound?: number | bigint;
     globalStateDelta?: EvalDeltaKeyValue[];
     localStateDelta?: AccountStateDelta[];
+    logs?: LogItem[];
     receiverRewards?: number | bigint;
     senderRewards?: number | bigint;
   }) {
@@ -1707,6 +1753,7 @@ export class PendingTransactionResponse extends BaseModel {
     this.confirmedRound = confirmedRound;
     this.globalStateDelta = globalStateDelta;
     this.localStateDelta = localStateDelta;
+    this.logs = logs;
     this.receiverRewards = receiverRewards;
     this.senderRewards = senderRewards;
 
@@ -1721,6 +1768,7 @@ export class PendingTransactionResponse extends BaseModel {
       confirmedRound: 'confirmed-round',
       globalStateDelta: 'global-state-delta',
       localStateDelta: 'local-state-delta',
+      logs: 'logs',
       receiverRewards: 'receiver-rewards',
       senderRewards: 'sender-rewards',
     };
