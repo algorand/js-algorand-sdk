@@ -119,6 +119,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.pendingtransactionresponse.html#confirmedround" class="tsd-kind-icon">confirmed<wbr>Round</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.pendingtransactionresponse.html#globalstatedelta" class="tsd-kind-icon">global<wbr>State<wbr>Delta</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.pendingtransactionresponse.html#localstatedelta" class="tsd-kind-icon">local<wbr>State<wbr>Delta</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.pendingtransactionresponse.html#logs" class="tsd-kind-icon">logs</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.pendingtransactionresponse.html#poolerror" class="tsd-kind-icon">pool<wbr>Error</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.pendingtransactionresponse.html#receiverrewards" class="tsd-kind-icon">receiver<wbr>Rewards</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.pendingtransactionresponse.html#senderrewards" class="tsd-kind-icon">sender<wbr>Rewards</a></li>
@@ -140,14 +141,14 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Pending<wbr>Transaction<wbr>Response<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>applicationIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetClosingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closeRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>confirmedRound<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>globalStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.evaldeltakeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">EvalDeltaKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>localStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.accountstatedelta.html" class="tsd-signature-type" data-tsd-kind="Class">AccountStateDelta</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>poolError<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>receiverRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>senderRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>txn<span class="tsd-signature-symbol">: </span><a href="../interfaces/encodedsignedtransaction.html" class="tsd-signature-type" data-tsd-kind="Interface">EncodedSignedTransaction</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modelsv2.pendingtransactionresponse.html" class="tsd-signature-type" data-tsd-kind="Class">PendingTransactionResponse</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Pending<wbr>Transaction<wbr>Response<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>applicationIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetClosingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closeRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>confirmedRound<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>globalStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.evaldeltakeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">EvalDeltaKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>localStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.accountstatedelta.html" class="tsd-signature-type" data-tsd-kind="Class">AccountStateDelta</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>logs<span class="tsd-signature-symbol">?: </span><a href="modelsv2.logitem.html" class="tsd-signature-type" data-tsd-kind="Class">LogItem</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>poolError<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>receiverRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>senderRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>txn<span class="tsd-signature-symbol">: </span><a href="../interfaces/encodedsignedtransaction.html" class="tsd-signature-type" data-tsd-kind="Interface">EncodedSignedTransaction</a><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modelsv2.pendingtransactionresponse.html" class="tsd-signature-type" data-tsd-kind="Class">PendingTransactionResponse</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides BaseModel.constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1650">client/v2/algod/models/types.ts:1650</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1693">client/v2/algod/models/types.ts:1693</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -158,7 +159,7 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span>applicationIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetClosingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closeRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>confirmedRound<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>globalStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.evaldeltakeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">EvalDeltaKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>localStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.accountstatedelta.html" class="tsd-signature-type" data-tsd-kind="Class">AccountStateDelta</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>poolError<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>receiverRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>senderRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>txn<span class="tsd-signature-symbol">: </span><a href="../interfaces/encodedsignedtransaction.html" class="tsd-signature-type" data-tsd-kind="Interface">EncodedSignedTransaction</a><span class="tsd-signature-symbol"> }</span></h5>
+									<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span>applicationIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetClosingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetIndex<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closeRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>closingAmount<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>confirmedRound<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>globalStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.evaldeltakeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">EvalDeltaKeyValue</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>localStateDelta<span class="tsd-signature-symbol">?: </span><a href="modelsv2.accountstatedelta.html" class="tsd-signature-type" data-tsd-kind="Class">AccountStateDelta</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>logs<span class="tsd-signature-symbol">?: </span><a href="modelsv2.logitem.html" class="tsd-signature-type" data-tsd-kind="Class">LogItem</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>poolError<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>receiverRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>senderRewards<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>txn<span class="tsd-signature-symbol">: </span><a href="../interfaces/encodedsignedtransaction.html" class="tsd-signature-type" data-tsd-kind="Interface">EncodedSignedTransaction</a><span class="tsd-signature-symbol"> }</span></h5>
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter">
 											<h5><span class="tsd-flag ts-flagOptional">Optional</span> application<wbr>Index<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5>
@@ -212,6 +213,12 @@
 											</div>
 										</li>
 										<li class="tsd-parameter">
+											<h5><span class="tsd-flag ts-flagOptional">Optional</span> logs<span class="tsd-signature-symbol">?: </span><a href="modelsv2.logitem.html" class="tsd-signature-type" data-tsd-kind="Class">LogItem</a><span class="tsd-signature-symbol">[]</span></h5>
+											<div class="tsd-comment tsd-typography">
+												<p>(lg) Logs for the application being executed by this transaction.</p>
+											</div>
+										</li>
+										<li class="tsd-parameter">
 											<h5>pool<wbr>Error<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></h5>
 											<div class="tsd-comment tsd-typography">
 												<p>Indicates that the transaction was kicked out of this node&#39;s transaction pool
@@ -253,7 +260,7 @@
 					<div class="tsd-signature tsd-kind-icon">application<wbr>Index<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1603">client/v2/algod/models/types.ts:1603</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1641">client/v2/algod/models/types.ts:1641</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -269,7 +276,7 @@
 					<div class="tsd-signature tsd-kind-icon">asset<wbr>Closing<wbr>Amount<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1608">client/v2/algod/models/types.ts:1608</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1646">client/v2/algod/models/types.ts:1646</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -284,7 +291,7 @@
 					<div class="tsd-signature tsd-kind-icon">asset<wbr>Index<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1613">client/v2/algod/models/types.ts:1613</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1651">client/v2/algod/models/types.ts:1651</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -300,7 +307,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from BaseModel.attribute_map</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/base.ts#L54">client/v2/algod/models/base.ts:54</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/base.ts#L54">client/v2/algod/models/base.ts:54</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -310,7 +317,7 @@
 					<div class="tsd-signature tsd-kind-icon">close<wbr>Rewards<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1618">client/v2/algod/models/types.ts:1618</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1656">client/v2/algod/models/types.ts:1656</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -325,7 +332,7 @@
 					<div class="tsd-signature tsd-kind-icon">closing<wbr>Amount<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1623">client/v2/algod/models/types.ts:1623</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1661">client/v2/algod/models/types.ts:1661</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -340,7 +347,7 @@
 					<div class="tsd-signature tsd-kind-icon">confirmed<wbr>Round<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1628">client/v2/algod/models/types.ts:1628</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1666">client/v2/algod/models/types.ts:1666</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -355,7 +362,7 @@
 					<div class="tsd-signature tsd-kind-icon">global<wbr>State<wbr>Delta<span class="tsd-signature-symbol">:</span> <a href="modelsv2.evaldeltakeyvalue.html" class="tsd-signature-type" data-tsd-kind="Class">EvalDeltaKeyValue</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1634">client/v2/algod/models/types.ts:1634</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1672">client/v2/algod/models/types.ts:1672</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -371,7 +378,7 @@
 					<div class="tsd-signature tsd-kind-icon">local<wbr>State<wbr>Delta<span class="tsd-signature-symbol">:</span> <a href="modelsv2.accountstatedelta.html" class="tsd-signature-type" data-tsd-kind="Class">AccountStateDelta</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1640">client/v2/algod/models/types.ts:1640</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1678">client/v2/algod/models/types.ts:1678</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -382,12 +389,27 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="logs" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> logs</h3>
+					<div class="tsd-signature tsd-kind-icon">logs<span class="tsd-signature-symbol">:</span> <a href="modelsv2.logitem.html" class="tsd-signature-type" data-tsd-kind="Class">LogItem</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1683">client/v2/algod/models/types.ts:1683</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>(lg) Logs for the application being executed by this transaction.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="poolerror" class="tsd-anchor"></a>
 					<h3>pool<wbr>Error</h3>
 					<div class="tsd-signature tsd-kind-icon">pool<wbr>Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1592">client/v2/algod/models/types.ts:1592</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1630">client/v2/algod/models/types.ts:1630</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -404,7 +426,7 @@
 					<div class="tsd-signature tsd-kind-icon">receiver<wbr>Rewards<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1645">client/v2/algod/models/types.ts:1645</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1688">client/v2/algod/models/types.ts:1688</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -419,7 +441,7 @@
 					<div class="tsd-signature tsd-kind-icon">sender<wbr>Rewards<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1650">client/v2/algod/models/types.ts:1650</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1693">client/v2/algod/models/types.ts:1693</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -434,7 +456,7 @@
 					<div class="tsd-signature tsd-kind-icon">txn<span class="tsd-signature-symbol">:</span> <a href="../interfaces/encodedsignedtransaction.html" class="tsd-signature-type" data-tsd-kind="Interface">EncodedSignedTransaction</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/types.ts#L1597">client/v2/algod/models/types.ts:1597</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1635">client/v2/algod/models/types.ts:1635</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -457,7 +479,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from BaseModel.get_obj_for_encoding</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/9afe012/src/client/v2/algod/models/base.ts#L63">client/v2/algod/models/base.ts:63</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/base.ts#L63">client/v2/algod/models/base.ts:63</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -566,6 +588,9 @@
 						<a href="modelsv2.evaldeltakeyvalue.html" class="tsd-kind-icon">Eval<wbr>Delta<wbr>Key<wbr>Value</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-namespace">
+						<a href="modelsv2.logitem.html" class="tsd-kind-icon">Log<wbr>Item</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="modelsv2.nodestatusresponse.html" class="tsd-kind-icon">Node<wbr>Status<wbr>Response</a>
 					</li>
 				</ul>
@@ -602,6 +627,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="modelsv2.pendingtransactionresponse.html#localstatedelta" class="tsd-kind-icon">local<wbr>State<wbr>Delta</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="modelsv2.pendingtransactionresponse.html#logs" class="tsd-kind-icon">logs</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="modelsv2.pendingtransactionresponse.html#poolerror" class="tsd-kind-icon">pool<wbr>Error</a>

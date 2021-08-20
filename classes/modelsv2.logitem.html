@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>TealValue | algosdk</title>
+	<title>LogItem | algosdk</title>
 	<meta name="description" content="Documentation for algosdk">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -58,10 +58,10 @@
 					<a href="../modules/modelsv2.html">modelsv2</a>
 				</li>
 				<li>
-					<a href="modelsv2.tealvalue.html">TealValue</a>
+					<a href="modelsv2.logitem.html">LogItem</a>
 				</li>
 			</ul>
-			<h1>Class TealValue</h1>
+			<h1>Class LogItem</h1>
 		</div>
 	</div>
 </header>
@@ -71,7 +71,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Represents a TEAL value.</p>
+						<p>Application Log</p>
 					</div>
 				</div>
 			</section>
@@ -82,7 +82,7 @@
 						<span class="tsd-signature-type">BaseModel</span>
 						<ul class="tsd-hierarchy">
 							<li>
-								<span class="target">TealValue</span>
+								<span class="target">LogItem</span>
 							</li>
 						</ul>
 					</li>
@@ -95,22 +95,21 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="modelsv2.tealvalue.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="modelsv2.logitem.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="modelsv2.tealvalue.html#attribute_map" class="tsd-kind-icon">attribute_<wbr>map</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.tealvalue.html#bytes" class="tsd-kind-icon">bytes</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.tealvalue.html#type" class="tsd-kind-icon">type</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.tealvalue.html#uint" class="tsd-kind-icon">uint</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="modelsv2.logitem.html#attribute_map" class="tsd-kind-icon">attribute_<wbr>map</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.logitem.html#id" class="tsd-kind-icon">id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="modelsv2.logitem.html#value" class="tsd-kind-icon">value</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="modelsv2.tealvalue.html#get_obj_for_encoding" class="tsd-kind-icon">get_<wbr>obj_<wbr>for_<wbr>encoding</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="modelsv2.logitem.html#get_obj_for_encoding" class="tsd-kind-icon">get_<wbr>obj_<wbr>for_<wbr>encoding</a></li>
 							</ul>
 						</section>
 					</div>
@@ -122,43 +121,37 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Teal<wbr>Value<span class="tsd-signature-symbol">(</span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span>, bytes<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, uint<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modelsv2.tealvalue.html" class="tsd-signature-type" data-tsd-kind="Class">TealValue</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Log<wbr>Item<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span>, value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="modelsv2.logitem.html" class="tsd-signature-type" data-tsd-kind="Class">LogItem</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides BaseModel.constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1974">client/v2/algod/models/types.ts:1974</a></li>
+									<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1416">client/v2/algod/models/types.ts:1416</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Creates a new <code>TealValue</code> object.</p>
+									<p>Creates a new <code>LogItem</code> object.</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>type: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5>
+									<h5>id: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>(tt) value type.</p>
+										<p>unique application identifier</p>
 									</div>
 								</li>
 								<li>
-									<h5>bytes: <span class="tsd-signature-type">string</span></h5>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>(tb) bytes value.</p>
-									</div>
-								</li>
-								<li>
-									<h5>uint: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>(ui) uint value.</p>
+										<p>base64 encoded log message</p>
 									</div>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="modelsv2.tealvalue.html" class="tsd-signature-type" data-tsd-kind="Class">TealValue</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="modelsv2.logitem.html" class="tsd-signature-type" data-tsd-kind="Class">LogItem</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -177,47 +170,32 @@
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="bytes" class="tsd-anchor"></a>
-					<h3>bytes</h3>
-					<div class="tsd-signature tsd-kind-icon">bytes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="id" class="tsd-anchor"></a>
+					<h3>id</h3>
+					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1969">client/v2/algod/models/types.ts:1969</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1411">client/v2/algod/models/types.ts:1411</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>(tb) bytes value.</p>
+							<p>unique application identifier</p>
 						</div>
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="type" class="tsd-anchor"></a>
-					<h3>type</h3>
-					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
+					<a name="value" class="tsd-anchor"></a>
+					<h3>value</h3>
+					<div class="tsd-signature tsd-kind-icon">value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1964">client/v2/algod/models/types.ts:1964</a></li>
+							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1416">client/v2/algod/models/types.ts:1416</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>(tt) value type.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="uint" class="tsd-anchor"></a>
-					<h3>uint</h3>
-					<div class="tsd-signature tsd-kind-icon">uint<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/51df7ec/src/client/v2/algod/models/types.ts#L1974">client/v2/algod/models/types.ts:1974</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>(ui) uint value.</p>
+							<p>base64 encoded log message</p>
 						</div>
 					</div>
 				</section>
@@ -343,9 +321,30 @@
 					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="modelsv2.evaldeltakeyvalue.html" class="tsd-kind-icon">Eval<wbr>Delta<wbr>Key<wbr>Value</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-namespace">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-namespace">
 						<a href="modelsv2.logitem.html" class="tsd-kind-icon">Log<wbr>Item</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+								<a href="modelsv2.logitem.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="modelsv2.logitem.html#attribute_map" class="tsd-kind-icon">attribute_<wbr>map</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="modelsv2.logitem.html#id" class="tsd-kind-icon">id</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="modelsv2.logitem.html#value" class="tsd-kind-icon">value</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="modelsv2.logitem.html#get_obj_for_encoding" class="tsd-kind-icon">get_<wbr>obj_<wbr>for_<wbr>encoding</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="modelsv2.nodestatusresponse.html" class="tsd-kind-icon">Node<wbr>Status<wbr>Response</a>
 					</li>
@@ -367,33 +366,9 @@
 					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="modelsv2.tealkeyvalue.html" class="tsd-kind-icon">Teal<wbr>Key<wbr>Value</a>
 					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-class tsd-parent-kind-namespace">
+					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="modelsv2.tealvalue.html" class="tsd-kind-icon">Teal<wbr>Value</a>
-						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
-								<a href="modelsv2.tealvalue.html#constructor" class="tsd-kind-icon">constructor</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
-								<a href="modelsv2.tealvalue.html#attribute_map" class="tsd-kind-icon">attribute_<wbr>map</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="modelsv2.tealvalue.html#bytes" class="tsd-kind-icon">bytes</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="modelsv2.tealvalue.html#type" class="tsd-kind-icon">type</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="modelsv2.tealvalue.html#uint" class="tsd-kind-icon">uint</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
-								<a href="modelsv2.tealvalue.html#get_obj_for_encoding" class="tsd-kind-icon">get_<wbr>obj_<wbr>for_<wbr>encoding</a>
-							</li>
-						</ul>
 					</li>
-				</ul>
-				<ul class="after-current">
 					<li class=" tsd-kind-class tsd-parent-kind-namespace">
 						<a href="modelsv2.transactionparametersresponse.html" class="tsd-kind-icon">Transaction<wbr>Parameters<wbr>Response</a>
 					</li>
