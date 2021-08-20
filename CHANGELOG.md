@@ -1,3 +1,9 @@
+# 1.11.1
+
+## Fixed
+
+- Properly decode transaction extra pages field (#419)
+
 # 1.11.0
 
 ## Added

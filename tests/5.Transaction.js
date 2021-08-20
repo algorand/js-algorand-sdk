@@ -448,6 +448,42 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize an application create transaction from msgpack representation', () => {
+      const expectedTxn = algosdk.makeApplicationCreateTxnFromObject({
+        from: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        approvalProgram: Uint8Array.from([1, 32, 1, 1, 34]),
+        clearProgram: Uint8Array.from([2, 32, 1, 1, 34]),
+        numGlobalInts: 1,
+        numGlobalByteSlices: 2,
+        numLocalInts: 3,
+        numLocalByteSlices: 4,
+        onComplete: algosdk.OnApplicationComplete.OptInOC,
+        accounts: [
+          'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        ],
+        appArgs: [Uint8Array.from([0]), Uint8Array.from([1, 2])],
+        extraPages: 2,
+        foreignApps: [3, 4],
+        foreignAssets: [5, 6],
+        lease: Uint8Array.from(new Array(32).fill(7)),
+        note: new Uint8Array(Buffer.from('note value')),
+        rekeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        suggestedParams: {
+          fee: 0,
+          firstRound: 322575,
+          lastRound: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+        },
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
     it('should correctly serialize and deserialize an asset freeze transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
