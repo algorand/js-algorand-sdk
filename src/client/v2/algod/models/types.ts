@@ -1244,6 +1244,11 @@ export class DryrunTxnResult extends BaseModel {
   public appCallTrace?: DryrunState[];
 
   /**
+   * Execution cost of app call transaction
+   */
+  public cost?: number | bigint;
+
+  /**
    * Application state delta.
    */
   public globalDelta?: EvalDeltaKeyValue[];
@@ -1261,6 +1266,7 @@ export class DryrunTxnResult extends BaseModel {
    * @param disassembly - Disassembled program line by line.
    * @param appCallMessages -
    * @param appCallTrace -
+   * @param cost - Execution cost of app call transaction
    * @param globalDelta - Application state delta.
    * @param localDeltas -
    * @param logicSigMessages -
@@ -1271,6 +1277,7 @@ export class DryrunTxnResult extends BaseModel {
     disassembly,
     appCallMessages,
     appCallTrace,
+    cost,
     globalDelta,
     localDeltas,
     logicSigMessages,
@@ -1280,6 +1287,7 @@ export class DryrunTxnResult extends BaseModel {
     disassembly: string[];
     appCallMessages?: string[];
     appCallTrace?: DryrunState[];
+    cost?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigMessages?: string[];
@@ -1290,6 +1298,7 @@ export class DryrunTxnResult extends BaseModel {
     this.disassembly = disassembly;
     this.appCallMessages = appCallMessages;
     this.appCallTrace = appCallTrace;
+    this.cost = cost;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigMessages = logicSigMessages;
@@ -1300,6 +1309,7 @@ export class DryrunTxnResult extends BaseModel {
       disassembly: 'disassembly',
       appCallMessages: 'app-call-messages',
       appCallTrace: 'app-call-trace',
+      cost: 'cost',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',
       logicSigMessages: 'logic-sig-messages',
