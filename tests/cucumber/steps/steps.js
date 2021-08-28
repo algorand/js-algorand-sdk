@@ -518,7 +518,7 @@ module.exports = function getSteps(options) {
     assert.deepStrictEqual(
       true,
       Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
+      'transactions' in transactions
     );
   });
 
@@ -527,7 +527,7 @@ module.exports = function getSteps(options) {
     assert.deepStrictEqual(
       true,
       Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
+      'transactions' in transactions
     );
   });
 
@@ -538,7 +538,7 @@ module.exports = function getSteps(options) {
     assert.deepStrictEqual(
       true,
       Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
+      'transactions' in transactions
     );
   });
 
@@ -547,7 +547,7 @@ module.exports = function getSteps(options) {
     assert.deepStrictEqual(
       true,
       Object.entries(transactions).length === 0 ||
-        'truncatedTxns' in transactions
+      'truncatedTxns' in transactions
     );
   });
 
@@ -689,6 +689,19 @@ module.exports = function getSteps(options) {
     'it should still be the same amount of microalgos {int}',
     function (microalgos) {
       assert.deepStrictEqual(this.microalgos, microalgos.toString());
+    }
+  );
+
+  When('I convert {string} ipfs cid v0 to 32 byte hex array and back', function (cid) {
+    this.cid = algosdk
+      .b32ToIpfsCidV0(algosdk.ipfsCidV0ToB32(cid))
+      .toString();
+  });
+
+  Then(
+    'it should still be the same cid {string}',
+    function (cid) {
+      assert.strictEqual(this.cid, cid.toString());
     }
   );
 
@@ -1150,9 +1163,9 @@ module.exports = function getSteps(options) {
       assert.strictEqual(
         true,
         this.assetTestFixture.expectedParams[key] ===
-          this.assetTestFixture.queriedParams[key] ||
-          typeof this.assetTestFixture.expectedParams[key] === 'undefined' ||
-          typeof this.assetTestFixture.queriedParams[key] === 'undefined'
+        this.assetTestFixture.queriedParams[key] ||
+        typeof this.assetTestFixture.expectedParams[key] === 'undefined' ||
+        typeof this.assetTestFixture.queriedParams[key] === 'undefined'
       );
     });
   });
@@ -1692,7 +1705,7 @@ module.exports = function getSteps(options) {
     const assetAmount =
       Math.floor(
         (microAlgoAmount * this.contractTestFixture.limitOrderN) /
-          this.contractTestFixture.limitOrderD
+        this.contractTestFixture.limitOrderD
       ) + 1;
     this.params = await this.acl.getTransactionParams();
     this.fee = this.params.fee;
@@ -4358,7 +4371,7 @@ module.exports = function getSteps(options) {
 
   Then(
     'The transient account should have the created app {string} and total schema byte-slices {int} and uints {int},' +
-      ' the application {string} state contains key {string} with value {string}',
+    ' the application {string} state contains key {string} with value {string}',
     async function (
       appCreatedBoolAsString,
       numByteSlices,

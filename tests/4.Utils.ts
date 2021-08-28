@@ -1,7 +1,8 @@
 import assert from 'assert';
 import * as utils from '../src/utils/utils';
+import * as convert from '../src/convert';
 
-describe('utils', () => {
+describe('utils & converts', () => {
   describe('concatArrays', () => {
     it('should concat two Uint8Arrays', () => {
       const a = new Uint8Array([1, 2, 3]);
@@ -30,6 +31,22 @@ describe('utils', () => {
       const expected = new Uint8Array([1, 2, 3, 4, 5, 6]);
       const actual = utils.concatArrays(a, b, c);
       assert.deepStrictEqual(expected, actual);
+    });
+  });
+  describe('convertCidByte32', () => {
+    it('should convert IPFS CID V0 to 32 byte hex array and back', () => {
+      const expected = 'QmbWqxBEKC3P8tqsKc98xmWNzrzDtRLMiMPL8wBuTGsMnR';
+      const a = convert.ipfsCidV0ToB32(expected);
+      const actual = convert.b32ToIpfsCidV0(a);
+      assert.strictEqual(expected, actual);
+    });
+  });
+  describe('convertAlgoMicroAlgo', () => {
+    it('should convert MicroAlgo and Algo and back', () => {
+      const expected = 1e9;
+      const a = convert.microalgosToAlgos(expected);
+      const actual = convert.algosToMicroalgos(a);
+      assert.strictEqual(expected, actual);
     });
   });
 });
