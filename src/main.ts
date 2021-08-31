@@ -3,7 +3,6 @@ import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
 import * as multisig from './multisig';
-import * as LogicTemplatesCommonJSExport from './logicTemplates';
 import Bid, { BidOptions } from './bid';
 import * as convert from './convert';
 import * as utils from './utils/utils';
@@ -261,7 +260,6 @@ export {
   tealSign,
   tealSignFromProgram,
 } from './logicsig';
-export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
 export * from './makeTxn';
 export * from './transaction';
