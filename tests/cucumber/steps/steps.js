@@ -1,6 +1,5 @@
 /* eslint-disable func-names,radix */
 const assert = require('assert');
-const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require('path');
 const nacl = require('../../../src/nacl/naclWrappers');
