@@ -192,6 +192,19 @@ export class Transaction implements TransactionStorageStructure {
     ) {
       transaction.nonParticipation = defaults.nonParticipation;
     }
+    if (
+      transaction.type === TransactionType.keyreg &&
+      transaction.voteKey === null &&
+      transaction.nonParticipation === true
+    ) {
+      transaction.selectionKey = undefined;
+      transaction.voteKey = undefined;
+      transaction.voteFirst = undefined;
+      transaction.voteLast = undefined;
+      transaction.voteKeyDilution = undefined;
+      transaction.note = undefined;
+      transaction.reKeyTo = undefined;
+    }
     /* eslint-enable no-param-reassign */
 
     // Move suggested parameters from its object to inline
@@ -790,12 +803,20 @@ export class Transaction implements TransactionStorageStructure {
           address.encodeAddress(txnForEnc.close)
         );
     } else if (txnForEnc.type === 'keyreg') {
-      txn.voteKey = Buffer.from(txnForEnc.votekey);
-      txn.selectionKey = Buffer.from(txnForEnc.selkey);
-      txn.voteKeyDilution = txnForEnc.votekd;
-      txn.voteFirst = txnForEnc.votefst;
-      txn.voteLast = txnForEnc.votelst;
       txn.nonParticipation = txnForEnc.nonpart;
+      if (txnForEnc.nonpart === true) {
+        txn.voteKey = undefined;
+        txn.selectionKey = undefined;
+        txn.voteKeyDilution = undefined;
+        txn.voteFirst = undefined;
+        txn.voteLast = undefined;
+      } else {
+        txn.voteKey = Buffer.from(txnForEnc.votekey);
+        txn.selectionKey = Buffer.from(txnForEnc.selkey);
+        txn.voteKeyDilution = txnForEnc.votekd;
+        txn.voteFirst = txnForEnc.votefst;
+        txn.voteLast = txnForEnc.votelst;
+      }
     } else if (txnForEnc.type === 'acfg') {
       // asset creation, or asset reconfigure, or asset destruction
       if (txnForEnc.caid !== undefined) {
