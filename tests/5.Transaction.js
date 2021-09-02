@@ -366,6 +366,55 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize a key registration transaction with nonParticipation from msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        fee: 10,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        nonParticipation: true,
+        genesisID: '',
+        reKeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        type: 'keyreg',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize a key registration transaction without nonParticipation from msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        fee: 10,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        nonParticipation: false,
+        genesisID: '',
+        reKeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
+        selectionKey: 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=',
+        voteKeyDilution: 1234,
+        voteFirst: 123,
+        voteLast: 456,
+        type: 'keyreg',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
     it('should correctly serialize and deserialize an asset configuration transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -820,6 +869,97 @@ describe('Sign', () => {
           'nonParticipation is true but participation params are present.'
         )
       );
+
+      const expectedTxn = new algosdk.Transaction(o);
+      const actualTxn = algosdk.makeKeyRegistrationTxn(
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        rekeyTo,
+        nonParticipation
+      );
+      assert.deepStrictEqual(expectedTxn, actualTxn);
+    });
+
+    it('should be able to generate a nonparticipating keyreg transaction with rekeyTo undefined', () => {
+      const from = 'OH3HIOPRCANAWVZLF4DDXWAZTUHHEFRFVEKOKRNHHADKWDBK35ACX4QORM';
+      const fee = 1000;
+      const firstRound = 167;
+      const lastRound = 1167;
+      const note = new Uint8Array([]);
+      const genesisHash = 'testnet-v1.0';
+      const genesisID = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
+      const rekeyTo = undefined;
+      const nonParticipation = true;
+      const o = {
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        reKeyTo: rekeyTo,
+        nonParticipation,
+        type: 'keyreg',
+      };
+
+      const expectedTxn = new algosdk.Transaction(o);
+      const actualTxn = algosdk.makeKeyRegistrationTxn(
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        rekeyTo,
+        nonParticipation
+      );
+      assert.deepStrictEqual(expectedTxn, actualTxn);
+    });
+
+    it('should be able to generate a nonparticipating keyreg transaction with rekeyTo undefined and without vote params', () => {
+      const from = 'OH3HIOPRCANAWVZLF4DDXWAZTUHHEFRFVEKOKRNHHADKWDBK35ACX4QORM';
+      const fee = 1000;
+      const firstRound = 167;
+      const lastRound = 1167;
+      const note = new Uint8Array([]);
+      const genesisHash = 'testnet-v1.0';
+      const genesisID = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
+      const rekeyTo = undefined;
+      const nonParticipation = true;
+      const o = {
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        voteKey: null,
+        selectionKey: null,
+        voteFirst: null,
+        voteLast: null,
+        voteKeyDilution: null,
+        reKeyTo: rekeyTo,
+        nonParticipation,
+        type: 'keyreg',
+      };
 
       const expectedTxn = new algosdk.Transaction(o);
       const actualTxn = algosdk.makeKeyRegistrationTxn(
