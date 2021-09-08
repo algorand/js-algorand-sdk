@@ -6,14 +6,14 @@ import HTTPClient from '../../client';
  * confirmed by the network
  */
 export default class WaitForConfirmation extends JSONRequest {
-  constructor(c: HTTPClient, private txid: string, private timeout: number) {
+  constructor(c: HTTPClient, private txid: string, private waitRounds: number) {
     super(c);
     this.txid = txid;
-    this.timeout = timeout;
+    this.waitRounds = waitRounds;
   }
 
   async do(headers = {}) {
-    // Wait until the transaction is confirmed or rejected, or until 'timeout'
+    // Wait until the transaction is confirmed or rejected, or until 'waitRounds'
     // number of rounds have passed.
     const status = await this.c.status().do(headers);
     if (typeof status === 'undefined') {
@@ -23,7 +23,7 @@ export default class WaitForConfirmation extends JSONRequest {
     let currentRound = startRound;
 
     /* eslint-disable no-await-in-loop */
-    while (currentRound < startRound + this.timeout) {
+    while (currentRound < startRound + this.waitRounds) {
       const pendingInfo = await this.c
         .pendingTransactionInformation(this.txid)
         .do(headers);
@@ -50,6 +50,8 @@ export default class WaitForConfirmation extends JSONRequest {
       currentRound += 1;
     }
     /* eslint-enable no-await-in-loop */
-    throw new Error(`Transaction not confirmed after ${this.timeout} rounds!`);
+    throw new Error(
+      `Transaction not confirmed after ${this.waitRounds} rounds!`
+    );
   }
 }
