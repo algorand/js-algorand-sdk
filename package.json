@@ -36,7 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^4.26.1",
     "@typescript-eslint/parser": "^4.26.1",
     "assert": "^2.0.0",
-    "chromedriver": "^93.0.1",
+    "chromedriver": "^91.0.0",
     "concurrently": "^6.2.0",
     "coveralls": "^3.1.0",
     "cucumber": "^5.1.0",
