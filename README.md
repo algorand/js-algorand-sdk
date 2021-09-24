@@ -33,10 +33,10 @@ Information about hosting the package for yourself or finding the browser bundle
 const token = 'Your algod API token';
 const server = 'http://127.0.0.1';
 const port = 8080;
-const client = new algosdk.Algod(token, server, port);
+const client = new algosdk.Algodv2(token, server, port);
 
 (async () => {
-  console.log(await client.status());
+  console.log(await client.status().do());
 })().catch((e) => {
   console.log(e);
 });
