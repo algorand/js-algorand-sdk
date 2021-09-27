@@ -184,7 +184,7 @@ export function fromMultisigPreImgAddrs({
  * @param appID - The ID of the application.
  * @returns The address corresponding to that application's escrow account.
  */
-export function getApplicationAddress(appID: number): string {
+export function getApplicationAddress(appID: number | bigint): string {
   const toBeSigned = utils.concatArrays(APP_ID_PREFIX, encodeUint64(appID));
   const hash = nacl.genericHash(toBeSigned);
   return encodeAddress(new Uint8Array(hash));
