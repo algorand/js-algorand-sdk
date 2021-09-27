@@ -1,13 +1,13 @@
 {
-  "EvalMaxVersion": 4,
-  "LogicSigVersion": 3,
+  "EvalMaxVersion": 5,
+  "LogicSigVersion": 5,
   "Ops": [
     {
       "Opcode": 0,
       "Name": "err",
       "Cost": 1,
       "Size": 1,
-      "Doc": "Error. Panic immediately. This is primarily a fencepost against accidental zero bytes getting compiled into programs.",
+      "Doc": "Error. Fail immediately. This is primarily a fencepost against accidental zero bytes getting compiled into programs.",
       "Groups": ["Flow Control"]
     },
     {
@@ -52,13 +52,49 @@
       "Groups": ["Arithmetic"]
     },
     {
+      "Opcode": 5,
+      "Name": "ecdsa_verify",
+      "Args": "BBBBB",
+      "Returns": "U",
+      "Cost": 1700,
+      "Size": 2,
+      "Doc": "for (data A, signature B, C and pubkey D, E) verify the signature of the data against the pubkey =\u003e {0 or 1}",
+      "DocExtra": "The 32 byte Y-component of a public key is the last element on the stack, preceded by X-component of a pubkey, preceded by S and R components of a signature, preceded by the data that is fifth element on the stack. All values are big-endian encoded. The signed data must be 32 bytes long, and signatures in lower-S form are only accepted.",
+      "ImmediateNote": "{uint8 curve index}",
+      "Groups": ["Arithmetic"]
+    },
+    {
+      "Opcode": 6,
+      "Name": "ecdsa_pk_decompress",
+      "Args": "B",
+      "Returns": "BB",
+      "Cost": 650,
+      "Size": 2,
+      "Doc": "decompress pubkey A into components X, Y =\u003e [*... stack*, X, Y]",
+      "DocExtra": "The 33 byte public key in a compressed form to be decompressed into X and Y (top) components. All values are big-endian encoded.",
+      "ImmediateNote": "{uint8 curve index}",
+      "Groups": ["Arithmetic"]
+    },
+    {
+      "Opcode": 7,
+      "Name": "ecdsa_pk_recover",
+      "Args": "BUBB",
+      "Returns": "BB",
+      "Cost": 2000,
+      "Size": 2,
+      "Doc": "for (data A, recovery id B, signature C, D) recover a public key =\u003e [*... stack*, X, Y]",
+      "DocExtra": "S (top) and R elements of a signature, recovery id and data (bottom) are expected on the stack and used to deriver a public key. All values are big-endian encoded. The signed data must be 32 bytes long.",
+      "ImmediateNote": "{uint8 curve index}",
+      "Groups": ["Arithmetic"]
+    },
+    {
       "Opcode": 8,
       "Name": "+",
       "Args": "UU",
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "A plus B. Panic on overflow.",
+      "Doc": "A plus B. Fail on overflow.",
       "DocExtra": "Overflow is an error condition which halts execution and fails the transaction. Full precision is available from `addw`.",
       "Groups": ["Arithmetic"]
     },
@@ -69,7 +105,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "A minus B. Panic if B \u003e A.",
+      "Doc": "A minus B. Fail if B \u003e A.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -79,7 +115,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "A divided by B. Panic if B == 0.",
+      "Doc": "A divided by B (truncated division). Fail if B == 0.",
       "DocExtra": "`divmodw` is available to divide the two-element values produced by `mulw` and `addw`.",
       "Groups": ["Arithmetic"]
     },
@@ -90,7 +126,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "A times B. Panic on overflow.",
+      "Doc": "A times B. Fail on overflow.",
       "DocExtra": "Overflow is an error condition which halts execution and fails the transaction. Full precision is available from `mulw`.",
       "Groups": ["Arithmetic"]
     },
@@ -212,7 +248,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "converts bytes X as big endian to uint64",
-      "DocExtra": "`btoi` panics if the input is longer than 8 bytes.",
+      "DocExtra": "`btoi` fails if the input is longer than 8 bytes.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -222,7 +258,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "A modulo B. Panic if B == 0.",
+      "Doc": "A modulo B. Fail if B == 0.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -516,9 +552,14 @@
         "GlobalNumByteSlice",
         "LocalNumUint",
         "LocalNumByteSlice",
-        "ExtraProgramPages"
+        "ExtraProgramPages",
+        "Nonparticipation",
+        "Logs",
+        "NumLogs",
+        "CreatedAssetID",
+        "CreatedApplicationID"
       ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
+      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUUUBUUU",
       "Doc": "push field F of current transaction to stack",
       "DocExtra": "FirstValidTime causes the program to fail. The field is reserved for future use.",
       "ImmediateNote": "{uint8 transaction field index}",
@@ -540,9 +581,11 @@
         "Round",
         "LatestTimestamp",
         "CurrentApplicationID",
-        "CreatorAddress"
+        "CreatorAddress",
+        "CurrentApplicationAddress",
+        "GroupID"
       ],
-      "ArgEnumTypes": "UUUBUUUUUB",
+      "ArgEnumTypes": "UUUBUUUUUBBB",
       "Doc": "push value from globals to stack",
       "ImmediateNote": "{uint8 global field index}",
       "Groups": ["Loading Values"]
@@ -610,9 +653,14 @@
         "GlobalNumByteSlice",
         "LocalNumUint",
         "LocalNumByteSlice",
-        "ExtraProgramPages"
+        "ExtraProgramPages",
+        "Nonparticipation",
+        "Logs",
+        "NumLogs",
+        "CreatedAssetID",
+        "CreatedApplicationID"
       ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
+      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUUUBUUU",
       "Doc": "push field F of the Tth transaction in the current group",
       "DocExtra": "for notes on transaction fields available, see `txn`. If this transaction is _i_ in the group, `gtxn i field` is equivalent to `txn field`.",
       "ImmediateNote": "{uint8 transaction group index} {uint8 transaction field index}",
@@ -624,7 +672,7 @@
       "Returns": ".",
       "Cost": 1,
       "Size": 2,
-      "Doc": "copy a value from scratch space to the stack",
+      "Doc": "copy a value from scratch space to the stack. All scratch spaces are 0 at program start.",
       "ImmediateNote": "{uint8 position in scratch space to load from}",
       "Groups": ["Loading Values"]
     },
@@ -634,7 +682,7 @@
       "Args": ".",
       "Cost": 1,
       "Size": 2,
-      "Doc": "pop a value from the stack and store to scratch space",
+      "Doc": "pop value X. store X to the Ith scratch space",
       "ImmediateNote": "{uint8 position in scratch space to store to}",
       "Groups": ["Loading Values"]
     },
@@ -644,8 +692,14 @@
       "Returns": ".",
       "Cost": 1,
       "Size": 3,
-      "ArgEnum": ["ApplicationArgs", "Accounts"],
-      "ArgEnumTypes": "BBUU",
+      "ArgEnum": [
+        "ApplicationArgs",
+        "Accounts",
+        "Assets",
+        "Applications",
+        "Logs"
+      ],
+      "ArgEnumTypes": "BBUUB",
       "Doc": "push Ith value of the array field F of the current transaction",
       "ImmediateNote": "{uint8 transaction field index} {uint8 transaction field array index}",
       "Groups": ["Loading Values"]
@@ -656,8 +710,14 @@
       "Returns": ".",
       "Cost": 1,
       "Size": 4,
-      "ArgEnum": ["ApplicationArgs", "Accounts"],
-      "ArgEnumTypes": "BBUU",
+      "ArgEnum": [
+        "ApplicationArgs",
+        "Accounts",
+        "Assets",
+        "Applications",
+        "Logs"
+      ],
+      "ArgEnumTypes": "BBUUB",
       "Doc": "push Ith value of the array field F from the Tth transaction in the current group",
       "ImmediateNote": "{uint8 transaction group index} {uint8 transaction field index} {uint8 transaction field array index}",
       "Groups": ["Loading Values"]
@@ -726,10 +786,15 @@
         "GlobalNumByteSlice",
         "LocalNumUint",
         "LocalNumByteSlice",
-        "ExtraProgramPages"
+        "ExtraProgramPages",
+        "Nonparticipation",
+        "Logs",
+        "NumLogs",
+        "CreatedAssetID",
+        "CreatedApplicationID"
       ],
-      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUU",
-      "Doc": "push field F of the Ath transaction in the current group",
+      "ArgEnumTypes": "BUUUUBBBUBBBUUUBUUUBBBUBUUBUBUBBBUUUUBBBBBBBBUBUUUUUUUUUUUBUUU",
+      "Doc": "push field F of the Xth transaction in the current group",
       "DocExtra": "for notes on transaction fields available, see `txn`. If top of stack is _i_, `gtxns field` is equivalent to `gtxn _i_ field`. gtxns exists so that _i_ can be calculated, often based on the index of the current transaction.",
       "ImmediateNote": "{uint8 transaction field index}",
       "Groups": ["Loading Values"]
@@ -741,9 +806,15 @@
       "Returns": ".",
       "Cost": 1,
       "Size": 3,
-      "ArgEnum": ["ApplicationArgs", "Accounts"],
-      "ArgEnumTypes": "BBUU",
-      "Doc": "push Ith value of the array field F from the Ath transaction in the current group",
+      "ArgEnum": [
+        "ApplicationArgs",
+        "Accounts",
+        "Assets",
+        "Applications",
+        "Logs"
+      ],
+      "ArgEnumTypes": "BBUUB",
+      "Doc": "push Ith value of the array field F from the Xth transaction in the current group",
       "ImmediateNote": "{uint8 transaction field index} {uint8 transaction field array index}",
       "Groups": ["Loading Values"]
     },
@@ -754,7 +825,7 @@
       "Cost": 1,
       "Size": 3,
       "Doc": "push Ith scratch space index of the Tth transaction in the current group",
-      "DocExtra": "The `gload` opcode can only access scratch spaces of previous app calls contained in the current group.",
+      "DocExtra": "`gload` fails unless the requested transaction is an ApplicationCall and T \u003c GroupIndex.",
       "ImmediateNote": "{uint8 transaction group index} {uint8 position in scratch space to load from}",
       "Groups": ["Loading Values"]
     },
@@ -765,8 +836,8 @@
       "Returns": ".",
       "Cost": 1,
       "Size": 2,
-      "Doc": "push Ith scratch space index of the Ath transaction in the current group",
-      "DocExtra": "The `gloads` opcode can only access scratch spaces of previous app calls contained in the current group.",
+      "Doc": "push Ith scratch space index of the Xth transaction in the current group",
+      "DocExtra": "`gloads` fails unless the requested transaction is an ApplicationCall and X \u003c GroupIndex.",
       "ImmediateNote": "{uint8 position in scratch space to load from}",
       "Groups": ["Loading Values"]
     },
@@ -777,7 +848,8 @@
       "Cost": 1,
       "Size": 2,
       "Doc": "push the ID of the asset or application created in the Tth transaction of the current group",
-      "DocExtra": "The `gaid` opcode can only access the ID of assets or applications created by previous txns in the current group.",
+      "DocExtra": "`gaid` fails unless the requested transaction created an asset or application and T \u003c GroupIndex.",
+      "ImmediateNote": "{uint8 transaction group index}",
       "Groups": ["Loading Values"]
     },
     {
@@ -787,8 +859,27 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "push the ID of the asset or application created in the Ath transaction of the current group",
-      "DocExtra": "The `gaids` opcode can only access the ID of assets or applications created by previous txns in the current group.",
+      "Doc": "push the ID of the asset or application created in the Xth transaction of the current group",
+      "DocExtra": "`gaids` fails unless the requested transaction created an asset or application and X \u003c GroupIndex.",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 62,
+      "Name": "loads",
+      "Args": "U",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "copy a value from the Xth scratch space to the stack.  All scratch spaces are 0 at program start.",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 63,
+      "Name": "stores",
+      "Args": "U.",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop indexes A and B. store B to the Ath scratch space",
       "Groups": ["Loading Values"]
     },
     {
@@ -798,8 +889,8 @@
       "Cost": 1,
       "Size": 3,
       "Doc": "branch to TARGET if value X is not zero",
-      "DocExtra": "The `bnz` instruction opcode 0x40 is followed by two immediate data bytes which are a high byte first and low byte second which together form a 16 bit offset which the instruction may branch to. For a bnz instruction at `pc`, if the last element of the stack is not zero then branch to instruction at `pc + 3 + N`, else proceed to next instruction at `pc + 3`. Branch targets must be well aligned instructions. (e.g. Branching to the second byte of a 2 byte op will be rejected.) Branch offsets are limited to forward branches only, 0-0x7fff until v4. v4 treats offset as a signed 16 bit integer allowing for backward branches and looping.\n\nAt LogicSigVersion 2 it became allowed to branch to the end of the program exactly after the last instruction: bnz to byte N (with 0-indexing) was illegal for a TEAL program with N bytes before LogicSigVersion 2, and is legal after it. This change eliminates the need for a last instruction of no-op as a branch target at the end. (Branching beyond the end--in other words, to a byte larger than N--is still illegal and will cause the program to fail.)",
-      "ImmediateNote": "{int16 branch offset, big endian. (negative offsets are illegal before v4)}",
+      "DocExtra": "The `bnz` instruction opcode 0x40 is followed by two immediate data bytes which are a high byte first and low byte second which together form a 16 bit offset which the instruction may branch to. For a bnz instruction at `pc`, if the last element of the stack is not zero then branch to instruction at `pc + 3 + N`, else proceed to next instruction at `pc + 3`. Branch targets must be aligned instructions. (e.g. Branching to the second byte of a 2 byte op will be rejected.) Starting at v4, the offset is treated as a signed 16 bit integer allowing for backward branches and looping. In prior version (v1 to v3), branch offsets are limited to forward branches only, 0-0x7fff.\n\nAt v2 it became allowed to branch to the end of the program exactly after the last instruction: bnz to byte N (with 0-indexing) was illegal for a TEAL program with N bytes before v2, and is legal after it. This change eliminates the need for a last instruction of no-op as a branch target at the end. (Branching beyond the end--in other words, to a byte larger than N--is still illegal and will cause the program to fail.)",
+      "ImmediateNote": "{int16 branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
     {
@@ -810,7 +901,7 @@
       "Size": 3,
       "Doc": "branch to TARGET if value X is zero",
       "DocExtra": "See `bnz` for details on how branches work. `bz` inverts the behavior of `bnz`.",
-      "ImmediateNote": "{int16 branch offset, big endian. (negative offsets are illegal before v4)}",
+      "ImmediateNote": "{int16 branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
     {
@@ -820,7 +911,7 @@
       "Size": 3,
       "Doc": "branch unconditionally to TARGET",
       "DocExtra": "See `bnz` for details on how branches work. `b` always jumps to the offset.",
-      "ImmediateNote": "{int16 branch offset, big endian. (negative offsets are illegal before v4)}",
+      "ImmediateNote": "{int16 branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
     {
@@ -902,6 +993,28 @@
       "Groups": ["Flow Control"]
     },
     {
+      "Opcode": 78,
+      "Name": "cover",
+      "Args": ".",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 2,
+      "Doc": "remove top of stack, and place it deeper in the stack such that N elements are above it. Fails if stack depth \u003c= N.",
+      "ImmediateNote": "{uint8 depth}",
+      "Groups": ["Flow Control"]
+    },
+    {
+      "Opcode": 79,
+      "Name": "uncover",
+      "Args": ".",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 2,
+      "Doc": "remove the value at depth N in the stack and shift above items down so the Nth deep value is on top of the stack. Fails if stack depth \u003c= N.",
+      "ImmediateNote": "{uint8 depth}",
+      "Groups": ["Flow Control"]
+    },
+    {
       "Opcode": 80,
       "Name": "concat",
       "Args": "BB",
@@ -909,7 +1022,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "pop two byte-arrays A and B and join them, push the result",
-      "DocExtra": "`concat` panics if the result would be greater than 4096 bytes.",
+      "DocExtra": "`concat` fails if the result would be greater than 4096 bytes.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -921,7 +1034,7 @@
       "Size": 3,
       "Doc": "pop a byte-array A. For immediate values in 0..255 S and E: extract a range of bytes from A starting at S up to but not including E, push the substring result. If E \u003c S, or either is larger than the array length, the program fails",
       "ImmediateNote": "{uint8 start position} {uint8 end position}",
-      "Groups": ["Arithmetic"]
+      "Groups": ["Byte Array Slicing"]
     },
     {
       "Opcode": 82,
@@ -931,7 +1044,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "pop a byte-array A and two integers B and C. Extract a range of bytes from A starting at B up to but not including C, push the substring result. If C \u003c B, or either is larger than the array length, the program fails",
-      "Groups": ["Arithmetic"]
+      "Groups": ["Byte Array Slicing"]
     },
     {
       "Opcode": 83,
@@ -952,7 +1065,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "pop a target A, index B, and bit C. Set the Bth bit of A to C, and push the result",
-      "DocExtra": "bit indexing begins with low-order bits in integers. Setting bit 4 to 1 on the integer 0 yields 16 (`int 0x0010`, or 2^4). Indexing begins in the first bytes of a byte-string (as seen in getbyte and substring). Setting bits 0 through 11 to 1 in a 4 byte-array of 0s yields `byte 0xfff00000`",
+      "DocExtra": "When A is a uint64, index 0 is the least significant bit. Setting bit 3 to 1 on the integer 0 yields 8, or 2^3. When A is a byte array, index 0 is the leftmost bit of the leftmost byte. Setting bits 0 through 11 to 1 in a 4-byte-array of 0s yields the byte array 0xfff00000. Setting bit 3 to 1 on the 1-byte-array 0x00 yields the byte array 0x10.",
       "Groups": ["Arithmetic"]
     },
     {
@@ -976,14 +1089,65 @@
       "Groups": ["Arithmetic"]
     },
     {
+      "Opcode": 87,
+      "Name": "extract",
+      "Args": "B",
+      "Returns": "B",
+      "Cost": 1,
+      "Size": 3,
+      "Doc": "pop a byte-array A. For immediate values in 0..255 S and L: extract a range of bytes from A starting at S up to but not including S+L, push the substring result. If L is 0, then extract to the end of the string. If S or S+L is larger than the array length, the program fails",
+      "ImmediateNote": "{uint8 start position} {uint8 length}",
+      "Groups": ["Byte Array Slicing"]
+    },
+    {
+      "Opcode": 88,
+      "Name": "extract3",
+      "Args": "BUU",
+      "Returns": "B",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a byte-array A and two integers B and C. Extract a range of bytes from A starting at B up to but not including B+C, push the substring result. If B+C is larger than the array length, the program fails",
+      "Groups": ["Byte Array Slicing"]
+    },
+    {
+      "Opcode": 89,
+      "Name": "extract_uint16",
+      "Args": "BU",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a byte-array A and integer B. Extract a range of bytes from A starting at B up to but not including B+2, convert bytes as big endian and push the uint64 result. If B+2 is larger than the array length, the program fails",
+      "Groups": ["Byte Array Slicing"]
+    },
+    {
+      "Opcode": 90,
+      "Name": "extract_uint32",
+      "Args": "BU",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a byte-array A and integer B. Extract a range of bytes from A starting at B up to but not including B+4, convert bytes as big endian and push the uint64 result. If B+4 is larger than the array length, the program fails",
+      "Groups": ["Byte Array Slicing"]
+    },
+    {
+      "Opcode": 91,
+      "Name": "extract_uint64",
+      "Args": "BU",
+      "Returns": "U",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "pop a byte-array A and integer B. Extract a range of bytes from A starting at B up to but not including B+8, convert bytes as big endian and push the uint64 result. If B+8 is larger than the array length, the program fails",
+      "Groups": ["Byte Array Slicing"]
+    },
+    {
       "Opcode": 96,
       "Name": "balance",
       "Args": ".",
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "get balance account A, in microalgos. The balance is observed after the effects of previous transactions in the group, and after the fee for the current transaction is deducted.",
-      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender). Return: value.",
+      "Doc": "get balance for account A, in microalgos. The balance is observed after the effects of previous transactions in the group, and after the fee for the current transaction is deducted.",
+      "DocExtra": "params: Before v4, Txn.Accounts offset. Since v4, Txn.Accounts offset or an account address that appears in Txn.Accounts or is Txn.Sender). Return: value.",
       "Groups": ["State Access"]
     },
     {
@@ -1016,7 +1180,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "read from account A from local state of the application B key C =\u003e [*... stack*, value, 0 or 1]",
-      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), application id (or, since v4, a Txn.ForeignApps offset), state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), application id (or, since v4, a Txn.ForeignApps offset), state key. Return: did_exist flag (top of the stack, 1 if the application existed and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
@@ -1038,7 +1202,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "read from application A global state key B =\u003e [*... stack*, value, 0 or 1]",
-      "DocExtra": "params: Txn.ForeignApps offset (or, since v4, an application id that appears in Txn.ForeignApps or is the CurrentApplicationID), state key. Return: did_exist flag (top of the stack, 1 if exist and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
+      "DocExtra": "params: Txn.ForeignApps offset (or, since v4, an application id that appears in Txn.ForeignApps or is the CurrentApplicationID), state key. Return: did_exist flag (top of the stack, 1 if the application existed and 0 otherwise), value. The value is zero (of type uint64) if the key does not exist.",
       "Groups": ["State Access"]
     },
     {
@@ -1090,7 +1254,7 @@
       "ArgEnum": ["AssetBalance", "AssetFrozen"],
       "ArgEnumTypes": "UU",
       "Doc": "read from account A and asset B holding field X (imm arg) =\u003e {0 or 1 (top), value}",
-      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), asset id (or, since v4, a Txn.ForeignAssets offset). Return: did_exist flag (1 if exist and 0 otherwise), value.",
+      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender), asset id (or, since v4, a Txn.ForeignAssets offset). Return: did_exist flag (1 if the asset existed and 0 otherwise), value.",
       "ImmediateNote": "{uint8 asset holding field index}",
       "Groups": ["State Access"]
     },
@@ -1112,12 +1276,37 @@
         "AssetManager",
         "AssetReserve",
         "AssetFreeze",
-        "AssetClawback"
+        "AssetClawback",
+        "AssetCreator"
       ],
-      "ArgEnumTypes": "UUUBBBBBBBB",
+      "ArgEnumTypes": "UUUBBBBBBBBB",
       "Doc": "read from asset A params field X (imm arg) =\u003e {0 or 1 (top), value}",
-      "DocExtra": "params: Txn.ForeignAssets offset (or, since v4, an asset id that appears in Txn.ForeignAssets). Return: did_exist flag (1 if exist and 0 otherwise), value.",
+      "DocExtra": "params: Before v4, Txn.ForeignAssets offset. Since v4, Txn.ForeignAssets offset or an asset id that appears in Txn.ForeignAssets. Return: did_exist flag (1 if the asset existed and 0 otherwise), value.",
       "ImmediateNote": "{uint8 asset params field index}",
+      "Groups": ["State Access"]
+    },
+    {
+      "Opcode": 114,
+      "Name": "app_params_get",
+      "Args": "U",
+      "Returns": ".U",
+      "Cost": 1,
+      "Size": 2,
+      "ArgEnum": [
+        "AppApprovalProgram",
+        "AppClearStateProgram",
+        "AppGlobalNumUint",
+        "AppGlobalNumByteSlice",
+        "AppLocalNumUint",
+        "AppLocalNumByteSlice",
+        "AppExtraProgramPages",
+        "AppCreator",
+        "AppAddress"
+      ],
+      "ArgEnumTypes": "BBUUUUUBB",
+      "Doc": "read from app A params field X (imm arg) =\u003e {0 or 1 (top), value}",
+      "DocExtra": "params: Txn.ForeignApps offset or an app id that appears in Txn.ForeignApps. Return: did_exist flag (1 if the application existed and 0 otherwise), value.",
+      "ImmediateNote": "{uint8 app params field index}",
       "Groups": ["State Access"]
     },
     {
@@ -1127,8 +1316,8 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "get minimum required balance account A, in microalgos. Required balance is affected by [ASA](https://developer.algorand.org/docs/features/asa/#assets-overview) and [App](https://developer.algorand.org/docs/features/asc1/stateful/#minimum-balance-requirement-for-a-smart-contract) usage. When creating or opting into an app, the minimum balance grows before the app code runs, therefore the increase is visible there. When deleting or closing out, the minimum balance decreases after the app executes.",
-      "DocExtra": "params: Txn.Accounts offset (or, since v4, an account address that appears in Txn.Accounts or is Txn.Sender). Return: value.",
+      "Doc": "get minimum required balance for account A, in microalgos. Required balance is affected by [ASA](https://developer.algorand.org/docs/features/asa/#assets-overview) and [App](https://developer.algorand.org/docs/features/asc1/stateful/#minimum-balance-requirement-for-a-smart-contract) usage. When creating or opting into an app, the minimum balance grows before the app code runs, therefore the increase is visible there. When deleting or closing out, the minimum balance decreases after the app executes.",
+      "DocExtra": "params: Before v4, Txn.Accounts offset. Since v4, Txn.Accounts offset or an account address that appears in Txn.Accounts or is Txn.Sender). Return: value.",
       "Groups": ["State Access"]
     },
     {
@@ -1159,7 +1348,8 @@
       "Cost": 1,
       "Size": 3,
       "Doc": "branch unconditionally to TARGET, saving the next instruction on the call stack",
-      "DocExtra": "The call stack is separate from the data stack. Only `callsub` and `retsub` manipulate it.`",
+      "DocExtra": "The call stack is separate from the data stack. Only `callsub` and `retsub` manipulate it.",
+      "ImmediateNote": "{int16 branch offset, big endian}",
       "Groups": ["Flow Control"]
     },
     {
@@ -1168,7 +1358,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "pop the top instruction from the call stack and branch to it",
-      "DocExtra": "The call stack is separate from the data stack. Only `callsub` and `retsub` manipulate it.`",
+      "DocExtra": "The call stack is separate from the data stack. Only `callsub` and `retsub` manipulate it.",
       "Groups": ["Flow Control"]
     },
     {
@@ -1198,7 +1388,7 @@
       "Returns": "U",
       "Cost": 4,
       "Size": 1,
-      "Doc": "The largest integer X such that X^2 \u003c= A",
+      "Doc": "The largest integer B such that B^2 \u003c= X",
       "Groups": ["Arithmetic"]
     },
     {
@@ -1208,7 +1398,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "The index of the highest bit in A. If A is a byte-array, it is interpreted as a big-endian unsigned integer",
+      "Doc": "The highest set bit in X. If X is a byte-array, it is interpreted as a big-endian unsigned integer. bitlen of 0 is 0, bitlen of 8 is 4",
       "DocExtra": "bitlen interprets arrays as big-endian integers, unlike setbit/getbit",
       "Groups": ["Arithmetic"]
     },
@@ -1219,7 +1409,7 @@
       "Returns": "U",
       "Cost": 1,
       "Size": 1,
-      "Doc": "A raised to the Bth power. Panic if A == B == 0 and on overflow",
+      "Doc": "A raised to the Bth power. Fail if A == B == 0 and on overflow",
       "Groups": ["Arithmetic"]
     },
     {
@@ -1229,7 +1419,7 @@
       "Returns": "UU",
       "Cost": 10,
       "Size": 1,
-      "Doc": "A raised to the Bth power as a 128-bit long result as low (top) and high uint64 values on the stack. Panic if A == B == 0 or if the results exceeds 2^128-1",
+      "Doc": "A raised to the Bth power as a 128-bit long result as low (top) and high uint64 values on the stack. Fail if A == B == 0 or if the results exceeds 2^128-1",
       "Groups": ["Arithmetic"]
     },
     {
@@ -1240,7 +1430,7 @@
       "Cost": 10,
       "Size": 1,
       "Doc": "A plus B, where A and B are byte-arrays interpreted as big-endian unsigned integers",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 161,
@@ -1249,8 +1439,8 @@
       "Returns": "B",
       "Cost": 10,
       "Size": 1,
-      "Doc": "A minus B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Panic on underflow.",
-      "Groups": ["Byteslice Arithmetic"]
+      "Doc": "A minus B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Fail on underflow.",
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 162,
@@ -1259,8 +1449,8 @@
       "Returns": "B",
       "Cost": 20,
       "Size": 1,
-      "Doc": "A divided by B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Panic if B is zero.",
-      "Groups": ["Byteslice Arithmetic"]
+      "Doc": "A divided by B (truncated division), where A and B are byte-arrays interpreted as big-endian unsigned integers. Fail if B is zero.",
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 163,
@@ -1270,7 +1460,7 @@
       "Cost": 20,
       "Size": 1,
       "Doc": "A times B, where A and B are byte-arrays interpreted as big-endian unsigned integers.",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 164,
@@ -1280,7 +1470,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A is less than B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 165,
@@ -1290,7 +1480,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A is greater than B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 166,
@@ -1300,7 +1490,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A is less than or equal to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 167,
@@ -1310,7 +1500,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A is greater than or equal to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 168,
@@ -1320,7 +1510,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A is equals to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 169,
@@ -1330,7 +1520,7 @@
       "Cost": 1,
       "Size": 1,
       "Doc": "A is not equal to B, where A and B are byte-arrays interpreted as big-endian unsigned integers =\u003e { 0 or 1}",
-      "Groups": ["Byteslice Arithmetic"]
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 170,
@@ -1339,8 +1529,8 @@
       "Returns": "B",
       "Cost": 20,
       "Size": 1,
-      "Doc": "A modulo B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Panic if B is zero.",
-      "Groups": ["Byteslice Arithmetic"]
+      "Doc": "A modulo B, where A and B are byte-arrays interpreted as big-endian unsigned integers. Fail if B is zero.",
+      "Groups": ["Byte Array Arithmetic"]
     },
     {
       "Opcode": 171,
@@ -1350,7 +1540,7 @@
       "Cost": 6,
       "Size": 1,
       "Doc": "A bitwise-or B, where A and B are byte-arrays, zero-left extended to the greater of their lengths",
-      "Groups": ["Byteslice Logic"]
+      "Groups": ["Byte Array Logic"]
     },
     {
       "Opcode": 172,
@@ -1360,7 +1550,7 @@
       "Cost": 6,
       "Size": 1,
       "Doc": "A bitwise-and B, where A and B are byte-arrays, zero-left extended to the greater of their lengths",
-      "Groups": ["Byteslice Logic"]
+      "Groups": ["Byte Array Logic"]
     },
     {
       "Opcode": 173,
@@ -1370,7 +1560,7 @@
       "Cost": 6,
       "Size": 1,
       "Doc": "A bitwise-xor B, where A and B are byte-arrays, zero-left extended to the greater of their lengths",
-      "Groups": ["Byteslice Logic"]
+      "Groups": ["Byte Array Logic"]
     },
     {
       "Opcode": 174,
@@ -1379,8 +1569,8 @@
       "Returns": "B",
       "Cost": 4,
       "Size": 1,
-      "Doc": "A with all bits inverted",
-      "Groups": ["Byteslice Logic"]
+      "Doc": "X with all bits inverted",
+      "Groups": ["Byte Array Logic"]
     },
     {
       "Opcode": 175,
@@ -1389,7 +1579,132 @@
       "Returns": "B",
       "Cost": 1,
       "Size": 1,
-      "Doc": "push a byte-array of length A, containing all zero bytes",
+      "Doc": "push a byte-array of length X, containing all zero bytes",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 176,
+      "Name": "log",
+      "Args": "B",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "write bytes to log state of the current application",
+      "DocExtra": "`log` fails if called more than MaxLogCalls times in a program, or if the sum of logged bytes exceeds 1024 bytes.",
+      "Groups": ["State Access"]
+    },
+    {
+      "Opcode": 177,
+      "Name": "itxn_begin",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "Begin preparation of a new inner transaction",
+      "DocExtra": "`itxn_begin` initializes Sender to the application address; Fee to the minimum allowable, taking into account MinTxnFee and credit from overpaying in earlier transactions; FirstValid/LastValid to the values in the top-level transaction, and all other fields to zero values.",
+      "Groups": ["Inner Transactions"]
+    },
+    {
+      "Opcode": 178,
+      "Name": "itxn_field",
+      "Args": ".",
+      "Cost": 1,
+      "Size": 2,
+      "Doc": "Set field F of the current inner transaction to X",
+      "DocExtra": "`itxn_field` fails if X is of the wrong type for F, including a byte array of the wrong size for use as an address when F is an address field. `itxn_field` also fails if X is an account or asset that does not appear in `txn.Accounts` or `txn.ForeignAssets` of the top-level transaction. (Setting addresses in asset creation are exempted from this requirement.)",
+      "ImmediateNote": "{uint8 transaction field index}",
+      "Groups": ["Inner Transactions"]
+    },
+    {
+      "Opcode": 179,
+      "Name": "itxn_submit",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "Execute the current inner transaction. Fail if 16 inner transactions have already been executed, or if the transaction itself fails.",
+      "Groups": ["Inner Transactions"]
+    },
+    {
+      "Opcode": 180,
+      "Name": "itxn",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 2,
+      "Doc": "push field F of the last inner transaction to stack",
+      "ImmediateNote": "{uint8 transaction field index}",
+      "Groups": ["Inner Transactions"]
+    },
+    {
+      "Opcode": 181,
+      "Name": "itxna",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 3,
+      "Doc": "push Ith value of the array field F of the last inner transaction to stack",
+      "ImmediateNote": "{uint8 transaction field index} {uint8 transaction field array index}",
+      "Groups": ["Inner Transactions"]
+    },
+    {
+      "Opcode": 192,
+      "Name": "txnas",
+      "Args": "U",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 2,
+      "ArgEnum": [
+        "ApplicationArgs",
+        "Accounts",
+        "Assets",
+        "Applications",
+        "Logs"
+      ],
+      "ArgEnumTypes": "BBUUB",
+      "Doc": "push Xth value of the array field F of the current transaction",
+      "ImmediateNote": "{uint8 transaction field index}",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 193,
+      "Name": "gtxnas",
+      "Args": "U",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 3,
+      "ArgEnum": [
+        "ApplicationArgs",
+        "Accounts",
+        "Assets",
+        "Applications",
+        "Logs"
+      ],
+      "ArgEnumTypes": "BBUUB",
+      "Doc": "push Xth value of the array field F from the Tth transaction in the current group",
+      "ImmediateNote": "{uint8 transaction group index} {uint8 transaction field index}",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 194,
+      "Name": "gtxnsas",
+      "Args": "UU",
+      "Returns": ".",
+      "Cost": 1,
+      "Size": 2,
+      "ArgEnum": [
+        "ApplicationArgs",
+        "Accounts",
+        "Assets",
+        "Applications",
+        "Logs"
+      ],
+      "ArgEnumTypes": "BBUUB",
+      "Doc": "pop an index A and an index B. push Bth value of the array field F from the Ath transaction in the current group",
+      "ImmediateNote": "{uint8 transaction field index}",
+      "Groups": ["Loading Values"]
+    },
+    {
+      "Opcode": 195,
+      "Name": "args",
+      "Args": "U",
+      "Returns": "B",
+      "Cost": 1,
+      "Size": 1,
+      "Doc": "push Xth LogicSig argument to stack",
       "Groups": ["Loading Values"]
     }
   ]
