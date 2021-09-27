@@ -1,6 +1,7 @@
 import base32 from 'hi-base32';
 import * as nacl from '../nacl/naclWrappers';
 import * as utils from '../utils/utils';
+import { encodeUint64 } from './uint64';
 import { Address } from '../types/address';
 import { MultisigMetadata } from '../types/multisig';
 
@@ -25,6 +26,8 @@ const MULTISIG_PREIMG2ADDR_PREFIX = new Uint8Array([
   100,
   114,
 ]);
+
+const APP_ID_PREFIX = Buffer.from('appID');
 
 export const MALFORMED_ADDRESS_ERROR_MSG = 'address seems to be malformed';
 export const CHECKSUM_ADDRESS_ERROR_MSG = 'wrong checksum for address';
@@ -174,4 +177,15 @@ export function fromMultisigPreImgAddrs({
 }) {
   const pks = addrs.map((addr) => decodeAddress(addr).publicKey);
   return encodeAddress(fromMultisigPreImg({ version, threshold, pks }));
+}
+
+/**
+ * Get the escrow address of an application.
+ * @param appID - The ID of the application.
+ * @returns The address corresponding to that application's escrow account.
+ */
+export function getApplicationAddress(appID: number): string {
+  const toBeSigned = utils.concatArrays(APP_ID_PREFIX, encodeUint64(appID));
+  const hash = nacl.genericHash(toBeSigned);
+  return encodeAddress(new Uint8Array(hash));
 }

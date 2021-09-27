@@ -101,4 +101,14 @@ describe('address', () => {
       assert.deepStrictEqual(actualAddr, expectAddr);
     });
   });
+
+  describe('#getApplicationAddress', () => {
+    it('should produce the correct address', () => {
+      const appID = 77;
+      const expected =
+        'PCYUFPA2ZTOYWTP43MX2MOX2OWAIAXUDNC2WFCXAGMRUZ3DYD6BWFDL5YM';
+      const actual = algosdk.getApplicationAddress(appID);
+      assert.strictEqual(actual, expected);
+    });
+  });
 });
