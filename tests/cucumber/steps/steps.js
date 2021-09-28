@@ -2477,8 +2477,8 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .lookupApplicationLogs(appID)
         .limit(limit)
-        .minRound(minRound)
         .maxRound(maxRound)
+        .minRound(minRound)
         .nextToken(nextToken)
         .sender(sender)
         .txid(txID)
