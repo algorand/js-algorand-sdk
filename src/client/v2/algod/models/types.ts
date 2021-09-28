@@ -1259,7 +1259,7 @@ export class DryrunTxnResult extends BaseModel {
 
   public logicSigTrace?: DryrunState[];
 
-  public logs?: string[];
+  public logs?: Uint8Array[];
 
   /**
    * Creates a new `DryrunTxnResult` object.
@@ -1292,7 +1292,7 @@ export class DryrunTxnResult extends BaseModel {
     localDeltas?: AccountStateDelta[];
     logicSigMessages?: string[];
     logicSigTrace?: DryrunState[];
-    logs?: string[];
+    logs?: Uint8Array[];
   }) {
     super();
     this.disassembly = disassembly;
@@ -1658,7 +1658,7 @@ export class PendingTransactionResponse extends BaseModel {
   /**
    * (lg) Logs for the application being executed by this transaction.
    */
-  public logs?: string[];
+  public logs?: Uint8Array[];
 
   /**
    * Rewards in microalgos applied to the receiver account.
@@ -1719,7 +1719,7 @@ export class PendingTransactionResponse extends BaseModel {
     globalStateDelta?: EvalDeltaKeyValue[];
     innerTxns?: PendingTransactionResponse[];
     localStateDelta?: AccountStateDelta[];
-    logs?: string[];
+    logs?: Uint8Array[];
     receiverRewards?: number | bigint;
     senderRewards?: number | bigint;
   }) {
