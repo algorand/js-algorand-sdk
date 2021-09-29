@@ -1073,6 +1073,33 @@ describe('Program validation', () => {
       ]); // int 1; loop: int 2; *; dup; int 10; <; bnz loop; int 16; ==
       assert.ok(logic.checkProgram(program));
     });
+    it('should support TEAL v5 opcodes', () => {
+      assert.ok(logic.langspecEvalMaxVersion >= 5);
+
+      // itxn ops
+      let program = new Uint8Array(
+        Buffer.from('052001c0843db18101b21022b2083100b207b3b4082212', 'hex')
+      );
+      // itxn_begin; int pay; itxn_field TypeEnum; int 1000000; itxn_field Amount; txn Sender; itxn_field Receiver; itxn_submit; itxn Amount; int 1000000; ==
+      assert.ok(logic.checkProgram(program));
+
+      // ECDSA ops
+      program = new Uint8Array(
+        Buffer.from(
+          '058008746573746461746103802079bfa8245aeac0e714b7bd2b3252d03979e5e7a43cb039715a5f8109a7dd9ba180200753d317e54350d1d102289afbde3002add4529f10b9f7d3d223843985de62e0802103abfb5e6e331fb871e423f354e2bd78a384ef7cb07ac8bbf27d2dd1eca00e73c106000500',
+          'hex'
+        )
+      );
+      // byte "testdata"; sha512_256; byte 0x79bfa8245aeac0e714b7bd2b3252d03979e5e7a43cb039715a5f8109a7dd9ba1; byte 0x0753d317e54350d1d102289afbde3002add4529f10b9f7d3d223843985de62e0; byte 0x03abfb5e6e331fb871e423f354e2bd78a384ef7cb07ac8bbf27d2dd1eca00e73c1; ecdsa_pk_decompress Secp256k1; ecdsa_verify Secp256k1
+      assert.ok(logic.checkProgram(program));
+
+      // cover, uncover, log
+      program = new Uint8Array(
+        Buffer.from('058001618001628001634e024f025050b08101', 'hex')
+      );
+      // byte "a"; byte "b"; byte "c"; cover 2; uncover 2; concat; concat; log; int 1
+      assert.ok(logic.checkProgram(program));
+    });
   });
 });
 

@@ -237,6 +237,7 @@ export {
   isValidAddress,
   encodeAddress,
   decodeAddress,
+  getApplicationAddress,
 } from './encoding/address';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
 export { default as generateAccount } from './account';
