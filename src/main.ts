@@ -248,7 +248,7 @@ export {
   secretKeyToMnemonic,
   mnemonicToSecretKey,
   seedFromMnemonic,
-  mnemonicFromSeed
+  mnemonicFromSeed,
 } from './mnemonic/mnemonic';
 export {
   microalgosToAlgos,
