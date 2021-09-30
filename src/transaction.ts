@@ -430,6 +430,7 @@ export class Transaction implements TransactionStorageStructure {
     if (txn.selectionKey !== undefined) {
       txn.selectionKey = Buffer.from(txn.selectionKey as string, 'base64');
     }
+    // Checking non-participation key registration
     if (
       txn.nonParticipation &&
       (txn.voteKey ||
@@ -442,6 +443,30 @@ export class Transaction implements TransactionStorageStructure {
         'nonParticipation is true but participation params are present.'
       );
     }
+    // Checking online key registration
+    if (
+      !txn.nonParticipation &&
+      (txn.voteKey ||
+        txn.selectionKey ||
+        txn.voteFirst ||
+        txn.voteLast ||
+        txn.voteKeyDilution) &&
+      !(
+        txn.voteKey &&
+        txn.selectionKey &&
+        txn.voteFirst &&
+        txn.voteLast &&
+        txn.voteKeyDilution
+      )
+    ) {
+      throw new Error(
+        'online key registration missing at least one of the following fields: ' +
+          'voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution'
+      );
+    }
+    // The last option is an offline key registration where all the fields
+    // nonParticipation, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution
+    // are all undefined/false
 
     // Remove unwanted properties and store transaction on instance
     delete ((txn as unknown) as AnyTransactionWithParams).suggestedParams;
@@ -530,12 +555,12 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (this.nonParticipation) {
         txn.nonpart = true;
-        delete txn.votekey;
-        delete txn.selkey;
-        delete txn.votefst;
-        delete txn.votelst;
-        delete txn.votekd;
       }
+      if (!txn.selkey) delete txn.selkey;
+      if (!txn.votekey) delete txn.votekey;
+      if (!txn.votefst) delete txn.votefst;
+      if (!txn.votelst) delete txn.votelst;
+      if (!txn.votekd) delete txn.votekd;
       return txn;
     }
     if (this.type === 'acfg') {
@@ -790,14 +815,24 @@ export class Transaction implements TransactionStorageStructure {
           address.encodeAddress(txnForEnc.close)
         );
     } else if (txnForEnc.type === 'keyreg') {
-      if (!txnForEnc.nonpart) {
+      if (txnForEnc.votekey !== undefined) {
         txn.voteKey = Buffer.from(txnForEnc.votekey);
+      }
+      if (txnForEnc.selkey !== undefined) {
         txn.selectionKey = Buffer.from(txnForEnc.selkey);
+      }
+      if (txnForEnc.votekd !== undefined) {
         txn.voteKeyDilution = txnForEnc.votekd;
       }
-      txn.voteFirst = txnForEnc.votefst;
-      txn.voteLast = txnForEnc.votelst;
-      txn.nonParticipation = txnForEnc.nonpart;
+      if (txnForEnc.votefst !== undefined) {
+        txn.voteFirst = txnForEnc.votefst;
+      }
+      if (txnForEnc.votelst !== undefined) {
+        txn.voteLast = txnForEnc.votelst;
+      }
+      if (txnForEnc.nonpart !== undefined) {
+        txn.nonParticipation = txnForEnc.nonpart;
+      }
     } else if (txnForEnc.type === 'acfg') {
       // asset creation, or asset reconfigure, or asset destruction
       if (txnForEnc.caid !== undefined) {
