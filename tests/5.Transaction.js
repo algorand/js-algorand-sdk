@@ -366,6 +366,27 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize a nonparticipating key registration transaction from msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        fee: 10,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        nonParticipation: true,
+        genesisID: '',
+        type: 'keyreg',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
     it('should correctly serialize and deserialize an asset configuration transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';

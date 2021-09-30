@@ -790,9 +790,11 @@ export class Transaction implements TransactionStorageStructure {
           address.encodeAddress(txnForEnc.close)
         );
     } else if (txnForEnc.type === 'keyreg') {
-      txn.voteKey = Buffer.from(txnForEnc.votekey);
-      txn.selectionKey = Buffer.from(txnForEnc.selkey);
-      txn.voteKeyDilution = txnForEnc.votekd;
+      if (!txnForEnc.nonpart) {
+        txn.voteKey = Buffer.from(txnForEnc.votekey);
+        txn.selectionKey = Buffer.from(txnForEnc.selkey);
+        txn.voteKeyDilution = txnForEnc.votekd;
+      }
       txn.voteFirst = txnForEnc.votefst;
       txn.voteLast = txnForEnc.votelst;
       txn.nonParticipation = txnForEnc.nonpart;
