@@ -19,13 +19,24 @@ $ npm install algosdk
 Include a minified browser bundle directly in your HTML like so:
 
 ```html
-<script src="https://unpkg.com/algosdk@latest" />
-<!-- or https://cdn.jsdelivr.net/npm/algosdk@latest -->
+<script
+  src="https://unpkg.com/algosdk@1.11.1/dist/browser/algosdk.min.js"
+  integrity="sha384-jEOO0cMWxmBm4WiSKj+1Pb2nEddu4UoHzyEue2iY/ssigMu58ao9cojkN+WTsNMm"
+  crossorigin="anonymous"
+></script>
 ```
 
-> In production, it's recommended to pin a specific version instead of using `latest`.
+or
 
-Information about hosting the package for yourself or finding the browser bundles of previous versions is [available here](FAQ.md).
+```html
+<script
+  src="https://cdn.jsdelivr.net/npm/algosdk@1.11.1/dist/browser/algosdk.min.js"
+  integrity="sha384-jEOO0cMWxmBm4WiSKj+1Pb2nEddu4UoHzyEue2iY/ssigMu58ao9cojkN+WTsNMm"
+  crossorigin="anonymous"
+></script>
+```
+
+Information about hosting the package for yourself, finding the browser bundles of previous versions, and computing the SRI hash is [available here](FAQ.md).
 
 ## Quick Start
 
