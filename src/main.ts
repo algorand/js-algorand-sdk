@@ -237,14 +237,18 @@ export {
   isValidAddress,
   encodeAddress,
   decodeAddress,
+  getApplicationAddress,
 } from './encoding/address';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
 export { default as generateAccount } from './account';
-export { secretKeyToMnemonic, mnemonicToSecretKey } from './mnemonic/mnemonic';
 export * as modelsv2 from './client/v2/algod/models/types';
 export {
   mnemonicToMasterDerivationKey,
   masterDerivationKeyToMnemonic,
+  secretKeyToMnemonic,
+  mnemonicToSecretKey,
+  seedFromMnemonic,
+  mnemonicFromSeed,
 } from './mnemonic/mnemonic';
 export {
   microalgosToAlgos,
