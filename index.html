@@ -78,23 +78,30 @@
 					<h3>Browser</h3>
 				</a>
 				<p>Include a minified browser bundle directly in your HTML like so:</p>
-				<pre><code class="language-html"><span style="color: #800000">&lt;script</span><span style="color: #000000FF"> </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://unpkg.com/algosdk@latest&quot;</span><span style="color: #000000FF"> </span><span style="color: #CD3131">/</span><span style="color: #800000">&gt;</span>
-<span style="color: #000000">&lt;!--</span><span style="color: #000000FF"> </span><span style="color: #001080">or</span><span style="color: #000000FF"> </span><span style="color: #000000">https</span><span style="color: #000000FF">:</span><span style="color: #008000">//cdn.jsdelivr.net/npm/algosdk@latest --&gt;</span>
+				<pre><code class="language-html"><span style="color: #800000">&lt;script</span>
+<span style="color: #000000FF">  </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://unpkg.com/algosdk@1.12.0/dist/browser/algosdk.min.js&quot;</span>
+<span style="color: #000000FF">  </span><span style="color: #FF0000">integrity</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;sha384-N6rRZtVTe4Rvktk9jRWB/jo+NHuNpd2Uh87V0GndIMZbWkKKZZfn1FuzORyMypsZ&quot;</span>
+<span style="color: #000000FF">  </span><span style="color: #FF0000">crossorigin</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;anonymous&quot;</span>
+<span style="color: #800000">&gt;&lt;/script&gt;</span>
 </code></pre>
-				<blockquote>
-					<p>In production, it&#39;s recommended to pin a specific version instead of using <code>latest</code>.</p>
-				</blockquote>
-				<p>Information about hosting the package for yourself or finding the browser bundles of previous versions is <a href="FAQ.md">available here</a>.</p>
+				<p>or</p>
+				<pre><code class="language-html"><span style="color: #800000">&lt;script</span>
+<span style="color: #000000FF">  </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://cdn.jsdelivr.net/npm/algosdk@1.12.0/dist/browser/algosdk.min.js&quot;</span>
+<span style="color: #000000FF">  </span><span style="color: #FF0000">integrity</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;sha384-N6rRZtVTe4Rvktk9jRWB/jo+NHuNpd2Uh87V0GndIMZbWkKKZZfn1FuzORyMypsZ&quot;</span>
+<span style="color: #000000FF">  </span><span style="color: #FF0000">crossorigin</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;anonymous&quot;</span>
+<span style="color: #800000">&gt;&lt;/script&gt;</span>
+</code></pre>
+				<p>Information about hosting the package for yourself, finding the browser bundles of previous versions, and computing the SRI hash is <a href="FAQ.md">available here</a>.</p>
 				<a href="#quick-start" id="quick-start" style="color: inherit; text-decoration: none;">
 					<h2>Quick Start</h2>
 				</a>
 				<pre><code class="language-javascript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">token</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;Your algod API token&#039;</span><span style="color: #000000">;</span>
 <span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">server</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;http://127.0.0.1&#039;</span><span style="color: #000000">;</span>
 <span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">port</span><span style="color: #000000"> = </span><span style="color: #098658">8080</span><span style="color: #000000">;</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">algosdk</span><span style="color: #000000">.</span><span style="color: #795E26">Algod</span><span style="color: #000000">(</span><span style="color: #001080">token</span><span style="color: #000000">, </span><span style="color: #001080">server</span><span style="color: #000000">, </span><span style="color: #001080">port</span><span style="color: #000000">);</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">algosdk</span><span style="color: #000000">.</span><span style="color: #795E26">Algodv2</span><span style="color: #000000">(</span><span style="color: #001080">token</span><span style="color: #000000">, </span><span style="color: #001080">server</span><span style="color: #000000">, </span><span style="color: #001080">port</span><span style="color: #000000">);</span>
 
 <span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">status</span><span style="color: #000000">());</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">status</span><span style="color: #000000">().</span><span style="color: #795E26">do</span><span style="color: #000000">());</span>
 <span style="color: #000000">})().</span><span style="color: #795E26">catch</span><span style="color: #000000">((</span><span style="color: #001080">e</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
 <span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">e</span><span style="color: #000000">);</span>
 <span style="color: #000000">});</span>
@@ -371,6 +378,9 @@
 						<a href="modules.html#generateaccount" class="tsd-kind-icon">generate<wbr>Account</a>
 					</li>
 					<li class=" tsd-kind-function">
+						<a href="modules.html#getapplicationaddress" class="tsd-kind-icon">get<wbr>Application<wbr>Address</a>
+					</li>
+					<li class=" tsd-kind-function">
 						<a href="modules.html#instantiatetxnifneeded" class="tsd-kind-icon">instantiate<wbr>Txn<wbr>IfNeeded</a>
 					</li>
 					<li class=" tsd-kind-function">
@@ -497,6 +507,9 @@
 						<a href="modules.html#microalgostoalgos" class="tsd-kind-icon">microalgos<wbr>ToAlgos</a>
 					</li>
 					<li class=" tsd-kind-function">
+						<a href="modules.html#mnemonicfromseed" class="tsd-kind-icon">mnemonic<wbr>From<wbr>Seed</a>
+					</li>
+					<li class=" tsd-kind-function">
 						<a href="modules.html#mnemonictomasterderivationkey" class="tsd-kind-icon">mnemonic<wbr>ToMaster<wbr>Derivation<wbr>Key</a>
 					</li>
 					<li class=" tsd-kind-function">
@@ -507,6 +520,9 @@
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#secretkeytomnemonic" class="tsd-kind-icon">secret<wbr>Key<wbr>ToMnemonic</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="modules.html#seedfrommnemonic" class="tsd-kind-icon">seed<wbr>From<wbr>Mnemonic</a>
 					</li>
 					<li class=" tsd-kind-function">
 						<a href="modules.html#signbid" class="tsd-kind-icon">sign<wbr>Bid</a>
