@@ -1,6 +1,5 @@
 /* eslint-disable*/
 
-import algosdk from '..';
 import {
   AddressType,
   ArrayDynamicType,
