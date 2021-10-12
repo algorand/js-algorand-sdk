@@ -284,6 +284,7 @@ export class TupleType implements BaseType {
         return true;
       }
     }
+    return false;
   }
 
   ByteLen() {
@@ -293,7 +294,7 @@ export class TupleType implements BaseType {
         const after = TupleType.findBoolLR(this.childTypes, i, 1);
         const boolNum = after + 1;
         i += after;
-        size += boolNum / 8;
+        size += Math.trunc(boolNum / 8);
         if (boolNum % 8 !== 0) {
           size += 1;
         }
@@ -396,7 +397,13 @@ export function TypeFromString(str: String): BaseType {
     const arrayType = TypeFromString(stringMatches[1]);
     return new ArrayStaticType(arrayType, arrayLength);
   } else if (str.startsWith('uint')) {
+    // Checks if the parsed number contains only digits, no whitespaces
+    const digitsOnly = (string) =>
+      [...string].every((c) => '0123456789'.includes(c));
     const typeSizeStr = str.slice(4, str.length);
+    if (!digitsOnly(typeSizeStr)) {
+      throw new Error(`malformed uint string: ${typeSizeStr}`);
+    }
     const typeSize = Number(typeSizeStr);
     if (typeSize > MAX_LEN) {
       throw new Error(`malformed uint string: ${typeSize}`);
