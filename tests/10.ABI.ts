@@ -12,6 +12,7 @@ import {
   UfixedType,
   UintType,
 } from '../src/abi/abi_type';
+import algosdk from '..';
 
 const assert = require('assert');
 
@@ -208,5 +209,181 @@ describe('ABI type checking', () => {
     // Dynamic types should not have a byte length
     assert.throws(() => new StringType().ByteLen());
     assert.throws(() => new ArrayDynamicType(new BoolType()).ByteLen());
+  });
+});
+
+describe('ABI encoding', () => {
+  it('should encode the value correctly into bytes', () => {
+    const testCases = [
+      [new UintType(8).Encode(0n), new Uint8Array([0])],
+      [new UintType(16).Encode(3n), new Uint8Array([0, 3])],
+      [new UintType(64).Encode(256n), new Uint8Array([0, 0, 0, 0, 0, 0, 1, 0])],
+      [new UfixedType(8, 30).Encode(255n), new Uint8Array([255])],
+      [new UfixedType(32, 10).Encode(33n), new Uint8Array([0, 0, 0, 33])],
+      [
+        new AddressType().Encode(
+          'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+        ),
+        algosdk.decodeAddress(
+          'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+        ).publicKey,
+      ],
+      [new ByteType().Encode(10), new Uint8Array([10])],
+      [new ByteType().Encode(255), new Uint8Array([255])],
+      [new BoolType().Encode(true), new Uint8Array([128])],
+      [new BoolType().Encode(false), new Uint8Array([0])],
+      [
+        new StringType().Encode('asdf'),
+        new Uint8Array([0, 4, 97, 115, 100, 102]),
+      ],
+      [
+        new ArrayStaticType(new BoolType(), 3).Encode([true, true, false]),
+        new Uint8Array([192]),
+      ],
+      [
+        new ArrayStaticType(new BoolType(), 8).Encode([
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+        ]),
+        new Uint8Array([64]),
+      ],
+      [
+        new ArrayStaticType(new BoolType(), 8).Encode([
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+        ]),
+        new Uint8Array([255]),
+      ],
+      [
+        new ArrayStaticType(new BoolType(), 9).Encode([
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          true,
+        ]),
+        new Uint8Array([146, 128]),
+      ],
+      [
+        new ArrayStaticType(new UintType(64), 3).Encode([1, 2, 3]),
+        new Uint8Array([
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+        ]),
+      ],
+      [new ArrayDynamicType(new BoolType()).Encode([]), new Uint8Array([0, 0])],
+      [
+        new ArrayDynamicType(new BoolType()).Encode([true, true, false]),
+        new Uint8Array([0, 3, 192]),
+      ],
+      [
+        new ArrayDynamicType(new BoolType()).Encode([
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+        ]),
+        new Uint8Array([0, 8, 64]),
+      ],
+      [
+        new ArrayDynamicType(new BoolType()).Encode([
+          true,
+          false,
+          false,
+          true,
+          false,
+          false,
+          true,
+          false,
+          true,
+        ]),
+        new Uint8Array([0, 9, 146, 128]),
+      ],
+      // TODO: We cannot have a fixed length array of length 0 in JS, what should this return?
+      // [(TypeFromString('()').Encode([]), new Uint8Array([]))],
+      // 2^6 + 2^5 = 64 + 32 = 96
+      [
+        TypeFromString('(bool,bool,bool)').Encode([false, true, true]),
+        new Uint8Array([96]),
+      ],
+      [
+        TypeFromString('(bool[3])').Encode([[false, true, true]]),
+        new Uint8Array([96]),
+      ],
+      [
+        TypeFromString('(bool[])').Encode([[false, true, true]]),
+        new Uint8Array([0, 2, 0, 3, 96]),
+      ],
+      [
+        TypeFromString('(bool[2],bool[])').Encode([
+          [true, true],
+          [true, true],
+        ]),
+        new Uint8Array([192, 0, 3, 0, 2, 192]),
+      ],
+      [
+        TypeFromString('(bool[],bool[])').Encode([[], []]),
+        new Uint8Array([0, 4, 0, 6, 0, 0, 0, 0]),
+      ],
+      [
+        TypeFromString('(string,bool,bool,bool,bool,string)').Encode([
+          'AB',
+          true,
+          false,
+          true,
+          false,
+          'DE',
+        ]),
+        new Uint8Array([0, 5, 160, 0, 9, 0, 2, 65, 66, 0, 2, 68, 69]),
+      ],
+    ];
+
+    for (let testCase of testCases) {
+      const actual = testCase[0];
+      const expected = testCase[1];
+      assert.deepEqual(actual, expected);
+    }
   });
 });
