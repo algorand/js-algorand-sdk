@@ -1,5 +1,4 @@
-/* eslint-disable*/
-
+import assert from 'assert';
 import {
   AddressType,
   ArrayDynamicType,
@@ -13,8 +12,6 @@ import {
   UintType,
 } from '../src/abi/abi_type';
 import algosdk from '..';
-
-const assert = require('assert');
 
 describe('ABI type checking', () => {
   it('should create the correct type from the string', () => {
@@ -87,11 +84,11 @@ describe('ABI type checking', () => {
     const invalidSizes = [-1, 0, 9, 513, 1024];
     const invalidPrecisions = [-1, 0, 161];
 
-    for (let size of invalidSizes) {
+    for (const size of invalidSizes) {
       assert.throws(() => new UintType(size));
       assert.throws(() => new UfixedType(size, 10));
     }
-    for (let precision of invalidPrecisions) {
+    for (const precision of invalidPrecisions) {
       assert.throws(() => new UfixedType(8, precision));
     }
   });
@@ -133,7 +130,7 @@ describe('ABI type checking', () => {
       '((byte),,(byte))',
     ];
 
-    for (let testCase of testCases) {
+    for (const testCase of testCases) {
       assert.throws(() => TypeFromString(testCase));
     }
   });
@@ -164,7 +161,7 @@ describe('ABI type checking', () => {
       ],
     ];
 
-    for (let testCase of testCases) {
+    for (const testCase of testCases) {
       const actual = testCase[0];
       const expected = testCase[1];
       assert.deepEqual(actual, expected);
@@ -200,7 +197,7 @@ describe('ABI type checking', () => {
       ],
     ];
 
-    for (let testCase of testCases) {
+    for (const testCase of testCases) {
       const actual = testCase[0];
       const expected = testCase[1];
       assert.deepEqual(actual, expected);
@@ -384,7 +381,7 @@ describe('ABI encoding', () => {
       ],
     ];
 
-    for (let testCase of testCases) {
+    for (const testCase of testCases) {
       const actual = testCase[0];
       const expected = testCase[1];
       assert.deepEqual(actual, expected);
