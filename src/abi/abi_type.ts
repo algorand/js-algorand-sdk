@@ -79,7 +79,11 @@ export class UintType implements BaseType {
   }
 
   Encode(value: BigInt) {
-    if (value >= BigInt(Math.pow(2, this.bitSize)) || value < 0n) {
+    if (
+      typeof value != 'bigint' ||
+      value >= BigInt(Math.pow(2, this.bitSize)) ||
+      value < 0n
+    ) {
       throw new Error(
         `${value} is not a non-negative int or too big to fit in size uint${this.bitSize}`
       );
@@ -124,7 +128,11 @@ export class UfixedType implements BaseType {
   }
 
   Encode(value: BigInt) {
-    if (value >= BigInt(Math.pow(2, this.bitSize)) || value < 0n) {
+    if (
+      typeof value != 'bigint' ||
+      value >= BigInt(Math.pow(2, this.bitSize)) ||
+      value < 0n
+    ) {
       throw new Error(
         `${value} is not a non-negative int or too big to fit in size uint${this.bitSize}`
       );

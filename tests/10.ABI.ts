@@ -281,7 +281,11 @@ describe('ABI encoding', () => {
         new Uint8Array([146, 128]),
       ],
       [
-        new ArrayStaticType(new UintType(64), 3).Encode([1, 2, 3]),
+        new ArrayStaticType(new UintType(64), 3).Encode([
+          BigInt(1),
+          BigInt(2),
+          BigInt(3),
+        ]),
         new Uint8Array([
           0,
           0,
@@ -385,5 +389,30 @@ describe('ABI encoding', () => {
       const expected = testCase[1];
       assert.deepEqual(actual, expected);
     }
+  });
+
+  it('should fail for bad values during encoding', () => {
+    assert.throws(() => new UintType(8).Encode(BigInt(-1)));
+    assert.throws(() => new UintType(512).Encode(BigInt(2 ** 512)));
+    assert.throws(() => new UfixedType(512, 10).Encode(BigInt(-1)));
+    assert.throws(() => new ByteType().Encode(-1));
+    assert.throws(() => new ByteType().Encode(256));
+    assert.throws(() => new AddressType().Encode('BADADDRESS'));
+    assert.throws(() => new ArrayStaticType(new BoolType(), 3).Encode([true]));
+    assert.throws(() =>
+      new ArrayStaticType(new StringType(), 1).Encode([true])
+    );
+    assert.throws(() =>
+      new ArrayStaticType(new UintType(256), 1).Encode(['hello'])
+    );
+    assert.throws(() =>
+      new ArrayDynamicType(new AddressType()).Encode([false])
+    );
+    assert.throws(() =>
+      new TupleType([new BoolType(), new UfixedType(128, 20)]).Encode([
+        BigInt(3),
+        true,
+      ])
+    );
   });
 });
