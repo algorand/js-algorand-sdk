@@ -1,7 +1,6 @@
 /* eslint-disable no-bitwise */
-/* eslint-disable no-case-declarations */
-/* eslint-disable no-lonely-if */
-/* eslint-disable*/ //TODO: remove before PR
+/* eslint-disable no-use-before-define */
+/* eslint-disable class-methods-use-this */
 
 /**
     //ABI-Types: uint<N>: An N-bit unsigned integer (8 <= N <= 512 and N % 8 = 0).
@@ -14,7 +13,7 @@
     // | string
     // | (T1, ..., Tn)
 */
-import algosdk from '../../';
+import algosdk from '../..';
 
 export const MAX_LEN = 2 ** 16 - 1;
 export const ADDR_BYTE_SIZE = 32;
@@ -27,7 +26,7 @@ export interface Segment {
   right: number;
 }
 
-const staticArrayRegexp = /^([a-z\d\[\](),]+)\[([1-9][\d]*)]$/;
+const staticArrayRegexp = /^([a-z\d[\](),]+)\[([1-9][\d]*)]$/;
 const ufixedRegexp = /^ufixed([1-9][\d]*)x([1-9][\d]*)$/;
 
 interface BaseType {
@@ -50,6 +49,20 @@ interface BaseType {
   // Decode(Uint8Array): Object;
 }
 
+// Convert a BigInt to a big-endian Uint8Array for encoding.
+function bigIntToBytes(bi: BigInt | number, size: number) {
+  let hex = bi.toString(16);
+  // Pad the hex with zeros so it matches the size in bytes
+  for (let i = hex.length; i < size * 2; i++) {
+    hex = `0${hex}`;
+  }
+  const byteArray = new Uint8Array(hex.length / 2);
+  for (let i = 0, j = 0; i < hex.length / 2; i++, j += 2) {
+    byteArray[i] = parseInt(hex.slice(j, j + 2), 16);
+  }
+  return byteArray;
+}
+
 export class UintType implements BaseType {
   bitSize: number;
 
@@ -61,7 +74,7 @@ export class UintType implements BaseType {
   }
 
   toString() {
-    return 'uint' + this.bitSize;
+    return `uint${this.bitSize}`;
   }
 
   Equal(other: UintType) {
@@ -80,8 +93,8 @@ export class UintType implements BaseType {
 
   Encode(value: BigInt) {
     if (
-      typeof value != 'bigint' ||
-      value >= BigInt(Math.pow(2, this.bitSize)) ||
+      typeof value !== 'bigint' ||
+      value >= BigInt(2 ** this.bitSize) ||
       value < 0n
     ) {
       throw new Error(
@@ -108,14 +121,14 @@ export class UfixedType implements BaseType {
   }
 
   toString() {
-    return 'ufixed' + this.bitSize + 'x' + this.precision;
+    return `ufixed${this.bitSize}x${this.precision}`;
   }
 
   Equal(other: UfixedType) {
     return (
       this.constructor === other.constructor &&
       this.bitSize === other.bitSize &&
-      this.precision === this.precision
+      this.precision === other.precision
     );
   }
 
@@ -129,8 +142,8 @@ export class UfixedType implements BaseType {
 
   Encode(value: BigInt) {
     if (
-      typeof value != 'bigint' ||
-      value >= BigInt(Math.pow(2, this.bitSize)) ||
+      typeof value !== 'bigint' ||
+      value >= BigInt(2 ** this.bitSize) ||
       value < 0n
     ) {
       throw new Error(
@@ -235,7 +248,7 @@ export class StringType implements BaseType {
     const encoder = new TextEncoder();
     const encodedBytes = encoder.encode(value);
     const encodedLength = bigIntToBytes(value.length, LENGTH_ENCODE_BYTE_SIZE);
-    let mergedBytes = new Uint8Array(value.length + LENGTH_ENCODE_BYTE_SIZE);
+    const mergedBytes = new Uint8Array(value.length + LENGTH_ENCODE_BYTE_SIZE);
     mergedBytes.set(encodedLength);
     mergedBytes.set(encodedBytes, LENGTH_ENCODE_BYTE_SIZE);
     return mergedBytes;
@@ -257,7 +270,7 @@ export class ArrayStaticType implements BaseType {
   }
 
   toString() {
-    return this.childType.toString() + '[' + this.staticLength + ']';
+    return `${this.childType.toString()}[${this.staticLength}]`;
   }
 
   Equal(other: ArrayStaticType) {
@@ -276,12 +289,12 @@ export class ArrayStaticType implements BaseType {
     if (this.childType.constructor === BoolType) {
       return Math.ceil(this.arrayLength / 8);
     }
-    let elemByteLen = this.childType.ByteLen();
+    const elemByteLen = this.childType.ByteLen();
     return this.staticLength * elemByteLen;
   }
 
   Encode(values: any[]) {
-    if (values.length != this.staticLength) {
+    if (values.length !== this.staticLength) {
       throw new Error(`value array does not match static array length`);
     }
     const convertedTuple = this.toTupleType();
@@ -301,7 +314,7 @@ export class ArrayDynamicType implements BaseType {
   }
 
   toString() {
-    return this.childType.toString() + '[]';
+    return `${this.childType.toString()}[]`;
   }
 
   Equal(other: ArrayDynamicType) {
@@ -326,7 +339,7 @@ export class ArrayDynamicType implements BaseType {
       convertedTuple.childTypes.length,
       LENGTH_ENCODE_BYTE_SIZE
     );
-    let mergedBytes = new Uint8Array(
+    const mergedBytes = new Uint8Array(
       convertedTuple.ByteLen() + LENGTH_ENCODE_BYTE_SIZE
     );
     mergedBytes.set(encodedLength);
@@ -352,11 +365,11 @@ export class TupleType implements BaseType {
   }
 
   toString() {
-    let typeStrings: Array<String> = [];
+    const typeStrings: Array<String> = [];
     for (let i = 0; i < this.childTypes.length; i++) {
       typeStrings[i] = this.childTypes[i].toString();
     }
-    return '(' + typeStrings.join(',') + ')';
+    return `(${typeStrings.join(',')})`;
   }
 
   Equal(other: TupleType) {
@@ -387,7 +400,7 @@ export class TupleType implements BaseType {
           size += 1;
         }
       } else {
-        let childByteSize = this.childTypes[i].ByteLen();
+        const childByteSize = this.childTypes[i].ByteLen();
         size += childByteSize;
       }
     }
@@ -399,13 +412,13 @@ export class TupleType implements BaseType {
       throw new Error('length of tuple array should not exceed a uint16');
     }
     const tupleTypes = this.childTypes;
-    let heads = []; //new Array(new Uint8Array(tupleTypes.length));
-    let tails = []; // = new Array(new Uint8Array(tupleTypes.length)); //= new Uint8Array(tupleTypes.length);
-    let isDynamicIndex = new Map();
+    const heads = [];
+    const tails = [];
+    const isDynamicIndex = new Map();
     let i = 0;
 
     while (i < tupleTypes.length) {
-      let tupleType = tupleTypes[i];
+      const tupleType = tupleTypes[i];
       if (tupleType.IsDynamic()) {
         // Head is not pre-determined for dynamic types; store a placeholder for now
         isDynamicIndex.set(heads.length, true);
@@ -417,7 +430,7 @@ export class TupleType implements BaseType {
           let after = TupleType.findBoolLR(tupleTypes, i, 1);
 
           // Pack bytes to heads and tails
-          if (before % 8 != 0) {
+          if (before % 8 !== 0) {
             throw new Error(
               'expected before index should have number of bool mod 8 equal 0'
             );
@@ -440,35 +453,35 @@ export class TupleType implements BaseType {
 
     // Adjust head lengths for dynamic types
     let headLength = 0;
-    for (let headElement of heads) {
+    for (const headElement of heads) {
       headLength += headElement.length;
     }
 
     // Encode any placeholders for dynamic types
     let tailLength = 0;
-    for (let i = 0; i < heads.length; i++) {
-      if (isDynamicIndex.get(i)) {
+    for (let j = 0; j < heads.length; j++) {
+      if (isDynamicIndex.get(j)) {
         const headValue = headLength + tailLength;
         if (headValue > MAX_LEN) {
           throw new Error(
             `byte length of ${headValue} should not exceed a uint16`
           );
         }
-        heads[i] = bigIntToBytes(headValue, LENGTH_ENCODE_BYTE_SIZE);
+        heads[j] = bigIntToBytes(headValue, LENGTH_ENCODE_BYTE_SIZE);
       }
-      if (tails[i]) {
-        tailLength += tails[i].length;
+      if (tails[j]) {
+        tailLength += tails[j].length;
       }
     }
 
     // Concatenate into fixed Uint8Array
-    let mergedBytes = new Uint8Array(headLength + tailLength);
+    const mergedBytes = new Uint8Array(headLength + tailLength);
     i = 0;
-    for (let h of heads) {
+    for (const h of heads) {
       mergedBytes.set(h, i);
       i += h.length;
     }
-    for (let t of tails) {
+    for (const t of tails) {
       mergedBytes.set(t, i);
       i += t.length;
     }
@@ -483,8 +496,8 @@ export class TupleType implements BaseType {
     delta: number
   ): number {
     let until = 0;
-    while (1) {
-      let curr = index + delta * until;
+    while (true) {
+      const curr = index + delta * until;
       if (typeList[curr].constructor === BoolType) {
         if (curr !== typeList.length - 1 && delta > 0) {
           until += 1;
@@ -512,28 +525,28 @@ export class TupleType implements BaseType {
       throw new Error('tuple string should not have consecutive commas');
     }
 
-    let tupleStrings = [];
+    const tupleStrings = [];
     let depth = 0;
     let word = '';
 
     for (const char of str) {
       word += char;
-      if (char == '(') {
+      if (char === '(') {
         depth += 1;
-      } else if (char == ')') {
+      } else if (char === ')') {
         depth -= 1;
-      } else if (char == ',') {
+      } else if (char === ',') {
         // If the comma is at depth 0, then append the word as token.
-        if (depth == 0) {
+        if (depth === 0) {
           tupleStrings.push(word.slice(0, word.length - 1));
           word = '';
         }
       }
     }
-    if (word.length != 0) {
+    if (word.length !== 0) {
       tupleStrings.push(word);
     }
-    if (depth != 0) {
+    if (depth !== 0) {
       throw new Error('tuple string has mismatched parentheses');
     }
     return tupleStrings;
@@ -548,7 +561,7 @@ export class TupleType implements BaseType {
       );
     }
     for (let i = 0; i < valueList.length; i++) {
-      let boolVal = valueList[i];
+      const boolVal = valueList[i];
       if (boolVal) {
         res |= 1 << (7 - i);
       }
@@ -565,7 +578,8 @@ export function TypeFromString(str: String): BaseType {
       return null;
     }
     return new ArrayDynamicType(arrayArgType);
-  } else if (str.endsWith(']')) {
+  }
+  if (str.endsWith(']')) {
     const stringMatches = str.match(staticArrayRegexp);
     // match the string itself, array element type, then array length
     if (stringMatches.length !== 3) {
@@ -581,7 +595,8 @@ export function TypeFromString(str: String): BaseType {
     // parse the array element type
     const arrayType = TypeFromString(stringMatches[1]);
     return new ArrayStaticType(arrayType, arrayLength);
-  } else if (str.startsWith('uint')) {
+  }
+  if (str.startsWith('uint')) {
     // Checks if the parsed number contains only digits, no whitespaces
     const digitsOnly = (string) =>
       [...string].every((c) => '0123456789'.includes(c));
@@ -594,9 +609,11 @@ export function TypeFromString(str: String): BaseType {
       throw new Error(`malformed uint string: ${typeSize}`);
     }
     return new UintType(typeSize);
-  } else if (str === 'byte') {
+  }
+  if (str === 'byte') {
     return new ByteType();
-  } else if (str.startsWith('ufixed')) {
+  }
+  if (str.startsWith('ufixed')) {
     const stringMatches = str.match(ufixedRegexp);
     if (stringMatches.length !== 3) {
       throw new Error(`malformed ufixed type: ${str}`);
@@ -604,40 +621,29 @@ export function TypeFromString(str: String): BaseType {
     const ufixedSize = Number(stringMatches[1]);
     const ufixedPrecision = Number(stringMatches[2]);
     return new UfixedType(ufixedSize, ufixedPrecision);
-  } else if (str === 'bool') {
+  }
+  if (str === 'bool') {
     return new BoolType();
-  } else if (str === 'address') {
+  }
+  if (str === 'address') {
     return new AddressType();
-  } else if (str === 'string') {
+  }
+  if (str === 'string') {
     return new StringType();
-  } else if (str.length >= 2 && str[0] === '(' && str[str.length - 1] === ')') {
+  }
+  if (str.length >= 2 && str[0] === '(' && str[str.length - 1] === ')') {
     const tupleContent = TupleType.parseTupleContent(
       str.slice(1, str.length - 1)
     );
     if (tupleContent.length === 0) {
       return new TupleType([]);
     }
-    let tupleTypes: BaseType[] = [];
+    const tupleTypes: BaseType[] = [];
     for (let i = 0; i < tupleContent.length; i++) {
       const ti = TypeFromString(tupleContent[i]);
       tupleTypes.push(ti);
     }
     return new TupleType(tupleTypes);
-  } else {
-    throw new Error(`cannot convert a string ${str} to an ABI type`);
   }
-}
-
-// Convert a BigInt to a big-endian Uint8Array for encoding.
-function bigIntToBytes(bi: BigInt | number, size: number) {
-  let hex = bi.toString(16);
-  // Pad the hex with zeros so it matches the size in bytes
-  for (let i = hex.length; i < size * 2; i++) {
-    hex = '0' + hex;
-  }
-  let byteArray = new Uint8Array(hex.length / 2);
-  for (let i = 0, j = 0; i < hex.length / 2; i++, j += 2) {
-    byteArray[i] = parseInt(hex.slice(j, j + 2), 16);
-  }
-  return byteArray;
+  throw new Error(`cannot convert a string ${str} to an ABI type`);
 }
