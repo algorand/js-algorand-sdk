@@ -7,9 +7,9 @@ import {
   ByteType,
   StringType,
   TupleType,
-  TypeFromString,
   UfixedType,
   UintType,
+  Type,
 } from '../src/abi/abi_type';
 import algosdk from '..';
 
@@ -17,12 +17,12 @@ describe('ABI type checking', () => {
   it('should create the correct type from the string', () => {
     for (let i = 8; i < 513; i += 8) {
       let expected = new UintType(i);
-      let actual = TypeFromString(`uint${i}`);
-      assert.deepEqual(actual, expected);
+      let actual = Type.Of(`uint${i}`);
+      assert.deepStrictEqual(actual, expected);
       for (let j = 1; j < 161; j++) {
         expected = new UfixedType(i, j);
-        actual = TypeFromString(`ufixed${i}x${j}`);
-        assert.deepEqual(actual, expected);
+        actual = Type.Of(`ufixed${i}x${j}`);
+        assert.deepStrictEqual(actual, expected);
       }
     }
 
@@ -76,8 +76,8 @@ describe('ABI type checking', () => {
     ];
 
     for (const testCase of testCases) {
-      const actual = TypeFromString(testCase[0] as string);
-      assert.deepEqual(actual, testCase[1]);
+      const actual = Type.Of(testCase[0] as string);
+      assert.deepStrictEqual(actual, testCase[1]);
     }
   });
   it('should fail for an invalid bit size or precision', () => {
@@ -131,7 +131,7 @@ describe('ABI type checking', () => {
     ];
 
     for (const testCase of testCases) {
-      assert.throws(() => TypeFromString(testCase));
+      assert.throws(() => Type.Of(testCase));
     }
   });
   it('should properly return whether the type is dynamic', () => {
@@ -147,24 +147,18 @@ describe('ABI type checking', () => {
         new ArrayDynamicType(new ArrayDynamicType(new ByteType())).IsDynamic(),
         true,
       ],
-      [TypeFromString('(string[100])').IsDynamic(), true],
-      [TypeFromString('(address,bool,uint256)').IsDynamic(), false],
-      [TypeFromString('(uint8,(byte[10]))').IsDynamic(), false],
-      [TypeFromString('(string,uint256)').IsDynamic(), true],
-      [
-        TypeFromString('(bool,(ufixed16x10[],(byte,address)))').IsDynamic(),
-        true,
-      ],
-      [
-        TypeFromString('(bool,(uint256,(byte,address,string)))').IsDynamic(),
-        true,
-      ],
+      [Type.Of('(string[100])').IsDynamic(), true],
+      [Type.Of('(address,bool,uint256)').IsDynamic(), false],
+      [Type.Of('(uint8,(byte[10]))').IsDynamic(), false],
+      [Type.Of('(string,uint256)').IsDynamic(), true],
+      [Type.Of('(bool,(ufixed16x10[],(byte,address)))').IsDynamic(), true],
+      [Type.Of('(bool,(uint256,(byte,address,string)))').IsDynamic(), true],
     ];
 
     for (const testCase of testCases) {
       const actual = testCase[0];
       const expected = testCase[1];
-      assert.deepEqual(actual, expected);
+      assert.deepStrictEqual(actual, expected);
     }
   });
   it('should properly return the byte length of the type', () => {
@@ -174,23 +168,21 @@ describe('ABI type checking', () => {
       [new BoolType().ByteLen(), 1],
       [new UintType(64).ByteLen(), 8],
       [new UfixedType(256, 50).ByteLen(), 32],
-      [TypeFromString('bool[81]').ByteLen(), 11],
-      [TypeFromString('bool[80]').ByteLen(), 10],
-      [TypeFromString('bool[88]').ByteLen(), 11],
-      [TypeFromString('address[5]').ByteLen(), 160],
-      [TypeFromString('uint16[20]').ByteLen(), 40],
-      [TypeFromString('ufixed64x20[10]').ByteLen(), 80],
-      //   [TypeFromString('(address,byte,ufixed16x20)').ByteLen(), 35],
+      [Type.Of('bool[81]').ByteLen(), 11],
+      [Type.Of('bool[80]').ByteLen(), 10],
+      [Type.Of('bool[88]').ByteLen(), 11],
+      [Type.Of('address[5]').ByteLen(), 160],
+      [Type.Of('uint16[20]').ByteLen(), 40],
+      [Type.Of('ufixed64x20[10]').ByteLen(), 80],
+      //   [Type.Of('(address,byte,ufixed16x20)').ByteLen(), 35],
       [
-        TypeFromString(
-          '((bool,address[10]),(bool,bool,bool),uint8[20])'
-        ).ByteLen(),
+        Type.Of('((bool,address[10]),(bool,bool,bool),uint8[20])').ByteLen(),
         342,
       ],
-      [TypeFromString('(bool,bool)').ByteLen(), 1],
-      [TypeFromString(`(${'bool,'.repeat(6)}uint8)`).ByteLen(), 2],
+      [Type.Of('(bool,bool)').ByteLen(), 1],
+      [Type.Of(`(${'bool,'.repeat(6)}uint8)`).ByteLen(), 2],
       [
-        TypeFromString(
+        Type.Of(
           `(${'bool,'.repeat(10)}uint8,${'bool,'.repeat(10)}byte)`
         ).ByteLen(),
         6,
@@ -200,7 +192,7 @@ describe('ABI type checking', () => {
     for (const testCase of testCases) {
       const actual = testCase[0];
       const expected = testCase[1];
-      assert.deepEqual(actual, expected);
+      assert.deepStrictEqual(actual, expected);
     }
 
     // Dynamic types should not have a byte length
@@ -214,9 +206,9 @@ describe('ABI encoding', () => {
     const testCases = [
       [new UintType(8).Encode(0n), new Uint8Array([0])],
       [new UintType(16).Encode(3n), new Uint8Array([0, 3])],
-      [new UintType(64).Encode(256n), new Uint8Array([0, 0, 0, 0, 0, 0, 1, 0])],
+      [new UintType(64).Encode(256), new Uint8Array([0, 0, 0, 0, 0, 0, 1, 0])],
       [new UfixedType(8, 30).Encode(255n), new Uint8Array([255])],
-      [new UfixedType(32, 10).Encode(33n), new Uint8Array([0, 0, 0, 33])],
+      [new UfixedType(32, 10).Encode(33), new Uint8Array([0, 0, 0, 33])],
       [
         new AddressType().Encode(
           'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
@@ -343,33 +335,33 @@ describe('ABI encoding', () => {
         new Uint8Array([0, 9, 146, 128]),
       ],
       // TODO: We cannot have a fixed length array of length 0 in JS, what should this return?
-      // [(TypeFromString('()').Encode([]), new Uint8Array([]))],
+      // [(Type.Of('()').Encode([]), new Uint8Array([]))],
       // 2^6 + 2^5 = 64 + 32 = 96
       [
-        TypeFromString('(bool,bool,bool)').Encode([false, true, true]),
+        Type.Of('(bool,bool,bool)').Encode([false, true, true]),
         new Uint8Array([96]),
       ],
       [
-        TypeFromString('(bool[3])').Encode([[false, true, true]]),
+        Type.Of('(bool[3])').Encode([[false, true, true]]),
         new Uint8Array([96]),
       ],
       [
-        TypeFromString('(bool[])').Encode([[false, true, true]]),
+        Type.Of('(bool[])').Encode([[false, true, true]]),
         new Uint8Array([0, 2, 0, 3, 96]),
       ],
       [
-        TypeFromString('(bool[2],bool[])').Encode([
+        Type.Of('(bool[2],bool[])').Encode([
           [true, true],
           [true, true],
         ]),
         new Uint8Array([192, 0, 3, 0, 2, 192]),
       ],
       [
-        TypeFromString('(bool[],bool[])').Encode([[], []]),
+        Type.Of('(bool[],bool[])').Encode([[], []]),
         new Uint8Array([0, 4, 0, 6, 0, 0, 0, 0]),
       ],
       [
-        TypeFromString('(string,bool,bool,bool,bool,string)').Encode([
+        Type.Of('(string,bool,bool,bool,bool,string)').Encode([
           'AB',
           true,
           false,
@@ -384,7 +376,7 @@ describe('ABI encoding', () => {
     for (const testCase of testCases) {
       const actual = testCase[0];
       const expected = testCase[1];
-      assert.deepEqual(actual, expected);
+      assert.deepStrictEqual(actual, expected);
     }
   });
 
@@ -411,5 +403,40 @@ describe('ABI encoding', () => {
         true,
       ])
     );
+  });
+
+  it('should decode the value correctly into bytes', () => {
+    const testCases = [
+      [new UintType(8).Decode(new Uint8Array([0])), 0n],
+      [new UintType(16).Decode(new Uint8Array([0, 3])), 3n],
+      [
+        new UintType(64).Decode(new Uint8Array([1, 0, 0, 0, 0, 0, 0, 0])),
+        BigInt(2 ** 56),
+      ],
+      [new UfixedType(8, 30).Decode(new Uint8Array([255])), 255n],
+      [new UfixedType(32, 10).Decode(new Uint8Array([0, 0, 0, 33])), 33n],
+      [
+        new AddressType().Decode(
+          algosdk.decodeAddress(
+            'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+          ).publicKey
+        ),
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI',
+      ],
+      [new ByteType().Decode(new Uint8Array([10])), 10],
+      [new ByteType().Decode(new Uint8Array([255])), 255],
+      [new BoolType().Decode(new Uint8Array([128])), true],
+      [new BoolType().Decode(new Uint8Array([0])), false],
+      [
+        new StringType().Decode(new Uint8Array([0, 4, 97, 115, 100, 102])),
+        'asdf',
+      ],
+    ];
+
+    for (const testCase of testCases) {
+      const actual = testCase[0];
+      const expected = testCase[1];
+      assert.deepStrictEqual(actual, expected);
+    }
   });
 });
