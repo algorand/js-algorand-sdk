@@ -1,3 +1,15 @@
+# 1.12.0
+
+## Added
+
+- Support AVM 1.0
+- Support deserializing nonparticipating and offline keyreg
+- Support deserializing nonparticipating transaction
+
+## Fixed
+
+- Key registration transaction with nonParticipation=true
+
 # 1.11.1
 
 ## Fixed

@@ -19,13 +19,24 @@ $ npm install algosdk
 Include a minified browser bundle directly in your HTML like so:
 
 ```html
-<script src="https://unpkg.com/algosdk@latest" />
-<!-- or https://cdn.jsdelivr.net/npm/algosdk@latest -->
+<script
+  src="https://unpkg.com/algosdk@1.12.0/dist/browser/algosdk.min.js"
+  integrity="sha384-N6rRZtVTe4Rvktk9jRWB/jo+NHuNpd2Uh87V0GndIMZbWkKKZZfn1FuzORyMypsZ"
+  crossorigin="anonymous"
+></script>
 ```
 
-> In production, it's recommended to pin a specific version instead of using `latest`.
+or
 
-Information about hosting the package for yourself or finding the browser bundles of previous versions is [available here](FAQ.md).
+```html
+<script
+  src="https://cdn.jsdelivr.net/npm/algosdk@1.12.0/dist/browser/algosdk.min.js"
+  integrity="sha384-N6rRZtVTe4Rvktk9jRWB/jo+NHuNpd2Uh87V0GndIMZbWkKKZZfn1FuzORyMypsZ"
+  crossorigin="anonymous"
+></script>
+```
+
+Information about hosting the package for yourself, finding the browser bundles of previous versions, and computing the SRI hash is [available here](FAQ.md).
 
 ## Quick Start
 
@@ -33,10 +44,10 @@ Information about hosting the package for yourself or finding the browser bundle
 const token = 'Your algod API token';
 const server = 'http://127.0.0.1';
 const port = 8080;
-const client = new algosdk.Algod(token, server, port);
+const client = new algosdk.Algodv2(token, server, port);
 
 (async () => {
-  console.log(await client.status());
+  console.log(await client.status().do());
 })().catch((e) => {
   console.log(e);
 });

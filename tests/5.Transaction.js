@@ -366,6 +366,68 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        fee: 10,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: '',
+        type: 'keyreg',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation with explicit nonParticipation=false', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        fee: 10,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: '',
+        nonParticipation: false,
+        type: 'keyreg',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize a nonparticipating key registration transaction from msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        fee: 10,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        nonParticipation: true,
+        genesisID: '',
+        type: 'keyreg',
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
     it('should correctly serialize and deserialize an asset configuration transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -758,6 +820,70 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
         type: 'keyreg',
       };
+      const expectedTxn = new algosdk.Transaction(o);
+      const actualTxn = algosdk.makeKeyRegistrationTxn(
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        genesisID,
+        voteKey,
+        selectionKey,
+        voteFirst,
+        voteLast,
+        voteKeyDilution,
+        rekeyTo
+      );
+      assert.deepStrictEqual(expectedTxn, actualTxn);
+    });
+
+    it('should be able to use helper to make an offline keyreg transaction', () => {
+      const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+      const fee = 10;
+      const firstRound = 51;
+      const lastRound = 61;
+      const note = new Uint8Array([123, 12, 200]);
+      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
+      const genesisID = '';
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const voteKey = undefined;
+      const selectionKey = undefined;
+      const voteKeyDilution = undefined;
+      const voteFirst = undefined;
+      const voteLast = undefined;
+      const o = {
+        from,
+        fee,
+        firstRound,
+        lastRound,
+        note,
+        genesisHash,
+        voteKey,
+        selectionKey,
+        voteFirst,
+        voteLast,
+        voteKeyDilution,
+        genesisID,
+        reKeyTo: rekeyTo,
+        type: 'keyreg',
+        nonParticipation: false,
+      };
+
+      assert.throws(
+        () =>
+          new algosdk.Transaction({
+            ...o,
+            voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
+          }),
+        new Error(
+          'online key registration missing at least one of the following fields: ' +
+            'voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution'
+        )
+      );
+
       const expectedTxn = new algosdk.Transaction(o);
       const actualTxn = algosdk.makeKeyRegistrationTxn(
         from,
