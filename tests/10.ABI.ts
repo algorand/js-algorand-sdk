@@ -431,6 +431,107 @@ describe('ABI encoding', () => {
         new StringType().Decode(new Uint8Array([0, 4, 97, 115, 100, 102])),
         'asdf',
       ],
+      [
+        new ArrayStaticType(new BoolType(), 3).Decode(new Uint8Array([192])),
+        [true, true, false],
+      ],
+      [
+        new ArrayStaticType(new BoolType(), 8).Decode(new Uint8Array([64])),
+        [false, true, false, false, false, false, false, false],
+      ],
+      [
+        new ArrayStaticType(new BoolType(), 8).Decode(new Uint8Array([255])),
+        [true, true, true, true, true, true, true, true],
+      ],
+      [
+        new ArrayStaticType(new BoolType(), 9).Decode(
+          new Uint8Array([146, 128])
+        ),
+        [true, false, false, true, false, false, true, false, true],
+      ],
+      [
+        new ArrayStaticType(new UintType(64), 3).Decode(
+          new Uint8Array([
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3,
+          ])
+        ),
+        [BigInt(1), BigInt(2), BigInt(3)],
+      ],
+      [new ArrayDynamicType(new BoolType()).Decode(new Uint8Array([0, 0])), []],
+      [
+        new ArrayDynamicType(new BoolType()).Decode(
+          new Uint8Array([0, 3, 192])
+        ),
+        [true, true, false],
+      ],
+      [
+        new ArrayDynamicType(new BoolType()).Decode(new Uint8Array([0, 8, 64])),
+        [false, true, false, false, false, false, false, false],
+      ],
+      [
+        new ArrayDynamicType(new BoolType()).Decode(
+          new Uint8Array([0, 9, 146, 128])
+        ),
+        [true, false, false, true, false, false, true, false, true],
+      ],
+      [Type.Of('()').Decode(new Uint8Array([])), []],
+      //   // 2^6 + 2^5 = 64 + 32 = 96
+      [
+        Type.Of('(bool,bool,bool)').Decode(new Uint8Array([96])),
+        [false, true, true],
+      ],
+      [
+        Type.Of('(bool[3])').Decode(new Uint8Array([96])),
+        [[false, true, true]],
+      ],
+      [
+        Type.Of('(bool[])').Decode(new Uint8Array([0, 2, 0, 3, 96])),
+        [[false, true, true]],
+      ],
+      [
+        Type.Of('(bool[2],bool[])').Decode(
+          new Uint8Array([192, 0, 3, 0, 2, 192])
+        ),
+        [
+          [true, true],
+          [true, true],
+        ],
+      ],
+      [
+        Type.Of('(bool[],bool[])').Decode(
+          new Uint8Array([0, 4, 0, 6, 0, 0, 0, 0])
+        ),
+        [[], []],
+      ],
+      [
+        Type.Of('(string,bool,bool,bool,bool,string)').Decode(
+          new Uint8Array([0, 5, 160, 0, 9, 0, 2, 65, 66, 0, 2, 68, 69])
+        ),
+        ['AB', true, false, true, false, 'DE'],
+      ],
     ];
 
     for (const testCase of testCases) {
