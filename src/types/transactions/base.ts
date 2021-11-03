@@ -3,7 +3,7 @@
 /**
  * Enum for application transaction types.
  *
- * The full list is availabe at https://developer.algorand.org/docs/reference/transactions/
+ * The full list is available at https://developer.algorand.org/docs/reference/transactions/
  */
 export enum TransactionType {
   /**
@@ -35,6 +35,17 @@ export enum TransactionType {
    * Application transaction
    */
   appl = 'appl',
+}
+
+export function isTransactionType(s: string): s is TransactionType {
+  return (
+    s === TransactionType.pay ||
+    s === TransactionType.keyreg ||
+    s === TransactionType.acfg ||
+    s === TransactionType.axfer ||
+    s === TransactionType.afrz ||
+    s === TransactionType.appl
+  );
 }
 
 /**
@@ -179,14 +190,19 @@ export interface TransactionParams {
   closeRemainderTo?: string;
 
   /**
-   * String representation of voting key. For key deregistration, leave undefined
+   * Voting key bytes. For key deregistration, leave undefined
    */
-  voteKey: string;
+  voteKey: Uint8Array | string;
 
   /**
-   * String representation of selection key. For key deregistration, leave undefined
+   *Selection key bytes. For key deregistration, leave undefined
    */
-  selectionKey: string;
+  selectionKey: Uint8Array | string;
+
+  /**
+   * State proof key bytes. For key deregistration, leave undefined
+   */
+  stateProofKey: Uint8Array | string;
 
   /**
    * First round on which voteKey is valid

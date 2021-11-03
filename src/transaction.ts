@@ -7,6 +7,7 @@ import {
   OnApplicationComplete,
   TransactionParams,
   TransactionType,
+  isTransactionType,
 } from './types/transactions/base';
 import AnyTransaction, {
   MustHaveSuggestedParams,
@@ -27,6 +28,9 @@ const ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH = 5;
 const ALGORAND_TRANSACTION_ADDRESS_LENGTH = 32;
 const ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH = 5;
 const ASSET_METADATA_HASH_LENGTH = 32;
+const KEYREG_VOTE_KEY_LENGTH = 32;
+const KEYREG_SELECTION_KEY_LENGTH = 32;
+const KEYREG_STATE_PROOF_KEY_LENGTH = 64;
 
 type AnyTransactionWithParams = MustHaveSuggestedParams<AnyTransaction>;
 type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransaction>;
@@ -45,6 +49,7 @@ interface TransactionStorageStructure
     | 'closeRemainderTo'
     | 'voteKey'
     | 'selectionKey'
+    | 'stateProofKey'
     | 'assetManager'
     | 'assetReserve'
     | 'assetFreeze'
@@ -68,6 +73,7 @@ interface TransactionStorageStructure
   closeRemainderTo?: string | Address;
   voteKey: string | Buffer;
   selectionKey: string | Buffer;
+  stateProofKey: string | Buffer;
   voteFirst: number;
   voteLast: number;
   voteKeyDilution: number;
@@ -106,6 +112,34 @@ interface TransactionStorageStructure
   extraPages?: number;
 }
 
+function getKeyregKey(
+  input: undefined | string | Uint8Array | Buffer,
+  inputName: string,
+  length: number
+): Buffer | undefined {
+  if (input == null) {
+    return undefined;
+  }
+
+  let inputAsBuffer: Buffer | undefined;
+
+  if (typeof input === 'string') {
+    inputAsBuffer = Buffer.from(input, 'base64');
+  } else if (input.constructor === Uint8Array) {
+    inputAsBuffer = Buffer.from(input);
+  } else if (Buffer.isBuffer(input)) {
+    inputAsBuffer = input;
+  }
+
+  if (inputAsBuffer == null || inputAsBuffer.byteLength !== length) {
+    throw Error(
+      `${inputName} must be a ${length} byte Uint8Array or Buffer or base64 string.`
+    );
+  }
+
+  return inputAsBuffer;
+}
+
 /**
  * Transaction enables construction of Algorand transactions
  * */
@@ -127,6 +161,7 @@ export class Transaction implements TransactionStorageStructure {
   closeRemainderTo?: Address;
   voteKey: Buffer;
   selectionKey: Buffer;
+  stateProofKey: Buffer;
   voteFirst: number;
   voteLast: number;
   voteKeyDilution: number;
@@ -424,18 +459,24 @@ export class Transaction implements TransactionStorageStructure {
     } else {
       txn.lease = new Uint8Array(0);
     }
-    if (typeof txn.voteKey !== 'undefined') {
-      txn.voteKey = Buffer.from(txn.voteKey as string, 'base64');
-    }
-    if (txn.selectionKey !== undefined) {
-      txn.selectionKey = Buffer.from(txn.selectionKey as string, 'base64');
-    }
+    txn.voteKey = getKeyregKey(txn.voteKey, 'voteKey', KEYREG_VOTE_KEY_LENGTH);
+    txn.selectionKey = getKeyregKey(
+      txn.selectionKey,
+      'selectionKey',
+      KEYREG_SELECTION_KEY_LENGTH
+    );
+    txn.stateProofKey = getKeyregKey(
+      txn.stateProofKey,
+      'stateProofKey',
+      KEYREG_STATE_PROOF_KEY_LENGTH
+    );
     // Checking non-participation key registration
     if (
       txn.nonParticipation &&
       (txn.voteKey ||
         txn.selectionKey ||
         txn.voteFirst ||
+        txn.stateProofKey ||
         txn.voteLast ||
         txn.voteKeyDilution)
     ) {
@@ -448,6 +489,7 @@ export class Transaction implements TransactionStorageStructure {
       !txn.nonParticipation &&
       (txn.voteKey ||
         txn.selectionKey ||
+        txn.stateProofKey ||
         txn.voteFirst ||
         txn.voteLast ||
         txn.voteKeyDilution) &&
@@ -458,6 +500,7 @@ export class Transaction implements TransactionStorageStructure {
         txn.voteLast &&
         txn.voteKeyDilution
       )
+      // stateProofKey not included here for backwards compatibility
     ) {
       throw new Error(
         'online key registration missing at least one of the following fields: ' +
@@ -539,6 +582,7 @@ export class Transaction implements TransactionStorageStructure {
         grp: this.group,
         votekey: this.voteKey,
         selkey: this.selectionKey,
+        sprfkey: this.stateProofKey,
         votefst: this.voteFirst,
         votelst: this.voteLast,
         votekd: this.voteKeyDilution,
@@ -558,6 +602,7 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (!txn.selkey) delete txn.selkey;
       if (!txn.votekey) delete txn.votekey;
+      if (!txn.sprfkey) delete txn.sprfkey;
       if (!txn.votefst) delete txn.votefst;
       if (!txn.votelst) delete txn.votelst;
       if (!txn.votekd) delete txn.votekd;
@@ -784,12 +829,15 @@ export class Transaction implements TransactionStorageStructure {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(txnForEnc: EncodedTransaction): Transaction {
-    const txn = Object.create(this.prototype);
+    const txn = Object.create(this.prototype) as Transaction;
     txn.name = 'Transaction';
     txn.tag = Buffer.from('TX');
 
     txn.genesisID = txnForEnc.gen;
     txn.genesisHash = Buffer.from(txnForEnc.gh);
+    if (!isTransactionType(txnForEnc.type)) {
+      throw new Error(`Unrecognized transaction type: ${txnForEnc.type}`);
+    }
     txn.type = txnForEnc.type;
     txn.fee = txnForEnc.fee;
     txn.firstRound = txnForEnc.fv;
@@ -820,6 +868,9 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (txnForEnc.selkey !== undefined) {
         txn.selectionKey = Buffer.from(txnForEnc.selkey);
+      }
+      if (txnForEnc.sprfkey !== undefined) {
+        txn.stateProofKey = Buffer.from(txnForEnc.sprfkey);
       }
       if (txnForEnc.votekd !== undefined) {
         txn.voteKeyDilution = txnForEnc.votekd;

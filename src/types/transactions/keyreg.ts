@@ -5,6 +5,7 @@ type SpecificParameters = Pick<
   TransactionParams,
   | 'voteKey'
   | 'selectionKey'
+  | 'stateProofKey'
   | 'voteFirst'
   | 'voteLast'
   | 'voteKeyDilution'

@@ -183,6 +183,11 @@ export interface EncodedTransaction {
   selkey?: Buffer;
 
   /**
+   * stateProofKey
+   */
+  sprfkey?: Buffer;
+
+  /**
    * voteFirst
    */
   votefst?: number;

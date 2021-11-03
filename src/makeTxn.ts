@@ -141,8 +141,8 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  *
  * @param from - string representation of Algorand address of sender
  * @param note - uint8array of arbitrary data for sender to store
- * @param voteKey - string representation of voting key. for key deregistration, leave undefined
- * @param selectionKey - string representation of selection key. for key deregistration, leave undefined
+ * @param voteKey - voting key. for key deregistration, leave undefined
+ * @param selectionKey - selection key. for key deregistration, leave undefined
  * @param voteFirst - first round on which voteKey is valid
  * @param voteLast - last round on which voteKey is valid
  * @param voteKeyDilution - integer
@@ -157,6 +157,7 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * @param rekeyTo - rekeyTo address, optional
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
+ * @param stateProofKey - state proof key. for key deregistration, leave undefined
  */
 export function makeKeyRegistrationTxnWithSuggestedParams(
   from: KeyRegistrationTxn['from'],
@@ -168,7 +169,8 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
   rekeyTo?: KeyRegistrationTxn['reKeyTo'],
-  nonParticipation?: false
+  nonParticipation?: false,
+  stateProofKey?: KeyRegistrationTxn['stateProofKey']
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParams(
   from: KeyRegistrationTxn['from'],
@@ -180,7 +182,8 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteKeyDilution: undefined,
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
   rekeyTo?: KeyRegistrationTxn['reKeyTo'],
-  nonParticipation?: true
+  nonParticipation?: true,
+  stateProofKey?: undefined
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParams(
   from: any,
@@ -192,7 +195,8 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteKeyDilution: any,
   suggestedParams: any,
   rekeyTo?: any,
-  nonParticipation = false
+  nonParticipation = false,
+  stateProofKey: any = undefined
 ) {
   const o: KeyRegistrationTxn = {
     from,
@@ -206,6 +210,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
     type: TransactionType.keyreg,
     reKeyTo: rekeyTo,
     nonParticipation,
+    stateProofKey,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -222,14 +227,15 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
  * @param note - uint8array of arbitrary data for sender to store
  * @param genesisHash - string specifies hash genesis block of network in use
  * @param genesisID - string specifies genesis ID of network in use
- * @param voteKey - string representation of voting key. for key deregistration, leave undefined
- * @param selectionKey - string representation of selection key. for key deregistration, leave undefined
+ * @param voteKey - voting key. for key deregistration, leave undefined
+ * @param selectionKey - selection key. for key deregistration, leave undefined
  * @param voteFirst - first round on which voteKey is valid
  * @param voteLast - last round on which voteKey is valid
  * @param voteKeyDilution - integer
  * @param rekeyTo - rekeyTo address, optional
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
+ * @param stateProofKey - state proof key. for key deregistration, leave undefined
  * @Deprecated in version 2.0 this will change to use the "WithSuggestedParams" signature.
  */
 export function makeKeyRegistrationTxn(
@@ -246,7 +252,8 @@ export function makeKeyRegistrationTxn(
   voteLast: KeyRegistrationTxn['voteLast'],
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
   rekeyTo?: KeyRegistrationTxn['reKeyTo'],
-  nonParticipation?: false
+  nonParticipation?: false,
+  stateProofKey?: KeyRegistrationTxn['stateProofKey']
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxn(
   from: KeyRegistrationTxn['from'],
@@ -262,7 +269,8 @@ export function makeKeyRegistrationTxn(
   voteLast: undefined,
   voteKeyDilution: undefined,
   rekeyTo?: KeyRegistrationTxn['reKeyTo'],
-  nonParticipation?: true
+  nonParticipation?: true,
+  stateProofKey?: undefined
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxn(
   from: any,
@@ -278,7 +286,8 @@ export function makeKeyRegistrationTxn(
   voteLast: any,
   voteKeyDilution: any,
   rekeyTo?: any,
-  nonParticipation: any = false
+  nonParticipation: any = false,
+  stateProofKey: any = undefined
 ) {
   const suggestedParams: SuggestedParams = {
     genesisHash,
@@ -297,7 +306,8 @@ export function makeKeyRegistrationTxn(
     voteKeyDilution,
     suggestedParams,
     rekeyTo,
-    nonParticipation
+    nonParticipation,
+    stateProofKey
   );
 }
 
@@ -313,6 +323,7 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     | 'note'
     | 'voteKey'
     | 'selectionKey'
+    | 'stateProofKey'
     | 'voteFirst'
     | 'voteLast'
     | 'voteKeyDilution'
@@ -345,7 +356,8 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
     o.voteKeyDilution,
     o.suggestedParams,
     o.rekeyTo,
-    o.nonParticipation
+    o.nonParticipation,
+    o.stateProofKey
   );
 }
 
