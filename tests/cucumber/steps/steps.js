@@ -974,6 +974,7 @@ module.exports = function getSteps(options) {
       );
 
       const from = this.accounts[0];
+      this.pk = from;
 
       const result = await this.acl.getTransactionParams();
       const suggestedParams = {
