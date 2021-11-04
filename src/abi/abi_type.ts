@@ -13,7 +13,7 @@
     // | string
     // | (T1, ..., Tn)
 */
-import algosdk from '../..';
+import { encodeAddress, decodeAddress } from '../encoding/address';
 import { concatArrays } from '../utils/utils';
 
 export const MAX_LEN = 2 ** 16 - 1;
@@ -22,7 +22,7 @@ export const SINGLE_BYTE_SIZE = 1;
 export const SINGLE_BOOL_SIZE = 1;
 export const LENGTH_ENCODE_BYTE_SIZE = 2;
 
-export interface Segment {
+interface Segment {
   left: number;
   right: number;
 }
@@ -38,20 +38,17 @@ export abstract class Type {
   // Checks if two Type objects are equal in value
   abstract equal(other: Type): boolean;
   // Checks if the Type object (or any of its child types) have dynamic length
-  abstract IsDynamic(): boolean;
+  abstract isDynamic(): boolean;
   // Returns the size of the Type object in bytes
-  abstract ByteLen(): number;
+  abstract byteLen(): number;
   // Encodes a value for the Type object using the ABI specs
-  abstract Encode(value: ABIValue): Uint8Array;
+  abstract encode(value: ABIValue): Uint8Array;
   // Decodes a value for the Type object using the ABI specs
-  abstract Decode(byteString: Uint8Array): ABIValue;
+  abstract decode(byteString: Uint8Array): ABIValue;
   // De-serializes the ABI type from a string using the ABI specs
-  static Of(str: String): Type {
+  static from(str: string): Type {
     if (str.endsWith('[]')) {
-      const arrayArgType = Type.Of(str.slice(0, str.length - 2));
-      if (arrayArgType === null) {
-        return null;
-      }
+      const arrayArgType = Type.from(str.slice(0, str.length - 2));
       return new ArrayDynamicType(arrayArgType);
     }
     if (str.endsWith(']')) {
@@ -67,7 +64,7 @@ export abstract class Type {
         throw new Error(`array length exceeds limit ${MAX_LEN}`);
       }
       // Parse the array element type
-      const arrayType = Type.Of(stringMatches[1]);
+      const arrayType = Type.from(stringMatches[1]);
       return new ArrayStaticType(arrayType, arrayLength);
     }
     if (str.startsWith('uint')) {
@@ -109,12 +106,9 @@ export abstract class Type {
       const tupleContent = TupleType.parseTupleContent(
         str.slice(1, str.length - 1)
       );
-      if (tupleContent.length === 0) {
-        return new TupleType([]);
-      }
       const tupleTypes: Type[] = [];
       for (let i = 0; i < tupleContent.length; i++) {
-        const ti = Type.Of(tupleContent[i]);
+        const ti = Type.from(tupleContent[i]);
         tupleTypes.push(ti);
       }
       return new TupleType(tupleTypes);
@@ -123,10 +117,11 @@ export abstract class Type {
   }
 }
 
-export class UintType implements Type {
+export class UintType extends Type {
   bitSize: number;
 
   constructor(size: number) {
+    super();
     if (size % 8 !== 0 || size < 8 || size > 512) {
       throw new Error(`unsupported uint type bitSize: ${size}`);
     }
@@ -143,25 +138,25 @@ export class UintType implements Type {
     );
   }
 
-  IsDynamic() {
+  isDynamic() {
     return false;
   }
 
-  ByteLen() {
+  byteLen() {
     return this.bitSize / 8;
   }
 
-  Encode(value: bigint | number) {
+  encode(value: bigint | number) {
     if (
       (typeof value !== 'bigint' && typeof value !== 'number') ||
       value >= BigInt(2 ** this.bitSize) ||
-      value < 0n
+      value < BigInt(0)
     ) {
       throw new Error(
         `${value} is not a non-negative int or too big to fit in size uint${this.bitSize}`
       );
     }
-    if (typeof value === 'number' && value >= 2 ** 53) {
+    if (typeof value === 'number' && !Number.isSafeInteger(value)) {
       throw new Error(
         `${value} should be converted into a BigInt before it is encoded`
       );
@@ -169,7 +164,7 @@ export class UintType implements Type {
     return bigIntToBytes(value, this.bitSize / 8);
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     if (byteString.length !== this.bitSize / 8) {
       throw new Error(`byte string must correspond to a uint${this.bitSize}`);
     }
@@ -177,11 +172,12 @@ export class UintType implements Type {
   }
 }
 
-export class UfixedType implements Type {
+export class UfixedType extends Type {
   bitSize: number;
   precision: number;
 
   constructor(size: number, denominator: number) {
+    super();
     if (size % 8 !== 0 || size < 8 || size > 512) {
       throw new Error(`unsupported ufixed type bitSize: ${size}`);
     }
@@ -204,15 +200,15 @@ export class UfixedType implements Type {
     );
   }
 
-  IsDynamic() {
+  isDynamic() {
     return false;
   }
 
-  ByteLen() {
+  byteLen() {
     return this.bitSize / 8;
   }
 
-  Encode(value: bigint | number) {
+  encode(value: bigint | number) {
     if (
       (typeof value !== 'bigint' && typeof value !== 'number') ||
       value >= BigInt(2 ** this.bitSize) ||
@@ -222,7 +218,7 @@ export class UfixedType implements Type {
         `${value} is not a non-negative int or too big to fit in size ufixed${this.bitSize}`
       );
     }
-    if (typeof value === 'number' && value >= 2 ** 53) {
+    if (typeof value === 'number' && !Number.isSafeInteger(value)) {
       throw new Error(
         `${value} should be converted into a BigInt before it is encoded`
       );
@@ -230,7 +226,7 @@ export class UfixedType implements Type {
     return bigIntToBytes(value, this.bitSize / 8);
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     if (byteString.length !== this.bitSize / 8) {
       throw new Error(`byte string must correspond to a ufixed${this.bitSize}`);
     }
@@ -238,7 +234,7 @@ export class UfixedType implements Type {
   }
 }
 
-export class AddressType implements Type {
+export class AddressType extends Type {
   toString() {
     return 'address';
   }
@@ -247,17 +243,17 @@ export class AddressType implements Type {
     return this.constructor === other.constructor;
   }
 
-  IsDynamic() {
+  isDynamic() {
     return false;
   }
 
-  ByteLen() {
+  byteLen() {
     return ADDR_BYTE_SIZE;
   }
 
-  Encode(value: string | Uint8Array) {
+  encode(value: string | Uint8Array) {
     if (typeof value === 'string') {
-      const decodedAddress = algosdk.decodeAddress(value);
+      const decodedAddress = decodeAddress(value);
       return decodedAddress.publicKey;
     }
     // Return the address if it is already in bytes
@@ -267,15 +263,15 @@ export class AddressType implements Type {
     return value;
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     if (byteString.length !== 32) {
       throw new Error(`byte string must be 32 bytes long for an address`);
     }
-    return algosdk.encodeAddress(byteString);
+    return encodeAddress(byteString);
   }
 }
 
-export class BoolType implements Type {
+export class BoolType extends Type {
   toString() {
     return 'bool';
   }
@@ -284,27 +280,26 @@ export class BoolType implements Type {
     return this.constructor === other.constructor;
   }
 
-  IsDynamic() {
+  isDynamic() {
     return false;
   }
 
-  ByteLen() {
+  byteLen() {
     return SINGLE_BOOL_SIZE;
   }
 
-  Encode(value: boolean) {
+  encode(value: boolean) {
     if (value) {
       return new Uint8Array([128]);
     }
     return new Uint8Array([0]);
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     if (byteString.length !== 1) {
       throw new Error(`bool string must be 1 byte long`);
     }
-    const buf = Buffer.from(byteString);
-    const value = buf.readUIntBE(0, byteString.length);
+    const value = byteString[0];
     if (value === 128) {
       return true;
     }
@@ -315,7 +310,7 @@ export class BoolType implements Type {
   }
 }
 
-export class ByteType implements Type {
+export class ByteType extends Type {
   toString() {
     return 'byte';
   }
@@ -324,31 +319,30 @@ export class ByteType implements Type {
     return this.constructor === other.constructor;
   }
 
-  IsDynamic() {
+  isDynamic() {
     return false;
   }
 
-  ByteLen() {
+  byteLen() {
     return SINGLE_BYTE_SIZE;
   }
 
-  Encode(value: number) {
+  encode(value: number) {
     if (value < 0 || value > 255) {
       throw new Error(`${value} cannot be encoded into a byte`);
     }
     return new Uint8Array([value]);
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     if (byteString.length !== 1) {
       throw new Error(`byte string must be 1 byte long`);
     }
-    const buf = Buffer.from(byteString);
-    return buf.readUIntBE(0, SINGLE_BYTE_SIZE);
+    return byteString[0];
   }
 }
 
-export class StringType implements Type {
+export class StringType extends Type {
   toString() {
     return 'string';
   }
@@ -357,15 +351,15 @@ export class StringType implements Type {
     return this.constructor === other.constructor;
   }
 
-  IsDynamic() {
+  isDynamic() {
     return true;
   }
 
-  ByteLen(): never {
+  byteLen(): never {
     throw new Error(`${this.toString()} is a dynamic type`);
   }
 
-  Encode(value: string) {
+  encode(value: string) {
     const encodedBytes = Buffer.from(value);
     const encodedLength = bigIntToBytes(value.length, LENGTH_ENCODE_BYTE_SIZE);
     const mergedBytes = new Uint8Array(value.length + LENGTH_ENCODE_BYTE_SIZE);
@@ -374,7 +368,7 @@ export class StringType implements Type {
     return mergedBytes;
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     if (byteString.length < LENGTH_ENCODE_BYTE_SIZE) {
       throw new Error(`byte string is too short to be decoded: ${byteString}`);
     }
@@ -394,11 +388,12 @@ export class StringType implements Type {
   }
 }
 
-export class ArrayStaticType implements Type {
+export class ArrayStaticType extends Type {
   childType: Type;
   staticLength: number;
 
   constructor(argType: Type, arrayLength: number) {
+    super();
     if (arrayLength < 1) {
       throw new Error(
         `static array must have a length greater than 0: ${arrayLength}`
@@ -420,29 +415,28 @@ export class ArrayStaticType implements Type {
     );
   }
 
-  IsDynamic() {
-    return this.childType.IsDynamic();
+  isDynamic() {
+    return this.childType.isDynamic();
   }
 
-  ByteLen() {
+  byteLen() {
     if (this.childType.constructor === BoolType) {
       return Math.ceil(this.staticLength / 8);
     }
-    const elemByteLen = this.childType.ByteLen();
-    return this.staticLength * elemByteLen;
+    return this.staticLength * this.childType.byteLen();
   }
 
-  Encode(values: ABIValue[]) {
+  encode(values: ABIValue[]) {
     if (values.length !== this.staticLength) {
       throw new Error(`value array does not match static array length`);
     }
     const convertedTuple = this.toTupleType();
-    return convertedTuple.Encode(values);
+    return convertedTuple.encode(values);
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     const convertedTuple = this.toTupleType();
-    return convertedTuple.Decode(byteString);
+    return convertedTuple.decode(byteString);
   }
 
   toTupleType() {
@@ -450,10 +444,11 @@ export class ArrayStaticType implements Type {
   }
 }
 
-export class ArrayDynamicType implements Type {
+export class ArrayDynamicType extends Type {
   childType: Type;
 
   constructor(argType: Type) {
+    super();
     this.childType = argType;
   }
 
@@ -468,17 +463,17 @@ export class ArrayDynamicType implements Type {
     );
   }
 
-  IsDynamic() {
+  isDynamic() {
     return true;
   }
 
-  ByteLen(): never {
+  byteLen(): never {
     throw new Error(`${this.toString()} is a dynamic type`);
   }
 
-  Encode(values: ABIValue[]) {
+  encode(values: ABIValue[]) {
     const convertedTuple = this.toTupleType(values.length);
-    const encodedTuple = convertedTuple.Encode(values);
+    const encodedTuple = convertedTuple.encode(values);
     const encodedLength = bigIntToBytes(
       convertedTuple.childTypes.length,
       LENGTH_ENCODE_BYTE_SIZE
@@ -487,11 +482,11 @@ export class ArrayDynamicType implements Type {
     return mergedBytes;
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     const buf = Buffer.from(byteString);
     const byteLength = buf.readUIntBE(0, LENGTH_ENCODE_BYTE_SIZE);
     const convertedTuple = this.toTupleType(byteLength);
-    return convertedTuple.Decode(
+    return convertedTuple.decode(
       byteString.slice(LENGTH_ENCODE_BYTE_SIZE, byteString.length)
     );
   }
@@ -501,10 +496,11 @@ export class ArrayDynamicType implements Type {
   }
 }
 
-export class TupleType implements Type {
+export class TupleType extends Type {
   childTypes: Type[];
 
   constructor(argTypes: Type[]) {
+    super();
     if (argTypes.length >= MAX_LEN) {
       throw new Error(
         'tuple type child type number larger than maximum uint16 error'
@@ -528,28 +524,28 @@ export class TupleType implements Type {
     );
   }
 
-  IsDynamic() {
-    const isDynamic = (child: Type) => child.IsDynamic();
+  isDynamic() {
+    const isDynamic = (child: Type) => child.isDynamic();
     return this.childTypes.some(isDynamic);
   }
 
-  ByteLen() {
+  byteLen() {
     let size = 0;
     for (let i = 0; i < this.childTypes.length; i++) {
       if (this.childTypes[i].constructor === BoolType) {
-        const after = TupleType.findBoolLR(this.childTypes, i, 1);
+        const after = findBoolLR(this.childTypes, i, 1);
         const boolNum = after + 1;
         i += after;
         size += Math.trunc((boolNum + 7) / 8);
       } else {
-        const childByteSize = this.childTypes[i].ByteLen();
+        const childByteSize = this.childTypes[i].byteLen();
         size += childByteSize;
       }
     }
     return size;
   }
 
-  Encode(values: ABIValue[]) {
+  encode(values: ABIValue[]) {
     if (values.length > MAX_LEN) {
       throw new Error('length of tuple array should not exceed a uint16');
     }
@@ -561,15 +557,15 @@ export class TupleType implements Type {
 
     while (i < tupleTypes.length) {
       const tupleType = tupleTypes[i];
-      if (tupleType.IsDynamic()) {
+      if (tupleType.isDynamic()) {
         // Head is not pre-determined for dynamic types; store a placeholder for now
         isDynamicIndex.set(heads.length, true);
         heads.push(new Uint8Array([0, 0]));
-        tails.push(tupleType.Encode(values[i]));
+        tails.push(tupleType.encode(values[i]));
       } else {
         if (tupleType.constructor === BoolType) {
-          const before = TupleType.findBoolLR(tupleTypes, i, -1);
-          let after = TupleType.findBoolLR(tupleTypes, i, 1);
+          const before = findBoolLR(tupleTypes, i, -1);
+          let after = findBoolLR(tupleTypes, i, 1);
 
           // Pack bytes to heads and tails
           if (before % 8 !== 0) {
@@ -578,13 +574,13 @@ export class TupleType implements Type {
             );
           }
           after = Math.min(7, after);
-          const compressedInt = TupleType.compressMultipleBool(
+          const compressedInt = compressMultipleBool(
             values.slice(i, i + after + 1)
           );
           heads.push(bigIntToBytes(compressedInt, 1));
           i += after;
         } else {
-          const encodedTupleValue = tupleType.Encode(values[i]);
+          const encodedTupleValue = tupleType.encode(values[i]);
           heads.push(encodedTupleValue);
         }
         isDynamicIndex.set(i, false);
@@ -599,7 +595,7 @@ export class TupleType implements Type {
       headLength += headElement.length;
     }
 
-    // Encode any placeholders for dynamic types
+    // encode any placeholders for dynamic types
     let tailLength = 0;
     for (let j = 0; j < heads.length; j++) {
       if (isDynamicIndex.get(j)) {
@@ -614,18 +610,10 @@ export class TupleType implements Type {
       tailLength += tails[j].length;
     }
 
-    // Concatenate into fixed Uint8Array
-    let resultBytes = new Uint8Array();
-    for (const h of heads) {
-      resultBytes = concatArrays(resultBytes, h);
-    }
-    for (const t of tails) {
-      resultBytes = concatArrays(resultBytes, t);
-    }
-    return resultBytes;
+    return concatArrays(...heads, ...tails);
   }
 
-  Decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array) {
     const tupleTypes = this.childTypes;
     const dynamicSegments: Segment[] = [];
     const valuePartition: Uint8Array[] = [];
@@ -635,7 +623,7 @@ export class TupleType implements Type {
 
     while (i < tupleTypes.length) {
       const tupleType = tupleTypes[i];
-      if (tupleType.IsDynamic()) {
+      if (tupleType.isDynamic()) {
         if (
           byteString.slice(iterIndex, byteString.length).length <
           LENGTH_ENCODE_BYTE_SIZE
@@ -663,8 +651,8 @@ export class TupleType implements Type {
       } else {
         // eslint-disable-next-line no-lonely-if
         if (tupleType.constructor === BoolType) {
-          const before = TupleType.findBoolLR(this.childTypes, i, -1);
-          let after = TupleType.findBoolLR(this.childTypes, i, 1);
+          const before = findBoolLR(this.childTypes, i, -1);
+          let after = findBoolLR(this.childTypes, i, 1);
 
           if (before % 8 !== 0) {
             throw new Error('expected before bool number mod 8 === 0');
@@ -682,7 +670,7 @@ export class TupleType implements Type {
           i += after;
           iterIndex += 1;
         } else {
-          const currLen = tupleType.ByteLen();
+          const currLen = tupleType.byteLen();
           valuePartition.push(byteString.slice(iterIndex, iterIndex + currLen));
           iterIndex += currLen;
         }
@@ -722,7 +710,7 @@ export class TupleType implements Type {
     let segIndex = 0;
     // eslint-disable-next-line no-shadow
     for (let i = 0; i < tupleTypes.length; i++) {
-      if (tupleTypes[i].IsDynamic()) {
+      if (tupleTypes[i].isDynamic()) {
         valuePartition[i] = byteString.slice(
           dynamicSegments[segIndex].left,
           dynamicSegments[segIndex].right
@@ -735,35 +723,13 @@ export class TupleType implements Type {
     const returnValues: ABIValue[] = [];
     // eslint-disable-next-line no-shadow
     for (let i = 0; i < tupleTypes.length; i++) {
-      const valueTi = tupleTypes[i].Decode(valuePartition[i]);
+      const valueTi = tupleTypes[i].decode(valuePartition[i]);
       returnValues.push(valueTi);
     }
     return returnValues;
   }
 
-  // Assume that the current index on the list of type is an ABI bool type.
-  // It returns the difference between the current index and the index of the furthest consecutive Bool type.
-  static findBoolLR(typeList: Type[], index: number, delta: -1 | 1): number {
-    let until = 0;
-    while (true) {
-      const curr = index + delta * until;
-      if (typeList[curr].constructor === BoolType) {
-        if (curr !== typeList.length - 1 && delta === 1) {
-          until += 1;
-        } else if (curr > 0 && delta === -1) {
-          until += 1;
-        } else {
-          break;
-        }
-      } else {
-        until -= 1;
-        break;
-      }
-    }
-    return until;
-  }
-
-  static parseTupleContent(str: String): String[] {
+  static parseTupleContent(str: string): string[] {
     if (str.length === 0) {
       return [];
     }
@@ -800,26 +766,46 @@ export class TupleType implements Type {
     }
     return tupleStrings;
   }
+}
 
-  // compressMultipleBool compresses consecutive bool values into a byte in ABI tuple / array value.
-  static compressMultipleBool(valueList: ABIValue[]): number {
-    let res = 0;
-    if (valueList.length > 8) {
-      throw new Error(
-        'value list passed in should be no greater than length 8'
-      );
-    }
-    for (let i = 0; i < valueList.length; i++) {
-      const boolVal = valueList[i];
-      if (typeof boolVal !== 'boolean') {
-        throw new Error('non-boolean values cannot be compressed into a byte');
-      }
-      if (boolVal) {
-        res |= 1 << (7 - i);
-      }
-    }
-    return res;
+// compressMultipleBool compresses consecutive bool values into a byte in ABI tuple / array value.
+function compressMultipleBool(valueList: ABIValue[]): number {
+  let res = 0;
+  if (valueList.length > 8) {
+    throw new Error('value list passed in should be no greater than length 8');
   }
+  for (let i = 0; i < valueList.length; i++) {
+    const boolVal = valueList[i];
+    if (typeof boolVal !== 'boolean') {
+      throw new Error('non-boolean values cannot be compressed into a byte');
+    }
+    if (boolVal) {
+      res |= 1 << (7 - i);
+    }
+  }
+  return res;
+}
+
+// Assume that the current index on the list of type is an ABI bool type.
+// It returns the difference between the current index and the index of the furthest consecutive Bool type.
+function findBoolLR(typeList: Type[], index: number, delta: -1 | 1): number {
+  let until = 0;
+  while (true) {
+    const curr = index + delta * until;
+    if (typeList[curr].constructor === BoolType) {
+      if (curr !== typeList.length - 1 && delta === 1) {
+        until += 1;
+      } else if (curr > 0 && delta === -1) {
+        until += 1;
+      } else {
+        break;
+      }
+    } else {
+      until -= 1;
+      break;
+    }
+  }
+  return until;
 }
 
 // Convert a BigInt to a big-endian Uint8Array for encoding.
