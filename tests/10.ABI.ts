@@ -11,7 +11,7 @@ import {
   UintType,
   Type,
 } from '../src/abi/abi_type';
-import algosdk from '..';
+import { decodeAddress } from '../src/encoding/address';
 
 describe('ABI type checking', () => {
   it('should create the correct type from the string', () => {
@@ -213,7 +213,7 @@ describe('ABI encoding', () => {
         new AddressType().encode(
           'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
         ),
-        algosdk.decodeAddress(
+        decodeAddress(
           'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
         ).publicKey,
       ],
@@ -417,7 +417,7 @@ describe('ABI encoding', () => {
       [new UfixedType(32, 10).decode(new Uint8Array([0, 0, 0, 33])), 33n],
       [
         new AddressType().decode(
-          algosdk.decodeAddress(
+          decodeAddress(
             'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
           ).publicKey
         ),
