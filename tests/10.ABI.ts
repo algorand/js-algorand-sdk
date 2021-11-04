@@ -220,13 +220,13 @@ describe('ABI type checking', () => {
 describe('ABI encoding', () => {
   it('should encode the value correctly into bytes', () => {
     const testCases = [
-      [new ABIUintType(8).encode(0n), new Uint8Array([0])],
-      [new ABIUintType(16).encode(3n), new Uint8Array([0, 3])],
+      [new ABIUintType(8).encode(BigInt(0)), new Uint8Array([0])],
+      [new ABIUintType(16).encode(BigInt(3)), new Uint8Array([0, 3])],
       [
         new ABIUintType(64).encode(256),
         new Uint8Array([0, 0, 0, 0, 0, 0, 1, 0]),
       ],
-      [new ABIUfixedType(8, 30).encode(255n), new Uint8Array([255])],
+      [new ABIUfixedType(8, 30).encode(BigInt(255)), new Uint8Array([255])],
       [new ABIUfixedType(32, 10).encode(33), new Uint8Array([0, 0, 0, 33])],
       [
         new ABIAddressType().encode(
@@ -434,14 +434,17 @@ describe('ABI encoding', () => {
 
   it('should decode the value correctly into bytes', () => {
     const testCases = [
-      [new ABIUintType(8).decode(new Uint8Array([0])), 0n],
-      [new ABIUintType(16).decode(new Uint8Array([0, 3])), 3n],
+      [new ABIUintType(8).decode(new Uint8Array([0])), BigInt(0)],
+      [new ABIUintType(16).decode(new Uint8Array([0, 3])), BigInt(3)],
       [
         new ABIUintType(64).decode(new Uint8Array([1, 0, 0, 0, 0, 0, 0, 0])),
         BigInt(2 ** 56),
       ],
-      [new ABIUfixedType(8, 30).decode(new Uint8Array([255])), 255n],
-      [new ABIUfixedType(32, 10).decode(new Uint8Array([0, 0, 0, 33])), 33n],
+      [new ABIUfixedType(8, 30).decode(new Uint8Array([255])), BigInt(255)],
+      [
+        new ABIUfixedType(32, 10).decode(new Uint8Array([0, 0, 0, 33])),
+        BigInt(33),
+      ],
       [
         new ABIAddressType().decode(
           decodeAddress(

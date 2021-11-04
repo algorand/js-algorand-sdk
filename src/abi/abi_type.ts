@@ -213,7 +213,7 @@ export class ABIUfixedType extends ABIType {
     if (
       (typeof value !== 'bigint' && typeof value !== 'number') ||
       value >= BigInt(2 ** this.bitSize) ||
-      value < 0n
+      value < BigInt(0)
     ) {
       throw new Error(
         `${value} is not a non-negative int or too big to fit in size ufixed${this.bitSize}`
