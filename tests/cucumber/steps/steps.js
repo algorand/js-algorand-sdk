@@ -984,6 +984,7 @@ module.exports = function getSteps(options) {
         genesisHash: result.genesishashb64,
         genesisID: result.genesisID,
       };
+      this.lastRound = result.lastRound;
 
       if (type === 'online') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
