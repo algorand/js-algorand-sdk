@@ -24,10 +24,10 @@ export function bigIntToBytes(bi: bigint | number, size: number) {
  * @returns The bigint that was encoded in the input data.
  */
 export function bytesToBigInt(bytes: Uint8Array) {
-  let res = 0n;
+  let res = BigInt(0);
   const buf = Buffer.from(bytes);
   for (let i = 0; i < bytes.length; i++) {
-    res = BigInt(Number(buf.readUIntBE(i, 1))) + res * 256n;
+    res = BigInt(Number(buf.readUIntBE(i, 1))) + res * BigInt(256);
   }
   return res;
 }
