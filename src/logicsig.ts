@@ -2,7 +2,7 @@ import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as logic from './logic/logic';
-import * as multisig from './multisig';
+import { verifyMultisig } from './multisig';
 import * as utils from './utils/utils';
 import * as txnBuilder from './transaction';
 import {
@@ -109,7 +109,7 @@ export class LogicSig implements LogicSigStorageStructure {
       return nacl.verify(toBeSigned, this.sig, publicKey);
     }
 
-    return multisig.verifyMultisig(toBeSigned, this.msig, publicKey);
+    return verifyMultisig(toBeSigned, this.msig, publicKey);
   }
 
   /**
