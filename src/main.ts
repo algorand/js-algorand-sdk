@@ -158,6 +158,7 @@ export {
 } from './logicsig';
 export {
   signMultisigTransaction,
+  mergeMultisigTransactions,
   appendSignMultisigTransaction,
   multisigAddress,
 } from './multisig';
