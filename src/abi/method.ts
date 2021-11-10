@@ -1,7 +1,10 @@
 import { genericHash } from '../nacl/naclWrappers';
+import { TransactionType } from '../types/transactions/base';
 import { ABIType, ABITupleType } from './abi_type';
 
-const transactionTypes = ['pay', 'keyreg', 'acfg', 'axfer', 'afrz', 'appl'];
+export function abiTypeIsTransaction(type: string): boolean {
+  return Object.keys(TransactionType).includes(type);
+}
 
 function parseMethodSignature(
   signature: string
@@ -56,7 +59,7 @@ export class ABIMethod {
   txnCount(): number {
     let count = 1;
     for (const arg of this.args) {
-      if (transactionTypes.includes(arg.type)) {
+      if (abiTypeIsTransaction(arg.type)) {
         count += 1;
       }
     }
@@ -68,7 +71,7 @@ export class ABIMethod {
 
     // ensure each arg and return type is valid
     args.forEach((arg) => {
-      if (!transactionTypes.includes(arg)) {
+      if (!abiTypeIsTransaction(arg)) {
         ABIType.from(arg);
       }
     });

@@ -1,7 +1,6 @@
 /**
  * Configure how integers in JSON response will be decoded.
  */
-/* eslint-disable no-unused-vars,no-shadow */
 enum IntDecoding {
   /**
    * All integers will be decoded as Numbers, meaning any values greater than
@@ -26,6 +25,5 @@ enum IntDecoding {
    */
   BIGINT = 'bigint',
 }
-/* eslint-enable no-unused-vars,no-shadow */
 
 export default IntDecoding;
