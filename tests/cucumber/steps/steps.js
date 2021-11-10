@@ -4242,11 +4242,12 @@ module.exports = function getSteps(options) {
       const fundingResponse = await this.v2Client
         .sendRawTransaction(stxKmd)
         .do();
-      await this.v2Client.statusAfterBlock(sp.firstRound + 2).do();
-      const fundingConfirmation = await this.acl.transactionById(
-        fundingResponse.txId
+      const info = await algosdk.waitForConfirmation(
+        this.v2Client,
+        fundingResponse.txId,
+        2
       );
-      assert.deepStrictEqual(true, 'type' in fundingConfirmation);
+      assert.ok(info['confirmed-round'] > 0);
     }
   );
 
@@ -4358,10 +4359,12 @@ module.exports = function getSteps(options) {
   );
 
   Given('I wait for the transaction to be confirmed.', async function () {
-    const sp = await this.v2Client.getTransactionParams().do();
-    await this.v2Client.statusAfterBlock(sp.firstRound + 2).do();
-    const confirmation = await this.acl.transactionById(this.appTxid.txId);
-    assert.deepStrictEqual(true, 'type' in confirmation);
+    const info = await algosdk.waitForConfirmation(
+      this.v2Client,
+      this.appTxid.txId,
+      2
+    );
+    assert.ok(info['confirmed-round'] > 0);
   });
 
   Given('I remember the new application ID.', async function () {
