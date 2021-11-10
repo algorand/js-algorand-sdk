@@ -445,7 +445,7 @@ export class ApplicationParams extends BaseModel {
   public globalState?: TealKeyValue[];
 
   /**
-   * [\lsch) global schema
+   * [\gsch) global schema
    */
   public globalStateSchema?: ApplicationStateSchema;
 
@@ -462,7 +462,7 @@ export class ApplicationParams extends BaseModel {
    * parameters and global state for this application can be found.
    * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
    * @param globalState - [\gs) global schema
-   * @param globalStateSchema - [\lsch) global schema
+   * @param globalStateSchema - [\gsch) global schema
    * @param localStateSchema - [\lsch) local schema
    */
   constructor({
@@ -1244,6 +1244,11 @@ export class DryrunTxnResult extends BaseModel {
   public appCallTrace?: DryrunState[];
 
   /**
+   * Execution cost of app call transaction
+   */
+  public cost?: number | bigint;
+
+  /**
    * Application state delta.
    */
   public globalDelta?: EvalDeltaKeyValue[];
@@ -1254,13 +1259,14 @@ export class DryrunTxnResult extends BaseModel {
 
   public logicSigTrace?: DryrunState[];
 
-  public logs?: LogItem[];
+  public logs?: Uint8Array[];
 
   /**
    * Creates a new `DryrunTxnResult` object.
    * @param disassembly - Disassembled program line by line.
    * @param appCallMessages -
    * @param appCallTrace -
+   * @param cost - Execution cost of app call transaction
    * @param globalDelta - Application state delta.
    * @param localDeltas -
    * @param logicSigMessages -
@@ -1271,6 +1277,7 @@ export class DryrunTxnResult extends BaseModel {
     disassembly,
     appCallMessages,
     appCallTrace,
+    cost,
     globalDelta,
     localDeltas,
     logicSigMessages,
@@ -1280,16 +1287,18 @@ export class DryrunTxnResult extends BaseModel {
     disassembly: string[];
     appCallMessages?: string[];
     appCallTrace?: DryrunState[];
+    cost?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigMessages?: string[];
     logicSigTrace?: DryrunState[];
-    logs?: LogItem[];
+    logs?: Uint8Array[];
   }) {
     super();
     this.disassembly = disassembly;
     this.appCallMessages = appCallMessages;
     this.appCallTrace = appCallTrace;
+    this.cost = cost;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigMessages = logicSigMessages;
@@ -1300,6 +1309,7 @@ export class DryrunTxnResult extends BaseModel {
       disassembly: 'disassembly',
       appCallMessages: 'app-call-messages',
       appCallTrace: 'app-call-trace',
+      cost: 'cost',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',
       logicSigMessages: 'logic-sig-messages',
@@ -1396,37 +1406,6 @@ export class EvalDeltaKeyValue extends BaseModel {
 
     this.attribute_map = {
       key: 'key',
-      value: 'value',
-    };
-  }
-}
-
-/**
- * Application Log
- */
-export class LogItem extends BaseModel {
-  /**
-   * unique application identifier
-   */
-  public id: number | bigint;
-
-  /**
-   * base64 encoded log message
-   */
-  public value: string;
-
-  /**
-   * Creates a new `LogItem` object.
-   * @param id - unique application identifier
-   * @param value - base64 encoded log message
-   */
-  constructor(id: number | bigint, value: string) {
-    super();
-    this.id = id;
-    this.value = value;
-
-    this.attribute_map = {
-      id: 'id',
       value: 'value',
     };
   }
@@ -1612,14 +1591,8 @@ export class NodeStatusResponse extends BaseModel {
 }
 
 /**
- * Given a transaction id of a recently submitted transaction, it returns
- * information about it. There are several cases when this might succeed:
- * - transaction committed (committed round > 0)
- * - transaction still in the pool (committed round = 0, pool error = "")
- * - transaction removed from pool due to error (committed round = 0, pool error !=
- * "")
- * Or the transaction may have happened sufficiently long ago that the node no
- * longer remembers it, and this will return an error.
+ * Details about a pending transaction. If the transaction was recently confirmed,
+ * includes confirmation details like the round and reward details.
  */
 export class PendingTransactionResponse extends BaseModel {
   /**
@@ -1672,6 +1645,11 @@ export class PendingTransactionResponse extends BaseModel {
   public globalStateDelta?: EvalDeltaKeyValue[];
 
   /**
+   * Inner transactions produced by application execution.
+   */
+  public innerTxns?: PendingTransactionResponse[];
+
+  /**
    * (ld) Local state key/value changes for the application being executed by this
    * transaction.
    */
@@ -1680,7 +1658,7 @@ export class PendingTransactionResponse extends BaseModel {
   /**
    * (lg) Logs for the application being executed by this transaction.
    */
-  public logs?: LogItem[];
+  public logs?: Uint8Array[];
 
   /**
    * Rewards in microalgos applied to the receiver account.
@@ -1707,6 +1685,7 @@ export class PendingTransactionResponse extends BaseModel {
    * @param confirmedRound - The round where this transaction was confirmed, if present.
    * @param globalStateDelta - (gd) Global state key/value changes for the application being executed by this
    * transaction.
+   * @param innerTxns - Inner transactions produced by application execution.
    * @param localStateDelta - (ld) Local state key/value changes for the application being executed by this
    * transaction.
    * @param logs - (lg) Logs for the application being executed by this transaction.
@@ -1723,6 +1702,7 @@ export class PendingTransactionResponse extends BaseModel {
     closingAmount,
     confirmedRound,
     globalStateDelta,
+    innerTxns,
     localStateDelta,
     logs,
     receiverRewards,
@@ -1737,8 +1717,9 @@ export class PendingTransactionResponse extends BaseModel {
     closingAmount?: number | bigint;
     confirmedRound?: number | bigint;
     globalStateDelta?: EvalDeltaKeyValue[];
+    innerTxns?: PendingTransactionResponse[];
     localStateDelta?: AccountStateDelta[];
-    logs?: LogItem[];
+    logs?: Uint8Array[];
     receiverRewards?: number | bigint;
     senderRewards?: number | bigint;
   }) {
@@ -1752,6 +1733,7 @@ export class PendingTransactionResponse extends BaseModel {
     this.closingAmount = closingAmount;
     this.confirmedRound = confirmedRound;
     this.globalStateDelta = globalStateDelta;
+    this.innerTxns = innerTxns;
     this.localStateDelta = localStateDelta;
     this.logs = logs;
     this.receiverRewards = receiverRewards;
@@ -1767,6 +1749,7 @@ export class PendingTransactionResponse extends BaseModel {
       closingAmount: 'closing-amount',
       confirmedRound: 'confirmed-round',
       globalStateDelta: 'global-state-delta',
+      innerTxns: 'inner-txns',
       localStateDelta: 'local-state-delta',
       logs: 'logs',
       receiverRewards: 'receiver-rewards',
@@ -1959,7 +1942,7 @@ export class TealKeyValue extends BaseModel {
  */
 export class TealValue extends BaseModel {
   /**
-   * (tt) value type.
+   * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
   public type: number | bigint;
 
@@ -1975,7 +1958,7 @@ export class TealValue extends BaseModel {
 
   /**
    * Creates a new `TealValue` object.
-   * @param type - (tt) value type.
+   * @param type - (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
    * @param bytes - (tb) bytes value.
    * @param uint - (ui) uint value.
    */

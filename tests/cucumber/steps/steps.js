@@ -2472,6 +2472,21 @@ module.exports = function getSteps(options) {
   );
 
   When(
+    'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
+    async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
+      await this.indexerClient
+        .lookupApplicationLogs(appID)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .nextToken(nextToken)
+        .sender(sender)
+        .txid(txID)
+        .do();
+    }
+  );
+
+  When(
     'we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}',
     async function (
       assetIndex,
