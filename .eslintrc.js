@@ -23,6 +23,7 @@ module.exports = {
         ts: 'never',
       },
     ],
+    'import/prefer-default-export': 'off',
     'lines-between-class-members': [
       'error',
       'always',
