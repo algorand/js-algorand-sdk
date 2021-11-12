@@ -10,14 +10,14 @@ function parseMethodSignature(
   signature: string
 ): { name: string; args: string[]; returns: string } {
   const argsStart = signature.indexOf('(');
-  const argsEnd = signature.lastIndexOf(')');
+  const argsEnd = signature.lastIndexOf(')'); // TODO: this fails when the return type is a tuple...
 
   if (argsStart === -1 || argsEnd === -1) {
     throw new Error(`Invalid method signature: ${signature}`);
   }
 
   return {
-    name: signature.slice(argsStart),
+    name: signature.slice(0, argsStart),
     args: ABITupleType.parseTupleContent(
       signature.slice(argsStart + 1, argsEnd)
     ),

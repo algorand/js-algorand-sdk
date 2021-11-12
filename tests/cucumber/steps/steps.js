@@ -4476,6 +4476,159 @@ module.exports = function getSteps(options) {
     assert.strictEqual(!('fee' in txn), true);
   });
 
+  When(
+    'I create the Method object from method signature {string}',
+    function (signature) {
+      this.method = algosdk.ABIMethod.fromSignature(signature);
+    }
+  );
+
+  When(
+    'I create the Method object with name {string} first argument type {string} second argument type {string} and return type {string}',
+    function (name, firstArgType, secondArgType, returnType) {
+      this.method = new algosdk.ABIMethod({
+        name,
+        args: [
+          {
+            type: firstArgType,
+          },
+          {
+            type: secondArgType,
+          },
+        ],
+        returns: { type: returnType },
+      });
+    }
+  );
+
+  When(
+    'I create the Method object with name {string} first argument name {string} first argument type {string} second argument name {string} second argument type {string} and return type {string}',
+    function (
+      name,
+      firstArgName,
+      firstArgType,
+      secondArgName,
+      secondArgType,
+      returnType
+    ) {
+      this.method = new algosdk.ABIMethod({
+        name,
+        args: [
+          { name: firstArgName, type: firstArgType },
+          { name: secondArgName, type: secondArgType },
+        ],
+        returns: { type: returnType },
+      });
+    }
+  );
+
+  When(
+    'I create the Method object with name {string} method description {string} first argument type {string} first argument description {string} second argument type {string} second argument description {string} and return type {string}',
+    function (
+      name,
+      methodDesc,
+      firstArgType,
+      firstArgDesc,
+      secondArgType,
+      secondArgDesc,
+      returnType
+    ) {
+      this.method = new algosdk.ABIMethod({
+        name,
+        desc: methodDesc,
+        args: [
+          { type: firstArgType, desc: firstArgDesc },
+          { type: secondArgType, desc: secondArgDesc },
+        ],
+        returns: { type: returnType },
+      });
+    }
+  );
+
+  When('I serialize the Method object into json', function () {
+    this.json = JSON.stringify(this.method);
+  });
+
+  Then(
+    'the method selector should be {string}',
+    function (expectedSelectorHex) {
+      const actualSelector = this.method.getSelector();
+      const expectedSelector = makeUint8Array(
+        Buffer.from(expectedSelectorHex, 'hex')
+      );
+      assert.deepStrictEqual(actualSelector, expectedSelector);
+    }
+  );
+
+  Then('the txn count should be {int}', function (expectedCount) {
+    const actualCount = this.method.txnCount();
+    assert.strictEqual(actualCount, parseInt(expectedCount));
+  });
+
+  Then(
+    'the deserialized json should equal the original Method object',
+    function () {
+      const deserializedMethod = new algosdk.ABIMethod(JSON.parse(this.json));
+      assert.deepStrictEqual(deserializedMethod, this.method);
+    }
+  );
+
+  When(
+    'I create an Interface object from the Method object with name {string}',
+    function (name) {
+      this.interface = new algosdk.ABIInterface({
+        name,
+        methods: [this.method],
+      });
+    }
+  );
+
+  When('I serialize the Interface object into json', function () {
+    this.json = JSON.stringify(this.interface);
+  });
+
+  Then(
+    'the deserialized json should equal the original Interface object',
+    function () {
+      const deserializedInterface = new algosdk.ABIInterface(
+        JSON.parse(this.json)
+      );
+      assert.deepStrictEqual(deserializedInterface, this.interface);
+    }
+  );
+
+  When(
+    'I create a Contract object from the Method object with name {string} and appId {int}',
+    function (name, appId) {
+      this.contract = new algosdk.ABIContract({
+        name,
+        app_id: parseInt(appId),
+        methods: [this.method],
+      });
+    }
+  );
+
+  When('I serialize the Contract object into json', function () {
+    this.json = JSON.stringify(this.contract);
+  });
+
+  Then(
+    'the deserialized json should equal the original Contract object',
+    function () {
+      const deserializedContract = new algosdk.ABIInterface(
+        JSON.parse(this.json)
+      );
+      assert.deepStrictEqual(deserializedContract, this.contract);
+    }
+  );
+
+  Then(
+    'the produced json should equal {string} loaded from {string}',
+    function (expectedJson) {
+      assert.deepStrictEqual(this.json, expectedJson);
+    }
+  );
+
   if (!options.ignoreReturn) {
     return steps;
   }

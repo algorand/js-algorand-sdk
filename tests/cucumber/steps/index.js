@@ -224,6 +224,14 @@ const corsHeaders = {
   'Access-Control-Max-Age': 2592000,
 };
 
+function getUnitTestFileContentsAsString(fileName, directory) {
+  return fs
+    .readFileSync(
+      path.join(cucumberPath, 'features', 'unit', directory, fileName)
+    )
+    .toString();
+}
+
 function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
   const resultString = fs
     .readFileSync(
@@ -452,6 +460,13 @@ for (const name of Object.keys(steps.then)) {
         indexerSeenRequests,
         expectedRequestPath
       );
+    });
+  } else if (
+    name === 'the produced json should equal {string} loaded from {string}'
+  ) {
+    Then(name, function (fileName, directory) {
+      const expectedJson = getUnitTestFileContentsAsString(fileName, directory);
+      return fn.call(this, expectedJson);
     });
   } else {
     Then(name, fn);
