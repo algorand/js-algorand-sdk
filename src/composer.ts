@@ -5,7 +5,7 @@ import {
   ABIMethod,
   abiTypeIsTransaction,
 } from './abi';
-import { decodeSignedTransaction } from './transaction';
+import { Transaction, decodeSignedTransaction } from './transaction';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
 import { assignGroupID } from './group';
 import { waitForConfirmation } from './wait';
@@ -89,8 +89,11 @@ export class AtomicTransactionComposer {
   clone(): AtomicTransactionComposer {
     const theClone = new AtomicTransactionComposer();
 
-    // TODO: deep copy the transactions
-    theClone.transactions = this.transactions.map((txn) => txn);
+    theClone.transactions = this.transactions.map(({ txn, signer }) => ({
+      // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
+      txn: Transaction.from_obj_for_encoding(txn.get_obj_for_encoding()),
+      signer,
+    }));
     theClone.methodCalls = new Map(this.methodCalls);
     theClone.signedTxns = this.signedTxns.slice();
     theClone.txIDs = this.txIDs.slice();
