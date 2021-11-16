@@ -3970,7 +3970,12 @@ module.exports = function getSteps(options) {
   Given(
     'a signing account with address {string} and mnemonic {string}',
     function (address, mnemonic) {
-      this.signingMnemonic = mnemonic;
+      this.signingAccount = algosdk.mnemonicToSecretKey(mnemonic);
+      if (this.signingAccount.addr !== address) {
+        throw new Error(
+          `Address does not match mnemonic: ${this.signingAccount.addr} !== ${address}`
+        );
+      }
     }
   );
 
@@ -3990,6 +3995,13 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Given(
+    'suggested transaction parameters from the algod v2 client',
+    async function () {
+      this.suggestedParams = await this.v2Client.getTransactionParams().do();
+    }
+  );
+
   When(
     'I build a payment transaction with sender {string}, receiver {string}, amount {int}, close remainder to {string}',
     function (sender, receiver, amount, closeTo) {
@@ -4005,6 +4017,8 @@ module.exports = function getSteps(options) {
 
   function operationStringToEnum(inString) {
     switch (inString) {
+      case 'noop':
+        return algosdk.OnApplicationComplete.NoOpOC;
       case 'call':
         return algosdk.OnApplicationComplete.NoOpOC;
       case 'create':
@@ -4225,8 +4239,7 @@ module.exports = function getSteps(options) {
   );
 
   When('sign the transaction', function () {
-    const result = algosdk.mnemonicToSecretKey(this.signingMnemonic);
-    this.stx = this.txn.signTxn(result.sk);
+    this.stx = this.txn.signTxn(this.signingAccount.sk);
   });
 
   Then(
@@ -4248,8 +4261,8 @@ module.exports = function getSteps(options) {
   });
 
   Given(
-    'an algod v{int} client connected to {string} port {int} with token {string}',
-    function (clientVersion, host, port, token) {
+    'an algod v2 client connected to {string} port {int} with token {string}',
+    function (host, port, token) {
       let mutableHost = host;
 
       if (!mutableHost.startsWith('http')) {
@@ -4262,14 +4275,13 @@ module.exports = function getSteps(options) {
   Given(
     'I create a new transient account and fund it with {int} microalgos.',
     async function (fundingAmount) {
-      const generatedResult = algosdk.generateAccount();
-      this.transientSecretKey = generatedResult.sk;
-      this.transientAddress = generatedResult.addr;
+      this.transientAccount = algosdk.generateAccount();
+
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
         from: this.accounts[0],
-        to: this.transientAddress,
+        to: this.transientAccount.addr,
         amount: fundingAmount,
         suggestedParams: sp,
       };
@@ -4358,7 +4370,7 @@ module.exports = function getSteps(options) {
       if (sp.firstRound === 0) sp.firstRound = 1;
       const o = {
         type: 'appl',
-        from: this.transientAddress,
+        from: this.transientAccount.addr,
         suggestedParams: sp,
         appIndex: this.currentApplicationIndex,
         appOnComplete: operation,
@@ -4382,7 +4394,7 @@ module.exports = function getSteps(options) {
     'I sign and submit the transaction, saving the txid. If there is an error it is {string}.',
     async function (errorString) {
       try {
-        const appStx = this.txn.signTxn(this.transientSecretKey);
+        const appStx = this.txn.signTxn(this.transientAccount.sk);
         this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
       } catch (err) {
         if (errorString !== '') {
@@ -4407,9 +4419,9 @@ module.exports = function getSteps(options) {
   });
 
   Given('I remember the new application ID.', async function () {
-    const infoResult = await this.acl.pendingTransactionInformation(
-      this.appTxid.txId
-    );
+    const infoResult = await this.v2Client
+      .pendingTransactionInformation(this.appTxid.txId)
+      .do();
     this.currentApplicationIndex = infoResult.txresults.createdapp;
   });
 
@@ -4425,7 +4437,7 @@ module.exports = function getSteps(options) {
       stateValue
     ) {
       const accountInfo = await this.v2Client
-        .accountInformation(this.transientAddress)
+        .accountInformation(this.transientAccount.addr)
         .do();
       const appTotalSchema = accountInfo['apps-total-schema'];
       assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
@@ -4666,6 +4678,213 @@ module.exports = function getSteps(options) {
     function (expectedJson) {
       // compare parsed JSON to avoid differences between encoded field order
       assert.deepStrictEqual(JSON.parse(this.json), JSON.parse(expectedJson));
+    }
+  );
+
+  Given('a new AtomicTransactionComposer', function () {
+    this.composer = new algosdk.AtomicTransactionComposer();
+  });
+
+  Given('an application id {int}', function (appId) {
+    this.currentApplicationIndex = parseInt(appId, 10);
+  });
+
+  When('I make a transaction signer for the signing account.', function () {
+    this.transactionSigner = algosdk.makeBasicAccountTransactionSigner(
+      this.signingAccount
+    );
+  });
+
+  When('I make a transaction signer for the transient account.', function () {
+    this.transactionSigner = algosdk.makeBasicAccountTransactionSigner(
+      this.transientAccount
+    );
+  });
+
+  When(
+    'I create a transaction with signer with the current transaction.',
+    function () {
+      this.transactionWithSigner = {
+        txn: this.txn,
+        signer: this.transactionSigner,
+      };
+    }
+  );
+
+  When('I create a new method arguments array.', function () {
+    this.encodedMethodArguments = [];
+  });
+
+  When(
+    'I append the encoded arguments {string} to the method arguments array.',
+    function (commaSeparatedB64Args) {
+      if (commaSeparatedB64Args.length === 0) {
+        return;
+      }
+
+      const args = commaSeparatedB64Args
+        .split(',')
+        .map((b64Arg) => makeUint8Array(Buffer.from(b64Arg, 'base64')));
+      this.encodedMethodArguments.push(...args);
+    }
+  );
+
+  When(
+    'I append the current transaction with signer to the method arguments array.',
+    function () {
+      this.encodedMethodArguments.push(this.transactionWithSigner);
+    }
+  );
+
+  function addMethodCallToComposer(sender, onComplete) {
+    const methodArgs = [];
+
+    assert.strictEqual(
+      this.encodedMethodArguments.length,
+      this.method.args.length
+    );
+
+    for (let i = 0; i < this.method.args.length; i++) {
+      const argSpec = this.method.args[i];
+      const encodedArg = this.encodedMethodArguments[i];
+
+      let preparedArg = encodedArg;
+
+      if (typeof argSpec.type !== 'string') {
+        // the argument is an encoded ABI value
+        preparedArg = argSpec.type.decode(encodedArg);
+      }
+
+      methodArgs.push(preparedArg);
+    }
+
+    this.composer.addMethodCall({
+      appID: this.currentApplicationIndex,
+      method: this.method,
+      methodArgs,
+      sender,
+      suggestedParams: this.suggestedParams,
+      onComplete: operationStringToEnum(onComplete),
+      signer: this.transactionSigner,
+    });
+  }
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
+    function (onComplete) {
+      addMethodCallToComposer(this.transientAccount.addr, onComplete);
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
+    function (onComplete) {
+      addMethodCallToComposer(this.signingAccount.addr, onComplete);
+    }
+  );
+
+  When(
+    'I add the current transaction with signer to the composer.',
+    function () {
+      this.composer.addTransaction(this.transactionWithSigner);
+    }
+  );
+
+  When(
+    'I build the transaction group with the composer. If there is an error it is {string}.',
+    function (errorMsg) {
+      assert.strictEqual(errorMsg, ''); // error checking not yet implemented
+      this.composerBuiltGroup = this.composer.buildGroup();
+    }
+  );
+
+  Then('I clone the composer.', function () {
+    this.composer = this.composer.clone();
+  });
+
+  Then(
+    'The composer should have a status of {string}.',
+    function (expectedStatus) {
+      function statusStringToEnum(inString) {
+        switch (inString) {
+          case 'BUILDING':
+            return algosdk.AtomicTransactionComposerStatus.BUILDING;
+          case 'BUILT':
+            return algosdk.AtomicTransactionComposerStatus.BUILT;
+          case 'SIGNED':
+            return algosdk.AtomicTransactionComposerStatus.SIGNED;
+          case 'SUBMITTED':
+            return algosdk.AtomicTransactionComposerStatus.SUBMITTED;
+          case 'COMMITTED':
+            return algosdk.AtomicTransactionComposerStatus.COMMITTED;
+          default:
+            throw Error(
+              `did not recognize AtomicTransactionComposer status string ${inString}`
+            );
+        }
+      }
+
+      assert.strictEqual(
+        this.composer.getStatus(),
+        statusStringToEnum(expectedStatus)
+      );
+    }
+  );
+
+  Then('I gather signatures with the composer.', async function () {
+    this.composerSignedTransactions = await this.composer.gatherSignatures();
+  });
+
+  Then(
+    'the base64 encoded signed transactions should equal {string}',
+    function (commaSeparatedB64SignedTxns) {
+      const expectedSignedTxns = commaSeparatedB64SignedTxns
+        .split(',')
+        .map((b64SignedTxn) => Buffer.from(b64SignedTxn, 'base64'));
+
+      const actualSignedTxns = this.composerSignedTransactions.map(
+        (signedTxn) => Buffer.from(signedTxn)
+      );
+      assert.deepStrictEqual(actualSignedTxns, expectedSignedTxns);
+    }
+  );
+
+  Then(
+    'I execute the current transaction group with the composer.',
+    async function () {
+      this.composerExecuteResponse = await this.composer.execute(
+        this.v2Client,
+        4
+      );
+      assert.ok(this.composerExecuteResponse.confirmedRound > 0);
+    }
+  );
+
+  Then(
+    'The app should have returned {string}.',
+    function (base64ExpectedReturnValue) {
+      const { methodResults } = this.composerExecuteResponse;
+      assert.strictEqual(methodResults.length, 1);
+
+      const actualResult = methodResults[0];
+      const expectedReturnValue = Buffer.from(
+        base64ExpectedReturnValue,
+        'base64'
+      );
+
+      assert.ok(actualResult.decodeError == null);
+      assert.deepStrictEqual(
+        Buffer.from(actualResult.rawReturnValue),
+        expectedReturnValue
+      );
+
+      const returnType = this.method.returns.type;
+      assert.ok(typeof returnType !== 'string');
+
+      assert.deepStrictEqual(
+        actualResult.returnValue,
+        returnType.decode(expectedReturnValue)
+      );
     }
   );
 
