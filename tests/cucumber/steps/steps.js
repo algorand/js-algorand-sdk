@@ -4578,7 +4578,7 @@ module.exports = function getSteps(options) {
     function (name) {
       this.interface = new algosdk.ABIInterface({
         name,
-        methods: [this.method],
+        methods: [this.method.toJSON()],
       });
     }
   );
@@ -4602,8 +4602,8 @@ module.exports = function getSteps(options) {
     function (name, appId) {
       this.contract = new algosdk.ABIContract({
         name,
-        app_id: parseInt(appId),
-        methods: [this.method],
+        appId: parseInt(appId),
+        methods: [this.method.toJSON()],
       });
     }
   );
@@ -4615,7 +4615,7 @@ module.exports = function getSteps(options) {
   Then(
     'the deserialized json should equal the original Contract object',
     function () {
-      const deserializedContract = new algosdk.ABIInterface(
+      const deserializedContract = new algosdk.ABIContract(
         JSON.parse(this.json)
       );
       assert.deepStrictEqual(deserializedContract, this.contract);
@@ -4625,7 +4625,8 @@ module.exports = function getSteps(options) {
   Then(
     'the produced json should equal {string} loaded from {string}',
     function (expectedJson) {
-      assert.deepStrictEqual(this.json, expectedJson);
+      // compare parsed JSON to avoid differences between encoded field order
+      assert.deepStrictEqual(JSON.parse(this.json), JSON.parse(expectedJson));
     }
   );
 

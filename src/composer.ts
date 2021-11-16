@@ -20,7 +20,7 @@ import {
   SuggestedParams,
 } from './types/transactions/base';
 
-export type ABIMethodArgument = ABIValue | TransactionWithSigner;
+export type ABIArgument = ABIValue | TransactionWithSigner;
 
 /** Represents the output from a successful ABI method call. */
 export interface ABIResult {
@@ -151,7 +151,7 @@ export class AtomicTransactionComposer {
     /** The method to call on the smart contract */
     method: ABIMethod;
     /** The arguments to include in the method call. If omitted, no arguments will be passed to the method. */
-    methodArgs?: ABIMethodArgument[];
+    methodArgs?: ABIArgument[];
     /** The address of the sender of this application call */
     sender: string;
     /** Transactions params to use for this application call */
@@ -196,7 +196,10 @@ export class AtomicTransactionComposer {
       const argSpec = method.args[i];
       const argValue = methodArgs[i];
 
-      if (abiTypeIsTransaction(argSpec.type)) {
+      if (
+        typeof argSpec.type === 'string' &&
+        abiTypeIsTransaction(argSpec.type)
+      ) {
         if (
           !isTransactionWithSigner(argValue) ||
           argSpec.type !== argValue.txn.type
@@ -218,7 +221,7 @@ export class AtomicTransactionComposer {
         );
       }
 
-      appArgTypes.push(ABIType.from(argSpec.type));
+      appArgTypes.push(argSpec.type);
       appArgValues.push(argValue);
     }
 
@@ -437,7 +440,7 @@ export class AtomicTransactionComposer {
       };
 
       try {
-        if (method.returns) {
+        if (method.returns.type !== 'void') {
           const pendingInfo =
             txnIndex === firstMethodCallIndex
               ? confirmedTxnInfo
@@ -463,7 +466,7 @@ export class AtomicTransactionComposer {
             throw new Error('App call transaction did not log a return value');
           }
 
-          methodResult.returnValue = ABIType.from(method.returns.type).decode(
+          methodResult.returnValue = method.returns.type.decode(
             new Uint8Array(returnValueEncoded)
           );
         }

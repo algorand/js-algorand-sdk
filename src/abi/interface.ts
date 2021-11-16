@@ -10,7 +10,18 @@ export class ABIInterface {
   public readonly methods: ABIMethod[];
 
   constructor(params: ABIInterfaceParams) {
+    if (typeof params.name !== 'string' || !Array.isArray(params.methods)) {
+      throw new Error('Invalid ABIInterface parameters');
+    }
+
     this.name = params.name;
     this.methods = params.methods.map((method) => new ABIMethod(method));
+  }
+
+  toJSON(): ABIInterfaceParams {
+    return {
+      name: this.name,
+      methods: this.methods.map((method) => method.toJSON()),
+    };
   }
 }
