@@ -1392,7 +1392,7 @@ export function makeApplicationOptInTxn(
   appArgs?: AppOptInTxn['appArgs'],
   accounts?: AppOptInTxn['appAccounts'],
   foreignApps?: AppOptInTxn['appForeignApps'],
-  foreignAssets?: AppOptInTxn['appForeignApps'],
+  foreignAssets?: AppOptInTxn['appForeignAssets'],
   note?: AppOptInTxn['note'],
   lease?: AppOptInTxn['lease'],
   rekeyTo?: AppOptInTxn['reKeyTo']
