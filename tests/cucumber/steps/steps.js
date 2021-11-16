@@ -3974,6 +3974,35 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Given(
+    'suggested transaction parameters fee {int}, flat-fee {string}, first-valid {int}, last-valid {int}, genesis-hash {string}, genesis-id {string}',
+    function (fee, flatFee, firstRound, lastRound, genesisHash, genesisID) {
+      assert.ok(['true', 'false'].includes(flatFee));
+
+      this.suggestedParams = {
+        flatFee: flatFee === 'true',
+        fee,
+        firstRound,
+        lastRound,
+        genesisID,
+        genesisHash,
+      };
+    }
+  );
+
+  When(
+    'I build a payment transaction with sender {string}, receiver {string}, amount {int}, close remainder to {string}',
+    function (sender, receiver, amount, closeTo) {
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from: sender,
+        to: receiver,
+        amount: parseInt(amount, 10),
+        closeRemainderTo: closeTo.length === 0 ? undefined : closeTo,
+        suggestedParams: this.suggestedParams,
+      });
+    }
+  );
+
   function operationStringToEnum(inString) {
     switch (inString) {
       case 'call':
@@ -4201,12 +4230,22 @@ module.exports = function getSteps(options) {
   });
 
   Then(
-    'the base{int} encoded signed transaction should equal {string}',
-    function (base, base64golden) {
+    'the base64 encoded signed transaction should equal {string}',
+    function (base64golden) {
       const actualBase64 = Buffer.from(this.stx).toString('base64');
       assert.strictEqual(actualBase64, base64golden);
     }
   );
+
+  Then('the decoded transaction should equal the original', function () {
+    const decoded = algosdk.decodeSignedTransaction(this.stx);
+    // comparing the output of get_obj_for_encoding instead because the Transaction class instance
+    // may have some nonconsequential differences in internal representation
+    assert.deepStrictEqual(
+      decoded.txn.get_obj_for_encoding(),
+      this.txn.get_obj_for_encoding()
+    );
+  });
 
   Given(
     'an algod v{int} client connected to {string} port {int} with token {string}',
