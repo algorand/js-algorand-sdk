@@ -454,7 +454,7 @@ export class AtomicTransactionComposer {
           const logs: string[] = pendingInfo.logs || [];
 
           // first 4 bytes of SHA-512/256 hash of "return"
-          const returnPrefix = Uint8Array.from([21, 31, 124, 117]);
+          const returnPrefix = Buffer.from([21, 31, 124, 117]);
 
           let returnValueEncoded: Buffer | undefined;
 

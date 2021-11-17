@@ -4880,7 +4880,9 @@ module.exports = function getSteps(options) {
         'base64'
       );
 
-      assert.ok(actualResult.decodeError == null);
+      if (actualResult.decodeError) {
+        throw actualResult.decodeError;
+      }
       assert.deepStrictEqual(
         Buffer.from(actualResult.rawReturnValue),
         expectedReturnValue
