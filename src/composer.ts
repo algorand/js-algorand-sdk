@@ -139,7 +139,7 @@ export class AtomicTransactionComposer {
    * for the given method.
    */
   addMethodCall({
-    appID,
+    appId,
     method,
     methodArgs,
     sender,
@@ -151,7 +151,7 @@ export class AtomicTransactionComposer {
     signer,
   }: {
     /** The ID of the smart contract to call */
-    appID: number;
+    appId: number;
     /** The method to call on the smart contract */
     method: ABIMethod;
     /** The arguments to include in the method call. If omitted, no arguments will be passed to the method. */
@@ -245,14 +245,14 @@ export class AtomicTransactionComposer {
       appArgsEncoded.push(appArgTypes[i].encode(appArgValues[i]));
     }
 
-    if (appID === 0) {
+    if (appId === 0) {
       throw new Error('Application create call not supported');
     }
 
     const appCall = {
       txn: makeApplicationCallTxnFromObject({
         from: sender,
-        appIndex: appID,
+        appIndex: appId,
         appArgs: appArgsEncoded,
         onComplete:
           onComplete == null ? OnApplicationComplete.NoOpOC : onComplete,

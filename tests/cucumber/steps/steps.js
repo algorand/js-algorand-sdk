@@ -4791,7 +4791,7 @@ module.exports = function getSteps(options) {
     }
 
     this.composer.addMethodCall({
-      appID: this.currentApplicationIndex,
+      appId: this.currentApplicationIndex,
       method: this.method,
       methodArgs,
       sender,
