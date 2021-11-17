@@ -4772,14 +4772,18 @@ module.exports = function getSteps(options) {
   When(
     'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
     function (onComplete) {
-      addMethodCallToComposer(this.transientAccount.addr, onComplete);
+      addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete
+      );
     }
   );
 
   When(
     'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
     function (onComplete) {
-      addMethodCallToComposer(this.signingAccount.addr, onComplete);
+      addMethodCallToComposer.call(this, this.signingAccount.addr, onComplete);
     }
   );
 
