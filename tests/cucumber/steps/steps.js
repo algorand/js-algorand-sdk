@@ -36,21 +36,41 @@ async function loadResource(res) {
   });
 }
 
+// START OBJECT CREATION FUNCTIONS
+
 /**
- * This function must be used instead of creating Uint8Arrays directly because of this firefox
- * issue: https://github.com/mozilla/geckodriver/issues/1798
+ * If you wish to compare complex objects from different steps, these functions must be used instead
+ * of creating the objects directly. This is because of this firefox issue: https://github.com/mozilla/geckodriver/issues/1798
+ *
+ * If you get an assertion error on firefox that says 'Values identical but not reference-equal',
+ * you should probably use these functions or make new ones as needed.
  */
+
 function makeUint8Array(arg) {
   return new Uint8Array(arg);
 }
 
-/**
- * This function must be used instead of creating an empty object for use in assert.deepStructEqual
- * because of this firefox issue: https://github.com/mozilla/geckodriver/issues/1798
- */
-function makeEmptyObject() {
-  return {};
+function makeABIMethod(arg) {
+  return new algosdk.ABIMethod(arg);
 }
+
+function makeABIContract(arg) {
+  return new algosdk.ABIContract(arg);
+}
+
+function makeArray(...args) {
+  return args;
+}
+
+function makeObject(obj) {
+  return { ...obj };
+}
+
+function parseJSON(json) {
+  return JSON.parse(json);
+}
+
+// END OBJECT CREATION FUNCTIONS
 
 function formatIncludeAll(includeAll) {
   if (!['true', 'false'].includes(includeAll)) {
@@ -501,7 +521,7 @@ module.exports = function getSteps(options) {
 
   Then('the node should be healthy', async function () {
     const health = await this.acl.healthCheck();
-    assert.deepStrictEqual(health, makeEmptyObject());
+    assert.deepStrictEqual(health, makeObject({}));
   });
 
   Then('I get the ledger supply', async function () {
@@ -4541,18 +4561,20 @@ module.exports = function getSteps(options) {
   When(
     'I create the Method object with name {string} first argument type {string} second argument type {string} and return type {string}',
     function (name, firstArgType, secondArgType, returnType) {
-      this.method = new algosdk.ABIMethod({
-        name,
-        args: [
-          {
-            type: firstArgType,
-          },
-          {
-            type: secondArgType,
-          },
-        ],
-        returns: { type: returnType },
-      });
+      this.method = makeABIMethod(
+        makeObject({
+          name,
+          args: makeArray(
+            makeObject({
+              type: firstArgType,
+            }),
+            makeObject({
+              type: secondArgType,
+            })
+          ),
+          returns: makeObject({ type: returnType }),
+        })
+      );
     }
   );
 
@@ -4566,14 +4588,16 @@ module.exports = function getSteps(options) {
       secondArgType,
       returnType
     ) {
-      this.method = new algosdk.ABIMethod({
-        name,
-        args: [
-          { name: firstArgName, type: firstArgType },
-          { name: secondArgName, type: secondArgType },
-        ],
-        returns: { type: returnType },
-      });
+      this.method = makeABIMethod(
+        makeObject({
+          name,
+          args: makeArray(
+            makeObject({ name: firstArgName, type: firstArgType }),
+            makeObject({ name: secondArgName, type: secondArgType })
+          ),
+          returns: makeObject({ type: returnType }),
+        })
+      );
     }
   );
 
@@ -4588,15 +4612,17 @@ module.exports = function getSteps(options) {
       secondArgDesc,
       returnType
     ) {
-      this.method = new algosdk.ABIMethod({
-        name,
-        desc: methodDesc,
-        args: [
-          { type: firstArgType, desc: firstArgDesc },
-          { type: secondArgType, desc: secondArgDesc },
-        ],
-        returns: { type: returnType },
-      });
+      this.method = makeABIMethod(
+        makeObject({
+          name,
+          desc: methodDesc,
+          args: makeArray(
+            makeObject({ type: firstArgType, desc: firstArgDesc }),
+            makeObject({ type: secondArgType, desc: secondArgDesc })
+          ),
+          returns: makeObject({ type: returnType }),
+        })
+      );
     }
   );
 
@@ -4623,7 +4649,7 @@ module.exports = function getSteps(options) {
   Then(
     'the deserialized json should equal the original Method object',
     function () {
-      const deserializedMethod = new algosdk.ABIMethod(JSON.parse(this.json));
+      const deserializedMethod = makeABIMethod(parseJSON(this.json));
       assert.deepStrictEqual(deserializedMethod, this.method);
     }
   );
@@ -4631,10 +4657,12 @@ module.exports = function getSteps(options) {
   When(
     'I create an Interface object from the Method object with name {string}',
     function (name) {
-      this.interface = new algosdk.ABIInterface({
-        name,
-        methods: [this.method.toJSON()],
-      });
+      this.interface = new algosdk.ABIInterface(
+        makeObject({
+          name,
+          methods: makeArray(this.method.toJSON()),
+        })
+      );
     }
   );
 
@@ -4646,7 +4674,7 @@ module.exports = function getSteps(options) {
     'the deserialized json should equal the original Interface object',
     function () {
       const deserializedInterface = new algosdk.ABIInterface(
-        JSON.parse(this.json)
+        parseJSON(this.json)
       );
       assert.deepStrictEqual(deserializedInterface, this.interface);
     }
@@ -4655,11 +4683,13 @@ module.exports = function getSteps(options) {
   When(
     'I create a Contract object from the Method object with name {string} and appId {int}',
     function (name, appId) {
-      this.contract = new algosdk.ABIContract({
-        name,
-        appId: parseInt(appId),
-        methods: [this.method.toJSON()],
-      });
+      this.contract = makeABIContract(
+        makeObject({
+          name,
+          appId: parseInt(appId, 10),
+          methods: makeArray(this.method.toJSON()),
+        })
+      );
     }
   );
 
@@ -4670,9 +4700,7 @@ module.exports = function getSteps(options) {
   Then(
     'the deserialized json should equal the original Contract object',
     function () {
-      const deserializedContract = new algosdk.ABIContract(
-        JSON.parse(this.json)
-      );
+      const deserializedContract = makeABIContract(parseJSON(this.json));
       assert.deepStrictEqual(deserializedContract, this.contract);
     }
   );
