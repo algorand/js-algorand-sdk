@@ -4881,7 +4881,7 @@ module.exports = function getSteps(options) {
       const actualSignedTxns = this.composerSignedTransactions.map(
         (signedTxn) => Buffer.from(signedTxn)
       );
-      assert.deepStrictEqual(actualSignedTxns, expectedSignedTxns);
+      assert.deepStrictEqual([...actualSignedTxns], [...expectedSignedTxns]);
     }
   );
 
