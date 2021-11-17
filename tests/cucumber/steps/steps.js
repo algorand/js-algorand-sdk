@@ -4005,9 +4005,13 @@ module.exports = function getSteps(options) {
   When(
     'I build a payment transaction with sender {string}, receiver {string}, amount {int}, close remainder to {string}',
     function (sender, receiver, amount, closeTo) {
+      const from = sender === 'transient' ? this.transientAccount.addr : sender;
+      const to =
+        receiver === 'transient' ? this.transientAccount.addr : receiver;
+
       this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: sender,
-        to: receiver,
+        from,
+        to,
         amount: parseInt(amount, 10),
         closeRemainderTo: closeTo.length === 0 ? undefined : closeTo,
         suggestedParams: this.suggestedParams,
@@ -4419,10 +4423,10 @@ module.exports = function getSteps(options) {
   });
 
   Given('I remember the new application ID.', async function () {
-    const infoResult = await this.v2Client
+    const info = await this.v2Client
       .pendingTransactionInformation(this.appTxid.txId)
       .do();
-    this.currentApplicationIndex = infoResult.txresults.createdapp;
+    this.currentApplicationIndex = info['application-index'];
   });
 
   Then(
@@ -4883,7 +4887,10 @@ module.exports = function getSteps(options) {
       );
 
       const returnType = this.method.returns.type;
-      assert.ok(typeof returnType !== 'string');
+      if (returnType === 'void') {
+        assert.strictEqual(expectedReturnValue.byteLength, 0);
+        return;
+      }
 
       assert.deepStrictEqual(
         actualResult.returnValue,

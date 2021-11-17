@@ -91,7 +91,11 @@ export class AtomicTransactionComposer {
 
     theClone.transactions = this.transactions.map(({ txn, signer }) => ({
       // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
-      txn: Transaction.from_obj_for_encoding(txn.get_obj_for_encoding()),
+      txn: Transaction.from_obj_for_encoding({
+        ...txn.get_obj_for_encoding(),
+        // erase the group ID
+        grp: undefined,
+      }),
       signer,
     }));
     theClone.methodCalls = new Map(this.methodCalls);
@@ -466,8 +470,9 @@ export class AtomicTransactionComposer {
             throw new Error('App call transaction did not log a return value');
           }
 
+          methodResult.rawReturnValue = new Uint8Array(returnValueEncoded);
           methodResult.returnValue = method.returns.type.decode(
-            new Uint8Array(returnValueEncoded)
+            methodResult.rawReturnValue
           );
         }
       } catch (err) {
