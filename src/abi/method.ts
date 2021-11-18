@@ -3,7 +3,7 @@ import { TransactionType } from '../types/transactions/base';
 import { ABIType, ABITupleType } from './abi_type';
 
 export function abiTypeIsTransaction(type: string): type is TransactionType {
-  return Object.keys(TransactionType).includes(type);
+  return type === 'txn' || Object.keys(TransactionType).includes(type);
 }
 
 function parseMethodSignature(
