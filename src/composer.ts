@@ -280,6 +280,9 @@ export class AtomicTransactionComposer {
    */
   buildGroup(): TransactionWithSigner[] {
     if (this.status === AtomicTransactionComposerStatus.BUILDING) {
+      if (this.transactions.length === 0) {
+        throw new Error('Cannot build a group with 0 transactions');
+      }
       assignGroupID(
         this.transactions.map((txnWithSigner) => txnWithSigner.txn)
       );
