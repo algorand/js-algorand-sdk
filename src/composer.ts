@@ -186,6 +186,11 @@ export class AtomicTransactionComposer {
       );
     }
 
+    if (methodArgs == null) {
+      // eslint-disable-next-line no-param-reassign
+      methodArgs = [];
+    }
+
     if (methodArgs.length !== method.args.length) {
       throw new Error(
         `Incorrect number of method arguments. Expected ${method.args.length}, got ${methodArgs.length}`
