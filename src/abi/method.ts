@@ -22,6 +22,11 @@ function parseMethodSignature(
     if (char === '(') {
       depth += 1;
     } else if (char === ')') {
+      if (depth === 0) {
+        // unpaired parenthesis
+        break;
+      }
+
       depth -= 1;
       if (depth === 0) {
         argsEnd = i;
