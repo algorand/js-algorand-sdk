@@ -99,8 +99,6 @@ export class AtomicTransactionComposer {
       signer,
     }));
     theClone.methodCalls = new Map(this.methodCalls);
-    theClone.signedTxns = this.signedTxns.slice();
-    theClone.txIDs = this.txIDs.slice();
 
     return theClone;
   }
@@ -186,6 +184,10 @@ export class AtomicTransactionComposer {
       );
     }
 
+    if (appId === 0) {
+      throw new Error('Application create call not supported');
+    }
+
     if (methodArgs == null) {
       // eslint-disable-next-line no-param-reassign
       methodArgs = [];
@@ -248,10 +250,6 @@ export class AtomicTransactionComposer {
     const appArgsEncoded: Uint8Array[] = [method.getSelector()];
     for (let i = 0; i < appArgTypes.length; i++) {
       appArgsEncoded.push(appArgTypes[i].encode(appArgValues[i]));
-    }
-
-    if (appId === 0) {
-      throw new Error('Application create call not supported');
     }
 
     const appCall = {
