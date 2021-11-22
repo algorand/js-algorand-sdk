@@ -3,7 +3,7 @@ import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
 import * as utils from './utils/utils';
-import { EncodedTransaction } from './types/transactions';
+import AnyTransaction, { EncodedTransaction } from './types/transactions';
 import { MultisigMetadata } from './types/multisig';
 import {
   EncodedMultisig,
@@ -309,4 +309,98 @@ export function verifyMultisig(
   return true;
 }
 
-export default MultisigTransaction;
+/**
+ * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
+ * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
+ * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendMultisigTransaction.
+ * @param txn - object with either payment or key registration fields
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param sk - Algorand secret key. The corresponding pk should be in the pre image.
+ * @returns object containing txID, and blob of partially signed multisig transaction (with multisig preimage information)
+ * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ */
+export function signMultisigTransaction(
+  txn: txnBuilder.TransactionLike,
+  { version, threshold, addrs }: MultisigMetadata,
+  sk: Uint8Array
+) {
+  // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
+  const expectedFromRaw = address.fromMultisigPreImgAddrs({
+    version,
+    threshold,
+    addrs,
+  });
+  if (!Object.prototype.hasOwnProperty.call(txn, 'from')) {
+    // eslint-disable-next-line no-param-reassign
+    txn.from = expectedFromRaw;
+  }
+  // build pks for partialSign
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  // `txn` needs to be handled differently if it's a constructed `Transaction` vs a dict of constructor args
+  const txnAlreadyBuilt = txn instanceof txnBuilder.Transaction;
+  let algoTxn: MultisigTransaction;
+  let blob: Uint8Array;
+  if (txnAlreadyBuilt) {
+    algoTxn = (txn as unknown) as MultisigTransaction;
+    blob = MultisigTransaction.prototype.partialSignTxn.call(
+      algoTxn,
+      { version, threshold, pks },
+      sk
+    );
+  } else {
+    algoTxn = new MultisigTransaction(txn as AnyTransaction);
+    blob = algoTxn.partialSignTxn({ version, threshold, pks }, sk);
+  }
+  return {
+    txID: algoTxn.txID().toString(),
+    blob,
+  };
+}
+
+/**
+ * appendSignMultisigTransaction takes a multisig transaction blob, and appends our signature to it.
+ * While we could derive public key preimagery from the partially-signed multisig transaction,
+ * we ask the caller to pass it back in, to ensure they know what they are signing.
+ * @param multisigTxnBlob - an encoded multisig txn. Supports non-payment txn types.
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param sk - Algorand secret key
+ * @returns object containing txID, and blob representing encoded multisig txn
+ */
+export function appendSignMultisigTransaction(
+  multisigTxnBlob: Uint8Array,
+  { version, threshold, addrs }: MultisigMetadata,
+  sk: Uint8Array
+) {
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  // obtain underlying txn, sign it, and merge it
+  const multisigTxObj = encoding.decode(
+    multisigTxnBlob
+  ) as EncodedSignedTransaction;
+  const msigTxn = MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
+  const partialSignedBlob = msigTxn.partialSignTxn(
+    { version, threshold, pks },
+    sk
+  );
+  return {
+    txID: msigTxn.txID().toString(),
+    blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
+  };
+}
+
+/**
+ * multisigAddress takes multisig metadata (preimage) and returns the corresponding human readable Algorand address.
+ * @param version - mutlisig version
+ * @param threshold - multisig threshold
+ * @param addrs - list of Algorand addresses
+ */
+export function multisigAddress({
+  version,
+  threshold,
+  addrs,
+}: MultisigMetadata) {
+  return address.fromMultisigPreImgAddrs({ version, threshold, addrs });
+}

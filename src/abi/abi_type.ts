@@ -31,7 +31,13 @@ interface Segment {
 const staticArrayRegexp = /^([a-z\d[\](),]+)\[([1-9][\d]*)]$/;
 const ufixedRegexp = /^ufixed([1-9][\d]*)x([1-9][\d]*)$/;
 
-type ABIValue = boolean | number | bigint | string | Uint8Array | ABIValue[];
+export type ABIValue =
+  | boolean
+  | number
+  | bigint
+  | string
+  | Uint8Array
+  | ABIValue[];
 
 export abstract class ABIType {
   // Converts a ABIType object to a string
@@ -691,17 +697,16 @@ export class ABITupleType extends ABIType {
 
     // Check segment indices are valid
     // If the dynamic segment are not consecutive and well-ordered, we return error
-    // eslint-disable-next-line no-shadow
-    for (let i = 0; i < dynamicSegments.length; i++) {
-      const seg = dynamicSegments[i];
+    for (let j = 0; j < dynamicSegments.length; j++) {
+      const seg = dynamicSegments[j];
       if (seg.left > seg.right) {
         throw new Error(
           'dynamic segment should display a [l, r] space with l <= r'
         );
       }
       if (
-        i !== dynamicSegments.length - 1 &&
-        seg.right !== dynamicSegments[i + 1].left
+        j !== dynamicSegments.length - 1 &&
+        seg.right !== dynamicSegments[j + 1].left
       ) {
         throw new Error('dynamic segment should be consecutive');
       }
@@ -709,10 +714,9 @@ export class ABITupleType extends ABIType {
 
     // Check dynamic element partitions
     let segIndex = 0;
-    // eslint-disable-next-line no-shadow
-    for (let i = 0; i < tupleTypes.length; i++) {
-      if (tupleTypes[i].isDynamic()) {
-        valuePartition[i] = byteString.slice(
+    for (let j = 0; j < tupleTypes.length; j++) {
+      if (tupleTypes[j].isDynamic()) {
+        valuePartition[j] = byteString.slice(
           dynamicSegments[segIndex].left,
           dynamicSegments[segIndex].right
         );
@@ -722,9 +726,8 @@ export class ABITupleType extends ABIType {
 
     // Decode each tuple element
     const returnValues: ABIValue[] = [];
-    // eslint-disable-next-line no-shadow
-    for (let i = 0; i < tupleTypes.length; i++) {
-      const valueTi = tupleTypes[i].decode(valuePartition[i]);
+    for (let j = 0; j < tupleTypes.length; j++) {
+      const valueTi = tupleTypes[j].decode(valuePartition[j]);
       returnValues.push(valueTi);
     }
     return returnValues;
