@@ -42,8 +42,24 @@ window.makeUint8Array = function makeUint8Array(arg) {
   return new Uint8Array(arg);
 };
 
-window.makeEmptyObject = function makeEmptyObject() {
-  return {};
+window.makeABIMethod = function makeABIMethod(arg) {
+  return new window.algosdk.ABIMethod(arg);
+};
+
+window.makeABIContract = function makeABIContract(arg) {
+  return new window.algosdk.ABIContract(arg);
+};
+
+window.makeArray = function makeArray(...args) {
+  return args;
+};
+
+window.makeObject = function makeObject(obj) {
+  return { ...obj };
+};
+
+window.parseJSON = function parseJSON(json) {
+  return JSON.parse(json);
 };
 
 window.formatIncludeAll = function formatIncludeAll(includeAll) {

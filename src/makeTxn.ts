@@ -1714,3 +1714,77 @@ export function makeApplicationNoOpTxnFromObject(
 }
 
 export { OnApplicationComplete } from './types/transactions/base';
+
+/**
+ * Generic function for creating any application call transaction.
+ */
+export function makeApplicationCallTxnFromObject(
+  options: Pick<
+    RenameProperties<
+      MustHaveSuggestedParams<AppCreateTxn>,
+      {
+        appOnComplete: 'onComplete';
+        appAccounts: 'accounts';
+        appForeignApps: 'foreignApps';
+        appForeignAssets: 'foreignAssets';
+        reKeyTo: 'rekeyTo';
+      }
+    >,
+    | 'from'
+    | 'suggestedParams'
+    | 'appIndex'
+    | 'onComplete'
+    | 'appArgs'
+    | 'accounts'
+    | 'foreignApps'
+    | 'foreignAssets'
+    | 'note'
+    | 'lease'
+    | 'rekeyTo'
+    | 'extraPages'
+  > &
+    Partial<
+      Pick<
+        RenameProperties<
+          MustHaveSuggestedParams<AppCreateTxn>,
+          {
+            appApprovalProgram: 'approvalProgram';
+            appClearProgram: 'clearProgram';
+            appLocalInts: 'numLocalInts';
+            appLocalByteSlices: 'numLocalByteSlices';
+            appGlobalInts: 'numGlobalInts';
+            appGlobalByteSlices: 'numGlobalByteSlices';
+          }
+        >,
+        | 'approvalProgram'
+        | 'clearProgram'
+        | 'numLocalInts'
+        | 'numLocalByteSlices'
+        | 'numGlobalInts'
+        | 'numGlobalByteSlices'
+      >
+    >
+) {
+  const o: AppCreateTxn = {
+    type: TransactionType.appl,
+    from: options.from,
+    suggestedParams: options.suggestedParams,
+    appIndex: options.appIndex,
+    appOnComplete: options.onComplete,
+    appLocalInts: options.numLocalInts,
+    appLocalByteSlices: options.numLocalByteSlices,
+    appGlobalInts: options.numGlobalInts,
+    appGlobalByteSlices: options.numGlobalByteSlices,
+    appApprovalProgram: options.approvalProgram,
+    appClearProgram: options.clearProgram,
+    appArgs: options.appArgs,
+    appAccounts: options.accounts,
+    appForeignApps: options.foreignApps,
+    appForeignAssets: options.foreignAssets,
+    note: options.note,
+    lease: options.lease,
+    reKeyTo: options.rekeyTo,
+    extraPages: options.extraPages,
+  };
+  return new txnBuilder.Transaction(o);
+}

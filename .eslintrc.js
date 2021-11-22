@@ -24,6 +24,7 @@ module.exports = {
       },
     ],
     'import/prefer-default-export': 'off',
+    'no-continue': 'off',
     'lines-between-class-members': [
       'error',
       'always',
@@ -33,6 +34,8 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['error'],
     'no-redeclare': 'off',
     '@typescript-eslint/no-redeclare': ['error'],
+    'no-shadow': 'off',
+    '@typescript-eslint/no-shadow': ['error'],
   },
   overrides: [
     {
