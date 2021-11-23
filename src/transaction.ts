@@ -1047,6 +1047,10 @@ export class Transaction implements TransactionStorageStructure {
         (forPrinting.to as Address).publicKey
       );
     // things that need fixing:
+    if (forPrinting.freezeAccount !== undefined)
+      forPrinting.freezeAccount = address.encodeAddress(
+        (forPrinting.freezeAccount as Address).publicKey
+      );
     if (forPrinting.closeRemainderTo !== undefined)
       forPrinting.closeRemainderTo = address.encodeAddress(
         (forPrinting.closeRemainderTo as Address).publicKey

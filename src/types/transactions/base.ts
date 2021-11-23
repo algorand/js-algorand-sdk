@@ -1,5 +1,3 @@
-/* eslint-disable no-shadow,no-unused-vars */
-
 /**
  * Enum for application transaction types.
  *

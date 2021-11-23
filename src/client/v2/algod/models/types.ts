@@ -445,7 +445,7 @@ export class ApplicationParams extends BaseModel {
   public globalState?: TealKeyValue[];
 
   /**
-   * [\lsch) global schema
+   * [\gsch) global schema
    */
   public globalStateSchema?: ApplicationStateSchema;
 
@@ -462,7 +462,7 @@ export class ApplicationParams extends BaseModel {
    * parameters and global state for this application can be found.
    * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
    * @param globalState - [\gs) global schema
-   * @param globalStateSchema - [\lsch) global schema
+   * @param globalStateSchema - [\gsch) global schema
    * @param localStateSchema - [\lsch) local schema
    */
   constructor({
@@ -1942,7 +1942,7 @@ export class TealKeyValue extends BaseModel {
  */
 export class TealValue extends BaseModel {
   /**
-   * (tt) value type.
+   * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
   public type: number | bigint;
 
@@ -1958,7 +1958,7 @@ export class TealValue extends BaseModel {
 
   /**
    * Creates a new `TealValue` object.
-   * @param type - (tt) value type.
+   * @param type - (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
    * @param bytes - (tb) bytes value.
    * @param uint - (ui) uint value.
    */
