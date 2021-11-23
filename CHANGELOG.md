@@ -1,3 +1,17 @@
+# 1.13.0-beta.1
+
+## Added
+
+- ABI Support for JS library (#454)
+- ABI interaction support (#466)
+- Wait for confirmation function (#469)
+- Add freezeAccount encoding in display method (#460)
+- Regenerate code from specification file (#456)
+
+## Fixed
+
+- Fix type for foreignAssets (#472)
+
 # 1.12.0
 
 ## Added
