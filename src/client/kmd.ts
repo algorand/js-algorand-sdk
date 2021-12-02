@@ -1,6 +1,6 @@
 import ServiceClient from './v2/serviceClient';
 import * as txn from '../transaction';
-import { CustomTokenHeader, KMDTokenHeader } from './client';
+import { CustomTokenHeader, KMDTokenHeader } from './baseHTTPClient';
 
 export default class Kmd extends ServiceClient {
   constructor(

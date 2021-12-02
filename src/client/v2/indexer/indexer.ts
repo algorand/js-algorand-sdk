@@ -1,5 +1,4 @@
 import ServiceClient from '../serviceClient';
-import { CustomTokenHeader, IndexerTokenHeader } from '../../client';
 import MakeHealthCheck from './makeHealthCheck';
 import LookupAssetBalances from './lookupAssetBalances';
 import LookupAssetTransactions from './lookupAssetTransactions';
@@ -14,15 +13,29 @@ import SearchAccounts from './searchAccounts';
 import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
 import SearchForApplications from './searchForApplications';
+import {
+  BaseHTTPClient,
+  CustomTokenHeader,
+  IndexerTokenHeader,
+} from '../../baseHTTPClient';
 
 export default class IndexerClient extends ServiceClient {
+  /**
+   * Create an IndexerClient from
+   * * either a token, baseServer, port, and optional headers
+   * * or a base client server for interoperability with external dApp wallets
+   */
   constructor(
-    token: string | IndexerTokenHeader | CustomTokenHeader,
+    tokenOrBaseClient:
+      | string
+      | IndexerTokenHeader
+      | CustomTokenHeader
+      | BaseHTTPClient,
     baseServer = 'http://127.0.0.1',
     port: string | number = 8080,
     headers = {}
   ) {
-    super('X-Indexer-API-Token', token, baseServer, port, headers);
+    super('X-Indexer-API-Token', tokenOrBaseClient, baseServer, port, headers);
   }
 
   /**

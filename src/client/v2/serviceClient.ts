@@ -1,5 +1,6 @@
-import HTTPClient, { TokenHeader } from '../client';
+import HTTPClient from '../client';
 import IntDecoding from '../../types/intDecoding';
+import { BaseHTTPClient, TokenHeader } from '../baseHTTPClient';
 
 export type TokenHeaderIdentifier =
   | 'X-Indexer-API-Token'
@@ -21,6 +22,12 @@ function convertTokenStringToTokenHeader(
   return tokenHeader as TokenHeader;
 }
 
+function isBaseHTTPClient(
+  tbc: string | TokenHeader | BaseHTTPClient
+): tbc is BaseHTTPClient {
+  return typeof (tbc as BaseHTTPClient).get === 'function';
+}
+
 /**
  * Abstract service client to encapsulate shared AlgodClient and IndexerClient logic
  */
@@ -30,24 +37,30 @@ export default abstract class ServiceClient {
 
   constructor(
     tokenHeaderIdentifier: TokenHeaderIdentifier,
-    tokenHeaderOrStr: string | TokenHeader,
+    tokenHeaderOrStrOrBaseClient: string | TokenHeader | BaseHTTPClient,
     baseServer: string,
     port?: string | number,
     defaultHeaders: Record<string, any> = {}
   ) {
-    // Accept token header as string or object
-    // - workaround to allow backwards compatibility for multiple headers
-    let tokenHeader: TokenHeader;
-    if (typeof tokenHeaderOrStr === 'string') {
-      tokenHeader = convertTokenStringToTokenHeader(
-        tokenHeaderOrStr,
-        tokenHeaderIdentifier
-      );
+    if (isBaseHTTPClient(tokenHeaderOrStrOrBaseClient)) {
+      // we are using a base client
+      this.c = new HTTPClient(tokenHeaderOrStrOrBaseClient);
     } else {
-      tokenHeader = tokenHeaderOrStr;
+      // Accept token header as string or object
+      // - workaround to allow backwards compatibility for multiple headers
+      let tokenHeader: TokenHeader;
+      if (typeof tokenHeaderOrStrOrBaseClient === 'string') {
+        tokenHeader = convertTokenStringToTokenHeader(
+          tokenHeaderOrStrOrBaseClient,
+          tokenHeaderIdentifier
+        );
+      } else {
+        tokenHeader = tokenHeaderOrStrOrBaseClient;
+      }
+
+      this.c = new HTTPClient(tokenHeader, baseServer, port, defaultHeaders);
     }
 
-    this.c = new HTTPClient(tokenHeader, baseServer, port, defaultHeaders);
     this.intDecoding = IntDecoding.DEFAULT;
   }
 
