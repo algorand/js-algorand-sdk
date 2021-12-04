@@ -1,6 +1,7 @@
 import HTTPClient from '../client';
 import IntDecoding from '../../types/intDecoding';
-import { BaseHTTPClient, TokenHeader } from '../baseHTTPClient';
+import { BaseHTTPClient } from '../baseHTTPClient';
+import { TokenHeader } from '../urlTokenBaseHTTPClient';
 
 export type TokenHeaderIdentifier =
   | 'X-Indexer-API-Token'

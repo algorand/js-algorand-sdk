@@ -18,11 +18,11 @@ import Supply from './supply';
 import Versions from './versions';
 import Genesis from './genesis';
 import Proof from './proof';
+import { BaseHTTPClient } from '../../baseHTTPClient';
 import {
   AlgodTokenHeader,
-  BaseHTTPClient,
   CustomTokenHeader,
-} from '../../baseHTTPClient';
+} from '../../urlTokenBaseHTTPClient';
 
 export default class AlgodClient extends ServiceClient {
   /**
@@ -38,7 +38,7 @@ export default class AlgodClient extends ServiceClient {
       | BaseHTTPClient,
     baseServer = 'http://r2.algorand.network',
     port: string | number = 4180,
-    headers: Record<string, string>
+    headers: Record<string, string> = {}
   ) {
     super('X-Algo-API-Token', tokenOrBaseClient, baseServer, port, headers);
   }

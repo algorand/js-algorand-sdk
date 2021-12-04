@@ -13,11 +13,11 @@ import SearchAccounts from './searchAccounts';
 import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
 import SearchForApplications from './searchForApplications';
+import { BaseHTTPClient } from '../../baseHTTPClient';
 import {
-  BaseHTTPClient,
   CustomTokenHeader,
   IndexerTokenHeader,
-} from '../../baseHTTPClient';
+} from '../../urlTokenBaseHTTPClient';
 
 export default class IndexerClient extends ServiceClient {
   /**
@@ -33,7 +33,7 @@ export default class IndexerClient extends ServiceClient {
       | BaseHTTPClient,
     baseServer = 'http://127.0.0.1',
     port: string | number = 8080,
-    headers = {}
+    headers: Record<string, string> = {}
   ) {
     super('X-Indexer-API-Token', tokenOrBaseClient, baseServer, port, headers);
   }

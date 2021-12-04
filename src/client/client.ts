@@ -3,9 +3,8 @@ import {
   BaseHTTPClient,
   BaseHTTPClientResponse,
   Query,
-  TokenHeader,
-  URLTokenBaseHTTPClient,
 } from './baseHTTPClient';
+import { TokenHeader, URLTokenBaseHTTPClient } from './urlTokenBaseHTTPClient';
 
 interface ErrorWithAdditionalInfo extends Error {
   rawResponse: string | null;
@@ -76,6 +75,9 @@ function isResponseJSON(res: BaseHTTPClientResponse): boolean {
     contentType = contentType.split(';')[0];
     /* eslint-enable prefer-destructuring */
   }
+  // regex should match /json or +json
+  // but not /json-seq
+  // from https://github.com/visionmedia/superagent/blob/048cf185d954028b1dccde0717d2488b2284c297/src/client.js#L276
   return /[/+]json($|[^-\w])/i.test(contentType);
 }
 
@@ -176,10 +178,10 @@ export default class HTTPClient {
       return new Uint8Array(0); // empty Uint8Array
     }
     if (requestHeaders['content-type'] === 'application/json') {
-      return new TextEncoder().encode(JSON.stringify(data));
+      return new Uint8Array(Buffer.from(JSON.stringify(data)));
     }
     if (typeof data === 'string') {
-      return new TextEncoder().encode(data);
+      return new Uint8Array(Buffer.from(data));
     }
     if (data instanceof Uint8Array) {
       return data;

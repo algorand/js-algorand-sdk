@@ -1,6 +1,6 @@
 import assert from 'assert';
 import HTTPClient from '../src/client/client';
-import { URLTokenBaseHTTPClient } from '../src/client/baseHTTPClient';
+import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';
 
 describe('client', () => {
   describe('url construction', () => {
