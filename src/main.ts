@@ -164,6 +164,7 @@ export {
 } from './multisig';
 export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
+export * from './dryrun';
 export * from './makeTxn';
 export * from './transaction';
 export * from './signer';
