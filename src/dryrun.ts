@@ -10,6 +10,8 @@ import { SignedTransaction } from './transaction';
 import { TransactionType } from './types/transactions';
 import { encodeAddress } from './encoding/address';
 
+const defaultAppId = 1380011588;
+
 /**
  * createDryrun takes an Algod Client (from algod.AlgodV2Client) and an array of Signed Transactions
  * from (transaction.SignedTransaction) and creates a DryrunRequest object with relevant balances
@@ -52,10 +54,9 @@ export async function createDryrun({
 
       // Create application,
       if (t.txn.appIndex === 0) {
-        const appId = 1;
         appInfos.push(
           new Application(
-            appId,
+            defaultAppId,
             new ApplicationParams({
               creator: encodeAddress(t.txn.from.publicKey),
               approvalProgram: t.txn.appApprovalProgram,
