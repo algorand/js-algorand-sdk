@@ -19,14 +19,21 @@ import { encodeAddress } from './encoding/address';
  * @param latestTimestamp - the timestamp
  * @returns the DryrunRequest object constructed from the SignedTransactions passed
  */
-export async function createDryrun(
-  client: AlgodClient,
-  txns: SignedTransaction[],
-  protocolVersion?: string,
-  latestTimestamp?: number | bigint,
-  round?: number | bigint,
-  sources?: DryrunSource[]
-): Promise<DryrunRequest> {
+export async function createDryrun({
+  client,
+  txns,
+  protocolVersion,
+  latestTimestamp,
+  round,
+  sources,
+}: {
+  client: AlgodClient;
+  txns: SignedTransaction[];
+  protocolVersion?: string;
+  latestTimestamp?: number | bigint;
+  round?: number | bigint;
+  sources?: DryrunSource[];
+}): Promise<DryrunRequest> {
   const appInfos = [];
   const acctInfos = [];
 
@@ -82,39 +89,43 @@ export async function createDryrun(
         })
     );
   }
+  // Wait for assets to finish since we append to accts array
   await Promise.all(assetPromises);
 
   // Dedupe and get app info for all apps
   const appPromises = [];
   for (const appId of [...new Set(apps)]) {
-    client
-      .getApplicationByID(appId)
-      .do()
-      .then((appInfo) => {
-        const ai = { ...appInfo };
-        ai.params['approval-program'] = Buffer.from(
-          appInfo.params['approval-program'],
-          'base64'
-        );
-        ai.params['clear-state-program'] = Buffer.from(
-          appInfo.params['clear-state-program'],
-          'base64'
-        );
-        appInfos.push(ai);
-      });
+    appPromises.push(
+      client
+        .getApplicationByID(appId)
+        .do()
+        .then((appInfo) => {
+          const ai = { ...appInfo };
+          ai.params['approval-program'] = Buffer.from(
+            appInfo.params['approval-program'],
+            'base64'
+          );
+          ai.params['clear-state-program'] = Buffer.from(
+            appInfo.params['clear-state-program'],
+            'base64'
+          );
+          appInfos.push(ai);
+        })
+    );
   }
-  await Promise.all(appPromises);
 
   const acctPromises = [];
   for (const acct of [...new Set(accts)]) {
-    client
-      .accountInformation(acct)
-      .do()
-      .then((acctInfo) => {
-        acctInfos.push(acctInfo);
-      });
+    acctPromises.push(
+      client
+        .accountInformation(acct)
+        .do()
+        .then((acctInfo) => {
+          acctInfos.push(acctInfo);
+        })
+    );
   }
-  await Promise.all(acctPromises);
+  await Promise.all([...appPromises, ...acctPromises]);
 
   return new DryrunRequest({
     txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
