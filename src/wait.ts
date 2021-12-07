@@ -26,24 +26,27 @@ export async function waitForConfirmation(
 
   /* eslint-disable no-await-in-loop */
   while (currentRound < startRound + waitRounds) {
-    let pendingInfo = null;
+    let poolError = false;
     try {
-      pendingInfo = await client.pendingTransactionInformation(txid).do();
-    } catch (err) {
-      // Ignore errors from PendingTransactionInformation, since it may return 404 if the algod
-      // instance is behind a load balancer and the request goes to a different algod than the
-      // one we submitted the transaction to
-    }
+      const pendingInfo = await client.pendingTransactionInformation(txid).do();
 
-    if (pendingInfo != null) {
       if (pendingInfo['confirmed-round']) {
         // Got the completed Transaction
         return pendingInfo;
       }
 
       if (pendingInfo['pool-error']) {
-        // If there was a pool error, then the transaction has been rejected!
+        // If there was a pool error, then the transaction has been rejected
+        poolError = true;
         throw new Error(`Transaction Rejected: ${pendingInfo['pool-error']}`);
+      }
+    } catch (err) {
+      // Ignore errors from PendingTransactionInformation, since it may return 404 if the algod
+      // instance is behind a load balancer and the request goes to a different algod than the
+      // one we submitted the transaction to
+      if (poolError) {
+        // Rethrow error only if it's because the transaction was rejected
+        throw err;
       }
     }
 
@@ -51,5 +54,5 @@ export async function waitForConfirmation(
     currentRound += 1;
   }
   /* eslint-enable no-await-in-loop */
-  throw new Error(`Transaction not confirmed after ${waitRounds} rounds!`);
+  throw new Error(`Transaction not confirmed after ${waitRounds} rounds`);
 }
