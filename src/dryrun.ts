@@ -39,14 +39,16 @@ export async function createDryrun({
   const appInfos = [];
   const acctInfos = [];
 
-  const apps = [];
-  const assets = [];
-  const accts = [];
+  const apps: number[] = [];
+  const assets: number[] = [];
+  const accts: string[] = [];
+
   for (const t of txns) {
     if (t.txn.type === TransactionType.appl) {
-      accts.push(t.txn.from);
+      accts.push(encodeAddress(t.txn.from.publicKey));
 
-      if (t.txn.appAccounts) accts.push(...t.txn.appAccounts);
+      if (t.txn.appAccounts)
+        accts.push(...t.txn.appAccounts.map((a) => encodeAddress(a.publicKey)));
 
       if (t.txn.appForeignApps) apps.push(...t.txn.appForeignApps);
 
