@@ -1,9 +1,14 @@
 import {
   ABIType,
   ABITupleType,
+  ABIUintType,
+  ABIAddressType,
   ABIValue,
   ABIMethod,
+  ABIReferenceType,
   abiTypeIsTransaction,
+  abiCheckTransactionType,
+  abiTypeIsReference,
 } from './abi';
 import { Transaction, decodeSignedTransaction } from './transaction';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
@@ -55,6 +60,27 @@ export enum AtomicTransactionComposerStatus {
 
   /** The atomic group has been finalized, signed, submitted, and successfully committed to a block. */
   COMMITTED,
+}
+
+function populateForeignArray<Type>(
+  valueToAdd: Type,
+  array: Type[],
+  zeroValue?: Type
+): number {
+  if (zeroValue != null && valueToAdd === zeroValue) {
+    return 0;
+  }
+
+  const offset = zeroValue == null ? 0 : 1;
+
+  for (let i = 0; i < array.length; i++) {
+    if (valueToAdd === array[i]) {
+      return i + offset;
+    }
+  }
+
+  array.push(valueToAdd);
+  return array.length - 1 + offset;
 }
 
 /** A class used to construct and execute atomic transaction groups */
@@ -199,24 +225,24 @@ export class AtomicTransactionComposer {
       );
     }
 
-    let appArgTypes: ABIType[] = [];
-    let appArgValues: ABIValue[] = [];
+    let basicArgTypes: ABIType[] = [];
+    let basicArgValues: ABIValue[] = [];
     const txnArgs: TransactionWithSigner[] = [];
+    const refArgTypes: ABIReferenceType[] = [];
+    const refArgValues: ABIValue[] = [];
+    const refArgIndexToBasicArgIndex: Map<number, number> = new Map();
 
     for (let i = 0; i < methodArgs.length; i++) {
-      const argSpec = method.args[i];
+      let argType = method.args[i].type;
       const argValue = methodArgs[i];
 
-      if (
-        typeof argSpec.type === 'string' &&
-        abiTypeIsTransaction(argSpec.type)
-      ) {
+      if (abiTypeIsTransaction(argType)) {
         if (
           !isTransactionWithSigner(argValue) ||
-          argSpec.type !== argValue.txn.type
+          !abiCheckTransactionType(argType, argValue.txn)
         ) {
           throw new Error(
-            `Expected ${argSpec.type} transaction for argument at index ${i}`
+            `Expected ${argType} transaction for argument at index ${i}`
           );
         }
         if (argValue.txn.group && argValue.txn.group.some((v) => v !== 0)) {
@@ -232,24 +258,89 @@ export class AtomicTransactionComposer {
         );
       }
 
-      appArgTypes.push(argSpec.type);
-      appArgValues.push(argValue);
+      if (abiTypeIsReference(argType)) {
+        refArgIndexToBasicArgIndex.set(
+          refArgTypes.length,
+          basicArgTypes.length
+        );
+        refArgTypes.push(argType);
+        refArgValues.push(argValue);
+        // treat the reference as a uint8 for encoding purposes
+        argType = new ABIUintType(8);
+      }
+
+      if (typeof argType === 'string') {
+        throw new Error(`Unknown ABI type: ${argType}`);
+      }
+
+      basicArgTypes.push(argType);
+      basicArgValues.push(argValue);
     }
 
-    if (appArgTypes.length > 14) {
-      const lastArgTupleTypes = appArgTypes.slice(14);
-      const lastArgTupleValues = appArgValues.slice(14);
+    const resolvedRefIndexes: number[] = [];
+    const foreignAccounts: string[] = [];
+    const foreignApps: number[] = [];
+    const foreignAssets: number[] = [];
+    for (let i = 0; i < refArgTypes.length; i++) {
+      const refType = refArgTypes[i];
+      const refValue = refArgValues[i];
+      let resolved = 0;
 
-      appArgTypes = appArgTypes.slice(0, 14);
-      appArgValues = appArgValues.slice(0, 14);
+      switch (refType) {
+        case ABIReferenceType.account: {
+          const addressType = new ABIAddressType();
+          const address = addressType.decode(addressType.encode(refValue));
+          resolved = populateForeignArray(address, foreignAccounts, sender);
+          break;
+        }
+        case ABIReferenceType.application: {
+          const uint64Type = new ABIUintType(64);
+          const refAppID = uint64Type.decode(uint64Type.encode(refValue));
+          if (refAppID > Number.MAX_SAFE_INTEGER) {
+            throw new Error(
+              `Expected safe integer for application value, got ${refAppID}`
+            );
+          }
+          resolved = populateForeignArray(Number(refAppID), foreignApps, appId);
+          break;
+        }
+        case ABIReferenceType.asset: {
+          const uint64Type = new ABIUintType(64);
+          const refAssetID = uint64Type.decode(uint64Type.encode(refValue));
+          if (refAssetID > Number.MAX_SAFE_INTEGER) {
+            throw new Error(
+              `Expected safe integer for asset value, got ${refAssetID}`
+            );
+          }
+          resolved = populateForeignArray(Number(refAssetID), foreignAssets);
+          break;
+        }
+        default:
+          throw new Error(`Unknown reference type: ${refType}`);
+      }
 
-      appArgTypes.push(new ABITupleType(lastArgTupleTypes));
-      appArgValues.push(lastArgTupleValues);
+      resolvedRefIndexes.push(resolved);
+    }
+
+    for (let i = 0; i < resolvedRefIndexes.length; i++) {
+      const basicArgIndex = refArgIndexToBasicArgIndex.get(i);
+      basicArgValues[basicArgIndex] = resolvedRefIndexes[i];
+    }
+
+    if (basicArgTypes.length > 15) {
+      const lastArgTupleTypes = basicArgTypes.slice(14);
+      const lastArgTupleValues = basicArgValues.slice(14);
+
+      basicArgTypes = basicArgTypes.slice(0, 14);
+      basicArgValues = basicArgValues.slice(0, 14);
+
+      basicArgTypes.push(new ABITupleType(lastArgTupleTypes));
+      basicArgValues.push(lastArgTupleValues);
     }
 
     const appArgsEncoded: Uint8Array[] = [method.getSelector()];
-    for (let i = 0; i < appArgTypes.length; i++) {
-      appArgsEncoded.push(appArgTypes[i].encode(appArgValues[i]));
+    for (let i = 0; i < basicArgTypes.length; i++) {
+      appArgsEncoded.push(basicArgTypes[i].encode(basicArgValues[i]));
     }
 
     const appCall = {
@@ -257,6 +348,9 @@ export class AtomicTransactionComposer {
         from: sender,
         appIndex: appId,
         appArgs: appArgsEncoded,
+        accounts: foreignAccounts,
+        foreignApps,
+        foreignAssets,
         onComplete:
           onComplete == null ? OnApplicationComplete.NoOpOC : onComplete,
         lease,
@@ -281,9 +375,11 @@ export class AtomicTransactionComposer {
       if (this.transactions.length === 0) {
         throw new Error('Cannot build a group with 0 transactions');
       }
-      assignGroupID(
-        this.transactions.map((txnWithSigner) => txnWithSigner.txn)
-      );
+      if (this.transactions.length > 1) {
+        assignGroupID(
+          this.transactions.map((txnWithSigner) => txnWithSigner.txn)
+        );
+      }
       this.status = AtomicTransactionComposerStatus.BUILT;
     }
     return this.transactions;

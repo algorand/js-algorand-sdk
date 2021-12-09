@@ -139,10 +139,8 @@ export class ABIUintType extends ABIType {
     return `uint${this.bitSize}`;
   }
 
-  equal(other: ABIUintType) {
-    return (
-      this.constructor === other.constructor && this.bitSize === other.bitSize
-    );
+  equal(other: ABIType) {
+    return other instanceof ABIUintType && this.bitSize === other.bitSize;
   }
 
   isDynamic() {
@@ -153,12 +151,11 @@ export class ABIUintType extends ABIType {
     return this.bitSize / 8;
   }
 
-  encode(value: bigint | number) {
-    if (
-      (typeof value !== 'bigint' && typeof value !== 'number') ||
-      value >= BigInt(2 ** this.bitSize) ||
-      value < BigInt(0)
-    ) {
+  encode(value: ABIValue) {
+    if (typeof value !== 'bigint' && typeof value !== 'number') {
+      throw new Error(`Cannot encode value as uint${this.bitSize}: ${value}`);
+    }
+    if (value >= BigInt(2 ** this.bitSize) || value < BigInt(0)) {
       throw new Error(
         `${value} is not a non-negative int or too big to fit in size uint${this.bitSize}`
       );
@@ -171,7 +168,7 @@ export class ABIUintType extends ABIType {
     return bigIntToBytes(value, this.bitSize / 8);
   }
 
-  decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array): bigint {
     if (byteString.length !== this.bitSize / 8) {
       throw new Error(`byte string must correspond to a uint${this.bitSize}`);
     }
@@ -199,9 +196,9 @@ export class ABIUfixedType extends ABIType {
     return `ufixed${this.bitSize}x${this.precision}`;
   }
 
-  equal(other: ABIUfixedType) {
+  equal(other: ABIType) {
     return (
-      this.constructor === other.constructor &&
+      other instanceof ABIUfixedType &&
       this.bitSize === other.bitSize &&
       this.precision === other.precision
     );
@@ -215,14 +212,13 @@ export class ABIUfixedType extends ABIType {
     return this.bitSize / 8;
   }
 
-  encode(value: bigint | number) {
-    if (
-      (typeof value !== 'bigint' && typeof value !== 'number') ||
-      value >= BigInt(2 ** this.bitSize) ||
-      value < BigInt(0)
-    ) {
+  encode(value: ABIValue) {
+    if (typeof value !== 'bigint' && typeof value !== 'number') {
+      throw new Error(`Cannot encode value as ${this.toString()}: ${value}`);
+    }
+    if (value >= BigInt(2 ** this.bitSize) || value < BigInt(0)) {
       throw new Error(
-        `${value} is not a non-negative int or too big to fit in size ufixed${this.bitSize}`
+        `${value} is not a non-negative int or too big to fit in size ${this.toString()}`
       );
     }
     if (typeof value === 'number' && !Number.isSafeInteger(value)) {
@@ -233,9 +229,9 @@ export class ABIUfixedType extends ABIType {
     return bigIntToBytes(value, this.bitSize / 8);
   }
 
-  decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array): bigint {
     if (byteString.length !== this.bitSize / 8) {
-      throw new Error(`byte string must correspond to a ufixed${this.bitSize}`);
+      throw new Error(`byte string must correspond to a ${this.toString()}`);
     }
     return bytesToBigInt(byteString);
   }
@@ -246,8 +242,8 @@ export class ABIAddressType extends ABIType {
     return 'address';
   }
 
-  equal(other: ABIAddressType) {
-    return this.constructor === other.constructor;
+  equal(other: ABIType) {
+    return other instanceof ABIAddressType;
   }
 
   isDynamic() {
@@ -258,20 +254,23 @@ export class ABIAddressType extends ABIType {
     return ADDR_BYTE_SIZE;
   }
 
-  encode(value: string | Uint8Array) {
+  encode(value: ABIValue) {
+    if (typeof value !== 'string' && !(value instanceof Uint8Array)) {
+      throw new Error(`Cannot encode value as ${this.toString()}: ${value}`);
+    }
     if (typeof value === 'string') {
       const decodedAddress = decodeAddress(value);
       return decodedAddress.publicKey;
     }
     // Return the address if it is already in bytes
-    if (value.length !== 32) {
+    if (value.byteLength !== 32) {
       throw new Error(`byte string must be 32 bytes long for an address`);
     }
     return value;
   }
 
-  decode(byteString: Uint8Array) {
-    if (byteString.length !== 32) {
+  decode(byteString: Uint8Array): string {
+    if (byteString.byteLength !== 32) {
       throw new Error(`byte string must be 32 bytes long for an address`);
     }
     return encodeAddress(byteString);
@@ -283,8 +282,8 @@ export class ABIBoolType extends ABIType {
     return 'bool';
   }
 
-  equal(other: ABIBoolType) {
-    return this.constructor === other.constructor;
+  equal(other: ABIType) {
+    return other instanceof ABIBoolType;
   }
 
   isDynamic() {
@@ -295,15 +294,18 @@ export class ABIBoolType extends ABIType {
     return SINGLE_BOOL_SIZE;
   }
 
-  encode(value: boolean) {
+  encode(value: ABIValue) {
+    if (typeof value !== 'boolean') {
+      throw new Error(`Cannot encode value as bool: ${value}`);
+    }
     if (value) {
       return new Uint8Array([128]);
     }
     return new Uint8Array([0]);
   }
 
-  decode(byteString: Uint8Array) {
-    if (byteString.length !== 1) {
+  decode(byteString: Uint8Array): boolean {
+    if (byteString.byteLength !== 1) {
       throw new Error(`bool string must be 1 byte long`);
     }
     const value = byteString[0];
@@ -322,8 +324,8 @@ export class ABIByteType extends ABIType {
     return 'byte';
   }
 
-  equal(other: ABIByteType) {
-    return this.constructor === other.constructor;
+  equal(other: ABIType) {
+    return other instanceof ABIByteType;
   }
 
   isDynamic() {
@@ -334,15 +336,22 @@ export class ABIByteType extends ABIType {
     return SINGLE_BYTE_SIZE;
   }
 
-  encode(value: number) {
+  encode(value: ABIValue) {
+    if (typeof value !== 'number' && typeof value !== 'bigint') {
+      throw new Error(`Cannot encode value as byte: ${value}`);
+    }
+    if (typeof value === 'bigint') {
+      // eslint-disable-next-line no-param-reassign
+      value = Number(value);
+    }
     if (value < 0 || value > 255) {
       throw new Error(`${value} cannot be encoded into a byte`);
     }
     return new Uint8Array([value]);
   }
 
-  decode(byteString: Uint8Array) {
-    if (byteString.length !== 1) {
+  decode(byteString: Uint8Array): number {
+    if (byteString.byteLength !== 1) {
       throw new Error(`byte string must be 1 byte long`);
     }
     return byteString[0];
@@ -354,8 +363,8 @@ export class ABIStringType extends ABIType {
     return 'string';
   }
 
-  equal(other: ABIStringType) {
-    return this.constructor === other.constructor;
+  equal(other: ABIType) {
+    return other instanceof ABIStringType;
   }
 
   isDynamic() {
@@ -366,7 +375,10 @@ export class ABIStringType extends ABIType {
     throw new Error(`${this.toString()} is a dynamic type`);
   }
 
-  encode(value: string) {
+  encode(value: ABIValue) {
+    if (typeof value !== 'string' && !(value instanceof Uint8Array)) {
+      throw new Error(`Cannot encode value as string: ${value}`);
+    }
     const encodedBytes = Buffer.from(value);
     const encodedLength = bigIntToBytes(value.length, LENGTH_ENCODE_BYTE_SIZE);
     const mergedBytes = new Uint8Array(value.length + LENGTH_ENCODE_BYTE_SIZE);
@@ -375,7 +387,7 @@ export class ABIStringType extends ABIType {
     return mergedBytes;
   }
 
-  decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array): string {
     if (byteString.length < LENGTH_ENCODE_BYTE_SIZE) {
       throw new Error(`byte string is too short to be decoded: ${byteString}`);
     }
@@ -390,8 +402,7 @@ export class ABIStringType extends ABIType {
         `string length bytes do not match the actual length of string: ${byteString}`
       );
     }
-    const stringValue = Buffer.from(byteValue).toString('utf-8');
-    return stringValue;
+    return Buffer.from(byteValue).toString('utf-8');
   }
 }
 
@@ -414,11 +425,11 @@ export class ABIArrayStaticType extends ABIType {
     return `${this.childType.toString()}[${this.staticLength}]`;
   }
 
-  equal(other: ABIArrayStaticType) {
+  equal(other: ABIType) {
     return (
-      this.constructor === other.constructor &&
-      this.childType === other.childType &&
-      this.staticLength === other.staticLength
+      other instanceof ABIArrayStaticType &&
+      this.staticLength === other.staticLength &&
+      this.childType.equal(other.childType)
     );
   }
 
@@ -433,15 +444,20 @@ export class ABIArrayStaticType extends ABIType {
     return this.staticLength * this.childType.byteLen();
   }
 
-  encode(values: ABIValue[]) {
-    if (values.length !== this.staticLength) {
-      throw new Error(`value array does not match static array length`);
+  encode(value: ABIValue) {
+    if (!Array.isArray(value) && !(value instanceof Uint8Array)) {
+      throw new Error(`Cannot encode value as ${this.toString()}: ${value}`);
+    }
+    if (value.length !== this.staticLength) {
+      throw new Error(
+        `Value array does not match static array length. Expected ${this.staticLength}, got ${value.length}`
+      );
     }
     const convertedTuple = this.toABITupleType();
-    return convertedTuple.encode(values);
+    return convertedTuple.encode(value);
   }
 
-  decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array): ABIValue[] {
     const convertedTuple = this.toABITupleType();
     return convertedTuple.decode(byteString);
   }
@@ -463,10 +479,10 @@ export class ABIArrayDynamicType extends ABIType {
     return `${this.childType.toString()}[]`;
   }
 
-  equal(other: ABIArrayDynamicType) {
+  equal(other: ABIType) {
     return (
-      this.constructor === other.constructor &&
-      this.childType === other.childType
+      other instanceof ABIArrayDynamicType &&
+      this.childType.equal(other.childType)
     );
   }
 
@@ -478,9 +494,12 @@ export class ABIArrayDynamicType extends ABIType {
     throw new Error(`${this.toString()} is a dynamic type`);
   }
 
-  encode(values: ABIValue[]) {
-    const convertedTuple = this.toABITupleType(values.length);
-    const encodedTuple = convertedTuple.encode(values);
+  encode(value: ABIValue) {
+    if (!Array.isArray(value) && !(value instanceof Uint8Array)) {
+      throw new Error(`Cannot encode value as ${this.toString()}: ${value}`);
+    }
+    const convertedTuple = this.toABITupleType(value.length);
+    const encodedTuple = convertedTuple.encode(value);
     const encodedLength = bigIntToBytes(
       convertedTuple.childTypes.length,
       LENGTH_ENCODE_BYTE_SIZE
@@ -489,7 +508,7 @@ export class ABIArrayDynamicType extends ABIType {
     return mergedBytes;
   }
 
-  decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array): ABIValue[] {
     const buf = Buffer.from(byteString);
     const byteLength = buf.readUIntBE(0, LENGTH_ENCODE_BYTE_SIZE);
     const convertedTuple = this.toABITupleType(byteLength);
@@ -524,10 +543,13 @@ export class ABITupleType extends ABIType {
     return `(${typeStrings.join(',')})`;
   }
 
-  equal(other: ABITupleType) {
+  equal(other: ABIType) {
     return (
-      this.constructor === other.constructor &&
-      this.childTypes === other.childTypes
+      other instanceof ABITupleType &&
+      this.childTypes.length === other.childTypes.length &&
+      this.childTypes.every((child, index) =>
+        child.equal(other.childTypes[index])
+      )
     );
   }
 
@@ -552,8 +574,12 @@ export class ABITupleType extends ABIType {
     return size;
   }
 
-  encode(values: ABIValue[]) {
-    if (values.length > MAX_LEN) {
+  encode(value: ABIValue) {
+    if (!Array.isArray(value) && !(value instanceof Uint8Array)) {
+      throw new Error(`Cannot encode value as ${this.toString()}: ${value}`);
+    }
+    const values = Array.from(value);
+    if (value.length > MAX_LEN) {
       throw new Error('length of tuple array should not exceed a uint16');
     }
     const tupleTypes = this.childTypes;
@@ -620,7 +646,7 @@ export class ABITupleType extends ABIType {
     return concatArrays(...heads, ...tails);
   }
 
-  decode(byteString: Uint8Array) {
+  decode(byteString: Uint8Array): ABIValue[] {
     const tupleTypes = this.childTypes;
     const dynamicSegments: Segment[] = [];
     const valuePartition: Uint8Array[] = [];

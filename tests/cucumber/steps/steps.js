@@ -4780,14 +4780,32 @@ module.exports = function getSteps(options) {
       const argSpec = this.method.args[i];
       const encodedArg = this.encodedMethodArguments[i];
 
-      let preparedArg = encodedArg;
-
-      if (typeof argSpec.type !== 'string') {
-        // the argument is an encoded ABI value
-        preparedArg = argSpec.type.decode(encodedArg);
+      if (algosdk.abiTypeIsTransaction(argSpec.type)) {
+        methodArgs.push(encodedArg);
+        continue;
       }
 
-      methodArgs.push(preparedArg);
+      let typeToDecode = argSpec.type;
+
+      if (algosdk.abiTypeIsReference(argSpec.type)) {
+        switch (argSpec.type) {
+          case algosdk.ABIReferenceType.account:
+            typeToDecode = algosdk.ABIType.from('address');
+            break;
+          case algosdk.ABIReferenceType.application:
+          case algosdk.ABIReferenceType.asset:
+            typeToDecode = algosdk.ABIType.from('uint64');
+            break;
+          default:
+            throw new Error(`Unknown reference type: ${argSpec.type}`);
+        }
+      }
+
+      if (typeof typeToDecode === 'string') {
+        throw new Error(`Cannot decode with type: ${typeToDecode}`);
+      }
+
+      methodArgs.push(typeToDecode.decode(encodedArg));
     }
 
     this.composer.addMethodCall({
@@ -4828,9 +4846,26 @@ module.exports = function getSteps(options) {
 
   When(
     'I build the transaction group with the composer. If there is an error it is {string}.',
-    function (errorMsg) {
-      assert.strictEqual(errorMsg, ''); // error checking not yet implemented
-      this.composerBuiltGroup = this.composer.buildGroup();
+    function (errorType) {
+      if (errorType === '') {
+        // no error expected
+        this.composerBuiltGroup = this.composer.buildGroup();
+        return;
+      }
+
+      let expectedMessage;
+      switch (errorType) {
+        case 'zero group size error':
+          expectedMessage = 'Cannot build a group with 0 transactions';
+          break;
+        default:
+          throw new Error(`Unknown error type: "${errorType}"`);
+      }
+
+      assert.throws(
+        () => this.composer.buildGroup(),
+        (err) => err.message === expectedMessage
+      );
     }
   );
 
@@ -4881,7 +4916,13 @@ module.exports = function getSteps(options) {
       const actualSignedTxns = this.composerSignedTransactions.map(
         (signedTxn) => Buffer.from(signedTxn)
       );
-      assert.deepStrictEqual([...actualSignedTxns], [...expectedSignedTxns]);
+      assert.deepStrictEqual(
+        [...actualSignedTxns],
+        [...expectedSignedTxns],
+        `Got ${actualSignedTxns
+          .map((stxn) => stxn.toString('base64'))
+          .join(',')}`
+      );
     }
   );
 
