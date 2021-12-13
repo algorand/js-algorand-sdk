@@ -45,11 +45,22 @@ function parseMethodSignature(
   };
 }
 
+export interface ABIMethodArgParams {
+  type: string;
+  name?: string;
+  desc?: string;
+}
+
+export interface ABIMethodReturnParams {
+  type: string;
+  desc?: string;
+}
+
 export interface ABIMethodParams {
   name: string;
   desc?: string;
-  args: Array<{ type: string; name?: string; desc?: string }>;
-  returns: { type: string; desc?: string };
+  args: ABIMethodArgParams[];
+  returns: ABIMethodReturnParams;
 }
 
 export type ABIArgumentType = ABIType | ABITransactionType | ABIReferenceType;

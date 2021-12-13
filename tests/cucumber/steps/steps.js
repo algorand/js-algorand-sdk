@@ -4681,15 +4681,21 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'I create a Contract object from the Method object with name {string} and appId {int}',
-    function (name, appId) {
+    'I create a Contract object from the Method object with name {string}',
+    function (name) {
       this.contract = makeABIContract(
         makeObject({
           name,
-          appId: parseInt(appId, 10),
           methods: makeArray(this.method.toJSON()),
         })
       );
+    }
+  );
+
+  When(
+    "I set the Contract's appID to {int} for the network {string}",
+    function (appID, network) {
+      this.contract.networks[network] = { appID: parseInt(appID, 10) };
     }
   );
 

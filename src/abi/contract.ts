@@ -1,34 +1,42 @@
 import { ABIMethod, ABIMethodParams } from './method';
 
+export interface ABIContractNetworkInfo {
+  appID: number;
+}
+
+export interface ABIContractNetworks {
+  [network: string]: ABIContractNetworkInfo;
+}
+
 export interface ABIContractParams {
   name: string;
-  appId: number;
+  networks?: ABIContractNetworks;
   methods: ABIMethodParams[];
 }
 
 export class ABIContract {
   public readonly name: string;
-  public readonly appId: number;
+  public readonly networks: ABIContractNetworks;
   public readonly methods: ABIMethod[];
 
   constructor(params: ABIContractParams) {
     if (
       typeof params.name !== 'string' ||
-      typeof params.appId !== 'number' ||
-      !Array.isArray(params.methods)
+      !Array.isArray(params.methods) ||
+      (params.networks && typeof params.networks !== 'object')
     ) {
       throw new Error('Invalid ABIContract parameters');
     }
 
     this.name = params.name;
-    this.appId = params.appId;
+    this.networks = params.networks ? { ...params.networks } : {};
     this.methods = params.methods.map((method) => new ABIMethod(method));
   }
 
   toJSON(): ABIContractParams {
     return {
       name: this.name,
-      appId: this.appId,
+      networks: this.networks,
       methods: this.methods.map((method) => method.toJSON()),
     };
   }
