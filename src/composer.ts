@@ -62,6 +62,19 @@ export enum AtomicTransactionComposerStatus {
   COMMITTED,
 }
 
+/**
+ * Add a value to an application call's foreign array. The addition will be as compact as possible,
+ * and this function will return an index that can be used to reference `valueToAdd` in `array`.
+ *
+ * @param valueToAdd - The value to add to the array. If this value is already present in the array,
+ *   it will not be added again. Instead, the existing index will be returned.
+ * @param array - The existing foreign array. This input may be modified to append `valueToAdd`.
+ * @param zeroValue - If provided, this value indicated two things: the 0 value is special for this
+ *   array, so all indexes into `array` must start at 1; additionally, if `valueToAdd` equals
+ *   `zeroValue`, then `valueToAdd` will not be added to the array, and instead the 0 indexes will
+ *   be returned.
+ * @returns An index that can be used to reference `valueToAdd` in `array`.
+ */
 function populateForeignArray<Type>(
   valueToAdd: Type,
   array: Type[],
