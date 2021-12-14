@@ -1874,7 +1874,7 @@ module.exports = function getSteps(options) {
           throw err;
         }
         if (this.expectedMockResponseCode === 500) {
-          if (!err.toString().includes('Internal Server Error')) {
+          if (!err.toString().includes('Received status 500')) {
             throw Error(
               `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
             );
