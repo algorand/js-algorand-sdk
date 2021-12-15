@@ -33,7 +33,9 @@ function isBaseHTTPClient(
  * Abstract service client to encapsulate shared AlgodClient and IndexerClient logic
  */
 export default abstract class ServiceClient {
+  /** @ignore */
   c: HTTPClient;
+  /** @ignore */
   intDecoding: IntDecoding;
 
   constructor(
@@ -66,6 +68,7 @@ export default abstract class ServiceClient {
   }
 
   /**
+   * @ignore
    * Set the default int decoding method for all JSON requests this client creates.
    * @param method - \{"default" | "safe" | "mixed" | "bigint"\} method The method to use when parsing the
    *   response for request. Must be one of "default", "safe", "mixed", or "bigint". See
