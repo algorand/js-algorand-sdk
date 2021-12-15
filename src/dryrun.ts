@@ -8,7 +8,7 @@ import {
 } from './client/v2/algod/models/types';
 import { SignedTransaction } from './transaction';
 import { TransactionType } from './types/transactions';
-import { encodeAddress } from './encoding/address';
+import { encodeAddress, getApplicationAddress } from './encoding/address';
 
 const defaultAppId = 1380011588;
 
@@ -101,6 +101,7 @@ export async function createDryrun({
         );
       } else {
         apps.push(t.txn.appIndex);
+        accts.push(getApplicationAddress(t.txn.appIndex));
       }
     }
   }
