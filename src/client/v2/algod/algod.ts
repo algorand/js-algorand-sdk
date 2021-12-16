@@ -192,9 +192,10 @@ export default class AlgodClient extends ServiceClient {
    * #### Example 2
    * ```typescript
    * const maxTxns = 5;
-   * const getPendingTxns = algodClient.pendingTransactionsInformation();
-   * getPendingTxns.max(maxTxns);
-   * const pendingTxns = await getPendingTxns.do();
+   * const pendingTxns = await algodClient
+   *     .pendingTransactionsInformation()
+   *     .max(maxTxns)
+   *     .do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionspending)
@@ -218,9 +219,10 @@ export default class AlgodClient extends ServiceClient {
    * ```typescript
    * const maxTxns = 5;
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
-   * const getPendingTxnsByAddr = algodClient.pendingTransactionByAddress(address);
-   * getPendingTxns.max(maxTxns);
-   * const pendingTxnsByAddr = await getPendingTxnsByAddr.do();
+   * const pendingTxns = await algodClient
+   *     .pendingTransactionByAddress(address)
+   *     .max(maxTxns)
+   *     .do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddresstransactionspending)
