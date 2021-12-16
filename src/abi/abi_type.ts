@@ -43,7 +43,7 @@ export abstract class ABIType {
   // Converts a ABIType object to a string
   abstract toString(): string;
   // Checks if two ABIType objects are equal in value
-  abstract equal(other: ABIType): boolean;
+  abstract equals(other: ABIType): boolean;
   // Checks if the ABIType object (or any of its child types) have dynamic length
   abstract isDynamic(): boolean;
   // Returns the size of the ABIType object in bytes
@@ -139,7 +139,7 @@ export class ABIUintType extends ABIType {
     return `uint${this.bitSize}`;
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return other instanceof ABIUintType && this.bitSize === other.bitSize;
   }
 
@@ -196,7 +196,7 @@ export class ABIUfixedType extends ABIType {
     return `ufixed${this.bitSize}x${this.precision}`;
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return (
       other instanceof ABIUfixedType &&
       this.bitSize === other.bitSize &&
@@ -242,7 +242,7 @@ export class ABIAddressType extends ABIType {
     return 'address';
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return other instanceof ABIAddressType;
   }
 
@@ -282,7 +282,7 @@ export class ABIBoolType extends ABIType {
     return 'bool';
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return other instanceof ABIBoolType;
   }
 
@@ -324,7 +324,7 @@ export class ABIByteType extends ABIType {
     return 'byte';
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return other instanceof ABIByteType;
   }
 
@@ -363,7 +363,7 @@ export class ABIStringType extends ABIType {
     return 'string';
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return other instanceof ABIStringType;
   }
 
@@ -425,11 +425,11 @@ export class ABIArrayStaticType extends ABIType {
     return `${this.childType.toString()}[${this.staticLength}]`;
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return (
       other instanceof ABIArrayStaticType &&
       this.staticLength === other.staticLength &&
-      this.childType.equal(other.childType)
+      this.childType.equals(other.childType)
     );
   }
 
@@ -479,10 +479,10 @@ export class ABIArrayDynamicType extends ABIType {
     return `${this.childType.toString()}[]`;
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return (
       other instanceof ABIArrayDynamicType &&
-      this.childType.equal(other.childType)
+      this.childType.equals(other.childType)
     );
   }
 
@@ -543,12 +543,12 @@ export class ABITupleType extends ABIType {
     return `(${typeStrings.join(',')})`;
   }
 
-  equal(other: ABIType) {
+  equals(other: ABIType) {
     return (
       other instanceof ABITupleType &&
       this.childTypes.length === other.childTypes.length &&
       this.childTypes.every((child, index) =>
-        child.equal(other.childTypes[index])
+        child.equals(other.childTypes[index])
       )
     );
   }
