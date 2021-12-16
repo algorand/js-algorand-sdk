@@ -4695,7 +4695,9 @@ module.exports = function getSteps(options) {
   When(
     "I set the Contract's appID to {int} for the network {string}",
     function (appID, network) {
-      this.contract.networks[network] = { appID: parseInt(appID, 10) };
+      this.contract.networks[network] = makeObject({
+        appID: parseInt(appID, 10),
+      });
     }
   );
 
