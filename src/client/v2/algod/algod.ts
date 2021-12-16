@@ -42,11 +42,15 @@ export default class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const token  = "";
-   * const server = "https://testnet.algoexplorerapi.io/idx2";
-   * const port   = "";
+   * const token  = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+   * const server = "http://localhost";
+   * const port   = 4001;
    * const algodClient = new algosdk.Algodv2(token, server, port);
    * ```
+   * @remarks
+   * The above configuration is for a sandbox private network.
+   * For applications on production, you are encouraged to run your own node, or use an Algorand REST API provider with a dedicated API key.
+   *
    * @param tokenOrBaseClient - The algod token from the Algorand node you are interacting with
    * @param baseServer - REST endpoint
    * @param port - Port number if specifically configured by the server
