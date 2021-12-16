@@ -100,10 +100,14 @@ export default class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const { txId } = await algodClient.sendRawTransaction(stxns).do();
+   * const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+   * const result = await waitForConfirmation(algodClient, txid, 3);
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactions)
+   *
+   * @remarks
+   * Often used with {@linkcode waitForConfirmation}
    * @param stxOrStxs - Signed transactions
    * @category POST
    */
@@ -261,15 +265,20 @@ export default class AlgodClient extends ServiceClient {
    * #### Example
    * ```typescript
    * const suggestedParams = await algodClient.getTransactionParams().do();
-   * const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+   * const amountInMicroAlgos = algosdk.algosToMicroalgos(2); // 2 Algos
+   * const unsignedTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
    *   from: senderAddress,
    *   to: receiverAddress,
-   *   amount: amount,
-   *   suggestedParams,
+   *   amount: amountInMicroAlgos,
+   *   suggestedParams: suggestedParams,
    * });
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionsparams)
+   *
+   * @remarks
+   * Often used with
+   * {@linkcode makePaymentTxnWithSuggestedParamsFromObject}, {@linkcode algosToMicroalgos}
    * @category GET
    */
   getTransactionParams() {
