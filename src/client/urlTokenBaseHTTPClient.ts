@@ -85,6 +85,22 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     return res;
   }
 
+  /**
+   * Make a superagent error more readable. For more info, see https://github.com/visionmedia/superagent/issues/1074
+   */
+  private static formatSuperagentError(err: any): Error {
+    if (err.response) {
+      try {
+        const decoded = JSON.parse(Buffer.from(err.response.body).toString());
+        // eslint-disable-next-line no-param-reassign
+        err.message = `Network request error. Received status ${err.response.status}: ${decoded.message}`;
+      } catch (err2) {
+        // ignore any error that happened while we are formatting the original error
+      }
+    }
+    return err;
+  }
+
   async get(
     relativePath: string,
     query?: Query<string>,
@@ -98,8 +114,12 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       .responseType('arraybuffer')
       .query(query);
 
-    const res = await r;
-    return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
+    try {
+      const res = await r;
+      return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
+    } catch (err) {
+      throw URLTokenBaseHTTPClient.formatSuperagentError(err);
+    }
   }
 
   async post(
@@ -118,8 +138,12 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       .responseType('arraybuffer')
       .send(Buffer.from(data)); // Buffer.from necessary for superagent
 
-    const res = await r;
-    return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
+    try {
+      const res = await r;
+      return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
+    } catch (err) {
+      throw URLTokenBaseHTTPClient.formatSuperagentError(err);
+    }
   }
 
   async delete(
@@ -138,7 +162,11 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       .responseType('arraybuffer')
       .send(Buffer.from(data)); // Buffer.from necessary for superagent
 
-    const res = await r;
-    return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
+    try {
+      const res = await r;
+      return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
+    } catch (err) {
+      throw URLTokenBaseHTTPClient.formatSuperagentError(err);
+    }
   }
 }
