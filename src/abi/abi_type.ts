@@ -389,7 +389,9 @@ export class ABIStringType extends ABIType {
 
   decode(byteString: Uint8Array): string {
     if (byteString.length < LENGTH_ENCODE_BYTE_SIZE) {
-      throw new Error(`byte string is too short to be decoded: ${byteString}`);
+      throw new Error(
+        `byte string is too short to be decoded. Actual length is ${byteString.length}, but expected at least ${LENGTH_ENCODE_BYTE_SIZE}`
+      );
     }
     const buf = Buffer.from(byteString);
     const byteLength = buf.readUIntBE(0, LENGTH_ENCODE_BYTE_SIZE);
@@ -399,7 +401,7 @@ export class ABIStringType extends ABIType {
     );
     if (byteLength !== byteValue.length) {
       throw new Error(
-        `string length bytes do not match the actual length of string: ${byteString}`
+        `string length bytes do not match the actual length of string. Expected ${byteLength}, got ${byteValue.length}`
       );
     }
     return Buffer.from(byteValue).toString('utf-8');

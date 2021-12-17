@@ -4723,6 +4723,7 @@ module.exports = function getSteps(options) {
 
   Given('a new AtomicTransactionComposer', function () {
     this.composer = new algosdk.AtomicTransactionComposer();
+    this.composerMethods = [];
   });
 
   Given('an application id {int}', function (appId) {
@@ -4825,6 +4826,7 @@ module.exports = function getSteps(options) {
       onComplete: operationStringToEnum(onComplete),
       signer: this.transactionSigner,
     });
+    this.composerMethods.push(this.method);
   }
 
   When(
@@ -4947,34 +4949,43 @@ module.exports = function getSteps(options) {
 
   Then(
     'The app should have returned {string}.',
-    function (base64ExpectedReturnValue) {
+    function (expectedReturnValues) {
+      const b64ExpectedReturnValues = expectedReturnValues.split(',');
+
       const { methodResults } = this.composerExecuteResponse;
-      assert.strictEqual(methodResults.length, 1);
+      assert.strictEqual(methodResults.length, b64ExpectedReturnValues.length);
+      assert.strictEqual(methodResults.length, this.composerMethods.length);
 
-      const actualResult = methodResults[0];
-      const expectedReturnValue = Buffer.from(
-        base64ExpectedReturnValue,
-        'base64'
-      );
+      for (let i = 0; i < methodResults.length; i++) {
+        const method = this.composerMethods[i];
+        const actualResult = methodResults[i];
+        const expectedReturnValue = Buffer.from(
+          b64ExpectedReturnValues[i],
+          'base64'
+        );
 
-      if (actualResult.decodeError) {
-        throw actualResult.decodeError;
+        if (actualResult.decodeError) {
+          throw actualResult.decodeError;
+        }
+        assert.deepStrictEqual(
+          Buffer.from(actualResult.rawReturnValue),
+          expectedReturnValue,
+          `Actual return value for method at index ${i} does not match expected. Actual: ${Buffer.from(
+            actualResult.rawReturnValue
+          ).toString('base64')}`
+        );
+
+        const returnType = method.returns.type;
+        if (returnType === 'void') {
+          assert.strictEqual(expectedReturnValue.byteLength, 0);
+          return;
+        }
+
+        assert.deepStrictEqual(
+          actualResult.returnValue,
+          returnType.decode(expectedReturnValue)
+        );
       }
-      assert.deepStrictEqual(
-        Buffer.from(actualResult.rawReturnValue),
-        expectedReturnValue
-      );
-
-      const returnType = this.method.returns.type;
-      if (returnType === 'void') {
-        assert.strictEqual(expectedReturnValue.byteLength, 0);
-        return;
-      }
-
-      assert.deepStrictEqual(
-        actualResult.returnValue,
-        returnType.decode(expectedReturnValue)
-      );
     }
   );
 
