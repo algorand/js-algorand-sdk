@@ -176,19 +176,26 @@ export class AtomicTransactionComposer {
    * for the given method.
    */
   addMethodCall({
-    appId,
+    appID,
     method,
     methodArgs,
     sender,
     suggestedParams,
     onComplete,
+    approvalProgram,
+    clearProgram,
+    numGlobalInts,
+    numGlobalByteSlices,
+    numLocalInts,
+    numLocalByteSlices,
+    extraPages,
     note,
     lease,
     rekeyTo,
     signer,
   }: {
-    /** The ID of the smart contract to call */
-    appId: number;
+    /** The ID of the smart contract to call. Set this to 0 to indicate an application creation call. */
+    appID: number;
     /** The method to call on the smart contract */
     method: ABIMethod;
     /** The arguments to include in the method call. If omitted, no arguments will be passed to the method. */
@@ -199,6 +206,20 @@ export class AtomicTransactionComposer {
     suggestedParams: SuggestedParams;
     /** The OnComplete action to take for this application call. If omitted, OnApplicationComplete.NoOpOC will be used. */
     onComplete?: OnApplicationComplete;
+    /** The approval program for this application call. Only set this if this is an application creation call, or if onComplete is OnApplicationComplete.UpdateApplicationOC */
+    approvalProgram?: Uint8Array;
+    /** The clear program for this application call. Only set this if this is an application creation call, or if onComplete is OnApplicationComplete.UpdateApplicationOC */
+    clearProgram?: Uint8Array;
+    /** The global integer schema size. Only set this if this is an application creation call. */
+    numGlobalInts?: number;
+    /** The global byte slice schema size. Only set this if this is an application creation call. */
+    numGlobalByteSlices?: number;
+    /** The local integer schema size. Only set this if this is an application creation call. */
+    numLocalInts?: number;
+    /** The local byte slice schema size. Only set this if this is an application creation call. */
+    numLocalByteSlices?: number;
+    /** The number of extra pages to allocate for the application's programs. Only set this if this is an application creation call. If omitted, defaults to 0. */
+    extraPages?: number;
     /** The note value for this application call */
     note?: Uint8Array;
     /** The lease value for this application call */
@@ -223,8 +244,48 @@ export class AtomicTransactionComposer {
       );
     }
 
-    if (appId === 0) {
-      throw new Error('Application create call not supported');
+    if (appID === 0) {
+      if (
+        approvalProgram == null ||
+        clearProgram == null ||
+        numGlobalInts == null ||
+        numGlobalByteSlices == null ||
+        numLocalInts == null ||
+        numLocalByteSlices == null
+      ) {
+        throw new Error(
+          'One of the following required parameters for application creation is missing: approvalProgram, clearProgram, numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices'
+        );
+      }
+    } else if (onComplete === OnApplicationComplete.UpdateApplicationOC) {
+      if (approvalProgram == null || clearProgram == null) {
+        throw new Error(
+          'One of the following required parameters for OnApplicationComplete.UpdateApplicationOC is missing: approvalProgram, clearProgram'
+        );
+      }
+      if (
+        numGlobalInts != null ||
+        numGlobalByteSlices != null ||
+        numLocalInts != null ||
+        numLocalByteSlices != null ||
+        extraPages != null
+      ) {
+        throw new Error(
+          'One of the following application creation parameters were set on a non-creation call: numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices, extraPages'
+        );
+      }
+    } else if (
+      approvalProgram != null ||
+      clearProgram != null ||
+      numGlobalInts != null ||
+      numGlobalByteSlices != null ||
+      numLocalInts != null ||
+      numLocalByteSlices != null ||
+      extraPages != null
+    ) {
+      throw new Error(
+        'One of the following application creation parameters were set on a non-creation call: approvalProgram, clearProgram, numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices, extraPages'
+      );
     }
 
     if (methodArgs == null) {
@@ -314,7 +375,7 @@ export class AtomicTransactionComposer {
               `Expected safe integer for application value, got ${refAppID}`
             );
           }
-          resolved = populateForeignArray(Number(refAppID), foreignApps, appId);
+          resolved = populateForeignArray(Number(refAppID), foreignApps, appID);
           break;
         }
         case ABIReferenceType.asset: {
@@ -359,13 +420,20 @@ export class AtomicTransactionComposer {
     const appCall = {
       txn: makeApplicationCallTxnFromObject({
         from: sender,
-        appIndex: appId,
+        appIndex: appID,
         appArgs: appArgsEncoded,
         accounts: foreignAccounts,
         foreignApps,
         foreignAssets,
         onComplete:
           onComplete == null ? OnApplicationComplete.NoOpOC : onComplete,
+        approvalProgram,
+        clearProgram,
+        numGlobalInts,
+        numGlobalByteSlices,
+        numLocalInts,
+        numLocalByteSlices,
+        extraPages,
         lease,
         note,
         rekeyTo,

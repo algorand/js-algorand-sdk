@@ -4777,7 +4777,30 @@ module.exports = function getSteps(options) {
     }
   );
 
-  function addMethodCallToComposer(sender, onComplete) {
+  async function addMethodCallToComposer(
+    sender,
+    onComplete,
+    approvalProgramFile,
+    clearProgramFile,
+    globalBytes,
+    globalInts,
+    localBytes,
+    localInts,
+    extraPages
+  ) {
+    // open and load in approval program
+    let approvalProgramBytes;
+    if (approvalProgramFile !== '') {
+      const resouce = await loadResource(approvalProgramFile);
+      approvalProgramBytes = makeUint8Array(resouce);
+    }
+    // open and load in clear program
+    let clearProgramBytes;
+    if (clearProgramFile !== '') {
+      const resouce = await loadResource(clearProgramFile);
+      clearProgramBytes = makeUint8Array(resouce);
+    }
+
     const methodArgs = [];
 
     assert.strictEqual(
@@ -4818,12 +4841,19 @@ module.exports = function getSteps(options) {
     }
 
     this.composer.addMethodCall({
-      appId: this.currentApplicationIndex,
+      appID: this.currentApplicationIndex,
       method: this.method,
       methodArgs,
       sender,
       suggestedParams: this.suggestedParams,
       onComplete: operationStringToEnum(onComplete),
+      approvalProgram: approvalProgramBytes,
+      clearProgram: clearProgramBytes,
+      numGlobalInts: globalInts,
+      numGlobalByteSlices: globalBytes,
+      numLocalInts: localInts,
+      numLocalByteSlices: localBytes,
+      extraPages,
       signer: this.transactionSigner,
     });
     this.composerMethods.push(this.method);
@@ -4831,19 +4861,129 @@ module.exports = function getSteps(options) {
 
   When(
     'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
-    function (onComplete) {
-      addMethodCallToComposer.call(
+    async function (onComplete) {
+      await addMethodCallToComposer.call(
         this,
         this.transientAccount.addr,
-        onComplete
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
       );
     }
   );
 
   When(
     'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
-    function (onComplete) {
-      addMethodCallToComposer.call(this, this.signingAccount.addr, onComplete);
+    async function (onComplete) {
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, extra-pages {int}.',
+    async function (
+      onComplete,
+      approvalProg,
+      clearProg,
+      globalBytes,
+      globalInts,
+      localBytes,
+      localInts,
+      extraPages
+    ) {
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        approvalProg,
+        clearProg,
+        parseInt(globalBytes, 10),
+        parseInt(globalInts, 10),
+        parseInt(localBytes, 10),
+        parseInt(localInts, 10),
+        parseInt(extraPages, 10)
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, extra-pages {int}.',
+    async function (
+      onComplete,
+      approvalProg,
+      clearProg,
+      globalBytes,
+      globalInts,
+      localBytes,
+      localInts,
+      extraPages
+    ) {
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onComplete,
+        approvalProg,
+        clearProg,
+        parseInt(globalBytes, 10),
+        parseInt(globalInts, 10),
+        parseInt(localBytes, 10),
+        parseInt(localInts, 10),
+        parseInt(extraPages, 10)
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}.',
+    async function (onCompletion, approvalProg, clearProg) {
+      assert.strictEqual(onCompletion, 'update');
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onCompletion,
+        approvalProg,
+        clearProg,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}.',
+    async function (onCompletion, approvalProg, clearProg) {
+      assert.strictEqual(onCompletion, 'update');
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onCompletion,
+        approvalProg,
+        clearProg,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
     }
   );
 
