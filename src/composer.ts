@@ -25,6 +25,9 @@ import {
   SuggestedParams,
 } from './types/transactions/base';
 
+// first 4 bytes of SHA-512/256 hash of "return"
+const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
+
 export type ABIArgument = ABIValue | TransactionWithSigner;
 
 /** Represents the output from a successful ABI method call. */
@@ -635,25 +638,19 @@ export class AtomicTransactionComposer {
                 await client.pendingTransactionInformation(txID).do();
 
           const logs: string[] = pendingInfo.logs || [];
-
-          // first 4 bytes of SHA-512/256 hash of "return"
-          const returnPrefix = Buffer.from([21, 31, 124, 117]);
-
-          let returnValueEncoded: Buffer | undefined;
-
-          for (let i = logs.length - 1; i >= 0; i--) {
-            const log = Buffer.from(logs[i], 'base64');
-            if (log.byteLength >= 4 && log.slice(0, 4).equals(returnPrefix)) {
-              returnValueEncoded = log.slice(4);
-              break;
-            }
-          }
-
-          if (returnValueEncoded == null) {
+          if (logs.length === 0) {
             throw new Error('App call transaction did not log a return value');
           }
 
-          methodResult.rawReturnValue = new Uint8Array(returnValueEncoded);
+          const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+          if (
+            lastLog.byteLength < 4 ||
+            !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+          ) {
+            throw new Error('App call transaction did not log a return value');
+          }
+
+          methodResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
           methodResult.returnValue = method.returns.type.decode(
             methodResult.rawReturnValue
           );
