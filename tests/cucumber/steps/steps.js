@@ -4655,11 +4655,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'I create an Interface object from the Method object with name {string}',
-    function (name) {
+    'I create an Interface object from the Method object with name {string} and description {string}',
+    function (name, desc) {
       this.interface = new algosdk.ABIInterface(
         makeObject({
           name,
+          desc,
           methods: makeArray(this.method.toJSON()),
         })
       );
@@ -4681,11 +4682,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'I create a Contract object from the Method object with name {string}',
-    function (name) {
+    'I create a Contract object from the Method object with name {string} and description {string}',
+    function (name, desc) {
       this.contract = makeABIContract(
         makeObject({
           name,
+          desc,
           methods: makeArray(this.method.toJSON()),
         })
       );

@@ -10,12 +10,14 @@ export interface ABIContractNetworks {
 
 export interface ABIContractParams {
   name: string;
+  desc?: string;
   networks?: ABIContractNetworks;
   methods: ABIMethodParams[];
 }
 
 export class ABIContract {
   public readonly name: string;
+  public readonly description?: string;
   public readonly networks: ABIContractNetworks;
   public readonly methods: ABIMethod[];
 
@@ -29,6 +31,7 @@ export class ABIContract {
     }
 
     this.name = params.name;
+    this.description = params.desc;
     this.networks = params.networks ? { ...params.networks } : {};
     this.methods = params.methods.map((method) => new ABIMethod(method));
   }
@@ -36,6 +39,7 @@ export class ABIContract {
   toJSON(): ABIContractParams {
     return {
       name: this.name,
+      desc: this.description,
       networks: this.networks,
       methods: this.methods.map((method) => method.toJSON()),
     };
