@@ -5120,7 +5120,7 @@ module.exports = function getSteps(options) {
         const returnType = method.returns.type;
         if (returnType === 'void') {
           assert.strictEqual(expectedReturnValue.byteLength, 0);
-          return;
+          continue;
         }
 
         assert.deepStrictEqual(
