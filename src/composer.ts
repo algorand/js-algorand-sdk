@@ -603,6 +603,7 @@ export class AtomicTransactionComposer {
     }
 
     const txIDs = await this.submit(client);
+    this.status = AtomicTransactionComposerStatus.SUBMITTED;
 
     const firstMethodCallIndex = this.transactions.findIndex((_, index) =>
       this.methodCalls.has(index)
@@ -614,7 +615,6 @@ export class AtomicTransactionComposer {
       txIDs[indexToWaitFor],
       waitRounds
     );
-
     this.status = AtomicTransactionComposerStatus.COMMITTED;
 
     const confirmedRound: number = confirmedTxnInfo['confirmed-round'];
