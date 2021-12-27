@@ -1,10 +1,7 @@
 import { genericHash } from '../nacl/naclWrappers';
-import { TransactionType } from '../types/transactions/base';
 import { ABIType, ABITupleType } from './abi_type';
-
-export function abiTypeIsTransaction(type: string): type is TransactionType {
-  return type === 'txn' || Object.keys(TransactionType).includes(type);
-}
+import { ABITransactionType, abiTypeIsTransaction } from './transaction';
+import { ABIReferenceType, abiTypeIsReference } from './reference';
 
 function parseMethodSignature(
   signature: string
@@ -48,14 +45,25 @@ function parseMethodSignature(
   };
 }
 
+export interface ABIMethodArgParams {
+  type: string;
+  name?: string;
+  desc?: string;
+}
+
+export interface ABIMethodReturnParams {
+  type: string;
+  desc?: string;
+}
+
 export interface ABIMethodParams {
   name: string;
   desc?: string;
-  args: Array<{ type: string; name?: string; desc?: string }>;
-  returns: { type: string; desc?: string };
+  args: ABIMethodArgParams[];
+  returns: ABIMethodReturnParams;
 }
 
-export type ABIArgumentType = ABIType | TransactionType;
+export type ABIArgumentType = ABIType | ABITransactionType | ABIReferenceType;
 
 export type ABIReturnType = ABIType | 'void';
 
@@ -82,7 +90,7 @@ export class ABIMethod {
     this.name = params.name;
     this.description = params.desc;
     this.args = params.args.map(({ type, name, desc }) => {
-      if (abiTypeIsTransaction(type)) {
+      if (abiTypeIsTransaction(type) || abiTypeIsReference(type)) {
         return {
           type,
           name,

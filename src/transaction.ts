@@ -772,8 +772,9 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.apap) delete txn.apap;
       if (!txn.apsu) delete txn.apsu;
       if (!txn.apan) delete txn.apan;
-      if (!txn.apfa) delete txn.apfa;
-      if (!txn.apas) delete txn.apas;
+      if (!txn.apfa || !txn.apfa.length) delete txn.apfa;
+      if (!txn.apas || !txn.apas.length) delete txn.apas;
+      if (!txn.apat || !txn.apat.length) delete txn.apat;
       if (!txn.apep) delete txn.apep;
       if (txn.grp === undefined) delete txn.grp;
       return txn;
