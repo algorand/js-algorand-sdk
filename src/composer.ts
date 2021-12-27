@@ -25,8 +25,11 @@ import {
   SuggestedParams,
 } from './types/transactions/base';
 
-// first 4 bytes of SHA-512/256 hash of "return"
+// First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
+
+// The maximum number of arguments for an application call transaction
+const MAX_APP_ARGS = 16;
 
 export type ABIArgument = ABIValue | TransactionWithSigner;
 
@@ -404,12 +407,12 @@ export class AtomicTransactionComposer {
       basicArgValues[basicArgIndex] = resolvedRefIndexes[i];
     }
 
-    if (basicArgTypes.length > 15) {
-      const lastArgTupleTypes = basicArgTypes.slice(14);
-      const lastArgTupleValues = basicArgValues.slice(14);
+    if (basicArgTypes.length > MAX_APP_ARGS - 1) {
+      const lastArgTupleTypes = basicArgTypes.slice(MAX_APP_ARGS - 2);
+      const lastArgTupleValues = basicArgValues.slice(MAX_APP_ARGS - 2);
 
-      basicArgTypes = basicArgTypes.slice(0, 14);
-      basicArgValues = basicArgValues.slice(0, 14);
+      basicArgTypes = basicArgTypes.slice(0, MAX_APP_ARGS - 2);
+      basicArgValues = basicArgValues.slice(0, MAX_APP_ARGS - 2);
 
       basicArgTypes.push(new ABITupleType(lastArgTupleTypes));
       basicArgValues.push(lastArgTupleValues);
