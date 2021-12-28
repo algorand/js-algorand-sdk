@@ -1,3 +1,16 @@
+# 1.13.0-beta.2
+
+## Added
+
+- Support ABI reference types and other improvements (#482)
+- Improve HTTP error messages (#485)
+- Enabling a custom client for Algod and Indexer (#477)
+- Export sdk subclasses to typedoc (#479)
+
+## Fixed
+
+- Fix wait for confirmation function (#480)
+
 # 1.13.0-beta.1
 
 ## Added

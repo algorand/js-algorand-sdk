@@ -1874,7 +1874,7 @@ module.exports = function getSteps(options) {
           throw err;
         }
         if (this.expectedMockResponseCode === 500) {
-          if (!err.toString().includes('Internal Server Error')) {
+          if (!err.toString().includes('Received status 500')) {
             throw Error(
               `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
             );
@@ -4655,11 +4655,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'I create an Interface object from the Method object with name {string}',
-    function (name) {
+    'I create an Interface object from the Method object with name {string} and description {string}',
+    function (name, desc) {
       this.interface = new algosdk.ABIInterface(
         makeObject({
           name,
+          desc,
           methods: makeArray(this.method.toJSON()),
         })
       );
@@ -4681,15 +4682,24 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'I create a Contract object from the Method object with name {string} and appId {int}',
-    function (name, appId) {
+    'I create a Contract object from the Method object with name {string} and description {string}',
+    function (name, desc) {
       this.contract = makeABIContract(
         makeObject({
           name,
-          appId: parseInt(appId, 10),
+          desc,
           methods: makeArray(this.method.toJSON()),
         })
       );
+    }
+  );
+
+  When(
+    "I set the Contract's appID to {int} for the network {string}",
+    function (appID, network) {
+      this.contract.networks[network] = makeObject({
+        appID: parseInt(appID, 10),
+      });
     }
   );
 
@@ -4715,6 +4725,7 @@ module.exports = function getSteps(options) {
 
   Given('a new AtomicTransactionComposer', function () {
     this.composer = new algosdk.AtomicTransactionComposer();
+    this.composerMethods = [];
   });
 
   Given('an application id {int}', function (appId) {
@@ -4768,7 +4779,30 @@ module.exports = function getSteps(options) {
     }
   );
 
-  function addMethodCallToComposer(sender, onComplete) {
+  async function addMethodCallToComposer(
+    sender,
+    onComplete,
+    approvalProgramFile,
+    clearProgramFile,
+    globalBytes,
+    globalInts,
+    localBytes,
+    localInts,
+    extraPages
+  ) {
+    // open and load in approval program
+    let approvalProgramBytes;
+    if (approvalProgramFile !== '') {
+      const resouce = await loadResource(approvalProgramFile);
+      approvalProgramBytes = makeUint8Array(resouce);
+    }
+    // open and load in clear program
+    let clearProgramBytes;
+    if (clearProgramFile !== '') {
+      const resouce = await loadResource(clearProgramFile);
+      clearProgramBytes = makeUint8Array(resouce);
+    }
+
     const methodArgs = [];
 
     assert.strictEqual(
@@ -4780,42 +4814,178 @@ module.exports = function getSteps(options) {
       const argSpec = this.method.args[i];
       const encodedArg = this.encodedMethodArguments[i];
 
-      let preparedArg = encodedArg;
-
-      if (typeof argSpec.type !== 'string') {
-        // the argument is an encoded ABI value
-        preparedArg = argSpec.type.decode(encodedArg);
+      if (algosdk.abiTypeIsTransaction(argSpec.type)) {
+        methodArgs.push(encodedArg);
+        continue;
       }
 
-      methodArgs.push(preparedArg);
+      let typeToDecode = argSpec.type;
+
+      if (algosdk.abiTypeIsReference(argSpec.type)) {
+        switch (argSpec.type) {
+          case algosdk.ABIReferenceType.account:
+            typeToDecode = algosdk.ABIType.from('address');
+            break;
+          case algosdk.ABIReferenceType.application:
+          case algosdk.ABIReferenceType.asset:
+            typeToDecode = algosdk.ABIType.from('uint64');
+            break;
+          default:
+            throw new Error(`Unknown reference type: ${argSpec.type}`);
+        }
+      }
+
+      if (typeof typeToDecode === 'string') {
+        throw new Error(`Cannot decode with type: ${typeToDecode}`);
+      }
+
+      methodArgs.push(typeToDecode.decode(encodedArg));
     }
 
     this.composer.addMethodCall({
-      appId: this.currentApplicationIndex,
+      appID: this.currentApplicationIndex,
       method: this.method,
       methodArgs,
       sender,
       suggestedParams: this.suggestedParams,
       onComplete: operationStringToEnum(onComplete),
+      approvalProgram: approvalProgramBytes,
+      clearProgram: clearProgramBytes,
+      numGlobalInts: globalInts,
+      numGlobalByteSlices: globalBytes,
+      numLocalInts: localInts,
+      numLocalByteSlices: localBytes,
+      extraPages,
       signer: this.transactionSigner,
     });
+    this.composerMethods.push(this.method);
   }
 
   When(
     'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
-    function (onComplete) {
-      addMethodCallToComposer.call(
+    async function (onComplete) {
+      await addMethodCallToComposer.call(
         this,
         this.transientAccount.addr,
-        onComplete
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
       );
     }
   );
 
   When(
     'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
-    function (onComplete) {
-      addMethodCallToComposer.call(this, this.signingAccount.addr, onComplete);
+    async function (onComplete) {
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, extra-pages {int}.',
+    async function (
+      onComplete,
+      approvalProg,
+      clearProg,
+      globalBytes,
+      globalInts,
+      localBytes,
+      localInts,
+      extraPages
+    ) {
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        approvalProg,
+        clearProg,
+        parseInt(globalBytes, 10),
+        parseInt(globalInts, 10),
+        parseInt(localBytes, 10),
+        parseInt(localInts, 10),
+        parseInt(extraPages, 10)
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, extra-pages {int}.',
+    async function (
+      onComplete,
+      approvalProg,
+      clearProg,
+      globalBytes,
+      globalInts,
+      localBytes,
+      localInts,
+      extraPages
+    ) {
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onComplete,
+        approvalProg,
+        clearProg,
+        parseInt(globalBytes, 10),
+        parseInt(globalInts, 10),
+        parseInt(localBytes, 10),
+        parseInt(localInts, 10),
+        parseInt(extraPages, 10)
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}.',
+    async function (onCompletion, approvalProg, clearProg) {
+      assert.strictEqual(onCompletion, 'update');
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onCompletion,
+        approvalProg,
+        clearProg,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}.',
+    async function (onCompletion, approvalProg, clearProg) {
+      assert.strictEqual(onCompletion, 'update');
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onCompletion,
+        approvalProg,
+        clearProg,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
     }
   );
 
@@ -4828,9 +4998,26 @@ module.exports = function getSteps(options) {
 
   When(
     'I build the transaction group with the composer. If there is an error it is {string}.',
-    function (errorMsg) {
-      assert.strictEqual(errorMsg, ''); // error checking not yet implemented
-      this.composerBuiltGroup = this.composer.buildGroup();
+    function (errorType) {
+      if (errorType === '') {
+        // no error expected
+        this.composerBuiltGroup = this.composer.buildGroup();
+        return;
+      }
+
+      let expectedMessage;
+      switch (errorType) {
+        case 'zero group size error':
+          expectedMessage = 'Cannot build a group with 0 transactions';
+          break;
+        default:
+          throw new Error(`Unknown error type: "${errorType}"`);
+      }
+
+      assert.throws(
+        () => this.composer.buildGroup(),
+        (err) => err.message === expectedMessage
+      );
     }
   );
 
@@ -4881,7 +5068,13 @@ module.exports = function getSteps(options) {
       const actualSignedTxns = this.composerSignedTransactions.map(
         (signedTxn) => Buffer.from(signedTxn)
       );
-      assert.deepStrictEqual([...actualSignedTxns], [...expectedSignedTxns]);
+      assert.deepStrictEqual(
+        [...actualSignedTxns],
+        [...expectedSignedTxns],
+        `Got ${actualSignedTxns
+          .map((stxn) => stxn.toString('base64'))
+          .join(',')}`
+      );
     }
   );
 
@@ -4898,34 +5091,43 @@ module.exports = function getSteps(options) {
 
   Then(
     'The app should have returned {string}.',
-    function (base64ExpectedReturnValue) {
+    function (expectedReturnValues) {
+      const b64ExpectedReturnValues = expectedReturnValues.split(',');
+
       const { methodResults } = this.composerExecuteResponse;
-      assert.strictEqual(methodResults.length, 1);
+      assert.strictEqual(methodResults.length, b64ExpectedReturnValues.length);
+      assert.strictEqual(methodResults.length, this.composerMethods.length);
 
-      const actualResult = methodResults[0];
-      const expectedReturnValue = Buffer.from(
-        base64ExpectedReturnValue,
-        'base64'
-      );
+      for (let i = 0; i < methodResults.length; i++) {
+        const method = this.composerMethods[i];
+        const actualResult = methodResults[i];
+        const expectedReturnValue = Buffer.from(
+          b64ExpectedReturnValues[i],
+          'base64'
+        );
 
-      if (actualResult.decodeError) {
-        throw actualResult.decodeError;
+        if (actualResult.decodeError) {
+          throw actualResult.decodeError;
+        }
+        assert.deepStrictEqual(
+          Buffer.from(actualResult.rawReturnValue),
+          expectedReturnValue,
+          `Actual return value for method at index ${i} does not match expected. Actual: ${Buffer.from(
+            actualResult.rawReturnValue
+          ).toString('base64')}`
+        );
+
+        const returnType = method.returns.type;
+        if (returnType === 'void') {
+          assert.strictEqual(expectedReturnValue.byteLength, 0);
+          continue;
+        }
+
+        assert.deepStrictEqual(
+          actualResult.returnValue,
+          returnType.decode(expectedReturnValue)
+        );
       }
-      assert.deepStrictEqual(
-        Buffer.from(actualResult.rawReturnValue),
-        expectedReturnValue
-      );
-
-      const returnType = this.method.returns.type;
-      if (returnType === 'void') {
-        assert.strictEqual(expectedReturnValue.byteLength, 0);
-        return;
-      }
-
-      assert.deepStrictEqual(
-        actualResult.returnValue,
-        returnType.decode(expectedReturnValue)
-      );
     }
   );
 

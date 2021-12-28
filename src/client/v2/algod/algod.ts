@@ -1,5 +1,4 @@
 import ServiceClient from '../serviceClient';
-import { AlgodTokenHeader, CustomTokenHeader } from '../../client';
 import * as modelsv2 from './models/types';
 import AccountInformation from './accountInformation';
 import Block from './block';
@@ -19,15 +18,29 @@ import Supply from './supply';
 import Versions from './versions';
 import Genesis from './genesis';
 import Proof from './proof';
+import { BaseHTTPClient } from '../../baseHTTPClient';
+import {
+  AlgodTokenHeader,
+  CustomTokenHeader,
+} from '../../urlTokenBaseHTTPClient';
 
 export default class AlgodClient extends ServiceClient {
+  /**
+   * Create an AlgodClient from
+   * * either a token, baseServer, port, and optional headers
+   * * or a base client server for interoperability with external dApp wallets
+   */
   constructor(
-    token: string | AlgodTokenHeader | CustomTokenHeader,
+    tokenOrBaseClient:
+      | string
+      | AlgodTokenHeader
+      | CustomTokenHeader
+      | BaseHTTPClient,
     baseServer = 'http://r2.algorand.network',
     port: string | number = 4180,
-    headers = {}
+    headers: Record<string, string> = {}
   ) {
-    super('X-Algo-API-Token', token, baseServer, port, headers);
+    super('X-Algo-API-Token', tokenOrBaseClient, baseServer, port, headers);
   }
 
   healthCheck() {
