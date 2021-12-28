@@ -1,703 +1,118 @@
-<!doctype html>
-<html class="default no-js">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>algosdk</title>
-	<meta name="description" content="Documentation for algosdk">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
-	<script async src="assets/js/search.js" id="search-script"></script>
-</head>
-<body>
-<header>
-	<div class="tsd-page-toolbar">
-		<div class="container">
-			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
-					<div class="field">
-						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
-						<input id="tsd-search-field" type="text" />
-					</div>
-					<ul class="results">
-						<li class="state loading">Preparing search index...</li>
-						<li class="state failure">The search index is not available</li>
-					</ul>
-					<a href="index.html" class="title">algosdk</a>
-				</div>
-				<div class="table-cell" id="tsd-widgets">
-					<div id="tsd-filter">
-						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
-						<div class="tsd-filter-group">
-							<div class="tsd-select" id="tsd-filter-visibility">
-								<span class="tsd-select-label">All</span>
-								<ul class="tsd-select-list">
-									<li data-value="public">Public</li>
-									<li data-value="protected">Public/Protected</li>
-									<li data-value="private" class="selected">All</li>
-								</ul>
-							</div>
-							<input type="checkbox" id="tsd-filter-inherited" checked />
-							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
-							<input type="checkbox" id="tsd-filter-externals" checked />
-							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
-						</div>
-					</div>
-					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="tsd-page-title">
-		<div class="container">
-			<h1>algosdk</h1>
-		</div>
-	</div>
-</header>
-<div class="container container-main">
-	<div class="row">
-		<div class="col-8 col-content">
-			<div class="tsd-panel tsd-typography">
-				<a href="#js-algorand-sdk" id="js-algorand-sdk" style="color: inherit; text-decoration: none;">
-					<h1>js-algorand-sdk</h1>
-				</a>
-				<p><a href="https://travis-ci.com/algorand/js-algorand-sdk"><img src="https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master" alt="Build Status"></a> <a href="https://www.npmjs.com/package/algosdk"><img src="https://badge.fury.io/js/algosdk.svg" alt="npm version"></a></p>
-				<p>AlgoSDK is the official JavaScript library for communicating with the Algorand network. It&#39;s designed for modern browsers and Node.js.</p>
-				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
-					<h2>Installation</h2>
-				</a>
-				<a href="#nodejs" id="nodejs" style="color: inherit; text-decoration: none;">
-					<h3><a href="https://nodejs.org/en/download/">Node.js</a></h3>
-				</a>
-				<pre><code><span style="color: #001080">$</span><span style="color: #000000"> </span><span style="color: #001080">npm</span><span style="color: #000000"> </span><span style="color: #001080">install</span><span style="color: #000000"> </span><span style="color: #001080">algosdk</span>
-</code></pre>
-				<blockquote>
-					<p>This package provides TypeScript types, but you will need <a href="https://www.typescriptlang.org/">TypeScript</a> version 4.2 or higher to use them properly.</p>
-				</blockquote>
-				<a href="#browser" id="browser" style="color: inherit; text-decoration: none;">
-					<h3>Browser</h3>
-				</a>
-				<p>Include a minified browser bundle directly in your HTML like so:</p>
-				<pre><code class="language-html"><span style="color: #800000">&lt;script</span>
-<span style="color: #000000FF">  </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://unpkg.com/algosdk@1.13.0-beta.1/dist/browser/algosdk.min.js&quot;</span>
-<span style="color: #000000FF">  </span><span style="color: #FF0000">integrity</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;sha384-w9fodN00YjvWxdNoiyT+W6CqaATkXlfid9tnzBlToDqZWepVWLjI5wO7jNL4+aNs&quot;</span>
-<span style="color: #000000FF">  </span><span style="color: #FF0000">crossorigin</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;anonymous&quot;</span>
-<span style="color: #800000">&gt;&lt;/script&gt;</span>
-</code></pre>
-				<p>or</p>
-				<pre><code class="language-html"><span style="color: #800000">&lt;script</span>
-<span style="color: #000000FF">  </span><span style="color: #FF0000">src</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;https://cdn.jsdelivr.net/npm/algosdk@1.13.0-beta.1/dist/browser/algosdk.min.js&quot;</span>
-<span style="color: #000000FF">  </span><span style="color: #FF0000">integrity</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;sha384-w9fodN00YjvWxdNoiyT+W6CqaATkXlfid9tnzBlToDqZWepVWLjI5wO7jNL4+aNs&quot;</span>
-<span style="color: #000000FF">  </span><span style="color: #FF0000">crossorigin</span><span style="color: #000000FF">=</span><span style="color: #0000FF">&quot;anonymous&quot;</span>
-<span style="color: #800000">&gt;&lt;/script&gt;</span>
-</code></pre>
-				<p>Information about hosting the package for yourself, finding the browser bundles of previous versions, and computing the SRI hash is <a href="FAQ.md">available here</a>.</p>
-				<a href="#quick-start" id="quick-start" style="color: inherit; text-decoration: none;">
-					<h2>Quick Start</h2>
-				</a>
-				<pre><code class="language-javascript"><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">token</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;Your algod API token&#039;</span><span style="color: #000000">;</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">server</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;http://127.0.0.1&#039;</span><span style="color: #000000">;</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">port</span><span style="color: #000000"> = </span><span style="color: #098658">8080</span><span style="color: #000000">;</span>
-<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #001080">algosdk</span><span style="color: #000000">.</span><span style="color: #795E26">Algodv2</span><span style="color: #000000">(</span><span style="color: #001080">token</span><span style="color: #000000">, </span><span style="color: #001080">server</span><span style="color: #000000">, </span><span style="color: #001080">port</span><span style="color: #000000">);</span>
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>algosdk</title><meta name="description" content="Documentation for algosdk"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">algosdk</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>algosdk</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#js-algorand-sdk" id="js-algorand-sdk" style="color: inherit; text-decoration: none;">
+  <h1>js-algorand-sdk</h1>
+</a>
+<p><a href="https://travis-ci.com/algorand/js-algorand-sdk"><img src="https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master" alt="Build Status"></a> <a href="https://www.npmjs.com/package/algosdk"><img src="https://badge.fury.io/js/algosdk.svg" alt="npm version"></a></p>
+<p>AlgoSDK is the official JavaScript library for communicating with the Algorand network. It&#39;s designed for modern browsers and Node.js.</p>
 
-<span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">status</span><span style="color: #000000">().</span><span style="color: #795E26">do</span><span style="color: #000000">());</span>
-<span style="color: #000000">})().</span><span style="color: #795E26">catch</span><span style="color: #000000">((</span><span style="color: #001080">e</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
-<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #001080">e</span><span style="color: #000000">);</span>
-<span style="color: #000000">});</span>
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h2>Installation</h2>
+</a>
+
+<a href="#nodejs" id="nodejs" style="color: inherit; text-decoration: none;">
+  <h3><a href="https://nodejs.org/en/download/">Node.js</a></h3>
+</a>
+<pre><code><span class="hl-0">$</span><span class="hl-1"> </span><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span><span class="hl-1"> </span><span class="hl-0">algosdk</span>
 </code></pre>
-				<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
-					<h2>Documentation</h2>
-				</a>
-				<p>Documentation for this SDK is available here: <a href="https://algorand.github.io/js-algorand-sdk/">https://algorand.github.io/js-algorand-sdk/</a>. Additional resources are available on <a href="https://developer.algorand.org">https://developer.algorand.org</a>.</p>
-				<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
-					<h2>Examples</h2>
-				</a>
-				<p>Running examples requires access to a running node. Follow the instructions in Algorand&#39;s <a href="https://developer.algorand.org/docs/run-a-node/setup/install/">developer resources</a> to install a node on your computer.</p>
-				<p><strong>As portions of the codebase are written in TypeScript, example files cannot be run directly using <code>node</code></strong>. Please refer to the instructions described in the <a href="examples/README.md">examples/README.md</a> file for more information regarding running the examples.</p>
-				<a href="#sdk-development" id="sdk-development" style="color: inherit; text-decoration: none;">
-					<h2>SDK Development</h2>
-				</a>
-				<a href="#building" id="building" style="color: inherit; text-decoration: none;">
-					<h3>Building</h3>
-				</a>
-				<p>To build a new version of the library, run:</p>
-				<pre><code class="language-bash"><span style="color: #000000">npm run build</span>
+<blockquote>
+<p>This package provides TypeScript types, but you will need <a href="https://www.typescriptlang.org/">TypeScript</a> version 4.2 or higher to use them properly.</p>
+</blockquote>
+
+<a href="#browser" id="browser" style="color: inherit; text-decoration: none;">
+  <h3>Browser</h3>
+</a>
+<p>Include a minified browser bundle directly in your HTML like so:</p>
+<pre><code class="language-html"><span class="hl-2">&lt;</span><span class="hl-3">script</span><br/><span class="hl-4">  </span><span class="hl-5">src</span><span class="hl-4">=</span><span class="hl-6">&quot;https://unpkg.com/algosdk@1.13.0-beta.2/dist/browser/algosdk.min.js&quot;</span><br/><span class="hl-4">  </span><span class="hl-5">integrity</span><span class="hl-4">=</span><span class="hl-6">&quot;sha384-ArIfXzQ4ARpkRJIn6EKgtqbJaPXhEEvNoguSPToHMg2VNl2rNc6QuuOTyDX7Krps&quot;</span><br/><span class="hl-4">  </span><span class="hl-5">crossorigin</span><span class="hl-4">=</span><span class="hl-6">&quot;anonymous&quot;</span><br/><span class="hl-2">&gt;&lt;/</span><span class="hl-3">script</span><span class="hl-2">&gt;</span>
 </code></pre>
-				<a href="#generating-documentation" id="generating-documentation" style="color: inherit; text-decoration: none;">
-					<h3>Generating Documentation</h3>
-				</a>
-				<p>To generate the documentation website, run:</p>
-				<pre><code class="language-bash"><span style="color: #000000">npm run docs</span>
+<p>or</p>
+<pre><code class="language-html"><span class="hl-2">&lt;</span><span class="hl-3">script</span><br/><span class="hl-4">  </span><span class="hl-5">src</span><span class="hl-4">=</span><span class="hl-6">&quot;https://cdn.jsdelivr.net/npm/algosdk@1.13.0-beta.2/dist/browser/algosdk.min.js&quot;</span><br/><span class="hl-4">  </span><span class="hl-5">integrity</span><span class="hl-4">=</span><span class="hl-6">&quot;sha384-ArIfXzQ4ARpkRJIn6EKgtqbJaPXhEEvNoguSPToHMg2VNl2rNc6QuuOTyDX7Krps&quot;</span><br/><span class="hl-4">  </span><span class="hl-5">crossorigin</span><span class="hl-4">=</span><span class="hl-6">&quot;anonymous&quot;</span><br/><span class="hl-2">&gt;&lt;/</span><span class="hl-3">script</span><span class="hl-2">&gt;</span>
 </code></pre>
-				<p>The static website will be located in the <code>docs/</code> directory.</p>
-				<a href="#testing" id="testing" style="color: inherit; text-decoration: none;">
-					<h3>Testing</h3>
-				</a>
-				<p>We have two test suites: mocha tests in this repo, and the Algorand SDK test suite from <a href="https://github.com/algorand/algorand-sdk-testing">https://github.com/algorand/algorand-sdk-testing</a>.</p>
-				<a href="#nodejs-1" id="nodejs-1" style="color: inherit; text-decoration: none;">
-					<h4>Node.js</h4>
-				</a>
-				<p>To run the mocha tests in Node.js, run:</p>
-				<pre><code class="language-bash"><span style="color: #000000">npm </span><span style="color: #795E26">test</span>
+<p>Information about hosting the package for yourself, finding the browser bundles of previous versions, and computing the SRI hash is <a href="FAQ.md">available here</a>.</p>
+
+<a href="#quick-start" id="quick-start" style="color: inherit; text-decoration: none;">
+  <h2>Quick Start</h2>
+</a>
+<pre><code class="language-javascript"><span class="hl-7">const</span><span class="hl-1"> </span><span class="hl-8">token</span><span class="hl-1"> = </span><span class="hl-9">&#39;Your algod API token&#39;</span><span class="hl-1">;</span><br/><span class="hl-7">const</span><span class="hl-1"> </span><span class="hl-8">server</span><span class="hl-1"> = </span><span class="hl-9">&#39;http://127.0.0.1&#39;</span><span class="hl-1">;</span><br/><span class="hl-7">const</span><span class="hl-1"> </span><span class="hl-8">port</span><span class="hl-1"> = </span><span class="hl-10">8080</span><span class="hl-1">;</span><br/><span class="hl-7">const</span><span class="hl-1"> </span><span class="hl-8">client</span><span class="hl-1"> = </span><span class="hl-7">new</span><span class="hl-1"> </span><span class="hl-0">algosdk</span><span class="hl-1">.</span><span class="hl-11">Algodv2</span><span class="hl-1">(</span><span class="hl-0">token</span><span class="hl-1">, </span><span class="hl-0">server</span><span class="hl-1">, </span><span class="hl-0">port</span><span class="hl-1">);</span><br/><br/><span class="hl-1">(</span><span class="hl-7">async</span><span class="hl-1"> () </span><span class="hl-7">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-11">log</span><span class="hl-1">(</span><span class="hl-12">await</span><span class="hl-1"> </span><span class="hl-0">client</span><span class="hl-1">.</span><span class="hl-11">status</span><span class="hl-1">().</span><span class="hl-11">do</span><span class="hl-1">());</span><br/><span class="hl-1">})().</span><span class="hl-11">catch</span><span class="hl-1">((</span><span class="hl-0">e</span><span class="hl-1">) </span><span class="hl-7">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-0">console</span><span class="hl-1">.</span><span class="hl-11">log</span><span class="hl-1">(</span><span class="hl-0">e</span><span class="hl-1">);</span><br/><span class="hl-1">});</span>
 </code></pre>
-				<p>To run the SDK test suite in Node.js, run:</p>
-				<pre><code class="language-bash"><span style="color: #000000">make docker-test</span>
+
+<a href="#documentation" id="documentation" style="color: inherit; text-decoration: none;">
+  <h2>Documentation</h2>
+</a>
+<p>Documentation for this SDK is available here: <a href="https://algorand.github.io/js-algorand-sdk/">https://algorand.github.io/js-algorand-sdk/</a>. Additional resources are available on <a href="https://developer.algorand.org">https://developer.algorand.org</a>.</p>
+
+<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
+  <h2>Examples</h2>
+</a>
+<p>Running examples requires access to a running node. Follow the instructions in Algorand&#39;s <a href="https://developer.algorand.org/docs/run-a-node/setup/install/">developer resources</a> to install a node on your computer.</p>
+<p><strong>As portions of the codebase are written in TypeScript, example files cannot be run directly using <code>node</code></strong>. Please refer to the instructions described in the <a href="examples/README.md">examples/README.md</a> file for more information regarding running the examples.</p>
+
+<a href="#sdk-development" id="sdk-development" style="color: inherit; text-decoration: none;">
+  <h2>SDK Development</h2>
+</a>
+
+<a href="#building" id="building" style="color: inherit; text-decoration: none;">
+  <h3>Building</h3>
+</a>
+<p>To build a new version of the library, run:</p>
+<pre><code class="language-bash"><span class="hl-1">npm run build</span>
 </code></pre>
-				<a href="#browsers" id="browsers" style="color: inherit; text-decoration: none;">
-					<h4>Browsers</h4>
-				</a>
-				<p>The test suites can also run in browsers. To do so, set the environment variable <code>TEST_BROWSER</code> to
-					one of our supported browsers. Currently we support testing in <code>chrome</code> and <code>firefox</code>. When
-				<code>TEST_BROWSER</code> is set, the mocha and SDK test suites will run in that browser.</p>
-				<p>For example, to run mocha tests in Chrome:</p>
-				<pre><code class="language-bash"><span style="color: #000000">TEST_BROWSER=chrome npm </span><span style="color: #795E26">test</span>
+
+<a href="#generating-documentation" id="generating-documentation" style="color: inherit; text-decoration: none;">
+  <h3>Generating Documentation</h3>
+</a>
+<p>To generate the documentation website, run:</p>
+<pre><code class="language-bash"><span class="hl-1">npm run docs</span>
 </code></pre>
-				<p>And to run SDK tests in Firefox:</p>
-				<pre><code class="language-bash"><span style="color: #000000">TEST_BROWSER=firefox make docker-test</span>
+<p>The static website will be located in the <code>docs/</code> directory.</p>
+
+<a href="#testing" id="testing" style="color: inherit; text-decoration: none;">
+  <h3>Testing</h3>
+</a>
+<p>We have two test suites: mocha tests in this repo, and the Algorand SDK test suite from <a href="https://github.com/algorand/algorand-sdk-testing">https://github.com/algorand/algorand-sdk-testing</a>.</p>
+
+<a href="#nodejs-1" id="nodejs-1" style="color: inherit; text-decoration: none;">
+  <h4>Node.js</h4>
+</a>
+<p>To run the mocha tests in Node.js, run:</p>
+<pre><code class="language-bash"><span class="hl-1">npm </span><span class="hl-11">test</span>
 </code></pre>
-				<a href="#code-style" id="code-style" style="color: inherit; text-decoration: none;">
-					<h3>Code Style</h3>
-				</a>
-				<p>This project enforces a modified version of the <a href="https://github.com/airbnb/javascript">Airbnb code style</a>.</p>
-				<p>We&#39;ve setup linters and formatters to help catch errors and improve the development experience:</p>
-				<ul>
-					<li><a href="https://prettier.io/">Prettier</a> – ensures that code is formatted in a readable way.</li>
-					<li><a href="https://eslint.org/">ESLint</a> — checks code for antipatterns as well as formatting.</li>
-				</ul>
-				<blockquote>
-					<p>If using the Visual Studio Code editor with the <a href=".vscode/extensions.json">recommended extensions</a>, ESLint errors should be highlighted in red and the Prettier extension should format code on every save.</p>
-				</blockquote>
-				<a href="#precommit-hook" id="precommit-hook" style="color: inherit; text-decoration: none;">
-					<h4>Precommit Hook</h4>
-				</a>
-				<p>The linters and formatters listed above should run automatically on each commit to catch errors early and save CI running time.</p>
-				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
-					<h2>License</h2>
-				</a>
-				<p>js-algorand-sdk is licensed under an MIT license. See the <a href="https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE">LICENSE</a> file for details.</p>
-			</div>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class=" ">
-						<a href="modules.html">Exports</a>
-					</li>
-					<li class=" tsd-kind-namespace">
-						<a href="modules/modelsv2.html">modelsv2</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-					<li class=" tsd-kind-enum">
-						<a href="enums/atomictransactioncomposerstatus.html" class="tsd-kind-icon">Atomic<wbr>Transaction<wbr>Composer<wbr>Status</a>
-					</li>
-					<li class=" tsd-kind-enum">
-						<a href="enums/intdecoding.html" class="tsd-kind-icon">Int<wbr>Decoding</a>
-					</li>
-					<li class=" tsd-kind-enum">
-						<a href="enums/onapplicationcomplete.html" class="tsd-kind-icon">On<wbr>Application<wbr>Complete</a>
-					</li>
-					<li class=" tsd-kind-enum">
-						<a href="enums/transactiontype.html" class="tsd-kind-icon">Transaction<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abiaddresstype.html" class="tsd-kind-icon">ABIAddress<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abiarraydynamictype.html" class="tsd-kind-icon">ABIArray<wbr>Dynamic<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abiarraystatictype.html" class="tsd-kind-icon">ABIArray<wbr>Static<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abibooltype.html" class="tsd-kind-icon">ABIBool<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abibytetype.html" class="tsd-kind-icon">ABIByte<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abicontract.html" class="tsd-kind-icon">ABIContract</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abiinterface.html" class="tsd-kind-icon">ABIInterface</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abimethod.html" class="tsd-kind-icon">ABIMethod</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abistringtype.html" class="tsd-kind-icon">ABIString<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abitupletype.html" class="tsd-kind-icon">ABITuple<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abitype.html" class="tsd-kind-icon">ABIType</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abiufixedtype.html" class="tsd-kind-icon">ABIUfixed<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/abiuinttype.html" class="tsd-kind-icon">ABIUint<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/algod.html" class="tsd-kind-icon">Algod</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/algodv2.html" class="tsd-kind-icon">Algodv2</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/atomictransactioncomposer.html" class="tsd-kind-icon">Atomic<wbr>Transaction<wbr>Composer</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/indexer.html" class="tsd-kind-icon">Indexer</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/kmd.html" class="tsd-kind-icon">Kmd</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/logicsigaccount.html" class="tsd-kind-icon">Logic<wbr>Sig<wbr>Account</a>
-					</li>
-					<li class=" tsd-kind-class">
-						<a href="classes/transaction.html" class="tsd-kind-icon">Transaction</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/abicontractparams.html" class="tsd-kind-icon">ABIContract<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/abiinterfaceparams.html" class="tsd-kind-icon">ABIInterface<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/abimethodparams.html" class="tsd-kind-icon">ABIMethod<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/abiresult.html" class="tsd-kind-icon">ABIResult</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/account.html" class="tsd-kind-icon">Account</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/address.html" class="tsd-kind-icon">Address</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedassetparams.html" class="tsd-kind-icon">Encoded<wbr>Asset<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedglobalstateschema.html" class="tsd-kind-icon">Encoded<wbr>Global<wbr>State<wbr>Schema</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedlocalstateschema.html" class="tsd-kind-icon">Encoded<wbr>Local<wbr>State<wbr>Schema</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedlogicsig.html" class="tsd-kind-icon">Encoded<wbr>Logic<wbr>Sig</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedlogicsigaccount.html" class="tsd-kind-icon">Encoded<wbr>Logic<wbr>Sig<wbr>Account</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedmultisig.html" class="tsd-kind-icon">Encoded<wbr>Multisig</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedmultisigblob.html" class="tsd-kind-icon">Encoded<wbr>Multisig<wbr>Blob</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedsignedtransaction.html" class="tsd-kind-icon">Encoded<wbr>Signed<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedsubsig.html" class="tsd-kind-icon">Encoded<wbr>Subsig</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/encodedtransaction.html" class="tsd-kind-icon">Encoded<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/multisigmetadata.html" class="tsd-kind-icon">Multisig<wbr>Metadata</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/signedtransaction.html" class="tsd-kind-icon">Signed<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/suggestedparams.html" class="tsd-kind-icon">Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/transactionparams.html" class="tsd-kind-icon">Transaction<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-interface">
-						<a href="interfaces/transactionwithsigner.html" class="tsd-kind-icon">Transaction<wbr>With<wbr>Signer</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#abiargument" class="tsd-kind-icon">ABIArgument</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#abiargumenttype" class="tsd-kind-icon">ABIArgument<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#abireturntype" class="tsd-kind-icon">ABIReturn<wbr>Type</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#abivalue" class="tsd-kind-icon">ABIValue</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#appclearstatetxn" class="tsd-kind-icon">App<wbr>Clear<wbr>State<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#appcloseouttxn" class="tsd-kind-icon">App<wbr>Close<wbr>Out<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#appcreatetxn" class="tsd-kind-icon">App<wbr>Create<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#appdeletetxn" class="tsd-kind-icon">App<wbr>Delete<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#appnooptxn" class="tsd-kind-icon">App<wbr>NoOp<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#appoptintxn" class="tsd-kind-icon">App<wbr>Opt<wbr>InTxn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#appupdatetxn" class="tsd-kind-icon">App<wbr>Update<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#assetconfigtxn" class="tsd-kind-icon">Asset<wbr>Config<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#assetcreatetxn" class="tsd-kind-icon">Asset<wbr>Create<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#assetdestroytxn" class="tsd-kind-icon">Asset<wbr>Destroy<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#assetfreezetxn" class="tsd-kind-icon">Asset<wbr>Freeze<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#assettransfertxn" class="tsd-kind-icon">Asset<wbr>Transfer<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#keyregistrationtxn" class="tsd-kind-icon">Key<wbr>Registration<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
-						<a href="modules.html#musthavesuggestedparams" class="tsd-kind-icon">Must<wbr>Have<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-type-alias tsd-has-type-parameter">
-						<a href="modules.html#musthavesuggestedparamsinline" class="tsd-kind-icon">Must<wbr>Have<wbr>Suggested<wbr>Params<wbr>Inline</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#paymenttxn" class="tsd-kind-icon">Payment<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#transactionlike" class="tsd-kind-icon">Transaction<wbr>Like</a>
-					</li>
-					<li class=" tsd-kind-type-alias">
-						<a href="modules.html#transactionsigner" class="tsd-kind-icon">Transaction<wbr>Signer</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#addr_byte_size" class="tsd-kind-icon">ADDR_<wbr>BYTE_<wbr>SIZE</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#algorand_min_tx_fee" class="tsd-kind-icon">ALGORAND_<wbr>MIN_<wbr>TX_<wbr>FEE</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#error_invalid_microalgos" class="tsd-kind-icon">ERROR_<wbr>INVALID_<wbr>MICROALGOS</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#error_multisig_bad_sender" class="tsd-kind-icon">ERROR_<wbr>MULTISIG_<wbr>BAD_<wbr>SENDER</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#invalid_microalgos_error_msg" class="tsd-kind-icon">INVALID_<wbr>MICROALGOS_<wbr>ERROR_<wbr>MSG</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#length_encode_byte_size" class="tsd-kind-icon">LENGTH_<wbr>ENCODE_<wbr>BYTE_<wbr>SIZE</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#logictemplates" class="tsd-kind-icon">Logic<wbr>Templates</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#max_len" class="tsd-kind-icon">MAX_<wbr>LEN</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#multisig_bad_sender_error_msg" class="tsd-kind-icon">MULTISIG_<wbr>BAD_<wbr>SENDER_<wbr>ERROR_<wbr>MSG</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#single_bool_size" class="tsd-kind-icon">SINGLE_<wbr>BOOL_<wbr>SIZE</a>
-					</li>
-					<li class=" tsd-kind-variable">
-						<a href="modules.html#single_byte_size" class="tsd-kind-icon">SINGLE_<wbr>BYTE_<wbr>SIZE</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#abitypeistransaction" class="tsd-kind-icon">abi<wbr>Type<wbr>IsTransaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#algostomicroalgos" class="tsd-kind-icon">algos<wbr>ToMicroalgos</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#appendsignmultisigtransaction" class="tsd-kind-icon">append<wbr>Sign<wbr>Multisig<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#assigngroupid" class="tsd-kind-icon">assign<wbr>GroupID</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#computegroupid" class="tsd-kind-icon">compute<wbr>GroupID</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#decodeaddress" class="tsd-kind-icon">decode<wbr>Address</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#decodeobj" class="tsd-kind-icon">decode<wbr>Obj</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#decodesignedtransaction" class="tsd-kind-icon">decode<wbr>Signed<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#decodeuint64" class="tsd-kind-icon">decode<wbr>Uint64</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#decodeunsignedtransaction" class="tsd-kind-icon">decode<wbr>Unsigned<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#encodeaddress" class="tsd-kind-icon">encode<wbr>Address</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#encodeobj" class="tsd-kind-icon">encode<wbr>Obj</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#encodeuint64" class="tsd-kind-icon">encode<wbr>Uint64</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#encodeunsignedtransaction" class="tsd-kind-icon">encode<wbr>Unsigned<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#generateaccount" class="tsd-kind-icon">generate<wbr>Account</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#getapplicationaddress" class="tsd-kind-icon">get<wbr>Application<wbr>Address</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#instantiatetxnifneeded" class="tsd-kind-icon">instantiate<wbr>Txn<wbr>IfNeeded</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#istransactionwithsigner" class="tsd-kind-icon">is<wbr>Transaction<wbr>With<wbr>Signer</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#isvalidaddress" class="tsd-kind-icon">is<wbr>Valid<wbr>Address</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#logicsigfrombyte" class="tsd-kind-icon">logic<wbr>Sig<wbr>From<wbr>Byte</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationcalltxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>Call<wbr>Txn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationclearstatetxn" class="tsd-kind-icon">make<wbr>Application<wbr>Clear<wbr>State<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationclearstatetxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>Clear<wbr>State<wbr>Txn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationcloseouttxn" class="tsd-kind-icon">make<wbr>Application<wbr>Close<wbr>Out<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationcloseouttxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>Close<wbr>Out<wbr>Txn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationcreatetxn" class="tsd-kind-icon">make<wbr>Application<wbr>Create<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationcreatetxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>Create<wbr>Txn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationdeletetxn" class="tsd-kind-icon">make<wbr>Application<wbr>Delete<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationdeletetxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>Delete<wbr>Txn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationnooptxn" class="tsd-kind-icon">make<wbr>Application<wbr>NoOp<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationnooptxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>NoOp<wbr>Txn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationoptintxn" class="tsd-kind-icon">make<wbr>Application<wbr>Opt<wbr>InTxn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationoptintxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>Opt<wbr>InTxn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationupdatetxn" class="tsd-kind-icon">make<wbr>Application<wbr>Update<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeapplicationupdatetxnfromobject" class="tsd-kind-icon">make<wbr>Application<wbr>Update<wbr>Txn<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetconfigtxn" class="tsd-kind-icon">make<wbr>Asset<wbr>Config<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetconfigtxnwithsuggestedparams" class="tsd-kind-icon">make<wbr>Asset<wbr>Config<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetconfigtxnwithsuggestedparamsfromobject" class="tsd-kind-icon">make<wbr>Asset<wbr>Config<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetcreatetxn" class="tsd-kind-icon">make<wbr>Asset<wbr>Create<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetcreatetxnwithsuggestedparams" class="tsd-kind-icon">make<wbr>Asset<wbr>Create<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetcreatetxnwithsuggestedparamsfromobject" class="tsd-kind-icon">make<wbr>Asset<wbr>Create<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetdestroytxn" class="tsd-kind-icon">make<wbr>Asset<wbr>Destroy<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetdestroytxnwithsuggestedparams" class="tsd-kind-icon">make<wbr>Asset<wbr>Destroy<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetdestroytxnwithsuggestedparamsfromobject" class="tsd-kind-icon">make<wbr>Asset<wbr>Destroy<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetfreezetxn" class="tsd-kind-icon">make<wbr>Asset<wbr>Freeze<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetfreezetxnwithsuggestedparams" class="tsd-kind-icon">make<wbr>Asset<wbr>Freeze<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassetfreezetxnwithsuggestedparamsfromobject" class="tsd-kind-icon">make<wbr>Asset<wbr>Freeze<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassettransfertxn" class="tsd-kind-icon">make<wbr>Asset<wbr>Transfer<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassettransfertxnwithsuggestedparams" class="tsd-kind-icon">make<wbr>Asset<wbr>Transfer<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makeassettransfertxnwithsuggestedparamsfromobject" class="tsd-kind-icon">make<wbr>Asset<wbr>Transfer<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makebasicaccounttransactionsigner" class="tsd-kind-icon">make<wbr>Basic<wbr>Account<wbr>Transaction<wbr>Signer</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makekeyregistrationtxn" class="tsd-kind-icon">make<wbr>Key<wbr>Registration<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makekeyregistrationtxnwithsuggestedparams" class="tsd-kind-icon">make<wbr>Key<wbr>Registration<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makekeyregistrationtxnwithsuggestedparamsfromobject" class="tsd-kind-icon">make<wbr>Key<wbr>Registration<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makelogicsig" class="tsd-kind-icon">make<wbr>Logic<wbr>Sig</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makelogicsigaccounttransactionsigner" class="tsd-kind-icon">make<wbr>Logic<wbr>Sig<wbr>Account<wbr>Transaction<wbr>Signer</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makemultisigaccounttransactionsigner" class="tsd-kind-icon">make<wbr>Multi<wbr>Sig<wbr>Account<wbr>Transaction<wbr>Signer</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makepaymenttxn" class="tsd-kind-icon">make<wbr>Payment<wbr>Txn</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makepaymenttxnwithsuggestedparams" class="tsd-kind-icon">make<wbr>Payment<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#makepaymenttxnwithsuggestedparamsfromobject" class="tsd-kind-icon">make<wbr>Payment<wbr>Txn<wbr>With<wbr>Suggested<wbr>Params<wbr>From<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#masterderivationkeytomnemonic" class="tsd-kind-icon">master<wbr>Derivation<wbr>Key<wbr>ToMnemonic</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#mergemultisigtransactions" class="tsd-kind-icon">merge<wbr>Multisig<wbr>Transactions</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#microalgostoalgos" class="tsd-kind-icon">microalgos<wbr>ToAlgos</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#mnemonicfromseed" class="tsd-kind-icon">mnemonic<wbr>From<wbr>Seed</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#mnemonictomasterderivationkey" class="tsd-kind-icon">mnemonic<wbr>ToMaster<wbr>Derivation<wbr>Key</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#mnemonictosecretkey" class="tsd-kind-icon">mnemonic<wbr>ToSecret<wbr>Key</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#multisigaddress" class="tsd-kind-icon">multisig<wbr>Address</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#secretkeytomnemonic" class="tsd-kind-icon">secret<wbr>Key<wbr>ToMnemonic</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#seedfrommnemonic" class="tsd-kind-icon">seed<wbr>From<wbr>Mnemonic</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#signbid" class="tsd-kind-icon">sign<wbr>Bid</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#signbytes" class="tsd-kind-icon">sign<wbr>Bytes</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#signlogicsigtransaction" class="tsd-kind-icon">sign<wbr>Logic<wbr>Sig<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#signlogicsigtransactionobject" class="tsd-kind-icon">sign<wbr>Logic<wbr>Sig<wbr>Transaction<wbr>Object</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#signmultisigtransaction" class="tsd-kind-icon">sign<wbr>Multisig<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#signtransaction" class="tsd-kind-icon">sign<wbr>Transaction</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#tealsign" class="tsd-kind-icon">teal<wbr>Sign</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#tealsignfromprogram" class="tsd-kind-icon">teal<wbr>Sign<wbr>From<wbr>Program</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#verifybytes" class="tsd-kind-icon">verify<wbr>Bytes</a>
-					</li>
-					<li class=" tsd-kind-function">
-						<a href="modules.html#waitforconfirmation" class="tsd-kind-icon">wait<wbr>For<wbr>Confirmation</a>
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
-</div>
-<footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-			</ul>
-		</div>
-	</div>
-</footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
-</div>
-<div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-</body>
-</html>
+<p>To run the SDK test suite in Node.js, run:</p>
+<pre><code class="language-bash"><span class="hl-1">make docker-test</span>
+</code></pre>
+
+<a href="#browsers" id="browsers" style="color: inherit; text-decoration: none;">
+  <h4>Browsers</h4>
+</a>
+<p>The test suites can also run in browsers. To do so, set the environment variable <code>TEST_BROWSER</code> to
+one of our supported browsers. Currently we support testing in <code>chrome</code> and <code>firefox</code>. When
+<code>TEST_BROWSER</code> is set, the mocha and SDK test suites will run in that browser.</p>
+<p>For example, to run mocha tests in Chrome:</p>
+<pre><code class="language-bash"><span class="hl-1">TEST_BROWSER=chrome npm </span><span class="hl-11">test</span>
+</code></pre>
+<p>And to run SDK tests in Firefox:</p>
+<pre><code class="language-bash"><span class="hl-1">TEST_BROWSER=firefox make docker-test</span>
+</code></pre>
+
+<a href="#code-style" id="code-style" style="color: inherit; text-decoration: none;">
+  <h3>Code Style</h3>
+</a>
+<p>This project enforces a modified version of the <a href="https://github.com/airbnb/javascript">Airbnb code style</a>.</p>
+<p>We&#39;ve setup linters and formatters to help catch errors and improve the development experience:</p>
+<ul>
+<li><a href="https://prettier.io/">Prettier</a> – ensures that code is formatted in a readable way.</li>
+<li><a href="https://eslint.org/">ESLint</a> — checks code for antipatterns as well as formatting.</li>
+</ul>
+<blockquote>
+<p>If using the Visual Studio Code editor with the <a href=".vscode/extensions.json">recommended extensions</a>, ESLint errors should be highlighted in red and the Prettier extension should format code on every save.</p>
+</blockquote>
+
+<a href="#precommit-hook" id="precommit-hook" style="color: inherit; text-decoration: none;">
+  <h4>Precommit Hook</h4>
+</a>
+<p>The linters and formatters listed above should run automatically on each commit to catch errors early and save CI running time.</p>
+
+<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+  <h2>License</h2>
+</a>
+<p>js-algorand-sdk is licensed under an MIT license. See the <a href="https://github.com/algorand/js-algorand-sdk/blob/master/LICENSE">LICENSE</a> file for details.</p>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/_internal_.html">&lt;internal&gt;</a></li><li class=" tsd-kind-namespace"><a href="modules/modelsv2.html">modelsv2</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-enum"><a href="enums/ABIReferenceType.html" class="tsd-kind-icon">ABIReference<wbr/>Type</a></li><li class="tsd-kind-enum"><a href="enums/ABITransactionType.html" class="tsd-kind-icon">ABITransaction<wbr/>Type</a></li><li class="tsd-kind-enum"><a href="enums/AtomicTransactionComposerStatus.html" class="tsd-kind-icon">Atomic<wbr/>Transaction<wbr/>Composer<wbr/>Status</a></li><li class="tsd-kind-enum"><a href="enums/IntDecoding.html" class="tsd-kind-icon">Int<wbr/>Decoding</a></li><li class="tsd-kind-enum"><a href="enums/OnApplicationComplete.html" class="tsd-kind-icon">On<wbr/>Application<wbr/>Complete</a></li><li class="tsd-kind-enum"><a href="enums/TransactionType.html" class="tsd-kind-icon">Transaction<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIAddressType.html" class="tsd-kind-icon">ABIAddress<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIArrayDynamicType.html" class="tsd-kind-icon">ABIArray<wbr/>Dynamic<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIArrayStaticType.html" class="tsd-kind-icon">ABIArray<wbr/>Static<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIBoolType.html" class="tsd-kind-icon">ABIBool<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIByteType.html" class="tsd-kind-icon">ABIByte<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIContract.html" class="tsd-kind-icon">ABIContract</a></li><li class="tsd-kind-class"><a href="classes/ABIInterface.html" class="tsd-kind-icon">ABIInterface</a></li><li class="tsd-kind-class"><a href="classes/ABIMethod.html" class="tsd-kind-icon">ABIMethod</a></li><li class="tsd-kind-class"><a href="classes/ABIStringType.html" class="tsd-kind-icon">ABIString<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABITupleType.html" class="tsd-kind-icon">ABITuple<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIType.html" class="tsd-kind-icon">ABIType</a></li><li class="tsd-kind-class"><a href="classes/ABIUfixedType.html" class="tsd-kind-icon">ABIUfixed<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/ABIUintType.html" class="tsd-kind-icon">ABIUint<wbr/>Type</a></li><li class="tsd-kind-class"><a href="classes/Algod.html" class="tsd-kind-icon">Algod</a></li><li class="tsd-kind-class"><a href="classes/Algodv2.html" class="tsd-kind-icon">Algodv2</a></li><li class="tsd-kind-class"><a href="classes/AtomicTransactionComposer.html" class="tsd-kind-icon">Atomic<wbr/>Transaction<wbr/>Composer</a></li><li class="tsd-kind-class"><a href="classes/Indexer.html" class="tsd-kind-icon">Indexer</a></li><li class="tsd-kind-class"><a href="classes/Kmd.html" class="tsd-kind-icon">Kmd</a></li><li class="tsd-kind-class"><a href="classes/LogicSigAccount.html" class="tsd-kind-icon">Logic<wbr/>Sig<wbr/>Account</a></li><li class="tsd-kind-class"><a href="classes/Transaction.html" class="tsd-kind-icon">Transaction</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIContractNetworkInfo.html" class="tsd-kind-icon">ABIContract<wbr/>Network<wbr/>Info</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIContractNetworks.html" class="tsd-kind-icon">ABIContract<wbr/>Networks</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIContractParams.html" class="tsd-kind-icon">ABIContract<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIInterfaceParams.html" class="tsd-kind-icon">ABIInterface<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIMethodArgParams.html" class="tsd-kind-icon">ABIMethod<wbr/>Arg<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIMethodParams.html" class="tsd-kind-icon">ABIMethod<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIMethodReturnParams.html" class="tsd-kind-icon">ABIMethod<wbr/>Return<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/ABIResult.html" class="tsd-kind-icon">ABIResult</a></li><li class="tsd-kind-interface"><a href="interfaces/Account.html" class="tsd-kind-icon">Account</a></li><li class="tsd-kind-interface"><a href="interfaces/Address.html" class="tsd-kind-icon">Address</a></li><li class="tsd-kind-interface"><a href="interfaces/BaseHTTPClient.html" class="tsd-kind-icon">BaseHTTPClient</a></li><li class="tsd-kind-interface"><a href="interfaces/BaseHTTPClientError.html" class="tsd-kind-icon">BaseHTTPClient<wbr/>Error</a></li><li class="tsd-kind-interface"><a href="interfaces/BaseHTTPClientResponse.html" class="tsd-kind-icon">BaseHTTPClient<wbr/>Response</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedAssetParams.html" class="tsd-kind-icon">Encoded<wbr/>Asset<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedGlobalStateSchema.html" class="tsd-kind-icon">Encoded<wbr/>Global<wbr/>State<wbr/>Schema</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedLocalStateSchema.html" class="tsd-kind-icon">Encoded<wbr/>Local<wbr/>State<wbr/>Schema</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedLogicSig.html" class="tsd-kind-icon">Encoded<wbr/>Logic<wbr/>Sig</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedLogicSigAccount.html" class="tsd-kind-icon">Encoded<wbr/>Logic<wbr/>Sig<wbr/>Account</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedMultisig.html" class="tsd-kind-icon">Encoded<wbr/>Multisig</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedMultisigBlob.html" class="tsd-kind-icon">Encoded<wbr/>Multisig<wbr/>Blob</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedSignedTransaction.html" class="tsd-kind-icon">Encoded<wbr/>Signed<wbr/>Transaction</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedSubsig.html" class="tsd-kind-icon">Encoded<wbr/>Subsig</a></li><li class="tsd-kind-interface"><a href="interfaces/EncodedTransaction.html" class="tsd-kind-icon">Encoded<wbr/>Transaction</a></li><li class="tsd-kind-interface"><a href="interfaces/MultisigMetadata.html" class="tsd-kind-icon">Multisig<wbr/>Metadata</a></li><li class="tsd-kind-interface"><a href="interfaces/SignedTransaction.html" class="tsd-kind-icon">Signed<wbr/>Transaction</a></li><li class="tsd-kind-interface"><a href="interfaces/SuggestedParams.html" class="tsd-kind-icon">Suggested<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/TransactionParams.html" class="tsd-kind-icon">Transaction<wbr/>Params</a></li><li class="tsd-kind-interface"><a href="interfaces/TransactionWithSigner.html" class="tsd-kind-icon">Transaction<wbr/>With<wbr/>Signer</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ABIArgument" class="tsd-kind-icon">ABIArgument</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ABIArgumentType" class="tsd-kind-icon">ABIArgument<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ABIReturnType" class="tsd-kind-icon">ABIReturn<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ABIValue" class="tsd-kind-icon">ABIValue</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AppClearStateTxn" class="tsd-kind-icon">App<wbr/>Clear<wbr/>State<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AppCloseOutTxn" class="tsd-kind-icon">App<wbr/>Close<wbr/>Out<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AppCreateTxn" class="tsd-kind-icon">App<wbr/>Create<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AppDeleteTxn" class="tsd-kind-icon">App<wbr/>Delete<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AppNoOpTxn" class="tsd-kind-icon">App<wbr/>No<wbr/>Op<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AppOptInTxn" class="tsd-kind-icon">App<wbr/>Opt<wbr/>In<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AppUpdateTxn" class="tsd-kind-icon">App<wbr/>Update<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AssetConfigTxn" class="tsd-kind-icon">Asset<wbr/>Config<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AssetCreateTxn" class="tsd-kind-icon">Asset<wbr/>Create<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AssetDestroyTxn" class="tsd-kind-icon">Asset<wbr/>Destroy<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AssetFreezeTxn" class="tsd-kind-icon">Asset<wbr/>Freeze<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AssetTransferTxn" class="tsd-kind-icon">Asset<wbr/>Transfer<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#KeyRegistrationTxn" class="tsd-kind-icon">Key<wbr/>Registration<wbr/>Txn</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#MustHaveSuggestedParams" class="tsd-kind-icon">Must<wbr/>Have<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#MustHaveSuggestedParamsInline" class="tsd-kind-icon">Must<wbr/>Have<wbr/>Suggested<wbr/>Params<wbr/>Inline</a></li><li class="tsd-kind-type-alias"><a href="modules.html#PaymentTxn" class="tsd-kind-icon">Payment<wbr/>Txn</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransactionLike" class="tsd-kind-icon">Transaction<wbr/>Like</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TransactionSigner" class="tsd-kind-icon">Transaction<wbr/>Signer</a></li><li class="tsd-kind-variable"><a href="modules.html#ADDR_BYTE_SIZE" class="tsd-kind-icon">ADDR_<wbr/>BYTE_<wbr/>SIZE</a></li><li class="tsd-kind-variable"><a href="modules.html#ALGORAND_MIN_TX_FEE" class="tsd-kind-icon">ALGORAND_<wbr/>MIN_<wbr/>TX_<wbr/>FEE</a></li><li class="tsd-kind-variable"><a href="modules.html#ERROR_INVALID_MICROALGOS" class="tsd-kind-icon">ERROR_<wbr/>INVALID_<wbr/>MICROALGOS</a></li><li class="tsd-kind-variable"><a href="modules.html#ERROR_MULTISIG_BAD_SENDER" class="tsd-kind-icon">ERROR_<wbr/>MULTISIG_<wbr/>BAD_<wbr/>SENDER</a></li><li class="tsd-kind-variable"><a href="modules.html#INVALID_MICROALGOS_ERROR_MSG" class="tsd-kind-icon">INVALID_<wbr/>MICROALGOS_<wbr/>ERROR_<wbr/>MSG</a></li><li class="tsd-kind-variable"><a href="modules.html#LENGTH_ENCODE_BYTE_SIZE" class="tsd-kind-icon">LENGTH_<wbr/>ENCODE_<wbr/>BYTE_<wbr/>SIZE</a></li><li class="tsd-kind-variable"><a href="modules.html#LogicTemplates" class="tsd-kind-icon">Logic<wbr/>Templates</a></li><li class="tsd-kind-variable"><a href="modules.html#MAX_LEN" class="tsd-kind-icon">MAX_<wbr/>LEN</a></li><li class="tsd-kind-variable"><a href="modules.html#MULTISIG_BAD_SENDER_ERROR_MSG" class="tsd-kind-icon">MULTISIG_<wbr/>BAD_<wbr/>SENDER_<wbr/>ERROR_<wbr/>MSG</a></li><li class="tsd-kind-variable"><a href="modules.html#SINGLE_BOOL_SIZE" class="tsd-kind-icon">SINGLE_<wbr/>BOOL_<wbr/>SIZE</a></li><li class="tsd-kind-variable"><a href="modules.html#SINGLE_BYTE_SIZE" class="tsd-kind-icon">SINGLE_<wbr/>BYTE_<wbr/>SIZE</a></li><li class="tsd-kind-function"><a href="modules.html#abiCheckTransactionType" class="tsd-kind-icon">abi<wbr/>Check<wbr/>Transaction<wbr/>Type</a></li><li class="tsd-kind-function"><a href="modules.html#abiTypeIsReference" class="tsd-kind-icon">abi<wbr/>Type<wbr/>Is<wbr/>Reference</a></li><li class="tsd-kind-function"><a href="modules.html#abiTypeIsTransaction" class="tsd-kind-icon">abi<wbr/>Type<wbr/>Is<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#algosToMicroalgos" class="tsd-kind-icon">algos<wbr/>To<wbr/>Microalgos</a></li><li class="tsd-kind-function"><a href="modules.html#appendSignMultisigTransaction" class="tsd-kind-icon">append<wbr/>Sign<wbr/>Multisig<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#assignGroupID" class="tsd-kind-icon">assign<wbr/>GroupID</a></li><li class="tsd-kind-function"><a href="modules.html#computeGroupID" class="tsd-kind-icon">compute<wbr/>GroupID</a></li><li class="tsd-kind-function"><a href="modules.html#decodeAddress" class="tsd-kind-icon">decode<wbr/>Address</a></li><li class="tsd-kind-function"><a href="modules.html#decodeObj" class="tsd-kind-icon">decode<wbr/>Obj</a></li><li class="tsd-kind-function"><a href="modules.html#decodeSignedTransaction" class="tsd-kind-icon">decode<wbr/>Signed<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#decodeUint64" class="tsd-kind-icon">decode<wbr/>Uint64</a></li><li class="tsd-kind-function"><a href="modules.html#decodeUnsignedTransaction" class="tsd-kind-icon">decode<wbr/>Unsigned<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#encodeAddress" class="tsd-kind-icon">encode<wbr/>Address</a></li><li class="tsd-kind-function"><a href="modules.html#encodeObj" class="tsd-kind-icon">encode<wbr/>Obj</a></li><li class="tsd-kind-function"><a href="modules.html#encodeUint64" class="tsd-kind-icon">encode<wbr/>Uint64</a></li><li class="tsd-kind-function"><a href="modules.html#encodeUnsignedTransaction" class="tsd-kind-icon">encode<wbr/>Unsigned<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#generateAccount" class="tsd-kind-icon">generate<wbr/>Account</a></li><li class="tsd-kind-function"><a href="modules.html#getApplicationAddress" class="tsd-kind-icon">get<wbr/>Application<wbr/>Address</a></li><li class="tsd-kind-function"><a href="modules.html#instantiateTxnIfNeeded" class="tsd-kind-icon">instantiate<wbr/>Txn<wbr/>If<wbr/>Needed</a></li><li class="tsd-kind-function"><a href="modules.html#isTransactionWithSigner" class="tsd-kind-icon">is<wbr/>Transaction<wbr/>With<wbr/>Signer</a></li><li class="tsd-kind-function"><a href="modules.html#isValidAddress" class="tsd-kind-icon">is<wbr/>Valid<wbr/>Address</a></li><li class="tsd-kind-function"><a href="modules.html#logicSigFromByte" class="tsd-kind-icon">logic<wbr/>Sig<wbr/>From<wbr/>Byte</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationCallTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>Call<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationClearStateTxn" class="tsd-kind-icon">make<wbr/>Application<wbr/>Clear<wbr/>State<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationClearStateTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>Clear<wbr/>State<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationCloseOutTxn" class="tsd-kind-icon">make<wbr/>Application<wbr/>Close<wbr/>Out<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationCloseOutTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>Close<wbr/>Out<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationCreateTxn" class="tsd-kind-icon">make<wbr/>Application<wbr/>Create<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationCreateTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>Create<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationDeleteTxn" class="tsd-kind-icon">make<wbr/>Application<wbr/>Delete<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationDeleteTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>Delete<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationNoOpTxn" class="tsd-kind-icon">make<wbr/>Application<wbr/>No<wbr/>Op<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationNoOpTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>No<wbr/>Op<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationOptInTxn" class="tsd-kind-icon">make<wbr/>Application<wbr/>Opt<wbr/>In<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationOptInTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>Opt<wbr/>In<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationUpdateTxn" class="tsd-kind-icon">make<wbr/>Application<wbr/>Update<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeApplicationUpdateTxnFromObject" class="tsd-kind-icon">make<wbr/>Application<wbr/>Update<wbr/>Txn<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetConfigTxn" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Config<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetConfigTxnWithSuggestedParams" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Config<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetConfigTxnWithSuggestedParamsFromObject" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Config<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetCreateTxn" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Create<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetCreateTxnWithSuggestedParams" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Create<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetCreateTxnWithSuggestedParamsFromObject" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Create<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetDestroyTxn" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Destroy<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetDestroyTxnWithSuggestedParams" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Destroy<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetDestroyTxnWithSuggestedParamsFromObject" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Destroy<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetFreezeTxn" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Freeze<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetFreezeTxnWithSuggestedParams" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Freeze<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetFreezeTxnWithSuggestedParamsFromObject" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Freeze<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetTransferTxn" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Transfer<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetTransferTxnWithSuggestedParams" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Transfer<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-function"><a href="modules.html#makeAssetTransferTxnWithSuggestedParamsFromObject" class="tsd-kind-icon">make<wbr/>Asset<wbr/>Transfer<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeBasicAccountTransactionSigner" class="tsd-kind-icon">make<wbr/>Basic<wbr/>Account<wbr/>Transaction<wbr/>Signer</a></li><li class="tsd-kind-function"><a href="modules.html#makeKeyRegistrationTxn" class="tsd-kind-icon">make<wbr/>Key<wbr/>Registration<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makeKeyRegistrationTxnWithSuggestedParams" class="tsd-kind-icon">make<wbr/>Key<wbr/>Registration<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-function"><a href="modules.html#makeKeyRegistrationTxnWithSuggestedParamsFromObject" class="tsd-kind-icon">make<wbr/>Key<wbr/>Registration<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#makeLogicSig" class="tsd-kind-icon">make<wbr/>Logic<wbr/>Sig</a></li><li class="tsd-kind-function"><a href="modules.html#makeLogicSigAccountTransactionSigner" class="tsd-kind-icon">make<wbr/>Logic<wbr/>Sig<wbr/>Account<wbr/>Transaction<wbr/>Signer</a></li><li class="tsd-kind-function"><a href="modules.html#makeMultiSigAccountTransactionSigner" class="tsd-kind-icon">make<wbr/>Multi<wbr/>Sig<wbr/>Account<wbr/>Transaction<wbr/>Signer</a></li><li class="tsd-kind-function"><a href="modules.html#makePaymentTxn" class="tsd-kind-icon">make<wbr/>Payment<wbr/>Txn</a></li><li class="tsd-kind-function"><a href="modules.html#makePaymentTxnWithSuggestedParams" class="tsd-kind-icon">make<wbr/>Payment<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params</a></li><li class="tsd-kind-function"><a href="modules.html#makePaymentTxnWithSuggestedParamsFromObject" class="tsd-kind-icon">make<wbr/>Payment<wbr/>Txn<wbr/>With<wbr/>Suggested<wbr/>Params<wbr/>From<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#masterDerivationKeyToMnemonic" class="tsd-kind-icon">master<wbr/>Derivation<wbr/>Key<wbr/>To<wbr/>Mnemonic</a></li><li class="tsd-kind-function"><a href="modules.html#mergeMultisigTransactions" class="tsd-kind-icon">merge<wbr/>Multisig<wbr/>Transactions</a></li><li class="tsd-kind-function"><a href="modules.html#microalgosToAlgos" class="tsd-kind-icon">microalgos<wbr/>To<wbr/>Algos</a></li><li class="tsd-kind-function"><a href="modules.html#mnemonicFromSeed" class="tsd-kind-icon">mnemonic<wbr/>From<wbr/>Seed</a></li><li class="tsd-kind-function"><a href="modules.html#mnemonicToMasterDerivationKey" class="tsd-kind-icon">mnemonic<wbr/>To<wbr/>Master<wbr/>Derivation<wbr/>Key</a></li><li class="tsd-kind-function"><a href="modules.html#mnemonicToSecretKey" class="tsd-kind-icon">mnemonic<wbr/>To<wbr/>Secret<wbr/>Key</a></li><li class="tsd-kind-function"><a href="modules.html#multisigAddress" class="tsd-kind-icon">multisig<wbr/>Address</a></li><li class="tsd-kind-function"><a href="modules.html#secretKeyToMnemonic" class="tsd-kind-icon">secret<wbr/>Key<wbr/>To<wbr/>Mnemonic</a></li><li class="tsd-kind-function"><a href="modules.html#seedFromMnemonic" class="tsd-kind-icon">seed<wbr/>From<wbr/>Mnemonic</a></li><li class="tsd-kind-function"><a href="modules.html#signBid" class="tsd-kind-icon">sign<wbr/>Bid</a></li><li class="tsd-kind-function"><a href="modules.html#signBytes" class="tsd-kind-icon">sign<wbr/>Bytes</a></li><li class="tsd-kind-function"><a href="modules.html#signLogicSigTransaction" class="tsd-kind-icon">sign<wbr/>Logic<wbr/>Sig<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#signLogicSigTransactionObject" class="tsd-kind-icon">sign<wbr/>Logic<wbr/>Sig<wbr/>Transaction<wbr/>Object</a></li><li class="tsd-kind-function"><a href="modules.html#signMultisigTransaction" class="tsd-kind-icon">sign<wbr/>Multisig<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#signTransaction" class="tsd-kind-icon">sign<wbr/>Transaction</a></li><li class="tsd-kind-function"><a href="modules.html#tealSign" class="tsd-kind-icon">teal<wbr/>Sign</a></li><li class="tsd-kind-function"><a href="modules.html#tealSignFromProgram" class="tsd-kind-icon">teal<wbr/>Sign<wbr/>From<wbr/>Program</a></li><li class="tsd-kind-function"><a href="modules.html#verifyBytes" class="tsd-kind-icon">verify<wbr/>Bytes</a></li><li class="tsd-kind-function"><a href="modules.html#waitForConfirmation" class="tsd-kind-icon">wait<wbr/>For<wbr/>Confirmation</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li><li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li><li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>
