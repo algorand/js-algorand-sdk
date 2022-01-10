@@ -33,7 +33,9 @@ function isBaseHTTPClient(
  * Abstract service client to encapsulate shared AlgodClient and IndexerClient logic
  */
 export default abstract class ServiceClient {
+  /** @ignore */
   c: HTTPClient;
+  /** @ignore */
   intDecoding: IntDecoding;
 
   constructor(
