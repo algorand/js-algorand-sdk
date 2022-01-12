@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const nacl = require('../../../src/nacl/naclWrappers');
 const algosdk = require('../../../index');
+const utils = require('../../../src/utils/utils');
+const { encodeUint64, encodeAddress } = require('../../../index');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
 
@@ -3950,6 +3952,17 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    'base64 decoding the response is the same as the binary {string}',
+    async (program) => {
+      const data = await loadResource(program);
+      const decodedResult = makeUint8Array(
+        Buffer.from(compileResponse.result, 'base64')
+      );
+      assert.deepStrictEqual(makeUint8Array(data), decodedResult);
+    }
+  );
+
   /// /////////////////////////////////
   // TealSign tests
   /// /////////////////////////////////
@@ -4036,6 +4049,20 @@ module.exports = function getSteps(options) {
         closeRemainderTo: closeTo.length === 0 ? undefined : closeTo,
         suggestedParams: this.suggestedParams,
       });
+    }
+  );
+
+  Then(
+    "I get the account address for the current application and see that it matches the app id's hash",
+    async function () {
+      const appID = this.currentApplicationIndex;
+      const toSign = utils.concatArrays(
+        Buffer.from('appID'),
+        encodeUint64(appID)
+      );
+      const expected = encodeAddress(nacl.genericHash(toSign));
+      const actual = algosdk.getApplicationAddress(appID);
+      assert.strictEqual(expected, actual);
     }
   );
 
