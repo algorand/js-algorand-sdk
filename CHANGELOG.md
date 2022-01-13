@@ -1,3 +1,13 @@
+# 1.13.0
+
+## Added:
+- Create dryrun (#478)
+
+## Changed:
+- Document Indexer methods (#491)
+- Document Algodv2 methods (#486)
+- Update chromedriver (#492)
+
 # 1.13.0-beta.2
 
 ## Added
