@@ -1,3 +1,29 @@
+# 1.13.0
+
+## Added:
+
+- Create dryrun (#478)
+- Support ABI reference types and other improvements (#482)
+- Improve HTTP error messages (#485)
+- Enabling a custom client for Algod and Indexer (#477)
+- Export sdk subclasses to typedoc (#479)
+- ABI Support for JS library (#454)
+- ABI interaction support (#466)
+- Wait for confirmation function (#469)
+- Add freezeAccount encoding in display method (#460)
+- Regenerate code from specification file (#456)
+
+## Changed:
+
+- Document Indexer methods (#491)
+- Document Algodv2 methods (#486)
+- Update chromedriver (#492)
+
+## Fixed:
+
+- Fix wait for confirmation function (#480)
+- Fix type for foreignAssets (#472)
+
 # 1.13.0-beta.2
 
 ## Added
