@@ -4101,13 +4101,6 @@ module.exports = function getSteps(options) {
   Given(
     "I fund the current application's address with {int} microalgos.",
     async function (amount) {
-      // const payTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      //   from: this.accounts[0],
-      //   to: algosdk.getApplicationAddress(this.currentApplicationIndex),
-      //   amount: parseInt(amount, 10),
-      //   suggestedParams: this.suggestedParams,
-      // });
-
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
@@ -4122,9 +4115,6 @@ module.exports = function getSteps(options) {
         fundingTxnArgs
       );
 
-      // const stxn = payTxn.signTxn(this.signingAccount.sk);
-      // const txid = await this.v2Client.sendRawTransaction(stxn);
-      // await algosdk.waitForConfirmation(this.v2Client, txid, 10);
       const fundingResponse = await this.v2Client.sendRawTransaction(stxn).do();
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
