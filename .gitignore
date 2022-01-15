@@ -22,6 +22,7 @@ tests/browser/bundle.*
 # Builds
 dist/
 docs/
+built/
 
 # Caches
 .eslintcache

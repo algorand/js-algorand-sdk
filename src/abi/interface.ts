@@ -2,11 +2,13 @@ import { ABIMethod, ABIMethodParams } from './method';
 
 export interface ABIInterfaceParams {
   name: string;
+  desc?: string;
   methods: ABIMethodParams[];
 }
 
 export class ABIInterface {
   public readonly name: string;
+  public readonly description?: string;
   public readonly methods: ABIMethod[];
 
   constructor(params: ABIInterfaceParams) {
@@ -15,12 +17,14 @@ export class ABIInterface {
     }
 
     this.name = params.name;
+    this.description = params.desc;
     this.methods = params.methods.map((method) => new ABIMethod(method));
   }
 
   toJSON(): ABIInterfaceParams {
     return {
       name: this.name,
+      desc: this.description,
       methods: this.methods.map((method) => method.toJSON()),
     };
   }

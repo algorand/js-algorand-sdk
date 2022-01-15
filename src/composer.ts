@@ -1,9 +1,14 @@
 import {
   ABIType,
   ABITupleType,
+  ABIUintType,
+  ABIAddressType,
   ABIValue,
   ABIMethod,
+  ABIReferenceType,
   abiTypeIsTransaction,
+  abiCheckTransactionType,
+  abiTypeIsReference,
 } from './abi';
 import { Transaction, decodeSignedTransaction } from './transaction';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
@@ -19,6 +24,12 @@ import {
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base';
+
+// First 4 bytes of SHA-512/256 hash of "return"
+const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
+
+// The maximum number of arguments for an application call transaction
+const MAX_APP_ARGS = 16;
 
 export type ABIArgument = ABIValue | TransactionWithSigner;
 
@@ -55,6 +66,40 @@ export enum AtomicTransactionComposerStatus {
 
   /** The atomic group has been finalized, signed, submitted, and successfully committed to a block. */
   COMMITTED,
+}
+
+/**
+ * Add a value to an application call's foreign array. The addition will be as compact as possible,
+ * and this function will return an index that can be used to reference `valueToAdd` in `array`.
+ *
+ * @param valueToAdd - The value to add to the array. If this value is already present in the array,
+ *   it will not be added again. Instead, the existing index will be returned.
+ * @param array - The existing foreign array. This input may be modified to append `valueToAdd`.
+ * @param zeroValue - If provided, this value indicated two things: the 0 value is special for this
+ *   array, so all indexes into `array` must start at 1; additionally, if `valueToAdd` equals
+ *   `zeroValue`, then `valueToAdd` will not be added to the array, and instead the 0 indexes will
+ *   be returned.
+ * @returns An index that can be used to reference `valueToAdd` in `array`.
+ */
+function populateForeignArray<Type>(
+  valueToAdd: Type,
+  array: Type[],
+  zeroValue?: Type
+): number {
+  if (zeroValue != null && valueToAdd === zeroValue) {
+    return 0;
+  }
+
+  const offset = zeroValue == null ? 0 : 1;
+
+  for (let i = 0; i < array.length; i++) {
+    if (valueToAdd === array[i]) {
+      return i + offset;
+    }
+  }
+
+  array.push(valueToAdd);
+  return array.length - 1 + offset;
 }
 
 /** A class used to construct and execute atomic transaction groups */
@@ -137,19 +182,26 @@ export class AtomicTransactionComposer {
    * for the given method.
    */
   addMethodCall({
-    appId,
+    appID,
     method,
     methodArgs,
     sender,
     suggestedParams,
     onComplete,
+    approvalProgram,
+    clearProgram,
+    numGlobalInts,
+    numGlobalByteSlices,
+    numLocalInts,
+    numLocalByteSlices,
+    extraPages,
     note,
     lease,
     rekeyTo,
     signer,
   }: {
-    /** The ID of the smart contract to call */
-    appId: number;
+    /** The ID of the smart contract to call. Set this to 0 to indicate an application creation call. */
+    appID: number;
     /** The method to call on the smart contract */
     method: ABIMethod;
     /** The arguments to include in the method call. If omitted, no arguments will be passed to the method. */
@@ -160,6 +212,20 @@ export class AtomicTransactionComposer {
     suggestedParams: SuggestedParams;
     /** The OnComplete action to take for this application call. If omitted, OnApplicationComplete.NoOpOC will be used. */
     onComplete?: OnApplicationComplete;
+    /** The approval program for this application call. Only set this if this is an application creation call, or if onComplete is OnApplicationComplete.UpdateApplicationOC */
+    approvalProgram?: Uint8Array;
+    /** The clear program for this application call. Only set this if this is an application creation call, or if onComplete is OnApplicationComplete.UpdateApplicationOC */
+    clearProgram?: Uint8Array;
+    /** The global integer schema size. Only set this if this is an application creation call. */
+    numGlobalInts?: number;
+    /** The global byte slice schema size. Only set this if this is an application creation call. */
+    numGlobalByteSlices?: number;
+    /** The local integer schema size. Only set this if this is an application creation call. */
+    numLocalInts?: number;
+    /** The local byte slice schema size. Only set this if this is an application creation call. */
+    numLocalByteSlices?: number;
+    /** The number of extra pages to allocate for the application's programs. Only set this if this is an application creation call. If omitted, defaults to 0. */
+    extraPages?: number;
     /** The note value for this application call */
     note?: Uint8Array;
     /** The lease value for this application call */
@@ -184,8 +250,48 @@ export class AtomicTransactionComposer {
       );
     }
 
-    if (appId === 0) {
-      throw new Error('Application create call not supported');
+    if (appID === 0) {
+      if (
+        approvalProgram == null ||
+        clearProgram == null ||
+        numGlobalInts == null ||
+        numGlobalByteSlices == null ||
+        numLocalInts == null ||
+        numLocalByteSlices == null
+      ) {
+        throw new Error(
+          'One of the following required parameters for application creation is missing: approvalProgram, clearProgram, numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices'
+        );
+      }
+    } else if (onComplete === OnApplicationComplete.UpdateApplicationOC) {
+      if (approvalProgram == null || clearProgram == null) {
+        throw new Error(
+          'One of the following required parameters for OnApplicationComplete.UpdateApplicationOC is missing: approvalProgram, clearProgram'
+        );
+      }
+      if (
+        numGlobalInts != null ||
+        numGlobalByteSlices != null ||
+        numLocalInts != null ||
+        numLocalByteSlices != null ||
+        extraPages != null
+      ) {
+        throw new Error(
+          'One of the following application creation parameters were set on a non-creation call: numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices, extraPages'
+        );
+      }
+    } else if (
+      approvalProgram != null ||
+      clearProgram != null ||
+      numGlobalInts != null ||
+      numGlobalByteSlices != null ||
+      numLocalInts != null ||
+      numLocalByteSlices != null ||
+      extraPages != null
+    ) {
+      throw new Error(
+        'One of the following application creation parameters were set on a non-creation call: approvalProgram, clearProgram, numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices, extraPages'
+      );
     }
 
     if (methodArgs == null) {
@@ -199,24 +305,24 @@ export class AtomicTransactionComposer {
       );
     }
 
-    let appArgTypes: ABIType[] = [];
-    let appArgValues: ABIValue[] = [];
+    let basicArgTypes: ABIType[] = [];
+    let basicArgValues: ABIValue[] = [];
     const txnArgs: TransactionWithSigner[] = [];
+    const refArgTypes: ABIReferenceType[] = [];
+    const refArgValues: ABIValue[] = [];
+    const refArgIndexToBasicArgIndex: Map<number, number> = new Map();
 
     for (let i = 0; i < methodArgs.length; i++) {
-      const argSpec = method.args[i];
+      let argType = method.args[i].type;
       const argValue = methodArgs[i];
 
-      if (
-        typeof argSpec.type === 'string' &&
-        abiTypeIsTransaction(argSpec.type)
-      ) {
+      if (abiTypeIsTransaction(argType)) {
         if (
           !isTransactionWithSigner(argValue) ||
-          argSpec.type !== argValue.txn.type
+          !abiCheckTransactionType(argType, argValue.txn)
         ) {
           throw new Error(
-            `Expected ${argSpec.type} transaction for argument at index ${i}`
+            `Expected ${argType} transaction for argument at index ${i}`
           );
         }
         if (argValue.txn.group && argValue.txn.group.some((v) => v !== 0)) {
@@ -232,33 +338,108 @@ export class AtomicTransactionComposer {
         );
       }
 
-      appArgTypes.push(argSpec.type);
-      appArgValues.push(argValue);
+      if (abiTypeIsReference(argType)) {
+        refArgIndexToBasicArgIndex.set(
+          refArgTypes.length,
+          basicArgTypes.length
+        );
+        refArgTypes.push(argType);
+        refArgValues.push(argValue);
+        // treat the reference as a uint8 for encoding purposes
+        argType = new ABIUintType(8);
+      }
+
+      if (typeof argType === 'string') {
+        throw new Error(`Unknown ABI type: ${argType}`);
+      }
+
+      basicArgTypes.push(argType);
+      basicArgValues.push(argValue);
     }
 
-    if (appArgTypes.length > 14) {
-      const lastArgTupleTypes = appArgTypes.slice(14);
-      const lastArgTupleValues = appArgValues.slice(14);
+    const resolvedRefIndexes: number[] = [];
+    const foreignAccounts: string[] = [];
+    const foreignApps: number[] = [];
+    const foreignAssets: number[] = [];
+    for (let i = 0; i < refArgTypes.length; i++) {
+      const refType = refArgTypes[i];
+      const refValue = refArgValues[i];
+      let resolved = 0;
 
-      appArgTypes = appArgTypes.slice(0, 14);
-      appArgValues = appArgValues.slice(0, 14);
+      switch (refType) {
+        case ABIReferenceType.account: {
+          const addressType = new ABIAddressType();
+          const address = addressType.decode(addressType.encode(refValue));
+          resolved = populateForeignArray(address, foreignAccounts, sender);
+          break;
+        }
+        case ABIReferenceType.application: {
+          const uint64Type = new ABIUintType(64);
+          const refAppID = uint64Type.decode(uint64Type.encode(refValue));
+          if (refAppID > Number.MAX_SAFE_INTEGER) {
+            throw new Error(
+              `Expected safe integer for application value, got ${refAppID}`
+            );
+          }
+          resolved = populateForeignArray(Number(refAppID), foreignApps, appID);
+          break;
+        }
+        case ABIReferenceType.asset: {
+          const uint64Type = new ABIUintType(64);
+          const refAssetID = uint64Type.decode(uint64Type.encode(refValue));
+          if (refAssetID > Number.MAX_SAFE_INTEGER) {
+            throw new Error(
+              `Expected safe integer for asset value, got ${refAssetID}`
+            );
+          }
+          resolved = populateForeignArray(Number(refAssetID), foreignAssets);
+          break;
+        }
+        default:
+          throw new Error(`Unknown reference type: ${refType}`);
+      }
 
-      appArgTypes.push(new ABITupleType(lastArgTupleTypes));
-      appArgValues.push(lastArgTupleValues);
+      resolvedRefIndexes.push(resolved);
+    }
+
+    for (let i = 0; i < resolvedRefIndexes.length; i++) {
+      const basicArgIndex = refArgIndexToBasicArgIndex.get(i);
+      basicArgValues[basicArgIndex] = resolvedRefIndexes[i];
+    }
+
+    if (basicArgTypes.length > MAX_APP_ARGS - 1) {
+      const lastArgTupleTypes = basicArgTypes.slice(MAX_APP_ARGS - 2);
+      const lastArgTupleValues = basicArgValues.slice(MAX_APP_ARGS - 2);
+
+      basicArgTypes = basicArgTypes.slice(0, MAX_APP_ARGS - 2);
+      basicArgValues = basicArgValues.slice(0, MAX_APP_ARGS - 2);
+
+      basicArgTypes.push(new ABITupleType(lastArgTupleTypes));
+      basicArgValues.push(lastArgTupleValues);
     }
 
     const appArgsEncoded: Uint8Array[] = [method.getSelector()];
-    for (let i = 0; i < appArgTypes.length; i++) {
-      appArgsEncoded.push(appArgTypes[i].encode(appArgValues[i]));
+    for (let i = 0; i < basicArgTypes.length; i++) {
+      appArgsEncoded.push(basicArgTypes[i].encode(basicArgValues[i]));
     }
 
     const appCall = {
       txn: makeApplicationCallTxnFromObject({
         from: sender,
-        appIndex: appId,
+        appIndex: appID,
         appArgs: appArgsEncoded,
+        accounts: foreignAccounts,
+        foreignApps,
+        foreignAssets,
         onComplete:
           onComplete == null ? OnApplicationComplete.NoOpOC : onComplete,
+        approvalProgram,
+        clearProgram,
+        numGlobalInts,
+        numGlobalByteSlices,
+        numLocalInts,
+        numLocalByteSlices,
+        extraPages,
         lease,
         note,
         rekeyTo,
@@ -281,9 +462,11 @@ export class AtomicTransactionComposer {
       if (this.transactions.length === 0) {
         throw new Error('Cannot build a group with 0 transactions');
       }
-      assignGroupID(
-        this.transactions.map((txnWithSigner) => txnWithSigner.txn)
-      );
+      if (this.transactions.length > 1) {
+        assignGroupID(
+          this.transactions.map((txnWithSigner) => txnWithSigner.txn)
+        );
+      }
       this.status = AtomicTransactionComposerStatus.BUILT;
     }
     return this.transactions;
@@ -423,6 +606,7 @@ export class AtomicTransactionComposer {
     }
 
     const txIDs = await this.submit(client);
+    this.status = AtomicTransactionComposerStatus.SUBMITTED;
 
     const firstMethodCallIndex = this.transactions.findIndex((_, index) =>
       this.methodCalls.has(index)
@@ -434,7 +618,6 @@ export class AtomicTransactionComposer {
       txIDs[indexToWaitFor],
       waitRounds
     );
-
     this.status = AtomicTransactionComposerStatus.COMMITTED;
 
     const confirmedRound: number = confirmedTxnInfo['confirmed-round'];
@@ -458,25 +641,19 @@ export class AtomicTransactionComposer {
                 await client.pendingTransactionInformation(txID).do();
 
           const logs: string[] = pendingInfo.logs || [];
-
-          // first 4 bytes of SHA-512/256 hash of "return"
-          const returnPrefix = Buffer.from([21, 31, 124, 117]);
-
-          let returnValueEncoded: Buffer | undefined;
-
-          for (let i = logs.length - 1; i >= 0; i--) {
-            const log = Buffer.from(logs[i], 'base64');
-            if (log.byteLength >= 4 && log.slice(0, 4).equals(returnPrefix)) {
-              returnValueEncoded = log.slice(4);
-              break;
-            }
-          }
-
-          if (returnValueEncoded == null) {
+          if (logs.length === 0) {
             throw new Error('App call transaction did not log a return value');
           }
 
-          methodResult.rawReturnValue = new Uint8Array(returnValueEncoded);
+          const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+          if (
+            lastLog.byteLength < 4 ||
+            !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+          ) {
+            throw new Error('App call transaction did not log a return value');
+          }
+
+          methodResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
           methodResult.returnValue = method.returns.type.decode(
             methodResult.rawReturnValue
           );
