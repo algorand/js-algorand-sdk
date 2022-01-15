@@ -4,7 +4,9 @@ const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require('path');
 const nacl = require('../../../src/nacl/naclWrappers');
+
 const algosdk = require('../../../index');
+const bigint = require('../../../src/encoding/bigint');
 const utils = require('../../../src/utils/utils');
 const { encodeUint64, encodeAddress } = require('../../../index');
 
@@ -36,6 +38,36 @@ async function loadResource(res) {
       }
     });
   });
+}
+
+async function compileProgram(client, program) {
+  const data = await loadResource(program);
+  if (program.endsWith('.teal')) {
+    try {
+      const compileResponse = await client.compile(data).do();
+      const compiledProgram = new Uint8Array(
+        Buffer.from(compileResponse.result, 'base64')
+      );
+      return compiledProgram;
+    } catch (err) {
+      throw new Error(`could not compile teal program: ${err}`);
+    }
+  }
+  return new Uint8Array(data);
+}
+
+// Helper function to parse paths with '.' delimiters
+function glom(result, pathString) {
+  const keys = pathString.split('.');
+  let item = result;
+  for (let i = 0; i < keys.length; i++) {
+    let index = parseInt(keys[i], 10);
+    if (Number.isNaN(index)) {
+      index = keys[i];
+    }
+    item = item[index];
+  }
+  return item;
 }
 
 // START OBJECT CREATION FUNCTIONS
@@ -4066,6 +4098,43 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Given(
+    "I fund the current application's address with {int} microalgos.",
+    async function (amount) {
+      // const payTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      //   from: this.accounts[0],
+      //   to: algosdk.getApplicationAddress(this.currentApplicationIndex),
+      //   amount: parseInt(amount, 10),
+      //   suggestedParams: this.suggestedParams,
+      // });
+
+      const sp = await this.v2Client.getTransactionParams().do();
+      if (sp.firstRound === 0) sp.firstRound = 1;
+      const fundingTxnArgs = {
+        from: this.accounts[0],
+        to: algosdk.getApplicationAddress(this.currentApplicationIndex),
+        amount,
+        suggestedParams: sp,
+      };
+      const stxn = await this.kcl.signTransaction(
+        this.handle,
+        this.wallet_pswd,
+        fundingTxnArgs
+      );
+
+      // const stxn = payTxn.signTxn(this.signingAccount.sk);
+      // const txid = await this.v2Client.sendRawTransaction(stxn);
+      // await algosdk.waitForConfirmation(this.v2Client, txid, 10);
+      const fundingResponse = await this.v2Client.sendRawTransaction(stxn).do();
+      const info = await algosdk.waitForConfirmation(
+        this.v2Client,
+        fundingResponse.txId,
+        2
+      );
+      assert.ok(info['confirmed-round'] > 0);
+    }
+  );
+
   function operationStringToEnum(inString) {
     switch (inString) {
       case 'noop':
@@ -4109,6 +4178,9 @@ module.exports = function getSteps(options) {
         case 'addr':
           appArgs.push(algosdk.decodeAddress(subArg[1]).publicKey);
           break;
+        case 'b64':
+          appArgs.push(Buffer.from(subArg[1], 'base64'));
+          break;
         default:
           throw Error(`did not recognize app arg of type${subArg[0]}`);
       }
@@ -4143,14 +4215,18 @@ module.exports = function getSteps(options) {
       // open and load in approval program
       let approvalProgramBytes;
       if (approvalProgramFile !== '') {
-        const resource = await loadResource(approvalProgramFile);
-        approvalProgramBytes = makeUint8Array(resource);
+        approvalProgramBytes = await compileProgram(
+          this.v2Client,
+          approvalProgramFile
+        );
       }
       // open and load in clear program
       let clearProgramBytes;
       if (clearProgramFile !== '') {
-        const resource = await loadResource(clearProgramFile);
-        clearProgramBytes = makeUint8Array(resource);
+        clearProgramBytes = await compileProgram(
+          this.v2Client,
+          clearProgramFile
+        );
       }
       // split and process app args
       let appArgs;
@@ -4378,14 +4454,18 @@ module.exports = function getSteps(options) {
       // open and load in approval program
       let approvalProgramBytes;
       if (approvalProgramFile !== '') {
-        const resouce = await loadResource(approvalProgramFile);
-        approvalProgramBytes = makeUint8Array(resouce);
+        approvalProgramBytes = await compileProgram(
+          this.v2Client,
+          approvalProgramFile
+        );
       }
       // open and load in clear program
       let clearProgramBytes;
       if (clearProgramFile !== '') {
-        const resouce = await loadResource(clearProgramFile);
-        clearProgramBytes = makeUint8Array(resouce);
+        clearProgramBytes = await compileProgram(
+          this.v2Client,
+          clearProgramFile
+        );
       }
       // split and process app args
       let appArgs;
@@ -4474,6 +4554,11 @@ module.exports = function getSteps(options) {
       .pendingTransactionInformation(this.appTxid.txId)
       .do();
     this.currentApplicationIndex = info['application-index'];
+
+    if (!Object.prototype.hasOwnProperty.call(this, 'appIDs')) {
+      this.appIDs = [];
+    }
+    this.appIDs.push(this.currentApplicationIndex);
   });
 
   Then(
@@ -4791,10 +4876,21 @@ module.exports = function getSteps(options) {
       if (commaSeparatedB64Args.length === 0) {
         return;
       }
+      const rawArgs = commaSeparatedB64Args.split(',');
 
-      const args = commaSeparatedB64Args
-        .split(',')
-        .map((b64Arg) => makeUint8Array(Buffer.from(b64Arg, 'base64')));
+      // Optionally parse ctxAppIds
+      const args = [];
+      for (let i = 0; i < rawArgs.length; i++) {
+        let b64Arg = rawArgs[i];
+        if (b64Arg.includes('ctxAppIdx')) {
+          // Retrieve the n'th app id in the saved array of app ids
+          b64Arg = b64Arg.split(':');
+          const appID = this.appIDs[parseInt(b64Arg[1], 10)];
+          args.push(encodeUint64(appID));
+        } else {
+          args.push(makeUint8Array(Buffer.from(b64Arg, 'base64')));
+        }
+      }
       this.encodedMethodArguments.push(...args);
     }
   );
@@ -4815,19 +4911,21 @@ module.exports = function getSteps(options) {
     globalInts,
     localBytes,
     localInts,
-    extraPages
+    extraPages,
+    note
   ) {
     // open and load in approval program
     let approvalProgramBytes;
     if (approvalProgramFile !== '') {
-      const resouce = await loadResource(approvalProgramFile);
-      approvalProgramBytes = makeUint8Array(resouce);
+      approvalProgramBytes = await compileProgram(
+        this.v2Client,
+        approvalProgramFile
+      );
     }
     // open and load in clear program
     let clearProgramBytes;
     if (clearProgramFile !== '') {
-      const resouce = await loadResource(clearProgramFile);
-      clearProgramBytes = makeUint8Array(resouce);
+      clearProgramBytes = await compileProgram(this.v2Client, clearProgramFile);
     }
 
     const methodArgs = [];
@@ -4883,6 +4981,7 @@ module.exports = function getSteps(options) {
       numLocalInts: localInts,
       numLocalByteSlices: localBytes,
       extraPages,
+      note,
       signer: this.transactionSigner,
     });
     this.composerMethods.push(this.method);
@@ -5012,6 +5111,30 @@ module.exports = function getSteps(options) {
         undefined,
         undefined,
         undefined
+      );
+    }
+  );
+
+  Given('I add the nonce {string}', function (nonce) {
+    this.nonce = nonce;
+  });
+
+  Given(
+    'I add a nonced method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
+    async function (onComplete) {
+      const nonce = makeUint8Array(Buffer.from(this.nonce));
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        nonce
       );
     }
   );
@@ -5155,6 +5278,138 @@ module.exports = function getSteps(options) {
           returnType.decode(expectedReturnValue)
         );
       }
+    }
+  );
+
+  Then(
+    'The app should have returned ABI types {string}.',
+    function (expectedAbiTypesString) {
+      // Each return from a unique ABI method call is separated by a colon
+      const expectedAbiTypes = expectedAbiTypesString.split(':');
+
+      const { methodResults } = this.composerExecuteResponse;
+      assert.strictEqual(methodResults.length, expectedAbiTypes.length);
+      assert.strictEqual(methodResults.length, this.composerMethods.length);
+
+      for (let i = 0; i < methodResults.length; i++) {
+        const expectedAbiType = expectedAbiTypes[i];
+        const method = this.composerMethods[i];
+        const actualResult = methodResults[i];
+
+        if (actualResult.decodeError) {
+          throw actualResult.decodeError;
+        }
+
+        const returnType = method.returns.type;
+        if (returnType === 'void') {
+          assert.strictEqual(expectedAbiType, returnType);
+          continue;
+        }
+
+        const expectedType = algosdk.ABIType.from(expectedAbiType);
+        const decodedResult = expectedType.decode(actualResult.rawReturnValue);
+        const roundTripResult = expectedType.encode(decodedResult);
+
+        assert.deepStrictEqual(roundTripResult, actualResult.rawReturnValue);
+      }
+    }
+  );
+
+  Then(
+    'The {int}th atomic result for randomInt\\({int}) proves correct',
+    function (resultIndex, methodArg) {
+      // Return format for randomInt method
+      const methodReturnType = algosdk.ABIType.from('(uint64,byte[17])');
+      const actualResult = this.composerExecuteResponse.methodResults[
+        resultIndex
+      ];
+      const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
+      assert.strictEqual(resultArray.length, 2);
+      const [randomIntResult, witnessResult] = resultArray;
+
+      // Check the random int against the witness
+      const witnessHash = nacl.genericHash(witnessResult).slice(0, 8);
+      const witness = bigint.bytesToBigInt(witnessHash);
+      const quotient = witness % BigInt(methodArg);
+      assert.strictEqual(quotient, randomIntResult);
+    }
+  );
+
+  Then(
+    'The {int}th atomic result for randElement\\({string}) proves correct',
+    function (resultIndex, methodArg) {
+      // Return format for randElement method
+      const methodReturnType = algosdk.ABIType.from('(byte,byte[17])');
+      const actualResult = this.composerExecuteResponse.methodResults[
+        resultIndex
+      ];
+      const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
+      assert.strictEqual(resultArray.length, 2);
+      const [randomResult, witnessResult] = resultArray;
+
+      // Check the random character against the witness
+      const witnessHash = nacl.genericHash(witnessResult).slice(0, 8);
+      const witness = bigint.bytesToBigInt(witnessHash);
+      const quotient = witness % BigInt(methodArg.length);
+      assert.strictEqual(
+        methodArg[quotient],
+        Buffer.from(makeUint8Array([randomResult])).toString('utf-8')
+      );
+    }
+  );
+
+  Then(
+    'I can dig the {int}th atomic result with path {string} and see the value {string}',
+    function (index, pathString, expectedResult) {
+      let actualResult = this.composerExecuteResponse.methodResults[index]
+        .txInfo;
+      actualResult = glom(actualResult, pathString);
+
+      assert.strictEqual(expectedResult, actualResult.toString());
+    }
+  );
+
+  Then(
+    'I dig into the paths {string} of the resulting atomic transaction tree I see group ids and they are all the same',
+    function (pathString) {
+      const paths = pathString.split(':').map((p) => p.split(','));
+      let groupID = -1;
+
+      for (let i = 0; i < paths.length; i++) {
+        const pathItem = paths[i];
+        let actualResults = this.composerExecuteResponse.methodResults;
+        for (let j = 0; j < path.length; j++) {
+          if (i === 0) {
+            actualResults = actualResults.txInfo;
+          } else {
+            actualResults = actualResults['inner-txns'][pathItem[j]];
+          }
+
+          const thisGroupID = actualResults.txn.txn.grp;
+          if (groupID === -1) {
+            groupID = thisGroupID;
+          } else {
+            assert.strictEqual(groupID, thisGroupID);
+          }
+        }
+      }
+    }
+  );
+
+  Then(
+    'The {int}th atomic result for {string} satisfies the regex {string}',
+    function (index, method, regexString) {
+      // Only allow the "spin()" method
+      assert.strictEqual(method, 'spin()');
+
+      const abiType = algosdk.ABIType.from(
+        '(byte[3],byte[17],byte[17],byte[17])'
+      );
+      const actualResult = this.composerExecuteResponse.methodResults[index];
+      let spin = abiType.decode(actualResult.rawReturnValue)[0];
+      spin = Buffer.from(spin).toString('utf-8');
+
+      assert.ok(spin.match(regexString));
     }
   );
 
