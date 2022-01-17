@@ -1,11 +1,12 @@
 import assert from 'assert';
 import HTTPClient from '../src/client/client';
+import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';
 
 describe('client', () => {
   describe('url construction', () => {
     /* eslint-disable dot-notation */
     it('should work with trivial paths', () => {
-      const client = new HTTPClient({}, 'http://localhost');
+      const client = new URLTokenBaseHTTPClient({}, 'http://localhost');
       const actual = client['addressWithPath']('/relative');
       const expected = 'http://localhost/relative';
 
@@ -13,7 +14,7 @@ describe('client', () => {
     });
 
     it('should work with number ports and trivial paths', () => {
-      const client = new HTTPClient({}, 'http://localhost', 3000);
+      const client = new URLTokenBaseHTTPClient({}, 'http://localhost', 3000);
       const actual = client['addressWithPath']('/relative');
       const expected = 'http://localhost:3000/relative';
 
@@ -21,7 +22,7 @@ describe('client', () => {
     });
 
     it('should work with complex base URLs and complex paths', () => {
-      const client = new HTTPClient(
+      const client = new URLTokenBaseHTTPClient(
         {},
         'https://testnet-algorand.api.purestake.io/ps2/',
         8080
@@ -35,8 +36,11 @@ describe('client', () => {
     it('should handle slash variations on complex paths', () => {
       const regularBase = 'https://localhost/absolute';
       const regularBaseWithFinalSlash = `${regularBase}/`;
-      const client = new HTTPClient({}, regularBase);
-      const clientWithSlash = new HTTPClient({}, regularBaseWithFinalSlash);
+      const client = new URLTokenBaseHTTPClient({}, regularBase);
+      const clientWithSlash = new URLTokenBaseHTTPClient(
+        {},
+        regularBaseWithFinalSlash
+      );
 
       const relativePath = 'relative';
       const relativePathWithInitialSlash = `/${relativePath}`;
@@ -57,8 +61,15 @@ describe('client', () => {
     it('should throw an error if protocol is the empty', () => {
       const baseServer = 'localhost'; // should be http://localhost
 
-      assert.throws(() => new HTTPClient({}, baseServer));
+      assert.throws(() => new URLTokenBaseHTTPClient({}, baseServer));
     });
     /* eslint-enable dot-notation */
+  });
+  describe('HTTPClient construction', () => {
+    it('should throw an error if protocol is the empty', () => {
+      const baseServer = 'localhost'; // should be http://localhost
+
+      assert.throws(() => new HTTPClient({}, baseServer));
+    });
   });
 });

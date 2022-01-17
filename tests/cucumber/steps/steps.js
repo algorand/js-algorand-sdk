@@ -36,21 +36,41 @@ async function loadResource(res) {
   });
 }
 
+// START OBJECT CREATION FUNCTIONS
+
 /**
- * This function must be used instead of creating Uint8Arrays directly because of this firefox
- * issue: https://github.com/mozilla/geckodriver/issues/1798
+ * If you wish to compare complex objects from different steps, these functions must be used instead
+ * of creating the objects directly. This is because of this firefox issue: https://github.com/mozilla/geckodriver/issues/1798
+ *
+ * If you get an assertion error on firefox that says 'Values identical but not reference-equal',
+ * you should probably use these functions or make new ones as needed.
  */
+
 function makeUint8Array(arg) {
   return new Uint8Array(arg);
 }
 
-/**
- * This function must be used instead of creating an empty object for use in assert.deepStructEqual
- * because of this firefox issue: https://github.com/mozilla/geckodriver/issues/1798
- */
-function makeEmptyObject() {
-  return {};
+function makeABIMethod(arg) {
+  return new algosdk.ABIMethod(arg);
 }
+
+function makeABIContract(arg) {
+  return new algosdk.ABIContract(arg);
+}
+
+function makeArray(...args) {
+  return args;
+}
+
+function makeObject(obj) {
+  return { ...obj };
+}
+
+function parseJSON(json) {
+  return JSON.parse(json);
+}
+
+// END OBJECT CREATION FUNCTIONS
 
 function formatIncludeAll(includeAll) {
   if (!['true', 'false'].includes(includeAll)) {
@@ -501,7 +521,7 @@ module.exports = function getSteps(options) {
 
   Then('the node should be healthy', async function () {
     const health = await this.acl.healthCheck();
-    assert.deepStrictEqual(health, makeEmptyObject());
+    assert.deepStrictEqual(health, makeObject({}));
   });
 
   Then('I get the ledger supply', async function () {
@@ -1911,7 +1931,7 @@ module.exports = function getSteps(options) {
           throw err;
         }
         if (this.expectedMockResponseCode === 500) {
-          if (!err.toString().includes('Internal Server Error')) {
+          if (!err.toString().includes('Received status 500')) {
             throw Error(
               `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
             );
@@ -4027,7 +4047,36 @@ module.exports = function getSteps(options) {
   Given(
     'a signing account with address {string} and mnemonic {string}',
     function (address, mnemonic) {
-      this.signingMnemonic = mnemonic;
+      this.signingAccount = algosdk.mnemonicToSecretKey(mnemonic);
+      if (this.signingAccount.addr !== address) {
+        throw new Error(
+          `Address does not match mnemonic: ${this.signingAccount.addr} !== ${address}`
+        );
+      }
+    }
+  );
+
+  Given(
+    'suggested transaction parameters from the algod v2 client',
+    async function () {
+      this.suggestedParams = await this.v2Client.getTransactionParams().do();
+    }
+  );
+
+  When(
+    'I build a payment transaction with sender {string}, receiver {string}, amount {int}, close remainder to {string}',
+    function (sender, receiver, amount, closeTo) {
+      const from = sender === 'transient' ? this.transientAccount.addr : sender;
+      const to =
+        receiver === 'transient' ? this.transientAccount.addr : receiver;
+
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from,
+        to,
+        amount: parseInt(amount, 10),
+        closeRemainderTo: closeTo.length === 0 ? undefined : closeTo,
+        suggestedParams: this.suggestedParams,
+      });
     }
   );
 
@@ -4079,6 +4128,8 @@ module.exports = function getSteps(options) {
 
   function operationStringToEnum(inString) {
     switch (inString) {
+      case 'noop':
+        return algosdk.OnApplicationComplete.NoOpOC;
       case 'call':
         return algosdk.OnApplicationComplete.NoOpOC;
       case 'create':
@@ -4299,8 +4350,7 @@ module.exports = function getSteps(options) {
   );
 
   When('sign the transaction', function () {
-    const result = algosdk.mnemonicToSecretKey(this.signingMnemonic);
-    this.stx = this.txn.signTxn(result.sk);
+    this.stx = this.txn.signTxn(this.signingAccount.sk);
   });
 
   Then(
@@ -4322,8 +4372,8 @@ module.exports = function getSteps(options) {
   });
 
   Given(
-    'an algod v{int} client connected to {string} port {int} with token {string}',
-    function (clientVersion, host, port, token) {
+    'an algod v2 client connected to {string} port {int} with token {string}',
+    function (host, port, token) {
       let mutableHost = host;
 
       if (!mutableHost.startsWith('http')) {
@@ -4336,14 +4386,13 @@ module.exports = function getSteps(options) {
   Given(
     'I create a new transient account and fund it with {int} microalgos.',
     async function (fundingAmount) {
-      const generatedResult = algosdk.generateAccount();
-      this.transientSecretKey = generatedResult.sk;
-      this.transientAddress = generatedResult.addr;
+      this.transientAccount = algosdk.generateAccount();
+
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
         from: this.accounts[0],
-        to: this.transientAddress,
+        to: this.transientAccount.addr,
         amount: fundingAmount,
         suggestedParams: sp,
       };
@@ -4355,11 +4404,12 @@ module.exports = function getSteps(options) {
       const fundingResponse = await this.v2Client
         .sendRawTransaction(stxKmd)
         .do();
-      await this.v2Client.statusAfterBlock(sp.firstRound + 2).do();
-      const fundingConfirmation = await this.acl.transactionById(
-        fundingResponse.txId
+      const info = await algosdk.waitForConfirmation(
+        this.v2Client,
+        fundingResponse.txId,
+        2
       );
-      assert.deepStrictEqual(true, 'type' in fundingConfirmation);
+      assert.ok(info['confirmed-round'] > 0);
     }
   );
 
@@ -4431,7 +4481,7 @@ module.exports = function getSteps(options) {
       if (sp.firstRound === 0) sp.firstRound = 1;
       const o = {
         type: 'appl',
-        from: this.transientAddress,
+        from: this.transientAccount.addr,
         suggestedParams: sp,
         appIndex: this.currentApplicationIndex,
         appOnComplete: operation,
@@ -4455,7 +4505,7 @@ module.exports = function getSteps(options) {
     'I sign and submit the transaction, saving the txid. If there is an error it is {string}.',
     async function (errorString) {
       try {
-        const appStx = this.txn.signTxn(this.transientSecretKey);
+        const appStx = this.txn.signTxn(this.transientAccount.sk);
         this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
       } catch (err) {
         if (errorString !== '') {
@@ -4471,17 +4521,19 @@ module.exports = function getSteps(options) {
   );
 
   Given('I wait for the transaction to be confirmed.', async function () {
-    const sp = await this.v2Client.getTransactionParams().do();
-    await this.v2Client.statusAfterBlock(sp.firstRound + 2).do();
-    const confirmation = await this.acl.transactionById(this.appTxid.txId);
-    assert.deepStrictEqual(true, 'type' in confirmation);
+    const info = await algosdk.waitForConfirmation(
+      this.v2Client,
+      this.appTxid.txId,
+      2
+    );
+    assert.ok(info['confirmed-round'] > 0);
   });
 
   Given('I remember the new application ID.', async function () {
-    const infoResult = await this.acl.pendingTransactionInformation(
-      this.appTxid.txId
-    );
-    this.currentApplicationIndex = infoResult.txresults.createdapp;
+    const info = await this.v2Client
+      .pendingTransactionInformation(this.appTxid.txId)
+      .do();
+    this.currentApplicationIndex = info['application-index'];
   });
 
   Then(
@@ -4496,7 +4548,7 @@ module.exports = function getSteps(options) {
       stateValue
     ) {
       const accountInfo = await this.v2Client
-        .accountInformation(this.transientAddress)
+        .accountInformation(this.transientAccount.addr)
         .do();
       const appTotalSchema = accountInfo['apps-total-schema'];
       assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
@@ -4585,6 +4637,586 @@ module.exports = function getSteps(options) {
     const { txn } = s;
     assert.strictEqual(!('fee' in txn), true);
   });
+
+  When(
+    'I create the Method object from method signature {string}',
+    function (signature) {
+      this.method = algosdk.ABIMethod.fromSignature(signature);
+    }
+  );
+
+  When(
+    'I create the Method object with name {string} first argument type {string} second argument type {string} and return type {string}',
+    function (name, firstArgType, secondArgType, returnType) {
+      this.method = makeABIMethod(
+        makeObject({
+          name,
+          args: makeArray(
+            makeObject({
+              type: firstArgType,
+            }),
+            makeObject({
+              type: secondArgType,
+            })
+          ),
+          returns: makeObject({ type: returnType }),
+        })
+      );
+    }
+  );
+
+  When(
+    'I create the Method object with name {string} first argument name {string} first argument type {string} second argument name {string} second argument type {string} and return type {string}',
+    function (
+      name,
+      firstArgName,
+      firstArgType,
+      secondArgName,
+      secondArgType,
+      returnType
+    ) {
+      this.method = makeABIMethod(
+        makeObject({
+          name,
+          args: makeArray(
+            makeObject({ name: firstArgName, type: firstArgType }),
+            makeObject({ name: secondArgName, type: secondArgType })
+          ),
+          returns: makeObject({ type: returnType }),
+        })
+      );
+    }
+  );
+
+  When(
+    'I create the Method object with name {string} method description {string} first argument type {string} first argument description {string} second argument type {string} second argument description {string} and return type {string}',
+    function (
+      name,
+      methodDesc,
+      firstArgType,
+      firstArgDesc,
+      secondArgType,
+      secondArgDesc,
+      returnType
+    ) {
+      this.method = makeABIMethod(
+        makeObject({
+          name,
+          desc: methodDesc,
+          args: makeArray(
+            makeObject({ type: firstArgType, desc: firstArgDesc }),
+            makeObject({ type: secondArgType, desc: secondArgDesc })
+          ),
+          returns: makeObject({ type: returnType }),
+        })
+      );
+    }
+  );
+
+  When('I serialize the Method object into json', function () {
+    this.json = JSON.stringify(this.method);
+  });
+
+  Then(
+    'the method selector should be {string}',
+    function (expectedSelectorHex) {
+      const actualSelector = this.method.getSelector();
+      const expectedSelector = makeUint8Array(
+        Buffer.from(expectedSelectorHex, 'hex')
+      );
+      assert.deepStrictEqual(actualSelector, expectedSelector);
+    }
+  );
+
+  Then('the txn count should be {int}', function (expectedCount) {
+    const actualCount = this.method.txnCount();
+    assert.strictEqual(actualCount, parseInt(expectedCount));
+  });
+
+  Then(
+    'the deserialized json should equal the original Method object',
+    function () {
+      const deserializedMethod = makeABIMethod(parseJSON(this.json));
+      assert.deepStrictEqual(deserializedMethod, this.method);
+    }
+  );
+
+  When(
+    'I create an Interface object from the Method object with name {string} and description {string}',
+    function (name, desc) {
+      this.interface = new algosdk.ABIInterface(
+        makeObject({
+          name,
+          desc,
+          methods: makeArray(this.method.toJSON()),
+        })
+      );
+    }
+  );
+
+  When('I serialize the Interface object into json', function () {
+    this.json = JSON.stringify(this.interface);
+  });
+
+  Then(
+    'the deserialized json should equal the original Interface object',
+    function () {
+      const deserializedInterface = new algosdk.ABIInterface(
+        parseJSON(this.json)
+      );
+      assert.deepStrictEqual(deserializedInterface, this.interface);
+    }
+  );
+
+  When(
+    'I create a Contract object from the Method object with name {string} and description {string}',
+    function (name, desc) {
+      this.contract = makeABIContract(
+        makeObject({
+          name,
+          desc,
+          methods: makeArray(this.method.toJSON()),
+        })
+      );
+    }
+  );
+
+  When(
+    "I set the Contract's appID to {int} for the network {string}",
+    function (appID, network) {
+      this.contract.networks[network] = makeObject({
+        appID: parseInt(appID, 10),
+      });
+    }
+  );
+
+  When('I serialize the Contract object into json', function () {
+    this.json = JSON.stringify(this.contract);
+  });
+
+  Then(
+    'the deserialized json should equal the original Contract object',
+    function () {
+      const deserializedContract = makeABIContract(parseJSON(this.json));
+      assert.deepStrictEqual(deserializedContract, this.contract);
+    }
+  );
+
+  Then(
+    'the produced json should equal {string} loaded from {string}',
+    function (expectedJson) {
+      // compare parsed JSON to avoid differences between encoded field order
+      assert.deepStrictEqual(JSON.parse(this.json), JSON.parse(expectedJson));
+    }
+  );
+
+  Given('a new AtomicTransactionComposer', function () {
+    this.composer = new algosdk.AtomicTransactionComposer();
+    this.composerMethods = [];
+  });
+
+  Given('an application id {int}', function (appId) {
+    this.currentApplicationIndex = parseInt(appId, 10);
+  });
+
+  When('I make a transaction signer for the signing account.', function () {
+    this.transactionSigner = algosdk.makeBasicAccountTransactionSigner(
+      this.signingAccount
+    );
+  });
+
+  When('I make a transaction signer for the transient account.', function () {
+    this.transactionSigner = algosdk.makeBasicAccountTransactionSigner(
+      this.transientAccount
+    );
+  });
+
+  When(
+    'I create a transaction with signer with the current transaction.',
+    function () {
+      this.transactionWithSigner = {
+        txn: this.txn,
+        signer: this.transactionSigner,
+      };
+    }
+  );
+
+  When('I create a new method arguments array.', function () {
+    this.encodedMethodArguments = [];
+  });
+
+  When(
+    'I append the encoded arguments {string} to the method arguments array.',
+    function (commaSeparatedB64Args) {
+      if (commaSeparatedB64Args.length === 0) {
+        return;
+      }
+
+      const args = commaSeparatedB64Args
+        .split(',')
+        .map((b64Arg) => makeUint8Array(Buffer.from(b64Arg, 'base64')));
+      this.encodedMethodArguments.push(...args);
+    }
+  );
+
+  When(
+    'I append the current transaction with signer to the method arguments array.',
+    function () {
+      this.encodedMethodArguments.push(this.transactionWithSigner);
+    }
+  );
+
+  async function addMethodCallToComposer(
+    sender,
+    onComplete,
+    approvalProgramFile,
+    clearProgramFile,
+    globalBytes,
+    globalInts,
+    localBytes,
+    localInts,
+    extraPages
+  ) {
+    // open and load in approval program
+    let approvalProgramBytes;
+    if (approvalProgramFile !== '') {
+      const resouce = await loadResource(approvalProgramFile);
+      approvalProgramBytes = makeUint8Array(resouce);
+    }
+    // open and load in clear program
+    let clearProgramBytes;
+    if (clearProgramFile !== '') {
+      const resouce = await loadResource(clearProgramFile);
+      clearProgramBytes = makeUint8Array(resouce);
+    }
+
+    const methodArgs = [];
+
+    assert.strictEqual(
+      this.encodedMethodArguments.length,
+      this.method.args.length
+    );
+
+    for (let i = 0; i < this.method.args.length; i++) {
+      const argSpec = this.method.args[i];
+      const encodedArg = this.encodedMethodArguments[i];
+
+      if (algosdk.abiTypeIsTransaction(argSpec.type)) {
+        methodArgs.push(encodedArg);
+        continue;
+      }
+
+      let typeToDecode = argSpec.type;
+
+      if (algosdk.abiTypeIsReference(argSpec.type)) {
+        switch (argSpec.type) {
+          case algosdk.ABIReferenceType.account:
+            typeToDecode = algosdk.ABIType.from('address');
+            break;
+          case algosdk.ABIReferenceType.application:
+          case algosdk.ABIReferenceType.asset:
+            typeToDecode = algosdk.ABIType.from('uint64');
+            break;
+          default:
+            throw new Error(`Unknown reference type: ${argSpec.type}`);
+        }
+      }
+
+      if (typeof typeToDecode === 'string') {
+        throw new Error(`Cannot decode with type: ${typeToDecode}`);
+      }
+
+      methodArgs.push(typeToDecode.decode(encodedArg));
+    }
+
+    this.composer.addMethodCall({
+      appID: this.currentApplicationIndex,
+      method: this.method,
+      methodArgs,
+      sender,
+      suggestedParams: this.suggestedParams,
+      onComplete: operationStringToEnum(onComplete),
+      approvalProgram: approvalProgramBytes,
+      clearProgram: clearProgramBytes,
+      numGlobalInts: globalInts,
+      numGlobalByteSlices: globalBytes,
+      numLocalInts: localInts,
+      numLocalByteSlices: localBytes,
+      extraPages,
+      signer: this.transactionSigner,
+    });
+    this.composerMethods.push(this.method);
+  }
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
+    async function (onComplete) {
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
+    async function (onComplete) {
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, extra-pages {int}.',
+    async function (
+      onComplete,
+      approvalProg,
+      clearProg,
+      globalBytes,
+      globalInts,
+      localBytes,
+      localInts,
+      extraPages
+    ) {
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        approvalProg,
+        clearProg,
+        parseInt(globalBytes, 10),
+        parseInt(globalInts, 10),
+        parseInt(localBytes, 10),
+        parseInt(localInts, 10),
+        parseInt(extraPages, 10)
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, extra-pages {int}.',
+    async function (
+      onComplete,
+      approvalProg,
+      clearProg,
+      globalBytes,
+      globalInts,
+      localBytes,
+      localInts,
+      extraPages
+    ) {
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onComplete,
+        approvalProg,
+        clearProg,
+        parseInt(globalBytes, 10),
+        parseInt(globalInts, 10),
+        parseInt(localBytes, 10),
+        parseInt(localInts, 10),
+        parseInt(extraPages, 10)
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}.',
+    async function (onCompletion, approvalProg, clearProg) {
+      assert.strictEqual(onCompletion, 'update');
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onCompletion,
+        approvalProg,
+        clearProg,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the signing account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, approval-program {string}, clear-program {string}.',
+    async function (onCompletion, approvalProg, clearProg) {
+      assert.strictEqual(onCompletion, 'update');
+      await addMethodCallToComposer.call(
+        this,
+        this.signingAccount.addr,
+        onCompletion,
+        approvalProg,
+        clearProg,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+    }
+  );
+
+  When(
+    'I add the current transaction with signer to the composer.',
+    function () {
+      this.composer.addTransaction(this.transactionWithSigner);
+    }
+  );
+
+  When(
+    'I build the transaction group with the composer. If there is an error it is {string}.',
+    function (errorType) {
+      if (errorType === '') {
+        // no error expected
+        this.composerBuiltGroup = this.composer.buildGroup();
+        return;
+      }
+
+      let expectedMessage;
+      switch (errorType) {
+        case 'zero group size error':
+          expectedMessage = 'Cannot build a group with 0 transactions';
+          break;
+        default:
+          throw new Error(`Unknown error type: "${errorType}"`);
+      }
+
+      assert.throws(
+        () => this.composer.buildGroup(),
+        (err) => err.message === expectedMessage
+      );
+    }
+  );
+
+  Then('I clone the composer.', function () {
+    this.composer = this.composer.clone();
+  });
+
+  Then(
+    'The composer should have a status of {string}.',
+    function (expectedStatus) {
+      function statusStringToEnum(inString) {
+        switch (inString) {
+          case 'BUILDING':
+            return algosdk.AtomicTransactionComposerStatus.BUILDING;
+          case 'BUILT':
+            return algosdk.AtomicTransactionComposerStatus.BUILT;
+          case 'SIGNED':
+            return algosdk.AtomicTransactionComposerStatus.SIGNED;
+          case 'SUBMITTED':
+            return algosdk.AtomicTransactionComposerStatus.SUBMITTED;
+          case 'COMMITTED':
+            return algosdk.AtomicTransactionComposerStatus.COMMITTED;
+          default:
+            throw Error(
+              `did not recognize AtomicTransactionComposer status string ${inString}`
+            );
+        }
+      }
+
+      assert.strictEqual(
+        this.composer.getStatus(),
+        statusStringToEnum(expectedStatus)
+      );
+    }
+  );
+
+  Then('I gather signatures with the composer.', async function () {
+    this.composerSignedTransactions = await this.composer.gatherSignatures();
+  });
+
+  Then(
+    'the base64 encoded signed transactions should equal {string}',
+    function (commaSeparatedB64SignedTxns) {
+      const expectedSignedTxns = commaSeparatedB64SignedTxns
+        .split(',')
+        .map((b64SignedTxn) => Buffer.from(b64SignedTxn, 'base64'));
+
+      const actualSignedTxns = this.composerSignedTransactions.map(
+        (signedTxn) => Buffer.from(signedTxn)
+      );
+      assert.deepStrictEqual(
+        [...actualSignedTxns],
+        [...expectedSignedTxns],
+        `Got ${actualSignedTxns
+          .map((stxn) => stxn.toString('base64'))
+          .join(',')}`
+      );
+    }
+  );
+
+  Then(
+    'I execute the current transaction group with the composer.',
+    async function () {
+      this.composerExecuteResponse = await this.composer.execute(
+        this.v2Client,
+        4
+      );
+      assert.ok(this.composerExecuteResponse.confirmedRound > 0);
+    }
+  );
+
+  Then(
+    'The app should have returned {string}.',
+    function (expectedReturnValues) {
+      const b64ExpectedReturnValues = expectedReturnValues.split(',');
+
+      const { methodResults } = this.composerExecuteResponse;
+      assert.strictEqual(methodResults.length, b64ExpectedReturnValues.length);
+      assert.strictEqual(methodResults.length, this.composerMethods.length);
+
+      for (let i = 0; i < methodResults.length; i++) {
+        const method = this.composerMethods[i];
+        const actualResult = methodResults[i];
+        const expectedReturnValue = Buffer.from(
+          b64ExpectedReturnValues[i],
+          'base64'
+        );
+
+        if (actualResult.decodeError) {
+          throw actualResult.decodeError;
+        }
+        assert.deepStrictEqual(
+          Buffer.from(actualResult.rawReturnValue),
+          expectedReturnValue,
+          `Actual return value for method at index ${i} does not match expected. Actual: ${Buffer.from(
+            actualResult.rawReturnValue
+          ).toString('base64')}`
+        );
+
+        const returnType = method.returns.type;
+        if (returnType === 'void') {
+          assert.strictEqual(expectedReturnValue.byteLength, 0);
+          continue;
+        }
+
+        assert.deepStrictEqual(
+          actualResult.returnValue,
+          returnType.decode(expectedReturnValue)
+        );
+      }
+    }
+  );
 
   if (!options.ignoreReturn) {
     return steps;
