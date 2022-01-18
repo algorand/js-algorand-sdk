@@ -39,36 +39,6 @@ async function loadResource(res) {
   });
 }
 
-async function compileProgram(client, program) {
-  const data = await loadResource(program);
-  if (program.endsWith('.teal')) {
-    try {
-      const compileResponse = await client.compile(data).do();
-      const compiledProgram = new Uint8Array(
-        Buffer.from(compileResponse.result, 'base64')
-      );
-      return compiledProgram;
-    } catch (err) {
-      throw new Error(`could not compile teal program: ${err}`);
-    }
-  }
-  return new Uint8Array(data);
-}
-
-// Helper function to parse paths with '.' delimiters
-function glom(result, pathString) {
-  const keys = pathString.split('.');
-  let item = result;
-  for (let i = 0; i < keys.length; i++) {
-    let index = parseInt(keys[i], 10);
-    if (Number.isNaN(index)) {
-      index = keys[i];
-    }
-    item = item[index];
-  }
-  return item;
-}
-
 // START OBJECT CREATION FUNCTIONS
 
 /**
@@ -3824,6 +3794,22 @@ module.exports = function getSteps(options) {
     }
   }
 
+  async function compileProgram(client, program) {
+    const data = await loadResource(program);
+    if (program.endsWith('.teal')) {
+      try {
+        const compiledResponse = await client.compile(data).do();
+        const compiledProgram = new Uint8Array(
+          Buffer.from(compiledResponse.result, 'base64')
+        );
+        return compiledProgram;
+      } catch (err) {
+        throw new Error(`could not compile teal program: ${err}`);
+      }
+    }
+    return makeUint8Array(data);
+  }
+
   function splitAndProcessAppArgs(inArgs) {
     const splitArgs = inArgs.split(',');
     const subArgs = [];
@@ -5021,6 +5007,20 @@ module.exports = function getSteps(options) {
       );
     }
   );
+
+  // Helper function to parse paths with '.' delimiters
+  function glom(result, pathString) {
+    const keys = pathString.split('.');
+    let item = result;
+    for (let i = 0; i < keys.length; i++) {
+      let index = parseInt(keys[i], 10);
+      if (Number.isNaN(index)) {
+        index = keys[i];
+      }
+      item = item[index];
+    }
+    return item;
+  }
 
   Then(
     'I can dig the {int}th atomic result with path {string} and see the value {string}',
