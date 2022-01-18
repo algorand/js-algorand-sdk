@@ -133,7 +133,6 @@ export async function createDryrun({
           const ai = decodePrograms(appInfo as AppWithAppParams);
           appInfos.push(ai);
           accts.push(ai.params.creator);
-          accts.push(getApplicationAddress(appId));
         })
     );
   }
