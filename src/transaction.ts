@@ -252,7 +252,7 @@ export class Transaction implements TransactionStorageStructure {
         txn.amount < 0)
     )
       throw Error(
-        'Amount must be a positive number and smaller than 2^64-1. If the number 2^53-1, use bigint.'
+        'Amount must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
       );
     if (!Number.isSafeInteger(txn.fee) || txn.fee < 0)
       throw Error('fee must be a positive number and smaller than 2^53-1');
@@ -277,7 +277,7 @@ export class Transaction implements TransactionStorageStructure {
         txn.assetTotal < 0)
     )
       throw Error(
-        'Total asset issuance must be a positive number and smaller than 2^64-1. If the number 2^53-1, use bigint.'
+        'Total asset issuance must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
       );
     if (
       txn.assetDecimals !== undefined &&
