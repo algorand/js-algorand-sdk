@@ -1,6 +1,10 @@
 const assert = require('assert');
 const sha256 = require('js-sha256');
+const sha512 = require('js-sha512');
 const nacl = require('tweetnacl');
+const utils = require('../../../src/utils/utils');
+
+const bigint = require('../../../src/encoding/bigint');
 
 window.assert = assert;
 window.sha256 = sha256;
@@ -12,6 +16,18 @@ window.keyPairFromSecretKey = function keyPairFromSecretKey(sk) {
 
 window.keyPairFromSeed = function keyPairFromSeed(seed) {
   return nacl.sign.keyPair.fromSeed(seed);
+};
+
+window.genericHash = function genericHash(toHash) {
+  return sha512.sha512_256.array(toHash);
+};
+
+window.bytesToBigInt = function bytesToBigInt(bytes) {
+  return bigint.bytesToBigInt(bytes);
+};
+
+window.concatArrays = function concatArrays(...arrs) {
+  return utils.concatArrays(...arrs);
 };
 
 window.loadResource = async function loadResource(resource) {
