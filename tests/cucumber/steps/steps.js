@@ -19,6 +19,18 @@ function keyPairFromSeed(seed) {
   return nacl.keyPairFromSeed(seed);
 }
 
+function genericHash(toHash) {
+  return nacl.genericHash(toHash);
+}
+
+function bytesToBigInt(bytes) {
+  return bigint.bytesToBigInt(bytes);
+}
+
+function concatArrays(...arrs) {
+  return utils.concatArrays(...arrs);
+}
+
 async function loadResource(res) {
   const p = path.join(
     maindir,
@@ -3732,11 +3744,8 @@ module.exports = function getSteps(options) {
     "I get the account address for the current application and see that it matches the app id's hash",
     async function () {
       const appID = this.currentApplicationIndex;
-      const toSign = utils.concatArrays(
-        Buffer.from('appID'),
-        encodeUint64(appID)
-      );
-      const expected = encodeAddress(nacl.genericHash(toSign));
+      const toSign = concatArrays(Buffer.from('appID'), encodeUint64(appID));
+      const expected = encodeAddress(genericHash(toSign));
       const actual = algosdk.getApplicationAddress(appID);
       assert.strictEqual(expected, actual);
     }
@@ -4978,8 +4987,8 @@ module.exports = function getSteps(options) {
       const [randomIntResult, witnessResult] = resultArray;
 
       // Check the random int against the witness
-      const witnessHash = nacl.genericHash(witnessResult).slice(0, 8);
-      const witness = bigint.bytesToBigInt(witnessHash);
+      const witnessHash = genericHash(witnessResult).slice(0, 8);
+      const witness = bytesToBigInt(witnessHash);
       const quotient = witness % BigInt(methodArg);
       assert.strictEqual(quotient, randomIntResult);
     }
@@ -4998,8 +5007,8 @@ module.exports = function getSteps(options) {
       const [randomResult, witnessResult] = resultArray;
 
       // Check the random character against the witness
-      const witnessHash = nacl.genericHash(witnessResult).slice(0, 8);
-      const witness = bigint.bytesToBigInt(witnessHash);
+      const witnessHash = genericHash(witnessResult).slice(0, 8);
+      const witness = bytesToBigInt(witnessHash);
       const quotient = witness % BigInt(methodArg.length);
       assert.strictEqual(
         methodArg[quotient],
