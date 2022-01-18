@@ -7,7 +7,6 @@ const algosdk = require('../../../index');
 const bigint = require('../../../src/encoding/bigint');
 const nacl = require('../../../src/nacl/naclWrappers');
 const utils = require('../../../src/utils/utils');
-const { encodeUint64, encodeAddress } = require('../../../index');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
 
@@ -3744,8 +3743,11 @@ module.exports = function getSteps(options) {
     "I get the account address for the current application and see that it matches the app id's hash",
     async function () {
       const appID = this.currentApplicationIndex;
-      const toSign = concatArrays(Buffer.from('appID'), encodeUint64(appID));
-      const expected = encodeAddress(genericHash(toSign));
+      const toSign = concatArrays(
+        Buffer.from('appID'),
+        algosdk.encodeUint64(appID)
+      );
+      const expected = algosdk.encodeAddress(genericHash(toSign));
       const actual = algosdk.getApplicationAddress(appID);
       assert.strictEqual(expected, actual);
     }
@@ -4208,6 +4210,10 @@ module.exports = function getSteps(options) {
     assert.ok(info['confirmed-round'] > 0);
   });
 
+  Given('I reset the array of application IDs to remember.', async function () {
+    this.appIDs = [];
+  });
+
   Given('I remember the new application ID.', async function () {
     const info = await this.v2Client
       .pendingTransactionInformation(this.appTxid.txId)
@@ -4545,7 +4551,7 @@ module.exports = function getSteps(options) {
           // Retrieve the n'th app id in the saved array of app ids
           b64Arg = b64Arg.split(':');
           const appID = this.appIDs[parseInt(b64Arg[1], 10)];
-          args.push(encodeUint64(appID));
+          args.push(algosdk.encodeUint64(appID));
         } else {
           args.push(makeUint8Array(Buffer.from(b64Arg, 'base64')));
         }
