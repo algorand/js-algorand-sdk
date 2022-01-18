@@ -785,7 +785,9 @@ describe('Sign', () => {
       };
       assert.throws(
         () => new algosdk.Transaction(o),
-        new Error('Amount must be a positive number and smaller than 2^64-1')
+        new Error(
+          'Amount must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
+        )
       );
     });
 
