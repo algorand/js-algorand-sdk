@@ -1154,7 +1154,7 @@ describe('Sign', () => {
       assert.throws(
         () => new algosdk.Transaction(o),
         new Error(
-          'Total asset issuance must be a positive number and smaller than 2^64-1'
+          'Total asset issuance must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
         )
       );
     });
