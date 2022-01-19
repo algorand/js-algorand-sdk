@@ -4,9 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const algosdk = require('../../../index');
-const bigint = require('../../../src/encoding/bigint');
 const nacl = require('../../../src/nacl/naclWrappers');
-const utils = require('../../../src/utils/utils');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
 
@@ -20,14 +18,6 @@ function keyPairFromSeed(seed) {
 
 function genericHash(toHash) {
   return nacl.genericHash(toHash);
-}
-
-function bytesToBigInt(bytes) {
-  return bigint.bytesToBigInt(bytes);
-}
-
-function concatArrays(...arrs) {
-  return utils.concatArrays(arrs);
 }
 
 async function loadResource(res) {
@@ -3743,11 +3733,13 @@ module.exports = function getSteps(options) {
     "I get the account address for the current application and see that it matches the app id's hash",
     async function () {
       const appID = this.currentApplicationIndex;
-      const toSign = concatArrays(
+      const toSign = Buffer.concat([
         Buffer.from('appID'),
-        algosdk.encodeUint64(appID)
+        algosdk.encodeUint64(appID),
+      ]);
+      const expected = algosdk.encodeAddress(
+        makeUint8Array(genericHash(toSign))
       );
-      const expected = algosdk.encodeAddress(genericHash(toSign));
       const actual = algosdk.getApplicationAddress(appID);
       assert.strictEqual(expected, actual);
     }
@@ -4994,7 +4986,7 @@ module.exports = function getSteps(options) {
 
       // Check the random int against the witness
       const witnessHash = genericHash(witnessResult).slice(0, 8);
-      const witness = bytesToBigInt(witnessHash);
+      const witness = algosdk.bytesToBigInt(witnessHash);
       const quotient = witness % BigInt(methodArg);
       assert.strictEqual(quotient, randomIntResult);
     }
@@ -5014,7 +5006,7 @@ module.exports = function getSteps(options) {
 
       // Check the random character against the witness
       const witnessHash = genericHash(witnessResult).slice(0, 8);
-      const witness = bytesToBigInt(witnessHash);
+      const witness = algosdk.bytesToBigInt(witnessHash);
       const quotient = witness % BigInt(methodArg.length);
       assert.strictEqual(
         methodArg[quotient],

@@ -134,6 +134,7 @@ export {
   decodeAddress,
   getApplicationAddress,
 } from './encoding/address';
+export { bytesToBigInt, bigIntToBytes } from './encoding/bigint';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
 export { default as generateAccount } from './account';
 export * as modelsv2 from './client/v2/algod/models/types';
