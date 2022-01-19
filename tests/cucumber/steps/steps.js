@@ -5049,7 +5049,7 @@ module.exports = function getSteps(options) {
       for (let i = 0; i < paths.length; i++) {
         const pathItem = paths[i];
         let actualResults = this.composerExecuteResponse.methodResults;
-        for (let j = 0; j < path.length; j++) {
+        for (let j = 0; j < pathItem.length; j++) {
           if (i === 0) {
             actualResults = actualResults.txInfo;
           } else {
