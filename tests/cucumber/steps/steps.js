@@ -3802,7 +3802,7 @@ module.exports = function getSteps(options) {
     if (program.endsWith('.teal')) {
       try {
         const compiledResponse = await client.compile(data).do();
-        const compiledProgram = new Uint8Array(
+        const compiledProgram = makeUint8Array(
           Buffer.from(compiledResponse.result, 'base64')
         );
         return compiledProgram;
