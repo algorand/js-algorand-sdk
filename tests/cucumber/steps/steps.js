@@ -5044,20 +5044,21 @@ module.exports = function getSteps(options) {
     'I dig into the paths {string} of the resulting atomic transaction tree I see group ids and they are all the same',
     function (pathString) {
       const paths = pathString.split(':').map((p) => p.split(','));
-      let groupID = -1;
+      let groupID;
 
       for (let i = 0; i < paths.length; i++) {
         const pathItem = paths[i];
         let actualResults = this.composerExecuteResponse.methodResults;
         for (let j = 0; j < pathItem.length; j++) {
-          if (i === 0) {
-            actualResults = actualResults.txInfo;
+          const itxnIndex = pathItem[j];
+          if (j === 0) {
+            actualResults = actualResults[itxnIndex].txInfo;
           } else {
-            actualResults = actualResults['inner-txns'][pathItem[j]];
+            actualResults = actualResults['inner-txns'][itxnIndex];
           }
 
-          const thisGroupID = actualResults.txn.txn.grp;
-          if (groupID === -1) {
+          const thisGroupID = actualResults.txn.txn.group;
+          if (j === 0) {
             groupID = thisGroupID;
           } else {
             assert.strictEqual(groupID, thisGroupID);
