@@ -27,7 +27,7 @@ function bytesToBigInt(bytes) {
 }
 
 function concatArrays(...arrs) {
-  return utils.concatArrays(...arrs);
+  return utils.concatArrays(arrs);
 }
 
 async function loadResource(res) {

@@ -21,8 +21,8 @@ window.bytesToBigInt = function bytesToBigInt(bytes) {
   return window.bigint.bytesToBigInt(bytes);
 };
 
-window.concatArrays = function concatArrays(...arrs) {
-  return window.utils.concatArrays(...arrs);
+window.concatArrays = function concatArrays(arrs) {
+  return window.utils.concatArrays(arrs);
 };
 
 window.loadResource = async function loadResource(resource) {
