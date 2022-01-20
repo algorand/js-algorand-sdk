@@ -148,7 +148,7 @@ export default class HTTPClient {
     jsonOptions: utils.JSONOptions = {}
   ) {
     try {
-      if (Object.keys(jsonOptions).length !== 0) {
+      if (Object.keys(jsonOptions).length === 0) {
         return text && JSON.parse(text);
       }
       return text && utils.parseJSON(text, jsonOptions);
