@@ -640,6 +640,7 @@ export class AtomicTransactionComposer {
             ? confirmedTxnInfo
             : // eslint-disable-next-line no-await-in-loop
               await client.pendingTransactionInformation(txID).do();
+        methodResult.txInfo = pendingInfo;
         if (method.returns.type !== 'void') {
           const logs: string[] = pendingInfo.logs || [];
           if (logs.length === 0) {
@@ -659,7 +660,6 @@ export class AtomicTransactionComposer {
             methodResult.rawReturnValue
           );
         }
-        methodResult.txInfo = pendingInfo;
       } catch (err) {
         methodResult.decodeError = err;
       }
