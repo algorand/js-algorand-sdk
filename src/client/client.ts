@@ -140,9 +140,8 @@ export default class HTTPClient {
    * @param status Status of the response (used in case parseJSON fails)
    * @param jsonOptions Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
-   * @private
    */
-  private static parseJSON(
+  public static parseJSON(
     text: string,
     status: number,
     jsonOptions: utils.JSONOptions = {}

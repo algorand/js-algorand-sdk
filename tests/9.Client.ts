@@ -1,6 +1,8 @@
 import assert from 'assert';
 import HTTPClient from '../src/client/client';
 import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';
+import IntDecoding from '../src/types/intDecoding';
+import * as utils from '../src/utils/utils';
 
 describe('client', () => {
   describe('url construction', () => {
@@ -31,6 +33,40 @@ describe('client', () => {
       const expected =
         'https://testnet-algorand.api.purestake.io:8080/ps2/relative?with=query';
       assert.strictEqual(actual, expected);
+    });
+
+    it('should encode and decode values correctly', () => {
+      const j = '{"total":18446744073709551615, "base":42}';
+
+      let options = {
+        // intDecoding: IntDecoding.DEFAULT,
+      };
+      let actual = HTTPClient.parseJSON(j, 200, options);
+      let expected = JSON.parse(j);
+      assert.strictEqual(actual.total, expected.total);
+      assert.strictEqual(typeof actual.total, 'number');
+
+      options = {
+        intDecoding: IntDecoding.BIGINT,
+      };
+      actual = HTTPClient.parseJSON(j, 200, options);
+      expected = utils.parseJSON(j, options);
+      assert.strictEqual(actual.total, expected.total);
+      assert.strictEqual(typeof actual.total, 'bigint');
+
+      options = {
+        intDecoding: IntDecoding.MIXED,
+      };
+      actual = HTTPClient.parseJSON(j, 200, options);
+      expected = utils.parseJSON(j, options);
+      assert.strictEqual(actual.total, expected.total);
+      assert.strictEqual(typeof actual.total, 'bigint');
+      assert.strictEqual(typeof actual.base, 'number');
+
+      options = {
+        intDecoding: IntDecoding.SAFE,
+      };
+      assert.throws(() => HTTPClient.parseJSON(j, 200, options), Error);
     });
 
     it('should handle slash variations on complex paths', () => {
