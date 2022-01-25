@@ -1,3 +1,17 @@
+# 1.13.1
+
+## Added:
+
+- Add app creator to dryrun request (#499)
+
+Changed:
+
+- Adding note to use bigint (#501)
+
+## Fixed:
+
+- Fix JSON decoding (#502)
+
 # 1.13.0
 
 ## Added:
