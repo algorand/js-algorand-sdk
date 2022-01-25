@@ -4,7 +4,7 @@
 
 - Add app creator to dryrun request (#499)
 
-Changed:
+## Changed:
 
 - Adding note to use bigint (#501)
 
