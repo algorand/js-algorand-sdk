@@ -8,12 +8,52 @@ orbs:
 workflows:
   circleci_build_and_test:
     jobs:
-      - main:
+      - build_and_test:
+          name: build_and_test_<< matrix.browser >>
           context: slack-secrets
+          matrix: &matrix-default
+            parameters:
+              browser: ["", "chrome", "firefox"]
 
+      - code_style
+
+      - prettier
+
+      - generate_docs:
+          requires:
+            - code_style
+            - prettier
+            - build_and_test
+          filters:
+            branches:
+              only:
+                - master
 
 jobs:
-  main:
+  code_style:
+    docker:
+      - image: 'ubuntu:bionic'
+    steps:
+      - checkout
+      - node/install:
+          node-version: '12'
+      - run: npm run lint
+
+  prettier:
+    docker:
+      - image: 'ubuntu:bionic'
+    steps:
+      - checkout
+      - node/install:
+          node-version: '12'
+      - run: |
+          npm install -g prettier
+          prettier --check .
+
+  build_and_test:
+    parameters:
+      browser:
+        type: string
     docker:
       - image: 'ubuntu:bionic'
     steps:
@@ -32,36 +72,31 @@ jobs:
             set -e
             if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
             npm install
-            npm install -g prettier
-      - run:
-          name: Code Style
-          command: npm run lint
-      # - run:
-      #     name: Prettier
-      #     command: prettier --check .
       - run:
           name: Compile test
           command: |
             npm run build
             npx tsc -p tests/compile
+      - browser-tools/install-browser-tools
       - run:
-          name: Node test
+          name: << parameters.browser >> test
           command: |
+            export TEST_BROWSER=<< parameters.browser >>
             npm test
             make docker-test
-      - browser-tools/install-browser-tools
-      - run: 
-          name: Chrome test
-          command: export TEST_BROWSER=chrome
-      - run: 
-          name: Firefox test
-          command: export TEST_BROWSER=firefox
-      - when:
-          condition:
-            equal: [ master, << pipeline.git.branch >> ]
-          steps:
-            - run:
-                name: GitHub Pages
-                command: |
-                  touch docs/.nojekyll
-                  npm run docs
+
+  generate_docs:
+    docker:
+      - image: 'ubuntu:bionic'
+    steps:
+      - checkout
+      - node/install:
+          node-version: '12'
+      - run:
+          name: GitHub Pages
+          command: |
+            touch docs/.nojekyll
+            npm run docs
+            npm install -g --silent gh-pages@2.0.1
+            # git config user.email "ci-build@algorand.com"
+            # git config user.name "ci-build"
