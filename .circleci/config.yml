@@ -1,0 +1,56 @@
+version: 2.1
+
+orbs: 
+  node: circleci/node@5.0.0
+  slack: circleci/slack@4.4.2
+  browser-tools: circleci/browser-tools@1.2.4
+
+workflows:
+  circle_ci_build_and_test:
+    jobs:
+      - main:
+          context: slack-secrets
+
+
+jobs:
+  main:
+    docker:
+      - image: 'ubuntu:bionic'
+    steps:
+      - checkout
+      - node/install:
+          node-version: '12'
+      - run:
+          name: Setup
+          command: |
+            set -e
+            if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
+            npm test
+            make docker-test
+      - run:
+          name: Code Style
+          command: npm run lint
+      - run:
+          name: Prettier
+          command: prettier --check .
+      - run:
+          name: Compile test
+          command: |
+            npm run build
+            npx tsc -p tests/compile
+      - browser-tools/install-browser-tools
+      - run: 
+          name: Chrome test
+          command: export TEST_BROWSER=chrome
+      - run: 
+          name: Firefox test
+          command: export TEST_BROWSER=firefox
+      - when:
+          condition:
+            equal: [ master, << pipeline.git.branch >> ]
+          steps:
+            - run:
+                name: GitHub Pages
+                command: |
+                  touch docs/.nojekyll
+                  npm run docs
