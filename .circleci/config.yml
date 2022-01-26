@@ -35,6 +35,7 @@ jobs:
       - image: 'ubuntu:bionic'
     steps:
       - checkout
+      - install_dependencies
       - node/install:
           node-version: '12'
       - run: npm run lint
@@ -44,6 +45,7 @@ jobs:
       - image: 'ubuntu:bionic'
     steps:
       - checkout
+      - install_dependencies
       - node/install:
           node-version: '12'
       - run: |
@@ -58,11 +60,7 @@ jobs:
       - image: 'ubuntu:bionic'
     steps:
       - checkout
-      - run:
-          name: Install Dependencies
-          command: |
-            apt -y update && apt -y upgrade
-            apt -y install curl make git build-essential
+      - install_dependencies
       - node/install:
           node-version: '12'
       - setup_remote_docker
@@ -100,3 +98,12 @@ jobs:
             npm install -g --silent gh-pages@2.0.1
             # git config user.email "ci-build@algorand.com"
             # git config user.name "ci-build"
+
+commands:
+  install_dependencies:
+    steps:
+      - run:
+          name: Install Dependencies
+          command: |
+            apt -y update && apt -y upgrade
+            apt -y install curl make git build-essential jq
