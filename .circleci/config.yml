@@ -57,10 +57,9 @@ jobs:
       - run:
           name: Install docker
           command: |
-            apt -y install lsb_release
             echo \
               "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-              $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+              bionic stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
             apt -y update
             apt -y install docker-ce docker-ce-cli containerd.io
       - run:
@@ -102,8 +101,7 @@ commands:
       - node/install:
           node-version: '12'
       - run:
-          name: Setup
+          name: npm install
           command: |
             set -e
-            if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
             npm install
