@@ -16,6 +16,7 @@ const defaultAppId = 1380011588;
 interface AppParamsWithPrograms {
   ['approval-program']: string | Uint8Array;
   ['clear-state-program']: string | Uint8Array;
+  ['creator']: string;
 }
 
 interface AppWithAppParams {
@@ -131,9 +132,11 @@ export async function createDryrun({
         .then((appInfo) => {
           const ai = decodePrograms(appInfo as AppWithAppParams);
           appInfos.push(ai);
+          accts.push(ai.params.creator);
         })
     );
   }
+  await Promise.all(appPromises);
 
   const acctPromises = [];
   for (const acct of [...new Set(accts)]) {
@@ -152,7 +155,7 @@ export async function createDryrun({
         })
     );
   }
-  await Promise.all([...appPromises, ...acctPromises]);
+  await Promise.all(acctPromises);
 
   return new DryrunRequest({
     txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
