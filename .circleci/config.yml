@@ -35,9 +35,9 @@ jobs:
       - run:
           name: Code Style
           command: npm run lint
-      - run:
-          name: Prettier
-          command: prettier --check .
+      # - run:
+      #     name: Prettier
+      #     command: prettier --check .
       - run:
           name: Compile test
           command: |
