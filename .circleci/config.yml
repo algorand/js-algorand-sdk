@@ -6,7 +6,7 @@ orbs:
   browser-tools: circleci/browser-tools@1.2.4
 
 workflows:
-  circle_ci_build_and_test:
+  circleci_build_and_test:
     jobs:
       - main:
           context: slack-secrets
@@ -18,6 +18,11 @@ jobs:
       - image: 'ubuntu:bionic'
     steps:
       - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo apt -y update && sudo apt -y upgrade
+            sudo apt -y install curl
       - node/install:
           node-version: '12'
       - run:
