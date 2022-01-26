@@ -21,8 +21,8 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
-            sudo apt -y update && sudo apt -y upgrade
-            sudo apt -y install curl
+            apt -y update && apt -y upgrade
+            apt -y install curl
       - node/install:
           node-version: '12'
       - run:
