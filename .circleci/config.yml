@@ -22,7 +22,7 @@ jobs:
           name: Install Dependencies
           command: |
             apt -y update && apt -y upgrade
-            apt -y install curl make git
+            apt -y install curl make git build-essential
       - node/install:
           node-version: '12'
       - run:
