@@ -8,17 +8,14 @@ orbs:
 workflows:
   circleci_build_and_test:
     jobs:
+      - code_style
+      - prettier
       - build_and_test:
           name: build_and_test_<< matrix.browser >>
           context: slack-secrets
-          matrix: &matrix-default
+          matrix:
             parameters:
-              browser: ["node", "chrome", "firefox"]
-
-      - code_style
-
-      - prettier
-
+              browser: ["node"] #, "chrome", "firefox"]
       - generate_docs:
           requires:
             - code_style
@@ -57,7 +54,14 @@ jobs:
     steps:
       - checkout
       - install_dependencies
-      - setup_remote_docker
+      - run:
+          name: Install docker
+          command: |
+            echo \
+              "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+              $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            apt -y update
+            apt -y install docker-ce docker-ce-cli containerd.io
       - run:
           name: Compile test
           command: |
@@ -76,8 +80,7 @@ jobs:
       - image: 'ubuntu:bionic'
     steps:
       - checkout
-      - node/install:
-          node-version: '12'
+      - install_dependencies
       - run:
           name: GitHub Pages
           command: |
