@@ -31,7 +31,7 @@ jobs:
             set -e
             if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
             npm install
-            npm install prettier
+            npm install -g prettier
       - run:
           name: Code Style
           command: npm run lint
