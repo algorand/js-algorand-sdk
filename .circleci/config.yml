@@ -36,8 +36,6 @@ jobs:
     steps:
       - checkout
       - install_dependencies
-      - node/install:
-          node-version: '12'
       - run: npm run lint
 
   prettier:
@@ -46,8 +44,6 @@ jobs:
     steps:
       - checkout
       - install_dependencies
-      - node/install:
-          node-version: '12'
       - run: |
           npm install -g prettier
           prettier --check .
@@ -61,15 +57,7 @@ jobs:
     steps:
       - checkout
       - install_dependencies
-      - node/install:
-          node-version: '12'
       - setup_remote_docker
-      - run:
-          name: Setup
-          command: |
-            set -e
-            if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
-            npm install
       - run:
           name: Compile test
           command: |
@@ -107,3 +95,11 @@ commands:
           command: |
             apt -y update && apt -y upgrade
             apt -y install curl make git build-essential jq
+      - node/install:
+          node-version: '12'
+      - run:
+          name: Setup
+          command: |
+            set -e
+            if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
+            npm install
