@@ -22,7 +22,7 @@ jobs:
           name: Install Dependencies
           command: |
             apt -y update && apt -y upgrade
-            apt -y install curl
+            apt -y install curl make
       - node/install:
           node-version: '12'
       - run:
@@ -31,8 +31,6 @@ jobs:
             set -e
             if [ -n "$DOCKER_PASSWORD" ]; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
             npm install
-            npm test
-            make docker-test
       - run:
           name: Code Style
           command: npm run lint
@@ -44,6 +42,11 @@ jobs:
           command: |
             npm run build
             npx tsc -p tests/compile
+      - run:
+          name: Node test
+          command: |
+            npm test
+            make docker-test
       - browser-tools/install-browser-tools
       - run: 
           name: Chrome test
