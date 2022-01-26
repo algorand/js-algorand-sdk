@@ -25,6 +25,7 @@ jobs:
             apt -y install curl make git build-essential
       - node/install:
           node-version: '12'
+      - setup_remote_docker
       - run:
           name: Setup
           command: |
