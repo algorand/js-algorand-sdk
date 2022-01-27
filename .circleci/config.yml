@@ -1,6 +1,6 @@
 version: 2.1
 
-orbs: 
+orbs:
   node: circleci/node@5.0.0
   slack: circleci/slack@4.4.2
   browser-tools: circleci/browser-tools@1.2.4
@@ -15,7 +15,7 @@ workflows:
           context: slack-secrets
           matrix:
             parameters:
-              browser: ["node"] #, "chrome", "firefox"]
+              browser: ['node'] #, "chrome", "firefox"]
       - generate_docs:
           requires:
             - code_style
