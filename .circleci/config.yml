@@ -62,7 +62,8 @@ jobs:
     resource_class: medium
     steps:
       - checkout
-      - install_dependencies
+      - install_dependencies:
+          sudo: 'sudo'
       - run:
           name: Install docker
           command: |
@@ -104,12 +105,16 @@ jobs:
 
 commands:
   install_dependencies:
+    parameters:
+      sudo:
+        type: string
+        default: ''
     steps:
       - run:
           name: Install Dependencies
           command: |
-            apt -y update && apt -y upgrade
-            apt -y install curl make git build-essential jq unzip
+            << parameters.sudo >> apt -y update && apt -y upgrade
+            << parameters.sudo >> apt -y install curl make git build-essential jq unzip
       - node/install:
           node-version: '12'
       - run:
