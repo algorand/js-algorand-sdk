@@ -5,7 +5,11 @@ import { ABIReferenceType, abiTypeIsReference } from './reference';
 
 function parseMethodSignature(
   signature: string
-): { name: string; args: string[]; returns: string } {
+): {
+  name: string;
+  args: string[];
+  returns: string;
+} {
   const argsStart = signature.indexOf('(');
   if (argsStart === -1) {
     throw new Error(`Invalid method signature: ${signature}`);
