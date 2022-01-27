@@ -67,7 +67,7 @@ jobs:
       - run:
           name: Install docker
           command: |
-            export $SUDO=sudo
+            export SUDO=sudo
             $SUDO apt update
             $SUDO apt -y install ca-certificates curl gnupg lsb-release
             $SUDO curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
