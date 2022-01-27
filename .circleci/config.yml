@@ -50,8 +50,8 @@ jobs:
       - checkout
       - install_dependencies
       - run: |
-          npm install -g prettier
-          prettier --check .
+          npm install prettier
+          npx prettier --check .
 
   build_and_test:
     parameters:
