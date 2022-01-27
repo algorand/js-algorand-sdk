@@ -268,6 +268,11 @@ export class AccountParticipation extends BaseModel {
   public voteParticipationKey: Uint8Array;
 
   /**
+   * (stprf) Root of the state proof key (if any)
+   */
+  public stateProofKey?: Uint8Array;
+
+  /**
    * Creates a new `AccountParticipation` object.
    * @param selectionParticipationKey - (sel) Selection public key (if any) currently registered for this round.
    * @param voteFirstValid - (voteFst) First round for which this participation is valid.
@@ -275,6 +280,7 @@ export class AccountParticipation extends BaseModel {
    * @param voteLastValid - (voteLst) Last round for which this participation is valid.
    * @param voteParticipationKey - (vote) root participation public key (if any) currently registered for this
    * round.
+   * @param stateProofKey - (stprf) Root of the state proof key (if any)
    */
   constructor({
     selectionParticipationKey,
@@ -282,12 +288,14 @@ export class AccountParticipation extends BaseModel {
     voteKeyDilution,
     voteLastValid,
     voteParticipationKey,
+    stateProofKey,
   }: {
     selectionParticipationKey: string | Uint8Array;
     voteFirstValid: number | bigint;
     voteKeyDilution: number | bigint;
     voteLastValid: number | bigint;
     voteParticipationKey: string | Uint8Array;
+    stateProofKey?: string | Uint8Array;
   }) {
     super();
     this.selectionParticipationKey =
@@ -301,6 +309,11 @@ export class AccountParticipation extends BaseModel {
       typeof voteParticipationKey === 'string'
         ? new Uint8Array(Buffer.from(voteParticipationKey, 'base64'))
         : voteParticipationKey;
+    this.stateProofKey = 
+      typeof stateProofKey === 'string' 
+       ? new Uint8Array(Buffer.from(stateProofKey, 'base64')) 
+       : stateProofKey;
+
 
     this.attribute_map = {
       selectionParticipationKey: 'selection-participation-key',
@@ -308,6 +321,7 @@ export class AccountParticipation extends BaseModel {
       voteKeyDilution: 'vote-key-dilution',
       voteLastValid: 'vote-last-valid',
       voteParticipationKey: 'vote-participation-key',
+      stateProofKey: 'state-proof-key',
     };
   }
 }
@@ -1837,22 +1851,50 @@ export class ProofResponse extends BaseModel {
   public stibhash: Uint8Array;
 
   /**
+   * Represents the depth of the tree that is being proven, i.e. the number of edges
+   * from a leaf to the root.
+   */
+  public treedepth: number | bigint;
+
+  /**
+   * The type of hash function used to create the proof, must be one of:
+   * * sumhash
+   * * sha512_256
+   */
+  public hashtype?: string;
+
+  /**
    * Creates a new `ProofResponse` object.
    * @param idx - Index of the transaction in the block's payset.
    * @param proof - Merkle proof of transaction membership.
    * @param stibhash - Hash of SignedTxnInBlock for verifying proof.
+   * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
+   * from a leaf to the root.
+   * @param hashtype - The type of hash function used to create the proof, must be one of:
+   * * sumhash
+   * * sha512_256
    */
-  constructor(
-    idx: number | bigint,
-    proof: string | Uint8Array,
+  constructor({
+    idx,
+    proof,
+    stibhash,
+    treedepth,
+    hashtype,
+  }: {
+    idx: number | bigint
+    proof: string | Uint8Array
     stibhash: string | Uint8Array
-  ) {
+    treedepth: number | bigint
+    hashtype?: string
+  }) {
     super();
     this.idx = idx;
     this.proof =
       typeof proof === 'string'
         ? new Uint8Array(Buffer.from(proof, 'base64'))
         : proof;
+    this.treedepth = treedepth;
+    this.hashtype = hashtype;
     this.stibhash =
       typeof stibhash === 'string'
         ? new Uint8Array(Buffer.from(stibhash, 'base64'))
@@ -1862,6 +1904,8 @@ export class ProofResponse extends BaseModel {
       idx: 'idx',
       proof: 'proof',
       stibhash: 'stibhash',
+      treedepth: 'treedepth',
+      hashtype: 'hashtype',
     };
   }
 }
