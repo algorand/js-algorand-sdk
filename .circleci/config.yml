@@ -71,7 +71,7 @@ jobs:
         type: string
     machine:
       image: << pipeline.parameters.ubuntu_machine >>
-    resource_class: large
+    resource_class: medium
     steps:
       - checkout
       - install_dependencies:
