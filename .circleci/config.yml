@@ -5,6 +5,14 @@ orbs:
   slack: circleci/slack@4.4.2
   browser-tools: circleci/browser-tools@1.2.4
 
+parameters:
+  ubuntu_machine:
+    type: string
+    default: 'ubuntu-2004:202111-02'
+  ubuntu_docker:
+    type: string
+    default: 'ubuntu:focal'
+
 workflows:
   circleci_build_and_test:
     jobs:
@@ -29,7 +37,7 @@ workflows:
 jobs:
   code_style:
     docker:
-      - image: 'ubuntu:bionic'
+      - image: << pipeline.parameters.ubuntu_docker >>
     steps:
       - checkout
       - install_dependencies
@@ -37,7 +45,7 @@ jobs:
 
   prettier:
     docker:
-      - image: 'ubuntu:bionic'
+      - image: << pipeline.parameters.ubuntu_docker >>
     steps:
       - checkout
       - install_dependencies
@@ -49,8 +57,9 @@ jobs:
     parameters:
       browser:
         type: string
-    docker:
-      - image: 'ubuntu:bionic'
+    machine:
+      image: << pipeline.parameters.ubuntu_machine >>
+    resource_class: medium
     steps:
       - checkout
       - install_dependencies
@@ -79,7 +88,7 @@ jobs:
 
   generate_docs:
     docker:
-      - image: 'ubuntu:bionic'
+      - image: << pipeline.parameters.ubuntu_docker >>
     steps:
       - checkout
       - install_dependencies
