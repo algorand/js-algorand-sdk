@@ -32,10 +32,10 @@ workflows:
             - prettier
             - compile_test
             - build_and_test
-          # filters:
-          #   branches:
-          #     only:
-          #       - master
+          filters:
+            branches:
+              only:
+                - master
 
 jobs:
   ESLint:
@@ -112,7 +112,6 @@ jobs:
           ssh-fingerprints: '75:f5:ad:46:65:a5:22:81:f7:20:ca:74:fb:c6:57:d1'
           build-dir: docs
           commit-message: 'Automated docs update'
-          branch: jacks-test-branch
 
 commands:
   install_dependencies:
