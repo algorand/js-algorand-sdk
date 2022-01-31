@@ -4,6 +4,7 @@ orbs:
   node: circleci/node@5.0.0
   slack: circleci/slack@4.4.2
   browser-tools: circleci/browser-tools@1.2.4
+  gh-pages: sugarshin/gh-pages@1.0.0
 
 parameters:
   ubuntu_machine:
@@ -16,25 +17,25 @@ parameters:
 workflows:
   circleci_build_and_test:
     jobs:
-      - ESLint
-      - prettier
-      - compile_test
-      - build_and_test:
-          name: build_and_test_<< matrix.browser >>
-          context: slack-secrets
-          matrix:
-            parameters:
-              browser: ['node', 'chrome', 'firefox']
-      - generate_docs:
-          requires:
-            - ESLint
-            - prettier
-            - compile_test
-            - build_and_test
-          filters:
-            branches:
-              only:
-                - master
+      # - ESLint
+      # - prettier
+      # - compile_test
+      # - build_and_test:
+      #     name: build_and_test_<< matrix.browser >>
+      #     context: slack-secrets
+      #     matrix:
+      #       parameters:
+      #         browser: ['node', 'chrome', 'firefox']
+      - generate_docs #:
+        # requires:
+        #   - ESLint
+        #   - prettier
+        #   - compile_test
+        #   - build_and_test
+        # filters:
+        #   branches:
+        #     only:
+        #       - master
 
 jobs:
   ESLint:
@@ -102,13 +103,16 @@ jobs:
       - checkout
       - install_dependencies
       - run:
-          name: GitHub Pages
+          name: Generate docs for GitHub Pages
           command: |
-            touch docs/.nojekyll
+            rm -rf docs
             npm run docs
-            npm install -g --silent gh-pages@2.0.1
-            # git config user.email "ci-build@algorand.com"
-            # git config user.name "ci-build"
+            touch docs/.nojekyll
+      - gh-pages/deploy:
+          ssh-fingerprints: '7e:3c:66:56:3b:b7:5e:9e:40:78:22:b7:7f:c0:19:27'
+          build-dir: docs
+          commit-message: 'Automated docs update'
+          branch: jacks-test-branch
 
 commands:
   install_dependencies:
