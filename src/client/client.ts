@@ -20,13 +20,14 @@ export interface HTTPClientResponse {
 }
 
 /**
- * Remove falsy values or values with a length of 0 from an object.
+ * Remove null values or values with a length of 0 from an object.
  */
-function removeFalsyOrEmpty(obj: Record<string, any>) {
+function removeNullOrEmpty(obj: Record<string, any>) {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      // eslint-disable-next-line no-param-reassign
-      if (!obj[key] || obj[key].length === 0) delete obj[key];
+      if (obj[key] == null || Number.isNaN(obj[key]) || obj[key].length === 0)
+        // eslint-disable-next-line no-param-reassign
+        delete obj[key];
     }
   }
   return obj;
@@ -253,7 +254,7 @@ export default class HTTPClient {
     try {
       const res = await this.bc.get(
         relativePath,
-        removeFalsyOrEmpty(query),
+        removeNullOrEmpty(query),
         fullHeaders
       );
 
