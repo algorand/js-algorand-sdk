@@ -3,6 +3,18 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 
 export default class LookupAssetByID extends JSONRequest {
+  /**
+   * Returns asset information of the queried asset.
+   *
+   * #### Example
+   * ```typescript
+   * const assetId = 163650;
+   * const assetInfo = await indexerClient.lookupAssetByID(assetId).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-id)
+   * @param index - The asset ID to look up.
+   */
   constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
     super(c, intDecoding);
     this.index = index;
@@ -12,7 +24,19 @@ export default class LookupAssetByID extends JSONRequest {
     return `/v2/assets/${this.index}`;
   }
 
-  // include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+  /**
+   * Includes all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+   *
+   * #### Example
+   * ```typescript
+   * const assetInfo = await indexerClient
+   *        .lookupAssetByID(assetId)
+   *        .includeAll(false)
+   *        .do();
+   * ```
+   *
+   * @param value - default true
+   */
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
