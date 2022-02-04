@@ -41,6 +41,22 @@ In `index.html`, add the following:
 </script>
 ```
 
+To utilize the Buffer polyfill in production builds, in `vite.config.js`, add:
+
+```js
+import inject from '@rollup/plugin-inject';
+
+export default defineConfig({
+  ...,
+  build: {
+    rollupOptions: {
+      plugins: [inject({ Buffer: ['buffer', 'Buffer'] })],
+    },
+  },
+  ...
+});
+```
+
 ### Browser
 
 Include a minified browser bundle directly in your HTML like so:
