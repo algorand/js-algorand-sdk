@@ -27,7 +27,7 @@ export default class LookupAssetByID extends JSONRequest {
   /**
    * Includes all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
    *
-   * #### Example
+   * #### Example 1
    * ```typescript
    * const assetInfo = await indexerClient
    *        .lookupAssetByID(assetId)
@@ -35,7 +35,15 @@ export default class LookupAssetByID extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param value - default true
+   * #### Example 2
+   * ```typescript
+   * const assetInfo = await indexerClient
+   *        .lookupAssetByID(assetId)
+   *        .includeAll()
+   *        .do();
+   * ```
+   *
+   * @param value - default true when called without passing a value
    */
   includeAll(value = true) {
     this.query['include-all'] = value;
