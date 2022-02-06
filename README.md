@@ -14,48 +14,7 @@ $ npm install algosdk
 
 > This package provides TypeScript types, but you will need [TypeScript](https://www.typescriptlang.org/) version 4.2 or higher to use them properly.
 
-##### Webpack 5 projects
-
-Webpack 5 no longer auto-polyfills some of the node modules used by this sdk. You will have to polyfill them to fix any errors regarding missing modules.
-
-##### Vite projects
-
-You will have to install `buffer` and `path-browserify` as dependencies.
-
-In `vite.config.js`, specify:
-
-```js
-resolve: {
-  alias: {
-    path: 'path-browserify';
-  }
-}
-```
-
-In `index.html`, add the following:
-
-```html
-<script type="module">
-  import { Buffer } from 'buffer';
-  window.Buffer = Buffer;
-</script>
-```
-
-To utilize the Buffer polyfill in production builds, in `vite.config.js`, add:
-
-```js
-import inject from '@rollup/plugin-inject';
-
-export default defineConfig({
-  ...,
-  build: {
-    rollupOptions: {
-      plugins: [inject({ Buffer: ['buffer', 'Buffer'] })],
-    },
-  },
-  ...
-});
-```
+For errors in Webpack 5 or Vite projects, you will need to [install extra dependencies](FAQ.md#it-says-error-cant-resolve-in-the-sdk).
 
 ### Browser
 

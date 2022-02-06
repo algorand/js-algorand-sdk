@@ -10,6 +10,66 @@ In prior versions, the browser bundles were made available in the `dist` directo
 
 Yes! If you would instead prefer to host the package yourself, a minified browser bundle can be found in the `dist/browser/` folder of the published npm package starting with version 1.9.0.
 
+## It says `Error: Can't resolve....` in the sdk
+
+This kind of errors is usually seen in Webpack 5 or Vite projects. You will need to install additional polyfill packages.
+
+#### Webpack 5 projects
+
+Typically, with Webpack 5 you would see:
+
+```
+Module not found: Error: Can't resolve 'crypto'
+ERROR in ./node_modules/algosdk/dist/browser/algosdk.min.js 7471:55-72
+```
+
+Webpack 5 no longer auto-polyfills some of the node modules used by this sdk. You will have to polyfill them to fix any errors regarding missing modules.
+
+#### Vite projects
+
+With Vite, you would see:
+
+```
+Uncaught ReferenceError: Buffer is not defined
+```
+
+You will have to install `buffer` and `path-browserify` as dependencies.
+
+In `vite.config.js`, specify:
+
+```js
+resolve: {
+  alias: {
+    path: 'path-browserify';
+  }
+}
+```
+
+In `index.html`, add the following:
+
+```html
+<script type="module">
+  import { Buffer } from 'buffer';
+  window.Buffer = Buffer;
+</script>
+```
+
+To utilize the Buffer polyfill in production builds, in `vite.config.js`, add:
+
+```js
+import inject from '@rollup/plugin-inject';
+
+export default defineConfig({
+  ...,
+  build: {
+    rollupOptions: {
+      plugins: [inject({ Buffer: ['buffer', 'Buffer'] })],
+    },
+  },
+  ...
+});
+```
+
 ## How do I generate the SRI hash of `algosdk.min.js`?
 
 The SRI hash of `algosdk.min.js` is the base64 string after `sha384-` in the `integrity` attribute of the `<script>` tag used to import `algosdk.min.js`.
