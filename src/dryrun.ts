@@ -167,3 +167,145 @@ export async function createDryrun({
     sources,
   });
 }
+
+class DryrunStackValue {
+  type: number = 0;
+  bytes: string = '';
+  uint: number = 0;
+
+  constructor(sv: Record<string, any>) {
+    this.type = sv.type;
+    this.bytes = sv.bytes;
+    this.uint = sv.uint;
+  }
+
+  toString(): string {
+    if (this.type === 1) {
+      return this.bytes;
+    }
+    return this.uint.toString();
+  }
+}
+
+class DryrunTraceLine {
+  line: number = 0;
+  pc: number = 0;
+  stack: DryrunStackValue[] = [];
+
+  constructor(line: Record<string, any>) {
+    this.line = line.line;
+    this.pc = line.pc;
+    this.stack = line.stack.map(
+      (sv: Record<string, any>) => new DryrunStackValue(sv)
+    );
+  }
+
+  traceLine(): [number, number, string] {
+    return [
+      this.line,
+      this.pc,
+      `[${this.stack.map((sv) => sv.toString()).join(',')}]`,
+    ];
+  }
+}
+
+class DryrunTrace {
+  trace: DryrunTraceLine[] = [];
+
+  constructor(t: Record<string, any>[]) {
+    if (t === undefined) return;
+    this.trace = t.map((line) => new DryrunTraceLine(line));
+  }
+
+  getTrace(): any[] {
+    return this.trace.map((dtl) => dtl.traceLine());
+  }
+}
+class DryrunTransactionResult {
+  defaultSpaces: number = 50;
+
+  disassembly: string[] = [];
+  appCallMessages: string[] | undefined = [];
+  localDeltas: any[] | undefined = [];
+  globalDelta: any[] | undefined = [];
+  cost: number | undefined = 0;
+  logicSigMessages: string[] | undefined = [];
+  logicSigDisassemly: string[] | undefined = [];
+  logs: string[] | undefined = [];
+
+  appCallTrace: DryrunTrace | undefined = undefined;
+  logicSigTrace: DryrunTrace | undefined = undefined;
+
+  required = ['disassembly'];
+  optionals = [
+    'app-call-messages',
+    'local-deltas',
+    'global-delta',
+    'cost',
+    'logic-sig-messages',
+    'logic-sig-disassembly',
+    'logs',
+  ];
+
+  traces = ['app-call-trace', 'logic-sig-trace'];
+
+  constructor(dtr: Record<string, any>) {
+    this.disassembly = dtr.disassembly;
+    this.appCallMessages = dtr['app-call-messages'];
+    this.localDeltas = dtr['local-deltas'];
+    this.globalDelta = dtr['global-delta'];
+    this.cost = dtr.cost;
+    this.logicSigMessages = dtr['logic-sig-messages'];
+    this.logicSigDisassemly = dtr['logic-sig-messages'];
+    this.logs = dtr.logs;
+    this.appCallTrace = new DryrunTrace(dtr['app-call-trace']);
+    this.logicSigTrace = new DryrunTrace(dtr['logic-sig-trace']);
+  }
+
+  trace(drt: DryrunTrace, disassembly: string[], spaces?: number): string {
+    // eslint-disable-next-line no-param-reassign
+    if (spaces === undefined) spaces = this.defaultSpaces;
+
+    const lines = [`pc# line# source${' '.repeat(spaces - 16)}stack`];
+    for (const [line, pc, stack] of drt.getTrace()) {
+      const linePadding = ' '.repeat(4 - line.toString().length);
+      const pcPadding = ' '.repeat(4 - pc.toString().length);
+      const dis = disassembly[line];
+
+      const srcLine = `${pcPadding}${pc} ${linePadding}${line} ${dis}`;
+
+      const stackPadding = ' '.repeat(Math.max(1, spaces - srcLine.length));
+
+      lines.push(`${srcLine}${stackPadding}${stack}`);
+    }
+
+    return lines.join('\n');
+  }
+
+  appTrace(): string {
+    if (this.appCallTrace === undefined || !this.disassembly) return '';
+    return this.trace(this.appCallTrace, this.disassembly);
+  }
+
+  lsigTrace(): string {
+    if (
+      this.logicSigTrace === undefined ||
+      this.logicSigDisassemly === undefined
+    )
+      return '';
+    return this.trace(this.logicSigTrace, this.logicSigDisassemly);
+  }
+}
+
+export class DryrunResult {
+  error: string = '';
+  protocolVersion: string = '';
+  txns: DryrunTransactionResult[] = [];
+  constructor(drrResp: Record<string, any>) {
+    this.error = drrResp.error;
+    this.protocolVersion = drrResp['protocol-version'];
+    this.txns = drrResp.txns.map(
+      (txn: any) => new DryrunTransactionResult(txn)
+    );
+  }
+}
