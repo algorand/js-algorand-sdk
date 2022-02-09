@@ -21,6 +21,9 @@ class Split {
    * (CloseRemainderTo must be zero.)
    *
    * After expiryRound passes, all funds can be refunded to owner.
+   *
+   * @deprecated This feature will be removed in v2.
+   *
    * Constructor Parameters:
    * @param {string} owner: the address to refund funds to on timeout
    * @param {string} receiverOne: the first recipient in the split account
@@ -118,6 +121,9 @@ class Split {
 }
 /**
  * returns a group transactions array which transfer funds according to the contract's ratio
+ *
+ * @deprecated This feature will be removed in v2.
+ *
  * @param {Uint8Array} contract: bytes representing the contract in question
  * @param {int} amount: the amount to be transferred
  * @param {int} firstRound: the first round on which the transaction group will be valid

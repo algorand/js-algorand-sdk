@@ -17,6 +17,8 @@ class PeriodicPayment {
    * After expiryRound, all remaining funds in the escrow
    * are available to receiver.
    *
+   * @deprecated This class will be removed in v2.
+   *
    * Constructor Parameters:
    * @param {string} receiver: address which is authorized to receive withdrawals
    * @param {int} amount: the amount to send each period
@@ -124,6 +126,9 @@ class PeriodicPayment {
 
 /**
  * getPeriodicPaymentWithdrawalTransaction returns a signed transaction extracting funds form the contract
+ *
+ * @deprecated This feature will be removed in v2.
+ *
  * @param {Uint8Array} contract: the bytearray defining the contract, received from the payer
  * @param {int} fee: the fee per byte for the transaction
  * @param {int} firstValid: the first round on which the txn will be valid

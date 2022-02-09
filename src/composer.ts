@@ -49,6 +49,8 @@ export interface ABIResult {
   returnValue?: ABIValue;
   /** If the SDK was unable to decode a return value, the error will be here. */
   decodeError?: Error;
+  /** The pending transaction information from the method transaction */
+  txInfo?: Record<string, any>;
 }
 
 export enum AtomicTransactionComposerStatus {
@@ -633,13 +635,13 @@ export class AtomicTransactionComposer {
       };
 
       try {
+        const pendingInfo =
+          txnIndex === firstMethodCallIndex
+            ? confirmedTxnInfo
+            : // eslint-disable-next-line no-await-in-loop
+              await client.pendingTransactionInformation(txID).do();
+        methodResult.txInfo = pendingInfo;
         if (method.returns.type !== 'void') {
-          const pendingInfo =
-            txnIndex === firstMethodCallIndex
-              ? confirmedTxnInfo
-              : // eslint-disable-next-line no-await-in-loop
-                await client.pendingTransactionInformation(txID).do();
-
           const logs: string[] = pendingInfo.logs || [];
           if (logs.length === 0) {
             throw new Error('App call transaction did not log a return value');

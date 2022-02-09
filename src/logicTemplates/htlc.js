@@ -17,6 +17,8 @@ class HTLC {
    * 2. To owner if txn.FirstValid > expiry_round
    * ...
    *
+   * @deprecated This feature will be removed in v2.
+   *
    *Parameters
    *----------
    * @param {string} owner: an address that can receive the asset after the expiry round
@@ -97,6 +99,9 @@ class HTLC {
 
 /**
  *  signTransactionWithHTLCUnlock accepts a transaction, such as a payment, and builds the HTLC-unlocking signature around that transaction
+ *
+ * @deprecated This feature will be removed in v2.
+ *
  * @param {Uint8Array} contract : byte representation of the HTLC
  * @param {Object} txn dictionary containing constructor arguments for a transaction
  * @param {string} preImageAsBase64 : preimage of the hash as base64 string
