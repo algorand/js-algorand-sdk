@@ -256,7 +256,7 @@ class DryrunTransactionResult {
     this.globalDelta = dtr['global-delta'];
     this.cost = dtr.cost;
     this.logicSigMessages = dtr['logic-sig-messages'];
-    this.logicSigDisassemly = dtr['logic-sig-messages'];
+    this.logicSigDisassemly = dtr['logic-sig-disassembly'];
     this.logs = dtr.logs;
     this.appCallTrace = new DryrunTrace(dtr['app-call-trace']);
     this.logicSigTrace = new DryrunTrace(dtr['logic-sig-trace']);
