@@ -262,6 +262,20 @@ class DryrunTransactionResult {
     this.logicSigTrace = new DryrunTrace(dtr['logic-sig-trace']);
   }
 
+  appCallRejected(): boolean {
+    return (
+      this.appCallMessages !== undefined &&
+      this.appCallMessages.includes('REJECT')
+    );
+  }
+
+  logicSigRejected(): boolean {
+    return (
+      this.logicSigMessages !== undefined &&
+      this.logicSigMessages.includes('REJECT')
+    );
+  }
+
   trace(drt: DryrunTrace, disassembly: string[], spaces?: number): string {
     // eslint-disable-next-line no-param-reassign
     if (spaces === undefined) spaces = this.defaultSpaces;
