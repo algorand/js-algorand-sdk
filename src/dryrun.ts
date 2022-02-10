@@ -278,9 +278,22 @@ class DryrunTransactionResult {
 
   trace(drt: DryrunTrace, disassembly: string[], spaces?: number): string {
     // eslint-disable-next-line no-param-reassign
-    if (spaces === undefined) spaces = this.defaultSpaces;
+    let padSpaces = spaces;
+    if (padSpaces === undefined) padSpaces = this.defaultSpaces;
+    if (padSpaces === 0) {
+      for (const l of disassembly) {
+        if (l.length > padSpaces) {
+          padSpaces = l.length;
+        }
+      }
 
-    const lines = [`pc# line# source${' '.repeat(spaces - 16)}stack`];
+      // Add 10 to account for line number and pc padding we apply later
+      padSpaces += 10;
+    }
+
+    // 16 is the length of header prior to pad spacing
+    const padSpacing = padSpaces - 16 > 0 ? ' '.repeat(padSpaces - 16) : '';
+    const lines = [`pc# line# source${padSpacing}stack`];
     for (const [line, pc, stack] of drt.getTrace()) {
       const linePadding = ' '.repeat(4 - line.toString().length);
       const pcPadding = ' '.repeat(4 - pc.toString().length);
@@ -288,7 +301,10 @@ class DryrunTransactionResult {
 
       const srcLine = `${pcPadding}${pc} ${linePadding}${line} ${dis}`;
 
-      const stackPadding = ' '.repeat(Math.max(1, spaces - srcLine.length));
+      const stackPadding =
+        padSpaces - srcLine.length > 0
+          ? ' '.repeat(padSpaces - srcLine.length)
+          : '';
 
       lines.push(`${srcLine}${stackPadding}${stack}`);
     }
@@ -296,18 +312,18 @@ class DryrunTransactionResult {
     return lines.join('\n');
   }
 
-  appTrace(): string {
+  appTrace(spaces?: number): string {
     if (this.appCallTrace === undefined || !this.disassembly) return '';
-    return this.trace(this.appCallTrace, this.disassembly);
+    return this.trace(this.appCallTrace, this.disassembly, spaces);
   }
 
-  lsigTrace(): string {
+  lsigTrace(spaces?: number): string {
     if (
       this.logicSigTrace === undefined ||
       this.logicSigDisassemly === undefined
     )
       return '';
-    return this.trace(this.logicSigTrace, this.logicSigDisassemly);
+    return this.trace(this.logicSigTrace, this.logicSigDisassemly, spaces);
   }
 }
 
