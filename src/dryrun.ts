@@ -1,10 +1,12 @@
 import AlgodClient from './client/v2/algod/algod';
 import {
+  AccountStateDelta,
   Application,
   ApplicationParams,
   ApplicationStateSchema,
   DryrunRequest,
   DryrunSource,
+  EvalDeltaKeyValue,
 } from './client/v2/algod/models/types';
 import { SignedTransaction } from './transaction';
 import { TransactionType } from './types/transactions';
@@ -168,12 +170,17 @@ export async function createDryrun({
   });
 }
 
+interface StackValueResponse {
+  type: number;
+  bytes: string;
+  uint: number;
+}
 class DryrunStackValue {
   type: number = 0;
   bytes: string = '';
   uint: number = 0;
 
-  constructor(sv: Record<string, any>) {
+  constructor(sv: StackValueResponse) {
     this.type = sv.type;
     this.bytes = sv.bytes;
     this.uint = sv.uint;
@@ -187,47 +194,72 @@ class DryrunStackValue {
   }
 }
 
+interface TraceLine {
+  line: number;
+  pc: number;
+  stack: string;
+}
+
+interface DryrunTraceLineResponse {
+  line: number;
+  pc: number;
+  stack: StackValueResponse[];
+}
 class DryrunTraceLine {
   line: number = 0;
   pc: number = 0;
   stack: DryrunStackValue[] = [];
 
-  constructor(line: Record<string, any>) {
+  constructor(line: DryrunTraceLineResponse) {
     this.line = line.line;
     this.pc = line.pc;
     this.stack = line.stack.map(
-      (sv: Record<string, any>) => new DryrunStackValue(sv)
+      (sv: StackValueResponse) => new DryrunStackValue(sv)
     );
   }
 
-  traceLine(): [number, number, string] {
-    return [
-      this.line,
-      this.pc,
-      `[${this.stack.map((sv) => sv.toString()).join(',')}]`,
-    ];
+  traceLine(): TraceLine {
+    return {
+      line: this.line,
+      pc: this.pc,
+      stack: `[${this.stack.map((sv) => sv.toString()).join(',')}]`,
+    };
   }
 }
 
 class DryrunTrace {
   trace: DryrunTraceLine[] = [];
 
-  constructor(t: Record<string, any>[]) {
+  constructor(t: DryrunTraceLineResponse[]) {
     if (t === undefined) return;
     this.trace = t.map((line) => new DryrunTraceLine(line));
   }
 
-  getTrace(): any[] {
+  getTrace(): TraceLine[] {
     return this.trace.map((dtl) => dtl.traceLine());
   }
 }
+
+interface DryrunTransactionResultResponse {
+  disassembly: string[];
+  appCallMessages: string[] | undefined;
+  localDeltas: AccountStateDelta[] | undefined;
+  globalDelta: EvalDeltaKeyValue[] | undefined;
+  cost: number | undefined;
+  logicSigMessages: string[] | undefined;
+  logicSigDisassemly: string[] | undefined;
+  logs: string[] | undefined;
+  appCallTrace: DryrunTrace | undefined;
+  logicSigTrace: DryrunTrace | undefined;
+}
+
 class DryrunTransactionResult {
   defaultSpaces: number = 50;
 
   disassembly: string[] = [];
   appCallMessages: string[] | undefined = [];
-  localDeltas: any[] | undefined = [];
-  globalDelta: any[] | undefined = [];
+  localDeltas: AccountStateDelta[] | undefined = [];
+  globalDelta: EvalDeltaKeyValue[] | undefined = [];
   cost: number | undefined = 0;
   logicSigMessages: string[] | undefined = [];
   logicSigDisassemly: string[] | undefined = [];
@@ -249,7 +281,7 @@ class DryrunTransactionResult {
 
   traces = ['app-call-trace', 'logic-sig-trace'];
 
-  constructor(dtr: Record<string, any>) {
+  constructor(dtr: DryrunTransactionResultResponse) {
     this.disassembly = dtr.disassembly;
     this.appCallMessages = dtr['app-call-messages'];
     this.localDeltas = dtr['local-deltas'];
@@ -294,7 +326,7 @@ class DryrunTransactionResult {
     // 16 is the length of header prior to pad spacing
     const padSpacing = padSpaces - 16 > 0 ? ' '.repeat(padSpaces - 16) : '';
     const lines = [`pc# line# source${padSpacing}stack`];
-    for (const [line, pc, stack] of drt.getTrace()) {
+    for (const { line, pc, stack } of drt.getTrace()) {
       const linePadding = ' '.repeat(4 - line.toString().length);
       const pcPadding = ' '.repeat(4 - pc.toString().length);
       const dis = disassembly[line];
@@ -327,15 +359,21 @@ class DryrunTransactionResult {
   }
 }
 
+interface DryrunResultResponse {
+  ['error']: string;
+  ['protocol-version']: string;
+  ['txns']: DryrunTransactionResultResponse[];
+}
+
 export class DryrunResult {
   error: string = '';
   protocolVersion: string = '';
   txns: DryrunTransactionResult[] = [];
-  constructor(drrResp: Record<string, any>) {
+  constructor(drrResp: DryrunResultResponse) {
     this.error = drrResp.error;
     this.protocolVersion = drrResp['protocol-version'];
     this.txns = drrResp.txns.map(
-      (txn: any) => new DryrunTransactionResult(txn)
+      (txn: DryrunTransactionResultResponse) => new DryrunTransactionResult(txn)
     );
   }
 }
