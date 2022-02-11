@@ -20,6 +20,9 @@ export default class LookupAssetByID extends JSONRequest {
     this.index = index;
   }
 
+  /**
+   * @returns `/v2/assets/${index}`
+   */
   path() {
     return `/v2/assets/${this.index}`;
   }
@@ -44,6 +47,7 @@ export default class LookupAssetByID extends JSONRequest {
    * ```
    *
    * @param value - default true when called without passing a value
+   * @category query
    */
   includeAll(value = true) {
     this.query['include-all'] = value;
