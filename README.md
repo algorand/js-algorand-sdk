@@ -14,6 +14,8 @@ $ npm install algosdk
 
 > This package provides TypeScript types, but you will need [TypeScript](https://www.typescriptlang.org/) version 4.2 or higher to use them properly.
 
+For errors in Webpack 5 or Vite projects, you will need to [install extra dependencies](FAQ.md#it-says-error-cant-resolve-in-the-sdk).
+
 ### Browser
 
 Include a minified browser bundle directly in your HTML like so:

@@ -28,6 +28,9 @@ class LimitOrder {
    *
    * close-out case:
    * txn alone, close out value after timeout
+   *
+   * @deprecated This class will be removed in v2.
+   *
    * Constructor Parameters:
    * @param {string} owner: the address to refund funds to on timeout
    * @param {int} assetid: the ID of the transferred asset
@@ -117,6 +120,9 @@ class LimitOrder {
 
 /**
  * returns a group transactions array which transfer funds according to the contract's ratio
+ *
+ * @deprecated This feature will be removed in v2.
+ *
  * @param {Uint8Array} contract: byteform of the contract from the payer
  * @param {int} assetAmount: the amount of assets to be sent
  * @param {int} microAlgoAmount: number of microAlgos to transfer
