@@ -188,7 +188,7 @@ class DryrunStackValue {
 
   toString(): string {
     if (this.type === 1) {
-      return this.bytes;
+      return `0x${Buffer.from(this.bytes, 'base64').toString('hex')}`;
     }
     return this.uint.toString();
   }
@@ -222,7 +222,7 @@ class DryrunTraceLine {
     return {
       line: this.line,
       pc: this.pc,
-      stack: `[${this.stack.map((sv) => sv.toString()).join(',')}]`,
+      stack: `[${this.stack.map((sv) => sv.toString()).join(', ')}]`,
     };
   }
 }
@@ -254,7 +254,7 @@ interface DryrunTransactionResultResponse {
 }
 
 class DryrunTransactionResult {
-  defaultSpaces: number = 50;
+  defaultSpaces: number = 20;
 
   disassembly: string[] = [];
   appCallMessages: string[] | undefined = [];
