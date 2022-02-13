@@ -1,10 +1,10 @@
 /* eslint-disable func-names,radix */
 const assert = require('assert');
-const sha256 = require('js-sha256');
 const fs = require('fs');
 const path = require('path');
-const nacl = require('../../../src/nacl/naclWrappers');
+
 const algosdk = require('../../../index');
+const nacl = require('../../../src/nacl/naclWrappers');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
 
@@ -14,6 +14,10 @@ function keyPairFromSecretKey(sk) {
 
 function keyPairFromSeed(seed) {
   return nacl.keyPairFromSeed(seed);
+}
+
+function genericHash(toHash) {
+  return nacl.genericHash(toHash);
 }
 
 async function loadResource(res) {
@@ -1525,331 +1529,6 @@ module.exports = function getSteps(options) {
       this.pk = this.assetTestFixture.creator;
     }
   );
-
-  /// /////////////////////////////////
-  // begin teal contract template tests
-  /// /////////////////////////////////
-
-  Given('contract test fixture', function () {
-    this.contractTestFixture = {
-      split: undefined,
-      htlc: undefined,
-      periodicPay: undefined,
-      limitOrder: undefined,
-      dynamicFee: undefined,
-      activeAddress: '',
-      htlcPreimage: '',
-      limitOrderN: 0,
-      limitOrderD: 0,
-      limitOrderMin: 0,
-      splitRat1: 0,
-      splitRat2: 0,
-      splitMin: 0,
-      contractFundAmount: 0,
-      periodicPayPeriod: 0,
-    };
-  });
-
-  When('I fund the contract account', async function () {
-    const amount = this.contractTestFixture.contractFundAmount;
-    const from = this.accounts[0];
-    const to = this.contractTestFixture.activeAddress;
-    this.params = await this.acl.getTransactionParams();
-    this.fee = this.params.fee;
-    this.fv = this.params.lastRound;
-    if (this.fv === 0) {
-      this.fv = 1;
-    }
-    this.lv = this.fv + 1000;
-    this.lastRound = this.params.lastRound;
-    this.note = undefined;
-    this.gh = this.params.genesishashb64;
-    this.txn = {
-      from,
-      to,
-      fee: this.fee,
-      amount,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      genesisHash: this.gh,
-      type: 'pay',
-    };
-    const stxKmd = await this.kcl.signTransaction(
-      this.handle,
-      this.wallet_pswd,
-      this.txn
-    );
-    this.txid = await this.acl.sendRawTransaction(stxKmd);
-    this.txid = this.txid.txId;
-    await this.acl.statusAfterBlock(this.lastRound + 2);
-    let info = await this.acl.transactionInformation(from, this.txid);
-    assert.deepStrictEqual(true, 'type' in info);
-    info = await this.acl.transactionById(this.txid);
-    assert.deepStrictEqual(true, 'type' in info);
-  });
-
-  Given(
-    'a split contract with ratio {int} to {int} and minimum payment {int}',
-    function (rat2, rat1, minPay) {
-      const owner = this.accounts[0];
-      const receivers = [this.accounts[0], this.accounts[1]];
-      const expiryRound = 100;
-      const maxFee = 5000000;
-      this.contractTestFixture.splitRat1 = parseInt(rat1);
-      this.contractTestFixture.splitRat2 = parseInt(rat2);
-      this.contractTestFixture.splitMin = parseInt(minPay);
-      this.contractTestFixture.split = new algosdk.LogicTemplates.Split(
-        owner,
-        receivers[0],
-        receivers[1],
-        this.contractTestFixture.splitRat1,
-        this.contractTestFixture.splitRat2,
-        expiryRound,
-        this.contractTestFixture.splitMin,
-        maxFee
-      );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.split.getAddress();
-      this.contractTestFixture.contractFundAmount = minPay * (rat1 + rat2) * 10;
-    }
-  );
-
-  When('I send the split transactions', async function () {
-    const contractCode = this.contractTestFixture.split.getProgram();
-    this.params = await this.acl.getTransactionParams();
-    this.fee = this.params.fee;
-    this.fv = this.params.lastRound;
-    this.lv = this.fv + 1000;
-    this.lastRound = this.params.lastRound;
-    const amount =
-      this.contractTestFixture.splitMin *
-      (this.contractTestFixture.splitRat1 + this.contractTestFixture.splitRat2);
-    const txnBytes = algosdk.LogicTemplates.getSplitFundsTransaction(
-      contractCode,
-      amount,
-      this.fv,
-      this.lv,
-      this.fee,
-      this.params.genesishashb64
-    );
-    this.txid = await this.acl.sendRawTransaction(txnBytes);
-    this.txid = this.txid.txId;
-    this.pk = this.contractTestFixture.activeAddress;
-  });
-
-  Given(
-    'an HTLC contract with hash preimage {string}',
-    function (preimageStringB64) {
-      // Write code here that turns the phrase above into concrete actions
-      this.contractTestFixture.htlcPreimage = preimageStringB64;
-      const preimageBytes = Buffer.from(preimageStringB64, 'base64');
-      const hash = sha256.create();
-      hash.update(preimageBytes);
-      const hashB64String = Buffer.from(hash.hex(), 'hex').toString('base64');
-      const hashFn = 'sha256';
-      const owner = this.accounts[0];
-      const receiver = this.accounts[1];
-      const expiryRound = 100;
-      const maxFee = 1000000;
-      this.contractTestFixture.htlc = new algosdk.LogicTemplates.HTLC(
-        owner,
-        receiver,
-        hashFn,
-        hashB64String,
-        expiryRound,
-        maxFee
-      );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.htlc.getAddress();
-      this.contractTestFixture.contractFundAmount = 100000000;
-    }
-  );
-
-  When('I claim the algos', async function () {
-    this.params = await this.acl.getTransactionParams();
-    this.fee = this.params.fee;
-    this.fv = this.params.lastRound;
-    this.lv = this.fv + 1000;
-    this.lastRound = this.params.lastRound;
-    const payTxn = {
-      from: this.contractTestFixture.htlc.getAddress(),
-      to: this.accounts[1],
-      closeRemainderTo: this.accounts[1],
-      fee: this.fee,
-      amount: 0,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      genesisHash: this.params.genesishashb64,
-      type: 'pay',
-    };
-    const txnBytes = algosdk.LogicTemplates.signTransactionWithHTLCUnlock(
-      this.contractTestFixture.htlc.getProgram(),
-      payTxn,
-      this.contractTestFixture.htlcPreimage
-    );
-    this.txid = await this.acl.sendRawTransaction(txnBytes.blob);
-    this.txid = this.txid.txId;
-    this.pk = this.contractTestFixture.activeAddress;
-  });
-
-  Given(
-    'a periodic payment contract with withdrawing window {int} and period {int}',
-    function (withdrawWindow, period) {
-      const receiver = this.accounts[0];
-      const amount = 10000000;
-      const expiryRound = 100;
-      const maxFee = 1000000000000;
-      this.contractTestFixture.periodicPay = new algosdk.LogicTemplates.PeriodicPayment(
-        receiver,
-        amount,
-        parseInt(withdrawWindow),
-        parseInt(period),
-        expiryRound,
-        maxFee,
-        undefined
-      );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.periodicPay.getAddress();
-      this.contractTestFixture.contractFundAmount = amount * 10;
-      this.contractTestFixture.periodicPayPeriod = parseInt(period);
-    }
-  );
-
-  When('I claim the periodic payment', async function () {
-    this.params = await this.acl.getTransactionParams();
-    this.fee = this.params.fee;
-    this.fv = this.params.lastRound;
-    const remainder = this.fv % this.contractTestFixture.periodicPayPeriod;
-    this.fv += remainder;
-    this.lv = this.fv + 1000;
-    this.lastRound = this.params.lastRound;
-    this.gh = this.params.genesishashb64;
-    const txnBytes = algosdk.LogicTemplates.getPeriodicPaymentWithdrawalTransaction(
-      this.contractTestFixture.periodicPay.getProgram(),
-      this.fee,
-      this.fv,
-      this.gh
-    );
-    this.txid = await this.acl.sendRawTransaction(txnBytes.blob);
-    this.txid = this.txid.txId;
-    this.pk = this.contractTestFixture.activeAddress;
-  });
-
-  Given(
-    'a limit order contract with parameters {int} {int} {int}',
-    function (ratn, ratd, minTrade) {
-      const maxFee = 100000;
-      const expiryRound = 100;
-      this.contractTestFixture.limitOrderN = parseInt(ratn);
-      this.contractTestFixture.limitOrderD = parseInt(ratd);
-      this.contractTestFixture.limitOrderMin = parseInt(minTrade);
-      this.contractTestFixture.contractFundAmount = 2 * parseInt(minTrade);
-      if (this.contractTestFixture.contractFundAmount < 1000000) {
-        this.contractTestFixture.contractFundAmount = 1000000;
-      }
-      const assetid = parseInt(this.assetTestFixture.index);
-      this.contractTestFixture.limitOrder = new algosdk.LogicTemplates.LimitOrder(
-        this.accounts[0],
-        assetid,
-        parseInt(ratn),
-        parseInt(ratd),
-        expiryRound,
-        parseInt(minTrade),
-        maxFee
-      );
-      this.contractTestFixture.activeAddress = this.contractTestFixture.limitOrder.getAddress();
-    }
-  );
-
-  When('I swap assets for algos', async function () {
-    const response = await this.kcl.exportKey(
-      this.handle,
-      this.wallet_pswd,
-      this.accounts[1]
-    );
-    const secretKey = response.private_key;
-    const microAlgoAmount = this.contractTestFixture.limitOrderMin + 1; // just over the minimum
-    const assetAmount =
-      Math.floor(
-        (microAlgoAmount * this.contractTestFixture.limitOrderN) /
-          this.contractTestFixture.limitOrderD
-      ) + 1;
-    this.params = await this.acl.getTransactionParams();
-    this.fee = this.params.fee;
-    this.fv = this.params.lastRound;
-    this.lv = this.fv + 1000;
-    this.lastRound = this.params.lastRound;
-    this.gh = this.params.genesishashb64;
-    const txnBytes = algosdk.LogicTemplates.getSwapAssetsTransaction(
-      this.contractTestFixture.limitOrder.getProgram(),
-      assetAmount,
-      microAlgoAmount,
-      secretKey,
-      this.fee,
-      this.fv,
-      this.lv,
-      this.gh
-    );
-    this.txid = await this.acl.sendRawTransaction(txnBytes);
-    this.txid = this.txid.txId;
-    this.pk = this.contractTestFixture.activeAddress;
-  });
-
-  Given('a dynamic fee contract with amount {int}', async function (amount) {
-    this.params = await this.acl.getTransactionParams();
-    this.fee = this.params.fee;
-    this.fv = this.params.lastRound;
-    if (this.fv === 0) {
-      this.fv = 1;
-    }
-    this.lv = this.fv + 1000;
-    this.lastRound = this.params.lastRound;
-    this.gh = this.params.genesishashb64;
-    this.contractTestFixture.contractFundAmount = parseInt(amount);
-    this.contractTestFixture.dynamicFee = new algosdk.LogicTemplates.DynamicFee(
-      this.accounts[1],
-      parseInt(amount),
-      this.fv,
-      this.lv
-    ); // intentionally leave optional args undefined
-    this.contractTestFixture.activeAddress = this.contractTestFixture.dynamicFee.getAddress();
-  });
-
-  Given('I send the dynamic fee transactions', async function () {
-    this.params = await this.acl.getTransactionParams();
-    this.fee = this.params.fee;
-    this.fv = this.params.lastRound;
-    if (this.fv === 0) {
-      this.fv = 1;
-    }
-    this.lv = this.fv + 1000;
-    this.lastRound = this.params.lastRound;
-    this.gh = this.params.genesishashb64;
-
-    const firstResponse = await this.kcl.exportKey(
-      this.handle,
-      this.wallet_pswd,
-      this.accounts[0]
-    );
-    const secretKeyOne = firstResponse.private_key;
-    const txnAndLsig = algosdk.LogicTemplates.signDynamicFee(
-      this.contractTestFixture.dynamicFee.getProgram(),
-      secretKeyOne,
-      this.gh
-    );
-    const secondResponse = await this.kcl.exportKey(
-      this.handle,
-      this.wallet_pswd,
-      this.accounts[1]
-    );
-    const secretKeyTwo = secondResponse.private_key;
-    const txnBytes = algosdk.LogicTemplates.getDynamicFeeTransactions(
-      txnAndLsig.txn,
-      txnAndLsig.lsig,
-      secretKeyTwo,
-      this.fee
-    );
-    this.txid = await this.acl.sendRawTransaction(txnBytes);
-    this.txid = this.txid.txId;
-    [this.pk] = this.accounts;
-  });
 
   /// /////////////////////////////////
   // begin indexer and algodv2 unit tests
@@ -4007,6 +3686,17 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    'base64 decoding the response is the same as the binary {string}',
+    async (program) => {
+      const data = await loadResource(program);
+      const decodedResult = makeUint8Array(
+        Buffer.from(compileResponse.result, 'base64')
+      );
+      assert.deepStrictEqual(makeUint8Array(data), decodedResult);
+    }
+  );
+
   /// /////////////////////////////////
   // TealSign tests
   /// /////////////////////////////////
@@ -4077,6 +3767,49 @@ module.exports = function getSteps(options) {
         closeRemainderTo: closeTo.length === 0 ? undefined : closeTo,
         suggestedParams: this.suggestedParams,
       });
+    }
+  );
+
+  Then(
+    "I get the account address for the current application and see that it matches the app id's hash",
+    async function () {
+      const appID = this.currentApplicationIndex;
+      const toSign = Buffer.concat([
+        Buffer.from('appID'),
+        algosdk.encodeUint64(appID),
+      ]);
+      const expected = algosdk.encodeAddress(
+        makeUint8Array(genericHash(toSign))
+      );
+      const actual = algosdk.getApplicationAddress(appID);
+      assert.strictEqual(expected, actual);
+    }
+  );
+
+  Given(
+    "I fund the current application's address with {int} microalgos.",
+    async function (amount) {
+      const sp = await this.v2Client.getTransactionParams().do();
+      if (sp.firstRound === 0) sp.firstRound = 1;
+      const fundingTxnArgs = {
+        from: this.accounts[0],
+        to: algosdk.getApplicationAddress(this.currentApplicationIndex),
+        amount,
+        suggestedParams: sp,
+      };
+      const stxn = await this.kcl.signTransaction(
+        this.handle,
+        this.wallet_pswd,
+        fundingTxnArgs
+      );
+
+      const fundingResponse = await this.v2Client.sendRawTransaction(stxn).do();
+      const info = await algosdk.waitForConfirmation(
+        this.v2Client,
+        fundingResponse.txId,
+        2
+      );
+      assert.ok(info['confirmed-round'] > 0);
     }
   );
 
@@ -4151,6 +3884,22 @@ module.exports = function getSteps(options) {
     }
   }
 
+  async function compileProgram(client, program) {
+    const data = await loadResource(program);
+    if (program.endsWith('.teal')) {
+      try {
+        const compiledResponse = await client.compile(data).do();
+        const compiledProgram = makeUint8Array(
+          Buffer.from(compiledResponse.result, 'base64')
+        );
+        return compiledProgram;
+      } catch (err) {
+        throw new Error(`could not compile teal program: ${err}`);
+      }
+    }
+    return makeUint8Array(data);
+  }
+
   function splitAndProcessAppArgs(inArgs) {
     const splitArgs = inArgs.split(',');
     const subArgs = [];
@@ -4168,6 +3917,9 @@ module.exports = function getSteps(options) {
           break;
         case 'addr':
           appArgs.push(algosdk.decodeAddress(subArg[1]).publicKey);
+          break;
+        case 'b64':
+          appArgs.push(Buffer.from(subArg[1], 'base64'));
           break;
         default:
           throw Error(`did not recognize app arg of type${subArg[0]}`);
@@ -4203,14 +3955,18 @@ module.exports = function getSteps(options) {
       // open and load in approval program
       let approvalProgramBytes;
       if (approvalProgramFile !== '') {
-        const resource = await loadResource(approvalProgramFile);
-        approvalProgramBytes = makeUint8Array(resource);
+        approvalProgramBytes = await compileProgram(
+          this.v2Client,
+          approvalProgramFile
+        );
       }
       // open and load in clear program
       let clearProgramBytes;
       if (clearProgramFile !== '') {
-        const resource = await loadResource(clearProgramFile);
-        clearProgramBytes = makeUint8Array(resource);
+        clearProgramBytes = await compileProgram(
+          this.v2Client,
+          clearProgramFile
+        );
       }
       // split and process app args
       let appArgs;
@@ -4438,14 +4194,18 @@ module.exports = function getSteps(options) {
       // open and load in approval program
       let approvalProgramBytes;
       if (approvalProgramFile !== '') {
-        const resouce = await loadResource(approvalProgramFile);
-        approvalProgramBytes = makeUint8Array(resouce);
+        approvalProgramBytes = await compileProgram(
+          this.v2Client,
+          approvalProgramFile
+        );
       }
       // open and load in clear program
       let clearProgramBytes;
       if (clearProgramFile !== '') {
-        const resouce = await loadResource(clearProgramFile);
-        clearProgramBytes = makeUint8Array(resouce);
+        clearProgramBytes = await compileProgram(
+          this.v2Client,
+          clearProgramFile
+        );
       }
       // split and process app args
       let appArgs;
@@ -4529,11 +4289,20 @@ module.exports = function getSteps(options) {
     assert.ok(info['confirmed-round'] > 0);
   });
 
+  Given('I reset the array of application IDs to remember.', async function () {
+    this.appIDs = [];
+  });
+
   Given('I remember the new application ID.', async function () {
     const info = await this.v2Client
       .pendingTransactionInformation(this.appTxid.txId)
       .do();
     this.currentApplicationIndex = info['application-index'];
+
+    if (!Object.prototype.hasOwnProperty.call(this, 'appIDs')) {
+      this.appIDs = [];
+    }
+    this.appIDs.push(this.currentApplicationIndex);
   });
 
   Then(
@@ -4851,10 +4620,21 @@ module.exports = function getSteps(options) {
       if (commaSeparatedB64Args.length === 0) {
         return;
       }
+      const rawArgs = commaSeparatedB64Args.split(',');
 
-      const args = commaSeparatedB64Args
-        .split(',')
-        .map((b64Arg) => makeUint8Array(Buffer.from(b64Arg, 'base64')));
+      // Optionally parse ctxAppIds
+      const args = [];
+      for (let i = 0; i < rawArgs.length; i++) {
+        let b64Arg = rawArgs[i];
+        if (b64Arg.includes('ctxAppIdx')) {
+          // Retrieve the n'th app id in the saved array of app ids
+          b64Arg = b64Arg.split(':');
+          const appID = this.appIDs[parseInt(b64Arg[1], 10)];
+          args.push(algosdk.encodeUint64(appID));
+        } else {
+          args.push(makeUint8Array(Buffer.from(b64Arg, 'base64')));
+        }
+      }
       this.encodedMethodArguments.push(...args);
     }
   );
@@ -4875,19 +4655,21 @@ module.exports = function getSteps(options) {
     globalInts,
     localBytes,
     localInts,
-    extraPages
+    extraPages,
+    note
   ) {
     // open and load in approval program
     let approvalProgramBytes;
     if (approvalProgramFile !== '') {
-      const resouce = await loadResource(approvalProgramFile);
-      approvalProgramBytes = makeUint8Array(resouce);
+      approvalProgramBytes = await compileProgram(
+        this.v2Client,
+        approvalProgramFile
+      );
     }
     // open and load in clear program
     let clearProgramBytes;
     if (clearProgramFile !== '') {
-      const resouce = await loadResource(clearProgramFile);
-      clearProgramBytes = makeUint8Array(resouce);
+      clearProgramBytes = await compileProgram(this.v2Client, clearProgramFile);
     }
 
     const methodArgs = [];
@@ -4943,6 +4725,7 @@ module.exports = function getSteps(options) {
       numLocalInts: localInts,
       numLocalByteSlices: localBytes,
       extraPages,
+      note,
       signer: this.transactionSigner,
     });
     this.composerMethods.push(this.method);
@@ -5072,6 +4855,30 @@ module.exports = function getSteps(options) {
         undefined,
         undefined,
         undefined
+      );
+    }
+  );
+
+  Given('I add the nonce {string}', function (nonce) {
+    this.nonce = nonce;
+  });
+
+  Given(
+    'I add a nonced method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
+    async function (onComplete) {
+      const nonce = makeUint8Array(Buffer.from(this.nonce));
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        nonce
       );
     }
   );
@@ -5215,6 +5022,153 @@ module.exports = function getSteps(options) {
           returnType.decode(expectedReturnValue)
         );
       }
+    }
+  );
+
+  Then(
+    'The app should have returned ABI types {string}.',
+    function (expectedAbiTypesString) {
+      // Each return from a unique ABI method call is separated by a colon
+      const expectedAbiTypes = expectedAbiTypesString.split(':');
+
+      const { methodResults } = this.composerExecuteResponse;
+      assert.strictEqual(methodResults.length, expectedAbiTypes.length);
+      assert.strictEqual(methodResults.length, this.composerMethods.length);
+
+      for (let i = 0; i < methodResults.length; i++) {
+        const expectedAbiType = expectedAbiTypes[i];
+        const method = this.composerMethods[i];
+        const actualResult = methodResults[i];
+
+        if (actualResult.decodeError) {
+          throw actualResult.decodeError;
+        }
+
+        const returnType = method.returns.type;
+        if (returnType === 'void') {
+          assert.strictEqual(expectedAbiType, returnType);
+          continue;
+        }
+
+        const expectedType = algosdk.ABIType.from(expectedAbiType);
+        const decodedResult = expectedType.decode(actualResult.rawReturnValue);
+        const roundTripResult = expectedType.encode(decodedResult);
+
+        assert.deepStrictEqual(roundTripResult, actualResult.rawReturnValue);
+      }
+    }
+  );
+
+  Then(
+    'The {int}th atomic result for randomInt\\({int}) proves correct',
+    function (resultIndex, methodArg) {
+      // Return format for randomInt method
+      const methodReturnType = algosdk.ABIType.from('(uint64,byte[17])');
+      const actualResult = this.composerExecuteResponse.methodResults[
+        resultIndex
+      ];
+      const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
+      assert.strictEqual(resultArray.length, 2);
+      const [randomIntResult, witnessResult] = resultArray;
+
+      // Check the random int against the witness
+      const witnessHash = genericHash(witnessResult).slice(0, 8);
+      const witness = algosdk.bytesToBigInt(witnessHash);
+      const quotient = witness % BigInt(methodArg);
+      assert.strictEqual(quotient, randomIntResult);
+    }
+  );
+
+  Then(
+    'The {int}th atomic result for randElement\\({string}) proves correct',
+    function (resultIndex, methodArg) {
+      // Return format for randElement method
+      const methodReturnType = algosdk.ABIType.from('(byte,byte[17])');
+      const actualResult = this.composerExecuteResponse.methodResults[
+        resultIndex
+      ];
+      const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
+      assert.strictEqual(resultArray.length, 2);
+      const [randomResult, witnessResult] = resultArray;
+
+      // Check the random character against the witness
+      const witnessHash = genericHash(witnessResult).slice(0, 8);
+      const witness = algosdk.bytesToBigInt(witnessHash);
+      const quotient = witness % BigInt(methodArg.length);
+      assert.strictEqual(
+        methodArg[quotient],
+        Buffer.from(makeUint8Array([randomResult])).toString('utf-8')
+      );
+    }
+  );
+
+  // Helper function to parse paths with '.' delimiters
+  function glom(result, pathString) {
+    const keys = pathString.split('.');
+    let item = result;
+    for (let i = 0; i < keys.length; i++) {
+      let index = parseInt(keys[i], 10);
+      if (Number.isNaN(index)) {
+        index = keys[i];
+      }
+      item = item[index];
+    }
+    return item;
+  }
+
+  Then(
+    'I can dig the {int}th atomic result with path {string} and see the value {string}',
+    function (index, pathString, expectedResult) {
+      let actualResult = this.composerExecuteResponse.methodResults[index]
+        .txInfo;
+      actualResult = glom(actualResult, pathString);
+
+      assert.strictEqual(expectedResult, actualResult.toString());
+    }
+  );
+
+  Then(
+    'I dig into the paths {string} of the resulting atomic transaction tree I see group ids and they are all the same',
+    function (pathString) {
+      const paths = pathString.split(':').map((p) => p.split(','));
+      let groupID;
+
+      for (let i = 0; i < paths.length; i++) {
+        const pathItem = paths[i];
+        let actualResults = this.composerExecuteResponse.methodResults;
+        for (let j = 0; j < pathItem.length; j++) {
+          const itxnIndex = pathItem[j];
+          if (j === 0) {
+            actualResults = actualResults[itxnIndex].txInfo;
+          } else {
+            actualResults = actualResults['inner-txns'][itxnIndex];
+          }
+
+          const thisGroupID = actualResults.txn.txn.group;
+          if (j === 0) {
+            groupID = thisGroupID;
+          } else {
+            assert.strictEqual(groupID, thisGroupID);
+          }
+        }
+      }
+    }
+  );
+
+  Then(
+    'The {int}th atomic result for {string} satisfies the regex {string}',
+    function (index, method, regexString) {
+      // Only allow the "spin()" method
+      assert.strictEqual(method, 'spin()');
+
+      const abiType = algosdk.ABIType.from(
+        '(byte[3],byte[17],byte[17],byte[17])'
+      );
+      const actualResult = this.composerExecuteResponse.methodResults[index];
+      let spin = abiType.decode(actualResult.rawReturnValue)[0];
+      spin = Buffer.from(spin).toString('utf-8');
+
+      assert.ok(spin.match(regexString));
     }
   );
 

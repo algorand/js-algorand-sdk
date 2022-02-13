@@ -1,9 +1,8 @@
 const assert = require('assert');
-const sha256 = require('js-sha256');
+const sha512 = require('js-sha512');
 const nacl = require('tweetnacl');
 
 window.assert = assert;
-window.sha256 = sha256;
 window.Buffer = Buffer;
 
 window.keyPairFromSecretKey = function keyPairFromSecretKey(sk) {
@@ -12,6 +11,10 @@ window.keyPairFromSecretKey = function keyPairFromSecretKey(sk) {
 
 window.keyPairFromSeed = function keyPairFromSeed(seed) {
   return nacl.sign.keyPair.fromSeed(seed);
+};
+
+window.genericHash = function genericHash(toHash) {
+  return sha512.sha512_256.array(toHash);
 };
 
 window.loadResource = async function loadResource(resource) {

@@ -1,0 +1,134 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@5.0.0
+  slack: circleci/slack@4.4.2
+  browser-tools: circleci/browser-tools@1.2.4
+  gh-pages: sugarshin/gh-pages@1.0.0
+
+parameters:
+  ubuntu_machine:
+    type: string
+    default: 'ubuntu-2004:202111-02'
+  ubuntu_docker:
+    type: string
+    default: 'ubuntu:focal'
+
+workflows:
+  circleci_build_and_test:
+    jobs:
+      - ESLint
+      - prettier
+      - compile_test
+      - build_and_test:
+          name: build_and_test_<< matrix.browser >>
+          context: slack-secrets
+          matrix:
+            parameters:
+              browser: ['node', 'chrome', 'firefox']
+      - generate_docs:
+          requires:
+            - ESLint
+            - prettier
+            - compile_test
+            - build_and_test
+          filters:
+            branches:
+              only:
+                - master
+
+jobs:
+  ESLint:
+    docker:
+      - image: << pipeline.parameters.ubuntu_docker >>
+    steps:
+      - checkout
+      - install_dependencies
+      - run: npm run lint
+
+  prettier:
+    docker:
+      - image: << pipeline.parameters.ubuntu_docker >>
+    steps:
+      - checkout
+      - install_dependencies
+      - run: npx prettier --check .
+
+  compile_test:
+    docker:
+      - image: << pipeline.parameters.ubuntu_docker >>
+    steps:
+      - checkout
+      - install_dependencies
+      - run:
+          name: Compile test
+          command: |
+            npm run build
+            npx tsc -p tests/compile
+
+  build_and_test:
+    parameters:
+      browser:
+        type: string
+    machine:
+      image: << pipeline.parameters.ubuntu_machine >>
+    resource_class: medium
+    steps:
+      - checkout
+      - install_dependencies:
+          sudo: 'sudo'
+      - run:
+          name: Install docker
+          command: |
+            export SUDO=sudo
+            $SUDO apt update
+            $SUDO apt -y install ca-certificates curl gnupg lsb-release
+            $SUDO curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+            $SUDO echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+              $(lsb_release -cs) stable" | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
+            $SUDO apt update
+            $SUDO apt -y install docker-ce docker-ce-cli containerd.io
+      - browser-tools/install-browser-tools
+      - run:
+          name: << parameters.browser >> test
+          command: |
+            if [ "<< parameters.browser >>" == "node" ]; then unset TEST_BROWSER; else export TEST_BROWSER=<< parameters.browser >> ; fi
+            npm test
+            make docker-test
+
+  generate_docs:
+    docker:
+      - image: << pipeline.parameters.ubuntu_docker >>
+    steps:
+      - checkout
+      - install_dependencies
+      - run:
+          name: Generate docs for GitHub Pages
+          command: |
+            rm -rf docs
+            npm run docs
+            touch docs/.nojekyll
+      - gh-pages/deploy:
+          ssh-fingerprints: '75:f5:ad:46:65:a5:22:81:f7:20:ca:74:fb:c6:57:d1'
+          build-dir: docs
+          commit-message: 'Automated docs update'
+
+commands:
+  install_dependencies:
+    parameters:
+      sudo:
+        type: string
+        default: ''
+    steps:
+      - run:
+          name: Install Dependencies
+          command: |
+            << parameters.sudo >> apt -y update && << parameters.sudo >> apt -y upgrade
+            << parameters.sudo >> apt -y install curl make git build-essential jq unzip
+      - node/install:
+          node-version: '12'
+      - run:
+          name: npm ci
+          command: |
+            set -e
+            npm ci

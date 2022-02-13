@@ -309,11 +309,10 @@ export class AccountParticipation extends BaseModel {
       typeof voteParticipationKey === 'string'
         ? new Uint8Array(Buffer.from(voteParticipationKey, 'base64'))
         : voteParticipationKey;
-    this.stateProofKey = 
-      typeof stateProofKey === 'string' 
-       ? new Uint8Array(Buffer.from(stateProofKey, 'base64')) 
-       : stateProofKey;
-
+    this.stateProofKey =
+      typeof stateProofKey === 'string'
+        ? new Uint8Array(Buffer.from(stateProofKey, 'base64'))
+        : stateProofKey;
 
     this.attribute_map = {
       selectionParticipationKey: 'selection-participation-key',
@@ -1881,11 +1880,11 @@ export class ProofResponse extends BaseModel {
     treedepth,
     hashtype,
   }: {
-    idx: number | bigint
-    proof: string | Uint8Array
-    stibhash: string | Uint8Array
-    treedepth: number | bigint
-    hashtype?: string
+    idx: number | bigint;
+    proof: string | Uint8Array;
+    stibhash: string | Uint8Array;
+    treedepth: number | bigint;
+    hashtype?: string;
   }) {
     super();
     this.idx = idx;
