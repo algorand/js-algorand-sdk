@@ -29,6 +29,12 @@ export class Account extends BaseModel {
   public amountWithoutPendingRewards: number | bigint;
 
   /**
+   * MicroAlgo balance required by the account.
+   * The requirement grows based on asset and application usage.
+   */
+  public minBalance: number | bigint;
+
+  /**
    * amount of MicroAlgos of pending rewards in this account.
    */
   public pendingRewards: number | bigint;
@@ -123,6 +129,8 @@ export class Account extends BaseModel {
    * @param address - the account public key
    * @param amount - (algo) total number of MicroAlgos in the account
    * @param amountWithoutPendingRewards - specifies the amount of MicroAlgos in the account, without the pending rewards.
+   * @param minBalance - MicroAlgo balance required by the account.
+   * The requirement grows based on asset and application usage.
    * @param pendingRewards - amount of MicroAlgos of pending rewards in this account.
    * @param rewards - (ern) total rewards of MicroAlgos the account has received, including pending
    * rewards.
@@ -162,6 +170,7 @@ export class Account extends BaseModel {
     address,
     amount,
     amountWithoutPendingRewards,
+    minBalance,
     pendingRewards,
     rewards,
     round,
@@ -180,6 +189,7 @@ export class Account extends BaseModel {
     address: string;
     amount: number | bigint;
     amountWithoutPendingRewards: number | bigint;
+    minBalance: number | bigint;
     pendingRewards: number | bigint;
     rewards: number | bigint;
     round: number | bigint;
@@ -199,6 +209,7 @@ export class Account extends BaseModel {
     this.address = address;
     this.amount = amount;
     this.amountWithoutPendingRewards = amountWithoutPendingRewards;
+    this.minBalance = minBalance;
     this.pendingRewards = pendingRewards;
     this.rewards = rewards;
     this.round = round;
@@ -218,6 +229,7 @@ export class Account extends BaseModel {
       address: 'address',
       amount: 'amount',
       amountWithoutPendingRewards: 'amount-without-pending-rewards',
+      minBalance: 'min-balance',
       pendingRewards: 'pending-rewards',
       rewards: 'rewards',
       round: 'round',
@@ -1268,6 +1280,11 @@ export class DryrunTxnResult extends BaseModel {
 
   public localDeltas?: AccountStateDelta[];
 
+  /**
+   * Disassembled lsig program line by line.
+   */
+  public logicSigDisassembly?: string[];
+
   public logicSigMessages?: string[];
 
   public logicSigTrace?: DryrunState[];
@@ -1282,6 +1299,7 @@ export class DryrunTxnResult extends BaseModel {
    * @param cost - Execution cost of app call transaction
    * @param globalDelta - Application state delta.
    * @param localDeltas -
+   * @param logicSigDisassembly - Disassembled lsig program line by line.
    * @param logicSigMessages -
    * @param logicSigTrace -
    * @param logs -
@@ -1293,6 +1311,7 @@ export class DryrunTxnResult extends BaseModel {
     cost,
     globalDelta,
     localDeltas,
+    logicSigDisassembly,
     logicSigMessages,
     logicSigTrace,
     logs,
@@ -1303,6 +1322,7 @@ export class DryrunTxnResult extends BaseModel {
     cost?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
+    logicSigDisassembly?: string[];
     logicSigMessages?: string[];
     logicSigTrace?: DryrunState[];
     logs?: Uint8Array[];
@@ -1314,6 +1334,7 @@ export class DryrunTxnResult extends BaseModel {
     this.cost = cost;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
+    this.logicSigDisassembly = logicSigDisassembly;
     this.logicSigMessages = logicSigMessages;
     this.logicSigTrace = logicSigTrace;
     this.logs = logs;
@@ -1325,6 +1346,7 @@ export class DryrunTxnResult extends BaseModel {
       cost: 'cost',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',
+      logicSigDisassembly: 'logic-sig-disassembly',
       logicSigMessages: 'logic-sig-messages',
       logicSigTrace: 'logic-sig-trace',
       logs: 'logs',
@@ -1892,12 +1914,12 @@ export class ProofResponse extends BaseModel {
       typeof proof === 'string'
         ? new Uint8Array(Buffer.from(proof, 'base64'))
         : proof;
-    this.treedepth = treedepth;
-    this.hashtype = hashtype;
     this.stibhash =
       typeof stibhash === 'string'
         ? new Uint8Array(Buffer.from(stibhash, 'base64'))
         : stibhash;
+    this.treedepth = treedepth;
+    this.hashtype = hashtype;
 
     this.attribute_map = {
       idx: 'idx',
