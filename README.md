@@ -14,14 +14,16 @@ $ npm install algosdk
 
 > This package provides TypeScript types, but you will need [TypeScript](https://www.typescriptlang.org/) version 4.2 or higher to use them properly.
 
+For errors in Webpack 5 or Vite projects, you will need to [install extra dependencies](FAQ.md#it-says-error-cant-resolve-in-the-sdk).
+
 ### Browser
 
 Include a minified browser bundle directly in your HTML like so:
 
 ```html
 <script
-  src="https://unpkg.com/algosdk@1.13.1/dist/browser/algosdk.min.js"
-  integrity="sha384-0BSEzBpLxqFWYBI+sOGhv3W91/wPf+jFwCiuXNrC52XZav2qb3Rz+pfq3AFI0CrL"
+  src="https://unpkg.com/algosdk@1.14.0-beta.1/dist/browser/algosdk.min.js"
+  integrity="sha384-GDxzwLVcHrypyA8CcFGLiOne9xqCWuLz9Bfay2fNICEkCuYBUvkC5g0bnY5aeoZC"
   crossorigin="anonymous"
 ></script>
 ```
@@ -30,8 +32,8 @@ or
 
 ```html
 <script
-  src="https://cdn.jsdelivr.net/npm/algosdk@1.13.1/dist/browser/algosdk.min.js"
-  integrity="sha384-0BSEzBpLxqFWYBI+sOGhv3W91/wPf+jFwCiuXNrC52XZav2qb3Rz+pfq3AFI0CrL"
+  src="https://cdn.jsdelivr.net/npm/algosdk@1.14.0-beta.1/dist/browser/algosdk.min.js"
+  integrity="sha384-GDxzwLVcHrypyA8CcFGLiOne9xqCWuLz9Bfay2fNICEkCuYBUvkC5g0bnY5aeoZC"
   crossorigin="anonymous"
 ></script>
 ```
