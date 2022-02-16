@@ -30,6 +30,7 @@ export default abstract class JSONRequest<
 
   /**
    * @returns The path of this request.
+   * @category JSONRequest
    */
   abstract path(): string;
 
@@ -39,6 +40,7 @@ export default abstract class JSONRequest<
    * Use this method to change and restructure response
    * data as needed after receiving it from the `do()` method.
    * @param body - Response body received
+   * @category JSONRequest
    */
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Body): Data {
@@ -49,6 +51,7 @@ export default abstract class JSONRequest<
    * Execute the request.
    * @param headers - Additional headers to send in the request. Optional.
    * @returns A promise which resolves to the response data.
+   * @category JSONRequest
    */
   async do(headers: Record<string, any> = {}): Promise<Data> {
     const jsonOptions: Record<string, any> = {};
@@ -73,6 +76,7 @@ export default abstract class JSONRequest<
    *
    * @param method - The method to use when parsing the
    *   response for this request. Must be one of "default", "safe", "mixed", or "bigint".
+   * @category JSONRequest
    */
   setIntDecoding(method: IntDecoding) {
     if (
