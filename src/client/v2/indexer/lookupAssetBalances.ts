@@ -28,7 +28,7 @@ export default class LookupAssetBalances extends JSONRequest {
   }
 
   /**
-   * Add a limit for filter.
+   * Limit results for pagination.
    *
    * #### Example
    * ```typescript
@@ -126,9 +126,9 @@ export default class LookupAssetBalances extends JSONRequest {
   }
 
   /**
-   * Include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+   * Include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates.
    *
-   * #### Example
+   * #### Example 1
    * ```typescript
    * const assetId = 163650;
    * const assetBalances = await indexerClient
@@ -136,6 +136,16 @@ export default class LookupAssetBalances extends JSONRequest {
    *        .includeAll(false)
    *        .do();
    * ```
+   *
+   * #### Example 2
+   * ```typescript
+   * const assetId = 163650;
+   * const assetBalances = await indexerClient
+   *        .lookupAssetBalances(assetId)
+   *        .includeAll()
+   *        .do();
+   * ```
+   *
    * @param value
    */
   includeAll(value = true) {
