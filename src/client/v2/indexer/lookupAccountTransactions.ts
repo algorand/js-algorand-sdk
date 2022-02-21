@@ -44,7 +44,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Specifies a prefix which must be contained in the note field
+   * Specifies a prefix which must be contained in the note field.
    *
    * #### Example
    * ```typescript
@@ -65,7 +65,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Type of transaction to filter with
+   * Type of transaction to filter with.
    *
    * #### Example
    * ```typescript
@@ -76,7 +76,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param type - one of “pay”, “keyreg”, “acfg”, “axfer”, “afrz”, "appl"
+   * @param type - one of `pay`, `keyreg`, `acfg`, `axfer`, `afrz`, `appl`
    * @category query
    */
   txType(type: string) {
@@ -85,7 +85,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Type of signature to filter with
+   * Type of signature to filter with.
    * - sig: Standard
    * - msig: MultiSig
    * - lsig: LogicSig
@@ -99,7 +99,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param type - one of “sig”, “msig”, “lsig”
+   * @param type - one of `sig`, `msig`, `lsig`
    * @category query
    */
   sigType(type: string) {
@@ -108,7 +108,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Lookup the specific transaction by ID
+   * Lookup the specific transaction by ID.
    *
    * #### Example
    * ```typescript
@@ -129,7 +129,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Include results for the specified round
+   * Include results for the specified round.
    *
    * #### Example
    * ```typescript
@@ -150,7 +150,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Include results at or after the specified min-round
+   * Include results at or after the specified min-round.
    *
    * #### Example
    * ```typescript
@@ -171,7 +171,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Include results at or before the specified max-round
+   * Include results at or before the specified max-round.
    *
    * #### Example
    * ```typescript
@@ -213,7 +213,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Maximum number of results to return
+   * Maximum number of results to return.
    *
    * #### Example
    * ```typescript
@@ -234,7 +234,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Include results before the given time
+   * Include results before the given time.
    *
    * #### Example
    * ```typescript
@@ -255,7 +255,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Include results after the given time
+   * Include results after the given time.
    *
    * #### Example
    * ```typescript
@@ -311,7 +311,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
+   * Filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units.
    *
    * #### Example 1
    * ```typescript
@@ -367,7 +367,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Include results which include the rekey-to field
+   * Whether or not to include rekeying transactions.
    *
    * #### Example
    * ```typescript
