@@ -115,7 +115,7 @@ export default class LookupAssetBalances extends JSONRequest {
    * const assetBalances = await indexerClient
    *        .lookupAssetBalances(assetId)
    *        .limit(maxResults)
-   *        .next(nextToken)
+   *        .nextToken(nextToken)
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.

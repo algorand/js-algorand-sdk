@@ -49,7 +49,7 @@ export default class SearchForApplications extends JSONRequest {
    * const apps = await indexerClient
    *        .searchForApplications()
    *        .limit(maxResults)
-   *        .next(nextToken)
+   *        .nextToken(nextToken)
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
