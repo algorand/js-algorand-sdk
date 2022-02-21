@@ -37,7 +37,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * @returns /v2/accounts/`${account}`/transactions
+   * @returns `/v2/accounts/${account}/transactions`
    */
   path() {
     return `/v2/accounts/${this.account}/transactions`;
@@ -119,7 +119,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    *        .txid(txId)
    *        .do();
    * ```
-   *
+   * @remarks Alternatively, use `indexerClient.lookupTransactionByID(txnId).do()`
    * @param txid
    * @category query
    */
@@ -192,7 +192,7 @@ export default class LookupAccountTransactions extends JSONRequest {
   }
 
   /**
-   * Asset ID to filter with
+   * Asset ID to filter with.
    *
    * #### Example
    * ```typescript

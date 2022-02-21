@@ -22,7 +22,7 @@ export default class LookupAssetTransactions extends JSONRequest {
   }
 
   /**
-   * @returns /v2/assets/${index}/transactions
+   * @returns `/v2/assets/${index}/transactions`
    */
   path() {
     return `/v2/assets/${this.index}/transactions`;
@@ -349,7 +349,7 @@ export default class LookupAssetTransactions extends JSONRequest {
   }
 
   /**
-   * The next page of results. Use the next token provided by the previous results.
+   * The next page of results.
    *
    * #### Example
    * ```typescript
@@ -363,7 +363,7 @@ export default class LookupAssetTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param nextToken
+   * @param nextToken - provided by the previous results.
    * @category query
    */
   nextToken(nextToken: string) {

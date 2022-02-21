@@ -21,7 +21,7 @@ export default class LookupAssetBalances extends JSONRequest {
   }
 
   /**
-   * @returns /v2/assets/`${index}`/balances
+   * @returns `/v2/assets/${index}/balances`
    */
   path() {
     return `/v2/assets/${this.index}/balances`;
