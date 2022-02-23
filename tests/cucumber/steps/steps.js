@@ -981,6 +981,63 @@ module.exports = function getSteps(options) {
     }
   });
 
+  Given(
+    'default V2 key registration transaction {string}',
+    async function (type) {
+      const voteKey = makeUint8Array(
+        Buffer.from('9mr13Ri8rFepxN3ghIUrZNui6LqqM5hEzB45Rri5lkU=', 'base64')
+      );
+      const selectionKey = makeUint8Array(
+        Buffer.from('dx717L3uOIIb/jr9OIyls1l5Ei00NFgRa380w7TnPr4=', 'base64')
+      );
+      const stateProofKey = makeUint8Array(
+        Buffer.from(
+          'mYR0GVEObMTSNdsKM6RwYywHYPqVDqg3E4JFzxZOreH9NU8B+tKzUanyY8AQ144hETgSMX7fXWwjBdHz6AWk9w==',
+          'base64'
+        )
+      );
+
+      const from = this.accounts[0];
+      this.pk = from;
+
+      const result = await this.acl.getTransactionParams();
+      const suggestedParams = {
+        fee: result.fee,
+        firstRound: result.lastRound + 1,
+        lastRound: result.lastRound + 1000,
+        genesisHash: result.genesishashb64,
+        genesisID: result.genesisID,
+      };
+      this.lastRound = result.lastRound;
+
+      if (type === 'online') {
+        this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+          from,
+          voteKey,
+          selectionKey,
+          stateProofKey,
+          voteFirst: 1,
+          voteLast: 2000,
+          voteKeyDilution: 10,
+          suggestedParams,
+        });
+      } else if (type === 'offline') {
+        this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+          from,
+          suggestedParams,
+        });
+      } else if (type === 'nonparticipation') {
+        this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+          from,
+          nonParticipation: true,
+          suggestedParams,
+        });
+      } else {
+        throw new Error(`Unrecognized keyreg type: ${type}`);
+      }
+    }
+  );
+
   When(
     'I get recent transactions, limited by {int} transactions',
     function (int) {
@@ -3690,22 +3747,6 @@ module.exports = function getSteps(options) {
   );
 
   Given(
-    'suggested transaction parameters fee {int}, flat-fee {string}, first-valid {int}, last-valid {int}, genesis-hash {string}, genesis-id {string}',
-    function (fee, flatFee, firstRound, lastRound, genesisHash, genesisID) {
-      assert.ok(['true', 'false'].includes(flatFee));
-
-      this.suggestedParams = {
-        flatFee: flatFee === 'true',
-        fee,
-        firstRound,
-        lastRound,
-        genesisID,
-        genesisHash,
-      };
-    }
-  );
-
-  Given(
     'suggested transaction parameters from the algod v2 client',
     async function () {
       this.suggestedParams = await this.v2Client.getTransactionParams().do();
@@ -3769,6 +3810,52 @@ module.exports = function getSteps(options) {
         2
       );
       assert.ok(info['confirmed-round'] > 0);
+    }
+  );
+
+  Given(
+    'suggested transaction parameters fee {int}, flat-fee {string}, first-valid {int}, last-valid {int}, genesis-hash {string}, genesis-id {string}',
+    function (fee, flatFee, firstRound, lastRound, genesisHash, genesisID) {
+      assert.ok(['true', 'false'].includes(flatFee));
+
+      this.suggestedParams = {
+        flatFee: flatFee === 'true',
+        fee,
+        firstRound,
+        lastRound,
+        genesisID,
+        genesisHash,
+      };
+    }
+  );
+
+  When(
+    'I build a keyreg transaction with sender {string}, nonparticipation {string}, vote first {int}, vote last {int}, key dilution {int}, vote public key {string}, selection public key {string}, and state proof public key {string}',
+    function (
+      sender,
+      nonpart,
+      voteFirst,
+      voteLast,
+      keyDilution,
+      votePk,
+      selectionPk,
+      stateProofPk
+    ) {
+      assert.ok(['true', 'false'].includes(nonpart));
+
+      this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+        sender,
+        undefined,
+        votePk.length ? votePk : undefined,
+        selectionPk.length ? selectionPk : undefined,
+        voteFirst,
+        voteLast,
+        keyDilution,
+        this.suggestedParams,
+        undefined,
+        nonpart === 'true',
+        stateProofPk.length ? stateProofPk : undefined
+      );
     }
   );
 

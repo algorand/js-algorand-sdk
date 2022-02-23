@@ -1100,5 +1100,30 @@ describe('Program validation', () => {
       // byte "a"; byte "b"; byte "c"; cover 2; uncover 2; concat; concat; log; int 1
       assert.ok(logic.checkProgram(program));
     });
+    it('should support TEAL v6 opcodes', () => {
+      assert.ok(logic.langspecEvalMaxVersion >= 6);
+
+      // bsqrt op
+      let program = new Uint8Array(Buffer.from('068001909680010ca8', 'hex'));
+      // byte 0x90; bsqrt; byte 0x0c; b==
+      assert.ok(logic.checkProgram(program));
+
+      // divw op
+      program = new Uint8Array(
+        Buffer.from(
+          '06810981ecffffffffffffffff01810a9781feffffffffffffffff0112',
+          'hex'
+        )
+      );
+      //  int 9; int 18446744073709551596; int 10; divw; int 18446744073709551614; ==
+      assert.ok(logic.checkProgram(program));
+
+      // txn fields
+      program = new Uint8Array(
+        Buffer.from('06313f1581401233003e15810a1210', 'hex')
+      );
+      // txn StateProofPK; len; int 64; ==; gtxn 0 LastLog; len; int 10; ==; &&
+      assert.ok(logic.checkProgram(program));
+    });
   });
 });
