@@ -6,6 +6,10 @@ import LookupAccountTransactions from './lookupAccountTransactions';
 import LookupBlock from './lookupBlock';
 import LookupTransactionByID from './lookupTransactionByID';
 import LookupAccountByID from './lookupAccountByID';
+import LookupAccountAssets from './lookupAccountAssets';
+import LookupAccountCreatedAssets from './lookupAccountCreatedAssets';
+import LookupAccountAppLocalStates from './lookupAccountAppLocalStates';
+import LookupAccountCreatedApplications from './lookupAccountCreatedApplications';
 import LookupAssetByID from './lookupAssetByID';
 import LookupApplications from './lookupApplications';
 import LookupApplicationLogs from './lookupApplicationLogs';
@@ -184,6 +188,74 @@ export default class IndexerClient extends ServiceClient {
    */
   lookupAccountByID(account: string) {
     return new LookupAccountByID(this.c, this.intDecoding, account);
+  }
+
+  /**
+   * Returns asset about the given account.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountInfo = await indexerClient.lookupAccountAssets(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
+  lookupAccountAssets(account: string) {
+    return new LookupAccountAssets(this.c, this.intDecoding, account);
+  }
+
+  /**
+   * Returns asset information created by the given account.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountInfo = await indexerClient.lookupAccountCreatedAssets(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
+  lookupAccountCreatedAssets(account: string) {
+    return new LookupAccountCreatedAssets(this.c, this.intDecoding, account);
+  }
+
+  /**
+   * Returns application local state about the given account.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountInfo = await indexerClient.lookupAccountAppLocalStates(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
+  lookupAccountAppLocalStates(account: string) {
+    return new LookupAccountAppLocalStates(this.c, this.intDecoding, account);
+  }
+
+  /**
+   * Returns application information created by the given account.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountInfo = await indexerClient.lookupAccountCreatedApplications(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
+  lookupAccountCreatedApplications(account: string) {
+    return new LookupAccountCreatedApplications(this.c, this.intDecoding, account);
   }
 
   /**

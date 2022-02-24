@@ -1,6 +1,8 @@
 import ServiceClient from '../serviceClient';
 import * as modelsv2 from './models/types';
 import AccountInformation from './accountInformation';
+import AccountAssetInformation from "./accountAssetInformation";
+import AccountApplicationInformation from "./accountApplicationInformation";
 import Block from './block';
 import Compile from './compile';
 import Dryrun from './dryrun';
@@ -134,6 +136,44 @@ export default class AlgodClient extends ServiceClient {
    */
   accountInformation(account: string) {
     return new AccountInformation(this.c, this.intDecoding, account);
+  }
+
+  /**
+   * Returns the given account's asset information for a specific asset.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const index = 60553466;
+   * const accountAssetInfo = await algodClient.accountAssetInformation(address, index).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * @param account - The address of the account to look up.
+   * @param index - The asset ID to look up.
+   * @category GET
+   */
+  accountAssetInformation(account: string, index: number) {
+    return new AccountAssetInformation(this.c, this.intDecoding, account, index);
+  }
+
+  /**
+   * Returns the given account's application information for a specific application.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const index = 60553466;
+   * const accountInfo = await algodClient.accountApplicationInformation(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * @param account - The address of the account to look up.
+   * @param index - The application ID to look up.
+   * @category GET
+   */
+  accountApplicationInformation(account: string, index: number) {
+    return new AccountApplicationInformation(this.c, this.intDecoding, account, index);
   }
 
   /**
