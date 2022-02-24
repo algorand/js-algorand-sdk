@@ -31,7 +31,7 @@ export default class AccountInformation extends JSONRequest {
    * @category query
    */
   excludeInfo(exclude: string) {
-    this.query['exclude'] = exclude;
+    this.query.exclude = exclude;
     return this;
   }
 }

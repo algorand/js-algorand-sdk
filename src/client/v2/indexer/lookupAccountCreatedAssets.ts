@@ -93,6 +93,7 @@ export default class LookupAccountCreatedAssets extends JSONRequest {
     this.query['include-all'] = value;
     return this;
   }
+
   /**
    * Include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
    *
