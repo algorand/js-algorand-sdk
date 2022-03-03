@@ -95,20 +95,20 @@ export default class LookupAccountCreatedAssets extends JSONRequest {
   }
 
   /**
-   * Include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+   * Specify an assetID to search for.
    *
    * #### Example
    * ```typescript
-   * const assetId = 163650;
+   * const assetID = 163650;
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const assetAssets = await indexerClient
    *        .lookupAccountCreatedAssets(address)
-   *        .assetId(assetId)
+   *        .assetID(assetID)
    *        .do();
    * ```
-   * @param value
+   * @param index - the assetID
    */
-  assetId(index: number) {
+  assetID(index: number) {
     this.query['asset-id'] = index;
     return this;
   }

@@ -95,7 +95,7 @@ export default class LookupAccountAssets extends JSONRequest {
   }
 
   /**
-   * Include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+   * Specify an assetID to search for.
    *
    * #### Example
    * ```typescript
@@ -106,7 +106,7 @@ export default class LookupAccountAssets extends JSONRequest {
    *        .assetId(assetId)
    *        .do();
    * ```
-   * @param value
+   * @param index - the assetID
    */
   assetId(index: number) {
     this.query['asset-id'] = index;

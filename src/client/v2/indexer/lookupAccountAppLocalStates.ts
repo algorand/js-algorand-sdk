@@ -95,21 +95,21 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
   }
 
   /**
-   * Include all items including closed accounts, deleted applications, destroyed assets, opted-out asset holdings, and closed-out application localstates
+   * Specify an applicationID to search for
    *
    * #### Example
    * ```typescript
-   * const assetId = 163650;
+   * const applicationID = 163650;
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
-   * const assetAssets = await indexerClient
+   * const accountApplications = await indexerClient
    *        .lookupAccountAppLocalStates(address)
-   *        .assetId(assetId)
+   *        .applicationID(applicationID)
    *        .do();
    * ```
-   * @param value
+   * @param index - the applicationID
    */
-  assetId(index: number) {
-    this.query['asset-id'] = index;
+  applicationID(index: number) {
+    this.query['application-id'] = index;
     return this;
   }
 }

@@ -1737,6 +1737,22 @@ module.exports = function getSteps(options) {
   );
 
   When(
+    'we make an Account Asset Information call against account {string} with assetID {int}',
+    async function (account, assetID) {
+      await this.v2Client.accountAssetInformation(account, assetID).do();
+    }
+  );
+
+  When(
+    'we make an Account Application Information call against account {string} with applicationID {int}',
+    async function (account, applicationID) {
+      await this.v2Client
+        .accountApplicationInformation(account, applicationID)
+        .do();
+    }
+  );
+
+  When(
     'we make a Get Block call against block number {int}',
     function (blockNum) {
       this.v2Client.block(blockNum).do();
@@ -2531,6 +2547,58 @@ module.exports = function getSteps(options) {
         frozenState,
         anyLookupAssetBalancesResponse.balances[idx]['is-frozen']
       );
+    }
+  );
+
+  When(
+    'we make a LookupAccountAssets call with accountID {string} assetID {int} includeAll {bool} limit {int} next {string}',
+    async function (account, assetID, includeAll, limit, next) {
+      await this.indexerClient
+        .lookupAccountAssets(account)
+        .assetId(assetID)
+        .includeAll(includeAll)
+        .limit(limit)
+        .nextToken(next)
+        .do();
+    }
+  );
+
+  When(
+    'we make a LookupAccountCreatedAssets call with accountID {string} assetID {int} includeAll {bool} limit {int} next {string}',
+    async function (account, assetID, includeAll, limit, next) {
+      await this.indexerClient
+        .lookupAccountCreatedAssets(account)
+        .assetID(assetID)
+        .includeAll(includeAll)
+        .limit(limit)
+        .nextToken(next)
+        .do();
+    }
+  );
+
+  When(
+    'we make a LookupAccountAppLocalStates call with accountID {string} assetID {int} includeAll {bool} limit {int} next {string}',
+    async function (account, assetID, includeAll, limit, next) {
+      await this.indexerClient
+        .lookupAccountAppLocalStates(account)
+        .assetID(assetID)
+        .includeAll(includeAll)
+        .limit(limit)
+        .nextToken(next)
+        .do();
+    }
+  );
+
+  When(
+    'we make a LookupAccountCreatedApplications call with accountID {string} applicationID {int} includeAll {bool} limit {int} next {string}',
+    async function (account, applicationID, includeAll, limit, next) {
+      await this.indexerClient
+        .lookupAccountCreatedApplications(account)
+        .applicationID(applicationID)
+        .includeAll(includeAll)
+        .limit(limit)
+        .nextToken(next)
+        .do();
     }
   );
 
