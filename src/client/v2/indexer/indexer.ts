@@ -255,7 +255,11 @@ export default class IndexerClient extends ServiceClient {
    * @category GET
    */
   lookupAccountCreatedApplications(account: string) {
-    return new LookupAccountCreatedApplications(this.c, this.intDecoding, account);
+    return new LookupAccountCreatedApplications(
+      this.c,
+      this.intDecoding,
+      account
+    );
   }
 
   /**

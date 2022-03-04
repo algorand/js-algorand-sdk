@@ -2551,12 +2551,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a LookupAccountAssets call with accountID {string} assetID {int} includeAll {bool} limit {int} next {string}',
+    'we make a LookupAccountAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
       await this.indexerClient
         .lookupAccountAssets(account)
         .assetId(assetID)
-        .includeAll(includeAll)
+        .includeAll(includeAll === 'true')
         .limit(limit)
         .nextToken(next)
         .do();
@@ -2564,12 +2564,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a LookupAccountCreatedAssets call with accountID {string} assetID {int} includeAll {bool} limit {int} next {string}',
+    'we make a LookupAccountCreatedAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
       await this.indexerClient
         .lookupAccountCreatedAssets(account)
         .assetID(assetID)
-        .includeAll(includeAll)
+        .includeAll(includeAll === 'true')
         .limit(limit)
         .nextToken(next)
         .do();
@@ -2577,12 +2577,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a LookupAccountAppLocalStates call with accountID {string} assetID {int} includeAll {bool} limit {int} next {string}',
+    'we make a LookupAccountAppLocalStates call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
       await this.indexerClient
         .lookupAccountAppLocalStates(account)
         .assetID(assetID)
-        .includeAll(includeAll)
+        .includeAll(includeAll === 'true')
         .limit(limit)
         .nextToken(next)
         .do();
@@ -2590,12 +2590,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a LookupAccountCreatedApplications call with accountID {string} applicationID {int} includeAll {bool} limit {int} next {string}',
+    'we make a LookupAccountCreatedApplications call with accountID {string} applicationID {int} includeAll {string} limit {int} next {string}',
     async function (account, applicationID, includeAll, limit, next) {
       await this.indexerClient
         .lookupAccountCreatedApplications(account)
         .applicationID(applicationID)
-        .includeAll(includeAll)
+        .includeAll(includeAll === 'true')
         .limit(limit)
         .nextToken(next)
         .do();

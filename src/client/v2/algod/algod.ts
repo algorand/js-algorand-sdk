@@ -1,8 +1,8 @@
 import ServiceClient from '../serviceClient';
 import * as modelsv2 from './models/types';
 import AccountInformation from './accountInformation';
-import AccountAssetInformation from "./accountAssetInformation";
-import AccountApplicationInformation from "./accountApplicationInformation";
+import AccountAssetInformation from './accountAssetInformation';
+import AccountApplicationInformation from './accountApplicationInformation';
 import Block from './block';
 import Compile from './compile';
 import Dryrun from './dryrun';
@@ -154,7 +154,12 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   accountAssetInformation(account: string, index: number) {
-    return new AccountAssetInformation(this.c, this.intDecoding, account, index);
+    return new AccountAssetInformation(
+      this.c,
+      this.intDecoding,
+      account,
+      index
+    );
   }
 
   /**
@@ -173,7 +178,12 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   accountApplicationInformation(account: string, index: number) {
-    return new AccountApplicationInformation(this.c, this.intDecoding, account, index);
+    return new AccountApplicationInformation(
+      this.c,
+      this.intDecoding,
+      account,
+      index
+    );
   }
 
   /**
