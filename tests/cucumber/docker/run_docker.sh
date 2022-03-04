@@ -12,6 +12,13 @@ git clone --single-branch --branch master https://github.com/algorand/algorand-s
 # move feature files and example files to destination
 mv test-harness/features tests/cucumber/features
 
+if [ $TEST_BROWSER == "chrome" ]; then
+  # use latest version of chromedriver for compatability with the current Chrome version
+  npm install chromedriver@latest
+  # print the version installed
+  npm ls chromedriver
+fi
+
 # build test environment
 docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)" --build-arg TEST_BROWSER --build-arg CI=true
 
