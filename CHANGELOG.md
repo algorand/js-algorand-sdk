@@ -1,4 +1,4 @@
-# v1.14.0-beta.1
+# v1.14.0
 
 ## Added
 
@@ -10,6 +10,14 @@
 - Moving from travis to circleci (#507)
 - Add installation instructions for vite users (#512)
 - Update langspec for TEAL 6 (#518)
+- Docs for `lookupAssetByID` and `lookupAccountTransactions` (#516)
+- Make FromObject parameter IntelliSense human readable (#528)
+- Bump url-parse from 1.5.1 to 1.5.8 (#529)
+
+## Fixed
+
+- Use HTTP request format arg to determine response type (#532)
+- Update chromedriver (#535)
 
 # 1.13.1
 
