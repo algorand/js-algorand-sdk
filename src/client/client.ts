@@ -65,33 +65,6 @@ function getAcceptFormat(
 }
 
 /**
- * Check is a response is JSON or not
- * Inspired from superagent code
- */
-function isResponseJSON(res: BaseHTTPClientResponse): boolean {
-  let contentType = tolowerCaseKeys(res.headers)['content-type'];
-  if (contentType) {
-    /* eslint-disable prefer-destructuring */
-    contentType = contentType.split(';')[0];
-    /* eslint-enable prefer-destructuring */
-  }
-  // regex should match /json or +json
-  // but not /json-seq
-  // from https://github.com/visionmedia/superagent/blob/048cf185d954028b1dccde0717d2488b2284c297/src/client.js#L276
-  return /[/+]json($|[^-\w])/i.test(contentType);
-}
-
-/**
- * Check is a response is text
- * Inspired from superagent code
- */
-function isResponseText(res: BaseHTTPClientResponse): boolean {
-  const contentType =
-    tolowerCaseKeys(res.headers)['content-type'] || 'text/plain';
-  return /^\w*text\//i.test(contentType);
-}
-
-/**
  * HTTPClient is a wrapper around a BaseHTTPClient
  * It takes care of setting the proper "Accept" header and of
  * decoding the JSON outputs.
@@ -136,9 +109,9 @@ export default class HTTPClient {
    * Parse JSON using either the built-in JSON.parse or utils.parseJSON
    * depending on whether jsonOptions are provided or not
    *
-   * @param text JSON data
-   * @param status Status of the response (used in case parseJSON fails)
-   * @param jsonOptions Options object to use to decode JSON responses. See
+   * @param text - JSON data
+   * @param status - Status of the response (used in case parseJSON fails)
+   * @param jsonOptions - Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
    */
   public static parseJSON(
@@ -197,15 +170,18 @@ export default class HTTPClient {
    */
   private static prepareResponse(
     res: BaseHTTPClientResponse,
+    format: 'application/msgpack' | 'application/json',
     jsonOptions: utils.JSONOptions = {}
   ): HTTPClientResponse {
     let { body } = res;
     let text;
-    if (isResponseJSON(res)) {
-      text = (body && new TextDecoder().decode(body)) || '';
+
+    if (format !== 'application/msgpack') {
+      text = (body && Buffer.from(body).toString()) || '';
+    }
+
+    if (format === 'application/json') {
       body = HTTPClient.parseJSON(text, res.status, jsonOptions);
-    } else if (isResponseText(res)) {
-      text = (body && new TextDecoder().decode(body)) || '';
     }
 
     return {
@@ -225,7 +201,10 @@ export default class HTTPClient {
   private static prepareResponseError(err) {
     if (err.response) {
       // eslint-disable-next-line no-param-reassign
-      err.response = HTTPClient.prepareResponse(err.response);
+      err.response = HTTPClient.prepareResponse(
+        err.response,
+        'application/json'
+      );
       // eslint-disable-next-line no-param-reassign
       err.status = err.response.status;
     }
@@ -234,10 +213,10 @@ export default class HTTPClient {
 
   /**
    * Send a GET request.
-   * @param {string} relativePath The path of the request.
-   * @param {object} query An object containing the query paramters of the request.
-   * @param {object} requestHeaders An object containing additional request headers to use.
-   * @param {object} jsonOptions Options object to use to decode JSON responses. See
+   * @param relativePath - The path of the request.
+   * @param query - An object containing the query parameters of the request.
+   * @param requestHeaders - An object containing additional request headers to use.
+   * @param jsonOptions - Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
    * @returns Response object.
    */
@@ -257,7 +236,7 @@ export default class HTTPClient {
         fullHeaders
       );
 
-      return HTTPClient.prepareResponse(res, jsonOptions);
+      return HTTPClient.prepareResponse(res, format, jsonOptions);
     } catch (err) {
       throw HTTPClient.prepareResponseError(err);
     }
@@ -286,7 +265,7 @@ export default class HTTPClient {
         fullHeaders
       );
 
-      return HTTPClient.prepareResponse(res);
+      return HTTPClient.prepareResponse(res, 'application/json');
     } catch (err) {
       throw HTTPClient.prepareResponseError(err);
     }
@@ -314,6 +293,6 @@ export default class HTTPClient {
       fullHeaders
     );
 
-    return HTTPClient.prepareResponse(res);
+    return HTTPClient.prepareResponse(res, 'application/json');
   }
 }
