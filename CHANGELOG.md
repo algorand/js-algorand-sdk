@@ -19,6 +19,19 @@
 - Use HTTP request format arg to determine response type (#532)
 - Update chromedriver (#535)
 
+# v1.14.0-beta.1
+
+## Added
+
+- Add stateproof keyreg field (#463)
+
+## Changed
+
+- Implement C2C tests (#498)
+- Moving from travis to circleci (#507)
+- Add installation instructions for vite users (#512)
+- Update langspec for TEAL 6 (#518)
+
 # 1.13.1
 
 ## Added:
