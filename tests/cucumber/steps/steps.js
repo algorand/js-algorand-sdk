@@ -1938,11 +1938,19 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a Lookup Asset Balances call against asset index {int} with limit {int} nextToken {string} currencyGreaterThan {int} currencyLessThan {int}',
-    async function (index, limit, nextToken, currencyGreater, currencyLesser) {
+    'we make a Lookup Asset Balances call against asset index {int} with limit {int} nextToken {string} round {int} currencyGreaterThan {int} currencyLessThan {int}',
+    async function (
+      index,
+      limit,
+      nextToken,
+      round,
+      currencyGreater,
+      currencyLesser
+    ) {
       await this.indexerClient
         .lookupAssetBalances(index)
         .limit(limit)
+        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
         .nextToken(nextToken)
