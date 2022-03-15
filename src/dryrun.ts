@@ -7,12 +7,14 @@ import {
   DryrunRequest,
   DryrunSource,
   EvalDeltaKeyValue,
+  TealValue,
 } from './client/v2/algod/models/types';
 import { SignedTransaction } from './transaction';
 import { TransactionType } from './types/transactions';
 import { encodeAddress, getApplicationAddress } from './encoding/address';
 
 const defaultAppId = 1380011588;
+const defaultMaxWidth = 30;
 
 // When writing the DryrunRequest object as msgpack the output needs to be the byte arrays not b64 string
 interface AppParamsWithPrograms {
@@ -194,36 +196,25 @@ class DryrunStackValue {
   }
 }
 
-interface TraceLine {
-  line: number;
-  pc: number;
-  stack: string;
-}
-
 interface DryrunTraceLineResponse {
   line: number;
   pc: number;
+  scratch: TealValue[];
   stack: StackValueResponse[];
 }
 class DryrunTraceLine {
   line: number = 0;
   pc: number = 0;
+  scratch: TealValue[] = [];
   stack: DryrunStackValue[] = [];
 
   constructor(line: DryrunTraceLineResponse) {
     this.line = line.line;
     this.pc = line.pc;
+    this.scratch = line.scratch;
     this.stack = line.stack.map(
       (sv: StackValueResponse) => new DryrunStackValue(sv)
     );
-  }
-
-  traceLine(): TraceLine {
-    return {
-      line: this.line,
-      pc: this.pc,
-      stack: `[${this.stack.map((sv) => sv.toString()).join(', ')}]`,
-    };
   }
 }
 
@@ -233,10 +224,6 @@ class DryrunTrace {
   constructor(t: DryrunTraceLineResponse[]) {
     if (t === undefined) return;
     this.trace = t.map((line) => new DryrunTraceLine(line));
-  }
-
-  getTrace(): TraceLine[] {
-    return this.trace.map((dtl) => dtl.traceLine());
   }
 }
 
@@ -253,9 +240,64 @@ interface DryrunTransactionResultResponse {
   logicSigTrace: DryrunTrace | undefined;
 }
 
-class DryrunTransactionResult {
-  defaultSpaces: number = 20;
+interface StackPrinterConfig {
+  maxWidth: number | undefined;
+  topOfStackFirst: boolean | undefined;
+}
 
+function truncate(str: string, maxWidth: number): string {
+  if (maxWidth > 0) {
+    return `${str.slice(0, maxWidth)}...`;
+  }
+  return str;
+}
+
+function scratchToString(
+  prevScratch: TealValue[],
+  currScratch: TealValue[]
+): string {
+  let newScratchIdx = 0;
+  let newScratch = {} as TealValue;
+  for (let idx = 0; idx < currScratch.length; idx++) {
+    if (
+      idx > prevScratch.length ||
+      Object.entries(prevScratch[idx]).toString() !==
+        Object.entries(currScratch[idx]).toString()
+    ) {
+      newScratch = currScratch[idx];
+      newScratchIdx = idx;
+    }
+  }
+
+  switch (newScratch.type) {
+    case 1:
+      return `${newScratchIdx} = 0x${Buffer.from(this.bytes, 'base64').toString(
+        'hex'
+      )}`;
+    case 2:
+      return `${newScratchIdx} = ${newScratch.uint.toString()}`;
+    default:
+      return '';
+  }
+}
+
+function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
+  const svs = reverse ? stack.reverse() : stack;
+  return `[${svs
+    .map((sv: DryrunStackValue) => {
+      switch (sv.type) {
+        case 1:
+          return `0x${Buffer.from(sv.bytes, 'base64').toString('hex')}`;
+        case 2:
+          return `${sv.uint.toString()}`;
+        default:
+          return '';
+      }
+    })
+    .join(', ')}]`;
+}
+
+class DryrunTransactionResult {
   disassembly: string[] = [];
   appCallMessages: string[] | undefined = [];
   localDeltas: AccountStateDelta[] | undefined = [];
@@ -308,54 +350,68 @@ class DryrunTransactionResult {
     );
   }
 
-  trace(drt: DryrunTrace, disassembly: string[], spaces?: number): string {
-    // eslint-disable-next-line no-param-reassign
-    let padSpaces = spaces;
-    if (padSpaces === undefined) padSpaces = this.defaultSpaces;
-    if (padSpaces === 0) {
-      for (const l of disassembly) {
-        if (l.length > padSpaces) {
-          padSpaces = l.length;
-        }
-      }
+  static trace(
+    drt: DryrunTrace,
+    disassembly: string[],
+    spc: StackPrinterConfig
+  ): string {
+    let maxWidth = defaultMaxWidth;
+    if (spc.maxWidth === undefined) maxWidth = spc.maxWidth;
 
-      // Add 10 to account for line number and pc padding we apply later
-      padSpaces += 10;
+    const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
+    for (let idx = 0; idx < drt.trace.length; idx++) {
+      const { line, pc, scratch, stack } = drt.trace[idx];
+      const prevScratch = idx > 0 ? drt.trace[idx].scratch : [];
+      lines.push([
+        pc.toString(),
+        line.toString(),
+        truncate(disassembly[line], maxWidth),
+        truncate(scratchToString(prevScratch, scratch), maxWidth),
+        truncate(stackToString(stack, spc.topOfStackFirst), maxWidth),
+      ]);
     }
 
-    // 16 is the length of header prior to pad spacing
-    const padSpacing = padSpaces - 16 > 0 ? ' '.repeat(padSpaces - 16) : '';
-    const lines = [`pc# line# source${padSpacing}stack`];
-    for (const { line, pc, stack } of drt.getTrace()) {
-      const linePadding = ' '.repeat(4 - line.toString().length);
-      const pcPadding = ' '.repeat(4 - pc.toString().length);
-      const dis = disassembly[line];
-
-      const srcLine = `${pcPadding}${pc} ${linePadding}${line} ${dis}`;
-
-      const stackPadding =
-        padSpaces - srcLine.length > 0
-          ? ' '.repeat(padSpaces - srcLine.length)
-          : '';
-
-      lines.push(`${srcLine}${stackPadding}${stack}`);
-    }
-
-    return lines.join('\n');
+    // TODO: Join lines with correct spacing...
+    return '';
+    // return lines.join('\n');
   }
 
-  appTrace(spaces?: number): string {
+  appTrace(spc?: StackPrinterConfig): string {
     if (this.appCallTrace === undefined || !this.disassembly) return '';
-    return this.trace(this.appCallTrace, this.disassembly, spaces);
+
+    let conf = spc;
+    if (spc === undefined)
+      conf = {
+        maxWidth: defaultMaxWidth,
+        topOfStackFirst: true,
+      } as StackPrinterConfig;
+
+    return DryrunTransactionResult.trace(
+      this.appCallTrace,
+      this.disassembly,
+      conf
+    );
   }
 
-  lsigTrace(spaces?: number): string {
+  lsigTrace(spc?: StackPrinterConfig): string {
     if (
       this.logicSigTrace === undefined ||
       this.logicSigDisassemly === undefined
     )
       return '';
-    return this.trace(this.logicSigTrace, this.logicSigDisassemly, spaces);
+
+    let conf = spc;
+    if (spc === undefined)
+      conf = {
+        maxWidth: defaultMaxWidth,
+        topOfStackFirst: true,
+      } as StackPrinterConfig;
+
+    return DryrunTransactionResult.trace(
+      this.logicSigTrace,
+      this.logicSigDisassemly,
+      conf
+    );
   }
 }
 
