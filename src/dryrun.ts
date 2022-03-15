@@ -197,6 +197,7 @@ class DryrunStackValue {
 }
 
 interface DryrunTraceLineResponse {
+  error: string;
   line: number;
   pc: number;
   scratch: TealValue[];
@@ -204,12 +205,14 @@ interface DryrunTraceLineResponse {
 }
 
 class DryrunTraceLine {
+  error: string = undefined;
   line: number = 0;
   pc: number = 0;
   scratch: TealValue[] = [];
   stack: DryrunStackValue[] = [];
 
   constructor(line: DryrunTraceLineResponse) {
+    this.error = line.error;
     this.line = line.line;
     this.pc = line.pc;
     this.scratch = line.scratch;
@@ -362,16 +365,20 @@ class DryrunTransactionResult {
     // Create the array of arrays, each sub array contains N columns
     const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
     for (let idx = 0; idx < drt.trace.length; idx++) {
-      const { line, pc, scratch, stack } = drt.trace[idx];
+      const { line, error, pc, scratch, stack } = drt.trace[idx];
+
       const currScratch = scratch !== undefined ? scratch : [];
       const prevScratch =
         idx > 0 && drt.trace[idx - 1].scratch !== undefined
           ? drt.trace[idx - 1].scratch
           : [];
+
+      const src = error === undefined ? disassembly[line] : `!! ${error} !!`;
+
       lines.push([
         pc.toString().padEnd(3, ' '),
         line.toString().padEnd(3, ' '),
-        truncate(disassembly[line], maxWidth),
+        truncate(src, maxWidth),
         truncate(scratchToString(prevScratch, currScratch), maxWidth),
         truncate(stackToString(stack, spc.topOfStackFirst), maxWidth),
       ]);
@@ -387,7 +394,6 @@ class DryrunTransactionResult {
       return newVal;
     }, new Array(lines[0].length).fill(0));
 
-    // TODO: ensure correct spacing
     return `${lines
       .map((line) =>
         line
