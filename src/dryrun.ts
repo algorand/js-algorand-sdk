@@ -202,6 +202,7 @@ interface DryrunTraceLineResponse {
   scratch: TealValue[];
   stack: StackValueResponse[];
 }
+
 class DryrunTraceLine {
   line: number = 0;
   pc: number = 0;
@@ -220,7 +221,6 @@ class DryrunTraceLine {
 
 class DryrunTrace {
   trace: DryrunTraceLine[] = [];
-
   constructor(t: DryrunTraceLineResponse[]) {
     if (t === undefined) return;
     this.trace = t.map((line) => new DryrunTraceLine(line));
@@ -246,7 +246,7 @@ interface StackPrinterConfig {
 }
 
 function truncate(str: string, maxWidth: number): string {
-  if (maxWidth > 0) {
+  if (str.length > maxWidth && maxWidth > 0) {
     return `${str.slice(0, maxWidth)}...`;
   }
   return str;
@@ -258,11 +258,11 @@ function scratchToString(
 ): string {
   let newScratchIdx = 0;
   let newScratch = {} as TealValue;
+
   for (let idx = 0; idx < currScratch.length; idx++) {
     if (
-      idx > prevScratch.length ||
-      Object.entries(prevScratch[idx]).toString() !==
-        Object.entries(currScratch[idx]).toString()
+      idx >= prevScratch.length ||
+      JSON.stringify(prevScratch[idx]) !== JSON.stringify(currScratch[idx])
     ) {
       newScratch = currScratch[idx];
       newScratchIdx = idx;
@@ -271,9 +271,10 @@ function scratchToString(
 
   switch (newScratch.type) {
     case 1:
-      return `${newScratchIdx} = 0x${Buffer.from(this.bytes, 'base64').toString(
-        'hex'
-      )}`;
+      return `${newScratchIdx} = 0x${Buffer.from(
+        newScratch.bytes,
+        'base64'
+      ).toString('hex')}`;
     case 2:
       return `${newScratchIdx} = ${newScratch.uint.toString()}`;
     default:
@@ -362,12 +363,16 @@ class DryrunTransactionResult {
     const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
     for (let idx = 0; idx < drt.trace.length; idx++) {
       const { line, pc, scratch, stack } = drt.trace[idx];
-      const prevScratch = idx > 0 ? drt.trace[idx].scratch : [];
+      const currScratch = scratch !== undefined ? scratch : [];
+      const prevScratch =
+        idx > 0 && drt.trace[idx - 1].scratch !== undefined
+          ? drt.trace[idx - 1].scratch
+          : [];
       lines.push([
-        pc.toString(),
-        line.toString(),
+        pc.toString().padEnd(3, ' '),
+        line.toString().padEnd(3, ' '),
         truncate(disassembly[line], maxWidth),
-        truncate(scratchToString(prevScratch, scratch), maxWidth),
+        truncate(scratchToString(prevScratch, currScratch), maxWidth),
         truncate(stackToString(stack, spc.topOfStackFirst), maxWidth),
       ]);
     }
@@ -385,7 +390,7 @@ class DryrunTransactionResult {
     // TODO: ensure correct spacing
     return lines
       .map((line) =>
-        line.map((v, idx) => v.padEnd(maxLengths[idx], ' ')).join('|')
+        line.map((v, idx) => v.padEnd(maxLengths[idx] + 1, ' ')).join('|')
       )
       .join('\n');
   }
@@ -397,7 +402,7 @@ class DryrunTransactionResult {
     if (spc === undefined)
       conf = {
         maxWidth: defaultMaxWidth,
-        topOfStackFirst: true,
+        topOfStackFirst: false,
       } as StackPrinterConfig;
 
     return DryrunTransactionResult.trace(

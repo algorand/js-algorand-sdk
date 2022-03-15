@@ -5173,7 +5173,7 @@ module.exports = function getSteps(options) {
   );
 
   Given(
-    'a dryrun response file {string} and a transaction id {string}',
+    'a dryrun response file {string} and a transaction at index {string}',
     async function (drrFile, txId) {
       const drContents = await loadResource(drrFile);
       const js = parseJSON(drContents);
@@ -5182,12 +5182,9 @@ module.exports = function getSteps(options) {
     }
   );
 
-  When('I call app trace', function () {
-    this.traceString = this.txtrace.appTrace();
-  });
-
-  Then('the output should equal {string}', async function (expected) {
-    assert.equal(this.traceString, (await loadResource(expected)).toString());
+  Then('calling app trace produces {string}', async function (expected) {
+    const traceString = this.txtrace.appTrace();
+    assert.equal(traceString, (await loadResource(expected)).toString());
   });
 
   if (!options.ignoreReturn) {
