@@ -371,9 +371,19 @@ class DryrunTransactionResult {
       ]);
     }
 
-    // TODO: Join lines with correct spacing...
-    return '';
-    // return lines.join('\n');
+    const maxLengths = lines.reduce((prev, curr) => {
+      const newVal = new Array(lines[0].length).fill(0);
+      for (let idx = 0; idx < prev.length; idx++) {
+        newVal[idx] =
+          curr[idx].length > prev[idx] ? curr[idx].length : prev[idx];
+      }
+      return newVal;
+    }, new Array(lines[0].length).fill(0));
+
+    console.log(maxLengths);
+
+    // TODO: ensure correct spacing
+    lines.map((line) => line.join('|')).join('\n');
   }
 
   appTrace(spc?: StackPrinterConfig): string {
