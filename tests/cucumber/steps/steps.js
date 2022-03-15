@@ -5182,7 +5182,8 @@ module.exports = function getSteps(options) {
 
   Then('calling app trace produces {string}', async function (expected) {
     const traceString = this.txtrace.appTrace();
-    assert.equal(traceString, (await loadResource(expected)).toString());
+    const expectedString = (await loadResource(expected)).toString();
+    assert.equal(traceString, expectedString);
   });
 
   if (!options.ignoreReturn) {

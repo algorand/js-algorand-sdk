@@ -388,11 +388,14 @@ class DryrunTransactionResult {
     }, new Array(lines[0].length).fill(0));
 
     // TODO: ensure correct spacing
-    return lines
+    return `${lines
       .map((line) =>
-        line.map((v, idx) => v.padEnd(maxLengths[idx] + 1, ' ')).join('|')
+        line
+          .map((v, idx) => v.padEnd(maxLengths[idx] + 1, ' '))
+          .join('|')
+          .trim()
       )
-      .join('\n');
+      .join('\n')}\n`;
   }
 
   appTrace(spc?: StackPrinterConfig): string {
