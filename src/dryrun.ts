@@ -81,7 +81,7 @@ export async function createDryrun({
       if (t.txn.appForeignAssets) assets.push(...t.txn.appForeignAssets);
 
       // Create application,
-      if (t.txn.appIndex === 0) {
+      if (t.txn.appIndex === undefined || t.txn.appIndex === 0) {
         appInfos.push(
           new Application(
             defaultAppId,
