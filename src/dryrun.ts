@@ -358,6 +358,7 @@ class DryrunTransactionResult {
     let maxWidth = defaultMaxWidth;
     if (spc.maxWidth === undefined) maxWidth = spc.maxWidth;
 
+    // Create the array of arrays, each sub array contains N columns
     const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
     for (let idx = 0; idx < drt.trace.length; idx++) {
       const { line, pc, scratch, stack } = drt.trace[idx];
@@ -371,6 +372,7 @@ class DryrunTransactionResult {
       ]);
     }
 
+    // Get the max length for each column
     const maxLengths = lines.reduce((prev, curr) => {
       const newVal = new Array(lines[0].length).fill(0);
       for (let idx = 0; idx < prev.length; idx++) {
@@ -380,10 +382,12 @@ class DryrunTransactionResult {
       return newVal;
     }, new Array(lines[0].length).fill(0));
 
-    console.log(maxLengths);
-
     // TODO: ensure correct spacing
-    lines.map((line) => line.join('|')).join('\n');
+    return lines
+      .map((line) =>
+        line.map((v, idx) => v.padEnd(maxLengths[idx], ' ')).join('|')
+      )
+      .join('\n');
   }
 
   appTrace(spc?: StackPrinterConfig): string {
