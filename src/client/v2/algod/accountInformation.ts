@@ -23,14 +23,14 @@ export default class AccountInformation extends JSONRequest {
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const accountInfo = await algodClient.accountInformation(address)
-   *        .excludeInfo('all')
+   *        .exclude('all')
    *        .do();
    * ```
    *
    * @param round
    * @category query
    */
-  excludeInfo(exclude: string) {
+  exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;
   }
