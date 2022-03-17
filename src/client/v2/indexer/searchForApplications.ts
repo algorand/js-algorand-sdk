@@ -12,6 +12,12 @@ export default class SearchForApplications extends JSONRequest {
     return this;
   }
 
+  // creator for filter, as int
+  creator(index: number) {
+    this.query.creator = index;
+    return this;
+  }
+
   // token for pagination
   nextToken(next: string) {
     this.query.next = next;
