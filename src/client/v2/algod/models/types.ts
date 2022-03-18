@@ -61,6 +61,28 @@ export class Account extends BaseModel {
   public status: string;
 
   /**
+   * The count of all applications that have been opted in, equivalent to the count
+   * of application local data (AppLocalState objects) stored in this account.
+   */
+  public totalAppsOptedIn: number | bigint;
+
+  /**
+   * The count of all assets that have been opted in, equivalent to the count of
+   * AssetHolding objects held by this account.
+   */
+  public totalAssetsOptedIn: number | bigint;
+
+  /**
+   * The count of all apps (AppParams objects) created by this account.
+   */
+  public totalCreatedApps: number | bigint;
+
+  /**
+   * The count of all assets (AssetParams objects) created by this account.
+   */
+  public totalCreatedAssets: number | bigint;
+
+  /**
    * (appl) applications local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
    */
@@ -141,6 +163,12 @@ export class Account extends BaseModel {
    * pool.
    * * NotParticipating - indicates that the associated account is neither a
    * delegator nor a delegate.
+   * @param totalAppsOptedIn - The count of all applications that have been opted in, equivalent to the count
+   * of application local data (AppLocalState objects) stored in this account.
+   * @param totalAssetsOptedIn - The count of all assets that have been opted in, equivalent to the count of
+   * AssetHolding objects held by this account.
+   * @param totalCreatedApps - The count of all apps (AppParams objects) created by this account.
+   * @param totalCreatedAssets - The count of all assets (AssetParams objects) created by this account.
    * @param appsLocalState - (appl) applications local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
    * @param appsTotalExtraPages - (teap) the sum of all extra application program pages for this account.
@@ -175,6 +203,10 @@ export class Account extends BaseModel {
     rewards,
     round,
     status,
+    totalAppsOptedIn,
+    totalAssetsOptedIn,
+    totalCreatedApps,
+    totalCreatedAssets,
     appsLocalState,
     appsTotalExtraPages,
     appsTotalSchema,
@@ -194,6 +226,10 @@ export class Account extends BaseModel {
     rewards: number | bigint;
     round: number | bigint;
     status: string;
+    totalAppsOptedIn: number | bigint;
+    totalAssetsOptedIn: number | bigint;
+    totalCreatedApps: number | bigint;
+    totalCreatedAssets: number | bigint;
     appsLocalState?: ApplicationLocalState[];
     appsTotalExtraPages?: number | bigint;
     appsTotalSchema?: ApplicationStateSchema;
@@ -214,6 +250,10 @@ export class Account extends BaseModel {
     this.rewards = rewards;
     this.round = round;
     this.status = status;
+    this.totalAppsOptedIn = totalAppsOptedIn;
+    this.totalAssetsOptedIn = totalAssetsOptedIn;
+    this.totalCreatedApps = totalCreatedApps;
+    this.totalCreatedAssets = totalCreatedAssets;
     this.appsLocalState = appsLocalState;
     this.appsTotalExtraPages = appsTotalExtraPages;
     this.appsTotalSchema = appsTotalSchema;
@@ -234,6 +274,10 @@ export class Account extends BaseModel {
       rewards: 'rewards',
       round: 'round',
       status: 'status',
+      totalAppsOptedIn: 'total-apps-opted-in',
+      totalAssetsOptedIn: 'total-assets-opted-in',
+      totalCreatedApps: 'total-created-apps',
+      totalCreatedAssets: 'total-created-assets',
       appsLocalState: 'apps-local-state',
       appsTotalExtraPages: 'apps-total-extra-pages',
       appsTotalSchema: 'apps-total-schema',
@@ -244,6 +288,107 @@ export class Account extends BaseModel {
       participation: 'participation',
       rewardBase: 'reward-base',
       sigType: 'sig-type',
+    };
+  }
+}
+
+/**
+ * AccountApplicationResponse describes the account's application local state and
+ * global state (AppLocalState and AppParams, if either exists) for a specific
+ * application ID. Global state will only be returned if the provided address is
+ * the application's creator.
+ */
+export class AccountApplicationResponse extends BaseModel {
+  /**
+   * The round for which this information is relevant.
+   */
+  public round: number | bigint;
+
+  /**
+   * (appl) the application local data stored in this account.
+   * The raw account uses `AppLocalState` for this type.
+   */
+  public appLocalState?: ApplicationLocalState;
+
+  /**
+   * (appp) parameters of the application created by this account including app
+   * global data.
+   * The raw account uses `AppParams` for this type.
+   */
+  public createdApp?: ApplicationParams;
+
+  /**
+   * Creates a new `AccountApplicationResponse` object.
+   * @param round - The round for which this information is relevant.
+   * @param appLocalState - (appl) the application local data stored in this account.
+   * The raw account uses `AppLocalState` for this type.
+   * @param createdApp - (appp) parameters of the application created by this account including app
+   * global data.
+   * The raw account uses `AppParams` for this type.
+   */
+  constructor(
+    round: number | bigint,
+    appLocalState?: ApplicationLocalState,
+    createdApp?: ApplicationParams
+  ) {
+    super();
+    this.round = round;
+    this.appLocalState = appLocalState;
+    this.createdApp = createdApp;
+
+    this.attribute_map = {
+      round: 'round',
+      appLocalState: 'app-local-state',
+      createdApp: 'created-app',
+    };
+  }
+}
+
+/**
+ * AccountAssetResponse describes the account's asset holding and asset parameters
+ * (if either exist) for a specific asset ID. Asset parameters will only be
+ * returned if the provided address is the asset's creator.
+ */
+export class AccountAssetResponse extends BaseModel {
+  /**
+   * The round for which this information is relevant.
+   */
+  public round: number | bigint;
+
+  /**
+   * (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   */
+  public assetHolding?: AssetHolding;
+
+  /**
+   * (apar) parameters of the asset created by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  public createdAsset?: AssetParams;
+
+  /**
+   * Creates a new `AccountAssetResponse` object.
+   * @param round - The round for which this information is relevant.
+   * @param assetHolding - (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   * @param createdAsset - (apar) parameters of the asset created by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  constructor(
+    round: number | bigint,
+    assetHolding?: AssetHolding,
+    createdAsset?: AssetParams
+  ) {
+    super();
+    this.round = round;
+    this.assetHolding = assetHolding;
+    this.createdAsset = createdAsset;
+
+    this.attribute_map = {
+      round: 'round',
+      assetHolding: 'asset-holding',
+      createdAsset: 'created-asset',
     };
   }
 }
@@ -619,13 +764,6 @@ export class AssetHolding extends BaseModel {
   public assetId: number | bigint;
 
   /**
-   * Address that created this asset. This is the address where the parameters for
-   * this asset can be found, and also the address where unwanted asset units can be
-   * sent in the worst case.
-   */
-  public creator: string;
-
-  /**
    * (f) whether or not the holding is frozen.
    */
   public isFrozen: boolean;
@@ -634,27 +772,21 @@ export class AssetHolding extends BaseModel {
    * Creates a new `AssetHolding` object.
    * @param amount - (a) number of units held.
    * @param assetId - Asset ID of the holding.
-   * @param creator - Address that created this asset. This is the address where the parameters for
-   * this asset can be found, and also the address where unwanted asset units can be
-   * sent in the worst case.
    * @param isFrozen - (f) whether or not the holding is frozen.
    */
   constructor(
     amount: number | bigint,
     assetId: number | bigint,
-    creator: string,
     isFrozen: boolean
   ) {
     super();
     this.amount = amount;
     this.assetId = assetId;
-    this.creator = creator;
     this.isFrozen = isFrozen;
 
     this.attribute_map = {
       amount: 'amount',
       assetId: 'asset-id',
-      creator: 'creator',
       isFrozen: 'is-frozen',
     };
   }
@@ -1360,14 +1492,14 @@ export class DryrunTxnResult extends BaseModel {
 export class ErrorResponse extends BaseModel {
   public message: string;
 
-  public data?: string;
+  public data?: Record<string, any>;
 
   /**
    * Creates a new `ErrorResponse` object.
    * @param message -
    * @param data -
    */
-  constructor(message: string, data?: string) {
+  constructor(message: string, data?: Record<string, any>) {
     super();
     this.message = message;
     this.data = data;
