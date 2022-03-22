@@ -259,30 +259,30 @@ function scratchToString(
   prevScratch: TealValue[],
   currScratch: TealValue[]
 ): string {
-  let newScratchIdx = 0;
-  let newScratch = {} as TealValue;
+  if (currScratch.length === 0) return '';
 
+  let newScratchIdx = null;
   for (let idx = 0; idx < currScratch.length; idx++) {
-    if (
-      idx >= prevScratch.length ||
-      JSON.stringify(prevScratch[idx]) !== JSON.stringify(currScratch[idx])
-    ) {
-      newScratch = currScratch[idx];
+    if (idx > prevScratch.length) {
+      newScratchIdx = idx;
+      continue;
+    }
+
+    if (JSON.stringify(prevScratch[idx]) !== JSON.stringify(currScratch[idx])) {
       newScratchIdx = idx;
     }
   }
 
-  switch (newScratch.type) {
-    case 1:
-      return `${newScratchIdx} = 0x${Buffer.from(
-        newScratch.bytes,
-        'base64'
-      ).toString('hex')}`;
-    case 2:
-      return `${newScratchIdx} = ${newScratch.uint.toString()}`;
-    default:
-      return '';
+  if (newScratchIdx == null) return '';
+
+  const newScratch = currScratch[newScratchIdx];
+  if (newScratch.bytes.length > 0) {
+    return `${newScratchIdx} = 0x${Buffer.from(
+      newScratch.bytes,
+      'base64'
+    ).toString('hex')}`;
   }
+  return `${newScratchIdx} = ${newScratch.uint.toString()}`;
 }
 
 function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
