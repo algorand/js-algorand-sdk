@@ -77,4 +77,10 @@ export default class LookupAccountByID extends JSONRequest {
     this.query['include-all'] = value;
     return this;
   }
+
+  // exclude
+  exclude(exclude: string) {
+    this.query.exclude = exclude;
+    return this;
+  }
 }

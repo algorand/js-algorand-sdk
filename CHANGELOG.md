@@ -1,3 +1,35 @@
+# v1.15.0-beta.1
+
+## Added
+
+- Support unlimited assets REST API changes. (#527)
+
+## Fixed
+
+- Fix app creation createDryrun error (#539)
+- Fix cucumber tests for asset lookup step (#540)
+
+# v1.14.0
+
+## Added
+
+- Add stateproof keyreg field (#463)
+
+## Changed
+
+- Implement C2C tests (#498)
+- Moving from travis to circleci (#507)
+- Add installation instructions for vite users (#512)
+- Update langspec for TEAL 6 (#518)
+- Docs for `lookupAssetByID` and `lookupAccountTransactions` (#516)
+- Make FromObject parameter IntelliSense human readable (#528)
+- Bump url-parse from 1.5.1 to 1.5.8 (#529)
+
+## Fixed
+
+- Use HTTP request format arg to determine response type (#532)
+- Update chromedriver (#535)
+
 # v1.14.0-beta.1
 
 ## Added

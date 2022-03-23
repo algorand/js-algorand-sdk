@@ -48,25 +48,6 @@ export default class LookupAssetBalances extends JSONRequest {
   }
 
   /**
-   * Specify round to filter with.
-   *
-   * #### Example
-   * ```typescript
-   * const assetId = 163650;
-   * const targetBlock = 18309917;
-   * const assetBalances = await indexerClient
-   *        .lookupAssetBalances(assetId)
-   *        .round(targetBlock)
-   *        .do();
-   * ```
-   * @param round
-   */
-  round(round: number) {
-    this.query.round = round;
-    return this;
-  }
-
-  /**
    * Filtered results should have an asset balance greater than this value.
    *
    * #### Example

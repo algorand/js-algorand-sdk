@@ -23,7 +23,7 @@ import {
   AppClearStateTxn,
   AppNoOpTxn,
 } from './types/transactions';
-import { RenameProperties, RenameProperty } from './types/utils';
+import { RenameProperties, RenameProperty, Expand } from './types/utils';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
@@ -113,15 +113,17 @@ export function makePaymentTxn(
 
 // helper for above makePaymentTxnWithSuggestedParams, instead accepting an arguments object
 export function makePaymentTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperty<MustHaveSuggestedParams<PaymentTxn>, 'reKeyTo', 'rekeyTo'>,
-    | 'from'
-    | 'to'
-    | 'amount'
-    | 'closeRemainderTo'
-    | 'note'
-    | 'suggestedParams'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperty<MustHaveSuggestedParams<PaymentTxn>, 'reKeyTo', 'rekeyTo'>,
+      | 'from'
+      | 'to'
+      | 'amount'
+      | 'closeRemainderTo'
+      | 'note'
+      | 'suggestedParams'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makePaymentTxnWithSuggestedParams(
@@ -313,37 +315,41 @@ export function makeKeyRegistrationTxn(
 
 // helper for above makeKeyRegistrationTxnWithSuggestedParams, instead accepting an arguments object
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperty<
-      MustHaveSuggestedParams<KeyRegistrationTxn>,
-      'reKeyTo',
-      'rekeyTo'
-    >,
-    | 'from'
-    | 'note'
-    | 'voteKey'
-    | 'selectionKey'
-    | 'stateProofKey'
-    | 'voteFirst'
-    | 'voteLast'
-    | 'voteKeyDilution'
-    | 'suggestedParams'
-    | 'rekeyTo'
-  > & {
-    nonParticipation?: false;
-  }
+  o: Expand<
+    Pick<
+      RenameProperty<
+        MustHaveSuggestedParams<KeyRegistrationTxn>,
+        'reKeyTo',
+        'rekeyTo'
+      >,
+      | 'from'
+      | 'note'
+      | 'voteKey'
+      | 'selectionKey'
+      | 'stateProofKey'
+      | 'voteFirst'
+      | 'voteLast'
+      | 'voteKeyDilution'
+      | 'suggestedParams'
+      | 'rekeyTo'
+    > & {
+      nonParticipation?: false;
+    }
+  >
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperty<
-      MustHaveSuggestedParams<KeyRegistrationTxn>,
-      'reKeyTo',
-      'rekeyTo'
-    >,
-    'from' | 'note' | 'suggestedParams' | 'rekeyTo'
-  > & {
-    nonParticipation: true;
-  }
+  o: Expand<
+    Pick<
+      RenameProperty<
+        MustHaveSuggestedParams<KeyRegistrationTxn>,
+        'reKeyTo',
+        'rekeyTo'
+      >,
+      'from' | 'note' | 'suggestedParams' | 'rekeyTo'
+    > & {
+      nonParticipation: true;
+    }
+  >
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
   return makeKeyRegistrationTxnWithSuggestedParams(
@@ -499,36 +505,38 @@ export function makeAssetCreateTxn(
 
 // helper for above makeAssetCreateTxnWithSuggestedParams, instead accepting an arguments object
 export function makeAssetCreateTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AssetCreateTxn>,
-      {
-        reKeyTo: 'rekeyTo';
-        assetTotal: 'total';
-        assetDecimals: 'decimals';
-        assetDefaultFrozen: 'defaultFrozen';
-        assetManager: 'manager';
-        assetReserve: 'reserve';
-        assetFreeze: 'freeze';
-        assetClawback: 'clawback';
-        assetUnitName: 'unitName';
-      }
-    >,
-    | 'from'
-    | 'note'
-    | 'total'
-    | 'decimals'
-    | 'defaultFrozen'
-    | 'manager'
-    | 'reserve'
-    | 'freeze'
-    | 'clawback'
-    | 'unitName'
-    | 'assetName'
-    | 'assetURL'
-    | 'assetMetadataHash'
-    | 'suggestedParams'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AssetCreateTxn>,
+        {
+          reKeyTo: 'rekeyTo';
+          assetTotal: 'total';
+          assetDecimals: 'decimals';
+          assetDefaultFrozen: 'defaultFrozen';
+          assetManager: 'manager';
+          assetReserve: 'reserve';
+          assetFreeze: 'freeze';
+          assetClawback: 'clawback';
+          assetUnitName: 'unitName';
+        }
+      >,
+      | 'from'
+      | 'note'
+      | 'total'
+      | 'decimals'
+      | 'defaultFrozen'
+      | 'manager'
+      | 'reserve'
+      | 'freeze'
+      | 'clawback'
+      | 'unitName'
+      | 'assetName'
+      | 'assetURL'
+      | 'assetMetadataHash'
+      | 'suggestedParams'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeAssetCreateTxnWithSuggestedParams(
@@ -670,29 +678,31 @@ export function makeAssetConfigTxn(
 
 // helper for above makeAssetConfigTxnWithSuggestedParams, instead accepting an arguments object
 export function makeAssetConfigTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AssetConfigTxn>,
-      {
-        reKeyTo: 'rekeyTo';
-        assetManager: 'manager';
-        assetReserve: 'reserve';
-        assetFreeze: 'freeze';
-        assetClawback: 'clawback';
-      }
-    >,
-    | 'from'
-    | 'note'
-    | 'assetIndex'
-    | 'manager'
-    | 'reserve'
-    | 'freeze'
-    | 'clawback'
-    | 'suggestedParams'
-    | 'rekeyTo'
-  > & {
-    strictEmptyAddressChecking: boolean;
-  }
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AssetConfigTxn>,
+        {
+          reKeyTo: 'rekeyTo';
+          assetManager: 'manager';
+          assetReserve: 'reserve';
+          assetFreeze: 'freeze';
+          assetClawback: 'clawback';
+        }
+      >,
+      | 'from'
+      | 'note'
+      | 'assetIndex'
+      | 'manager'
+      | 'reserve'
+      | 'freeze'
+      | 'clawback'
+      | 'suggestedParams'
+      | 'rekeyTo'
+    > & {
+      strictEmptyAddressChecking: boolean;
+    }
+  >
 ) {
   return makeAssetConfigTxnWithSuggestedParams(
     o.from,
@@ -786,13 +796,15 @@ export function makeAssetDestroyTxn(
 
 // helper for above makeAssetDestroyTxnWithSuggestedParams, instead accepting an arguments object
 export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperty<
-      MustHaveSuggestedParams<AssetDestroyTxn>,
-      'reKeyTo',
-      'rekeyTo'
-    >,
-    'from' | 'note' | 'assetIndex' | 'suggestedParams' | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperty<
+        MustHaveSuggestedParams<AssetDestroyTxn>,
+        'reKeyTo',
+        'rekeyTo'
+      >,
+      'from' | 'note' | 'assetIndex' | 'suggestedParams' | 'rekeyTo'
+    >
   >
 ) {
   return makeAssetDestroyTxnWithSuggestedParams(
@@ -894,21 +906,23 @@ export function makeAssetFreezeTxn(
 
 // helper for above makeAssetFreezeTxnWithSuggestedParams, instead accepting an arguments object
 export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AssetFreezeTxn>,
-      {
-        freezeAccount: 'freezeTarget';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'note'
-    | 'assetIndex'
-    | 'freezeTarget'
-    | 'freezeState'
-    | 'suggestedParams'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AssetFreezeTxn>,
+        {
+          freezeAccount: 'freezeTarget';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'note'
+      | 'assetIndex'
+      | 'freezeTarget'
+      | 'freezeState'
+      | 'suggestedParams'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeAssetFreezeTxnWithSuggestedParams(
@@ -1030,23 +1044,25 @@ export function makeAssetTransferTxn(
 
 // helper for above makeAssetTransferTxnWithSuggestedParams, instead accepting an arguments object
 export function makeAssetTransferTxnWithSuggestedParamsFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AssetTransferTxn>,
-      {
-        assetRevocationTarget: 'revocationTarget';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'to'
-    | 'closeRemainderTo'
-    | 'revocationTarget'
-    | 'amount'
-    | 'note'
-    | 'assetIndex'
-    | 'suggestedParams'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AssetTransferTxn>,
+        {
+          assetRevocationTarget: 'revocationTarget';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'to'
+      | 'closeRemainderTo'
+      | 'revocationTarget'
+      | 'amount'
+      | 'note'
+      | 'assetIndex'
+      | 'suggestedParams'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeAssetTransferTxnWithSuggestedParams(
@@ -1134,40 +1150,42 @@ export function makeApplicationCreateTxn(
 
 // helper for above makeApplicationCreateTxn, instead accepting an arguments object
 export function makeApplicationCreateTxnFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppCreateTxn>,
-      {
-        appOnComplete: 'onComplete';
-        appApprovalProgram: 'approvalProgram';
-        appClearProgram: 'clearProgram';
-        appLocalInts: 'numLocalInts';
-        appLocalByteSlices: 'numLocalByteSlices';
-        appGlobalInts: 'numGlobalInts';
-        appGlobalByteSlices: 'numGlobalByteSlices';
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'onComplete'
-    | 'approvalProgram'
-    | 'clearProgram'
-    | 'numLocalInts'
-    | 'numLocalByteSlices'
-    | 'numGlobalInts'
-    | 'numGlobalByteSlices'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
-    | 'extraPages'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppCreateTxn>,
+        {
+          appOnComplete: 'onComplete';
+          appApprovalProgram: 'approvalProgram';
+          appClearProgram: 'clearProgram';
+          appLocalInts: 'numLocalInts';
+          appLocalByteSlices: 'numLocalByteSlices';
+          appGlobalInts: 'numGlobalInts';
+          appGlobalByteSlices: 'numGlobalByteSlices';
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'onComplete'
+      | 'approvalProgram'
+      | 'clearProgram'
+      | 'numLocalInts'
+      | 'numLocalByteSlices'
+      | 'numGlobalInts'
+      | 'numGlobalByteSlices'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+      | 'extraPages'
+    >
   >
 ) {
   return makeApplicationCreateTxn(
@@ -1248,30 +1266,32 @@ export function makeApplicationUpdateTxn(
 
 // helper for above makeApplicationUpdateTxn, instead accepting an arguments object
 export function makeApplicationUpdateTxnFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppUpdateTxn>,
-      {
-        appApprovalProgram: 'approvalProgram';
-        appClearProgram: 'clearProgram';
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'appIndex'
-    | 'approvalProgram'
-    | 'clearProgram'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppUpdateTxn>,
+        {
+          appApprovalProgram: 'approvalProgram';
+          appClearProgram: 'clearProgram';
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'appIndex'
+      | 'approvalProgram'
+      | 'clearProgram'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeApplicationUpdateTxn(
@@ -1341,26 +1361,28 @@ export function makeApplicationDeleteTxn(
 
 // helper for above makeApplicationDeleteTxn, instead accepting an arguments object
 export function makeApplicationDeleteTxnFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppDeleteTxn>,
-      {
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'appIndex'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppDeleteTxn>,
+        {
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'appIndex'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeApplicationDeleteTxn(
@@ -1428,26 +1450,28 @@ export function makeApplicationOptInTxn(
 
 // helper for above makeApplicationOptInTxn, instead accepting an argument object
 export function makeApplicationOptInTxnFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppOptInTxn>,
-      {
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'appIndex'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppOptInTxn>,
+        {
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'appIndex'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeApplicationOptInTxn(
@@ -1515,26 +1539,28 @@ export function makeApplicationCloseOutTxn(
 
 // helper for above makeApplicationCloseOutTxn, instead accepting an argument object
 export function makeApplicationCloseOutTxnFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppOptInTxn>,
-      {
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'appIndex'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppOptInTxn>,
+        {
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'appIndex'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeApplicationCloseOutTxn(
@@ -1602,26 +1628,28 @@ export function makeApplicationClearStateTxn(
 
 // helper for above makeApplicationClearStateTxn, instead accepting an argument object
 export function makeApplicationClearStateTxnFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppOptInTxn>,
-      {
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'appIndex'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppOptInTxn>,
+        {
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'appIndex'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeApplicationClearStateTxn(
@@ -1689,26 +1717,28 @@ export function makeApplicationNoOpTxn(
 
 // helper for above makeApplicationNoOpTxn, instead accepting an argument object
 export function makeApplicationNoOpTxnFromObject(
-  o: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppOptInTxn>,
-      {
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'appIndex'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
+  o: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppOptInTxn>,
+        {
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'appIndex'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+    >
   >
 ) {
   return makeApplicationNoOpTxn(
@@ -1731,51 +1761,53 @@ export { OnApplicationComplete } from './types/transactions/base';
  * Generic function for creating any application call transaction.
  */
 export function makeApplicationCallTxnFromObject(
-  options: Pick<
-    RenameProperties<
-      MustHaveSuggestedParams<AppCreateTxn>,
-      {
-        appOnComplete: 'onComplete';
-        appAccounts: 'accounts';
-        appForeignApps: 'foreignApps';
-        appForeignAssets: 'foreignAssets';
-        reKeyTo: 'rekeyTo';
-      }
-    >,
-    | 'from'
-    | 'suggestedParams'
-    | 'appIndex'
-    | 'onComplete'
-    | 'appArgs'
-    | 'accounts'
-    | 'foreignApps'
-    | 'foreignAssets'
-    | 'note'
-    | 'lease'
-    | 'rekeyTo'
-    | 'extraPages'
-  > &
-    Partial<
-      Pick<
-        RenameProperties<
-          MustHaveSuggestedParams<AppCreateTxn>,
-          {
-            appApprovalProgram: 'approvalProgram';
-            appClearProgram: 'clearProgram';
-            appLocalInts: 'numLocalInts';
-            appLocalByteSlices: 'numLocalByteSlices';
-            appGlobalInts: 'numGlobalInts';
-            appGlobalByteSlices: 'numGlobalByteSlices';
-          }
-        >,
-        | 'approvalProgram'
-        | 'clearProgram'
-        | 'numLocalInts'
-        | 'numLocalByteSlices'
-        | 'numGlobalInts'
-        | 'numGlobalByteSlices'
+  options: Expand<
+    Pick<
+      RenameProperties<
+        MustHaveSuggestedParams<AppCreateTxn>,
+        {
+          appOnComplete: 'onComplete';
+          appAccounts: 'accounts';
+          appForeignApps: 'foreignApps';
+          appForeignAssets: 'foreignAssets';
+          reKeyTo: 'rekeyTo';
+        }
+      >,
+      | 'from'
+      | 'suggestedParams'
+      | 'appIndex'
+      | 'onComplete'
+      | 'appArgs'
+      | 'accounts'
+      | 'foreignApps'
+      | 'foreignAssets'
+      | 'note'
+      | 'lease'
+      | 'rekeyTo'
+      | 'extraPages'
+    > &
+      Partial<
+        Pick<
+          RenameProperties<
+            MustHaveSuggestedParams<AppCreateTxn>,
+            {
+              appApprovalProgram: 'approvalProgram';
+              appClearProgram: 'clearProgram';
+              appLocalInts: 'numLocalInts';
+              appLocalByteSlices: 'numLocalByteSlices';
+              appGlobalInts: 'numGlobalInts';
+              appGlobalByteSlices: 'numGlobalByteSlices';
+            }
+          >,
+          | 'approvalProgram'
+          | 'clearProgram'
+          | 'numLocalInts'
+          | 'numLocalByteSlices'
+          | 'numGlobalInts'
+          | 'numGlobalByteSlices'
+        >
       >
-    >
+  >
 ) {
   const o: AppCreateTxn = {
     type: TransactionType.appl,
