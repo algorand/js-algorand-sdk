@@ -78,7 +78,30 @@ export default class LookupAccountByID extends JSONRequest {
     return this;
   }
 
-  // exclude
+  /**
+   * Exclude additional items such as asset holdings, application local data stored for this account, asset parameters created by this account, and application parameters created by this account.
+   *
+   * #### Example 1
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountInfo = await indexerClient
+   *        .lookupAccountByID(address)
+   *        .exclude("all")
+   *        .do();
+   * ```
+   *
+   * #### Example 2
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountInfo = await indexerClient
+   *        .lookupAccountByID(address)
+   *        .exclude("assets,created-assets")
+   *        .do();
+   * ```
+   * @remarks By default, it behaves as exclude=none
+   * @param exclude - Array of `all`, `assets`, `created-assets`, `apps-local-state`, `created-apps`, `none`
+   * @category query
+   */
   exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;

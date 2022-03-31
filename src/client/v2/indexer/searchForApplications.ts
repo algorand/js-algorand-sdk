@@ -39,7 +39,19 @@ export default class SearchForApplications extends JSONRequest {
     return this;
   }
 
-  // creator for filter, as string
+  /**
+   * Creator for filter, as string
+   *
+   * #### Example
+   * ```typescript
+   * const creator = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const apps = await indexerClient
+   *        .searchForApplications()
+   *        .creator(creator)
+   *        .do();
+   * ```
+   * @param creator
+   */
   creator(creator: string) {
     this.query.creator = creator;
     return this;
