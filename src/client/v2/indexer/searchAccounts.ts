@@ -89,10 +89,10 @@ export default class SearchAccounts extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
+   * const maxResults = 25;
    * const accounts = await indexerClient
    *        .searchAccounts()
-   *        .limit(limit)
+   *        .limit(maxResults)
    *        .do();
    * ```
    *
@@ -129,12 +129,17 @@ export default class SearchAccounts extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
-   * const nextToken = "the next token returned in the previous query response";
-   * const accounts = await indexerClient
+   * const maxResults = 25;
+   *
+   * const accountsPage1 = await indexerClient
    *        .searchAccounts()
-   *        .limit(limit)
-   *        .nextToken(nextToken)
+   *        .limit(maxResults)
+   *        .do();
+   *
+   * const accountsPage2 = await indexerClient
+   *        .searchAccounts()
+   *        .limit(maxResults)
+   *        .nextToken(accountsPage1["next-token"])
    *        .do();
    * ```
    *
@@ -171,7 +176,7 @@ export default class SearchAccounts extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const authAddr = "spending key";
+   * const authAddr = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const accounts = await indexerClient
    *        .searchAccounts()
    *        .authAddr(authAddr)

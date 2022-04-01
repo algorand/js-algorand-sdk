@@ -33,6 +33,7 @@ export default class SearchForApplications extends JSONRequest {
    * ```
    * @remarks Alternatively, use `indexerClient.lookupApplications(appId).do()`
    * @param index
+   * @category query
    */
   index(index: number) {
     this.query['application-id'] = index;
@@ -51,6 +52,7 @@ export default class SearchForApplications extends JSONRequest {
    *        .do();
    * ```
    * @param creator
+   * @category query
    */
   creator(creator: string) {
     this.query.creator = creator;
@@ -63,14 +65,20 @@ export default class SearchForApplications extends JSONRequest {
    * #### Example
    * ```typescript
    * const maxResults = 20;
-   * const nextToken = "APA6C7C3NCANRPIBUWQOF7WSKLJMK6RPQUVFLLDV4U5WCQE4DEF26D4E3E";
-   * const apps = await indexerClient
+   *
+   * const appsPage1 = await indexerClient
    *        .searchForApplications()
    *        .limit(maxResults)
-   *        .nextToken(nextToken)
+   *        .do();
+   *
+   * const appsPage2 = await indexerClient
+   *        .searchForApplications()
+   *        .limit(maxResults)
+   *        .nextToken(appsPage1["next-token"])
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
+   * @category query
    */
   nextToken(next: string) {
     this.query.next = next;
@@ -90,6 +98,7 @@ export default class SearchForApplications extends JSONRequest {
    * ```
    *
    * @param limit - maximum number of results to return.
+   * @category query
    */
   limit(limit: number) {
     this.query.limit = limit;

@@ -217,11 +217,11 @@ export default class LookupAccountTransactions extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
+   * const maxResults = 25;
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const accountTxns = await indexerClient
    *        .lookupAccountTransactions(address)
-   *        .limit(limit)
+   *        .limit(maxResults)
    *        .do();
    * ```
    *
@@ -348,17 +348,22 @@ export default class LookupAccountTransactions extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
-   * const nextToken = "the next token returned in the previous query response";
+   * const maxResults = 25;
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
-   * const accountTxns = await indexerClient
+   *
+   * const accountTxnsPage1 = await indexerClient
    *        .lookupAccountTransactions(address)
-   *        .limit(limit)
-   *        .nextToken(nextToken)
+   *        .limit(maxResults)
+   *        .do();
+   *
+   * const accountTxnsPage2 = await indexerClient
+   *        .lookupAccountTransactions(address)
+   *        .limit(maxResults)
+   *        .nextToken(accountTxnsPage1["next-token"])
    *        .do();
    * ```
    *
-   * @param nextToken
+   * @param nextToken - provided by the previous results.
    * @category query
    */
   nextToken(nextToken: string) {

@@ -177,15 +177,23 @@ export default class LookupAssetTransactions extends JSONRequest {
   }
 
   /**
+   * @deprecated
+   */
+  assetID(id: number) {
+    this.query['asset-id'] = id;
+    return this;
+  }
+
+  /**
    * Maximum number of results to return.
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
+   * const maxResults = 25;
    * const assetId = 163650;
    * const assetTxns = await indexerClient
    *        .lookupAssetTransactions(assetId)
-   *        .limit(limit)
+   *        .limit(maxResults)
    *        .do();
    * ```
    *
@@ -353,13 +361,18 @@ export default class LookupAssetTransactions extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
-   * const nextToken = "the next token returned in the previous query response";
+   * const maxResults = 25;
    * const assetId = 163650;
-   * const assetTxns = await indexerClient
+   *
+   * const assetTxnsPage1 = await indexerClient
    *        .lookupAssetTransactions(assetId)
-   *        .limit(limit)
-   *        .nextToken(nextToken)
+   *        .limit(maxResults)
+   *        .do();
+   *
+   * const assetTxnsPage2 = await indexerClient
+   *        .lookupAssetTransactions(assetId)
+   *        .limit(maxResults)
+   *        .nextToken(assetTxnsPage1["next-token"])
    *        .do();
    * ```
    *

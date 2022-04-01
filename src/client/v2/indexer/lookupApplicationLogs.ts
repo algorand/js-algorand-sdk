@@ -92,12 +92,17 @@ export default class LookupApplicationLogs extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
-   * const nextToken = "the next token returned in the previous query response";
-   * const appLogs = await indexerClient
+   * const maxResults = 25;
+   *
+   * const appLogsPage1 = await indexerClient
    *        .lookupApplicationLogs(appId)
-   *        .limit(limit)
-   *        .nextToken(nextToken)
+   *        .limit(maxResults)
+   *        .do();
+   *
+   * const appLogsPage2 = await indexerClient
+   *        .lookupApplicationLogs(appId)
+   *        .limit(maxResults)
+   *        .nextToken(appLogsPage1["next-token"])
    *        .do();
    * ```
    *

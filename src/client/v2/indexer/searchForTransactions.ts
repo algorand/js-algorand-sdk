@@ -187,10 +187,10 @@ export default class SearchForTransactions extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
+   * const maxResults = 25;
    * const txns = await indexerClient
    *        .searchForTransactions()
-   *        .limit(limit)
+   *        .limit(maxResults)
    *        .do();
    * ```
    *
@@ -372,12 +372,17 @@ export default class SearchForTransactions extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const limit = 25;
-   * const nextToken = "the next token returned in the previous query response";
-   * const txns = await indexerClient
+   * const maxResults = 25;
+   *
+   * const txnsPage1 = await indexerClient
    *        .searchForTransactions()
-   *        .limit(limit)
-   *        .nextToken(nextToken)
+   *        .limit(maxResults)
+   *        .do();
+   *
+   * const txnsPage2 = await indexerClient
+   *        .searchForTransactions()
+   *        .limit(maxResults)
+   *        .nextToken(txnsPage1["next-token"])
    *        .do();
    * ```
    *

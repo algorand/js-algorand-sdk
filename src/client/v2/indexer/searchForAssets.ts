@@ -33,6 +33,7 @@ export default class SearchForAssets extends JSONRequest {
    * ```
    *
    * @param limit - maximum number of results to return.
+   * @category query
    */
   limit(limit: number) {
     this.query.limit = limit;
@@ -52,6 +53,7 @@ export default class SearchForAssets extends JSONRequest {
    * ```
    *
    * @param creator
+   * @category query
    */
   creator(creator: string) {
     this.query.creator = creator;
@@ -71,6 +73,7 @@ export default class SearchForAssets extends JSONRequest {
    * ```
    *
    * @param name
+   * @category query
    */
   name(name: string) {
     this.query.name = name;
@@ -90,6 +93,7 @@ export default class SearchForAssets extends JSONRequest {
    * ```
    *
    * @param unit
+   * @category query
    */
   unit(unit: string) {
     this.query.unit = unit;
@@ -109,6 +113,7 @@ export default class SearchForAssets extends JSONRequest {
    * ```
    * @remarks Alternatively, use `indexerClient.lookupAssetByID(assetId).do();`
    * @param index
+   * @category query
    */
   index(index: number) {
     this.query['asset-id'] = index;
@@ -121,14 +126,20 @@ export default class SearchForAssets extends JSONRequest {
    * #### Example
    * ```typescript
    * const maxResults = 20;
-   * const nextToken = "APA6C7C3NCANRPIBUWQOF7WSKLJMK6RPQUVFLLDV4U5WCQE4DEF26D4E3E";
-   * const assets = await indexerClient
+   *
+   * const assetsPage1 = await indexerClient
    *        .searchForAssets()
    *        .limit(maxResults)
-   *        .nextToken(nextToken)
+   *        .do();
+   *
+   * const assetsPage2 = await indexerClient
+   *        .searchForAssets()
+   *        .limit(maxResults)
+   *        .nextToken(assetsPage1["next-token"])
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
+   * @category query
    */
   nextToken(nextToken: string) {
     this.query.next = nextToken;

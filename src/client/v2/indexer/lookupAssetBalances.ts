@@ -41,6 +41,7 @@ export default class LookupAssetBalances extends JSONRequest {
    * ```
    *
    * @param limit - maximum number of results to return.
+   * @category query
    */
   limit(limit: number) {
     this.query.limit = limit;
@@ -60,6 +61,7 @@ export default class LookupAssetBalances extends JSONRequest {
    *        .do();
    * ```
    * @param greater
+   * @category query
    */
   currencyGreaterThan(greater: number) {
     this.query['currency-greater-than'] = greater;
@@ -79,6 +81,7 @@ export default class LookupAssetBalances extends JSONRequest {
    *        .do();
    * ```
    * @param lesser
+   * @category query
    */
   currencyLessThan(lesser: number) {
     this.query['currency-less-than'] = lesser;
@@ -92,14 +95,20 @@ export default class LookupAssetBalances extends JSONRequest {
    * ```typescript
    * const assetId = 163650;
    * const maxResults = 20;
-   * const nextToken = "APA6C7C3NCANRPIBUWQOF7WSKLJMK6RPQUVFLLDV4U5WCQE4DEF26D4E3E";
-   * const assetBalances = await indexerClient
+   *
+   * const assetBalancesPage1 = await indexerClient
    *        .lookupAssetBalances(assetId)
    *        .limit(maxResults)
-   *        .nextToken(nextToken)
+   *        .do();
+   *
+   * const assetBalancesPage2 = await indexerClient
+   *        .lookupAssetBalances(assetId)
+   *        .limit(maxResults)
+   *        .nextToken(assetBalancesPage1["next-token"])
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
+   * @category query
    */
   nextToken(nextToken: string) {
     this.query.next = nextToken;
@@ -128,6 +137,7 @@ export default class LookupAssetBalances extends JSONRequest {
    * ```
    *
    * @param value
+   * @category query
    */
   includeAll(value = true) {
     this.query['include-all'] = value;
