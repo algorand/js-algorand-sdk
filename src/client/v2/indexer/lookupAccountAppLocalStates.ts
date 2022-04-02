@@ -1,6 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { Numeric } from '../../../types';
 
 export default class LookupAccountAppLocalStates extends JSONRequest {
   constructor(
@@ -108,7 +109,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    * ```
    * @param index - the applicationID
    */
-  applicationID(index: number) {
+  applicationID(index: Numeric) {
     this.query['application-id'] = index;
     return this;
   }

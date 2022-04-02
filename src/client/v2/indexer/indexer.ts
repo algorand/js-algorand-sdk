@@ -22,6 +22,7 @@ import {
   CustomTokenHeader,
   IndexerTokenHeader,
 } from '../../urlTokenBaseHTTPClient';
+import { Numeric } from '../../../types';
 
 /**
  * The Indexer provides a REST API interface of API calls to support searching the Algorand Blockchain.
@@ -101,7 +102,7 @@ export default class IndexerClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  lookupAssetBalances(index: number) {
+  lookupAssetBalances(index: Numeric) {
     return new LookupAssetBalances(this.c, this.intDecoding, index);
   }
 
@@ -118,7 +119,7 @@ export default class IndexerClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  lookupAssetTransactions(index: number) {
+  lookupAssetTransactions(index: Numeric) {
     return new LookupAssetTransactions(this.c, this.intDecoding, index);
   }
 
@@ -152,7 +153,7 @@ export default class IndexerClient extends ServiceClient {
    * @param round - The number of the round to look up.
    * @category GET
    */
-  lookupBlock(round: number) {
+  lookupBlock(round: Numeric) {
     return new LookupBlock(this.c, this.intDecoding, round);
   }
 
@@ -275,7 +276,7 @@ export default class IndexerClient extends ServiceClient {
    * @param index - The ID of the asset ot look up.
    * @category GET
    */
-  lookupAssetByID(index: number) {
+  lookupAssetByID(index: Numeric) {
     return new LookupAssetByID(this.c, this.intDecoding, index);
   }
 
@@ -292,7 +293,7 @@ export default class IndexerClient extends ServiceClient {
    * @param index - The ID of the application to look up.
    * @category GET
    */
-  lookupApplications(index: number) {
+  lookupApplications(index: Numeric) {
     return new LookupApplications(this.c, this.intDecoding, index);
   }
 
@@ -309,7 +310,7 @@ export default class IndexerClient extends ServiceClient {
    * @param appID - The ID of the application which generated the logs.
    * @category GET
    */
-  lookupApplicationLogs(appID: number) {
+  lookupApplicationLogs(appID: Numeric) {
     return new LookupApplicationLogs(this.c, this.intDecoding, appID);
   }
 

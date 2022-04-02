@@ -1,9 +1,10 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { Numeric } from '../../../types';
 
 export default class LookupApplicationLogs extends JSONRequest {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private appID: number) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, private appID: Numeric) {
     super(c, intDecoding);
     this.appID = appID;
   }
@@ -19,13 +20,13 @@ export default class LookupApplicationLogs extends JSONRequest {
   }
 
   /** min round to filter with, as int */
-  minRound(round: number) {
+  minRound(round: Numeric) {
     this.query['min-round'] = round;
     return this;
   }
 
   /** max round to filter with, as int */
-  maxRound(round: number) {
+  maxRound(round: Numeric) {
     this.query['max-round'] = round;
     return this;
   }

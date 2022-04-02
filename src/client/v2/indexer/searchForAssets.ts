@@ -1,3 +1,4 @@
+import { Numeric } from '../../../types';
 import JSONRequest from '../jsonrequest';
 
 export default class SearchForAssets extends JSONRequest {
@@ -31,7 +32,7 @@ export default class SearchForAssets extends JSONRequest {
   }
 
   // asset ID for filter, as int
-  index(index: number) {
+  index(index: Numeric) {
     this.query['asset-id'] = index;
     return this;
   }

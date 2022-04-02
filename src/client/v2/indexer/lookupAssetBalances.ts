@@ -1,6 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { Numeric } from '../../../types';
 
 export default class LookupAssetBalances extends JSONRequest {
   /**
@@ -15,7 +16,7 @@ export default class LookupAssetBalances extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-idbalances)
    * @param index - The asset ID to look up.
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: Numeric) {
     super(c, intDecoding);
     this.index = index;
   }
@@ -58,7 +59,7 @@ export default class LookupAssetBalances extends JSONRequest {
    * ```
    * @param greater
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: Numeric) {
     this.query['currency-greater-than'] = greater;
     return this;
   }
@@ -77,7 +78,7 @@ export default class LookupAssetBalances extends JSONRequest {
    * ```
    * @param lesser
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: Numeric) {
     this.query['currency-less-than'] = lesser;
     return this;
   }

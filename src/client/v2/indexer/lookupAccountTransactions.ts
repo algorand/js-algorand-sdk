@@ -1,6 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { Numeric } from '../../../types';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string
@@ -144,7 +145,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: Numeric) {
     this.query.round = round;
     return this;
   }
@@ -165,7 +166,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  minRound(round: number) {
+  minRound(round: Numeric) {
     this.query['min-round'] = round;
     return this;
   }
@@ -186,7 +187,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  maxRound(round: number) {
+  maxRound(round: Numeric) {
     this.query['max-round'] = round;
     return this;
   }
@@ -207,7 +208,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    * @param id
    * @category query
    */
-  assetID(id: number) {
+  assetID(id: Numeric) {
     this.query['asset-id'] = id;
     return this;
   }
@@ -305,7 +306,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: Numeric) {
     this.query['currency-greater-than'] = greater;
     return this;
   }
@@ -338,7 +339,7 @@ export default class LookupAccountTransactions extends JSONRequest {
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: Numeric) {
     this.query['currency-less-than'] = lesser;
     return this;
   }

@@ -1,6 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { Numeric } from '../../../types';
 
 export default class LookupAccountCreatedAssets extends JSONRequest {
   constructor(
@@ -50,7 +51,7 @@ export default class LookupAccountCreatedAssets extends JSONRequest {
    * ```
    * @param round
    */
-  round(round: number) {
+  round(round: Numeric) {
     this.query.round = round;
     return this;
   }
@@ -108,7 +109,7 @@ export default class LookupAccountCreatedAssets extends JSONRequest {
    * ```
    * @param index - the assetID
    */
-  assetID(index: number) {
+  assetID(index: Numeric) {
     this.query['asset-id'] = index;
     return this;
   }

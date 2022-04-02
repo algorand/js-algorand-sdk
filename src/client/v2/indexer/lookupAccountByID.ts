@@ -1,6 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { Numeric } from '../../../types';
 
 export default class LookupAccountByID extends JSONRequest {
   constructor(
@@ -17,7 +18,7 @@ export default class LookupAccountByID extends JSONRequest {
   }
 
   // specific round to search
-  round(round: number) {
+  round(round: Numeric) {
     this.query.round = round;
     return this;
   }

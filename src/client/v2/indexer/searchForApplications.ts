@@ -1,3 +1,4 @@
+import { Numeric } from '../../../types';
 import JSONRequest from '../jsonrequest';
 
 export default class SearchForApplications extends JSONRequest {
@@ -7,7 +8,7 @@ export default class SearchForApplications extends JSONRequest {
   }
 
   // application ID for filter, as int
-  index(index: number) {
+  index(index: Numeric) {
     this.query['application-id'] = index;
     return this;
   }

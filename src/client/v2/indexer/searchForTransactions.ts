@@ -1,5 +1,6 @@
 import JSONRequest from '../jsonrequest';
 import { base64StringFunnel } from './lookupAccountTransactions';
+import { Numeric } from '../../../types';
 
 export default class SearchForTransactions extends JSONRequest {
   // eslint-disable-next-line class-methods-use-this
@@ -35,25 +36,25 @@ export default class SearchForTransactions extends JSONRequest {
   }
 
   // round to filter with, as int
-  round(round: number) {
+  round(round: Numeric) {
     this.query.round = round;
     return this;
   }
 
   // min round to filter with, as int
-  minRound(round: number) {
+  minRound(round: Numeric) {
     this.query['min-round'] = round;
     return this;
   }
 
   // max round to filter with, as int
-  maxRound(round: number) {
+  maxRound(round: Numeric) {
     this.query['max-round'] = round;
     return this;
   }
 
   // asset ID to filter with, as int
-  assetID(id: number) {
+  assetID(id: Numeric) {
     this.query['asset-id'] = id;
     return this;
   }
@@ -77,13 +78,13 @@ export default class SearchForTransactions extends JSONRequest {
   }
 
   // filtered results should have an amount greater than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: Numeric) {
     this.query['currency-greater-than'] = greater;
     return this;
   }
 
   // filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: Numeric) {
     this.query['currency-less-than'] = lesser;
     return this;
   }
@@ -119,7 +120,7 @@ export default class SearchForTransactions extends JSONRequest {
   }
 
   // filter for this application
-  applicationID(applicationID: number) {
+  applicationID(applicationID: Numeric) {
     this.query['application-id'] = applicationID;
     return this;
   }
