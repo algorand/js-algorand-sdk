@@ -25,7 +25,7 @@ import {
   AlgodTokenHeader,
   CustomTokenHeader,
 } from '../../urlTokenBaseHTTPClient';
-
+import { Numeric } from '../../../types';
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
  *
@@ -153,7 +153,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  accountAssetInformation(account: string, index: number) {
+  accountAssetInformation(account: string, index: Numeric) {
     return new AccountAssetInformation(
       this.c,
       this.intDecoding,
@@ -177,7 +177,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  accountApplicationInformation(account: string, index: number) {
+  accountApplicationInformation(account: string, index: Numeric) {
     return new AccountApplicationInformation(
       this.c,
       this.intDecoding,
@@ -199,7 +199,7 @@ export default class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  block(roundNumber: number) {
+  block(roundNumber: Numeric) {
     return new Block(this.c, roundNumber);
   }
 
@@ -311,7 +311,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round - The number of the round to wait for.
    * @category GET
    */
-  statusAfterBlock(round: number) {
+  statusAfterBlock(round: Numeric) {
     return new StatusAfterBlock(this.c, this.intDecoding, round);
   }
 
@@ -407,7 +407,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  getAssetByID(index: number) {
+  getAssetByID(index: Numeric) {
     return new GetAssetByID(this.c, this.intDecoding, index);
   }
 
@@ -425,7 +425,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationByID(index: number) {
+  getApplicationByID(index: Numeric) {
     return new GetApplicationByID(this.c, this.intDecoding, index);
   }
 
@@ -459,7 +459,7 @@ export default class AlgodClient extends ServiceClient {
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
    */
-  getProof(round: number, txID: string) {
+  getProof(round: Numeric, txID: string) {
     return new Proof(this.c, this.intDecoding, round, txID);
   }
 }

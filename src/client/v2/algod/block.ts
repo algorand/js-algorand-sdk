@@ -1,14 +1,15 @@
 import * as encoding from '../../../encoding/encoding';
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
+import { Numeric } from '../../../types';
 
 /**
  * block gets the block info for the given round. this call may block
  */
 export default class Block extends JSONRequest {
-  private round: number;
+  private round: Numeric;
 
-  constructor(c: HTTPClient, roundNumber: number) {
+  constructor(c: HTTPClient, roundNumber: Numeric) {
     super(c);
     if (!Number.isInteger(roundNumber))
       throw Error('roundNumber should be an integer');

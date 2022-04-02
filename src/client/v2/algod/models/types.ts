@@ -6,7 +6,7 @@
 import BaseModel from './base';
 import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
 import BlockHeader from '../../../../types/blockHeader';
-
+import { Numeric } from '../../../../types';
 /**
  * Account information at a given round.
  * Definition:
@@ -21,34 +21,34 @@ export class Account extends BaseModel {
   /**
    * (algo) total number of MicroAlgos in the account
    */
-  public amount: number | bigint;
+  public amount: Numeric;
 
   /**
    * specifies the amount of MicroAlgos in the account, without the pending rewards.
    */
-  public amountWithoutPendingRewards: number | bigint;
+  public amountWithoutPendingRewards: Numeric;
 
   /**
    * MicroAlgo balance required by the account.
    * The requirement grows based on asset and application usage.
    */
-  public minBalance: number | bigint;
+  public minBalance: Numeric;
 
   /**
    * amount of MicroAlgos of pending rewards in this account.
    */
-  public pendingRewards: number | bigint;
+  public pendingRewards: Numeric;
 
   /**
    * (ern) total rewards of MicroAlgos the account has received, including pending
    * rewards.
    */
-  public rewards: number | bigint;
+  public rewards: Numeric;
 
   /**
    * The round for which this information is relevant.
    */
-  public round: number | bigint;
+  public round: Numeric;
 
   /**
    * (onl) delegation status of the account's MicroAlgos
@@ -64,23 +64,23 @@ export class Account extends BaseModel {
    * The count of all applications that have been opted in, equivalent to the count
    * of application local data (AppLocalState objects) stored in this account.
    */
-  public totalAppsOptedIn: number | bigint;
+  public totalAppsOptedIn: Numeric;
 
   /**
    * The count of all assets that have been opted in, equivalent to the count of
    * AssetHolding objects held by this account.
    */
-  public totalAssetsOptedIn: number | bigint;
+  public totalAssetsOptedIn: Numeric;
 
   /**
    * The count of all apps (AppParams objects) created by this account.
    */
-  public totalCreatedApps: number | bigint;
+  public totalCreatedApps: Numeric;
 
   /**
    * The count of all assets (AssetParams objects) created by this account.
    */
-  public totalCreatedAssets: number | bigint;
+  public totalCreatedAssets: Numeric;
 
   /**
    * (appl) applications local data stored in this account.
@@ -91,7 +91,7 @@ export class Account extends BaseModel {
   /**
    * (teap) the sum of all extra application program pages for this account.
    */
-  public appsTotalExtraPages?: number | bigint;
+  public appsTotalExtraPages?: Numeric;
 
   /**
    * (tsch) stores the sum of all of the local schemas and global schemas in this
@@ -136,7 +136,7 @@ export class Account extends BaseModel {
    * (ebase) used as part of the rewards computation. Only applicable to accounts
    * which are participating.
    */
-  public rewardBase?: number | bigint;
+  public rewardBase?: Numeric;
 
   /**
    * Indicates what type of signature is used by this account, must be one of:
@@ -219,26 +219,26 @@ export class Account extends BaseModel {
     sigType,
   }: {
     address: string;
-    amount: number | bigint;
-    amountWithoutPendingRewards: number | bigint;
-    minBalance: number | bigint;
-    pendingRewards: number | bigint;
-    rewards: number | bigint;
-    round: number | bigint;
+    amount: Numeric;
+    amountWithoutPendingRewards: Numeric;
+    minBalance: Numeric;
+    pendingRewards: Numeric;
+    rewards: Numeric;
+    round: Numeric;
     status: string;
-    totalAppsOptedIn: number | bigint;
-    totalAssetsOptedIn: number | bigint;
-    totalCreatedApps: number | bigint;
-    totalCreatedAssets: number | bigint;
+    totalAppsOptedIn: Numeric;
+    totalAssetsOptedIn: Numeric;
+    totalCreatedApps: Numeric;
+    totalCreatedAssets: Numeric;
     appsLocalState?: ApplicationLocalState[];
-    appsTotalExtraPages?: number | bigint;
+    appsTotalExtraPages?: Numeric;
     appsTotalSchema?: ApplicationStateSchema;
     assets?: AssetHolding[];
     authAddr?: string;
     createdApps?: Application[];
     createdAssets?: Asset[];
     participation?: AccountParticipation;
-    rewardBase?: number | bigint;
+    rewardBase?: Numeric;
     sigType?: string;
   }) {
     super();
@@ -302,7 +302,7 @@ export class AccountApplicationResponse extends BaseModel {
   /**
    * The round for which this information is relevant.
    */
-  public round: number | bigint;
+  public round: Numeric;
 
   /**
    * (appl) the application local data stored in this account.
@@ -327,7 +327,7 @@ export class AccountApplicationResponse extends BaseModel {
    * The raw account uses `AppParams` for this type.
    */
   constructor(
-    round: number | bigint,
+    round: Numeric,
     appLocalState?: ApplicationLocalState,
     createdApp?: ApplicationParams
   ) {
@@ -353,7 +353,7 @@ export class AccountAssetResponse extends BaseModel {
   /**
    * The round for which this information is relevant.
    */
-  public round: number | bigint;
+  public round: Numeric;
 
   /**
    * (asset) Details about the asset held by this account.
@@ -376,7 +376,7 @@ export class AccountAssetResponse extends BaseModel {
    * The raw account uses `AssetParams` for this type.
    */
   constructor(
-    round: number | bigint,
+    round: Numeric,
     assetHolding?: AssetHolding,
     createdAsset?: AssetParams
   ) {
@@ -406,17 +406,17 @@ export class AccountParticipation extends BaseModel {
   /**
    * (voteFst) First round for which this participation is valid.
    */
-  public voteFirstValid: number | bigint;
+  public voteFirstValid: Numeric;
 
   /**
    * (voteKD) Number of subkeys in each batch of participation keys.
    */
-  public voteKeyDilution: number | bigint;
+  public voteKeyDilution: Numeric;
 
   /**
    * (voteLst) Last round for which this participation is valid.
    */
-  public voteLastValid: number | bigint;
+  public voteLastValid: Numeric;
 
   /**
    * (vote) root participation public key (if any) currently registered for this
@@ -448,9 +448,9 @@ export class AccountParticipation extends BaseModel {
     stateProofKey,
   }: {
     selectionParticipationKey: string | Uint8Array;
-    voteFirstValid: number | bigint;
-    voteKeyDilution: number | bigint;
-    voteLastValid: number | bigint;
+    voteFirstValid: Numeric;
+    voteKeyDilution: Numeric;
+    voteLastValid: Numeric;
     voteParticipationKey: string | Uint8Array;
     stateProofKey?: string | Uint8Array;
   }) {
@@ -517,7 +517,7 @@ export class Application extends BaseModel {
   /**
    * (appidx) application index.
    */
-  public id: number | bigint;
+  public id: Numeric;
 
   /**
    * (appparams) application parameters.
@@ -529,7 +529,7 @@ export class Application extends BaseModel {
    * @param id - (appidx) application index.
    * @param params - (appparams) application parameters.
    */
-  constructor(id: number | bigint, params: ApplicationParams) {
+  constructor(id: Numeric, params: ApplicationParams) {
     super();
     this.id = id;
     this.params = params;
@@ -548,7 +548,7 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * The application which this local state is for.
    */
-  public id: number | bigint;
+  public id: Numeric;
 
   /**
    * (hsch) schema.
@@ -567,7 +567,7 @@ export class ApplicationLocalState extends BaseModel {
    * @param keyValue - (tkv) storage.
    */
   constructor(
-    id: number | bigint,
+    id: Numeric,
     schema: ApplicationStateSchema,
     keyValue?: TealKeyValue[]
   ) {
@@ -607,7 +607,7 @@ export class ApplicationParams extends BaseModel {
   /**
    * (epp) the amount of extra program pages available to this app.
    */
-  public extraProgramPages?: number | bigint;
+  public extraProgramPages?: Numeric;
 
   /**
    * [\gs) global schema
@@ -647,7 +647,7 @@ export class ApplicationParams extends BaseModel {
     approvalProgram: string | Uint8Array;
     clearStateProgram: string | Uint8Array;
     creator: string;
-    extraProgramPages?: number | bigint;
+    extraProgramPages?: Numeric;
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
@@ -686,19 +686,19 @@ export class ApplicationStateSchema extends BaseModel {
   /**
    * (nui) num of uints.
    */
-  public numUint: number | bigint;
+  public numUint: Numeric;
 
   /**
    * (nbs) num of byte slices.
    */
-  public numByteSlice: number | bigint;
+  public numByteSlice: Numeric;
 
   /**
    * Creates a new `ApplicationStateSchema` object.
    * @param numUint - (nui) num of uints.
    * @param numByteSlice - (nbs) num of byte slices.
    */
-  constructor(numUint: number | bigint, numByteSlice: number | bigint) {
+  constructor(numUint: Numeric, numByteSlice: Numeric) {
     super();
     this.numUint = numUint;
     this.numByteSlice = numByteSlice;
@@ -717,7 +717,7 @@ export class Asset extends BaseModel {
   /**
    * unique asset identifier
    */
-  public index: number | bigint;
+  public index: Numeric;
 
   /**
    * AssetParams specifies the parameters for an asset.
@@ -735,7 +735,7 @@ export class Asset extends BaseModel {
    * Definition:
    * data/transactions/asset.go : AssetParams
    */
-  constructor(index: number | bigint, params: AssetParams) {
+  constructor(index: Numeric, params: AssetParams) {
     super();
     this.index = index;
     this.params = params;
@@ -756,12 +756,12 @@ export class AssetHolding extends BaseModel {
   /**
    * (a) number of units held.
    */
-  public amount: number | bigint;
+  public amount: Numeric;
 
   /**
    * Asset ID of the holding.
    */
-  public assetId: number | bigint;
+  public assetId: Numeric;
 
   /**
    * (f) whether or not the holding is frozen.
@@ -774,11 +774,7 @@ export class AssetHolding extends BaseModel {
    * @param assetId - Asset ID of the holding.
    * @param isFrozen - (f) whether or not the holding is frozen.
    */
-  constructor(
-    amount: number | bigint,
-    assetId: number | bigint,
-    isFrozen: boolean
-  ) {
+  constructor(amount: Numeric, assetId: Numeric, isFrozen: boolean) {
     super();
     this.amount = amount;
     this.assetId = assetId;
@@ -812,12 +808,12 @@ export class AssetParams extends BaseModel {
    * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
    * must be between 0 and 19 (inclusive).
    */
-  public decimals: number | bigint;
+  public decimals: Numeric;
 
   /**
    * (t) The total number of units of this asset.
    */
-  public total: number | bigint;
+  public total: Numeric;
 
   /**
    * (c) Address of account used to clawback holdings of this asset. If empty,
@@ -932,8 +928,8 @@ export class AssetParams extends BaseModel {
     urlB64,
   }: {
     creator: string;
-    decimals: number | bigint;
-    total: number | bigint;
+    decimals: Numeric;
+    total: Numeric;
     clawback?: string;
     defaultFrozen?: boolean;
     freeze?: string;
@@ -1032,15 +1028,15 @@ export class BlockResponse extends BaseModel {
 export class BuildVersion extends BaseModel {
   public branch: string;
 
-  public buildNumber: number | bigint;
+  public buildNumber: Numeric;
 
   public channel: string;
 
   public commitHash: string;
 
-  public major: number | bigint;
+  public major: Numeric;
 
-  public minor: number | bigint;
+  public minor: Numeric;
 
   /**
    * Creates a new `BuildVersion` object.
@@ -1060,11 +1056,11 @@ export class BuildVersion extends BaseModel {
     minor,
   }: {
     branch: string;
-    buildNumber: number | bigint;
+    buildNumber: Numeric;
     channel: string;
     commitHash: string;
-    major: number | bigint;
-    minor: number | bigint;
+    major: Numeric;
+    minor: Numeric;
   }) {
     super();
     this.branch = branch;
@@ -1175,7 +1171,7 @@ export class DryrunRequest extends BaseModel {
    * LatestTimestamp is available to some TEAL scripts. Defaults to the latest
    * confirmed timestamp this algod is attached to.
    */
-  public latestTimestamp: number | bigint;
+  public latestTimestamp: Numeric;
 
   /**
    * ProtocolVersion specifies a specific version string to operate under, otherwise
@@ -1187,7 +1183,7 @@ export class DryrunRequest extends BaseModel {
    * Round is available to some TEAL scripts. Defaults to the current round on the
    * network this algod is attached to.
    */
-  public round: number | bigint;
+  public round: Numeric;
 
   public sources: DryrunSource[];
 
@@ -1217,9 +1213,9 @@ export class DryrunRequest extends BaseModel {
   }: {
     accounts: Account[];
     apps: Application[];
-    latestTimestamp: number | bigint;
+    latestTimestamp: Numeric;
     protocolVersion: string;
-    round: number | bigint;
+    round: Numeric;
     sources: DryrunSource[];
     txns: EncodedSignedTransaction[];
   }) {
@@ -1291,9 +1287,9 @@ export class DryrunSource extends BaseModel {
 
   public source: string;
 
-  public txnIndex: number | bigint;
+  public txnIndex: Numeric;
 
-  public appIndex: number | bigint;
+  public appIndex: Numeric;
 
   /**
    * Creates a new `DryrunSource` object.
@@ -1307,8 +1303,8 @@ export class DryrunSource extends BaseModel {
   constructor(
     fieldName: string,
     source: string,
-    txnIndex: number | bigint,
-    appIndex: number | bigint
+    txnIndex: Numeric,
+    appIndex: Numeric
   ) {
     super();
     this.fieldName = fieldName;
@@ -1332,12 +1328,12 @@ export class DryrunState extends BaseModel {
   /**
    * Line number
    */
-  public line: number | bigint;
+  public line: Numeric;
 
   /**
    * Program counter
    */
-  public pc: number | bigint;
+  public pc: Numeric;
 
   public stack: TealValue[];
 
@@ -1363,8 +1359,8 @@ export class DryrunState extends BaseModel {
     error,
     scratch,
   }: {
-    line: number | bigint;
-    pc: number | bigint;
+    line: Numeric;
+    pc: Numeric;
     stack: TealValue[];
     error?: string;
     scratch?: TealValue[];
@@ -1403,7 +1399,7 @@ export class DryrunTxnResult extends BaseModel {
   /**
    * Execution cost of app call transaction
    */
-  public cost?: number | bigint;
+  public cost?: Numeric;
 
   /**
    * Application state delta.
@@ -1451,7 +1447,7 @@ export class DryrunTxnResult extends BaseModel {
     disassembly: string[];
     appCallMessages?: string[];
     appCallTrace?: DryrunState[];
-    cost?: number | bigint;
+    cost?: Numeric;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigDisassembly?: string[];
@@ -1518,7 +1514,7 @@ export class EvalDelta extends BaseModel {
   /**
    * (at) delta action.
    */
-  public action: number | bigint;
+  public action: Numeric;
 
   /**
    * (bs) bytes value.
@@ -1528,7 +1524,7 @@ export class EvalDelta extends BaseModel {
   /**
    * (ui) uint value.
    */
-  public uint?: number | bigint;
+  public uint?: Numeric;
 
   /**
    * Creates a new `EvalDelta` object.
@@ -1536,7 +1532,7 @@ export class EvalDelta extends BaseModel {
    * @param bytes - (bs) bytes value.
    * @param uint - (ui) uint value.
    */
-  constructor(action: number | bigint, bytes?: string, uint?: number | bigint) {
+  constructor(action: Numeric, bytes?: string, uint?: Numeric) {
     super();
     this.action = action;
     this.bytes = bytes;
@@ -1585,12 +1581,12 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * CatchupTime in nanoseconds
    */
-  public catchupTime: number | bigint;
+  public catchupTime: Numeric;
 
   /**
    * LastRound indicates the last round seen
    */
-  public lastRound: number | bigint;
+  public lastRound: Numeric;
 
   /**
    * LastVersion indicates the last consensus version supported
@@ -1605,7 +1601,7 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * NextVersionRound is the round at which the next consensus version will apply
    */
-  public nextVersionRound: number | bigint;
+  public nextVersionRound: Numeric;
 
   /**
    * NextVersionSupported indicates whether the next consensus version is supported
@@ -1622,7 +1618,7 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * TimeSinceLastRound in nanoseconds
    */
-  public timeSinceLastRound: number | bigint;
+  public timeSinceLastRound: Numeric;
 
   /**
    * The current catchpoint that is being caught up to
@@ -1633,30 +1629,30 @@ export class NodeStatusResponse extends BaseModel {
    * The number of blocks that have already been obtained by the node as part of the
    * catchup
    */
-  public catchpointAcquiredBlocks?: number | bigint;
+  public catchpointAcquiredBlocks?: Numeric;
 
   /**
    * The number of accounts from the current catchpoint that have been processed so
    * far as part of the catchup
    */
-  public catchpointProcessedAccounts?: number | bigint;
+  public catchpointProcessedAccounts?: Numeric;
 
   /**
    * The total number of accounts included in the current catchpoint
    */
-  public catchpointTotalAccounts?: number | bigint;
+  public catchpointTotalAccounts?: Numeric;
 
   /**
    * The total number of blocks that are required to complete the current catchpoint
    * catchup
    */
-  public catchpointTotalBlocks?: number | bigint;
+  public catchpointTotalBlocks?: Numeric;
 
   /**
    * The number of accounts from the current catchpoint that have been verified so
    * far as part of the catchup
    */
-  public catchpointVerifiedAccounts?: number | bigint;
+  public catchpointVerifiedAccounts?: Numeric;
 
   /**
    * The last catchpoint seen by the node
@@ -1704,20 +1700,20 @@ export class NodeStatusResponse extends BaseModel {
     catchpointVerifiedAccounts,
     lastCatchpoint,
   }: {
-    catchupTime: number | bigint;
-    lastRound: number | bigint;
+    catchupTime: Numeric;
+    lastRound: Numeric;
     lastVersion: string;
     nextVersion: string;
-    nextVersionRound: number | bigint;
+    nextVersionRound: Numeric;
     nextVersionSupported: boolean;
     stoppedAtUnsupportedRound: boolean;
-    timeSinceLastRound: number | bigint;
+    timeSinceLastRound: Numeric;
     catchpoint?: string;
-    catchpointAcquiredBlocks?: number | bigint;
-    catchpointProcessedAccounts?: number | bigint;
-    catchpointTotalAccounts?: number | bigint;
-    catchpointTotalBlocks?: number | bigint;
-    catchpointVerifiedAccounts?: number | bigint;
+    catchpointAcquiredBlocks?: Numeric;
+    catchpointProcessedAccounts?: Numeric;
+    catchpointTotalAccounts?: Numeric;
+    catchpointTotalBlocks?: Numeric;
+    catchpointVerifiedAccounts?: Numeric;
     lastCatchpoint?: string;
   }) {
     super();
@@ -1778,32 +1774,32 @@ export class PendingTransactionResponse extends BaseModel {
    * The application index if the transaction was found and it created an
    * application.
    */
-  public applicationIndex?: number | bigint;
+  public applicationIndex?: Numeric;
 
   /**
    * The number of the asset's unit that were transferred to the close-to address.
    */
-  public assetClosingAmount?: number | bigint;
+  public assetClosingAmount?: Numeric;
 
   /**
    * The asset index if the transaction was found and it created an asset.
    */
-  public assetIndex?: number | bigint;
+  public assetIndex?: Numeric;
 
   /**
    * Rewards in microalgos applied to the close remainder to account.
    */
-  public closeRewards?: number | bigint;
+  public closeRewards?: Numeric;
 
   /**
    * Closing amount for the transaction.
    */
-  public closingAmount?: number | bigint;
+  public closingAmount?: Numeric;
 
   /**
    * The round where this transaction was confirmed, if present.
    */
-  public confirmedRound?: number | bigint;
+  public confirmedRound?: Numeric;
 
   /**
    * (gd) Global state key/value changes for the application being executed by this
@@ -1830,12 +1826,12 @@ export class PendingTransactionResponse extends BaseModel {
   /**
    * Rewards in microalgos applied to the receiver account.
    */
-  public receiverRewards?: number | bigint;
+  public receiverRewards?: Numeric;
 
   /**
    * Rewards in microalgos applied to the sender account.
    */
-  public senderRewards?: number | bigint;
+  public senderRewards?: Numeric;
 
   /**
    * Creates a new `PendingTransactionResponse` object.
@@ -1877,18 +1873,18 @@ export class PendingTransactionResponse extends BaseModel {
   }: {
     poolError: string;
     txn: EncodedSignedTransaction;
-    applicationIndex?: number | bigint;
-    assetClosingAmount?: number | bigint;
-    assetIndex?: number | bigint;
-    closeRewards?: number | bigint;
-    closingAmount?: number | bigint;
-    confirmedRound?: number | bigint;
+    applicationIndex?: Numeric;
+    assetClosingAmount?: Numeric;
+    assetIndex?: Numeric;
+    closeRewards?: Numeric;
+    closingAmount?: Numeric;
+    confirmedRound?: Numeric;
     globalStateDelta?: EvalDeltaKeyValue[];
     innerTxns?: PendingTransactionResponse[];
     localStateDelta?: AccountStateDelta[];
     logs?: Uint8Array[];
-    receiverRewards?: number | bigint;
-    senderRewards?: number | bigint;
+    receiverRewards?: Numeric;
+    senderRewards?: Numeric;
   }) {
     super();
     this.poolError = poolError;
@@ -1939,7 +1935,7 @@ export class PendingTransactionsResponse extends BaseModel {
   /**
    * Total number of transactions in the pool.
    */
-  public totalTransactions: number | bigint;
+  public totalTransactions: Numeric;
 
   /**
    * Creates a new `PendingTransactionsResponse` object.
@@ -1948,7 +1944,7 @@ export class PendingTransactionsResponse extends BaseModel {
    */
   constructor(
     topTransactions: EncodedSignedTransaction[],
-    totalTransactions: number | bigint
+    totalTransactions: Numeric
   ) {
     super();
     this.topTransactions = topTransactions;
@@ -1991,7 +1987,7 @@ export class ProofResponse extends BaseModel {
   /**
    * Index of the transaction in the block's payset.
    */
-  public idx: number | bigint;
+  public idx: Numeric;
 
   /**
    * Merkle proof of transaction membership.
@@ -2007,7 +2003,7 @@ export class ProofResponse extends BaseModel {
    * Represents the depth of the tree that is being proven, i.e. the number of edges
    * from a leaf to the root.
    */
-  public treedepth: number | bigint;
+  public treedepth: Numeric;
 
   /**
    * The type of hash function used to create the proof, must be one of:
@@ -2034,10 +2030,10 @@ export class ProofResponse extends BaseModel {
     treedepth,
     hashtype,
   }: {
-    idx: number | bigint;
+    idx: Numeric;
     proof: string | Uint8Array;
     stibhash: string | Uint8Array;
-    treedepth: number | bigint;
+    treedepth: Numeric;
     hashtype?: string;
   }) {
     super();
@@ -2070,17 +2066,17 @@ export class SupplyResponse extends BaseModel {
   /**
    * Round
    */
-  public currentRound: number | bigint;
+  public currentRound: Numeric;
 
   /**
    * OnlineMoney
    */
-  public onlineMoney: number | bigint;
+  public onlineMoney: Numeric;
 
   /**
    * TotalMoney
    */
-  public totalMoney: number | bigint;
+  public totalMoney: Numeric;
 
   /**
    * Creates a new `SupplyResponse` object.
@@ -2089,9 +2085,9 @@ export class SupplyResponse extends BaseModel {
    * @param totalMoney - TotalMoney
    */
   constructor(
-    currentRound: number | bigint,
-    onlineMoney: number | bigint,
-    totalMoney: number | bigint
+    currentRound: Numeric,
+    onlineMoney: Numeric,
+    totalMoney: Numeric
   ) {
     super();
     this.currentRound = currentRound;
@@ -2141,7 +2137,7 @@ export class TealValue extends BaseModel {
   /**
    * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
-  public type: number | bigint;
+  public type: Numeric;
 
   /**
    * (tb) bytes value.
@@ -2151,7 +2147,7 @@ export class TealValue extends BaseModel {
   /**
    * (ui) uint value.
    */
-  public uint: number | bigint;
+  public uint: Numeric;
 
   /**
    * Creates a new `TealValue` object.
@@ -2159,7 +2155,7 @@ export class TealValue extends BaseModel {
    * @param bytes - (tb) bytes value.
    * @param uint - (ui) uint value.
    */
-  constructor(type: number | bigint, bytes: string, uint: number | bigint) {
+  constructor(type: Numeric, bytes: string, uint: Numeric) {
     super();
     this.type = type;
     this.bytes = bytes;
@@ -2190,7 +2186,7 @@ export class TransactionParametersResponse extends BaseModel {
    * Fee may fall to zero but transactions must still have a fee of
    * at least MinTxnFee for the current network protocol.
    */
-  public fee: number | bigint;
+  public fee: Numeric;
 
   /**
    * GenesisHash is the hash of the genesis block.
@@ -2205,13 +2201,13 @@ export class TransactionParametersResponse extends BaseModel {
   /**
    * LastRound indicates the last round seen
    */
-  public lastRound: number | bigint;
+  public lastRound: Numeric;
 
   /**
    * The minimum transaction fee (not per byte) required for the
    * txn to validate for the current network protocol.
    */
-  public minFee: number | bigint;
+  public minFee: Numeric;
 
   /**
    * Creates a new `TransactionParametersResponse` object.
@@ -2236,11 +2232,11 @@ export class TransactionParametersResponse extends BaseModel {
     minFee,
   }: {
     consensusVersion: string;
-    fee: number | bigint;
+    fee: Numeric;
     genesisHash: string | Uint8Array;
     genesisId: string;
-    lastRound: number | bigint;
-    minFee: number | bigint;
+    lastRound: Numeric;
+    minFee: Numeric;
   }) {
     super();
     this.consensusVersion = consensusVersion;
