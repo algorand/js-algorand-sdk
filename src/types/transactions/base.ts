@@ -123,6 +123,11 @@ export interface SuggestedParams {
    * Specifies hash genesis block of network in use
    */
   genesisHash: string;
+
+  /**
+   * Minimum transaction fee, in microAlgos.
+   */
+  minFee: number;
 }
 
 /**
