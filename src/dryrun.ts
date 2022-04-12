@@ -212,7 +212,7 @@ class DryrunTraceLine {
   stack: DryrunStackValue[] = [];
 
   constructor(line: DryrunTraceLineResponse) {
-    this.error = line.error;
+    this.error = line.error === undefined ? '' : line.error;
     this.line = line.line;
     this.pc = line.pc;
     this.scratch = line.scratch;
