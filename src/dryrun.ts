@@ -177,6 +177,7 @@ interface StackValueResponse {
   bytes: string;
   uint: number;
 }
+
 class DryrunStackValue {
   type: number = 0;
   bytes: string = '';
