@@ -237,7 +237,7 @@ interface DryrunTransactionResultResponse {
   globalDelta: EvalDeltaKeyValue[] | undefined;
   cost: number | undefined;
   logicSigMessages: string[] | undefined;
-  logicSigDisassemly: string[] | undefined;
+  logicSigDisassembly: string[] | undefined;
   logs: string[] | undefined;
   appCallTrace: DryrunTrace | undefined;
   logicSigTrace: DryrunTrace | undefined;
