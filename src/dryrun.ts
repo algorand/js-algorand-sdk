@@ -244,13 +244,13 @@ interface DryrunTransactionResultResponse {
 }
 
 interface StackPrinterConfig {
-  maxWidth: number | undefined;
+  maxValueWidth: number | undefined;
   topOfStackFirst: boolean | undefined;
 }
 
-function truncate(str: string, maxWidth: number): string {
-  if (str.length > maxWidth && maxWidth > 0) {
-    return `${str.slice(0, maxWidth)}...`;
+function truncate(str: string, maxValueWidth: number): string {
+  if (str.length > maxValueWidth && maxValueWidth > 0) {
+    return `${str.slice(0, maxValueWidth)}...`;
   }
   return str;
 }
@@ -360,7 +360,7 @@ class DryrunTransactionResult {
     spc: StackPrinterConfig
   ): string {
     let maxWidth = defaultMaxWidth;
-    if (spc.maxWidth === undefined) maxWidth = spc.maxWidth;
+    if (spc.maxValueWidth === undefined) maxWidth = spc.maxValueWidth;
 
     // Create the array of arrays, each sub array contains N columns
     const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
@@ -410,7 +410,7 @@ class DryrunTransactionResult {
     let conf = spc;
     if (spc === undefined)
       conf = {
-        maxWidth: defaultMaxWidth,
+        maxValueWidth: defaultMaxWidth,
         topOfStackFirst: false,
       } as StackPrinterConfig;
 
@@ -431,7 +431,7 @@ class DryrunTransactionResult {
     let conf = spc;
     if (spc === undefined)
       conf = {
-        maxWidth: defaultMaxWidth,
+        maxValueWidth: defaultMaxWidth,
         topOfStackFirst: true,
       } as StackPrinterConfig;
 
