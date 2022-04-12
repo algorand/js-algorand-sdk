@@ -309,7 +309,7 @@ class DryrunTransactionResult {
   globalDelta: EvalDeltaKeyValue[] | undefined = [];
   cost: number | undefined = 0;
   logicSigMessages: string[] | undefined = [];
-  logicSigDisassemly: string[] | undefined = [];
+  logicSigDisassembly: string[] | undefined = [];
   logs: string[] | undefined = [];
 
   appCallTrace: DryrunTrace | undefined = undefined;
@@ -335,7 +335,7 @@ class DryrunTransactionResult {
     this.globalDelta = dtr['global-delta'];
     this.cost = dtr.cost;
     this.logicSigMessages = dtr['logic-sig-messages'];
-    this.logicSigDisassemly = dtr['logic-sig-disassembly'];
+    this.logicSigDisassembly = dtr['logic-sig-disassembly'];
     this.logs = dtr.logs;
     this.appCallTrace = new DryrunTrace(dtr['app-call-trace']);
     this.logicSigTrace = new DryrunTrace(dtr['logic-sig-trace']);
@@ -425,7 +425,7 @@ class DryrunTransactionResult {
   lsigTrace(spc?: StackPrinterConfig): string {
     if (
       this.logicSigTrace === undefined ||
-      this.logicSigDisassemly === undefined
+      this.logicSigDisassembly === undefined
     )
       return '';
 
@@ -438,7 +438,7 @@ class DryrunTransactionResult {
 
     return DryrunTransactionResult.trace(
       this.logicSigTrace,
-      this.logicSigDisassemly,
+      this.logicSigDisassembly,
       conf
     );
   }
