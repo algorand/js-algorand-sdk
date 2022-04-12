@@ -205,7 +205,7 @@ interface DryrunTraceLineResponse {
 }
 
 class DryrunTraceLine {
-  error: string = undefined;
+  error: string = '';
   line: number = 0;
   pc: number = 0;
   scratch: TealValue[] = [];
@@ -373,7 +373,7 @@ class DryrunTransactionResult {
           ? drt.trace[idx - 1].scratch
           : [];
 
-      const src = error === undefined ? disassembly[line] : `!! ${error} !!`;
+      const src = error === '' ? disassembly[line] : `!! ${error} !!`;
 
       lines.push([
         pc.toString().padEnd(3, ' '),
