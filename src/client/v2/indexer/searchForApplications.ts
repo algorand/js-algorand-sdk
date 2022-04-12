@@ -12,9 +12,9 @@ export default class SearchForApplications extends JSONRequest {
     return this;
   }
 
-  // creator for filter, as int
-  creator(index: number) {
-    this.query.creator = index;
+  // creator for filter, as string
+  creator(creator: string) {
+    this.query.creator = creator;
     return this;
   }
 
