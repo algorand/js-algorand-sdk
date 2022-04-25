@@ -124,7 +124,7 @@ commands:
           name: Install Dependencies
           command: |
             << parameters.sudo >> apt -y update
-            << parameters.sudo >> apt -y install curl make git build-essential jq unzip
+            << parameters.sudo >> apt -y install curl make git build-essential jq unzip google-chrome-stable
       - node/install:
           node-version: '12'
       - run:
