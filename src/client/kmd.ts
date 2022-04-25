@@ -42,7 +42,7 @@ export default class Kmd extends ServiceClient {
   async createWallet(
     walletName: string,
     walletPassword: string,
-    walletMDK = '',
+    walletMDK: Uint8Array = new Uint8Array(),
     walletDriverName = 'sqlite'
   ) {
     const req = {
