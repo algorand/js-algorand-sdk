@@ -170,7 +170,7 @@ export default class Kmd extends ServiceClient {
    * @param walletHandle
    * @param secretKey
    */
-  async importKey(walletHandle: string, secretKey: string) {
+  async importKey(walletHandle: string, secretKey: Uint8Array) {
     const req = {
       wallet_handle_token: walletHandle,
       private_key: Buffer.from(secretKey).toString('base64'),
