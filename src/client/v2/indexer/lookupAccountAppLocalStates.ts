@@ -3,6 +3,19 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 
 export default class LookupAccountAppLocalStates extends JSONRequest {
+  /**
+   * Returns application local state about the given account.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountAppLocalStates = await indexerClient.lookupAccountAppLocalStates(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idapps-local-state)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -12,6 +25,9 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
     this.account = account;
   }
 
+  /**
+   * @returns `/v2/accounts/${account}/apps-local-state`
+   */
   path() {
     return `/v2/accounts/${this.account}/apps-local-state`;
   }
@@ -30,6 +46,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    * ```
    *
    * @param limit - maximum number of results to return.
+   * @category query
    */
   limit(limit: number) {
     this.query.limit = limit;
@@ -49,6 +66,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    *        .do();
    * ```
    * @param round
+   * @category query
    */
   round(round: number) {
     this.query.round = round;
@@ -62,11 +80,16 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const maxResults = 20;
-   * const nextToken = "APA6C7C3NCANRPIBUWQOF7WSKLJMK6RPQUVFLLDV4U5WCQE4DEF26D4E3E";
-   * const accountAssets = await indexerClient
+   *
+   * const accountAssetsPage1 = await indexerClient
    *        .lookupAccountAppLocalStates(address)
    *        .limit(maxResults)
-   *        .next(nextToken)
+   *        .do();
+   *
+   * const accountAssetsPage2 = await indexerClient
+   *        .lookupAccountAppLocalStates(address)
+   *        .limit(maxResults)
+   *        .next(accountAssetsPage1["next-token"])
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
@@ -88,6 +111,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    *        .do();
    * ```
    * @param value
+   * @category query
    */
   includeAll(value = true) {
     this.query['include-all'] = value;
@@ -95,7 +119,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
   }
 
   /**
-   * Specify an applicationID to search for
+   * Specify an applicationID to search for.
    *
    * #### Example
    * ```typescript
@@ -107,6 +131,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    *        .do();
    * ```
    * @param index - the applicationID
+   * @category query
    */
   applicationID(index: number) {
     this.query['application-id'] = index;
