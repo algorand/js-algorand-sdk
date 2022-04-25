@@ -82,6 +82,7 @@ jobs:
           command: |
             export SUDO=sudo
             $SUDO apt update
+            if [ "<< parameters.browser >>" == "chrome" ]; then $SUDO apt -y install google-chrome-stable; else echo "skipping chrome install" ; fi
             $SUDO apt -y install ca-certificates curl gnupg lsb-release
             $SUDO curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
             $SUDO echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -123,7 +124,7 @@ commands:
       - run:
           name: Install Dependencies
           command: |
-            << parameters.sudo >> apt -y update && << parameters.sudo >> apt -y upgrade
+            << parameters.sudo >> apt -y update
             << parameters.sudo >> apt -y install curl make git build-essential jq unzip
       - node/install:
           node-version: '12'

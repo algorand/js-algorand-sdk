@@ -196,10 +196,10 @@ export default class IndexerClient extends ServiceClient {
    * #### Example
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
-   * const accountInfo = await indexerClient.lookupAccountAssets(address).do();
+   * const accountAssets = await indexerClient.lookupAccountAssets(address).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idassets)
    * @param account - The address of the account to look up.
    * @category GET
    */
@@ -213,10 +213,10 @@ export default class IndexerClient extends ServiceClient {
    * #### Example
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
-   * const accountInfo = await indexerClient.lookupAccountCreatedAssets(address).do();
+   * const accountCreatedAssets = await indexerClient.lookupAccountCreatedAssets(address).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idcreated-assets)
    * @param account - The address of the account to look up.
    * @category GET
    */
@@ -230,10 +230,10 @@ export default class IndexerClient extends ServiceClient {
    * #### Example
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
-   * const accountInfo = await indexerClient.lookupAccountAppLocalStates(address).do();
+   * const accountAppLocalStates = await indexerClient.lookupAccountAppLocalStates(address).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idapps-local-state)
    * @param account - The address of the account to look up.
    * @category GET
    */
@@ -247,10 +247,10 @@ export default class IndexerClient extends ServiceClient {
    * #### Example
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
-   * const accountInfo = await indexerClient.lookupAccountCreatedApplications(address).do();
+   * const accountCreatedApps = await indexerClient.lookupAccountCreatedApplications(address).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idcreated-applications)
    * @param account - The address of the account to look up.
    * @category GET
    */
