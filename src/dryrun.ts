@@ -80,7 +80,12 @@ export async function createDryrun({
       if (t.txn.appAccounts)
         accts.push(...t.txn.appAccounts.map((a) => encodeAddress(a.publicKey)));
 
-      if (t.txn.appForeignApps) apps.push(...t.txn.appForeignApps);
+      if (t.txn.appForeignApps) {
+        apps.push(...t.txn.appForeignApps);
+        accts.push(
+          ...t.txn.appForeignApps.map((aidx) => getApplicationAddress(aidx))
+        );
+      }
 
       if (t.txn.appForeignAssets) assets.push(...t.txn.appForeignAssets);
 
