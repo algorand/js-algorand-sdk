@@ -1,3 +1,15 @@
+# v1.15.0
+
+## Added
+
+- Support unlimited assets REST API changes. (#527)
+
+## Fixed
+
+- Fix app creation createDryrun error (#539)
+- Fix cucumber tests for asset lookup step (#540)
+- Fix searchForApplications filter by creator parameter type. (#546)
+
 # v1.15.0-beta.1
 
 ## Added

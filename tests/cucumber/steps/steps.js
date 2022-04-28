@@ -5265,6 +5265,22 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Given(
+    'a dryrun response file {string} and a transaction at index {string}',
+    async function (drrFile, txId) {
+      const drContents = await loadResource(drrFile);
+      const js = parseJSON(drContents);
+      const drr = new algosdk.DryrunResult(js);
+      this.txtrace = drr.txns[parseInt(txId)];
+    }
+  );
+
+  Then('calling app trace produces {string}', async function (expected) {
+    const traceString = this.txtrace.appTrace();
+    const expectedString = (await loadResource(expected)).toString();
+    assert.equal(traceString, expectedString);
+  });
+
   if (!options.ignoreReturn) {
     return steps;
   }

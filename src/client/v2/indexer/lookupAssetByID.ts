@@ -32,6 +32,7 @@ export default class LookupAssetByID extends JSONRequest {
    *
    * #### Example 1
    * ```typescript
+   * const assetId = 163650;
    * const assetInfo = await indexerClient
    *        .lookupAssetByID(assetId)
    *        .includeAll(false)
@@ -40,6 +41,7 @@ export default class LookupAssetByID extends JSONRequest {
    *
    * #### Example 2
    * ```typescript
+   * const assetId = 163650;
    * const assetInfo = await indexerClient
    *        .lookupAssetByID(assetId)
    *        .includeAll()
