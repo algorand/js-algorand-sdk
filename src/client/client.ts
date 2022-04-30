@@ -25,6 +25,7 @@ export interface HTTPClientResponse {
 function removeFalsyOrEmpty(obj: Record<string, any>) {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (key === 'currency-greater-than' && obj[key] === 0) continue;
       // eslint-disable-next-line no-param-reassign
       if (!obj[key] || obj[key].length === 0) delete obj[key];
     }
