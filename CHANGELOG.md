@@ -1,3 +1,15 @@
+# v1.16.0
+
+## Added
+
+- Dryrun stack printer
+- Document more Indexer methods
+
+## Fixed
+
+- Corrected type of KMD keys
+- Include foreign app addr in dryrun requests
+
 # v1.15.0
 
 ## Added
