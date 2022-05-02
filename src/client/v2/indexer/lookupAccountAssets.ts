@@ -3,6 +3,19 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 
 export default class LookupAccountAssets extends JSONRequest {
+  /**
+   * Returns asset about the given account.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountAssets = await indexerClient.lookupAccountAssets(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idassets)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -12,6 +25,9 @@ export default class LookupAccountAssets extends JSONRequest {
     this.account = account;
   }
 
+  /**
+   * @returns `/v2/accounts/${account}/assets`
+   */
   path() {
     return `/v2/accounts/${this.account}/assets`;
   }
@@ -30,6 +46,7 @@ export default class LookupAccountAssets extends JSONRequest {
    * ```
    *
    * @param limit - maximum number of results to return.
+   * @category query
    */
   limit(limit: number) {
     this.query.limit = limit;
@@ -49,6 +66,7 @@ export default class LookupAccountAssets extends JSONRequest {
    *        .do();
    * ```
    * @param round
+   * @category query
    */
   round(round: number) {
     this.query.round = round;
@@ -62,14 +80,20 @@ export default class LookupAccountAssets extends JSONRequest {
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const maxResults = 20;
-   * const nextToken = "APA6C7C3NCANRPIBUWQOF7WSKLJMK6RPQUVFLLDV4U5WCQE4DEF26D4E3E";
-   * const accountAssets = await indexerClient
+   *
+   * const accountAssetsPage1 = await indexerClient
    *        .lookupAccountAssets(address)
    *        .limit(maxResults)
-   *        .next(nextToken)
+   *        .do();
+   *
+   * const accountAssetsPage2 = await indexerClient
+   *        .lookupAccountAssets(address)
+   *        .limit(maxResults)
+   *        .next(accountAssetsPage1["next-token"])
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
+   * @category query
    */
   nextToken(nextToken: string) {
     this.query.next = nextToken;
@@ -88,6 +112,7 @@ export default class LookupAccountAssets extends JSONRequest {
    *        .do();
    * ```
    * @param value
+   * @category query
    */
   includeAll(value = true) {
     this.query['include-all'] = value;
@@ -107,6 +132,7 @@ export default class LookupAccountAssets extends JSONRequest {
    *        .do();
    * ```
    * @param index - the assetID
+   * @category query
    */
   assetId(index: number) {
     this.query['asset-id'] = index;

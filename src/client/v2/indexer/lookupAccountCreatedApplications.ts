@@ -3,6 +3,19 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 
 export default class LookupAccountCreatedApplications extends JSONRequest {
+  /**
+   * Returns application information created by the given account.
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountCreatedApps = await indexerClient.lookupAccountCreatedApplications(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idcreated-applications)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -12,6 +25,9 @@ export default class LookupAccountCreatedApplications extends JSONRequest {
     this.account = account;
   }
 
+  /**
+   * @returns `/v2/accounts/${account}/created-applications`
+   */
   path() {
     return `/v2/accounts/${this.account}/created-applications`;
   }
@@ -30,6 +46,7 @@ export default class LookupAccountCreatedApplications extends JSONRequest {
    * ```
    *
    * @param limit - maximum number of results to return.
+   * @category query
    */
   limit(limit: number) {
     this.query.limit = limit;
@@ -49,6 +66,7 @@ export default class LookupAccountCreatedApplications extends JSONRequest {
    *        .do();
    * ```
    * @param round
+   * @category query
    */
   round(round: number) {
     this.query.round = round;
@@ -62,14 +80,20 @@ export default class LookupAccountCreatedApplications extends JSONRequest {
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const maxResults = 20;
-   * const nextToken = "APA6C7C3NCANRPIBUWQOF7WSKLJMK6RPQUVFLLDV4U5WCQE4DEF26D4E3E";
-   * const accountAssets = await indexerClient
+   *
+   * const accountAssetsPage1 = await indexerClient
    *        .lookupAccountCreatedApplications(address)
    *        .limit(maxResults)
-   *        .next(nextToken)
+   *        .do();
+   *
+   * const accountAssetsPage2 = await indexerClient
+   *        .lookupAccountCreatedApplications(address)
+   *        .limit(maxResults)
+   *        .next(accountAssetsPage1["next-token"])
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
+   * @category query
    */
   nextToken(nextToken: string) {
     this.query.next = nextToken;
@@ -88,6 +112,7 @@ export default class LookupAccountCreatedApplications extends JSONRequest {
    *        .do();
    * ```
    * @param value
+   * @category query
    */
   includeAll(value = true) {
     this.query['include-all'] = value;
@@ -95,7 +120,7 @@ export default class LookupAccountCreatedApplications extends JSONRequest {
   }
 
   /**
-   * Specify an applicationID to search for
+   * Specify an applicationID to search for.
    *
    * #### Example
    * ```typescript
@@ -107,6 +132,7 @@ export default class LookupAccountCreatedApplications extends JSONRequest {
    *        .do();
    * ```
    * @param index - the applicationID
+   * @category query
    */
   applicationID(index: number) {
     this.query['application-id'] = index;
