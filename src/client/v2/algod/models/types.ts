@@ -1163,6 +1163,29 @@ export class CompileResponse extends BaseModel {
 }
 
 /**
+ * Teal disassembly Result
+ */
+export class DisassembleResponse extends BaseModel {
+  /**
+   * disassembled Teal code
+   */
+  public result: string;
+
+  /**
+   * Creates a new `DisassembleResponse` object.
+   * @param result - disassembled Teal code
+   */
+  constructor(result: string) {
+    super();
+    this.result = result;
+
+    this.attribute_map = {
+      result: 'result',
+    };
+  }
+}
+
+/**
  * Request data type for dryrun endpoint. Given the Transactions and simulated
  * ledger state upload, run TEAL scripts and return debugging information.
  */
@@ -1401,9 +1424,14 @@ export class DryrunTxnResult extends BaseModel {
   public appCallTrace?: DryrunState[];
 
   /**
-   * Execution cost of app call transaction
+   * Budget consumed during execution of app call transaction.
    */
-  public cost?: number | bigint;
+  public budgetCredit?: number | bigint;
+
+  /**
+   * Budget added during execution of app call transaction.
+   */
+  public budgetDebit?: number | bigint;
 
   /**
    * Application state delta.
@@ -1428,7 +1456,8 @@ export class DryrunTxnResult extends BaseModel {
    * @param disassembly - Disassembled program line by line.
    * @param appCallMessages -
    * @param appCallTrace -
-   * @param cost - Execution cost of app call transaction
+   * @param budgetCredit - Budget consumed during execution of app call transaction.
+   * @param budgetDebit - Budget added during execution of app call transaction.
    * @param globalDelta - Application state delta.
    * @param localDeltas -
    * @param logicSigDisassembly - Disassembled lsig program line by line.
@@ -1440,7 +1469,8 @@ export class DryrunTxnResult extends BaseModel {
     disassembly,
     appCallMessages,
     appCallTrace,
-    cost,
+    budgetCredit,
+    budgetDebit,
     globalDelta,
     localDeltas,
     logicSigDisassembly,
@@ -1451,7 +1481,8 @@ export class DryrunTxnResult extends BaseModel {
     disassembly: string[];
     appCallMessages?: string[];
     appCallTrace?: DryrunState[];
-    cost?: number | bigint;
+    budgetCredit?: number | bigint;
+    budgetDebit?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigDisassembly?: string[];
@@ -1463,7 +1494,8 @@ export class DryrunTxnResult extends BaseModel {
     this.disassembly = disassembly;
     this.appCallMessages = appCallMessages;
     this.appCallTrace = appCallTrace;
-    this.cost = cost;
+    this.budgetCredit = budgetCredit;
+    this.budgetDebit = budgetDebit;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigDisassembly = logicSigDisassembly;
@@ -1475,7 +1507,8 @@ export class DryrunTxnResult extends BaseModel {
       disassembly: 'disassembly',
       appCallMessages: 'app-call-messages',
       appCallTrace: 'app-call-trace',
-      cost: 'cost',
+      budgetCredit: 'budget-credit',
+      budgetDebit: 'budget-debit',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',
       logicSigDisassembly: 'logic-sig-disassembly',
@@ -2011,8 +2044,8 @@ export class ProofResponse extends BaseModel {
 
   /**
    * The type of hash function used to create the proof, must be one of:
-   * * sumhash
    * * sha512_256
+   * * sha256
    */
   public hashtype?: string;
 
@@ -2024,8 +2057,8 @@ export class ProofResponse extends BaseModel {
    * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
    * from a leaf to the root.
    * @param hashtype - The type of hash function used to create the proof, must be one of:
-   * * sumhash
    * * sha512_256
+   * * sha256
    */
   constructor({
     idx,
