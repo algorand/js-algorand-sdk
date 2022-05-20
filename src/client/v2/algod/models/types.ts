@@ -1146,17 +1146,48 @@ export class CompileResponse extends BaseModel {
   public result: string;
 
   /**
+   * JSON of the source map
+   */
+  public sourcemap?: Record<string, any>;
+
+  /**
    * Creates a new `CompileResponse` object.
    * @param hash - base32 SHA512_256 of program bytes (Address style)
    * @param result - base64 encoded program bytes
+   * @param sourcemap - JSON of the source map
    */
-  constructor(hash: string, result: string) {
+  constructor(hash: string, result: string, sourcemap?: Record<string, any>) {
     super();
     this.hash = hash;
     this.result = result;
+    this.sourcemap = sourcemap;
 
     this.attribute_map = {
       hash: 'hash',
+      result: 'result',
+      sourcemap: 'sourcemap',
+    };
+  }
+}
+
+/**
+ * Teal disassembly Result
+ */
+export class DisassembleResponse extends BaseModel {
+  /**
+   * disassembled Teal code
+   */
+  public result: string;
+
+  /**
+   * Creates a new `DisassembleResponse` object.
+   * @param result - disassembled Teal code
+   */
+  constructor(result: string) {
+    super();
+    this.result = result;
+
+    this.attribute_map = {
       result: 'result',
     };
   }
@@ -2011,8 +2042,8 @@ export class ProofResponse extends BaseModel {
 
   /**
    * The type of hash function used to create the proof, must be one of:
-   * * sumhash
    * * sha512_256
+   * * sha256
    */
   public hashtype?: string;
 
@@ -2024,8 +2055,8 @@ export class ProofResponse extends BaseModel {
    * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
    * from a leaf to the root.
    * @param hashtype - The type of hash function used to create the proof, must be one of:
-   * * sumhash
    * * sha512_256
+   * * sha256
    */
   constructor({
     idx,
