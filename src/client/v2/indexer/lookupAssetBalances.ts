@@ -64,7 +64,8 @@ export default class LookupAssetBalances extends JSONRequest {
    * @category query
    */
   currencyGreaterThan(greater: number) {
-    this.query['currency-greater-than'] = greater;
+    if (greater === 0) this.query['currency-greater-than'] = '0';
+    else this.query['currency-greater-than'] = greater;
     return this;
   }
 
