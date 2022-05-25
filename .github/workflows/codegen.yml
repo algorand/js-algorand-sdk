@@ -1,0 +1,19 @@
+name: "SDK Code Generation"
+on:
+  schedule:
+    - cron: '20 23 * * *'
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  generate_and_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Generate and PR
+        uses: algorand/generator/.github/actions/sdk-codegen/
+        with:
+          args: "-k JS"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
