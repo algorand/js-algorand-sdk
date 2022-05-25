@@ -1194,29 +1194,6 @@ export class DisassembleResponse extends BaseModel {
 }
 
 /**
- * Teal disassembly Result
- */
-export class DisassembleResponse extends BaseModel {
-  /**
-   * disassembled Teal code
-   */
-  public result: string;
-
-  /**
-   * Creates a new `DisassembleResponse` object.
-   * @param result - disassembled Teal code
-   */
-  constructor(result: string) {
-    super();
-    this.result = result;
-
-    this.attribute_map = {
-      result: 'result',
-    };
-  }
-}
-
-/**
  * Request data type for dryrun endpoint. Given the Transactions and simulated
  * ledger state upload, run TEAL scripts and return debugging information.
  */
@@ -1455,14 +1432,20 @@ export class DryrunTxnResult extends BaseModel {
   public appCallTrace?: DryrunState[];
 
   /**
-   * Budget consumed during execution of app call transaction.
-   */
-  public budgetCredit?: number | bigint;
-
-  /**
    * Budget added during execution of app call transaction.
    */
-  public budgetDebit?: number | bigint;
+  public budgetAdded?: number | bigint;
+
+  /**
+   * Budget consumed during execution of app call transaction.
+   */
+  public budgetConsumed?: number | bigint;
+
+  /**
+   * Net cost of app execution. Field is DEPRECATED and is subject for removal.
+   * Instead, use `budget-added` and `budget-consumed.
+   */
+  public cost?: number | bigint;
 
   /**
    * Application state delta.
@@ -1487,8 +1470,10 @@ export class DryrunTxnResult extends BaseModel {
    * @param disassembly - Disassembled program line by line.
    * @param appCallMessages -
    * @param appCallTrace -
-   * @param budgetCredit - Budget consumed during execution of app call transaction.
-   * @param budgetDebit - Budget added during execution of app call transaction.
+   * @param budgetAdded - Budget added during execution of app call transaction.
+   * @param budgetConsumed - Budget consumed during execution of app call transaction.
+   * @param cost - Net cost of app execution. Field is DEPRECATED and is subject for removal.
+   * Instead, use `budget-added` and `budget-consumed.
    * @param globalDelta - Application state delta.
    * @param localDeltas -
    * @param logicSigDisassembly - Disassembled lsig program line by line.
@@ -1500,8 +1485,9 @@ export class DryrunTxnResult extends BaseModel {
     disassembly,
     appCallMessages,
     appCallTrace,
-    budgetCredit,
-    budgetDebit,
+    budgetAdded,
+    budgetConsumed,
+    cost,
     globalDelta,
     localDeltas,
     logicSigDisassembly,
@@ -1512,8 +1498,9 @@ export class DryrunTxnResult extends BaseModel {
     disassembly: string[];
     appCallMessages?: string[];
     appCallTrace?: DryrunState[];
-    budgetCredit?: number | bigint;
-    budgetDebit?: number | bigint;
+    budgetAdded?: number | bigint;
+    budgetConsumed?: number | bigint;
+    cost?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigDisassembly?: string[];
@@ -1525,8 +1512,9 @@ export class DryrunTxnResult extends BaseModel {
     this.disassembly = disassembly;
     this.appCallMessages = appCallMessages;
     this.appCallTrace = appCallTrace;
-    this.budgetCredit = budgetCredit;
-    this.budgetDebit = budgetDebit;
+    this.budgetAdded = budgetAdded;
+    this.budgetConsumed = budgetConsumed;
+    this.cost = cost;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigDisassembly = logicSigDisassembly;
@@ -1538,8 +1526,9 @@ export class DryrunTxnResult extends BaseModel {
       disassembly: 'disassembly',
       appCallMessages: 'app-call-messages',
       appCallTrace: 'app-call-trace',
-      budgetCredit: 'budget-credit',
-      budgetDebit: 'budget-debit',
+      budgetAdded: 'budget-added',
+      budgetConsumed: 'budget-consumed',
+      cost: 'cost',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',
       logicSigDisassembly: 'logic-sig-disassembly',
