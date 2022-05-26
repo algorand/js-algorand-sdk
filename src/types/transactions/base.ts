@@ -126,6 +126,21 @@ export interface SuggestedParams {
 }
 
 /**
+ * A grouping of the app ID and name of the box in an Uint8Array
+ */
+export interface BoxReference {
+  /**
+   * A unique application index
+   */
+  appIndex: number;
+
+  /**
+   * Name of box to reference
+   */
+  name: Uint8Array;
+}
+
+/**
  * A full list of all available transaction parameters
  *
  * The full documentation is available at:
@@ -385,4 +400,9 @@ export interface TransactionParams {
    * Int representing extra pages of memory to rent during an application create transaction.
    */
   extraPages?: number;
+
+  /**
+   * A grouping of the app ID and name of the box in an Uint8Array
+   */
+  boxes?: BoxReference;
 }

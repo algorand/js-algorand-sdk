@@ -1104,6 +1104,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param extraPages - integer extra pages of memory to rent on creation of application
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationCreateTxn(
   from: AppCreateTxn['from'],

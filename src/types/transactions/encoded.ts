@@ -2,6 +2,8 @@
  * Interfaces for the encoded transaction object. Every property is labelled with its associated Transaction type property
  */
 
+import { BoxReference } from './base';
+
 export interface EncodedAssetParams {
   /**
    * assetTotal
@@ -296,6 +298,11 @@ export interface EncodedTransaction {
    * extraPages
    */
   apep?: number;
+
+  /**
+   * boxes
+   */
+  apbx?: BoxReference;
 }
 
 export interface EncodedSubsig {
