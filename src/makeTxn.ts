@@ -1123,7 +1123,8 @@ export function makeApplicationCreateTxn(
   note?: AppCreateTxn['note'],
   lease?: AppCreateTxn['lease'],
   rekeyTo?: AppCreateTxn['reKeyTo'],
-  extraPages?: AppCreateTxn['extraPages']
+  extraPages?: AppCreateTxn['extraPages'],
+  boxes?: AppCreateTxn['boxes']
 ) {
   const o: AppCreateTxn = {
     type: TransactionType.appl,
@@ -1145,6 +1146,7 @@ export function makeApplicationCreateTxn(
     lease,
     reKeyTo: rekeyTo,
     extraPages,
+    boxes,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1186,6 +1188,7 @@ export function makeApplicationCreateTxnFromObject(
       | 'lease'
       | 'rekeyTo'
       | 'extraPages'
+      | 'boxes'
     >
   >
 ) {
@@ -1206,7 +1209,8 @@ export function makeApplicationCreateTxnFromObject(
     o.note,
     o.lease,
     o.rekeyTo,
-    o.extraPages
+    o.extraPages,
+    o.boxes
   );
 }
 
@@ -1786,6 +1790,7 @@ export function makeApplicationCallTxnFromObject(
       | 'lease'
       | 'rekeyTo'
       | 'extraPages'
+      | 'boxes'
     > &
       Partial<
         Pick<
@@ -1830,6 +1835,7 @@ export function makeApplicationCallTxnFromObject(
     lease: options.lease,
     reKeyTo: options.rekeyTo,
     extraPages: options.extraPages,
+    boxes: options.boxes,
   };
   return new txnBuilder.Transaction(o);
 }

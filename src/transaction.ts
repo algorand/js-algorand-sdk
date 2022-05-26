@@ -8,6 +8,7 @@ import {
   TransactionParams,
   TransactionType,
   isTransactionType,
+  BoxReference,
 } from './types/transactions/base';
 import AnyTransaction, {
   MustHaveSuggestedParams,
@@ -110,6 +111,7 @@ interface TransactionStorageStructure
   nonParticipation?: boolean;
   group?: Buffer;
   extraPages?: number;
+  boxes?: BoxReference;
 }
 
 function getKeyregKey(
@@ -198,6 +200,7 @@ export class Transaction implements TransactionStorageStructure {
   nonParticipation?: boolean;
   group?: Buffer;
   extraPages?: number;
+  boxes?: BoxReference;
 
   constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
@@ -783,6 +786,10 @@ export class Transaction implements TransactionStorageStructure {
         apfa: this.appForeignApps,
         apas: this.appForeignAssets,
         apep: this.extraPages,
+        apbx: {
+          i: this.boxes.appIndex,
+          n: this.boxes.name,
+        },
       };
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -992,6 +999,12 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (txnForEnc.apas !== undefined) {
         txn.appForeignAssets = txnForEnc.apas;
+      }
+      if (txnForEnc.apbx !== undefined) {
+        txn.boxes = {
+          appIndex: txnForEnc.apbx.i,
+          name: txnForEnc.apbx.n,
+        };
       }
     }
     return txn;
