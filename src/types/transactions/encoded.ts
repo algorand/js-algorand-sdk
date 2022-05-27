@@ -312,7 +312,7 @@ export interface EncodedTransaction {
   /**
    * boxes
    */
-  apbx?: EncodedBoxReference;
+  apbx?: EncodedBoxReference[];
 }
 
 export interface EncodedSubsig {

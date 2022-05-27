@@ -111,7 +111,7 @@ interface TransactionStorageStructure
   nonParticipation?: boolean;
   group?: Buffer;
   extraPages?: number;
-  boxes?: BoxReference;
+  boxes?: BoxReference[];
 }
 
 function getKeyregKey(
@@ -200,7 +200,7 @@ export class Transaction implements TransactionStorageStructure {
   nonParticipation?: boolean;
   group?: Buffer;
   extraPages?: number;
-  boxes?: BoxReference;
+  boxes?: BoxReference[];
 
   constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
@@ -417,6 +417,20 @@ export class Transaction implements TransactionStorageStructure {
             'each foreign asset index must be a positive number and smaller than 2^53-1'
           );
       });
+    }
+    if (txn.boxes !== undefined) {
+      if (!Array.isArray(txn.boxes))
+        throw Error('boxes must be an Array of BoxReference.');
+      txn.boxes = txn.boxes.slice();
+      txn.boxes.forEach((box) => {
+        if (
+          !Number.isSafeInteger(box.appIndex) ||
+          box.name.constructor !== Uint8Array
+        )
+          throw Error('each element of boxes must be a Uint8Array.');
+      });
+    } else {
+      txn.boxes = [];
     }
     if (
       txn.assetMetadataHash !== undefined &&
@@ -786,10 +800,10 @@ export class Transaction implements TransactionStorageStructure {
         apfa: this.appForeignApps,
         apas: this.appForeignAssets,
         apep: this.extraPages,
-        apbx: {
-          i: this.boxes.appIndex,
-          n: this.boxes.name,
-        },
+        apbx: this.boxes.map((bx) => ({
+          i: bx.appIndex,
+          n: bx.name,
+        })),
       };
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -1001,10 +1015,10 @@ export class Transaction implements TransactionStorageStructure {
         txn.appForeignAssets = txnForEnc.apas;
       }
       if (txnForEnc.apbx !== undefined) {
-        txn.boxes = {
-          appIndex: txnForEnc.apbx.i,
-          name: txnForEnc.apbx.n,
-        };
+        txn.boxes = txnForEnc.apbx.map((box) => ({
+          appIndex: box.i,
+          name: box.n,
+        }));
       }
     }
     return txn;

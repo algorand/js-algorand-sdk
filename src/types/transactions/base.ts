@@ -404,5 +404,5 @@ export interface TransactionParams {
   /**
    * A grouping of the app ID and name of the box in an Uint8Array
    */
-  boxes?: BoxReference;
+  boxes?: BoxReference[];
 }

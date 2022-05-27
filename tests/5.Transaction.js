@@ -35,6 +35,7 @@ describe('Sign', () => {
     ];
     const appForeignApps = [17, 200];
     const appForeignAssets = [7, 8, 9];
+    const boxes = [{ appIndex: 0, name: Uint8Array.from([0]) }];
     const o = {
       from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
@@ -48,6 +49,7 @@ describe('Sign', () => {
       appAccounts,
       appForeignApps,
       appForeignAssets,
+      boxes,
     };
     const txn = new algosdk.Transaction(o);
     assert.deepStrictEqual(appArgs, [
@@ -527,6 +529,7 @@ describe('Sign', () => {
         extraPages: 2,
         foreignApps: [3, 4],
         foreignAssets: [5, 6],
+        boxes: [{ appIndex: 0, name: Uint8Array.from([0]) }],
         lease: Uint8Array.from(new Array(32).fill(7)),
         note: new Uint8Array(Buffer.from('note value')),
         rekeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
