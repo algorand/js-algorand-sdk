@@ -4021,8 +4021,28 @@ module.exports = function getSteps(options) {
     return appArgs;
   }
 
+  function splitAndProcessBoxReferences(boxRefs) {
+    const splitRefs = boxRefs.split(',');
+    const boxRefArray = [];
+    let appIndex = 0;
+
+    for (let i = 0; i < splitRefs.length; i++) {
+      if (i % 2 === 0) {
+        appIndex = splitRefs[i];
+      } else {
+        boxRefArray.push(
+          algosdk.BoxReference(
+            appIndex,
+            makeUint8Array(Buffer.from(splitRefs[1]))
+          )
+        );
+      }
+    }
+    return boxRefArray;
+  }
+
   When(
-    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}, extra-pages {int}',
+    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}, extra-pages {int}, boxes {string}',
     async function (
       operationString,
       appIndex,
@@ -4041,7 +4061,8 @@ module.exports = function getSteps(options) {
       firstValid,
       lastValid,
       genesisHashBase64,
-      extraPages
+      extraPages,
+      boxesCommaSeparatedString
     ) {
       // operation string to enum
       const operation = operationStringToEnum(operationString);
@@ -4091,6 +4112,11 @@ module.exports = function getSteps(options) {
       if (appAccountsCommaSeparatedString !== '') {
         appAccounts = appAccountsCommaSeparatedString.split(',');
       }
+      // split and process box references
+      let boxes;
+      if (boxesCommaSeparatedString !== '') {
+        boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
+      }
       // build suggested params object
       const sp = {
         genesisHash: genesisHashBase64,
@@ -4109,7 +4135,8 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            boxes
           );
           return;
         case 'create':
@@ -4127,6 +4154,7 @@ module.exports = function getSteps(options) {
             appAccounts,
             foreignApps,
             foreignAssets,
+            boxes,
             undefined,
             undefined,
             undefined,
@@ -4143,7 +4171,8 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            boxes
           );
           return;
         case 'optin':
@@ -4154,7 +4183,8 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            boxes
           );
           return;
         case 'delete':
@@ -4165,7 +4195,8 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            boxes
           );
           return;
         case 'clear':
@@ -4176,7 +4207,8 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            boxes
           );
           return;
         case 'closeout':
@@ -4187,7 +4219,8 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            boxes
           );
           return;
         default:
@@ -4263,7 +4296,7 @@ module.exports = function getSteps(options) {
   );
 
   Given(
-    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, extra-pages {int}',
+    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, extra-pages {int}, boxes {string}',
     async function (
       operationString,
       approvalProgramFile,
@@ -4276,7 +4309,8 @@ module.exports = function getSteps(options) {
       foreignAppsCommaSeparatedString,
       foreignAssetsCommaSeparatedString,
       appAccountsCommaSeparatedString,
-      extraPages
+      extraPages,
+      boxesCommaSeparatedString
     ) {
       if (operationString === 'create') {
         this.currentApplicationIndex = 0;
@@ -4330,6 +4364,11 @@ module.exports = function getSteps(options) {
       if (appAccountsCommaSeparatedString !== '') {
         appAccounts = appAccountsCommaSeparatedString.split(',');
       }
+      // split and process box references
+      let boxes;
+      if (boxesCommaSeparatedString !== '') {
+        boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
+      }
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const o = {
@@ -4348,6 +4387,7 @@ module.exports = function getSteps(options) {
         appAccounts,
         appForeignApps: foreignApps,
         appForeignAssets: foreignAssets,
+        boxes,
         extraPages,
       };
       this.txn = new algosdk.Transaction(o);
