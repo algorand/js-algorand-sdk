@@ -1,5 +1,6 @@
 const assert = require('assert');
 const algosdk = require('../index');
+const { translateBoxReferences } = require('../src/boxStorage');
 const group = require('../src/group');
 
 describe('Sign', () => {
@@ -66,6 +67,7 @@ describe('Sign', () => {
     assert.ok(txn.appAccounts !== appAccounts);
     assert.ok(txn.appForeignApps !== appForeignApps);
     assert.ok(txn.appForeignAssets !== appForeignAssets);
+    assert.ok(txn.boxes !== boxes);
   });
 
   it('should not complain on a missing note', () => {
@@ -1517,6 +1519,58 @@ describe('Sign', () => {
       const txgroup = algosdk.assignGroupID(txns);
 
       assert.deepStrictEqual(txgroup[0].group, txgroup[1].group);
+    });
+    it('should be able to translate box references to encoded references', () => {
+      const testCases = [
+        [
+          [{ appIndex: 100, name: [0, 1, 2, 3] }],
+          [100],
+          9999,
+          [{ i: 1, n: [0, 1, 2, 3] }],
+        ],
+        [
+          [
+            { appIndex: 0, name: [0, 1, 2, 3] },
+            { appIndex: 9999, name: [4, 5, 6, 7] },
+          ],
+          [100],
+          9999,
+          [
+            { i: 0, n: [0, 1, 2, 3] },
+            { i: 0, n: [4, 5, 6, 7] },
+          ],
+        ],
+        [
+          [{ appIndex: 100, name: [0, 1, 2, 3] }],
+          [100],
+          100,
+          [{ i: 1, n: [0, 1, 2, 3] }],
+        ],
+        [
+          [
+            { appIndex: 7777, name: [0, 1, 2, 3] },
+            { appIndex: 8888, name: [4, 5, 6, 7] },
+          ],
+          [100, 7777, 8888, 9999],
+          9999,
+          [
+            { i: 2, n: [0, 1, 2, 3] },
+            { i: 3, n: [4, 5, 6, 7] },
+          ],
+        ],
+      ];
+      for (const testCase of testCases) {
+        const expected = testCase[3];
+        const actual = translateBoxReferences(
+          testCase[0],
+          testCase[1],
+          testCase[2]
+        );
+        assert.deepStrictEqual(expected.length, actual.length);
+        for (let i = 0; i < expected.length; i++) {
+          assert.deepStrictEqual(expected[i], actual[i]);
+        }
+      }
     });
   });
 });

@@ -85,12 +85,12 @@ export interface EncodedGlobalStateSchema {
 
 export interface EncodedBoxReference {
   /**
-   * appIndex
+   * index of the app ID in the foreign apps array
    */
   i: number;
 
   /**
-   * name
+   * box name
    */
   n: Uint8Array;
 }

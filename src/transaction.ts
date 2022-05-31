@@ -19,6 +19,7 @@ import AnyTransaction, {
   EncodedLogicSig,
 } from './types/transactions';
 import { Address } from './types/address';
+import { translateBoxReferences } from './boxStorage';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 export const ALGORAND_MIN_TX_FEE = 1000; // version v5
@@ -800,10 +801,11 @@ export class Transaction implements TransactionStorageStructure {
         apfa: this.appForeignApps,
         apas: this.appForeignAssets,
         apep: this.extraPages,
-        apbx: this.boxes.map((bx) => ({
-          i: bx.appIndex,
-          n: bx.name,
-        })),
+        apbx: translateBoxReferences(
+          this.boxes,
+          this.appForeignApps,
+          this.appIndex
+        ),
       };
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -1016,7 +1018,11 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (txnForEnc.apbx !== undefined) {
         txn.boxes = txnForEnc.apbx.map((box) => ({
-          appIndex: box.i,
+          // Translate foreign app index to app ID
+          appIndex:
+            box.i !== 0 || box.i !== txn.appIndex
+              ? txn.appForeignApps[box.i - 1]
+              : txn.appIndex,
           name: box.n,
         }));
       }
