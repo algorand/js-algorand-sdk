@@ -12,7 +12,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
       - name: Generate and PR
-        uses: algorand/generator/.github/actions/sdk-codegen/
+        uses: algorand/generator/.github/actions/sdk-codegen/@master
         with:
           args: "-k JS"
         env:
