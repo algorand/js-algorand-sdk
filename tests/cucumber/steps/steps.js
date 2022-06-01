@@ -4028,14 +4028,12 @@ module.exports = function getSteps(options) {
 
     for (let i = 0; i < splitRefs.length; i++) {
       if (i % 2 === 0) {
-        appIndex = splitRefs[i];
+        appIndex = parseInt(splitRefs[i]);
       } else {
-        boxRefArray.push(
-          algosdk.BoxReference(
-            appIndex,
-            makeUint8Array(Buffer.from(splitRefs[1]))
-          )
-        );
+        boxRefArray.push({
+          appIndex,
+          name: makeUint8Array(Buffer.from(splitRefs[i])),
+        });
       }
     }
     return boxRefArray;

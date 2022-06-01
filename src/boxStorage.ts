@@ -15,9 +15,7 @@ function translateBoxReference(
     if (referenceId === 0 || referenceId === appIndex) {
       index = 0;
     } else {
-      throw new Error(
-        `Box ref with appId ${referenceId} not in foreign-apps ${appIndex}`
-      );
+      throw new Error(`Box ref with appId ${referenceId} not in foreign-apps`);
     }
   }
   return { i: index, n: referenceName };

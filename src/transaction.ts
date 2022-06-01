@@ -428,7 +428,9 @@ export class Transaction implements TransactionStorageStructure {
           !Number.isSafeInteger(box.appIndex) ||
           box.name.constructor !== Uint8Array
         )
-          throw Error('each element of boxes must be a Uint8Array.');
+          throw Error(
+            'box app index must be a number and name must be an Uint8Array.'
+          );
       });
     } else {
       txn.boxes = [];
@@ -844,6 +846,11 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.apan) delete txn.apan;
       if (!txn.apfa || !txn.apfa.length) delete txn.apfa;
       if (!txn.apas || !txn.apas.length) delete txn.apas;
+      for (const box of txn.apbx) {
+        if (!box.i) delete box.i;
+        if (!box.n) delete box.n;
+      }
+      if (!txn.apbx || !txn.apbx.length) delete txn.apbx;
       if (!txn.apat || !txn.apat.length) delete txn.apat;
       if (!txn.apep) delete txn.apep;
       if (txn.grp === undefined) delete txn.grp;
