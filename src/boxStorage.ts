@@ -11,7 +11,6 @@ function translateBoxReference(
   let index = foreignApps.indexOf(referenceId) + 1;
   if (index === 0) {
     // Check if the app referenced is itself after checking the foreign apps array
-
     if (referenceId === 0 || referenceId === appIndex) {
       index = 0;
     } else {
@@ -30,6 +29,7 @@ export function translateBoxReferences(
   foreignApps: number[],
   appIndex: number
 ) {
+  if (!references) return [];
   return references.map((bx) =>
     translateBoxReference(bx, foreignApps, appIndex)
   );

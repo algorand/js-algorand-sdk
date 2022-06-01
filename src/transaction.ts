@@ -195,13 +195,13 @@ export class Transaction implements TransactionStorageStructure {
   appAccounts?: Address[];
   appForeignApps?: number[];
   appForeignAssets?: number[];
+  boxes?: BoxReference[];
   type?: TransactionType;
   flatFee: boolean;
   reKeyTo?: Address;
   nonParticipation?: boolean;
   group?: Buffer;
   extraPages?: number;
-  boxes?: BoxReference[];
 
   constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
@@ -432,8 +432,6 @@ export class Transaction implements TransactionStorageStructure {
             'box app index must be a number and name must be an Uint8Array.'
           );
       });
-    } else {
-      txn.boxes = [];
     }
     if (
       txn.assetMetadataHash !== undefined &&

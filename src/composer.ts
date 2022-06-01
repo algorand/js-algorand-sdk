@@ -317,6 +317,8 @@ export class AtomicTransactionComposer {
     const refArgTypes: ABIReferenceType[] = [];
     const refArgValues: ABIValue[] = [];
     const refArgIndexToBasicArgIndex: Map<number, number> = new Map();
+    // TODO: Box encoding for ABI
+    const boxReferences: BoxReference[] = !boxes ? [] : boxes;
 
     for (let i = 0; i < methodArgs.length; i++) {
       let argType = method.args[i].type;
@@ -437,6 +439,7 @@ export class AtomicTransactionComposer {
         accounts: foreignAccounts,
         foreignApps,
         foreignAssets,
+        boxes: boxReferences,
         onComplete:
           onComplete == null ? OnApplicationComplete.NoOpOC : onComplete,
         approvalProgram,
@@ -446,7 +449,6 @@ export class AtomicTransactionComposer {
         numLocalInts,
         numLocalByteSlices,
         extraPages,
-        boxes,
         lease,
         note,
         rekeyTo,

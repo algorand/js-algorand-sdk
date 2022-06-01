@@ -1821,7 +1821,6 @@ export function makeApplicationCallTxnFromObject(
       | 'lease'
       | 'rekeyTo'
       | 'extraPages'
-      | 'boxes'
     > &
       Partial<
         Pick<
