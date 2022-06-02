@@ -3993,6 +3993,21 @@ module.exports = function getSteps(options) {
     return makeUint8Array(data);
   }
 
+  function processAppArgs(subArg) {
+    switch (subArg[0]) {
+      case 'str':
+        return makeUint8Array(Buffer.from(subArg[1]));
+      case 'int':
+        return makeUint8Array([parseInt(subArg[1])]);
+      case 'addr':
+        return algosdk.decodeAddress(subArg[1]).publicKey;
+      case 'b64':
+        return makeUint8Array(Buffer.from(subArg[1], 'base64'));
+      default:
+        throw Error(`did not recognize app arg of type${subArg[0]}`);
+    }
+  }
+
   function splitAndProcessAppArgs(inArgs) {
     const splitArgs = inArgs.split(',');
     const subArgs = [];
@@ -4001,22 +4016,7 @@ module.exports = function getSteps(options) {
     });
     const appArgs = [];
     subArgs.forEach((subArg) => {
-      switch (subArg[0]) {
-        case 'str':
-          appArgs.push(makeUint8Array(Buffer.from(subArg[1])));
-          break;
-        case 'int':
-          appArgs.push(makeUint8Array([parseInt(subArg[1])]));
-          break;
-        case 'addr':
-          appArgs.push(algosdk.decodeAddress(subArg[1]).publicKey);
-          break;
-        case 'b64':
-          appArgs.push(Buffer.from(subArg[1], 'base64'));
-          break;
-        default:
-          throw Error(`did not recognize app arg of type${subArg[0]}`);
-      }
+      appArgs.push(processAppArgs(subArg));
     });
     return appArgs;
   }
@@ -4030,9 +4030,10 @@ module.exports = function getSteps(options) {
       if (i % 2 === 0) {
         appIndex = parseInt(splitRefs[i]);
       } else {
+        const refArg = splitRefs[i].split(':');
         boxRefArray.push({
           appIndex,
-          name: makeUint8Array(Buffer.from(splitRefs[i])),
+          name: processAppArgs(refArg),
         });
       }
     }
