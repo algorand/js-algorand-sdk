@@ -289,7 +289,7 @@ export default class Kmd extends ServiceClient {
     walletHandle: string,
     walletPassword: string,
     transaction: txn.TransactionLike,
-    publicKey: string
+    publicKey: Uint8Array | string
   ) {
     const tx = txn.instantiateTxnIfNeeded(transaction);
 
@@ -384,7 +384,7 @@ export default class Kmd extends ServiceClient {
     walletHandle: string,
     pw: string,
     transaction: txn.TransactionLike,
-    pk: string,
+    pk: Uint8Array | string,
     partial: string
   ) {
     const tx = txn.instantiateTxnIfNeeded(transaction);
