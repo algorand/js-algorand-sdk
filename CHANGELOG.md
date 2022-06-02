@@ -1,3 +1,24 @@
+# v1.17.0
+
+## What's Changed
+
+- Dryrun stack printer by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/514
+- Document all Indexer methods by @fionnachan in https://github.com/algorand/js-algorand-sdk/pull/524
+- fixing openssh upgrade error by @algojack in https://github.com/algorand/js-algorand-sdk/pull/559
+- pass a Uint8Array instead of a string for importing a key by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/557
+- adding foreign app addr to dryrun by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/561
+- Allow Uint8Arrays public keys for kmd signing by @vividn in https://github.com/algorand/js-algorand-sdk/pull/549
+- Update generated files by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/569
+- Build: Add SDK code generation workflow by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/570
+- Update codegen.yml by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/574
+- Generate updated client API code by @algoidurovic in https://github.com/algorand/js-algorand-sdk/pull/566
+
+## New Contributors
+
+- @vividn made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/549
+- @Eric-Warehime made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/569
+- @algoidurovic made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/566
+
 # v1.16.0
 
 ## Added
