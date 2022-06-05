@@ -25,6 +25,45 @@ ERROR in ./node_modules/algosdk/dist/browser/algosdk.min.js 7471:55-72
 
 Webpack 5 no longer auto-polyfills some of the node modules used by this sdk. You will have to polyfill them to fix any errors regarding missing modules.
 
+#### Webpack 5 CRA projects
+
+For CRA based react projects and to have lots of other options like loading webpack modules without any need to eject your CRA project, just create a `config-overrides.js` file at root of project, with contents similar to example code below, and install-save `react-app-rewired`, `assert`, `stream-browserify`, `crypto-browserify` and `process` packages (these cover the needs of almost all Algorand ecosystem libraries for web development and testing including wallet-connect, etc):
+
+```js
+/* config-overrides.js */
+const webpack = require('webpack');
+module.exports = function override(config, env) {
+    config.resolve.fallback = {
+        util: require.resolve('util/'),
+        url: require.resolve('url'),
+        assert: require.resolve('assert'),
+        buffer: require.resolve('buffer'),
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+
+    
+    };
+    config.plugins.push(
+        new webpack.ProvidePlugin({
+            process: 'process/browser',
+            Buffer: ['buffer', 'Buffer'],
+        }),
+    );
+
+    return config;
+}
+```
+Then in package.json file change the scripts as:
+
+```js
+ "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
+  },
+```
+
 #### Vite projects
 
 With Vite, you would see:
