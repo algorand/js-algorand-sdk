@@ -5308,26 +5308,19 @@ module.exports = function getSteps(options) {
   });
 
   Then(
-    'the produced method signature should equal {string}',
-    function (expectedSig) {
+    'the produced method signature should equal {string} if there is an error it is equal to {string}',
+    function (expectedSig, errString) {
       if (this.retreived_method !== undefined) {
         assert.strictEqual(true, this.error === undefined);
-        const actual = this.retreived_method.getSignature();
-        assert.strictEqual(actual, expectedSig);
+        assert.strictEqual(this.retreived_method.getSignature(), expectedSig);
+      } else if (this.error !== undefined) {
+        assert.strictEqual(true, this.retreived_method === undefined);
+        assert.strictEqual(true, this.error.includes(errString));
       } else {
-        assert.strictEqual(true, this.error !== undefined);
+        assert.ok(false, 'Both retrieved method and error are undefined');
       }
     }
   );
-
-  Then('If there is an error it is equal to {string}', function (errString) {
-    if (this.error !== undefined) {
-      assert.strictEqual(true, this.retreived_method === undefined);
-      assert.strictEqual(true, this.error.includes(errString));
-    } else {
-      assert.strictEqual(true, this.retreived_method !== undefined);
-    }
-  });
 
   if (!options.ignoreReturn) {
     return steps;

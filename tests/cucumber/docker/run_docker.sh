@@ -12,6 +12,7 @@ git clone --single-branch --branch get-method-by-name https://github.com/algoran
 # move feature files and example files to destination
 mv test-harness/features tests/cucumber/features
 
+exit
 if [ $TEST_BROWSER == "chrome" ]; then
   # use latest version of chromedriver for compatability with the current Chrome version
   npm install chromedriver@latest
