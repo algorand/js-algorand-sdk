@@ -44,4 +44,21 @@ export class ABIContract {
       methods: this.methods.map((method) => method.toJSON()),
     };
   }
+
+  getMethodByName(name: string): ABIMethod {
+    const methods = this.methods.filter((m: ABIMethod) => m.name === name);
+    if (methods.length > 1)
+      throw new Error(
+        `Found ${
+          methods.length
+        } methods with the same name ${methods
+          .map((m: ABIMethod) => m.getSignature())
+          .join(',')}`
+      );
+
+    if (methods.length === 0)
+      throw new Error(`Found no methods with the name ${name}`);
+
+    return methods[0];
+  }
 }
