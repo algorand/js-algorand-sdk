@@ -5277,6 +5277,58 @@ module.exports = function getSteps(options) {
     assert.equal(traceString, expectedString);
   });
 
+  When('I create an Interface object from the Method object', function () {
+    this.iface = new algosdk.ABIInterface({
+      name: '',
+      methods: [this.method.toJSON()],
+    });
+  });
+
+  When('I create a Contract object from the Method object', function () {
+    this.contract = new algosdk.ABIContract({
+      name: '',
+      methods: [this.method.toJSON()],
+    });
+  });
+
+  When('I get the method from the Interface by name {string}', function (name) {
+    try {
+      this.retreived_method = this.iface.getMethodByName(name);
+    } catch (error) {
+      this.error = error.toString();
+    }
+  });
+
+  When('I get the method from the Contract by name {string}', function (name) {
+    try {
+      this.retreived_method = this.contract.getMethodByName(name);
+    } catch (error) {
+      this.error = error.toString();
+    }
+  });
+
+  Then(
+    'the produced method signature should equal {string}',
+    function (expectedSig) {
+      if (this.retreived_method !== undefined) {
+        assert.strictEqual(true, this.error === undefined);
+        const actual = this.retreived_method.getSignature();
+        assert.strictEqual(actual, expectedSig);
+      } else {
+        assert.strictEqual(true, this.error !== undefined);
+      }
+    }
+  );
+
+  Then('If there is an error it is equal to {string}', function (errString) {
+    if (this.error !== undefined) {
+      assert.strictEqual(true, this.retreived_method === undefined);
+      assert.strictEqual(true, this.error.includes(errString));
+    } else {
+      assert.strictEqual(true, this.retreived_method !== undefined);
+    }
+  });
+
   if (!options.ignoreReturn) {
     return steps;
   }

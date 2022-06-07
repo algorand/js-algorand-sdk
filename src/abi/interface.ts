@@ -33,7 +33,7 @@ export class ABIInterface {
     const methods = this.methods.filter((m: ABIMethod) => m.name === name);
     if (methods.length > 1)
       throw new Error(
-        `Found ${
+        `found ${
           methods.length
         } methods with the same name ${methods
           .map((m: ABIMethod) => m.getSignature())
@@ -41,7 +41,7 @@ export class ABIInterface {
       );
 
     if (methods.length === 0)
-      throw new Error(`Found no methods with the name ${name}`);
+      throw new Error(`found 0 methods with the name ${name}`);
 
     return methods[0];
   }
