@@ -5277,17 +5277,29 @@ module.exports = function getSteps(options) {
     assert.equal(traceString, expectedString);
   });
 
+  When(
+    'I create another Method object from method signature {string}',
+    function (extramethod) {
+      if (extramethod !== '')
+        this.extraMethod = algosdk.ABIMethod.fromSignature(extramethod);
+    }
+  );
+
   When('I create an Interface object from the Method object', function () {
+    const methods = [this.method.toJSON()];
+    if (this.extramethod !== undefined) methods.push(this.extramethod.toJSON());
     this.iface = new algosdk.ABIInterface({
       name: '',
-      methods: [this.method.toJSON()],
+      methods,
     });
   });
 
   When('I create a Contract object from the Method object', function () {
+    const methods = [this.method.toJSON()];
+    if (this.extramethod !== undefined) methods.push(this.extramethod.toJSON());
     this.contract = new algosdk.ABIContract({
       name: '',
-      methods: [this.method.toJSON()],
+      methods,
     });
   });
 
@@ -5308,7 +5320,7 @@ module.exports = function getSteps(options) {
   });
 
   Then(
-    'the produced method signature should equal {string} if there is an error it is equal to {string}',
+    'the produced method signature should equal {string}. If there is an error it begins with {string}',
     function (expectedSig, errString) {
       if (this.retreived_method !== undefined) {
         assert.strictEqual(true, this.error === undefined);
