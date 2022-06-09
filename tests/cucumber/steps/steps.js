@@ -5278,28 +5278,25 @@ module.exports = function getSteps(options) {
   });
 
   When(
-    'I create another Method object from method signature {string}',
-    function (extramethod) {
-      if (extramethod !== '')
-        this.extraMethod = algosdk.ABIMethod.fromSignature(extramethod);
+    'I append to my Method objects list in the case of a non-empty signature {string}',
+    function (methodsig) {
+      if (this.methods === undefined) this.methods = [];
+      if (methodsig !== '')
+        this.methods.push(algosdk.ABIMethod.fromSignature(methodsig));
     }
   );
 
-  When('I create an Interface object from the Method object', function () {
-    const methods = [this.method.toJSON()];
-    if (this.extramethod !== undefined) methods.push(this.extramethod.toJSON());
+  When('I create an Interface object from my Method objects list', function () {
     this.iface = new algosdk.ABIInterface({
       name: '',
-      methods,
+      methods: this.methods.map((m) => m.toJSON()),
     });
   });
 
-  When('I create a Contract object from the Method object', function () {
-    const methods = [this.method.toJSON()];
-    if (this.extramethod !== undefined) methods.push(this.extramethod.toJSON());
+  When('I create a Contract object from my Method objects list', function () {
     this.contract = new algosdk.ABIContract({
       name: '',
-      methods,
+      methods: this.methods.map((m) => m.toJSON()),
     });
   });
 
