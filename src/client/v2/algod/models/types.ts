@@ -1432,7 +1432,18 @@ export class DryrunTxnResult extends BaseModel {
   public appCallTrace?: DryrunState[];
 
   /**
-   * Execution cost of app call transaction
+   * Budget added during execution of app call transaction.
+   */
+  public budgetAdded?: number | bigint;
+
+  /**
+   * Budget consumed during execution of app call transaction.
+   */
+  public budgetConsumed?: number | bigint;
+
+  /**
+   * Net cost of app execution. Field is DEPRECATED and is subject for removal.
+   * Instead, use `budget-added` and `budget-consumed.
    */
   public cost?: number | bigint;
 
@@ -1459,7 +1470,10 @@ export class DryrunTxnResult extends BaseModel {
    * @param disassembly - Disassembled program line by line.
    * @param appCallMessages -
    * @param appCallTrace -
-   * @param cost - Execution cost of app call transaction
+   * @param budgetAdded - Budget added during execution of app call transaction.
+   * @param budgetConsumed - Budget consumed during execution of app call transaction.
+   * @param cost - Net cost of app execution. Field is DEPRECATED and is subject for removal.
+   * Instead, use `budget-added` and `budget-consumed.
    * @param globalDelta - Application state delta.
    * @param localDeltas -
    * @param logicSigDisassembly - Disassembled lsig program line by line.
@@ -1471,6 +1485,8 @@ export class DryrunTxnResult extends BaseModel {
     disassembly,
     appCallMessages,
     appCallTrace,
+    budgetAdded,
+    budgetConsumed,
     cost,
     globalDelta,
     localDeltas,
@@ -1482,6 +1498,8 @@ export class DryrunTxnResult extends BaseModel {
     disassembly: string[];
     appCallMessages?: string[];
     appCallTrace?: DryrunState[];
+    budgetAdded?: number | bigint;
+    budgetConsumed?: number | bigint;
     cost?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
@@ -1494,6 +1512,8 @@ export class DryrunTxnResult extends BaseModel {
     this.disassembly = disassembly;
     this.appCallMessages = appCallMessages;
     this.appCallTrace = appCallTrace;
+    this.budgetAdded = budgetAdded;
+    this.budgetConsumed = budgetConsumed;
     this.cost = cost;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
@@ -1506,6 +1526,8 @@ export class DryrunTxnResult extends BaseModel {
       disassembly: 'disassembly',
       appCallMessages: 'app-call-messages',
       appCallTrace: 'app-call-trace',
+      budgetAdded: 'budget-added',
+      budgetConsumed: 'budget-consumed',
       cost: 'cost',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',

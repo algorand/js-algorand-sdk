@@ -4713,7 +4713,6 @@ module.exports = function getSteps(options) {
 
   Given('a new AtomicTransactionComposer', function () {
     this.composer = new algosdk.AtomicTransactionComposer();
-    this.composerMethods = [];
   });
 
   Given('an application id {int}', function (appId) {
@@ -4860,7 +4859,6 @@ module.exports = function getSteps(options) {
       note,
       signer: this.transactionSigner,
     });
-    this.composerMethods.push(this.method);
   }
 
   When(
@@ -5122,11 +5120,10 @@ module.exports = function getSteps(options) {
 
       const { methodResults } = this.composerExecuteResponse;
       assert.strictEqual(methodResults.length, b64ExpectedReturnValues.length);
-      assert.strictEqual(methodResults.length, this.composerMethods.length);
 
       for (let i = 0; i < methodResults.length; i++) {
-        const method = this.composerMethods[i];
         const actualResult = methodResults[i];
+        const { method } = actualResult;
         const expectedReturnValue = Buffer.from(
           b64ExpectedReturnValues[i],
           'base64'
@@ -5165,12 +5162,11 @@ module.exports = function getSteps(options) {
 
       const { methodResults } = this.composerExecuteResponse;
       assert.strictEqual(methodResults.length, expectedAbiTypes.length);
-      assert.strictEqual(methodResults.length, this.composerMethods.length);
 
       for (let i = 0; i < methodResults.length; i++) {
         const expectedAbiType = expectedAbiTypes[i];
-        const method = this.composerMethods[i];
         const actualResult = methodResults[i];
+        const { method } = actualResult;
 
         if (actualResult.decodeError) {
           throw actualResult.decodeError;

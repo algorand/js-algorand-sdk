@@ -44,6 +44,10 @@ export interface ABIResult {
    */
   rawReturnValue: Uint8Array;
   /**
+   * The method that was called for this result
+   */
+  method: ABIMethod;
+  /**
    * The return value from the ABI method call. This will be undefined if the method does not return
    * a value (return type "void"), or if the SDK was unable to decode the returned value.
    */
@@ -639,6 +643,7 @@ export class AtomicTransactionComposer {
       const methodResult: ABIResult = {
         txID,
         rawReturnValue: new Uint8Array(),
+        method,
       };
 
       try {
