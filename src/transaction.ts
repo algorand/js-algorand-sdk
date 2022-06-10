@@ -846,7 +846,7 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.apas || !txn.apas.length) delete txn.apas;
       for (const box of txn.apbx) {
         if (!box.i) delete box.i;
-        if (!box.n) delete box.n;
+        if (!box.n || !box.n.length) delete box.n;
       }
       if (!txn.apbx || !txn.apbx.length) delete txn.apbx;
       if (!txn.apat || !txn.apat.length) delete txn.apat;
