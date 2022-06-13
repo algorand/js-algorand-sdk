@@ -5312,7 +5312,7 @@ module.exports = function getSteps(options) {
     try {
       this.retreived_method = this.contract.getMethodByName(name);
     } catch (error) {
-      this.error = error.message;
+      this.error = error.message();
     }
   });
 
