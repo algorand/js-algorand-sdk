@@ -5304,7 +5304,7 @@ module.exports = function getSteps(options) {
     try {
       this.retreived_method = this.iface.getMethodByName(name);
     } catch (error) {
-      this.error = error.toString();
+      this.error = error.message;
     }
   });
 
@@ -5312,7 +5312,7 @@ module.exports = function getSteps(options) {
     try {
       this.retreived_method = this.contract.getMethodByName(name);
     } catch (error) {
-      this.error = error.toString();
+      this.error = error.message;
     }
   });
 
