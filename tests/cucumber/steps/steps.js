@@ -90,6 +90,54 @@ const steps = {
   then: {},
 };
 
+// String parsing helper methods
+function processAppArgs(subArg) {
+  switch (subArg[0]) {
+    case 'str':
+      return makeUint8Array(Buffer.from(subArg[1]));
+    case 'int':
+      return makeUint8Array([parseInt(subArg[1])]);
+    case 'addr':
+      return algosdk.decodeAddress(subArg[1]).publicKey;
+    case 'b64':
+      return makeUint8Array(Buffer.from(subArg[1], 'base64'));
+    default:
+      throw Error(`did not recognize app arg of type${subArg[0]}`);
+  }
+}
+
+function splitAndProcessAppArgs(inArgs) {
+  const splitArgs = inArgs.split(',');
+  const subArgs = [];
+  splitArgs.forEach((subArg) => {
+    subArgs.push(subArg.split(':'));
+  });
+  const appArgs = [];
+  subArgs.forEach((subArg) => {
+    appArgs.push(processAppArgs(subArg));
+  });
+  return appArgs;
+}
+
+function splitAndProcessBoxReferences(boxRefs) {
+  const splitRefs = boxRefs.split(',');
+  const boxRefArray = [];
+  let appIndex = 0;
+
+  for (let i = 0; i < splitRefs.length; i++) {
+    if (i % 2 === 0) {
+      appIndex = parseInt(splitRefs[i]);
+    } else {
+      const refArg = splitRefs[i].split(':');
+      boxRefArray.push({
+        appIndex,
+        name: processAppArgs(refArg),
+      });
+    }
+  }
+  return boxRefArray;
+}
+
 /**
  * The getSteps function defines the cucumber steps and returns them.
  *
@@ -1784,6 +1832,14 @@ module.exports = function getSteps(options) {
     'we make a GetApplicationByID call for applicationID {int}',
     async function (index) {
       await this.v2Client.getApplicationByID(index).do();
+    }
+  );
+
+  When(
+    'we make a GetApplicationBoxByName call for applicationID {int} with box name {string}',
+    async function (index, boxName) {
+      const box = splitAndProcessAppArgs(boxName)[0];
+      await this.v2Client.getApplicationBoxByName(index, box).do();
     }
   );
 
@@ -3991,53 +4047,6 @@ module.exports = function getSteps(options) {
       }
     }
     return makeUint8Array(data);
-  }
-
-  function processAppArgs(subArg) {
-    switch (subArg[0]) {
-      case 'str':
-        return makeUint8Array(Buffer.from(subArg[1]));
-      case 'int':
-        return makeUint8Array([parseInt(subArg[1])]);
-      case 'addr':
-        return algosdk.decodeAddress(subArg[1]).publicKey;
-      case 'b64':
-        return makeUint8Array(Buffer.from(subArg[1], 'base64'));
-      default:
-        throw Error(`did not recognize app arg of type${subArg[0]}`);
-    }
-  }
-
-  function splitAndProcessAppArgs(inArgs) {
-    const splitArgs = inArgs.split(',');
-    const subArgs = [];
-    splitArgs.forEach((subArg) => {
-      subArgs.push(subArg.split(':'));
-    });
-    const appArgs = [];
-    subArgs.forEach((subArg) => {
-      appArgs.push(processAppArgs(subArg));
-    });
-    return appArgs;
-  }
-
-  function splitAndProcessBoxReferences(boxRefs) {
-    const splitRefs = boxRefs.split(',');
-    const boxRefArray = [];
-    let appIndex = 0;
-
-    for (let i = 0; i < splitRefs.length; i++) {
-      if (i % 2 === 0) {
-        appIndex = parseInt(splitRefs[i]);
-      } else {
-        const refArg = splitRefs[i].split(':');
-        boxRefArray.push({
-          appIndex,
-          name: processAppArgs(refArg),
-        });
-      }
-    }
-    return boxRefArray;
   }
 
   When(

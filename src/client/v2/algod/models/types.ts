@@ -1029,6 +1029,43 @@ export class BlockResponse extends BaseModel {
   }
 }
 
+/**
+ * Box name and its content.
+ */
+export class Box extends BaseModel {
+  /**
+   * (name) box name, base64 encoded
+   */
+  public name: Uint8Array;
+
+  /**
+   * (value) box value, base64 encoded.
+   */
+  public value: Uint8Array;
+
+  /**
+   * Creates a new `Box` object.
+   * @param name - (name) box name, base64 encoded
+   * @param value - (value) box value, base64 encoded.
+   */
+  constructor(name: string | Uint8Array, value: string | Uint8Array) {
+    super();
+    this.name =
+      typeof name === 'string'
+        ? new Uint8Array(Buffer.from(name, 'base64'))
+        : name;
+    this.value =
+      typeof value === 'string'
+        ? new Uint8Array(Buffer.from(value, 'base64'))
+        : value;
+
+    this.attribute_map = {
+      name: 'name',
+      value: 'value',
+    };
+  }
+}
+
 export class BuildVersion extends BaseModel {
   public branch: string;
 
