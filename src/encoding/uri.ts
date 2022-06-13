@@ -11,6 +11,9 @@ const isUrlSafe = (char) => {
 };
 
 export function encodeURLFromBytes(buf: Uint8Array) {
+  if (!(buf instanceof Uint8Array)) {
+    throw TypeError(`Argument ${buf} must be in bytes`);
+  }
   let encoded = '';
   for (let i = 0; i < buf.length; i++) {
     const charBuf = Buffer.from('00', 'hex');
