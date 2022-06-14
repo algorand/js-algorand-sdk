@@ -5306,6 +5306,7 @@ module.exports = function getSteps(options) {
       this.errorString = undefined;
     } catch (error) {
       this.errorString = error.message;
+      this.retreived_method = undefined;
     }
   });
 
@@ -5315,6 +5316,7 @@ module.exports = function getSteps(options) {
       this.errorString = undefined;
     } catch (error) {
       this.errorString = error.message;
+      this.retreived_method = undefined;
     }
   });
 
@@ -5322,7 +5324,7 @@ module.exports = function getSteps(options) {
     'the produced method signature should equal {string}. If there is an error it begins with {string}',
     function (expectedSig, errString) {
       if (this.retreived_method !== undefined) {
-        assert.strictEqual(true, errString === '');
+        assert.strictEqual(true, errString === '' || errString === undefined);
         assert.strictEqual(this.retreived_method.getSignature(), expectedSig);
       } else if (this.errorString !== undefined) {
         assert.strictEqual(true, this.retreived_method === undefined);
