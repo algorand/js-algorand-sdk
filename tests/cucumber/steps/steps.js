@@ -5301,23 +5301,25 @@ module.exports = function getSteps(options) {
   });
 
   When('I get the method from the Interface by name {string}', function (name) {
+    this.errorString = undefined;
+    this.retreived_method = undefined;
     try {
       this.retreived_method = this.iface.getMethodByName(name);
-      this.errorString = undefined;
     } catch (error) {
       this.errorString = error.message;
-      this.retreived_method = undefined;
     }
+    this.methods = undefined;
   });
 
   When('I get the method from the Contract by name {string}', function (name) {
+    this.errorString = undefined;
+    this.retreived_method = undefined;
     try {
       this.retreived_method = this.contract.getMethodByName(name);
-      this.errorString = undefined;
     } catch (error) {
       this.errorString = error.message;
-      this.retreived_method = undefined;
     }
+    this.methods = undefined;
   });
 
   Then(
