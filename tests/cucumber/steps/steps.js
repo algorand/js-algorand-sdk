@@ -5303,16 +5303,18 @@ module.exports = function getSteps(options) {
   When('I get the method from the Interface by name {string}', function (name) {
     try {
       this.retreived_method = this.iface.getMethodByName(name);
+      this.errorString = undefined;
     } catch (error) {
-      this.error = error.message;
+      this.errorString = error.message;
     }
   });
 
   When('I get the method from the Contract by name {string}', function (name) {
     try {
       this.retreived_method = this.contract.getMethodByName(name);
+      this.errorString = undefined;
     } catch (error) {
-      this.error = error.message();
+      this.errorString = error.message;
     }
   });
 
@@ -5320,11 +5322,11 @@ module.exports = function getSteps(options) {
     'the produced method signature should equal {string}. If there is an error it begins with {string}',
     function (expectedSig, errString) {
       if (this.retreived_method !== undefined) {
-        assert.strictEqual(true, this.error === undefined);
+        assert.strictEqual(true, errString === '');
         assert.strictEqual(this.retreived_method.getSignature(), expectedSig);
-      } else if (this.error !== undefined) {
+      } else if (this.errorString !== undefined) {
         assert.strictEqual(true, this.retreived_method === undefined);
-        assert.strictEqual(true, this.error.includes(errString));
+        assert.strictEqual(true, this.errorString.includes(errString));
       } else {
         assert.ok(false, 'Both retrieved method and error are undefined');
       }
