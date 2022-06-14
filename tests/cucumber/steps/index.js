@@ -31,9 +31,9 @@ if (browser) {
 
   if (process.env.CI) {
     chromeOptions = chromeOptions.addArguments(
-      '--no-sandbox',
-      '--headless',
-      '--disable-gpu'
+      'no-sandbox',
+      'disable-gpu',
+      'headless'
     );
     firefoxOptions = firefoxOptions.headless();
   }
