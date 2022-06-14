@@ -5326,7 +5326,11 @@ module.exports = function getSteps(options) {
         assert.strictEqual(this.retreived_method.getSignature(), expectedSig);
       } else if (this.errorString !== undefined) {
         assert.strictEqual(true, this.retreived_method === undefined);
-        assert.strictEqual(true, this.errorString.includes(errString));
+        assert.strictEqual(
+          true,
+          this.errorString.includes(errString),
+          `expected ${errString} got ${this.errorString}`
+        );
       } else {
         assert.ok(false, 'Both retrieved method and error are undefined');
       }
