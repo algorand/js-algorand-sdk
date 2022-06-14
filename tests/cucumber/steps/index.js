@@ -30,8 +30,18 @@ if (browser) {
   const firefoxOptions = new firefox.Options();
 
   if (process.env.CI) {
+    const loggingPrefs = new webdriver.logging.Preferences();
+    loggingPrefs.setLevel(
+      webdriver.logging.Type.BROWSER,
+      webdriver.logging.Level.ALL
+    );
+    loggingPrefs.setLevel(
+      webdriver.logging.Type.CLIENT,
+      webdriver.logging.Level.ALL
+    );
+
     chromeOptions.addArguments('--no-sandbox', '--headless', '--disable-gpu');
-    firefoxOptions.addArguments('-headless');
+    firefoxOptions.setLoggingPrefs(loggingPrefs).addArguments('-headless');
   }
 
   driverBuilder = new webdriver.Builder()
@@ -221,7 +231,6 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
   'Access-Control-Allow-Headers':
     'X-Algo-API-Token, X-Indexer-API-Token, Content-Type',
-  'Access-Control-Max-Age': 2592000,
 };
 
 function getUnitTestFileContentsAsString(fileName, directory) {
