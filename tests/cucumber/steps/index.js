@@ -172,7 +172,7 @@ function stopBrowserServer() {
   }
 }
 
-setDefaultTimeout(60000);
+setDefaultTimeout(4 * 60000);
 
 BeforeAll(async () => {
   // You can use this hook to write code that will run one time before all scenarios,
