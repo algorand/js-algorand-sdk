@@ -30,18 +30,8 @@ if (browser) {
   const firefoxOptions = new firefox.Options();
 
   if (process.env.CI) {
-    const loggingPrefs = new webdriver.logging.Preferences();
-    loggingPrefs.setLevel(
-      webdriver.logging.Type.BROWSER,
-      webdriver.logging.Level.ALL
-    );
-    loggingPrefs.setLevel(
-      webdriver.logging.Type.CLIENT,
-      webdriver.logging.Level.ALL
-    );
-
     chromeOptions.addArguments('--no-sandbox', '--headless', '--disable-gpu');
-    firefoxOptions.setLoggingPrefs(loggingPrefs).addArguments('-headless');
+    firefoxOptions.headless();
   }
 
   driverBuilder = new webdriver.Builder()

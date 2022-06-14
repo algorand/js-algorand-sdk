@@ -58,19 +58,9 @@ async function testRunner() {
     const chromeOptions = new chrome.Options();
     const firefoxOptions = new firefox.Options();
 
-    const loggingPrefs = new webdriver.logging.Preferences();
-    loggingPrefs.setLevel(
-      webdriver.logging.Type.BROWSER,
-      webdriver.logging.Level.ALL
-    );
-    loggingPrefs.setLevel(
-      webdriver.logging.Type.CLIENT,
-      webdriver.logging.Level.ALL
-    );
-
     if (process.env.CI) {
       chromeOptions.addArguments('--no-sandbox', '--headless', '--disable-gpu');
-      firefoxOptions.setLoggingPrefs(loggingPrefs).addArguments('-headless');
+      firefoxOptions.headless();
     }
 
     const driver = await new webdriver.Builder()
