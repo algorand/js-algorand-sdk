@@ -23,7 +23,7 @@ fi
 docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile "$(pwd)" --build-arg TEST_BROWSER --build-arg CI=true
 
 # Start test harness environment
-./test-harness/scripts/up.sh
+./test-harness/scripts/up.sh -s
 
 docker run -it \
      --network host \
