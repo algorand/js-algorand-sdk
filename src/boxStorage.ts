@@ -33,7 +33,7 @@ export function translateBoxReferences(
   foreignApps: number[],
   appIndex: number
 ) {
-  if (!references) return [];
+  if (references == null || !Array.isArray(references)) return [];
   return references.map((bx) =>
     translateBoxReference(bx, foreignApps, appIndex)
   );
