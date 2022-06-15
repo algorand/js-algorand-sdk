@@ -225,7 +225,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
   'Access-Control-Allow-Headers':
     'X-Algo-API-Token, X-Indexer-API-Token, Content-Type',
-  'Access-Control-Max-Age': 600,
+  'Access-Control-Max-Age': 2592000,
 };
 
 function getUnitTestFileContentsAsString(fileName, directory) {
