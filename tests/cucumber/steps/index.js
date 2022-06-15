@@ -19,6 +19,7 @@ const browser = process.env.TEST_BROWSER;
 
 console.log('TEST_BROWSER is', browser);
 
+let printlogs;
 let driver;
 let driverBuilder;
 if (browser) {
@@ -29,13 +30,42 @@ if (browser) {
   let chromeOptions = new chrome.Options();
   let firefoxOptions = new firefox.Options();
 
+  printlogs = () => {
+    driver
+      .manage()
+      .logs()
+      .get(webdriver.logging.Type.PERFORMANCE)
+      .then((entries) => {
+        entries.forEach((entry) => {
+          console.log(entry);
+        });
+      });
+    driver
+      .manage()
+      .logs()
+      .get(webdriver.logging.Type.BROWSER)
+      .then((entries) => {
+        entries.forEach((entry) => {
+          console.log(entry);
+        });
+      });
+  };
+
+  const lpref = new webdriver.logging.Preferences();
+  lpref.setLevel(
+    webdriver.logging.Type.PERFORMANCE,
+    webdriver.logging.Level.ALL
+  );
+  lpref.setLevel(webdriver.logging.Type.BROWSER, webdriver.logging.Level.ALL);
+  firefoxOptions = firefoxOptions.setLoggingPrefs(lpref);
+
   if (process.env.CI) {
     chromeOptions = chromeOptions.addArguments(
       'no-sandbox',
       'disable-gpu',
       'headless'
     );
-    firefoxOptions = firefoxOptions.headless();
+    firefoxOptions = firefoxOptions.setLoggingPrefs(lpref).headless();
   }
 
   driverBuilder = new webdriver.Builder()
@@ -364,6 +394,7 @@ if (browser) {
           );
 
           if (error) {
+            printlogs();
             throw new Error(
               `Error from test '${type} ${name}': ${error}\n    ^ --- browser ---`
             );
