@@ -162,6 +162,13 @@ export class ABIMethod {
 }
 
 export function getMethodByName(methods: ABIMethod[], name: string): ABIMethod {
+  if (
+    methods === null ||
+    !Array.isArray(methods) ||
+    !methods.every((item) => item instanceof ABIMethod)
+  )
+    throw new Error('Methods list provided is null or not the correct type');
+
   const filteredMethods = methods.filter((m: ABIMethod) => m.name === name);
   if (filteredMethods.length > 1)
     throw new Error(
