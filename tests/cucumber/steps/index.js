@@ -31,25 +31,14 @@ if (browser) {
   let firefoxOptions = new firefox.Options();
 
   printlogs = async () => {};
-  firefoxOptions = firefoxOptions
-    .setPreference('browser.dom.window.dump.enabled', true)
-    .setPreference('devtools.console.stdout.content', true)
-    .setPreference('browser.tabs.unloadOnLowMemory', false)
-    .setPreference('browser.tabs.disableBackgroundZombification', true)
-    .setPreference('focusmanager.testmode', true)
-    .setPreference('toolkit.backgroundtasks.defaultTimeoutSec', 1000000)
-    .setPreference('javascript.options.gc_on_memory_pressure', false)
-    .setPreference('network.protocol-handler.external.javascript', false)
-    .setPreference('javascript.options.mem.log', false)
-    .setPreference('devtools.debugger.logging', false)
-    .setPreference('distribution.iniFile.exists.appversion', '99.0.1')
-    .setPreference('remote.log.level', 'Trace')
-    .setPreference('network.http.network-changed.timeout', 30)
-    .setPreference(
-      'network.http.referer.disallowCrossSiteRelaxingDefault',
-      false
-    )
-    .headless();
+  // firefoxOptions = firefoxOptions
+  //   .setPreference('browser.tabs.unloadOnLowMemory', false)
+  //   .setPreference('network.http.network-changed.timeout', 30)
+  //   // .setPreference(
+  //   //   'network.http.referer.disallowCrossSiteRelaxingDefault',
+  //   //   false
+  //   // )
+  //   .headless();
 
   if (process.env.CI) {
     chromeOptions = chromeOptions.addArguments(
@@ -59,6 +48,12 @@ if (browser) {
     );
     firefoxOptions = firefoxOptions
       .setPreference('remote.active-protocols', 1)
+      .setPreference('browser.tabs.unloadOnLowMemory', false)
+      .setPreference('network.http.network-changed.timeout', 30)
+      .setPreference(
+        'network.http.referer.disallowCrossSiteRelaxingDefault',
+        false
+      )
       .headless();
   }
 
@@ -73,9 +68,6 @@ if (browser) {
     require('chromedriver');
   } else if (browser === 'firefox') {
     require('geckodriver');
-    driverBuilder.setFirefoxService(
-      new firefox.ServiceBuilder().enableVerboseLogging().setStdio('inherit')
-    );
   }
 
   console.log('Testing in browser');
