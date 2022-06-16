@@ -19,7 +19,6 @@ const browser = process.env.TEST_BROWSER;
 
 console.log('TEST_BROWSER is', browser);
 
-let printlogs;
 let driver;
 let driverBuilder;
 if (browser) {
@@ -30,16 +29,6 @@ if (browser) {
   let chromeOptions = new chrome.Options();
   let firefoxOptions = new firefox.Options();
 
-  printlogs = async () => {};
-  // firefoxOptions = firefoxOptions
-  //   .setPreference('browser.tabs.unloadOnLowMemory', false)
-  //   .setPreference('network.http.network-changed.timeout', 30)
-  //   // .setPreference(
-  //   //   'network.http.referer.disallowCrossSiteRelaxingDefault',
-  //   //   false
-  //   // )
-  //   .headless();
-
   if (process.env.CI) {
     chromeOptions = chromeOptions.addArguments(
       'no-sandbox',
@@ -47,13 +36,8 @@ if (browser) {
       'headless'
     );
     firefoxOptions = firefoxOptions
-      .setPreference('remote.active-protocols', 1)
-      .setPreference('browser.tabs.unloadOnLowMemory', false)
-      .setPreference('network.http.network-changed.timeout', 30)
-      .setPreference(
-        'network.http.referer.disallowCrossSiteRelaxingDefault',
-        false
-      )
+      .setPreference('remote.active-protocols', 1) // Sets protocol to only WebDriver BiDi
+      .setPreference('network.http.network-changed.timeout', 30) // In Docker tests this apparently matters
       .headless();
   }
 
@@ -357,7 +341,6 @@ if (browser) {
       // is async ¯\_(ツ)_/¯
       const rpcFn = (...args) => {
         const asyncRpcFn = async () => {
-          printlogs();
           let rpcArgs = args;
           if (isFunction(rpcArgs[rpcArgs.length - 1])) {
             // get rid of callback cucumber provides
