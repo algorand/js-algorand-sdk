@@ -19,6 +19,7 @@ const browser = process.env.TEST_BROWSER;
 
 console.log('TEST_BROWSER is', browser);
 
+let printlogs;
 let driver;
 let driverBuilder;
 if (browser) {
@@ -29,24 +30,26 @@ if (browser) {
   let chromeOptions = new chrome.Options();
   let firefoxOptions = new firefox.Options();
 
-  // firefoxOptions = firefoxOptions
-  //  .setPreference('browser.dom.window.dump.enabled', true)
-  //  .setPreference('devtools.console.stdout.content', true)
-  //  .setPreference('browser.tabs.unloadOnLowMemory', false)
-  //  .setPreference('browser.tabs.disableBackgroundZombification', true)
-  //  .setPreference('focusmanager.testmode', true)
-  //  .setPreference('toolkit.backgroundtasks.defaultTimeoutSec', 1000000)
-  //  .setPreference('javascript.options.gc_on_memory_pressure', false)
-  //  .setPreference('network.protocol-handler.external.javascript', false)
-  //  .setPreference('javascript.options.mem.log', false)
-  //  .setPreference('devtools.debugger.logging', false)
-  //  .setPreference('remote.log.level', 'Trace')
-  //  .setPreference('network.http.network-changed.timeout', 30)
-  //  .setPreference(
-  //    'network.http.referer.disallowCrossSiteRelaxingDefault',
-  //    false
-  //  )
-  //  .headless();
+  printlogs = async () => {};
+  firefoxOptions = firefoxOptions
+    .setPreference('browser.dom.window.dump.enabled', true)
+    .setPreference('devtools.console.stdout.content', true)
+    .setPreference('browser.tabs.unloadOnLowMemory', false)
+    .setPreference('browser.tabs.disableBackgroundZombification', true)
+    .setPreference('focusmanager.testmode', true)
+    .setPreference('toolkit.backgroundtasks.defaultTimeoutSec', 1000000)
+    .setPreference('javascript.options.gc_on_memory_pressure', false)
+    .setPreference('network.protocol-handler.external.javascript', false)
+    .setPreference('javascript.options.mem.log', false)
+    .setPreference('devtools.debugger.logging', false)
+    .setPreference('distribution.iniFile.exists.appversion', '99.0.1')
+    .setPreference('remote.log.level', 'Trace')
+    .setPreference('network.http.network-changed.timeout', 30)
+    .setPreference(
+      'network.http.referer.disallowCrossSiteRelaxingDefault',
+      false
+    )
+    .headless();
 
   if (process.env.CI) {
     chromeOptions = chromeOptions.addArguments(
@@ -70,9 +73,9 @@ if (browser) {
     require('chromedriver');
   } else if (browser === 'firefox') {
     require('geckodriver');
-    // driverBuilder.setFirefoxService(
-    //   new firefox.ServiceBuilder().enableVerboseLogging().setStdio('inherit')
-    // );
+    driverBuilder.setFirefoxService(
+      new firefox.ServiceBuilder().enableVerboseLogging().setStdio('inherit')
+    );
   }
 
   console.log('Testing in browser');
@@ -196,7 +199,7 @@ function stopBrowserServer() {
   }
 }
 
-setDefaultTimeout(60000);
+setDefaultTimeout(600000);
 
 BeforeAll(async () => {
   // You can use this hook to write code that will run one time before all scenarios,
@@ -362,6 +365,7 @@ if (browser) {
       // is async ¯\_(ツ)_/¯
       const rpcFn = (...args) => {
         const asyncRpcFn = async () => {
+          printlogs();
           let rpcArgs = args;
           if (isFunction(rpcArgs[rpcArgs.length - 1])) {
             // get rid of callback cucumber provides
@@ -378,7 +382,6 @@ if (browser) {
                 await test.apply(window.testWorld, testArgs);
                 done({ error: null });
               } catch (err) {
-                console.error(err);
                 done({ error: `${err.toString()}\n${err.stack}` });
               }
             },
