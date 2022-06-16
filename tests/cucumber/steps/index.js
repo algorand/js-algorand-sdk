@@ -175,7 +175,7 @@ function stopBrowserServer() {
   }
 }
 
-setDefaultTimeout(600000);
+setDefaultTimeout(60000);
 
 BeforeAll(async () => {
   // You can use this hook to write code that will run one time before all scenarios,
@@ -357,6 +357,7 @@ if (browser) {
                 await test.apply(window.testWorld, testArgs);
                 done({ error: null });
               } catch (err) {
+                console.error(err);
                 done({ error: `${err.toString()}\n${err.stack}` });
               }
             },
