@@ -19,7 +19,6 @@ const browser = process.env.TEST_BROWSER;
 
 console.log('TEST_BROWSER is', browser);
 
-let printlogs;
 let driver;
 let driverBuilder;
 if (browser) {
@@ -30,34 +29,24 @@ if (browser) {
   let chromeOptions = new chrome.Options();
   let firefoxOptions = new firefox.Options();
 
-  printlogs = () => {
-    driver
-      .manage()
-      .logs()
-      .get(webdriver.logging.Type.PERFORMANCE)
-      .then((entries) => {
-        entries.forEach((entry) => {
-          console.log(entry);
-        });
-      });
-    driver
-      .manage()
-      .logs()
-      .get(webdriver.logging.Type.BROWSER)
-      .then((entries) => {
-        entries.forEach((entry) => {
-          console.log(entry);
-        });
-      });
-  };
-
-  const lpref = new webdriver.logging.Preferences();
-  lpref.setLevel(
-    webdriver.logging.Type.PERFORMANCE,
-    webdriver.logging.Level.ALL
-  );
-  lpref.setLevel(webdriver.logging.Type.BROWSER, webdriver.logging.Level.ALL);
-  firefoxOptions = firefoxOptions.setLoggingPrefs(lpref);
+  // firefoxOptions = firefoxOptions
+  //  .setPreference('browser.dom.window.dump.enabled', true)
+  //  .setPreference('devtools.console.stdout.content', true)
+  //  .setPreference('browser.tabs.unloadOnLowMemory', false)
+  //  .setPreference('browser.tabs.disableBackgroundZombification', true)
+  //  .setPreference('focusmanager.testmode', true)
+  //  .setPreference('toolkit.backgroundtasks.defaultTimeoutSec', 1000000)
+  //  .setPreference('javascript.options.gc_on_memory_pressure', false)
+  //  .setPreference('network.protocol-handler.external.javascript', false)
+  //  .setPreference('javascript.options.mem.log', false)
+  //  .setPreference('devtools.debugger.logging', false)
+  //  .setPreference('remote.log.level', 'Trace')
+  //  .setPreference('network.http.network-changed.timeout', 30)
+  //  .setPreference(
+  //    'network.http.referer.disallowCrossSiteRelaxingDefault',
+  //    false
+  //  )
+  //  .headless();
 
   if (process.env.CI) {
     chromeOptions = chromeOptions.addArguments(
@@ -65,7 +54,9 @@ if (browser) {
       'disable-gpu',
       'headless'
     );
-    firefoxOptions = firefoxOptions.setLoggingPrefs(lpref).headless();
+    firefoxOptions = firefoxOptions
+      .setPreference('remote.active-protocols', 1)
+      .headless();
   }
 
   driverBuilder = new webdriver.Builder()
@@ -79,6 +70,9 @@ if (browser) {
     require('chromedriver');
   } else if (browser === 'firefox') {
     require('geckodriver');
+    // driverBuilder.setFirefoxService(
+    //   new firefox.ServiceBuilder().enableVerboseLogging().setStdio('inherit')
+    // );
   }
 
   console.log('Testing in browser');
@@ -394,7 +388,6 @@ if (browser) {
           );
 
           if (error) {
-            printlogs();
             throw new Error(
               `Error from test '${type} ${name}': ${error}\n    ^ --- browser ---`
             );
