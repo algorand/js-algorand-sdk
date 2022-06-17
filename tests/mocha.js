@@ -55,12 +55,16 @@ async function testRunner() {
     const chrome = require('selenium-webdriver/chrome');
     const firefox = require('selenium-webdriver/firefox');
 
-    const chromeOptions = new chrome.Options();
-    const firefoxOptions = new firefox.Options();
+    let chromeOptions = new chrome.Options();
+    let firefoxOptions = new firefox.Options();
 
     if (process.env.CI) {
-      chromeOptions.addArguments('--no-sandbox', '--headless', '--disable-gpu');
-      firefoxOptions.addArguments('-headless');
+      chromeOptions = chromeOptions.addArguments(
+        'no-sandbox',
+        'headless',
+        'disable-gpu'
+      );
+      firefoxOptions = firefoxOptions.headless();
     }
 
     const driver = await new webdriver.Builder()
