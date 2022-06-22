@@ -20,7 +20,10 @@ function translateBoxReference(
     }
   }
   // Check if the app referenced is itself after checking the foreign apps array.
+  // If index is zero, then the app ID was not found in the foreign apps array.
   if (index === 0 && isOwnReference) {
+    // Error if the app is trying to reference a foreign app that was not in
+    // its own foreign apps array.
     throw new Error(`Box ref with appId ${referenceId} not in foreign-apps`);
   }
   return { i: index, n: referenceName };
@@ -34,7 +37,7 @@ export function translateBoxReferences(
   references: BoxReference[],
   foreignApps: number[],
   appIndex: number
-) {
+): EncodedBoxReference[] {
   if (references == null || !Array.isArray(references)) return [];
   return references.map((bx) =>
     translateBoxReference(bx, foreignApps, appIndex)
