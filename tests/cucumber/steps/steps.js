@@ -4674,7 +4674,6 @@ module.exports = function getSteps(options) {
 
   Given('a new AtomicTransactionComposer', function () {
     this.composer = new algosdk.AtomicTransactionComposer();
-    this.composerMethods = [];
   });
 
   Given('an application id {int}', function (appId) {
@@ -4821,7 +4820,6 @@ module.exports = function getSteps(options) {
       note,
       signer: this.transactionSigner,
     });
-    this.composerMethods.push(this.method);
   }
 
   When(
@@ -5083,11 +5081,10 @@ module.exports = function getSteps(options) {
 
       const { methodResults } = this.composerExecuteResponse;
       assert.strictEqual(methodResults.length, b64ExpectedReturnValues.length);
-      assert.strictEqual(methodResults.length, this.composerMethods.length);
 
       for (let i = 0; i < methodResults.length; i++) {
-        const method = this.composerMethods[i];
         const actualResult = methodResults[i];
+        const { method } = actualResult;
         const expectedReturnValue = Buffer.from(
           b64ExpectedReturnValues[i],
           'base64'
@@ -5126,12 +5123,11 @@ module.exports = function getSteps(options) {
 
       const { methodResults } = this.composerExecuteResponse;
       assert.strictEqual(methodResults.length, expectedAbiTypes.length);
-      assert.strictEqual(methodResults.length, this.composerMethods.length);
 
       for (let i = 0; i < methodResults.length; i++) {
         const expectedAbiType = expectedAbiTypes[i];
-        const method = this.composerMethods[i];
         const actualResult = methodResults[i];
+        const { method } = actualResult;
 
         if (actualResult.decodeError) {
           throw actualResult.decodeError;
@@ -5280,6 +5276,70 @@ module.exports = function getSteps(options) {
     const expectedString = (await loadResource(expected)).toString();
     assert.equal(traceString, expectedString);
   });
+
+  When(
+    'I append to my Method objects list in the case of a non-empty signature {string}',
+    function (methodsig) {
+      if (this.methods === undefined) this.methods = [];
+      if (methodsig !== '')
+        this.methods.push(algosdk.ABIMethod.fromSignature(methodsig));
+    }
+  );
+
+  When('I create an Interface object from my Method objects list', function () {
+    this.iface = new algosdk.ABIInterface({
+      name: '',
+      methods: this.methods.map((m) => m.toJSON()),
+    });
+  });
+
+  When('I create a Contract object from my Method objects list', function () {
+    this.contract = new algosdk.ABIContract({
+      name: '',
+      methods: this.methods.map((m) => m.toJSON()),
+    });
+  });
+
+  When('I get the method from the Interface by name {string}', function (name) {
+    this.errorString = undefined;
+    this.retreived_method = undefined;
+    try {
+      this.retreived_method = this.iface.getMethodByName(name);
+    } catch (error) {
+      this.errorString = error.message;
+    }
+    this.methods = undefined;
+  });
+
+  When('I get the method from the Contract by name {string}', function (name) {
+    this.errorString = undefined;
+    this.retreived_method = undefined;
+    try {
+      this.retreived_method = this.contract.getMethodByName(name);
+    } catch (error) {
+      this.errorString = error.message;
+    }
+    this.methods = undefined;
+  });
+
+  Then(
+    'the produced method signature should equal {string}. If there is an error it begins with {string}',
+    function (expectedSig, errString) {
+      if (this.retreived_method !== undefined) {
+        assert.strictEqual(true, errString === '' || errString === undefined);
+        assert.strictEqual(this.retreived_method.getSignature(), expectedSig);
+      } else if (this.errorString !== undefined) {
+        assert.strictEqual(true, this.retreived_method === undefined);
+        assert.strictEqual(
+          true,
+          this.errorString.includes(errString),
+          `expected ${errString} got ${this.errorString}`
+        );
+      } else {
+        assert.ok(false, 'Both retrieved method and error are undefined');
+      }
+    }
+  );
 
   if (!options.ignoreReturn) {
     return steps;
