@@ -8,18 +8,19 @@ function translateBoxReference(
 ): EncodedBoxReference {
   const referenceId = reference.appIndex;
   const referenceName = reference.name;
+  const isOwnReference = referenceId !== 0 && referenceId !== appIndex;
   let index = 0;
   // Foreign apps start from index 1; index 0 is its own app ID.
   try {
     index = foreignApps.indexOf(referenceId) + 1;
   } catch (err) {
     // Foreign app array cannot be empty unless the reference ID is itself.
-    if (referenceId !== 0 && referenceId !== appIndex) {
+    if (isOwnReference) {
       throw new Error(`Box ref with appId ${referenceId} not in foreign-apps`);
     }
   }
   // Check if the app referenced is itself after checking the foreign apps array.
-  if (index === 0 && referenceId !== 0 && referenceId !== appIndex) {
+  if (index === 0 && isOwnReference) {
     throw new Error(`Box ref with appId ${referenceId} not in foreign-apps`);
   }
   return { i: index, n: referenceName };
