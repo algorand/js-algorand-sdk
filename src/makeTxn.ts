@@ -1296,8 +1296,8 @@ export function makeApplicationUpdateTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
-      | 'note'
       | 'boxes'
+      | 'note'
       | 'lease'
       | 'rekeyTo'
     >

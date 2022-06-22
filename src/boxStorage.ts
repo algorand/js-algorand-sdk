@@ -1,10 +1,11 @@
+import { EncodedBoxReference } from './types';
 import { BoxReference } from './types/transactions/base';
 
 function translateBoxReference(
   reference: BoxReference,
   foreignApps: number[],
   appIndex: number
-) {
+): EncodedBoxReference {
   const referenceId = reference.appIndex;
   const referenceName = reference.name;
   let index = 0;

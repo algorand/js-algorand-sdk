@@ -3,6 +3,7 @@ import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as nacl from './nacl/naclWrappers';
 import * as utils from './utils/utils';
+import { translateBoxReferences } from './boxStorage';
 import {
   OnApplicationComplete,
   TransactionParams,
@@ -19,7 +20,6 @@ import AnyTransaction, {
   EncodedLogicSig,
 } from './types/transactions';
 import { Address } from './types/address';
-import { translateBoxReferences } from './boxStorage';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 export const ALGORAND_MIN_TX_FEE = 1000; // version v5
@@ -1025,7 +1025,7 @@ export class Transaction implements TransactionStorageStructure {
         txn.boxes = txnForEnc.apbx.map((box) => ({
           // Translate foreign app index to app ID
           appIndex:
-            box.i !== 0 || box.i !== txn.appIndex
+            box.i !== 0 && box.i !== txn.appIndex
               ? txn.appForeignApps[box.i - 1]
               : txn.appIndex,
           name: box.n,
