@@ -1,4 +1,4 @@
-import { ABIMethod, ABIMethodParams } from './method';
+import { ABIMethod, ABIMethodParams, getMethodByName } from './method';
 
 export interface ABIContractNetworkInfo {
   appID: number;
@@ -43,5 +43,9 @@ export class ABIContract {
       networks: this.networks,
       methods: this.methods.map((method) => method.toJSON()),
     };
+  }
+
+  getMethodByName(name: string): ABIMethod {
+    return getMethodByName(this.methods, name);
   }
 }

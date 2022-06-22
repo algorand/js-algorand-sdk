@@ -1,4 +1,4 @@
-import { ABIMethod, ABIMethodParams } from './method';
+import { ABIMethod, ABIMethodParams, getMethodByName } from './method';
 
 export interface ABIInterfaceParams {
   name: string;
@@ -27,5 +27,9 @@ export class ABIInterface {
       desc: this.description,
       methods: this.methods.map((method) => method.toJSON()),
     };
+  }
+
+  getMethodByName(name: string): ABIMethod {
+    return getMethodByName(this.methods, name);
   }
 }
