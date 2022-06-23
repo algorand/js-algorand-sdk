@@ -3935,7 +3935,7 @@ module.exports = function getSteps(options) {
     }
   );
 
-  Given(
+  Then(
     "I fund the current application's address with {int} microalgos.",
     async function (amount) {
       const sp = await this.v2Client.getTransactionParams().do();
@@ -5385,6 +5385,31 @@ module.exports = function getSteps(options) {
         );
       } else {
         assert.ok(false, 'Both retrieved method and error are undefined');
+      }
+    }
+  );
+
+  Then(
+    'the contents of the box with name {string} should be {string}. If there is an error it is {string}.',
+    async function (boxName, boxValue, errString) {
+      try {
+        const boxKey = splitAndProcessAppArgs(boxName)[0];
+        const resp = await this.v2Client
+          .getApplicationBoxByName(this.currentApplicationIndex, boxKey)
+          .do();
+        const actualName = resp.name;
+        const actualValue = resp.value;
+        assert.deepStrictEqual(
+          Buffer.from(boxKey),
+          Buffer.from(actualName, 'base64')
+        );
+        assert.deepStrictEqual(boxValue, actualValue);
+      } catch (err) {
+        assert.deepStrictEqual(
+          true,
+          err.message.includes(errString),
+          `expected ${errString} got ${err.message}`
+        );
       }
     }
   );
