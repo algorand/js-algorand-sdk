@@ -1567,10 +1567,7 @@ describe('Sign', () => {
           testCase[1],
           testCase[2]
         );
-        assert.deepStrictEqual(expected.length, actual.length);
-        for (let i = 0; i < expected.length; i++) {
-          assert.deepStrictEqual(expected[i], actual[i]);
-        }
+        assert.deepStrictEqual(expected, actual);
       }
     });
   });
