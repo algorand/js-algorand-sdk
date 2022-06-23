@@ -11,14 +11,13 @@ function translateBoxReference(
   const isOwnReference = referenceId === 0 || referenceId === appIndex;
   let index = 0;
 
-  if (foreignApps == null && !isOwnReference) {
-    // Foreign app array cannot be empty unless the reference ID is itself.
-    throw new Error(`Box ref with appId ${referenceId} not in foreign-apps`);
+  if (foreignApps != null) {
+    // Foreign apps start from index 1; index 0 is its own app ID.
+    index = foreignApps.indexOf(referenceId) + 1;
   }
-  // Foreign apps start from index 1; index 0 is its own app ID.
-  index = foreignApps.indexOf(referenceId) + 1;
   // Check if the app referenced is itself after checking the foreign apps array.
-  // If index is zero, then the app ID was not found in the foreign apps array.
+  // If index is zero, then the app ID was not found in the foreign apps array
+  // or the foreign apps array was null.
   if (index === 0 && !isOwnReference) {
     // Error if the app is trying to reference a foreign app that was not in
     // its own foreign apps array.
