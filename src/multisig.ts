@@ -147,6 +147,26 @@ export class MultisigTransaction extends txnBuilder.Transaction {
     );
   }
 
+  /**
+   * partialSignWithMultisigSignature partially signs this transaction with an external raw multisig signature and returns
+   * a partially-signed multisig transaction, encoded with msgpack as a typed array.
+   * @param metadata - multisig metadata
+   * @param signerAddr - address of the signer
+   * @param signature - raw multisig signature
+   * @returns an encoded, partially signed multisig transaction.
+   */
+  partialSignWithMultisigSignature(
+    metadata: MultisigMetadataWithPks,
+    signerAddr: string,
+    signature: Uint8Array
+  ) {
+    return createMultisigTransaction(
+      this.get_obj_for_encoding(),
+      { rawSig: signature, myPk: address.decodeAddress(signerAddr).publicKey },
+      metadata
+    );
+  }
+
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
     txnForEnc: EncodedTransaction
@@ -312,7 +332,7 @@ export function verifyMultisig(
 /**
  * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
  * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
- * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendMultisigTransaction.
+ * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendSignMultisigTransaction.
  * @param txn - object with either payment or key registration fields
  * @param version - multisig version
  * @param threshold - multisig threshold
@@ -384,6 +404,40 @@ export function appendSignMultisigTransaction(
   const partialSignedBlob = msigTxn.partialSignTxn(
     { version, threshold, pks },
     sk
+  );
+  return {
+    txID: msigTxn.txID().toString(),
+    blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
+  };
+}
+
+/**
+ * appendMultisigTransactionSignature takes a multisig transaction blob, and appends a given raw signature to it.
+ * This makes it possible to compile a multisig signature using only raw signatures from external methods.
+ * @param multisigTxnBlob - an encoded multisig txn. Supports non-payment txn types.
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param signerAddr - address of the signer
+ * @param signature - raw multisig signature
+ * @returns object containing txID, and blob representing encoded multisig txn
+ */
+export function appendSignRawMultisigSignature(
+  multisigTxnBlob: Uint8Array,
+  { version, threshold, addrs }: MultisigMetadata,
+  signerAddr: string,
+  signature: Uint8Array
+) {
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  // obtain underlying txn, sign it, and merge it
+  const multisigTxObj = encoding.decode(
+    multisigTxnBlob
+  ) as EncodedSignedTransaction;
+  const msigTxn = MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
+  const partialSignedBlob = msigTxn.partialSignWithMultisigSignature(
+    { version, threshold, pks },
+    signerAddr,
+    signature
   );
   return {
     txID: msigTxn.txID().toString(),

@@ -167,6 +167,48 @@ describe('Multisig Functionality', () => {
     });
   });
 
+  describe('appendMultisigTransactionSignature', () => {
+    it('should match golden main repo result', () => {
+      const oneSigTxn = Buffer.from(
+        'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAuLAFE0oma0skOoAmOzEwfPuLYpEWl4LINtsiLrUqWQkDxh4WHb29//YCpj4MFbiSgD2jKYt0XKRD86zKCF4RDYGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQPoomZ2zfMVo2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zfb9pG5vdGXECEUmIgAYUob7o3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==',
+        'base64'
+      );
+
+      const signerAddr = sampleAccount2.addr;
+      const signedTxn = algosdk.appendSignMultisigTransaction(
+        oneSigTxn,
+        sampleMultisigParams,
+        sampleAccount2.sk
+      );
+      const signatures = algosdk.decodeSignedTransaction(signedTxn.blob).msig
+        ?.subsig;
+      if (signatures === undefined) {
+        throw new Error('No signatures found');
+      }
+      const signature = signatures[1].s;
+      if (signature === undefined) {
+        throw new Error('No signature found');
+      }
+
+      const { txID, blob } = algosdk.appendSignRawMultisigSignature(
+        oneSigTxn,
+        sampleMultisigParams,
+        signerAddr,
+        signature
+      );
+
+      const expectedTxID =
+        'MANN3ESOHQVHFZBAGD6UK6XFVWEFZQJPWO5SQ2J5LZRCF5E2VVQQ';
+      assert.strictEqual(txID, expectedTxID);
+
+      const expectedBlob = Buffer.from(
+        'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAuLAFE0oma0skOoAmOzEwfPuLYpEWl4LINtsiLrUqWQkDxh4WHb29//YCpj4MFbiSgD2jKYt0XKRD86zKCF4RDYKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQBAhuyRjsOrnHp3s/xI+iMKiL7QPsh8iJZ22YOJJP0aFUwedMr+a6wfdBXk1OefyrAN1wqJ9rq6O+DrWV1fH0ASBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boujYW10zQPopWNsb3NlxCBA6TSSiCVky86cWaabZ1Qmiemhw6Kp6ltlpuikQh/8V6NmZWXNA+iiZnbN8xWjZ2VurGRldm5ldC12MzguMKJnaMQg/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp2ibHbN9v2kbm90ZcQIRSYiABhShvujcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5',
+        'base64'
+      );
+      assert.deepStrictEqual(Buffer.from(blob), expectedBlob);
+    });
+  });
+
   describe('should sign keyreg transaction types', () => {
     it('first partial sig should match golden main repo result', () => {
       const rawTxBlob = Buffer.from(

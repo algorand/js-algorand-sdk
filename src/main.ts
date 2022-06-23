@@ -166,6 +166,8 @@ export {
   signMultisigTransaction,
   mergeMultisigTransactions,
   appendSignMultisigTransaction,
+  appendSignRawMultisigSignature,
+  verifyMultisig,
   multisigAddress,
 } from './multisig';
 export const LogicTemplates = LogicTemplatesCommonJSExport.default;
