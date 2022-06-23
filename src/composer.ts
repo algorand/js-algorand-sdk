@@ -24,6 +24,7 @@ import {
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base';
+import { createDryrun, DryrunResult } from './dryrun';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
@@ -578,6 +579,64 @@ export class AtomicTransactionComposer {
     this.status = AtomicTransactionComposerStatus.SUBMITTED;
 
     return this.txIDs;
+  }
+
+  async dryrun(
+    client: Algodv2
+  ): Promise<{
+    dryrunResponse: {};
+    txIDs: string[];
+    methodResults: ABIResult[];
+    trace: DryrunResult;
+  }> {
+    const stxnBlobs = await this.gatherSignatures();
+    const stxns = stxnBlobs.map((stxn: Uint8Array) =>
+      decodeSignedTransaction(stxn)
+    );
+
+    const drReq = await createDryrun({ client, txns: stxns });
+    const dryrunResponse = await client.dryrun(drReq).do();
+    const trace = new DryrunResult(dryrunResponse);
+
+    const methodResults = [];
+    for (const [txnIndex, method] of this.methodCalls) {
+      const drTxn = trace.txns[txnIndex];
+
+      const methodResult: ABIResult = {
+        txID: this.txIDs[txnIndex],
+        rawReturnValue: new Uint8Array(),
+        method,
+      };
+
+      if (method.returns.type !== 'void') {
+        const logs: string[] = drTxn.logs || [];
+        if (logs.length === 0)
+          throw new Error('App call transaction did not log a return value');
+
+        const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+
+        if (
+          lastLog.byteLength < 4 ||
+          !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+        ) {
+          throw new Error('App call transaction did not log a return value');
+        }
+
+        methodResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
+        methodResult.returnValue = method.returns.type.decode(
+          methodResult.rawReturnValue
+        );
+      }
+
+      methodResults.push(methodResult);
+    }
+
+    return {
+      txIDs: this.txIDs,
+      dryrunResponse,
+      methodResults,
+      trace,
+    };
   }
 
   /**
