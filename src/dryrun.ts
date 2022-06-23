@@ -312,10 +312,12 @@ class DryrunTransactionResult {
   appCallMessages: string[] | undefined = [];
   localDeltas: AccountStateDelta[] | undefined = [];
   globalDelta: EvalDeltaKeyValue[] | undefined = [];
-  cost: number | undefined = 0;
   logicSigMessages: string[] | undefined = [];
   logicSigDisassembly: string[] | undefined = [];
   logs: string[] | undefined = [];
+  cost: number | undefined = 0;
+  budgetAdded: number | undefined = 0;
+  budgetConsumed: number | undefined = 0;
 
   appCallTrace: DryrunTrace | undefined = undefined;
   logicSigTrace: DryrunTrace | undefined = undefined;
@@ -325,10 +327,12 @@ class DryrunTransactionResult {
     'app-call-messages',
     'local-deltas',
     'global-delta',
-    'cost',
     'logic-sig-messages',
     'logic-sig-disassembly',
     'logs',
+    'cost',
+    'budget-added',
+    'budget-consumed',
   ];
 
   traces = ['app-call-trace', 'logic-sig-trace'];
@@ -339,6 +343,8 @@ class DryrunTransactionResult {
     this.localDeltas = dtr['local-deltas'];
     this.globalDelta = dtr['global-delta'];
     this.cost = dtr.cost;
+    this.budgetAdded = dtr['budget-added'];
+    this.budgetConsumed = dtr['budget-consumed'];
     this.logicSigMessages = dtr['logic-sig-messages'];
     this.logicSigDisassembly = dtr['logic-sig-disassembly'];
     this.logs = dtr.logs;
