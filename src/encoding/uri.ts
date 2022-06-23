@@ -5,10 +5,19 @@
  * to its corresponding hex value and escaped in the URL.
  *  */
 
-const isUrlSafe = (char) => {
-  const urlSafePattern = /[a-zA-Z0-9\-_~.]+/;
-  return urlSafePattern.test(char);
-};
+function isUrlSafe(char: number): boolean {
+  return (
+    // Check for alphanumeric characters
+    (char >= Buffer.from('a')[0] && char <= Buffer.from('z')[0]) ||
+    (char >= Buffer.from('A')[0] && char <= Buffer.from('Z')[0]) ||
+    (char >= Buffer.from('0')[0] && char <= Buffer.from('9')[0]) ||
+    // Check for [-_~.]
+    char === Buffer.from('-')[0] ||
+    char === Buffer.from('_')[0] ||
+    char === Buffer.from('~')[0] ||
+    char === Buffer.from('.')[0]
+  );
+}
 
 export function encodeURLFromBytes(buf: Uint8Array) {
   if (!(buf instanceof Uint8Array)) {
@@ -16,10 +25,9 @@ export function encodeURLFromBytes(buf: Uint8Array) {
   }
   let encoded = '';
   for (let i = 0; i < buf.length; i++) {
-    const charBuf = Buffer.from('00', 'hex');
-    charBuf.writeUInt8(buf[i]);
-    const char = charBuf.toString();
-    if (isUrlSafe(char)) {
+    const charBuf = Buffer.from([buf[i]]);
+    if (isUrlSafe(buf[i])) {
+      const char = charBuf.toString();
       encoded += char;
     } else {
       encoded += `%${charBuf.toString('hex').toUpperCase()}`;

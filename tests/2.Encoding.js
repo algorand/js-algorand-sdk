@@ -542,7 +542,8 @@ describe('encoding', () => {
       const testCases = [
         [new Uint8Array([102, 111, 111]), 'foo'], // Regular UTF-8
         [new Uint8Array([47, 47]), '%2F%2F'], // Forward slashes
-        [Buffer.from('⚽️'), '%E2%9A%BD%EF%B8%8F'],
+        [Buffer.from('⚽️'), '%E2%9A%BD%EF%B8%8F'], // Emoji
+        [Buffer.from('über'), '%C3%BCber'], // Foreign characters
       ];
 
       for (const testCase of testCases) {
