@@ -180,11 +180,17 @@ describe('Multisig Functionality', () => {
         sampleMultisigParams,
         sampleAccount2.sk
       );
-      const signatures = algosdk.decodeSignedTransaction(signedTxn.blob).msig
-        ?.subsig;
+
+      const multisig = algosdk.decodeSignedTransaction(signedTxn.blob).msig;
+      if (multisig === undefined) {
+        throw new Error('multisig is undefined');
+      }
+
+      const signatures = multisig.subsig;
       if (signatures === undefined) {
         throw new Error('No signatures found');
       }
+
       const signature = signatures[1].s;
       if (signature === undefined) {
         throw new Error('No signature found');
