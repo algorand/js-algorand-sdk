@@ -1,3 +1,10 @@
+# v1.18.0
+
+## What's Changed
+
+- Add method to abi results by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/578
+- Add getMethodByName function to Contract and Interface by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/583
+
 # v1.17.0
 
 ## What's Changed
