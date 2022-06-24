@@ -7,10 +7,12 @@ rm -rf test-harness
 rm -rf tests/cucumber/features
 
 # clone test harness
-git clone --single-branch --branch master https://github.com/algorand/algorand-sdk-testing.git test-harness
+git clone --single-branch --branch sourcemap https://github.com/algorand/algorand-sdk-testing.git test-harness
 
 # move feature files and example files to destination
 mv test-harness/features tests/cucumber/features
+
+exit
 
 if [ $TEST_BROWSER == "chrome" ]; then
   # use latest version of chromedriver for compatability with the current Chrome version

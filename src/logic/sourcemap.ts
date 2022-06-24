@@ -35,8 +35,9 @@ export class SourceMap {
       return undefined;
     });
 
-    this.pcToLine = {};
-    this.lineToPc = {};
+    // Init to 0,0
+    this.pcToLine = { 0: 0 };
+    this.lineToPc = { 0: [0] };
 
     let lastLine = 0;
     for (const [idx, val] of pcList.entries()) {
