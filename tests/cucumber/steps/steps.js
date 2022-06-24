@@ -5347,23 +5347,13 @@ module.exports = function getSteps(options) {
   });
 
   Then(
-    'getting the line that corresponds to the PC {string} produces {string}',
-    function (_pc, _line) {
-      const pc = parseInt(_pc);
-      const line = parseInt(_line);
-
-      const actualLine = this.sourcemap.getLineForPc(pc);
-      assert.equal(actualLine, line);
-    }
-  );
-
-  Then(
-    'getting the first PC that corresponds to the line {string} produces {string}',
-    function (_line, _pc) {
-      const pc = parseInt(_pc);
-      const line = parseInt(_line);
-      const actualPcs = this.sourcemap.getPcsForLine(line);
-      assert.equal(actualPcs[0], pc);
+    'the string composed of pc:line number equals {string}',
+    function (mapping) {
+      const buff = [];
+      for (const [pc, line] of Object.entries(this.sourcemap.pcToLine)) {
+        buff.push(`${pc}:${line}`);
+      }
+      assert.equal(buff.join(';'), mapping);
     }
   );
 
