@@ -23,6 +23,17 @@ export default class Compile extends JSONRequest {
     this.source = source;
   }
 
+  /**
+   * Include sourcemap
+   *
+   * @param value - default true when called without passing a value
+   * @category query
+   */
+  sourcemap(value = true) {
+    this.query.sourcemap = value;
+    return this;
+  }
+
   // eslint-disable-next-line class-methods-use-this
   path() {
     return `/v2/teal/compile`;
@@ -37,7 +48,8 @@ export default class Compile extends JSONRequest {
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.source),
-      txHeaders
+      txHeaders,
+      this.query
     );
     return res.body;
   }
