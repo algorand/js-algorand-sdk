@@ -1,4 +1,3 @@
-import Url from 'url-parse';
 import * as request from 'superagent';
 import {
   BaseHTTPClient,
@@ -34,7 +33,7 @@ export type TokenHeader =
  * This is the default implementation of BaseHTTPClient.
  */
 export class URLTokenBaseHTTPClient implements BaseHTTPClient {
-  private readonly baseURL: Url;
+  private readonly baseURL: URL;
   private readonly tokenHeader: TokenHeader;
 
   constructor(
@@ -49,9 +48,9 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     const fixedBaseServer = baseServer.endsWith('/')
       ? baseServer
       : `${baseServer}/`;
-    const baseServerURL = new Url(fixedBaseServer);
+    const baseServerURL = new URL(fixedBaseServer);
     if (typeof port !== 'undefined') {
-      baseServerURL.set('port', port.toString());
+      baseServerURL.port = port.toString();
     }
 
     if (baseServerURL.protocol.length === 0) {
@@ -76,7 +75,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     } else {
       fixedRelativePath = `./${relativePath}`;
     }
-    const address = new Url(fixedRelativePath, this.baseURL);
+    const address = new URL(fixedRelativePath, this.baseURL);
     return address.toString();
   }
 
