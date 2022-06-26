@@ -354,11 +354,12 @@ describe('encoding', () => {
     });
 
     it('should parse number', () => {
-      const input = '17';
+      const num = Number.MAX_SAFE_INTEGER;
+      const input = JSON.stringify(num);
 
       for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
         const actual = utils.parseJSON(input, { intDecoding });
-        const expected = intDecoding === 'bigint' ? 17n : 17;
+        const expected = intDecoding === 'bigint' ? BigInt(num) : num;
 
         assert.deepStrictEqual(
           actual,
