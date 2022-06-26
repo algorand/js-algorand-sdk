@@ -354,18 +354,18 @@ describe('encoding', () => {
     });
 
     it('should parse number', () => {
-      const num = Number.MAX_SAFE_INTEGER;
-      const input = JSON.stringify(num);
-
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
-        const actual = utils.parseJSON(input, { intDecoding });
-        const expected = intDecoding === 'bigint' ? BigInt(num) : num;
-
-        assert.deepStrictEqual(
-          actual,
-          expected,
-          `Error when intDecoding = ${intDecoding}`
-        );
+      const inputs = ['17', '9007199254740991'];
+      for (const input of inputs) {
+        for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+          const actual = utils.parseJSON(input, { intDecoding });
+          const expected =
+            intDecoding === 'bigint' ? BigInt(input) : Number(input);
+          assert.deepStrictEqual(
+            actual,
+            expected,
+            `Error when intDecoding = ${intDecoding}`
+          );
+        }
       }
     });
 
