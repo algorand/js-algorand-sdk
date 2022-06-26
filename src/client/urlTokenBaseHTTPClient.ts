@@ -1,5 +1,4 @@
 import Url from 'url-parse';
-import path from 'path';
 import * as request from 'superagent';
 import {
   BaseHTTPClient,
@@ -44,7 +43,13 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     port?: string | number,
     private defaultHeaders: Record<string, any> = {}
   ) {
-    const baseServerURL = new Url(baseServer, {});
+    // Append a trailing slash so we can use relative paths. Without the trailing
+    // slash, the last path segment will be replaced by the relative path. See
+    // usage in `addressWithPath`.
+    const fixedBaseServer = baseServer.endsWith('/')
+      ? baseServer
+      : `${baseServer}/`;
+    const baseServerURL = new Url(fixedBaseServer);
     if (typeof port !== 'undefined') {
       baseServerURL.set('port', port.toString());
     }
@@ -63,10 +68,15 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
    * @returns A URL string
    */
   private addressWithPath(relativePath: string) {
-    const address = new Url(
-      path.posix.join(this.baseURL.pathname, relativePath),
-      this.baseURL
-    );
+    let fixedRelativePath: string;
+    if (relativePath.startsWith('./')) {
+      fixedRelativePath = relativePath;
+    } else if (relativePath.startsWith('/')) {
+      fixedRelativePath = `.${relativePath}`;
+    } else {
+      fixedRelativePath = `./${relativePath}`;
+    }
+    const address = new Url(fixedRelativePath, this.baseURL);
     return address.toString();
   }
 
