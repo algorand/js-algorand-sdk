@@ -25,7 +25,8 @@ export interface JSONOptions {
  *   Defaults to "default" if not included.
  */
 export function parseJSON(str: string, options?: JSONOptions) {
-  const intDecoding = options?.intDecoding ?? IntDecoding.DEFAULT;
+  const intDecoding =
+    options && options.intDecoding ? options.intDecoding : IntDecoding.DEFAULT;
   return JSONbig.parse(str, (_, value) => {
     if (
       value != null &&
