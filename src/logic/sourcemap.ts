@@ -4,8 +4,7 @@ export class SourceMap {
   version: number;
   sources: string[];
   names: string[];
-  mapping: string;
-  delimiter: string;
+  mappings: string;
 
   pcToLine: { [key: number]: number };
   lineToPc: { [key: number]: number[] };
@@ -14,22 +13,30 @@ export class SourceMap {
     version,
     sources,
     names,
+    mappings,
     mapping,
-    delimiter,
   }: {
     version: number;
     sources: string[];
     names: string[];
-    mapping: string;
-    delimiter?: string;
+    mappings?: string;
+    mapping?: string;
   }) {
     this.version = version;
     this.sources = sources;
     this.names = names;
-    this.mapping = mapping;
-    this.delimiter = delimiter === undefined ? ';' : delimiter;
+    // Backwards compat
+    this.mappings = mapping !== undefined ? mapping : mappings;
 
-    const pcList = this.mapping.split(this.delimiter).map((m) => {
+    if (this.version !== 3)
+      throw new Error(`Only version 3 is supported, got ${this.version}`);
+
+    if (this.mappings === undefined)
+      throw new Error(
+        'mapping undefined, please specify in key `mapping` or `mappings`'
+      );
+
+    const pcList = this.mappings.split(';').map((m) => {
       const decoded = vlq.decode(m);
       if (decoded.length > 1) return decoded[2];
       return undefined;
