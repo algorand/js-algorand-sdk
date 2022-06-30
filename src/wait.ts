@@ -21,7 +21,7 @@ export async function waitForConfirmation(
   let counter = 0;
 
   /* eslint-disable no-await-in-loop */
-  while (counter < waitRounds) {
+  while (counter <= waitRounds) {
     let pendingInfo = {};
     try {
       pendingInfo = await client.pendingTransactionInformation(txid).do();
@@ -42,7 +42,7 @@ export async function waitForConfirmation(
     }
 
     const status = await client.statusAfterBlock(currentRound).do();
-    currentRound = status['last-round'] + 1;
+    currentRound = ((status && status['last-round']) || currentRound) + 1;
     counter += 1;
   }
   /* eslint-enable no-await-in-loop */
