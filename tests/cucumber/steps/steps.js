@@ -1836,10 +1836,10 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a GetApplicationBoxByName call for applicationID {int} with box name {string}',
+    'we make a GetApplicationBoxByName call for applicationID {int} with encoded box name {string}',
     async function (index, boxName) {
       const box = splitAndProcessAppArgs(boxName)[0];
-      await this.v2Client.getApplicationBoxByName(index, box).do();
+      await this.v2Client.getApplicationBoxByName(index).name(box).do();
     }
   );
 

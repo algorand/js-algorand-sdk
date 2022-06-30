@@ -5,6 +5,7 @@
  * to its corresponding hex value and escaped in the URL.
  *  */
 
+// TODO: Consider deleting if native URL encoding function will suffice.
 function isUrlSafe(char: number): boolean {
   return (
     // Check for alphanumeric characters

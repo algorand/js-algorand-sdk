@@ -437,22 +437,16 @@ export default class AlgodClient extends ServiceClient {
    * ```typescript
    * const index = 60553466;
    * const boxName = Buffer.from("foo");
-   * const app = await algodClient.getApplicationBoxByName(index, boxName).do();
+   * const app = await algodClient.getApplicationBoxByName(index).name(boxName).do();
    * ```
    *
    * TODO: Change below
-   * [Response data schema details](Fill me in!)
+   * [Response data schema details](TODO: Fill me in!)
    * @param index - The application ID to look up.
-   * @param boxName - The box name or key to look up.
    * @category GET
    */
-  getApplicationBoxByName(index: number, boxName: Uint8Array) {
-    return new GetApplicationBoxByName(
-      this.c,
-      this.intDecoding,
-      index,
-      boxName
-    );
+  getApplicationBoxByName(index: number) {
+    return new GetApplicationBoxByName(this.c, this.intDecoding, index);
   }
 
   /**
