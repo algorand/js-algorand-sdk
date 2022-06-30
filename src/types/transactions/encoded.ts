@@ -83,6 +83,18 @@ export interface EncodedGlobalStateSchema {
   nbs: number;
 }
 
+export interface EncodedBoxReference {
+  /**
+   * index of the app ID in the foreign apps array
+   */
+  i: number;
+
+  /**
+   * box name
+   */
+  n: Uint8Array;
+}
+
 /**
  * A rough structure for the encoded transaction object. Every property is labelled with its associated Transaction type property
  */
@@ -296,6 +308,11 @@ export interface EncodedTransaction {
    * extraPages
    */
   apep?: number;
+
+  /**
+   * boxes
+   */
+  apbx?: EncodedBoxReference[];
 }
 
 export interface EncodedSubsig {

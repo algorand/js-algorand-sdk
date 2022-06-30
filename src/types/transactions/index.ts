@@ -18,7 +18,12 @@ import {
 } from './application';
 
 // Utilities
-export { TransactionParams, TransactionType, SuggestedParams } from './base';
+export {
+  TransactionParams,
+  TransactionType,
+  SuggestedParams,
+  BoxReference,
+} from './base';
 export {
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,
