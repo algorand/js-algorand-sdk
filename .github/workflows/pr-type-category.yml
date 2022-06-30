@@ -1,4 +1,3 @@
-name: Check PR category and type
 on:
   pull_request:
     branches:
@@ -7,6 +6,7 @@ on:
 jobs:
   check_label:
     runs-on: ubuntu-latest
+    name: Check PR Category and Type
     steps:
       - name: Checking for correct number of required github pr labels
         uses: mheap/github-action-required-labels@v2
