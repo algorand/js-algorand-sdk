@@ -33,17 +33,7 @@ With Vite, you would see:
 Uncaught ReferenceError: Buffer is not defined
 ```
 
-You will have to install `buffer` and `path-browserify` as dependencies.
-
-In `vite.config.js`, specify:
-
-```js
-resolve: {
-  alias: {
-    path: 'path-browserify';
-  }
-}
-```
+You will have to install `buffer` as dependency.
 
 In `index.html`, add the following:
 
