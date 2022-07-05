@@ -1,3 +1,16 @@
+# 1.19.0
+
+## What's Changed
+
+- Properly set maxWidth in trace by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/593
+- fix: safe intDecoding by @AlgoDoggo in https://github.com/algorand/js-algorand-sdk/pull/599
+- Remove code that relies on node's path module by @bmdelacruz in https://github.com/algorand/js-algorand-sdk/pull/598
+
+## New Contributors
+
+- @AlgoDoggo made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/599
+- @bmdelacruz made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/598
+
 # v1.18.0
 
 ## What's Changed
