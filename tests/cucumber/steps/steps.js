@@ -5395,7 +5395,8 @@ module.exports = function getSteps(options) {
       try {
         const boxKey = splitAndProcessAppArgs(boxName)[0];
         const resp = await this.v2Client
-          .getApplicationBoxByName(this.currentApplicationIndex, boxKey)
+          .getApplicationBoxByName(this.currentApplicationIndex)
+          .name(boxKey)
           .do();
         const actualName = resp.name;
         const actualValue = resp.value;
@@ -5405,11 +5406,15 @@ module.exports = function getSteps(options) {
         );
         assert.deepStrictEqual(boxValue, actualValue);
       } catch (err) {
-        assert.deepStrictEqual(
-          true,
-          err.message.includes(errString),
-          `expected ${errString} got ${err.message}`
-        );
+        if (errString !== '') {
+          assert.deepStrictEqual(
+            true,
+            err.message.includes(errString),
+            `expected ${errString} got ${err.message}`
+          );
+        } else {
+          throw err;
+        }
       }
     }
   );
