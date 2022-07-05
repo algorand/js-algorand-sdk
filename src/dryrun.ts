@@ -365,8 +365,7 @@ class DryrunTransactionResult {
     disassembly: string[],
     spc: StackPrinterConfig
   ): string {
-    let maxWidth = defaultMaxWidth;
-    if (spc.maxValueWidth === undefined) maxWidth = spc.maxValueWidth;
+    const maxWidth = spc.maxValueWidth || defaultMaxWidth;
 
     // Create the array of arrays, each sub array contains N columns
     const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
