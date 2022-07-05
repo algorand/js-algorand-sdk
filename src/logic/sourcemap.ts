@@ -14,19 +14,16 @@ export class SourceMap {
     sources,
     names,
     mappings,
-    mapping,
   }: {
     version: number;
     sources: string[];
     names: string[];
-    mappings?: string;
-    mapping?: string;
+    mappings: string;
   }) {
     this.version = version;
     this.sources = sources;
     this.names = names;
-    // Backwards compat
-    this.mappings = mapping !== undefined ? mapping : mappings;
+    this.mappings = mappings;
 
     if (this.version !== 3)
       throw new Error(`Only version 3 is supported, got ${this.version}`);
@@ -42,18 +39,19 @@ export class SourceMap {
       return undefined;
     });
 
-    // Init to 0,0
-    this.pcToLine = { 0: 0 };
-    this.lineToPc = { 0: [0] };
+    this.pcToLine = {};
+    this.lineToPc = {};
 
     let lastLine = 0;
-    for (const [idx, val] of pcList.entries()) {
-      if (val !== undefined) {
-        if (!(val in this.lineToPc)) this.lineToPc[val] = [];
-        this.lineToPc[val].push(idx);
-        lastLine = val;
+    for (const [pc, lineDelta] of pcList.entries()) {
+      if (lineDelta !== undefined) {
+        const lineNum = lastLine + lineDelta;
+        if (!(lineNum in this.lineToPc)) this.lineToPc[lineNum] = [];
+
+        this.lineToPc[lineNum].push(pc);
+        lastLine = lineNum;
       }
-      this.pcToLine[idx] = lastLine;
+      this.pcToLine[pc] = lastLine;
     }
   }
 
