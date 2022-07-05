@@ -35,7 +35,7 @@ export function translateBoxReferences(
   foreignApps: number[],
   appIndex: number
 ): EncodedBoxReference[] {
-  if (references == null || !Array.isArray(references)) return [];
+  if (!Array.isArray(references)) return [];
   return references.map((bx) =>
     translateBoxReference(bx, foreignApps, appIndex)
   );
