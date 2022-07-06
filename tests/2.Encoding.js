@@ -1,5 +1,3 @@
-import { encodeURLFromBytes } from '../src/encoding/uri';
-
 const assert = require('assert');
 const algosdk = require('../index');
 const utils = require('../src/utils/utils');
@@ -535,25 +533,6 @@ describe('encoding', () => {
           `Error when intDecoding = ${intDecoding}`
         );
       }
-    });
-  });
-  describe('uri', () => {
-    it('should encode the URI properly from Uint8Array', () => {
-      const testCases = [
-        [new Uint8Array([102, 111, 111]), 'foo'], // Regular UTF-8
-        [new Uint8Array([47, 47]), '%2F%2F'], // Forward slashes
-        [Buffer.from('⚽️'), '%E2%9A%BD%EF%B8%8F'], // Emoji
-        [Buffer.from('über'), '%C3%BCber'], // Foreign characters
-      ];
-
-      for (const testCase of testCases) {
-        const actual = encodeURLFromBytes(testCase[0]);
-        assert.deepStrictEqual(testCase[1], actual);
-      }
-
-      // Assert that encoding only works on Uint8Array
-      assert.throws(() => encodeURLFromBytes('bar'));
-      assert.throws(() => encodeURLFromBytes(9999));
     });
   });
 });
