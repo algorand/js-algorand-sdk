@@ -3935,7 +3935,7 @@ module.exports = function getSteps(options) {
     }
   );
 
-  Then(
+  Given(
     "I fund the current application's address with {int} microalgos.",
     async function (amount) {
       const sp = await this.v2Client.getTransactionParams().do();
