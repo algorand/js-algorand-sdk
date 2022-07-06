@@ -1,3 +1,10 @@
 {
-  "excludeExternals": true
+  "excludeExternals": true,
+  "entryPoints": [
+    "./src/main.ts",
+    "./src/client/v2/algod/algod.ts",
+    "./src/client/v2/indexer/indexer.ts"
+  ],
+  "entryPointStrategy": "expand",
+  "out": "docs"
 }
