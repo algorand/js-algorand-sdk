@@ -354,17 +354,18 @@ describe('encoding', () => {
     });
 
     it('should parse number', () => {
-      const input = '17';
-
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
-        const actual = utils.parseJSON(input, { intDecoding });
-        const expected = intDecoding === 'bigint' ? 17n : 17;
-
-        assert.deepStrictEqual(
-          actual,
-          expected,
-          `Error when intDecoding = ${intDecoding}`
-        );
+      const inputs = ['17', '9007199254740991'];
+      for (const input of inputs) {
+        for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+          const actual = utils.parseJSON(input, { intDecoding });
+          const expected =
+            intDecoding === 'bigint' ? BigInt(input) : Number(input);
+          assert.deepStrictEqual(
+            actual,
+            expected,
+            `Error when intDecoding = ${intDecoding}`
+          );
+        }
       }
     });
 
