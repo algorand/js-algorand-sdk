@@ -127,6 +127,54 @@ module.exports = function getSteps(options) {
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
+  // String parsing helper methods
+  function processAppArgs(subArg) {
+    switch (subArg[0]) {
+      case 'str':
+        return makeUint8Array(Buffer.from(subArg[1]));
+      case 'int':
+        return makeUint8Array([parseInt(subArg[1])]);
+      case 'addr':
+        return algosdk.decodeAddress(subArg[1]).publicKey;
+      case 'b64':
+        return makeUint8Array(Buffer.from(subArg[1], 'base64'));
+      default:
+        throw Error(`did not recognize app arg of type${subArg[0]}`);
+    }
+  }
+
+  function splitAndProcessAppArgs(inArgs) {
+    const splitArgs = inArgs.split(',');
+    const subArgs = [];
+    splitArgs.forEach((subArg) => {
+      subArgs.push(subArg.split(':'));
+    });
+    const appArgs = [];
+    subArgs.forEach((subArg) => {
+      appArgs.push(processAppArgs(subArg));
+    });
+    return appArgs;
+  }
+
+  function splitAndProcessBoxReferences(boxRefs) {
+    const splitRefs = boxRefs.split(',');
+    const boxRefArray = [];
+    let appIndex = 0;
+
+    for (let i = 0; i < splitRefs.length; i++) {
+      if (i % 2 === 0) {
+        appIndex = parseInt(splitRefs[i]);
+      } else {
+        const refArg = splitRefs[i].split(':');
+        boxRefArray.push({
+          appIndex,
+          name: processAppArgs(refArg),
+        });
+      }
+    }
+    return boxRefArray;
+  }
+
   Given('an algod client', async function () {
     this.acl = new algosdk.Algod(algodToken, 'http://localhost', 60000);
     return this.acl;
@@ -1784,6 +1832,14 @@ module.exports = function getSteps(options) {
     'we make a GetApplicationByID call for applicationID {int}',
     async function (index) {
       await this.v2Client.getApplicationByID(index).do();
+    }
+  );
+
+  When(
+    'we make a GetApplicationBoxByName call for applicationID {int} with encoded box name {string}',
+    async function (index, boxName) {
+      const box = splitAndProcessAppArgs(boxName)[0];
+      await this.v2Client.getApplicationBoxByName(index).name(box).do();
     }
   );
 
@@ -3993,53 +4049,6 @@ module.exports = function getSteps(options) {
     return makeUint8Array(data);
   }
 
-  function processAppArgs(subArg) {
-    switch (subArg[0]) {
-      case 'str':
-        return makeUint8Array(Buffer.from(subArg[1]));
-      case 'int':
-        return makeUint8Array([parseInt(subArg[1])]);
-      case 'addr':
-        return algosdk.decodeAddress(subArg[1]).publicKey;
-      case 'b64':
-        return makeUint8Array(Buffer.from(subArg[1], 'base64'));
-      default:
-        throw Error(`did not recognize app arg of type${subArg[0]}`);
-    }
-  }
-
-  function splitAndProcessAppArgs(inArgs) {
-    const splitArgs = inArgs.split(',');
-    const subArgs = [];
-    splitArgs.forEach((subArg) => {
-      subArgs.push(subArg.split(':'));
-    });
-    const appArgs = [];
-    subArgs.forEach((subArg) => {
-      appArgs.push(processAppArgs(subArg));
-    });
-    return appArgs;
-  }
-
-  function splitAndProcessBoxReferences(boxRefs) {
-    const splitRefs = boxRefs.split(',');
-    const boxRefArray = [];
-    let appIndex = 0;
-
-    for (let i = 0; i < splitRefs.length; i++) {
-      if (i % 2 === 0) {
-        appIndex = parseInt(splitRefs[i]);
-      } else {
-        const refArg = splitRefs[i].split(':');
-        boxRefArray.push({
-          appIndex,
-          name: processAppArgs(refArg),
-        });
-      }
-    }
-    return boxRefArray;
-  }
-
   When(
     'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}, extra-pages {int}, boxes {string}',
     async function (
@@ -5376,6 +5385,36 @@ module.exports = function getSteps(options) {
         );
       } else {
         assert.ok(false, 'Both retrieved method and error are undefined');
+      }
+    }
+  );
+
+  Then(
+    'the contents of the box with name {string} should be {string}. If there is an error it is {string}.',
+    async function (boxName, boxValue, errString) {
+      try {
+        const boxKey = splitAndProcessAppArgs(boxName)[0];
+        const resp = await this.v2Client
+          .getApplicationBoxByName(this.currentApplicationIndex)
+          .name(boxKey)
+          .do();
+        const actualName = resp.name;
+        const actualValue = resp.value;
+        assert.deepStrictEqual(
+          Buffer.from(boxKey),
+          Buffer.from(actualName, 'base64')
+        );
+        assert.deepStrictEqual(boxValue, actualValue);
+      } catch (err) {
+        if (errString !== '') {
+          assert.deepStrictEqual(
+            true,
+            err.message.includes(errString),
+            `expected ${errString} got ${err.message}`
+          );
+        } else {
+          throw err;
+        }
       }
     }
   );
