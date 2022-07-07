@@ -440,8 +440,7 @@ export default class AlgodClient extends ServiceClient {
    * const app = await algodClient.getApplicationBoxByName(index).name(boxName).do();
    * ```
    *
-   * TODO: Change below
-   * [Response data schema details](TODO: Fill me in!)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
    * @param index - The application ID to look up.
    * @category GET
    */

@@ -1,8 +1,9 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { BoxReference } from '../../../types';
 
-export default class GetApplicationBoxByName extends JSONRequest {
+export default class GetApplicationBoxByName extends JSONRequest<BoxReference> {
   constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
     super(c, intDecoding);
     this.index = index;
