@@ -65,6 +65,9 @@
     "webpack": "^5.38.1",
     "webpack-cli": "^4.7.2"
   },
+  "optionalDependencies": {
+    "fsevents": "2.1.2"
+  },
   "scripts": {
     "test": "node -r ts-node/register tests/mocha.js",
     "prepare": "npm run build",
