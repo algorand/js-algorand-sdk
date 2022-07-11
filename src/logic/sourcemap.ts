@@ -30,7 +30,7 @@ export class SourceMap {
 
     if (this.mappings === undefined)
       throw new Error(
-        'mapping undefined, please specify in key `mapping` or `mappings`'
+        'mapping undefined, cannot build source map without `mapping`'
       );
 
     const pcList = this.mappings.split(';').map((m) => {
@@ -44,13 +44,15 @@ export class SourceMap {
 
     let lastLine = 0;
     for (const [pc, lineDelta] of pcList.entries()) {
+      // If the delta is not undefined, the lastLine should be updated with
+      // lastLine + the delta
       if (lineDelta !== undefined) {
-        const lineNum = lastLine + lineDelta;
-        if (!(lineNum in this.lineToPc)) this.lineToPc[lineNum] = [];
-
-        this.lineToPc[lineNum].push(pc);
-        lastLine = lineNum;
+        lastLine += lineDelta;
       }
+
+      if (!(lastLine in this.lineToPc)) this.lineToPc[lastLine] = [];
+
+      this.lineToPc[lastLine].push(pc);
       this.pcToLine[pc] = lastLine;
     }
   }
