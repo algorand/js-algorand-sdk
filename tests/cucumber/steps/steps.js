@@ -1843,6 +1843,13 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'we make a GetApplicationBoxes call for applicationID {int} with max {int}',
+    async function (index, limit) {
+      await this.v2Client.getApplicationBoxes(index).max(limit).do();
+    }
+  );
+
   let anyPendingTransactionInfoResponse;
 
   When('we make any Pending Transaction Information call', async function () {
@@ -5390,7 +5397,7 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'the contents of the box with name {string} should be {string}. If there is an error it is {string}.',
+    'the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
     async function (boxName, boxValue, errString) {
       try {
         const boxKey = splitAndProcessAppArgs(boxName)[0];
@@ -5416,6 +5423,29 @@ module.exports = function getSteps(options) {
           throw err;
         }
       }
+    }
+  );
+
+  Then(
+    'the current application should have the following boxes {string}.',
+    async function (boxNames) {
+      let boxes;
+      if (boxNames !== '') {
+        boxes = splitAndProcessAppArgs(boxNames);
+      } else {
+        boxes = [];
+      }
+
+      const resp = await this.v2Client
+        .getApplicationBoxes(this.currentApplicationIndex)
+        .do();
+      const actualBoxes = new Set();
+      for (let i = 0; i < resp.boxes.length; i++) {
+        const boxName = resp.boxes[i].name;
+        actualBoxes.add(Buffer.from(boxName, 'base64'));
+      }
+      const expectedBoxes = new Set(boxes.map((name) => Buffer.from(name)));
+      assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
   );
 
