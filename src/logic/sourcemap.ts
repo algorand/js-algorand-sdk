@@ -57,11 +57,11 @@ export class SourceMap {
     }
   }
 
-  getLineForPc(pc: number): number {
+  getLineForPc(pc: number): number | undefined {
     return this.pcToLine[pc];
   }
 
-  getPcsForLine(line: number): number[] {
+  getPcsForLine(line: number): number[] | undefined {
     return this.lineToPc[line];
   }
 }
