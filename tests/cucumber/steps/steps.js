@@ -144,6 +144,9 @@ module.exports = function getSteps(options) {
   }
 
   function splitAndProcessAppArgs(inArgs) {
+    if (inArgs == null || inArgs === '') {
+      return [];
+    }
     const splitArgs = inArgs.split(',');
     const subArgs = [];
     splitArgs.forEach((subArg) => {
@@ -157,6 +160,9 @@ module.exports = function getSteps(options) {
   }
 
   function splitAndProcessBoxReferences(boxRefs) {
+    if (boxRefs == null || boxRefs === '') {
+      return [];
+    }
     const splitRefs = boxRefs.split(',');
     const boxRefArray = [];
     let appIndex = 0;
@@ -5429,18 +5435,13 @@ module.exports = function getSteps(options) {
   Then(
     'the current application should have the following boxes {string}.',
     async function (boxNames) {
-      let boxes;
-      if (boxNames !== '') {
-        boxes = splitAndProcessAppArgs(boxNames);
-      } else {
-        boxes = [];
-      }
+      const boxes = splitAndProcessAppArgs(boxNames);
 
       const resp = await this.v2Client
         .getApplicationBoxes(this.currentApplicationIndex)
         .do();
       const actualBoxes = new Set(
-        resp.boxes.map((_) => Buffer.from(_.name, 'base64'))
+        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
       );
       const expectedBoxes = new Set(boxes.map(Buffer.from));
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
