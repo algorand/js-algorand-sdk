@@ -5440,6 +5440,7 @@ module.exports = function getSteps(options) {
       const resp = await this.v2Client
         .getApplicationBoxes(this.currentApplicationIndex)
         .do();
+      assert.deepStrictEqual(boxes.length, resp.boxes.length);
       const actualBoxes = new Set(
         resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
       );
