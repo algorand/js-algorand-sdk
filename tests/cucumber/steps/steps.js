@@ -144,6 +144,9 @@ module.exports = function getSteps(options) {
   }
 
   function splitAndProcessAppArgs(inArgs) {
+    if (inArgs == null || inArgs === '') {
+      return [];
+    }
     const splitArgs = inArgs.split(',');
     const subArgs = [];
     splitArgs.forEach((subArg) => {
@@ -157,6 +160,9 @@ module.exports = function getSteps(options) {
   }
 
   function splitAndProcessBoxReferences(boxRefs) {
+    if (boxRefs == null || boxRefs === '') {
+      return [];
+    }
     const splitRefs = boxRefs.split(',');
     const boxRefArray = [];
     let appIndex = 0;
@@ -1840,6 +1846,13 @@ module.exports = function getSteps(options) {
     async function (index, boxName) {
       const box = splitAndProcessAppArgs(boxName)[0];
       await this.v2Client.getApplicationBoxByName(index).name(box).do();
+    }
+  );
+
+  When(
+    'we make a GetApplicationBoxes call for applicationID {int} with max {int}',
+    async function (index, limit) {
+      await this.v2Client.getApplicationBoxes(index).max(limit).do();
     }
   );
 
@@ -5390,7 +5403,7 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'the contents of the box with name {string} should be {string}. If there is an error it is {string}.',
+    'the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
     async function (boxName, boxValue, errString) {
       try {
         const boxKey = splitAndProcessAppArgs(boxName)[0];
@@ -5416,6 +5429,23 @@ module.exports = function getSteps(options) {
           throw err;
         }
       }
+    }
+  );
+
+  Then(
+    'the current application should have the following boxes {string}.',
+    async function (boxNames) {
+      const boxes = splitAndProcessAppArgs(boxNames);
+
+      const resp = await this.v2Client
+        .getApplicationBoxes(this.currentApplicationIndex)
+        .do();
+      assert.deepStrictEqual(boxes.length, resp.boxes.length);
+      const actualBoxes = new Set(
+        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
+      );
+      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
   );
 

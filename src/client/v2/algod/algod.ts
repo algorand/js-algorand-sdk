@@ -9,6 +9,7 @@ import Dryrun from './dryrun';
 import GetAssetByID from './getAssetByID';
 import GetApplicationByID from './getApplicationByID';
 import GetApplicationBoxByName from './getApplicationBoxByName';
+import GetApplicationBoxes from './getApplicationBoxes';
 import HealthCheck from './healthCheck';
 import PendingTransactionInformation from './pendingTransactionInformation';
 import PendingTransactions from './pendingTransactions';
@@ -446,6 +447,23 @@ export default class AlgodClient extends ServiceClient {
    */
   getApplicationBoxByName(index: number) {
     return new GetApplicationBoxByName(this.c, this.intDecoding, index);
+  }
+
+  /**
+   * Given an application ID, return all the box names associated with the app.
+   *
+   * #### Example
+   * ```typescript
+   * const index = 60553466;
+   * const app = await algodClient.getApplicationBoxes(index).max(3).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idboxes)
+   * @param index - The application ID to look up.
+   * @category GET
+   */
+  getApplicationBoxes(index: number) {
+    return new GetApplicationBoxes(this.c, this.intDecoding, index);
   }
 
   /**

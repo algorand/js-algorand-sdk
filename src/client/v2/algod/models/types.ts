@@ -1066,6 +1066,52 @@ export class Box extends BaseModel {
   }
 }
 
+/**
+ * Box descriptor describes a Box.
+ */
+export class BoxDescriptor extends BaseModel {
+  /**
+   * Base64 encoded box name
+   */
+  public name: Uint8Array;
+
+  /**
+   * Creates a new `BoxDescriptor` object.
+   * @param name - Base64 encoded box name
+   */
+  constructor(name: string | Uint8Array) {
+    super();
+    this.name =
+      typeof name === 'string'
+        ? new Uint8Array(Buffer.from(name, 'base64'))
+        : name;
+
+    this.attribute_map = {
+      name: 'name',
+    };
+  }
+}
+
+/**
+ * Box names of an application
+ */
+export class BoxesResponse extends BaseModel {
+  public boxes: BoxDescriptor[];
+
+  /**
+   * Creates a new `BoxesResponse` object.
+   * @param boxes -
+   */
+  constructor(boxes: BoxDescriptor[]) {
+    super();
+    this.boxes = boxes;
+
+    this.attribute_map = {
+      boxes: 'boxes',
+    };
+  }
+}
+
 export class BuildVersion extends BaseModel {
   public branch: string;
 
