@@ -5349,10 +5349,7 @@ module.exports = function getSteps(options) {
   Then(
     'the string composed of pc:line number equals {string}',
     function (mapping) {
-      const buff = [];
-      for (const [pc, line] of Object.entries(this.sourcemap.pcToLine)) {
-        buff.push(`${pc}:${line}`);
-      }
+      const buff = Object.entries(this.sourcemap.pcToLine).map(([pc, line]) => `${pc}:${line}`);
       assert.equal(buff.join(';'), mapping);
     }
   );
