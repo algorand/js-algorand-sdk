@@ -25,7 +25,11 @@
     "js-sha512": "^0.8.0",
     "json-bigint": "^1.0.0",
     "superagent": "^6.1.0",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "vlq": "^2.0.4"
+  },
+  "optionalDependencies": {
+    "fsevents": "2.1.2"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.0",
