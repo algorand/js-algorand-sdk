@@ -35,7 +35,7 @@ export class SourceMap {
 
     const pcList = this.mappings.split(';').map((m) => {
       const decoded = vlq.decode(m);
-      if (decoded.length > 1) return decoded[2];
+      if (decoded.length > 2) return decoded[2];
       return undefined;
     });
 
