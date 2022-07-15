@@ -872,9 +872,7 @@ describe('Program validation', () => {
         program[0] = oldVersions[i];
         assert.throws(
           () => logic.checkProgram(program),
-          new Error(
-            'program too costly for Teal version < 4. consider using v4.'
-          )
+          new Error('program too costly for version < 4. consider using v4.')
         );
       }
       //  new versions

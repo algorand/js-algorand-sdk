@@ -247,9 +247,7 @@ export function readProgram(
   }
   // costs calculated dynamically starting in v4
   if (version < 4 && cost > maxCost) {
-    throw new Error(
-      'program too costly for Teal version < 4. consider using v4.'
-    );
+    throw new Error('program too costly for version < 4. consider using v4.');
   }
   return [ints, byteArrays, true];
 }
