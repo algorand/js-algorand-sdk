@@ -5341,6 +5341,57 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Given('a source map json file {string}', async function (srcmap) {
+    const js = parseJSON(await loadResource(srcmap));
+    this.sourcemap = new algosdk.SourceMap(js);
+  });
+
+  Then(
+    'the string composed of pc:line number equals {string}',
+    function (mapping) {
+      const buff = Object.entries(this.sourcemap.pcToLine).map(
+        ([pc, line]) => `${pc}:${line}`
+      );
+      assert.equal(buff.join(';'), mapping);
+    }
+  );
+
+  Then(
+    'getting the line associated with a pc {string} equals {string}',
+    function (pc, expectedLine) {
+      const actualLine = this.sourcemap.getLineForPc(parseInt(pc));
+      assert.equal(actualLine, parseInt(expectedLine));
+    }
+  );
+
+  Then(
+    'getting the last pc associated with a line {string} equals {string}',
+    function (line, expectedPc) {
+      const actualPcs = this.sourcemap.getPcsForLine(parseInt(line));
+      assert.equal(actualPcs.pop(), parseInt(expectedPc));
+    }
+  );
+
+  When(
+    'I compile a teal program {string} with mapping enabled',
+    async function (teal) {
+      const tealSrc = await loadResource(teal);
+      const compiledResponse = await this.v2Client
+        .compile(tealSrc)
+        .sourcemap(true)
+        .do();
+      this.rawSourceMap = JSON.stringify(compiledResponse.sourcemap);
+    }
+  );
+
+  Then(
+    'the resulting source map is the same as the json {string}',
+    async function (expectedJsonPath) {
+      const expected = await loadResource(expectedJsonPath);
+      assert.equal(this.rawSourceMap, expected.toString().trim());
+    }
+  );
+
   if (!options.ignoreReturn) {
     return steps;
   }

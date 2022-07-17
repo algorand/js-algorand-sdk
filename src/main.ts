@@ -168,6 +168,8 @@ export {
   appendSignMultisigTransaction,
   multisigAddress,
 } from './multisig';
+export { SourceMap } from './logic/sourcemap';
+
 export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
 export * from './dryrun';

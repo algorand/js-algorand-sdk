@@ -28,6 +28,11 @@ export default class Compile extends JSONRequest {
     return `/v2/teal/compile`;
   }
 
+  sourcemap(map: boolean = true) {
+    this.query.sourcemap = map;
+    return this;
+  }
+
   /**
    * Executes compile
    * @param headers - A headers object
@@ -37,7 +42,8 @@ export default class Compile extends JSONRequest {
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.source),
-      txHeaders
+      txHeaders,
+      this.query
     );
     return res.body;
   }
