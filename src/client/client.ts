@@ -250,7 +250,8 @@ export default class HTTPClient {
   async post(
     relativePath: string,
     data: any,
-    requestHeaders: Record<string, string> = {}
+    requestHeaders: Record<string, string> = {},
+    query?: Query<any>
   ): Promise<HTTPClientResponse> {
     const fullHeaders = {
       'content-type': 'application/json',
@@ -261,7 +262,7 @@ export default class HTTPClient {
       const res = await this.bc.post(
         relativePath,
         HTTPClient.serializeData(data, fullHeaders),
-        undefined,
+        query,
         fullHeaders
       );
 
