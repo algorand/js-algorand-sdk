@@ -1,3 +1,21 @@
+# v1.19.0
+
+## What's Changed
+
+### Bugfixes
+
+- tech-debt: Remove unused/unmaintained templates by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/607
+
+### New Features
+
+- Dev Tools: Source map decoder by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/590
+- Enhancement: Upgrade typedoc and plugins by @fionnachan in https://github.com/algorand/js-algorand-sdk/pull/605
+
+### Enhancements
+
+- Github-Actions: Adding PR title and label checks by @algojack in https://github.com/algorand/js-algorand-sdk/pull/600
+- docs: tealSign by @AlgoDoggo in https://github.com/algorand/js-algorand-sdk/pull/610
+
 # v1.18.1
 
 ## What's Changed
