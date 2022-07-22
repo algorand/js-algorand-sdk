@@ -42,6 +42,10 @@ export async function waitForConfirmation(
     }
 
     const status = await client.statusAfterBlock(currentRound).do();
+    // wait 2 seconds if we do not get any status back or if currentRound is 0
+    if (!status || !currentRound) {
+      await new Promise<void>((res) => setTimeout(res, 2000));
+    }
     currentRound = ((status && status['last-round']) || currentRound) + 1;
     counter += 1;
   }
