@@ -212,6 +212,7 @@ describe('Multisig Functionality', () => {
         'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAuLAFE0oma0skOoAmOzEwfPuLYpEWl4LINtsiLrUqWQkDxh4WHb29//YCpj4MFbiSgD2jKYt0XKRD86zKCF4RDYKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQBAhuyRjsOrnHp3s/xI+iMKiL7QPsh8iJZ22YOJJP0aFUwedMr+a6wfdBXk1OefyrAN1wqJ9rq6O+DrWV1fH0ASBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boujYW10zQPopWNsb3NlxCBA6TSSiCVky86cWaabZ1Qmiemhw6Kp6ltlpuikQh/8V6NmZWXNA+iiZnbN8xWjZ2VurGRldm5ldC12MzguMKJnaMQg/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp2ibHbN9v2kbm90ZcQIRSYiABhShvujcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5',
         'base64'
       );
+
       assert.deepStrictEqual(Buffer.from(blob), expectedBlob);
     });
 
@@ -255,6 +256,82 @@ describe('Multisig Functionality', () => {
           ),
         Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG)
       );
+    });
+
+    it('should append signature to created raw multisig transaction', () => {
+      const rawTxBlob = Buffer.from(
+        'jKNmZWXOAAPIwKJmds4ADvnao2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zgAO/cKmc2Vsa2V5xCAyEisr1j3cUzGWF6WqU8Sxwm/j3MryjTYitWl3oUBchqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWma2V5cmVnp3ZvdGVmc3TOAA27oKZ2b3Rla2TNJxCndm90ZWtlecQgcBvX+5ErB7MIEf8oHZ/ulWPlgC4gJokjGSWPd/qTHoindm90ZWxzdM4AD0JA',
+        'base64'
+      );
+      const decRawTx = algosdk.decodeUnsignedTransaction(rawTxBlob);
+      const encodedRawTx = decRawTx.get_obj_for_encoding();
+      if (encodedRawTx === undefined) {
+        throw new Error('encodedRawTx is undefined');
+      }
+
+      const unsignedMultisigTx = algosdk.createRawMultisigTransaction(
+        encodedRawTx,
+        sampleMultisigParams
+      );
+
+      // Check that the unsignedMultisigTx is valid
+      interface ExpectedMultisigTxStructure {
+        msig: {
+          subsig: {
+            pk: Uint8Array;
+            s: Uint8Array;
+          }[];
+        };
+      }
+      const unsignedMultisigTxBlob = algosdk.decodeObj(
+        unsignedMultisigTx
+      ) as ExpectedMultisigTxStructure;
+      assert.deepStrictEqual(
+        unsignedMultisigTxBlob.msig.subsig[0].pk,
+        algosdk.decodeAddress(sampleAccount1.addr).publicKey
+      );
+      assert.strictEqual(unsignedMultisigTxBlob.msig.subsig[1].s, undefined);
+
+      // Sign the raw transaction with a signature generated from the first account
+      const signerAddr = sampleAccount1.addr;
+      const signedTxn = algosdk.appendSignMultisigTransaction(
+        unsignedMultisigTx,
+        sampleMultisigParams,
+        sampleAccount1.sk
+      );
+
+      const multisig = algosdk.decodeSignedTransaction(signedTxn.blob).msig;
+      if (multisig === undefined) {
+        throw new Error('multisig is undefined');
+      }
+
+      const signatures = multisig.subsig;
+      if (signatures === undefined) {
+        throw new Error('No signatures found');
+      }
+
+      const signature = signatures[0].s;
+      if (signature === undefined) {
+        throw new Error('No signature found');
+      }
+      const { txID, blob } = algosdk.appendSignRawMultisigSignature(
+        unsignedMultisigTx,
+        sampleMultisigParams,
+        signerAddr,
+        signature
+      );
+
+      // Check that the signed raw multisig is valid
+      const expectedTxID =
+        'E7DA7WTJCWWFQMKSVU5HOIJ5F5HGVGMOZGBIHRJRYGIX7FIJ5VWA';
+      assert.strictEqual(txID, expectedTxID);
+
+      const expectedBlob = Buffer.from(
+        'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAcT0s17wJbvnza+NpyHwM0RWbQ+HwKmsT1PLs+w6d6MpdTH3tra+yKZE0K0qEyhSE7Y56+B9oaf2orEbjc/njDYGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Mo2ZlZc4AA8jAomZ2zgAO+dqjZ2VurGRldm5ldC12MzguMKJnaMQg/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp2ibHbOAA79wqZzZWxrZXnEIDISKyvWPdxTMZYXpapTxLHCb+PcyvKNNiK1aXehQFyGo3NuZMQgjZK0iZABc6BN+kNZo2ZqavzqLEKgXdnB9z7rpUeAN+mkdHlwZaZrZXlyZWendm90ZWZzdM4ADbugpnZvdGVrZM0nEKd2b3Rla2V5xCBwG9f7kSsHswgR/ygdn+6VY+WALiAmiSMZJY93+pMeiKd2b3RlbHN0zgAPQkA=',
+        'base64'
+      );
+
+      assert.deepStrictEqual(Buffer.from(blob), expectedBlob);
     });
   });
 
