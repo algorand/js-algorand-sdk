@@ -4,6 +4,7 @@ import {
   MultisigTransaction,
   MULTISIG_NO_MUTATE_ERROR_MSG,
   MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG,
+  MULTISIG_SIGNATURE_LENGTH_ERROR_MSG,
 } from '../src/multisig';
 
 const sampleAccount1 = algosdk.mnemonicToSecretKey(
@@ -212,6 +213,48 @@ describe('Multisig Functionality', () => {
         'base64'
       );
       assert.deepStrictEqual(Buffer.from(blob), expectedBlob);
+    });
+
+    it('should not sign with signature of invalid length', () => {
+      const oneSigTxn = Buffer.from(
+        'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAuLAFE0oma0skOoAmOzEwfPuLYpEWl4LINtsiLrUqWQkDxh4WHb29//YCpj4MFbiSgD2jKYt0XKRD86zKCF4RDYGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQPoomZ2zfMVo2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zfb9pG5vdGXECEUmIgAYUob7o3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==',
+        'base64'
+      );
+
+      const signerAddr = sampleAccount2.addr;
+      const signedTxn = algosdk.appendSignMultisigTransaction(
+        oneSigTxn,
+        sampleMultisigParams,
+        sampleAccount2.sk
+      );
+
+      const multisig = algosdk.decodeSignedTransaction(signedTxn.blob).msig;
+      if (multisig === undefined) {
+        throw new Error('multisig is undefined');
+      }
+
+      const signatures = multisig.subsig;
+      if (signatures === undefined) {
+        throw new Error('No signatures found');
+      }
+
+      const signature = signatures[1].s;
+      if (signature === undefined) {
+        throw new Error('No signature found');
+      }
+
+      // Remove the last byte of the signature
+      const invalidSignature = signature.slice(0, -1);
+      assert.throws(
+        () =>
+          algosdk.appendSignRawMultisigSignature(
+            oneSigTxn,
+            sampleMultisigParams,
+            signerAddr,
+            invalidSignature
+          ),
+        Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG)
+      );
     });
   });
 

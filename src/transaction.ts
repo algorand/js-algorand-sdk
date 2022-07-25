@@ -1036,6 +1036,9 @@ export class Transaction implements TransactionStorageStructure {
   }
 
   attachSignature(signerAddr: string, signature: Uint8Array) {
+    if (!nacl.isValidSignatureLength(signature.length)) {
+      throw new Error('Invalid signature length');
+    }
     const sTxn: EncodedSignedTransaction = {
       sig: Buffer.from(signature),
       txn: this.get_obj_for_encoding(),

@@ -29,6 +29,8 @@ export const MULTISIG_NO_MUTATE_ERROR_MSG =
   'Cannot mutate a multisig field as it would invalidate all existing signatures.';
 export const MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG =
   'Cannot sign a multisig transaction using `signTxn`. Use `partialSignTxn` instead.';
+export const MULTISIG_SIGNATURE_LENGTH_ERROR_MSG =
+  'Cannot add multisig signature. Signature is not of the correct length.';
 
 interface MultisigOptions {
   rawSig: Uint8Array;
@@ -160,9 +162,15 @@ export class MultisigTransaction extends txnBuilder.Transaction {
     signerAddr: string,
     signature: Uint8Array
   ) {
+    if (!nacl.isValidSignatureLength(signature.length)) {
+      throw new Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG);
+    }
     return createMultisigTransaction(
       this.get_obj_for_encoding(),
-      { rawSig: signature, myPk: address.decodeAddress(signerAddr).publicKey },
+      {
+        rawSig: signature,
+        myPk: address.decodeAddress(signerAddr).publicKey,
+      },
       metadata
     );
   }
