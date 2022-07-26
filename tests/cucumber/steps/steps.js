@@ -127,58 +127,6 @@ module.exports = function getSteps(options) {
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
-  async function sendZeroTransaction() {
-    // TODO: Refactor this and pass in the client objects.
-    if (this.v2Client == null) {
-      this.v2Client = new algosdk.Algodv2(
-        algodToken,
-        'http://localhost',
-        60000
-      );
-    }
-    if (this.kcl == null) {
-      this.kcl = new algosdk.Kmd(kmdToken, 'http://localhost', 60001);
-      this.wallet_name = 'unencrypted-default-wallet';
-      this.wallet_pswd = '';
-
-      const result = await this.kcl.listWallets();
-      for (let i = 0; i < result.wallets.length; i++) {
-        const w = result.wallets[i];
-        if (w.name === this.wallet_name) {
-          this.wallet_id = w.id;
-          break;
-        }
-      }
-      this.handle = await this.kcl.initWalletHandle(
-        this.wallet_id,
-        this.wallet_pswd
-      );
-      this.handle = this.handle.wallet_handle_token;
-      this.accounts = await this.kcl.listKeys(this.handle);
-      this.accounts = this.accounts.addresses;
-    }
-    const sp = await this.v2Client.getTransactionParams().do();
-    if (sp.firstRound === 0) sp.firstRound = 1;
-    const fundingTxnArgs = {
-      from: this.accounts[0],
-      to: this.accounts[0],
-      amount: 0,
-      suggestedParams: sp,
-    };
-    const stxKmd = await this.kcl.signTransaction(
-      this.handle,
-      this.wallet_pswd,
-      fundingTxnArgs
-    );
-    const fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
-    const info = await algosdk.waitForConfirmation(
-      this.v2Client,
-      fundingResponse.txId,
-      1
-    );
-    assert.ok(info['confirmed-round'] > 0);
-  }
-
   Given('an algod client', async function () {
     this.acl = new algosdk.Algod(algodToken, 'http://localhost', 60000);
     this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
@@ -238,7 +186,28 @@ module.exports = function getSteps(options) {
   });
 
   When('I get status after this block', async function () {
-    sendZeroTransaction();
+    // Send a transaction to advance blocks in dev mode.
+    const sp = await this.v2Client.getTransactionParams().do();
+    if (sp.firstRound === 0) sp.firstRound = 1;
+    const fundingTxnArgs = {
+      from: this.accounts[0],
+      to: this.accounts[0],
+      amount: 0,
+      suggestedParams: sp,
+    };
+    const stxKmd = await this.kcl.signTransaction(
+      this.handle,
+      this.wallet_pswd,
+      fundingTxnArgs
+    );
+    const fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
+    const info = await algosdk.waitForConfirmation(
+      this.v2Client,
+      fundingResponse.txId,
+      1
+    );
+    assert.ok(info['confirmed-round'] > 0);
+
     this.statusAfter = await this.acl.statusAfterBlock(this.status.lastRound);
     return this.statusAfter;
   });
