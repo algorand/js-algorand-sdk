@@ -903,7 +903,22 @@ module.exports = function getSteps(options) {
   });
 
   Then('I can get the transaction by ID', async function () {
-    // await this.acl.statusAfterBlock(this.lastRound + 2);
+    // Send a transaction to advance blocks in dev mode.
+    const sp = await this.v2Client.getTransactionParams().do();
+    if (sp.firstRound === 0) sp.firstRound = 1;
+    const fundingTxnArgs = {
+      from: this.accounts[0],
+      to: this.accounts[0],
+      amount: 0,
+      suggestedParams: sp,
+    };
+    const stxKmd = await this.kcl.signTransaction(
+      this.handle,
+      this.wallet_pswd,
+      fundingTxnArgs
+    );
+    await this.v2Client.sendRawTransaction(stxKmd).do();
+
     const info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
