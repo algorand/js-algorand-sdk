@@ -90,6 +90,9 @@ const steps = {
   then: {},
 };
 
+// Dev Mode State
+const DEV_MODE_INITIAL_MICROALGOS = 10_000_000;
+
 /**
  * The getSteps function defines the cucumber steps and returns them.
  *
@@ -126,6 +129,29 @@ module.exports = function getSteps(options) {
   }
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
+
+  // function initializeAccount(client) {
+  //   const sp = await client.getTransactionParams().do();
+  //   if (sp.firstRound === 0) sp.firstRound = 1;
+  //   const fundingTxnArgs = {
+  //     from: this.accounts[0],
+  //     to: this.accounts[0],
+  //     amount: 0,
+  //     suggestedParams: sp,
+  //   };
+  //   const stxKmd = await this.kcl.signTransaction(
+  //     this.handle,
+  //     this.wallet_pswd,
+  //     fundingTxnArgs
+  //   );
+  //   const fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
+  //   const info = await algosdk.waitForConfirmation(
+  //     this.v2Client,
+  //     fundingResponse.txId,
+  //     1
+  //   );
+  //   assert.ok(info['confirmed-round'] > 0);
+  // }
 
   Given('an algod client', async function () {
     this.acl = new algosdk.Algod(algodToken, 'http://localhost', 60000);
@@ -382,6 +408,32 @@ module.exports = function getSteps(options) {
     return this.pk;
   });
 
+  When('I generate a key using kmd for rekeying', async function () {
+    this.rekey = await this.kcl.generateKey(this.handle);
+    this.rekey = this.rekey.address;
+    // Fund the rekey address with some Algos
+    const sp = await this.acl.getTransactionParams();
+    if (sp.firstRound === 0) sp.firstRound = 1;
+    const fundingTxnArgs = {
+      from: this.accounts[0],
+      to: this.rekey,
+      amount: DEV_MODE_INITIAL_MICROALGOS,
+      fee: sp.fee,
+      firstRound: sp.lastRound + 1,
+      lastRound: sp.lastRound + 1000,
+      genesisHash: sp.genesishashb64,
+      genesisID: sp.genesisID,
+    };
+
+    const stxKmd = await this.kcl.signTransaction(
+      this.handle,
+      this.wallet_pswd,
+      fundingTxnArgs
+    );
+    await this.acl.sendRawTransaction(stxKmd);
+    return this.rekey;
+  });
+
   Then('the key should be in the wallet', async function () {
     let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
@@ -441,6 +493,27 @@ module.exports = function getSteps(options) {
       this.lastRound = result.lastRound;
       this.txn = {
         from: this.accounts[0],
+        to: this.accounts[1],
+        fee: result.fee,
+        firstRound: result.lastRound + 1,
+        lastRound: result.lastRound + 1000,
+        genesisHash: result.genesishashb64,
+        genesisID: result.genesisID,
+        note: makeUint8Array(Buffer.from(note, 'base64')),
+        amount: parseInt(amt),
+      };
+      return this.txn;
+    }
+  );
+
+  Given(
+    'default transaction with parameters {int} {string} and rekeying key',
+    async function (amt, note) {
+      this.pk = this.rekey;
+      const result = await this.acl.getTransactionParams();
+      this.lastRound = result.lastRound;
+      this.txn = {
+        from: this.rekey,
         to: this.accounts[1],
         fee: result.fee,
         firstRound: result.lastRound + 1,
