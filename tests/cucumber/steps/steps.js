@@ -90,9 +90,6 @@ const steps = {
   then: {},
 };
 
-// Dev Mode State
-const DEV_MODE_INITIAL_MICROALGOS = 10_000_000;
-
 /**
  * The getSteps function defines the cucumber steps and returns them.
  *
@@ -128,30 +125,10 @@ module.exports = function getSteps(options) {
     steps.then[name] = fn;
   }
 
-  const { algod_token: algodToken, kmd_token: kmdToken } = options;
+  // Dev Mode State
+  const DEV_MODE_INITIAL_MICROALGOS = 10_000_000;
 
-  // function initializeAccount(client) {
-  //   const sp = await client.getTransactionParams().do();
-  //   if (sp.firstRound === 0) sp.firstRound = 1;
-  //   const fundingTxnArgs = {
-  //     from: this.accounts[0],
-  //     to: this.accounts[0],
-  //     amount: 0,
-  //     suggestedParams: sp,
-  //   };
-  //   const stxKmd = await this.kcl.signTransaction(
-  //     this.handle,
-  //     this.wallet_pswd,
-  //     fundingTxnArgs
-  //   );
-  //   const fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
-  //   const info = await algosdk.waitForConfirmation(
-  //     this.v2Client,
-  //     fundingResponse.txId,
-  //     1
-  //   );
-  //   assert.ok(info['confirmed-round'] > 0);
-  // }
+  const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
   Given('an algod client', async function () {
     this.acl = new algosdk.Algod(algodToken, 'http://localhost', 60000);
