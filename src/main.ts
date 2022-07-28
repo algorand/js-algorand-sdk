@@ -166,7 +166,7 @@ export {
   signMultisigTransaction,
   mergeMultisigTransactions,
   appendSignMultisigTransaction,
-  createMultisigTransaction as createRawMultisigTransaction,
+  createMultisigTransaction,
   appendSignRawMultisigSignature,
   verifyMultisig,
   multisigAddress,

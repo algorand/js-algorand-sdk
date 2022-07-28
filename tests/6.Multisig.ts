@@ -265,7 +265,7 @@ describe('Multisig Functionality', () => {
       );
       const decRawTx = algosdk.decodeUnsignedTransaction(rawTxBlob);
 
-      const unsignedMultisigTx = algosdk.createRawMultisigTransaction(
+      const unsignedMultisigTx = algosdk.createMultisigTransaction(
         decRawTx,
         sampleMultisigParams
       );
