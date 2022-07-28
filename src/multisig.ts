@@ -51,9 +51,10 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
  */
 export function createMultisigTransaction(
   txn: txnBuilder.Transaction,
-  { version, threshold, pks }: MultisigMetadataWithPks
+  { version, threshold, addrs }: MultisigMetadata
 ) {
   // construct the appendable multisigned transaction format
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
   const subsigs = pks.map((pk) => ({ pk: Buffer.from(pk) }));
 
   const msig: EncodedMultisig = {
@@ -103,7 +104,7 @@ function createMultisigTransactionWithSignature(
   const encodedMsig = createMultisigTransaction(txn, {
     version,
     threshold,
-    pks,
+    addrs: pks.map((pk) => address.encodeAddress(pk)),
   });
   // note: this is not signed yet, but will be shortly
   const signedTxn = encoding.decode(encodedMsig) as EncodedSignedTransaction;
