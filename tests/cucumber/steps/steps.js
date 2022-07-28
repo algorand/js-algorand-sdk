@@ -128,6 +128,17 @@ module.exports = function getSteps(options) {
   // Dev Mode State
   const DEV_MODE_INITIAL_MICROALGOS = 10_000_000;
 
+  /*
+   * waitForAlgodInDevMode is a Dev mode helper method that waits for a transaction to resolve.
+   * Since Dev mode produces blocks on a per transaction basis, it's possible
+   * algod generates a block _before_ the corresponding SDK call to wait for a block.
+   * Without _any_ wait, it's possible the SDK looks for the transaction before algod completes processing.
+   * So, the method performs a local sleep (0.5s) to simulate waiting for a block.
+   */
+  function waitForAlgodInDevMode() {
+    return new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
   Given('an algod client', async function () {
@@ -385,31 +396,34 @@ module.exports = function getSteps(options) {
     return this.pk;
   });
 
-  When('I generate a key using kmd for rekeying', async function () {
-    this.rekey = await this.kcl.generateKey(this.handle);
-    this.rekey = this.rekey.address;
-    // Fund the rekey address with some Algos
-    const sp = await this.acl.getTransactionParams();
-    if (sp.firstRound === 0) sp.firstRound = 1;
-    const fundingTxnArgs = {
-      from: this.accounts[0],
-      to: this.rekey,
-      amount: DEV_MODE_INITIAL_MICROALGOS,
-      fee: sp.fee,
-      firstRound: sp.lastRound + 1,
-      lastRound: sp.lastRound + 1000,
-      genesisHash: sp.genesishashb64,
-      genesisID: sp.genesisID,
-    };
+  When(
+    'I generate a key using kmd for rekeying and fund it',
+    async function () {
+      this.rekey = await this.kcl.generateKey(this.handle);
+      this.rekey = this.rekey.address;
+      // Fund the rekey address with some Algos
+      const sp = await this.acl.getTransactionParams();
+      if (sp.firstRound === 0) sp.firstRound = 1;
+      const fundingTxnArgs = {
+        from: this.accounts[0],
+        to: this.rekey,
+        amount: DEV_MODE_INITIAL_MICROALGOS,
+        fee: sp.fee,
+        firstRound: sp.lastRound + 1,
+        lastRound: sp.lastRound + 1000,
+        genesisHash: sp.genesishashb64,
+        genesisID: sp.genesisID,
+      };
 
-    const stxKmd = await this.kcl.signTransaction(
-      this.handle,
-      this.wallet_pswd,
-      fundingTxnArgs
-    );
-    await this.acl.sendRawTransaction(stxKmd);
-    return this.rekey;
-  });
+      const stxKmd = await this.kcl.signTransaction(
+        this.handle,
+        this.wallet_pswd,
+        fundingTxnArgs
+      );
+      await this.acl.sendRawTransaction(stxKmd);
+      return this.rekey;
+    }
+  );
 
   Then('the key should be in the wallet', async function () {
     let keys = await this.kcl.listKeys(this.handle);
@@ -870,32 +884,15 @@ module.exports = function getSteps(options) {
   });
 
   Then('the transaction should go through', async function () {
-    const info = await this.acl.pendingTransactionInformation(this.txid);
+    waitForAlgodInDevMode();
+    let info = await this.acl.pendingTransactionInformation(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
-    // let localParams = await this.acl.getTransactionParams();
-    // this.lastRound = localParams.lastRound;
-    // await this.acl.statusAfterBlock(this.lastRound + 2);
-    // info = await this.acl.transactionById(this.txid);
-    // assert.deepStrictEqual(true, 'type' in info);
+    info = await this.acl.transactionById(this.txid);
+    assert.deepStrictEqual(true, 'type' in info);
   });
 
   Then('I can get the transaction by ID', async function () {
-    // Send a transaction to advance blocks in dev mode.
-    const sp = await this.v2Client.getTransactionParams().do();
-    if (sp.firstRound === 0) sp.firstRound = 1;
-    const fundingTxnArgs = {
-      from: this.accounts[0],
-      to: this.accounts[0],
-      amount: 0,
-      suggestedParams: sp,
-    };
-    const stxKmd = await this.kcl.signTransaction(
-      this.handle,
-      this.wallet_pswd,
-      fundingTxnArgs
-    );
-    await this.v2Client.sendRawTransaction(stxKmd).do();
-
+    waitForAlgodInDevMode();
     const info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
@@ -3988,7 +3985,7 @@ module.exports = function getSteps(options) {
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
         fundingResponse.txId,
-        2
+        1
       );
       assert.ok(info['confirmed-round'] > 0);
     }
@@ -4344,7 +4341,7 @@ module.exports = function getSteps(options) {
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
         fundingResponse.txId,
-        2
+        1
       );
       assert.ok(info['confirmed-round'] > 0);
     }
@@ -4465,7 +4462,7 @@ module.exports = function getSteps(options) {
     const info = await algosdk.waitForConfirmation(
       this.v2Client,
       this.appTxid.txId,
-      2
+      1
     );
     assert.ok(info['confirmed-round'] > 0);
   });
