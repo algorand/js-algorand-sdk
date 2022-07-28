@@ -264,13 +264,9 @@ describe('Multisig Functionality', () => {
         'base64'
       );
       const decRawTx = algosdk.decodeUnsignedTransaction(rawTxBlob);
-      const encodedRawTx = decRawTx.get_obj_for_encoding();
-      if (encodedRawTx === undefined) {
-        throw new Error('encodedRawTx is undefined');
-      }
 
       const unsignedMultisigTx = algosdk.createRawMultisigTransaction(
-        encodedRawTx,
+        decRawTx,
         sampleMultisigParams
       );
 

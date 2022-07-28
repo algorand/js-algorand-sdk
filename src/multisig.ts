@@ -42,8 +42,8 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
 }
 
 /**
- * createMultisigTransaction creates a multisig transaction blob.
- * @param txnForEncoding - the actual transaction to sign.
+ * createMultisigTransactionWithSignature creates a multisig transaction blob with an included signature.
+ * @param txn - the actual transaction to sign.
  * @param rawSig - a Buffer raw signature of that transaction
  * @param myPk - a public key that corresponds with rawSig
  * @param version - multisig version
@@ -51,8 +51,8 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
  * @param pks - ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
-function createMultisigTransaction(
-  txnForEncoding: EncodedTransaction,
+function createMultisigTransactionWithSignature(
+  txn: txnBuilder.Transaction,
   { rawSig, myPk }: MultisigOptions,
   { version, threshold, pks }: MultisigMetadataWithPks
 ) {
@@ -77,6 +77,7 @@ function createMultisigTransaction(
     thr: threshold,
     subsig: subsigs,
   };
+  const txnForEncoding = txn.get_obj_for_encoding();
   const signedTxn: EncodedSignedTransaction = {
     msig,
     txn: txnForEncoding,
@@ -101,14 +102,14 @@ function createMultisigTransaction(
 
 /**
  * createRawMultisigTransaction creates a raw, unsigned multisig transaction blob.
- * @param txnForEncoding - the actual transaction.
+ * @param txn - the actual transaction.
  * @param version - multisig version
  * @param threshold - multisig threshold
  * @param pks - ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
-export function createRawMultisigTransaction(
-  txnForEncoding: EncodedTransaction,
+export function createMultisigTransaction(
+  txn: txnBuilder.Transaction,
   { version, threshold, addrs }: MultisigMetadata
 ) {
   // construct the appendable multisigned transaction format
@@ -120,6 +121,7 @@ export function createRawMultisigTransaction(
     thr: threshold,
     subsig: subsigs,
   };
+  const txnForEncoding = txn.get_obj_for_encoding();
   const signedTxn: EncodedSignedTransaction = {
     msig,
     txn: txnForEncoding,
@@ -185,8 +187,8 @@ export class MultisigTransaction extends txnBuilder.Transaction {
   ) {
     // get signature verifier
     const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
-    return createMultisigTransaction(
-      this.get_obj_for_encoding(),
+    return createMultisigTransactionWithSignature(
+      this,
       { rawSig: this.rawSignTxn(sk), myPk },
       { version, threshold, pks }
     );
@@ -208,8 +210,8 @@ export class MultisigTransaction extends txnBuilder.Transaction {
     if (!nacl.isValidSignatureLength(signature.length)) {
       throw new Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG);
     }
-    return createMultisigTransaction(
-      this.get_obj_for_encoding(),
+    return createMultisigTransactionWithSignature(
+      this,
       {
         rawSig: signature,
         myPk: address.decodeAddress(signerAddr).publicKey,
