@@ -143,7 +143,6 @@ module.exports = function getSteps(options) {
 
   Given('an algod client', async function () {
     this.acl = new algosdk.Algod(algodToken, 'http://localhost', 60000);
-    this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
     return this.acl;
   });
 
@@ -201,26 +200,24 @@ module.exports = function getSteps(options) {
 
   When('I get status after this block', async function () {
     // Send a transaction to advance blocks in dev mode.
-    const sp = await this.v2Client.getTransactionParams().do();
+    const sp = await this.acl.getTransactionParams();
     if (sp.firstRound === 0) sp.firstRound = 1;
     const fundingTxnArgs = {
       from: this.accounts[0],
       to: this.accounts[0],
       amount: 0,
-      suggestedParams: sp,
+      fee: sp.fee,
+      firstRound: sp.lastRound + 1,
+      lastRound: sp.lastRound + 1000,
+      genesisHash: sp.genesishashb64,
+      genesisID: sp.genesisID,
     };
     const stxKmd = await this.kcl.signTransaction(
       this.handle,
       this.wallet_pswd,
       fundingTxnArgs
     );
-    const fundingResponse = await this.v2Client.sendRawTransaction(stxKmd).do();
-    const info = await algosdk.waitForConfirmation(
-      this.v2Client,
-      fundingResponse.txId,
-      1
-    );
-    assert.ok(info['confirmed-round'] > 0);
+    await this.acl.sendRawTransaction(stxKmd);
 
     this.statusAfter = await this.acl.statusAfterBlock(this.status.lastRound);
     return this.statusAfter;
@@ -884,15 +881,17 @@ module.exports = function getSteps(options) {
   });
 
   Then('the transaction should go through', async function () {
-    waitForAlgodInDevMode();
-    const info = await this.acl.pendingTransactionInformation(this.txid);
+    let info = await this.acl.pendingTransactionInformation(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
-    // info = await this.acl.transactionById(this.txid);
-    // assert.deepStrictEqual(true, 'type' in info);
+    // let localParams = await this.acl.getTransactionParams();
+    // this.lastRound = localParams.lastRound;
+    await waitForAlgodInDevMode();
+    info = await this.acl.transactionById(this.txid);
+    assert.deepStrictEqual(true, 'type' in info);
   });
 
   Then('I can get the transaction by ID', async function () {
-    waitForAlgodInDevMode();
+    await waitForAlgodInDevMode();
     const info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
