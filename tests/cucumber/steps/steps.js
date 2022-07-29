@@ -881,13 +881,11 @@ module.exports = function getSteps(options) {
   });
 
   Then('the transaction should go through', async function () {
-    let info = await this.acl.pendingTransactionInformation(this.txid);
-    assert.deepStrictEqual(true, 'type' in info);
-    // let localParams = await this.acl.getTransactionParams();
-    // this.lastRound = localParams.lastRound;
     waitForAlgodInDevMode();
-    info = await this.acl.transactionById(this.txid);
+    const info = await this.acl.pendingTransactionInformation(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
+    // info = await this.acl.transactionById(this.txid);
+    // assert.deepStrictEqual(true, 'type' in info);
   });
 
   Then('I can get the transaction by ID', async function () {
