@@ -885,13 +885,13 @@ module.exports = function getSteps(options) {
     assert.deepStrictEqual(true, 'type' in info);
     // let localParams = await this.acl.getTransactionParams();
     // this.lastRound = localParams.lastRound;
-    waitForAlgodInDevMode();
+    await waitForAlgodInDevMode();
     info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
 
   Then('I can get the transaction by ID', async function () {
-    waitForAlgodInDevMode();
+    await waitForAlgodInDevMode();
     const info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
