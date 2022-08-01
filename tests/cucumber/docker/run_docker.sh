@@ -7,10 +7,7 @@ rm -rf test-harness
 rm -rf tests/cucumber/features
 
 # clone test harness
-git clone --single-branch --branch devmodenet https://github.com/algorand/algorand-sdk-testing.git test-harness
-
-# Export env variable so network is set to dev mode
-export NETWORK_TEMPLATE="DevModeNetwork.json"
+git clone --single-branch --branch master https://github.com/algorand/algorand-sdk-testing.git test-harness
 
 # move feature files and example files to destination
 mv test-harness/features tests/cucumber/features
