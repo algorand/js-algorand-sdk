@@ -2317,6 +2317,16 @@ module.exports = function getSteps(options) {
   );
 
   When(
+    'we make a SearchForApplicationBoxes call with applicationID {int} with max {int}',
+    async function (index, limit) {
+      await this.indexerClient
+        .searchForApplicationBoxes(index)
+        .limit(limit)
+        .do();
+    }
+  );
+
+  When(
     'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
     async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
       await this.indexerClient
