@@ -1073,6 +1073,22 @@ export class Transaction implements TransactionStorageStructure {
     return new Uint8Array(encoding.encode(sTxn));
   }
 
+  attachSignature(signerAddr: string, signature: Uint8Array) {
+    if (!nacl.isValidSignatureLength(signature.length)) {
+      throw new Error('Invalid signature length');
+    }
+    const sTxn: EncodedSignedTransaction = {
+      sig: Buffer.from(signature),
+      txn: this.get_obj_for_encoding(),
+    };
+    // add AuthAddr if signing with a different key than From indicates
+    if (signerAddr !== address.encodeAddress(this.from.publicKey)) {
+      const signerPublicKey = address.decodeAddress(signerAddr).publicKey;
+      sTxn.sgnr = Buffer.from(signerPublicKey);
+    }
+    return new Uint8Array(encoding.encode(sTxn));
+  }
+
   rawTxID() {
     const enMsg = this.toByte();
     const gh = Buffer.from(utils.concatArrays(this.tag, enMsg));

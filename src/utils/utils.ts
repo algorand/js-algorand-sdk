@@ -10,7 +10,6 @@ export interface JSONOptions {
 /**
  * Parse JSON with additional options.
  * @param str - The JSON string to parse.
- * @param options - Parsing options.
  * @param options - Options object to configure how integers in
  *   this request's JSON response will be decoded. Use the `intDecoding`
  *   property with one of the following options:
@@ -28,34 +27,32 @@ export interface JSONOptions {
 export function parseJSON(str: string, options?: JSONOptions) {
   const intDecoding =
     options && options.intDecoding ? options.intDecoding : IntDecoding.DEFAULT;
-  const parsed = JSONbig.parse(str, (_, value) => {
+  return JSONbig.parse(str, (_, value) => {
     if (
       value != null &&
       typeof value === 'object' &&
       Object.getPrototypeOf(value) == null
     ) {
-      // for some reason the Objects returned by JSONbig.parse have a null prototype, so we
-      // need to fix that.
+      // JSONbig.parse objects are created with Object.create(null) and thus have a null prototype
+      // let us remedy that
       Object.setPrototypeOf(value, Object.prototype);
     }
 
     if (typeof value === 'bigint') {
+      if (intDecoding === 'safe' && value > Number.MAX_SAFE_INTEGER) {
+        throw new Error(
+          `Integer exceeds maximum safe integer: ${value.toString()}. Try parsing with a different intDecoding option.`
+        );
+      }
       if (
         intDecoding === 'bigint' ||
         (intDecoding === 'mixed' && value > Number.MAX_SAFE_INTEGER)
       ) {
         return value;
       }
-
       // JSONbig.parse converts number to BigInts if they are >= 10**15. This is smaller than
       // Number.MAX_SAFE_INTEGER, so we can convert some BigInts back to normal numbers.
-      if (intDecoding === 'default' || intDecoding === 'mixed') {
-        return Number(value);
-      }
-
-      throw new Error(
-        `Integer exceeds maximum safe integer: ${value.toString()}. Try parsing with a different intDecoding option.`
-      );
+      return Number(value);
     }
 
     if (typeof value === 'number') {
@@ -66,7 +63,6 @@ export function parseJSON(str: string, options?: JSONOptions) {
 
     return value;
   });
-  return parsed;
 }
 
 /**

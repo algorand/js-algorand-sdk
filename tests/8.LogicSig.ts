@@ -872,9 +872,7 @@ describe('Program validation', () => {
         program[0] = oldVersions[i];
         assert.throws(
           () => logic.checkProgram(program),
-          new Error(
-            'program too costly for Teal version < 4. consider using v4.'
-          )
+          new Error('program too costly for version < 4. consider using v4.')
         );
       }
       //  new versions
@@ -884,7 +882,7 @@ describe('Program validation', () => {
         assert.ok(logic.checkProgram(program));
       }
     });
-    it('should support TEAL v2 opcodes', () => {
+    it('should support AVM v2 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 2);
       assert.ok(logic.langspecLogicSigVersion >= 2);
 
@@ -904,7 +902,7 @@ describe('Program validation', () => {
       result = logic.checkProgram(program);
       assert.strictEqual(result, true);
     });
-    it('should support TEAL v3 opcodes', () => {
+    it('should support AVM v3 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 3);
       assert.ok(logic.langspecLogicSigVersion >= 3);
 
@@ -954,7 +952,7 @@ describe('Program validation', () => {
       ]); // int 0; int 1; swap; pop
       assert.ok(logic.checkProgram(program));
     });
-    it('should support TEAL v4 opcodes', () => {
+    it('should support AVM v4 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 4);
 
       // divmodw
@@ -1073,7 +1071,7 @@ describe('Program validation', () => {
       ]); // int 1; loop: int 2; *; dup; int 10; <; bnz loop; int 16; ==
       assert.ok(logic.checkProgram(program));
     });
-    it('should support TEAL v5 opcodes', () => {
+    it('should support AVM v5 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 5);
 
       // itxn ops
@@ -1100,7 +1098,7 @@ describe('Program validation', () => {
       // byte "a"; byte "b"; byte "c"; cover 2; uncover 2; concat; concat; log; int 1
       assert.ok(logic.checkProgram(program));
     });
-    it('should support TEAL v6 opcodes', () => {
+    it('should support AVM v6 opcodes', () => {
       assert.ok(logic.langspecEvalMaxVersion >= 6);
 
       // bsqrt op

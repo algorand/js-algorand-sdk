@@ -456,18 +456,18 @@ export function logicSigFromByte(encoded: Uint8Array) {
 const SIGN_PROGRAM_DATA_PREFIX = Buffer.from('ProgData');
 
 /**
- * tealSign creates a signature compatible with ed25519verify opcode from contract address
+ * tealSign creates a signature compatible with ed25519verify opcode from program hash
  * @param sk - uint8array with secret key
  * @param data - buffer with data to sign
- * @param contractAddress - string representation of teal contract address (program hash)
+ * @param programHash - string representation of teal program hash (= contract address for LogicSigs)
  */
 export function tealSign(
   sk: Uint8Array,
   data: Uint8Array | Buffer,
-  contractAddress: string
+  programHash: string
 ) {
   const parts = utils.concatArrays(
-    address.decodeAddress(contractAddress).publicKey,
+    address.decodeAddress(programHash).publicKey,
     data
   );
   const toBeSigned = Buffer.from(
