@@ -18,6 +18,10 @@ export function keyPair() {
   return keyPairFromSeed(seed);
 }
 
+export function isValidSignatureLength(len: number) {
+  return len === nacl.sign.signatureLength;
+}
+
 export function keyPairFromSecretKey(sk: Uint8Array) {
   return nacl.sign.keyPair.fromSecretKey(sk);
 }

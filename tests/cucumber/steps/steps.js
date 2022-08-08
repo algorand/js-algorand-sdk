@@ -125,6 +125,20 @@ module.exports = function getSteps(options) {
     steps.then[name] = fn;
   }
 
+  // Dev Mode State
+  const DEV_MODE_INITIAL_MICROALGOS = 10_000_000;
+
+  /*
+   * waitForAlgodInDevMode is a Dev mode helper method that waits for a transaction to resolve.
+   * Since Dev mode produces blocks on a per transaction basis, it's possible
+   * algod generates a block _before_ the corresponding SDK call to wait for a block.
+   * Without _any_ wait, it's possible the SDK looks for the transaction before algod completes processing.
+   * So, the method performs a local sleep to simulate waiting for a block.
+   */
+  function waitForAlgodInDevMode() {
+    return new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
   // String parsing helper methods
@@ -239,6 +253,26 @@ module.exports = function getSteps(options) {
   });
 
   When('I get status after this block', async function () {
+    // Send a transaction to advance blocks in dev mode.
+    const sp = await this.acl.getTransactionParams();
+    if (sp.firstRound === 0) sp.firstRound = 1;
+    const fundingTxnArgs = {
+      from: this.accounts[0],
+      to: this.accounts[0],
+      amount: 0,
+      fee: sp.fee,
+      firstRound: sp.lastRound + 1,
+      lastRound: sp.lastRound + 1000,
+      genesisHash: sp.genesishashb64,
+      genesisID: sp.genesisID,
+    };
+    const stxKmd = await this.kcl.signTransaction(
+      this.handle,
+      this.wallet_pswd,
+      fundingTxnArgs
+    );
+    await this.acl.sendRawTransaction(stxKmd);
+
     this.statusAfter = await this.acl.statusAfterBlock(this.status.lastRound);
     return this.statusAfter;
   });
@@ -413,6 +447,35 @@ module.exports = function getSteps(options) {
     return this.pk;
   });
 
+  When(
+    'I generate a key using kmd for rekeying and fund it',
+    async function () {
+      this.rekey = await this.kcl.generateKey(this.handle);
+      this.rekey = this.rekey.address;
+      // Fund the rekey address with some Algos
+      const sp = await this.acl.getTransactionParams();
+      if (sp.firstRound === 0) sp.firstRound = 1;
+      const fundingTxnArgs = {
+        from: this.accounts[0],
+        to: this.rekey,
+        amount: DEV_MODE_INITIAL_MICROALGOS,
+        fee: sp.fee,
+        firstRound: sp.lastRound + 1,
+        lastRound: sp.lastRound + 1000,
+        genesisHash: sp.genesishashb64,
+        genesisID: sp.genesisID,
+      };
+
+      const stxKmd = await this.kcl.signTransaction(
+        this.handle,
+        this.wallet_pswd,
+        fundingTxnArgs
+      );
+      await this.acl.sendRawTransaction(stxKmd);
+      return this.rekey;
+    }
+  );
+
   Then('the key should be in the wallet', async function () {
     let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
@@ -472,6 +535,27 @@ module.exports = function getSteps(options) {
       this.lastRound = result.lastRound;
       this.txn = {
         from: this.accounts[0],
+        to: this.accounts[1],
+        fee: result.fee,
+        firstRound: result.lastRound + 1,
+        lastRound: result.lastRound + 1000,
+        genesisHash: result.genesishashb64,
+        genesisID: result.genesisID,
+        note: makeUint8Array(Buffer.from(note, 'base64')),
+        amount: parseInt(amt),
+      };
+      return this.txn;
+    }
+  );
+
+  Given(
+    'default transaction with parameters {int} {string} and rekeying key',
+    async function (amt, note) {
+      this.pk = this.rekey;
+      const result = await this.acl.getTransactionParams();
+      this.lastRound = result.lastRound;
+      this.txn = {
+        from: this.rekey,
         to: this.accounts[1],
         fee: result.fee,
         firstRound: result.lastRound + 1,
@@ -855,13 +939,13 @@ module.exports = function getSteps(options) {
     assert.deepStrictEqual(true, 'type' in info);
     // let localParams = await this.acl.getTransactionParams();
     // this.lastRound = localParams.lastRound;
-    await this.acl.statusAfterBlock(this.lastRound + 2);
+    await waitForAlgodInDevMode();
     info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
 
   Then('I can get the transaction by ID', async function () {
-    await this.acl.statusAfterBlock(this.lastRound + 2);
+    await waitForAlgodInDevMode();
     const info = await this.acl.transactionById(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
   });
@@ -3990,7 +4074,7 @@ module.exports = function getSteps(options) {
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
         fundingResponse.txId,
-        2
+        1
       );
       assert.ok(info['confirmed-round'] > 0);
     }
@@ -4331,7 +4415,7 @@ module.exports = function getSteps(options) {
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
         fundingResponse.txId,
-        2
+        1
       );
       assert.ok(info['confirmed-round'] > 0);
     }
@@ -4459,7 +4543,7 @@ module.exports = function getSteps(options) {
     const info = await algosdk.waitForConfirmation(
       this.v2Client,
       this.appTxid.txId,
-      2
+      1
     );
     assert.ok(info['confirmed-round'] > 0);
   });
@@ -5467,6 +5551,57 @@ module.exports = function getSteps(options) {
       );
       const expectedBoxes = new Set(boxes.map(Buffer.from));
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
+    }
+  );
+
+  Given('a source map json file {string}', async function (srcmap) {
+    const js = parseJSON(await loadResource(srcmap));
+    this.sourcemap = new algosdk.SourceMap(js);
+  });
+
+  Then(
+    'the string composed of pc:line number equals {string}',
+    function (mapping) {
+      const buff = Object.entries(this.sourcemap.pcToLine).map(
+        ([pc, line]) => `${pc}:${line}`
+      );
+      assert.equal(buff.join(';'), mapping);
+    }
+  );
+
+  Then(
+    'getting the line associated with a pc {string} equals {string}',
+    function (pc, expectedLine) {
+      const actualLine = this.sourcemap.getLineForPc(parseInt(pc));
+      assert.equal(actualLine, parseInt(expectedLine));
+    }
+  );
+
+  Then(
+    'getting the last pc associated with a line {string} equals {string}',
+    function (line, expectedPc) {
+      const actualPcs = this.sourcemap.getPcsForLine(parseInt(line));
+      assert.equal(actualPcs.pop(), parseInt(expectedPc));
+    }
+  );
+
+  When(
+    'I compile a teal program {string} with mapping enabled',
+    async function (teal) {
+      const tealSrc = await loadResource(teal);
+      const compiledResponse = await this.v2Client
+        .compile(tealSrc)
+        .sourcemap(true)
+        .do();
+      this.rawSourceMap = JSON.stringify(compiledResponse.sourcemap);
+    }
+  );
+
+  Then(
+    'the resulting source map is the same as the json {string}',
+    async function (expectedJsonPath) {
+      const expected = await loadResource(expectedJsonPath);
+      assert.equal(this.rawSourceMap, expected.toString().trim());
     }
   );
 
