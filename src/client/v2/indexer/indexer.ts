@@ -13,6 +13,7 @@ import LookupAccountCreatedApplications from './lookupAccountCreatedApplications
 import LookupAssetByID from './lookupAssetByID';
 import LookupApplications from './lookupApplications';
 import LookupApplicationLogs from './lookupApplicationLogs';
+import LookupApplicationBoxByIDandName from './lookupApplicationBoxByIDandName';
 import SearchAccounts from './searchAccounts';
 import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
@@ -388,5 +389,21 @@ export default class IndexerClient extends ServiceClient {
    */
   searchForApplicationBoxes(appID: number) {
     return new SearchForApplicationBoxes(this.c, this.intDecoding, appID);
+  }
+
+  /**
+   * Returns information about the application box given its name.
+   *
+   * #### Example
+   * ```typescript
+   * const apps = await indexerClient.lookupApplicationBoxByIDandName().do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idbox)
+   * @param appID - The ID of the application with boxes.
+   * @category GET
+   */
+  lookupApplicationBoxByIDandName(appID: number) {
+    return new LookupApplicationBoxByIDandName(this.c, this.intDecoding, appID);
   }
 }

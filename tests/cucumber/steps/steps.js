@@ -2327,6 +2327,17 @@ module.exports = function getSteps(options) {
   );
 
   When(
+    'we make a LookupApplicationBoxByIDandName call with applicationID {int} with encoded box name {string}',
+    async function (index, name) {
+      const boxKey = splitAndProcessAppArgs(name)[0];
+      await this.indexerClient
+        .lookupApplicationBoxByIDandName(index)
+        .name(boxKey)
+        .do();
+    }
+  );
+
+  When(
     'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
     async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
       await this.indexerClient
