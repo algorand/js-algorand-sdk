@@ -1,5 +1,6 @@
 import assert from 'assert';
 import * as utils from '../src/utils/utils';
+import * as nacl from '../src/nacl/naclWrappers';
 
 describe('utils', () => {
   describe('concatArrays', () => {
@@ -31,5 +32,12 @@ describe('utils', () => {
       const actual = utils.concatArrays(a, b, c);
       assert.deepStrictEqual(expected, actual);
     });
+  });
+});
+
+describe('nacl wrapper', () => {
+  it('should validate signature length', () => {
+    assert.strictEqual(nacl.isValidSignatureLength(6), false);
+    assert.strictEqual(nacl.isValidSignatureLength(64), true);
   });
 });

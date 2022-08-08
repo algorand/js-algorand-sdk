@@ -29,6 +29,8 @@ export const MULTISIG_NO_MUTATE_ERROR_MSG =
   'Cannot mutate a multisig field as it would invalidate all existing signatures.';
 export const MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG =
   'Cannot sign a multisig transaction using `signTxn`. Use `partialSignTxn` instead.';
+export const MULTISIG_SIGNATURE_LENGTH_ERROR_MSG =
+  'Cannot add multisig signature. Signature is not of the correct length.';
 
 interface MultisigOptions {
   rawSig: Uint8Array;
@@ -40,41 +42,27 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
 }
 
 /**
- * createMultisigTransaction creates a multisig transaction blob.
- * @param txnForEncoding - the actual transaction to sign.
- * @param rawSig - a Buffer raw signature of that transaction
- * @param myPk - a public key that corresponds with rawSig
+ * createRawMultisigTransaction creates a raw, unsigned multisig transaction blob.
+ * @param txn - the actual transaction.
  * @param version - multisig version
- * @param threshold - mutlisig threshold
+ * @param threshold - multisig threshold
  * @param pks - ordered list of public keys in this multisig
  * @returns encoded multisig blob
  */
-function createMultisigTransaction(
-  txnForEncoding: EncodedTransaction,
-  { rawSig, myPk }: MultisigOptions,
-  { version, threshold, pks }: MultisigMetadataWithPks
+export function createMultisigTransaction(
+  txn: txnBuilder.Transaction,
+  { version, threshold, addrs }: MultisigMetadata
 ) {
-  let keyExist = false;
   // construct the appendable multisigned transaction format
-  const subsigs = pks.map((pk) => {
-    if (nacl.bytesEqual(pk, myPk)) {
-      keyExist = true;
-      return {
-        pk: Buffer.from(pk),
-        s: rawSig,
-      };
-    }
-    return { pk: Buffer.from(pk) };
-  });
-  if (keyExist === false) {
-    throw new Error(MULTISIG_KEY_NOT_EXIST_ERROR_MSG);
-  }
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  const subsigs = pks.map((pk) => ({ pk: Buffer.from(pk) }));
 
   const msig: EncodedMultisig = {
     v: version,
     thr: threshold,
     subsig: subsigs,
   };
+  const txnForEncoding = txn.get_obj_for_encoding();
   const signedTxn: EncodedSignedTransaction = {
     msig,
     txn: txnForEncoding,
@@ -90,6 +78,58 @@ function createMultisigTransaction(
   if (
     address.encodeAddress(txnForEncoding.snd) !==
     address.encodeAddress(msigAddr)
+  ) {
+    signedTxn.sgnr = Buffer.from(msigAddr);
+  }
+
+  return new Uint8Array(encoding.encode(signedTxn));
+}
+
+/**
+ * createMultisigTransactionWithSignature creates a multisig transaction blob with an included signature.
+ * @param txn - the actual transaction to sign.
+ * @param rawSig - a Buffer raw signature of that transaction
+ * @param myPk - a public key that corresponds with rawSig
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param pks - ordered list of public keys in this multisig
+ * @returns encoded multisig blob
+ */
+function createMultisigTransactionWithSignature(
+  txn: txnBuilder.Transaction,
+  { rawSig, myPk }: MultisigOptions,
+  { version, threshold, pks }: MultisigMetadataWithPks
+) {
+  // Create an empty encoded multisig transaction
+  const encodedMsig = createMultisigTransaction(txn, {
+    version,
+    threshold,
+    addrs: pks.map((pk) => address.encodeAddress(pk)),
+  });
+  // note: this is not signed yet, but will be shortly
+  const signedTxn = encoding.decode(encodedMsig) as EncodedSignedTransaction;
+
+  let keyExist = false;
+  // append the multisig signature to the corresponding public key in the multisig blob
+  signedTxn.msig.subsig.forEach((subsig, i) => {
+    if (nacl.bytesEqual(subsig.pk, myPk)) {
+      keyExist = true;
+      signedTxn.msig.subsig[i].s = rawSig;
+    }
+  });
+  if (keyExist === false) {
+    throw new Error(MULTISIG_KEY_NOT_EXIST_ERROR_MSG);
+  }
+
+  // if the address of this multisig is different from the transaction sender,
+  // we need to add the auth-addr field
+  const msigAddr = address.fromMultisigPreImg({
+    version,
+    threshold,
+    pks,
+  });
+  if (
+    address.encodeAddress(signedTxn.txn.snd) !== address.encodeAddress(msigAddr)
   ) {
     signedTxn.sgnr = Buffer.from(msigAddr);
   }
@@ -140,10 +180,36 @@ export class MultisigTransaction extends txnBuilder.Transaction {
   ) {
     // get signature verifier
     const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
-    return createMultisigTransaction(
-      this.get_obj_for_encoding(),
+    return createMultisigTransactionWithSignature(
+      this,
       { rawSig: this.rawSignTxn(sk), myPk },
       { version, threshold, pks }
+    );
+  }
+
+  /**
+   * partialSignWithMultisigSignature partially signs this transaction with an external raw multisig signature and returns
+   * a partially-signed multisig transaction, encoded with msgpack as a typed array.
+   * @param metadata - multisig metadata
+   * @param signerAddr - address of the signer
+   * @param signature - raw multisig signature
+   * @returns an encoded, partially signed multisig transaction.
+   */
+  partialSignWithMultisigSignature(
+    metadata: MultisigMetadataWithPks,
+    signerAddr: string,
+    signature: Uint8Array
+  ) {
+    if (!nacl.isValidSignatureLength(signature.length)) {
+      throw new Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG);
+    }
+    return createMultisigTransactionWithSignature(
+      this,
+      {
+        rawSig: signature,
+        myPk: address.decodeAddress(signerAddr).publicKey,
+      },
+      metadata
     );
   }
 
@@ -312,7 +378,7 @@ export function verifyMultisig(
 /**
  * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
  * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
- * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendMultisigTransaction.
+ * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendSignMultisigTransaction.
  * @param txn - object with either payment or key registration fields
  * @param version - multisig version
  * @param threshold - multisig threshold
@@ -392,8 +458,42 @@ export function appendSignMultisigTransaction(
 }
 
 /**
+ * appendMultisigTransactionSignature takes a multisig transaction blob, and appends a given raw signature to it.
+ * This makes it possible to compile a multisig signature using only raw signatures from external methods.
+ * @param multisigTxnBlob - an encoded multisig txn. Supports non-payment txn types.
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param signerAddr - address of the signer
+ * @param signature - raw multisig signature
+ * @returns object containing txID, and blob representing encoded multisig txn
+ */
+export function appendSignRawMultisigSignature(
+  multisigTxnBlob: Uint8Array,
+  { version, threshold, addrs }: MultisigMetadata,
+  signerAddr: string,
+  signature: Uint8Array
+) {
+  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  // obtain underlying txn, sign it, and merge it
+  const multisigTxObj = encoding.decode(
+    multisigTxnBlob
+  ) as EncodedSignedTransaction;
+  const msigTxn = MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
+  const partialSignedBlob = msigTxn.partialSignWithMultisigSignature(
+    { version, threshold, pks },
+    signerAddr,
+    signature
+  );
+  return {
+    txID: msigTxn.txID().toString(),
+    blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
+  };
+}
+
+/**
  * multisigAddress takes multisig metadata (preimage) and returns the corresponding human readable Algorand address.
- * @param version - mutlisig version
+ * @param version - multisig version
  * @param threshold - multisig threshold
  * @param addrs - list of Algorand addresses
  */

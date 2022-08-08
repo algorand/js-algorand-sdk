@@ -261,12 +261,78 @@ describe('Algosdk (AKA end to end)', () => {
       const signed = algosdk.signBytes(toSign, account.sk);
       assert.equal(true, algosdk.verifyBytes(toSign, signed, account.addr));
     });
+
     it('should not verify a corrupted signature', () => {
       const account = algosdk.generateAccount();
       const toSign = Buffer.from([1, 9, 25, 49]);
       const signed = algosdk.signBytes(toSign, account.sk);
       signed[0] = (signed[0] + 1) % 256;
       assert.equal(false, algosdk.verifyBytes(toSign, signed, account.addr));
+    });
+
+    it('should attach arbitrary signatures', () => {
+      const sender = algosdk.generateAccount();
+      const signer = algosdk.generateAccount();
+
+      // Create a transaction
+      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from: sender.addr,
+        to: signer.addr,
+        amount: 1000,
+        suggestedParams: {
+          firstRound: 12466,
+          lastRound: 13466,
+          genesisID: 'devnet-v33.0',
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          fee: 4,
+        },
+      });
+
+      // Sign it directly to get a signature
+      const signedWithSk = txn.signTxn(signer.sk);
+      const decoded = algosdk.decodeObj(signedWithSk);
+      const signature = decoded.sig;
+
+      // Attach the signature to the transaction indirectly, and compare
+      const signedWithSignature = txn.attachSignature(signer.addr, signature);
+      assert.deepEqual(signedWithSk, signedWithSignature);
+
+      // Check that signer was set
+      const decodedWithSigner = algosdk.decodeObj(signedWithSignature);
+      assert.deepEqual(
+        decodedWithSigner.sgnr,
+        algosdk.decodeAddress(signer.addr).publicKey
+      );
+    });
+
+    it('should not attach signature with incorrect length', () => {
+      const sender = algosdk.generateAccount();
+      const signer = algosdk.generateAccount();
+
+      // Create a transaction
+      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        from: sender.addr,
+        to: signer.addr,
+        amount: 1000,
+        suggestedParams: {
+          firstRound: 12466,
+          lastRound: 13466,
+          genesisID: 'devnet-v33.0',
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          fee: 4,
+        },
+      });
+
+      // Sign it directly to get a signature
+      const signedWithSk = txn.signTxn(signer.sk);
+      const decoded = algosdk.decodeObj(signedWithSk);
+      const signature = decoded.sig.slice(0, -1); // without the last byte
+
+      // Check that the signature is not attached
+      assert.throws(
+        () => txn.attachSignature(signer.addr, signature),
+        Error('Invalid signature length')
+      );
     });
   });
 
