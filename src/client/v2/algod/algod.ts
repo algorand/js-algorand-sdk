@@ -5,6 +5,7 @@ import AccountAssetInformation from './accountAssetInformation';
 import AccountApplicationInformation from './accountApplicationInformation';
 import Block from './block';
 import Compile from './compile';
+import Disassemble from './disassemble';
 import Dryrun from './dryrun';
 import GetAssetByID from './getAssetByID';
 import GetApplicationByID from './getApplicationByID';
@@ -373,6 +374,27 @@ export default class AlgodClient extends ServiceClient {
    */
   compile(source: string | Uint8Array) {
     return new Compile(this.c, source);
+  }
+
+  /**
+   * Disassembles bytecode into TEAL source code, returns the utf8 string source code that produced
+   * the given bytecode.
+   *
+   * #### Example
+   * ```ts
+   * const algo = new algosdk.Algodv2(...);
+   * const app = await algo.getApplicationByID(12345).do();
+   * const approvalBytecode = app.params["approval-program"];
+   * const approvalTeal = await algo.disassemble(approvalBytecode).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2tealdisassemble)
+   * @param bytecode The base64-encoded binary of the compiled program
+   * @category POST
+   * @returns teal The utf8 TEAL source code that produced the given bytecode
+   */
+  disassemble(bytecode: string) {
+    return new Disassemble(this.c, bytecode);
   }
 
   /**

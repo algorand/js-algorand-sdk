@@ -5,11 +5,11 @@ import HTTPClient from '../../client';
  * Sets the default header (if not previously set)
  * @param headers - A headers object
  */
-export function setHeaders(headers = {}) {
+export function setHeaders(headers = {}, defaultVal: string = 'text/plain') {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
-    hdrs['Content-Type'] = 'text/plain';
+    hdrs['Content-Type'] = defaultVal;
   }
   return hdrs;
 }
