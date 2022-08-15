@@ -438,7 +438,7 @@ export default class AlgodClient extends ServiceClient {
    * ```typescript
    * const index = 60553466;
    * const boxName = Buffer.from("foo");
-   * const app = await algodClient.getApplicationBoxByName(index).name(boxName).do();
+   * const boxValue = await algodClient.getApplicationBoxByName(index).name(boxName).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
@@ -455,7 +455,7 @@ export default class AlgodClient extends ServiceClient {
    * #### Example
    * ```typescript
    * const index = 60553466;
-   * const app = await algodClient.getApplicationBoxes(index).max(3).do();
+   * const boxesResult = await algodClient.getApplicationBoxes(index).max(3).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idboxes)

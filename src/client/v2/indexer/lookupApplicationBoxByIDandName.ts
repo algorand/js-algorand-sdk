@@ -8,10 +8,10 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const apps = await indexerClient.LookupApplicationBoxByIDandName(1234).do();
+   * const boxValue = await indexerClient.LookupApplicationBoxByIDandName(1234).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idboxes)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idbox)
    * @oaram index - application index.
    * @category GET
    */
@@ -33,7 +33,7 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest {
    * #### Example
    * ```typescript
    * const boxName = Buffer.from("foo");
-   * const apps = await indexerClient
+   * const boxValue = await indexerClient
    *        .LookupApplicationBoxByIDandName(1234)
    *        .name(boxName)
    *        .do();

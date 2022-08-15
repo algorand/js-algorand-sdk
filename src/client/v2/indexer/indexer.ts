@@ -380,7 +380,7 @@ export default class IndexerClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const apps = await indexerClient.searchForApplicationBoxes().do();
+   * const boxesResult = await indexerClient.searchForApplicationBoxes().do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idboxes)
@@ -396,7 +396,7 @@ export default class IndexerClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const apps = await indexerClient.lookupApplicationBoxByIDandName().do();
+   * const boxValue = await indexerClient.lookupApplicationBoxByIDandName().do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idbox)

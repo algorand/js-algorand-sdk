@@ -8,7 +8,7 @@ export default class SearchForApplicationBoxes extends JSONRequest {
    *
    * #### Example
    * ```typescript
-   * const apps = await indexerClient.SearchForApplicationBoxes(1234).do();
+   * const boxesResult = await indexerClient.SearchForApplicationBoxes(1234).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idboxes)
@@ -34,15 +34,15 @@ export default class SearchForApplicationBoxes extends JSONRequest {
    * ```typescript
    * const maxResults = 20;
    *
-   * const appsPage1 = await indexerClient
+   * const boxesPage1 = await indexerClient
    *        .SearchForApplicationBoxes(1234)
    *        .limit(maxResults)
    *        .do();
    *
-   * const appsPage2 = await indexerClient
+   * const boxesPage2 = await indexerClient
    *        .SearchForApplicationBoxes(1234)
    *        .limit(maxResults)
-   *        .nextToken(appsPage1["next-token"])
+   *        .nextToken(boxesPage1["next-token"])
    *        .do();
    * ```
    * @param nextToken - provided by the previous results.
@@ -59,7 +59,7 @@ export default class SearchForApplicationBoxes extends JSONRequest {
    * #### Example
    * ```typescript
    * const maxResults = 20;
-   * const apps = await indexerClient
+   * const boxesResult = await indexerClient
    *        .SearchForApplicationBoxes(1234)
    *        .limit(maxResults)
    *        .do();
