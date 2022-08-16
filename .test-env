@@ -1,0 +1,37 @@
+# Configs for testing repo download:
+SDK_TESTING_URL="https://github.com/algorand/algorand-sdk-testing"
+SDK_TESTING_BRANCH="trim-indexer"
+SDK_TESTING_HARNESS="test-harness"
+
+# Used to determine sandbox build type:
+TYPE="channel" # OR "source"
+
+# Used when TYPE==channel
+ALGOD_CHANNEL="nightly"
+
+# Used when TYPE==source
+ALGOD_URL="https://github.com/algorand/go-algorand"
+ALGOD_BRANCH="develop"
+ALGOD_SHA=""
+
+# Used regardless of the TYPE:
+NETWORK_TEMPLATE="images/algod/DevModeNetwork.json"  # refers to the ./images directory in the sandbox repo
+NETWORK_NUM_ROUNDS=30000
+INDEXER_URL="https://github.com/algorand/indexer"
+NODE_ARCHIVAL="False"
+INDEXER_BRANCH="develop"
+INDEXER_SHA=""
+
+# Sandbox configuration:
+SANDBOX_URL="https://github.com/algorand/sandbox"
+SANDBOX_BRANCH="master"
+LOCAL_SANDBOX_DIR=".sandbox"
+
+# replacement values for Sandbox's docker-compose:
+ALGOD_CONTAINER=sdk-harness-algod
+KMD_PORT=60001
+ALGOD_PORT=60000
+INDEXER_CONTAINER=sdk-harness-indexer
+INDEXER_PORT=59999
+POSTGRES_CONTAINER=sdk-harness-postgres
+POSTGRES_PORT=65432

@@ -4,8 +4,17 @@ unit:
 integration:
 	node_modules/.bin/cucumber-js --tags "@algod or @assets or @auction or @kmd or @send or @indexer or @rekey_v1 or @send.keyregtxn or @dryrun or @compile or @applications or @indexer.applications or @applications.verified or @indexer.231 or @abi or @c2c or @compile.sourcemap" tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
 
-docker-test:
-	./tests/cucumber/docker/run_docker.sh
+harness:
+	./test-harness.sh
+
+docker-build:
+	docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile $(CURDIR) --build-arg TEST_BROWSER --build-arg CI=true
+
+docker-run:
+	docker ps -a
+	docker run -it --network host js-sdk-testing:latest
+
+docker-test: harness docker-build docker-run
 
 format:
 	npm run format
