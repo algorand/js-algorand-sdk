@@ -608,40 +608,6 @@ module.exports = function getSteps(options) {
     return this.acl.ledgerSupply();
   });
 
-  Then('I get transactions by address and round', async function () {
-    const lastRound = await this.acl.status();
-    const transactions = await this.acl.transactionByAddress(
-      this.accounts[0],
-      1,
-      lastRound.lastRound
-    );
-    assert.deepStrictEqual(
-      true,
-      Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
-    );
-  });
-
-  Then('I get transactions by address only', async function () {
-    const transactions = await this.acl.transactionByAddress(this.accounts[0]);
-    assert.deepStrictEqual(
-      true,
-      Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
-    );
-  });
-
-  Then('I get transactions by address and date', async function () {
-    const transactions = await this.acl.transactionByAddressAndDate(
-      this.accounts[0]
-    );
-    assert.deepStrictEqual(
-      true,
-      Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
-    );
-  });
-
   Then('I get pending transactions', async function () {
     const transactions = await this.acl.pendingTransactions(10);
     assert.deepStrictEqual(
@@ -885,12 +851,6 @@ module.exports = function getSteps(options) {
     // assert.deepStrictEqual(true, 'type' in info);
   });
 
-  Then('I can get the transaction by ID', async function () {
-    await waitForAlgodInDevMode();
-    const info = await this.acl.transactionById(this.txid);
-    assert.deepStrictEqual(true, 'type' in info);
-  });
-
   Then('the transaction should not go through', function () {
     assert.deepStrictEqual(true, this.err);
   });
@@ -1114,13 +1074,6 @@ module.exports = function getSteps(options) {
       } else {
         throw new Error(`Unrecognized keyreg type: ${type}`);
       }
-    }
-  );
-
-  When(
-    'I get recent transactions, limited by {int} transactions',
-    function (int) {
-      this.acl.transactionByAddress(this.accounts[0], parseInt(int));
     }
   );
 
