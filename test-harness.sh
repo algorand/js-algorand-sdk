@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 START=$(date "+%s")
 
-set -e
-
+THIS=$(basename "$0")
 ENV_FILE=".test-env"
-source $ENV_FILE
 
-echo "test-harness.sh: AFTER sourcing from $ENV_FILE. Build TYPE=$TYPE"
+set -a
+source "$ENV_FILE"
+set +a
 
 rootdir=$(dirname "$0")
 pushd "$rootdir"
@@ -19,35 +21,31 @@ if [ -d "$SDK_TESTING_HARNESS" ]; then
   popd
   rm -rf "$SDK_TESTING_HARNESS"
 else
-  echo "test-harness.sh: directory $SDK_TESTING_HARNESS does not exist - NOOP"
+  echo "$THIS: directory $SDK_TESTING_HARNESS does not exist - NOOP"
 fi
 
-git clone --single-branch --branch "$SDK_TESTING_BRANCH" "$SDK_TESTING_URL" "$SDK_TESTING_HARNESS"
+git clone --depth 1 --single-branch --branch "$SDK_TESTING_BRANCH" "$SDK_TESTING_URL" "$SDK_TESTING_HARNESS"
 
-## OVERWRITE incoming .env with .test-env
-cp "$ENV_FILE" "$SDK_TESTING_HARNESS"/.env
+
+if [[ $OVERWRITE_TESTING_ENVIRONMENT == 1 ]]; then
+  echo "$THIS: OVERWRITE downloaded $SDK_TESTING_HARNESS/.env with $ENV_FILE:"
+  cp "$ENV_FILE" "$SDK_TESTING_HARNESS"/.env
+fi
 
 ## Copy feature files into the project resources
-rm -rf tests/cucumber/features
-mkdir -p tests/cucumber/features
-cp -r "$SDK_TESTING_HARNESS"/features/* tests/cucumber/features
-echo "test-harness.sh: seconds it took to get to end of cloning + copying: " + $(($(date "+%s") - $START))
-
-if [ $TEST_BROWSER == "chrome" ]; then
-  # use latest version of chromedriver for compatability with the current Chrome version
-  npm install chromedriver@latest
-  # print the version installed
-  npm ls chromedriver
-fi
+rm -rf tests/features
+mkdir -p tests/features
+cp -r "$SDK_TESTING_HARNESS"/features/* tests/features
+echo "$THIS: seconds it took to get to end of cloning and copying: $(($(date "+%s") - START))s"
 
 ## Start test harness environment
 pushd "$SDK_TESTING_HARNESS"
 ./scripts/up.sh
 popd
-echo "test-harness.sh: seconds it took to finish testing sdk's up.sh: " + $(($(date "+%s") - $START))
+echo "$THIS: seconds it took to finish testing sdk's up.sh: $(($(date "+%s") - START))s"
 echo ""
 echo "--------------------------------------------------------------------------------"
 echo "|"
-echo "|    To run sandbox commands, cd into $SDK_TESTING_HARNESS/$LOCAL_SANDBOX_DIR"
+echo "|    To run sandbox commands, cd into $SDK_TESTING_HARNESS/.sandbox             "
 echo "|"
 echo "--------------------------------------------------------------------------------"
