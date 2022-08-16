@@ -608,6 +608,20 @@ module.exports = function getSteps(options) {
     return this.acl.ledgerSupply();
   });
 
+  Then('I get transactions by address and round', async function () {
+    const lastRound = await this.acl.status();
+    const transactions = await this.acl.transactionByAddress(
+      this.accounts[0],
+      1,
+      lastRound.lastRound
+    );
+    assert.deepStrictEqual(
+      true,
+      Object.entries(transactions).length === 0 ||
+        'transactions' in transactions
+    );
+  });
+
   Then('I get pending transactions', async function () {
     const transactions = await this.acl.pendingTransactions(10);
     assert.deepStrictEqual(

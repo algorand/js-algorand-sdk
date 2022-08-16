@@ -33,9 +33,9 @@ if [[ $OVERWRITE_TESTING_ENVIRONMENT == 1 ]]; then
 fi
 
 ## Copy feature files into the project resources
-rm -rf tests/features
-mkdir -p tests/features
-cp -r "$SDK_TESTING_HARNESS"/features/* tests/features
+rm -rf tests/cucumber/features
+mkdir -p tests/cucumber/features
+cp -r "$SDK_TESTING_HARNESS"/features/* tests/cucumber/features
 echo "$THIS: seconds it took to get to end of cloning and copying: $(($(date "+%s") - START))s"
 
 ## Start test harness environment
