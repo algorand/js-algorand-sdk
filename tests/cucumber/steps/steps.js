@@ -884,6 +884,8 @@ module.exports = function getSteps(options) {
     await waitForAlgodInDevMode();
     const info = await this.acl.pendingTransactionInformation(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
+
+    // TODO: this needs to be modified/removed when v1 is no longer supported
     // let localParams = await this.acl.getTransactionParams();
     // this.lastRound = localParams.lastRound;
     // await waitForAlgodInDevMode();
