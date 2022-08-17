@@ -2401,11 +2401,12 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a SearchForApplicationBoxes call with applicationID {int} with max {int}',
-    async function (index, limit) {
+    'we make a SearchForApplicationBoxes call with applicationID {int} with max {int} nextToken {string}',
+    async function (index, limit, token) {
       await this.indexerClient
         .searchForApplicationBoxes(index)
         .limit(limit)
+        .nextToken(token)
         .do();
     }
   );
