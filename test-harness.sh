@@ -6,6 +6,7 @@ START=$(date "+%s")
 
 THIS=$(basename "$0")
 ENV_FILE=".test-env"
+TEST_DIR="tests/cucumber"
 
 set -a
 source "$ENV_FILE"
@@ -33,9 +34,18 @@ if [[ $OVERWRITE_TESTING_ENVIRONMENT == 1 ]]; then
 fi
 
 ## Copy feature files into the project resources
-rm -rf tests/cucumber/features
-mkdir -p tests/cucumber/features
-cp -r "$SDK_TESTING_HARNESS"/features/* tests/cucumber/features
+if [[ $REMOVE_LOCAL_FEATURES == 1 ]]; then
+  echo "$THIS: OVERWRITE wipes clean $TEST_DIR/features"
+  if [[ $VERBOSE_HARNESS == 1 ]]; then
+    ( tree $TEST_DIR/features && echo "$THIS: see the previous for files deleted" ) || true
+  fi
+  rm -rf $TEST_DIR/features
+fi
+mkdir -p $TEST_DIR/features
+cp -r "$SDK_TESTING_HARNESS"/features/* $TEST_DIR/features
+if [[ $VERBOSE_HARNESS == 1 ]]; then
+  ( tree $TEST_DIR/features && echo "$THIS: see the previous for files copied over" ) || true
+fi
 echo "$THIS: seconds it took to get to end of cloning and copying: $(($(date "+%s") - START))s"
 
 ## Start test harness environment
