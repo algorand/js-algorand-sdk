@@ -32,7 +32,7 @@ or
 
 ```html
 <script
-  src="https://cdn.jsdelivr.net/npm/algosdk@v1.19.0/dist/browser/algosdk.min.js"
+  src="https://cdn.jsdelivr.net/npm/algosdk@v1.19.1/dist/browser/algosdk.min.js"
   integrity="sha384-vpY7inPLTrCOYSwaOYlQbFwoSY/t3lFMVjAh/iXN+86fNAQ39DeQjlX87aczChqD"
   crossorigin="anonymous"
 ></script>
