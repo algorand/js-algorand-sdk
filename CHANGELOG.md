@@ -1,3 +1,11 @@
+# v1.19.1
+
+### Enhancements
+
+* API: Support attaching signatures to standard and multisig transactions by @jdtzmn in https://github.com/algorand/js-algorand-sdk/pull/595
+* AVM:  Consolidate TEAL and AVM versions by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/609
+* Testing: Use Dev mode network for cucumber tests by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/614
+
 # v1.19.0
 
 ## What's Changed
