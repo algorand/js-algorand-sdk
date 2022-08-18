@@ -22,7 +22,7 @@ Include a minified browser bundle directly in your HTML like so:
 
 ```html
 <script
-  src="https://unpkg.com/algosdk@v1.19.0/dist/browser/algosdk.min.js"
+  src="https://unpkg.com/algosdk@v1.19.1/dist/browser/algosdk.min.js"
   integrity="sha384-vpY7inPLTrCOYSwaOYlQbFwoSY/t3lFMVjAh/iXN+86fNAQ39DeQjlX87aczChqD"
   crossorigin="anonymous"
 ></script>
