@@ -18,6 +18,7 @@
 @unit.sourcemap
 @unit.stateproof.paths
 @unit.stateproof.responses
+@unit.stateproof.responses.msgp
 @unit.tealsign
 @unit.transactions
 @unit.transactions.keyreg

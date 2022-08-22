@@ -6,20 +6,20 @@ import AccountApplicationInformation from './accountApplicationInformation';
 import Block from './block';
 import Compile from './compile';
 import Dryrun from './dryrun';
+import Genesis from './genesis';
 import GetAssetByID from './getAssetByID';
 import GetApplicationByID from './getApplicationByID';
 import HealthCheck from './healthCheck';
 import PendingTransactionInformation from './pendingTransactionInformation';
 import PendingTransactions from './pendingTransactions';
 import PendingTransactionsByAddress from './pendingTransactionsByAddress';
+import Proof from './proof';
 import SendRawTransaction from './sendRawTransaction';
 import Status from './status';
 import StatusAfterBlock from './statusAfterBlock';
 import SuggestedParams from './suggestedParams';
 import Supply from './supply';
 import Versions from './versions';
-import Genesis from './genesis';
-import Proof from './proof';
 import { BaseHTTPClient } from '../../baseHTTPClient';
 import {
   AlgodTokenHeader,

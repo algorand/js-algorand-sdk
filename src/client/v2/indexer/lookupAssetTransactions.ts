@@ -61,7 +61,7 @@ export default class LookupAssetTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param type - one of `pay`, `keyreg`, `acfg`, `axfer`, `afrz`, `appl`, `stpf`
+   * @param type - one of `pay`, `keyreg`, `acfg`, `axfer`, `afrz`, `appl`
    * @category query
    */
   txType(type: string) {
