@@ -7,6 +7,9 @@ unit:
 integration:
 	node_modules/.bin/cucumber-js --tags $(INTEGRATIONS_TAGS) tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
 
+display-all-js-steps:
+	tail -n +135 tests/cucumber/steps/steps.js | grep -v '^ *//' | awk "/(Given|Then|When)/,/',/" | grep -E "\'.+\'"  | sed "s/^[^']*'\([^']*\)'.*/\1/g"
+
 harness:
 	./test-harness.sh
 
