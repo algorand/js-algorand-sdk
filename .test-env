@@ -1,6 +1,6 @@
 # Configs for testing repo download:
 SDK_TESTING_URL="https://github.com/algorand/algorand-sdk-testing"
-SDK_TESTING_BRANCH="trim-indexer"
+SDK_TESTING_BRANCH="master"
 SDK_TESTING_HARNESS="test-harness"
 
 VERBOSE_HARNESS=0
