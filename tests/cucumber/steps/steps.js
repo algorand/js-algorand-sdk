@@ -1725,13 +1725,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a Pending Transaction Information against txid {string} with max {int}',
-    function (txid, max) {
-      this.v2Client.pendingTransactionInformation(txid).max(max).do();
-    }
-  );
-
-  When(
     'we make a Pending Transaction Information against txid {string} with format {string}',
     async function (txid, format) {
       if (format !== 'msgpack') {
@@ -2007,19 +2000,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a Lookup Asset Balances call against asset index {int} with limit {int} nextToken {string} currencyGreaterThan {int} currencyLessThan {int}',
-    async function (index, limit, nextToken, currencyGreater, currencyLesser) {
-      await this.indexerClient
-        .lookupAssetBalances(index)
-        .limit(limit)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  When(
     'we make a Lookup Asset Balances call against asset index {int} with limit {int} afterAddress {string} currencyGreaterThan {int} currencyLessThan {int}',
     async function (
       index,
@@ -2033,51 +2013,6 @@ module.exports = function getSteps(options) {
         .limit(limit)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .do();
-    }
-  );
-
-  When(
-    'we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string}',
-    async function (
-      assetIndex,
-      notePrefix,
-      txType,
-      sigType,
-      txid,
-      round,
-      minRound,
-      maxRound,
-      limit,
-      beforeTime,
-      afterTime,
-      currencyGreater,
-      currencyLesser,
-      address,
-      addressRole,
-      excludeCloseToAsString
-    ) {
-      let excludeCloseTo = false;
-      if (excludeCloseToAsString === 'true') {
-        excludeCloseTo = true;
-      }
-      await this.indexerClient
-        .lookupAssetTransactions(assetIndex)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .address(address)
-        .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseTo)
         .do();
     }
   );
@@ -2287,13 +2222,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a LookupApplications call with {int} and {int}',
-    async function (index, round) {
-      await this.indexerClient.lookupApplications(index).round(round).do();
-    }
-  );
-
-  When(
     'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
     async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
       await this.indexerClient
@@ -2304,26 +2232,6 @@ module.exports = function getSteps(options) {
         .nextToken(nextToken)
         .sender(sender)
         .txid(txID)
-        .do();
-    }
-  );
-
-  When(
-    'we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}',
-    async function (
-      assetIndex,
-      limit,
-      currencyGreater,
-      currencyLesser,
-      nextToken
-    ) {
-      await this.indexerClient
-        .searchAccounts()
-        .assetID(assetIndex)
-        .limit(limit)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .nextToken(nextToken)
         .do();
     }
   );
@@ -2368,63 +2276,6 @@ module.exports = function getSteps(options) {
     'we make a Search Accounts call with exclude {string}',
     async function (exclude) {
       await this.indexerClient.searchAccounts().exclude(exclude).do();
-    }
-  );
-
-  When(
-    'we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}',
-    async function (
-      account,
-      notePrefix,
-      txType,
-      sigType,
-      txid,
-      round,
-      minRound,
-      maxRound,
-      limit,
-      beforeTime,
-      afterTime,
-      currencyGreater,
-      currencyLesser,
-      assetIndex,
-      addressRole,
-      excludeCloseToAsString
-    ) {
-      let excludeCloseTo = false;
-      if (excludeCloseToAsString === 'true') {
-        excludeCloseTo = true;
-      }
-      await this.indexerClient
-        .searchForTransactions()
-        .address(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .assetID(assetIndex)
-        .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
-    }
-  );
-
-  When(
-    'we make a SearchForApplications call with {int} and {int}',
-    async function (index, round) {
-      await this.indexerClient
-        .searchForApplications()
-        .index(index)
-        .round(round)
-        .do();
     }
   );
 
@@ -2534,21 +2385,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and nextToken {string}',
-    async function (limit, creator, name, unit, index, nextToken) {
-      await this.indexerClient
-        .searchForAssets()
-        .limit(limit)
-        .creator(creator)
-        .name(name)
-        .unit(unit)
-        .index(index)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  When(
     'we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}',
     async function (limit, creator, name, unit, index) {
       await this.indexerClient
@@ -2566,13 +2402,6 @@ module.exports = function getSteps(options) {
     'we make a SearchForApplications call with applicationID {int}',
     async function (index) {
       await this.indexerClient.searchForApplications().index(index).do();
-    }
-  );
-
-  When(
-    'we make a SearchForApplications call with creator {int}',
-    async function (index) {
-      await this.indexerClient.searchForApplications().creator(index).do();
     }
   );
 
