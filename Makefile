@@ -7,6 +7,8 @@ unit:
 integration:
 	node_modules/.bin/cucumber-js --tags $(INTEGRATIONS_TAGS) tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
 
+# The following assumes that all cucumber steps are defined in `./tests/cucumber/steps/steps.js` and begin past line 135 of that file.
+# Please note any deviations of the above before presuming correctness.
 display-all-js-steps:
 	tail -n +135 tests/cucumber/steps/steps.js | grep -v '^ *//' | awk "/(Given|Then|When)/,/',/" | grep -E "\'.+\'"  | sed "s/^[^']*'\([^']*\)'.*/\1/g"
 
