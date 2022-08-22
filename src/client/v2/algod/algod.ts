@@ -25,6 +25,8 @@ import {
   AlgodTokenHeader,
   CustomTokenHeader,
 } from '../../urlTokenBaseHTTPClient';
+import LightBlockHeaderProof from './lightBlockHeaderProof';
+import StateProof from './stateproof';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -461,5 +463,37 @@ export default class AlgodClient extends ServiceClient {
    */
   getProof(round: number, txID: string) {
     return new Proof(this.c, this.intDecoding, round, txID);
+  }
+
+  /**
+   * Returns a light block header proof for a given block.
+   *
+   * #### Example
+   * ```typescript
+   * const round = 11111111;
+   * const lightBlockHeaderProof = await algodClient.getLightBlockHeaderProof(round).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2blocksroundlightheaderproof)
+   * @param round
+   */
+  getLightBlockHeaderProof(round: number) {
+    return new LightBlockHeaderProof(this.c, this.intDecoding, round);
+  }
+
+  /**
+   * Returns a state proof for a given block.
+   *
+   * #### Example
+   * ```typescript
+   * const round = 11111111;
+   * const stateProof = await algodClient.getStateProof(round).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2stateproofsround)
+   * @param round
+   */
+  getStateProof(round: number) {
+    return new StateProof(this.c, this.intDecoding, round);
   }
 }

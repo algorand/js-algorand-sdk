@@ -4454,6 +4454,17 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'we make a GetLightBlockHeaderProof call for round {int}',
+    async function (int) {
+      await this.v2Client.getLightBlockHeaderProof(int).do();
+    }
+  );
+
+  When('we make a GetStateProof call for round {int}', async function (int) {
+    await this.v2Client.getStateProof(int).do();
+  });
+
   if (!options.ignoreReturn) {
     return steps;
   }
