@@ -401,7 +401,11 @@ for (const name of Object.keys(steps.given)) {
         jsonDirectory,
         indexerMockServerResponder
       );
-      return fn.call(this, body2 || body1);
+      let format = 'json';
+      if (fileName.endsWith('base64')) {
+        format = 'msgp';
+      }
+      return fn.call(this, body2 || body1, format);
     });
   } else if (
     name ===
@@ -418,7 +422,11 @@ for (const name of Object.keys(steps.given)) {
         jsonDirectory,
         indexerMockServerResponder
       );
-      return fn.call(this, body2 || body1, status);
+      let format = 'json';
+      if (fileName.endsWith('base64')) {
+        format = 'msgp';
+      }
+      return fn.call(this, body2 || body1, status, format);
     });
   } else if (name === 'mock server recording request paths') {
     Given(name, function () {

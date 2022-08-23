@@ -1591,13 +1591,15 @@ module.exports = function getSteps(options) {
   } = options;
 
   let expectedMockResponse;
+  let responseFormat;
 
   Given(
     'mock http responses in {string} loaded from {string}',
-    function (expectedBody) {
+    function (expectedBody, format) {
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
       }
+      responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
         '',
         `http://${mockAlgodResponderHost}`,
@@ -1615,10 +1617,11 @@ module.exports = function getSteps(options) {
 
   Given(
     'mock http responses in {string} loaded from {string} with status {int}.',
-    function (expectedBody, status) {
+    function (expectedBody, status, format) {
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
       }
+      responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
         '',
         `http://${mockAlgodResponderHost}`,
@@ -1642,7 +1645,11 @@ module.exports = function getSteps(options) {
       try {
         if (client === 'algod') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
-          this.actualMockResponse = await this.v2Client.status().do();
+          if (responseFormat === 'msgp') {
+            this.actualMockResponse = await this.v2Client.block(0).do();
+          } else {
+            this.actualMockResponse = await this.v2Client.status().do();
+          }
         } else if (client === 'indexer') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
           this.actualMockResponse = await this.indexerClient
@@ -1668,10 +1675,23 @@ module.exports = function getSteps(options) {
 
   Then('the parsed response should equal the mock response.', function () {
     if (this.expectedMockResponseCode === 200) {
-      assert.strictEqual(
-        JSON.stringify(JSON.parse(expectedMockResponse)),
-        JSON.stringify(this.actualMockResponse)
-      );
+      try {
+        // JSON response
+        assert.strictEqual(
+          JSON.stringify(JSON.parse(expectedMockResponse)),
+          JSON.stringify(this.actualMockResponse)
+        );
+      } catch (e) {
+        try {
+          // Msgp response
+          assert.deepStrictEqual(
+            this.actualMockResponse,
+            algosdk.decodeObj(expectedMockResponse)
+          );
+        } catch (err) {
+          throw Error(`response failed comparison: ${err}`);
+        }
+      }
     }
   });
 
