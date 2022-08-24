@@ -466,7 +466,7 @@ export default class AlgodClient extends ServiceClient {
   }
 
   /**
-   * Returns a light block header proof for a given block.
+   * Gets a proof for a given light block header inside a state proof commitment.
    *
    * #### Example
    * ```typescript
