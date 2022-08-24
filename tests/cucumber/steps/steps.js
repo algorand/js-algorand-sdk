@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 
 const algosdk = require('../../../index');
-const { sanityCheckProgram } = require('../../../src/logic/logic');
 const nacl = require('../../../src/nacl/naclWrappers');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
@@ -4467,7 +4466,7 @@ module.exports = function getSteps(options) {
   When('I start heuristic sanity check over the bytes', async function () {
     this.actualErrMsg = undefined;
     try {
-      sanityCheckProgram(this.seeminglyProgram);
+      new algosdk.LogicSigAccount(this.seeminglyProgram); // eslint-disable-line
     } catch (e) {
       this.actualErrMsg = e.message;
     }
