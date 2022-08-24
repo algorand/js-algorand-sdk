@@ -168,6 +168,8 @@ function readPushByteOp(
  * @returns
  */
 export function sanityCheckProgram(program: Uint8Array) {
+  if (!program || program.length === 0) throw new Error('empty program');
+
   const lineBreakOrd = '\n'.charCodeAt(0);
   const blankSpaceOrd = ' '.charCodeAt(0);
   const tildeOrd = '~'.charCodeAt(0);
