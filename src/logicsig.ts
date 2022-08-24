@@ -49,9 +49,7 @@ export class LogicSig implements LogicSigStorageStructure {
     if (programArgs != null)
       args = programArgs.map((arg) => new Uint8Array(arg));
 
-    if (!logic.checkProgram(program, args)) {
-      throw new Error('Invalid program');
-    }
+    logic.sanityCheckProgram(program);
 
     this.logic = program;
     this.args = args;
@@ -93,7 +91,7 @@ export class LogicSig implements LogicSigStorageStructure {
     }
 
     try {
-      logic.checkProgram(this.logic, this.args);
+      logic.sanityCheckProgram(this.logic);
     } catch (e) {
       return false;
     }
