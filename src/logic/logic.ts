@@ -5,7 +5,7 @@
 
 /** @deprecated langspec.json is deprecated aross all SDKs */
 import langspec from './langspec.json';
-import { decodeAddress } from '../encoding/address';
+import { isValidAddress } from '../encoding/address';
 
 /**
  * Langspec Op Structure
@@ -180,14 +180,7 @@ export function sanityCheckProgram(program: Uint8Array) {
   if (isAsciiPrintable) {
     const programStr = Buffer.from(program.buffer).toString();
 
-    let addressDecodeErr = null;
-    try {
-      decodeAddress(programStr);
-    } catch (e) {
-      addressDecodeErr = e;
-    }
-
-    if (addressDecodeErr == null)
+    if (isValidAddress(programStr))
       throw new Error('requesting program bytes, get Algorand address');
 
     if (Buffer.from(programStr, 'base64').toString('base64') === programStr)
