@@ -1,6 +1,7 @@
 # Configs for testing repo download:
 SDK_TESTING_URL="https://github.com/algorand/algorand-sdk-testing"
-SDK_TESTING_BRANCH="master"
+# TODO change back to master when sdk-testing is merged
+SDK_TESTING_BRANCH="deprecate-langspec"
 SDK_TESTING_HARNESS="test-harness"
 
 VERBOSE_HARNESS=0

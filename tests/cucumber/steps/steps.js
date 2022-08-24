@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const algosdk = require('../../../index');
+const { sanityCheckProgram } = require('../../../src/logic/logic');
 const nacl = require('../../../src/nacl/naclWrappers');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
@@ -4451,6 +4452,33 @@ module.exports = function getSteps(options) {
     async function (expectedJsonPath) {
       const expected = await loadResource(expectedJsonPath);
       assert.equal(this.rawSourceMap, expected.toString().trim());
+    }
+  );
+
+  Given(
+    'a base64 encoded program bytes for heuristic sanity check {string}',
+    async function (programByteStr) {
+      this.seeminglyProgram = new Uint8Array(
+        Buffer.from(programByteStr, 'base64')
+      );
+    }
+  );
+
+  When('I start heuristic sanity check over the bytes', async function () {
+    this.actualErrMsg = undefined;
+    try {
+      sanityCheckProgram(this.seeminglyProgram);
+    } catch (e) {
+      this.actualErrMsg = e.message;
+    }
+  });
+
+  Then(
+    'if there exists an error, the error contains {string}',
+    async function (errMsg) {
+      if (errMsg !== '')
+        assert.strictEqual(this.actualErrMsg.includes(errMsg), true);
+      else assert.strictEqual(this.actualErrMsg === undefined, true);
     }
   );
 

@@ -3,10 +3,13 @@
  * Utilities for working with program bytes.
  */
 
+/** @deprecated langspec.json is deprecated aross all SDKs */
 import langspec from './langspec.json';
+import { decodeAddress } from '../encoding/address';
 
 /**
  * Langspec Op Structure
+ * @deprecated for langspec.json is deprecated aross all SDKs
  */
 interface OpStructure {
   Opcode: number;
@@ -23,13 +26,17 @@ interface OpStructure {
   Groups: string[];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 let opcodes: {
   [key: number]: OpStructure;
 };
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 const maxCost = 20000;
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 const maxLength = 1000;
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function parseUvarint(
   array: Uint8Array
 ): [numberFound: number, size: number] {
@@ -49,6 +56,7 @@ export function parseUvarint(
   return [0, 0];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readIntConstBlock(
   program: Uint8Array,
   pc: number
@@ -79,6 +87,7 @@ function readIntConstBlock(
   return [size, ints];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readByteConstBlock(
   program: Uint8Array,
   pc: number
@@ -116,6 +125,7 @@ function readByteConstBlock(
   return [size, byteArrays];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readPushIntOp(
   program: Uint8Array,
   pc: number
@@ -129,6 +139,7 @@ function readPushIntOp(
   return [size, numberFound];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readPushByteOp(
   program: Uint8Array,
   pc: number
@@ -149,8 +160,54 @@ function readPushByteOp(
   return [size, byteArray];
 }
 
+/** sanityCheckProgram performs heuristic program validation:
+ * check if passed in bytes are Algorand address or is B64 encoded, rather than Teal bytes
+ *
+ * @param program - Program bytes to check
+ * @throws
+ * @returns
+ */
+export function sanityCheckProgram(program: Uint8Array) {
+  const lineBreakOrd = '\n'.charCodeAt(0);
+  const blankSpaceOrd = ' '.charCodeAt(0);
+  const tildeOrd = '~'.charCodeAt(0);
+
+  const isPrintable = (x: number) => blankSpaceOrd <= x && x <= tildeOrd;
+  const isAsciiPrintable = program.every(
+    (x: number) => x === lineBreakOrd || isPrintable(x)
+  );
+
+  if (isAsciiPrintable) {
+    const programStr = Buffer.from(program.buffer).toString();
+
+    let addressDecodeErr = null;
+    try {
+      decodeAddress(programStr);
+    } catch (e) {
+      addressDecodeErr = e;
+    }
+
+    if (addressDecodeErr == null)
+      throw new Error('requesting program bytes, get Algorand address');
+
+    if (Buffer.from(programStr, 'base64').toString('base64') === programStr)
+      throw new Error('program should not be b64 encoded');
+
+    throw new Error(
+      'program bytes are all ASCII printable characters, not looking like Teal byte code'
+    );
+  }
+}
+
 /** readProgram validates program for length and running cost,
  * and additionally provides the found int variables and byte blocks
+ *
+ * @deprecated `langspec.json` can no longer correctly to depicting the cost model (as of 2022.08.22),
+ * also to minimize the work in updating SDKs per AVM release,
+ * we are deprecating`langspec.json` across all SDKs.
+ * The behavior of method `checkProgram` relies on `langspec.json`.
+ * Thus, this method is being deprecated.
+ *
  * @param program - Program to check
  * @param args - Program arguments as array of Uint8Array arrays
  * @throws
@@ -254,6 +311,13 @@ export function readProgram(
 
 /**
  * checkProgram validates program for length and running cost
+ *
+ * @deprecated `langspec.json` can no longer correctly to depicting the cost model (as of 2022.08.22),
+ * also to minimize the work in updating SDKs per AVM release,
+ * we are deprecating`langspec.json` across all SDKs.
+ * The behavior of method `checkProgram` relies on `langspec.json`.
+ * Thus, this method is being deprecated.
+ *
  * @param program - Program to check
  * @param args - Program arguments as array of Uint8Array arrays
  * @throws
@@ -264,25 +328,31 @@ export function checkProgram(program: Uint8Array, args?: Uint8Array[]) {
   return success;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkIntConstBlock(program: Uint8Array, pc: number) {
   const [size] = readIntConstBlock(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkByteConstBlock(program: Uint8Array, pc: number) {
   const [size] = readByteConstBlock(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkPushIntOp(program: Uint8Array, pc: number) {
   const [size] = readPushIntOp(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkPushByteOp(program: Uint8Array, pc: number) {
   const [size] = readPushByteOp(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export const langspecEvalMaxVersion = langspec.EvalMaxVersion;
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export const langspecLogicSigVersion = langspec.LogicSigVersion;
