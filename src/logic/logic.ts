@@ -197,10 +197,9 @@ export function sanityCheckProgram(program: Uint8Array) {
 /** readProgram validates program for length and running cost,
  * and additionally provides the found int variables and byte blocks
  *
- * @deprecated `langspec.json` can no longer correctly to depicting the cost model (as of 2022.08.22),
- * also to minimize the work in updating SDKs per AVM release,
- * we are deprecating`langspec.json` across all SDKs.
- * The behavior of method `checkProgram` relies on `langspec.json`.
+ * @deprecated Validation relies on metadata (`langspec.json`) that
+ * does not accurately represent opcode behavior across program versions.
+ * The behavior of `readProgram` relies on `langspec.json`.
  * Thus, this method is being deprecated.
  *
  * @param program - Program to check
@@ -307,10 +306,9 @@ export function readProgram(
 /**
  * checkProgram validates program for length and running cost
  *
- * @deprecated `langspec.json` can no longer correctly to depicting the cost model (as of 2022.08.22),
- * also to minimize the work in updating SDKs per AVM release,
- * we are deprecating`langspec.json` across all SDKs.
- * The behavior of method `checkProgram` relies on `langspec.json`.
+ * @deprecated Validation relies on metadata (`langspec.json`) that
+ * does not accurately represent opcode behavior across program versions.
+ * The behavior of `checkProgram` relies on `langspec.json`.
  * Thus, this method is being deprecated.
  *
  * @param program - Program to check
