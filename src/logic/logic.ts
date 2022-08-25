@@ -5,7 +5,6 @@
 
 /** @deprecated langspec.json is deprecated aross all SDKs */
 import langspec from './langspec.json';
-import { isValidAddress } from '../encoding/address';
 
 /**
  * Langspec Op Structure
@@ -158,38 +157,6 @@ function readPushByteOp(
   const byteArray = program.slice(pc + size, pc + size + itemLen);
   size += itemLen;
   return [size, byteArray];
-}
-
-/** sanityCheckProgram performs heuristic program validation:
- * check if passed in bytes are Algorand address or is B64 encoded, rather than Teal bytes
- *
- * @param program - Program bytes to check
- */
-export function sanityCheckProgram(program: Uint8Array) {
-  if (!program || program.length === 0) throw new Error('empty program');
-
-  const lineBreakOrd = '\n'.charCodeAt(0);
-  const blankSpaceOrd = ' '.charCodeAt(0);
-  const tildeOrd = '~'.charCodeAt(0);
-
-  const isPrintable = (x: number) => blankSpaceOrd <= x && x <= tildeOrd;
-  const isAsciiPrintable = program.every(
-    (x: number) => x === lineBreakOrd || isPrintable(x)
-  );
-
-  if (isAsciiPrintable) {
-    const programStr = Buffer.from(program).toString();
-
-    if (isValidAddress(programStr))
-      throw new Error('requesting program bytes, get Algorand address');
-
-    if (Buffer.from(programStr, 'base64').toString('base64') === programStr)
-      throw new Error('program should not be b64 encoded');
-
-    throw new Error(
-      'program bytes are all ASCII printable characters, not looking like Teal byte code'
-    );
-  }
 }
 
 /** readProgram validates program for length and running cost,
