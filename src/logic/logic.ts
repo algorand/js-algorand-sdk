@@ -164,8 +164,6 @@ function readPushByteOp(
  * check if passed in bytes are Algorand address or is B64 encoded, rather than Teal bytes
  *
  * @param program - Program bytes to check
- * @throws
- * @returns
  */
 export function sanityCheckProgram(program: Uint8Array) {
   if (!program || program.length === 0) throw new Error('empty program');
@@ -180,7 +178,7 @@ export function sanityCheckProgram(program: Uint8Array) {
   );
 
   if (isAsciiPrintable) {
-    const programStr = Buffer.from(program.buffer).toString();
+    const programStr = Buffer.from(program).toString();
 
     if (isValidAddress(programStr))
       throw new Error('requesting program bytes, get Algorand address');

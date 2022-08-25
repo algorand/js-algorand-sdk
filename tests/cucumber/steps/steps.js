@@ -4475,9 +4475,8 @@ module.exports = function getSteps(options) {
   Then(
     'if the heuristic sanity check throws an error, the error contains {string}',
     async function (errMsg) {
-      if (errMsg !== '')
-        assert.strictEqual(this.actualErrMsg.includes(errMsg), true);
-      else assert.strictEqual(this.actualErrMsg === undefined, true);
+      if (errMsg !== '') assert.ok(this.actualErrMsg.includes(errMsg));
+      else assert.strictEqual(this.actualErrMsg, undefined);
     }
   );
 
