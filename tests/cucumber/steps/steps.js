@@ -4473,7 +4473,7 @@ module.exports = function getSteps(options) {
   });
 
   Then(
-    'if there exists an error, the error contains {string}',
+    'if the heuristic sanity check throws an error, the error contains {string}',
     async function (errMsg) {
       if (errMsg !== '')
         assert.strictEqual(this.actualErrMsg.includes(errMsg), true);
