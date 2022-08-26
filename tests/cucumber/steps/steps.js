@@ -4485,6 +4485,32 @@ module.exports = function getSteps(options) {
     await this.v2Client.getStateProof(int).do();
   });
 
+  Given(
+    'a base64 encoded program bytes for heuristic sanity check {string}',
+    async function (programByteStr) {
+      this.seeminglyProgram = new Uint8Array(
+        Buffer.from(programByteStr, 'base64')
+      );
+    }
+  );
+
+  When('I start heuristic sanity check over the bytes', async function () {
+    this.actualErrMsg = undefined;
+    try {
+      new algosdk.LogicSigAccount(this.seeminglyProgram); // eslint-disable-line
+    } catch (e) {
+      this.actualErrMsg = e.message;
+    }
+  });
+
+  Then(
+    'if the heuristic sanity check throws an error, the error contains {string}',
+    async function (errMsg) {
+      if (errMsg !== '') assert.ok(this.actualErrMsg.includes(errMsg));
+      else assert.strictEqual(this.actualErrMsg, undefined);
+    }
+  );
+
   if (!options.ignoreReturn) {
     return steps;
   }
