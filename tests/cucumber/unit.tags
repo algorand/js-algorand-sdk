@@ -11,6 +11,7 @@
 @unit.indexer.ledger_refactoring
 @unit.indexer.logs
 @unit.offline
+@unit.program_sanity_check
 @unit.rekey
 @unit.responses
 @unit.responses.231
