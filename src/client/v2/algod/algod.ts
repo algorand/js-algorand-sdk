@@ -13,7 +13,7 @@ import HealthCheck from './healthCheck';
 import PendingTransactionInformation from './pendingTransactionInformation';
 import PendingTransactions from './pendingTransactions';
 import PendingTransactionsByAddress from './pendingTransactionsByAddress';
-import Proof from './proof';
+import GetTransactionProof from './getTransactionProof';
 import SendRawTransaction from './sendRawTransaction';
 import Status from './status';
 import StatusAfterBlock from './statusAfterBlock';
@@ -453,7 +453,7 @@ export default class AlgodClient extends ServiceClient {
    * ```typescript
    * const round = 18038133;
    * const txId = "MEUOC4RQJB23CQZRFRKYEI6WBO73VTTPST5A7B3S5OKBUY6LFUDA";
-   * const proof = await algodClient.getProof(round, txId).do();
+   * const proof = await algodClient.getTransactionProof(round, txId).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundtransactionstxidproof)
@@ -461,8 +461,8 @@ export default class AlgodClient extends ServiceClient {
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
    */
-  getProof(round: number, txID: string) {
-    return new Proof(this.c, this.intDecoding, round, txID);
+  getTransactionProof(round: number, txID: string) {
+    return new GetTransactionProof(this.c, this.intDecoding, round, txID);
   }
 
   /**
@@ -482,7 +482,7 @@ export default class AlgodClient extends ServiceClient {
   }
 
   /**
-   * Returns a state proof for a given block.
+   * Gets a state proof that covers a given round.
    *
    * #### Example
    * ```typescript
