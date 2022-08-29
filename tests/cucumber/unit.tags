@@ -17,6 +17,9 @@
 @unit.responses.231
 @unit.responses.unlimited_assets
 @unit.sourcemap
+@unit.stateproof.paths
+@unit.stateproof.responses
+@unit.stateproof.responses.msgp
 @unit.tealsign
 @unit.transactions
 @unit.transactions.keyreg
