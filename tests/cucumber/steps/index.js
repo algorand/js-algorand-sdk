@@ -347,6 +347,16 @@ if (browser) {
             rpcArgs = args.slice(0, rpcArgs.length - 1);
           }
 
+          for (const arg of rpcArgs) {
+            if (arg instanceof Uint8Array) {
+              // cannot send Uint8Array or Buffer objects because the arguments will get JSON
+              // encoded when transmitted to the browser
+              throw new Error(
+                `Attempted to send binary data to the browser when invoking test '${type} ${name}'`
+              );
+            }
+          }
+
           const { error } = await driver.executeAsyncScript(
             // variables are `scoped` because they exist in the upper scope
             async (scopedType, scopedName, ...rest) => {
@@ -391,12 +401,12 @@ for (const name of Object.keys(steps.given)) {
   const fn = steps.given[name];
   if (name === 'mock http responses in {string} loaded from {string}') {
     Given(name, function (fileName, jsonDirectory) {
-      const body1 = setupMockServerForResponses(
+      let body1 = setupMockServerForResponses(
         fileName,
         jsonDirectory,
         algodMockServerResponder
       );
-      const body2 = setupMockServerForResponses(
+      let body2 = setupMockServerForResponses(
         fileName,
         jsonDirectory,
         indexerMockServerResponder
@@ -405,6 +415,12 @@ for (const name of Object.keys(steps.given)) {
       if (fileName.endsWith('base64')) {
         format = 'msgp';
       }
+      if (Buffer.isBuffer(body1)) {
+        body1 = body1.toString('base64');
+      }
+      if (Buffer.isBuffer(body2)) {
+        body2 = body2.toString('base64');
+      }
       return fn.call(this, body2 || body1, format);
     });
   } else if (
@@ -412,12 +428,12 @@ for (const name of Object.keys(steps.given)) {
     'mock http responses in {string} loaded from {string} with status {int}.'
   ) {
     Given(name, function (fileName, jsonDirectory, status) {
-      const body1 = setupMockServerForResponses(
+      let body1 = setupMockServerForResponses(
         fileName,
         jsonDirectory,
         algodMockServerResponder
       );
-      const body2 = setupMockServerForResponses(
+      let body2 = setupMockServerForResponses(
         fileName,
         jsonDirectory,
         indexerMockServerResponder
@@ -425,6 +441,12 @@ for (const name of Object.keys(steps.given)) {
       let format = 'json';
       if (fileName.endsWith('base64')) {
         format = 'msgp';
+      }
+      if (Buffer.isBuffer(body1)) {
+        body1 = body1.toString('base64');
+      }
+      if (Buffer.isBuffer(body2)) {
+        body2 = body2.toString('base64');
       }
       return fn.call(this, body2 || body1, status, format);
     });

@@ -1598,6 +1598,11 @@ module.exports = function getSteps(options) {
     function (expectedBody, format) {
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
+        if (format === 'msgp') {
+          expectedMockResponse = new Uint8Array(
+            Buffer.from(expectedMockResponse, 'base64')
+          );
+        }
       }
       responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
@@ -1620,6 +1625,11 @@ module.exports = function getSteps(options) {
     function (expectedBody, status, format) {
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
+        if (format === 'msgp') {
+          expectedMockResponse = new Uint8Array(
+            Buffer.from(expectedMockResponse, 'base64')
+          );
+        }
       }
       responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
@@ -1675,22 +1685,21 @@ module.exports = function getSteps(options) {
 
   Then('the parsed response should equal the mock response.', function () {
     if (this.expectedMockResponseCode === 200) {
-      try {
-        // JSON response
+      // assert.deepStrictEqual considers a Buffer and Uint8Array with the same contents as unequal.
+      // These types are fairly interchangable in different parts of the SDK, so we need to normalize
+      // them before comparing, which is why we chain encoding/decoding below.
+      if (responseFormat === 'json') {
         assert.strictEqual(
           JSON.stringify(JSON.parse(expectedMockResponse)),
           JSON.stringify(this.actualMockResponse)
         );
-      } catch (e) {
-        try {
-          // Msgp response
-          assert.deepStrictEqual(
-            this.actualMockResponse,
-            algosdk.decodeObj(expectedMockResponse)
-          );
-        } catch (err) {
-          throw Error(`response failed comparison: ${err}`);
-        }
+      } else {
+        assert.deepStrictEqual(
+          algosdk.decodeObj(
+            new Uint8Array(algosdk.encodeObj(this.actualMockResponse))
+          ),
+          algosdk.decodeObj(expectedMockResponse)
+        );
       }
     }
   });
