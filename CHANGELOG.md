@@ -1,3 +1,24 @@
+# v1.20.0b1
+
+## What's Changed
+
+### Bugfixes
+
+- Bug-Fix: Pass verbosity to the harness and sandbox by @tzaffi in https://github.com/algorand/js-algorand-sdk/pull/630
+
+### Enhancements
+
+- Enhancement: Use sandbox for SDK Testing and remove Indexer v1 steps by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/623
+- Tidy: Ignore algorand-sdk-testing test-harness dir by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/634
+- Enhancement: Deprecating use of langspec by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/632
+- enhancement: Initial stateproofs support by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/629
+
+## New Contributors
+
+- @ahangsu made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/632
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.19.1...v1.20.0b1
+
 # v1.19.1
 
 ### Enhancements
