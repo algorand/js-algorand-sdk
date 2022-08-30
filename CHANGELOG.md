@@ -1,4 +1,4 @@
-# v1.20.0b1
+# v1.20.0-beta.1
 
 ## What's Changed
 
@@ -17,7 +17,7 @@
 
 - @ahangsu made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/632
 
-**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.19.1...v1.20.0b1
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.19.1...v1.20.0-beta.1
 
 # v1.19.1
 
