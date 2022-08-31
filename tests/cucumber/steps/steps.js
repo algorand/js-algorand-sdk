@@ -258,29 +258,6 @@ module.exports = function getSteps(options) {
     this.pk = algosdk.multisigAddress(this.msig);
   });
 
-  When('I create the payment transaction', function () {
-    this.txn = {
-      from: this.pk,
-      to: this.to,
-      fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      genesisHash: this.gh,
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.close) {
-      this.txn.closeRemainderTo = this.close;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
-    if (this.amt) {
-      this.txn.amount = this.amt;
-    }
-  });
-
   When('I sign the transaction with the private key', function () {
     const obj = algosdk.signTransaction(this.txn, this.sk);
     this.stx = obj.blob;
@@ -978,60 +955,6 @@ module.exports = function getSteps(options) {
   Then('I can get account information', async function () {
     await this.acl.accountInformation(this.pk);
     return this.kcl.deleteKey(this.handle, this.wallet_pswd, this.pk);
-  });
-
-  Given(
-    'key registration transaction parameters {int} {int} {int} {string} {string} {string} {int} {int} {int} {string} {string}',
-    function (
-      fee,
-      fv,
-      lv,
-      gh,
-      votekey,
-      selkey,
-      votefst,
-      votelst,
-      votekd,
-      gen,
-      note
-    ) {
-      this.fee = parseInt(fee);
-      this.fv = parseInt(fv);
-      this.lv = parseInt(lv);
-      this.gh = gh;
-      if (gen !== 'none') {
-        this.gen = gen;
-      }
-      if (note !== 'none') {
-        this.note = makeUint8Array(Buffer.from(note, 'base64'));
-      }
-      this.votekey = votekey;
-      this.selkey = selkey;
-      this.votefst = votefst;
-      this.votelst = votelst;
-      this.votekd = votekd;
-    }
-  );
-
-  When('I create the key registration transaction', function () {
-    this.txn = {
-      fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      genesisHash: this.gh,
-      voteKey: this.votekey,
-      selectionKey: this.selkey,
-      voteFirst: this.votefst,
-      voteLast: this.votelst,
-      voteKeyDilution: this.votekd,
-      type: 'keyreg',
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
   });
 
   Given(
