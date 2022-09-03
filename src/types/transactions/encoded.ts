@@ -313,6 +313,21 @@ export interface EncodedTransaction {
    * boxes
    */
   apbx?: EncodedBoxReference[];
+
+  /*
+   * stateProofType
+   */
+  sptype?: number | bigint;
+
+  /**
+   * stateProof
+   */
+  sp?: Buffer;
+
+  /**
+   * stateProofMessage
+   */
+  spmsg?: Buffer;
 }
 
 export interface EncodedSubsig {

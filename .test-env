@@ -1,0 +1,14 @@
+# Configs for testing repo download:
+SDK_TESTING_URL="https://github.com/algorand/algorand-sdk-testing"
+SDK_TESTING_BRANCH="feature/box-storage"
+SDK_TESTING_HARNESS="test-harness"
+
+VERBOSE_HARNESS=0
+
+# WARNING: If set to 1, new features will be LOST when downloading the test harness.
+# REGARDLESS: modified features are ALWAYS overwritten.
+REMOVE_LOCAL_FEATURES=0
+
+# WARNING: Be careful when turning on the next variable.
+# In that case you'll need to provide all variables expected by `algorand-sdk-testing`'s `.env`
+OVERWRITE_TESTING_ENVIRONMENT=0

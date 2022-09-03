@@ -345,6 +345,40 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize a state proof transaction from msgpack representation', () => {
+      const o = {
+        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        fee: 10,
+        firstRound: 51,
+        lastRound: 61,
+        note: new Uint8Array([123, 12, 200]),
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
+        selectionKey: 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=',
+        voteFirst: 123,
+        voteLast: 456,
+        voteKeyDilution: 1234,
+        genesisID: '',
+        type: 'stpf',
+        stateProofType: 0,
+        stateProof: new Uint8Array([1, 1, 1, 1]),
+        stateProofMessage: new Uint8Array([0, 0, 0, 0]),
+      };
+      const expectedTxn = new algosdk.Transaction(o);
+      console.log(
+        `${expectedTxn.stateProofType} ${expectedTxn.stateProofMessage} ${expectedTxn.stateProof} ${expectedTxn.type}`
+      );
+      const encRep = expectedTxn.get_obj_for_encoding();
+      console.log(
+        `${encRep.sptype} ${encRep.spmsg} ${encRep.sp} ${encRep.type}`
+      );
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
     it('should correctly serialize and deserialize a key registration transaction from msgpack representation', () => {
       const o = {
         from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',

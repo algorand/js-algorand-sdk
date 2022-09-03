@@ -113,6 +113,9 @@ interface TransactionStorageStructure
   group?: Buffer;
   extraPages?: number;
   boxes?: BoxReference[];
+  stateProofType?: number | bigint;
+  stateProof?: Uint8Array;
+  stateProofMessage?: Uint8Array;
 }
 
 function getKeyregKey(
@@ -202,6 +205,9 @@ export class Transaction implements TransactionStorageStructure {
   nonParticipation?: boolean;
   group?: Buffer;
   extraPages?: number;
+  stateProofType?: number | bigint;
+  stateProof?: Uint8Array;
+  stateProofMessage?: Uint8Array;
 
   constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
@@ -546,6 +552,27 @@ export class Transaction implements TransactionStorageStructure {
 
     // say we are aware of groups
     this.group = undefined;
+
+    // stpf fields
+    if (
+      txn.stateProofType !== undefined &&
+      (!Number.isSafeInteger(txn.stateProofType) || txn.stateProofType < 0)
+    )
+      throw Error(
+        'State Proof type must be a positive number and smaller than 2^53-1'
+      );
+    if (txn.stateProofMessage !== undefined) {
+      if (txn.stateProofMessage.constructor !== Uint8Array)
+        throw Error('stateProofMessage must be a Uint8Array.');
+    } else {
+      txn.stateProofMessage = new Uint8Array(0);
+    }
+    if (txn.stateProof !== undefined) {
+      if (txn.stateProof.constructor !== Uint8Array)
+        throw Error('stateProof must be a Uint8Array.');
+    } else {
+      txn.stateProof = new Uint8Array(0);
+    }
   }
 
   // eslint-disable-next-line camelcase
@@ -854,6 +881,42 @@ export class Transaction implements TransactionStorageStructure {
       if (txn.grp === undefined) delete txn.grp;
       return txn;
     }
+    if (this.type === 'stpf') {
+      // state proof txn
+      const txn: EncodedTransaction = {
+        fee: this.fee,
+        fv: this.firstRound,
+        lv: this.lastRound,
+        note: Buffer.from(this.note),
+        snd: Buffer.from(this.from.publicKey),
+        type: this.type,
+        gen: this.genesisID,
+        gh: this.genesisHash,
+        lx: Buffer.from(this.lease),
+        sptype: this.stateProofType,
+        spmsg: Buffer.from(this.stateProofMessage),
+        sp: Buffer.from(this.stateProof),
+      };
+      // allowed zero values
+      if (!txn.sptype) delete txn.sptype;
+      if (!txn.note.length) delete txn.note;
+      if (!txn.lx.length) delete txn.lx;
+      if (!txn.amt) delete txn.amt;
+      if (!txn.fee) delete txn.fee;
+      if (!txn.fv) delete txn.fv;
+      if (!txn.gen) delete txn.gen;
+      if (!txn.apid) delete txn.apid;
+      if (!txn.apaa || !txn.apaa.length) delete txn.apaa;
+      if (!txn.apap) delete txn.apap;
+      if (!txn.apsu) delete txn.apsu;
+      if (!txn.apan) delete txn.apan;
+      if (!txn.apfa || !txn.apfa.length) delete txn.apfa;
+      if (!txn.apas || !txn.apas.length) delete txn.apas;
+      if (!txn.apat || !txn.apat.length) delete txn.apat;
+      if (!txn.apep) delete txn.apep;
+      if (txn.grp === undefined) delete txn.grp;
+      return txn;
+    }
 
     return undefined;
   }
@@ -1030,6 +1093,16 @@ export class Transaction implements TransactionStorageStructure {
               : txn.appForeignApps[box.i - 1],
           name: box.n,
         }));
+      }
+    } else if (txnForEnc.type === 'stpf') {
+      if (txnForEnc.sptype !== undefined) {
+        txn.stateProofType = txnForEnc.sptype;
+      }
+      if (txnForEnc.sp !== undefined) {
+        txn.stateProof = txnForEnc.sp;
+      }
+      if (txnForEnc.spmsg !== undefined) {
+        txn.stateProofMessage = txnForEnc.spmsg;
       }
     }
     return txn;

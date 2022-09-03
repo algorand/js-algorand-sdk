@@ -16,6 +16,7 @@ import {
   ApplicationClearStateTransaction as AppClearStateTxn,
   ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';
+import StateProofTxn from './stateproof';
 
 // Utilities
 export {
@@ -49,6 +50,7 @@ export {
   ApplicationClearStateTransaction as AppClearStateTxn,
   ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';
+export { default as StateProofTxn } from './stateproof';
 
 // All possible transaction types
 type AnyTransaction =
@@ -65,5 +67,6 @@ type AnyTransaction =
   | AppOptInTxn
   | AppCloseOutTxn
   | AppClearStateTxn
-  | AppNoOpTxn;
+  | AppNoOpTxn
+  | StateProofTxn;
 export default AnyTransaction;

@@ -1,10 +1,10 @@
 import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
-import * as logic from './logic/logic';
 import { verifyMultisig } from './multisig';
 import * as utils from './utils/utils';
 import * as txnBuilder from './transaction';
+import { isValidAddress } from './encoding/address';
 import {
   EncodedLogicSig,
   EncodedLogicSigAccount,
@@ -18,6 +18,38 @@ interface LogicSigStorageStructure {
   args: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
+}
+
+/** sanityCheckProgram performs heuristic program validation:
+ * check if passed in bytes are Algorand address or is B64 encoded, rather than Teal bytes
+ *
+ * @param program - Program bytes to check
+ */
+export function sanityCheckProgram(program: Uint8Array) {
+  if (!program || program.length === 0) throw new Error('empty program');
+
+  const lineBreakOrd = '\n'.charCodeAt(0);
+  const blankSpaceOrd = ' '.charCodeAt(0);
+  const tildeOrd = '~'.charCodeAt(0);
+
+  const isPrintable = (x: number) => blankSpaceOrd <= x && x <= tildeOrd;
+  const isAsciiPrintable = program.every(
+    (x: number) => x === lineBreakOrd || isPrintable(x)
+  );
+
+  if (isAsciiPrintable) {
+    const programStr = Buffer.from(program).toString();
+
+    if (isValidAddress(programStr))
+      throw new Error('requesting program bytes, get Algorand address');
+
+    if (Buffer.from(programStr, 'base64').toString('base64') === programStr)
+      throw new Error('program should not be b64 encoded');
+
+    throw new Error(
+      'program bytes are all ASCII printable characters, not looking like Teal byte code'
+    );
+  }
 }
 
 /**
@@ -49,9 +81,7 @@ export class LogicSig implements LogicSigStorageStructure {
     if (programArgs != null)
       args = programArgs.map((arg) => new Uint8Array(arg));
 
-    if (!logic.checkProgram(program, args)) {
-      throw new Error('Invalid program');
-    }
+    sanityCheckProgram(program);
 
     this.logic = program;
     this.args = args;
@@ -93,7 +123,7 @@ export class LogicSig implements LogicSigStorageStructure {
     }
 
     try {
-      logic.checkProgram(this.logic, this.args);
+      sanityCheckProgram(this.logic);
     } catch (e) {
       return false;
     }
