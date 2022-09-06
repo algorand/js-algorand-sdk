@@ -76,14 +76,6 @@ function parseJSON(json) {
 
 // END OBJECT CREATION FUNCTIONS
 
-function formatIncludeAll(includeAll) {
-  if (!['true', 'false'].includes(includeAll)) {
-    throw new Error(`Unknown value for includeAll: ${includeAll}`);
-  }
-
-  return includeAll === 'true';
-}
-
 const steps = {
   given: {},
   when: {},
@@ -630,26 +622,6 @@ module.exports = function getSteps(options) {
     );
   });
 
-  Then('I get transactions by address only', async function () {
-    const transactions = await this.acl.transactionByAddress(this.accounts[0]);
-    assert.deepStrictEqual(
-      true,
-      Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
-    );
-  });
-
-  Then('I get transactions by address and date', async function () {
-    const transactions = await this.acl.transactionByAddressAndDate(
-      this.accounts[0]
-    );
-    assert.deepStrictEqual(
-      true,
-      Object.entries(transactions).length === 0 ||
-        'transactions' in transactions
-    );
-  });
-
   Then('I get pending transactions', async function () {
     const transactions = await this.acl.pendingTransactions(10);
     assert.deepStrictEqual(
@@ -881,19 +853,16 @@ module.exports = function getSteps(options) {
   });
 
   Then('the transaction should go through', async function () {
-    let info = await this.acl.pendingTransactionInformation(this.txid);
+    await waitForAlgodInDevMode();
+    const info = await this.acl.pendingTransactionInformation(this.txid);
     assert.deepStrictEqual(true, 'type' in info);
+
+    // TODO: this needs to be modified/removed when v1 is no longer supported
     // let localParams = await this.acl.getTransactionParams();
     // this.lastRound = localParams.lastRound;
-    await waitForAlgodInDevMode();
-    info = await this.acl.transactionById(this.txid);
-    assert.deepStrictEqual(true, 'type' in info);
-  });
-
-  Then('I can get the transaction by ID', async function () {
-    await waitForAlgodInDevMode();
-    const info = await this.acl.transactionById(this.txid);
-    assert.deepStrictEqual(true, 'type' in info);
+    // await waitForAlgodInDevMode();
+    // info = await this.acl.transactionById(this.txid);
+    // assert.deepStrictEqual(true, 'type' in info);
   });
 
   Then('the transaction should not go through', function () {
@@ -1119,13 +1088,6 @@ module.exports = function getSteps(options) {
       } else {
         throw new Error(`Unrecognized keyreg type: ${type}`);
       }
-    }
-  );
-
-  When(
-    'I get recent transactions, limited by {int} transactions',
-    function (int) {
-      this.acl.transactionByAddress(this.accounts[0], parseInt(int));
     }
   );
 
@@ -1629,13 +1591,20 @@ module.exports = function getSteps(options) {
   } = options;
 
   let expectedMockResponse;
+  let responseFormat;
 
   Given(
     'mock http responses in {string} loaded from {string}',
-    function (expectedBody) {
+    function (expectedBody, format) {
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
+        if (format === 'msgp') {
+          expectedMockResponse = new Uint8Array(
+            Buffer.from(expectedMockResponse, 'base64')
+          );
+        }
       }
+      responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
         '',
         `http://${mockAlgodResponderHost}`,
@@ -1653,10 +1622,16 @@ module.exports = function getSteps(options) {
 
   Given(
     'mock http responses in {string} loaded from {string} with status {int}.',
-    function (expectedBody, status) {
+    function (expectedBody, status, format) {
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
+        if (format === 'msgp') {
+          expectedMockResponse = new Uint8Array(
+            Buffer.from(expectedMockResponse, 'base64')
+          );
+        }
       }
+      responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
         '',
         `http://${mockAlgodResponderHost}`,
@@ -1680,7 +1655,11 @@ module.exports = function getSteps(options) {
       try {
         if (client === 'algod') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
-          this.actualMockResponse = await this.v2Client.status().do();
+          if (responseFormat === 'msgp') {
+            this.actualMockResponse = await this.v2Client.block(0).do();
+          } else {
+            this.actualMockResponse = await this.v2Client.status().do();
+          }
         } else if (client === 'indexer') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
           this.actualMockResponse = await this.indexerClient
@@ -1706,10 +1685,22 @@ module.exports = function getSteps(options) {
 
   Then('the parsed response should equal the mock response.', function () {
     if (this.expectedMockResponseCode === 200) {
-      assert.strictEqual(
-        JSON.stringify(JSON.parse(expectedMockResponse)),
-        JSON.stringify(this.actualMockResponse)
-      );
+      // assert.deepStrictEqual considers a Buffer and Uint8Array with the same contents as unequal.
+      // These types are fairly interchangable in different parts of the SDK, so we need to normalize
+      // them before comparing, which is why we chain encoding/decoding below.
+      if (responseFormat === 'json') {
+        assert.strictEqual(
+          JSON.stringify(JSON.parse(expectedMockResponse)),
+          JSON.stringify(this.actualMockResponse)
+        );
+      } else {
+        assert.deepStrictEqual(
+          algosdk.decodeObj(
+            new Uint8Array(algosdk.encodeObj(this.actualMockResponse))
+          ),
+          algosdk.decodeObj(expectedMockResponse)
+        );
+      }
     }
   });
 
@@ -1759,13 +1750,6 @@ module.exports = function getSteps(options) {
         actualRequestPath = indexerSeenRequests[0].url;
       }
       assert.strictEqual(expectedRequestPath, actualRequestPath);
-    }
-  );
-
-  When(
-    'we make a Pending Transaction Information against txid {string} with max {int}',
-    function (txid, max) {
-      this.v2Client.pendingTransactionInformation(txid).max(max).do();
     }
   );
 
@@ -2045,19 +2029,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a Lookup Asset Balances call against asset index {int} with limit {int} nextToken {string} currencyGreaterThan {int} currencyLessThan {int}',
-    async function (index, limit, nextToken, currencyGreater, currencyLesser) {
-      await this.indexerClient
-        .lookupAssetBalances(index)
-        .limit(limit)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  When(
     'we make a Lookup Asset Balances call against asset index {int} with limit {int} afterAddress {string} currencyGreaterThan {int} currencyLessThan {int}',
     async function (
       index,
@@ -2071,51 +2042,6 @@ module.exports = function getSteps(options) {
         .limit(limit)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .do();
-    }
-  );
-
-  When(
-    'we make a Lookup Asset Transactions call against asset index {int} with NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} address {string} addressRole {string} ExcluseCloseTo {string}',
-    async function (
-      assetIndex,
-      notePrefix,
-      txType,
-      sigType,
-      txid,
-      round,
-      minRound,
-      maxRound,
-      limit,
-      beforeTime,
-      afterTime,
-      currencyGreater,
-      currencyLesser,
-      address,
-      addressRole,
-      excludeCloseToAsString
-    ) {
-      let excludeCloseTo = false;
-      if (excludeCloseToAsString === 'true') {
-        excludeCloseTo = true;
-      }
-      await this.indexerClient
-        .lookupAssetTransactions(assetIndex)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .address(address)
-        .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseTo)
         .do();
     }
   );
@@ -2325,13 +2251,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a LookupApplications call with {int} and {int}',
-    async function (index, round) {
-      await this.indexerClient.lookupApplications(index).round(round).do();
-    }
-  );
-
-  When(
     'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
     async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
       await this.indexerClient
@@ -2342,26 +2261,6 @@ module.exports = function getSteps(options) {
         .nextToken(nextToken)
         .sender(sender)
         .txid(txID)
-        .do();
-    }
-  );
-
-  When(
-    'we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and nextToken {string}',
-    async function (
-      assetIndex,
-      limit,
-      currencyGreater,
-      currencyLesser,
-      nextToken
-    ) {
-      await this.indexerClient
-        .searchAccounts()
-        .assetID(assetIndex)
-        .limit(limit)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .nextToken(nextToken)
         .do();
     }
   );
@@ -2406,63 +2305,6 @@ module.exports = function getSteps(options) {
     'we make a Search Accounts call with exclude {string}',
     async function (exclude) {
       await this.indexerClient.searchAccounts().exclude(exclude).do();
-    }
-  );
-
-  When(
-    'we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {int} afterTime {int} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}',
-    async function (
-      account,
-      notePrefix,
-      txType,
-      sigType,
-      txid,
-      round,
-      minRound,
-      maxRound,
-      limit,
-      beforeTime,
-      afterTime,
-      currencyGreater,
-      currencyLesser,
-      assetIndex,
-      addressRole,
-      excludeCloseToAsString
-    ) {
-      let excludeCloseTo = false;
-      if (excludeCloseToAsString === 'true') {
-        excludeCloseTo = true;
-      }
-      await this.indexerClient
-        .searchForTransactions()
-        .address(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .assetID(assetIndex)
-        .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
-    }
-  );
-
-  When(
-    'we make a SearchForApplications call with {int} and {int}',
-    async function (index, round) {
-      await this.indexerClient
-        .searchForApplications()
-        .index(index)
-        .round(round)
-        .do();
     }
   );
 
@@ -2572,21 +2414,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int} and nextToken {string}',
-    async function (limit, creator, name, unit, index, nextToken) {
-      await this.indexerClient
-        .searchForAssets()
-        .limit(limit)
-        .creator(creator)
-        .name(name)
-        .unit(unit)
-        .index(index)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  When(
     'we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}',
     async function (limit, creator, name, unit, index) {
       await this.indexerClient
@@ -2604,13 +2431,6 @@ module.exports = function getSteps(options) {
     'we make a SearchForApplications call with applicationID {int}',
     async function (index) {
       await this.indexerClient.searchForApplications().index(index).do();
-    }
-  );
-
-  When(
-    'we make a SearchForApplications call with creator {int}',
-    async function (index) {
-      await this.indexerClient.searchForApplications().creator(index).do();
     }
   );
 
@@ -2919,819 +2739,6 @@ module.exports = function getSteps(options) {
       assert.strictEqual(
         assetIndex,
         anySearchForAssetsResponse.assets[idx].index
-      );
-    }
-  );
-
-  /// /////////////////////////////////
-  // begin indexer and integration tests
-  /// /////////////////////////////////
-
-  const indexerIntegrationClients = {};
-
-  Given(
-    'indexer client {int} at {string} port {int} with token {string}',
-    (clientNum, indexerHost, indexerPort, indexerToken) => {
-      let mutableIndexerHost = indexerHost;
-
-      if (!mutableIndexerHost.startsWith('http')) {
-        mutableIndexerHost = `http://${mutableIndexerHost}`;
-      }
-      indexerIntegrationClients[clientNum] = new algosdk.Indexer(
-        indexerToken,
-        mutableIndexerHost,
-        indexerPort,
-        {}
-      );
-    }
-  );
-
-  When('I use {int} to check the services health', async (clientNum) => {
-    const ic = indexerIntegrationClients[clientNum];
-    await ic.makeHealthCheck().do();
-  });
-
-  Then('I receive status code {int}', async (code) => {
-    // Currently only supports the good case. code != 200 should throw an exception.
-    assert.strictEqual(code, 200);
-  });
-
-  let integrationBlockResponse;
-
-  When('I use {int} to lookup block {int}', async (clientNum, blockNum) => {
-    const ic = indexerIntegrationClients[clientNum];
-    integrationBlockResponse = await ic.lookupBlock(blockNum).do();
-  });
-
-  Then(
-    'The block was confirmed at {int}, contains {int} transactions, has the previous block hash {string}',
-    (timestamp, numTransactions, prevHash) => {
-      assert.strictEqual(timestamp, integrationBlockResponse.timestamp);
-      assert.strictEqual(
-        numTransactions,
-        integrationBlockResponse.transactions.length
-      );
-      assert.strictEqual(
-        prevHash,
-        integrationBlockResponse['previous-block-hash']
-      );
-    }
-  );
-
-  let integrationLookupAccountResponse;
-
-  When(
-    'I use {int} to lookup account {string} at round {int}',
-    async (clientNum, account, round) => {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationLookupAccountResponse = await ic
-        .lookupAccountByID(account)
-        .round(round)
-        .do();
-    }
-  );
-
-  Then(
-    'The account has {int} assets, the first is asset {int} has a frozen status of {string} and amount {int}.',
-    (numAssets, firstAssetIndex, firstAssetFrozenStatus, firstAssetAmount) => {
-      const firstAssetFrozenBool = firstAssetFrozenStatus === 'true';
-      assert.strictEqual(
-        numAssets,
-        integrationLookupAccountResponse.account.assets.length
-      );
-      if (numAssets === 0) {
-        return;
-      }
-      const scrutinizedAsset =
-        integrationLookupAccountResponse.account.assets[0];
-      assert.strictEqual(firstAssetIndex, scrutinizedAsset['asset-id']);
-      assert.strictEqual(firstAssetFrozenBool, scrutinizedAsset['is-frozen']);
-      assert.strictEqual(firstAssetAmount, scrutinizedAsset.amount);
-    }
-  );
-
-  Then(
-    'The account created {int} assets, the first is asset {int} is named {string} with a total amount of {int} {string}',
-    (
-      numCreatedAssets,
-      firstCreatedAssetIndex,
-      assetName,
-      assetIssuance,
-      assetUnit
-    ) => {
-      assert.strictEqual(
-        numCreatedAssets,
-        integrationLookupAccountResponse.account['created-assets'].length
-      );
-      const scrutinizedAsset =
-        integrationLookupAccountResponse.account['created-assets'][0];
-      assert.strictEqual(firstCreatedAssetIndex, scrutinizedAsset.index);
-      assert.strictEqual(assetName, scrutinizedAsset.params.name);
-      assert.strictEqual(assetIssuance, scrutinizedAsset.params.total);
-      assert.strictEqual(assetUnit, scrutinizedAsset.params['unit-name']);
-    }
-  );
-
-  Then(
-    'The account has {int} μalgos and {int} assets, {int} has {int}',
-    (microAlgos, numAssets, assetIndexToScrutinize, assetAmount) => {
-      assert.strictEqual(
-        microAlgos,
-        integrationLookupAccountResponse.account.amount
-      );
-      if (numAssets === 0) {
-        return;
-      }
-      assert.strictEqual(
-        numAssets,
-        integrationLookupAccountResponse.account.assets.length
-      );
-      if (assetIndexToScrutinize === 0) {
-        return;
-      }
-      for (
-        let idx = 0;
-        idx < integrationLookupAccountResponse.account.assets.length;
-        idx++
-      ) {
-        const scrutinizedAsset =
-          integrationLookupAccountResponse.account.assets[idx];
-        if (scrutinizedAsset.index === assetIndexToScrutinize) {
-          assert.strictEqual(assetAmount, scrutinizedAsset.amount);
-        }
-      }
-    }
-  );
-
-  let integrationLookupAssetResponse;
-
-  When('I use {int} to lookup asset {int}', async (clientNum, assetIndex) => {
-    const ic = indexerIntegrationClients[clientNum];
-    integrationLookupAssetResponse = await ic.lookupAssetByID(assetIndex).do();
-  });
-
-  Then(
-    'The asset found has: {string}, {string}, {string}, {int}, {string}, {int}, {string}',
-    (
-      name,
-      units,
-      creator,
-      decimals,
-      defaultFrozen,
-      totalIssuance,
-      clawback
-    ) => {
-      const assetParams = integrationLookupAssetResponse.asset.params;
-      assert.strictEqual(name, assetParams.name);
-      assert.strictEqual(units, assetParams['unit-name']);
-      assert.strictEqual(creator, assetParams.creator);
-      assert.strictEqual(decimals, assetParams.decimals);
-      const defaultFrozenBool = defaultFrozen === 'true';
-      assert.strictEqual(defaultFrozenBool, assetParams['default-frozen']);
-      assert.strictEqual(totalIssuance, assetParams.total);
-      assert.strictEqual(clawback, assetParams.clawback);
-    }
-  );
-
-  let integrationLookupAssetBalancesResponse;
-
-  When(
-    'I use {int} to lookup asset balances for {int} with {int}, {int}, {int} and token {string}',
-    async (
-      clientNum,
-      assetIndex,
-      currencyGreater,
-      currencyLesser,
-      limit,
-      nextToken
-    ) => {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationLookupAssetBalancesResponse = await ic
-        .lookupAssetBalances(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  When(
-    'I get the next page using {int} to lookup asset balances for {int} with {int}, {int}, {int}',
-    async (clientNum, assetIndex, currencyGreater, currencyLesser, limit) => {
-      const ic = indexerIntegrationClients[clientNum];
-      const nextToken = integrationLookupAssetBalancesResponse['next-token'];
-      integrationLookupAssetBalancesResponse = await ic
-        .lookupAssetBalances(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  Then(
-    'There are {int} with the asset, the first is {string} has {string} and {int}',
-    (numAccounts, firstAccountAddress, isFrozenString, accountAmount) => {
-      assert.strictEqual(
-        numAccounts,
-        integrationLookupAssetBalancesResponse.balances.length
-      );
-      if (numAccounts === 0) {
-        return;
-      }
-      const firstHolder = integrationLookupAssetBalancesResponse.balances[0];
-      assert.strictEqual(firstAccountAddress, firstHolder.address);
-      const isFrozenBool = isFrozenString === 'true';
-      assert.strictEqual(isFrozenBool, firstHolder['is-frozen']);
-      assert.strictEqual(accountAmount, firstHolder.amount);
-    }
-  );
-
-  let integrationSearchAccountsResponse;
-
-  When(
-    'I use {int} to search for an account with {int}, {int}, {int}, {int} and token {string}',
-    async (
-      clientNum,
-      assetIndex,
-      limit,
-      currencyGreater,
-      currencyLesser,
-      nextToken
-    ) => {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationSearchAccountsResponse = await ic
-        .searchAccounts()
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  When(
-    'I use {int} to search for an account with {int}, {int}, {int}, {int}, {string}, {int} and token {string}',
-    async function (
-      clientNum,
-      assetIndex,
-      limit,
-      currencyGreater,
-      currencyLesser,
-      authAddr,
-      appID,
-      nextToken
-    ) {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationSearchAccountsResponse = await ic
-        .searchAccounts()
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .authAddr(authAddr)
-        .applicationID(appID)
-        .nextToken(nextToken)
-        .do();
-      this.responseForDirectJsonComparison = integrationSearchAccountsResponse;
-    }
-  );
-
-  When(
-    'I use {int} to search for an account with {int}, {int}, {int}, {int}, {string}, {int}, {string} and token {string}',
-    async function (
-      clientNum,
-      assetIndex,
-      limit,
-      currencyGreater,
-      currencyLesser,
-      authAddr,
-      appID,
-      includeAll,
-      nextToken
-    ) {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationSearchAccountsResponse = await ic
-        .searchAccounts()
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .authAddr(authAddr)
-        .applicationID(appID)
-        .includeAll(formatIncludeAll(includeAll))
-        .nextToken(nextToken)
-        .do();
-      this.responseForDirectJsonComparison = integrationSearchAccountsResponse;
-    }
-  );
-
-  Then(
-    'There are {int}, the first has {int}, {int}, {int}, {int}, {string}, {int}, {string}, {string}',
-    (
-      numAccounts,
-      pendingRewards,
-      rewardsBase,
-      rewards,
-      withoutRewards,
-      address,
-      amount,
-      status,
-      type
-    ) => {
-      assert.strictEqual(
-        numAccounts,
-        integrationSearchAccountsResponse.accounts.length
-      );
-      if (numAccounts === 0) {
-        return;
-      }
-      const scrutinizedAccount = integrationSearchAccountsResponse.accounts[0];
-      assert.strictEqual(pendingRewards, scrutinizedAccount['pending-rewards']);
-      assert.strictEqual(rewardsBase, scrutinizedAccount['reward-base']);
-      assert.strictEqual(rewards, scrutinizedAccount.rewards);
-      assert.strictEqual(
-        withoutRewards,
-        scrutinizedAccount['amount-without-pending-rewards']
-      );
-      assert.strictEqual(address, scrutinizedAccount.address);
-      assert.strictEqual(amount, scrutinizedAccount.amount);
-      assert.strictEqual(status, scrutinizedAccount.status);
-      if (type) {
-        assert.strictEqual(type, scrutinizedAccount['sig-type']);
-      }
-    }
-  );
-
-  Then(
-    'I get the next page using {int} to search for an account with {int}, {int}, {int} and {int}',
-    async (clientNum, assetIndex, limit, currencyGreater, currencyLesser) => {
-      const ic = indexerIntegrationClients[clientNum];
-      const nextToken = integrationSearchAccountsResponse['next-token'];
-      integrationSearchAccountsResponse = await ic
-        .searchAccounts()
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  Then(
-    'The first account is online and has {string}, {int}, {int}, {int}, {string}, {string}',
-    (address, keyDilution, firstValid, lastValid, voteKey, selKey) => {
-      const scrutinizedAccount = integrationSearchAccountsResponse.accounts[0];
-      assert.strictEqual('Online', scrutinizedAccount.status);
-      assert.strictEqual(address, scrutinizedAccount.address);
-      assert.strictEqual(
-        keyDilution,
-        scrutinizedAccount.participation['vote-key-dilution']
-      );
-      assert.strictEqual(
-        firstValid,
-        scrutinizedAccount.participation['vote-first-valid']
-      );
-      assert.strictEqual(
-        lastValid,
-        scrutinizedAccount.participation['vote-last-valid']
-      );
-      assert.strictEqual(
-        voteKey,
-        scrutinizedAccount.participation['vote-participation-key']
-      );
-      assert.strictEqual(
-        selKey,
-        scrutinizedAccount.participation['selection-participation-key']
-      );
-    }
-  );
-
-  let integrationSearchTransactionsResponse;
-
-  When(
-    'I use {int} to search for transactions with {int}, {string}, {string}, {string}, {string}, {int}, {int}, {int}, {int}, {string}, {string}, {int}, {int}, {string}, {string}, {string} and token {string}',
-    async (
-      clientNum,
-      limit,
-      notePrefix,
-      txType,
-      sigType,
-      txid,
-      round,
-      minRound,
-      maxRound,
-      assetId,
-      beforeTime,
-      afterTime,
-      currencyGreater,
-      currencyLesser,
-      address,
-      addressRole,
-      excludeCloseToString,
-      nextToken
-    ) => {
-      const ic = indexerIntegrationClients[clientNum];
-      const excludeCloseToBool = excludeCloseToString === 'true';
-      integrationSearchTransactionsResponse = await ic
-        .searchForTransactions()
-        .limit(limit)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .assetID(assetId)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .address(address)
-        .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseToBool)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  When(
-    'I use {int} to search for transactions with {int}, {string}, {string}, {string}, {string}, {int}, {int}, {int}, {int}, {string}, {string}, {int}, {int}, {string}, {string}, {string}, {int} and token {string}',
-    async function (
-      clientNum,
-      limit,
-      notePrefix,
-      txType,
-      sigType,
-      txid,
-      round,
-      minRound,
-      maxRound,
-      assetId,
-      beforeTime,
-      afterTime,
-      currencyGreater,
-      currencyLesser,
-      address,
-      addressRole,
-      excludeCloseToString,
-      appID,
-      nextToken
-    ) {
-      const ic = indexerIntegrationClients[clientNum];
-      const excludeCloseToBool = excludeCloseToString === 'true';
-      integrationSearchTransactionsResponse = await ic
-        .searchForTransactions()
-        .limit(limit)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .assetID(assetId)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .address(address)
-        .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseToBool)
-        .applicationID(appID)
-        .nextToken(nextToken)
-        .do();
-      this.responseForDirectJsonComparison = integrationSearchTransactionsResponse;
-    }
-  );
-
-  When(
-    'I use {int} to search for all {string} transactions',
-    async (clientNum, account) => {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationSearchTransactionsResponse = await ic
-        .searchForTransactions()
-        .address(account)
-        .do();
-    }
-  );
-
-  When(
-    'I use {int} to search for all {int} asset transactions',
-    async (clientNum, assetIndex) => {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationSearchTransactionsResponse = await ic
-        .searchForTransactions()
-        .assetID(assetIndex)
-        .do();
-    }
-  );
-
-  When(
-    'I use {int} to search for applications with {int}, {int}, and token {string}',
-    async function (clientNum, limit, appID, token) {
-      const ic = indexerIntegrationClients[clientNum];
-      this.responseForDirectJsonComparison = await ic
-        .searchForApplications()
-        .limit(limit)
-        .index(appID)
-        .nextToken(token)
-        .do();
-    }
-  );
-
-  When(
-    'I use {int} to search for applications with {int}, {int}, {string} and token {string}',
-    async function (clientNum, limit, appID, includeAll, token) {
-      const ic = indexerIntegrationClients[clientNum];
-      this.responseForDirectJsonComparison = await ic
-        .searchForApplications()
-        .limit(limit)
-        .index(appID)
-        .includeAll(formatIncludeAll(includeAll))
-        .nextToken(token)
-        .do();
-    }
-  );
-
-  When(
-    'I use {int} to lookup application with {int}',
-    async function (clientNum, appID) {
-      const ic = indexerIntegrationClients[clientNum];
-      this.responseForDirectJsonComparison = await ic
-        .lookupApplications(appID)
-        .do();
-    }
-  );
-
-  When(
-    'I use {int} to lookup application with {int} and {string}',
-    async function (clientNum, appID, includeAll) {
-      const ic = indexerIntegrationClients[clientNum];
-      try {
-        this.responseForDirectJsonComparison = await ic
-          .lookupApplications(appID)
-          .includeAll(formatIncludeAll(includeAll))
-          .do();
-      } catch (err) {
-        if (err.status !== 404) {
-          throw err;
-        }
-        this.responseForDirectJsonComparison = err.response.body;
-      }
-    }
-  );
-
-  function sortKeys(x) {
-    // recursively sorts on keys, unless the passed object is an array of dicts that all contain the property 'key',
-    // in which case it sorts on the value corresponding to key 'key'
-    if (typeof x !== 'object' || !x) return x;
-    if (Array.isArray(x)) {
-      if (
-        x.every(
-          (subobject) =>
-            typeof subobject === 'object' &&
-            Object.prototype.hasOwnProperty.call(subobject, 'key')
-        )
-      ) {
-        return x.sort((a, b) => (a.key > b.key ? 1 : -1));
-      }
-      return x.map(sortKeys);
-    }
-    return Object.keys(x)
-      .sort()
-      .reduce((o, k) => ({ ...o, [k]: sortKeys(x[k]) }), {});
-  }
-
-  Then('the parsed response should equal {string}.', async function (jsonFile) {
-    const rawResponse = await loadResource(jsonFile);
-    const responseFromFile = sortKeys(JSON.parse(rawResponse.toString()));
-    this.responseForDirectJsonComparison = sortKeys(
-      this.responseForDirectJsonComparison
-    );
-    assert.strictEqual(
-      JSON.stringify(this.responseForDirectJsonComparison),
-      JSON.stringify(responseFromFile)
-    );
-  });
-
-  When(
-    'I get the next page using {int} to search for transactions with {int} and {int}',
-    async (clientNum, limit, maxRound) => {
-      const ic = indexerIntegrationClients[clientNum];
-      const nextToken = integrationSearchTransactionsResponse['next-token'];
-      integrationSearchTransactionsResponse = await ic
-        .searchForTransactions()
-        .limit(limit)
-        .maxRound(maxRound)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  Then(
-    'there are {int} transactions in the response, the first is {string}.',
-    (numTransactions, txid) => {
-      assert.strictEqual(
-        numTransactions,
-        integrationSearchTransactionsResponse.transactions.length
-      );
-      if (numTransactions === 0) {
-        return;
-      }
-      assert.strictEqual(
-        txid,
-        integrationSearchTransactionsResponse.transactions[0].id
-      );
-    }
-  );
-
-  Then('Every transaction has tx-type {string}', (txType) => {
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.strictEqual(txType, scrutinizedTxn['tx-type']);
-    }
-  });
-
-  Then('Every transaction has sig-type {string}', (sigType) => {
-    function getSigTypeFromTxnResponse(txn) {
-      if (txn.signature.logicsig) {
-        return 'lsig';
-      }
-      if (txn.signature.sig) {
-        return 'sig';
-      }
-      if (txn.signature.multisig) {
-        return 'msig';
-      }
-      return 'did not recognize sigtype of txn';
-    }
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.strictEqual(sigType, getSigTypeFromTxnResponse(scrutinizedTxn));
-    }
-  });
-
-  Then('Every transaction has round {int}', (round) => {
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.strictEqual(round, scrutinizedTxn['confirmed-round']);
-    }
-  });
-
-  Then('Every transaction has round >= {int}', (round) => {
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.ok(round <= scrutinizedTxn['confirmed-round']);
-    }
-  });
-
-  Then('Every transaction has round <= {int}', (round) => {
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.ok(round >= scrutinizedTxn['confirmed-round']);
-    }
-  });
-
-  Then('Every transaction works with asset-id {int}', (assetId) => {
-    function extractIdFromTransaction(txn) {
-      if (txn['created-asset-index']) {
-        return txn['created-asset-index'];
-      }
-      if (txn['asset-config-transaction']) {
-        return txn['asset-config-transaction']['asset-id'];
-      }
-      if (txn['asset-transfer-transaction']) {
-        return txn['asset-transfer-transaction']['asset-id'];
-      }
-      if (txn['asset-freeze-transaction']) {
-        return txn['asset-freeze-transaction']['asset-id'];
-      }
-      return 'could not find asset id within txn';
-    }
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.strictEqual(assetId, extractIdFromTransaction(scrutinizedTxn));
-    }
-  });
-
-  Then('Every transaction is older than {string}', (olderThan) => {
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.ok(scrutinizedTxn['round-time'] < Date.parse(olderThan) / 1000);
-    }
-  });
-
-  Then('Every transaction is newer than {string}', (newerThan) => {
-    for (
-      let idx = 0;
-      idx < integrationSearchTransactionsResponse.transactions.length;
-      idx++
-    ) {
-      const scrutinizedTxn =
-        integrationSearchTransactionsResponse.transactions[idx];
-      assert.ok(scrutinizedTxn['round-time'] > Date.parse(newerThan) / 1000);
-    }
-  });
-
-  Then(
-    'Every transaction moves between {int} and {int} currency',
-    (lowerBound, upperBound) => {
-      function getAmountMoved(txn) {
-        if (txn['payment-transaction']) {
-          return txn['payment-transaction'].amount;
-        }
-        if (txn['asset-transfer-transaction']) {
-          return txn['asset-transfer-transaction'].amount;
-        }
-        return 'could not get amount moved from txn';
-      }
-      for (
-        let idx = 0;
-        idx < integrationSearchTransactionsResponse.transactions.length;
-        idx++
-      ) {
-        const scrutinizedTxn =
-          integrationSearchTransactionsResponse.transactions[idx];
-        const amountMoved = getAmountMoved(scrutinizedTxn);
-        if (upperBound !== 0) {
-          assert.ok(amountMoved <= upperBound);
-        }
-        assert.ok(amountMoved >= lowerBound);
-      }
-    }
-  );
-
-  let integrationSearchAssetsResponse;
-
-  When(
-    'I use {int} to search for assets with {int}, {int}, {string}, {string}, {string}, and token {string}',
-    async (clientNum, zero, assetId, creator, name, unit, nextToken) => {
-      const ic = indexerIntegrationClients[clientNum];
-      integrationSearchAssetsResponse = await ic
-        .searchForAssets()
-        .index(assetId)
-        .creator(creator)
-        .name(name)
-        .unit(unit)
-        .nextToken(nextToken)
-        .do();
-    }
-  );
-
-  Then(
-    'there are {int} assets in the response, the first is {int}.',
-    (numAssets, firstAssetId) => {
-      assert.strictEqual(
-        numAssets,
-        integrationSearchAssetsResponse.assets.length
-      );
-      if (numAssets === 0) {
-        return;
-      }
-      assert.strictEqual(
-        firstAssetId,
-        integrationSearchAssetsResponse.assets[0].index
       );
     }
   );
@@ -5473,6 +4480,43 @@ module.exports = function getSteps(options) {
     async function (expectedJsonPath) {
       const expected = await loadResource(expectedJsonPath);
       assert.equal(this.rawSourceMap, expected.toString().trim());
+    }
+  );
+
+  When(
+    'we make a GetLightBlockHeaderProof call for round {int}',
+    async function (int) {
+      await this.v2Client.getLightBlockHeaderProof(int).do();
+    }
+  );
+
+  When('we make a GetStateProof call for round {int}', async function (int) {
+    await this.v2Client.getStateProof(int).do();
+  });
+
+  Given(
+    'a base64 encoded program bytes for heuristic sanity check {string}',
+    async function (programByteStr) {
+      this.seeminglyProgram = new Uint8Array(
+        Buffer.from(programByteStr, 'base64')
+      );
+    }
+  );
+
+  When('I start heuristic sanity check over the bytes', async function () {
+    this.actualErrMsg = undefined;
+    try {
+      new algosdk.LogicSigAccount(this.seeminglyProgram); // eslint-disable-line
+    } catch (e) {
+      this.actualErrMsg = e.message;
+    }
+  });
+
+  Then(
+    'if the heuristic sanity check throws an error, the error contains {string}',
+    async function (errMsg) {
+      if (errMsg !== '') assert.ok(this.actualErrMsg.includes(errMsg));
+      else assert.strictEqual(this.actualErrMsg, undefined);
     }
   );
 

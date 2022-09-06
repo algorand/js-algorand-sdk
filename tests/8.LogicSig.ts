@@ -65,11 +65,6 @@ describe('LogicSig', () => {
       const verified = lsig.verify(pk);
       assert.strictEqual(verified, false);
     });
-    it('should fail on invalid program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      program[0] = 128;
-      assert.throws(() => algosdk.makeLogicSig(program));
-    });
   });
 
   describe('address', () => {
@@ -128,11 +123,6 @@ describe('LogicSigAccount', () => {
 
       const decoded = algosdk.LogicSigAccount.fromByte(encoded);
       assert.deepStrictEqual(decoded, lsigAccount);
-    });
-    it('should fail on invalid program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      program[0] = 128;
-      assert.throws(() => new algosdk.LogicSigAccount(program));
     });
   });
 

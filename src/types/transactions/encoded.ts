@@ -296,6 +296,21 @@ export interface EncodedTransaction {
    * extraPages
    */
   apep?: number;
+
+  /**
+   * stateProofType
+   */
+  sptype?: number | bigint;
+
+  /**
+   * stateProof
+   */
+  sp?: Buffer;
+
+  /**
+   * stateProofMessage
+   */
+  spmsg?: Buffer;
 }
 
 export interface EncodedSubsig {

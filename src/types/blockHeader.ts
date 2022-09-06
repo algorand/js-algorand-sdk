@@ -65,7 +65,17 @@ export default interface BlockHeader {
   ts: number;
 
   /**
-   * Transaction root
+   * Transaction root SHA512_256
    */
   txn: string;
+
+  /**
+   * Transaction root SHA256
+   */
+  txn256: string;
+
+  /**
+   * StateProofTracking map of type to tracking data
+   */
+  spt: Map<number, Uint8Array>;
 }

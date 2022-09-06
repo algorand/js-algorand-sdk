@@ -830,11 +830,6 @@ describe('Algosdk (AKA end to end)', () => {
       assert.equal(lsig.logic, program);
       assert.deepEqual(lsig.args, args);
     });
-    it('should throw on invalid program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      program[0] = 128;
-      assert.throws(() => algosdk.makeLogicSig(program));
-    });
   });
   describe('Single logic sig', () => {
     it('should work on valid program', () => {
