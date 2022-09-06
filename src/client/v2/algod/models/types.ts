@@ -2194,7 +2194,6 @@ export class StateProof extends BaseModel {
       typeof stateproof === 'string'
         ? new Uint8Array(Buffer.from(stateproof, 'base64'))
         : stateproof;
-
     this.attribute_map = {
       message: 'Message',
       stateproof: 'StateProof',
