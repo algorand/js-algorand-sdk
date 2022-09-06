@@ -10,7 +10,7 @@ import { BoxReference } from '../../../types';
  * ```typescript
  * const index = 1234;
  * const boxName = Buffer.from("foo");
- * const app = await algodClient.getApplicationBoxByName(index).name(boxName).do();
+ * const boxValue = await algodClient.getApplicationBoxByName(index).name(boxName).do();
  * ```
  *
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
