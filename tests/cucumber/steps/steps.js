@@ -2243,13 +2243,6 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a LookupApplications call with {int} and {int}',
-    async function (index, round) {
-      await this.indexerClient.lookupApplications(index).round(round).do();
-    }
-  );
-
-  When(
     'we make a SearchForApplicationBoxes call with applicationID {int} with max {int} nextToken {string}',
     async function (index, limit, token) {
       await this.indexerClient
