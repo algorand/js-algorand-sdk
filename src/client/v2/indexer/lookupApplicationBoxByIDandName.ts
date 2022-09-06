@@ -1,23 +1,20 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
-import { BoxReference } from '../../../types';
 
-/**
- * Given an application ID and the box name (key), return the value stored in the box.
- *
- * #### Example
- * ```typescript
- * const index = 1234;
- * const boxName = Buffer.from("foo");
- * const boxValue = await algodClient.getApplicationBoxByName(index).name(boxName).do();
- * ```
- *
- * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
- * @param index - The application ID to look up.
- * @category GET
- */
-export default class GetApplicationBoxByName extends JSONRequest<BoxReference> {
+export default class LookupApplicationBoxByIDandName extends JSONRequest {
+  /**
+   * Returns information about indexed application boxes.
+   *
+   * #### Example
+   * ```typescript
+   * const boxValue = await indexerClient.LookupApplicationBoxByIDandName(1234).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idbox)
+   * @oaram index - application index.
+   * @category GET
+   */
   constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
     super(c, intDecoding);
     this.index = index;
@@ -36,8 +33,8 @@ export default class GetApplicationBoxByName extends JSONRequest<BoxReference> {
    * #### Example
    * ```typescript
    * const boxName = Buffer.from("foo");
-   * const boxValue = await algodClient
-   *        .getApplicationBoxByName(1234)
+   * const boxValue = await indexerClient
+   *        .LookupApplicationBoxByIDandName(1234)
    *        .name(boxName)
    *        .do();
    * ```

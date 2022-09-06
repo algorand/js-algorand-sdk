@@ -3,6 +3,7 @@
 @unit.algod
 @unit.algod.ledger_refactoring
 @unit.applications
+@unit.applications.boxes
 @unit.atomic_transaction_composer
 @unit.dryrun
 @unit.dryrun.trace.application
