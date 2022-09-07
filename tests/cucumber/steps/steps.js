@@ -4443,11 +4443,24 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
-    async function (boxName, boxValue, errString) {
+    'according to {string}, the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
+    async function (fromClient, boxName, boxValue, errString) {
       try {
         const boxKey = splitAndProcessAppArgs(boxName)[0];
-        const resp = await this.v2Client
+
+        let client = null;
+        if (fromClient === 'algod') {
+          client = this.v2Client;
+        } else if (fromClient === 'indexer') {
+          client = this.indexerV2client;
+        } else {
+          assert(
+            false,
+            ''.join(['expecting algod or indexer, got ', fromClient])
+          );
+        }
+
+        const resp = await client
           .getApplicationBoxByName(this.currentApplicationIndex)
           .name(boxKey)
           .do();
@@ -4473,11 +4486,23 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'the current application should have the following boxes {string}.',
-    async function (boxNames) {
+    'according to {string}, the current application should have the following boxes {string}.',
+    async function (fromClient, boxNames) {
       const boxes = splitAndProcessAppArgs(boxNames);
 
-      const resp = await this.v2Client
+      let client = null;
+      if (fromClient === 'algod') {
+        client = this.v2Client;
+      } else if (fromClient === 'indexer') {
+        client = this.indexerV2client;
+      } else {
+        assert(
+          false,
+          ''.join(['expecting algod or indexer, got ', fromClient])
+        );
+      }
+
+      const resp = await client
         .getApplicationBoxes(this.currentApplicationIndex)
         .do();
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
