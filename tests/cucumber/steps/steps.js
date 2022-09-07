@@ -201,6 +201,10 @@ module.exports = function getSteps(options) {
     this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
   });
 
+  Given('an indexer v2 client', function () {
+    this.indexerV2client = new algosdk.Indexer('', 'http://localhost', 59999);
+  });
+
   Given('wallet information', async function () {
     this.wallet_name = 'unencrypted-default-wallet';
     this.wallet_pswd = '';
