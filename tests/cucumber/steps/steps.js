@@ -4514,6 +4514,30 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    'I forward {int} empty rounds with transient account.',
+    async function (roundNum) {
+      const sp = await this.v2Client.getTransactionParams().do();
+
+      for (let i = 0; i < roundNum; i++) {
+        const dummyTxn = {
+          from: this.accounts[0],
+          to: this.transientAccount.addr,
+          amount: 0,
+          suggestedParams: sp,
+        };
+        const stx = algosdk.signTransaction(dummyTxn, this.transientAccount.sk);
+        const dummyResp = this.v2Client.sendRawTransaction(stx).do();
+        const info = algosdk.waitForConfirmation(
+          this.v2Client,
+          dummyResp.txId,
+          1
+        );
+        assert.ok(info['confirmed-round'] > 0);
+      }
+    }
+  );
+
   Given('a source map json file {string}', async function (srcmap) {
     const js = parseJSON(await loadResource(srcmap));
     this.sourcemap = new algosdk.SourceMap(js);
