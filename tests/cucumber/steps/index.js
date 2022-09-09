@@ -482,22 +482,6 @@ for (const name of Object.keys(steps.then)) {
         expectedRequestPath
       );
     });
-  } else if (name === 'we expect the path used to be {string}') {
-    Then(name, function (expectedRequestPath) {
-      // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrls(
-        algodMockServerPathRecorder
-      );
-      const indexerSeenRequests = getMockServerRequestUrls(
-        indexerMockServerPathRecorder
-      );
-      return fn.call(
-        this,
-        algodSeenRequests,
-        indexerSeenRequests,
-        expectedRequestPath
-      );
-    });
   } else if (
     name === 'the produced json should equal {string} loaded from {string}'
   ) {

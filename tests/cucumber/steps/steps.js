@@ -1663,19 +1663,6 @@ module.exports = function getSteps(options) {
     }
   );
 
-  Then(
-    'we expect the path used to be {string}',
-    (algodSeenRequests, indexerSeenRequests, expectedRequestPath) => {
-      let actualRequestPath;
-      if (algodSeenRequests.length !== 0) {
-        actualRequestPath = algodSeenRequests[0].url;
-      } else if (indexerSeenRequests.length !== 0) {
-        actualRequestPath = indexerSeenRequests[0].url;
-      }
-      assert.strictEqual(expectedRequestPath, actualRequestPath);
-    }
-  );
-
   When(
     'we make a Pending Transaction Information against txid {string} with format {string}',
     async function (txid, format) {
