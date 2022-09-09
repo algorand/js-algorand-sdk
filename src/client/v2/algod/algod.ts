@@ -7,25 +7,27 @@ import Block from './block';
 import Compile from './compile';
 import Disassemble from './disassemble';
 import Dryrun from './dryrun';
+import Genesis from './genesis';
 import GetAssetByID from './getAssetByID';
 import GetApplicationByID from './getApplicationByID';
 import HealthCheck from './healthCheck';
 import PendingTransactionInformation from './pendingTransactionInformation';
 import PendingTransactions from './pendingTransactions';
 import PendingTransactionsByAddress from './pendingTransactionsByAddress';
+import GetTransactionProof from './getTransactionProof';
 import SendRawTransaction from './sendRawTransaction';
 import Status from './status';
 import StatusAfterBlock from './statusAfterBlock';
 import SuggestedParams from './suggestedParams';
 import Supply from './supply';
 import Versions from './versions';
-import Genesis from './genesis';
-import Proof from './proof';
 import { BaseHTTPClient } from '../../baseHTTPClient';
 import {
   AlgodTokenHeader,
   CustomTokenHeader,
 } from '../../urlTokenBaseHTTPClient';
+import LightBlockHeaderProof from './lightBlockHeaderProof';
+import StateProof from './stateproof';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -473,7 +475,7 @@ export default class AlgodClient extends ServiceClient {
    * ```typescript
    * const round = 18038133;
    * const txId = "MEUOC4RQJB23CQZRFRKYEI6WBO73VTTPST5A7B3S5OKBUY6LFUDA";
-   * const proof = await algodClient.getProof(round, txId).do();
+   * const proof = await algodClient.getTransactionProof(round, txId).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundtransactionstxidproof)
@@ -481,7 +483,39 @@ export default class AlgodClient extends ServiceClient {
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
    */
-  getProof(round: number, txID: string) {
-    return new Proof(this.c, this.intDecoding, round, txID);
+  getTransactionProof(round: number, txID: string) {
+    return new GetTransactionProof(this.c, this.intDecoding, round, txID);
+  }
+
+  /**
+   * Gets a proof for a given light block header inside a state proof commitment.
+   *
+   * #### Example
+   * ```typescript
+   * const round = 11111111;
+   * const lightBlockHeaderProof = await algodClient.getLightBlockHeaderProof(round).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2blocksroundlightheaderproof)
+   * @param round
+   */
+  getLightBlockHeaderProof(round: number) {
+    return new LightBlockHeaderProof(this.c, this.intDecoding, round);
+  }
+
+  /**
+   * Gets a state proof that covers a given round.
+   *
+   * #### Example
+   * ```typescript
+   * const round = 11111111;
+   * const stateProof = await algodClient.getStateProof(round).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2stateproofsround)
+   * @param round
+   */
+  getStateProof(round: number) {
+    return new StateProof(this.c, this.intDecoding, round);
   }
 }

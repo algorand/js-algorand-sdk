@@ -33,6 +33,10 @@ export enum TransactionType {
    * Application transaction
    */
   appl = 'appl',
+  /**
+   * State proof transaction
+   */
+  stpf = 'stpf',
 }
 
 export function isTransactionType(s: string): s is TransactionType {
@@ -42,7 +46,8 @@ export function isTransactionType(s: string): s is TransactionType {
     s === TransactionType.acfg ||
     s === TransactionType.axfer ||
     s === TransactionType.afrz ||
-    s === TransactionType.appl
+    s === TransactionType.appl ||
+    s === TransactionType.stpf
   );
 }
 
@@ -385,4 +390,19 @@ export interface TransactionParams {
    * Int representing extra pages of memory to rent during an application create transaction.
    */
   extraPages?: number;
+
+  /**
+   * Uint64 identifying a particular configuration of state proofs.
+   */
+  stateProofType?: number | bigint;
+
+  /**
+   * Byte array containing the state proof.
+   */
+  stateProof?: Uint8Array;
+
+  /**
+   * Byte array containing the state proof message.
+   */
+  stateProofMessage?: Uint8Array;
 }
