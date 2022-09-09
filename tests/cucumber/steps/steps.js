@@ -4448,11 +4448,17 @@ module.exports = function getSteps(options) {
       try {
         const boxKey = splitAndProcessAppArgs(boxName)[0];
 
-        let client = null;
+        let resp = null;
         if (fromClient === 'algod') {
-          client = this.v2Client;
+          resp = await this.v2Client
+            .getApplicationBoxByName(this.currentApplicationIndex)
+            .name(boxKey)
+            .do();
         } else if (fromClient === 'indexer') {
-          client = this.indexerV2client;
+          resp = await this.indexerV2client
+            .lookupApplicationBoxByIDandName(this.currentApplicationIndex)
+            .name(boxKey)
+            .do();
         } else {
           assert(
             false,
@@ -4460,10 +4466,6 @@ module.exports = function getSteps(options) {
           );
         }
 
-        const resp = await client
-          .getApplicationBoxByName(this.currentApplicationIndex)
-          .name(boxKey)
-          .do();
         const actualName = resp.name;
         const actualValue = resp.value;
         assert.deepStrictEqual(
@@ -4486,15 +4488,38 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'according to {string}, the current application should have the following boxes {string}.',
-    async function (fromClient, boxNames) {
+    'according to indexer, by parameter max {int} and next {string}, the current application should have the following boxes {string}.',
+    async function (limit, nextPage, boxNames) {
       const boxes = splitAndProcessAppArgs(boxNames);
+      const resp = await this.indexerV2client
+        .searchForApplicationBoxes(this.currentApplicationIndex)
+        .limit(limit)
+        .nextToken(nextPage)
+        .do();
 
-      let client = null;
+      assert.deepStrictEqual(boxes.length, resp.boxes.length);
+      const actualBoxes = new Set(
+        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
+      );
+      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      assert.deepStrictEqual(expectedBoxes, actualBoxes);
+    }
+  );
+
+  Then(
+    'according to {string}, by parameter max {int}, the current application should have {int} boxes.',
+    async function (fromClient, limit, expectedBoxNum) {
+      let resp = null;
       if (fromClient === 'algod') {
-        client = this.v2Client;
+        resp = await this.v2Client
+          .getApplicationBoxes(this.currentApplicationIndex)
+          .max(limit)
+          .do();
       } else if (fromClient === 'indexer') {
-        client = this.indexerV2client;
+        resp = await this.indexerV2client
+          .searchForApplicationBoxes(this.currentApplicationIndex)
+          .limit(limit)
+          .do();
       } else {
         assert(
           false,
@@ -4502,9 +4527,31 @@ module.exports = function getSteps(options) {
         );
       }
 
-      const resp = await client
-        .getApplicationBoxes(this.currentApplicationIndex)
-        .do();
+      assert.deepStrictEqual(expectedBoxNum, resp.boxes.length);
+    }
+  );
+
+  Then(
+    'according to {string}, the current application should have the following boxes {string}.',
+    async function (fromClient, boxNames) {
+      const boxes = splitAndProcessAppArgs(boxNames);
+
+      let resp = null;
+      if (fromClient === 'algod') {
+        resp = await this.v2Client
+          .getApplicationBoxes(this.currentApplicationIndex)
+          .do();
+      } else if (fromClient === 'indexer') {
+        resp = await this.indexerV2client
+          .searchForApplicationBoxes(this.currentApplicationIndex)
+          .do();
+      } else {
+        assert(
+          false,
+          ''.join(['expecting algod or indexer, got ', fromClient])
+        );
+      }
+
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
       const actualBoxes = new Set(
         resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
@@ -4519,22 +4566,8 @@ module.exports = function getSteps(options) {
     async function (roundNum) {
       const sp = await this.v2Client.getTransactionParams().do();
 
-      for (let i = 0; i < roundNum; i++) {
-        const dummyTxn = {
-          from: this.accounts[0],
-          to: this.transientAccount.addr,
-          amount: 0,
-          suggestedParams: sp,
-        };
-        const stx = algosdk.signTransaction(dummyTxn, this.transientAccount.sk);
-        const dummyResp = this.v2Client.sendRawTransaction(stx).do();
-        const info = algosdk.waitForConfirmation(
-          this.v2Client,
-          dummyResp.txId,
-          1
-        );
-        assert.ok(info['confirmed-round'] > 0);
-      }
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      await sleep(2000)
     }
   );
 
