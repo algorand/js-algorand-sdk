@@ -3,7 +3,7 @@
 Choice Connect allows a user to:
 
 1. Click a connect address button to recieve a QR code to scan and connect their address.
-2. Click a send asset button to send an asset to a specified address.
+2. Click a send asset button to send an asset to a specified address with the Algorand JavaScript-SDK.
 3. Click a disconnect address button to disconnect their address.
 
 **Problem**
