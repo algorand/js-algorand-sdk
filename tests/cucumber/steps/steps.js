@@ -4562,12 +4562,10 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'I forward {int} empty rounds with transient account.',
-    async function (roundNum) {
-      const sp = await this.v2Client.getTransactionParams().do();
-
-      const sleep = ms => new Promise(r => setTimeout(r, ms));
-      await sleep(2000)
+    'I sleep for {int} seconds for indexer to digest things down.',
+    async (secondSpan) => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      await sleep(secondSpan * 1000);
     }
   );
 
