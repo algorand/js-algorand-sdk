@@ -1,11 +1,11 @@
-UNIT_TAGS :=  "$(subst :, or ,$(shell awk '{print $2}' tests/cucumber/unit.tags | paste -s -d: -))"
-INTEGRATIONS_TAGS := "$(subst :, or ,$(shell awk '{print $2}' tests/cucumber/integration.tags | paste -s -d: -))"
+UNIT_TAGS := "$(subst :, or ,$(shell awk '{print $2}' tests/cucumber/unit.tags | paste -s -d: -))"
+INTEGRATION_TAGS := "$(subst :, or ,$(shell awk '{print $2}' tests/cucumber/integration.tags | paste -s -d: -))"
 
 unit:
 	node_modules/.bin/cucumber-js --tags $(UNIT_TAGS) tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
 	
 integration:
-	node_modules/.bin/cucumber-js --tags $(INTEGRATIONS_TAGS) tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
+	node_modules/.bin/cucumber-js --tags $(INTEGRATION_TAGS) tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
 
 # The following assumes that all cucumber steps are defined in `./tests/cucumber/steps/steps.js` and begin past line 135 of that file.
 # Please note any deviations of the above before presuming correctness.
