@@ -4487,10 +4487,22 @@ module.exports = function getSteps(options) {
     }
   );
 
+  function splitBoxNames(boxB64Names) {
+    if (boxB64Names == null || boxB64Names === '') {
+      return [];
+    }
+    const splitBoxB64Names = boxB64Names.split(':');
+    const boxNames = [];
+    splitBoxB64Names.forEach((subArg) => {
+      boxNames.push(makeUint8Array(Buffer.from(subArg, 'base64')));
+    });
+    return boxNames;
+  }
+
   Then(
     'according to indexer, by parameter max {int} and next {string}, the current application should have the following boxes {string}.',
     async function (limit, nextPage, boxNames) {
-      const boxes = splitAndProcessAppArgs(boxNames);
+      const boxes = splitBoxNames(boxNames);
       const resp = await this.indexerV2client
         .searchForApplicationBoxes(this.currentApplicationIndex)
         .limit(limit)
@@ -4534,7 +4546,7 @@ module.exports = function getSteps(options) {
   Then(
     'according to {string}, the current application should have the following boxes {string}.',
     async function (fromClient, boxNames) {
-      const boxes = splitAndProcessAppArgs(boxNames);
+      const boxes = splitBoxNames(boxNames);
 
       let resp = null;
       if (fromClient === 'algod') {
