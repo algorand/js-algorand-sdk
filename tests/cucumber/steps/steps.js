@@ -6,7 +6,8 @@ const path = require('path');
 const algosdk = require('../../../index');
 const nacl = require('../../../src/nacl/naclWrappers');
 
-const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
+const cucumberPath = path.dirname(__dirname);
+const maindir = path.dirname(path.dirname(cucumberPath));
 
 function keyPairFromSecretKey(sk) {
   return nacl.keyPairFromSecretKey(sk);
@@ -4429,6 +4430,85 @@ module.exports = function getSteps(options) {
       else assert.strictEqual(this.actualErrMsg, undefined);
     }
   );
+
+  /* *** EZ Steps BEGIN *** */
+
+  Given(
+    'an ez request and response array fixture {string} to unmarshal and save in the {string} context.',
+    async function (ezTraceFile, ezTraceContext) {
+      const ezTraceJSON = JSON.parse(
+        fs
+          .readFileSync(
+            path.join(
+              cucumberPath,
+              'features',
+              'resources',
+              'ezTraces',
+              ezTraceFile
+            )
+          )
+          .toString()
+      );
+      if (!('ezTraces' in this)) {
+        this.ezTraces = [];
+      }
+      this.ezTraces[ezTraceContext] = [];
+      this.ezTraces[ezTraceContext].JSON = ezTraceJSON;
+
+      // console.log(this.ezTraces[ezTraceContext].JSON);
+    }
+  );
+
+  Then(
+    'Sanity check that each {string} request data matches its verb and encoding.',
+    async function (ezTraceContext) {
+      Object.entries(this.ezTraces[ezTraceContext].JSON).forEach((trace) => {
+        const [
+          _,
+          {
+            route,
+            method,
+            bytesB64,
+            params,
+            encodeJSON,
+            decodeJSON,
+            statusCode,
+            responseErr,
+            responseB64,
+            parsedResponseGoType,
+            parsedResponse,
+          },
+        ] = trace;
+        console.log(
+          route,
+          method,
+          bytesB64,
+          params,
+          encodeJSON,
+          decodeJSON,
+          statusCode,
+          responseErr,
+          responseB64,
+          parsedResponseGoType,
+          parsedResponse
+        );
+      });
+    }
+  );
+
+  // Then(
+  //   'Assert that each live {string} response is essentially identical to the parsed fixture response.',
+  //   async function (teal) {
+  //     const tealSrc = await loadResource(teal);
+  //     const compiledResponse = await this.v2Client
+  //       .compile(tealSrc)
+  //       .sourcemap(true)
+  //       .do();
+  //     this.rawSourceMap = JSON.stringify(compiledResponse.sourcemap);
+  //   }
+  // );
+
+  /* *** EZ Steps END *** */
 
   if (!options.ignoreReturn) {
     return steps;
