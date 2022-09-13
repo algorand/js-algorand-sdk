@@ -2,7 +2,6 @@
 @algod
 @applications
 @applications.boxes
-@applications.boxes_indexer_confirmed
 @applications.verified
 @assets
 @auction
