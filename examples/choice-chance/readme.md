@@ -4,6 +4,10 @@ Choice Chance is an example of a game built with the Algorand-Javascript-SDK in 
 
 <img width="200" alt="Light_Logo_200x200" src="https://user-images.githubusercontent.com/43055154/189994242-a8936ad1-fce6-4e20-8876-d3bad1effa2f.png">
 
+# Disclaimer
+
+This code is not audited for security and should not be used in production. The code is only for example purposes.
+
 
 # Run Steps
 
