@@ -4500,7 +4500,7 @@ module.exports = function getSteps(options) {
   }
 
   Then(
-    'according to indexer, by parameter max {int} and next {string}, the current application should have the following boxes {string}.',
+    'according to indexer, with {int} being the parameter that limits results, and {string} being the parameter that sets the next result, the current application should have the following boxes {string}.',
     async function (limit, nextPage, boxNames) {
       const boxes = splitBoxNames(boxNames);
       const resp = await this.indexerV2client
@@ -4519,7 +4519,7 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'according to {string}, by parameter max {int}, the current application should have {int} boxes.',
+    'according to {string}, with {int} being the parameter that limits results, the current application should have {int} boxes.',
     async function (fromClient, limit, expectedBoxNum) {
       let resp = null;
       if (fromClient === 'algod') {
