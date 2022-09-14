@@ -10,6 +10,7 @@
 @unit.indexer
 @unit.indexer.ledger_refactoring
 @unit.indexer.logs
+@unit.responses.participationupdates
 @unit.offline
 @unit.program_sanity_check
 @unit.rekey
@@ -24,3 +25,4 @@
 @unit.transactions
 @unit.transactions.keyreg
 @unit.transactions.payment
+
