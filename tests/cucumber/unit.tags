@@ -10,13 +10,13 @@
 @unit.indexer
 @unit.indexer.ledger_refactoring
 @unit.indexer.logs
-@unit.responses.participationupdates
 @unit.offline
 @unit.program_sanity_check
 @unit.rekey
 @unit.responses
 @unit.responses.231
 @unit.responses.unlimited_assets
+@unit.responses.participationupdates
 @unit.sourcemap
 @unit.stateproof.paths
 @unit.stateproof.responses
@@ -25,4 +25,3 @@
 @unit.transactions
 @unit.transactions.keyreg
 @unit.transactions.payment
-
