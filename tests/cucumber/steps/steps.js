@@ -201,6 +201,10 @@ module.exports = function getSteps(options) {
     this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
   });
 
+  Given('an indexer v2 client', function () {
+    this.indexerV2client = new algosdk.Indexer('', 'http://localhost', 59999);
+  });
+
   Given('wallet information', async function () {
     this.wallet_name = 'unencrypted-default-wallet';
     this.wallet_pswd = '';
@@ -4439,14 +4443,26 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
-    async function (boxName, boxValue, errString) {
+    'according to {string}, the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
+    async function (fromClient, boxName, boxValue, errString) {
       try {
         const boxKey = splitAndProcessAppArgs(boxName)[0];
-        const resp = await this.v2Client
-          .getApplicationBoxByName(this.currentApplicationIndex)
-          .name(boxKey)
-          .do();
+
+        let resp = null;
+        if (fromClient === 'algod') {
+          resp = await this.v2Client
+            .getApplicationBoxByName(this.currentApplicationIndex)
+            .name(boxKey)
+            .do();
+        } else if (fromClient === 'indexer') {
+          resp = await this.indexerV2client
+            .lookupApplicationBoxByIDandName(this.currentApplicationIndex)
+            .name(boxKey)
+            .do();
+        } else {
+          assert.fail(`expecting algod or indexer, got ${fromClient}`);
+        }
+
         const actualName = resp.name;
         const actualValue = resp.value;
         assert.deepStrictEqual(
@@ -4468,20 +4484,91 @@ module.exports = function getSteps(options) {
     }
   );
 
-  Then(
-    'the current application should have the following boxes {string}.',
-    async function (boxNames) {
-      const boxes = splitAndProcessAppArgs(boxNames);
+  function splitBoxNames(boxB64Names) {
+    if (boxB64Names == null || boxB64Names === '') {
+      return [];
+    }
+    const splitBoxB64Names = boxB64Names.split(':');
+    const boxNames = [];
+    splitBoxB64Names.forEach((subArg) => {
+      boxNames.push(makeUint8Array(Buffer.from(subArg, 'base64')));
+    });
+    return boxNames;
+  }
 
-      const resp = await this.v2Client
-        .getApplicationBoxes(this.currentApplicationIndex)
+  Then(
+    'according to indexer, with {int} being the parameter that limits results, and {string} being the parameter that sets the next result, the current application should have the following boxes {string}.',
+    async function (limit, nextPage, boxNames) {
+      const boxes = splitBoxNames(boxNames);
+      const resp = await this.indexerV2client
+        .searchForApplicationBoxes(this.currentApplicationIndex)
+        .limit(limit)
+        .nextToken(nextPage)
         .do();
+
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
       const actualBoxes = new Set(
         resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
       );
       const expectedBoxes = new Set(boxes.map(Buffer.from));
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
+    }
+  );
+
+  Then(
+    'according to {string}, with {int} being the parameter that limits results, the current application should have {int} boxes.',
+    async function (fromClient, limit, expectedBoxNum) {
+      let resp = null;
+      if (fromClient === 'algod') {
+        resp = await this.v2Client
+          .getApplicationBoxes(this.currentApplicationIndex)
+          .max(limit)
+          .do();
+      } else if (fromClient === 'indexer') {
+        resp = await this.indexerV2client
+          .searchForApplicationBoxes(this.currentApplicationIndex)
+          .limit(limit)
+          .do();
+      } else {
+        assert.fail(`expecting algod or indexer, got ${fromClient}`);
+      }
+
+      assert.deepStrictEqual(expectedBoxNum, resp.boxes.length);
+    }
+  );
+
+  Then(
+    'according to {string}, the current application should have the following boxes {string}.',
+    async function (fromClient, boxNames) {
+      const boxes = splitBoxNames(boxNames);
+
+      let resp = null;
+      if (fromClient === 'algod') {
+        resp = await this.v2Client
+          .getApplicationBoxes(this.currentApplicationIndex)
+          .do();
+      } else if (fromClient === 'indexer') {
+        resp = await this.indexerV2client
+          .searchForApplicationBoxes(this.currentApplicationIndex)
+          .do();
+      } else {
+        assert.fail(`expecting algod or indexer, got ${fromClient}`);
+      }
+
+      assert.deepStrictEqual(boxes.length, resp.boxes.length);
+      const actualBoxes = new Set(
+        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
+      );
+      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      assert.deepStrictEqual(expectedBoxes, actualBoxes);
+    }
+  );
+
+  Then(
+    'I sleep for {int} milliseconds for indexer to digest things down.',
+    async (milliseconds) => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      await sleep(milliseconds);
     }
   );
 
