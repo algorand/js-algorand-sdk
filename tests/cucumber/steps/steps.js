@@ -4530,10 +4530,7 @@ module.exports = function getSteps(options) {
           .limit(limit)
           .do();
       } else {
-        assert(
-          false,
-          ''.join(['expecting algod or indexer, got ', fromClient])
-        );
+        assert.fail(`expecting algod or indexer, got ${fromClient}`);
       }
 
       assert.deepStrictEqual(expectedBoxNum, resp.boxes.length);
@@ -4555,10 +4552,7 @@ module.exports = function getSteps(options) {
           .searchForApplicationBoxes(this.currentApplicationIndex)
           .do();
       } else {
-        assert(
-          false,
-          ''.join(['expecting algod or indexer, got ', fromClient])
-        );
+        assert.fail(`expecting algod or indexer, got ${fromClient}`);
       }
 
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
