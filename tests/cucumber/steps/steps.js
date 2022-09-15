@@ -4460,10 +4460,7 @@ module.exports = function getSteps(options) {
             .name(boxKey)
             .do();
         } else {
-          assert(
-            false,
-            ''.join(['expecting algod or indexer, got ', fromClient])
-          );
+          assert.fail(`expecting algod or indexer, got ${fromClient}`);
         }
 
         const actualName = resp.name;
