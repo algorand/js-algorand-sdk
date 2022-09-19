@@ -15,11 +15,6 @@ export default class Disassemble extends JSONRequest {
     return `/v2/teal/disassemble`;
   }
 
-  sourcemap(map: boolean = true) {
-    this.query.sourcemap = map;
-    return this;
-  }
-
   /**
    * Executes disassemble
    * @param headers - A headers object
