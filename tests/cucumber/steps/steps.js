@@ -2,6 +2,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const { encode } = require('punycode');
 
 const algosdk = require('../../../index');
 const nacl = require('../../../src/nacl/naclWrappers');
@@ -4474,23 +4475,195 @@ module.exports = function getSteps(options) {
             decodeJSON,
             statusCode,
             responseErr,
+            response,
             responseB64,
             parsedResponseGoType,
             parsedResponse,
           },
         ] = trace;
         console.log(
+          'route: ',
           route,
+          '| method: ',
           method,
+          '| bytesB64: ',
           bytesB64,
+          '| params: ',
           params,
+          '| encodeJSON: ',
           encodeJSON,
+          '| decodeJSON: ',
           decodeJSON,
+          '| statusCode: ',
           statusCode,
+          '| responseErr: ',
           responseErr,
+          '| response: ',
+          response,
+          '| responseB64: ',
           responseB64,
+          '| parsedResponseGoType: ',
           parsedResponseGoType,
+          '| parsedResponse: ',
           parsedResponse
+        );
+      });
+    }
+  );
+
+  Then(
+    'Base64 decode each {string} query info to prepare for making an http request.',
+    async function (ezTraceContext) {
+      Object.entries(this.ezTraces[ezTraceContext].JSON).forEach((trace) => {
+        const [
+          _,
+          {
+            route,
+            method,
+            bytesB64,
+            params,
+            encodeJSON,
+            decodeJSON,
+            statusCode,
+            responseErr,
+            responseB64,
+            parsedResponseGoType,
+            parsedResponse,
+          },
+        ] = trace;
+        this.ezTraces[ezTraceContext].rawRequestBytes = Buffer.from(
+          bytesB64,
+          'base64'
+        );
+        console.log(
+          'bytesB64-->',
+          bytesB64,
+          '| params-->',
+          params,
+          '| disBytes-->',
+          this.ezTraces[ezTraceContext].rawRequestBytes
+        );
+      });
+    }
+  );
+
+  Then(
+    'Sanity check the {string} response information for b64 encoding, status code, and error state.',
+    async function (ezTraceContext) {
+      Object.entries(this.ezTraces[ezTraceContext].JSON).forEach((trace) => {
+        const [
+          _,
+          {
+            route,
+            method,
+            bytesB64,
+            params,
+            encodeJSON,
+            decodeJSON,
+            statusCode,
+            responseErr,
+            response,
+            responseB64,
+            parsedResponseGoType,
+            parsedResponse,
+          },
+        ] = trace;
+        const decodedResponseB64 = Buffer.from(
+          responseB64,
+          'base64'
+        ).toString();
+        console.log(
+          'statusCode-->',
+          statusCode,
+          'responseErr-->',
+          responseErr,
+          'responseB64-->',
+          responseB64,
+          '| params-->',
+          params,
+          '| decodedResponseB64-->',
+          decodedResponseB64,
+          '| response-->',
+          response
+        );
+        // actual assertions
+        if (statusCode >= 300) {
+          assert.notStrictEqual(null, responseErr);
+        } else {
+          assert.strictEqual(null, responseErr);
+          assert.strictEqual(response, decodedResponseB64);
+        }
+      });
+    }
+  );
+
+  Then(
+    'Infer each SDK method from the {string} route and call the method live saving its response.',
+    async function (ezTraceContext) {
+      Object.entries(this.ezTraces[ezTraceContext].JSON).forEach((trace) => {
+        const [
+          _,
+          {
+            route,
+            method,
+            bytesB64,
+            params,
+            encodeJSON,
+            decodeJSON,
+            statusCode,
+            responseErr,
+            response,
+            responseB64,
+            parsedResponseGoType,
+            parsedResponse,
+          },
+        ] = trace;
+
+        console.log(
+          'route-->',
+          route,
+          'method-->',
+          method,
+          '| params-->',
+          params,
+          '| encodeJSON-->',
+          encodeJSON,
+          '| decodeJSON-->',
+          decodeJSON,
+          '| parsedResponseGoType-->',
+          parsedResponseGoType
+        );
+
+        // actual assertions:
+
+        if (route === '/v2/teal/disassemble') {
+          // TODO: rename method --> verb to disambiguate with SDK "method"
+          assert.strictEqual('POST', method);
+          assert.strictEqual(null, params);
+          assert.strictEqual(false, encodeJSON);
+          assert.strictEqual(true, decodeJSON);
+          assert.strictEqual(
+            parsedResponseGoType,
+            '*generated.DisassembleResponse'
+          );
+          // eslint-disable-next-line no-inner-declarations
+          function sdkMethod() {
+            this.ezTraces[ezTraceContext].result = this.v2Client
+              .disassemble(this.ezTraces[ezTraceContext].rawRequestBytes)
+              .do();
+          }
+          var noError = true;
+          sdkMethod().catch((e) => {
+            ta.innerHTML = e.text;
+            console.log(e);
+          });
+        } else {
+          assert.fail(`unhandled route ${route}`);
+        }
+
+        console.log(
+          'this.ezTraces[ezTraceContext].result-->',
+          this.ezTraces[ezTraceContext].result
         );
       });
     }
