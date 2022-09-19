@@ -15,6 +15,7 @@
 @unit.rekey
 @unit.responses
 @unit.responses.231
+@unit.responses.participationupdates
 @unit.responses.unlimited_assets
 @unit.sourcemap
 @unit.stateproof.paths
