@@ -1,3 +1,115 @@
+# v1.21.0
+
+## What's Changed
+
+### Enhancements
+
+- Enhancement: Removing more unused steps by @tzaffi in https://github.com/algorand/js-algorand-sdk/pull/637
+- Enhancement: Add deprecation tag to algod v1 client by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/642
+- enhancement: add unit test for ParticipationUpdates field by @shiqizng in https://github.com/algorand/js-algorand-sdk/pull/652
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.20.0...v1.21.0
+
+# v1.20.0
+
+## What's Changed
+
+### Bugfixes
+
+- Bug-Fix: Pass verbosity to the harness and sandbox by @tzaffi in https://github.com/algorand/js-algorand-sdk/pull/630
+
+### Enhancements
+
+- Enhancement: Use sandbox for SDK Testing and remove Indexer v1 steps by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/623
+- Tidy: Ignore algorand-sdk-testing test-harness dir by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/634
+- Enhancement: Deprecating use of langspec by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/632
+- enhancement: Initial stateproofs support by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/629
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.19.1...v1.20.0
+
+# v1.20.0-beta.1
+
+## What's Changed
+
+### Bugfixes
+
+- Bug-Fix: Pass verbosity to the harness and sandbox by @tzaffi in https://github.com/algorand/js-algorand-sdk/pull/630
+
+### Enhancements
+
+- Enhancement: Use sandbox for SDK Testing and remove Indexer v1 steps by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/623
+- Tidy: Ignore algorand-sdk-testing test-harness dir by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/634
+- Enhancement: Deprecating use of langspec by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/632
+- enhancement: Initial stateproofs support by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/629
+
+## New Contributors
+
+- @ahangsu made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/632
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.19.1...v1.20.0-beta.1
+
+# v1.19.1
+
+### Enhancements
+
+- API: Support attaching signatures to standard and multisig transactions by @jdtzmn in https://github.com/algorand/js-algorand-sdk/pull/595
+- AVM: Consolidate TEAL and AVM versions by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/609
+- Testing: Use Dev mode network for cucumber tests by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/614
+
+# v1.19.0
+
+## What's Changed
+
+### Bugfixes
+
+- tech-debt: Remove unused/unmaintained templates by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/607
+
+### New Features
+
+- Dev Tools: Source map decoder by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/590
+- Enhancement: Upgrade typedoc and plugins by @fionnachan in https://github.com/algorand/js-algorand-sdk/pull/605
+
+### Enhancements
+
+- Github-Actions: Adding PR title and label checks by @algojack in https://github.com/algorand/js-algorand-sdk/pull/600
+- docs: tealSign by @AlgoDoggo in https://github.com/algorand/js-algorand-sdk/pull/610
+
+# v1.18.1
+
+## What's Changed
+
+- Properly set maxWidth in trace by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/593
+- fix: safe intDecoding by @AlgoDoggo in https://github.com/algorand/js-algorand-sdk/pull/599
+- Remove code that relies on node's path module by @bmdelacruz in https://github.com/algorand/js-algorand-sdk/pull/598
+
+## New Contributors
+
+- @AlgoDoggo made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/599
+- @bmdelacruz made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/598
+
+# v1.18.0
+
+## What's Changed
+
+- Add method to abi results by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/578
+- Add getMethodByName function to Contract and Interface by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/583
+
+# v1.17.0
+
+## What's Changed
+
+- Allow Uint8Arrays public keys for kmd signing by @vividn in https://github.com/algorand/js-algorand-sdk/pull/549
+- Update generated files by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/569
+- Build: Add SDK code generation workflow by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/570
+- Update codegen.yml by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/574
+- Generate updated client API code by @algoidurovic in https://github.com/algorand/js-algorand-sdk/pull/566
+
+## New Contributors
+
+- @vividn made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/549
+- @Eric-Warehime made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/569
+- @algoidurovic made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/566
+
 # v1.16.0
 
 ## Added

@@ -160,3 +160,27 @@ export class ABIMethod {
     });
   }
 }
+
+export function getMethodByName(methods: ABIMethod[], name: string): ABIMethod {
+  if (
+    methods === null ||
+    !Array.isArray(methods) ||
+    !methods.every((item) => item instanceof ABIMethod)
+  )
+    throw new Error('Methods list provided is null or not the correct type');
+
+  const filteredMethods = methods.filter((m: ABIMethod) => m.name === name);
+  if (filteredMethods.length > 1)
+    throw new Error(
+      `found ${
+        filteredMethods.length
+      } methods with the same name ${filteredMethods
+        .map((m: ABIMethod) => m.getSignature())
+        .join(',')}`
+    );
+
+  if (filteredMethods.length === 0)
+    throw new Error(`found 0 methods with the name ${name}`);
+
+  return filteredMethods[0];
+}

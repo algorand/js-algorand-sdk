@@ -3,10 +3,12 @@
  * Utilities for working with program bytes.
  */
 
+/** @deprecated langspec.json is deprecated aross all SDKs */
 import langspec from './langspec.json';
 
 /**
  * Langspec Op Structure
+ * @deprecated for langspec.json is deprecated aross all SDKs
  */
 interface OpStructure {
   Opcode: number;
@@ -23,13 +25,17 @@ interface OpStructure {
   Groups: string[];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 let opcodes: {
   [key: number]: OpStructure;
 };
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 const maxCost = 20000;
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 const maxLength = 1000;
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function parseUvarint(
   array: Uint8Array
 ): [numberFound: number, size: number] {
@@ -49,6 +55,7 @@ export function parseUvarint(
   return [0, 0];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readIntConstBlock(
   program: Uint8Array,
   pc: number
@@ -79,6 +86,7 @@ function readIntConstBlock(
   return [size, ints];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readByteConstBlock(
   program: Uint8Array,
   pc: number
@@ -116,6 +124,7 @@ function readByteConstBlock(
   return [size, byteArrays];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readPushIntOp(
   program: Uint8Array,
   pc: number
@@ -129,6 +138,7 @@ function readPushIntOp(
   return [size, numberFound];
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 function readPushByteOp(
   program: Uint8Array,
   pc: number
@@ -151,6 +161,12 @@ function readPushByteOp(
 
 /** readProgram validates program for length and running cost,
  * and additionally provides the found int variables and byte blocks
+ *
+ * @deprecated Validation relies on metadata (`langspec.json`) that
+ * does not accurately represent opcode behavior across program versions.
+ * The behavior of `readProgram` relies on `langspec.json`.
+ * Thus, this method is being deprecated.
+ *
  * @param program - Program to check
  * @param args - Program arguments as array of Uint8Array arrays
  * @throws
@@ -247,15 +263,19 @@ export function readProgram(
   }
   // costs calculated dynamically starting in v4
   if (version < 4 && cost > maxCost) {
-    throw new Error(
-      'program too costly for Teal version < 4. consider using v4.'
-    );
+    throw new Error('program too costly for version < 4. consider using v4.');
   }
   return [ints, byteArrays, true];
 }
 
 /**
  * checkProgram validates program for length and running cost
+ *
+ * @deprecated Validation relies on metadata (`langspec.json`) that
+ * does not accurately represent opcode behavior across program versions.
+ * The behavior of `checkProgram` relies on `langspec.json`.
+ * Thus, this method is being deprecated.
+ *
  * @param program - Program to check
  * @param args - Program arguments as array of Uint8Array arrays
  * @throws
@@ -266,25 +286,31 @@ export function checkProgram(program: Uint8Array, args?: Uint8Array[]) {
   return success;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkIntConstBlock(program: Uint8Array, pc: number) {
   const [size] = readIntConstBlock(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkByteConstBlock(program: Uint8Array, pc: number) {
   const [size] = readByteConstBlock(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkPushIntOp(program: Uint8Array, pc: number) {
   const [size] = readPushIntOp(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export function checkPushByteOp(program: Uint8Array, pc: number) {
   const [size] = readPushByteOp(program, pc);
   return size;
 }
 
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export const langspecEvalMaxVersion = langspec.EvalMaxVersion;
+/** @deprecated for langspec.json is deprecated aross all SDKs */
 export const langspecLogicSigVersion = langspec.LogicSigVersion;

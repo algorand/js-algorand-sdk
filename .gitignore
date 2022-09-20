@@ -15,6 +15,7 @@ temp
 # Environment information
 examples/.env
 
+test-harness/
 tests/cucumber/features/
 tests/cucumber/browser/build
 tests/browser/bundle.*
