@@ -139,7 +139,7 @@ module.exports = function getSteps(options) {
       case 'str':
         return makeUint8Array(Buffer.from(subArg[1]));
       case 'int':
-        return makeUint8Array([parseInt(subArg[1])]);
+        return makeUint8Array(algosdk.encodeUint64(parseInt(subArg[1], 10)));
       case 'addr':
         return algosdk.decodeAddress(subArg[1]).publicKey;
       case 'b64':
@@ -1840,7 +1840,7 @@ module.exports = function getSteps(options) {
     'we make a GetApplicationBoxByName call for applicationID {int} with encoded box name {string}',
     async function (index, boxName) {
       const box = splitAndProcessAppArgs(boxName)[0];
-      await this.v2Client.getApplicationBoxByName(index).name(box).do();
+      await this.v2Client.getApplicationBoxByName(index, box).do();
     }
   );
 
@@ -2262,8 +2262,7 @@ module.exports = function getSteps(options) {
     async function (index, name) {
       const boxKey = splitAndProcessAppArgs(name)[0];
       await this.indexerClient
-        .lookupApplicationBoxByIDandName(index)
-        .name(boxKey)
+        .lookupApplicationBoxByIDandName(index, boxKey)
         .do();
     }
   );
@@ -4451,13 +4450,14 @@ module.exports = function getSteps(options) {
         let resp = null;
         if (fromClient === 'algod') {
           resp = await this.v2Client
-            .getApplicationBoxByName(this.currentApplicationIndex)
-            .name(boxKey)
+            .getApplicationBoxByName(this.currentApplicationIndex, boxKey)
             .do();
         } else if (fromClient === 'indexer') {
           resp = await this.indexerV2client
-            .lookupApplicationBoxByIDandName(this.currentApplicationIndex)
-            .name(boxKey)
+            .lookupApplicationBoxByIDandName(
+              this.currentApplicationIndex,
+              boxKey
+            )
             .do();
         } else {
           assert.fail(`expecting algod or indexer, got ${fromClient}`);
@@ -4465,11 +4465,11 @@ module.exports = function getSteps(options) {
 
         const actualName = resp.name;
         const actualValue = resp.value;
+        assert.deepStrictEqual(Buffer.from(boxKey), Buffer.from(actualName));
         assert.deepStrictEqual(
-          Buffer.from(boxKey),
-          Buffer.from(actualName, 'base64')
+          Buffer.from(boxValue, 'base64'),
+          Buffer.from(actualValue)
         );
-        assert.deepStrictEqual(boxValue, actualValue);
       } catch (err) {
         if (errString !== '') {
           assert.deepStrictEqual(

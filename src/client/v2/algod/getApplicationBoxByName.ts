@@ -1,26 +1,38 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
-import { BoxReference } from '../../../types';
+import { Box } from './models/types';
 
 /**
  * Given an application ID and the box name (key), return the value stored in the box.
  *
  * #### Example
  * ```typescript
- * const index = 1234;
+ * const index = 60553466;
  * const boxName = Buffer.from("foo");
- * const boxValue = await algodClient.getApplicationBoxByName(index).name(boxName).do();
+ * const boxResponse = await algodClient.getApplicationBoxByName(index, boxName).do();
+ * const boxValue = boxResponse.value;
  * ```
  *
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
  * @param index - The application ID to look up.
  * @category GET
  */
-export default class GetApplicationBoxByName extends JSONRequest<BoxReference> {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
+export default class GetApplicationBoxByName extends JSONRequest<
+  Box,
+  Record<string, any>
+> {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private index: number,
+    name: Uint8Array
+  ) {
     super(c, intDecoding);
     this.index = index;
+    // Encode name in base64 format and append the encoding prefix.
+    const encodedName = Buffer.from(name).toString('base64');
+    this.query.name = encodeURI(`b64:${encodedName}`);
   }
 
   /**
@@ -30,26 +42,12 @@ export default class GetApplicationBoxByName extends JSONRequest<BoxReference> {
     return `/v2/applications/${this.index}/box`;
   }
 
-  /**
-   * Box name in bytes, and encodes it into a b64 string with goal encoded prefix.
-   *
-   * #### Example
-   * ```typescript
-   * const boxName = Buffer.from("foo");
-   * const boxValue = await algodClient
-   *        .getApplicationBoxByName(1234)
-   *        .name(boxName)
-   *        .do();
-   * ```
-   *
-   * @param name - name of box in bytes.
-   * @category query
-   */
-  name(name: Uint8Array) {
-    // Encode query in base64 format and append the encoding prefix.
-    let encodedName = Buffer.from(name).toString('base64');
-    encodedName = `b64:${encodedName}`;
-    this.query.name = encodeURI(encodedName);
-    return this;
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): Box {
+    if (body.name == null)
+      throw new Error(`Response does not contain "name" property: ${body}`);
+    if (body.value == null)
+      throw new Error(`Response does not contain "value" property: ${body}`);
+    return new Box(body.name, body.value);
   }
 }

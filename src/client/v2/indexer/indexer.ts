@@ -18,12 +18,16 @@ import SearchAccounts from './searchAccounts';
 import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
 import SearchForApplications from './searchForApplications';
-import SearchForApplicationBoxes from './searchForApplicationBoxes';
+import SearchForApplicationBoxes, {
+  SearchForApplicationBoxesResponse,
+} from './searchForApplicationBoxes';
 import { BaseHTTPClient } from '../../baseHTTPClient';
 import {
   CustomTokenHeader,
   IndexerTokenHeader,
 } from '../../urlTokenBaseHTTPClient';
+
+export { SearchForApplicationBoxesResponse };
 
 /**
  * The Indexer provides a REST API interface of API calls to support searching the Algorand Blockchain.
@@ -380,7 +384,21 @@ export default class IndexerClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const boxesResult = await indexerClient.searchForApplicationBoxes().do();
+   * const maxResults = 20;
+   * const appID = 1234;
+   *
+   * const responsePage1 = await indexerClient
+   *        .searchForApplicationBoxes(appID)
+   *        .limit(maxResults)
+   *        .do();
+   * const boxNamesPage1 = responsePage1.boxes.map(box => box.name);
+   *
+   * const responsePage2 = await indexerClient
+   *        .searchForApplicationBoxes(appID)
+   *        .limit(maxResults)
+   *        .nextToken(responsePage1.nextToken)
+   *        .do();
+   * const boxNamesPage2 = responsePage2.boxes.map(box => box.name);
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idboxes)
@@ -396,14 +414,23 @@ export default class IndexerClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const boxValue = await indexerClient.lookupApplicationBoxByIDandName().do();
+   * const boxName = Buffer.from("foo");
+   * const boxResponse = await indexerClient
+   *        .LookupApplicationBoxByIDandName(1234, boxName)
+   *        .do();
+   * const boxValue = boxResponse.value;
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idbox)
    * @param appID - The ID of the application with boxes.
    * @category GET
    */
-  lookupApplicationBoxByIDandName(appID: number) {
-    return new LookupApplicationBoxByIDandName(this.c, this.intDecoding, appID);
+  lookupApplicationBoxByIDandName(appID: number, boxName: Uint8Array) {
+    return new LookupApplicationBoxByIDandName(
+      this.c,
+      this.intDecoding,
+      appID,
+      boxName
+    );
   }
 }

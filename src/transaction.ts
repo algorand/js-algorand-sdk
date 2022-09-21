@@ -917,42 +917,6 @@ export class Transaction implements TransactionStorageStructure {
       if (txn.grp === undefined) delete txn.grp;
       return txn;
     }
-    if (this.type === 'stpf') {
-      // state proof txn
-      const txn: EncodedTransaction = {
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        type: this.type,
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        sptype: this.stateProofType,
-        spmsg: Buffer.from(this.stateProofMessage),
-        sp: Buffer.from(this.stateProof),
-      };
-      // allowed zero values
-      if (!txn.sptype) delete txn.sptype;
-      if (!txn.note.length) delete txn.note;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.amt) delete txn.amt;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (!txn.apid) delete txn.apid;
-      if (!txn.apaa || !txn.apaa.length) delete txn.apaa;
-      if (!txn.apap) delete txn.apap;
-      if (!txn.apsu) delete txn.apsu;
-      if (!txn.apan) delete txn.apan;
-      if (!txn.apfa || !txn.apfa.length) delete txn.apfa;
-      if (!txn.apas || !txn.apas.length) delete txn.apas;
-      if (!txn.apat || !txn.apat.length) delete txn.apat;
-      if (!txn.apep) delete txn.apep;
-      if (txn.grp === undefined) delete txn.grp;
-      return txn;
-    }
 
     return undefined;
   }
