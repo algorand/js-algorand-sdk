@@ -220,6 +220,8 @@ export default class HTTPClient {
    * @param requestHeaders - An object containing additional request headers to use.
    * @param jsonOptions - Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
+   * @param parseBody - An optional boolean indicating whether the response body should be parsed
+   *   or not.
    * @returns Response object.
    */
   async get(
