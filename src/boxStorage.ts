@@ -31,11 +31,11 @@ function translateBoxReference(
  * into an array of EncodedBoxReferences with foreign indices.
  */
 export function translateBoxReferences(
-  references: BoxReference[],
+  references: BoxReference[] | undefined,
   foreignApps: number[],
   appIndex: number
 ): EncodedBoxReference[] {
-  if (!Array.isArray(references)) return [];
+  if (references == null) return [];
   return references.map((bx) =>
     translateBoxReference(bx, foreignApps, appIndex)
   );
