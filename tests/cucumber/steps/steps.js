@@ -1840,14 +1840,14 @@ module.exports = function getSteps(options) {
     'we make a GetApplicationBoxByName call for applicationID {int} with encoded box name {string}',
     async function (index, boxName) {
       const box = splitAndProcessAppArgs(boxName)[0];
-      await this.v2Client.getApplicationBoxByName(index, box).do();
+      await this.v2Client.getApplicationBoxByName(index, box).doRaw();
     }
   );
 
   When(
     'we make a GetApplicationBoxes call for applicationID {int} with max {int}',
     async function (index, limit) {
-      await this.v2Client.getApplicationBoxes(index).max(limit).do();
+      await this.v2Client.getApplicationBoxes(index).max(limit).doRaw();
     }
   );
 
@@ -2253,7 +2253,7 @@ module.exports = function getSteps(options) {
         .searchForApplicationBoxes(index)
         .limit(limit)
         .nextToken(token)
-        .do();
+        .doRaw();
     }
   );
 
@@ -2263,7 +2263,7 @@ module.exports = function getSteps(options) {
       const boxKey = splitAndProcessAppArgs(name)[0];
       await this.indexerClient
         .lookupApplicationBoxByIDandName(index, boxKey)
-        .do();
+        .doRaw();
     }
   );
 
