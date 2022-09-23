@@ -3196,6 +3196,9 @@ module.exports = function getSteps(options) {
             appAccounts,
             foreignApps,
             foreignAssets,
+            undefined,
+            undefined,
+            undefined,
             boxes
           );
           return;
@@ -3214,11 +3217,11 @@ module.exports = function getSteps(options) {
             appAccounts,
             foreignApps,
             foreignAssets,
-            boxes,
             undefined,
             undefined,
             undefined,
-            extraPages
+            extraPages,
+            boxes
           );
           return;
         case 'update':
@@ -3232,6 +3235,9 @@ module.exports = function getSteps(options) {
             appAccounts,
             foreignApps,
             foreignAssets,
+            undefined,
+            undefined,
+            undefined,
             boxes
           );
           return;
@@ -3244,6 +3250,9 @@ module.exports = function getSteps(options) {
             appAccounts,
             foreignApps,
             foreignAssets,
+            undefined,
+            undefined,
+            undefined,
             boxes
           );
           return;
@@ -3256,6 +3265,9 @@ module.exports = function getSteps(options) {
             appAccounts,
             foreignApps,
             foreignAssets,
+            undefined,
+            undefined,
+            undefined,
             boxes
           );
           return;
@@ -3280,6 +3292,9 @@ module.exports = function getSteps(options) {
             appAccounts,
             foreignApps,
             foreignAssets,
+            undefined,
+            undefined,
+            undefined,
             boxes
           );
           return;
