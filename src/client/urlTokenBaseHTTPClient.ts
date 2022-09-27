@@ -1,4 +1,4 @@
-import * as request from 'superagent';
+import fetch from 'cross-fetch';
 import {
   BaseHTTPClient,
   BaseHTTPClientResponse,
@@ -29,7 +29,7 @@ export type TokenHeader =
 
 /**
  * Implementation of BaseHTTPClient that uses a URL and a token
- * and make the REST queries using superagent.
+ * and make the REST queries using fetch.
  * This is the default implementation of BaseHTTPClient.
  */
 export class URLTokenBaseHTTPClient implements BaseHTTPClient {
@@ -79,25 +79,17 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     return address.toString();
   }
 
-  /**
-   * Convert a superagent response to a valid BaseHTTPClientResponse
-   * Modify the superagent response
-   * @private
-   */
-  private static superagentToHTTPClientResponse(
-    res: request.Response
-  ): BaseHTTPClientResponse {
-    if (res.body instanceof ArrayBuffer) {
-      // Handle the case where the body is an arraybuffer which happens in the browser
-      res.body = new Uint8Array(res.body);
+  private static async formatFetchResponse(res: any): Promise<Uint8Array> {
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.indexOf('application/json') !== -1) {
+      return Buffer.from(JSON.stringify(await res.json()));
     }
-    return res;
+
+    // Failures are expected to be message packed so transform it to Uint8Array
+    return new Uint8Array(await res.arrayBuffer());
   }
 
-  /**
-   * Make a superagent error more readable. For more info, see https://github.com/visionmedia/superagent/issues/1074
-   */
-  private static formatSuperagentError(err: any): Error {
+  private static formatFetchError(err: any): Error {
     if (err.response) {
       try {
         const decoded = JSON.parse(Buffer.from(err.response.body).toString());
@@ -110,25 +102,46 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     return err;
   }
 
+  private static getQueryPath(query: Query<string>): string {
+    // Create a queryPath for params
+    let queryPath = '';
+    if (query && Object.keys(query).length !== 0) {
+      queryPath += `?${new URLSearchParams(query)}`;
+    }
+    return queryPath;
+  }
+
   async get(
     relativePath: string,
     query?: Query<string>,
     requestHeaders: Record<string, string> = {}
   ): Promise<BaseHTTPClientResponse> {
-    const r = request
-      .get(this.addressWithPath(relativePath))
-      .set(this.tokenHeader)
-      .set(this.defaultHeaders)
-      .set(requestHeaders)
-      .responseType('arraybuffer')
-      .query(query);
+    // Expand headers for use in fetch
+    const headers = {
+      ...this.tokenHeader,
+      ...this.defaultHeaders,
+      ...requestHeaders,
+    };
 
-    try {
-      const res = await r;
-      return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
-    } catch (err) {
-      throw URLTokenBaseHTTPClient.formatSuperagentError(err);
-    }
+    return fetch(
+      `${this.addressWithPath(
+        relativePath
+      )}${URLTokenBaseHTTPClient.getQueryPath(query)}`,
+      {
+        headers,
+      }
+    )
+      .then(
+        async (res: Response): Promise<BaseHTTPClientResponse> =>
+          (({
+            body: await URLTokenBaseHTTPClient.formatFetchResponse(res),
+            status: res.status,
+            headers: res.headers,
+          } as unknown) as BaseHTTPClientResponse)
+      )
+      .catch((err) => {
+        throw URLTokenBaseHTTPClient.formatFetchError(err);
+      });
   }
 
   async post(
@@ -137,22 +150,34 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     query?: Query<string>,
     requestHeaders: Record<string, string> = {}
   ): Promise<BaseHTTPClientResponse> {
-    const r = request
-      .post(this.addressWithPath(relativePath))
-      .set(this.tokenHeader)
-      .set(this.defaultHeaders)
-      .set(requestHeaders)
-      .query(query)
-      .serialize((o) => o) // disable serialization from superagent
-      .responseType('arraybuffer')
-      .send(Buffer.from(data)); // Buffer.from necessary for superagent
+    // Expand headers for use in fetch
+    const headers = {
+      ...this.tokenHeader,
+      ...this.defaultHeaders,
+      ...requestHeaders,
+    };
 
-    try {
-      const res = await r;
-      return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
-    } catch (err) {
-      throw URLTokenBaseHTTPClient.formatSuperagentError(err);
-    }
+    return fetch(
+      `${this.addressWithPath(
+        relativePath
+      )}${URLTokenBaseHTTPClient.getQueryPath(query)}`,
+      {
+        method: 'POST',
+        body: data,
+        headers,
+      }
+    )
+      .then(
+        async (res: Response): Promise<BaseHTTPClientResponse> =>
+          (({
+            body: await URLTokenBaseHTTPClient.formatFetchResponse(res),
+            status: res.status,
+            headers: res.headers,
+          } as unknown) as BaseHTTPClientResponse)
+      )
+      .catch((err) => {
+        throw URLTokenBaseHTTPClient.formatFetchError(err);
+      });
   }
 
   async delete(
@@ -161,21 +186,33 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     query?: Query<string>,
     requestHeaders: Record<string, string> = {}
   ): Promise<BaseHTTPClientResponse> {
-    const r = request
-      .delete(this.addressWithPath(relativePath))
-      .set(this.tokenHeader)
-      .set(this.defaultHeaders)
-      .set(requestHeaders)
-      .query(query)
-      .serialize((o) => o) // disable serialization from superagent
-      .responseType('arraybuffer')
-      .send(Buffer.from(data)); // Buffer.from necessary for superagent
+    // Expand headers for use in fetch
+    const headers = {
+      ...this.tokenHeader,
+      ...this.defaultHeaders,
+      ...requestHeaders,
+    };
 
-    try {
-      const res = await r;
-      return URLTokenBaseHTTPClient.superagentToHTTPClientResponse(res);
-    } catch (err) {
-      throw URLTokenBaseHTTPClient.formatSuperagentError(err);
-    }
+    return fetch(
+      `${this.addressWithPath(
+        relativePath
+      )}${URLTokenBaseHTTPClient.getQueryPath(query)}`,
+      {
+        method: 'DELETE',
+        body: data,
+        headers,
+      }
+    )
+      .then(
+        async (res: Response): Promise<BaseHTTPClientResponse> =>
+          (({
+            body: await URLTokenBaseHTTPClient.formatFetchResponse(res),
+            status: res.status,
+            headers: res.headers,
+          } as unknown) as BaseHTTPClientResponse)
+      )
+      .catch((err) => {
+        throw URLTokenBaseHTTPClient.formatFetchError(err);
+      });
   }
 }
