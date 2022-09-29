@@ -1,16 +1,10 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
-import { BoxDescriptor } from '../algod/models/types';
-
-export interface SearchForApplicationBoxesResponse {
-  applicationId: number;
-  boxes: BoxDescriptor[];
-  nextToken?: string;
-}
+import { BoxesResponse } from './models/types';
 
 export default class SearchForApplicationBoxes extends JSONRequest<
-  SearchForApplicationBoxesResponse,
+  BoxesResponse,
   Record<string, any>
 > {
   /**
@@ -101,34 +95,7 @@ export default class SearchForApplicationBoxes extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): SearchForApplicationBoxesResponse {
-    if (typeof body['application-id'] !== 'number') {
-      throw new Error(
-        `Response does not contain "application-id" number property: ${body}`
-      );
-    }
-    const applicationId: number = body['application-id'];
-
-    if (body.boxes == null || !Array.isArray(body.boxes))
-      throw new Error(
-        `Response does not contain "boxes" array property: ${body}`
-      );
-    const boxes = (body.boxes as any[]).map((box, index) => {
-      if (box.name == null)
-        throw new Error(
-          `Response box at index ${index} does not contain "name" property: ${box}`
-        );
-      return new BoxDescriptor(box.name);
-    });
-
-    const response: SearchForApplicationBoxesResponse = {
-      applicationId,
-      boxes,
-    };
-    if (body['next-token'] != null) {
-      response.nextToken = body['next-token'];
-    }
-
-    return response;
+  prepare(body: Record<string, any>): BoxesResponse {
+    return BoxesResponse.fromParsedJSON(body);
   }
 }

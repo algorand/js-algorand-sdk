@@ -1,7 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
-import { Box } from '../algod/models/types';
+import { Box } from './models/types';
 
 export default class LookupApplicationBoxByIDandName extends JSONRequest<
   Box,
@@ -45,10 +45,6 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Box {
-    if (body.name == null)
-      throw new Error(`Response does not contain "name" property: ${body}`);
-    if (body.value == null)
-      throw new Error(`Response does not contain "value" property: ${body}`);
-    return new Box(body.name, body.value);
+    return Box.fromParsedJSON(body);
   }
 }

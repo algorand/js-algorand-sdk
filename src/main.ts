@@ -122,10 +122,7 @@ export { default as Algodv2 } from './client/v2/algod/algod';
 export { default as Kmd } from './client/kmd';
 export { default as IntDecoding } from './types/intDecoding';
 export { default as Account } from './types/account';
-export {
-  default as Indexer,
-  SearchForApplicationBoxesResponse,
-} from './client/v2/indexer/indexer';
+export { default as Indexer } from './client/v2/indexer/indexer';
 export {
   BaseHTTPClient,
   BaseHTTPClientResponse,
@@ -142,6 +139,7 @@ export { bytesToBigInt, bigIntToBytes } from './encoding/bigint';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
 export { default as generateAccount } from './account';
 export * as modelsv2 from './client/v2/algod/models/types';
+export * as indexerModels from './client/v2/indexer/models/types';
 export {
   mnemonicToMasterDerivationKey,
   masterDerivationKeyToMnemonic,
