@@ -18,16 +18,12 @@ import SearchAccounts from './searchAccounts';
 import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
 import SearchForApplications from './searchForApplications';
-import SearchForApplicationBoxes, {
-  SearchForApplicationBoxesResponse,
-} from './searchForApplicationBoxes';
+import SearchForApplicationBoxes from './searchForApplicationBoxes';
 import { BaseHTTPClient } from '../../baseHTTPClient';
 import {
   CustomTokenHeader,
   IndexerTokenHeader,
 } from '../../urlTokenBaseHTTPClient';
-
-export { SearchForApplicationBoxesResponse };
 
 /**
  * The Indexer provides a REST API interface of API calls to support searching the Algorand Blockchain.
