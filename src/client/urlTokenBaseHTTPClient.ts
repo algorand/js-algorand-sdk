@@ -80,13 +80,15 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
   }
 
   private static async formatFetchResponse(res: any): Promise<Uint8Array> {
-    const contentType = res.headers.get('content-type');
-    if (contentType && contentType.indexOf('application/json') !== -1) {
+    // Clone the response so that it's not consumed in the json check
+    const resClone = res.clone();
+    try {
+      // 'content-type' headers can not be relied on in all cases, so just check for json
       return Buffer.from(JSON.stringify(await res.json()));
+    } catch {
+      // Failures are expected to be message packed so transform it to Uint8Array
+      return new Uint8Array(await resClone.arrayBuffer());
     }
-
-    // Failures are expected to be message packed so transform it to Uint8Array
-    return new Uint8Array(await res.arrayBuffer());
   }
 
   private static formatFetchError(err: any): Error {
