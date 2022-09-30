@@ -309,7 +309,8 @@ export class Account extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): Account {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Account {
     /* eslint-disable dot-notation */
     if (typeof data['address'] === 'undefined')
       throw new Error(`Response is missing required field 'address': ${data}`);
@@ -359,32 +360,36 @@ export class Account extends BaseModel {
       totalCreatedAssets: data['total-created-assets'],
       appsLocalState:
         typeof data['apps-local-state'] !== 'undefined'
-          ? data['apps-local-state'].map(ApplicationLocalState.fromParsedJSON)
+          ? data['apps-local-state'].map(
+              ApplicationLocalState.from_obj_for_encoding
+            )
           : undefined,
       appsTotalExtraPages: data['apps-total-extra-pages'],
       appsTotalSchema:
         typeof data['apps-total-schema'] !== 'undefined'
-          ? ApplicationStateSchema.fromParsedJSON(data['apps-total-schema'])
+          ? ApplicationStateSchema.from_obj_for_encoding(
+              data['apps-total-schema']
+            )
           : undefined,
       assets:
         typeof data['assets'] !== 'undefined'
-          ? data['assets'].map(AssetHolding.fromParsedJSON)
+          ? data['assets'].map(AssetHolding.from_obj_for_encoding)
           : undefined,
       authAddr: data['auth-addr'],
       closedAtRound: data['closed-at-round'],
       createdApps:
         typeof data['created-apps'] !== 'undefined'
-          ? data['created-apps'].map(Application.fromParsedJSON)
+          ? data['created-apps'].map(Application.from_obj_for_encoding)
           : undefined,
       createdAssets:
         typeof data['created-assets'] !== 'undefined'
-          ? data['created-assets'].map(Asset.fromParsedJSON)
+          ? data['created-assets'].map(Asset.from_obj_for_encoding)
           : undefined,
       createdAtRound: data['created-at-round'],
       deleted: data['deleted'],
       participation:
         typeof data['participation'] !== 'undefined'
-          ? AccountParticipation.fromParsedJSON(data['participation'])
+          ? AccountParticipation.from_obj_for_encoding(data['participation'])
           : undefined,
       rewardBase: data['reward-base'],
       sigType: data['sig-type'],
@@ -481,7 +486,10 @@ export class AccountParticipation extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AccountParticipation {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AccountParticipation {
     /* eslint-disable dot-notation */
     if (typeof data['selection-participation-key'] === 'undefined')
       throw new Error(
@@ -555,7 +563,8 @@ export class AccountResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AccountResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AccountResponse {
     /* eslint-disable dot-notation */
     if (typeof data['account'] === 'undefined')
       throw new Error(`Response is missing required field 'account': ${data}`);
@@ -564,7 +573,7 @@ export class AccountResponse extends BaseModel {
         `Response is missing required field 'current-round': ${data}`
       );
     return new AccountResponse({
-      account: Account.fromParsedJSON(data['account']),
+      account: Account.from_obj_for_encoding(data['account']),
       currentRound: data['current-round'],
     });
     /* eslint-enable dot-notation */
@@ -604,7 +613,8 @@ export class AccountStateDelta extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AccountStateDelta {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AccountStateDelta {
     /* eslint-disable dot-notation */
     if (typeof data['address'] === 'undefined')
       throw new Error(`Response is missing required field 'address': ${data}`);
@@ -614,7 +624,7 @@ export class AccountStateDelta extends BaseModel {
       );
     return new AccountStateDelta({
       address: data['address'],
-      delta: data['delta'].map(EvalDeltaKeyValue.fromParsedJSON),
+      delta: data['delta'].map(EvalDeltaKeyValue.from_obj_for_encoding),
     });
     /* eslint-enable dot-notation */
   }
@@ -665,7 +675,8 @@ export class AccountsResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AccountsResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AccountsResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['accounts']))
       throw new Error(
@@ -676,7 +687,7 @@ export class AccountsResponse extends BaseModel {
         `Response is missing required field 'current-round': ${data}`
       );
     return new AccountsResponse({
-      accounts: data['accounts'].map(Account.fromParsedJSON),
+      accounts: data['accounts'].map(Account.from_obj_for_encoding),
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -750,7 +761,8 @@ export class Application extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): Application {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Application {
     /* eslint-disable dot-notation */
     if (typeof data['id'] === 'undefined')
       throw new Error(`Response is missing required field 'id': ${data}`);
@@ -758,7 +770,7 @@ export class Application extends BaseModel {
       throw new Error(`Response is missing required field 'params': ${data}`);
     return new Application({
       id: data['id'],
-      params: ApplicationParams.fromParsedJSON(data['params']),
+      params: ApplicationParams.from_obj_for_encoding(data['params']),
       createdAtRound: data['created-at-round'],
       deleted: data['deleted'],
       deletedAtRound: data['deleted-at-round'],
@@ -845,7 +857,10 @@ export class ApplicationLocalState extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ApplicationLocalState {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationLocalState {
     /* eslint-disable dot-notation */
     if (typeof data['id'] === 'undefined')
       throw new Error(`Response is missing required field 'id': ${data}`);
@@ -853,12 +868,12 @@ export class ApplicationLocalState extends BaseModel {
       throw new Error(`Response is missing required field 'schema': ${data}`);
     return new ApplicationLocalState({
       id: data['id'],
-      schema: ApplicationStateSchema.fromParsedJSON(data['schema']),
+      schema: ApplicationStateSchema.from_obj_for_encoding(data['schema']),
       closedOutAtRound: data['closed-out-at-round'],
       deleted: data['deleted'],
       keyValue:
         typeof data['key-value'] !== 'undefined'
-          ? data['key-value'].map(TealKeyValue.fromParsedJSON)
+          ? data['key-value'].map(TealKeyValue.from_obj_for_encoding)
           : undefined,
       optedInAtRound: data['opted-in-at-round'],
     });
@@ -911,7 +926,8 @@ export class ApplicationLocalStatesResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
     data: Record<string, any>
   ): ApplicationLocalStatesResponse {
     /* eslint-disable dot-notation */
@@ -925,7 +941,7 @@ export class ApplicationLocalStatesResponse extends BaseModel {
       );
     return new ApplicationLocalStatesResponse({
       appsLocalStates: data['apps-local-states'].map(
-        ApplicationLocalState.fromParsedJSON
+        ApplicationLocalState.from_obj_for_encoding
       ),
       currentRound: data['current-round'],
       nextToken: data['next-token'],
@@ -964,7 +980,8 @@ export class ApplicationLogData extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ApplicationLogData {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ApplicationLogData {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['logs']))
       throw new Error(
@@ -1035,7 +1052,10 @@ export class ApplicationLogsResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ApplicationLogsResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationLogsResponse {
     /* eslint-disable dot-notation */
     if (typeof data['application-id'] === 'undefined')
       throw new Error(
@@ -1050,7 +1070,7 @@ export class ApplicationLogsResponse extends BaseModel {
       currentRound: data['current-round'],
       logData:
         typeof data['log-data'] !== 'undefined'
-          ? data['log-data'].map(ApplicationLogData.fromParsedJSON)
+          ? data['log-data'].map(ApplicationLogData.from_obj_for_encoding)
           : undefined,
       nextToken: data['next-token'],
     });
@@ -1152,7 +1172,8 @@ export class ApplicationParams extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ApplicationParams {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ApplicationParams {
     /* eslint-disable dot-notation */
     if (typeof data['approval-program'] === 'undefined')
       throw new Error(
@@ -1169,15 +1190,19 @@ export class ApplicationParams extends BaseModel {
       extraProgramPages: data['extra-program-pages'],
       globalState:
         typeof data['global-state'] !== 'undefined'
-          ? data['global-state'].map(TealKeyValue.fromParsedJSON)
+          ? data['global-state'].map(TealKeyValue.from_obj_for_encoding)
           : undefined,
       globalStateSchema:
         typeof data['global-state-schema'] !== 'undefined'
-          ? ApplicationStateSchema.fromParsedJSON(data['global-state-schema'])
+          ? ApplicationStateSchema.from_obj_for_encoding(
+              data['global-state-schema']
+            )
           : undefined,
       localStateSchema:
         typeof data['local-state-schema'] !== 'undefined'
-          ? ApplicationStateSchema.fromParsedJSON(data['local-state-schema'])
+          ? ApplicationStateSchema.from_obj_for_encoding(
+              data['local-state-schema']
+            )
           : undefined,
     });
     /* eslint-enable dot-notation */
@@ -1220,7 +1245,8 @@ export class ApplicationResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ApplicationResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ApplicationResponse {
     /* eslint-disable dot-notation */
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
@@ -1230,7 +1256,7 @@ export class ApplicationResponse extends BaseModel {
       currentRound: data['current-round'],
       application:
         typeof data['application'] !== 'undefined'
-          ? Application.fromParsedJSON(data['application'])
+          ? Application.from_obj_for_encoding(data['application'])
           : undefined,
     });
     /* eslint-enable dot-notation */
@@ -1273,7 +1299,10 @@ export class ApplicationStateSchema extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ApplicationStateSchema {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationStateSchema {
     /* eslint-disable dot-notation */
     if (typeof data['num-byte-slice'] === 'undefined')
       throw new Error(
@@ -1334,7 +1363,10 @@ export class ApplicationsResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ApplicationsResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationsResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['applications']))
       throw new Error(
@@ -1345,7 +1377,7 @@ export class ApplicationsResponse extends BaseModel {
         `Response is missing required field 'current-round': ${data}`
       );
     return new ApplicationsResponse({
-      applications: data['applications'].map(Application.fromParsedJSON),
+      applications: data['applications'].map(Application.from_obj_for_encoding),
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -1425,7 +1457,8 @@ export class Asset extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): Asset {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Asset {
     /* eslint-disable dot-notation */
     if (typeof data['index'] === 'undefined')
       throw new Error(`Response is missing required field 'index': ${data}`);
@@ -1433,7 +1466,7 @@ export class Asset extends BaseModel {
       throw new Error(`Response is missing required field 'params': ${data}`);
     return new Asset({
       index: data['index'],
-      params: AssetParams.fromParsedJSON(data['params']),
+      params: AssetParams.from_obj_for_encoding(data['params']),
       createdAtRound: data['created-at-round'],
       deleted: data['deleted'],
       destroyedAtRound: data['destroyed-at-round'],
@@ -1487,7 +1520,10 @@ export class AssetBalancesResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AssetBalancesResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AssetBalancesResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['balances']))
       throw new Error(
@@ -1498,7 +1534,7 @@ export class AssetBalancesResponse extends BaseModel {
         `Response is missing required field 'current-round': ${data}`
       );
     return new AssetBalancesResponse({
-      balances: data['balances'].map(MiniAssetHolding.fromParsedJSON),
+      balances: data['balances'].map(MiniAssetHolding.from_obj_for_encoding),
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -1584,7 +1620,8 @@ export class AssetHolding extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AssetHolding {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AssetHolding {
     /* eslint-disable dot-notation */
     if (typeof data['amount'] === 'undefined')
       throw new Error(`Response is missing required field 'amount': ${data}`);
@@ -1651,7 +1688,10 @@ export class AssetHoldingsResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AssetHoldingsResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AssetHoldingsResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['assets']))
       throw new Error(
@@ -1662,7 +1702,7 @@ export class AssetHoldingsResponse extends BaseModel {
         `Response is missing required field 'current-round': ${data}`
       );
     return new AssetHoldingsResponse({
-      assets: data['assets'].map(AssetHolding.fromParsedJSON),
+      assets: data['assets'].map(AssetHolding.from_obj_for_encoding),
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -1873,7 +1913,8 @@ export class AssetParams extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AssetParams {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AssetParams {
     /* eslint-disable dot-notation */
     if (typeof data['creator'] === 'undefined')
       throw new Error(`Response is missing required field 'creator': ${data}`);
@@ -1938,7 +1979,8 @@ export class AssetResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AssetResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AssetResponse {
     /* eslint-disable dot-notation */
     if (typeof data['asset'] === 'undefined')
       throw new Error(`Response is missing required field 'asset': ${data}`);
@@ -1947,7 +1989,7 @@ export class AssetResponse extends BaseModel {
         `Response is missing required field 'current-round': ${data}`
       );
     return new AssetResponse({
-      asset: Asset.fromParsedJSON(data['asset']),
+      asset: Asset.from_obj_for_encoding(data['asset']),
       currentRound: data['current-round'],
     });
     /* eslint-enable dot-notation */
@@ -1999,7 +2041,8 @@ export class AssetsResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): AssetsResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AssetsResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['assets']))
       throw new Error(
@@ -2010,7 +2053,7 @@ export class AssetsResponse extends BaseModel {
         `Response is missing required field 'current-round': ${data}`
       );
     return new AssetsResponse({
-      assets: data['assets'].map(Asset.fromParsedJSON),
+      assets: data['assets'].map(Asset.from_obj_for_encoding),
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -2225,7 +2268,8 @@ export class Block extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): Block {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Block {
     /* eslint-disable dot-notation */
     if (typeof data['genesis-hash'] === 'undefined')
       throw new Error(
@@ -2266,28 +2310,32 @@ export class Block extends BaseModel {
       transactionsRootSha256: data['transactions-root-sha256'],
       participationUpdates:
         typeof data['participation-updates'] !== 'undefined'
-          ? ParticipationUpdates.fromParsedJSON(data['participation-updates'])
+          ? ParticipationUpdates.from_obj_for_encoding(
+              data['participation-updates']
+            )
           : undefined,
       rewards:
         typeof data['rewards'] !== 'undefined'
-          ? BlockRewards.fromParsedJSON(data['rewards'])
+          ? BlockRewards.from_obj_for_encoding(data['rewards'])
           : undefined,
       stateProofTracking:
         typeof data['state-proof-tracking'] !== 'undefined'
-          ? data['state-proof-tracking'].map(StateProofTracking.fromParsedJSON)
+          ? data['state-proof-tracking'].map(
+              StateProofTracking.from_obj_for_encoding
+            )
           : undefined,
       transactions:
         typeof data['transactions'] !== 'undefined'
-          ? data['transactions'].map(Transaction.fromParsedJSON)
+          ? data['transactions'].map(Transaction.from_obj_for_encoding)
           : undefined,
       txnCounter: data['txn-counter'],
       upgradeState:
         typeof data['upgrade-state'] !== 'undefined'
-          ? BlockUpgradeState.fromParsedJSON(data['upgrade-state'])
+          ? BlockUpgradeState.from_obj_for_encoding(data['upgrade-state'])
           : undefined,
       upgradeVote:
         typeof data['upgrade-vote'] !== 'undefined'
-          ? BlockUpgradeVote.fromParsedJSON(data['upgrade-vote'])
+          ? BlockUpgradeVote.from_obj_for_encoding(data['upgrade-vote'])
           : undefined,
     });
     /* eslint-enable dot-notation */
@@ -2380,7 +2428,8 @@ export class BlockRewards extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): BlockRewards {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockRewards {
     /* eslint-disable dot-notation */
     if (typeof data['fee-sink'] === 'undefined')
       throw new Error(`Response is missing required field 'fee-sink': ${data}`);
@@ -2484,7 +2533,8 @@ export class BlockUpgradeState extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): BlockUpgradeState {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockUpgradeState {
     /* eslint-disable dot-notation */
     if (typeof data['current-protocol'] === 'undefined')
       throw new Error(
@@ -2547,7 +2597,8 @@ export class BlockUpgradeVote extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): BlockUpgradeVote {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockUpgradeVote {
     /* eslint-disable dot-notation */
     return new BlockUpgradeVote({
       upgradeApprove: data['upgrade-approve'],
@@ -2588,7 +2639,8 @@ export class ErrorResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ErrorResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ErrorResponse {
     /* eslint-disable dot-notation */
     if (typeof data['message'] === 'undefined')
       throw new Error(`Response is missing required field 'message': ${data}`);
@@ -2646,7 +2698,8 @@ export class EvalDelta extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): EvalDelta {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): EvalDelta {
     /* eslint-disable dot-notation */
     if (typeof data['action'] === 'undefined')
       throw new Error(`Response is missing required field 'action': ${data}`);
@@ -2686,7 +2739,8 @@ export class EvalDeltaKeyValue extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): EvalDeltaKeyValue {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): EvalDeltaKeyValue {
     /* eslint-disable dot-notation */
     if (typeof data['key'] === 'undefined')
       throw new Error(`Response is missing required field 'key': ${data}`);
@@ -2694,7 +2748,7 @@ export class EvalDeltaKeyValue extends BaseModel {
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new EvalDeltaKeyValue({
       key: data['key'],
-      value: EvalDelta.fromParsedJSON(data['value']),
+      value: EvalDelta.from_obj_for_encoding(data['value']),
     });
     /* eslint-enable dot-notation */
   }
@@ -2719,7 +2773,8 @@ export class HashFactory extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): HashFactory {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): HashFactory {
     /* eslint-disable dot-notation */
     return new HashFactory({
       hashType: data['hash-type'],
@@ -2796,7 +2851,8 @@ export class HealthCheck extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): HealthCheck {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): HealthCheck {
     /* eslint-disable dot-notation */
     if (typeof data['db-available'] === 'undefined')
       throw new Error(
@@ -2894,7 +2950,10 @@ export class IndexerStateProofMessage extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): IndexerStateProofMessage {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): IndexerStateProofMessage {
     /* eslint-disable dot-notation */
     return new IndexerStateProofMessage({
       blockHeadersCommitment: data['block-headers-commitment'],
@@ -2947,12 +3006,13 @@ export class MerkleArrayProof extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): MerkleArrayProof {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): MerkleArrayProof {
     /* eslint-disable dot-notation */
     return new MerkleArrayProof({
       hashFactory:
         typeof data['hash-factory'] !== 'undefined'
-          ? HashFactory.fromParsedJSON(data['hash-factory'])
+          ? HashFactory.from_obj_for_encoding(data['hash-factory'])
           : undefined,
       path: data['path'],
       treeDepth: data['tree-depth'],
@@ -3028,7 +3088,8 @@ export class MiniAssetHolding extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): MiniAssetHolding {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): MiniAssetHolding {
     /* eslint-disable dot-notation */
     if (typeof data['address'] === 'undefined')
       throw new Error(`Response is missing required field 'address': ${data}`);
@@ -3078,7 +3139,10 @@ export class ParticipationUpdates extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): ParticipationUpdates {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ParticipationUpdates {
     /* eslint-disable dot-notation */
     return new ParticipationUpdates({
       expiredParticipationAccounts: data['expired-participation-accounts'],
@@ -3180,23 +3244,24 @@ export class StateProofFields extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateProofFields {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProofFields {
     /* eslint-disable dot-notation */
     return new StateProofFields({
       partProofs:
         typeof data['part-proofs'] !== 'undefined'
-          ? MerkleArrayProof.fromParsedJSON(data['part-proofs'])
+          ? MerkleArrayProof.from_obj_for_encoding(data['part-proofs'])
           : undefined,
       positionsToReveal: data['positions-to-reveal'],
       reveals:
         typeof data['reveals'] !== 'undefined'
-          ? data['reveals'].map(StateProofReveal.fromParsedJSON)
+          ? data['reveals'].map(StateProofReveal.from_obj_for_encoding)
           : undefined,
       saltVersion: data['salt-version'],
       sigCommit: data['sig-commit'],
       sigProofs:
         typeof data['sig-proofs'] !== 'undefined'
-          ? MerkleArrayProof.fromParsedJSON(data['sig-proofs'])
+          ? MerkleArrayProof.from_obj_for_encoding(data['sig-proofs'])
           : undefined,
       signedWeight: data['signed-weight'],
     });
@@ -3237,12 +3302,15 @@ export class StateProofParticipant extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateProofParticipant {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): StateProofParticipant {
     /* eslint-disable dot-notation */
     return new StateProofParticipant({
       verifier:
         typeof data['verifier'] !== 'undefined'
-          ? StateProofVerifier.fromParsedJSON(data['verifier'])
+          ? StateProofVerifier.from_obj_for_encoding(data['verifier'])
           : undefined,
       weight: data['weight'],
     });
@@ -3295,17 +3363,18 @@ export class StateProofReveal extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateProofReveal {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProofReveal {
     /* eslint-disable dot-notation */
     return new StateProofReveal({
       participant:
         typeof data['participant'] !== 'undefined'
-          ? StateProofParticipant.fromParsedJSON(data['participant'])
+          ? StateProofParticipant.from_obj_for_encoding(data['participant'])
           : undefined,
       position: data['position'],
       sigSlot:
         typeof data['sig-slot'] !== 'undefined'
-          ? StateProofSigSlot.fromParsedJSON(data['sig-slot'])
+          ? StateProofSigSlot.from_obj_for_encoding(data['sig-slot'])
           : undefined,
     });
     /* eslint-enable dot-notation */
@@ -3342,13 +3411,14 @@ export class StateProofSigSlot extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateProofSigSlot {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProofSigSlot {
     /* eslint-disable dot-notation */
     return new StateProofSigSlot({
       lowerSigWeight: data['lower-sig-weight'],
       signature:
         typeof data['signature'] !== 'undefined'
-          ? StateProofSignature.fromParsedJSON(data['signature'])
+          ? StateProofSignature.from_obj_for_encoding(data['signature'])
           : undefined,
     });
     /* eslint-enable dot-notation */
@@ -3405,14 +3475,15 @@ export class StateProofSignature extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateProofSignature {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProofSignature {
     /* eslint-disable dot-notation */
     return new StateProofSignature({
       falconSignature: data['falcon-signature'],
       merkleArrayIndex: data['merkle-array-index'],
       proof:
         typeof data['proof'] !== 'undefined'
-          ? MerkleArrayProof.fromParsedJSON(data['proof'])
+          ? MerkleArrayProof.from_obj_for_encoding(data['proof'])
           : undefined,
       verifyingKey: data['verifying-key'],
     });
@@ -3480,7 +3551,8 @@ export class StateProofTracking extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateProofTracking {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProofTracking {
     /* eslint-disable dot-notation */
     return new StateProofTracking({
       nextRound: data['next-round'],
@@ -3528,7 +3600,8 @@ export class StateProofVerifier extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateProofVerifier {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProofVerifier {
     /* eslint-disable dot-notation */
     return new StateProofVerifier({
       commitment: data['commitment'],
@@ -3577,7 +3650,8 @@ export class StateSchema extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): StateSchema {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateSchema {
     /* eslint-disable dot-notation */
     if (typeof data['num-byte-slice'] === 'undefined')
       throw new Error(
@@ -3620,7 +3694,8 @@ export class TealKeyValue extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TealKeyValue {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): TealKeyValue {
     /* eslint-disable dot-notation */
     if (typeof data['key'] === 'undefined')
       throw new Error(`Response is missing required field 'key': ${data}`);
@@ -3628,7 +3703,7 @@ export class TealKeyValue extends BaseModel {
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new TealKeyValue({
       key: data['key'],
-      value: TealValue.fromParsedJSON(data['value']),
+      value: TealValue.from_obj_for_encoding(data['value']),
     });
     /* eslint-enable dot-notation */
   }
@@ -3680,7 +3755,8 @@ export class TealValue extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TealValue {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): TealValue {
     /* eslint-disable dot-notation */
     if (typeof data['bytes'] === 'undefined')
       throw new Error(`Response is missing required field 'bytes': ${data}`);
@@ -4147,7 +4223,8 @@ export class Transaction extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): Transaction {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Transaction {
     /* eslint-disable dot-notation */
     if (typeof data['fee'] === 'undefined')
       throw new Error(`Response is missing required field 'fee': ${data}`);
@@ -4168,25 +4245,25 @@ export class Transaction extends BaseModel {
       sender: data['sender'],
       applicationTransaction:
         typeof data['application-transaction'] !== 'undefined'
-          ? TransactionApplication.fromParsedJSON(
+          ? TransactionApplication.from_obj_for_encoding(
               data['application-transaction']
             )
           : undefined,
       assetConfigTransaction:
         typeof data['asset-config-transaction'] !== 'undefined'
-          ? TransactionAssetConfig.fromParsedJSON(
+          ? TransactionAssetConfig.from_obj_for_encoding(
               data['asset-config-transaction']
             )
           : undefined,
       assetFreezeTransaction:
         typeof data['asset-freeze-transaction'] !== 'undefined'
-          ? TransactionAssetFreeze.fromParsedJSON(
+          ? TransactionAssetFreeze.from_obj_for_encoding(
               data['asset-freeze-transaction']
             )
           : undefined,
       assetTransferTransaction:
         typeof data['asset-transfer-transaction'] !== 'undefined'
-          ? TransactionAssetTransfer.fromParsedJSON(
+          ? TransactionAssetTransfer.from_obj_for_encoding(
               data['asset-transfer-transaction']
             )
           : undefined,
@@ -4200,29 +4277,35 @@ export class Transaction extends BaseModel {
       genesisId: data['genesis-id'],
       globalStateDelta:
         typeof data['global-state-delta'] !== 'undefined'
-          ? data['global-state-delta'].map(EvalDeltaKeyValue.fromParsedJSON)
+          ? data['global-state-delta'].map(
+              EvalDeltaKeyValue.from_obj_for_encoding
+            )
           : undefined,
       group: data['group'],
       id: data['id'],
       innerTxns:
         typeof data['inner-txns'] !== 'undefined'
-          ? data['inner-txns'].map(Transaction.fromParsedJSON)
+          ? data['inner-txns'].map(Transaction.from_obj_for_encoding)
           : undefined,
       intraRoundOffset: data['intra-round-offset'],
       keyregTransaction:
         typeof data['keyreg-transaction'] !== 'undefined'
-          ? TransactionKeyreg.fromParsedJSON(data['keyreg-transaction'])
+          ? TransactionKeyreg.from_obj_for_encoding(data['keyreg-transaction'])
           : undefined,
       lease: data['lease'],
       localStateDelta:
         typeof data['local-state-delta'] !== 'undefined'
-          ? data['local-state-delta'].map(AccountStateDelta.fromParsedJSON)
+          ? data['local-state-delta'].map(
+              AccountStateDelta.from_obj_for_encoding
+            )
           : undefined,
       logs: data['logs'],
       note: data['note'],
       paymentTransaction:
         typeof data['payment-transaction'] !== 'undefined'
-          ? TransactionPayment.fromParsedJSON(data['payment-transaction'])
+          ? TransactionPayment.from_obj_for_encoding(
+              data['payment-transaction']
+            )
           : undefined,
       receiverRewards: data['receiver-rewards'],
       rekeyTo: data['rekey-to'],
@@ -4230,11 +4313,11 @@ export class Transaction extends BaseModel {
       senderRewards: data['sender-rewards'],
       signature:
         typeof data['signature'] !== 'undefined'
-          ? TransactionSignature.fromParsedJSON(data['signature'])
+          ? TransactionSignature.from_obj_for_encoding(data['signature'])
           : undefined,
       stateProofTransaction:
         typeof data['state-proof-transaction'] !== 'undefined'
-          ? TransactionStateProof.fromParsedJSON(
+          ? TransactionStateProof.from_obj_for_encoding(
               data['state-proof-transaction']
             )
           : undefined,
@@ -4428,7 +4511,10 @@ export class TransactionApplication extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionApplication {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionApplication {
     /* eslint-disable dot-notation */
     if (typeof data['application-id'] === 'undefined')
       throw new Error(
@@ -4445,11 +4531,11 @@ export class TransactionApplication extends BaseModel {
       foreignAssets: data['foreign-assets'],
       globalStateSchema:
         typeof data['global-state-schema'] !== 'undefined'
-          ? StateSchema.fromParsedJSON(data['global-state-schema'])
+          ? StateSchema.from_obj_for_encoding(data['global-state-schema'])
           : undefined,
       localStateSchema:
         typeof data['local-state-schema'] !== 'undefined'
-          ? StateSchema.fromParsedJSON(data['local-state-schema'])
+          ? StateSchema.from_obj_for_encoding(data['local-state-schema'])
           : undefined,
       onCompletion: data['on-completion'],
     });
@@ -4503,13 +4589,16 @@ export class TransactionAssetConfig extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionAssetConfig {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionAssetConfig {
     /* eslint-disable dot-notation */
     return new TransactionAssetConfig({
       assetId: data['asset-id'],
       params:
         typeof data['params'] !== 'undefined'
-          ? AssetParams.fromParsedJSON(data['params'])
+          ? AssetParams.from_obj_for_encoding(data['params'])
           : undefined,
     });
     /* eslint-enable dot-notation */
@@ -4564,7 +4653,10 @@ export class TransactionAssetFreeze extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionAssetFreeze {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionAssetFreeze {
     /* eslint-disable dot-notation */
     if (typeof data['address'] === 'undefined')
       throw new Error(`Response is missing required field 'address': ${data}`);
@@ -4671,7 +4763,10 @@ export class TransactionAssetTransfer extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionAssetTransfer {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionAssetTransfer {
     /* eslint-disable dot-notation */
     if (typeof data['amount'] === 'undefined')
       throw new Error(`Response is missing required field 'amount': ${data}`);
@@ -4790,7 +4885,8 @@ export class TransactionKeyreg extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionKeyreg {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): TransactionKeyreg {
     /* eslint-disable dot-notation */
     return new TransactionKeyreg({
       nonParticipation: data['non-participation'],
@@ -4867,7 +4963,8 @@ export class TransactionPayment extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionPayment {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): TransactionPayment {
     /* eslint-disable dot-notation */
     if (typeof data['amount'] === 'undefined')
       throw new Error(`Response is missing required field 'amount': ${data}`);
@@ -4927,7 +5024,8 @@ export class TransactionResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): TransactionResponse {
     /* eslint-disable dot-notation */
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
@@ -4939,7 +5037,7 @@ export class TransactionResponse extends BaseModel {
       );
     return new TransactionResponse({
       currentRound: data['current-round'],
-      transaction: Transaction.fromParsedJSON(data['transaction']),
+      transaction: Transaction.from_obj_for_encoding(data['transaction']),
     });
     /* eslint-enable dot-notation */
   }
@@ -5003,16 +5101,19 @@ export class TransactionSignature extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionSignature {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionSignature {
     /* eslint-disable dot-notation */
     return new TransactionSignature({
       logicsig:
         typeof data['logicsig'] !== 'undefined'
-          ? TransactionSignatureLogicsig.fromParsedJSON(data['logicsig'])
+          ? TransactionSignatureLogicsig.from_obj_for_encoding(data['logicsig'])
           : undefined,
       multisig:
         typeof data['multisig'] !== 'undefined'
-          ? TransactionSignatureMultisig.fromParsedJSON(data['multisig'])
+          ? TransactionSignatureMultisig.from_obj_for_encoding(data['multisig'])
           : undefined,
       sig: data['sig'],
     });
@@ -5090,7 +5191,8 @@ export class TransactionSignatureLogicsig extends BaseModel {
     };
   }
 
-  static fromParsedJSON(
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
     data: Record<string, any>
   ): TransactionSignatureLogicsig {
     /* eslint-disable dot-notation */
@@ -5101,7 +5203,7 @@ export class TransactionSignatureLogicsig extends BaseModel {
       args: data['args'],
       multisigSignature:
         typeof data['multisig-signature'] !== 'undefined'
-          ? TransactionSignatureMultisig.fromParsedJSON(
+          ? TransactionSignatureMultisig.from_obj_for_encoding(
               data['multisig-signature']
             )
           : undefined,
@@ -5159,7 +5261,8 @@ export class TransactionSignatureMultisig extends BaseModel {
     };
   }
 
-  static fromParsedJSON(
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
     data: Record<string, any>
   ): TransactionSignatureMultisig {
     /* eslint-disable dot-notation */
@@ -5167,7 +5270,7 @@ export class TransactionSignatureMultisig extends BaseModel {
       subsignature:
         typeof data['subsignature'] !== 'undefined'
           ? data['subsignature'].map(
-              TransactionSignatureMultisigSubsignature.fromParsedJSON
+              TransactionSignatureMultisigSubsignature.from_obj_for_encoding
             )
           : undefined,
       threshold: data['threshold'],
@@ -5216,7 +5319,8 @@ export class TransactionSignatureMultisigSubsignature extends BaseModel {
     };
   }
 
-  static fromParsedJSON(
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
     data: Record<string, any>
   ): TransactionSignatureMultisigSubsignature {
     /* eslint-disable dot-notation */
@@ -5282,16 +5386,19 @@ export class TransactionStateProof extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionStateProof {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionStateProof {
     /* eslint-disable dot-notation */
     return new TransactionStateProof({
       message:
         typeof data['message'] !== 'undefined'
-          ? IndexerStateProofMessage.fromParsedJSON(data['message'])
+          ? IndexerStateProofMessage.from_obj_for_encoding(data['message'])
           : undefined,
       stateProof:
         typeof data['state-proof'] !== 'undefined'
-          ? StateProofFields.fromParsedJSON(data['state-proof'])
+          ? StateProofFields.from_obj_for_encoding(data['state-proof'])
           : undefined,
       stateProofType: data['state-proof-type'],
     });
@@ -5344,7 +5451,10 @@ export class TransactionsResponse extends BaseModel {
     };
   }
 
-  static fromParsedJSON(data: Record<string, any>): TransactionsResponse {
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionsResponse {
     /* eslint-disable dot-notation */
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
@@ -5356,7 +5466,7 @@ export class TransactionsResponse extends BaseModel {
       );
     return new TransactionsResponse({
       currentRound: data['current-round'],
-      transactions: data['transactions'].map(Transaction.fromParsedJSON),
+      transactions: data['transactions'].map(Transaction.from_obj_for_encoding),
       nextToken: data['next-token'],
     });
     /* eslint-enable dot-notation */
