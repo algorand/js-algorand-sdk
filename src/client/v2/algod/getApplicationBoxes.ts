@@ -56,6 +56,6 @@ export default class GetApplicationBoxes extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): BoxesResponse {
-    return BoxesResponse.fromParsedJSON(body);
+    return BoxesResponse.from_obj_for_encoding(body);
   }
 }

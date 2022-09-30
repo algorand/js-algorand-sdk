@@ -45,6 +45,6 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Box {
-    return Box.fromParsedJSON(body);
+    return Box.from_obj_for_encoding(body);
   }
 }
