@@ -1,15 +1,14 @@
 @unit.abijson
 @unit.abijson.byname
 @unit.algod
-@unit.algod.blockhash
 @unit.algod.ledger_refactoring
 @unit.applications
 @unit.atomic_transaction_composer
+@unit.blocksummary
 @unit.dryrun
 @unit.dryrun.trace.application
 @unit.feetest
 @unit.indexer
-@unit.indexer.blocks
 @unit.indexer.ledger_refactoring
 @unit.indexer.logs
 @unit.offline
@@ -19,8 +18,7 @@
 @unit.responses.231
 @unit.responses.participationupdates
 @unit.responses.unlimited_assets
-@unit.responses.blockhash
-@unit.responses.block.headeronly
+@unit.responses.blocksummary
 @unit.sourcemap
 @unit.stateproof.paths
 @unit.stateproof.responses
