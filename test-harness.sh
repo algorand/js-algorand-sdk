@@ -9,13 +9,13 @@ set -euo pipefail
 # Variables:
 #   SDK_TESTING_URL     - URL to algorand-sdk-testing, useful for forks.
 #   SDK_TESTING_BRANCH  - branch to checkout, useful for new tests.
-#   SDK_TESTING_HARNESS - in case you want to change the clone directory?
+#   SDK_TESTING_HARNESS - local directory that the algorand-sdk-testing repo is cloned into.
 #   VERBOSE_HARNESS     - more output while the script runs.
 #   INSTALL_ONLY        - installs feature files only, useful for unit tests.
 #
 #   WARNING: If set to 1, new features will be LOST when downloading the test harness.
 #   REGARDLESS: modified features are ALWAYS overwritten.
-#   REMOVE_LOCAL_FEATURES - cleanup cucumber feature files?
+#   REMOVE_LOCAL_FEATURES - delete all local cucumber feature files before downloading these from github.
 #
 #   WARNING: Be careful when turning on the next variable.
 #   In that case you'll need to provide all variables expected by `algorand-sdk-testing`'s `.env`
@@ -64,7 +64,7 @@ if [ -d "$SDK_TESTING_HARNESS" ]; then
   popd
   rm -rf "$SDK_TESTING_HARNESS"
   if [[ $SHUTDOWN == 1 ]]; then
-    echo "network shutdown complete."
+    echo "$THIS: network shutdown complete."
     exit 0
   fi
 else
@@ -72,7 +72,7 @@ else
 fi
 
 if [[ $SHUTDOWN == 1 ]]; then
-  echo "unable to shutdown network."
+  echo "$THIS: unable to shutdown network."
   exit 1
 fi
 
