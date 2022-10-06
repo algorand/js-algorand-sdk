@@ -1,15 +1,10 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from "../jsonrequest";
+import HTTPClient from "../../client";
+import IntDecoding from "../../../types/intDecoding";
 
 export default class GetBlockHash extends JSONRequest {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private round: number
-  ) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, round: number) {
     super(c, intDecoding);
-
     this.round = round;
   }
 
