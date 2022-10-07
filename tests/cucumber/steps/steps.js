@@ -2153,7 +2153,7 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    "we make a Lookup Block call against round {int} and header {string}",
+    'we make a Lookup Block call against round {int} and header {string}',
     async function (int, string) {
       await this.indexerClient.lookupBlock(int).headerOnly(string).do();
     }
@@ -4425,7 +4425,7 @@ module.exports = function getSteps(options) {
   });
 
   When(
-    "we make a Lookup Block Hash call against round {int}",
+    'we make a Lookup Block Hash call against round {int}',
     async function (int) {
       await this.v2Client.getBlockHash(int).do();
     }
