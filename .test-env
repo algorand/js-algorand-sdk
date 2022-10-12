@@ -3,6 +3,8 @@ SDK_TESTING_URL="https://github.com/algorand/algorand-sdk-testing"
 SDK_TESTING_BRANCH="feature/box-storage"
 SDK_TESTING_HARNESS="test-harness"
 
+INSTALL_ONLY=0
+
 VERBOSE_HARNESS=0
 
 # WARNING: If set to 1, new features will be LOST when downloading the test harness.

@@ -43,7 +43,7 @@ export default class SearchAccounts extends JSONRequest {
    *        .do();
    * ```
    * @remarks
-   * If you are looking for accounts with the currency amount greater than 0, simply construct the query without `currencyGreaterThan` because it doesn't accept `-1`, and passing the `0` `currency-greater-than` value would exclude transactions with a 0 amount.
+   * If you are looking for accounts with the currency amount greater than 0, simply construct the query without `currencyGreaterThan` because it doesn't accept `-1`, and passing the `0` `currency-greater-than` value would exclude accounts with a 0 amount.
    *
    * @param greater
    * @category query
