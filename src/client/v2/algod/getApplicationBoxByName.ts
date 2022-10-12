@@ -44,10 +44,6 @@ export default class GetApplicationBoxByName extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Box {
-    if (body.name == null)
-      throw new Error(`Response does not contain "name" property: ${body}`);
-    if (body.value == null)
-      throw new Error(`Response does not contain "value" property: ${body}`);
-    return new Box(body.name, body.value);
+    return Box.from_obj_for_encoding(body);
   }
 }

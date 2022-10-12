@@ -1435,6 +1435,17 @@ export class Box extends BaseModel {
       value: 'value',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Box {
+    /* eslint-disable dot-notation */
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['value'] === 'undefined')
+      throw new Error(`Response is missing required field 'value': ${data}`);
+    return new Box(data['name'], data['value']);
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1461,6 +1472,15 @@ export class BoxDescriptor extends BaseModel {
       name: 'name',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxDescriptor {
+    /* eslint-disable dot-notation */
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    return new BoxDescriptor(data['name']);
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1480,6 +1500,19 @@ export class BoxesResponse extends BaseModel {
     this.attribute_map = {
       boxes: 'boxes',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxesResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['boxes']))
+      throw new Error(
+        `Response is missing required array field 'boxes': ${data}`
+      );
+    return new BoxesResponse(
+      data['boxes'].map(BoxDescriptor.from_obj_for_encoding)
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -2973,6 +3006,7 @@ export class StateProof extends BaseModel {
       typeof stateproof === 'string'
         ? new Uint8Array(Buffer.from(stateproof, 'base64'))
         : stateproof;
+
     this.attribute_map = {
       message: 'Message',
       stateproof: 'StateProof',

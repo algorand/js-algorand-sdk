@@ -1,7 +1,7 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
-import { BoxesResponse, BoxDescriptor } from './models/types';
+import { BoxesResponse } from './models/types';
 
 /**
  * Given an application ID, return all the box names associated with the app.
@@ -56,19 +56,6 @@ export default class GetApplicationBoxes extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): BoxesResponse {
-    if (body.boxes == null || !Array.isArray(body.boxes))
-      throw new Error(
-        `Response does not contain "boxes" array property: ${body}`
-      );
-
-    const boxes = (body.boxes as any[]).map((box, index) => {
-      if (box.name == null)
-        throw new Error(
-          `Response box at index ${index} does not contain "name" property: ${box}`
-        );
-      return new BoxDescriptor(box.name);
-    });
-
-    return new BoxesResponse(boxes);
+    return BoxesResponse.from_obj_for_encoding(body);
   }
 }
