@@ -1,6 +1,7 @@
 const { default: HTTPClient } = require('./client');
 const { setSendTransactionHeaders } = require('./v2/algod/sendRawTransaction');
 
+/** @deprecated v1 algod APIs are deprecated, please use the v2 client */
 function Algod(
   token = '',
   baseServer = 'http://r2.algorand.network',
@@ -20,6 +21,7 @@ function Algod(
    * Takes an object and convert its note field to Buffer, if exist.
    * @param o
    * @returns {*}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   function noteb64ToNote(o) {
     if (!(o.noteb64 === undefined || o.noteb64 === null)) {
@@ -33,6 +35,7 @@ function Algod(
    * status retrieves the StatusResponse from the running node
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.status = async (headerObj = {}) => {
     const res = await c.get('/v1/status', {}, headerObj);
@@ -43,6 +46,7 @@ function Algod(
    * healthCheck returns an empty object iff the node is running
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.healthCheck = async (headerObj = {}) => {
     const res = await c.get('/health', {}, headerObj);
@@ -58,6 +62,7 @@ function Algod(
    * @param roundNumber
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.statusAfterBlock = async (roundNumber, headerObj = {}) => {
     if (!Number.isInteger(roundNumber))
@@ -76,6 +81,7 @@ function Algod(
    * @param maxTxns - number
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.pendingTransactions = async (maxTxns, headerObj = {}) => {
     if (!Number.isInteger(maxTxns)) throw Error('maxTxns should be an integer');
@@ -101,6 +107,7 @@ function Algod(
    * versions retrieves the VersionResponse from the running node
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.versions = async (headerObj = {}) => {
     const res = await c.get('/versions', {}, headerObj);
@@ -111,6 +118,7 @@ function Algod(
    * LedgerSupply gets the supply details for the specified node's Ledger
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.ledgerSupply = async (headerObj = {}) => {
     const res = await c.get('/v1/ledger/supply', {}, headerObj);
@@ -125,6 +133,7 @@ function Algod(
    * @param maxTxns - number, optional
    * @param headers, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.transactionByAddress = async (
     addr,
@@ -161,6 +170,7 @@ function Algod(
    * @param maxTxns - number, optional
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.transactionByAddressAndDate = async (
     addr,
@@ -188,6 +198,7 @@ function Algod(
    * @param txid
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.transactionById = async (txid, headerObj = {}) => {
     const res = await c.get(`/v1/transaction/${txid}`, {}, headerObj);
@@ -203,6 +214,7 @@ function Algod(
    * @param txid
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.transactionInformation = async (addr, txid, headerObj = {}) => {
     const res = await c.get(
@@ -221,6 +233,7 @@ function Algod(
    * @param txid
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.pendingTransactionInformation = async (txid, headerObj = {}) => {
     const res = await c.get(`/v1/transactions/pending/${txid}`, {}, headerObj);
@@ -235,6 +248,7 @@ function Algod(
    * @param addr - string
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.accountInformation = async (addr, headerObj = {}) => {
     const res = await c.get(`/v1/account/${addr}`, {}, headerObj);
@@ -246,6 +260,7 @@ function Algod(
    * @param index - number
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.assetInformation = async (index, headerObj = {}) => {
     const res = await c.get(`/v1/asset/${index}`, {}, headerObj);
@@ -256,6 +271,7 @@ function Algod(
    * suggestedFee gets the recommended transaction fee from the node
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.suggestedFee = async (headerObj = {}) => {
     const res = await c.get('/v1/transactions/fee', {}, headerObj);
@@ -267,6 +283,7 @@ function Algod(
    * @param txn - Uin8Array
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.sendRawTransaction = async (txn, headerObj = {}) => {
     const txHeaders = setSendTransactionHeaders(headerObj);
@@ -279,6 +296,7 @@ function Algod(
    * @param txn - Array of Uin8Array
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.sendRawTransactions = async (txns, headerObj = {}) => {
     const txHeaders = setSendTransactionHeaders(headerObj);
@@ -297,6 +315,7 @@ function Algod(
    * getTransactionParams returns to common needed parameters for a new transaction
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.getTransactionParams = async (headerObj = {}) => {
     const res = await c.get('/v1/transactions/params', {}, headerObj);
@@ -307,6 +326,7 @@ function Algod(
    * suggestParams returns to common needed parameters for a new transaction, in a format the transaction builder expects
    * @param headerObj, optional
    * @returns {Object}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.suggestParams = async (headerObj = {}) => {
     const result = await this.getTransactionParams(headerObj);
@@ -325,6 +345,7 @@ function Algod(
    * @param roundNumber
    * @param headerObj, optional
    * @returns {Promise<*>}
+   * @deprecated v1 algod APIs are deprecated, please use the v2 client
    */
   this.block = async (roundNumber, headerObj = {}) => {
     if (!Number.isInteger(roundNumber))

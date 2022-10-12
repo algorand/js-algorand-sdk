@@ -27,4 +27,13 @@ export default class LookupBlock extends JSONRequest {
   path() {
     return `/v2/blocks/${this.round}`;
   }
+
+  /**
+   * Header only flag. When this is set to true, returned block does not contain the
+   * transactions.
+   */
+  headerOnly(headerOnly: boolean) {
+    this.query['header-only'] = headerOnly;
+    return this;
+  }
 }

@@ -2226,6 +2226,13 @@ module.exports = function getSteps(options) {
   );
 
   When(
+    'we make a Lookup Block call against round {int} and header {string}',
+    async function (int, string) {
+      await this.indexerClient.lookupBlock(int).headerOnly(string).do();
+    }
+  );
+
+  When(
     'we make a Lookup Account by ID call against account {string} with round {int}',
     async function (account, round) {
       await this.indexerClient.lookupAccountByID(account).round(round).do();
@@ -4648,6 +4655,13 @@ module.exports = function getSteps(options) {
   When('we make a GetStateProof call for round {int}', async function (int) {
     await this.v2Client.getStateProof(int).do();
   });
+
+  When(
+    'we make a Lookup Block Hash call against round {int}',
+    async function (int) {
+      await this.v2Client.getBlockHash(int).do();
+    }
+  );
 
   Given(
     'a base64 encoded program bytes for heuristic sanity check {string}',

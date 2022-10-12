@@ -9,6 +9,7 @@ import Dryrun from './dryrun';
 import Genesis from './genesis';
 import GetAssetByID from './getAssetByID';
 import GetApplicationByID from './getApplicationByID';
+import GetBlockHash from './getBlockHash';
 import GetApplicationBoxByName from './getApplicationBoxByName';
 import GetApplicationBoxes from './getApplicationBoxes';
 import HealthCheck from './healthCheck';
@@ -205,6 +206,23 @@ export default class AlgodClient extends ServiceClient {
    */
   block(roundNumber: number) {
     return new Block(this.c, roundNumber);
+  }
+
+  /**
+   * Get the block hash for the block on the given round.
+   *
+   * #### Example
+   * ```typescript
+   * const roundNumber = 18038133;
+   * const block = await algodClient.getBlockHash(roundNumber).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundhash)
+   * @param roundNumber - The round number of the block to get.
+   * @category GET
+   */
+  getBlockHash(roundNumber: number) {
+    return new GetBlockHash(this.c, this.intDecoding, roundNumber);
   }
 
   /**

@@ -1,3 +1,15 @@
+# v1.21.0
+
+## What's Changed
+
+### Enhancements
+
+- Enhancement: Removing more unused steps by @tzaffi in https://github.com/algorand/js-algorand-sdk/pull/637
+- Enhancement: Add deprecation tag to algod v1 client by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/642
+- enhancement: add unit test for ParticipationUpdates field by @shiqizng in https://github.com/algorand/js-algorand-sdk/pull/652
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.20.0...v1.21.0
+
 # v1.20.0
 
 ## What's Changed
