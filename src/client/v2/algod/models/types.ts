@@ -3,7 +3,7 @@
  */
 
 /* eslint-disable no-use-before-define */
-import BaseModel from './base';
+import BaseModel from '../../basemodel';
 import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
 import BlockHeader from '../../../../types/blockHeader';
 
@@ -290,6 +290,96 @@ export class Account extends BaseModel {
       sigType: 'sig-type',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Account {
+    /* eslint-disable dot-notation */
+    if (typeof data['address'] === 'undefined')
+      throw new Error(`Response is missing required field 'address': ${data}`);
+    if (typeof data['amount'] === 'undefined')
+      throw new Error(`Response is missing required field 'amount': ${data}`);
+    if (typeof data['amount-without-pending-rewards'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'amount-without-pending-rewards': ${data}`
+      );
+    if (typeof data['min-balance'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'min-balance': ${data}`
+      );
+    if (typeof data['pending-rewards'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'pending-rewards': ${data}`
+      );
+    if (typeof data['rewards'] === 'undefined')
+      throw new Error(`Response is missing required field 'rewards': ${data}`);
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
+    if (typeof data['status'] === 'undefined')
+      throw new Error(`Response is missing required field 'status': ${data}`);
+    if (typeof data['total-apps-opted-in'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-apps-opted-in': ${data}`
+      );
+    if (typeof data['total-assets-opted-in'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-assets-opted-in': ${data}`
+      );
+    if (typeof data['total-created-apps'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-created-apps': ${data}`
+      );
+    if (typeof data['total-created-assets'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-created-assets': ${data}`
+      );
+    return new Account({
+      address: data['address'],
+      amount: data['amount'],
+      amountWithoutPendingRewards: data['amount-without-pending-rewards'],
+      minBalance: data['min-balance'],
+      pendingRewards: data['pending-rewards'],
+      rewards: data['rewards'],
+      round: data['round'],
+      status: data['status'],
+      totalAppsOptedIn: data['total-apps-opted-in'],
+      totalAssetsOptedIn: data['total-assets-opted-in'],
+      totalCreatedApps: data['total-created-apps'],
+      totalCreatedAssets: data['total-created-assets'],
+      appsLocalState:
+        typeof data['apps-local-state'] !== 'undefined'
+          ? data['apps-local-state'].map(
+              ApplicationLocalState.from_obj_for_encoding
+            )
+          : undefined,
+      appsTotalExtraPages: data['apps-total-extra-pages'],
+      appsTotalSchema:
+        typeof data['apps-total-schema'] !== 'undefined'
+          ? ApplicationStateSchema.from_obj_for_encoding(
+              data['apps-total-schema']
+            )
+          : undefined,
+      assets:
+        typeof data['assets'] !== 'undefined'
+          ? data['assets'].map(AssetHolding.from_obj_for_encoding)
+          : undefined,
+      authAddr: data['auth-addr'],
+      createdApps:
+        typeof data['created-apps'] !== 'undefined'
+          ? data['created-apps'].map(Application.from_obj_for_encoding)
+          : undefined,
+      createdAssets:
+        typeof data['created-assets'] !== 'undefined'
+          ? data['created-assets'].map(Asset.from_obj_for_encoding)
+          : undefined,
+      participation:
+        typeof data['participation'] !== 'undefined'
+          ? AccountParticipation.from_obj_for_encoding(data['participation'])
+          : undefined,
+      rewardBase: data['reward-base'],
+      sigType: data['sig-type'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -342,6 +432,25 @@ export class AccountApplicationResponse extends BaseModel {
       createdApp: 'created-app',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AccountApplicationResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
+    return new AccountApplicationResponse(
+      data['round'],
+      typeof data['app-local-state'] !== 'undefined'
+        ? ApplicationLocalState.from_obj_for_encoding(data['app-local-state'])
+        : undefined,
+      typeof data['created-app'] !== 'undefined'
+        ? ApplicationParams.from_obj_for_encoding(data['created-app'])
+        : undefined
+    );
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -390,6 +499,25 @@ export class AccountAssetResponse extends BaseModel {
       assetHolding: 'asset-holding',
       createdAsset: 'created-asset',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AccountAssetResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
+    return new AccountAssetResponse(
+      data['round'],
+      typeof data['asset-holding'] !== 'undefined'
+        ? AssetHolding.from_obj_for_encoding(data['asset-holding'])
+        : undefined,
+      typeof data['created-asset'] !== 'undefined'
+        ? AssetParams.from_obj_for_encoding(data['created-asset'])
+        : undefined
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -480,6 +608,42 @@ export class AccountParticipation extends BaseModel {
       stateProofKey: 'state-proof-key',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AccountParticipation {
+    /* eslint-disable dot-notation */
+    if (typeof data['selection-participation-key'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'selection-participation-key': ${data}`
+      );
+    if (typeof data['vote-first-valid'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'vote-first-valid': ${data}`
+      );
+    if (typeof data['vote-key-dilution'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'vote-key-dilution': ${data}`
+      );
+    if (typeof data['vote-last-valid'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'vote-last-valid': ${data}`
+      );
+    if (typeof data['vote-participation-key'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'vote-participation-key': ${data}`
+      );
+    return new AccountParticipation({
+      selectionParticipationKey: data['selection-participation-key'],
+      voteFirstValid: data['vote-first-valid'],
+      voteKeyDilution: data['vote-key-dilution'],
+      voteLastValid: data['vote-last-valid'],
+      voteParticipationKey: data['vote-participation-key'],
+      stateProofKey: data['state-proof-key'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -507,6 +671,22 @@ export class AccountStateDelta extends BaseModel {
       address: 'address',
       delta: 'delta',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AccountStateDelta {
+    /* eslint-disable dot-notation */
+    if (typeof data['address'] === 'undefined')
+      throw new Error(`Response is missing required field 'address': ${data}`);
+    if (!Array.isArray(data['delta']))
+      throw new Error(
+        `Response is missing required array field 'delta': ${data}`
+      );
+    return new AccountStateDelta(
+      data['address'],
+      data['delta'].map(EvalDeltaKeyValue.from_obj_for_encoding)
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -538,6 +718,20 @@ export class Application extends BaseModel {
       id: 'id',
       params: 'params',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Application {
+    /* eslint-disable dot-notation */
+    if (typeof data['id'] === 'undefined')
+      throw new Error(`Response is missing required field 'id': ${data}`);
+    if (typeof data['params'] === 'undefined')
+      throw new Error(`Response is missing required field 'params': ${data}`);
+    return new Application(
+      data['id'],
+      ApplicationParams.from_obj_for_encoding(data['params'])
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -581,6 +775,25 @@ export class ApplicationLocalState extends BaseModel {
       schema: 'schema',
       keyValue: 'key-value',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationLocalState {
+    /* eslint-disable dot-notation */
+    if (typeof data['id'] === 'undefined')
+      throw new Error(`Response is missing required field 'id': ${data}`);
+    if (typeof data['schema'] === 'undefined')
+      throw new Error(`Response is missing required field 'schema': ${data}`);
+    return new ApplicationLocalState(
+      data['id'],
+      ApplicationStateSchema.from_obj_for_encoding(data['schema']),
+      typeof data['key-value'] !== 'undefined'
+        ? data['key-value'].map(TealKeyValue.from_obj_for_encoding)
+        : undefined
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -677,6 +890,44 @@ export class ApplicationParams extends BaseModel {
       localStateSchema: 'local-state-schema',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ApplicationParams {
+    /* eslint-disable dot-notation */
+    if (typeof data['approval-program'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'approval-program': ${data}`
+      );
+    if (typeof data['clear-state-program'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'clear-state-program': ${data}`
+      );
+    if (typeof data['creator'] === 'undefined')
+      throw new Error(`Response is missing required field 'creator': ${data}`);
+    return new ApplicationParams({
+      approvalProgram: data['approval-program'],
+      clearStateProgram: data['clear-state-program'],
+      creator: data['creator'],
+      extraProgramPages: data['extra-program-pages'],
+      globalState:
+        typeof data['global-state'] !== 'undefined'
+          ? data['global-state'].map(TealKeyValue.from_obj_for_encoding)
+          : undefined,
+      globalStateSchema:
+        typeof data['global-state-schema'] !== 'undefined'
+          ? ApplicationStateSchema.from_obj_for_encoding(
+              data['global-state-schema']
+            )
+          : undefined,
+      localStateSchema:
+        typeof data['local-state-schema'] !== 'undefined'
+          ? ApplicationStateSchema.from_obj_for_encoding(
+              data['local-state-schema']
+            )
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -707,6 +958,21 @@ export class ApplicationStateSchema extends BaseModel {
       numUint: 'num-uint',
       numByteSlice: 'num-byte-slice',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationStateSchema {
+    /* eslint-disable dot-notation */
+    if (typeof data['num-uint'] === 'undefined')
+      throw new Error(`Response is missing required field 'num-uint': ${data}`);
+    if (typeof data['num-byte-slice'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'num-byte-slice': ${data}`
+      );
+    return new ApplicationStateSchema(data['num-uint'], data['num-byte-slice']);
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -744,6 +1010,20 @@ export class Asset extends BaseModel {
       index: 'index',
       params: 'params',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Asset {
+    /* eslint-disable dot-notation */
+    if (typeof data['index'] === 'undefined')
+      throw new Error(`Response is missing required field 'index': ${data}`);
+    if (typeof data['params'] === 'undefined')
+      throw new Error(`Response is missing required field 'params': ${data}`);
+    return new Asset(
+      data['index'],
+      AssetParams.from_obj_for_encoding(data['params'])
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -789,6 +1069,25 @@ export class AssetHolding extends BaseModel {
       assetId: 'asset-id',
       isFrozen: 'is-frozen',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AssetHolding {
+    /* eslint-disable dot-notation */
+    if (typeof data['amount'] === 'undefined')
+      throw new Error(`Response is missing required field 'amount': ${data}`);
+    if (typeof data['asset-id'] === 'undefined')
+      throw new Error(`Response is missing required field 'asset-id': ${data}`);
+    if (typeof data['is-frozen'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'is-frozen': ${data}`
+      );
+    return new AssetHolding(
+      data['amount'],
+      data['asset-id'],
+      data['is-frozen']
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -994,6 +1293,69 @@ export class AssetParams extends BaseModel {
       urlB64: 'url-b64',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AssetParams {
+    /* eslint-disable dot-notation */
+    if (typeof data['creator'] === 'undefined')
+      throw new Error(`Response is missing required field 'creator': ${data}`);
+    if (typeof data['decimals'] === 'undefined')
+      throw new Error(`Response is missing required field 'decimals': ${data}`);
+    if (typeof data['total'] === 'undefined')
+      throw new Error(`Response is missing required field 'total': ${data}`);
+    return new AssetParams({
+      creator: data['creator'],
+      decimals: data['decimals'],
+      total: data['total'],
+      clawback: data['clawback'],
+      defaultFrozen: data['default-frozen'],
+      freeze: data['freeze'],
+      manager: data['manager'],
+      metadataHash: data['metadata-hash'],
+      name: data['name'],
+      nameB64: data['name-b64'],
+      reserve: data['reserve'],
+      unitName: data['unit-name'],
+      unitNameB64: data['unit-name-b64'],
+      url: data['url'],
+      urlB64: data['url-b64'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Hash of a block header.
+ */
+export class BlockHashResponse extends BaseModel {
+  /**
+   * Block header hash.
+   */
+  public blockhash: string;
+
+  /**
+   * Creates a new `BlockHashResponse` object.
+   * @param blockhash - Block header hash.
+   */
+  constructor(blockhash: string) {
+    super();
+    this.blockhash = blockhash;
+
+    this.attribute_map = {
+      blockhash: 'blockHash',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockHashResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['blockHash'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'blockHash': ${data}`
+      );
+    return new BlockHashResponse(data['blockHash']);
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1026,6 +1388,15 @@ export class BlockResponse extends BaseModel {
       block: 'block',
       cert: 'cert',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['block'] === 'undefined')
+      throw new Error(`Response is missing required field 'block': ${data}`);
+    return new BlockResponse(data['block'], data['cert']);
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1166,6 +1537,36 @@ export class BuildVersion extends BaseModel {
       minor: 'minor',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BuildVersion {
+    /* eslint-disable dot-notation */
+    if (typeof data['branch'] === 'undefined')
+      throw new Error(`Response is missing required field 'branch': ${data}`);
+    if (typeof data['build_number'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'build_number': ${data}`
+      );
+    if (typeof data['channel'] === 'undefined')
+      throw new Error(`Response is missing required field 'channel': ${data}`);
+    if (typeof data['commit_hash'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'commit_hash': ${data}`
+      );
+    if (typeof data['major'] === 'undefined')
+      throw new Error(`Response is missing required field 'major': ${data}`);
+    if (typeof data['minor'] === 'undefined')
+      throw new Error(`Response is missing required field 'minor': ${data}`);
+    return new BuildVersion({
+      branch: data['branch'],
+      buildNumber: data['build_number'],
+      channel: data['channel'],
+      commitHash: data['commit_hash'],
+      major: data['major'],
+      minor: data['minor'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1189,6 +1590,19 @@ export class CatchpointAbortResponse extends BaseModel {
       catchupMessage: 'catchup-message',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): CatchpointAbortResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['catchup-message'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'catchup-message': ${data}`
+      );
+    return new CatchpointAbortResponse(data['catchup-message']);
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1211,6 +1625,19 @@ export class CatchpointStartResponse extends BaseModel {
     this.attribute_map = {
       catchupMessage: 'catchup-message',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): CatchpointStartResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['catchup-message'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'catchup-message': ${data}`
+      );
+    return new CatchpointStartResponse(data['catchup-message']);
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1251,6 +1678,17 @@ export class CompileResponse extends BaseModel {
       sourcemap: 'sourcemap',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): CompileResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['hash'] === 'undefined')
+      throw new Error(`Response is missing required field 'hash': ${data}`);
+    if (typeof data['result'] === 'undefined')
+      throw new Error(`Response is missing required field 'result': ${data}`);
+    return new CompileResponse(data['hash'], data['result'], data['sourcemap']);
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1273,6 +1711,15 @@ export class DisassembleResponse extends BaseModel {
     this.attribute_map = {
       result: 'result',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): DisassembleResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['result'] === 'undefined')
+      throw new Error(`Response is missing required field 'result': ${data}`);
+    return new DisassembleResponse(data['result']);
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1356,6 +1803,47 @@ export class DryrunRequest extends BaseModel {
       txns: 'txns',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): DryrunRequest {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['accounts']))
+      throw new Error(
+        `Response is missing required array field 'accounts': ${data}`
+      );
+    if (!Array.isArray(data['apps']))
+      throw new Error(
+        `Response is missing required array field 'apps': ${data}`
+      );
+    if (typeof data['latest-timestamp'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'latest-timestamp': ${data}`
+      );
+    if (typeof data['protocol-version'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'protocol-version': ${data}`
+      );
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
+    if (!Array.isArray(data['sources']))
+      throw new Error(
+        `Response is missing required array field 'sources': ${data}`
+      );
+    if (!Array.isArray(data['txns']))
+      throw new Error(
+        `Response is missing required array field 'txns': ${data}`
+      );
+    return new DryrunRequest({
+      accounts: data['accounts'].map(Account.from_obj_for_encoding),
+      apps: data['apps'].map(Application.from_obj_for_encoding),
+      latestTimestamp: data['latest-timestamp'],
+      protocolVersion: data['protocol-version'],
+      round: data['round'],
+      sources: data['sources'].map(DryrunSource.from_obj_for_encoding),
+      txns: data['txns'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1388,6 +1876,27 @@ export class DryrunResponse extends BaseModel {
       protocolVersion: 'protocol-version',
       txns: 'txns',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): DryrunResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['error'] === 'undefined')
+      throw new Error(`Response is missing required field 'error': ${data}`);
+    if (typeof data['protocol-version'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'protocol-version': ${data}`
+      );
+    if (!Array.isArray(data['txns']))
+      throw new Error(
+        `Response is missing required array field 'txns': ${data}`
+      );
+    return new DryrunResponse(
+      data['error'],
+      data['protocol-version'],
+      data['txns'].map(DryrunTxnResult.from_obj_for_encoding)
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1436,6 +1945,32 @@ export class DryrunSource extends BaseModel {
       txnIndex: 'txn-index',
       appIndex: 'app-index',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): DryrunSource {
+    /* eslint-disable dot-notation */
+    if (typeof data['field-name'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'field-name': ${data}`
+      );
+    if (typeof data['source'] === 'undefined')
+      throw new Error(`Response is missing required field 'source': ${data}`);
+    if (typeof data['txn-index'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'txn-index': ${data}`
+      );
+    if (typeof data['app-index'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'app-index': ${data}`
+      );
+    return new DryrunSource(
+      data['field-name'],
+      data['source'],
+      data['txn-index'],
+      data['app-index']
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1497,6 +2032,30 @@ export class DryrunState extends BaseModel {
       error: 'error',
       scratch: 'scratch',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): DryrunState {
+    /* eslint-disable dot-notation */
+    if (typeof data['line'] === 'undefined')
+      throw new Error(`Response is missing required field 'line': ${data}`);
+    if (typeof data['pc'] === 'undefined')
+      throw new Error(`Response is missing required field 'pc': ${data}`);
+    if (!Array.isArray(data['stack']))
+      throw new Error(
+        `Response is missing required array field 'stack': ${data}`
+      );
+    return new DryrunState({
+      line: data['line'],
+      pc: data['pc'],
+      stack: data['stack'].map(TealValue.from_obj_for_encoding),
+      error: data['error'],
+      scratch:
+        typeof data['scratch'] !== 'undefined'
+          ? data['scratch'].map(TealValue.from_obj_for_encoding)
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1620,6 +2179,42 @@ export class DryrunTxnResult extends BaseModel {
       logs: 'logs',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): DryrunTxnResult {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['disassembly']))
+      throw new Error(
+        `Response is missing required array field 'disassembly': ${data}`
+      );
+    return new DryrunTxnResult({
+      disassembly: data['disassembly'],
+      appCallMessages: data['app-call-messages'],
+      appCallTrace:
+        typeof data['app-call-trace'] !== 'undefined'
+          ? data['app-call-trace'].map(DryrunState.from_obj_for_encoding)
+          : undefined,
+      budgetAdded: data['budget-added'],
+      budgetConsumed: data['budget-consumed'],
+      cost: data['cost'],
+      globalDelta:
+        typeof data['global-delta'] !== 'undefined'
+          ? data['global-delta'].map(EvalDeltaKeyValue.from_obj_for_encoding)
+          : undefined,
+      localDeltas:
+        typeof data['local-deltas'] !== 'undefined'
+          ? data['local-deltas'].map(AccountStateDelta.from_obj_for_encoding)
+          : undefined,
+      logicSigDisassembly: data['logic-sig-disassembly'],
+      logicSigMessages: data['logic-sig-messages'],
+      logicSigTrace:
+        typeof data['logic-sig-trace'] !== 'undefined'
+          ? data['logic-sig-trace'].map(DryrunState.from_obj_for_encoding)
+          : undefined,
+      logs: data['logs'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1644,6 +2239,15 @@ export class ErrorResponse extends BaseModel {
       message: 'message',
       data: 'data',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ErrorResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['message'] === 'undefined')
+      throw new Error(`Response is missing required field 'message': ${data}`);
+    return new ErrorResponse(data['message'], data['data']);
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1684,6 +2288,15 @@ export class EvalDelta extends BaseModel {
       uint: 'uint',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): EvalDelta {
+    /* eslint-disable dot-notation */
+    if (typeof data['action'] === 'undefined')
+      throw new Error(`Response is missing required field 'action': ${data}`);
+    return new EvalDelta(data['action'], data['bytes'], data['uint']);
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -1711,6 +2324,20 @@ export class EvalDeltaKeyValue extends BaseModel {
       key: 'key',
       value: 'value',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): EvalDeltaKeyValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['key'] === 'undefined')
+      throw new Error(`Response is missing required field 'key': ${data}`);
+    if (typeof data['value'] === 'undefined')
+      throw new Error(`Response is missing required field 'value': ${data}`);
+    return new EvalDeltaKeyValue(
+      data['key'],
+      EvalDelta.from_obj_for_encoding(data['value'])
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1759,6 +2386,27 @@ export class LightBlockHeaderProof extends BaseModel {
       proof: 'proof',
       treedepth: 'treedepth',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): LightBlockHeaderProof {
+    /* eslint-disable dot-notation */
+    if (typeof data['index'] === 'undefined')
+      throw new Error(`Response is missing required field 'index': ${data}`);
+    if (typeof data['proof'] === 'undefined')
+      throw new Error(`Response is missing required field 'proof': ${data}`);
+    if (typeof data['treedepth'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'treedepth': ${data}`
+      );
+    return new LightBlockHeaderProof(
+      data['index'],
+      data['proof'],
+      data['treedepth']
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -1939,6 +2587,61 @@ export class NodeStatusResponse extends BaseModel {
       lastCatchpoint: 'last-catchpoint',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): NodeStatusResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['catchup-time'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'catchup-time': ${data}`
+      );
+    if (typeof data['last-round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'last-round': ${data}`
+      );
+    if (typeof data['last-version'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'last-version': ${data}`
+      );
+    if (typeof data['next-version'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'next-version': ${data}`
+      );
+    if (typeof data['next-version-round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'next-version-round': ${data}`
+      );
+    if (typeof data['next-version-supported'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'next-version-supported': ${data}`
+      );
+    if (typeof data['stopped-at-unsupported-round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'stopped-at-unsupported-round': ${data}`
+      );
+    if (typeof data['time-since-last-round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'time-since-last-round': ${data}`
+      );
+    return new NodeStatusResponse({
+      catchupTime: data['catchup-time'],
+      lastRound: data['last-round'],
+      lastVersion: data['last-version'],
+      nextVersion: data['next-version'],
+      nextVersionRound: data['next-version-round'],
+      nextVersionSupported: data['next-version-supported'],
+      stoppedAtUnsupportedRound: data['stopped-at-unsupported-round'],
+      timeSinceLastRound: data['time-since-last-round'],
+      catchpoint: data['catchpoint'],
+      catchpointAcquiredBlocks: data['catchpoint-acquired-blocks'],
+      catchpointProcessedAccounts: data['catchpoint-processed-accounts'],
+      catchpointTotalAccounts: data['catchpoint-total-accounts'],
+      catchpointTotalBlocks: data['catchpoint-total-blocks'],
+      catchpointVerifiedAccounts: data['catchpoint-verified-accounts'],
+      lastCatchpoint: data['last-catchpoint'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -2107,6 +2810,51 @@ export class PendingTransactionResponse extends BaseModel {
       senderRewards: 'sender-rewards',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): PendingTransactionResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['pool-error'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'pool-error': ${data}`
+      );
+    if (typeof data['txn'] === 'undefined')
+      throw new Error(`Response is missing required field 'txn': ${data}`);
+    return new PendingTransactionResponse({
+      poolError: data['pool-error'],
+      txn: data['txn'],
+      applicationIndex: data['application-index'],
+      assetClosingAmount: data['asset-closing-amount'],
+      assetIndex: data['asset-index'],
+      closeRewards: data['close-rewards'],
+      closingAmount: data['closing-amount'],
+      confirmedRound: data['confirmed-round'],
+      globalStateDelta:
+        typeof data['global-state-delta'] !== 'undefined'
+          ? data['global-state-delta'].map(
+              EvalDeltaKeyValue.from_obj_for_encoding
+            )
+          : undefined,
+      innerTxns:
+        typeof data['inner-txns'] !== 'undefined'
+          ? data['inner-txns'].map(
+              PendingTransactionResponse.from_obj_for_encoding
+            )
+          : undefined,
+      localStateDelta:
+        typeof data['local-state-delta'] !== 'undefined'
+          ? data['local-state-delta'].map(
+              AccountStateDelta.from_obj_for_encoding
+            )
+          : undefined,
+      logs: data['logs'],
+      receiverRewards: data['receiver-rewards'],
+      senderRewards: data['sender-rewards'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -2143,6 +2891,26 @@ export class PendingTransactionsResponse extends BaseModel {
       totalTransactions: 'total-transactions',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): PendingTransactionsResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['top-transactions']))
+      throw new Error(
+        `Response is missing required array field 'top-transactions': ${data}`
+      );
+    if (typeof data['total-transactions'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-transactions': ${data}`
+      );
+    return new PendingTransactionsResponse(
+      data['top-transactions'],
+      data['total-transactions']
+    );
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -2165,6 +2933,17 @@ export class PostTransactionsResponse extends BaseModel {
     this.attribute_map = {
       txid: 'txId',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): PostTransactionsResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['txId'] === 'undefined')
+      throw new Error(`Response is missing required field 'txId': ${data}`);
+    return new PostTransactionsResponse(data['txId']);
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -2198,6 +2977,22 @@ export class StateProof extends BaseModel {
       message: 'Message',
       stateproof: 'StateProof',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProof {
+    /* eslint-disable dot-notation */
+    if (typeof data['Message'] === 'undefined')
+      throw new Error(`Response is missing required field 'Message': ${data}`);
+    if (typeof data['StateProof'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'StateProof': ${data}`
+      );
+    return new StateProof(
+      StateProofMessage.from_obj_for_encoding(data['Message']),
+      data['StateProof']
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -2276,6 +3071,39 @@ export class StateProofMessage extends BaseModel {
       voterscommitment: 'VotersCommitment',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): StateProofMessage {
+    /* eslint-disable dot-notation */
+    if (typeof data['BlockHeadersCommitment'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'BlockHeadersCommitment': ${data}`
+      );
+    if (typeof data['FirstAttestedRound'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'FirstAttestedRound': ${data}`
+      );
+    if (typeof data['LastAttestedRound'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'LastAttestedRound': ${data}`
+      );
+    if (typeof data['LnProvenWeight'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'LnProvenWeight': ${data}`
+      );
+    if (typeof data['VotersCommitment'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'VotersCommitment': ${data}`
+      );
+    return new StateProofMessage({
+      blockheaderscommitment: data['BlockHeadersCommitment'],
+      firstattestedround: data['FirstAttestedRound'],
+      lastattestedround: data['LastAttestedRound'],
+      lnprovenweight: data['LnProvenWeight'],
+      voterscommitment: data['VotersCommitment'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -2319,6 +3147,29 @@ export class SupplyResponse extends BaseModel {
       totalMoney: 'total-money',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): SupplyResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['current_round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'current_round': ${data}`
+      );
+    if (typeof data['online-money'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'online-money': ${data}`
+      );
+    if (typeof data['total-money'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-money': ${data}`
+      );
+    return new SupplyResponse(
+      data['current_round'],
+      data['online-money'],
+      data['total-money']
+    );
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -2346,6 +3197,20 @@ export class TealKeyValue extends BaseModel {
       key: 'key',
       value: 'value',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): TealKeyValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['key'] === 'undefined')
+      throw new Error(`Response is missing required field 'key': ${data}`);
+    if (typeof data['value'] === 'undefined')
+      throw new Error(`Response is missing required field 'value': ${data}`);
+    return new TealKeyValue(
+      data['key'],
+      TealValue.from_obj_for_encoding(data['value'])
+    );
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -2385,6 +3250,19 @@ export class TealValue extends BaseModel {
       bytes: 'bytes',
       uint: 'uint',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): TealValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['type'] === 'undefined')
+      throw new Error(`Response is missing required field 'type': ${data}`);
+    if (typeof data['bytes'] === 'undefined')
+      throw new Error(`Response is missing required field 'bytes': ${data}`);
+    if (typeof data['uint'] === 'undefined')
+      throw new Error(`Response is missing required field 'uint': ${data}`);
+    return new TealValue(data['type'], data['bytes'], data['uint']);
+    /* eslint-enable dot-notation */
   }
 }
 
@@ -2477,6 +3355,42 @@ export class TransactionParametersResponse extends BaseModel {
       minFee: 'min-fee',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionParametersResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['consensus-version'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'consensus-version': ${data}`
+      );
+    if (typeof data['fee'] === 'undefined')
+      throw new Error(`Response is missing required field 'fee': ${data}`);
+    if (typeof data['genesis-hash'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'genesis-hash': ${data}`
+      );
+    if (typeof data['genesis-id'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'genesis-id': ${data}`
+      );
+    if (typeof data['last-round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'last-round': ${data}`
+      );
+    if (typeof data['min-fee'] === 'undefined')
+      throw new Error(`Response is missing required field 'min-fee': ${data}`);
+    return new TransactionParametersResponse({
+      consensusVersion: data['consensus-version'],
+      fee: data['fee'],
+      genesisHash: data['genesis-hash'],
+      genesisId: data['genesis-id'],
+      lastRound: data['last-round'],
+      minFee: data['min-fee'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -2556,6 +3470,31 @@ export class TransactionProofResponse extends BaseModel {
       hashtype: 'hashtype',
     };
   }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionProofResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['idx'] === 'undefined')
+      throw new Error(`Response is missing required field 'idx': ${data}`);
+    if (typeof data['proof'] === 'undefined')
+      throw new Error(`Response is missing required field 'proof': ${data}`);
+    if (typeof data['stibhash'] === 'undefined')
+      throw new Error(`Response is missing required field 'stibhash': ${data}`);
+    if (typeof data['treedepth'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'treedepth': ${data}`
+      );
+    return new TransactionProofResponse({
+      idx: data['idx'],
+      proof: data['proof'],
+      stibhash: data['stibhash'],
+      treedepth: data['treedepth'],
+      hashtype: data['hashtype'],
+    });
+    /* eslint-enable dot-notation */
+  }
 }
 
 /**
@@ -2598,5 +3537,31 @@ export class Version extends BaseModel {
       genesisId: 'genesis_id',
       versions: 'versions',
     };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Version {
+    /* eslint-disable dot-notation */
+    if (typeof data['build'] === 'undefined')
+      throw new Error(`Response is missing required field 'build': ${data}`);
+    if (typeof data['genesis_hash_b64'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'genesis_hash_b64': ${data}`
+      );
+    if (typeof data['genesis_id'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'genesis_id': ${data}`
+      );
+    if (!Array.isArray(data['versions']))
+      throw new Error(
+        `Response is missing required array field 'versions': ${data}`
+      );
+    return new Version(
+      BuildVersion.from_obj_for_encoding(data['build']),
+      data['genesis_hash_b64'],
+      data['genesis_id'],
+      data['versions']
+    );
+    /* eslint-enable dot-notation */
   }
 }
