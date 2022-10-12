@@ -1,3 +1,17 @@
+# v1.22.0
+
+## What's Changed
+
+### Bugfixes
+
+- Bug-Fix: Fix typo in documentation for `searchAccounts` `currencyGreaterThan` by @fionnachan in https://github.com/algorand/js-algorand-sdk/pull/572
+
+### Enhancements
+
+- REST API: Add algod block hash endpoint, add indexer block header-only param. by @winder in https://github.com/algorand/js-algorand-sdk/pull/665
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.21.0...v1.22.0
+
 # v1.21.0
 
 ## What's Changed
