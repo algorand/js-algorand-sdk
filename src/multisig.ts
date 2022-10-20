@@ -248,8 +248,8 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     address.fromMultisigPreImg(refPreImage)
   );
 
-  let newSubsigs = refSigTx.msig.subsig;
-  for (let i = 0; i < multisigTxnBlobs.length; i++) {
+  const newSubsigs = refSigTx.msig.subsig;
+  for (let i = 1; i < multisigTxnBlobs.length; i++) {
     const unisig = encoding.decode(
       multisigTxnBlobs[i]
     ) as EncodedSignedTransaction;
@@ -281,32 +281,21 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     }
 
     // now, we can merge
-    newSubsigs = unisig.msig.subsig.map((uniSubsig, index) => {
-      const current = refSigTx.msig.subsig[index];
-      if (current.s) {
-        // we convert the Uint8Arrays uniSubsig.s and current.s to Buffers here because (as
-        // of Dec 2020) React overrides the buffer package with an older version that does
-        // not support Uint8Arrays in the comparison function. See this thread for more
-        // info: https://github.com/algorand/js-algorand-sdk/issues/252
-        if (
-          uniSubsig.s &&
-          Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0
-        ) {
-          // mismatch
-          throw new Error(MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG);
-        }
-        return {
-          pk: current.pk,
-          s: current.s,
-        };
+    unisig.msig.subsig.forEach((uniSubsig, index) => {
+      if (!uniSubsig.s) return;
+      const current = newSubsigs[index];
+      // we convert the Uint8Arrays uniSubsig.s and current.s to Buffers here because (as
+      // of Dec 2020) React overrides the buffer package with an older version that does
+      // not support Uint8Arrays in the comparison function. See this thread for more
+      // info: https://github.com/algorand/js-algorand-sdk/issues/252
+      if (
+        current.s &&
+        Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0
+      ) {
+        // mismatch
+        throw new Error(MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG);
       }
-      if (uniSubsig.s) {
-        return {
-          pk: current.pk,
-          s: uniSubsig.s,
-        };
-      }
-      return current;
+      current.s = uniSubsig.s;
     });
   }
   const msig: EncodedMultisig = {
