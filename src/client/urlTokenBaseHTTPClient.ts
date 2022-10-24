@@ -1,7 +1,8 @@
-import fetch from 'cross-fetch';
+import { fetch, Response, Headers } from 'cross-fetch';
 import {
   BaseHTTPClient,
   BaseHTTPClientResponse,
+  BaseHTTPClientError,
   Query,
 } from './baseHTTPClient';
 
@@ -19,6 +20,14 @@ export interface KMDTokenHeader {
 
 export interface CustomTokenHeader {
   [headerName: string]: string;
+}
+
+class URLTokenBaseHTTPError extends Error implements BaseHTTPClientError {
+  constructor(message: string, public response: BaseHTTPClientResponse) {
+    super(message);
+    this.name = 'URLTokenBaseHTTPError';
+    this.response = response;
+  }
 }
 
 export type TokenHeader =
@@ -66,7 +75,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
    * @param relativePath - A path string
    * @returns A URL string
    */
-  private addressWithPath(relativePath: string) {
+  private getURL(relativePath: string, query?: Query<string>): string {
     let fixedRelativePath: string;
     if (relativePath.startsWith('./')) {
       fixedRelativePath = relativePath;
@@ -76,41 +85,65 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       fixedRelativePath = `./${relativePath}`;
     }
     const address = new URL(fixedRelativePath, this.baseURL);
+    if (query) {
+      for (const [key, value] of Object.entries(query)) {
+        address.searchParams.set(key, value);
+      }
+    }
     return address.toString();
   }
 
-  private static async formatFetchResponse(res: any): Promise<Uint8Array> {
-    // Clone the response so that it's not consumed in the json check
-    const resClone = res.clone();
+  private static formatFetchResponseHeaders(
+    headers: Headers
+  ): Record<string, string> {
+    const headersObj: Record<string, string> = {};
+    headers.forEach((key, value) => {
+      headersObj[key] = value;
+    });
+    return headersObj;
+  }
+
+  private static async checkHttpError(res: Response) {
+    if (res.ok) {
+      return;
+    }
+
+    let body: Uint8Array | null = null;
+    let bodyErrorMessage: string | null = null;
+
     try {
-      // 'content-type' headers can not be relied on in all cases, so just check for json
-      return Buffer.from(JSON.stringify(await res.json()));
-    } catch {
-      // Failures are expected to be message packed so transform it to Uint8Array
-      return new Uint8Array(await resClone.arrayBuffer());
-    }
-  }
-
-  private static formatFetchError(err: any): Error {
-    if (err.response) {
-      try {
-        const decoded = JSON.parse(Buffer.from(err.response.body).toString());
-        // eslint-disable-next-line no-param-reassign
-        err.message = `Network request error. Received status ${err.response.status}: ${decoded.message}`;
-      } catch (err2) {
-        // ignore any error that happened while we are formatting the original error
+      body = new Uint8Array(await res.arrayBuffer());
+      const decoded: Record<string, any> = JSON.parse(
+        Buffer.from(body).toString()
+      );
+      if (decoded.message) {
+        bodyErrorMessage = decoded.message;
       }
+    } catch (_) {
+      // ignore any error that happened while we are parsing the error response
     }
-    return err;
+
+    let message = `Network request error. Received status ${res.status} (${res.statusText})`;
+    if (bodyErrorMessage) {
+      message += `: ${bodyErrorMessage}`;
+    }
+
+    throw new URLTokenBaseHTTPError(message, {
+      body,
+      status: res.status,
+      headers: URLTokenBaseHTTPClient.formatFetchResponseHeaders(res.headers),
+    });
   }
 
-  private static getQueryPath(query: Query<string>): string {
-    // Create a queryPath for params
-    let queryPath = '';
-    if (query && Object.keys(query).length !== 0) {
-      queryPath += `?${new URLSearchParams(query)}`;
-    }
-    return queryPath;
+  private static async formatFetchResponse(
+    res: Response
+  ): Promise<BaseHTTPClientResponse> {
+    await this.checkHttpError(res);
+    return {
+      body: new Uint8Array(await res.arrayBuffer()),
+      status: res.status,
+      headers: URLTokenBaseHTTPClient.formatFetchResponseHeaders(res.headers),
+    };
   }
 
   async get(
@@ -125,25 +158,12 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       ...requestHeaders,
     };
 
-    return fetch(
-      `${this.addressWithPath(
-        relativePath
-      )}${URLTokenBaseHTTPClient.getQueryPath(query)}`,
-      {
-        headers,
-      }
-    )
-      .then(
-        async (res: Response): Promise<BaseHTTPClientResponse> =>
-          (({
-            body: await URLTokenBaseHTTPClient.formatFetchResponse(res),
-            status: res.status,
-            headers: res.headers,
-          } as unknown) as BaseHTTPClientResponse)
-      )
-      .catch((err) => {
-        throw URLTokenBaseHTTPClient.formatFetchError(err);
-      });
+    const res = await fetch(this.getURL(relativePath, query), {
+      mode: 'cors',
+      headers,
+    });
+
+    return URLTokenBaseHTTPClient.formatFetchResponse(res);
   }
 
   async post(
@@ -159,27 +179,14 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       ...requestHeaders,
     };
 
-    return fetch(
-      `${this.addressWithPath(
-        relativePath
-      )}${URLTokenBaseHTTPClient.getQueryPath(query)}`,
-      {
-        method: 'POST',
-        body: data,
-        headers,
-      }
-    )
-      .then(
-        async (res: Response): Promise<BaseHTTPClientResponse> =>
-          (({
-            body: await URLTokenBaseHTTPClient.formatFetchResponse(res),
-            status: res.status,
-            headers: res.headers,
-          } as unknown) as BaseHTTPClientResponse)
-      )
-      .catch((err) => {
-        throw URLTokenBaseHTTPClient.formatFetchError(err);
-      });
+    const res = await fetch(this.getURL(relativePath, query), {
+      method: 'POST',
+      mode: 'cors',
+      body: data,
+      headers,
+    });
+
+    return URLTokenBaseHTTPClient.formatFetchResponse(res);
   }
 
   async delete(
@@ -195,26 +202,13 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       ...requestHeaders,
     };
 
-    return fetch(
-      `${this.addressWithPath(
-        relativePath
-      )}${URLTokenBaseHTTPClient.getQueryPath(query)}`,
-      {
-        method: 'DELETE',
-        body: data,
-        headers,
-      }
-    )
-      .then(
-        async (res: Response): Promise<BaseHTTPClientResponse> =>
-          (({
-            body: await URLTokenBaseHTTPClient.formatFetchResponse(res),
-            status: res.status,
-            headers: res.headers,
-          } as unknown) as BaseHTTPClientResponse)
-      )
-      .catch((err) => {
-        throw URLTokenBaseHTTPClient.formatFetchError(err);
-      });
+    const res = await fetch(this.getURL(relativePath, query), {
+      method: 'DELETE',
+      mode: 'cors',
+      body: data,
+      headers,
+    });
+
+    return URLTokenBaseHTTPClient.formatFetchResponse(res);
   }
 }
