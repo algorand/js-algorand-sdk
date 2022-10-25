@@ -172,7 +172,7 @@ export default class AlgodClient extends ServiceClient {
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const index = 60553466;
-   * const accountInfo = await algodClient.accountApplicationInformation(address).do();
+   * const accountInfo = await algodClient.accountApplicationInformation(address, index).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
