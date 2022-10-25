@@ -1,4 +1,5 @@
 dist
+docs
 tests/cucumber/features
 tests/cucumber/browser/build
 tests/browser/bundle.*
