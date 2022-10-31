@@ -2877,7 +2877,7 @@ module.exports = function getSteps(options) {
       compileResponse = await this.v2Client.compile(data).do();
       compileStatusCode = 200;
     } catch (e) {
-      compileStatusCode = e.response.statusCode;
+      compileStatusCode = e.response.status;
       compileResponse = {
         result: '',
         hash: '',
@@ -3484,8 +3484,8 @@ module.exports = function getSteps(options) {
         this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
       } catch (err) {
         if (errorString !== '') {
-          // error was expected. check that err.response.text includes expected string.
-          const errorContainsString = err.response.text.includes(errorString);
+          // error was expected. check that err.message includes expected string.
+          const errorContainsString = err.message.includes(errorString);
           assert.deepStrictEqual(true, errorContainsString);
         } else {
           // unexpected error, rethrow.
