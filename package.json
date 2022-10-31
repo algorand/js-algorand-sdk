@@ -80,5 +80,8 @@
     "example": "ts-node"
   },
   "author": "Algorand, llc",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
 }
