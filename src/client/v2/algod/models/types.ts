@@ -147,6 +147,17 @@ export class Account extends BaseModel {
   public sigType?: string;
 
   /**
+   * (tbxb) The total number of bytes used by this account's app's box keys and
+   * values.
+   */
+  public totalBoxBytes?: number | bigint;
+
+  /**
+   * (tbx) The number of existing boxes created by this account's app.
+   */
+  public totalBoxes?: number | bigint;
+
+  /**
    * Creates a new `Account` object.
    * @param address - the account public key
    * @param amount - (algo) total number of MicroAlgos in the account
@@ -193,6 +204,9 @@ export class Account extends BaseModel {
    * * sig
    * * msig
    * * lsig
+   * @param totalBoxBytes - (tbxb) The total number of bytes used by this account's app's box keys and
+   * values.
+   * @param totalBoxes - (tbx) The number of existing boxes created by this account's app.
    */
   constructor({
     address,
@@ -217,6 +231,8 @@ export class Account extends BaseModel {
     participation,
     rewardBase,
     sigType,
+    totalBoxBytes,
+    totalBoxes,
   }: {
     address: string;
     amount: number | bigint;
@@ -240,6 +256,8 @@ export class Account extends BaseModel {
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
+    totalBoxBytes?: number | bigint;
+    totalBoxes?: number | bigint;
   }) {
     super();
     this.address = address;
@@ -264,6 +282,8 @@ export class Account extends BaseModel {
     this.participation = participation;
     this.rewardBase = rewardBase;
     this.sigType = sigType;
+    this.totalBoxBytes = totalBoxBytes;
+    this.totalBoxes = totalBoxes;
 
     this.attribute_map = {
       address: 'address',
@@ -288,6 +308,8 @@ export class Account extends BaseModel {
       participation: 'participation',
       rewardBase: 'reward-base',
       sigType: 'sig-type',
+      totalBoxBytes: 'total-box-bytes',
+      totalBoxes: 'total-boxes',
     };
   }
 
@@ -377,6 +399,8 @@ export class Account extends BaseModel {
           : undefined,
       rewardBase: data['reward-base'],
       sigType: data['sig-type'],
+      totalBoxBytes: data['total-box-bytes'],
+      totalBoxes: data['total-boxes'],
     });
     /* eslint-enable dot-notation */
   }
