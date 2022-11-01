@@ -248,7 +248,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     address.fromMultisigPreImg(refPreImage)
   );
 
-  const newSubsigs = refSigTx.msig.subsig;
+  const newSubsigs = refSigTx.msig.subsig.map((sig) => ({ ...sig }));
   for (let i = 1; i < multisigTxnBlobs.length; i++) {
     const unisig = encoding.decode(
       multisigTxnBlobs[i]
