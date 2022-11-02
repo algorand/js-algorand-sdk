@@ -65,6 +65,18 @@ export class Account extends BaseModel {
   public totalAssetsOptedIn: number | bigint;
 
   /**
+   * For app-accounts only. The total number of bytes allocated for the keys and
+   * values of boxes which belong to the associated application.
+   */
+  public totalBoxBytes: number | bigint;
+
+  /**
+   * For app-accounts only. The total number of boxes which belong to the associated
+   * application.
+   */
+  public totalBoxes: number | bigint;
+
+  /**
    * The count of all apps (AppParams objects) created by this account.
    */
   public totalCreatedApps: number | bigint;
@@ -173,6 +185,10 @@ export class Account extends BaseModel {
    * of application local data (AppLocalState objects) stored in this account.
    * @param totalAssetsOptedIn - The count of all assets that have been opted in, equivalent to the count of
    * AssetHolding objects held by this account.
+   * @param totalBoxBytes - For app-accounts only. The total number of bytes allocated for the keys and
+   * values of boxes which belong to the associated application.
+   * @param totalBoxes - For app-accounts only. The total number of boxes which belong to the associated
+   * application.
    * @param totalCreatedApps - The count of all apps (AppParams objects) created by this account.
    * @param totalCreatedAssets - The count of all assets (AssetParams objects) created by this account.
    * @param appsLocalState - (appl) applications local data stored in this account.
@@ -214,6 +230,8 @@ export class Account extends BaseModel {
     status,
     totalAppsOptedIn,
     totalAssetsOptedIn,
+    totalBoxBytes,
+    totalBoxes,
     totalCreatedApps,
     totalCreatedAssets,
     appsLocalState,
@@ -239,6 +257,8 @@ export class Account extends BaseModel {
     status: string;
     totalAppsOptedIn: number | bigint;
     totalAssetsOptedIn: number | bigint;
+    totalBoxBytes: number | bigint;
+    totalBoxes: number | bigint;
     totalCreatedApps: number | bigint;
     totalCreatedAssets: number | bigint;
     appsLocalState?: ApplicationLocalState[];
@@ -265,6 +285,8 @@ export class Account extends BaseModel {
     this.status = status;
     this.totalAppsOptedIn = totalAppsOptedIn;
     this.totalAssetsOptedIn = totalAssetsOptedIn;
+    this.totalBoxBytes = totalBoxBytes;
+    this.totalBoxes = totalBoxes;
     this.totalCreatedApps = totalCreatedApps;
     this.totalCreatedAssets = totalCreatedAssets;
     this.appsLocalState = appsLocalState;
@@ -291,6 +313,8 @@ export class Account extends BaseModel {
       status: 'status',
       totalAppsOptedIn: 'total-apps-opted-in',
       totalAssetsOptedIn: 'total-assets-opted-in',
+      totalBoxBytes: 'total-box-bytes',
+      totalBoxes: 'total-boxes',
       totalCreatedApps: 'total-created-apps',
       totalCreatedAssets: 'total-created-assets',
       appsLocalState: 'apps-local-state',
@@ -338,6 +362,14 @@ export class Account extends BaseModel {
       throw new Error(
         `Response is missing required field 'total-assets-opted-in': ${data}`
       );
+    if (typeof data['total-box-bytes'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-box-bytes': ${data}`
+      );
+    if (typeof data['total-boxes'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'total-boxes': ${data}`
+      );
     if (typeof data['total-created-apps'] === 'undefined')
       throw new Error(
         `Response is missing required field 'total-created-apps': ${data}`
@@ -356,6 +388,8 @@ export class Account extends BaseModel {
       status: data['status'],
       totalAppsOptedIn: data['total-apps-opted-in'],
       totalAssetsOptedIn: data['total-assets-opted-in'],
+      totalBoxBytes: data['total-box-bytes'],
+      totalBoxes: data['total-boxes'],
       totalCreatedApps: data['total-created-apps'],
       totalCreatedAssets: data['total-created-assets'],
       appsLocalState:
@@ -2604,6 +2638,165 @@ export class BlockUpgradeVote extends BaseModel {
       upgradeApprove: data['upgrade-approve'],
       upgradeDelay: data['upgrade-delay'],
       upgradePropose: data['upgrade-propose'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Box name and its content.
+ */
+export class Box extends BaseModel {
+  /**
+   * (name) box name, base64 encoded
+   */
+  public name: Uint8Array;
+
+  /**
+   * (value) box value, base64 encoded.
+   */
+  public value: Uint8Array;
+
+  /**
+   * Creates a new `Box` object.
+   * @param name - (name) box name, base64 encoded
+   * @param value - (value) box value, base64 encoded.
+   */
+  constructor({
+    name,
+    value,
+  }: {
+    name: string | Uint8Array;
+    value: string | Uint8Array;
+  }) {
+    super();
+    this.name =
+      typeof name === 'string'
+        ? new Uint8Array(Buffer.from(name, 'base64'))
+        : name;
+    this.value =
+      typeof value === 'string'
+        ? new Uint8Array(Buffer.from(value, 'base64'))
+        : value;
+
+    this.attribute_map = {
+      name: 'name',
+      value: 'value',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Box {
+    /* eslint-disable dot-notation */
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['value'] === 'undefined')
+      throw new Error(`Response is missing required field 'value': ${data}`);
+    return new Box({
+      name: data['name'],
+      value: data['value'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Box descriptor describes an app box without a value.
+ */
+export class BoxDescriptor extends BaseModel {
+  /**
+   * Base64 encoded box name
+   */
+  public name: Uint8Array;
+
+  /**
+   * Creates a new `BoxDescriptor` object.
+   * @param name - Base64 encoded box name
+   */
+  constructor({ name }: { name: string | Uint8Array }) {
+    super();
+    this.name =
+      typeof name === 'string'
+        ? new Uint8Array(Buffer.from(name, 'base64'))
+        : name;
+
+    this.attribute_map = {
+      name: 'name',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxDescriptor {
+    /* eslint-disable dot-notation */
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    return new BoxDescriptor({
+      name: data['name'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Box names of an application
+ */
+export class BoxesResponse extends BaseModel {
+  /**
+   * (appidx) application index.
+   */
+  public applicationId: number | bigint;
+
+  public boxes: BoxDescriptor[];
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `BoxesResponse` object.
+   * @param applicationId - (appidx) application index.
+   * @param boxes -
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  constructor({
+    applicationId,
+    boxes,
+    nextToken,
+  }: {
+    applicationId: number | bigint;
+    boxes: BoxDescriptor[];
+    nextToken?: string;
+  }) {
+    super();
+    this.applicationId = applicationId;
+    this.boxes = boxes;
+    this.nextToken = nextToken;
+
+    this.attribute_map = {
+      applicationId: 'application-id',
+      boxes: 'boxes',
+      nextToken: 'next-token',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxesResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['application-id'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'application-id': ${data}`
+      );
+    if (!Array.isArray(data['boxes']))
+      throw new Error(
+        `Response is missing required array field 'boxes': ${data}`
+      );
+    return new BoxesResponse({
+      applicationId: data['application-id'],
+      boxes: data['boxes'].map(BoxDescriptor.from_obj_for_encoding),
+      nextToken: data['next-token'],
     });
     /* eslint-enable dot-notation */
   }

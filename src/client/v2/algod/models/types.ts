@@ -147,6 +147,17 @@ export class Account extends BaseModel {
   public sigType?: string;
 
   /**
+   * (tbxb) The total number of bytes used by this account's app's box keys and
+   * values.
+   */
+  public totalBoxBytes?: number | bigint;
+
+  /**
+   * (tbx) The number of existing boxes created by this account's app.
+   */
+  public totalBoxes?: number | bigint;
+
+  /**
    * Creates a new `Account` object.
    * @param address - the account public key
    * @param amount - (algo) total number of MicroAlgos in the account
@@ -193,6 +204,9 @@ export class Account extends BaseModel {
    * * sig
    * * msig
    * * lsig
+   * @param totalBoxBytes - (tbxb) The total number of bytes used by this account's app's box keys and
+   * values.
+   * @param totalBoxes - (tbx) The number of existing boxes created by this account's app.
    */
   constructor({
     address,
@@ -217,6 +231,8 @@ export class Account extends BaseModel {
     participation,
     rewardBase,
     sigType,
+    totalBoxBytes,
+    totalBoxes,
   }: {
     address: string;
     amount: number | bigint;
@@ -240,6 +256,8 @@ export class Account extends BaseModel {
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
+    totalBoxBytes?: number | bigint;
+    totalBoxes?: number | bigint;
   }) {
     super();
     this.address = address;
@@ -264,6 +282,8 @@ export class Account extends BaseModel {
     this.participation = participation;
     this.rewardBase = rewardBase;
     this.sigType = sigType;
+    this.totalBoxBytes = totalBoxBytes;
+    this.totalBoxes = totalBoxes;
 
     this.attribute_map = {
       address: 'address',
@@ -288,6 +308,8 @@ export class Account extends BaseModel {
       participation: 'participation',
       rewardBase: 'reward-base',
       sigType: 'sig-type',
+      totalBoxBytes: 'total-box-bytes',
+      totalBoxes: 'total-boxes',
     };
   }
 
@@ -377,6 +399,8 @@ export class Account extends BaseModel {
           : undefined,
       rewardBase: data['reward-base'],
       sigType: data['sig-type'],
+      totalBoxBytes: data['total-box-bytes'],
+      totalBoxes: data['total-boxes'],
     });
     /* eslint-enable dot-notation */
   }
@@ -1396,6 +1420,122 @@ export class BlockResponse extends BaseModel {
     if (typeof data['block'] === 'undefined')
       throw new Error(`Response is missing required field 'block': ${data}`);
     return new BlockResponse(data['block'], data['cert']);
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Box name and its content.
+ */
+export class Box extends BaseModel {
+  /**
+   * (name) box name, base64 encoded
+   */
+  public name: Uint8Array;
+
+  /**
+   * (value) box value, base64 encoded.
+   */
+  public value: Uint8Array;
+
+  /**
+   * Creates a new `Box` object.
+   * @param name - (name) box name, base64 encoded
+   * @param value - (value) box value, base64 encoded.
+   */
+  constructor(name: string | Uint8Array, value: string | Uint8Array) {
+    super();
+    this.name =
+      typeof name === 'string'
+        ? new Uint8Array(Buffer.from(name, 'base64'))
+        : name;
+    this.value =
+      typeof value === 'string'
+        ? new Uint8Array(Buffer.from(value, 'base64'))
+        : value;
+
+    this.attribute_map = {
+      name: 'name',
+      value: 'value',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): Box {
+    /* eslint-disable dot-notation */
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['value'] === 'undefined')
+      throw new Error(`Response is missing required field 'value': ${data}`);
+    return new Box(data['name'], data['value']);
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Box descriptor describes a Box.
+ */
+export class BoxDescriptor extends BaseModel {
+  /**
+   * Base64 encoded box name
+   */
+  public name: Uint8Array;
+
+  /**
+   * Creates a new `BoxDescriptor` object.
+   * @param name - Base64 encoded box name
+   */
+  constructor(name: string | Uint8Array) {
+    super();
+    this.name =
+      typeof name === 'string'
+        ? new Uint8Array(Buffer.from(name, 'base64'))
+        : name;
+
+    this.attribute_map = {
+      name: 'name',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxDescriptor {
+    /* eslint-disable dot-notation */
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    return new BoxDescriptor(data['name']);
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Box names of an application
+ */
+export class BoxesResponse extends BaseModel {
+  public boxes: BoxDescriptor[];
+
+  /**
+   * Creates a new `BoxesResponse` object.
+   * @param boxes -
+   */
+  constructor(boxes: BoxDescriptor[]) {
+    super();
+    this.boxes = boxes;
+
+    this.attribute_map = {
+      boxes: 'boxes',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxesResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['boxes']))
+      throw new Error(
+        `Response is missing required array field 'boxes': ${data}`
+      );
+    return new BoxesResponse(
+      data['boxes'].map(BoxDescriptor.from_obj_for_encoding)
+    );
     /* eslint-enable dot-notation */
   }
 }
