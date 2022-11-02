@@ -9,7 +9,7 @@ describe('client', () => {
     /* eslint-disable dot-notation */
     it('should work with trivial paths', () => {
       const client = new URLTokenBaseHTTPClient({}, 'http://localhost');
-      const actual = client['addressWithPath']('/relative');
+      const actual = client['getURL']('/relative');
       const expected = 'http://localhost/relative';
 
       assert.strictEqual(actual, expected);
@@ -17,7 +17,7 @@ describe('client', () => {
 
     it('should work with number ports and trivial paths', () => {
       const client = new URLTokenBaseHTTPClient({}, 'http://localhost', 3000);
-      const actual = client['addressWithPath']('/relative');
+      const actual = client['getURL']('/relative');
       const expected = 'http://localhost:3000/relative';
 
       assert.strictEqual(actual, expected);
@@ -29,9 +29,37 @@ describe('client', () => {
         'https://testnet-algorand.api.purestake.io/ps2/',
         8080
       );
-      const actual = client['addressWithPath']('/relative?with=query');
+      const actual = client['getURL']('/relative?with=query');
       const expected =
         'https://testnet-algorand.api.purestake.io:8080/ps2/relative?with=query';
+      assert.strictEqual(actual, expected);
+    });
+
+    it('should work with search params', () => {
+      const client = new URLTokenBaseHTTPClient({}, 'http://localhost', 3000);
+      const actual = client['getURL']('/relative', {
+        format: 'json',
+        abc: 'xyz',
+        l: '2',
+      });
+      const expected = 'http://localhost:3000/relative?format=json&abc=xyz&l=2';
+
+      assert.strictEqual(actual, expected);
+    });
+
+    it('should work with search params when the requested URL already has search params', () => {
+      const client = new URLTokenBaseHTTPClient(
+        {},
+        'https://testnet-algorand.api.purestake.io/ps2/',
+        8080
+      );
+      const actual = client['getURL']('/relative?with=query', {
+        format: 'json',
+        abc: 'xyz',
+        l: '2',
+      });
+      const expected =
+        'https://testnet-algorand.api.purestake.io:8080/ps2/relative?with=query&format=json&abc=xyz&l=2';
       assert.strictEqual(actual, expected);
     });
 
@@ -88,7 +116,7 @@ describe('client', () => {
 
       for (const c of clients) {
         for (const p of relativePaths) {
-          const actual = c['addressWithPath'](p);
+          const actual = c['getURL'](p);
           assert.strictEqual(actual, expected);
         }
       }

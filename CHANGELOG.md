@@ -1,3 +1,26 @@
+# v1.23.0
+
+### Bugfixes
+
+- fix: mergeMultisigTransactions logic error by @AlgoDoggo in https://github.com/algorand/js-algorand-sdk/pull/675
+
+### New Features
+
+- Boxes: Add support for Boxes by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/604
+
+### Enhancements
+
+- Enhancement: Code generation improvements by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/663
+- Network: Replace `superagent` with `fetch` for HTTP requests by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/676
+- API: Fix docs typo by @PabloLION in https://github.com/algorand/js-algorand-sdk/pull/677
+- CI: Upgrade node.js from v12 to v14 by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/680
+
+## New Contributors
+
+- @PabloLION made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/677
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.22.0...v1.23.0
+
 # v1.22.0
 
 ## What's Changed

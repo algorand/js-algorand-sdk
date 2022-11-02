@@ -133,6 +133,60 @@ module.exports = function getSteps(options) {
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
+  // String parsing helper methods
+  function processAppArgs(subArg) {
+    switch (subArg[0]) {
+      case 'str':
+        return makeUint8Array(Buffer.from(subArg[1]));
+      case 'int':
+        return makeUint8Array(algosdk.encodeUint64(parseInt(subArg[1], 10)));
+      case 'addr':
+        return algosdk.decodeAddress(subArg[1]).publicKey;
+      case 'b64':
+        return makeUint8Array(Buffer.from(subArg[1], 'base64'));
+      default:
+        throw Error(`did not recognize app arg of type${subArg[0]}`);
+    }
+  }
+
+  function splitAndProcessAppArgs(inArgs) {
+    if (inArgs == null || inArgs === '') {
+      return [];
+    }
+    const splitArgs = inArgs.split(',');
+    const subArgs = [];
+    splitArgs.forEach((subArg) => {
+      subArgs.push(subArg.split(':'));
+    });
+    const appArgs = [];
+    subArgs.forEach((subArg) => {
+      appArgs.push(processAppArgs(subArg));
+    });
+    return appArgs;
+  }
+
+  function splitAndProcessBoxReferences(boxRefs) {
+    if (boxRefs == null || boxRefs === '') {
+      return [];
+    }
+    const splitRefs = boxRefs.split(',');
+    const boxRefArray = [];
+    let appIndex = 0;
+
+    for (let i = 0; i < splitRefs.length; i++) {
+      if (i % 2 === 0) {
+        appIndex = parseInt(splitRefs[i]);
+      } else {
+        const refArg = splitRefs[i].split(':');
+        boxRefArray.push({
+          appIndex,
+          name: processAppArgs(refArg),
+        });
+      }
+    }
+    return boxRefArray;
+  }
+
   Given('an algod client', async function () {
     this.acl = new algosdk.Algod(algodToken, 'http://localhost', 60000);
     return this.acl;
@@ -145,6 +199,10 @@ module.exports = function getSteps(options) {
 
   Given('an algod v2 client', function () {
     this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
+  });
+
+  Given('an indexer v2 client', function () {
+    this.indexerV2client = new algosdk.Indexer('', 'http://localhost', 59999);
   });
 
   Given('wallet information', async function () {
@@ -1778,6 +1836,21 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'we make a GetApplicationBoxByName call for applicationID {int} with encoded box name {string}',
+    async function (index, boxName) {
+      const box = splitAndProcessAppArgs(boxName)[0];
+      await this.v2Client.getApplicationBoxByName(index, box).doRaw();
+    }
+  );
+
+  When(
+    'we make a GetApplicationBoxes call for applicationID {int} with max {int}',
+    async function (index, limit) {
+      await this.v2Client.getApplicationBoxes(index).max(limit).doRaw();
+    }
+  );
+
   let anyPendingTransactionInfoResponse;
 
   When('we make any Pending Transaction Information call', async function () {
@@ -2177,6 +2250,27 @@ module.exports = function getSteps(options) {
     'we make a Lookup Asset by ID call against asset index {int}',
     async function (assetIndex) {
       await this.indexerClient.lookupAssetByID(assetIndex).do();
+    }
+  );
+
+  When(
+    'we make a SearchForApplicationBoxes call with applicationID {int} with max {int} nextToken {string}',
+    async function (index, limit, token) {
+      await this.indexerClient
+        .searchForApplicationBoxes(index)
+        .limit(limit)
+        .nextToken(token)
+        .doRaw();
+    }
+  );
+
+  When(
+    'we make a LookupApplicationBoxByIDandName call with applicationID {int} with encoded box name {string}',
+    async function (index, name) {
+      const boxKey = splitAndProcessAppArgs(name)[0];
+      await this.indexerClient
+        .lookupApplicationBoxByIDandName(index, boxKey)
+        .doRaw();
     }
   );
 
@@ -2783,7 +2877,7 @@ module.exports = function getSteps(options) {
       compileResponse = await this.v2Client.compile(data).do();
       compileStatusCode = 200;
     } catch (e) {
-      compileStatusCode = e.response.statusCode;
+      compileStatusCode = e.response.status;
       compileResponse = {
         result: '',
         hash: '',
@@ -3014,36 +3108,8 @@ module.exports = function getSteps(options) {
     return makeUint8Array(data);
   }
 
-  function splitAndProcessAppArgs(inArgs) {
-    const splitArgs = inArgs.split(',');
-    const subArgs = [];
-    splitArgs.forEach((subArg) => {
-      subArgs.push(subArg.split(':'));
-    });
-    const appArgs = [];
-    subArgs.forEach((subArg) => {
-      switch (subArg[0]) {
-        case 'str':
-          appArgs.push(makeUint8Array(Buffer.from(subArg[1])));
-          break;
-        case 'int':
-          appArgs.push(makeUint8Array([parseInt(subArg[1])]));
-          break;
-        case 'addr':
-          appArgs.push(algosdk.decodeAddress(subArg[1]).publicKey);
-          break;
-        case 'b64':
-          appArgs.push(Buffer.from(subArg[1], 'base64'));
-          break;
-        default:
-          throw Error(`did not recognize app arg of type${subArg[0]}`);
-      }
-    });
-    return appArgs;
-  }
-
   When(
-    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}, extra-pages {int}',
+    'I build an application transaction with operation {string}, application-id {int}, sender {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, fee {int}, first-valid {int}, last-valid {int}, genesis-hash {string}, extra-pages {int}, boxes {string}',
     async function (
       operationString,
       appIndex,
@@ -3062,7 +3128,8 @@ module.exports = function getSteps(options) {
       firstValid,
       lastValid,
       genesisHashBase64,
-      extraPages
+      extraPages,
+      boxesCommaSeparatedString
     ) {
       // operation string to enum
       const operation = operationStringToEnum(operationString);
@@ -3112,6 +3179,11 @@ module.exports = function getSteps(options) {
       if (appAccountsCommaSeparatedString !== '') {
         appAccounts = appAccountsCommaSeparatedString.split(',');
       }
+      // split and process box references
+      let boxes;
+      if (boxesCommaSeparatedString !== '') {
+        boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
+      }
       // build suggested params object
       const sp = {
         genesisHash: genesisHashBase64,
@@ -3130,7 +3202,11 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            undefined,
+            undefined,
+            undefined,
+            boxes
           );
           return;
         case 'create':
@@ -3151,7 +3227,8 @@ module.exports = function getSteps(options) {
             undefined,
             undefined,
             undefined,
-            extraPages
+            extraPages,
+            boxes
           );
           return;
         case 'update':
@@ -3164,7 +3241,11 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            undefined,
+            undefined,
+            undefined,
+            boxes
           );
           return;
         case 'optin':
@@ -3175,7 +3256,11 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            undefined,
+            undefined,
+            undefined,
+            boxes
           );
           return;
         case 'delete':
@@ -3186,7 +3271,11 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            undefined,
+            undefined,
+            undefined,
+            boxes
           );
           return;
         case 'clear':
@@ -3197,7 +3286,8 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            boxes
           );
           return;
         case 'closeout':
@@ -3208,7 +3298,11 @@ module.exports = function getSteps(options) {
             appArgs,
             appAccounts,
             foreignApps,
-            foreignAssets
+            foreignAssets,
+            undefined,
+            undefined,
+            undefined,
+            boxes
           );
           return;
         default:
@@ -3284,7 +3378,7 @@ module.exports = function getSteps(options) {
   );
 
   Given(
-    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, extra-pages {int}',
+    'I build an application transaction with the transient account, the current application, suggested params, operation {string}, approval-program {string}, clear-program {string}, global-bytes {int}, global-ints {int}, local-bytes {int}, local-ints {int}, app-args {string}, foreign-apps {string}, foreign-assets {string}, app-accounts {string}, extra-pages {int}, boxes {string}',
     async function (
       operationString,
       approvalProgramFile,
@@ -3297,7 +3391,8 @@ module.exports = function getSteps(options) {
       foreignAppsCommaSeparatedString,
       foreignAssetsCommaSeparatedString,
       appAccountsCommaSeparatedString,
-      extraPages
+      extraPages,
+      boxesCommaSeparatedString
     ) {
       if (operationString === 'create') {
         this.currentApplicationIndex = 0;
@@ -3351,6 +3446,11 @@ module.exports = function getSteps(options) {
       if (appAccountsCommaSeparatedString !== '') {
         appAccounts = appAccountsCommaSeparatedString.split(',');
       }
+      // split and process box references
+      let boxes;
+      if (boxesCommaSeparatedString !== '') {
+        boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
+      }
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const o = {
@@ -3369,6 +3469,7 @@ module.exports = function getSteps(options) {
         appAccounts,
         appForeignApps: foreignApps,
         appForeignAssets: foreignAssets,
+        boxes,
         extraPages,
       };
       this.txn = new algosdk.Transaction(o);
@@ -3383,8 +3484,8 @@ module.exports = function getSteps(options) {
         this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
       } catch (err) {
         if (errorString !== '') {
-          // error was expected. check that err.response.text includes expected string.
-          const errorContainsString = err.response.text.includes(errorString);
+          // error was expected. check that err.message includes expected string.
+          const errorContainsString = err.message.includes(errorString);
           assert.deepStrictEqual(true, errorContainsString);
         } else {
           // unexpected error, rethrow.
@@ -4359,6 +4460,137 @@ module.exports = function getSteps(options) {
       } else {
         assert.ok(false, 'Both retrieved method and error are undefined');
       }
+    }
+  );
+
+  Then(
+    'according to {string}, the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
+    async function (fromClient, boxName, boxValue, errString) {
+      try {
+        const boxKey = splitAndProcessAppArgs(boxName)[0];
+
+        let resp = null;
+        if (fromClient === 'algod') {
+          resp = await this.v2Client
+            .getApplicationBoxByName(this.currentApplicationIndex, boxKey)
+            .do();
+        } else if (fromClient === 'indexer') {
+          resp = await this.indexerV2client
+            .lookupApplicationBoxByIDandName(
+              this.currentApplicationIndex,
+              boxKey
+            )
+            .do();
+        } else {
+          assert.fail(`expecting algod or indexer, got ${fromClient}`);
+        }
+
+        const actualName = resp.name;
+        const actualValue = resp.value;
+        assert.deepStrictEqual(Buffer.from(boxKey), Buffer.from(actualName));
+        assert.deepStrictEqual(
+          Buffer.from(boxValue, 'base64'),
+          Buffer.from(actualValue)
+        );
+      } catch (err) {
+        if (errString !== '') {
+          assert.deepStrictEqual(
+            true,
+            err.message.includes(errString),
+            `expected ${errString} got ${err.message}`
+          );
+        } else {
+          throw err;
+        }
+      }
+    }
+  );
+
+  function splitBoxNames(boxB64Names) {
+    if (boxB64Names == null || boxB64Names === '') {
+      return [];
+    }
+    const splitBoxB64Names = boxB64Names.split(':');
+    const boxNames = [];
+    splitBoxB64Names.forEach((subArg) => {
+      boxNames.push(makeUint8Array(Buffer.from(subArg, 'base64')));
+    });
+    return boxNames;
+  }
+
+  Then(
+    'according to indexer, with {int} being the parameter that limits results, and {string} being the parameter that sets the next result, the current application should have the following boxes {string}.',
+    async function (limit, nextPage, boxNames) {
+      const boxes = splitBoxNames(boxNames);
+      const resp = await this.indexerV2client
+        .searchForApplicationBoxes(this.currentApplicationIndex)
+        .limit(limit)
+        .nextToken(nextPage)
+        .do();
+
+      assert.deepStrictEqual(boxes.length, resp.boxes.length);
+      const actualBoxes = new Set(
+        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
+      );
+      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      assert.deepStrictEqual(expectedBoxes, actualBoxes);
+    }
+  );
+
+  Then(
+    'according to {string}, with {int} being the parameter that limits results, the current application should have {int} boxes.',
+    async function (fromClient, limit, expectedBoxNum) {
+      let resp = null;
+      if (fromClient === 'algod') {
+        resp = await this.v2Client
+          .getApplicationBoxes(this.currentApplicationIndex)
+          .max(limit)
+          .do();
+      } else if (fromClient === 'indexer') {
+        resp = await this.indexerV2client
+          .searchForApplicationBoxes(this.currentApplicationIndex)
+          .limit(limit)
+          .do();
+      } else {
+        assert.fail(`expecting algod or indexer, got ${fromClient}`);
+      }
+
+      assert.deepStrictEqual(expectedBoxNum, resp.boxes.length);
+    }
+  );
+
+  Then(
+    'according to {string}, the current application should have the following boxes {string}.',
+    async function (fromClient, boxNames) {
+      const boxes = splitBoxNames(boxNames);
+
+      let resp = null;
+      if (fromClient === 'algod') {
+        resp = await this.v2Client
+          .getApplicationBoxes(this.currentApplicationIndex)
+          .do();
+      } else if (fromClient === 'indexer') {
+        resp = await this.indexerV2client
+          .searchForApplicationBoxes(this.currentApplicationIndex)
+          .do();
+      } else {
+        assert.fail(`expecting algod or indexer, got ${fromClient}`);
+      }
+
+      assert.deepStrictEqual(boxes.length, resp.boxes.length);
+      const actualBoxes = new Set(
+        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
+      );
+      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      assert.deepStrictEqual(expectedBoxes, actualBoxes);
+    }
+  );
+
+  Then(
+    'I sleep for {int} milliseconds for indexer to digest things down.',
+    async (milliseconds) => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      await sleep(milliseconds);
     }
   );
 
