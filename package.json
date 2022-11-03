@@ -1,6 +1,6 @@
 {
   "name": "algosdk",
-  "version": "1.23.0",
+  "version": "1.23.1",
   "description": "The official JavaScript SDK for Algorand",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -27,9 +27,6 @@
     "json-bigint": "^1.0.0",
     "tweetnacl": "^1.0.3",
     "vlq": "^2.0.4"
-  },
-  "optionalDependencies": {
-    "fsevents": "2.1.2"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.0",

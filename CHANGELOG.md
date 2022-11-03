@@ -1,8 +1,9 @@
-# v1.23.0
+# v1.23.1
 
 ### Bugfixes
 
 - fix: mergeMultisigTransactions logic error by @AlgoDoggo in https://github.com/algorand/js-algorand-sdk/pull/675
+- CI: Remove unneeded dependency & update package-lock by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/684
 
 ### New Features
 
@@ -19,7 +20,7 @@
 
 - @PabloLION made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/677
 
-**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.22.0...v1.23.0
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.22.0...v1.23.1
 
 # v1.22.0
 
