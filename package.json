@@ -28,9 +28,6 @@
     "tweetnacl": "^1.0.3",
     "vlq": "^2.0.4"
   },
-  "optionalDependencies": {
-    "fsevents": "2.1.2"
-  },
   "devDependencies": {
     "@types/json-bigint": "^1.0.0",
     "@types/mocha": "^8.2.2",
