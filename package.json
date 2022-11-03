@@ -1,6 +1,6 @@
 {
   "name": "algosdk",
-  "version": "1.23.0",
+  "version": "1.23.1",
   "description": "The official JavaScript SDK for Algorand",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
