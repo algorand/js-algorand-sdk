@@ -1085,14 +1085,19 @@ export class Transaction implements TransactionStorageStructure {
         txn.appForeignAssets = txnForEnc.apas;
       }
       if (txnForEnc.apbx !== undefined) {
-        txn.boxes = txnForEnc.apbx.map((box) => ({
-          // Translate foreign app index to app ID
-          appIndex:
-            box.i === 0 || box.i === txn.appIndex
-              ? txn.appIndex
-              : txn.appForeignApps[box.i - 1],
-          name: box.n,
-        }));
+        txn.boxes = txnForEnc.apbx.map((box) => {
+          let appIndex = box.i || txn.appIndex;
+
+          if (appIndex !== txn.appIndex) {
+            // Translate foreign app index to app ID
+            appIndex = txn.appForeignApps[appIndex - 1];
+          }
+
+          return {
+            name: box.n,
+            appIndex,
+          };
+        });
       }
     } else if (txnForEnc.type === 'stpf') {
       if (txnForEnc.sptype !== undefined) {
