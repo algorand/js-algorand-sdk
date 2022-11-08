@@ -145,7 +145,7 @@ module.exports = function getSteps(options) {
       case 'b64':
         return makeUint8Array(Buffer.from(subArg[1], 'base64'));
       default:
-        throw Error(`did not recognize app arg of type${subArg[0]}`);
+        throw Error(`did not recognize app arg of type ${subArg[0]}`);
     }
   }
 
@@ -158,7 +158,7 @@ module.exports = function getSteps(options) {
     splitArgs.forEach((subArg) => {
       subArgs.push(subArg.split(':'));
     });
-    const appArgs = [];
+    const appArgs = makeArray();
     subArgs.forEach((subArg) => {
       appArgs.push(processAppArgs(subArg));
     });
@@ -167,10 +167,10 @@ module.exports = function getSteps(options) {
 
   function splitAndProcessBoxReferences(boxRefs) {
     if (boxRefs == null || boxRefs === '') {
-      return [];
+      return makeArray();
     }
     const splitRefs = boxRefs.split(',');
-    const boxRefArray = [];
+    const boxRefArray = makeArray();
     let appIndex = 0;
 
     for (let i = 0; i < splitRefs.length; i++) {
@@ -3157,7 +3157,7 @@ module.exports = function getSteps(options) {
       // split and process foreign apps
       let foreignApps;
       if (foreignAppsCommaSeparatedString !== '') {
-        foreignApps = [];
+        foreignApps = makeArray();
         foreignAppsCommaSeparatedString
           .split(',')
           .forEach((foreignAppAsString) => {
@@ -3167,7 +3167,7 @@ module.exports = function getSteps(options) {
       // split and process foreign assets
       let foreignAssets;
       if (foreignAssetsCommaSeparatedString !== '') {
-        foreignAssets = [];
+        foreignAssets = makeArray();
         foreignAssetsCommaSeparatedString
           .split(',')
           .forEach((foreignAssetAsString) => {
@@ -3177,7 +3177,7 @@ module.exports = function getSteps(options) {
       // split and process app accounts
       let appAccounts;
       if (appAccountsCommaSeparatedString !== '') {
-        appAccounts = appAccountsCommaSeparatedString.split(',');
+        appAccounts = makeArray(...appAccountsCommaSeparatedString.split(','));
       }
       // split and process box references
       let boxes;
