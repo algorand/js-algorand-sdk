@@ -1086,11 +1086,11 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (txnForEnc.apbx !== undefined) {
         txn.boxes = txnForEnc.apbx.map((box) => ({
-          // Translate foreign app index to app ID
-          appIndex:
-            box.i === 0 || box.i === txn.appIndex
-              ? txn.appIndex
-              : txn.appForeignApps[box.i - 1],
+          // We return 0 for the app ID so that it's guaranteed translateBoxReferences will
+          // translate the app index back to 0. If we instead returned the called app ID,
+          // translateBoxReferences would translate the app index to a nonzero value if the called
+          // app is also in the foreign app array.
+          appIndex: box.i ? txn.appForeignApps[box.i - 1] : 0,
           name: box.n,
         }));
       }
