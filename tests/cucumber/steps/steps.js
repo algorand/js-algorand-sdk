@@ -592,6 +592,10 @@ module.exports = function getSteps(options) {
     assert.deepStrictEqual(health, makeObject({}));
   });
 
+  Then('I get the ledger supply', async function () {
+    return this.acl.ledgerSupply();
+  });
+
   When('I get the suggested params', async function () {
     this.params = await this.v2Client.getTransactionParams().do();
     return this.params;
