@@ -593,7 +593,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('I get the ledger supply', async function () {
-    return this.acl.ledgerSupply();
+    return this.v2Client.supply().do();
   });
 
   When('I get the suggested params', async function () {
