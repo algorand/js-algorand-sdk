@@ -596,11 +596,6 @@ module.exports = function getSteps(options) {
     return this.v2Client.supply().do();
   });
 
-  When('I get the suggested params', async function () {
-    this.params = await this.v2Client.getTransactionParams().do();
-    return this.params;
-  });
-
   When('I create a bid', function () {
     let addr = algosdk.generateAccount();
     this.sk = addr.sk;
@@ -911,10 +906,6 @@ module.exports = function getSteps(options) {
   //     this.txid = this.txid.txId
   //     return this.txid
   // })
-
-  Then('I get account information', async function () {
-    return this.acl.accountInformation(this.accounts[0]);
-  });
 
   Then('I can get account information', async function () {
     await this.v2Client.accountInformation(this.pk).do();
