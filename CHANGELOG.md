@@ -1,3 +1,13 @@
+# v1.23.2
+
+## What's Changed
+
+### Bugfixes
+
+- SDK: Dryrun and transaction decoding fix for boxes by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/690
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.23.1...v1.23.2
+
 # v1.23.1
 
 ### Bugfixes
