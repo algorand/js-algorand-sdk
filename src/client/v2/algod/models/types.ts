@@ -2531,6 +2531,12 @@ export class NodeStatusResponse extends BaseModel {
   public catchpointProcessedAccounts?: number | bigint;
 
   /**
+   * The number of key-values (KVs) from the current catchpoint that have been
+   * processed so far as part of the catchup
+   */
+  public catchpointProcessedKvs?: number | bigint;
+
+  /**
    * The total number of accounts included in the current catchpoint
    */
   public catchpointTotalAccounts?: number | bigint;
@@ -2542,10 +2548,21 @@ export class NodeStatusResponse extends BaseModel {
   public catchpointTotalBlocks?: number | bigint;
 
   /**
+   * The total number of key-values (KVs) included in the current catchpoint
+   */
+  public catchpointTotalKvs?: number | bigint;
+
+  /**
    * The number of accounts from the current catchpoint that have been verified so
    * far as part of the catchup
    */
   public catchpointVerifiedAccounts?: number | bigint;
+
+  /**
+   * The number of key-values (KVs) from the current catchpoint that have been
+   * verified so far as part of the catchup
+   */
+  public catchpointVerifiedKvs?: number | bigint;
 
   /**
    * The last catchpoint seen by the node
@@ -2569,11 +2586,16 @@ export class NodeStatusResponse extends BaseModel {
    * catchup
    * @param catchpointProcessedAccounts - The number of accounts from the current catchpoint that have been processed so
    * far as part of the catchup
+   * @param catchpointProcessedKvs - The number of key-values (KVs) from the current catchpoint that have been
+   * processed so far as part of the catchup
    * @param catchpointTotalAccounts - The total number of accounts included in the current catchpoint
    * @param catchpointTotalBlocks - The total number of blocks that are required to complete the current catchpoint
    * catchup
+   * @param catchpointTotalKvs - The total number of key-values (KVs) included in the current catchpoint
    * @param catchpointVerifiedAccounts - The number of accounts from the current catchpoint that have been verified so
    * far as part of the catchup
+   * @param catchpointVerifiedKvs - The number of key-values (KVs) from the current catchpoint that have been
+   * verified so far as part of the catchup
    * @param lastCatchpoint - The last catchpoint seen by the node
    */
   constructor({
@@ -2588,9 +2610,12 @@ export class NodeStatusResponse extends BaseModel {
     catchpoint,
     catchpointAcquiredBlocks,
     catchpointProcessedAccounts,
+    catchpointProcessedKvs,
     catchpointTotalAccounts,
     catchpointTotalBlocks,
+    catchpointTotalKvs,
     catchpointVerifiedAccounts,
+    catchpointVerifiedKvs,
     lastCatchpoint,
   }: {
     catchupTime: number | bigint;
@@ -2604,9 +2629,12 @@ export class NodeStatusResponse extends BaseModel {
     catchpoint?: string;
     catchpointAcquiredBlocks?: number | bigint;
     catchpointProcessedAccounts?: number | bigint;
+    catchpointProcessedKvs?: number | bigint;
     catchpointTotalAccounts?: number | bigint;
     catchpointTotalBlocks?: number | bigint;
+    catchpointTotalKvs?: number | bigint;
     catchpointVerifiedAccounts?: number | bigint;
+    catchpointVerifiedKvs?: number | bigint;
     lastCatchpoint?: string;
   }) {
     super();
@@ -2621,9 +2649,12 @@ export class NodeStatusResponse extends BaseModel {
     this.catchpoint = catchpoint;
     this.catchpointAcquiredBlocks = catchpointAcquiredBlocks;
     this.catchpointProcessedAccounts = catchpointProcessedAccounts;
+    this.catchpointProcessedKvs = catchpointProcessedKvs;
     this.catchpointTotalAccounts = catchpointTotalAccounts;
     this.catchpointTotalBlocks = catchpointTotalBlocks;
+    this.catchpointTotalKvs = catchpointTotalKvs;
     this.catchpointVerifiedAccounts = catchpointVerifiedAccounts;
+    this.catchpointVerifiedKvs = catchpointVerifiedKvs;
     this.lastCatchpoint = lastCatchpoint;
 
     this.attribute_map = {
@@ -2638,9 +2669,12 @@ export class NodeStatusResponse extends BaseModel {
       catchpoint: 'catchpoint',
       catchpointAcquiredBlocks: 'catchpoint-acquired-blocks',
       catchpointProcessedAccounts: 'catchpoint-processed-accounts',
+      catchpointProcessedKvs: 'catchpoint-processed-kvs',
       catchpointTotalAccounts: 'catchpoint-total-accounts',
       catchpointTotalBlocks: 'catchpoint-total-blocks',
+      catchpointTotalKvs: 'catchpoint-total-kvs',
       catchpointVerifiedAccounts: 'catchpoint-verified-accounts',
+      catchpointVerifiedKvs: 'catchpoint-verified-kvs',
       lastCatchpoint: 'last-catchpoint',
     };
   }
@@ -2692,9 +2726,12 @@ export class NodeStatusResponse extends BaseModel {
       catchpoint: data['catchpoint'],
       catchpointAcquiredBlocks: data['catchpoint-acquired-blocks'],
       catchpointProcessedAccounts: data['catchpoint-processed-accounts'],
+      catchpointProcessedKvs: data['catchpoint-processed-kvs'],
       catchpointTotalAccounts: data['catchpoint-total-accounts'],
       catchpointTotalBlocks: data['catchpoint-total-blocks'],
+      catchpointTotalKvs: data['catchpoint-total-kvs'],
       catchpointVerifiedAccounts: data['catchpoint-verified-accounts'],
+      catchpointVerifiedKvs: data['catchpoint-verified-kvs'],
       lastCatchpoint: data['last-catchpoint'],
     });
     /* eslint-enable dot-notation */
