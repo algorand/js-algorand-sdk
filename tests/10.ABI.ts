@@ -125,7 +125,6 @@ describe('ABI type checking', () => {
       '[][][]',
       'stuff[]',
       // static array
-      'ufixed32x10[0]',
       'byte[10 ]',
       'uint64[0x21]',
       // tuple
