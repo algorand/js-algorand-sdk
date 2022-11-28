@@ -42,7 +42,7 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
 }
 
 /**
- * createRawMultisigTransaction creates a raw, unsigned multisig transaction blob.
+ * createMultisigTransaction creates a raw, unsigned multisig transaction blob.
  * @param txn - the actual transaction.
  * @param version - multisig version
  * @param threshold - multisig threshold
