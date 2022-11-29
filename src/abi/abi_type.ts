@@ -380,8 +380,13 @@ export class ABIStringType extends ABIType {
       throw new Error(`Cannot encode value as string: ${value}`);
     }
     const encodedBytes = Buffer.from(value);
-    const encodedLength = bigIntToBytes(value.length, LENGTH_ENCODE_BYTE_SIZE);
-    const mergedBytes = new Uint8Array(value.length + LENGTH_ENCODE_BYTE_SIZE);
+    const encodedLength = bigIntToBytes(
+      encodedBytes.length,
+      LENGTH_ENCODE_BYTE_SIZE
+    );
+    const mergedBytes = new Uint8Array(
+      encodedBytes.length + LENGTH_ENCODE_BYTE_SIZE
+    );
     mergedBytes.set(encodedLength);
     mergedBytes.set(encodedBytes, LENGTH_ENCODE_BYTE_SIZE);
     return mergedBytes;
