@@ -28,7 +28,7 @@ interface Segment {
   right: number;
 }
 
-const staticArrayRegexp = /^([a-z\d[\](),]+)\[([1-9][\d]*)]$/;
+const staticArrayRegexp = /^([a-z\d[\](),]+)\[(0|[1-9][\d]*)]$/;
 const ufixedRegexp = /^ufixed([1-9][\d]*)x([1-9][\d]*)$/;
 
 export type ABIValue =
@@ -414,9 +414,9 @@ export class ABIArrayStaticType extends ABIType {
 
   constructor(argType: ABIType, arrayLength: number) {
     super();
-    if (arrayLength < 1) {
+    if (arrayLength < 0) {
       throw new Error(
-        `static array must have a length greater than 0: ${arrayLength}`
+        `static array must have a non negative length: ${arrayLength}`
       );
     }
     this.childType = argType;
