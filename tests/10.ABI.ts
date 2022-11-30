@@ -402,18 +402,19 @@ describe('ABI encoding', () => {
       function numericAsBigInt(d: ABIValue): ABIValue {
         if (typeof d === 'number') {
           return BigInt(d);
-        } if (d instanceof Array) {
+        }
+        if (d instanceof Array) {
           return (d as ABIValue[]).map(numericAsBigInt);
-        } 
-          return d;
-        
+        }
+        return d;
       }
 
       // Returns true when the provided ABIType decodes to BigInt.
       function decodeReturnsBigInt(t: ABIType): boolean {
         if (t instanceof ABIUintType || t instanceof ABIUfixedType) {
           return true;
-        } if (t instanceof ABITupleType) {
+        }
+        if (t instanceof ABITupleType) {
           (t as ABITupleType).childTypes
             .map(decodeReturnsBigInt)
             .includes(true);
