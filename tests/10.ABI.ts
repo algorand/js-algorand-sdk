@@ -236,6 +236,29 @@ describe('ABI encoding', () => {
           'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
         ).publicKey,
       ],
+      [
+        new ABIStringType().encode('What’s new'),
+        new Uint8Array([
+          0,
+          12,
+          87,
+          104,
+          97,
+          116,
+          226,
+          128,
+          153,
+          115,
+          32,
+          110,
+          101,
+          119,
+        ]),
+      ],
+      [
+        new ABIStringType().encode('😅🔨'),
+        new Uint8Array([0, 8, 240, 159, 152, 133, 240, 159, 148, 168]),
+      ],
       [new ABIByteType().encode(10), new Uint8Array([10])],
       [new ABIByteType().encode(255), new Uint8Array([255])],
       [new ABIBoolType().encode(true), new Uint8Array([128])],
@@ -452,6 +475,33 @@ describe('ABI encoding', () => {
           ).publicKey
         ),
         'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI',
+      ],
+      [
+        new ABIStringType().decode(
+          new Uint8Array([
+            0,
+            12,
+            87,
+            104,
+            97,
+            116,
+            226,
+            128,
+            153,
+            115,
+            32,
+            110,
+            101,
+            119,
+          ])
+        ),
+        'What’s new',
+      ],
+      [
+        new ABIStringType().decode(
+          new Uint8Array([0, 8, 240, 159, 152, 133, 240, 159, 148, 168])
+        ),
+        '😅🔨',
       ],
       [new ABIByteType().decode(new Uint8Array([10])), 10],
       [new ABIByteType().decode(new Uint8Array([255])), 255],
