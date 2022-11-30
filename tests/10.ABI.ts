@@ -418,17 +418,17 @@ describe('ABI encoding', () => {
       function decodeReturnsBigInt(t: ABIType): boolean {
         if (t instanceof ABIUintType || t instanceof ABIUfixedType) {
           return true;
-        } if (t instanceof ABITupleType) {
-          return (t as ABITupleType).childTypes
-            .map(decodeReturnsBigInt)
-            .includes(true);
-        } if (t instanceof ABIArrayStaticType) {
-          return decodeReturnsBigInt((t as ABIArrayStaticType).childType);
-        } if (t instanceof ABIArrayDynamicType) {
-          return decodeReturnsBigInt((t as ABIArrayDynamicType).childType);
-        } 
-          return false;
-        
+        }
+        if (t instanceof ABITupleType) {
+          return t.childTypes.map(decodeReturnsBigInt).includes(true);
+        }
+        if (t instanceof ABIArrayStaticType) {
+          return decodeReturnsBigInt(t.childType);
+        }
+        if (t instanceof ABIArrayDynamicType) {
+          return decodeReturnsBigInt(t.childType);
+        }
+        return false;
       }
 
       if (decodeReturnsBigInt(testCase.abiType)) {
