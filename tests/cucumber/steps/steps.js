@@ -4545,6 +4545,20 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    'disassembly of {string} matches {string}',
+    async function (bytecodeFilename, sourceFilename) {
+      const bytecode = await loadResource(bytecodeFilename);
+      const resp = await this.v2Client.disassemble(bytecode).do();
+      const expectedSource = await loadResource(sourceFilename);
+
+      assert.deepStrictEqual(
+        resp.result.toString('UTF-8'),
+        expectedSource.toString('UTF-8')
+      );
+    }
+  );
+
   When(
     'we make a GetLightBlockHeaderProof call for round {int}',
     async function (int) {
