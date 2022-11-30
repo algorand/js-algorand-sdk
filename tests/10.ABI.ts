@@ -10,6 +10,7 @@ import {
   ABIUfixedType,
   ABIUintType,
   ABIType,
+  ABIValue,
 } from '../src/abi/abi_type';
 import { decodeAddress } from '../src/encoding/address';
 
@@ -218,214 +219,227 @@ describe('ABI type checking', () => {
 });
 
 describe('ABI encoding', () => {
-  it('should encode the value correctly into bytes', () => {
-    const testCases = [
-      [new ABIUintType(8).encode(BigInt(0)), new Uint8Array([0])],
-      [new ABIUintType(16).encode(BigInt(3)), new Uint8Array([0, 3])],
-      [
-        new ABIUintType(64).encode(256),
-        new Uint8Array([0, 0, 0, 0, 0, 0, 1, 0]),
-      ],
-      [new ABIUfixedType(8, 30).encode(BigInt(255)), new Uint8Array([255])],
-      [new ABIUfixedType(32, 10).encode(33), new Uint8Array([0, 0, 0, 33])],
-      [
-        new ABIAddressType().encode(
-          'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
-        ),
-        decodeAddress(
-          'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
-        ).publicKey,
-      ],
-      [
-        new ABIStringType().encode('What’s new'),
-        new Uint8Array([
-          0,
-          12,
-          87,
-          104,
-          97,
-          116,
-          226,
-          128,
-          153,
-          115,
-          32,
-          110,
-          101,
-          119,
-        ]),
-      ],
-      [
-        new ABIStringType().encode('😅🔨'),
-        new Uint8Array([0, 8, 240, 159, 152, 133, 240, 159, 148, 168]),
-      ],
-      [new ABIByteType().encode(10), new Uint8Array([10])],
-      [new ABIByteType().encode(255), new Uint8Array([255])],
-      [new ABIBoolType().encode(true), new Uint8Array([128])],
-      [new ABIBoolType().encode(false), new Uint8Array([0])],
-      [
-        new ABIStringType().encode('asdf'),
-        new Uint8Array([0, 4, 97, 115, 100, 102]),
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 3).encode([
-          true,
-          true,
-          false,
-        ]),
-        new Uint8Array([192]),
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 8).encode([
-          false,
-          true,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-        ]),
-        new Uint8Array([64]),
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 8).encode([
-          true,
-          true,
-          true,
-          true,
-          true,
-          true,
-          true,
-          true,
-        ]),
-        new Uint8Array([255]),
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 9).encode([
-          true,
-          false,
-          false,
-          true,
-          false,
-          false,
-          true,
-          false,
-          true,
-        ]),
-        new Uint8Array([146, 128]),
-      ],
-      [
-        new ABIArrayStaticType(new ABIUintType(64), 3).encode([
-          BigInt(1),
-          BigInt(2),
-          BigInt(3),
-        ]),
-        new Uint8Array([
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          2,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          3,
-        ]),
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).encode([]),
-        new Uint8Array([0, 0]),
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).encode([true, true, false]),
-        new Uint8Array([0, 3, 192]),
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).encode([
-          false,
-          true,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-        ]),
-        new Uint8Array([0, 8, 64]),
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).encode([
-          true,
-          false,
-          false,
-          true,
-          false,
-          false,
-          true,
-          false,
-          true,
-        ]),
-        new Uint8Array([0, 9, 146, 128]),
-      ],
-      [ABIType.from('()').encode([]), new Uint8Array([])],
-      // 2^6 + 2^5 = 64 + 32 = 96
-      [
-        ABIType.from('(bool,bool,bool)').encode([false, true, true]),
-        new Uint8Array([96]),
-      ],
-      [
-        ABIType.from('(bool[3])').encode([[false, true, true]]),
-        new Uint8Array([96]),
-      ],
-      [
-        ABIType.from('(bool[])').encode([[false, true, true]]),
-        new Uint8Array([0, 2, 0, 3, 96]),
-      ],
-      [
-        ABIType.from('(bool[2],bool[])').encode([
-          [true, true],
-          [true, true],
-        ]),
-        new Uint8Array([192, 0, 3, 0, 2, 192]),
-      ],
-      [
-        ABIType.from('(bool[],bool[])').encode([[], []]),
-        new Uint8Array([0, 4, 0, 6, 0, 0, 0, 0]),
-      ],
-      [
-        ABIType.from('(string,bool,bool,bool,bool,string)').encode([
-          'AB',
-          true,
-          false,
-          true,
-          false,
-          'DE',
-        ]),
-        new Uint8Array([0, 5, 160, 0, 9, 0, 2, 65, 66, 0, 2, 68, 69]),
-      ],
-    ];
+  type TestCase<T> = {
+    abiType: ABIType;
+    input: T;
+    expectedEncoding: Uint8Array;
+  };
 
-    for (const testCase of testCases) {
-      const actual = testCase[0];
-      const expected = testCase[1];
-      assert.deepStrictEqual(actual, expected);
-    }
+  function newTestCase<T>(a: ABIType, b: T, c: Uint8Array): TestCase<T> {
+    return {
+      abiType: a,
+      input: b,
+      expectedEncoding: c,
+    };
+  }
+
+  [
+    newTestCase(new ABIUintType(8), BigInt(0), new Uint8Array([0])),
+    newTestCase(new ABIUintType(16), BigInt(3), new Uint8Array([0, 3])),
+    newTestCase(
+      new ABIUintType(64),
+      256,
+      new Uint8Array([0, 0, 0, 0, 0, 0, 1, 0])
+    ),
+    newTestCase(new ABIUfixedType(8, 30), BigInt(255), new Uint8Array([255])),
+    newTestCase(new ABIUfixedType(32, 10), 33, new Uint8Array([0, 0, 0, 33])),
+    newTestCase(
+      new ABIAddressType(),
+      'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI',
+      decodeAddress(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      ).publicKey
+    ),
+    newTestCase(
+      new ABIStringType(),
+      'What’s new',
+      new Uint8Array([
+        0,
+        12,
+        87,
+        104,
+        97,
+        116,
+        226,
+        128,
+        153,
+        115,
+        32,
+        110,
+        101,
+        119,
+      ])
+    ),
+    newTestCase(
+      new ABIStringType(),
+      '😅🔨',
+      new Uint8Array([0, 8, 240, 159, 152, 133, 240, 159, 148, 168])
+    ),
+    newTestCase(new ABIByteType(), 10, new Uint8Array([10])),
+    newTestCase(new ABIByteType(), 255, new Uint8Array([255])),
+    newTestCase(new ABIBoolType(), true, new Uint8Array([128])),
+    newTestCase(new ABIBoolType(), false, new Uint8Array([0])),
+    newTestCase(
+      new ABIStringType(),
+      'asdf',
+      new Uint8Array([0, 4, 97, 115, 100, 102])
+    ),
+    newTestCase(
+      new ABIArrayStaticType(new ABIBoolType(), 3),
+      [true, true, false],
+      new Uint8Array([192])
+    ),
+    newTestCase(
+      new ABIArrayStaticType(new ABIBoolType(), 8),
+      [false, true, false, false, false, false, false, false],
+      new Uint8Array([64])
+    ),
+    newTestCase(
+      new ABIArrayStaticType(new ABIBoolType(), 8),
+      [true, true, true, true, true, true, true, true],
+      new Uint8Array([255])
+    ),
+    newTestCase(
+      new ABIArrayStaticType(new ABIBoolType(), 9),
+      [true, false, false, true, false, false, true, false, true],
+      new Uint8Array([146, 128])
+    ),
+    newTestCase(
+      new ABIArrayStaticType(new ABIUintType(64), 3),
+      [BigInt(1), BigInt(2), 3], // Deliberately mix BigInt and int
+      new Uint8Array([
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+      ])
+    ),
+    newTestCase(
+      new ABIArrayDynamicType(new ABIBoolType()),
+      [],
+      new Uint8Array([0, 0])
+    ),
+    newTestCase(
+      new ABIArrayDynamicType(new ABIBoolType()),
+      [true, true, false],
+      new Uint8Array([0, 3, 192])
+    ),
+    newTestCase(
+      new ABIArrayDynamicType(new ABIBoolType()),
+      [false, true, false, false, false, false, false, false],
+      new Uint8Array([0, 8, 64])
+    ),
+    newTestCase(
+      new ABIArrayDynamicType(new ABIBoolType()),
+      [true, false, false, true, false, false, true, false, true],
+      new Uint8Array([0, 9, 146, 128])
+    ),
+    newTestCase(ABIType.from('()'), [], new Uint8Array([])),
+    // 2^6 + 2^5 = 64 + 32 = 96
+    newTestCase(
+      ABIType.from('(bool,bool,bool)'),
+      [false, true, true],
+      new Uint8Array([96])
+    ),
+    newTestCase(
+      ABIType.from('(bool[3])'),
+      [[false, true, true]],
+      new Uint8Array([96])
+    ),
+    newTestCase(
+      ABIType.from('(bool[])'),
+      [[false, true, true]],
+      new Uint8Array([0, 2, 0, 3, 96])
+    ),
+    newTestCase(
+      ABIType.from('(bool[2],bool[])'),
+      [
+        [true, true],
+        [true, true],
+      ],
+      new Uint8Array([192, 0, 3, 0, 2, 192])
+    ),
+    newTestCase(
+      ABIType.from('(bool[],bool[])'),
+      [[], []],
+      new Uint8Array([0, 4, 0, 6, 0, 0, 0, 0])
+    ),
+    newTestCase(
+      ABIType.from('(string,bool,bool,bool,bool,string)'),
+      ['AB', true, false, true, false, 'DE'],
+      new Uint8Array([0, 5, 160, 0, 9, 0, 2, 65, 66, 0, 2, 68, 69])
+    ),
+  ].forEach((testCase) => {
+    it(`should round-trip ${testCase.abiType}, ${testCase.input}`, () => {
+      const encoded = testCase.abiType.encode(testCase.input);
+      assert.deepStrictEqual(encoded, testCase.expectedEncoding);
+      const decoded = testCase.abiType.decode(encoded);
+
+      // Converts any numeric type to BigInt for strict equality comparisons.
+      // The conversion is required because there's no type information
+      // available to convert a decoded BigInt back to its original number
+      // form.  Converting from number to BigInt is always _safe_.
+      function numericAsBigInt(d: ABIValue): ABIValue {
+        if (typeof d === 'number') {
+          return BigInt(d);
+        } if (d instanceof Array) {
+          return (d as ABIValue[]).map(numericAsBigInt);
+        } 
+          return d;
+        
+      }
+
+      // Returns true when the provided ABIType decodes to BigInt.
+      function decodeReturnsBigInt(t: ABIType): boolean {
+        if (t instanceof ABIUintType || t instanceof ABIUfixedType) {
+          return true;
+        } if (t instanceof ABITupleType) {
+          (t as ABITupleType).childTypes
+            .map(decodeReturnsBigInt)
+            .includes(true);
+        } else if (t instanceof ABIArrayStaticType) {
+          return decodeReturnsBigInt((t as ABIArrayStaticType).childType);
+        } else if (t instanceof ABIArrayDynamicType) {
+          return decodeReturnsBigInt((t as ABIArrayDynamicType).childType);
+        }
+        return false;
+      }
+
+      if (decodeReturnsBigInt(testCase.abiType)) {
+        // If casting to BigInt changes the test case input, then it implies
+        // the _unchanged_ test case input != `decoded`.
+        //
+        // The sanity check confirms that transforming the expected value is
+        // necessary.
+        if (testCase.input !== numericAsBigInt(testCase.input)) {
+          assert.notDeepStrictEqual(decoded, testCase.input);
+        }
+
+        assert.deepStrictEqual(decoded, numericAsBigInt(testCase.input));
+      } else {
+        assert.deepStrictEqual(decoded, testCase.input);
+      }
+    });
   });
 
   it('should fail for bad values during encoding', () => {
@@ -453,157 +467,5 @@ describe('ABI encoding', () => {
         true,
       ])
     );
-  });
-
-  it('should decode the value correctly into bytes', () => {
-    const testCases = [
-      [new ABIUintType(8).decode(new Uint8Array([0])), BigInt(0)],
-      [new ABIUintType(16).decode(new Uint8Array([0, 3])), BigInt(3)],
-      [
-        new ABIUintType(64).decode(new Uint8Array([1, 0, 0, 0, 0, 0, 0, 0])),
-        BigInt(2 ** 56),
-      ],
-      [new ABIUfixedType(8, 30).decode(new Uint8Array([255])), BigInt(255)],
-      [
-        new ABIUfixedType(32, 10).decode(new Uint8Array([0, 0, 0, 33])),
-        BigInt(33),
-      ],
-      [
-        new ABIAddressType().decode(
-          decodeAddress(
-            'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
-          ).publicKey
-        ),
-        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI',
-      ],
-      [new ABIByteType().decode(new Uint8Array([10])), 10],
-      [new ABIByteType().decode(new Uint8Array([255])), 255],
-      [new ABIBoolType().decode(new Uint8Array([128])), true],
-      [new ABIBoolType().decode(new Uint8Array([0])), false],
-      [
-        new ABIStringType().decode(new Uint8Array([0, 4, 97, 115, 100, 102])),
-        'asdf',
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 3).decode(
-          new Uint8Array([192])
-        ),
-        [true, true, false],
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 8).decode(
-          new Uint8Array([64])
-        ),
-        [false, true, false, false, false, false, false, false],
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 8).decode(
-          new Uint8Array([255])
-        ),
-        [true, true, true, true, true, true, true, true],
-      ],
-      [
-        new ABIArrayStaticType(new ABIBoolType(), 9).decode(
-          new Uint8Array([146, 128])
-        ),
-        [true, false, false, true, false, false, true, false, true],
-      ],
-      [
-        new ABIArrayStaticType(new ABIUintType(64), 3).decode(
-          new Uint8Array([
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            2,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            3,
-          ])
-        ),
-        [BigInt(1), BigInt(2), BigInt(3)],
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).decode(
-          new Uint8Array([0, 0])
-        ),
-        [],
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).decode(
-          new Uint8Array([0, 3, 192])
-        ),
-        [true, true, false],
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).decode(
-          new Uint8Array([0, 8, 64])
-        ),
-        [false, true, false, false, false, false, false, false],
-      ],
-      [
-        new ABIArrayDynamicType(new ABIBoolType()).decode(
-          new Uint8Array([0, 9, 146, 128])
-        ),
-        [true, false, false, true, false, false, true, false, true],
-      ],
-      [ABIType.from('()').decode(new Uint8Array([])), []],
-      //   // 2^6 + 2^5 = 64 + 32 = 96
-      [
-        ABIType.from('(bool,bool,bool)').decode(new Uint8Array([96])),
-        [false, true, true],
-      ],
-      [
-        ABIType.from('(bool[3])').decode(new Uint8Array([96])),
-        [[false, true, true]],
-      ],
-      [
-        ABIType.from('(bool[])').decode(new Uint8Array([0, 2, 0, 3, 96])),
-        [[false, true, true]],
-      ],
-      [
-        ABIType.from('(bool[2],bool[])').decode(
-          new Uint8Array([192, 0, 3, 0, 2, 192])
-        ),
-        [
-          [true, true],
-          [true, true],
-        ],
-      ],
-      [
-        ABIType.from('(bool[],bool[])').decode(
-          new Uint8Array([0, 4, 0, 6, 0, 0, 0, 0])
-        ),
-        [[], []],
-      ],
-      [
-        ABIType.from('(string,bool,bool,bool,bool,string)').decode(
-          new Uint8Array([0, 5, 160, 0, 9, 0, 2, 65, 66, 0, 2, 68, 69])
-        ),
-        ['AB', true, false, true, false, 'DE'],
-      ],
-    ];
-
-    for (const testCase of testCases) {
-      const actual = testCase[0];
-      const expected = testCase[1];
-      assert.deepStrictEqual(actual, expected);
-    }
   });
 });
