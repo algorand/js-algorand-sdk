@@ -389,6 +389,11 @@ describe('ABI encoding', () => {
       ['AB', true, false, true, false, 'DE'],
       new Uint8Array([0, 5, 160, 0, 9, 0, 2, 65, 66, 0, 2, 68, 69])
     ),
+    newTestCase(
+      new ABITupleType([new ABIUintType(8), new ABIUintType(16)]),
+      [1, 2],
+      new Uint8Array([1, 0, 2])
+    ),
   ].forEach((testCase) => {
     it(`should round-trip ${testCase.abiType}, ${testCase.input}`, () => {
       const encoded = testCase.abiType.encode(testCase.input);
@@ -413,17 +418,17 @@ describe('ABI encoding', () => {
       function decodeReturnsBigInt(t: ABIType): boolean {
         if (t instanceof ABIUintType || t instanceof ABIUfixedType) {
           return true;
-        }
-        if (t instanceof ABITupleType) {
-          (t as ABITupleType).childTypes
+        } if (t instanceof ABITupleType) {
+          return (t as ABITupleType).childTypes
             .map(decodeReturnsBigInt)
             .includes(true);
-        } else if (t instanceof ABIArrayStaticType) {
+        } if (t instanceof ABIArrayStaticType) {
           return decodeReturnsBigInt((t as ABIArrayStaticType).childType);
-        } else if (t instanceof ABIArrayDynamicType) {
+        } if (t instanceof ABIArrayDynamicType) {
           return decodeReturnsBigInt((t as ABIArrayDynamicType).childType);
-        }
-        return false;
+        } 
+          return false;
+        
       }
 
       if (decodeReturnsBigInt(testCase.abiType)) {
