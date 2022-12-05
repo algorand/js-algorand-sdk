@@ -1,3 +1,25 @@
+# v1.24.0
+
+## What's Changed
+
+### Bugfixes
+
+- Bug-Fix: encode ABI string with non-ASCII characters by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/700
+
+### Enhancements
+
+- Tests: Migrate v1 algod dependencies to v2 in cucumber tests by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/693
+- REST API: Add KV counts to NodeStatusResponse by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/696
+- Fix: createMultisigTransaction name in comments by @nullun in https://github.com/algorand/js-algorand-sdk/pull/694
+- Enhancement: allowing zero-length static array by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/698
+- ABI: Refactor ABI encoding test to round-trip by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/701
+
+## New Contributors
+
+- @nullun made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/694
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.23.2...v1.24.0
+
 # v1.23.2
 
 ## What's Changed

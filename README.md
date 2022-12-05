@@ -22,8 +22,8 @@ Include a minified browser bundle directly in your HTML like so:
 
 ```html
 <script
-  src="https://unpkg.com/algosdk@v1.23.2/dist/browser/algosdk.min.js"
-  integrity="sha384-1gIB0FiLMNmJ7adAfBOdH20Mnw0DZarB9D3PTozUAhKn/uT9CpHdaSbBIpmZTgrU"
+  src="https://unpkg.com/algosdk@v1.24.0/dist/browser/algosdk.min.js"
+  integrity="sha384-PgD+QJZqpxjiZn/vLc2OPg8jbbOv7i0Scv2y3aB+VoUNIP4P93CR96QdzEQctWY9"
   crossorigin="anonymous"
 ></script>
 ```
@@ -32,8 +32,8 @@ or
 
 ```html
 <script
-  src="https://cdn.jsdelivr.net/npm/algosdk@v1.23.2/dist/browser/algosdk.min.js"
-  integrity="sha384-1gIB0FiLMNmJ7adAfBOdH20Mnw0DZarB9D3PTozUAhKn/uT9CpHdaSbBIpmZTgrU"
+  src="https://cdn.jsdelivr.net/npm/algosdk@v1.24.0/dist/browser/algosdk.min.js"
+  integrity="sha384-PgD+QJZqpxjiZn/vLc2OPg8jbbOv7i0Scv2y3aB+VoUNIP4P93CR96QdzEQctWY9"
   crossorigin="anonymous"
 ></script>
 ```
