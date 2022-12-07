@@ -44,9 +44,7 @@ jobs:
     steps:
       - checkout
       - install_dependencies
-      - run: |
-          npm run build
-          npm run lint
+      - run: npm run lint
 
   prettier:
     docker:

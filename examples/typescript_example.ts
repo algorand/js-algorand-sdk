@@ -1,6 +1,6 @@
 // Example: with TypeScript
 
-import algosdk from '../src/index';
+import algosdk from '../src';
 import utils from './utils';
 
 const { SENDER, RECEIVER } = utils.retrieveBaseConfig();
