@@ -1,5 +1,5 @@
 const assert = require('assert');
-const algosdk = require('../index');
+const algosdk = require('../src/index');
 const { translateBoxReferences } = require('../src/boxStorage');
 const group = require('../src/group');
 
