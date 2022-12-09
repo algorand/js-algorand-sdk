@@ -1,6 +1,6 @@
 const assert = require('assert');
 const nacl = require('../src/nacl/naclWrappers');
-const algosdk = require('../index');
+const algosdk = require('../src/index');
 const address = require('../src/encoding/address');
 
 describe('address', () => {
