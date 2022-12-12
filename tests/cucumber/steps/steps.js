@@ -177,16 +177,16 @@ module.exports = function getSteps(options) {
   }
 
   Given('a kmd client', function () {
-    this.kcl = new algosdk.Kmd(kmdToken, 'http://localhost', 60001);
+    this.kcl = new algosdk.Kmd(kmdToken, 'http://localhost:60001');
     return this.kcl;
   });
 
   Given('an algod v2 client', function () {
-    this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
+    this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost:60000');
   });
 
   Given('an indexer v2 client', function () {
-    this.indexerV2client = new algosdk.Indexer('', 'http://localhost', 59999);
+    this.indexerV2client = new algosdk.Indexer('', 'http://localhost:59999');
   });
 
   Given('wallet information', async function () {
