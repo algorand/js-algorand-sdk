@@ -1530,14 +1530,12 @@ module.exports = function getSteps(options) {
       responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
         '',
-        `http://${mockAlgodResponderHost}`,
-        mockAlgodResponderPort,
+        `http://${mockAlgodResponderHost}:${mockAlgodResponderPort}`,
         {}
       );
       this.indexerClient = new algosdk.Indexer(
         '',
-        `http://${mockAlgodResponderHost}`,
-        mockAlgodResponderPort,
+        `http://${mockAlgodResponderHost}:${mockAlgodResponderPort}`,
         {}
       );
     }
@@ -1557,14 +1555,12 @@ module.exports = function getSteps(options) {
       responseFormat = format;
       this.v2Client = new algosdk.Algodv2(
         '',
-        `http://${mockAlgodResponderHost}`,
-        mockAlgodResponderPort,
+        `http://${mockAlgodResponderHost}:${mockAlgodResponderPort}`,
         {}
       );
       this.indexerClient = new algosdk.Indexer(
         '',
-        `http://${mockAlgodResponderHost}`,
-        mockAlgodResponderPort,
+        `http://${mockAlgodResponderHost}:${mockAlgodResponderPort}`,
         {}
       );
       this.expectedMockResponseCode = status;
@@ -1638,14 +1634,12 @@ module.exports = function getSteps(options) {
   Given('mock server recording request paths', function () {
     this.v2Client = new algosdk.Algodv2(
       '',
-      `http://${mockAlgodPathRecorderHost}`,
-      mockAlgodPathRecorderPort,
+      `http://${mockAlgodPathRecorderHost}:${mockAlgodPathRecorderPort}`,
       {}
     );
     this.indexerClient = new algosdk.Indexer(
       '',
-      `http://${mockIndexerPathRecorderHost}`,
-      mockIndexerPathRecorderPort,
+      `http://${mockIndexerPathRecorderHost}:${mockIndexerPathRecorderPort}`,
       {}
     );
   });
@@ -3242,7 +3236,10 @@ module.exports = function getSteps(options) {
       if (!mutableHost.startsWith('http')) {
         mutableHost = `http://${mutableHost}`;
       }
-      this.v2Client = new algosdk.Algodv2(token, mutableHost, port, {});
+
+      if (port !== undefined && port !== '') mutableHost += `:${port}`;
+
+      this.v2Client = new algosdk.Algodv2(token, mutableHost, {});
     }
   );
 
