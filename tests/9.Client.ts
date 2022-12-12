@@ -16,7 +16,7 @@ describe('client', () => {
     });
 
     it('should work with number ports and trivial paths', () => {
-      const client = new URLTokenBaseHTTPClient({}, 'http://localhost', 3000);
+      const client = new URLTokenBaseHTTPClient({}, 'http://localhost:3000');
       const actual = client['getURL']('/relative');
       const expected = 'http://localhost:3000/relative';
 
@@ -26,8 +26,7 @@ describe('client', () => {
     it('should work with complex base URLs and complex paths', () => {
       const client = new URLTokenBaseHTTPClient(
         {},
-        'https://testnet-algorand.api.purestake.io/ps2/',
-        8080
+        'https://testnet-algorand.api.purestake.io:8080/ps2/'
       );
       const actual = client['getURL']('/relative?with=query');
       const expected =
@@ -36,7 +35,7 @@ describe('client', () => {
     });
 
     it('should work with search params', () => {
-      const client = new URLTokenBaseHTTPClient({}, 'http://localhost', 3000);
+      const client = new URLTokenBaseHTTPClient({}, 'http://localhost:3000');
       const actual = client['getURL']('/relative', {
         format: 'json',
         abc: 'xyz',
@@ -50,8 +49,7 @@ describe('client', () => {
     it('should work with search params when the requested URL already has search params', () => {
       const client = new URLTokenBaseHTTPClient(
         {},
-        'https://testnet-algorand.api.purestake.io/ps2/',
-        8080
+        'https://testnet-algorand.api.purestake.io:8080/ps2/'
       );
       const actual = client['getURL']('/relative?with=query', {
         format: 'json',
