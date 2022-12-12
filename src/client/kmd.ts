@@ -5,11 +5,10 @@ import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient';
 export default class Kmd extends ServiceClient {
   constructor(
     token: string | KMDTokenHeader | CustomTokenHeader,
-    baseServer = 'http://127.0.0.1',
-    port: string | number = 7833,
+    baseServer = '',
     headers = {}
   ) {
-    super('X-KMD-API-Token', token, baseServer, port, headers);
+    super('X-KMD-API-Token', token, baseServer, headers);
   }
 
   /**

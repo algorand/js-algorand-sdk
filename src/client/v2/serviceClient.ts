@@ -42,7 +42,6 @@ export default abstract class ServiceClient {
     tokenHeaderIdentifier: TokenHeaderIdentifier,
     tokenHeaderOrStrOrBaseClient: string | TokenHeader | BaseHTTPClient,
     baseServer: string,
-    port?: string | number,
     defaultHeaders: Record<string, any> = {}
   ) {
     if (isBaseHTTPClient(tokenHeaderOrStrOrBaseClient)) {
@@ -61,7 +60,7 @@ export default abstract class ServiceClient {
         tokenHeader = tokenHeaderOrStrOrBaseClient;
       }
 
-      this.c = new HTTPClient(tokenHeader, baseServer, port, defaultHeaders);
+      this.c = new HTTPClient(tokenHeader, baseServer, defaultHeaders);
     }
 
     this.intDecoding = IntDecoding.DEFAULT;

@@ -83,21 +83,18 @@ export default class HTTPClient {
   constructor(
     tokenHeader: TokenHeader,
     baseServer: string,
-    port?: string | number,
     defaultHeaders?: Record<string, string>
   );
 
   constructor(
     bcOrTokenHeader: BaseHTTPClient | TokenHeader,
     baseServer?: string,
-    port?: string | number,
     defaultHeaders: Record<string, string> = {}
   ) {
     if (baseServer !== undefined) {
       this.bc = new URLTokenBaseHTTPClient(
         bcOrTokenHeader as TokenHeader,
         baseServer,
-        port,
         defaultHeaders
       );
     } else {

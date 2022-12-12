@@ -65,11 +65,10 @@ export default class IndexerClient extends ServiceClient {
       | IndexerTokenHeader
       | CustomTokenHeader
       | BaseHTTPClient,
-    baseServer = 'http://127.0.0.1',
-    port: string | number = 8080,
+    baseServer = '',
     headers: Record<string, string> = {}
   ) {
-    super('X-Indexer-API-Token', tokenOrBaseClient, baseServer, port, headers);
+    super('X-Indexer-API-Token', tokenOrBaseClient, baseServer, headers);
   }
 
   /**

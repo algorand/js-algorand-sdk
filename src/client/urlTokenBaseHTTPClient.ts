@@ -39,7 +39,6 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
   constructor(
     tokenHeader: TokenHeader,
     baseServer: string,
-    port?: string | number,
     private defaultHeaders: Record<string, any> = {}
   ) {
     // Append a trailing slash so we can use relative paths. Without the trailing
@@ -49,9 +48,6 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       ? baseServer
       : `${baseServer}/`;
     const baseServerURL = new URL(fixedBaseServer);
-    if (typeof port !== 'undefined') {
-      baseServerURL.port = port.toString();
-    }
 
     if (baseServerURL.protocol.length === 0) {
       throw new Error('Invalid base server URL, protocol must be defined.');
