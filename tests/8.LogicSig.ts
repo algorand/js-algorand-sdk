@@ -1,5 +1,5 @@
 import assert from 'assert';
-import algosdk from '../index';
+import algosdk from '../src/index';
 import * as logic from '../src/logic/logic';
 import * as utils from '../src/utils/utils';
 

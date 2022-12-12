@@ -1,6 +1,6 @@
 // Example: updating asset configuration
 
-const algosdk = require('..');
+const algosdk = require('../src');
 
 async function main() {
   const {

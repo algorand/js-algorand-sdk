@@ -19,6 +19,7 @@ type SpecificParametersForCreate = Pick<
   | 'appAccounts'
   | 'appForeignApps'
   | 'appForeignAssets'
+  | 'boxes'
   | 'extraPages'
 >;
 
@@ -45,6 +46,7 @@ type SpecificParametersForUpdate = Pick<
   | 'appAccounts'
   | 'appForeignApps'
   | 'appForeignAssets'
+  | 'boxes'
 >;
 
 interface OverwritesForUpdate {
@@ -68,6 +70,7 @@ type SpecificParametersForDelete = Pick<
   | 'appAccounts'
   | 'appForeignApps'
   | 'appForeignAssets'
+  | 'boxes'
 >;
 
 interface OverwritesForDelete {

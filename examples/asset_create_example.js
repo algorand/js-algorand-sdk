@@ -1,6 +1,6 @@
 // Example: creating an asset
 
-const algosdk = require('..');
+const algosdk = require('../src');
 const utils = require('./utils');
 
 const { SENDER } = utils.retrieveBaseConfig();

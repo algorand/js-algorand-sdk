@@ -231,7 +231,7 @@ class DryrunTraceLine {
 class DryrunTrace {
   trace: DryrunTraceLine[] = [];
   constructor(t: DryrunTraceLineResponse[]) {
-    if (t === undefined) return;
+    if (t == null) return;
     this.trace = t.map((line) => new DryrunTraceLine(line));
   }
 }

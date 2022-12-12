@@ -19,7 +19,12 @@ import {
 import StateProofTxn from './stateproof';
 
 // Utilities
-export { TransactionParams, TransactionType, SuggestedParams } from './base';
+export {
+  TransactionParams,
+  TransactionType,
+  SuggestedParams,
+  BoxReference,
+} from './base';
 export {
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,

@@ -3,11 +3,13 @@ import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as nacl from './nacl/naclWrappers';
 import * as utils from './utils/utils';
+import { translateBoxReferences } from './boxStorage';
 import {
   OnApplicationComplete,
   TransactionParams,
   TransactionType,
   isTransactionType,
+  BoxReference,
 } from './types/transactions/base';
 import AnyTransaction, {
   MustHaveSuggestedParams,
@@ -110,6 +112,7 @@ interface TransactionStorageStructure
   nonParticipation?: boolean;
   group?: Buffer;
   extraPages?: number;
+  boxes?: BoxReference[];
   stateProofType?: number | bigint;
   stateProof?: Uint8Array;
   stateProofMessage?: Uint8Array;
@@ -195,6 +198,7 @@ export class Transaction implements TransactionStorageStructure {
   appAccounts?: Address[];
   appForeignApps?: number[];
   appForeignAssets?: number[];
+  boxes?: BoxReference[];
   type?: TransactionType;
   flatFee: boolean;
   reKeyTo?: Address;
@@ -418,6 +422,20 @@ export class Transaction implements TransactionStorageStructure {
         if (!Number.isSafeInteger(foreignAssetIndex) || foreignAssetIndex < 0)
           throw Error(
             'each foreign asset index must be a positive number and smaller than 2^53-1'
+          );
+      });
+    }
+    if (txn.boxes !== undefined) {
+      if (!Array.isArray(txn.boxes))
+        throw Error('boxes must be an Array of BoxReference.');
+      txn.boxes = txn.boxes.slice();
+      txn.boxes.forEach((box) => {
+        if (
+          !Number.isSafeInteger(box.appIndex) ||
+          box.name.constructor !== Uint8Array
+        )
+          throw Error(
+            'box app index must be a number and name must be an Uint8Array.'
           );
       });
     }
@@ -810,6 +828,11 @@ export class Transaction implements TransactionStorageStructure {
         apfa: this.appForeignApps,
         apas: this.appForeignAssets,
         apep: this.extraPages,
+        apbx: translateBoxReferences(
+          this.boxes,
+          this.appForeignApps,
+          this.appIndex
+        ),
       };
       if (this.reKeyTo !== undefined) {
         txn.rekey = Buffer.from(this.reKeyTo.publicKey);
@@ -848,6 +871,11 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.apan) delete txn.apan;
       if (!txn.apfa || !txn.apfa.length) delete txn.apfa;
       if (!txn.apas || !txn.apas.length) delete txn.apas;
+      for (const box of txn.apbx) {
+        if (!box.i) delete box.i;
+        if (!box.n || !box.n.length) delete box.n;
+      }
+      if (!txn.apbx || !txn.apbx.length) delete txn.apbx;
       if (!txn.apat || !txn.apat.length) delete txn.apat;
       if (!txn.apep) delete txn.apep;
       if (txn.grp === undefined) delete txn.grp;
@@ -1055,6 +1083,16 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (txnForEnc.apas !== undefined) {
         txn.appForeignAssets = txnForEnc.apas;
+      }
+      if (txnForEnc.apbx !== undefined) {
+        txn.boxes = txnForEnc.apbx.map((box) => ({
+          // We return 0 for the app ID so that it's guaranteed translateBoxReferences will
+          // translate the app index back to 0. If we instead returned the called app ID,
+          // translateBoxReferences would translate the app index to a nonzero value if the called
+          // app is also in the foreign app array.
+          appIndex: box.i ? txn.appForeignApps[box.i - 1] : 0,
+          name: box.n,
+        }));
       }
     } else if (txnForEnc.type === 'stpf') {
       if (txnForEnc.sptype !== undefined) {

@@ -50,7 +50,7 @@ export default abstract class JSONRequest<
   /**
    * Execute the request.
    * @param headers - Additional headers to send in the request. Optional.
-   * @returns A promise which resolves to the response data.
+   * @returns A promise which resolves to the parsed response data.
    * @category JSONRequest
    */
   async do(headers: Record<string, any> = {}): Promise<Data> {
@@ -60,6 +60,17 @@ export default abstract class JSONRequest<
     }
     const res = await this.c.get(this.path(), this.query, headers, jsonOptions);
     return this.prepare(res.body);
+  }
+
+  /**
+   * Execute the request, but do not process the response data in any way.
+   * @param headers - Additional headers to send in the request. Optional.
+   * @returns A promise which resolves to the raw response data, exactly as returned by the server.
+   * @category JSONRequest
+   */
+  async doRaw(headers: Record<string, any> = {}): Promise<Uint8Array> {
+    const res = await this.c.get(this.path(), this.query, headers, {}, false);
+    return res.body;
   }
 
   /**

@@ -21,6 +21,7 @@ import {
   isTransactionWithSigner,
 } from './signer';
 import {
+  BoxReference,
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base';
@@ -201,6 +202,7 @@ export class AtomicTransactionComposer {
     numLocalInts,
     numLocalByteSlices,
     extraPages,
+    boxes,
     note,
     lease,
     rekeyTo,
@@ -232,6 +234,8 @@ export class AtomicTransactionComposer {
     numLocalByteSlices?: number;
     /** The number of extra pages to allocate for the application's programs. Only set this if this is an application creation call. If omitted, defaults to 0. */
     extraPages?: number;
+    /** The box references for this application call */
+    boxes?: BoxReference[];
     /** The note value for this application call */
     note?: Uint8Array;
     /** The lease value for this application call */
@@ -317,6 +321,8 @@ export class AtomicTransactionComposer {
     const refArgTypes: ABIReferenceType[] = [];
     const refArgValues: ABIValue[] = [];
     const refArgIndexToBasicArgIndex: Map<number, number> = new Map();
+    // TODO: Box encoding for ABI
+    const boxReferences: BoxReference[] = !boxes ? [] : boxes;
 
     for (let i = 0; i < methodArgs.length; i++) {
       let argType = method.args[i].type;
@@ -437,6 +443,7 @@ export class AtomicTransactionComposer {
         accounts: foreignAccounts,
         foreignApps,
         foreignAssets,
+        boxes: boxReferences,
         onComplete:
           onComplete == null ? OnApplicationComplete.NoOpOC : onComplete,
         approvalProgram,
