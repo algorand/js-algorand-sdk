@@ -1,6 +1,6 @@
 // Example: destroying an asset
 
-const algosdk = require('..');
+const algosdk = require('../src');
 
 async function main() {
   const {

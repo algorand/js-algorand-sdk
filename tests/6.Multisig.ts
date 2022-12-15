@@ -1,5 +1,5 @@
 import assert from 'assert';
-import algosdk from '../index';
+import algosdk from '../src/index';
 import {
   MultisigTransaction,
   MULTISIG_NO_MUTATE_ERROR_MSG,

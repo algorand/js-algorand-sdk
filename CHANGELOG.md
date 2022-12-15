@@ -1,3 +1,13 @@
+# v1.24.1
+
+## What's Changed
+
+### Enhancements
+
+- Packaging: Improve source map and browser usage for external bundlers by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/707
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.24.0...v1.24.1
+
 # v1.24.0
 
 ## What's Changed

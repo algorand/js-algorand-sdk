@@ -48,8 +48,9 @@ module.exports = {
   ],
   ignorePatterns: [
     'dist/',
+    'docs/',
     'tests/cucumber/features/',
-    'tests/cucumber/build/',
+    'tests/cucumber/browser/build/',
     'tests/browser/bundle.*',
   ],
 };

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const algosdk = require('../index');
+const algosdk = require('../src/index');
 const nacl = require('../src/nacl/naclWrappers');
 const passphrase = require('../src/mnemonic/mnemonic');
 

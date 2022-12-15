@@ -1,5 +1,5 @@
 const assert = require('assert');
-const algosdk = require('../index');
+const algosdk = require('../src/index');
 const utils = require('../src/utils/utils');
 
 const ERROR_CONTAINS_EMPTY_STRING =
