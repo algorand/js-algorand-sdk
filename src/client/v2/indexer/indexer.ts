@@ -13,10 +13,12 @@ import LookupAccountCreatedApplications from './lookupAccountCreatedApplications
 import LookupAssetByID from './lookupAssetByID';
 import LookupApplications from './lookupApplications';
 import LookupApplicationLogs from './lookupApplicationLogs';
+import LookupApplicationBoxByIDandName from './lookupApplicationBoxByIDandName';
 import SearchAccounts from './searchAccounts';
 import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
 import SearchForApplications from './searchForApplications';
+import SearchForApplicationBoxes from './searchForApplicationBoxes';
 import { BaseHTTPClient } from '../../baseHTTPClient';
 import {
   CustomTokenHeader,
@@ -371,5 +373,60 @@ export default class IndexerClient extends ServiceClient {
    */
   searchForApplications() {
     return new SearchForApplications(this.c, this.intDecoding);
+  }
+
+  /**
+   * Returns information about indexed application boxes.
+   *
+   * #### Example
+   * ```typescript
+   * const maxResults = 20;
+   * const appID = 1234;
+   *
+   * const responsePage1 = await indexerClient
+   *        .searchForApplicationBoxes(appID)
+   *        .limit(maxResults)
+   *        .do();
+   * const boxNamesPage1 = responsePage1.boxes.map(box => box.name);
+   *
+   * const responsePage2 = await indexerClient
+   *        .searchForApplicationBoxes(appID)
+   *        .limit(maxResults)
+   *        .nextToken(responsePage1.nextToken)
+   *        .do();
+   * const boxNamesPage2 = responsePage2.boxes.map(box => box.name);
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idboxes)
+   * @param appID - The ID of the application with boxes.
+   * @category GET
+   */
+  searchForApplicationBoxes(appID: number) {
+    return new SearchForApplicationBoxes(this.c, this.intDecoding, appID);
+  }
+
+  /**
+   * Returns information about the application box given its name.
+   *
+   * #### Example
+   * ```typescript
+   * const boxName = Buffer.from("foo");
+   * const boxResponse = await indexerClient
+   *        .LookupApplicationBoxByIDandName(1234, boxName)
+   *        .do();
+   * const boxValue = boxResponse.value;
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applicationsapplication-idbox)
+   * @param appID - The ID of the application with boxes.
+   * @category GET
+   */
+  lookupApplicationBoxByIDandName(appID: number, boxName: Uint8Array) {
+    return new LookupApplicationBoxByIDandName(
+      this.c,
+      this.intDecoding,
+      appID,
+      boxName
+    );
   }
 }

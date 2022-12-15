@@ -1104,6 +1104,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param extraPages - integer extra pages of memory to rent on creation of application
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationCreateTxn(
   from: AppCreateTxn['from'],
@@ -1122,7 +1123,8 @@ export function makeApplicationCreateTxn(
   note?: AppCreateTxn['note'],
   lease?: AppCreateTxn['lease'],
   rekeyTo?: AppCreateTxn['reKeyTo'],
-  extraPages?: AppCreateTxn['extraPages']
+  extraPages?: AppCreateTxn['extraPages'],
+  boxes?: AppCreateTxn['boxes']
 ) {
   const o: AppCreateTxn = {
     type: TransactionType.appl,
@@ -1140,6 +1142,7 @@ export function makeApplicationCreateTxn(
     appAccounts: accounts,
     appForeignApps: foreignApps,
     appForeignAssets: foreignAssets,
+    boxes,
     note,
     lease,
     reKeyTo: rekeyTo,
@@ -1181,6 +1184,7 @@ export function makeApplicationCreateTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1205,7 +1209,8 @@ export function makeApplicationCreateTxnFromObject(
     o.note,
     o.lease,
     o.rekeyTo,
-    o.extraPages
+    o.extraPages,
+    o.boxes
   );
 }
 
@@ -1230,6 +1235,7 @@ export function makeApplicationCreateTxnFromObject(
  * @param note - Arbitrary data for sender to store
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationUpdateTxn(
   from: AppUpdateTxn['from'],
@@ -1243,7 +1249,8 @@ export function makeApplicationUpdateTxn(
   foreignAssets?: AppUpdateTxn['appForeignAssets'],
   note?: AppUpdateTxn['note'],
   lease?: AppUpdateTxn['lease'],
-  rekeyTo?: AppUpdateTxn['reKeyTo']
+  rekeyTo?: AppUpdateTxn['reKeyTo'],
+  boxes?: AppUpdateTxn['boxes']
 ) {
   const o: AppUpdateTxn = {
     type: TransactionType.appl,
@@ -1257,6 +1264,7 @@ export function makeApplicationUpdateTxn(
     appAccounts: accounts,
     appForeignApps: foreignApps,
     appForeignAssets: foreignAssets,
+    boxes,
     note,
     lease,
     reKeyTo: rekeyTo,
@@ -1288,6 +1296,7 @@ export function makeApplicationUpdateTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1306,7 +1315,8 @@ export function makeApplicationUpdateTxnFromObject(
     o.foreignAssets,
     o.note,
     o.lease,
-    o.rekeyTo
+    o.rekeyTo,
+    o.boxes
   );
 }
 
@@ -1329,6 +1339,7 @@ export function makeApplicationUpdateTxnFromObject(
  * @param note - Arbitrary data for sender to store
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationDeleteTxn(
   from: AppDeleteTxn['from'],
@@ -1340,7 +1351,8 @@ export function makeApplicationDeleteTxn(
   foreignAssets?: AppDeleteTxn['appForeignAssets'],
   note?: AppDeleteTxn['note'],
   lease?: AppDeleteTxn['lease'],
-  rekeyTo?: AppDeleteTxn['reKeyTo']
+  rekeyTo?: AppDeleteTxn['reKeyTo'],
+  boxes?: AppDeleteTxn['boxes']
 ) {
   const o: AppDeleteTxn = {
     type: TransactionType.appl,
@@ -1352,6 +1364,7 @@ export function makeApplicationDeleteTxn(
     appAccounts: accounts,
     appForeignApps: foreignApps,
     appForeignAssets: foreignAssets,
+    boxes,
     note,
     lease,
     reKeyTo: rekeyTo,
@@ -1379,6 +1392,7 @@ export function makeApplicationDeleteTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1395,7 +1409,8 @@ export function makeApplicationDeleteTxnFromObject(
     o.foreignAssets,
     o.note,
     o.lease,
-    o.rekeyTo
+    o.rekeyTo,
+    o.boxes
   );
 }
 
@@ -1418,6 +1433,7 @@ export function makeApplicationDeleteTxnFromObject(
  * @param note - Arbitrary data for sender to store
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationOptInTxn(
   from: AppOptInTxn['from'],
@@ -1429,7 +1445,8 @@ export function makeApplicationOptInTxn(
   foreignAssets?: AppOptInTxn['appForeignAssets'],
   note?: AppOptInTxn['note'],
   lease?: AppOptInTxn['lease'],
-  rekeyTo?: AppOptInTxn['reKeyTo']
+  rekeyTo?: AppOptInTxn['reKeyTo'],
+  boxes?: AppOptInTxn['boxes']
 ) {
   const o: AppOptInTxn = {
     type: TransactionType.appl,
@@ -1441,6 +1458,7 @@ export function makeApplicationOptInTxn(
     appAccounts: accounts,
     appForeignApps: foreignApps,
     appForeignAssets: foreignAssets,
+    boxes,
     note,
     lease,
     reKeyTo: rekeyTo,
@@ -1468,6 +1486,7 @@ export function makeApplicationOptInTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1484,7 +1503,8 @@ export function makeApplicationOptInTxnFromObject(
     o.foreignAssets,
     o.note,
     o.lease,
-    o.rekeyTo
+    o.rekeyTo,
+    o.boxes
   );
 }
 
@@ -1507,6 +1527,7 @@ export function makeApplicationOptInTxnFromObject(
  * @param note - Arbitrary data for sender to store
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationCloseOutTxn(
   from: AppCloseOutTxn['from'],
@@ -1518,7 +1539,8 @@ export function makeApplicationCloseOutTxn(
   foreignAssets?: AppCloseOutTxn['appForeignAssets'],
   note?: AppCloseOutTxn['note'],
   lease?: AppCloseOutTxn['lease'],
-  rekeyTo?: AppCloseOutTxn['reKeyTo']
+  rekeyTo?: AppCloseOutTxn['reKeyTo'],
+  boxes?: AppCloseOutTxn['boxes']
 ) {
   const o: AppCloseOutTxn = {
     type: TransactionType.appl,
@@ -1530,6 +1552,7 @@ export function makeApplicationCloseOutTxn(
     appAccounts: accounts,
     appForeignApps: foreignApps,
     appForeignAssets: foreignAssets,
+    boxes,
     note,
     lease,
     reKeyTo: rekeyTo,
@@ -1557,6 +1580,7 @@ export function makeApplicationCloseOutTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1573,7 +1597,8 @@ export function makeApplicationCloseOutTxnFromObject(
     o.foreignAssets,
     o.note,
     o.lease,
-    o.rekeyTo
+    o.rekeyTo,
+    o.boxes
   );
 }
 
@@ -1596,6 +1621,7 @@ export function makeApplicationCloseOutTxnFromObject(
  * @param note - Arbitrary data for sender to store
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationClearStateTxn(
   from: AppClearStateTxn['from'],
@@ -1607,7 +1633,8 @@ export function makeApplicationClearStateTxn(
   foreignAssets?: AppClearStateTxn['appForeignAssets'],
   note?: AppClearStateTxn['note'],
   lease?: AppClearStateTxn['lease'],
-  rekeyTo?: AppClearStateTxn['reKeyTo']
+  rekeyTo?: AppClearStateTxn['reKeyTo'],
+  boxes?: AppClearStateTxn['boxes']
 ) {
   const o: AppClearStateTxn = {
     type: TransactionType.appl,
@@ -1619,6 +1646,7 @@ export function makeApplicationClearStateTxn(
     appAccounts: accounts,
     appForeignApps: foreignApps,
     appForeignAssets: foreignAssets,
+    boxes,
     note,
     lease,
     reKeyTo: rekeyTo,
@@ -1646,6 +1674,7 @@ export function makeApplicationClearStateTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1662,7 +1691,8 @@ export function makeApplicationClearStateTxnFromObject(
     o.foreignAssets,
     o.note,
     o.lease,
-    o.rekeyTo
+    o.rekeyTo,
+    o.boxes
   );
 }
 
@@ -1685,6 +1715,7 @@ export function makeApplicationClearStateTxnFromObject(
  * @param note - Arbitrary data for sender to store
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
+ * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationNoOpTxn(
   from: AppNoOpTxn['from'],
@@ -1696,7 +1727,8 @@ export function makeApplicationNoOpTxn(
   foreignAssets?: AppNoOpTxn['appForeignAssets'],
   note?: AppNoOpTxn['note'],
   lease?: AppNoOpTxn['lease'],
-  rekeyTo?: AppNoOpTxn['reKeyTo']
+  rekeyTo?: AppNoOpTxn['reKeyTo'],
+  boxes?: AppNoOpTxn['boxes']
 ) {
   const o: AppNoOpTxn = {
     type: TransactionType.appl,
@@ -1708,6 +1740,7 @@ export function makeApplicationNoOpTxn(
     appAccounts: accounts,
     appForeignApps: foreignApps,
     appForeignAssets: foreignAssets,
+    boxes,
     note,
     lease,
     reKeyTo: rekeyTo,
@@ -1735,6 +1768,7 @@ export function makeApplicationNoOpTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1751,7 +1785,8 @@ export function makeApplicationNoOpTxnFromObject(
     o.foreignAssets,
     o.note,
     o.lease,
-    o.rekeyTo
+    o.rekeyTo,
+    o.boxes
   );
 }
 
@@ -1781,6 +1816,7 @@ export function makeApplicationCallTxnFromObject(
       | 'accounts'
       | 'foreignApps'
       | 'foreignAssets'
+      | 'boxes'
       | 'note'
       | 'lease'
       | 'rekeyTo'
@@ -1825,6 +1861,7 @@ export function makeApplicationCallTxnFromObject(
     appAccounts: options.accounts,
     appForeignApps: options.foreignApps,
     appForeignAssets: options.foreignAssets,
+    boxes: options.boxes,
     note: options.note,
     lease: options.lease,
     reKeyTo: options.rekeyTo,

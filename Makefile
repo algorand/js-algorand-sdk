@@ -13,7 +13,10 @@ display-all-js-steps:
 	tail -n +135 tests/cucumber/steps/steps.js | grep -v '^ *//' | awk "/(Given|Then|When)/,/',/" | grep -E "\'.+\'"  | sed "s/^[^']*'\([^']*\)'.*/\1/g"
 
 harness:
-	./test-harness.sh
+	./test-harness.sh up
+
+harness-down:
+	./test-harness.sh down
 
 docker-build:
 	docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile $(CURDIR) --build-arg TEST_BROWSER --build-arg CI=true

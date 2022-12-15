@@ -9,6 +9,9 @@ import Dryrun from './dryrun';
 import Genesis from './genesis';
 import GetAssetByID from './getAssetByID';
 import GetApplicationByID from './getApplicationByID';
+import GetBlockHash from './getBlockHash';
+import GetApplicationBoxByName from './getApplicationBoxByName';
+import GetApplicationBoxes from './getApplicationBoxes';
 import HealthCheck from './healthCheck';
 import PendingTransactionInformation from './pendingTransactionInformation';
 import PendingTransactions from './pendingTransactions';
@@ -171,7 +174,7 @@ export default class AlgodClient extends ServiceClient {
    * ```typescript
    * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
    * const index = 60553466;
-   * const accountInfo = await algodClient.accountApplicationInformation(address).do();
+   * const accountInfo = await algodClient.accountApplicationInformation(address, index).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
@@ -203,6 +206,23 @@ export default class AlgodClient extends ServiceClient {
    */
   block(roundNumber: number) {
     return new Block(this.c, roundNumber);
+  }
+
+  /**
+   * Get the block hash for the block on the given round.
+   *
+   * #### Example
+   * ```typescript
+   * const roundNumber = 18038133;
+   * const block = await algodClient.getBlockHash(roundNumber).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundhash)
+   * @param roundNumber - The round number of the block to get.
+   * @category GET
+   */
+  getBlockHash(roundNumber: number) {
+    return new GetBlockHash(this.c, this.intDecoding, roundNumber);
   }
 
   /**
@@ -429,6 +449,48 @@ export default class AlgodClient extends ServiceClient {
    */
   getApplicationByID(index: number) {
     return new GetApplicationByID(this.c, this.intDecoding, index);
+  }
+
+  /**
+   * Given an application ID and the box name (key), return the value stored in the box.
+   *
+   * #### Example
+   * ```typescript
+   * const index = 60553466;
+   * const boxName = Buffer.from("foo");
+   * const boxResponse = await algodClient.getApplicationBoxByName(index, boxName).do();
+   * const boxValue = boxResponse.value;
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
+   * @param index - The application ID to look up.
+   * @category GET
+   */
+  getApplicationBoxByName(index: number, boxName: Uint8Array) {
+    return new GetApplicationBoxByName(
+      this.c,
+      this.intDecoding,
+      index,
+      boxName
+    );
+  }
+
+  /**
+   * Given an application ID, return all the box names associated with the app.
+   *
+   * #### Example
+   * ```typescript
+   * const index = 60553466;
+   * const boxesResponse = await algodClient.getApplicationBoxes(index).max(3).do();
+   * const boxNames = boxesResponse.boxes.map(box => box.name);
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idboxes)
+   * @param index - The application ID to look up.
+   * @category GET
+   */
+  getApplicationBoxes(index: number) {
+    return new GetApplicationBoxes(this.c, this.intDecoding, index);
   }
 
   /**

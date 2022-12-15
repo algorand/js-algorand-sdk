@@ -5,7 +5,7 @@
 // makeApplicationCreateTxnFromObject, makeApplicationOptInTxnFromObject, etc.
 // counterparts in your code for readability.
 
-const algosdk = require('..');
+const algosdk = require('../src');
 const utils = require('./utils');
 
 const { ALGOD_INSTANCE, SENDER, RECEIVER } = utils.retrieveBaseConfig();

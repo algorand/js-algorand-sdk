@@ -5,7 +5,7 @@
  * for some of the other examples.
  */
 
-const algosdk = require('..');
+const algosdk = require('../src');
 const { fmt } = require('./utils');
 
 // generate accounts

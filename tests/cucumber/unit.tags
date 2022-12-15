@@ -3,7 +3,9 @@
 @unit.algod
 @unit.algod.ledger_refactoring
 @unit.applications
+@unit.applications.boxes
 @unit.atomic_transaction_composer
+@unit.blocksummary
 @unit.dryrun
 @unit.dryrun.trace.application
 @unit.feetest
@@ -17,6 +19,7 @@
 @unit.responses.231
 @unit.responses.participationupdates
 @unit.responses.unlimited_assets
+@unit.responses.blocksummary
 @unit.sourcemap
 @unit.stateproof.paths
 @unit.stateproof.responses
