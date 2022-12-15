@@ -69,7 +69,7 @@ export default class AlgodClient extends ServiceClient {
       | AlgodTokenHeader
       | CustomTokenHeader
       | BaseHTTPClient,
-    baseServer = '',
+    baseServer: string,
     port?: string | number,
     headers: Record<string, string> = {}
   ) {
