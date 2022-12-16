@@ -1,3 +1,11 @@
+# 2.0.0
+
+## What's Changed
+
+### Breaking changes
+
+- Remove v1 algod API (`client.algod`) due to API end-of-life (2022-12-01). Instead, use v2 algod API (`client.v2.algod.algod`).
+
 # v1.24.0
 
 ## What's Changed
