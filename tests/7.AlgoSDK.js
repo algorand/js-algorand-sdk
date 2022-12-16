@@ -985,7 +985,10 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('v2 Dryrun models', () => {
-    const schema = new algosdk.modelsv2.ApplicationStateSchema(5, 5);
+    const schema = new algosdk.modelsv2.ApplicationStateSchema({
+      numUint: 5,
+      numByteSlice: 5,
+    });
     const acc = new algosdk.modelsv2.Account({
       address: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       amount: 5002280000000000,
@@ -1003,7 +1006,10 @@ describe('Algosdk (AKA end to end)', () => {
       localStateSchema: schema,
       globalStateSchema: schema,
     });
-    const app = new algosdk.modelsv2.Application(1380011588, params);
+    const app = new algosdk.modelsv2.Application({
+      id: 1380011588,
+      params,
+    });
     // make a raw txn
     const txn = {
       apsu: 'AiABASI=',
