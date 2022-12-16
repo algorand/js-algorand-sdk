@@ -8,6 +8,16 @@
 - Remove `cost` field in `DryrunTxnResult` in favor of 2 fields: `budget-added` and `budget-consumed`. `cost` can be derived by `budget-consumed - budget-added`.
 - Remove logicsig templates (`logicTemplates`), `logic/langspec.json`, `logic.logic` depending on `langspec.json`.
 
+# v1.24.1
+
+## What's Changed
+
+### Enhancements
+
+- Packaging: Improve source map and browser usage for external bundlers by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/707
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.24.0...v1.24.1
+
 # v1.24.0
 
 ## What's Changed
