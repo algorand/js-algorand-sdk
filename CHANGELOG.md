@@ -7,6 +7,7 @@
 - Remove v1 algod API (`client.algod`) due to API end-of-life (2022-12-01). Instead, use v2 algod API (`client.v2.algod.algod`).
 - Remove `cost` field in `DryrunTxnResult` in favor of 2 fields: `budget-added` and `budget-consumed`. `cost` can be derived by `budget-consumed - budget-added`.
 - Remove logicsig templates (`logicTemplates`), `logic/langspec.json`, `logic.logic` depending on `langspec.json`.
+- Remove deprecated methods in `makeTxns.ts`, `logicsig.ts` and `types/transactions/encoded.ts`.
 
 # v1.24.1
 

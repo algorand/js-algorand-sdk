@@ -153,8 +153,8 @@ export {
 } from './convert';
 export { computeGroupID, assignGroupID } from './group';
 export {
+  LogicSig,
   LogicSigAccount,
-  makeLogicSig,
   signLogicSigTransaction,
   signLogicSigTransactionObject,
   logicSigFromByte,

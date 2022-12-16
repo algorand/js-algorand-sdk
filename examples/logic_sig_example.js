@@ -1,6 +1,7 @@
 // Example: creating a LogicSig transaction signed by a program that never approves the transfer.
 
 const algosdk = require('../src');
+const { LogicSig } = require('../src/logicsig');
 const utils = require('./utils');
 
 const { ALGOD_INSTANCE, RECEIVER } = utils.retrieveBaseConfig();
@@ -24,7 +25,7 @@ async function main() {
   );
 
   // create a logic signature
-  const lsig = algosdk.makeLogicSig(programBytes);
+  const lsig = new LogicSig(programBytes);
   const sender = lsig.address();
 
   // retrieve a receiver

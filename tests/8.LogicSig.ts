@@ -1,5 +1,6 @@
 import assert from 'assert';
 import algosdk from '../src/index';
+import { LogicSig } from '../src/logicsig';
 
 const sampleAccount1 = algosdk.mnemonicToSecretKey(
   'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch'
@@ -27,7 +28,7 @@ describe('LogicSig', () => {
       const programHash =
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
       const pk = algosdk.decodeAddress(programHash).publicKey;
-      let lsig = algosdk.makeLogicSig(program);
+      let lsig = new LogicSig(program);
       assert.strictEqual(lsig.logic, program);
       assert.strictEqual(lsig.args, undefined);
       assert.strictEqual(lsig.sig, undefined);
@@ -38,7 +39,7 @@ describe('LogicSig', () => {
       assert.strictEqual(verified, true);
 
       const args = [Uint8Array.from([1, 2, 3]), Uint8Array.from([4, 5, 6])];
-      lsig = algosdk.makeLogicSig(program, args);
+      lsig = new LogicSig(program, args);
       assert.strictEqual(lsig.logic, program);
       assert.deepStrictEqual(lsig.args, args);
       assert.strictEqual(lsig.sig, undefined);
@@ -59,7 +60,7 @@ describe('LogicSig', () => {
       const pk = algosdk.decodeAddress(programHash).publicKey;
 
       program[3] = 2;
-      const lsig = algosdk.makeLogicSig(program);
+      const lsig = new LogicSig(program);
       const verified = lsig.verify(pk);
       assert.strictEqual(verified, false);
     });
@@ -71,7 +72,7 @@ describe('LogicSig', () => {
       const programHash =
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
 
-      const lsig = algosdk.makeLogicSig(program);
+      const lsig = new LogicSig(program);
       const address = lsig.address();
 
       assert.deepStrictEqual(address, programHash);
@@ -433,7 +434,7 @@ describe('signLogicSigTransaction', () => {
 
   function testSign(
     lsigObject:
-      | ReturnType<typeof algosdk.makeLogicSig>
+      | ReturnType<(program: Uint8Array, args?: Uint8Array[]) => LogicSig>
       | algosdk.LogicSigAccount,
     sender: string,
     expected: { txID: string; blob: Uint8Array }
@@ -460,7 +461,7 @@ describe('signLogicSigTransaction', () => {
 
   describe('with LogicSig', () => {
     describe('escrow', () => {
-      const lsig = algosdk.makeLogicSig(program, args);
+      const lsig = new LogicSig(program, args);
 
       it('should match expected when sender is LogicSig address', () => {
         const sender = lsig.address();
@@ -495,7 +496,7 @@ describe('signLogicSigTransaction', () => {
       const account = algosdk.mnemonicToSecretKey(
         'olympic cricket tower model share zone grid twist sponsor avoid eight apology patient party success claim famous rapid donor pledge bomb mystery security ability often'
       );
-      const lsig = algosdk.makeLogicSig(program, args);
+      const lsig = new LogicSig(program, args);
       lsig.sign(account.sk);
 
       it('should match expected when sender is LogicSig address', () => {
@@ -538,7 +539,7 @@ describe('signLogicSigTransaction', () => {
     });
 
     describe('multisig', () => {
-      const lsig = algosdk.makeLogicSig(program, args);
+      const lsig = new LogicSig(program, args);
       lsig.sign(sampleAccount1.sk, sampleMultisigParams);
       lsig.appendToMultisig(sampleAccount2.sk);
 
@@ -677,7 +678,7 @@ describe('signLogicSigTransaction', () => {
   });
 
   it('should sign a raw transaction object', () => {
-    const lsig = algosdk.makeLogicSig(program);
+    const lsig = new LogicSig(program);
 
     const from = lsig.address();
     const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
