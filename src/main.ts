@@ -2,7 +2,6 @@ import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
-import * as LogicTemplatesCommonJSExport from './logicTemplates';
 import Bid, { BidOptions } from './bid';
 import * as convert from './convert';
 import * as utils from './utils/utils';
@@ -172,8 +171,6 @@ export {
   multisigAddress,
 } from './multisig';
 export { SourceMap } from './logic/sourcemap';
-
-export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
 export * from './dryrun';
 export * from './makeTxn';
