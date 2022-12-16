@@ -2141,12 +2141,6 @@ export class DryrunTxnResult extends BaseModel {
   public budgetConsumed?: number | bigint;
 
   /**
-   * Net cost of app execution. Field is DEPRECATED and is subject for removal.
-   * Instead, use `budget-added` and `budget-consumed.
-   */
-  public cost?: number | bigint;
-
-  /**
    * Application state delta.
    */
   public globalDelta?: EvalDeltaKeyValue[];
@@ -2171,8 +2165,6 @@ export class DryrunTxnResult extends BaseModel {
    * @param appCallTrace -
    * @param budgetAdded - Budget added during execution of app call transaction.
    * @param budgetConsumed - Budget consumed during execution of app call transaction.
-   * @param cost - Net cost of app execution. Field is DEPRECATED and is subject for removal.
-   * Instead, use `budget-added` and `budget-consumed.
    * @param globalDelta - Application state delta.
    * @param localDeltas -
    * @param logicSigDisassembly - Disassembled lsig program line by line.
@@ -2186,7 +2178,6 @@ export class DryrunTxnResult extends BaseModel {
     appCallTrace,
     budgetAdded,
     budgetConsumed,
-    cost,
     globalDelta,
     localDeltas,
     logicSigDisassembly,
@@ -2199,7 +2190,6 @@ export class DryrunTxnResult extends BaseModel {
     appCallTrace?: DryrunState[];
     budgetAdded?: number | bigint;
     budgetConsumed?: number | bigint;
-    cost?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigDisassembly?: string[];
@@ -2213,7 +2203,6 @@ export class DryrunTxnResult extends BaseModel {
     this.appCallTrace = appCallTrace;
     this.budgetAdded = budgetAdded;
     this.budgetConsumed = budgetConsumed;
-    this.cost = cost;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigDisassembly = logicSigDisassembly;
@@ -2253,7 +2242,6 @@ export class DryrunTxnResult extends BaseModel {
           : undefined,
       budgetAdded: data['budget-added'],
       budgetConsumed: data['budget-consumed'],
-      cost: data['cost'],
       globalDelta:
         typeof data['global-delta'] !== 'undefined'
           ? data['global-delta'].map(EvalDeltaKeyValue.from_obj_for_encoding)
