@@ -7,6 +7,16 @@
 - Remove v1 algod API (`client.algod`) due to API end-of-life (2022-12-01). Instead, use v2 algod API (`client.v2.algod.algod`).
 - Remove `cost` field in `DryrunTxnResult` in favor of 2 fields: `budget-added` and `budget-consumed`. `cost` can be derived by `budget-consumed - budget-added`.
 
+# v1.24.1
+
+## What's Changed
+
+### Enhancements
+
+- Packaging: Improve source map and browser usage for external bundlers by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/707
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.24.0...v1.24.1
+
 # v1.24.0
 
 ## What's Changed
