@@ -2736,7 +2736,11 @@ module.exports = function getSteps(options) {
           },
         ];
         sources = [
-          new algosdk.modelsv2.DryrunSource('lsig', data.toString('utf8'), 0),
+          new algosdk.modelsv2.DryrunSource({
+            fieldName: 'lsig',
+            source: data.toString('utf8'),
+            txnIndex: 0,
+          }),
         ];
         break;
       default:
