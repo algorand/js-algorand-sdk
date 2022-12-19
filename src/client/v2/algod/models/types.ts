@@ -440,11 +440,15 @@ export class AccountApplicationResponse extends BaseModel {
    * global data.
    * The raw account uses `AppParams` for this type.
    */
-  constructor(
-    round: number | bigint,
-    appLocalState?: ApplicationLocalState,
-    createdApp?: ApplicationParams
-  ) {
+  constructor({
+    round,
+    appLocalState,
+    createdApp,
+  }: {
+    round: number | bigint;
+    appLocalState?: ApplicationLocalState;
+    createdApp?: ApplicationParams;
+  }) {
     super();
     this.round = round;
     this.appLocalState = appLocalState;
@@ -464,15 +468,17 @@ export class AccountApplicationResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['round'] === 'undefined')
       throw new Error(`Response is missing required field 'round': ${data}`);
-    return new AccountApplicationResponse(
-      data['round'],
-      typeof data['app-local-state'] !== 'undefined'
-        ? ApplicationLocalState.from_obj_for_encoding(data['app-local-state'])
-        : undefined,
-      typeof data['created-app'] !== 'undefined'
-        ? ApplicationParams.from_obj_for_encoding(data['created-app'])
-        : undefined
-    );
+    return new AccountApplicationResponse({
+      round: data['round'],
+      appLocalState:
+        typeof data['app-local-state'] !== 'undefined'
+          ? ApplicationLocalState.from_obj_for_encoding(data['app-local-state'])
+          : undefined,
+      createdApp:
+        typeof data['created-app'] !== 'undefined'
+          ? ApplicationParams.from_obj_for_encoding(data['created-app'])
+          : undefined,
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -508,11 +514,15 @@ export class AccountAssetResponse extends BaseModel {
    * @param createdAsset - (apar) parameters of the asset created by this account.
    * The raw account uses `AssetParams` for this type.
    */
-  constructor(
-    round: number | bigint,
-    assetHolding?: AssetHolding,
-    createdAsset?: AssetParams
-  ) {
+  constructor({
+    round,
+    assetHolding,
+    createdAsset,
+  }: {
+    round: number | bigint;
+    assetHolding?: AssetHolding;
+    createdAsset?: AssetParams;
+  }) {
     super();
     this.round = round;
     this.assetHolding = assetHolding;
@@ -532,15 +542,17 @@ export class AccountAssetResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['round'] === 'undefined')
       throw new Error(`Response is missing required field 'round': ${data}`);
-    return new AccountAssetResponse(
-      data['round'],
-      typeof data['asset-holding'] !== 'undefined'
-        ? AssetHolding.from_obj_for_encoding(data['asset-holding'])
-        : undefined,
-      typeof data['created-asset'] !== 'undefined'
-        ? AssetParams.from_obj_for_encoding(data['created-asset'])
-        : undefined
-    );
+    return new AccountAssetResponse({
+      round: data['round'],
+      assetHolding:
+        typeof data['asset-holding'] !== 'undefined'
+          ? AssetHolding.from_obj_for_encoding(data['asset-holding'])
+          : undefined,
+      createdAsset:
+        typeof data['created-asset'] !== 'undefined'
+          ? AssetParams.from_obj_for_encoding(data['created-asset'])
+          : undefined,
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -686,7 +698,13 @@ export class AccountStateDelta extends BaseModel {
    * @param address -
    * @param delta - Application state delta.
    */
-  constructor(address: string, delta: EvalDeltaKeyValue[]) {
+  constructor({
+    address,
+    delta,
+  }: {
+    address: string;
+    delta: EvalDeltaKeyValue[];
+  }) {
     super();
     this.address = address;
     this.delta = delta;
@@ -706,10 +724,10 @@ export class AccountStateDelta extends BaseModel {
       throw new Error(
         `Response is missing required array field 'delta': ${data}`
       );
-    return new AccountStateDelta(
-      data['address'],
-      data['delta'].map(EvalDeltaKeyValue.from_obj_for_encoding)
-    );
+    return new AccountStateDelta({
+      address: data['address'],
+      delta: data['delta'].map(EvalDeltaKeyValue.from_obj_for_encoding),
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -733,7 +751,13 @@ export class Application extends BaseModel {
    * @param id - (appidx) application index.
    * @param params - (appparams) application parameters.
    */
-  constructor(id: number | bigint, params: ApplicationParams) {
+  constructor({
+    id,
+    params,
+  }: {
+    id: number | bigint;
+    params: ApplicationParams;
+  }) {
     super();
     this.id = id;
     this.params = params;
@@ -751,10 +775,10 @@ export class Application extends BaseModel {
       throw new Error(`Response is missing required field 'id': ${data}`);
     if (typeof data['params'] === 'undefined')
       throw new Error(`Response is missing required field 'params': ${data}`);
-    return new Application(
-      data['id'],
-      ApplicationParams.from_obj_for_encoding(data['params'])
-    );
+    return new Application({
+      id: data['id'],
+      params: ApplicationParams.from_obj_for_encoding(data['params']),
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -784,11 +808,15 @@ export class ApplicationLocalState extends BaseModel {
    * @param schema - (hsch) schema.
    * @param keyValue - (tkv) storage.
    */
-  constructor(
-    id: number | bigint,
-    schema: ApplicationStateSchema,
-    keyValue?: TealKeyValue[]
-  ) {
+  constructor({
+    id,
+    schema,
+    keyValue,
+  }: {
+    id: number | bigint;
+    schema: ApplicationStateSchema;
+    keyValue?: TealKeyValue[];
+  }) {
     super();
     this.id = id;
     this.schema = schema;
@@ -810,13 +838,14 @@ export class ApplicationLocalState extends BaseModel {
       throw new Error(`Response is missing required field 'id': ${data}`);
     if (typeof data['schema'] === 'undefined')
       throw new Error(`Response is missing required field 'schema': ${data}`);
-    return new ApplicationLocalState(
-      data['id'],
-      ApplicationStateSchema.from_obj_for_encoding(data['schema']),
-      typeof data['key-value'] !== 'undefined'
-        ? data['key-value'].map(TealKeyValue.from_obj_for_encoding)
-        : undefined
-    );
+    return new ApplicationLocalState({
+      id: data['id'],
+      schema: ApplicationStateSchema.from_obj_for_encoding(data['schema']),
+      keyValue:
+        typeof data['key-value'] !== 'undefined'
+          ? data['key-value'].map(TealKeyValue.from_obj_for_encoding)
+          : undefined,
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -973,7 +1002,13 @@ export class ApplicationStateSchema extends BaseModel {
    * @param numUint - (nui) num of uints.
    * @param numByteSlice - (nbs) num of byte slices.
    */
-  constructor(numUint: number | bigint, numByteSlice: number | bigint) {
+  constructor({
+    numUint,
+    numByteSlice,
+  }: {
+    numUint: number | bigint;
+    numByteSlice: number | bigint;
+  }) {
     super();
     this.numUint = numUint;
     this.numByteSlice = numByteSlice;
@@ -995,7 +1030,10 @@ export class ApplicationStateSchema extends BaseModel {
       throw new Error(
         `Response is missing required field 'num-byte-slice': ${data}`
       );
-    return new ApplicationStateSchema(data['num-uint'], data['num-byte-slice']);
+    return new ApplicationStateSchema({
+      numUint: data['num-uint'],
+      numByteSlice: data['num-byte-slice'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1025,7 +1063,13 @@ export class Asset extends BaseModel {
    * Definition:
    * data/transactions/asset.go : AssetParams
    */
-  constructor(index: number | bigint, params: AssetParams) {
+  constructor({
+    index,
+    params,
+  }: {
+    index: number | bigint;
+    params: AssetParams;
+  }) {
     super();
     this.index = index;
     this.params = params;
@@ -1043,10 +1087,10 @@ export class Asset extends BaseModel {
       throw new Error(`Response is missing required field 'index': ${data}`);
     if (typeof data['params'] === 'undefined')
       throw new Error(`Response is missing required field 'params': ${data}`);
-    return new Asset(
-      data['index'],
-      AssetParams.from_obj_for_encoding(data['params'])
-    );
+    return new Asset({
+      index: data['index'],
+      params: AssetParams.from_obj_for_encoding(data['params']),
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1078,11 +1122,15 @@ export class AssetHolding extends BaseModel {
    * @param assetId - Asset ID of the holding.
    * @param isFrozen - (f) whether or not the holding is frozen.
    */
-  constructor(
-    amount: number | bigint,
-    assetId: number | bigint,
-    isFrozen: boolean
-  ) {
+  constructor({
+    amount,
+    assetId,
+    isFrozen,
+  }: {
+    amount: number | bigint;
+    assetId: number | bigint;
+    isFrozen: boolean;
+  }) {
     super();
     this.amount = amount;
     this.assetId = assetId;
@@ -1106,11 +1154,11 @@ export class AssetHolding extends BaseModel {
       throw new Error(
         `Response is missing required field 'is-frozen': ${data}`
       );
-    return new AssetHolding(
-      data['amount'],
-      data['asset-id'],
-      data['is-frozen']
-    );
+    return new AssetHolding({
+      amount: data['amount'],
+      assetId: data['asset-id'],
+      isFrozen: data['is-frozen'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1361,7 +1409,7 @@ export class BlockHashResponse extends BaseModel {
    * Creates a new `BlockHashResponse` object.
    * @param blockhash - Block header hash.
    */
-  constructor(blockhash: string) {
+  constructor({ blockhash }: { blockhash: string }) {
     super();
     this.blockhash = blockhash;
 
@@ -1377,7 +1425,9 @@ export class BlockHashResponse extends BaseModel {
       throw new Error(
         `Response is missing required field 'blockHash': ${data}`
       );
-    return new BlockHashResponse(data['blockHash']);
+    return new BlockHashResponse({
+      blockhash: data['blockHash'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1403,7 +1453,13 @@ export class BlockResponse extends BaseModel {
    * @param cert - Optional certificate object. This is only included when the format is set to
    * message pack.
    */
-  constructor(block: BlockHeader, cert?: Record<string, any>) {
+  constructor({
+    block,
+    cert,
+  }: {
+    block: BlockHeader;
+    cert?: Record<string, any>;
+  }) {
     super();
     this.block = block;
     this.cert = cert;
@@ -1419,7 +1475,10 @@ export class BlockResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['block'] === 'undefined')
       throw new Error(`Response is missing required field 'block': ${data}`);
-    return new BlockResponse(data['block'], data['cert']);
+    return new BlockResponse({
+      block: data['block'],
+      cert: data['cert'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1443,7 +1502,13 @@ export class Box extends BaseModel {
    * @param name - (name) box name, base64 encoded
    * @param value - (value) box value, base64 encoded.
    */
-  constructor(name: string | Uint8Array, value: string | Uint8Array) {
+  constructor({
+    name,
+    value,
+  }: {
+    name: string | Uint8Array;
+    value: string | Uint8Array;
+  }) {
     super();
     this.name =
       typeof name === 'string'
@@ -1467,7 +1532,10 @@ export class Box extends BaseModel {
       throw new Error(`Response is missing required field 'name': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
-    return new Box(data['name'], data['value']);
+    return new Box({
+      name: data['name'],
+      value: data['value'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1485,7 +1553,7 @@ export class BoxDescriptor extends BaseModel {
    * Creates a new `BoxDescriptor` object.
    * @param name - Base64 encoded box name
    */
-  constructor(name: string | Uint8Array) {
+  constructor({ name }: { name: string | Uint8Array }) {
     super();
     this.name =
       typeof name === 'string'
@@ -1502,7 +1570,9 @@ export class BoxDescriptor extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
-    return new BoxDescriptor(data['name']);
+    return new BoxDescriptor({
+      name: data['name'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1517,7 +1587,7 @@ export class BoxesResponse extends BaseModel {
    * Creates a new `BoxesResponse` object.
    * @param boxes -
    */
-  constructor(boxes: BoxDescriptor[]) {
+  constructor({ boxes }: { boxes: BoxDescriptor[] }) {
     super();
     this.boxes = boxes;
 
@@ -1533,9 +1603,9 @@ export class BoxesResponse extends BaseModel {
       throw new Error(
         `Response is missing required array field 'boxes': ${data}`
       );
-    return new BoxesResponse(
-      data['boxes'].map(BoxDescriptor.from_obj_for_encoding)
-    );
+    return new BoxesResponse({
+      boxes: data['boxes'].map(BoxDescriptor.from_obj_for_encoding),
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1627,78 +1697,6 @@ export class BuildVersion extends BaseModel {
 }
 
 /**
- *
- */
-export class CatchpointAbortResponse extends BaseModel {
-  /**
-   * Catchup abort response string
-   */
-  public catchupMessage: string;
-
-  /**
-   * Creates a new `CatchpointAbortResponse` object.
-   * @param catchupMessage - Catchup abort response string
-   */
-  constructor(catchupMessage: string) {
-    super();
-    this.catchupMessage = catchupMessage;
-
-    this.attribute_map = {
-      catchupMessage: 'catchup-message',
-    };
-  }
-
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): CatchpointAbortResponse {
-    /* eslint-disable dot-notation */
-    if (typeof data['catchup-message'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'catchup-message': ${data}`
-      );
-    return new CatchpointAbortResponse(data['catchup-message']);
-    /* eslint-enable dot-notation */
-  }
-}
-
-/**
- *
- */
-export class CatchpointStartResponse extends BaseModel {
-  /**
-   * Catchup start response string
-   */
-  public catchupMessage: string;
-
-  /**
-   * Creates a new `CatchpointStartResponse` object.
-   * @param catchupMessage - Catchup start response string
-   */
-  constructor(catchupMessage: string) {
-    super();
-    this.catchupMessage = catchupMessage;
-
-    this.attribute_map = {
-      catchupMessage: 'catchup-message',
-    };
-  }
-
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): CatchpointStartResponse {
-    /* eslint-disable dot-notation */
-    if (typeof data['catchup-message'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'catchup-message': ${data}`
-      );
-    return new CatchpointStartResponse(data['catchup-message']);
-    /* eslint-enable dot-notation */
-  }
-}
-
-/**
  * Teal compile Result
  */
 export class CompileResponse extends BaseModel {
@@ -1723,7 +1721,15 @@ export class CompileResponse extends BaseModel {
    * @param result - base64 encoded program bytes
    * @param sourcemap - JSON of the source map
    */
-  constructor(hash: string, result: string, sourcemap?: Record<string, any>) {
+  constructor({
+    hash,
+    result,
+    sourcemap,
+  }: {
+    hash: string;
+    result: string;
+    sourcemap?: Record<string, any>;
+  }) {
     super();
     this.hash = hash;
     this.result = result;
@@ -1743,7 +1749,11 @@ export class CompileResponse extends BaseModel {
       throw new Error(`Response is missing required field 'hash': ${data}`);
     if (typeof data['result'] === 'undefined')
       throw new Error(`Response is missing required field 'result': ${data}`);
-    return new CompileResponse(data['hash'], data['result'], data['sourcemap']);
+    return new CompileResponse({
+      hash: data['hash'],
+      result: data['result'],
+      sourcemap: data['sourcemap'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1761,7 +1771,7 @@ export class DisassembleResponse extends BaseModel {
    * Creates a new `DisassembleResponse` object.
    * @param result - disassembled Teal code
    */
-  constructor(result: string) {
+  constructor({ result }: { result: string }) {
     super();
     this.result = result;
 
@@ -1775,7 +1785,9 @@ export class DisassembleResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['result'] === 'undefined')
       throw new Error(`Response is missing required field 'result': ${data}`);
-    return new DisassembleResponse(data['result']);
+    return new DisassembleResponse({
+      result: data['result'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1922,7 +1934,15 @@ export class DryrunResponse extends BaseModel {
    * @param protocolVersion - Protocol version is the protocol version Dryrun was operated under.
    * @param txns -
    */
-  constructor(error: string, protocolVersion: string, txns: DryrunTxnResult[]) {
+  constructor({
+    error,
+    protocolVersion,
+    txns,
+  }: {
+    error: string;
+    protocolVersion: string;
+    txns: DryrunTxnResult[];
+  }) {
     super();
     this.error = error;
     this.protocolVersion = protocolVersion;
@@ -1948,11 +1968,11 @@ export class DryrunResponse extends BaseModel {
       throw new Error(
         `Response is missing required array field 'txns': ${data}`
       );
-    return new DryrunResponse(
-      data['error'],
-      data['protocol-version'],
-      data['txns'].map(DryrunTxnResult.from_obj_for_encoding)
-    );
+    return new DryrunResponse({
+      error: data['error'],
+      protocolVersion: data['protocol-version'],
+      txns: data['txns'].map(DryrunTxnResult.from_obj_for_encoding),
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -1984,12 +2004,17 @@ export class DryrunSource extends BaseModel {
    * @param txnIndex -
    * @param appIndex -
    */
-  constructor(
-    fieldName: string,
-    source: string,
-    txnIndex: number | bigint,
-    appIndex: number | bigint
-  ) {
+  constructor({
+    fieldName,
+    source,
+    txnIndex,
+    appIndex,
+  }: {
+    fieldName: string;
+    source: string;
+    txnIndex: number | bigint;
+    appIndex: number | bigint;
+  }) {
     super();
     this.fieldName = fieldName;
     this.source = source;
@@ -2021,12 +2046,12 @@ export class DryrunSource extends BaseModel {
       throw new Error(
         `Response is missing required field 'app-index': ${data}`
       );
-    return new DryrunSource(
-      data['field-name'],
-      data['source'],
-      data['txn-index'],
-      data['app-index']
-    );
+    return new DryrunSource({
+      fieldName: data['field-name'],
+      source: data['source'],
+      txnIndex: data['txn-index'],
+      appIndex: data['app-index'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -2141,12 +2166,6 @@ export class DryrunTxnResult extends BaseModel {
   public budgetConsumed?: number | bigint;
 
   /**
-   * Net cost of app execution. Field is DEPRECATED and is subject for removal.
-   * Instead, use `budget-added` and `budget-consumed.
-   */
-  public cost?: number | bigint;
-
-  /**
    * Application state delta.
    */
   public globalDelta?: EvalDeltaKeyValue[];
@@ -2171,8 +2190,6 @@ export class DryrunTxnResult extends BaseModel {
    * @param appCallTrace -
    * @param budgetAdded - Budget added during execution of app call transaction.
    * @param budgetConsumed - Budget consumed during execution of app call transaction.
-   * @param cost - Net cost of app execution. Field is DEPRECATED and is subject for removal.
-   * Instead, use `budget-added` and `budget-consumed.
    * @param globalDelta - Application state delta.
    * @param localDeltas -
    * @param logicSigDisassembly - Disassembled lsig program line by line.
@@ -2186,7 +2203,6 @@ export class DryrunTxnResult extends BaseModel {
     appCallTrace,
     budgetAdded,
     budgetConsumed,
-    cost,
     globalDelta,
     localDeltas,
     logicSigDisassembly,
@@ -2199,7 +2215,6 @@ export class DryrunTxnResult extends BaseModel {
     appCallTrace?: DryrunState[];
     budgetAdded?: number | bigint;
     budgetConsumed?: number | bigint;
-    cost?: number | bigint;
     globalDelta?: EvalDeltaKeyValue[];
     localDeltas?: AccountStateDelta[];
     logicSigDisassembly?: string[];
@@ -2213,7 +2228,6 @@ export class DryrunTxnResult extends BaseModel {
     this.appCallTrace = appCallTrace;
     this.budgetAdded = budgetAdded;
     this.budgetConsumed = budgetConsumed;
-    this.cost = cost;
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigDisassembly = logicSigDisassembly;
@@ -2227,7 +2241,6 @@ export class DryrunTxnResult extends BaseModel {
       appCallTrace: 'app-call-trace',
       budgetAdded: 'budget-added',
       budgetConsumed: 'budget-consumed',
-      cost: 'cost',
       globalDelta: 'global-delta',
       localDeltas: 'local-deltas',
       logicSigDisassembly: 'logic-sig-disassembly',
@@ -2253,7 +2266,6 @@ export class DryrunTxnResult extends BaseModel {
           : undefined,
       budgetAdded: data['budget-added'],
       budgetConsumed: data['budget-consumed'],
-      cost: data['cost'],
       globalDelta:
         typeof data['global-delta'] !== 'undefined'
           ? data['global-delta'].map(EvalDeltaKeyValue.from_obj_for_encoding)
@@ -2287,7 +2299,13 @@ export class ErrorResponse extends BaseModel {
    * @param message -
    * @param data -
    */
-  constructor(message: string, data?: Record<string, any>) {
+  constructor({
+    message,
+    data,
+  }: {
+    message: string;
+    data?: Record<string, any>;
+  }) {
     super();
     this.message = message;
     this.data = data;
@@ -2303,7 +2321,10 @@ export class ErrorResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['message'] === 'undefined')
       throw new Error(`Response is missing required field 'message': ${data}`);
-    return new ErrorResponse(data['message'], data['data']);
+    return new ErrorResponse({
+      message: data['message'],
+      data: data['data'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -2333,7 +2354,15 @@ export class EvalDelta extends BaseModel {
    * @param bytes - (bs) bytes value.
    * @param uint - (ui) uint value.
    */
-  constructor(action: number | bigint, bytes?: string, uint?: number | bigint) {
+  constructor({
+    action,
+    bytes,
+    uint,
+  }: {
+    action: number | bigint;
+    bytes?: string;
+    uint?: number | bigint;
+  }) {
     super();
     this.action = action;
     this.bytes = bytes;
@@ -2351,7 +2380,11 @@ export class EvalDelta extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['action'] === 'undefined')
       throw new Error(`Response is missing required field 'action': ${data}`);
-    return new EvalDelta(data['action'], data['bytes'], data['uint']);
+    return new EvalDelta({
+      action: data['action'],
+      bytes: data['bytes'],
+      uint: data['uint'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -2372,7 +2405,7 @@ export class EvalDeltaKeyValue extends BaseModel {
    * @param key -
    * @param value - Represents a TEAL value delta.
    */
-  constructor(key: string, value: EvalDelta) {
+  constructor({ key, value }: { key: string; value: EvalDelta }) {
     super();
     this.key = key;
     this.value = value;
@@ -2390,10 +2423,10 @@ export class EvalDeltaKeyValue extends BaseModel {
       throw new Error(`Response is missing required field 'key': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
-    return new EvalDeltaKeyValue(
-      data['key'],
-      EvalDelta.from_obj_for_encoding(data['value'])
-    );
+    return new EvalDeltaKeyValue({
+      key: data['key'],
+      value: EvalDelta.from_obj_for_encoding(data['value']),
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -2425,11 +2458,15 @@ export class LightBlockHeaderProof extends BaseModel {
    * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
    * from a leaf to the root.
    */
-  constructor(
-    index: number | bigint,
-    proof: string | Uint8Array,
-    treedepth: number | bigint
-  ) {
+  constructor({
+    index,
+    proof,
+    treedepth,
+  }: {
+    index: number | bigint;
+    proof: string | Uint8Array;
+    treedepth: number | bigint;
+  }) {
     super();
     this.index = index;
     this.proof =
@@ -2458,11 +2495,11 @@ export class LightBlockHeaderProof extends BaseModel {
       throw new Error(
         `Response is missing required field 'treedepth': ${data}`
       );
-    return new LightBlockHeaderProof(
-      data['index'],
-      data['proof'],
-      data['treedepth']
-    );
+    return new LightBlockHeaderProof({
+      index: data['index'],
+      proof: data['proof'],
+      treedepth: data['treedepth'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -2972,10 +3009,13 @@ export class PendingTransactionsResponse extends BaseModel {
    * @param topTransactions - An array of signed transaction objects.
    * @param totalTransactions - Total number of transactions in the pool.
    */
-  constructor(
-    topTransactions: EncodedSignedTransaction[],
-    totalTransactions: number | bigint
-  ) {
+  constructor({
+    topTransactions,
+    totalTransactions,
+  }: {
+    topTransactions: EncodedSignedTransaction[];
+    totalTransactions: number | bigint;
+  }) {
     super();
     this.topTransactions = topTransactions;
     this.totalTransactions = totalTransactions;
@@ -2999,10 +3039,10 @@ export class PendingTransactionsResponse extends BaseModel {
       throw new Error(
         `Response is missing required field 'total-transactions': ${data}`
       );
-    return new PendingTransactionsResponse(
-      data['top-transactions'],
-      data['total-transactions']
-    );
+    return new PendingTransactionsResponse({
+      topTransactions: data['top-transactions'],
+      totalTransactions: data['total-transactions'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -3020,7 +3060,7 @@ export class PostTransactionsResponse extends BaseModel {
    * Creates a new `PostTransactionsResponse` object.
    * @param txid - encoding of the transaction hash.
    */
-  constructor(txid: string) {
+  constructor({ txid }: { txid: string }) {
     super();
     this.txid = txid;
 
@@ -3036,7 +3076,9 @@ export class PostTransactionsResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['txId'] === 'undefined')
       throw new Error(`Response is missing required field 'txId': ${data}`);
-    return new PostTransactionsResponse(data['txId']);
+    return new PostTransactionsResponse({
+      txid: data['txId'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -3060,7 +3102,13 @@ export class StateProof extends BaseModel {
    * @param message - Represents the message that the state proofs are attesting to.
    * @param stateproof - The encoded StateProof for the message.
    */
-  constructor(message: StateProofMessage, stateproof: string | Uint8Array) {
+  constructor({
+    message,
+    stateproof,
+  }: {
+    message: StateProofMessage;
+    stateproof: string | Uint8Array;
+  }) {
     super();
     this.message = message;
     this.stateproof =
@@ -3083,10 +3131,10 @@ export class StateProof extends BaseModel {
       throw new Error(
         `Response is missing required field 'StateProof': ${data}`
       );
-    return new StateProof(
-      StateProofMessage.from_obj_for_encoding(data['Message']),
-      data['StateProof']
-    );
+    return new StateProof({
+      message: StateProofMessage.from_obj_for_encoding(data['Message']),
+      stateproof: data['StateProof'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -3226,11 +3274,15 @@ export class SupplyResponse extends BaseModel {
    * @param onlineMoney - OnlineMoney
    * @param totalMoney - TotalMoney
    */
-  constructor(
-    currentRound: number | bigint,
-    onlineMoney: number | bigint,
-    totalMoney: number | bigint
-  ) {
+  constructor({
+    currentRound,
+    onlineMoney,
+    totalMoney,
+  }: {
+    currentRound: number | bigint;
+    onlineMoney: number | bigint;
+    totalMoney: number | bigint;
+  }) {
     super();
     this.currentRound = currentRound;
     this.onlineMoney = onlineMoney;
@@ -3258,11 +3310,11 @@ export class SupplyResponse extends BaseModel {
       throw new Error(
         `Response is missing required field 'total-money': ${data}`
       );
-    return new SupplyResponse(
-      data['current_round'],
-      data['online-money'],
-      data['total-money']
-    );
+    return new SupplyResponse({
+      currentRound: data['current_round'],
+      onlineMoney: data['online-money'],
+      totalMoney: data['total-money'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -3283,7 +3335,7 @@ export class TealKeyValue extends BaseModel {
    * @param key -
    * @param value - Represents a TEAL value.
    */
-  constructor(key: string, value: TealValue) {
+  constructor({ key, value }: { key: string; value: TealValue }) {
     super();
     this.key = key;
     this.value = value;
@@ -3301,10 +3353,10 @@ export class TealKeyValue extends BaseModel {
       throw new Error(`Response is missing required field 'key': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
-    return new TealKeyValue(
-      data['key'],
-      TealValue.from_obj_for_encoding(data['value'])
-    );
+    return new TealKeyValue({
+      key: data['key'],
+      value: TealValue.from_obj_for_encoding(data['value']),
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -3334,7 +3386,15 @@ export class TealValue extends BaseModel {
    * @param bytes - (tb) bytes value.
    * @param uint - (ui) uint value.
    */
-  constructor(type: number | bigint, bytes: string, uint: number | bigint) {
+  constructor({
+    type,
+    bytes,
+    uint,
+  }: {
+    type: number | bigint;
+    bytes: string;
+    uint: number | bigint;
+  }) {
     super();
     this.type = type;
     this.bytes = bytes;
@@ -3356,7 +3416,11 @@ export class TealValue extends BaseModel {
       throw new Error(`Response is missing required field 'bytes': ${data}`);
     if (typeof data['uint'] === 'undefined')
       throw new Error(`Response is missing required field 'uint': ${data}`);
-    return new TealValue(data['type'], data['bytes'], data['uint']);
+    return new TealValue({
+      type: data['type'],
+      bytes: data['bytes'],
+      uint: data['uint'],
+    });
     /* eslint-enable dot-notation */
   }
 }
@@ -3611,12 +3675,17 @@ export class Version extends BaseModel {
    * @param genesisId -
    * @param versions -
    */
-  constructor(
-    build: BuildVersion,
-    genesisHashB64: string | Uint8Array,
-    genesisId: string,
-    versions: string[]
-  ) {
+  constructor({
+    build,
+    genesisHashB64,
+    genesisId,
+    versions,
+  }: {
+    build: BuildVersion;
+    genesisHashB64: string | Uint8Array;
+    genesisId: string;
+    versions: string[];
+  }) {
     super();
     this.build = build;
     this.genesisHashB64 =
@@ -3651,12 +3720,12 @@ export class Version extends BaseModel {
       throw new Error(
         `Response is missing required array field 'versions': ${data}`
       );
-    return new Version(
-      BuildVersion.from_obj_for_encoding(data['build']),
-      data['genesis_hash_b64'],
-      data['genesis_id'],
-      data['versions']
-    );
+    return new Version({
+      build: BuildVersion.from_obj_for_encoding(data['build']),
+      genesisHashB64: data['genesis_hash_b64'],
+      genesisId: data['genesis_id'],
+      versions: data['versions'],
+    });
     /* eslint-enable dot-notation */
   }
 }

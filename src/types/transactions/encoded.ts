@@ -363,23 +363,6 @@ export interface EncodedMultisig {
   subsig: EncodedSubsig[];
 }
 
-/**
- * An encoded multisig blob that contains the encoded multisig as well as a copy of the encoded transaction
- *
- * @deprecated Use EncodedSignedTransaction instead.
- */
-export interface EncodedMultisigBlob {
-  /**
-   * Encoded multisig
-   */
-  msig: EncodedMultisig;
-
-  /**
-   * Encoded transaction
-   */
-  txn: EncodedTransaction;
-}
-
 export interface EncodedLogicSig {
   l: Uint8Array;
   arg?: Uint8Array[];
