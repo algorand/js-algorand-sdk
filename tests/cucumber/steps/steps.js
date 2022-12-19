@@ -2724,7 +2724,7 @@ module.exports = function getSteps(options) {
       case 'compiled':
         txns = [
           {
-            lsig: algosdk.makeLogicSig(data),
+            lsig: new algosdk.LogicSig(data),
             txn: algoTxn,
           },
         ];
@@ -2823,7 +2823,7 @@ module.exports = function getSteps(options) {
 
   Given('base64 encoded program {string}', function (programEncoded) {
     const program = Buffer.from(programEncoded, 'base64');
-    const lsig = algosdk.makeLogicSig(program);
+    const lsig = new algosdk.LogicSig(program);
     this.contractAddress = lsig.address();
   });
 

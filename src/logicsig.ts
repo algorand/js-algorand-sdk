@@ -377,19 +377,6 @@ export class LogicSigAccount {
   }
 }
 
-/**
- * makeLogicSig creates LogicSig object from program and arguments
- *
- * @deprecated Use new LogicSigAccount(...) instead
- *
- * @param program - Program to make LogicSig from
- * @param args - Arguments as array of Uint8Array
- * @returns LogicSig object
- */
-export function makeLogicSig(program: Uint8Array, args?: Uint8Array[]) {
-  return new LogicSig(program, args);
-}
-
 function signLogicSigTransactionWithAddress(
   txn: txnBuilder.Transaction,
   lsig: LogicSig,
