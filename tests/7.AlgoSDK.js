@@ -1,6 +1,5 @@
 const assert = require('assert');
 const algosdk = require('../src/index');
-const { LogicSig } = require('../src/logicsig');
 const nacl = require('../src/nacl/naclWrappers');
 const utils = require('../src/utils/utils');
 
@@ -832,14 +831,14 @@ describe('Algosdk (AKA end to end)', () => {
   describe('LogicSig', () => {
     it('should return valid logic sig object', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
-      let lsig = new LogicSig(program);
+      let lsig = new algosdk.LogicSig(program);
       assert.equal(lsig.logic, program);
       assert.equal(lsig.args, undefined);
       assert.equal(lsig.sig, undefined);
       assert.equal(lsig.msig, undefined);
 
       const args = [Uint8Array.from('123'), Uint8Array.from('456')];
-      lsig = new LogicSig(program, args);
+      lsig = new algosdk.LogicSig(program, args);
       assert.equal(lsig.logic, program);
       assert.deepEqual(lsig.args, args);
     });
@@ -848,7 +847,7 @@ describe('Algosdk (AKA end to end)', () => {
     it('should work on valid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
       const keys = algosdk.generateAccount();
-      const lsig = new LogicSig(program);
+      const lsig = new algosdk.LogicSig(program);
       lsig.sign(keys.sk);
       const verified = lsig.verify(algosdk.decodeAddress(keys.addr).publicKey);
       assert.equal(verified, true);
@@ -862,7 +861,7 @@ describe('Algosdk (AKA end to end)', () => {
   describe('Multisig logic sig', () => {
     it('should work on valid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      const lsig = new LogicSig(program);
+      const lsig = new algosdk.LogicSig(program);
 
       const keys = algosdk.generateAccount();
       assert.throws(() => lsig.appendToMultisig(keys.sk), 'empty msig');
@@ -895,7 +894,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.equal(verified, true);
 
       // combine sig and msig
-      const lsigf = new LogicSig(program);
+      const lsigf = new algosdk.LogicSig(program);
       lsigf.sign(keys.sk);
       lsig.sig = lsigf.sig;
       verified = lsig.verify(msigPk);
@@ -945,7 +944,7 @@ describe('Algosdk (AKA end to end)', () => {
         Uint8Array.from([49, 50, 51]),
         Uint8Array.from([52, 53, 54]),
       ];
-      const lsig = new LogicSig(program, args);
+      const lsig = new algosdk.LogicSig(program, args);
       const sk = algosdk.mnemonicToSecretKey(mn);
       lsig.sign(sk.sk);
 
@@ -979,7 +978,7 @@ describe('Algosdk (AKA end to end)', () => {
       const keys = nacl.keyPairFromSeed(seed);
       const pk = keys.publicKey;
       const sk = keys.secretKey;
-      const addr = new LogicSig(prog).address();
+      const addr = new algosdk.LogicSig(prog).address();
       const sig1 = algosdk.tealSign(sk, data, addr);
       const sig2 = algosdk.tealSignFromProgram(sk, data, prog);
 
@@ -998,7 +997,10 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('v2 Dryrun models', () => {
-    const schema = new algosdk.modelsv2.ApplicationStateSchema(5, 5);
+    const schema = new algosdk.modelsv2.ApplicationStateSchema({
+      numUint: 5,
+      numByteSlice: 5,
+    });
     const acc = new algosdk.modelsv2.Account({
       address: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       amount: 5002280000000000,
@@ -1016,7 +1018,10 @@ describe('Algosdk (AKA end to end)', () => {
       localStateSchema: schema,
       globalStateSchema: schema,
     });
-    const app = new algosdk.modelsv2.Application(1380011588, params);
+    const app = new algosdk.modelsv2.Application({
+      id: 1380011588,
+      params,
+    });
     // make a raw txn
     const txn = {
       apsu: 'AiABASI=',

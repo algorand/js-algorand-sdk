@@ -24,7 +24,7 @@ async function main() {
   );
 
   // create a logic signature
-  const lsig = new algosdk.LogicSig(programBytes);
+  const lsig = new algosdk.LogicSigAccount(programBytes);
   const sender = lsig.address();
 
   // retrieve a receiver
