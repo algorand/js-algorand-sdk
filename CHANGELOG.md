@@ -9,7 +9,8 @@
 - Remove logicsig templates (`logicTemplates`), `logic/langspec.json`, `logic.logic` depending on `langspec.json`.
 - Regenerate algod models so every constructor requires an object to be passed in. Previously, only constructors with more than 4 argument specified this.
 - Remove unused generated types: `CatchpointAbortResponse`, `CatchpointStartResponse`.
-- Remove `make*Txn` in favor of `make*TxnWithSuggestedParams`.
+- Remove following methods in favor of the methods with `WithSuggestedParams` suffix:
+  - `makePaymentTxn`, `makeKeyRegistrationTxn`, `makeAssetCreateTxn`, `makeAssetConfigTxn`, `makeAssetDestroyTxn`, `makeAssetFreezeTxn`, `makeAssetTransferTxn`.
 - Remove `makeLogicSig` in favor of either using `LogicSigAccount` (preferred) or directly invoking `LogicSig` constructor.
 - Remove `EncodedMultisigBlob` in favor of `EncodedSignedTransaction.
 
