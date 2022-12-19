@@ -7,6 +7,8 @@
 - Remove v1 algod API (`client.algod`) due to API end-of-life (2022-12-01). Instead, use v2 algod API (`client.v2.algod.algod`).
 - Remove `cost` field in `DryrunTxnResult` in favor of 2 fields: `budget-added` and `budget-consumed`. `cost` can be derived by `budget-consumed - budget-added`.
 - Remove logicsig templates (`logicTemplates`), `logic/langspec.json`, `logic.logic` depending on `langspec.json`.
+- Regenerate algod models so every constructor requires an object to be passed in. Previously, only constructors with more than 4 argument specified this.
+- Remove unused generated types: `CatchpointAbortResponse`, `CatchpointStartResponse`.
 - Remove `makePaymentTxn` in favor of `makePaymentTxnWithSuggestedParams`.
 - Remove `makeLogicSig` in favor of either using `LogicSigAccount` (preferred) or directly invoking `LogicSig` constructor.
 - Remove `EncodedMultisigBlob` in favor of `EncodedSignedTransaction.
