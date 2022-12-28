@@ -12,6 +12,13 @@ import {
   ABIType,
   ABIValue,
 } from '../src/abi/abi_type';
+import {
+  AtomicTransactionComposer,
+  ABIMethod,
+  makeBasicAccountTransactionSigner,
+  generateAccount,
+  AtomicTransactionComposerStatus,
+} from '../src';
 import { decodeAddress } from '../src/encoding/address';
 
 describe('ABI type checking', () => {
@@ -473,5 +480,57 @@ describe('ABI encoding', () => {
         true,
       ])
     );
+  });
+
+  it('should properly accept foreign array objects in the ATC addMethodCall', () => {
+    const composer = new AtomicTransactionComposer();
+    const method = ABIMethod.fromSignature('add(application)uint8');
+    const account = generateAccount();
+    const sender = 'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
+    const sp = {
+      fee: 1000,
+      firstRound: 1,
+      lastRound: 1001,
+      genesisID: 'gi',
+      genesisHash: 'gh',
+    };
+    const foreignAcct =
+      'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM';
+
+    // Create method call using ATC.
+    // The foreign apps array argument should be packed before the method argument.
+    composer.addMethodCall({
+      appID: 7,
+      method,
+      sender,
+      suggestedParams: sp,
+      methodArgs: [2],
+      appAccounts: [foreignAcct],
+      appForeignApps: [1],
+      appForeignAssets: [124],
+      signer: makeBasicAccountTransactionSigner(account),
+    });
+
+    assert.deepStrictEqual(
+      composer.getStatus(),
+      AtomicTransactionComposerStatus.BUILDING
+    );
+    assert.deepStrictEqual(composer.count(), 1);
+
+    // The built group should have one txn.
+    const txns = composer.buildGroup();
+    // eslint-disable-next-line prefer-destructuring
+    const txn = txns[0].txn;
+
+    // Assert that foreign objects were passed in and ordering was correct.
+    assert.deepStrictEqual(txn.appForeignApps?.length, 2);
+    assert.deepStrictEqual(txn.appForeignApps[0], 1);
+    assert.deepStrictEqual(txn.appForeignApps[1], 2);
+
+    assert.deepStrictEqual(txn.appForeignAssets?.length, 1);
+    assert.deepStrictEqual(txn.appForeignAssets[0], 124);
+
+    assert.deepStrictEqual(txn.appAccounts?.length, 1);
+    assert.deepStrictEqual(txn.appAccounts[0], decodeAddress(foreignAcct));
   });
 });
