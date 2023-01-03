@@ -26,7 +26,7 @@ data/basics/userBalance.go : AssetHolding</p>
 <ul class="tsd-hierarchy">
 <li><span class="target">AssetHolding</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/algod/models/types.ts#L1059">client/v2/algod/models/types.ts:1059</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/algod/models/types.ts#L1103">client/v2/algod/models/types.ts:1103</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -53,7 +53,7 @@ data/basics/userBalance.go : AssetHolding</p>
 <section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" id="icon-anchor-a"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" id="icon-anchor-b"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" id="icon-anchor-c"></path></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_AssetHolding">new <wbr/>Asset<wbr/>Holding<span class="tsd-signature-symbol">(</span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span>, assetId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span>, isFrozen<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/modelsv2.html" class="tsd-signature-type" data-tsd-kind="Namespace">modelsv2</a><span class="tsd-signature-symbol">.</span><a href="modelsv2.AssetHolding.html" class="tsd-signature-type" data-tsd-kind="Class">AssetHolding</a><a href="#constructor.new_AssetHolding" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_AssetHolding">new <wbr/>Asset<wbr/>Holding<span class="tsd-signature-symbol">(</span>__namedParameters<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>isFrozen<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/modelsv2.html" class="tsd-signature-type" data-tsd-kind="Namespace">modelsv2</a><span class="tsd-signature-symbol">.</span><a href="modelsv2.AssetHolding.html" class="tsd-signature-type" data-tsd-kind="Class">AssetHolding</a><a href="#constructor.new_AssetHolding" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Creates a new <code>AssetHolding</code> object.</p>
 </div>
@@ -61,21 +61,18 @@ data/basics/userBalance.go : AssetHolding</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>amount: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5>
-<div class="tsd-comment tsd-typography"><p>(a) number of units held.</p>
-</div></li>
-<li>
-<h5>assetId: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5>
-<div class="tsd-comment tsd-typography"><p>Asset ID of the holding.</p>
-</div></li>
-<li>
-<h5>isFrozen: <span class="tsd-signature-type">boolean</span></h5>
-<div class="tsd-comment tsd-typography"><p>(f) whether or not the holding is frozen.</p>
-</div></li></ul></div>
+<h5>__namedParameters: <span class="tsd-signature-symbol">{ </span>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>assetId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">; </span>isFrozen<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></h5>
+<ul class="tsd-parameters">
+<li class="tsd-parameter">
+<h5>amount<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5></li>
+<li class="tsd-parameter">
+<h5>asset<wbr/>Id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></h5></li>
+<li class="tsd-parameter">
+<h5>is<wbr/>Frozen<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../modules/modelsv2.html" class="tsd-signature-type" data-tsd-kind="Namespace">modelsv2</a><span class="tsd-signature-symbol">.</span><a href="modelsv2.AssetHolding.html" class="tsd-signature-type" data-tsd-kind="Class">AssetHolding</a></h4><aside class="tsd-sources">
 <p>Overrides <a href="_internal_.BaseModel.html">BaseModel</a>.<a href="_internal_.BaseModel.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/algod/models/types.ts#L1081">client/v2/algod/models/types.ts:1081</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/algod/models/types.ts#L1125">client/v2/algod/models/types.ts:1125</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="amount" class="tsd-anchor"></a>
@@ -84,27 +81,27 @@ data/basics/userBalance.go : AssetHolding</p>
 <div class="tsd-comment tsd-typography"><p>(a) number of units held.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/algod/models/types.ts#L1063">client/v2/algod/models/types.ts:1063</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/algod/models/types.ts#L1107">client/v2/algod/models/types.ts:1107</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="assetId" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>asset<wbr/>Id</span><a href="#assetId" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">asset<wbr/>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">bigint</span></div>
 <div class="tsd-comment tsd-typography"><p>Asset ID of the holding.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/algod/models/types.ts#L1068">client/v2/algod/models/types.ts:1068</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/algod/models/types.ts#L1112">client/v2/algod/models/types.ts:1112</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a id="attribute_map" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>attribute_<wbr/>map</span><a href="#attribute_map" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">attribute_<wbr/>map<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
 <p>Inherited from <a href="_internal_.BaseModel.html">BaseModel</a>.<a href="_internal_.BaseModel.html#attribute_map">attribute_map</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/basemodel.ts#L54">client/v2/basemodel.ts:54</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/basemodel.ts#L54">client/v2/basemodel.ts:54</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="isFrozen" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Frozen</span><a href="#isFrozen" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">is<wbr/>Frozen<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 <div class="tsd-comment tsd-typography"><p>(f) whether or not the holding is frozen.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/algod/models/types.ts#L1073">client/v2/algod/models/types.ts:1073</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/algod/models/types.ts#L1117">client/v2/algod/models/types.ts:1117</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a id="get_obj_for_encoding" class="tsd-anchor"></a>
@@ -127,7 +124,7 @@ data/basics/userBalance.go : AssetHolding</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="_internal_.BaseModel.html">BaseModel</a>.<a href="_internal_.BaseModel.html#get_obj_for_encoding">get_obj_for_encoding</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/basemodel.ts#L63">client/v2/basemodel.ts:63</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/basemodel.ts#L63">client/v2/basemodel.ts:63</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="from_obj_for_encoding" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>from_<wbr/>obj_<wbr/>for_<wbr/>encoding</span><a href="#from_obj_for_encoding" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -140,7 +137,7 @@ data/basics/userBalance.go : AssetHolding</p>
 <h5>data: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../modules/modelsv2.html" class="tsd-signature-type" data-tsd-kind="Namespace">modelsv2</a><span class="tsd-signature-symbol">.</span><a href="modelsv2.AssetHolding.html" class="tsd-signature-type" data-tsd-kind="Class">AssetHolding</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/db8a746/src/client/v2/algod/models/types.ts#L1099">client/v2/algod/models/types.ts:1099</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/algorand/js-algorand-sdk/blob/5eb7b4f/src/client/v2/algod/models/types.ts#L1147">client/v2/algod/models/types.ts:1147</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
