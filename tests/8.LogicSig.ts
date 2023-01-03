@@ -1,7 +1,5 @@
 import assert from 'assert';
 import algosdk from '../src/index';
-import * as logic from '../src/logic/logic';
-import * as utils from '../src/utils/utils';
 
 const sampleAccount1 = algosdk.mnemonicToSecretKey(
   'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch'
@@ -29,7 +27,7 @@ describe('LogicSig', () => {
       const programHash =
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
       const pk = algosdk.decodeAddress(programHash).publicKey;
-      let lsig = algosdk.makeLogicSig(program);
+      let lsig = new algosdk.LogicSig(program);
       assert.strictEqual(lsig.logic, program);
       assert.strictEqual(lsig.args, undefined);
       assert.strictEqual(lsig.sig, undefined);
@@ -40,7 +38,7 @@ describe('LogicSig', () => {
       assert.strictEqual(verified, true);
 
       const args = [Uint8Array.from([1, 2, 3]), Uint8Array.from([4, 5, 6])];
-      lsig = algosdk.makeLogicSig(program, args);
+      lsig = new algosdk.LogicSig(program, args);
       assert.strictEqual(lsig.logic, program);
       assert.deepStrictEqual(lsig.args, args);
       assert.strictEqual(lsig.sig, undefined);
@@ -61,7 +59,7 @@ describe('LogicSig', () => {
       const pk = algosdk.decodeAddress(programHash).publicKey;
 
       program[3] = 2;
-      const lsig = algosdk.makeLogicSig(program);
+      const lsig = new algosdk.LogicSig(program);
       const verified = lsig.verify(pk);
       assert.strictEqual(verified, false);
     });
@@ -73,7 +71,7 @@ describe('LogicSig', () => {
       const programHash =
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
 
-      const lsig = algosdk.makeLogicSig(program);
+      const lsig = new algosdk.LogicSig(program);
       const address = lsig.address();
 
       assert.deepStrictEqual(address, programHash);
@@ -434,9 +432,7 @@ describe('signLogicSigTransaction', () => {
     'WTDCE2FEYM2VB5MKNXKLRSRDTSPR2EFTIGVH4GRW4PHGD6747GFJTBGT2A';
 
   function testSign(
-    lsigObject:
-      | ReturnType<typeof algosdk.makeLogicSig>
-      | algosdk.LogicSigAccount,
+    lsigObject: algosdk.LogicSig | algosdk.LogicSigAccount,
     sender: string,
     expected: { txID: string; blob: Uint8Array }
   ) {
@@ -462,7 +458,7 @@ describe('signLogicSigTransaction', () => {
 
   describe('with LogicSig', () => {
     describe('escrow', () => {
-      const lsig = algosdk.makeLogicSig(program, args);
+      const lsig = new algosdk.LogicSig(program, args);
 
       it('should match expected when sender is LogicSig address', () => {
         const sender = lsig.address();
@@ -497,7 +493,7 @@ describe('signLogicSigTransaction', () => {
       const account = algosdk.mnemonicToSecretKey(
         'olympic cricket tower model share zone grid twist sponsor avoid eight apology patient party success claim famous rapid donor pledge bomb mystery security ability often'
       );
-      const lsig = algosdk.makeLogicSig(program, args);
+      const lsig = new algosdk.LogicSig(program, args);
       lsig.sign(account.sk);
 
       it('should match expected when sender is LogicSig address', () => {
@@ -540,7 +536,7 @@ describe('signLogicSigTransaction', () => {
     });
 
     describe('multisig', () => {
-      const lsig = algosdk.makeLogicSig(program, args);
+      const lsig = new algosdk.LogicSig(program, args);
       lsig.sign(sampleAccount1.sk, sampleMultisigParams);
       lsig.appendToMultisig(sampleAccount2.sk);
 
@@ -679,7 +675,7 @@ describe('signLogicSigTransaction', () => {
   });
 
   it('should sign a raw transaction object', () => {
-    const lsig = algosdk.makeLogicSig(program);
+    const lsig = new algosdk.LogicSig(program);
 
     const from = lsig.address();
     const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
@@ -719,399 +715,5 @@ describe('signLogicSigTransaction', () => {
     };
 
     assert.deepStrictEqual(actual, expected);
-  });
-});
-
-describe('Program validation', () => {
-  describe('Varint', () => {
-    it('should parse binary data correctly', () => {
-      let data = Uint8Array.from([1]);
-      let [value, length] = logic.parseUvarint(data);
-      assert.strictEqual(length, 1);
-      assert.strictEqual(value, 1);
-
-      data = Uint8Array.from([123]);
-      [value, length] = logic.parseUvarint(data);
-      assert.strictEqual(length, 1);
-      assert.strictEqual(value, 123);
-
-      data = Uint8Array.from([200, 3]);
-      [value, length] = logic.parseUvarint(data);
-      assert.strictEqual(length, 2);
-      assert.strictEqual(value, 456);
-    });
-  });
-  describe('Const blocks', () => {
-    it('should parse int const block correctly', () => {
-      const data = Uint8Array.from([32, 5, 0, 1, 200, 3, 123, 2]);
-      const size = logic.checkIntConstBlock(data, 0);
-      assert.strictEqual(size, data.length);
-    });
-    it('should parse bytes const block correctly', () => {
-      const data = Uint8Array.from([
-        38,
-        2,
-        13,
-        49,
-        50,
-        51,
-        52,
-        53,
-        54,
-        55,
-        56,
-        57,
-        48,
-        49,
-        50,
-        51,
-        2,
-        1,
-        2,
-      ]);
-      const size = logic.checkByteConstBlock(data, 0);
-      assert.strictEqual(size, data.length);
-    });
-    it('should parse int push op correctly', () => {
-      const data = Uint8Array.from([0x81, 0x80, 0x80, 0x04]);
-      const size = logic.checkPushIntOp(data, 0);
-      assert.strictEqual(size, data.length);
-    });
-    it('should parse byte push op correctly', () => {
-      const data = Uint8Array.from([
-        0x80,
-        0x0b,
-        0x68,
-        0x65,
-        0x6c,
-        0x6c,
-        0x6f,
-        0x20,
-        0x77,
-        0x6f,
-        0x72,
-        0x6c,
-        0x64,
-      ]);
-      const size = logic.checkPushByteOp(data, 0);
-      assert.strictEqual(size, data.length);
-    });
-  });
-  describe('Program checker', () => {
-    it('should assess correct programs right', () => {
-      let program = Uint8Array.from([1, 32, 1, 1, 34]);
-      let result = logic.checkProgram(program);
-      assert.strictEqual(result, true);
-
-      const args = [Uint8Array.from([1, 2, 3])];
-
-      result = logic.checkProgram(program, args);
-      assert.strictEqual(result, true);
-
-      program = utils.concatArrays(program, new Array(10).fill(0x22));
-      result = logic.checkProgram(program, args);
-      assert.strictEqual(result, true);
-    });
-    it('should fail on long input', () => {
-      assert.throws(
-        () => (logic.checkProgram as any)(),
-        new Error('empty program')
-      );
-      let program = Uint8Array.from([1, 32, 1, 1, 34]);
-      assert.throws(
-        () => logic.checkProgram(program, [new Uint8Array(1000).fill(55)]),
-        new Error('program too long')
-      );
-
-      program = utils.concatArrays(program, new Uint8Array(1000).fill(34));
-      assert.throws(
-        () => logic.checkProgram(program),
-        new Error('program too long')
-      );
-    });
-    it('should fail on invalid program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34, 255]);
-      assert.throws(
-        () => logic.checkProgram(program),
-        new Error('invalid instruction')
-      );
-    });
-    it('should fail on invalid args', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      assert.throws(
-        () => logic.checkProgram(program, '123' as any),
-        new Error('invalid arguments')
-      );
-    });
-    it('should fail on costly program', () => {
-      let program = Uint8Array.from([1, 38, 1, 1, 1, 40, 2]); // byte 0x01 + keccak256
-      let result = logic.checkProgram(program);
-      assert.strictEqual(result, true);
-
-      // 10x keccak256 more is fine
-      program = utils.concatArrays(program, new Uint8Array(10).fill(2));
-      result = logic.checkProgram(program);
-      assert.strictEqual(result, true);
-
-      // 800x keccak256 more is too costly
-      program = utils.concatArrays(program, new Uint8Array(800).fill(2));
-      //  old versions
-      const oldVersions = [0x1, 0x2, 0x3];
-      let i;
-      for (i = 0; i < oldVersions.length; i++) {
-        program[0] = oldVersions[i];
-        assert.throws(
-          () => logic.checkProgram(program),
-          new Error('program too costly for version < 4. consider using v4.')
-        );
-      }
-      //  new versions
-      const newVersions = [0x4];
-      for (i = 0; i < newVersions.length; i++) {
-        program[0] = newVersions[i];
-        assert.ok(logic.checkProgram(program));
-      }
-    });
-    it('should support AVM v2 opcodes', () => {
-      assert.ok(logic.langspecEvalMaxVersion >= 2);
-      assert.ok(logic.langspecLogicSigVersion >= 2);
-
-      // balance
-      let program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x60]); // int 0; balance
-      let result = logic.checkProgram(program);
-      assert.strictEqual(result, true);
-
-      // app_opted_in
-      program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x22, 0x61]); // int 0; int 0; app_opted_in
-      result = logic.checkProgram(program);
-      assert.strictEqual(result, true);
-
-      // 800x keccak256 more is to costly
-      // prettier-ignore
-      program = Uint8Array.from([0x02, 0x20, 0x01, 0x00, 0x22, 0x22, 0x70, 0x00 ]); // int 0; int 0; asset_holding_get Balance
-      result = logic.checkProgram(program);
-      assert.strictEqual(result, true);
-    });
-    it('should support AVM v3 opcodes', () => {
-      assert.ok(logic.langspecEvalMaxVersion >= 3);
-      assert.ok(logic.langspecLogicSigVersion >= 3);
-
-      // min_balance
-      let program = Uint8Array.from([0x03, 0x20, 0x01, 0x00, 0x22, 0x78]); // int 0; min_balance
-      assert.ok(logic.checkProgram(program));
-
-      // pushbytes
-      program = Uint8Array.from([
-        0x03,
-        0x20,
-        0x01,
-        0x00,
-        0x22,
-        0x80,
-        0x02,
-        0x68,
-        0x69,
-        0x48,
-      ]); // int 0; pushbytes "hi"; pop
-      assert.ok(logic.checkProgram(program));
-
-      // pushint
-      program = Uint8Array.from([
-        0x03,
-        0x20,
-        0x01,
-        0x00,
-        0x22,
-        0x81,
-        0x01,
-        0x48,
-      ]); // int 0; pushint 1; pop
-      assert.ok(logic.checkProgram(program));
-
-      // swap
-      program = Uint8Array.from([
-        0x03,
-        0x20,
-        0x02,
-        0x00,
-        0x01,
-        0x22,
-        0x23,
-        0x4c,
-        0x48,
-      ]); // int 0; int 1; swap; pop
-      assert.ok(logic.checkProgram(program));
-    });
-    it('should support AVM v4 opcodes', () => {
-      assert.ok(logic.langspecEvalMaxVersion >= 4);
-
-      // divmodw
-      let program = Uint8Array.from([
-        0x04,
-        0x20,
-        0x03,
-        0x01,
-        0x00,
-        0x02,
-        0x22,
-        0x81,
-        0xd0,
-        0x0f,
-        0x23,
-        0x24,
-        0x1f,
-      ]); // int 1; pushint 2000; int 0; int 2; divmodw
-      assert.ok(logic.checkProgram(program));
-
-      // gloads i
-      program = Uint8Array.from([0x04, 0x20, 0x01, 0x00, 0x22, 0x3b, 0x00]); // int 0; gloads 0
-      assert.ok(logic.checkProgram(program));
-
-      // callsub
-      program = Uint8Array.from([
-        0x04,
-        0x20,
-        0x02,
-        0x01,
-        0x02,
-        0x22,
-        0x88,
-        0x00,
-        0x02,
-        0x23,
-        0x12,
-        0x49,
-      ]); // int 1; callsub double; int 2; ==; double: dup;
-      assert.ok(logic.checkProgram(program));
-
-      // b>=
-      program = Uint8Array.from([
-        0x04,
-        0x26,
-        0x02,
-        0x01,
-        0x11,
-        0x01,
-        0x10,
-        0x28,
-        0x29,
-        0xa7,
-      ]); // byte 0x11; byte 0x10; b>=
-      assert.ok(logic.checkProgram(program));
-
-      // b^
-      program = Uint8Array.from([
-        0x04,
-        0x26,
-        0x03,
-        0x01,
-        0x11,
-        0x01,
-        0x10,
-        0x01,
-        0x01,
-        0x28,
-        0x29,
-        0xad,
-        0x2a,
-        0x12,
-      ]); // byte 0x11; byte 0x10; b>=
-      assert.ok(logic.checkProgram(program));
-
-      // callsub, retsub
-      program = Uint8Array.from([
-        0x04,
-        0x20,
-        0x02,
-        0x01,
-        0x02,
-        0x22,
-        0x88,
-        0x00,
-        0x03,
-        0x23,
-        0x12,
-        0x43,
-        0x49,
-        0x08,
-        0x89,
-      ]); // int 1; callsub double; int 2; ==; return; double: dup; +; retsub;
-      assert.ok(logic.checkProgram(program));
-
-      // loop
-      program = Uint8Array.from([
-        0x04,
-        0x20,
-        0x04,
-        0x01,
-        0x02,
-        0x0a,
-        0x10,
-        0x22,
-        0x23,
-        0x0b,
-        0x49,
-        0x24,
-        0x0c,
-        0x40,
-        0xff,
-        0xf8,
-        0x25,
-        0x12,
-      ]); // int 1; loop: int 2; *; dup; int 10; <; bnz loop; int 16; ==
-      assert.ok(logic.checkProgram(program));
-    });
-    it('should support AVM v5 opcodes', () => {
-      assert.ok(logic.langspecEvalMaxVersion >= 5);
-
-      // itxn ops
-      let program = new Uint8Array(
-        Buffer.from('052001c0843db18101b21022b2083100b207b3b4082212', 'hex')
-      );
-      // itxn_begin; int pay; itxn_field TypeEnum; int 1000000; itxn_field Amount; txn Sender; itxn_field Receiver; itxn_submit; itxn Amount; int 1000000; ==
-      assert.ok(logic.checkProgram(program));
-
-      // ECDSA ops
-      program = new Uint8Array(
-        Buffer.from(
-          '058008746573746461746103802079bfa8245aeac0e714b7bd2b3252d03979e5e7a43cb039715a5f8109a7dd9ba180200753d317e54350d1d102289afbde3002add4529f10b9f7d3d223843985de62e0802103abfb5e6e331fb871e423f354e2bd78a384ef7cb07ac8bbf27d2dd1eca00e73c106000500',
-          'hex'
-        )
-      );
-      // byte "testdata"; sha512_256; byte 0x79bfa8245aeac0e714b7bd2b3252d03979e5e7a43cb039715a5f8109a7dd9ba1; byte 0x0753d317e54350d1d102289afbde3002add4529f10b9f7d3d223843985de62e0; byte 0x03abfb5e6e331fb871e423f354e2bd78a384ef7cb07ac8bbf27d2dd1eca00e73c1; ecdsa_pk_decompress Secp256k1; ecdsa_verify Secp256k1
-      assert.ok(logic.checkProgram(program));
-
-      // cover, uncover, log
-      program = new Uint8Array(
-        Buffer.from('058001618001628001634e024f025050b08101', 'hex')
-      );
-      // byte "a"; byte "b"; byte "c"; cover 2; uncover 2; concat; concat; log; int 1
-      assert.ok(logic.checkProgram(program));
-    });
-    it('should support AVM v6 opcodes', () => {
-      assert.ok(logic.langspecEvalMaxVersion >= 6);
-
-      // bsqrt op
-      let program = new Uint8Array(Buffer.from('068001909680010ca8', 'hex'));
-      // byte 0x90; bsqrt; byte 0x0c; b==
-      assert.ok(logic.checkProgram(program));
-
-      // divw op
-      program = new Uint8Array(
-        Buffer.from(
-          '06810981ecffffffffffffffff01810a9781feffffffffffffffff0112',
-          'hex'
-        )
-      );
-      //  int 9; int 18446744073709551596; int 10; divw; int 18446744073709551614; ==
-      assert.ok(logic.checkProgram(program));
-
-      // txn fields
-      program = new Uint8Array(
-        Buffer.from('06313f1581401233003e15810a1210', 'hex')
-      );
-      // txn StateProofPK; len; int 64; ==; gtxn 0 LastLog; len; int 10; ==; &&
-      assert.ok(logic.checkProgram(program));
-    });
   });
 });

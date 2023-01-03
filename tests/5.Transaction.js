@@ -737,17 +737,20 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makePaymentTxn(
-        from,
-        to,
-        fee,
-        amount,
-        closeRemainderTo,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
+        from,
+        to,
+        amount,
+        closeRemainderTo,
+        note,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -780,17 +783,20 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makePaymentTxn(
-        from,
-        to,
-        fee,
-        amount,
-        closeRemainderTo,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
+        from,
+        to,
+        amount,
+        closeRemainderTo,
+        note,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -862,19 +868,22 @@ describe('Sign', () => {
         type: 'keyreg',
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeKeyRegistrationTxn(
-        from,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+        from,
+        note,
         voteKey,
         selectionKey,
         voteFirst,
         voteLast,
         voteKeyDilution,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -926,19 +935,22 @@ describe('Sign', () => {
       );
 
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeKeyRegistrationTxn(
-        from,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+        from,
+        note,
         voteKey,
         selectionKey,
         voteFirst,
         voteLast,
         voteKeyDilution,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -989,19 +1001,22 @@ describe('Sign', () => {
       );
 
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeKeyRegistrationTxn(
-        from,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+        from,
+        note,
         undefined,
         undefined,
         undefined,
         undefined,
         undefined,
+        suggestedParams,
         rekeyTo,
         nonParticipation
       );
@@ -1053,14 +1068,16 @@ describe('Sign', () => {
         type: 'acfg',
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetCreateTxn(
-        addr,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParams(
+        addr,
+        note,
         total,
         decimals,
         defaultFrozen,
@@ -1072,6 +1089,7 @@ describe('Sign', () => {
         assetName,
         assetURL,
         assetMetadataHash,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -1122,14 +1140,16 @@ describe('Sign', () => {
         type: 'acfg',
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetCreateTxn(
-        addr,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParams(
+        addr,
+        note,
         total,
         decimals,
         defaultFrozen,
@@ -1141,6 +1161,7 @@ describe('Sign', () => {
         assetName,
         assetURL,
         assetMetadataHash,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -1328,19 +1349,22 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetConfigTxn(
-        addr,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makeAssetConfigTxnWithSuggestedParams(
+        addr,
+        note,
         assetIndex,
         manager,
         reserve,
         freeze,
         clawback,
+        suggestedParams,
         true,
         rekeyTo
       );
@@ -1362,19 +1386,22 @@ describe('Sign', () => {
       const note = new Uint8Array([123, 12, 200]);
       let threw = false;
       try {
-        algosdk.makeAssetConfigTxn(
-          addr,
-          fee,
-          firstRound,
-          lastRound,
-          note,
+        const suggestedParams = {
           genesisHash,
           genesisID,
+          firstRound,
+          lastRound,
+          fee,
+        };
+        algosdk.makeAssetConfigTxnWithSuggestedParams(
+          addr,
+          note,
           assetIndex,
           manager,
           reserve,
           freeze,
-          clawback
+          clawback,
+          suggestedParams
         );
       } catch {
         threw = true;
@@ -1406,15 +1433,18 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetDestroyTxn(
-        addr,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+      const actualTxn = algosdk.makeAssetDestroyTxnWithSuggestedParams(
+        addr,
+        note,
         assetIndex,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -1453,19 +1483,23 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetTransferTxn(
+      const suggestedParams = {
+        genesisHash,
+        genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+
+      const actualTxn = algosdk.makeAssetTransferTxnWithSuggestedParams(
         sender,
         recipient,
         closeRemainderTo,
         revocationTarget,
-        fee,
         amount,
-        firstRound,
-        lastRound,
         note,
-        genesisHash,
-        genesisID,
         assetIndex,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
@@ -1499,17 +1533,21 @@ describe('Sign', () => {
         reKeyTo: rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const actualTxn = algosdk.makeAssetFreezeTxn(
-        addr,
-        fee,
-        firstRound,
-        lastRound,
-        note,
+      const suggestedParams = {
         genesisHash,
         genesisID,
+        firstRound,
+        lastRound,
+        fee,
+      };
+
+      const actualTxn = algosdk.makeAssetFreezeTxnWithSuggestedParams(
+        addr,
+        note,
         assetIndex,
         freezeTarget,
         freezeState,
+        suggestedParams,
         rekeyTo
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);

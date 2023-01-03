@@ -2,7 +2,6 @@ import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as txnBuilder from './transaction';
-import * as LogicTemplatesCommonJSExport from './logicTemplates';
 import Bid, { BidOptions } from './bid';
 import * as convert from './convert';
 import * as utils from './utils/utils';
@@ -117,7 +116,6 @@ export const ERROR_INVALID_MICROALGOS = new Error(
   convert.INVALID_MICROALGOS_ERROR_MSG
 );
 
-export * from './client/algod';
 export { default as Algodv2 } from './client/v2/algod/algod';
 export { default as Kmd } from './client/kmd';
 export { default as IntDecoding } from './types/intDecoding';
@@ -155,8 +153,8 @@ export {
 } from './convert';
 export { computeGroupID, assignGroupID } from './group';
 export {
+  LogicSig,
   LogicSigAccount,
-  makeLogicSig,
   signLogicSigTransaction,
   signLogicSigTransactionObject,
   logicSigFromByte,
@@ -173,8 +171,6 @@ export {
   multisigAddress,
 } from './multisig';
 export { SourceMap } from './logic/sourcemap';
-
-export const LogicTemplates = LogicTemplatesCommonJSExport.default;
 
 export * from './dryrun';
 export * from './makeTxn';
