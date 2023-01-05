@@ -379,10 +379,12 @@ export class AtomicTransactionComposer {
     }
 
     const resolvedRefIndexes: number[] = [];
-    const foreignAccounts: string[] = appAccounts == null ? [] : appAccounts;
-    const foreignApps: number[] = appForeignApps == null ? [] : appForeignApps;
+    const foreignAccounts: string[] =
+      appAccounts == null ? [] : appAccounts.slice();
+    const foreignApps: number[] =
+      appForeignApps == null ? [] : appForeignApps.slice();
     const foreignAssets: number[] =
-      appForeignAssets == null ? [] : appForeignAssets;
+      appForeignAssets == null ? [] : appForeignAssets.slice();
     for (let i = 0; i < refArgTypes.length; i++) {
       const refType = refArgTypes[i];
       const refValue = refArgValues[i];
