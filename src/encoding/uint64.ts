@@ -5,18 +5,38 @@
  * @returns An 8-byte typed array containing the big-endian encoding of the input
  *   integer.
  */
-export function encodeUint64(num: number | bigint) {
-  const isInteger = typeof num === 'bigint' || Number.isInteger(num);
+export function encodeUint64(dec: number) {
+  let binString = convertToBinary(dec)
 
-  if (!isInteger || num < 0 || num > BigInt('0xffffffffffffffff')) {
-    throw new Error('Input is not a 64-bit unsigned integer');
+  while (true) {
+    if (binString.length < 64) {
+      binString = "0" + binString
+    }
+    else {
+      break
+    }
   }
 
-  const buf = Buffer.allocUnsafe(8);
+  let array : number[] = [];
 
-  buf.writeBigUInt64BE(BigInt(num));
+  for (let i = 0; i < 64; i += 8) {
+    let piece = binString.slice(i, i + 8)
+    piece += ""
+    let pieceNumber = parseInt(piece, 2)
+    array.push(pieceNumber)
+  }
 
-  return new Uint8Array(buf);
+  return Uint8Array.from(array)
+
+}
+
+function convertToBinary (num: number) {
+  let binary = (num % 2).toString();
+  for (; num > 1; ) {
+      num = parseInt(String(num / 2));
+      binary =  (num % 2) + (binary);
+  }
+  return binary
 }
 
 /**
