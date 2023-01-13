@@ -3,6 +3,7 @@
  */
 
 /* eslint-disable no-use-before-define */
+import { Buffer } from 'buffer';
 import BaseModel from '../../basemodel';
 
 /**

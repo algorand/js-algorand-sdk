@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 /**
  * encodeUint64 converts an integer to its binary representation.
  * @param num - The number to convert. This must be an unsigned integer less than
@@ -65,7 +67,7 @@ export function decodeUint64(data: any, decodingMode: any = 'safe') {
   const buf = Buffer.concat([padding, Buffer.from(data)]);
 
   const num = buf.readBigUInt64BE();
-  const isBig = num > Number.MAX_SAFE_INTEGER;
+  const isBig = num > BigInt(Number.MAX_SAFE_INTEGER);
 
   if (decodingMode === 'safe') {
     if (isBig) {

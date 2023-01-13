@@ -1,3 +1,4 @@
+/* eslint-env mocha */
 const assert = require('assert');
 const nacl = require('../src/nacl/naclWrappers');
 const algosdk = require('../src/index');

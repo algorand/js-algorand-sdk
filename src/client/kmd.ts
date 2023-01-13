@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import ServiceClient from './v2/serviceClient';
 import * as txn from '../transaction';
 import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient';

@@ -13,6 +13,7 @@
     // | string
     // | (T1, ..., Tn)
 */
+import { Buffer } from 'buffer';
 import { encodeAddress, decodeAddress } from '../encoding/address';
 import { bigIntToBytes, bytesToBigInt } from '../encoding/bigint';
 import { concatArrays } from '../utils/utils';

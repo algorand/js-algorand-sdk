@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import * as txnBuilder from './transaction';
 import * as nacl from './nacl/naclWrappers';
 import * as encoding from './encoding/encoding';
