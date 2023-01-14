@@ -1,4 +1,9 @@
-import { Buffer } from 'buffer';
+import { concatArrays } from '../utils/utils';
+
+// NOTE: at the moment we specifically do not use Buffer.writeBigUInt64BE and
+// Buffer.getBigUint64. This is because projects using webpack v4 automatically
+// include an old version of the npm `buffer` package (v4.9.2 at the time of
+// writing), and this old version does not have these methods.
 
 /**
  * encodeUint64 converts an integer to its binary representation.
@@ -14,11 +19,11 @@ export function encodeUint64(num: number | bigint) {
     throw new Error('Input is not a 64-bit unsigned integer');
   }
 
-  const buf = Buffer.allocUnsafe(8);
+  const encoding = new Uint8Array(8);
+  const view = new DataView(encoding.buffer);
+  view.setBigUint64(0, BigInt(num));
 
-  buf.writeBigUInt64BE(BigInt(num));
-
-  return new Uint8Array(buf);
+  return encoding;
 }
 
 /**
@@ -61,12 +66,11 @@ export function decodeUint64(data: any, decodingMode: any = 'safe') {
   }
 
   // insert 0s at the beginning if data is smaller than 8 bytes
-  const padding = Buffer.allocUnsafe(8 - data.byteLength);
-  padding.fill(0);
+  const padding = new Uint8Array(8 - data.byteLength);
+  const encoding = concatArrays(padding, data);
+  const view = new DataView(encoding.buffer);
 
-  const buf = Buffer.concat([padding, Buffer.from(data)]);
-
-  const num = buf.readBigUInt64BE();
+  const num = view.getBigUint64(0);
   const isBig = num > BigInt(Number.MAX_SAFE_INTEGER);
 
   if (decodingMode === 'safe') {
