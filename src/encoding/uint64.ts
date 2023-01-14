@@ -1,9 +1,9 @@
 import { concatArrays } from '../utils/utils';
 
 // NOTE: at the moment we specifically do not use Buffer.writeBigUInt64BE and
-// Buffer.getBigUint64. This is because projects using webpack v4 automatically
-// include an old version of the npm `buffer` package (v4.9.2 at the time of
-// writing), and this old version does not have these methods.
+// Buffer.readBigUInt64BE. This is because projects using webpack v4
+// automatically include an old version of the npm `buffer` package (v4.9.2 at
+// the time of writing), and this old version does not have these methods.
 
 /**
  * encodeUint64 converts an integer to its binary representation.
