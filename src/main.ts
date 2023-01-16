@@ -160,6 +160,7 @@ export {
   logicSigFromByte,
   tealSign,
   tealSignFromProgram,
+  verifyTealSign,
 } from './logicsig';
 export {
   signMultisigTransaction,
