@@ -497,10 +497,10 @@ export function tealSign(
 
 /**
  * verifyTealSign verifies a signature as would the ed25519verify opcode
- * @param sk - uint8array with public key to verify against
  * @param data - buffer with original signed data
  * @param programHash - string representation of teal program hash (= contract address for LogicSigs)
  * @param sig - uint8array with the signature to verify (produced by tealSign/tealSignFromProgram)
+ * @param pk - uint8array with public key to verify against
  */
 export function verifyTealSign(
   data: Uint8Array | Buffer,
