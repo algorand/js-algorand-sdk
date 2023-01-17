@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 /**
  * bigIntToBytes converts a BigInt to a big-endian Uint8Array for encoding.
  * @param bi - The bigint to convert.

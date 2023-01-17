@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import * as utils from '../utils/utils';
 import {
   BaseHTTPClient,

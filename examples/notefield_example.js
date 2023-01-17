@@ -5,6 +5,7 @@
  * want in the "note" field.
  */
 
+const { Buffer } = require('buffer');
 const algosdk = require('../src');
 const utils = require('./utils');
 
