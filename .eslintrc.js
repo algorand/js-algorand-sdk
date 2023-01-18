@@ -1,17 +1,31 @@
 module.exports = {
   env: {
-    browser: true,
     es2021: true,
-    node: true,
-    mocha: true,
+    'shared-node-browser': true,
   },
-  extends: ['airbnb-base', 'prettier', 'plugin:import/typescript'],
+  extends: [
+    'airbnb-base',
+    'prettier',
+    'plugin:import/typescript',
+    'eslint:recommended',
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 12,
   },
   plugins: ['@typescript-eslint', 'eslint-plugin-tsdoc'],
   rules: {
+    'no-restricted-globals': [
+      'error',
+      {
+        // This is to ensure that we use the 'buffer' package in the browser. In Node it doesn't
+        // make a difference.
+        name: 'Buffer',
+        message:
+          "Explictly import Buffer with `import { Buffer } from 'buffer'`",
+      },
+    ],
+    'no-constant-condition': ['error', { checkLoops: false }],
     'no-restricted-syntax': ['error', 'LabeledStatement', 'WithStatement'],
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
     'max-classes-per-file': 'off',

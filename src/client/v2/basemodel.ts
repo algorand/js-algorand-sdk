@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 /**
  * Base class for models
  */

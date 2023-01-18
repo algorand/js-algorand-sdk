@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import base32 from 'hi-base32';
 import * as nacl from '../nacl/naclWrappers';
 import * as utils from '../utils/utils';

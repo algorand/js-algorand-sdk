@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 /**
  * Interfaces for the encoded transaction object. Every property is labelled with its associated Transaction type property
  */

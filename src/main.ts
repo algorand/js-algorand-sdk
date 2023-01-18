@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
@@ -160,6 +161,7 @@ export {
   logicSigFromByte,
   tealSign,
   tealSignFromProgram,
+  verifyTealSign,
 } from './logicsig';
 export {
   signMultisigTransaction,

@@ -1,4 +1,5 @@
 /* eslint-disable func-names,radix */
+const { Buffer } = require('buffer');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');

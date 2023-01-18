@@ -114,8 +114,11 @@ export function removeUndefinedProperties(
  */
 export function isNode() {
   return (
+    // @ts-ignore
     typeof process === 'object' &&
+    // @ts-ignore
     typeof process.versions === 'object' &&
+    // @ts-ignore
     typeof process.versions.node !== 'undefined'
   );
 }
