@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import AlgodClient from './client/v2/algod/algod';
 import {
   AccountStateDelta,

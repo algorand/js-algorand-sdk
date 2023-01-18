@@ -1,3 +1,4 @@
+/* eslint-env mocha */
 import assert from 'assert';
 import * as utils from '../src/utils/utils';
 import * as nacl from '../src/nacl/naclWrappers';

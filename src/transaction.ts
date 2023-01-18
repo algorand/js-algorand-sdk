@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import base32 from 'hi-base32';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';

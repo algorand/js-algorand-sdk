@@ -1,5 +1,6 @@
 // Example: creating an asset
 
+const { Buffer } = require('buffer');
 const algosdk = require('../src');
 const utils = require('./utils');
 

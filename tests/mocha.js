@@ -1,3 +1,4 @@
+/* eslint-env node, mocha */
 /* eslint-disable no-console */
 const Mocha = require('mocha');
 const webpack = require('webpack');

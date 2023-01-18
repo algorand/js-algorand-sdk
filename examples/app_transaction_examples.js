@@ -5,6 +5,7 @@
 // makeApplicationCreateTxnFromObject, makeApplicationOptInTxnFromObject, etc.
 // counterparts in your code for readability.
 
+const { Buffer } = require('buffer');
 const algosdk = require('../src');
 const utils = require('./utils');
 

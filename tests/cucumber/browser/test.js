@@ -1,3 +1,5 @@
+/* eslint-env browser */
+const { Buffer } = require('buffer');
 const assert = require('assert');
 const sha512 = require('js-sha512');
 const nacl = require('tweetnacl');

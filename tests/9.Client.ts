@@ -1,3 +1,4 @@
+/* eslint-env mocha */
 import assert from 'assert';
 import HTTPClient from '../src/client/client';
 import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';

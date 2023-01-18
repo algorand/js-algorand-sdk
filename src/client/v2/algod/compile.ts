@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 

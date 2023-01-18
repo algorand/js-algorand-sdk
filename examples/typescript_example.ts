@@ -1,5 +1,6 @@
 // Example: with TypeScript
 
+import { Buffer } from 'buffer';
 import algosdk from '../src';
 import utils from './utils';
 

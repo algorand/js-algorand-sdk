@@ -14,6 +14,8 @@
 - Remove `makeLogicSig` in favor of either using `LogicSigAccount` (preferred) or directly invoking `LogicSig` constructor.
 - Remove `EncodedMultisigBlob` in favor of `EncodedSignedTransaction.
 
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.24.1...v2.0.0
+
 # v1.24.1
 
 ## What's Changed
