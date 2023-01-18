@@ -70,8 +70,8 @@ export default class AlgodClient extends ServiceClient {
       | AlgodTokenHeader
       | CustomTokenHeader
       | BaseHTTPClient,
-    baseServer = 'http://r2.algorand.network',
-    port: string | number = 4180,
+    baseServer: string,
+    port?: string | number,
     headers: Record<string, string> = {}
   ) {
     super('X-Algo-API-Token', tokenOrBaseClient, baseServer, port, headers);

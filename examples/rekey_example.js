@@ -1,6 +1,6 @@
 // Example: rekeying
 
-const algosdk = require('..');
+const algosdk = require('../src');
 const utils = require('./utils');
 
 const { ALGOD_INSTANCE, SENDER } = utils.retrieveBaseConfig();

@@ -177,14 +177,6 @@ export default class LookupAssetTransactions extends JSONRequest {
   }
 
   /**
-   * @deprecated Redundant query parameter. Asset ID is already passed into the method.
-   */
-  assetID(id: number) {
-    this.query['asset-id'] = id;
-    return this;
-  }
-
-  /**
    * Maximum number of results to return.
    *
    * #### Example

@@ -54,6 +54,8 @@ export function sanityCheckProgram(program: Uint8Array) {
 
 /**
  LogicSig implementation
+
+ LogicSig cannot sign transactions in all cases.  Instead, use LogicSigAccount as a safe, general purpose signing mechanism.  Since LogicSig does not track the provided signature's public key, LogicSig cannot sign transactions when delegated to a non-multisig account _and_ the sender is not the delegating account.
  */
 export class LogicSig implements LogicSigStorageStructure {
   tag = Buffer.from('Program');
@@ -373,19 +375,6 @@ export class LogicSigAccount {
     this.lsig.sign(secretKey);
     this.sigkey = nacl.keyPairFromSecretKey(secretKey).publicKey;
   }
-}
-
-/**
- * makeLogicSig creates LogicSig object from program and arguments
- *
- * @deprecated Use new LogicSigAccount(...) instead
- *
- * @param program - Program to make LogicSig from
- * @param args - Arguments as array of Uint8Array
- * @returns LogicSig object
- */
-export function makeLogicSig(program: Uint8Array, args?: Uint8Array[]) {
-  return new LogicSig(program, args);
 }
 
 function signLogicSigTransactionWithAddress(

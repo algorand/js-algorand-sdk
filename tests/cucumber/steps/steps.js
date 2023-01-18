@@ -3,7 +3,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const algosdk = require('../../../index');
+const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
@@ -2724,7 +2724,7 @@ module.exports = function getSteps(options) {
       case 'compiled':
         txns = [
           {
-            lsig: algosdk.makeLogicSig(data),
+            lsig: new algosdk.LogicSig(data),
             txn: algoTxn,
           },
         ];
@@ -2736,7 +2736,11 @@ module.exports = function getSteps(options) {
           },
         ];
         sources = [
-          new algosdk.modelsv2.DryrunSource('lsig', data.toString('utf8'), 0),
+          new algosdk.modelsv2.DryrunSource({
+            fieldName: 'lsig',
+            source: data.toString('utf8'),
+            txnIndex: 0,
+          }),
         ];
         break;
       default:
@@ -2819,7 +2823,7 @@ module.exports = function getSteps(options) {
 
   Given('base64 encoded program {string}', function (programEncoded) {
     const program = Buffer.from(programEncoded, 'base64');
-    const lsig = algosdk.makeLogicSig(program);
+    const lsig = new algosdk.LogicSig(program);
     this.contractAddress = lsig.address();
   });
 

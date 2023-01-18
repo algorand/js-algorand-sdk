@@ -202,6 +202,9 @@ export class AtomicTransactionComposer {
     numLocalInts,
     numLocalByteSlices,
     extraPages,
+    appAccounts,
+    appForeignApps,
+    appForeignAssets,
     boxes,
     note,
     lease,
@@ -234,6 +237,12 @@ export class AtomicTransactionComposer {
     numLocalByteSlices?: number;
     /** The number of extra pages to allocate for the application's programs. Only set this if this is an application creation call. If omitted, defaults to 0. */
     extraPages?: number;
+    /** Array of Address strings that represent external accounts supplied to this application. If accounts are provided here, the accounts specified in the method args will appear after these. */
+    appAccounts?: string[];
+    /** Array of App ID numbers that represent external apps supplied to this application. If apps are provided here, the apps specified in the method args will appear after these. */
+    appForeignApps?: number[];
+    /** Array of Asset ID numbers that represent external assets supplied to this application. If assets are provided here, the assets specified in the method args will appear after these. */
+    appForeignAssets?: number[];
     /** The box references for this application call */
     boxes?: BoxReference[];
     /** The note value for this application call */
@@ -370,9 +379,12 @@ export class AtomicTransactionComposer {
     }
 
     const resolvedRefIndexes: number[] = [];
-    const foreignAccounts: string[] = [];
-    const foreignApps: number[] = [];
-    const foreignAssets: number[] = [];
+    const foreignAccounts: string[] =
+      appAccounts == null ? [] : appAccounts.slice();
+    const foreignApps: number[] =
+      appForeignApps == null ? [] : appForeignApps.slice();
+    const foreignAssets: number[] =
+      appForeignAssets == null ? [] : appForeignAssets.slice();
     for (let i = 0; i < refArgTypes.length; i++) {
       const refType = refArgTypes[i];
       const refValue = refArgValues[i];

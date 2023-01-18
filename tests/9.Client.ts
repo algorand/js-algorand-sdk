@@ -2,6 +2,7 @@ import assert from 'assert';
 import HTTPClient from '../src/client/client';
 import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';
 import IntDecoding from '../src/types/intDecoding';
+import AlgodClient from '../src/client/v2/algod/algod';
 import * as utils from '../src/utils/utils';
 
 describe('client', () => {
@@ -135,5 +136,30 @@ describe('client', () => {
 
       assert.throws(() => new HTTPClient({}, baseServer));
     });
+  });
+  describe('AlgodClient construction', () => {
+    /* eslint-disable dot-notation */
+    const baseServer = 'http://localhost';
+    it('should not assign a bogus port', () => {
+      const client = new AlgodClient('', baseServer);
+      assert.strictEqual(client.c['bc']['baseURL']['port'], '');
+    });
+
+    it('should accept a port as an argument and assign it correctly', () => {
+      const client = new AlgodClient('', baseServer, 123);
+      assert.strictEqual(client.c['bc']['baseURL']['port'], '123');
+    });
+
+    it('should accept a port in the url assign it correctly', () => {
+      const client = new AlgodClient('', `${baseServer}:${123}`);
+      assert.strictEqual(client.c['bc']['baseURL']['port'], '123');
+    });
+
+    it('should override the port from the URL with the one specified in the argument', () => {
+      const client = new AlgodClient('', `${baseServer}:${123}`, 456);
+      assert.strictEqual(client.c['bc']['baseURL']['port'], '456');
+    });
+
+    /* eslint-disable dot-notation */
   });
 });

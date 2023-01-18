@@ -1,6 +1,6 @@
 // Example: revoking assets
 
-const algosdk = require('..');
+const algosdk = require('../src');
 
 async function main() {
   const {
