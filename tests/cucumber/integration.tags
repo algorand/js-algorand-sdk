@@ -6,6 +6,7 @@
 @auction
 @c2c
 @compile
+@compile.disassemble
 @compile.sourcemap
 @dryrun
 @kmd
