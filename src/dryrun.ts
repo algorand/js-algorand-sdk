@@ -92,22 +92,22 @@ export async function createDryrun({
       // Create application,
       if (t.txn.appIndex === undefined || t.txn.appIndex === 0) {
         appInfos.push(
-          new Application(
-            defaultAppId,
-            new ApplicationParams({
+          new Application({
+            id: defaultAppId,
+            params: new ApplicationParams({
               creator: encodeAddress(t.txn.from.publicKey),
               approvalProgram: t.txn.appApprovalProgram,
               clearStateProgram: t.txn.appClearProgram,
-              localStateSchema: new ApplicationStateSchema(
-                t.txn.appLocalInts,
-                t.txn.appLocalByteSlices
-              ),
-              globalStateSchema: new ApplicationStateSchema(
-                t.txn.appGlobalInts,
-                t.txn.appGlobalByteSlices
-              ),
-            })
-          )
+              localStateSchema: new ApplicationStateSchema({
+                numUint: t.txn.appLocalInts,
+                numByteSlice: t.txn.appLocalByteSlices,
+              }),
+              globalStateSchema: new ApplicationStateSchema({
+                numUint: t.txn.appGlobalInts,
+                numByteSlice: t.txn.appGlobalByteSlices,
+              }),
+            }),
+          })
         );
       } else {
         apps.push(t.txn.appIndex);

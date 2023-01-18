@@ -1,3 +1,53 @@
+# 2.0.0
+
+## What's Changed
+
+### Breaking changes
+
+- Remove v1 algod API (`client.algod`) due to API end-of-life (2022-12-01). Instead, use v2 algod API (`client.v2.algod.algod`).
+- Remove `cost` field in `DryrunTxnResult` in favor of 2 fields: `budget-added` and `budget-consumed`. `cost` can be derived by `budget-consumed - budget-added`.
+- Remove logicsig templates (`logicTemplates`), `logic/langspec.json`, `logic.logic` depending on `langspec.json`.
+- Regenerate algod models so every constructor requires an object to be passed in. Previously, only constructors with more than 4 argument specified this.
+- Remove unused generated types: `CatchpointAbortResponse`, `CatchpointStartResponse`.
+- Remove following methods in favor of the methods with `WithSuggestedParams` suffix:
+  - `makePaymentTxn`, `makeKeyRegistrationTxn`, `makeAssetCreateTxn`, `makeAssetConfigTxn`, `makeAssetDestroyTxn`, `makeAssetFreezeTxn`, `makeAssetTransferTxn`.
+- Remove `makeLogicSig` in favor of either using `LogicSigAccount` (preferred) or directly invoking `LogicSig` constructor.
+- Remove `EncodedMultisigBlob` in favor of `EncodedSignedTransaction.
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.24.1...v2.0.0
+
+# v1.24.1
+
+## What's Changed
+
+### Enhancements
+
+- Packaging: Improve source map and browser usage for external bundlers by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/707
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.24.0...v1.24.1
+
+# v1.24.0
+
+## What's Changed
+
+### Bugfixes
+
+- Bug-Fix: encode ABI string with non-ASCII characters by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/700
+
+### Enhancements
+
+- Tests: Migrate v1 algod dependencies to v2 in cucumber tests by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/693
+- REST API: Add KV counts to NodeStatusResponse by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/696
+- Fix: createMultisigTransaction name in comments by @nullun in https://github.com/algorand/js-algorand-sdk/pull/694
+- Enhancement: allowing zero-length static array by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/698
+- ABI: Refactor ABI encoding test to round-trip by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/701
+
+## New Contributors
+
+- @nullun made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/694
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v1.23.2...v1.24.0
+
 # v1.23.2
 
 ## What's Changed

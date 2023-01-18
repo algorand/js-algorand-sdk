@@ -1,5 +1,5 @@
 const assert = require('assert');
-const algosdk = require('../index');
+const algosdk = require('../src/index');
 const nacl = require('../src/nacl/naclWrappers');
 const utils = require('../src/utils/utils');
 
@@ -39,17 +39,20 @@ describe('Algosdk (AKA end to end)', () => {
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64'));
       const from = to;
-      const txnAsObj = algosdk.makePaymentTxn(
-        from,
-        to,
-        fee,
-        amount,
-        closeRemainderTo,
+      const suggestedParams = {
+        genesisHash,
+        genesisID,
         firstRound,
         lastRound,
+        fee,
+      };
+      const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
+        from,
+        to,
+        amount,
+        closeRemainderTo,
         note,
-        genesisHash,
-        genesisID
+        suggestedParams
       );
       const txnAsBuffer = algosdk.encodeUnsignedTransaction(txnAsObj);
       const txnAsObjRecovered = algosdk.decodeUnsignedTransaction(txnAsBuffer);
@@ -78,17 +81,20 @@ describe('Algosdk (AKA end to end)', () => {
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64'));
       const from = to;
-      const txnAsObj = algosdk.makePaymentTxn(
-        from,
-        to,
-        fee,
-        amount,
-        closeRemainderTo,
+      const suggestedParams = {
+        genesisHash,
+        genesisID,
         firstRound,
         lastRound,
+        fee,
+      };
+      const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
+        from,
+        to,
+        amount,
+        closeRemainderTo,
         note,
-        genesisHash,
-        genesisID
+        suggestedParams
       );
       let sk =
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
@@ -228,17 +234,20 @@ describe('Algosdk (AKA end to end)', () => {
       sk = algosdk.mnemonicToSecretKey(sk);
       const key = nacl.keyPairFromSecretKey(sk.sk);
       const from = algosdk.encodeAddress(key.publicKey);
-      const txn = algosdk.makePaymentTxn(
-        from,
-        to,
-        fee,
-        amount,
-        closeRemainderTo,
+      const suggestedParams = {
+        genesisHash,
+        genesisID,
         firstRound,
         lastRound,
+        fee,
+      };
+      const txn = algosdk.makePaymentTxnWithSuggestedParams(
+        from,
+        to,
+        amount,
+        closeRemainderTo,
         note,
-        genesisHash,
-        genesisID
+        suggestedParams
       );
       txn.addLease(lease, fee);
 
@@ -418,17 +427,20 @@ describe('Algosdk (AKA end to end)', () => {
         closeRemainderTo: closeRemainder,
         note,
       };
-      const oObj = algosdk.makePaymentTxn(
-        fromAddr,
-        toAddr,
-        fee,
-        amount,
-        closeRemainder,
+      const suggestedParams = {
+        genesisHash,
+        genesisID,
         firstRound,
         lastRound,
+        fee,
+      };
+      const oObj = algosdk.makePaymentTxnWithSuggestedParams(
+        fromAddr,
+        toAddr,
+        amount,
+        closeRemainder,
         note,
-        genesisHash,
-        genesisID
+        suggestedParams
       );
 
       const oDictOutput = algosdk.signMultisigTransaction(oDict, params, sk);
@@ -819,14 +831,14 @@ describe('Algosdk (AKA end to end)', () => {
   describe('LogicSig', () => {
     it('should return valid logic sig object', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
-      let lsig = algosdk.makeLogicSig(program);
+      let lsig = new algosdk.LogicSig(program);
       assert.equal(lsig.logic, program);
       assert.equal(lsig.args, undefined);
       assert.equal(lsig.sig, undefined);
       assert.equal(lsig.msig, undefined);
 
       const args = [Uint8Array.from('123'), Uint8Array.from('456')];
-      lsig = algosdk.makeLogicSig(program, args);
+      lsig = new algosdk.LogicSig(program, args);
       assert.equal(lsig.logic, program);
       assert.deepEqual(lsig.args, args);
     });
@@ -835,7 +847,7 @@ describe('Algosdk (AKA end to end)', () => {
     it('should work on valid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
       const keys = algosdk.generateAccount();
-      const lsig = algosdk.makeLogicSig(program);
+      const lsig = new algosdk.LogicSig(program);
       lsig.sign(keys.sk);
       const verified = lsig.verify(algosdk.decodeAddress(keys.addr).publicKey);
       assert.equal(verified, true);
@@ -849,7 +861,7 @@ describe('Algosdk (AKA end to end)', () => {
   describe('Multisig logic sig', () => {
     it('should work on valid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      const lsig = algosdk.makeLogicSig(program);
+      const lsig = new algosdk.LogicSig(program);
 
       const keys = algosdk.generateAccount();
       assert.throws(() => lsig.appendToMultisig(keys.sk), 'empty msig');
@@ -882,7 +894,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.equal(verified, true);
 
       // combine sig and msig
-      const lsigf = algosdk.makeLogicSig(program);
+      const lsigf = new algosdk.LogicSig(program);
       lsigf.sign(keys.sk);
       lsig.sig = lsigf.sig;
       verified = lsig.verify(msigPk);
@@ -932,7 +944,7 @@ describe('Algosdk (AKA end to end)', () => {
         Uint8Array.from([49, 50, 51]),
         Uint8Array.from([52, 53, 54]),
       ];
-      const lsig = algosdk.makeLogicSig(program, args);
+      const lsig = new algosdk.LogicSig(program, args);
       const sk = algosdk.mnemonicToSecretKey(mn);
       lsig.sign(sk.sk);
 
@@ -966,7 +978,7 @@ describe('Algosdk (AKA end to end)', () => {
       const keys = nacl.keyPairFromSeed(seed);
       const pk = keys.publicKey;
       const sk = keys.secretKey;
-      const addr = algosdk.makeLogicSig(prog).address();
+      const addr = new algosdk.LogicSig(prog).address();
       const sig1 = algosdk.tealSign(sk, data, addr);
       const sig2 = algosdk.tealSignFromProgram(sk, data, prog);
 
@@ -985,7 +997,10 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('v2 Dryrun models', () => {
-    const schema = new algosdk.modelsv2.ApplicationStateSchema(5, 5);
+    const schema = new algosdk.modelsv2.ApplicationStateSchema({
+      numUint: 5,
+      numByteSlice: 5,
+    });
     const acc = new algosdk.modelsv2.Account({
       address: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       amount: 5002280000000000,
@@ -1003,7 +1018,10 @@ describe('Algosdk (AKA end to end)', () => {
       localStateSchema: schema,
       globalStateSchema: schema,
     });
-    const app = new algosdk.modelsv2.Application(1380011588, params);
+    const app = new algosdk.modelsv2.Application({
+      id: 1380011588,
+      params,
+    });
     // make a raw txn
     const txn = {
       apsu: 'AiABASI=',
