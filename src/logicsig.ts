@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
@@ -493,6 +494,29 @@ export function tealSign(
     utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
   );
   return nacl.sign(toBeSigned, sk);
+}
+
+/**
+ * verifyTealSign verifies a signature as would the ed25519verify opcode
+ * @param data - buffer with original signed data
+ * @param programHash - string representation of teal program hash (= contract address for LogicSigs)
+ * @param sig - uint8array with the signature to verify (produced by tealSign/tealSignFromProgram)
+ * @param pk - uint8array with public key to verify against
+ */
+export function verifyTealSign(
+  data: Uint8Array | Buffer,
+  programHash: string,
+  sig: Uint8Array,
+  pk: Uint8Array
+) {
+  const parts = utils.concatArrays(
+    address.decodeAddress(programHash).publicKey,
+    data
+  );
+  const toBeSigned = Buffer.from(
+    utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
+  );
+  return nacl.verify(toBeSigned, sig, pk);
 }
 
 /**

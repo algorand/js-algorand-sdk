@@ -1,6 +1,8 @@
 .DS_Store
 
 .idea/
+# Webstorm
+*.iml
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json

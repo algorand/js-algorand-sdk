@@ -1,5 +1,6 @@
 // Example: creating a LogicSig transaction signed by a program that never approves the transfer.
 
+const { Buffer } = require('buffer');
 const algosdk = require('../src');
 const utils = require('./utils');
 

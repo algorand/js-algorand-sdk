@@ -1,3 +1,5 @@
+/* eslint-env mocha */
+const { Buffer } = require('buffer');
 const assert = require('assert');
 const algosdk = require('../src/index');
 const nacl = require('../src/nacl/naclWrappers');
@@ -967,22 +969,18 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('tealSign', () => {
-    it('should produce verifiable signature', () => {
-      const data = Buffer.from('Ux8jntyBJQarjKGF8A==', 'base64');
-      const seed = Buffer.from(
-        '5Pf7eGMA52qfMT4R4/vYCt7con/7U3yejkdXkrcb26Q=',
-        'base64'
-      );
-      const prog = Buffer.from('ASABASI=', 'base64');
+    const data = Buffer.from('Ux8jntyBJQarjKGF8A==', 'base64');
+    const prog = Buffer.from('ASABASI=', 'base64');
+    const addr = new algosdk.LogicSig(prog).address();
 
-      const keys = nacl.keyPairFromSeed(seed);
-      const pk = keys.publicKey;
-      const sk = keys.secretKey;
-      const addr = new algosdk.LogicSig(prog).address();
-      const sig1 = algosdk.tealSign(sk, data, addr);
-      const sig2 = algosdk.tealSignFromProgram(sk, data, prog);
+    const seed = Buffer.from(
+      '5Pf7eGMA52qfMT4R4/vYCt7con/7U3yejkdXkrcb26Q=',
+      'base64'
+    );
+    const { publicKey: pk, secretKey: sk } = nacl.keyPairFromSeed(seed);
 
-      assert.deepStrictEqual(sig1, sig2);
+    it('should produce a verifiable signature', () => {
+      const sig = algosdk.tealSign(sk, data, addr);
 
       const parts = utils.concatArrays(
         algosdk.decodeAddress(addr).publicKey,
@@ -991,7 +989,21 @@ describe('Algosdk (AKA end to end)', () => {
       const toBeVerified = Buffer.from(
         utils.concatArrays(Buffer.from('ProgData'), parts)
       );
-      const verified = nacl.verify(toBeVerified, sig1, pk);
+      const verified = nacl.verify(toBeVerified, sig, pk);
+      assert.equal(verified, true);
+    });
+
+    it('should produce a verifiable signature from a program', () => {
+      const sig1 = algosdk.tealSign(sk, data, addr);
+      const sig2 = algosdk.tealSignFromProgram(sk, data, prog);
+
+      assert.deepStrictEqual(sig1, sig2);
+    });
+
+    it('should verify a valid signature', () => {
+      const sig = algosdk.tealSign(sk, data, addr);
+
+      const verified = algosdk.verifyTealSign(data, addr, sig, pk);
       assert.equal(verified, true);
     });
   });

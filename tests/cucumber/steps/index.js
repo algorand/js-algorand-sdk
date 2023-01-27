@@ -1,4 +1,5 @@
 /* eslint-disable no-console,global-require,no-loop-func,func-names */
+const { Buffer } = require('buffer');
 const path = require('path');
 const fs = require('fs');
 const {
@@ -363,8 +364,8 @@ if (browser) {
               const done = rest[rest.length - 1];
               try {
                 const testArgs = rest.slice(0, rest.length - 1);
-                const test = window.getStep(scopedType, scopedName);
-                await test.apply(window.testWorld, testArgs);
+                const test = window.getStep(scopedType, scopedName); // eslint-disable-line no-undef
+                await test.apply(window.testWorld, testArgs); // eslint-disable-line no-undef
                 done({ error: null });
               } catch (err) {
                 console.error(err);

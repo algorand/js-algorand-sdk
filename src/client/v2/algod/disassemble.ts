@@ -16,9 +16,9 @@ export function setHeaders(headers = {}) {
 }
 
 /**
- * Executes compile
+ * Executes disassemble
  */
-export default class Compile extends JSONRequest {
+export default class Disassemble extends JSONRequest {
   constructor(c: HTTPClient, private source: string | Uint8Array) {
     super(c);
     this.source = source;
@@ -26,16 +26,11 @@ export default class Compile extends JSONRequest {
 
   // eslint-disable-next-line class-methods-use-this
   path() {
-    return `/v2/teal/compile`;
-  }
-
-  sourcemap(map: boolean = true) {
-    this.query.sourcemap = map;
-    return this;
+    return `/v2/teal/disassemble`;
   }
 
   /**
-   * Executes compile
+   * Executes disassemble
    * @param headers - A headers object
    */
   async do(headers = {}) {

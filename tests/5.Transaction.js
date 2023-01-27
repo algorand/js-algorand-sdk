@@ -1,3 +1,5 @@
+/* eslint-env mocha */
+const { Buffer } = require('buffer');
 const assert = require('assert');
 const algosdk = require('../src/index');
 const { translateBoxReferences } = require('../src/boxStorage');

@@ -1,4 +1,21 @@
-# 2.0.0
+# v2.1.0
+
+## What's Changed
+
+### Enhancements
+
+- Enhancement: Add foreign array objects to ATC `addMethodCall` by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/725
+- API: verifyTealSign utility function by @M-Picco in https://github.com/algorand/js-algorand-sdk/pull/735
+- Packaging: Don't use global `Buffer` object by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/733
+- algod REST API: Add support for algod /v2/teal/disassemble by @michaeldiamant in https://github.com/algorand/js-algorand-sdk/pull/702
+
+## New Contributors
+
+- @M-Picco made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/735
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.0.0...v2.1.0
+
+# v2.0.0
 
 ## What's Changed
 

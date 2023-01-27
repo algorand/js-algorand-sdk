@@ -1,4 +1,5 @@
 /* eslint-disable func-names,radix */
+const { Buffer } = require('buffer');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -4546,6 +4547,20 @@ module.exports = function getSteps(options) {
     async function (expectedJsonPath) {
       const expected = await loadResource(expectedJsonPath);
       assert.equal(this.rawSourceMap, expected.toString().trim());
+    }
+  );
+
+  Then(
+    'disassembly of {string} matches {string}',
+    async function (bytecodeFilename, sourceFilename) {
+      const bytecode = await loadResource(bytecodeFilename);
+      const resp = await this.v2Client.disassemble(bytecode).do();
+      const expectedSource = await loadResource(sourceFilename);
+
+      assert.deepStrictEqual(
+        resp.result.toString('UTF-8'),
+        expectedSource.toString('UTF-8')
+      );
     }
   );
 

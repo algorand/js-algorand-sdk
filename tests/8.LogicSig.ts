@@ -1,3 +1,5 @@
+/* eslint-env mocha */
+import { Buffer } from 'buffer';
 import assert from 'assert';
 import algosdk from '../src/index';
 

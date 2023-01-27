@@ -30,6 +30,7 @@ import {
 } from '../../urlTokenBaseHTTPClient';
 import LightBlockHeaderProof from './lightBlockHeaderProof';
 import StateProof from './stateproof';
+import Disassemble from './disassemble';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -395,6 +396,22 @@ export default class AlgodClient extends ServiceClient {
    */
   compile(source: string | Uint8Array) {
     return new Compile(this.c, source);
+  }
+
+  /**
+   * Given the program bytes, return the TEAL source code in plain text.
+   *
+   * #### Example
+   * ```typescript
+   * const bytecode = "TEAL bytecode";
+   * const disassembledSource = await algodClient.disassemble(bytecode).do();
+   * ```
+   *
+   * @remarks This endpoint is only enabled when a node's configuration file sets EnableDeveloperAPI to true.
+   * @param source
+   */
+  disassemble(source: string | Uint8Array) {
+    return new Disassemble(this.c, source);
   }
 
   /**
