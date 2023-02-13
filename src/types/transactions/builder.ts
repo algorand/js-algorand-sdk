@@ -45,10 +45,10 @@ export type TransactionBase =
  * - A: Additional parameters on top of the base transaction parameters
  * - O: A set of overwrites for transaction parameters
  */
-export type ConstructTransaction<A = {}, O = {}> = DistributiveOverwrite<
-  TransactionBase & A,
-  O
->;
+export type ConstructTransaction<
+  A = {},
+  O extends Partial<TransactionBase & A> = {}
+> = DistributiveOverwrite<TransactionBase & A, O>;
 
 /**
  * Only accept transaction objects that include suggestedParams as an object

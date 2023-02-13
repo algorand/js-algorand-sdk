@@ -27,7 +27,7 @@ export type Overwrite<T, U extends Partial<T>> = Pick<
 /**
  * Same as Overwrite, but will distribute the Overwrite over unions
  */
-export type DistributiveOverwrite<T, K> = T extends unknown
+export type DistributiveOverwrite<T, K extends Partial<T>> = T extends unknown
   ? Overwrite<T, K>
   : never;
 
