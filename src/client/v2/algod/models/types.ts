@@ -3087,11 +3087,11 @@ export class PostTransactionsResponse extends BaseModel {
 /**
  * Simulation result for an atomic transaction group
  */
-export class SimulationTransactionGroupResult extends BaseModel {
+export class SimulateTransactionGroupResult extends BaseModel {
   /**
    * Simulation result for individual transactions
    */
-  public txnResults: SimulationTransactionResult[];
+  public txnResults: SimulateTransactionResult[];
 
   /**
    * If present, indicates which transaction in this group caused the failure
@@ -3105,7 +3105,7 @@ export class SimulationTransactionGroupResult extends BaseModel {
   public failureMessage?: string;
 
   /**
-   * Creates a new `SimulationTransactionGroupResult` object.
+   * Creates a new `SimulateTransactionGroupResult` object.
    * @param txnResults - Simulation result for individual transactions
    * @param failedAt - If present, indicates which transaction in this group caused the failure
    * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
@@ -3116,7 +3116,7 @@ export class SimulationTransactionGroupResult extends BaseModel {
     failedAt,
     failureMessage,
   }: {
-    txnResults: SimulationTransactionResult[];
+    txnResults: SimulateTransactionResult[];
     failedAt?: (number | bigint)[];
     failureMessage?: string;
   }) {
@@ -3135,15 +3135,15 @@ export class SimulationTransactionGroupResult extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
     data: Record<string, any>
-  ): SimulationTransactionGroupResult {
+  ): SimulateTransactionGroupResult {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['txn-results']))
       throw new Error(
         `Response is missing required array field 'txn-results': ${data}`
       );
-    return new SimulationTransactionGroupResult({
+    return new SimulateTransactionGroupResult({
       txnResults: data['txn-results'].map(
-        SimulationTransactionResult.from_obj_for_encoding
+        SimulateTransactionResult.from_obj_for_encoding
       ),
       failedAt: data['failed-at'],
       failureMessage: data['failure-message'],
@@ -3155,7 +3155,7 @@ export class SimulationTransactionGroupResult extends BaseModel {
 /**
  * Simulation result for an individual transaction
  */
-export class SimulationTransactionResult extends BaseModel {
+export class SimulateTransactionResult extends BaseModel {
   /**
    * Details about a pending transaction. If the transaction was recently confirmed,
    * includes confirmation details like the round and reward details.
@@ -3168,7 +3168,7 @@ export class SimulationTransactionResult extends BaseModel {
   public missingSignature?: boolean;
 
   /**
-   * Creates a new `SimulationTransactionResult` object.
+   * Creates a new `SimulateTransactionResult` object.
    * @param txnResult - Details about a pending transaction. If the transaction was recently confirmed,
    * includes confirmation details like the round and reward details.
    * @param missingSignature - A boolean indicating whether this transaction is missing signatures
@@ -3193,13 +3193,13 @@ export class SimulationTransactionResult extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
     data: Record<string, any>
-  ): SimulationTransactionResult {
+  ): SimulateTransactionResult {
     /* eslint-disable dot-notation */
     if (typeof data['txn-result'] === 'undefined')
       throw new Error(
         `Response is missing required field 'txn-result': ${data}`
       );
-    return new SimulationTransactionResult({
+    return new SimulateTransactionResult({
       txnResult: PendingTransactionResponse.from_obj_for_encoding(
         data['txn-result']
       ),
