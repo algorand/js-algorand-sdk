@@ -31,6 +31,7 @@ import {
 import LightBlockHeaderProof from './lightBlockHeaderProof';
 import StateProof from './stateproof';
 import Disassemble from './disassemble';
+import SimulateRawTransaction from './simulateTransaction';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -574,5 +575,23 @@ export default class AlgodClient extends ServiceClient {
    */
   getStateProof(round: number) {
     return new StateProof(this.c, this.intDecoding, round);
+  }
+
+  /**
+   * Simulate a list of a signed transaction objects being sent to the network.
+   *
+   * #### Example
+   * ```typescript
+   * const resp = await client.simulateRawTransaction([signedTxn1, signedTxn2]).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactionssimulate)
+   * @remarks
+   * This endpoint is only enabled when a node's configuration file sets `EnableExperimentalAPI` to true.
+   * @param stxOrStxs
+   * @category POST
+   */
+  simulateRawTransaction(stxOrStxs: Uint8Array | Uint8Array[]) {
+    return new SimulateRawTransaction(this.c, stxOrStxs);
   }
 }
