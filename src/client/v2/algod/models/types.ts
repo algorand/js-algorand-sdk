@@ -3085,6 +3085,95 @@ export class PostTransactionsResponse extends BaseModel {
 }
 
 /**
+ * Result of a transaction group simulation.
+ */
+export class SimulateResponse extends BaseModel {
+  /**
+   * The round immediately preceding this simulation. State changes through this
+   * round were used to run this simulation.
+   */
+  public lastRound: number | bigint;
+
+  /**
+   * A result object for each transaction group that was simulated.
+   */
+  public txnGroups: SimulateTransactionGroupResult[];
+
+  /**
+   * The version of this response object.
+   */
+  public version: number | bigint;
+
+  /**
+   * Indicates whether the simulated transactions would have succeeded during an
+   * actual submission.
+   */
+  public wouldSucceed: boolean;
+
+  /**
+   * Creates a new `SimulateResponse` object.
+   * @param lastRound - The round immediately preceding this simulation. State changes through this
+   * round were used to run this simulation.
+   * @param txnGroups - A result object for each transaction group that was simulated.
+   * @param version - The version of this response object.
+   * @param wouldSucceed - Indicates whether the simulated transactions would have succeeded during an
+   * actual submission.
+   */
+  constructor({
+    lastRound,
+    txnGroups,
+    version,
+    wouldSucceed,
+  }: {
+    lastRound: number | bigint;
+    txnGroups: SimulateTransactionGroupResult[];
+    version: number | bigint;
+    wouldSucceed: boolean;
+  }) {
+    super();
+    this.lastRound = lastRound;
+    this.txnGroups = txnGroups;
+    this.version = version;
+    this.wouldSucceed = wouldSucceed;
+
+    this.attribute_map = {
+      lastRound: 'last-round',
+      txnGroups: 'txn-groups',
+      version: 'version',
+      wouldSucceed: 'would-succeed',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): SimulateResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['last-round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'last-round': ${data}`
+      );
+    if (!Array.isArray(data['txn-groups']))
+      throw new Error(
+        `Response is missing required array field 'txn-groups': ${data}`
+      );
+    if (typeof data['version'] === 'undefined')
+      throw new Error(`Response is missing required field 'version': ${data}`);
+    if (typeof data['would-succeed'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'would-succeed': ${data}`
+      );
+    return new SimulateResponse({
+      lastRound: data['last-round'],
+      txnGroups: data['txn-groups'].map(
+        SimulateTransactionGroupResult.from_obj_for_encoding
+      ),
+      version: data['version'],
+      wouldSucceed: data['would-succeed'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Simulation result for an atomic transaction group
  */
 export class SimulateTransactionGroupResult extends BaseModel {

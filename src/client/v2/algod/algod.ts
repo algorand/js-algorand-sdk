@@ -31,7 +31,7 @@ import {
 import LightBlockHeaderProof from './lightBlockHeaderProof';
 import StateProof from './stateproof';
 import Disassemble from './disassemble';
-import SimulateRawTransaction from './simulateTransaction';
+import SimulateRawTransactions from './simulateTransaction';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -582,7 +582,7 @@ export default class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const resp = await client.simulateRawTransaction([signedTxn1, signedTxn2]).do();
+   * const resp = await client.simulateRawTransactions([signedTxn1, signedTxn2]).do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactionssimulate)
@@ -591,7 +591,7 @@ export default class AlgodClient extends ServiceClient {
    * @param stxOrStxs
    * @category POST
    */
-  simulateRawTransaction(stxOrStxs: Uint8Array | Uint8Array[]) {
-    return new SimulateRawTransaction(this.c, stxOrStxs);
+  simulateRawTransactions(stxOrStxs: Uint8Array | Uint8Array[]) {
+    return new SimulateRawTransactions(this.c, stxOrStxs);
   }
 }

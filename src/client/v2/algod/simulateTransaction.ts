@@ -1,14 +1,16 @@
 import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
+import * as encoding from '../../../encoding/encoding';
 import { concatArrays } from '../../../utils/utils';
+import HTTPClient from '../../client';
+import JSONRequest from '../jsonrequest';
+import { SimulateResponse } from './models/types';
 
 /**
  * Sets the default header (if not previously set) for simulating a raw
  * transaction.
  * @param headers - A headers object
  */
-export function setSimulateTransactionHeaders(headers = {}) {
+export function setSimulateTransactionsHeaders(headers = {}) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
@@ -24,7 +26,10 @@ function isByteArray(array: any): array is Uint8Array {
 /**
  * Simulates signed txns.
  */
-export default class SimulateRawTransaction extends JSONRequest {
+export default class SimulateRawTransactions extends JSONRequest<
+  SimulateResponse,
+  Uint8Array
+> {
   private txnBytesToPost: Uint8Array;
 
   constructor(c: HTTPClient, stxOrStxs: Uint8Array | Uint8Array[]) {
@@ -50,12 +55,20 @@ export default class SimulateRawTransaction extends JSONRequest {
   }
 
   async do(headers = {}) {
-    const txHeaders = setSimulateTransactionHeaders(headers);
+    const txHeaders = setSimulateTransactionsHeaders(headers);
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.txnBytesToPost),
       txHeaders
     );
     return res.body;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array) {
+    if (body && body.byteLength > 0) {
+      return encoding.decode(body) as SimulateResponse;
+    }
+    return undefined;
   }
 }
