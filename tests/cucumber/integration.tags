@@ -13,3 +13,4 @@
 @rekey_v1
 @send
 @send.keyregtxn
+@simulate
