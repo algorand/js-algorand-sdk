@@ -178,12 +178,12 @@ module.exports = function getSteps(options) {
   }
 
   Given('a kmd client', function () {
-    this.kcl = new algosdk.Kmd(kmdToken, 'http://localhost', 4002);
+    this.kcl = new algosdk.Kmd(kmdToken, 'http://localhost', 60001);
     return this.kcl;
   });
 
   Given('an algod v2 client', function () {
-    this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 4001);
+    this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
   });
 
   Given('an indexer v2 client', function () {
@@ -4608,11 +4608,18 @@ module.exports = function getSteps(options) {
     }
   );
 
-  When('I simulate the transaction', async function () {
+  Then('I simulate the transaction', async function () {
     this.simulateResponse = await this.v2Client
       .simulateRawTransactions(this.stx)
       .do();
   });
+
+  Then(
+    'I simulate the current transaction group with the composer',
+    async function () {
+      this.simulateResponse = await this.composer.simulate(this.v2Client);
+    }
+  );
 
   Then('the simulation should succeed', async function () {
     assert.deepStrictEqual(true, this.simulateResponse['would-succeed']);
@@ -4630,13 +4637,6 @@ module.exports = function getSteps(options) {
       );
       const errorContainsString = msg.includes(errorMsg);
       assert.deepStrictEqual(true, errorContainsString);
-    }
-  );
-
-  Then(
-    'I simulate the current transaction group with the composer',
-    async function () {
-      this.simulateResponse = await this.composer.simulate(this.v2Client);
     }
   );
 
