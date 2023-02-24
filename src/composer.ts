@@ -26,6 +26,7 @@ import {
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base';
+import { SimulateResponse } from './client/v2/algod/models/types';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
@@ -598,6 +599,30 @@ export class AtomicTransactionComposer {
     this.status = AtomicTransactionComposerStatus.SUBMITTED;
 
     return this.txIDs;
+  }
+
+  /**
+   * Simulates the transaction group in the network.
+   *
+   * The composer will try to sign any transactions in the group, then simulate
+   * the results.
+   *
+   * @param client - An Algodv2 client
+   *
+   * @returns A promise that, upon success, resolves to a SimulateResponse object.
+   */
+  async simulate(client: Algodv2): Promise<SimulateResponse> {
+    if (this.status > AtomicTransactionComposerStatus.SUBMITTED) {
+      throw new Error(
+        'Transaction group has already been submitted to the network'
+      );
+    }
+
+    const stxns = await this.gatherSignatures();
+
+    const simulateResponse = await client.simulateRawTransactions(stxns).do();
+
+    return simulateResponse;
   }
 
   /**
