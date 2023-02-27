@@ -3106,7 +3106,8 @@ export class SimulateResponse extends BaseModel {
 
   /**
    * Indicates whether the simulated transactions would have succeeded during an
-   * actual submission.
+   * actual submission. If any transaction fails or is missing a signature, this will
+   * be false.
    */
   public wouldSucceed: boolean;
 
@@ -3117,7 +3118,8 @@ export class SimulateResponse extends BaseModel {
    * @param txnGroups - A result object for each transaction group that was simulated.
    * @param version - The version of this response object.
    * @param wouldSucceed - Indicates whether the simulated transactions would have succeeded during an
-   * actual submission.
+   * actual submission. If any transaction fails or is missing a signature, this will
+   * be false.
    */
   constructor({
     lastRound,
@@ -3183,7 +3185,10 @@ export class SimulateTransactionGroupResult extends BaseModel {
   public txnResults: SimulateTransactionResult[];
 
   /**
-   * If present, indicates which transaction in this group caused the failure
+   * If present, indicates which transaction in this group caused the failure. This
+   * array represents the path to the failing transaction. Indexes are zero based,
+   * the first element indicates the top-level transaction, and successive elements
+   * indicate deeper inner transactions.
    */
   public failedAt?: (number | bigint)[];
 
@@ -3196,7 +3201,10 @@ export class SimulateTransactionGroupResult extends BaseModel {
   /**
    * Creates a new `SimulateTransactionGroupResult` object.
    * @param txnResults - Simulation result for individual transactions
-   * @param failedAt - If present, indicates which transaction in this group caused the failure
+   * @param failedAt - If present, indicates which transaction in this group caused the failure. This
+   * array represents the path to the failing transaction. Indexes are zero based,
+   * the first element indicates the top-level transaction, and successive elements
+   * indicate deeper inner transactions.
    * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
    * happened
    */
