@@ -614,7 +614,7 @@ export class AtomicTransactionComposer {
   async simulate(client: Algodv2): Promise<SimulateResponse> {
     if (this.status > AtomicTransactionComposerStatus.SUBMITTED) {
       throw new Error(
-        'Transaction group has already been submitted to the network'
+        'Simulated Transaction group has already been submitted to the network'
       );
     }
 
