@@ -609,7 +609,9 @@ export class AtomicTransactionComposer {
    *
    * @param client - An Algodv2 client
    *
-   * @returns A promise that, upon success, resolves to a SimulateResponse object.
+   * @returns A promise that, upon success, resolves to an object containing an
+   *   array of results containing one element for each method call transaction
+   *   in this group (ABIResult[]) and the SimulateResponse object.
    */
   async simulate(
     client: Algodv2

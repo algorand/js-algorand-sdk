@@ -4627,12 +4627,15 @@ module.exports = function getSteps(options) {
     }
   );
 
-  Then('the simulation should succeed', async function () {
-    assert.deepStrictEqual(true, this.simulateResponse['would-succeed']);
-  });
+  Then(
+    'the simulation should succeed without any failure message',
+    async function () {
+      assert.deepStrictEqual(true, this.simulateResponse['would-succeed']);
+    }
+  );
 
   Then(
-    'the simulation should fail at path {string} with message {string}',
+    'the simulation should report a failure at path {string} with message {string}',
     async function (failAt, errorMsg) {
       // Parse the path ("0,0") into a list of numbers ([0, 0])
       const stringPath = failAt.split(',');
