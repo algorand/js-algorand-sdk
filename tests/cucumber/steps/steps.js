@@ -4617,7 +4617,13 @@ module.exports = function getSteps(options) {
   Then(
     'I simulate the current transaction group with the composer',
     async function () {
-      this.simulateResponse = await this.composer.simulate(this.v2Client);
+      // Alias the simulate response as execute response so it can be re-used
+      // in other steps that check the ABI method results.
+      this.composerExecuteResponse = await this.composer.simulate(
+        this.v2Client
+      );
+      this.simulateResponse = this.composerExecuteResponse.simulateResponse;
+      this.methodResults = this.composerExecuteResponse.methodResults;
     }
   );
 
@@ -4628,11 +4634,15 @@ module.exports = function getSteps(options) {
   Then(
     'the simulation should fail at path {string} with message {string}',
     async function (failAt, errorMsg) {
-      const failPath = parseInt(failAt, 10); // temporary: assume paths are one int
+      console.warn(`AH ${JSON.stringify(this.simulateResponse, null, 2)}`);
+      // Parse the path ("0,0") into a list of numbers ([0, 0])
+      const stringPath = failAt.split(',');
+      const failPath = stringPath.map((n) => parseInt(n, 10));
+
       const msg = this.simulateResponse['txn-groups'][0]['failure-message'];
       assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
       assert.deepStrictEqual(
-        [failPath],
+        failPath,
         this.simulateResponse['txn-groups'][0]['failed-at']
       );
       const errorContainsString = msg.includes(errorMsg);

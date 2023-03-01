@@ -611,7 +611,12 @@ export class AtomicTransactionComposer {
    *
    * @returns A promise that, upon success, resolves to a SimulateResponse object.
    */
-  async simulate(client: Algodv2): Promise<SimulateResponse> {
+  async simulate(
+    client: Algodv2
+  ): Promise<{
+    methodResults: ABIResult[];
+    simulateResponse: SimulateResponse;
+  }> {
     if (this.status > AtomicTransactionComposerStatus.SUBMITTED) {
       throw new Error(
         'Simulated Transaction group has already been submitted to the network'
@@ -622,7 +627,50 @@ export class AtomicTransactionComposer {
 
     const simulateResponse = await client.simulateRawTransactions(stxns).do();
 
-    return simulateResponse;
+    // Parse method response
+    const methodResults: ABIResult[] = [];
+    for (const [txnIndex, method] of this.methodCalls) {
+      const txID = this.txIDs[txnIndex];
+      const txnInfo =
+        simulateResponse['txn-groups'][0]['txn-results'][txnIndex][
+          'txn-result'
+        ];
+
+      const methodResult: ABIResult = {
+        txID,
+        rawReturnValue: new Uint8Array(),
+        method,
+      };
+
+      try {
+        methodResult.txInfo = txnInfo;
+        if (method.returns.type !== 'void') {
+          const logs: string[] = txnInfo.logs || [];
+          if (logs.length === 0) {
+            throw new Error('App call transaction did not log a return value');
+          }
+
+          const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+          if (
+            lastLog.byteLength < 4 ||
+            !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+          ) {
+            throw new Error('App call transaction did not log a return value');
+          }
+
+          methodResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
+          methodResult.returnValue = method.returns.type.decode(
+            methodResult.rawReturnValue
+          );
+        }
+      } catch (err) {
+        methodResult.decodeError = err;
+      }
+
+      methodResults.push(methodResult);
+    }
+
+    return { methodResults, simulateResponse };
   }
 
   /**
