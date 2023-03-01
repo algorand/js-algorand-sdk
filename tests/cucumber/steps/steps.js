@@ -4634,7 +4634,6 @@ module.exports = function getSteps(options) {
   Then(
     'the simulation should fail at path {string} with message {string}',
     async function (failAt, errorMsg) {
-      console.warn(`AH ${JSON.stringify(this.simulateResponse, null, 2)}`);
       // Parse the path ("0,0") into a list of numbers ([0, 0])
       const stringPath = failAt.split(',');
       const failPath = stringPath.map((n) => parseInt(n, 10));
