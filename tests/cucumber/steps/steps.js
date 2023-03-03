@@ -3720,13 +3720,6 @@ module.exports = function getSteps(options) {
   });
 
   When(
-    'I make a dummy transaction signer for the transient account.',
-    function () {
-      this.transactionSigner = algosdk.makeDummyTransactionSigner();
-    }
-  );
-
-  When(
     'I create a transaction with signer with the current transaction.',
     function () {
       this.transactionWithSigner = {
