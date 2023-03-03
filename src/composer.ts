@@ -633,7 +633,7 @@ export class AtomicTransactionComposer {
     const methodResults: ABIResult[] = [];
     for (const [txnIndex, method] of this.methodCalls) {
       const txID = this.txIDs[txnIndex];
-      const txnInfo =
+      const pendingInfo =
         simulateResponse['txn-groups'][0]['txn-results'][txnIndex][
           'txn-result'
         ];
@@ -644,32 +644,13 @@ export class AtomicTransactionComposer {
         method,
       };
 
-      try {
-        methodResult.txInfo = txnInfo;
-        if (method.returns.type !== 'void') {
-          const logs: string[] = txnInfo.logs || [];
-          if (logs.length === 0) {
-            throw new Error('App call transaction did not log a return value');
-          }
-
-          const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
-          if (
-            lastLog.byteLength < 4 ||
-            !lastLog.slice(0, 4).equals(RETURN_PREFIX)
-          ) {
-            throw new Error('App call transaction did not log a return value');
-          }
-
-          methodResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
-          methodResult.returnValue = method.returns.type.decode(
-            methodResult.rawReturnValue
-          );
-        }
-      } catch (err) {
-        methodResult.decodeError = err;
-      }
-
-      methodResults.push(methodResult);
+      methodResults.push(
+        AtomicTransactionComposer.parseMethodResponse(
+          method,
+          methodResult,
+          pendingInfo
+        )
+      );
     }
 
     return { methodResults, simulateResponse };
@@ -734,37 +715,18 @@ export class AtomicTransactionComposer {
         method,
       };
 
-      try {
-        const pendingInfo =
-          txnIndex === firstMethodCallIndex
-            ? confirmedTxnInfo
-            : // eslint-disable-next-line no-await-in-loop
-              await client.pendingTransactionInformation(txID).do();
-        methodResult.txInfo = pendingInfo;
-        if (method.returns.type !== 'void') {
-          const logs: string[] = pendingInfo.logs || [];
-          if (logs.length === 0) {
-            throw new Error('App call transaction did not log a return value');
-          }
-
-          const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
-          if (
-            lastLog.byteLength < 4 ||
-            !lastLog.slice(0, 4).equals(RETURN_PREFIX)
-          ) {
-            throw new Error('App call transaction did not log a return value');
-          }
-
-          methodResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
-          methodResult.returnValue = method.returns.type.decode(
-            methodResult.rawReturnValue
-          );
-        }
-      } catch (err) {
-        methodResult.decodeError = err;
-      }
-
-      methodResults.push(methodResult);
+      const pendingInfo =
+        txnIndex === firstMethodCallIndex
+          ? confirmedTxnInfo
+          : // eslint-disable-next-line no-await-in-loop
+            await client.pendingTransactionInformation(txID).do();
+      methodResults.push(
+        AtomicTransactionComposer.parseMethodResponse(
+          method,
+          methodResult,
+          pendingInfo
+        )
+      );
     }
 
     return {
@@ -772,5 +734,39 @@ export class AtomicTransactionComposer {
       txIDs,
       methodResults,
     };
+  }
+
+  static parseMethodResponse(
+    method: ABIMethod,
+    methodResult: ABIResult,
+    pendingInfo: Record<string, any>
+  ): ABIResult {
+    const returnedResult: ABIResult = methodResult;
+    try {
+      returnedResult.txInfo = pendingInfo;
+      if (method.returns.type !== 'void') {
+        const logs: string[] = pendingInfo.logs || [];
+        if (logs.length === 0) {
+          throw new Error('App call transaction did not log a return value');
+        }
+
+        const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+        if (
+          lastLog.byteLength < 4 ||
+          !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+        ) {
+          throw new Error('App call transaction did not log a return value');
+        }
+
+        returnedResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
+        returnedResult.returnValue = method.returns.type.decode(
+          methodResult.rawReturnValue
+        );
+      }
+    } catch (err) {
+      returnedResult.decodeError = err;
+    }
+
+    return returnedResult;
   }
 }

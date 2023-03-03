@@ -3720,6 +3720,13 @@ module.exports = function getSteps(options) {
   });
 
   When(
+    'I make a dummy transaction signer for the transient account.',
+    function () {
+      this.transactionSigner = algosdk.makeDummyTransactionSigner();
+    }
+  );
+
+  When(
     'I create a transaction with signer with the current transaction.',
     function () {
       this.transactionWithSigner = {
@@ -4635,17 +4642,22 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'the simulation should report a failure at path {string} with message {string}',
-    async function (failAt, errorMsg) {
+    'the simulation should report a failure at group {string}, path {string} with message {string}',
+    async function (txnGroupIndex, failAt, errorMsg) {
+      // Parse transaction group number
+      const groupNum = parseInt(txnGroupIndex, 10);
+
       // Parse the path ("0,0") into a list of numbers ([0, 0])
       const stringPath = failAt.split(',');
       const failPath = stringPath.map((n) => parseInt(n, 10));
 
-      const msg = this.simulateResponse['txn-groups'][0]['failure-message'];
+      const msg = this.simulateResponse['txn-groups'][groupNum][
+        'failure-message'
+      ];
       assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
       assert.deepStrictEqual(
         failPath,
-        this.simulateResponse['txn-groups'][0]['failed-at']
+        this.simulateResponse['txn-groups'][groupNum]['failed-at']
       );
       const errorContainsString = msg.includes(errorMsg);
       assert.deepStrictEqual(true, errorContainsString);
