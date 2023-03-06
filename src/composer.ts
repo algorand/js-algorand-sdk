@@ -736,6 +736,14 @@ export class AtomicTransactionComposer {
     };
   }
 
+  /**
+   * Parses a single ABI Method transaction log into a ABI result object.
+   *
+   * @param method
+   * @param methodResult
+   * @param pendingInfo
+   * @returns An ABIResult object
+   */
   static parseMethodResponse(
     method: ABIMethod,
     methodResult: ABIResult,

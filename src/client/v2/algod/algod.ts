@@ -586,8 +586,6 @@ export default class AlgodClient extends ServiceClient {
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactionssimulate)
-   * @remarks
-   * This endpoint is only enabled when a node's configuration file sets `EnableExperimentalAPI` to true.
    * @param stxOrStxs
    * @category POST
    */
