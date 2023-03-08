@@ -459,18 +459,13 @@ module.exports = function getSteps(options) {
     async function (amt, note) {
       [this.pk] = this.accounts;
       const result = await this.v2Client.getTransactionParams().do();
-      this.lastRound = result.lastRound;
-      this.txn = {
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         from: this.accounts[0],
         to: this.accounts[1],
-        fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
         amount: parseInt(amt),
-      };
+        suggestedParams: result,
+        note: makeUint8Array(Buffer.from(note, 'base64')),
+      });
       return this.txn;
     }
   );
@@ -4612,6 +4607,15 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'I prepare the transaction without signatures for simulation',
+    function () {
+      // Transform transaction into a "EncodedSignedTransaction", but don't
+      // sign it so we can check that we can simulate unsigned txns.
+      this.stx = algosdk.encodeNoSigTransaction(this.txn);
+    }
+  );
+
   Then('I simulate the transaction', async function () {
     this.simulateResponse = await this.v2Client
       .simulateRawTransactions(this.stx)
@@ -4635,6 +4639,27 @@ module.exports = function getSteps(options) {
     'the simulation should succeed without any failure message',
     async function () {
       assert.deepStrictEqual(true, this.simulateResponse['would-succeed']);
+    }
+  );
+
+  Then(
+    'the simulation should report missing signatures at group {string}, transactions {string}',
+    async function (txnGroupIndex, transactionPath) {
+      // Parse the path ("0,0") into a list of numbers ([0, 0])
+      const stringPath = transactionPath.split(',');
+      const txnIndexes = stringPath.map((n) => parseInt(n, 10));
+      const groupNum = parseInt(txnGroupIndex, 10);
+
+      assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
+      // Check for missing signature flag
+      for (const txnIndex of txnIndexes) {
+        assert.deepStrictEqual(
+          true,
+          this.simulateResponse['txn-groups'][groupNum]['txn-results'][
+            txnIndex
+          ]['missing-signature']
+        );
+      }
     }
   );
 
