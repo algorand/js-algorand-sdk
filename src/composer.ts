@@ -1,32 +1,32 @@
 import { Buffer } from 'buffer';
 import {
-  ABIType,
-  ABITupleType,
-  ABIUintType,
   ABIAddressType,
-  ABIValue,
+  abiCheckTransactionType,
   ABIMethod,
   ABIReferenceType,
-  abiTypeIsTransaction,
-  abiCheckTransactionType,
+  ABITupleType,
+  ABIType,
   abiTypeIsReference,
+  abiTypeIsTransaction,
+  ABIUintType,
+  ABIValue,
 } from './abi';
-import { Transaction, decodeSignedTransaction } from './transaction';
-import { makeApplicationCallTxnFromObject } from './makeTxn';
-import { assignGroupID } from './group';
-import { waitForConfirmation } from './wait';
 import Algodv2 from './client/v2/algod/algod';
+import { SimulateResponse } from './client/v2/algod/models/types';
+import { assignGroupID } from './group';
+import { makeApplicationCallTxnFromObject } from './makeTxn';
 import {
+  isTransactionWithSigner,
   TransactionSigner,
   TransactionWithSigner,
-  isTransactionWithSigner,
 } from './signer';
+import { decodeSignedTransaction, Transaction } from './transaction';
 import {
   BoxReference,
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base';
-import { SimulateResponse } from './client/v2/algod/models/types';
+import { waitForConfirmation } from './wait';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
@@ -606,6 +606,7 @@ export class AtomicTransactionComposer {
    *
    * The composer will try to sign any transactions in the group, then simulate
    * the results.
+   * Simulating the group will not change the composer's status.
    *
    * @param client - An Algodv2 client
    *

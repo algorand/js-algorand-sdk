@@ -3728,6 +3728,16 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'I create a transaction with an empty signer with the current transaction.',
+    function () {
+      this.transactionWithSigner = {
+        txn: this.txn,
+        signer: algosdk.makeNoSigTransactionSigner(),
+      };
+    }
+  );
+
   When('I create a new method arguments array.', function () {
     this.encodedMethodArguments = [];
   });
