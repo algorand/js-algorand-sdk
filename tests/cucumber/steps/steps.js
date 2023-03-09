@@ -3733,7 +3733,7 @@ module.exports = function getSteps(options) {
     function () {
       this.transactionWithSigner = {
         txn: this.txn,
-        signer: algosdk.makeNoSigTransactionSigner(),
+        signer: algosdk.makeEmptyTransactionSigner(),
       };
     }
   );
