@@ -34,6 +34,18 @@ function containsEmpty(obj: Record<string | number | symbol, any>) {
 }
 
 /**
+ * rawEncode encodes objects using msgpack, regardless of whether there are
+ * empty or 0 value fields.
+ * @param obj - a dictionary to be encoded. May or may not contain empty or 0 values.
+ * @returns msgpack representation of the object
+ */
+export function rawEncode(obj: Record<string | number | symbol, any>) {
+  // enable the canonical option
+  const options = { sortKeys: true };
+  return msgpack.encode(obj, options);
+}
+
+/**
  * encode encodes objects using msgpack
  * @param obj - a dictionary to be encoded. Must not contain empty or 0 values.
  * @returns msgpack representation of the object
@@ -47,8 +59,7 @@ export function encode(obj: Record<string | number | symbol, any>) {
   }
 
   // enable the canonical option
-  const options = { sortKeys: true };
-  return msgpack.encode(obj, options);
+  return rawEncode(obj);
 }
 
 export function decode(buffer: ArrayLike<number>) {

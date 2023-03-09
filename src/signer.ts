@@ -1,4 +1,4 @@
-import { Transaction } from './transaction';
+import { encodeNoSigTransaction, Transaction } from './transaction';
 import Account from './types/account';
 import { LogicSigAccount, signLogicSigTransactionObject } from './logicsig';
 import { MultisigMetadata } from './types/multisig';
@@ -77,6 +77,23 @@ export function makeMultiSigAccountTransactionSigner(
     }
 
     return Promise.resolve(signed);
+  };
+}
+
+/**
+ * Create a makeNoSigTransactionSigner that does not specify any signer or
+ * signing capabilities. This should only be used to simulate transactions.
+ */
+export function makeNoSigTransactionSigner(): TransactionSigner {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return (txnGroup: Transaction[], indexesToSign: number[]) => {
+    const unsigned: Uint8Array[] = [];
+
+    for (const txn of txnGroup) {
+      unsigned.push(encodeNoSigTransaction(txn));
+    }
+
+    return Promise.resolve(unsigned);
   };
 }
 
