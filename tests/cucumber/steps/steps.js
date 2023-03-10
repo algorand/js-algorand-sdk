@@ -4683,15 +4683,15 @@ module.exports = function getSteps(options) {
       const stringPath = failAt.split(',');
       const failPath = stringPath.map((n) => parseInt(n, 10));
 
-      const msg = this.simulateResponse['txn-groups'][groupNum][
+      const failedMessage = this.simulateResponse['txn-groups'][groupNum][
         'failure-message'
       ];
+      const failedAt = this.simulateResponse['txn-groups'][groupNum][
+        'failed-at'
+      ];
       assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
-      assert.deepStrictEqual(
-        failPath,
-        this.simulateResponse['txn-groups'][groupNum]['failed-at']
-      );
-      const errorContainsString = msg.includes(errorMsg);
+      assert.deepStrictEqual(failPath, failedAt);
+      const errorContainsString = failedMessage.includes(errorMsg);
       assert.deepStrictEqual(true, errorContainsString);
     }
   );
