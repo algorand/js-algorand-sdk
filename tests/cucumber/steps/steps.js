@@ -2900,7 +2900,7 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
-        from: this.accounts[0],
+        from: this.accounts[1],
         to: algosdk.getApplicationAddress(this.currentApplicationIndex),
         amount,
         suggestedParams: sp,
