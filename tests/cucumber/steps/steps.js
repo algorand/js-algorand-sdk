@@ -119,7 +119,7 @@ module.exports = function getSteps(options) {
   }
 
   // Dev Mode State
-  const DEV_MODE_INITIAL_MICROALGOS = 10_000_000;
+  const DEV_MODE_INITIAL_MICROALGOS = 100_000_000;
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
@@ -4687,10 +4687,14 @@ module.exports = function getSteps(options) {
       assert.deepStrictEqual(true, errorContainsString);
 
       // Check path array
+      // deepStrictEqual fails for firefox tests, so compare array manually.
       const failedAt = this.simulateResponse['txn-groups'][groupNum][
         'failed-at'
       ];
-      assert.deepStrictEqual(failPath, failedAt);
+      assert.strictEqual(failPath.length, failedAt.length);
+      for (let i = 0; i < failPath.length; i++) {
+        assert.strictEqual(failPath[i], failedAt[i]);
+      }
     }
   );
 
