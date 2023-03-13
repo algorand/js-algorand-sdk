@@ -383,7 +383,7 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
-        from: this.accounts[1],
+        from: this.accounts[0],
         to: this.rekey,
         amount: DEV_MODE_INITIAL_MICROALGOS,
         fee: sp.fee,
@@ -2900,7 +2900,7 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
-        from: this.accounts[1],
+        from: this.accounts[0],
         to: algosdk.getApplicationAddress(this.currentApplicationIndex),
         amount,
         suggestedParams: sp,
@@ -2912,7 +2912,6 @@ module.exports = function getSteps(options) {
       );
 
       const fundingResponse = await this.v2Client.sendRawTransaction(stxn).do();
-      await new Promise((r) => setTimeout(r, 500));
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
         fundingResponse.txId,
@@ -3256,7 +3255,7 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
-        from: this.accounts[1],
+        from: this.accounts[0],
         to: this.transientAccount.addr,
         amount: fundingAmount,
         suggestedParams: sp,
@@ -3269,7 +3268,6 @@ module.exports = function getSteps(options) {
       const fundingResponse = await this.v2Client
         .sendRawTransaction(stxKmd)
         .do();
-      await new Promise((r) => setTimeout(r, 500));
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
         fundingResponse.txId,
@@ -3382,7 +3380,6 @@ module.exports = function getSteps(options) {
     'I sign and submit the transaction, saving the txid. If there is an error it is {string}.',
     async function (errorString) {
       try {
-        await new Promise((r) => setTimeout(r, 500));
         const appStx = this.txn.signTxn(this.transientAccount.sk);
         this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
       } catch (err) {
@@ -3399,7 +3396,6 @@ module.exports = function getSteps(options) {
   );
 
   Given('I wait for the transaction to be confirmed.', async function () {
-    await new Promise((r) => setTimeout(r, 500));
     const info = await algosdk.waitForConfirmation(
       this.v2Client,
       this.appTxid.txId,
