@@ -2900,7 +2900,7 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
-        from: this.accounts[0],
+        from: this.accounts[1],
         to: algosdk.getApplicationAddress(this.currentApplicationIndex),
         amount,
         suggestedParams: sp,
@@ -3255,7 +3255,7 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstRound === 0) sp.firstRound = 1;
       const fundingTxnArgs = {
-        from: this.accounts[0],
+        from: this.accounts[1],
         to: this.transientAccount.addr,
         amount: fundingAmount,
         suggestedParams: sp,
@@ -4682,13 +4682,18 @@ module.exports = function getSteps(options) {
       const failedMessage = this.simulateResponse['txn-groups'][groupNum][
         'failure-message'
       ];
+      assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
+      const errorContainsString = failedMessage.includes(errorMsg);
+      assert.deepStrictEqual(true, errorContainsString);
+
+      // Check path array
       const failedAt = this.simulateResponse['txn-groups'][groupNum][
         'failed-at'
       ];
-      assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
-      assert.deepStrictEqual(failPath, failedAt);
-      const errorContainsString = failedMessage.includes(errorMsg);
-      assert.deepStrictEqual(true, errorContainsString);
+      assert.strictEqual(failPath.length, failedAt.length);
+      for (let i = 0; i < failPath.length; i++) {
+        assert.strictEqual(failPath[i], failedAt[i]);
+      }
     }
   );
 
