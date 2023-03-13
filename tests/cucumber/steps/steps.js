@@ -4690,10 +4690,7 @@ module.exports = function getSteps(options) {
       const failedAt = this.simulateResponse['txn-groups'][groupNum][
         'failed-at'
       ];
-      assert.strictEqual(failPath.length, failedAt.length);
-      for (let i = 0; i < failPath.length; i++) {
-        assert.strictEqual(failPath[i], failedAt[i]);
-      }
+      assert.deepStrictEqual(failPath, failedAt);
     }
   );
 
