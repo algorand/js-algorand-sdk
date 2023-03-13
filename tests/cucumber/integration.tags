@@ -11,6 +11,6 @@
 @dryrun
 @kmd
 @rekey_v1
+@simulate
 @send
 @send.keyregtxn
-@simulate
