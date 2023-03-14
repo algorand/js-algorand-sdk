@@ -12,7 +12,7 @@ async function main() {
   const funder = accounts[0];
   const suggestedParams = await client.getTransactionParams().do();
 
-  // example: JSSDK_LSIG_COMPILE
+  // example: LSIG_COMPILE
   const smartSigSource = '#pragma version 8\nint 1\nreturn'; // approve everything
   const result = await client.compile(Buffer.from(smartSigSource)).do();
 
@@ -20,21 +20,21 @@ async function main() {
   console.log('Hash: ', result.hash);
   console.log('B64: ', result.result);
   const b64program = result.result;
-  // example: JSSDK_LSIG_COMPILE
+  // example: LSIG_COMPILE
 
-  // example: JSSDK_LSIG_INIT
+  // example: LSIG_INIT
   let smartSig = new algosdk.LogicSig(
     new Uint8Array(Buffer.from(b64program, 'base64'))
   );
-  // example: JSSDK_LSIG_INIT
+  // example: LSIG_INIT
 
-  // example: JSSDK_LSIG_PASS_ARGS
+  // example: LSIG_PASS_ARGS
   const args = [Buffer.from('This is an argument!')];
   smartSig = new algosdk.LogicSig(
     new Uint8Array(Buffer.from(b64program, 'base64')),
     args
   );
-  // example: JSSDK_LSIG_PASS_ARGS
+  // example: LSIG_PASS_ARGS
 
   const fundSmartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     from: funder.addr,
@@ -52,7 +52,7 @@ async function main() {
     3
   );
 
-  // example: JSSDK_LSIG_SIGN_FULL
+  // example: LSIG_SIGN_FULL
   const smartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     from: smartSig.address(),
     to: funder.addr,
@@ -67,9 +67,9 @@ async function main() {
 
   await client.sendRawTransaction(signedSmartSigTxn.blob).do();
   await algosdk.waitForConfirmation(client, signedSmartSigTxn.txID, 3);
-  // example: JSSDK_LSIG_SIGN_FULL
+  // example: LSIG_SIGN_FULL
 
-  // example: JSSDK_LSIG_DELEGATE_FULL
+  // example: LSIG_DELEGATE_FULL
   const userAccount = accounts[1];
 
   // sign sig with userAccount so the program can send transactions from userAccount
@@ -90,6 +90,6 @@ async function main() {
 
   await client.sendRawTransaction(signedDelegatedTxn.blob).do();
   await algosdk.waitForConfirmation(client, signedDelegatedTxn.txID, 3);
-  // example: JSSDK_LSIG_DELEGATE_FULL
+  // example: LSIG_DELEGATE_FULL
 }
 main();

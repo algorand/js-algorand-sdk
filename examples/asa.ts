@@ -13,8 +13,8 @@ async function main() {
   const algodClient = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
 
-  console.log('JSSDK_ASSET_CREATE');
-  // example: JSSDK_ASSET_CREATE
+  console.log('ASSET_CREATE');
+  // example: ASSET_CREATE
   const creator = accounts[0];
 
   const suggestedParams = await algodClient.getTransactionParams().do();
@@ -50,28 +50,28 @@ async function main() {
       .txID()
       .toString()} confirmed in round ${result['confirmed-round']}`
   );
-  // example: JSSDK_ASSET_CREATE
+  // example: ASSET_CREATE
 
-  console.log('JSSDK_ASSET_INFO');
-  // example: JSSDK_ASSET_INFO
+  console.log('ASSET_INFO');
+  // example: ASSET_INFO
   const accountInfo = await algodClient.accountInformation(creator.addr).do();
   console.log('Account Info:', accountInfo);
 
   const mostRecentAsset = accountInfo['created-assets'].at(-1).index;
   const assetInfo = await algodClient.getAssetByID(mostRecentAsset).do();
   console.log('Asset Info:', assetInfo);
-  // example: JSSDK_ASSET_INFO
+  // example: ASSET_INFO
 
   await new Promise((f) => setTimeout(f, 1000)); // sleep to ensure indexer is caught up
 
-  // example: JSSDK_INDEXER_LOOKUP_ASSET
+  // example: INDEXER_LOOKUP_ASSET
   const indexer = getLocalIndexerClient();
   const indexerAssetInfo = await indexer.lookupAssetByID(assetIndex).do();
   console.log('Indexer Asset Info:', indexerAssetInfo);
-  // example: JSSDK_INDEXER_LOOKUP_ASSET
+  // example: INDEXER_LOOKUP_ASSET
 
-  console.log('JSSDK_ASSET_CONFIG');
-  // example: JSSDK_ASSET_CONFIG
+  console.log('ASSET_CONFIG');
+  // example: ASSET_CONFIG
   const manager = accounts[1];
 
   const configTxn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
@@ -93,10 +93,10 @@ async function main() {
 
   const configAssetInfo = await indexer.lookupAssetByID(assetIndex).do();
   console.log('Asset Info:', configAssetInfo);
-  // example: JSSDK_ASSET_CONFIG
+  // example: ASSET_CONFIG
 
-  console.log('JSSDK_ASSET_OPTIN');
-  // example: JSSDK_ASSET_OPTIN
+  console.log('ASSET_OPTIN');
+  // example: ASSET_OPTIN
   const receiver = accounts[2];
 
   // opt-in is simply a 0 amount transfer of the asset to oneself
@@ -111,10 +111,10 @@ async function main() {
   const signedOptInTxn = optInTxn.signTxn(receiver.privateKey);
   await algodClient.sendRawTransaction(signedOptInTxn).do();
   await algosdk.waitForConfirmation(algodClient, optInTxn.txID().toString(), 3);
-  // example: JSSDK_ASSET_OPTIN
+  // example: ASSET_OPTIN
 
-  console.log('JSSDK_ASSET_XFER');
-  // example: JSSDK_ASSET_XFER
+  console.log('ASSET_XFER');
+  // example: ASSET_XFER
   const xferTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
     from: creator.addr,
     to: receiver.addr,
@@ -126,10 +126,10 @@ async function main() {
   const signedXferTxn = xferTxn.signTxn(creator.privateKey);
   await algodClient.sendRawTransaction(signedXferTxn).do();
   await algosdk.waitForConfirmation(algodClient, xferTxn.txID().toString(), 3);
-  // example: JSSDK_ASSET_XFER
+  // example: ASSET_XFER
 
-  console.log('JSSDK_ASSET_FREEZE');
-  // example: JSSDK_ASSET_FREEZE
+  console.log('ASSET_FREEZE');
+  // example: ASSET_FREEZE
   const freezeTxn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
     from: manager.addr,
     suggestedParams,
@@ -147,10 +147,10 @@ async function main() {
     freezeTxn.txID().toString(),
     3
   );
-  // example: JSSDK_ASSET_FREEZE
+  // example: ASSET_FREEZE
 
-  console.log('JSSDK_ASSET_CLAWBACK');
-  // example: JSSDK_ASSET_CLAWBACK
+  console.log('ASSET_CLAWBACK');
+  // example: ASSET_CLAWBACK
   const clawbackTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
     {
       from: manager.addr,
@@ -170,10 +170,10 @@ async function main() {
     clawbackTxn.txID().toString(),
     3
   );
-  // example: JSSDK_ASSET_CLAWBACK
+  // example: ASSET_CLAWBACK
 
-  console.log('JSSDK_ASSET_DELETE');
-  // example: JSSDK_ASSET_DELETE
+  console.log('ASSET_DELETE');
+  // example: ASSET_DELETE
   const deleteTxn = algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
     from: manager.addr,
     suggestedParams,
@@ -187,7 +187,7 @@ async function main() {
     deleteTxn.txID().toString(),
     3
   );
-  // example: JSSDK_ASSET_DELETE
+  // example: ASSET_DELETE
 }
 
 main();

@@ -45,7 +45,7 @@ async function main() {
   );
   const appIndex = response['application-index'];
 
-  // example: JSSDK_APP_CALL
+  // example: APP_CALL
   const simpleAddTxn = algosdk.makeApplicationNoOpTxnFromObject({
     from: sender.addr,
     suggestedParams,
@@ -68,9 +68,9 @@ async function main() {
     'Result:',
     algosdk.decodeUint64(simpleAddResult.logs[0], 'bigint')
   );
-  // example: JSSDK_APP_CALL
+  // example: APP_CALL
 
-  // example: JSSDK_DEBUG_DRYRUN_DUMP
+  // example: DEBUG_DRYRUN_DUMP
   const addTxnForDr = algosdk.makeApplicationNoOpTxnFromObject({
     from: sender.addr,
     suggestedParams,
@@ -92,7 +92,7 @@ async function main() {
   });
 
   console.log('Dryrun:', dryrunForLogging.get_obj_for_encoding());
-  // example: JSSDK_DEBUG_DRYRUN_DUMP
+  // example: DEBUG_DRYRUN_DUMP
 
   //
   const dryrunForResponse = await algosdk.createDryrun({
@@ -105,7 +105,7 @@ async function main() {
   console.log('Dryrun Response:', dryrunResponse);
   //
 
-  // example: JSSDK_ATC_CONTRACT_INIT
+  // example: ATC_CONTRACT_INIT
   const abi = JSON.parse(
     fs.readFileSync(
       path.join(__dirname, '/contracts/beaker_add_artifacts/contract.json'),
@@ -113,7 +113,7 @@ async function main() {
     )
   );
   const contract = new algosdk.ABIContract(abi);
-  // example: JSSDK_ATC_CONTRACT_INIT
+  // example: ATC_CONTRACT_INIT
 
   const beakerApprovalProgram = fs.readFileSync(
     path.join(__dirname, '/contracts/beaker_add_artifacts/approval.teal'),
@@ -124,7 +124,7 @@ async function main() {
     beakerApprovalProgram
   );
 
-  // example: JSSDK_ATC_ADD_TRANSACTION
+  // example: ATC_ADD_TRANSACTION
   const createATC = new AtomicTransactionComposer();
   const createContractTxn = algosdk.makeApplicationCreateTxnFromObject({
     from: sender.addr,
@@ -146,9 +146,9 @@ async function main() {
     .pendingTransactionInformation(createContractResult.txIDs[0])
     .do();
   const contractAppID = txInfo['application-index'];
-  // example: JSSDK_ATC_ADD_TRANSACTION
+  // example: ATC_ADD_TRANSACTION
 
-  // example: JSSDK_ATC_ADD_METHOD_CALL
+  // example: ATC_ADD_METHOD_CALL
   const methodATC = new AtomicTransactionComposer();
 
   methodATC.addMethodCall({
@@ -162,9 +162,9 @@ async function main() {
 
   const methodResult = await methodATC.execute(client, 3);
   console.log('Result:', methodResult.methodResults[0].returnValue);
-  // example: JSSDK_ATC_ADD_METHOD_CALL
+  // example: ATC_ADD_METHOD_CALL
 
-  // example: JSSDK_ATC_BOX_REF
+  // example: ATC_BOX_REF
   const boxATC = new AtomicTransactionComposer();
 
   const fundTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -198,7 +198,7 @@ async function main() {
     .getApplicationBoxByName(contractAppID, boxKey)
     .do();
   console.log('Name:', Buffer.from(boxVal.value).toString());
-  // example: JSSDK_ATC_BOX_REF
+  // example: ATC_BOX_REF
 }
 
 main();

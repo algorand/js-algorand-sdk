@@ -9,7 +9,7 @@ async function main() {
   const client = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
 
-  // example: JSSDK_ATOMIC_CREATE_TXNS
+  // example: ATOMIC_CREATE_TXNS
   const suggestedParams = await client.getTransactionParams().do();
 
   const alice = accounts[0];
@@ -29,33 +29,33 @@ async function main() {
     amount: 1e6,
     suggestedParams,
   });
-  // example: JSSDK_ATOMIC_CREATE_TXNS
+  // example: ATOMIC_CREATE_TXNS
 
-  // example: JSSDK_ATOMIC_GROUP_TXNS
+  // example: ATOMIC_GROUP_TXNS
   const txnArray = [alicesTxn, bobsTxn];
   // assignGroupID returns the same txns with the group ID set
   const txnGroup = algosdk.assignGroupID(txnArray);
-  // example: JSSDK_ATOMIC_GROUP_TXNS
+  // example: ATOMIC_GROUP_TXNS
 
-  // example: JSSDK_TOMIC_GROUP_SIGN
+  // example: TOMIC_GROUP_SIGN
   const alicesSignedTxn = txnGroup[0].signTxn(alice.privateKey);
   const bobsSignedTxn = txnGroup[1].signTxn(bob.privateKey);
-  // example: JSSDK_ATOMIC_GROUP_SIGN
+  // example: ATOMIC_GROUP_SIGN
 
-  // example: JSSDK_ATOMIC_GROUP_ASSEMBLE
+  // example: ATOMIC_GROUP_ASSEMBLE
   const signedTxns = [alicesSignedTxn, bobsSignedTxn];
-  // example: JSSDK_ATOMIC_GROUP_ASSEMBLE
+  // example: ATOMIC_GROUP_ASSEMBLE
 
-  // example: JSSDK_ATOMIC_GROUP_SEND
+  // example: ATOMIC_GROUP_SEND
   await client.sendRawTransaction(signedTxns).do();
   await algosdk.waitForConfirmation(client, alicesTxn.txID().toString(), 3);
-  // example: JSSDK_ATOMIC_GROUP_SEND
+  // example: ATOMIC_GROUP_SEND
 
-  // example: JSSDK_CONST_MIN_FEE
+  // example: CONST_MIN_FEE
   const minFee = algosdk.ALGORAND_MIN_TX_FEE;
-  // example: JSSDK_CONST_MIN_FEE
+  // example: CONST_MIN_FEE
 
-  // example: JSSDK_TRANSACTION_FEE_OVERRIDE
+  // example: TRANSACTION_FEE_OVERRIDE
   const alicesTxnWithDoubleFee = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
     {
       from: alice.addr,
@@ -91,7 +91,7 @@ async function main() {
     alicesTxnWithDoubleFee.txID().toString(),
     3
   );
-  // example: JSSDK_TRANSACTION_FEE_OVERRIDE
+  // example: TRANSACTION_FEE_OVERRIDE
 }
 
 main();

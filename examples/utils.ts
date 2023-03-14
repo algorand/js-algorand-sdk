@@ -1,14 +1,20 @@
+import { Buffer } from 'buffer';
 import algosdk from '../src';
 
-// example: JSSDK_APP_COMPILE
-export async function compileProgram(client: algosdk.Algodv2, programSource: string) {
+// example: APP_COMPILE
+export async function compileProgram(
+  client: algosdk.Algodv2,
+  programSource: string
+) {
   const compileResponse = await client.compile(Buffer.from(programSource)).do();
-  const compiledBytes = new Uint8Array(Buffer.from(compileResponse.result, 'base64'));
+  const compiledBytes = new Uint8Array(
+    Buffer.from(compileResponse.result, 'base64')
+  );
   return compiledBytes;
 }
-// example: JSSDK_APP_COMPILE
+// example: APP_COMPILE
 
-// example: JSSDK_CREATE_INDEXER_CLIENT
+// example: CREATE_INDEXER_CLIENT
 export function getLocalIndexerClient() {
   const indexerToken = '';
   const indexerServer = 'http://localhost';
@@ -16,9 +22,9 @@ export function getLocalIndexerClient() {
 
   return new algosdk.Indexer(indexerToken, indexerServer, indexerPort);
 }
-// example: JSSDK_CREATE_INDEXER_CLIENT
+// example: CREATE_INDEXER_CLIENT
 
-// example: JSSDK_CREATE_CLIENT
+// example: CREATE_CLIENT
 export function getLocalAlgodClient() {
   const algodToken = 'a'.repeat(64);
   const algodServer = 'http://localhost';
@@ -28,13 +34,15 @@ export function getLocalAlgodClient() {
 
   return algodClient;
 }
-// example: JSSDK_CREATE_CLIENT
+// example: CREATE_CLIENT
 
-export async function getLocalAccounts(): Promise<{
+export async function getLocalAccounts(): Promise<
+  {
     addr: string;
     privateKey: Uint8Array;
     signer: algosdk.TransactionSigner;
-}[]> {
+  }[]
+> {
   const kmdClient = new algosdk.Kmd('a'.repeat(64), 'http://localhost', 4002);
 
   const wallets = await kmdClient.listWallets();
@@ -45,12 +53,14 @@ export async function getLocalAccounts(): Promise<{
     if (wallet.name === 'unencrypted-default-wallet') walletId = wallet.id;
   }
 
-  if (walletId === undefined) throw Error('No wallet named: unencrypted-default-wallet');
+  if (walletId === undefined)
+    throw Error('No wallet named: unencrypted-default-wallet');
 
   const handleResp = await kmdClient.initWalletHandle(walletId, '');
   const handle = handleResp.wallet_handle_token;
 
   const addresses = await kmdClient.listKeys(handle);
+  // eslint-disable-next-line camelcase
   const acctPromises: Promise<{ private_key: Buffer }>[] = [];
 
   // eslint-disable-next-line no-restricted-syntax

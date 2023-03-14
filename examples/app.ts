@@ -14,7 +14,7 @@ async function main() {
   const creator = accounts[0];
   const suggestedParams = await algodClient.getTransactionParams().do();
 
-  // example: JSSDK_APP_SOURCE
+  // example: APP_SOURCE
   // define TEAL source from string or from a file
   const approvalProgram = fs.readFileSync(
     path.join(__dirname, '/contracts/app_approval.teal'),
@@ -28,17 +28,17 @@ async function main() {
     approvalProgram
   );
   const compiledClearProgram = await compileProgram(algodClient, clearProgram);
-  // example: JSSDK_APP_SOURCE
+  // example: APP_SOURCE
 
-  // example: JSSDK_APP_SCHEMA
+  // example: APP_SCHEMA
   // define uint64s and byteslices stored in global/local storage
   const numGlobalByteSlices = 1;
   const numGlobalInts = 0;
   const numLocalByteSlices = 0;
   const numLocalInts = 1;
-  // example: JSSDK_APP_SCHEMA
+  // example: APP_SCHEMA
 
-  // example: JSSDK_APP_CREATE
+  // example: APP_CREATE
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
     from: creator.addr,
     approvalProgram: compiledApprovalProgram,
@@ -61,10 +61,10 @@ async function main() {
   );
   const createdApp = result['application-index'];
   console.log(`Created app with index: ${createdApp}`);
-  // example: JSSDK_APP_CREATE
+  // example: APP_CREATE
 
   const caller = accounts[1];
-  // example: JSSDK_APP_OPTIN
+  // example: APP_OPTIN
   const appOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
     from: caller.addr,
     appIndex: createdApp,
@@ -79,9 +79,9 @@ async function main() {
     appOptInTxn.txID().toString(),
     3
   );
-  // example: JSSDK_APP_OPTIN
+  // example: APP_OPTIN
 
-  // example: JSSDK_APP_NOOP
+  // example: APP_NOOP
   const appNoOpTxn = algosdk.makeApplicationNoOpTxnFromObject({
     from: caller.addr,
     appIndex: createdApp,
@@ -96,7 +96,7 @@ async function main() {
     appNoOpTxn.txID().toString(),
     3
   );
-  // example: JSSDK_APP_NOOP
+  // example: APP_NOOP
 
   const anotherCaller = accounts[2];
 
@@ -115,7 +115,7 @@ async function main() {
     3
   );
 
-  // example: JSSDK_APP_READ_STATE
+  // example: APP_READ_STATE
   const appInfo = await algodClient.getApplicationByID(createdApp).do();
   const globalState = appInfo.params['global-state'][0];
   console.log(`Raw global state - ${JSON.stringify(globalState)}`);
@@ -142,9 +142,9 @@ async function main() {
   const localValue = localState.value.uint;
 
   console.log(`Decoded local state - ${localKey}: ${localValue}`);
-  // example: JSSDK_APP_READ_STATE
+  // example: APP_READ_STATE
 
-  // example: JSSDK_APP_CLOSEOUT
+  // example: APP_CLOSEOUT
   const appCloseOutTxn = algosdk.makeApplicationCloseOutTxnFromObject({
     from: caller.addr,
     appIndex: createdApp,
@@ -159,9 +159,9 @@ async function main() {
     appCloseOutTxn.txID().toString(),
     3
   );
-  // example: JSSDK_APP_CLOSEOUT
+  // example: APP_CLOSEOUT
 
-  // example: JSSDK_APP_UPDATE
+  // example: APP_UPDATE
   const newProgram = fs.readFileSync(
     path.join(__dirname, '/contracts/app_updated_approval.teal'),
     'utf8'
@@ -185,9 +185,9 @@ async function main() {
     appUpdateTxn.txID().toString(),
     3
   );
-  // example: JSSDK_APP_UPDATE
+  // example: APP_UPDATE
 
-  // example: JSSDK_APP_CLEAR
+  // example: APP_CLEAR
   const appClearTxn = algosdk.makeApplicationClearStateTxnFromObject({
     from: anotherCaller.addr,
     suggestedParams,
@@ -202,9 +202,9 @@ async function main() {
     appClearTxn.txID().toString(),
     3
   );
-  // example: JSSDK_APP_CLEAR
+  // example: APP_CLEAR
 
-  // example: JSSDK_APP_DELETE
+  // example: APP_DELETE
   const appDeleteTxn = algosdk.makeApplicationDeleteTxnFromObject({
     from: creator.addr,
     suggestedParams,
@@ -219,7 +219,7 @@ async function main() {
     appDeleteTxn.txID().toString(),
     3
   );
-  // example: JSSDK_APP_DELETE
+  // example: APP_DELETE
 }
 
 main();
