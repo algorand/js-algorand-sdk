@@ -3,7 +3,11 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
 import algosdk from '../src';
-import { getLocalAlgodClient, getLocalAccounts, getLocalIndexerClient } from './utils';
+import {
+  getLocalAlgodClient,
+  getLocalAccounts,
+  getLocalIndexerClient,
+} from './utils';
 
 async function main() {
   const algodClient = getLocalAlgodClient();
@@ -11,7 +15,7 @@ async function main() {
 
   console.log('JSSDK_ASSET_CREATE');
   // example: JSSDK_ASSET_CREATE
-  const creator = accounts.pop()!;
+  const creator = accounts[0];
 
   const suggestedParams = await algodClient.getTransactionParams().do();
 
@@ -33,11 +37,19 @@ async function main() {
 
   const signedTxn = txn.signTxn(creator.privateKey);
   await algodClient.sendRawTransaction(signedTxn).do();
-  const result = await algosdk.waitForConfirmation(algodClient, txn.txID().toString(), 3);
+  const result = await algosdk.waitForConfirmation(
+    algodClient,
+    txn.txID().toString(),
+    3
+  );
 
   const assetIndex = result['asset-index'];
 
-  console.log(`Created asset ${assetIndex} in transaction ${txn.txID().toString()} confirmed in round ${result['confirmed-round']}`);
+  console.log(
+    `Created asset ${assetIndex} in transaction ${txn
+      .txID()
+      .toString()} confirmed in round ${result['confirmed-round']}`
+  );
   // example: JSSDK_ASSET_CREATE
 
   console.log('JSSDK_ASSET_INFO');
@@ -60,7 +72,7 @@ async function main() {
 
   console.log('JSSDK_ASSET_CONFIG');
   // example: JSSDK_ASSET_CONFIG
-  const manager = accounts.pop()!;
+  const manager = accounts[1];
 
   const configTxn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
     from: creator.addr,
@@ -85,7 +97,7 @@ async function main() {
 
   console.log('JSSDK_ASSET_OPTIN');
   // example: JSSDK_ASSET_OPTIN
-  const receiver = accounts.pop()!;
+  const receiver = accounts[2];
 
   // opt-in is simply a 0 amount transfer of the asset to oneself
   const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -130,24 +142,34 @@ async function main() {
 
   const signedFreezeTxn = freezeTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedFreezeTxn).do();
-  await algosdk.waitForConfirmation(algodClient, freezeTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(
+    algodClient,
+    freezeTxn.txID().toString(),
+    3
+  );
   // example: JSSDK_ASSET_FREEZE
 
   console.log('JSSDK_ASSET_CLAWBACK');
   // example: JSSDK_ASSET_CLAWBACK
-  const clawbackTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    from: manager.addr,
-    to: creator.addr,
-    // revocationTarget is the account that is being clawed back from
-    revocationTarget: receiver.addr,
-    suggestedParams,
-    assetIndex,
-    amount: 1,
-  });
+  const clawbackTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
+    {
+      from: manager.addr,
+      to: creator.addr,
+      // revocationTarget is the account that is being clawed back from
+      revocationTarget: receiver.addr,
+      suggestedParams,
+      assetIndex,
+      amount: 1,
+    }
+  );
 
   const signedClawbackTxn = clawbackTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedClawbackTxn).do();
-  await algosdk.waitForConfirmation(algodClient, clawbackTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(
+    algodClient,
+    clawbackTxn.txID().toString(),
+    3
+  );
   // example: JSSDK_ASSET_CLAWBACK
 
   console.log('JSSDK_ASSET_DELETE');
@@ -160,7 +182,11 @@ async function main() {
 
   const signedDeleteTxn = deleteTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedDeleteTxn).do();
-  await algosdk.waitForConfirmation(algodClient, deleteTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(
+    algodClient,
+    deleteTxn.txID().toString(),
+    3
+  );
   // example: JSSDK_ASSET_DELETE
 }
 

@@ -2,14 +2,15 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
+import Buffer from 'buffer';
 import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 
 async function main() {
   const client = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
-  const sender = accounts.pop()!;
-  const receiver = accounts.pop()!;
+  const sender = accounts[0];
+  const receiver = accounts[1];
   const suggestedParams = await client.getTransactionParams().do();
 
   // example: JSSDK_CODEC_ADDRESS
@@ -43,14 +44,18 @@ async function main() {
 
   const txnBytes = txn.toByte();
   const txnB64 = Buffer.from(txnBytes).toString('base64');
-  const restoredTxn = algosdk.decodeUnsignedTransaction(Buffer.from(txnB64, 'base64'));
+  const restoredTxn = algosdk.decodeUnsignedTransaction(
+    Buffer.from(txnB64, 'base64')
+  );
   console.log(restoredTxn);
   // example: JSSDK_CODEC_TRANSACTION_UNSIGNED
 
   // example: JSSDK_CODEC_TRANSACTION_SIGNED
   const signedTxn = txn.signTxn(sender.privateKey);
   const signedB64Txn = Buffer.from(signedTxn).toString('base64');
-  const restoredSignedTxn = algosdk.decodeSignedTransaction(Buffer.from(signedB64Txn, 'base64'));
+  const restoredSignedTxn = algosdk.decodeSignedTransaction(
+    Buffer.from(signedB64Txn, 'base64')
+  );
   console.log(restoredSignedTxn);
   // example: JSSDK_CODEC_TRANSACTION_SIGNED
 }

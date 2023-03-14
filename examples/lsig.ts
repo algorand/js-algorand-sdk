@@ -2,13 +2,14 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
+import Buffer from 'buffer';
 import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 
 async function main() {
   const client = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
-  const funder = accounts.pop()!;
+  const funder = accounts[0];
   const suggestedParams = await client.getTransactionParams().do();
 
   // example: JSSDK_LSIG_COMPILE
@@ -22,12 +23,17 @@ async function main() {
   // example: JSSDK_LSIG_COMPILE
 
   // example: JSSDK_LSIG_INIT
-  let smartSig = new algosdk.LogicSig(new Uint8Array(Buffer.from(b64program, 'base64')));
+  let smartSig = new algosdk.LogicSig(
+    new Uint8Array(Buffer.from(b64program, 'base64'))
+  );
   // example: JSSDK_LSIG_INIT
 
   // example: JSSDK_LSIG_PASS_ARGS
   const args = [Buffer.from('This is an argument!')];
-  smartSig = new algosdk.LogicSig(new Uint8Array(Buffer.from(b64program, 'base64')), args);
+  smartSig = new algosdk.LogicSig(
+    new Uint8Array(Buffer.from(b64program, 'base64')),
+    args
+  );
   // example: JSSDK_LSIG_PASS_ARGS
 
   const fundSmartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -37,8 +43,14 @@ async function main() {
     suggestedParams,
   });
 
-  await client.sendRawTransaction(fundSmartSigTxn.signTxn(funder.privateKey)).do();
-  await algosdk.waitForConfirmation(client, fundSmartSigTxn.txID().toString(), 3);
+  await client
+    .sendRawTransaction(fundSmartSigTxn.signTxn(funder.privateKey))
+    .do();
+  await algosdk.waitForConfirmation(
+    client,
+    fundSmartSigTxn.txID().toString(),
+    3
+  );
 
   // example: JSSDK_LSIG_SIGN_FULL
   const smartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -48,14 +60,17 @@ async function main() {
     suggestedParams,
   });
 
-  const signedSmartSigTxn = algosdk.signLogicSigTransactionObject(smartSigTxn, smartSig);
+  const signedSmartSigTxn = algosdk.signLogicSigTransactionObject(
+    smartSigTxn,
+    smartSig
+  );
 
   await client.sendRawTransaction(signedSmartSigTxn.blob).do();
   await algosdk.waitForConfirmation(client, signedSmartSigTxn.txID, 3);
   // example: JSSDK_LSIG_SIGN_FULL
 
   // example: JSSDK_LSIG_DELEGATE_FULL
-  const userAccount = accounts.pop()!;
+  const userAccount = accounts[1];
 
   // sign sig with userAccount so the program can send transactions from userAccount
   smartSig.sign(userAccount.privateKey);
@@ -68,7 +83,10 @@ async function main() {
   });
 
   // use signLogicSigTransactionObject instead of the typical Transaction.signTxn function
-  const signedDelegatedTxn = algosdk.signLogicSigTransactionObject(delegatedTxn, smartSig);
+  const signedDelegatedTxn = algosdk.signLogicSigTransactionObject(
+    delegatedTxn,
+    smartSig
+  );
 
   await client.sendRawTransaction(signedDelegatedTxn.blob).do();
   await algosdk.waitForConfirmation(client, signedDelegatedTxn.txID, 3);

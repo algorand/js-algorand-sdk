@@ -2,18 +2,23 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import algosdk, { AtomicTransactionComposer } from '../src';
 import fs from 'fs';
+import path from 'path';
+import Buffer from 'buffer';
+import algosdk, { AtomicTransactionComposer } from '../src';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 
 async function main() {
   const client = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
 
-  const sender = accounts.pop()!;
+  const sender = accounts[0];
   const suggestedParams = await client.getTransactionParams().do();
 
-  const approvalProgram = fs.readFileSync('./contracts/simple_adder.teal', 'utf8');
+  const approvalProgram = fs.readFileSync(
+    path.join(__dirname, '/contracts/simple_adder.teal'),
+    'utf8'
+  );
   const clearProgram = '#pragma version 8\nint 1\nreturn';
 
   const compiledApprovalProgram = await compileProgram(client, approvalProgram);
@@ -33,7 +38,11 @@ async function main() {
   });
 
   await client.sendRawTransaction(createTxn.signTxn(sender.privateKey)).do();
-  const response = await algosdk.waitForConfirmation(client, createTxn.txID().toString(), 3);
+  const response = await algosdk.waitForConfirmation(
+    client,
+    createTxn.txID().toString(),
+    3
+  );
   const appIndex = response['application-index'];
 
   // example: JSSDK_APP_CALL
@@ -41,17 +50,24 @@ async function main() {
     from: sender.addr,
     suggestedParams,
     appIndex,
-    appArgs: [new Uint8Array(Buffer.from('add', 'utf8')), algosdk.encodeUint64(1), algosdk.encodeUint64(2)],
+    appArgs: [
+      new Uint8Array(Buffer.from('add', 'utf8')),
+      algosdk.encodeUint64(1),
+      algosdk.encodeUint64(2),
+    ],
   });
 
   await client.sendRawTransaction(simpleAddTxn.signTxn(sender.privateKey)).do();
   const simpleAddResult = await algosdk.waitForConfirmation(
     client,
     simpleAddTxn.txID().toString(),
-    3,
+    3
   );
 
-  console.log('Result:', algosdk.decodeUint64(simpleAddResult.logs[0], 'bigint'));
+  console.log(
+    'Result:',
+    algosdk.decodeUint64(simpleAddResult.logs[0], 'bigint')
+  );
   // example: JSSDK_APP_CALL
 
   // example: JSSDK_DEBUG_DRYRUN_DUMP
@@ -59,10 +75,16 @@ async function main() {
     from: sender.addr,
     suggestedParams,
     appIndex,
-    appArgs: [new Uint8Array(Buffer.from('add', 'utf8')), algosdk.encodeUint64(1), algosdk.encodeUint64(2)],
+    appArgs: [
+      new Uint8Array(Buffer.from('add', 'utf8')),
+      algosdk.encodeUint64(1),
+      algosdk.encodeUint64(2),
+    ],
   });
 
-  const signedDrTxn = algosdk.decodeSignedTransaction(addTxnForDr.signTxn(sender.privateKey));
+  const signedDrTxn = algosdk.decodeSignedTransaction(
+    addTxnForDr.signTxn(sender.privateKey)
+  );
 
   const dryrunForLogging = await algosdk.createDryrun({
     client,
@@ -84,12 +106,23 @@ async function main() {
   //
 
   // example: JSSDK_ATC_CONTRACT_INIT
-  const abi = JSON.parse(fs.readFileSync('./contracts/beaker_add_artifacts/contract.json', 'utf8'));
+  const abi = JSON.parse(
+    fs.readFileSync(
+      path.join(__dirname, '/contracts/beaker_add_artifacts/contract.json'),
+      'utf8'
+    )
+  );
   const contract = new algosdk.ABIContract(abi);
   // example: JSSDK_ATC_CONTRACT_INIT
 
-  const beakerApprovalProgram = fs.readFileSync('./contracts/beaker_add_artifacts/approval.teal', 'utf8');
-  const compiledContractApprovalProgram = await compileProgram(client, beakerApprovalProgram);
+  const beakerApprovalProgram = fs.readFileSync(
+    path.join(__dirname, '/contracts/beaker_add_artifacts/approval.teal'),
+    'utf8'
+  );
+  const compiledContractApprovalProgram = await compileProgram(
+    client,
+    beakerApprovalProgram
+  );
 
   // example: JSSDK_ATC_ADD_TRANSACTION
   const createATC = new AtomicTransactionComposer();
@@ -109,7 +142,9 @@ async function main() {
 
   const createContractResult = await createATC.execute(client, 3);
 
-  const txInfo = await client.pendingTransactionInformation(createContractResult.txIDs[0]).do();
+  const txInfo = await client
+    .pendingTransactionInformation(createContractResult.txIDs[0])
+    .do();
   const contractAppID = txInfo['application-index'];
   // example: JSSDK_ATC_ADD_TRANSACTION
 
@@ -146,10 +181,12 @@ async function main() {
     appID: contractAppID,
     method: contract.getMethodByName('set_name'),
     methodArgs: ['AlgoDev'],
-    boxes: [{
-      appIndex: 0,
-      name: boxKey,
-    }],
+    boxes: [
+      {
+        appIndex: 0,
+        name: boxKey,
+      },
+    ],
     sender: sender.addr,
     signer: sender.signer,
     suggestedParams,
@@ -157,7 +194,9 @@ async function main() {
 
   await boxATC.execute(client, 3);
 
-  const boxVal = await client.getApplicationBoxByName(contractAppID, boxKey).do();
+  const boxVal = await client
+    .getApplicationBoxByName(contractAppID, boxKey)
+    .do();
   console.log('Name:', Buffer.from(boxVal.value).toString());
   // example: JSSDK_ATC_BOX_REF
 }
