@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-import Buffer from 'buffer';
+import { Buffer } from 'buffer';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 import algosdk from '../src';
 

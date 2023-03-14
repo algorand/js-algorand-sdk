@@ -2,7 +2,7 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import Buffer from 'buffer';
+import { Buffer } from 'buffer';
 import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 

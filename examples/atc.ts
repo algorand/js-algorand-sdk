@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-import Buffer from 'buffer';
+import { Buffer } from 'buffer';
 import algosdk, { AtomicTransactionComposer } from '../src';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 
