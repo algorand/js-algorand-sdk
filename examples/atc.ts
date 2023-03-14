@@ -5,7 +5,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Buffer } from 'buffer';
-import algosdk, { AtomicTransactionComposer } from '../src';
+import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 
 async function main() {
@@ -94,7 +94,7 @@ async function main() {
   console.log('Dryrun:', dryrunForLogging.get_obj_for_encoding());
   // example: DEBUG_DRYRUN_DUMP
 
-  //
+  // example: DEBUG_DRYRUN_SUBMIT
   const dryrunForResponse = await algosdk.createDryrun({
     client,
     txns: [signedDrTxn],
@@ -103,7 +103,7 @@ async function main() {
   const dryrunResponse = await client.dryrun(dryrunForResponse).do();
 
   console.log('Dryrun Response:', dryrunResponse);
-  //
+  // example: DEBUG_DRYRUN_SUBMIT
 
   // example: ATC_CONTRACT_INIT
   const abi = JSON.parse(
@@ -124,8 +124,11 @@ async function main() {
     beakerApprovalProgram
   );
 
+  // example: ATC_CREATE
+  const createATC = new algosdk.AtomicTransactionComposer();
+  // example: ATC_CREATE
+
   // example: ATC_ADD_TRANSACTION
-  const createATC = new AtomicTransactionComposer();
   const createContractTxn = algosdk.makeApplicationCreateTxnFromObject({
     from: sender.addr,
     suggestedParams,
@@ -149,7 +152,7 @@ async function main() {
   // example: ATC_ADD_TRANSACTION
 
   // example: ATC_ADD_METHOD_CALL
-  const methodATC = new AtomicTransactionComposer();
+  const methodATC = new algosdk.AtomicTransactionComposer();
 
   methodATC.addMethodCall({
     appID: contractAppID,
@@ -165,7 +168,7 @@ async function main() {
   // example: ATC_ADD_METHOD_CALL
 
   // example: ATC_BOX_REF
-  const boxATC = new AtomicTransactionComposer();
+  const boxATC = new algosdk.AtomicTransactionComposer();
 
   const fundTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     suggestedParams,

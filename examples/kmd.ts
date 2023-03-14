@@ -37,9 +37,25 @@ async function main() {
   ).wallet_handle_token;
   console.log('Got wallet handle:', wallethandle);
 
-  const address1 = (await kmdclient.generateKey(wallethandle)).address;
-  console.log('Created new account:', address1);
+  const { address } = await kmdclient.generateKey(wallethandle);
+  console.log('Created new account:', address);
   // example: KMD_CREATE_ACCOUNT
+
+  // example: KMD_EXPORT_ACCOUNT
+  const accountKey = await kmdclient.exportKey(wallethandle, password, address);
+  const accountMnemonic = algosdk.secretKeyToMnemonic(accountKey.private_key);
+  console.log('Account Mnemonic: ', accountMnemonic);
+  // example: KMD_EXPORT_ACCOUNT
+
+  // example: KMD_IMPORT_ACCOUNT
+  const newAccount = algosdk.generateAccount();
+  console.log('Account: ', newAccount.addr);
+  const importedAccount = await kmdclient.importKey(
+    wallethandle,
+    newAccount.sk
+  );
+  console.log('Account successfully imported: ', importedAccount);
+  // example: KMD_IMPORT_ACCOUNT
 
   // example: KMD_RECOVER_WALLET
   const exportedMDK = (

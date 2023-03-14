@@ -24,17 +24,15 @@ export function getLocalIndexerClient() {
 }
 // example: CREATE_INDEXER_CLIENT
 
-// example: CREATE_CLIENT
+// example: ALGOD_CREATE_CLIENT
 export function getLocalAlgodClient() {
   const algodToken = 'a'.repeat(64);
   const algodServer = 'http://localhost';
   const algodPort = 4001;
 
-  const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
-
-  return algodClient;
+  return new algosdk.Algodv2(algodToken, algodServer, algodPort);
 }
-// example: CREATE_CLIENT
+// example: ALGOD_CREATE_CLIENT
 
 export async function getLocalAccounts(): Promise<
   {
