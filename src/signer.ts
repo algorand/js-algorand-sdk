@@ -89,8 +89,8 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
   return (txnGroup: Transaction[], indexesToSign: number[]) => {
     const unsigned: Uint8Array[] = [];
 
-    for (const txn of txnGroup) {
-      unsigned.push(encodeNoSigTransaction(txn));
+    for (const index of indexesToSign) {
+      unsigned.push(encodeNoSigTransaction(txnGroup[index]));
     }
 
     return Promise.resolve(unsigned);
