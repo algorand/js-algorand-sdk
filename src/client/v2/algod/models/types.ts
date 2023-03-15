@@ -3095,7 +3095,7 @@ export class SimulateResponse extends BaseModel {
   public lastRound: number | bigint;
 
   /**
-   * Result objects for each transaction group that was simulated.
+   * A result object for each transaction group that was simulated.
    */
   public txnGroups: SimulateTransactionGroupResult[];
 
