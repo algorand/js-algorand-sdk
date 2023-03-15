@@ -1,4 +1,4 @@
-import { encodeNoSigTransaction, Transaction } from './transaction';
+import { encodeUnsignedSimulateTransaction, Transaction } from './transaction';
 import Account from './types/account';
 import { LogicSigAccount, signLogicSigTransactionObject } from './logicsig';
 import { MultisigMetadata } from './types/multisig';
@@ -90,7 +90,7 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
     const unsigned: Uint8Array[] = [];
 
     for (const index of indexesToSign) {
-      unsigned.push(encodeNoSigTransaction(txnGroup[index]));
+      unsigned.push(encodeUnsignedSimulateTransaction(txnGroup[index]));
     }
 
     return Promise.resolve(unsigned);

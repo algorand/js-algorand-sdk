@@ -4618,7 +4618,7 @@ module.exports = function getSteps(options) {
     function () {
       // Transform transaction into a "EncodedSignedTransaction", but don't
       // sign it so we can check that we can simulate unsigned txns.
-      this.stx = algosdk.encodeNoSigTransaction(this.txn);
+      this.stx = algosdk.encodeUnsignedSimulateTransaction(this.txn);
     }
   );
 
