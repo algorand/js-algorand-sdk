@@ -65,8 +65,11 @@ async function main() {
     .notePrefix(Buffer.from('Hello'))
     .do();
   console.log(
-    `Transactions with note prefix "Hello" ${ 
-      JSON.stringify(txnsWithNotePrefix, undefined, 2)}`
+    `Transactions with note prefix "Hello" ${JSON.stringify(
+      txnsWithNotePrefix,
+      undefined,
+      2
+    )}`
   );
   // example: INDEXER_PREFIX_SEARCH
 }
