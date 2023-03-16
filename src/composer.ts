@@ -1,31 +1,32 @@
 import { Buffer } from 'buffer';
 import {
-  ABIType,
-  ABITupleType,
-  ABIUintType,
   ABIAddressType,
-  ABIValue,
+  abiCheckTransactionType,
   ABIMethod,
   ABIReferenceType,
-  abiTypeIsTransaction,
-  abiCheckTransactionType,
+  ABITupleType,
+  ABIType,
   abiTypeIsReference,
+  abiTypeIsTransaction,
+  ABIUintType,
+  ABIValue,
 } from './abi';
-import { Transaction, decodeSignedTransaction } from './transaction';
-import { makeApplicationCallTxnFromObject } from './makeTxn';
-import { assignGroupID } from './group';
-import { waitForConfirmation } from './wait';
 import Algodv2 from './client/v2/algod/algod';
+import { SimulateResponse } from './client/v2/algod/models/types';
+import { assignGroupID } from './group';
+import { makeApplicationCallTxnFromObject } from './makeTxn';
 import {
+  isTransactionWithSigner,
   TransactionSigner,
   TransactionWithSigner,
-  isTransactionWithSigner,
 } from './signer';
+import { decodeSignedTransaction, Transaction } from './transaction';
 import {
   BoxReference,
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base';
+import { waitForConfirmation } from './wait';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
@@ -601,6 +602,62 @@ export class AtomicTransactionComposer {
   }
 
   /**
+   * Simulates the transaction group in the network.
+   *
+   * The composer will try to sign any transactions in the group, then simulate
+   * the results.
+   * Simulating the group will not change the composer's status.
+   *
+   * @param client - An Algodv2 client
+   *
+   * @returns A promise that, upon success, resolves to an object containing an
+   *   array of results containing one element for each method call transaction
+   *   in this group (ABIResult[]) and the SimulateResponse object.
+   */
+  async simulate(
+    client: Algodv2
+  ): Promise<{
+    methodResults: ABIResult[];
+    simulateResponse: SimulateResponse;
+  }> {
+    if (this.status > AtomicTransactionComposerStatus.SUBMITTED) {
+      throw new Error(
+        'Simulated Transaction group has already been submitted to the network'
+      );
+    }
+
+    const stxns = await this.gatherSignatures();
+
+    const simulateResponse = await client.simulateRawTransactions(stxns).do();
+
+    // Parse method response
+    const methodResults: ABIResult[] = [];
+    for (const [txnIndex, method] of this.methodCalls) {
+      const txID = this.txIDs[txnIndex];
+      const pendingInfo =
+        simulateResponse['txn-groups'][0]['txn-results'][txnIndex][
+          'txn-result'
+        ];
+
+      const methodResult: ABIResult = {
+        txID,
+        rawReturnValue: new Uint8Array(),
+        method,
+      };
+
+      methodResults.push(
+        AtomicTransactionComposer.parseMethodResponse(
+          method,
+          methodResult,
+          pendingInfo
+        )
+      );
+    }
+
+    return { methodResults, simulateResponse };
+  }
+
+  /**
    * Send the transaction group to the network and wait until it's committed to a block. An error
    * will be thrown if submission or execution fails.
    *
@@ -659,37 +716,18 @@ export class AtomicTransactionComposer {
         method,
       };
 
-      try {
-        const pendingInfo =
-          txnIndex === firstMethodCallIndex
-            ? confirmedTxnInfo
-            : // eslint-disable-next-line no-await-in-loop
-              await client.pendingTransactionInformation(txID).do();
-        methodResult.txInfo = pendingInfo;
-        if (method.returns.type !== 'void') {
-          const logs: string[] = pendingInfo.logs || [];
-          if (logs.length === 0) {
-            throw new Error('App call transaction did not log a return value');
-          }
-
-          const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
-          if (
-            lastLog.byteLength < 4 ||
-            !lastLog.slice(0, 4).equals(RETURN_PREFIX)
-          ) {
-            throw new Error('App call transaction did not log a return value');
-          }
-
-          methodResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
-          methodResult.returnValue = method.returns.type.decode(
-            methodResult.rawReturnValue
-          );
-        }
-      } catch (err) {
-        methodResult.decodeError = err;
-      }
-
-      methodResults.push(methodResult);
+      const pendingInfo =
+        txnIndex === firstMethodCallIndex
+          ? confirmedTxnInfo
+          : // eslint-disable-next-line no-await-in-loop
+            await client.pendingTransactionInformation(txID).do();
+      methodResults.push(
+        AtomicTransactionComposer.parseMethodResponse(
+          method,
+          methodResult,
+          pendingInfo
+        )
+      );
     }
 
     return {
@@ -697,5 +735,47 @@ export class AtomicTransactionComposer {
       txIDs,
       methodResults,
     };
+  }
+
+  /**
+   * Parses a single ABI Method transaction log into a ABI result object.
+   *
+   * @param method
+   * @param methodResult
+   * @param pendingInfo
+   * @returns An ABIResult object
+   */
+  static parseMethodResponse(
+    method: ABIMethod,
+    methodResult: ABIResult,
+    pendingInfo: Record<string, any>
+  ): ABIResult {
+    const returnedResult: ABIResult = methodResult;
+    try {
+      returnedResult.txInfo = pendingInfo;
+      if (method.returns.type !== 'void') {
+        const logs: string[] = pendingInfo.logs || [];
+        if (logs.length === 0) {
+          throw new Error('App call transaction did not log a return value');
+        }
+
+        const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+        if (
+          lastLog.byteLength < 4 ||
+          !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+        ) {
+          throw new Error('App call transaction did not log a return value');
+        }
+
+        returnedResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
+        returnedResult.returnValue = method.returns.type.decode(
+          methodResult.rawReturnValue
+        );
+      }
+    } catch (err) {
+      returnedResult.decodeError = err;
+    }
+
+    return returnedResult;
   }
 }

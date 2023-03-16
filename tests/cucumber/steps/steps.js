@@ -119,7 +119,7 @@ module.exports = function getSteps(options) {
   }
 
   // Dev Mode State
-  const DEV_MODE_INITIAL_MICROALGOS = 10_000_000;
+  const DEV_MODE_INITIAL_MICROALGOS = 100_000_000;
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
@@ -459,18 +459,13 @@ module.exports = function getSteps(options) {
     async function (amt, note) {
       [this.pk] = this.accounts;
       const result = await this.v2Client.getTransactionParams().do();
-      this.lastRound = result.lastRound;
-      this.txn = {
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         from: this.accounts[0],
         to: this.accounts[1],
-        fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
         amount: parseInt(amt),
-      };
+        suggestedParams: result,
+        note: makeUint8Array(Buffer.from(note, 'base64')),
+      });
       return this.txn;
     }
   );
@@ -3729,6 +3724,16 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'I create a transaction with an empty signer with the current transaction.',
+    function () {
+      this.transactionWithSigner = {
+        txn: this.txn,
+        signer: algosdk.makeEmptyTransactionSigner(),
+      };
+    }
+  );
+
   When('I create a new method arguments array.', function () {
     this.encodedMethodArguments = [];
   });
@@ -4605,6 +4610,91 @@ module.exports = function getSteps(options) {
     async function (errMsg) {
       if (errMsg !== '') assert.ok(this.actualErrMsg.includes(errMsg));
       else assert.strictEqual(this.actualErrMsg, undefined);
+    }
+  );
+
+  When(
+    'I prepare the transaction without signatures for simulation',
+    function () {
+      // Transform transaction into a "EncodedSignedTransaction", but don't
+      // sign it so we can check that we can simulate unsigned txns.
+      this.stx = algosdk.encodeUnsignedSimulateTransaction(this.txn);
+    }
+  );
+
+  Then('I simulate the transaction', async function () {
+    this.simulateResponse = await this.v2Client
+      .simulateRawTransactions(this.stx)
+      .do();
+  });
+
+  Then(
+    'I simulate the current transaction group with the composer',
+    async function () {
+      // Alias the simulate response as execute response so it can be re-used
+      // in other steps that check the ABI method results.
+      this.composerExecuteResponse = await this.composer.simulate(
+        this.v2Client
+      );
+      this.simulateResponse = this.composerExecuteResponse.simulateResponse;
+      this.methodResults = this.composerExecuteResponse.methodResults;
+    }
+  );
+
+  Then(
+    'the simulation should succeed without any failure message',
+    async function () {
+      assert.deepStrictEqual(true, this.simulateResponse['would-succeed']);
+    }
+  );
+
+  Then(
+    'the simulation should report missing signatures at group {string}, transactions {string}',
+    async function (txnGroupIndex, transactionPath) {
+      // Parse the path ("0,0") into a list of numbers ([0, 0])
+      const stringPath = transactionPath.split(',');
+      const txnIndexes = stringPath.map((n) => parseInt(n, 10));
+      const groupNum = parseInt(txnGroupIndex, 10);
+
+      assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
+      // Check for missing signature flag
+      for (const txnIndex of txnIndexes) {
+        assert.deepStrictEqual(
+          true,
+          this.simulateResponse['txn-groups'][groupNum]['txn-results'][
+            txnIndex
+          ]['missing-signature']
+        );
+      }
+    }
+  );
+
+  Then(
+    'the simulation should report a failure at group {string}, path {string} with message {string}',
+    async function (txnGroupIndex, failAt, errorMsg) {
+      // Parse transaction group number
+      const groupNum = parseInt(txnGroupIndex, 10);
+
+      // Parse the path ("0,0") into a list of numbers ([0, 0])
+      const stringPath = failAt.split(',');
+      const failPath = stringPath.map((n) => parseInt(n, 10));
+
+      const failedMessage = this.simulateResponse['txn-groups'][groupNum][
+        'failure-message'
+      ];
+      assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
+      const errorContainsString = failedMessage.includes(errorMsg);
+      assert.deepStrictEqual(true, errorContainsString);
+
+      // Check path array
+      // deepStrictEqual fails for firefox tests, so compare array manually.
+      const failedAt = this.simulateResponse['txn-groups'][groupNum][
+        'failed-at'
+      ];
+      assert.strictEqual(failPath.length, failedAt.length);
+      for (let i = 0; i < failPath.length; i++) {
+        assert.strictEqual(failPath[i], failedAt[i]);
+      }
     }
   );
 
