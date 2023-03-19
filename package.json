@@ -30,7 +30,8 @@
     "js-sha512": "^0.8.0",
     "json-bigint": "^1.0.0",
     "tweetnacl": "^1.0.3",
-    "vlq": "^2.0.4"
+    "vlq": "^2.0.4",
+    "wordlist-to-json": "^1.2.5"
   },
   "devDependencies": {
     "@types/json-bigint": "^1.0.0",
