@@ -1,5 +1,6 @@
 import * as nacl from '../nacl/naclWrappers';
 import { wordList } from "./mnemonic";
+import { Buffer } from 'buffer'
 
 export const padding = (
   data: string,

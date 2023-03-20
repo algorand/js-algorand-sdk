@@ -6,9 +6,9 @@ export const language = {
   japanese: "japanese",
   korean: "korean",
   spanish: "spanish",
-  zh_CN: "zh_CN",
-  zh_TW: "zh_TW",
-  bahasa_indonesia: "bahasa_indonesia",
+  zhCN: "zhCN",
+  zhTW: "zhTW",
+  indonesian: "indonesian",
   arabic: "arabic",
   portuguese: "portuguese",
 };
@@ -17,9 +17,9 @@ export const language = {
 import english from './wordlists/english.json';
 import japanese from './wordlists/japanese.json';
 import arabic from './wordlists/arabic.json';
-import bahasa_indonesia from './wordlists/bahasa_indonesia.json';
-import zh_CN from './wordlists/chinese_simplified.json';
-import zh_TW from './wordlists/chinese_traditional.json';
+import indonesian from './wordlists/indonesian.json';
+import zhCN from './wordlists/chinese_simplified.json';
+import zhTW from './wordlists/chinese_traditional.json';
 import french from './wordlists/french.json';
 import korean from './wordlists/korean.json';
 import portuguese from './wordlists/portuguese.json';
@@ -37,9 +37,9 @@ export const wordList = {
   japanese,
   korean,
   spanish,
-  zh_CN,
-  zh_TW,
-  bahasa_indonesia,
+  zhCN,
+  zhTW,
+  indonesian,
   arabic,
   portuguese
 };
