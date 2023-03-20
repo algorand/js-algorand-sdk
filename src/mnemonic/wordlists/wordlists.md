@@ -2,7 +2,7 @@
 
 We need non-English wordlist options to fast-track the adoption of Algorand and its applications.
 
-Wallets and applications like Jasiri Protocol - (https://jasiriprotocol.org) are going to take advantage of non-English wordlists so as to frictionlessly onboard users.
+Wallets and applications like Jasiri Protocol - (https://jasiriprotocol.org) are going to take advantage of non-English wordlists to frictionlessly onboard users.
 
 A request has also been made on go-algorand #5212
 
