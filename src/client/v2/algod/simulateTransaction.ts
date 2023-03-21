@@ -1,5 +1,4 @@
 import { Buffer } from 'buffer';
-import * as encoding from '../../../encoding/encoding';
 import { concatArrays } from '../../../utils/utils';
 import HTTPClient from '../../client';
 import JSONRequest from '../jsonrequest';
@@ -66,7 +65,6 @@ export default class SimulateRawTransactions extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array): SimulateResponse {
-    const decoded = encoding.decode(body);
-    return SimulateResponse.from_obj_for_encoding(decoded);
+    return SimulateResponse.from_obj_for_encoding(body);
   }
 }
