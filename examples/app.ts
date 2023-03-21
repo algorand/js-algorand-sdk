@@ -17,18 +17,32 @@ async function main() {
   // example: APP_SOURCE
   // define TEAL source from string or from a file
   const approvalProgram = fs.readFileSync(
-    path.join(__dirname, '/contracts/app_approval.teal'),
+    path.join(__dirname, '/application/approval.teal'),
     'utf8'
   );
-  const clearProgram = '#pragma version 8\nint 1\nreturn';
-
-  // compile with helper function
-  const compiledApprovalProgram = await compileProgram(
-    algodClient,
-    approvalProgram
+  const clearProgram = fs.readFileSync(
+    path.join(__dirname, '/application/clear.teal'),
+    'utf8'
   );
-  const compiledClearProgram = await compileProgram(algodClient, clearProgram);
   // example: APP_SOURCE
+
+  // example: APP_COMPILE
+  const approvalCompileResp = await algodClient
+    .compile(Buffer.from(approvalProgram))
+    .do();
+
+  const compiledApprovalProgram = new Uint8Array(
+    Buffer.from(approvalCompileResp.result, 'base64')
+  );
+
+  const clearCompileResp = await algodClient
+    .compile(Buffer.from(clearProgram))
+    .do();
+
+  const compiledClearProgram = new Uint8Array(
+    Buffer.from(clearCompileResp.result, 'base64')
+  );
+  // example: APP_COMPILE
 
   // example: APP_SCHEMA
   // define uint64s and byteslices stored in global/local storage
@@ -51,6 +65,7 @@ async function main() {
     onComplete: algosdk.OnApplicationComplete.NoOpOC,
   });
 
+  // Sign and send
   await algodClient
     .sendRawTransaction(appCreateTxn.signTxn(creator.privateKey))
     .do();
@@ -59,15 +74,17 @@ async function main() {
     appCreateTxn.txID().toString(),
     3
   );
-  const createdApp = result['application-index'];
-  console.log(`Created app with index: ${createdApp}`);
+  // Grab app id from confirmed transaction result
+  const appId = result['application-index'];
+  console.log(`Created app with index: ${appId}`);
   // example: APP_CREATE
 
   const caller = accounts[1];
+
   // example: APP_OPTIN
   const appOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
     from: caller.addr,
-    appIndex: createdApp,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -84,7 +101,7 @@ async function main() {
   // example: APP_NOOP
   const appNoOpTxn = algosdk.makeApplicationNoOpTxnFromObject({
     from: caller.addr,
-    appIndex: createdApp,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -102,7 +119,7 @@ async function main() {
 
   const anotherAppOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
     from: anotherCaller.addr,
-    appIndex: createdApp,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -115,8 +132,27 @@ async function main() {
     3
   );
 
+  // example: APP_CALL
+  const now = new Date().toString();
+  const simpleAddTxn = algosdk.makeApplicationNoOpTxnFromObject({
+    from: caller.addr,
+    suggestedParams,
+    appIndex: appId,
+    appArgs: [new Uint8Array(Buffer.from(now))],
+  });
+
+  await algodClient
+    .sendRawTransaction(simpleAddTxn.signTxn(creator.privateKey))
+    .do();
+  await algosdk.waitForConfirmation(
+    algodClient,
+    simpleAddTxn.txID().toString(),
+    3
+  );
+  // example: APP_CALL
+
   // example: APP_READ_STATE
-  const appInfo = await algodClient.getApplicationByID(createdApp).do();
+  const appInfo = await algodClient.getApplicationByID(appId).do();
   const globalState = appInfo.params['global-state'][0];
   console.log(`Raw global state - ${JSON.stringify(globalState)}`);
 
@@ -130,7 +166,7 @@ async function main() {
   console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
 
   const accountAppInfo = await algodClient
-    .accountApplicationInformation(caller.addr, createdApp)
+    .accountApplicationInformation(caller.addr, appId)
     .do();
 
   const localState = accountAppInfo['app-local-state']['key-value'][0];
@@ -147,7 +183,7 @@ async function main() {
   // example: APP_CLOSEOUT
   const appCloseOutTxn = algosdk.makeApplicationCloseOutTxnFromObject({
     from: caller.addr,
-    appIndex: createdApp,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -163,7 +199,7 @@ async function main() {
 
   // example: APP_UPDATE
   const newProgram = fs.readFileSync(
-    path.join(__dirname, '/contracts/app_updated_approval.teal'),
+    path.join(__dirname, '/application/approval_refactored.teal'),
     'utf8'
   );
   const compiledNewProgram = await compileProgram(algodClient, newProgram);
@@ -171,7 +207,7 @@ async function main() {
   const appUpdateTxn = algosdk.makeApplicationUpdateTxnFromObject({
     from: creator.addr,
     suggestedParams,
-    appIndex: createdApp,
+    appIndex: appId,
     // updates must define both approval and clear programs, even if unchanged
     approvalProgram: compiledNewProgram,
     clearProgram: compiledClearProgram,
@@ -191,7 +227,7 @@ async function main() {
   const appClearTxn = algosdk.makeApplicationClearStateTxnFromObject({
     from: anotherCaller.addr,
     suggestedParams,
-    appIndex: createdApp,
+    appIndex: appId,
   });
 
   await algodClient
@@ -208,7 +244,7 @@ async function main() {
   const appDeleteTxn = algosdk.makeApplicationDeleteTxnFromObject({
     from: creator.addr,
     suggestedParams,
-    appIndex: createdApp,
+    appIndex: appId,
   });
 
   await algodClient

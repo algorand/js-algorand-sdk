@@ -12,27 +12,23 @@ import {
 async function main() {
   const algodClient = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
-
-  console.log('ASSET_CREATE');
-  // example: ASSET_CREATE
   const creator = accounts[0];
 
+  // example: ASSET_CREATE
   const suggestedParams = await algodClient.getTransactionParams().do();
-
   const txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
     from: creator.addr,
     suggestedParams,
     defaultFrozen: false,
-    decimals: 0,
-    total: 1,
-    unitName: 'LATINUM',
-    assetName: 'latinum',
-    assetURL: 'http://someurl', // can be HTTP or IPFS
-    assetMetadataHash: '16efaa3924a6fd9d3a4824799a4ac65d',
+    unitName: 'rug',
+    assetName: 'Really Useful Gift',
     manager: creator.addr,
     reserve: creator.addr,
     freeze: creator.addr,
     clawback: creator.addr,
+    assetURL: 'http://path/to/my/asset/details',
+    total: 1000,
+    decimals: 0,
   });
 
   const signedTxn = txn.signTxn(creator.privateKey);
@@ -44,22 +40,13 @@ async function main() {
   );
 
   const assetIndex = result['asset-index'];
-
-  console.log(
-    `Created asset ${assetIndex} in transaction ${txn
-      .txID()
-      .toString()} confirmed in round ${result['confirmed-round']}`
-  );
+  console.log(`Asset ID created: ${assetIndex}`);
   // example: ASSET_CREATE
 
-  console.log('ASSET_INFO');
   // example: ASSET_INFO
-  const accountInfo = await algodClient.accountInformation(creator.addr).do();
-  console.log('Account Info:', accountInfo);
-
-  const mostRecentAsset = accountInfo['created-assets'].at(-1).index;
-  const assetInfo = await algodClient.getAssetByID(mostRecentAsset).do();
-  console.log('Asset Info:', assetInfo);
+  const assetInfo = await algodClient.getAssetByID(assetIndex).do();
+  console.log(`Asset Name: ${assetInfo.params.name}`);
+  console.log(`Asset Params: ${assetInfo.params}`);
   // example: ASSET_INFO
 
   await new Promise((f) => setTimeout(f, 1000)); // sleep to ensure indexer is caught up
@@ -70,7 +57,6 @@ async function main() {
   console.log('Indexer Asset Info:', indexerAssetInfo);
   // example: INDEXER_LOOKUP_ASSET
 
-  console.log('ASSET_CONFIG');
   // example: ASSET_CONFIG
   const manager = accounts[1];
 
@@ -87,17 +73,16 @@ async function main() {
 
   const signedConfigTxn = configTxn.signTxn(creator.privateKey);
   await algodClient.sendRawTransaction(signedConfigTxn).do();
-  await algosdk.waitForConfirmation(algodClient, txn.txID().toString(), 3);
-
-  await new Promise((f) => setTimeout(f, 1000)); // sleep to ensure indexer is caught up
-
-  const configAssetInfo = await indexer.lookupAssetByID(assetIndex).do();
-  console.log('Asset Info:', configAssetInfo);
+  const configResult = await algosdk.waitForConfirmation(
+    algodClient,
+    txn.txID().toString(),
+    3
+  );
+  console.log(`Result confirmed in round: ${configResult['confirmed-round']}`);
   // example: ASSET_CONFIG
 
-  console.log('ASSET_OPTIN');
-  // example: ASSET_OPTIN
   const receiver = accounts[2];
+  // example: ASSET_OPTIN
 
   // opt-in is simply a 0 amount transfer of the asset to oneself
   const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -113,7 +98,6 @@ async function main() {
   await algosdk.waitForConfirmation(algodClient, optInTxn.txID().toString(), 3);
   // example: ASSET_OPTIN
 
-  console.log('ASSET_XFER');
   // example: ASSET_XFER
   const xferTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
     from: creator.addr,
@@ -128,7 +112,6 @@ async function main() {
   await algosdk.waitForConfirmation(algodClient, xferTxn.txID().toString(), 3);
   // example: ASSET_XFER
 
-  console.log('ASSET_FREEZE');
   // example: ASSET_FREEZE
   const freezeTxn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
     from: manager.addr,
@@ -149,7 +132,6 @@ async function main() {
   );
   // example: ASSET_FREEZE
 
-  console.log('ASSET_CLAWBACK');
   // example: ASSET_CLAWBACK
   const clawbackTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
     {
@@ -172,7 +154,6 @@ async function main() {
   );
   // example: ASSET_CLAWBACK
 
-  console.log('ASSET_DELETE');
   // example: ASSET_DELETE
   const deleteTxn = algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
     from: manager.addr,

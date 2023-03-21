@@ -1,7 +1,6 @@
 import { Buffer } from 'buffer';
 import algosdk from '../src';
 
-// example: APP_COMPILE
 export async function compileProgram(
   client: algosdk.Algodv2,
   programSource: string
@@ -12,27 +11,30 @@ export async function compileProgram(
   );
   return compiledBytes;
 }
-// example: APP_COMPILE
 
-// example: CREATE_INDEXER_CLIENT
 export function getLocalIndexerClient() {
+  // example: CREATE_INDEXER_CLIENT
   const indexerToken = '';
   const indexerServer = 'http://localhost';
   const indexerPort = 8980;
 
-  return new algosdk.Indexer(indexerToken, indexerServer, indexerPort);
+  const indexerClient = new algosdk.Indexer(
+    indexerToken,
+    indexerServer,
+    indexerPort
+  );
+  // example: CREATE_INDEXER_CLIENT
+  return indexerClient;
 }
-// example: CREATE_INDEXER_CLIENT
 
-// example: ALGOD_CREATE_CLIENT
 export function getLocalAlgodClient() {
   const algodToken = 'a'.repeat(64);
   const algodServer = 'http://localhost';
   const algodPort = 4001;
 
-  return new algosdk.Algodv2(algodToken, algodServer, algodPort);
+  const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
+  return algodClient;
 }
-// example: ALGOD_CREATE_CLIENT
 
 export async function getLocalAccounts(): Promise<
   {
