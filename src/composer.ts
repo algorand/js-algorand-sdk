@@ -635,9 +635,7 @@ export class AtomicTransactionComposer {
     for (const [txnIndex, method] of this.methodCalls) {
       const txID = this.txIDs[txnIndex];
       const pendingInfo =
-        simulateResponse['txn-groups'][0]['txn-results'][txnIndex][
-          'txn-result'
-        ];
+        simulateResponse.txnGroups[0].txnResults[txnIndex].txnResult;
 
       const methodResult: ABIResult = {
         txID,
@@ -649,7 +647,7 @@ export class AtomicTransactionComposer {
         AtomicTransactionComposer.parseMethodResponse(
           method,
           methodResult,
-          pendingInfo
+          pendingInfo.get_obj_for_encoding()
         )
       );
     }
@@ -710,24 +708,29 @@ export class AtomicTransactionComposer {
     for (const [txnIndex, method] of this.methodCalls) {
       const txID = txIDs[txnIndex];
 
-      const methodResult: ABIResult = {
+      let methodResult: ABIResult = {
         txID,
         rawReturnValue: new Uint8Array(),
         method,
       };
 
-      const pendingInfo =
-        txnIndex === firstMethodCallIndex
-          ? confirmedTxnInfo
-          : // eslint-disable-next-line no-await-in-loop
-            await client.pendingTransactionInformation(txID).do();
-      methodResults.push(
-        AtomicTransactionComposer.parseMethodResponse(
+      try {
+        const pendingInfo =
+          txnIndex === firstMethodCallIndex
+            ? confirmedTxnInfo
+            : // eslint-disable-next-line no-await-in-loop
+              await client.pendingTransactionInformation(txID).do();
+
+        methodResult = AtomicTransactionComposer.parseMethodResponse(
           method,
           methodResult,
           pendingInfo
-        )
-      );
+        );
+      } catch (err) {
+        methodResult.decodeError = err;
+      }
+
+      methodResults.push(methodResult);
     }
 
     return {

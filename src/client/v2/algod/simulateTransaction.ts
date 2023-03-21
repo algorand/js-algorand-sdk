@@ -59,16 +59,16 @@ export default class SimulateRawTransactions extends JSONRequest<
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.txnBytesToPost),
-      txHeaders
+      txHeaders,
+      this.query,
+      false
     );
-    return res.body;
+    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array) {
-    if (body && body.byteLength > 0) {
-      return encoding.decode(body) as SimulateResponse;
-    }
-    return undefined;
+  prepare(body: Uint8Array): SimulateResponse {
+    const decoded = encoding.decode(body);
+    return SimulateResponse.from_obj_for_encoding(decoded);
   }
 }
