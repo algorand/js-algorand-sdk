@@ -37,7 +37,7 @@ async function main() {
   const txnGroup = algosdk.assignGroupID(txnArray);
   // example: ATOMIC_GROUP_TXNS
 
-  // example: TOMIC_GROUP_SIGN
+  // example: ATOMIC_GROUP_SIGN
   const alicesSignedTxn = txnGroup[0].signTxn(alice.privateKey);
   const bobsSignedTxn = txnGroup[1].signTxn(bob.privateKey);
   // example: ATOMIC_GROUP_SIGN
