@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import * as encoding from '../../../encoding/encoding';
 import { concatArrays } from '../../../utils/utils';
 import HTTPClient from '../../client';
 import JSONRequest from '../jsonrequest';
@@ -58,13 +59,16 @@ export default class SimulateRawTransactions extends JSONRequest<
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.txnBytesToPost),
-      txHeaders
+      txHeaders,
+      this.query,
+      false
     );
     return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array): SimulateResponse {
-    return SimulateResponse.from_obj_for_encoding(body);
+    const decoded = encoding.decode(body);
+    return SimulateResponse.from_obj_for_encoding(decoded);
   }
 }
