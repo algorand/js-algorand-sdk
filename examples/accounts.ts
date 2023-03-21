@@ -24,6 +24,7 @@ async function main() {
   const signerAccounts: algosdk.Account[] = [];
   signerAccounts.push(algosdk.generateAccount());
   signerAccounts.push(algosdk.generateAccount());
+  signerAccounts.push(algosdk.generateAccount());
 
   // multiSigParams is used when creating the address and when signing transactions
   const multiSigParams = {

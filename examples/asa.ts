@@ -65,6 +65,7 @@ async function main() {
     manager: manager.addr,
     freeze: manager.addr,
     clawback: manager.addr,
+    reserve: undefined,
     suggestedParams,
     assetIndex,
     // don't throw error if freeze, clawback, or manager are empty
