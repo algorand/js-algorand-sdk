@@ -31,6 +31,6 @@ Indonesian wordlist has been selected from Google Code Archives 2011
 
 - [Portuguese](portuguese.json) - from BIP39
 
-- [Arabic](arabic.json) - courtesy of https://arabeyes.org
+- [Arabic](arabic.json) - from https://github.com/a3f/arabic-wordlists, specifically derived from Technical Arab-English Dictionary by Arabeyes(https://arabeyes.org)
 
-- [Indonesian](indonesian.json) - courtesy of https://github.com/geovedi/indonesian-wordlist/blob/master/05-ivanlanin2011-sort-alpha.lst . Extracted from Google Code Archives
+- [Indonesian](indonesian.json) - from https://github.com/geovedi/indonesian-wordlist/blob/master/05-ivanlanin2011-sort-alpha.lst , specifically derived from Indonesian wordlist 2011(Google Code Archive - https://code.google.com/archive/p/indonesian-wordlist/). See linguistic research for the wordlists(from original creator) here: https://github.com/ardwort/freq-dist-id
