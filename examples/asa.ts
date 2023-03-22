@@ -155,6 +155,29 @@ async function main() {
   );
   // example: ASSET_CLAWBACK
 
+  // example: ASSET_OPT_OUT
+
+  // opt-out is an amount transfer with the `closeRemainderTo` field set to
+  // any account that can receive the asset.
+  // note that closing to the asset creator will always succeed
+  const optOutTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    from: receiver.addr,
+    to: creator.addr,
+    closeRemainderTo: creator.addr,
+    suggestedParams,
+    assetIndex,
+    amount: 0,
+  });
+
+  const signedOptOutTxn = optOutTxn.signTxn(receiver.privateKey);
+  await algodClient.sendRawTransaction(signedOptOutTxn).do();
+  await algosdk.waitForConfirmation(
+    algodClient,
+    optOutTxn.txID().toString(),
+    3
+  );
+  // example: ASSET_OPT_OUT
+
   // example: ASSET_DELETE
   const deleteTxn = algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
     from: manager.addr,
