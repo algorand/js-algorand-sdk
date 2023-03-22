@@ -1,3 +1,24 @@
+# v2.2.0
+
+## What's Changed
+
+### Bugfixes
+
+- bugfix: Satisfy typescript constraints by @aorumbayev in https://github.com/algorand/js-algorand-sdk/pull/741
+- algod: Minor improvements to simulation support by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/749
+
+### Enhancements
+
+- CICD: Update ssh fingerprint for gh-pages by @algobarb in https://github.com/algorand/js-algorand-sdk/pull/745
+- Docs: add examples to be pulled in for docs by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/747
+- algod: Simulate Endpoint by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/743
+
+## New Contributors
+
+- @aorumbayev made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/741
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.1.0...v2.2.0
+
 # v2.1.0
 
 ## What's Changed
