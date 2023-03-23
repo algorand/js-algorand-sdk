@@ -47,8 +47,8 @@ async function main() {
   // example: APP_SCHEMA
   // define uint64s and byteslices stored in global/local storage
   const numGlobalByteSlices = 1;
-  const numGlobalInts = 0;
-  const numLocalByteSlices = 0;
+  const numGlobalInts = 1;
+  const numLocalByteSlices = 1;
   const numLocalInts = 1;
   // example: APP_SCHEMA
 
@@ -142,7 +142,7 @@ async function main() {
   });
 
   await algodClient
-    .sendRawTransaction(simpleAddTxn.signTxn(creator.privateKey))
+    .sendRawTransaction(simpleAddTxn.signTxn(caller.privateKey))
     .do();
   await algosdk.waitForConfirmation(
     algodClient,

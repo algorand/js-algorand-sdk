@@ -10,12 +10,16 @@ async function main() {
   const accounts = await getLocalAccounts();
   const suggestedParams = await client.getTransactionParams().do();
 
+  const acct1 = accounts[0];
+  const acct2 = accounts[1];
+
   // example: ACCOUNT_RECOVER_MNEMONIC
-  // restore 25-word mnemonic from environment variable
-  const mnemonicAccount = algosdk.mnemonicToSecretKey(
-    process.env.SAMPLE_MNEMONIC!
-  );
-  console.log('Recovered mnemonic account: ', mnemonicAccount.addr);
+  // restore 25-word mnemonic from a string
+  // Note the mnemonic should _never_ appear in your source code
+  const mnemonic =
+    'creek phrase island true then hope employ veteran rapid hurdle above liberty tissue connect alcohol timber idle ten frog bulb embody crunch taxi abstract month';
+  const recoveredAccount = algosdk.mnemonicToSecretKey(mnemonic);
+  console.log('Recovered mnemonic account: ', recoveredAccount.addr);
   // example: ACCOUNT_RECOVER_MNEMONIC
 
   const funder = accounts[0];
@@ -81,83 +85,35 @@ async function main() {
   // example: ACCOUNT_GENERATE
 
   // example: ACCOUNT_REKEY
-  // create and fund a new account that we will eventually rekey
-  const originalAccount = algosdk.generateAccount();
-  const fundOriginalAccount = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
-    {
-      from: funder.addr,
-      to: originalAccount.addr,
-      amount: 1_000_000,
-      suggestedParams,
-    }
-  );
-
-  await client
-    .sendRawTransaction(fundOriginalAccount.signTxn(funder.privateKey))
-    .do();
-  await algosdk.waitForConfirmation(
-    client,
-    fundOriginalAccount.txID().toString(),
-    3
-  );
-
-  // authAddr is undefined by default
-  const originalAccountInfo = await client
-    .accountInformation(originalAccount.addr)
-    .do();
-  console.log(
-    'Account Info: ',
-    originalAccountInfo,
-    'Auth Addr: ',
-    originalAccountInfo['auth-addr']
-  );
-
-  // create a new account that will be the new auth addr
-  const newSigner = algosdk.generateAccount();
-  console.log('New Signer Address: ', newSigner.addr);
-
   // rekey the original account to the new signer via a payment transaction
+  // Note any transaction type can be used to rekey an account
   const rekeyTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: originalAccount.addr,
-    to: originalAccount.addr,
+    from: acct1.addr,
+    to: acct1.addr,
     amount: 0,
     suggestedParams,
-    rekeyTo: newSigner.addr, // set the rekeyTo field to the new signer
+    rekeyTo: acct2.addr, // set the rekeyTo field to the new signer
   });
 
-  await client.sendRawTransaction(rekeyTxn.signTxn(originalAccount.sk)).do();
+  await client.sendRawTransaction(rekeyTxn.signTxn(acct1.privateKey)).do();
   await algosdk.waitForConfirmation(client, rekeyTxn.txID().toString(), 3);
 
-  const originalAccountInfoAfterRekey = await client
-    .accountInformation(originalAccount.addr)
-    .do();
-  console.log(
-    'Account Info: ',
-    originalAccountInfoAfterRekey,
-    'Auth Addr: ',
-    originalAccountInfoAfterRekey['auth-addr']
-  );
+  const acctInfo = await client.accountInformation(acct1.addr).do();
 
-  // form new transaction from rekeyed account
-  const txnWithNewSignerSig = algosdk.makePaymentTxnWithSuggestedParamsFromObject(
-    {
-      from: originalAccount.addr,
-      to: funder.addr,
-      amount: 100,
-      suggestedParams,
-    }
-  );
+  console.log(`Account Info: ${acctInfo} Auth Addr: ${acctInfo['auth-addr']}`);
+  // example: ACCOUNT_REKEY
 
   // the transaction is from originalAccount, but signed with newSigner private key
-  const signedTxn = txnWithNewSignerSig.signTxn(newSigner.sk);
 
-  await client.sendRawTransaction(signedTxn).do();
-  await algosdk.waitForConfirmation(
-    client,
-    txnWithNewSignerSig.txID().toString(),
-    3
-  );
-  // example: ACCOUNT_REKEY
+  const rekeyBack = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    from: acct1.addr,
+    to: acct1.addr,
+    amount: 0,
+    suggestedParams,
+    rekeyTo: acct1.addr,
+  });
+  await client.sendRawTransaction(rekeyBack.signTxn(acct2.privateKey)).do();
+  await algosdk.waitForConfirmation(client, rekeyBack.txID().toString(), 3);
 }
 
 main();

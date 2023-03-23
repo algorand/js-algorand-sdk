@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Buffer } from 'buffer';
 import algosdk from '../src';
 
@@ -36,13 +38,13 @@ export function getLocalAlgodClient() {
   return algodClient;
 }
 
-export async function getLocalAccounts(): Promise<
-  {
-    addr: string;
-    privateKey: Uint8Array;
-    signer: algosdk.TransactionSigner;
-  }[]
-> {
+export interface SandboxAccount {
+  addr: string;
+  privateKey: Uint8Array;
+  signer: algosdk.TransactionSigner;
+}
+
+export async function getLocalAccounts(): Promise<SandboxAccount[]> {
   const kmdClient = new algosdk.Kmd('a'.repeat(64), 'http://localhost', 4002);
 
   const wallets = await kmdClient.listWallets();
@@ -83,4 +85,45 @@ export async function getLocalAccounts(): Promise<
       signer,
     };
   });
+}
+
+export async function deployCalculatorApp(
+  algodClient: algosdk.Algodv2,
+  creator: SandboxAccount
+): Promise<number> {
+  const approvalProgram = fs.readFileSync(
+    path.join(__dirname, '/calculator/approval.teal'),
+    'utf8'
+  );
+  const clearProgram = fs.readFileSync(
+    path.join(__dirname, '/calculator/clear.teal'),
+    'utf8'
+  );
+
+  const approvalBin = await compileProgram(algodClient, approvalProgram);
+  const clearBin = await compileProgram(algodClient, clearProgram);
+  const suggestedParams = await algodClient.getTransactionParams().do();
+  const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
+    from: creator.addr,
+    approvalProgram: approvalBin,
+    clearProgram: clearBin,
+    numGlobalByteSlices: 0,
+    numGlobalInts: 0,
+    numLocalByteSlices: 0,
+    numLocalInts: 0,
+    suggestedParams,
+    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+  });
+
+  await algodClient
+    .sendRawTransaction(appCreateTxn.signTxn(creator.privateKey))
+    .do();
+
+  const result = await algosdk.waitForConfirmation(
+    algodClient,
+    appCreateTxn.txID().toString(),
+    3
+  );
+  const appId = result['application-index'];
+  return appId;
 }

@@ -81,25 +81,6 @@ async function main() {
     signer: sender.signer,
     suggestedParams,
   });
-
-  const otherPayTxn: algosdk.TransactionWithSigner = {
-    txn: algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: sender.addr,
-      suggestedParams,
-      to: sender.addr,
-      amount: 1000,
-    }),
-    signer: sender.signer,
-  };
-
-  atc.addMethodCall({
-    appID: appIndex,
-    method: contract.getMethodByName('txntest'),
-    methodArgs: [10000, otherPayTxn, 1000],
-    sender: sender.addr,
-    signer: sender.signer,
-    suggestedParams,
-  });
   // example: ATC_ADD_METHOD_CALL
 
   // example: ATC_RESULTS
@@ -118,12 +99,11 @@ async function main() {
 
   // example: ATC_BOX_REF
   const boxATC = new algosdk.AtomicTransactionComposer();
-
   const boxKey = new Uint8Array(Buffer.from('key'));
   boxATC.addMethodCall({
     appID: appIndex,
     method: boxAccessorMethod,
-    methodArgs: [1, 5],
+    methodArgs: [],
     boxes: [
       {
         appIndex: 0,

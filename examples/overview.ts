@@ -31,10 +31,11 @@ async function main() {
   // example: TRANSACTION_PAYMENT_SIGN
 
   // example: TRANSACTION_PAYMENT_SUBMIT
-  const { txID } = await algodClient.sendRawTransaction(signedTxn).do();
-  const result = await algosdk.waitForConfirmation(algodClient, txID, 4);
-  console.log(`Transaction Information: ${result}`);
-  console.log(`Decoded Node: ${Buffer.from(result.note, 'base64')}`);
+  const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
+  const result = await algosdk.waitForConfirmation(algodClient, txId, 4);
+  console.log(result);
+  console.log(`Transaction Information: ${result.txn}`);
+  console.log(`Decoded Note: ${Buffer.from(result.txn.txn.note).toString()}`);
   // example: TRANSACTION_PAYMENT_SUBMIT
 
   // example: ALGOD_FETCH_ACCOUNT_INFO
