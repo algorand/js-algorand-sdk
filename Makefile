@@ -28,7 +28,7 @@ docker-run:
 smoke-test-examples:
 	cd examples && bash smoke_test.sh && cd -
 
-docker-test: harness docker-build docker-run smoke-test-examples
+docker-test: harness docker-build docker-run
 
 format:
 	npm run format

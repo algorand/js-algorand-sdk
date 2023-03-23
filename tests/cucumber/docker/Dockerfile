@@ -32,4 +32,4 @@ RUN npm ci
 RUN npm run prepare-browser-tests
 
 # Run integration tests
-CMD ["/bin/bash", "-c", "make unit && make integration"]
+CMD ["/bin/bash", "-c", "make unit && make integration && make smoke-test-examples"]
