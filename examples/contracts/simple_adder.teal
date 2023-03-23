@@ -1,0 +1,27 @@
+#pragma version 8
+
+byte "create"
+byte "add"
+txna ApplicationArgs 0
+match create add
+err
+
+create:
+    txn ApplicationID
+    int 0
+    ==
+    assert
+    int 1
+    return
+
+add:
+    txna ApplicationArgs 1
+    btoi
+    txna ApplicationArgs 2
+    btoi
+    +
+    itob
+    log
+
+    int 1 
+    return

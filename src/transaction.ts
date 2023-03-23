@@ -1279,6 +1279,24 @@ export class Transaction implements TransactionStorageStructure {
 }
 
 /**
+ * encodeUnsignedSimulateTransaction takes a txnBuilder.Transaction object,
+ * converts it into a SignedTransaction-like object, and converts it to a Buffer.
+ *
+ * Note: this function should only be used to simulate unsigned transactions.
+ *
+ * @param transactionObject - Transaction object to simulate.
+ */
+export function encodeUnsignedSimulateTransaction(
+  transactionObject: Transaction
+) {
+  const objToEncode: EncodedSignedTransaction = {
+    sig: null,
+    txn: transactionObject.get_obj_for_encoding(),
+  };
+  return encoding.rawEncode(objToEncode);
+}
+
+/**
  * encodeUnsignedTransaction takes a completed txnBuilder.Transaction object, such as from the makeFoo
  * family of transactions, and converts it to a Buffer
  * @param transactionObject - the completed Transaction object

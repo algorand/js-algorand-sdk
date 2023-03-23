@@ -110,7 +110,7 @@ jobs:
             npm run docs
             touch docs/.nojekyll
       - gh-pages/deploy:
-          ssh-fingerprints: '75:f5:ad:46:65:a5:22:81:f7:20:ca:74:fb:c6:57:d1'
+          ssh-fingerprints: '67:e9:d0:1a:e5:98:06:4d:fc:68:32:02:8e:ea:36:3a'
           build-dir: docs
           commit-message: 'Automated docs update'
 

@@ -1,0 +1,52 @@
+#pragma version 8
+
+txn ApplicationID
+int 0
+==
+switch call_branch create_branch
+
+create_branch:
+    int 1
+    return
+
+call_branch:
+
+    int NoOp
+    int OptIn
+    int DeleteApplication
+    int UpdateApplication
+    int CloseOut
+    txn OnCompletion
+    match noop_branch optin_branch delete_branch update_branch closeout_branch
+    err
+
+noop_branch:
+    byte "Last Caller"
+    txn Sender
+    app_global_put
+
+    txn Sender
+    byte "Last Call Round"
+    global Round
+    app_local_put
+
+    int 1
+    return
+
+update_branch:
+delete_branch:
+    txn Sender
+    global CreatorAddress
+    ==
+    assert
+
+    int 1
+    return
+
+closeout_branch:
+optin_branch:
+    int 1
+    return
+    
+
+

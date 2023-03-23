@@ -3085,6 +3085,228 @@ export class PostTransactionsResponse extends BaseModel {
 }
 
 /**
+ * Result of a transaction group simulation.
+ */
+export class SimulateResponse extends BaseModel {
+  /**
+   * The round immediately preceding this simulation. State changes through this
+   * round were used to run this simulation.
+   */
+  public lastRound: number | bigint;
+
+  /**
+   * A result object for each transaction group that was simulated.
+   */
+  public txnGroups: SimulateTransactionGroupResult[];
+
+  /**
+   * The version of this response object.
+   */
+  public version: number | bigint;
+
+  /**
+   * Indicates whether the simulated transactions would have succeeded during an
+   * actual submission. If any transaction fails or is missing a signature, this will
+   * be false.
+   */
+  public wouldSucceed: boolean;
+
+  /**
+   * Creates a new `SimulateResponse` object.
+   * @param lastRound - The round immediately preceding this simulation. State changes through this
+   * round were used to run this simulation.
+   * @param txnGroups - A result object for each transaction group that was simulated.
+   * @param version - The version of this response object.
+   * @param wouldSucceed - Indicates whether the simulated transactions would have succeeded during an
+   * actual submission. If any transaction fails or is missing a signature, this will
+   * be false.
+   */
+  constructor({
+    lastRound,
+    txnGroups,
+    version,
+    wouldSucceed,
+  }: {
+    lastRound: number | bigint;
+    txnGroups: SimulateTransactionGroupResult[];
+    version: number | bigint;
+    wouldSucceed: boolean;
+  }) {
+    super();
+    this.lastRound = lastRound;
+    this.txnGroups = txnGroups;
+    this.version = version;
+    this.wouldSucceed = wouldSucceed;
+
+    this.attribute_map = {
+      lastRound: 'last-round',
+      txnGroups: 'txn-groups',
+      version: 'version',
+      wouldSucceed: 'would-succeed',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): SimulateResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['last-round'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'last-round': ${data}`
+      );
+    if (!Array.isArray(data['txn-groups']))
+      throw new Error(
+        `Response is missing required array field 'txn-groups': ${data}`
+      );
+    if (typeof data['version'] === 'undefined')
+      throw new Error(`Response is missing required field 'version': ${data}`);
+    if (typeof data['would-succeed'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'would-succeed': ${data}`
+      );
+    return new SimulateResponse({
+      lastRound: data['last-round'],
+      txnGroups: data['txn-groups'].map(
+        SimulateTransactionGroupResult.from_obj_for_encoding
+      ),
+      version: data['version'],
+      wouldSucceed: data['would-succeed'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Simulation result for an atomic transaction group
+ */
+export class SimulateTransactionGroupResult extends BaseModel {
+  /**
+   * Simulation result for individual transactions
+   */
+  public txnResults: SimulateTransactionResult[];
+
+  /**
+   * If present, indicates which transaction in this group caused the failure. This
+   * array represents the path to the failing transaction. Indexes are zero based,
+   * the first element indicates the top-level transaction, and successive elements
+   * indicate deeper inner transactions.
+   */
+  public failedAt?: (number | bigint)[];
+
+  /**
+   * If present, indicates that the transaction group failed and specifies why that
+   * happened
+   */
+  public failureMessage?: string;
+
+  /**
+   * Creates a new `SimulateTransactionGroupResult` object.
+   * @param txnResults - Simulation result for individual transactions
+   * @param failedAt - If present, indicates which transaction in this group caused the failure. This
+   * array represents the path to the failing transaction. Indexes are zero based,
+   * the first element indicates the top-level transaction, and successive elements
+   * indicate deeper inner transactions.
+   * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
+   * happened
+   */
+  constructor({
+    txnResults,
+    failedAt,
+    failureMessage,
+  }: {
+    txnResults: SimulateTransactionResult[];
+    failedAt?: (number | bigint)[];
+    failureMessage?: string;
+  }) {
+    super();
+    this.txnResults = txnResults;
+    this.failedAt = failedAt;
+    this.failureMessage = failureMessage;
+
+    this.attribute_map = {
+      txnResults: 'txn-results',
+      failedAt: 'failed-at',
+      failureMessage: 'failure-message',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulateTransactionGroupResult {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['txn-results']))
+      throw new Error(
+        `Response is missing required array field 'txn-results': ${data}`
+      );
+    return new SimulateTransactionGroupResult({
+      txnResults: data['txn-results'].map(
+        SimulateTransactionResult.from_obj_for_encoding
+      ),
+      failedAt: data['failed-at'],
+      failureMessage: data['failure-message'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Simulation result for an individual transaction
+ */
+export class SimulateTransactionResult extends BaseModel {
+  /**
+   * Details about a pending transaction. If the transaction was recently confirmed,
+   * includes confirmation details like the round and reward details.
+   */
+  public txnResult: PendingTransactionResponse;
+
+  /**
+   * A boolean indicating whether this transaction is missing signatures
+   */
+  public missingSignature?: boolean;
+
+  /**
+   * Creates a new `SimulateTransactionResult` object.
+   * @param txnResult - Details about a pending transaction. If the transaction was recently confirmed,
+   * includes confirmation details like the round and reward details.
+   * @param missingSignature - A boolean indicating whether this transaction is missing signatures
+   */
+  constructor({
+    txnResult,
+    missingSignature,
+  }: {
+    txnResult: PendingTransactionResponse;
+    missingSignature?: boolean;
+  }) {
+    super();
+    this.txnResult = txnResult;
+    this.missingSignature = missingSignature;
+
+    this.attribute_map = {
+      txnResult: 'txn-result',
+      missingSignature: 'missing-signature',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulateTransactionResult {
+    /* eslint-disable dot-notation */
+    if (typeof data['txn-result'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'txn-result': ${data}`
+      );
+    return new SimulateTransactionResult({
+      txnResult: PendingTransactionResponse.from_obj_for_encoding(
+        data['txn-result']
+      ),
+      missingSignature: data['missing-signature'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Represents a state proof and its corresponding message
  */
 export class StateProof extends BaseModel {
