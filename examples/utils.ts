@@ -13,7 +13,7 @@ export async function compileProgram(
 }
 
 export function getLocalIndexerClient() {
-  // example: CREATE_INDEXER_CLIENT
+  // example: INDEXER_CREATE_CLIENT
   const indexerToken = '';
   const indexerServer = 'http://localhost';
   const indexerPort = 8980;
@@ -23,7 +23,7 @@ export function getLocalIndexerClient() {
     indexerServer,
     indexerPort
   );
-  // example: CREATE_INDEXER_CLIENT
+  // example: INDEXER_CREATE_CLIENT
   return indexerClient;
 }
 
