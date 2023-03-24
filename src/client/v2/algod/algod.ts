@@ -86,7 +86,7 @@ export default class AlgodClient extends ServiceClient {
    * const health = await algodClient.healthCheck().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-health)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-health)
    * @category GET
    */
   healthCheck() {
@@ -101,7 +101,7 @@ export default class AlgodClient extends ServiceClient {
    * const versionsDetails = await algodClient.versionsCheck().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-versions)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-versions)
    * @category GET
    */
   versionsCheck() {
@@ -117,7 +117,7 @@ export default class AlgodClient extends ServiceClient {
    * const result = await waitForConfirmation(algodClient, txid, 3);
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactions)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2transactions)
    *
    * @remarks
    * Often used with {@linkcode waitForConfirmation}
@@ -137,7 +137,7 @@ export default class AlgodClient extends ServiceClient {
    * const accountInfo = await algodClient.accountInformation(address).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress)
    * @param account - The address of the account to look up.
    * @category GET
    */
@@ -155,7 +155,7 @@ export default class AlgodClient extends ServiceClient {
    * const accountAssetInfo = await algodClient.accountAssetInformation(address, index).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress)
    * @param account - The address of the account to look up.
    * @param index - The asset ID to look up.
    * @category GET
@@ -179,7 +179,7 @@ export default class AlgodClient extends ServiceClient {
    * const accountInfo = await algodClient.accountApplicationInformation(address, index).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress)
    * @param account - The address of the account to look up.
    * @param index - The application ID to look up.
    * @category GET
@@ -202,7 +202,7 @@ export default class AlgodClient extends ServiceClient {
    * const block = await algodClient.block(roundNumber).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksround)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2blocksround)
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
@@ -219,7 +219,7 @@ export default class AlgodClient extends ServiceClient {
    * const block = await algodClient.getBlockHash(roundNumber).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundhash)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2blocksroundhash)
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
@@ -236,7 +236,7 @@ export default class AlgodClient extends ServiceClient {
    * const pending = await algodClient.pendingTransactionInformation(txId).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionspendingtxid)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2transactionspendingtxid)
    *
    * @remarks
    * <br><br>
@@ -272,7 +272,7 @@ export default class AlgodClient extends ServiceClient {
    *     .do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionspending)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2transactionspending)
    * @category GET
    */
   pendingTransactionsInformation() {
@@ -299,7 +299,7 @@ export default class AlgodClient extends ServiceClient {
    *     .do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddresstransactionspending)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddresstransactionspending)
    * @param address - The address of the sender.
    * @category GET
    */
@@ -315,7 +315,7 @@ export default class AlgodClient extends ServiceClient {
    * const status = await algodClient.status().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2status)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2status)
    * @category GET
    */
   status() {
@@ -331,7 +331,7 @@ export default class AlgodClient extends ServiceClient {
    * const statusAfterBlock = await algodClient.statusAfterBlock(round).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2statuswait-for-block-afterround)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2statuswait-for-block-afterround)
    * @param round - The number of the round to wait for.
    * @category GET
    */
@@ -354,7 +354,7 @@ export default class AlgodClient extends ServiceClient {
    * });
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionsparams)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2transactionsparams)
    *
    * @remarks
    * Often used with
@@ -373,7 +373,7 @@ export default class AlgodClient extends ServiceClient {
    * const supplyDetails = await algodClient.supply().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2ledgersupply)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2ledgersupply)
    * @category GET
    */
   supply() {
@@ -389,7 +389,7 @@ export default class AlgodClient extends ServiceClient {
    * const compiledSmartContract = await algodClient.compile(source).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2tealcompile)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2tealcompile)
    * @remarks
    * This endpoint is only enabled when a node's configuration file sets `EnableDeveloperAPI` to true.
    * @param source
@@ -425,7 +425,7 @@ export default class AlgodClient extends ServiceClient {
    * const dryRunResult = await algodClient.dryrun(dr).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2tealdryrun)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2tealdryrun)
    * @param dr
    * @category POST
    */
@@ -443,7 +443,7 @@ export default class AlgodClient extends ServiceClient {
    * const asset = await algodClient.getAssetByID(asset_id).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2assetsasset-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2assetsasset-id)
    * @param index - The asset ID to look up.
    * @category GET
    */
@@ -461,7 +461,7 @@ export default class AlgodClient extends ServiceClient {
    * const app = await algodClient.getApplicationByID(index).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-id)
    * @param index - The application ID to look up.
    * @category GET
    */
@@ -480,7 +480,7 @@ export default class AlgodClient extends ServiceClient {
    * const boxValue = boxResponse.value;
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idbox)
    * @param index - The application ID to look up.
    * @category GET
    */
@@ -503,7 +503,7 @@ export default class AlgodClient extends ServiceClient {
    * const boxNames = boxesResponse.boxes.map(box => box.name);
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idboxes)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idboxes)
    * @param index - The application ID to look up.
    * @category GET
    */
@@ -519,7 +519,7 @@ export default class AlgodClient extends ServiceClient {
    * const genesis = await algodClient.genesis().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-genesis)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-genesis)
    * @category GET
    */
   genesis() {
@@ -536,7 +536,7 @@ export default class AlgodClient extends ServiceClient {
    * const proof = await algodClient.getTransactionProof(round, txId).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundtransactionstxidproof)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2blocksroundtransactionstxidproof)
    * @param round - The round in which the transaction appears.
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
@@ -585,7 +585,7 @@ export default class AlgodClient extends ServiceClient {
    * const resp = await client.simulateRawTransactions([signedTxn1, signedTxn2]).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactionssimulate)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2transactionssimulate)
    * @param stxOrStxs
    * @category POST
    */

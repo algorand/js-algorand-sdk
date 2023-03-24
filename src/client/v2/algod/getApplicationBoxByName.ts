@@ -15,7 +15,7 @@ import { Box } from './models/types';
  * const boxValue = boxResponse.value;
  * ```
  *
- * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
+ * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idbox)
  * @param index - The application ID to look up.
  * @category GET
  */
