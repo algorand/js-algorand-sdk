@@ -1,12 +1,9 @@
 import { Buffer } from 'buffer';
 import algosdk from '../src';
-import { getLocalAccounts } from './utils';
+import { getLocalAccounts, getLocalAlgodClient } from './utils';
 
-async function main() {
-  const accts = await getLocalAccounts();
-  const acct = accts[0];
-  const acct2 = accts[1];
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getAlgodClient() {
   // example: ALGOD_CREATE_CLIENT
   const algodToken = 'a'.repeat(64);
   const algodServer = 'http://localhost';
@@ -14,6 +11,14 @@ async function main() {
 
   const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
   // example: ALGOD_CREATE_CLIENT
+  console.log(algodClient);
+}
+
+async function main() {
+  const algodClient = getLocalAlgodClient();
+  const accts = await getLocalAccounts();
+  const acct = accts[0];
+  const acct2 = accts[1];
 
   // example: TRANSACTION_PAYMENT_CREATE
   const suggestedParams = await algodClient.getTransactionParams().do();

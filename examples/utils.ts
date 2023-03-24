@@ -14,25 +14,32 @@ export async function compileProgram(
   return compiledBytes;
 }
 
+export function getLocalKmdClient() {
+  const kmdToken = 'a'.repeat(64);
+  const kmdServer = 'http://localhost';
+  const kmdPort = process.env.KMD_PORT || '4002';
+
+  const kmdClient = new algosdk.Kmd(kmdToken, kmdServer, kmdPort);
+  return kmdClient;
+}
+
 export function getLocalIndexerClient() {
-  // example: INDEXER_CREATE_CLIENT
-  const indexerToken = '';
+  const indexerToken = 'a'.repeat(64);
   const indexerServer = 'http://localhost';
-  const indexerPort = 8980;
+  const indexerPort = process.env.INDEXER_PORT || '8980';
 
   const indexerClient = new algosdk.Indexer(
     indexerToken,
     indexerServer,
     indexerPort
   );
-  // example: INDEXER_CREATE_CLIENT
   return indexerClient;
 }
 
 export function getLocalAlgodClient() {
   const algodToken = 'a'.repeat(64);
   const algodServer = 'http://localhost';
-  const algodPort = 4001;
+  const algodPort = process.env.ALGOD_PORT || '4001';
 
   const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
   return algodClient;
@@ -45,7 +52,7 @@ export interface SandboxAccount {
 }
 
 export async function getLocalAccounts(): Promise<SandboxAccount[]> {
-  const kmdClient = new algosdk.Kmd('a'.repeat(64), 'http://localhost', 4002);
+  const kmdClient = getLocalKmdClient();
 
   const wallets = await kmdClient.listWallets();
 

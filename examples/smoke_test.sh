@@ -1,5 +1,11 @@
 #!/bin/bash
 
+export ALGOD_PORT="60000"
+export INDEXER_PORT="59999"
+export KMD_PORT="60001"
+
+npm install ts-node
+
 echo "Running accounts.ts"
 ts-node accounts.ts
 echo "Running app.ts"
@@ -22,6 +28,5 @@ echo "Running lsig.ts"
 ts-node lsig.ts
 echo "Running overview.ts"
 ts-node overview.ts
-# re-enable when its right
-# echo "Running participation.ts"
-# ts-node participation.ts
+echo "Running participation.ts"
+ts-node participation.ts
