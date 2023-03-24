@@ -4,13 +4,6 @@ export ALGOD_PORT="60000"
 export INDEXER_PORT="59999"
 export KMD_PORT="60001"
 
-npm install ts-node
-
-ls -lah
-
-ls -lah node_modules
-ls -lah ../node_modules
-
 
 echo "Running accounts.ts"
 ../node_modules/.bin/ts-node accounts.ts
