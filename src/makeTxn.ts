@@ -202,7 +202,7 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
       >,
       'from' | 'note' | 'suggestedParams' | 'rekeyTo'
     > & {
-      nonParticipation: true;
+      nonParticipation: boolean;
     }
   >
 ): txnBuilder.Transaction;
