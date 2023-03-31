@@ -42,8 +42,9 @@ async function main() {
     suggestedParams,
   });
 
-  const txnBytes = txn.toByte();
+  const txnBytes = algosdk.encodeUnsignedTransaction(txn);
   const txnB64 = Buffer.from(txnBytes).toString('base64');
+  // ...
   const restoredTxn = algosdk.decodeUnsignedTransaction(
     Buffer.from(txnB64, 'base64')
   );
