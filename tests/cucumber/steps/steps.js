@@ -4644,7 +4644,7 @@ module.exports = function getSteps(options) {
   Then(
     'the simulation should succeed without any failure message',
     async function () {
-      assert.deepStrictEqual(true, this.simulateResponse['would-succeed']);
+      assert.deepStrictEqual(true, this.simulateResponse.wouldSucceed);
     }
   );
 
@@ -4656,14 +4656,13 @@ module.exports = function getSteps(options) {
       const txnIndexes = stringPath.map((n) => parseInt(n, 10));
       const groupNum = parseInt(txnGroupIndex, 10);
 
-      assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
+      assert.deepStrictEqual(false, this.simulateResponse.wouldSucceed);
       // Check for missing signature flag
       for (const txnIndex of txnIndexes) {
         assert.deepStrictEqual(
           true,
-          this.simulateResponse['txn-groups'][groupNum]['txn-results'][
-            txnIndex
-          ]['missing-signature']
+          this.simulateResponse.txnGroups[groupNum].txnResults[txnIndex]
+            .missingSignature
         );
       }
     }
@@ -4679,18 +4678,15 @@ module.exports = function getSteps(options) {
       const stringPath = failAt.split(',');
       const failPath = stringPath.map((n) => parseInt(n, 10));
 
-      const failedMessage = this.simulateResponse['txn-groups'][groupNum][
-        'failure-message'
-      ];
-      assert.deepStrictEqual(false, this.simulateResponse['would-succeed']);
+      const failedMessage = this.simulateResponse.txnGroups[groupNum]
+        .failureMessage;
+      assert.deepStrictEqual(false, this.simulateResponse.wouldSucceed);
       const errorContainsString = failedMessage.includes(errorMsg);
       assert.deepStrictEqual(true, errorContainsString);
 
       // Check path array
       // deepStrictEqual fails for firefox tests, so compare array manually.
-      const failedAt = this.simulateResponse['txn-groups'][groupNum][
-        'failed-at'
-      ];
+      const { failedAt } = this.simulateResponse.txnGroups[groupNum];
       assert.strictEqual(failPath.length, failedAt.length);
       for (let i = 0; i < failPath.length; i++) {
         assert.strictEqual(failPath[i], failedAt[i]);
