@@ -1,0 +1,181 @@
+#pragma version 8
+intcblock 0 1
+bytecblock 0x151f7c75
+txn NumAppArgs
+intc_0 // 0
+==
+bnz main_l10
+txna ApplicationArgs 0
+pushbytes 0xfe6bdf69 // "add(uint64,uint64)uint64"
+==
+bnz main_l9
+txna ApplicationArgs 0
+pushbytes 0xe2f188c5 // "mul(uint64,uint64)uint64"
+==
+bnz main_l8
+txna ApplicationArgs 0
+pushbytes 0x78b488b7 // "sub(uint64,uint64)uint64"
+==
+bnz main_l7
+txna ApplicationArgs 0
+pushbytes 0x16e80f08 // "div(uint64,uint64)uint64"
+==
+bnz main_l6
+err
+main_l6:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+store 9
+txna ApplicationArgs 2
+btoi
+store 10
+load 9
+load 10
+callsub div_3
+store 11
+bytec_0 // 0x151f7c75
+load 11
+itob
+concat
+log
+intc_1 // 1
+return
+main_l7:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+store 6
+txna ApplicationArgs 2
+btoi
+store 7
+load 6
+load 7
+callsub sub_2
+store 8
+bytec_0 // 0x151f7c75
+load 8
+itob
+concat
+log
+intc_1 // 1
+return
+main_l8:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+store 3
+txna ApplicationArgs 2
+btoi
+store 4
+load 3
+load 4
+callsub mul_1
+store 5
+bytec_0 // 0x151f7c75
+load 5
+itob
+concat
+log
+intc_1 // 1
+return
+main_l9:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+store 0
+txna ApplicationArgs 2
+btoi
+store 1
+load 0
+load 1
+callsub add_0
+store 2
+bytec_0 // 0x151f7c75
+load 2
+itob
+concat
+log
+intc_1 // 1
+return
+main_l10:
+txn OnCompletion
+intc_0 // NoOp
+==
+bnz main_l12
+err
+main_l12:
+txn ApplicationID
+intc_0 // 0
+==
+assert
+intc_1 // 1
+return
+
+// add
+add_0:
+proto 2 1
+intc_0 // 0
+frame_dig -2
+frame_dig -1
++
+frame_bury 0
+retsub
+
+// mul
+mul_1:
+proto 2 1
+intc_0 // 0
+frame_dig -2
+frame_dig -1
+*
+frame_bury 0
+retsub
+
+// sub
+sub_2:
+proto 2 1
+intc_0 // 0
+frame_dig -2
+frame_dig -1
+-
+frame_bury 0
+retsub
+
+// div
+div_3:
+proto 2 1
+intc_0 // 0
+frame_dig -2
+frame_dig -1
+/
+frame_bury 0
+retsub

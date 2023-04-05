@@ -1,0 +1,5 @@
+#pragma version 5
+arg_0
+btoi
+int 123
+==
