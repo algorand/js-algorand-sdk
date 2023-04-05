@@ -42,8 +42,9 @@ async function main() {
     suggestedParams,
   });
 
-  const txnBytes = txn.toByte();
+  const txnBytes = algosdk.encodeUnsignedTransaction(txn);
   const txnB64 = Buffer.from(txnBytes).toString('base64');
+  // ...
   const restoredTxn = algosdk.decodeUnsignedTransaction(
     Buffer.from(txnB64, 'base64')
   );
@@ -58,6 +59,26 @@ async function main() {
   );
   console.log(restoredSignedTxn);
   // example: CODEC_TRANSACTION_SIGNED
+
+  // example: CODEC_ABI
+  const stringTupleCodec = algosdk.ABIType.from('(string,string)');
+
+  const stringTupleData = ['hello', 'world'];
+  const encodedTuple = stringTupleCodec.encode(stringTupleData);
+  console.log(Buffer.from(encodedTuple).toString('hex'));
+
+  const decodedTuple = stringTupleCodec.decode(encodedTuple);
+  console.log(decodedTuple); // ['hello', 'world']
+
+  const uintArrayCodec = algosdk.ABIType.from('uint64[]');
+
+  const uintArrayData = [1, 2, 3, 4, 5];
+  const encodedArray = uintArrayCodec.encode(uintArrayData);
+  console.log(Buffer.from(encodedArray).toString('hex'));
+
+  const decodeArray = uintArrayCodec.decode(encodedArray);
+  console.log(decodeArray); // [1, 2, 3, 4, 5]
+  // example: CODEC_ABI
 }
 
 main();

@@ -25,6 +25,9 @@ docker-run:
 	docker ps -a
 	docker run -it --network host js-sdk-testing:latest
 
+smoke-test-examples:
+	cd examples && bash smoke_test.sh && cd -
+
 docker-test: harness docker-build docker-run
 
 format:
