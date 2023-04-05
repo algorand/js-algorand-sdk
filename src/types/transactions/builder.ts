@@ -50,12 +50,14 @@ export type ConstructTransaction<
   O extends Partial<TransactionBase & A> = {}
 > = DistributiveOverwrite<TransactionBase & A, O>;
 
+export type SuggestedParamsWithoutMinFee = Omit<SuggestedParams, 'minFee'>;
+
 /**
  * Only accept transaction objects that include suggestedParams as an object
  */
 export type MustHaveSuggestedParams<T extends ConstructTransaction> = Extract<
   T,
-  { suggestedParams: SuggestedParams }
+  { suggestedParams: SuggestedParamsWithoutMinFee }
 >;
 
 /**
@@ -64,6 +66,6 @@ export type MustHaveSuggestedParams<T extends ConstructTransaction> = Extract<
  */
 export type MustHaveSuggestedParamsInline<
   T extends ConstructTransaction
-> = Extract<T, SuggestedParams>;
+> = Extract<T, SuggestedParamsWithoutMinFee>;
 
 export default ConstructTransaction;
