@@ -12,6 +12,12 @@ for file in *; do
         if [[ $file != "utils.ts" ]]; then
             # Call the file using `ts-node`
             ../node_modules/.bin/ts-node "$file"
+            # Check if the test failed
+            if [ $? -ne 0 ]; then
+                echo "Test failed, stopping script"
+                exit 1
+            fi
         fi
+
     fi
 done
