@@ -128,6 +128,10 @@ export interface SuggestedParams {
    * Specifies hash genesis block of network in use
    */
   genesisHash: string;
+  /**
+   * Minimum fee (not per byte) required for the transaction to be confirmed
+   */
+  minFee: number;
 }
 
 /**

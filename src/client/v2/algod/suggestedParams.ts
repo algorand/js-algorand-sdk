@@ -18,6 +18,7 @@ export default class SuggestedParamsRequest extends JSONRequest<SuggestedParams>
       lastRound: body['last-round'] + 1000,
       genesisID: body['genesis-id'],
       genesisHash: body['genesis-hash'],
+      minFee: body['min-fee'],
     };
   }
   /* eslint-enable class-methods-use-this */
