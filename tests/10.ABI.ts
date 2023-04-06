@@ -494,7 +494,6 @@ describe('ABI encoding', () => {
       lastRound: 1001,
       genesisID: 'gi',
       genesisHash: 'gh',
-      minFee: 1000,
     };
     const foreignAcct =
       'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM';
