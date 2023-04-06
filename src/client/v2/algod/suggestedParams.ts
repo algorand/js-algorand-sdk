@@ -1,16 +1,16 @@
 import JSONRequest from '../jsonrequest';
-import { SuggestedParams } from '../../../types/transactions/base';
+import { SuggestedParamsWithMinFee } from '../../../types/transactions/base';
 
 /**
  * Returns the common needed parameters for a new transaction, in a format the transaction builder expects
  */
-export default class SuggestedParamsRequest extends JSONRequest<SuggestedParams> {
+export default class SuggestedParamsRequest extends JSONRequest<SuggestedParamsWithMinFee> {
   /* eslint-disable class-methods-use-this */
   path() {
     return '/v2/transactions/params';
   }
 
-  prepare(body: Record<string, any>): SuggestedParams {
+  prepare(body: Record<string, any>): SuggestedParamsWithMinFee {
     return {
       flatFee: false,
       fee: body.fee,
