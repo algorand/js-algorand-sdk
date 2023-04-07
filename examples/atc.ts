@@ -13,6 +13,7 @@ async function main() {
   const accounts = await getLocalAccounts();
 
   const sender = accounts[0];
+  const otherAcct = accounts[1];
   const suggestedParams = await client.getTransactionParams().do();
 
   const approvalProgram = fs.readFileSync(
@@ -115,6 +116,28 @@ async function main() {
     suggestedParams,
   });
   // example: ATC_BOX_REF
+
+  // example: ATC_FOREIGN_REFS
+  const foreignRefAtc = new algosdk.AtomicTransactionComposer();
+  foreignRefAtc.addMethodCall({
+    suggestedParams,
+    appID: appIndex,
+    method: contract.getMethodByName('add'),
+    methodArgs: [1, 2],
+    sender: sender.addr,
+    signer: sender.signer,
+    // pass foreign refs
+    appAccounts: [otherAcct.addr],
+    appForeignApps: [1337],
+    appForeignAssets: [42],
+    boxes: [
+      {
+        appIndex,
+        name: new Uint8Array(Buffer.from('coolBoxName')),
+      },
+    ],
+  });
+  // example: ATC_FOREIGN_REFS
 }
 
 main();

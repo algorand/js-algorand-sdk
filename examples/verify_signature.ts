@@ -2,7 +2,9 @@ import { Buffer } from 'buffer';
 import nacl from 'tweetnacl';
 import algosdk from '../src';
 
-function verifySignedTransaction(stxn: algosdk.SignedTransaction): boolean {
+function verifySignedTransaction(rawSignedTxn: Uint8Array): boolean {
+  // example: OFFLINE_VERIFY_SIG
+  const stxn = algosdk.decodeSignedTransaction(rawSignedTxn);
   if (stxn.sig === undefined) return false;
 
   // Get the txn object
@@ -21,7 +23,10 @@ function verifySignedTransaction(stxn: algosdk.SignedTransaction): boolean {
   const sigBytes = new Uint8Array(stxn.sig);
 
   // Return the result of the verification
-  return nacl.sign.detached.verify(msgBytes, sigBytes, pkBytes);
+  const valid = nacl.sign.detached.verify(msgBytes, sigBytes, pkBytes);
+  console.log('Valid? ', valid);
+  // example: OFFLINE_VERIFY_SIG
+  return valid;
 }
 
 function main() {
@@ -40,10 +45,9 @@ function main() {
     suggestedParams: sp,
   });
 
-  const blob = txn.signTxn(acct.sk);
+  const rawSignedTxn = txn.signTxn(acct.sk);
 
-  const stxn = algosdk.decodeSignedTransaction(blob);
-  console.log('Valid? ', verifySignedTransaction(stxn));
+  verifySignedTransaction(rawSignedTxn);
 }
 
 main();
