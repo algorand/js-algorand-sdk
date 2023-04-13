@@ -1,9 +1,8 @@
 import { Buffer } from 'buffer';
 import * as encoding from '../../../encoding/encoding';
-import { concatArrays } from '../../../utils/utils';
 import HTTPClient from '../../client';
 import JSONRequest from '../jsonrequest';
-import { SimulateResponse } from './models/types';
+import { SimulateRequest, SimulateResponse } from './models/types';
 
 /**
  * Sets the default header (if not previously set) for simulating a raw
@@ -19,10 +18,6 @@ export function setSimulateTransactionsHeaders(headers = {}) {
   return hdrs;
 }
 
-function isByteArray(array: any): array is Uint8Array {
-  return array && array.byteLength !== undefined;
-}
-
 /**
  * Simulates signed txns.
  */
@@ -30,23 +25,12 @@ export default class SimulateRawTransactions extends JSONRequest<
   SimulateResponse,
   Uint8Array
 > {
-  private txnBytesToPost: Uint8Array;
+  private requestBytes: Uint8Array;
 
-  constructor(c: HTTPClient, stxOrStxs: Uint8Array | Uint8Array[]) {
+  constructor(c: HTTPClient, request: SimulateRequest) {
     super(c);
     this.query.format = 'msgpack';
-
-    let forPosting = stxOrStxs;
-    if (Array.isArray(stxOrStxs)) {
-      if (!stxOrStxs.every(isByteArray)) {
-        throw new TypeError('Array elements must be byte arrays');
-      }
-      // Flatten into a single Uint8Array
-      forPosting = concatArrays(...stxOrStxs);
-    } else if (!isByteArray(forPosting)) {
-      throw new TypeError('Argument must be byte array');
-    }
-    this.txnBytesToPost = forPosting;
+    this.requestBytes = encoding.encode(request.get_obj_for_encoding());
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -58,7 +42,7 @@ export default class SimulateRawTransactions extends JSONRequest<
     const txHeaders = setSimulateTransactionsHeaders(headers);
     const res = await this.c.post(
       this.path(),
-      Buffer.from(this.txnBytesToPost),
+      Buffer.from(this.requestBytes),
       txHeaders,
       this.query,
       false
