@@ -13,7 +13,7 @@ export function setSimulateTransactionsHeaders(headers = {}) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
-    hdrs['Content-Type'] = 'application/x-binary';
+    hdrs['Content-Type'] = 'application/msgpack';
   }
   return hdrs;
 }
@@ -30,7 +30,7 @@ export default class SimulateRawTransactions extends JSONRequest<
   constructor(c: HTTPClient, request: SimulateRequest) {
     super(c);
     this.query.format = 'msgpack';
-    this.requestBytes = encoding.encode(request.get_obj_for_encoding());
+    this.requestBytes = encoding.encode(request.get_obj_for_encoding(true));
   }
 
   // eslint-disable-next-line class-methods-use-this

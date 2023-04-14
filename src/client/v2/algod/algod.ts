@@ -589,7 +589,7 @@ export default class AlgodClient extends ServiceClient {
    * const txgroup = algosdk.assignGroupID([txn1, txn2]);
    *
    * // Actually sign the first transaction
-   * const signedTxn1 = txgroup[0].signTxn(senderSk);
+   * const signedTxn1 = txgroup[0].signTxn(senderSk).blob;
    * // Simulate does not require signed transactions -- use this method to encode an unsigned transaction
    * const signedTxn2 = algosdk.encodeUnsignedSimulateTransaction(txgroup[1]);
    *
@@ -629,7 +629,7 @@ export default class AlgodClient extends ServiceClient {
    * const txgroup = algosdk.assignGroupID([txn1, txn2]);
    *
    * // Actually sign the first transaction
-   * const signedTxn1 = txgroup[0].signTxn(senderSk);
+   * const signedTxn1 = txgroup[0].signTxn(senderSk).blob;
    * // Simulate does not require signed transactions -- use this method to encode an unsigned transaction
    * const signedTxn2 = algosdk.encodeUnsignedSimulateTransaction(txgroup[1]);
    *
