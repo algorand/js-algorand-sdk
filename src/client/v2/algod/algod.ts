@@ -32,6 +32,8 @@ import LightBlockHeaderProof from './lightBlockHeaderProof';
 import StateProof from './stateproof';
 import Disassemble from './disassemble';
 import SimulateRawTransactions from './simulateTransaction';
+import { EncodedSignedTransaction } from '../../../types';
+import * as encoding from '../../../encoding/encoding';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -582,6 +584,15 @@ export default class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
+   * const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn1Params);
+   * const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn2Params);
+   * const txgroup = algosdk.assignGroupID([txn1, txn2]);
+   *
+   * // Actually sign the first transaction
+   * const signedTxn1 = txgroup[0].signTxn(senderSk).blob;
+   * // Simulate does not require signed transactions -- use this method to encode an unsigned transaction
+   * const signedTxn2 = algosdk.encodeUnsignedSimulateTransaction(txgroup[1]);
+   *
    * const resp = await client.simulateRawTransactions([signedTxn1, signedTxn2]).do();
    * ```
    *
@@ -590,6 +601,54 @@ export default class AlgodClient extends ServiceClient {
    * @category POST
    */
   simulateRawTransactions(stxOrStxs: Uint8Array | Uint8Array[]) {
-    return new SimulateRawTransactions(this.c, stxOrStxs);
+    const txnObjects: EncodedSignedTransaction[] = [];
+    if (Array.isArray(stxOrStxs)) {
+      for (const stxn of stxOrStxs) {
+        txnObjects.push(encoding.decode(stxn) as EncodedSignedTransaction);
+      }
+    } else {
+      txnObjects.push(encoding.decode(stxOrStxs) as EncodedSignedTransaction);
+    }
+    const request = new modelsv2.SimulateRequest({
+      txnGroups: [
+        new modelsv2.SimulateRequestTransactionGroup({
+          txns: txnObjects,
+        }),
+      ],
+    });
+    return this.simulateTransactions(request);
+  }
+
+  /**
+   * Simulate transactions being sent to the network.
+   *
+   * #### Example
+   * ```typescript
+   * const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn1Params);
+   * const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn2Params);
+   * const txgroup = algosdk.assignGroupID([txn1, txn2]);
+   *
+   * // Actually sign the first transaction
+   * const signedTxn1 = txgroup[0].signTxn(senderSk).blob;
+   * // Simulate does not require signed transactions -- use this method to encode an unsigned transaction
+   * const signedTxn2 = algosdk.encodeUnsignedSimulateTransaction(txgroup[1]);
+   *
+   * const request = new modelsv2.SimulateRequest({
+   *  txnGroups: [
+   *    new modelsv2.SimulateRequestTransactionGroup({
+   *       // Must decode the signed txn bytes into an object
+   *       txns: [algosdk.decodeObj(signedTxn1), algosdk.decodeObj(signedTxn2)]
+   *     }),
+   *   ],
+   * });
+   * const resp = await client.simulateRawTransactions(request).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2transactionssimulate)
+   * @param request
+   * @category POST
+   */
+  simulateTransactions(request: modelsv2.SimulateRequest) {
+    return new SimulateRawTransactions(this.c, request);
   }
 }

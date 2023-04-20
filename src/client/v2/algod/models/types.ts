@@ -877,17 +877,17 @@ export class ApplicationParams extends BaseModel {
   public extraProgramPages?: number | bigint;
 
   /**
-   * [\gs) global schema
+   * (gs) global state
    */
   public globalState?: TealKeyValue[];
 
   /**
-   * [\gsch) global schema
+   * (gsch) global schema
    */
   public globalStateSchema?: ApplicationStateSchema;
 
   /**
-   * [\lsch) local schema
+   * (lsch) local schema
    */
   public localStateSchema?: ApplicationStateSchema;
 
@@ -898,9 +898,9 @@ export class ApplicationParams extends BaseModel {
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
    * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
-   * @param globalState - [\gs) global schema
-   * @param globalStateSchema - [\gsch) global schema
-   * @param localStateSchema - [\lsch) local schema
+   * @param globalState - (gs) global state
+   * @param globalStateSchema - (gsch) global schema
+   * @param localStateSchema - (lsch) local schema
    */
   constructor({
     approvalProgram,
@@ -2825,7 +2825,7 @@ export class PendingTransactionResponse extends BaseModel {
   public confirmedRound?: number | bigint;
 
   /**
-   * (gd) Global state key/value changes for the application being executed by this
+   * Global state key/value changes for the application being executed by this
    * transaction.
    */
   public globalStateDelta?: EvalDeltaKeyValue[];
@@ -2836,13 +2836,13 @@ export class PendingTransactionResponse extends BaseModel {
   public innerTxns?: PendingTransactionResponse[];
 
   /**
-   * (ld) Local state key/value changes for the application being executed by this
+   * Local state key/value changes for the application being executed by this
    * transaction.
    */
   public localStateDelta?: AccountStateDelta[];
 
   /**
-   * (lg) Logs for the application being executed by this transaction.
+   * Logs for the application being executed by this transaction.
    */
   public logs?: Uint8Array[];
 
@@ -2869,12 +2869,12 @@ export class PendingTransactionResponse extends BaseModel {
    * @param closeRewards - Rewards in microalgos applied to the close remainder to account.
    * @param closingAmount - Closing amount for the transaction.
    * @param confirmedRound - The round where this transaction was confirmed, if present.
-   * @param globalStateDelta - (gd) Global state key/value changes for the application being executed by this
+   * @param globalStateDelta - Global state key/value changes for the application being executed by this
    * transaction.
    * @param innerTxns - Inner transactions produced by application execution.
-   * @param localStateDelta - (ld) Local state key/value changes for the application being executed by this
+   * @param localStateDelta - Local state key/value changes for the application being executed by this
    * transaction.
-   * @param logs - (lg) Logs for the application being executed by this transaction.
+   * @param logs - Logs for the application being executed by this transaction.
    * @param receiverRewards - Rewards in microalgos applied to the receiver account.
    * @param senderRewards - Rewards in microalgos applied to the sender account.
    */
@@ -3085,6 +3085,82 @@ export class PostTransactionsResponse extends BaseModel {
 }
 
 /**
+ * Request type for simulation endpoint.
+ */
+export class SimulateRequest extends BaseModel {
+  /**
+   * The transaction groups to simulate.
+   */
+  public txnGroups: SimulateRequestTransactionGroup[];
+
+  /**
+   * Creates a new `SimulateRequest` object.
+   * @param txnGroups - The transaction groups to simulate.
+   */
+  constructor({ txnGroups }: { txnGroups: SimulateRequestTransactionGroup[] }) {
+    super();
+    this.txnGroups = txnGroups;
+
+    this.attribute_map = {
+      txnGroups: 'txn-groups',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): SimulateRequest {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['txn-groups']))
+      throw new Error(
+        `Response is missing required array field 'txn-groups': ${data}`
+      );
+    return new SimulateRequest({
+      txnGroups: data['txn-groups'].map(
+        SimulateRequestTransactionGroup.from_obj_for_encoding
+      ),
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * A transaction group to simulate.
+ */
+export class SimulateRequestTransactionGroup extends BaseModel {
+  /**
+   * An atomic transaction group.
+   */
+  public txns: EncodedSignedTransaction[];
+
+  /**
+   * Creates a new `SimulateRequestTransactionGroup` object.
+   * @param txns - An atomic transaction group.
+   */
+  constructor({ txns }: { txns: EncodedSignedTransaction[] }) {
+    super();
+    this.txns = txns;
+
+    this.attribute_map = {
+      txns: 'txns',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulateRequestTransactionGroup {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['txns']))
+      throw new Error(
+        `Response is missing required array field 'txns': ${data}`
+      );
+    return new SimulateRequestTransactionGroup({
+      txns: data['txns'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Result of a transaction group simulation.
  */
 export class SimulateResponse extends BaseModel {
@@ -3185,6 +3261,16 @@ export class SimulateTransactionGroupResult extends BaseModel {
   public txnResults: SimulateTransactionResult[];
 
   /**
+   * Total budget added during execution of app calls in the transaction group.
+   */
+  public appBudgetAdded?: number | bigint;
+
+  /**
+   * Total budget consumed during execution of app calls in the transaction group.
+   */
+  public appBudgetConsumed?: number | bigint;
+
+  /**
    * If present, indicates which transaction in this group caused the failure. This
    * array represents the path to the failing transaction. Indexes are zero based,
    * the first element indicates the top-level transaction, and successive elements
@@ -3201,6 +3287,8 @@ export class SimulateTransactionGroupResult extends BaseModel {
   /**
    * Creates a new `SimulateTransactionGroupResult` object.
    * @param txnResults - Simulation result for individual transactions
+   * @param appBudgetAdded - Total budget added during execution of app calls in the transaction group.
+   * @param appBudgetConsumed - Total budget consumed during execution of app calls in the transaction group.
    * @param failedAt - If present, indicates which transaction in this group caused the failure. This
    * array represents the path to the failing transaction. Indexes are zero based,
    * the first element indicates the top-level transaction, and successive elements
@@ -3210,20 +3298,28 @@ export class SimulateTransactionGroupResult extends BaseModel {
    */
   constructor({
     txnResults,
+    appBudgetAdded,
+    appBudgetConsumed,
     failedAt,
     failureMessage,
   }: {
     txnResults: SimulateTransactionResult[];
+    appBudgetAdded?: number | bigint;
+    appBudgetConsumed?: number | bigint;
     failedAt?: (number | bigint)[];
     failureMessage?: string;
   }) {
     super();
     this.txnResults = txnResults;
+    this.appBudgetAdded = appBudgetAdded;
+    this.appBudgetConsumed = appBudgetConsumed;
     this.failedAt = failedAt;
     this.failureMessage = failureMessage;
 
     this.attribute_map = {
       txnResults: 'txn-results',
+      appBudgetAdded: 'app-budget-added',
+      appBudgetConsumed: 'app-budget-consumed',
       failedAt: 'failed-at',
       failureMessage: 'failure-message',
     };
@@ -3242,6 +3338,8 @@ export class SimulateTransactionGroupResult extends BaseModel {
       txnResults: data['txn-results'].map(
         SimulateTransactionResult.from_obj_for_encoding
       ),
+      appBudgetAdded: data['app-budget-added'],
+      appBudgetConsumed: data['app-budget-consumed'],
       failedAt: data['failed-at'],
       failureMessage: data['failure-message'],
     });
@@ -3260,6 +3358,17 @@ export class SimulateTransactionResult extends BaseModel {
   public txnResult: PendingTransactionResponse;
 
   /**
+   * Budget used during execution of an app call transaction. This value includes
+   * budged used by inner app calls spawned by this transaction.
+   */
+  public appBudgetConsumed?: number | bigint;
+
+  /**
+   * Budget used during execution of a logic sig transaction.
+   */
+  public logicSigBudgetConsumed?: number | bigint;
+
+  /**
    * A boolean indicating whether this transaction is missing signatures
    */
   public missingSignature?: boolean;
@@ -3268,21 +3377,32 @@ export class SimulateTransactionResult extends BaseModel {
    * Creates a new `SimulateTransactionResult` object.
    * @param txnResult - Details about a pending transaction. If the transaction was recently confirmed,
    * includes confirmation details like the round and reward details.
+   * @param appBudgetConsumed - Budget used during execution of an app call transaction. This value includes
+   * budged used by inner app calls spawned by this transaction.
+   * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
    * @param missingSignature - A boolean indicating whether this transaction is missing signatures
    */
   constructor({
     txnResult,
+    appBudgetConsumed,
+    logicSigBudgetConsumed,
     missingSignature,
   }: {
     txnResult: PendingTransactionResponse;
+    appBudgetConsumed?: number | bigint;
+    logicSigBudgetConsumed?: number | bigint;
     missingSignature?: boolean;
   }) {
     super();
     this.txnResult = txnResult;
+    this.appBudgetConsumed = appBudgetConsumed;
+    this.logicSigBudgetConsumed = logicSigBudgetConsumed;
     this.missingSignature = missingSignature;
 
     this.attribute_map = {
       txnResult: 'txn-result',
+      appBudgetConsumed: 'app-budget-consumed',
+      logicSigBudgetConsumed: 'logic-sig-budget-consumed',
       missingSignature: 'missing-signature',
     };
   }
@@ -3300,6 +3420,8 @@ export class SimulateTransactionResult extends BaseModel {
       txnResult: PendingTransactionResponse.from_obj_for_encoding(
         data['txn-result']
       ),
+      appBudgetConsumed: data['app-budget-consumed'],
+      logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
       missingSignature: data['missing-signature'],
     });
     /* eslint-enable dot-notation */

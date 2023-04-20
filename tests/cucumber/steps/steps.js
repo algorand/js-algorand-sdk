@@ -4680,17 +4680,15 @@ module.exports = function getSteps(options) {
 
       const failedMessage = this.simulateResponse.txnGroups[groupNum]
         .failureMessage;
-      assert.deepStrictEqual(false, this.simulateResponse.wouldSucceed);
-      const errorContainsString = failedMessage.includes(errorMsg);
-      assert.deepStrictEqual(true, errorContainsString);
+      assert.ok(!this.simulateResponse.wouldSucceed);
+      assert.ok(
+        failedMessage.includes(errorMsg),
+        `Error message: "${failedMessage}" does not contain "${errorMsg}"`
+      );
 
       // Check path array
-      // deepStrictEqual fails for firefox tests, so compare array manually.
       const { failedAt } = this.simulateResponse.txnGroups[groupNum];
-      assert.strictEqual(failPath.length, failedAt.length);
-      for (let i = 0; i < failPath.length; i++) {
-        assert.strictEqual(failPath[i], failedAt[i]);
-      }
+      assert.deepStrictEqual(makeArray(...failedAt), makeArray(...failPath));
     }
   );
 
