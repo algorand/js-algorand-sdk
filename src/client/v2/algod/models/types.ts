@@ -2433,6 +2433,132 @@ export class EvalDeltaKeyValue extends BaseModel {
 }
 
 /**
+ * Response containing the timestamp offset in seconds
+ */
+export class GetBlockTimeStampOffsetResponse extends BaseModel {
+  /**
+   * Timestamp offset in seconds.
+   */
+  public offset: number | bigint;
+
+  /**
+   * Creates a new `GetBlockTimeStampOffsetResponse` object.
+   * @param offset - Timestamp offset in seconds.
+   */
+  constructor({ offset }: { offset: number | bigint }) {
+    super();
+    this.offset = offset;
+
+    this.attribute_map = {
+      offset: 'offset',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): GetBlockTimeStampOffsetResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['offset'] === 'undefined')
+      throw new Error(`Response is missing required field 'offset': ${data}`);
+    return new GetBlockTimeStampOffsetResponse({
+      offset: data['offset'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Response containing the ledger's minimum sync round
+ */
+export class GetSyncRoundResponse extends BaseModel {
+  /**
+   * The minimum sync round for the ledger.
+   */
+  public round: number | bigint;
+
+  /**
+   * Creates a new `GetSyncRoundResponse` object.
+   * @param round - The minimum sync round for the ledger.
+   */
+  constructor({ round }: { round: number | bigint }) {
+    super();
+    this.round = round;
+
+    this.attribute_map = {
+      round: 'round',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): GetSyncRoundResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
+    return new GetSyncRoundResponse({
+      round: data['round'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * A single Delta containing the key, the previous value and the current value for
+ * a single round.
+ */
+export class KvDelta extends BaseModel {
+  /**
+   * The key, base64 encoded.
+   */
+  public key?: Uint8Array;
+
+  /**
+   * The new value of the KV store entry, base64 encoded.
+   */
+  public value?: Uint8Array;
+
+  /**
+   * Creates a new `KvDelta` object.
+   * @param key - The key, base64 encoded.
+   * @param value - The new value of the KV store entry, base64 encoded.
+   */
+  constructor({
+    key,
+    value,
+  }: {
+    key?: string | Uint8Array;
+    value?: string | Uint8Array;
+  }) {
+    super();
+    this.key =
+      typeof key === 'string'
+        ? new Uint8Array(Buffer.from(key, 'base64'))
+        : key;
+    this.value =
+      typeof value === 'string'
+        ? new Uint8Array(Buffer.from(value, 'base64'))
+        : value;
+
+    this.attribute_map = {
+      key: 'key',
+      value: 'value',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): KvDelta {
+    /* eslint-disable dot-notation */
+    return new KvDelta({
+      key: data['key'],
+      value: data['value'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Proof of membership and position of a light block header.
  */
 export class LightBlockHeaderProof extends BaseModel {
@@ -2608,6 +2734,46 @@ export class NodeStatusResponse extends BaseModel {
   public lastCatchpoint?: string;
 
   /**
+   * Upgrade delay
+   */
+  public upgradeDelay?: number | bigint;
+
+  /**
+   * Next protocol round
+   */
+  public upgradeNextProtocolVoteBefore?: number | bigint;
+
+  /**
+   * No votes cast for consensus upgrade
+   */
+  public upgradeNoVotes?: number | bigint;
+
+  /**
+   * This node's upgrade vote
+   */
+  public upgradeNodeVote?: boolean;
+
+  /**
+   * Total voting rounds for current upgrade
+   */
+  public upgradeVoteRounds?: number | bigint;
+
+  /**
+   * Total votes cast for consensus upgrade
+   */
+  public upgradeVotes?: number | bigint;
+
+  /**
+   * Yes votes required for consensus upgrade
+   */
+  public upgradeVotesRequired?: number | bigint;
+
+  /**
+   * Yes votes cast for consensus upgrade
+   */
+  public upgradeYesVotes?: number | bigint;
+
+  /**
    * Creates a new `NodeStatusResponse` object.
    * @param catchupTime - CatchupTime in nanoseconds
    * @param lastRound - LastRound indicates the last round seen
@@ -2635,6 +2801,14 @@ export class NodeStatusResponse extends BaseModel {
    * @param catchpointVerifiedKvs - The number of key-values (KVs) from the current catchpoint that have been
    * verified so far as part of the catchup
    * @param lastCatchpoint - The last catchpoint seen by the node
+   * @param upgradeDelay - Upgrade delay
+   * @param upgradeNextProtocolVoteBefore - Next protocol round
+   * @param upgradeNoVotes - No votes cast for consensus upgrade
+   * @param upgradeNodeVote - This node's upgrade vote
+   * @param upgradeVoteRounds - Total voting rounds for current upgrade
+   * @param upgradeVotes - Total votes cast for consensus upgrade
+   * @param upgradeVotesRequired - Yes votes required for consensus upgrade
+   * @param upgradeYesVotes - Yes votes cast for consensus upgrade
    */
   constructor({
     catchupTime,
@@ -2655,6 +2829,14 @@ export class NodeStatusResponse extends BaseModel {
     catchpointVerifiedAccounts,
     catchpointVerifiedKvs,
     lastCatchpoint,
+    upgradeDelay,
+    upgradeNextProtocolVoteBefore,
+    upgradeNoVotes,
+    upgradeNodeVote,
+    upgradeVoteRounds,
+    upgradeVotes,
+    upgradeVotesRequired,
+    upgradeYesVotes,
   }: {
     catchupTime: number | bigint;
     lastRound: number | bigint;
@@ -2674,6 +2856,14 @@ export class NodeStatusResponse extends BaseModel {
     catchpointVerifiedAccounts?: number | bigint;
     catchpointVerifiedKvs?: number | bigint;
     lastCatchpoint?: string;
+    upgradeDelay?: number | bigint;
+    upgradeNextProtocolVoteBefore?: number | bigint;
+    upgradeNoVotes?: number | bigint;
+    upgradeNodeVote?: boolean;
+    upgradeVoteRounds?: number | bigint;
+    upgradeVotes?: number | bigint;
+    upgradeVotesRequired?: number | bigint;
+    upgradeYesVotes?: number | bigint;
   }) {
     super();
     this.catchupTime = catchupTime;
@@ -2694,6 +2884,14 @@ export class NodeStatusResponse extends BaseModel {
     this.catchpointVerifiedAccounts = catchpointVerifiedAccounts;
     this.catchpointVerifiedKvs = catchpointVerifiedKvs;
     this.lastCatchpoint = lastCatchpoint;
+    this.upgradeDelay = upgradeDelay;
+    this.upgradeNextProtocolVoteBefore = upgradeNextProtocolVoteBefore;
+    this.upgradeNoVotes = upgradeNoVotes;
+    this.upgradeNodeVote = upgradeNodeVote;
+    this.upgradeVoteRounds = upgradeVoteRounds;
+    this.upgradeVotes = upgradeVotes;
+    this.upgradeVotesRequired = upgradeVotesRequired;
+    this.upgradeYesVotes = upgradeYesVotes;
 
     this.attribute_map = {
       catchupTime: 'catchup-time',
@@ -2714,6 +2912,14 @@ export class NodeStatusResponse extends BaseModel {
       catchpointVerifiedAccounts: 'catchpoint-verified-accounts',
       catchpointVerifiedKvs: 'catchpoint-verified-kvs',
       lastCatchpoint: 'last-catchpoint',
+      upgradeDelay: 'upgrade-delay',
+      upgradeNextProtocolVoteBefore: 'upgrade-next-protocol-vote-before',
+      upgradeNoVotes: 'upgrade-no-votes',
+      upgradeNodeVote: 'upgrade-node-vote',
+      upgradeVoteRounds: 'upgrade-vote-rounds',
+      upgradeVotes: 'upgrade-votes',
+      upgradeVotesRequired: 'upgrade-votes-required',
+      upgradeYesVotes: 'upgrade-yes-votes',
     };
   }
 
@@ -2771,6 +2977,14 @@ export class NodeStatusResponse extends BaseModel {
       catchpointVerifiedAccounts: data['catchpoint-verified-accounts'],
       catchpointVerifiedKvs: data['catchpoint-verified-kvs'],
       lastCatchpoint: data['last-catchpoint'],
+      upgradeDelay: data['upgrade-delay'],
+      upgradeNextProtocolVoteBefore: data['upgrade-next-protocol-vote-before'],
+      upgradeNoVotes: data['upgrade-no-votes'],
+      upgradeNodeVote: data['upgrade-node-vote'],
+      upgradeVoteRounds: data['upgrade-vote-rounds'],
+      upgradeVotes: data['upgrade-votes'],
+      upgradeVotesRequired: data['upgrade-votes-required'],
+      upgradeYesVotes: data['upgrade-yes-votes'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3094,15 +3308,29 @@ export class SimulateRequest extends BaseModel {
   public txnGroups: SimulateRequestTransactionGroup[];
 
   /**
+   * The boolean flag that lifts the limit on log opcode during simulation.
+   */
+  public liftLogLimits?: boolean;
+
+  /**
    * Creates a new `SimulateRequest` object.
    * @param txnGroups - The transaction groups to simulate.
+   * @param liftLogLimits - The boolean flag that lifts the limit on log opcode during simulation.
    */
-  constructor({ txnGroups }: { txnGroups: SimulateRequestTransactionGroup[] }) {
+  constructor({
+    txnGroups,
+    liftLogLimits,
+  }: {
+    txnGroups: SimulateRequestTransactionGroup[];
+    liftLogLimits?: boolean;
+  }) {
     super();
     this.txnGroups = txnGroups;
+    this.liftLogLimits = liftLogLimits;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
+      liftLogLimits: 'lift-log-limits',
     };
   }
 
@@ -3117,6 +3345,7 @@ export class SimulateRequest extends BaseModel {
       txnGroups: data['txn-groups'].map(
         SimulateRequestTransactionGroup.from_obj_for_encoding
       ),
+      liftLogLimits: data['lift-log-limits'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3188,6 +3417,13 @@ export class SimulateResponse extends BaseModel {
   public wouldSucceed: boolean;
 
   /**
+   * The set of parameters and limits override during simulation. If this set of
+   * parameters is present, then evaluation parameters may differ from standard
+   * evaluation in certain ways.
+   */
+  public evalOverrides?: SimulationEvalOverrides;
+
+  /**
    * Creates a new `SimulateResponse` object.
    * @param lastRound - The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -3196,29 +3432,36 @@ export class SimulateResponse extends BaseModel {
    * @param wouldSucceed - Indicates whether the simulated transactions would have succeeded during an
    * actual submission. If any transaction fails or is missing a signature, this will
    * be false.
+   * @param evalOverrides - The set of parameters and limits override during simulation. If this set of
+   * parameters is present, then evaluation parameters may differ from standard
+   * evaluation in certain ways.
    */
   constructor({
     lastRound,
     txnGroups,
     version,
     wouldSucceed,
+    evalOverrides,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
     wouldSucceed: boolean;
+    evalOverrides?: SimulationEvalOverrides;
   }) {
     super();
     this.lastRound = lastRound;
     this.txnGroups = txnGroups;
     this.version = version;
     this.wouldSucceed = wouldSucceed;
+    this.evalOverrides = evalOverrides;
 
     this.attribute_map = {
       lastRound: 'last-round',
       txnGroups: 'txn-groups',
       version: 'version',
       wouldSucceed: 'would-succeed',
+      evalOverrides: 'eval-overrides',
     };
   }
 
@@ -3246,6 +3489,12 @@ export class SimulateResponse extends BaseModel {
       ),
       version: data['version'],
       wouldSucceed: data['would-succeed'],
+      evalOverrides:
+        typeof data['eval-overrides'] !== 'undefined'
+          ? SimulationEvalOverrides.from_obj_for_encoding(
+              data['eval-overrides']
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3423,6 +3672,57 @@ export class SimulateTransactionResult extends BaseModel {
       appBudgetConsumed: data['app-budget-consumed'],
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
       missingSignature: data['missing-signature'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The set of parameters and limits override during simulation. If this set of
+ * parameters is present, then evaluation parameters may differ from standard
+ * evaluation in certain ways.
+ */
+export class SimulationEvalOverrides extends BaseModel {
+  /**
+   * The maximum log calls one can make during simulation
+   */
+  public maxLogCalls?: number | bigint;
+
+  /**
+   * The maximum byte number to log during simulation
+   */
+  public maxLogSize?: number | bigint;
+
+  /**
+   * Creates a new `SimulationEvalOverrides` object.
+   * @param maxLogCalls - The maximum log calls one can make during simulation
+   * @param maxLogSize - The maximum byte number to log during simulation
+   */
+  constructor({
+    maxLogCalls,
+    maxLogSize,
+  }: {
+    maxLogCalls?: number | bigint;
+    maxLogSize?: number | bigint;
+  }) {
+    super();
+    this.maxLogCalls = maxLogCalls;
+    this.maxLogSize = maxLogSize;
+
+    this.attribute_map = {
+      maxLogCalls: 'max-log-calls',
+      maxLogSize: 'max-log-size',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationEvalOverrides {
+    /* eslint-disable dot-notation */
+    return new SimulationEvalOverrides({
+      maxLogCalls: data['max-log-calls'],
+      maxLogSize: data['max-log-size'],
     });
     /* eslint-enable dot-notation */
   }
