@@ -315,6 +315,14 @@ function setupMockServerForPaths(mockServer) {
       status: 200,
     },
   });
+  mockServer.on({
+    method: 'DELETE',
+    path: '*',
+    reply: {
+      headers: corsHeaders,
+      status: 200,
+    },
+  });
 }
 
 function getMockServerRequestUrls(mockServer) {
@@ -322,6 +330,10 @@ function getMockServerRequestUrls(mockServer) {
     .requests()
     .filter((req) => req.method !== 'OPTIONS') // ignore cors preflight requests from the browser
     .map((req) => req.url);
+}
+
+function getMockServerRequests(mockServer) {
+  return mockServer.requests().filter((req) => req.method !== 'OPTIONS'); // ignore cors preflight requests from the browser
 }
 
 function isFunction(functionToCheck) {
@@ -480,6 +492,23 @@ for (const name of Object.keys(steps.then)) {
         this,
         algodSeenRequests,
         indexerSeenRequests,
+        expectedRequestPath
+      );
+    });
+  } else if (name === 'expect the request to be {string} {string}') {
+    Then(name, function (expectedRequestType, expectedRequestPath) {
+      // get all requests the mockservers have seen since reset
+      const algodSeenRequests = getMockServerRequests(
+        algodMockServerPathRecorder
+      );
+      const indexerSeenRequests = getMockServerRequests(
+        indexerMockServerPathRecorder
+      );
+      return fn.call(
+        this,
+        algodSeenRequests,
+        indexerSeenRequests,
+        expectedRequestType,
         expectedRequestPath
       );
     });

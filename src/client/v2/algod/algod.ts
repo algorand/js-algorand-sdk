@@ -38,6 +38,8 @@ import Disassemble from './disassemble';
 import SimulateRawTransactions from './simulateTransaction';
 import { EncodedSignedTransaction } from '../../../types';
 import * as encoding from '../../../encoding/encoding';
+import Ready from './ready';
+import UnsetSyncRound from './unsetSyncRound';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -706,6 +708,21 @@ export default class AlgodClient extends ServiceClient {
   }
 
   /**
+   * Un-Set the sync round on the ledger (algod must have EnableFollowMode: true), removing the restriction on catchup.
+   *
+   *  #### Example
+   *  ```typesecript
+   *  await client.unsetSyncRound().do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#delete-v2ledgersyncround)
+   * @category DELETE
+   */
+  unsetSyncRound() {
+    return new UnsetSyncRound(this.c, this.intDecoding);
+  }
+
+  /**
    * Get the current sync round on the ledger (algod must have EnableFollowMode: true).
    *
    *  #### Example
@@ -718,5 +735,20 @@ export default class AlgodClient extends ServiceClient {
    */
   getSyncRound() {
     return new GetSyncRound(this.c, this.intDecoding);
+  }
+
+  /**
+   * Ready check which returns 200 OK if algod is healthy and caught up
+   *
+   *  #### Example
+   *  ```typesecript
+   *  await client.ready().do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-ready)
+   * @category GET
+   */
+  ready() {
+    return new Ready(this.c, this.intDecoding);
   }
 }
