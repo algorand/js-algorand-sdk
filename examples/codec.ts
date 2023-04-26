@@ -20,6 +20,14 @@ async function main() {
   console.log(address, addr);
   // example: CODEC_ADDRESS
 
+  // example: CODEC_APPLICATION_ACCOUNT
+  const appId = 123;
+  const appAddr = algosdk.getApplicationAddress(appId);
+
+  console.log(`Application ID:      ${  appId}`);
+  console.log(`Application Address: ${  appAddr}`);
+  // example: CODEC_APPLICATION_ACCOUNT
+
   // example: CODEC_BASE64
   const b64Encoded = 'SGksIEknbSBkZWNvZGVkIGZyb20gYmFzZTY0';
   const b64Decoded = Buffer.from(b64Encoded, 'base64').toString();
