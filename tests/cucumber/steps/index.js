@@ -226,7 +226,7 @@ AfterAll(async () => {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+  'Access-Control-Allow-Methods': 'OPTIONS, POST, GET, DELETE',
   'Access-Control-Allow-Headers':
     'X-Algo-API-Token, X-Indexer-API-Token, Content-Type',
   'Access-Control-Max-Age': 2592000,
@@ -332,8 +332,11 @@ function getMockServerRequestUrls(mockServer) {
     .map((req) => req.url);
 }
 
-function getMockServerRequests(mockServer) {
-  return mockServer.requests().filter((req) => req.method !== 'OPTIONS'); // ignore cors preflight requests from the browser
+function getMockServerRequestUrlsMethods(mockServer) {
+  return mockServer
+    .requests()
+    .filter((req) => req.method !== 'OPTIONS') // ignore cors preflight requests from the browser
+    .map((req) => ({ method: req.method, url: req.url }));
 }
 
 function isFunction(functionToCheck) {
@@ -498,10 +501,10 @@ for (const name of Object.keys(steps.then)) {
   } else if (name === 'expect the request to be {string} {string}') {
     Then(name, function (expectedRequestType, expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequests(
+      const algodSeenRequests = getMockServerRequestUrlsMethods(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequests(
+      const indexerSeenRequests = getMockServerRequestUrlsMethods(
         indexerMockServerPathRecorder
       );
       return fn.call(
