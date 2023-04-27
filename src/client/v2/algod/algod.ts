@@ -715,7 +715,7 @@ export default class AlgodClient extends ServiceClient {
    *  await client.unsetSyncRound().do();
    *  ```
    *
-   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#delete-v2ledgersyncround)
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#delete-v2ledgersync)
    * @category DELETE
    */
   unsetSyncRound() {
