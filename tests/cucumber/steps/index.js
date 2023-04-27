@@ -325,13 +325,6 @@ function setupMockServerForPaths(mockServer) {
   });
 }
 
-function getMockServerRequestUrls(mockServer) {
-  return mockServer
-    .requests()
-    .filter((req) => req.method !== 'OPTIONS') // ignore cors preflight requests from the browser
-    .map((req) => req.url);
-}
-
 function getMockServerRequestUrlsMethods(mockServer) {
   return mockServer
     .requests()
@@ -485,10 +478,10 @@ for (const name of Object.keys(steps.then)) {
   if (name === 'expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrls(
+      const algodSeenRequests = getMockServerRequestUrlsMethods(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrls(
+      const indexerSeenRequests = getMockServerRequestUrlsMethods(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -518,10 +511,10 @@ for (const name of Object.keys(steps.then)) {
   } else if (name === 'we expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrls(
+      const algodSeenRequests = getMockServerRequestUrlsMethods(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrls(
+      const indexerSeenRequests = getMockServerRequestUrlsMethods(
         indexerMockServerPathRecorder
       );
       return fn.call(

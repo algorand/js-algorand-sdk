@@ -1607,13 +1607,13 @@ module.exports = function getSteps(options) {
   Then(
     'expect the path used to be {string}',
     (algodSeenRequests, indexerSeenRequests, expectedRequestPath) => {
-      let actualRequestPath;
+      let actualRequest;
       if (algodSeenRequests.length !== 0) {
-        [actualRequestPath] = algodSeenRequests;
+        [actualRequest] = algodSeenRequests;
       } else if (indexerSeenRequests.length !== 0) {
-        [actualRequestPath] = indexerSeenRequests;
+        [actualRequest] = indexerSeenRequests;
       }
-      assert.strictEqual(actualRequestPath, expectedRequestPath);
+      assert.strictEqual(actualRequest.url, expectedRequestPath);
     }
   );
 
