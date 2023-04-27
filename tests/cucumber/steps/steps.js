@@ -1607,13 +1607,35 @@ module.exports = function getSteps(options) {
   Then(
     'expect the path used to be {string}',
     (algodSeenRequests, indexerSeenRequests, expectedRequestPath) => {
-      let actualRequestPath;
+      let actualRequest;
       if (algodSeenRequests.length !== 0) {
-        [actualRequestPath] = algodSeenRequests;
+        [actualRequest] = algodSeenRequests;
       } else if (indexerSeenRequests.length !== 0) {
-        [actualRequestPath] = indexerSeenRequests;
+        [actualRequest] = indexerSeenRequests;
       }
-      assert.strictEqual(actualRequestPath, expectedRequestPath);
+      assert.strictEqual(actualRequest.url, expectedRequestPath);
+    }
+  );
+
+  Then(
+    'expect the request to be {string} {string}',
+    (
+      algodSeenRequests,
+      indexerSeenRequests,
+      expectedRequestType,
+      expectedRequestPath
+    ) => {
+      let actualRequest;
+      if (algodSeenRequests.length !== 0) {
+        [actualRequest] = algodSeenRequests;
+      } else if (indexerSeenRequests.length !== 0) {
+        [actualRequest] = indexerSeenRequests;
+      }
+      assert.strictEqual(
+        actualRequest.method.toLowerCase(),
+        expectedRequestType.toLowerCase()
+      );
+      assert.strictEqual(actualRequest.url, expectedRequestPath);
     }
   );
 
@@ -4691,6 +4713,36 @@ module.exports = function getSteps(options) {
       assert.deepStrictEqual(makeArray(...failedAt), makeArray(...failPath));
     }
   );
+
+  When('we make a Ready call', async function () {
+    await this.v2Client.ready().do();
+  });
+
+  When(
+    'we make a SetBlockTimeStampOffset call against offset {int}',
+    async function (offset) {
+      await this.v2Client.setBlockOffsetTimestamp(offset).do();
+    }
+  );
+
+  When('we make a GetBlockTimeStampOffset call', async function () {
+    await this.v2Client.getBlockOffsetTimestamp().doRaw();
+  });
+
+  When(
+    'we make a SetSyncRound call against round {int}',
+    async function (round) {
+      await this.v2Client.setSyncRound(round).do();
+    }
+  );
+
+  When('we make a GetSyncRound call', async function () {
+    await this.v2Client.getSyncRound().doRaw();
+  });
+
+  When('we make a UnsetSyncRound call', async function () {
+    await this.v2Client.unsetSyncRound().do();
+  });
 
   if (!options.ignoreReturn) {
     return steps;
