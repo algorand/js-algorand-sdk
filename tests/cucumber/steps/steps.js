@@ -4728,7 +4728,7 @@ module.exports = function getSteps(options) {
   });
 
   Then(
-    'I attach the simulate request to simulate the transaction group.',
+    'I simulate the transaction group with the simulate request.',
     async function () {
       this.composerExecuteResponse = await this.composer.simulate(
         this.v2Client,
