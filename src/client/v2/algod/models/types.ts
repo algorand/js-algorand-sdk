@@ -2433,6 +2433,132 @@ export class EvalDeltaKeyValue extends BaseModel {
 }
 
 /**
+ * Response containing the timestamp offset in seconds
+ */
+export class GetBlockTimeStampOffsetResponse extends BaseModel {
+  /**
+   * Timestamp offset in seconds.
+   */
+  public offset: number | bigint;
+
+  /**
+   * Creates a new `GetBlockTimeStampOffsetResponse` object.
+   * @param offset - Timestamp offset in seconds.
+   */
+  constructor({ offset }: { offset: number | bigint }) {
+    super();
+    this.offset = offset;
+
+    this.attribute_map = {
+      offset: 'offset',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): GetBlockTimeStampOffsetResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['offset'] === 'undefined')
+      throw new Error(`Response is missing required field 'offset': ${data}`);
+    return new GetBlockTimeStampOffsetResponse({
+      offset: data['offset'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Response containing the ledger's minimum sync round
+ */
+export class GetSyncRoundResponse extends BaseModel {
+  /**
+   * The minimum sync round for the ledger.
+   */
+  public round: number | bigint;
+
+  /**
+   * Creates a new `GetSyncRoundResponse` object.
+   * @param round - The minimum sync round for the ledger.
+   */
+  constructor({ round }: { round: number | bigint }) {
+    super();
+    this.round = round;
+
+    this.attribute_map = {
+      round: 'round',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): GetSyncRoundResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
+    return new GetSyncRoundResponse({
+      round: data['round'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * A single Delta containing the key, the previous value and the current value for
+ * a single round.
+ */
+export class KvDelta extends BaseModel {
+  /**
+   * The key, base64 encoded.
+   */
+  public key?: Uint8Array;
+
+  /**
+   * The new value of the KV store entry, base64 encoded.
+   */
+  public value?: Uint8Array;
+
+  /**
+   * Creates a new `KvDelta` object.
+   * @param key - The key, base64 encoded.
+   * @param value - The new value of the KV store entry, base64 encoded.
+   */
+  constructor({
+    key,
+    value,
+  }: {
+    key?: string | Uint8Array;
+    value?: string | Uint8Array;
+  }) {
+    super();
+    this.key =
+      typeof key === 'string'
+        ? new Uint8Array(Buffer.from(key, 'base64'))
+        : key;
+    this.value =
+      typeof value === 'string'
+        ? new Uint8Array(Buffer.from(value, 'base64'))
+        : value;
+
+    this.attribute_map = {
+      key: 'key',
+      value: 'value',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): KvDelta {
+    /* eslint-disable dot-notation */
+    return new KvDelta({
+      key: data['key'],
+      value: data['value'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Proof of membership and position of a light block header.
  */
 export class LightBlockHeaderProof extends BaseModel {
@@ -2608,6 +2734,46 @@ export class NodeStatusResponse extends BaseModel {
   public lastCatchpoint?: string;
 
   /**
+   * Upgrade delay
+   */
+  public upgradeDelay?: number | bigint;
+
+  /**
+   * Next protocol round
+   */
+  public upgradeNextProtocolVoteBefore?: number | bigint;
+
+  /**
+   * No votes cast for consensus upgrade
+   */
+  public upgradeNoVotes?: number | bigint;
+
+  /**
+   * This node's upgrade vote
+   */
+  public upgradeNodeVote?: boolean;
+
+  /**
+   * Total voting rounds for current upgrade
+   */
+  public upgradeVoteRounds?: number | bigint;
+
+  /**
+   * Total votes cast for consensus upgrade
+   */
+  public upgradeVotes?: number | bigint;
+
+  /**
+   * Yes votes required for consensus upgrade
+   */
+  public upgradeVotesRequired?: number | bigint;
+
+  /**
+   * Yes votes cast for consensus upgrade
+   */
+  public upgradeYesVotes?: number | bigint;
+
+  /**
    * Creates a new `NodeStatusResponse` object.
    * @param catchupTime - CatchupTime in nanoseconds
    * @param lastRound - LastRound indicates the last round seen
@@ -2635,6 +2801,14 @@ export class NodeStatusResponse extends BaseModel {
    * @param catchpointVerifiedKvs - The number of key-values (KVs) from the current catchpoint that have been
    * verified so far as part of the catchup
    * @param lastCatchpoint - The last catchpoint seen by the node
+   * @param upgradeDelay - Upgrade delay
+   * @param upgradeNextProtocolVoteBefore - Next protocol round
+   * @param upgradeNoVotes - No votes cast for consensus upgrade
+   * @param upgradeNodeVote - This node's upgrade vote
+   * @param upgradeVoteRounds - Total voting rounds for current upgrade
+   * @param upgradeVotes - Total votes cast for consensus upgrade
+   * @param upgradeVotesRequired - Yes votes required for consensus upgrade
+   * @param upgradeYesVotes - Yes votes cast for consensus upgrade
    */
   constructor({
     catchupTime,
@@ -2655,6 +2829,14 @@ export class NodeStatusResponse extends BaseModel {
     catchpointVerifiedAccounts,
     catchpointVerifiedKvs,
     lastCatchpoint,
+    upgradeDelay,
+    upgradeNextProtocolVoteBefore,
+    upgradeNoVotes,
+    upgradeNodeVote,
+    upgradeVoteRounds,
+    upgradeVotes,
+    upgradeVotesRequired,
+    upgradeYesVotes,
   }: {
     catchupTime: number | bigint;
     lastRound: number | bigint;
@@ -2674,6 +2856,14 @@ export class NodeStatusResponse extends BaseModel {
     catchpointVerifiedAccounts?: number | bigint;
     catchpointVerifiedKvs?: number | bigint;
     lastCatchpoint?: string;
+    upgradeDelay?: number | bigint;
+    upgradeNextProtocolVoteBefore?: number | bigint;
+    upgradeNoVotes?: number | bigint;
+    upgradeNodeVote?: boolean;
+    upgradeVoteRounds?: number | bigint;
+    upgradeVotes?: number | bigint;
+    upgradeVotesRequired?: number | bigint;
+    upgradeYesVotes?: number | bigint;
   }) {
     super();
     this.catchupTime = catchupTime;
@@ -2694,6 +2884,14 @@ export class NodeStatusResponse extends BaseModel {
     this.catchpointVerifiedAccounts = catchpointVerifiedAccounts;
     this.catchpointVerifiedKvs = catchpointVerifiedKvs;
     this.lastCatchpoint = lastCatchpoint;
+    this.upgradeDelay = upgradeDelay;
+    this.upgradeNextProtocolVoteBefore = upgradeNextProtocolVoteBefore;
+    this.upgradeNoVotes = upgradeNoVotes;
+    this.upgradeNodeVote = upgradeNodeVote;
+    this.upgradeVoteRounds = upgradeVoteRounds;
+    this.upgradeVotes = upgradeVotes;
+    this.upgradeVotesRequired = upgradeVotesRequired;
+    this.upgradeYesVotes = upgradeYesVotes;
 
     this.attribute_map = {
       catchupTime: 'catchup-time',
@@ -2714,6 +2912,14 @@ export class NodeStatusResponse extends BaseModel {
       catchpointVerifiedAccounts: 'catchpoint-verified-accounts',
       catchpointVerifiedKvs: 'catchpoint-verified-kvs',
       lastCatchpoint: 'last-catchpoint',
+      upgradeDelay: 'upgrade-delay',
+      upgradeNextProtocolVoteBefore: 'upgrade-next-protocol-vote-before',
+      upgradeNoVotes: 'upgrade-no-votes',
+      upgradeNodeVote: 'upgrade-node-vote',
+      upgradeVoteRounds: 'upgrade-vote-rounds',
+      upgradeVotes: 'upgrade-votes',
+      upgradeVotesRequired: 'upgrade-votes-required',
+      upgradeYesVotes: 'upgrade-yes-votes',
     };
   }
 
@@ -2771,6 +2977,14 @@ export class NodeStatusResponse extends BaseModel {
       catchpointVerifiedAccounts: data['catchpoint-verified-accounts'],
       catchpointVerifiedKvs: data['catchpoint-verified-kvs'],
       lastCatchpoint: data['last-catchpoint'],
+      upgradeDelay: data['upgrade-delay'],
+      upgradeNextProtocolVoteBefore: data['upgrade-next-protocol-vote-before'],
+      upgradeNoVotes: data['upgrade-no-votes'],
+      upgradeNodeVote: data['upgrade-node-vote'],
+      upgradeVoteRounds: data['upgrade-vote-rounds'],
+      upgradeVotes: data['upgrade-votes'],
+      upgradeVotesRequired: data['upgrade-votes-required'],
+      upgradeYesVotes: data['upgrade-yes-votes'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3094,15 +3308,41 @@ export class SimulateRequest extends BaseModel {
   public txnGroups: SimulateRequestTransactionGroup[];
 
   /**
+   * Allow transactions without signatures to be simulated as if they had correct
+   * signatures.
+   */
+  public allowEmptySignatures?: boolean;
+
+  /**
+   * Lifts limits on log opcode usage during simulation.
+   */
+  public allowMoreLogging?: boolean;
+
+  /**
    * Creates a new `SimulateRequest` object.
    * @param txnGroups - The transaction groups to simulate.
+   * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
+   * signatures.
+   * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
    */
-  constructor({ txnGroups }: { txnGroups: SimulateRequestTransactionGroup[] }) {
+  constructor({
+    txnGroups,
+    allowEmptySignatures,
+    allowMoreLogging,
+  }: {
+    txnGroups: SimulateRequestTransactionGroup[];
+    allowEmptySignatures?: boolean;
+    allowMoreLogging?: boolean;
+  }) {
     super();
     this.txnGroups = txnGroups;
+    this.allowEmptySignatures = allowEmptySignatures;
+    this.allowMoreLogging = allowMoreLogging;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
+      allowEmptySignatures: 'allow-empty-signatures',
+      allowMoreLogging: 'allow-more-logging',
     };
   }
 
@@ -3117,6 +3357,8 @@ export class SimulateRequest extends BaseModel {
       txnGroups: data['txn-groups'].map(
         SimulateRequestTransactionGroup.from_obj_for_encoding
       ),
+      allowEmptySignatures: data['allow-empty-signatures'],
+      allowMoreLogging: data['allow-more-logging'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3181,11 +3423,11 @@ export class SimulateResponse extends BaseModel {
   public version: number | bigint;
 
   /**
-   * Indicates whether the simulated transactions would have succeeded during an
-   * actual submission. If any transaction fails or is missing a signature, this will
-   * be false.
+   * The set of parameters and limits override during simulation. If this set of
+   * parameters is present, then evaluation parameters may differ from standard
+   * evaluation in certain ways.
    */
-  public wouldSucceed: boolean;
+  public evalOverrides?: SimulationEvalOverrides;
 
   /**
    * Creates a new `SimulateResponse` object.
@@ -3193,32 +3435,32 @@ export class SimulateResponse extends BaseModel {
    * round were used to run this simulation.
    * @param txnGroups - A result object for each transaction group that was simulated.
    * @param version - The version of this response object.
-   * @param wouldSucceed - Indicates whether the simulated transactions would have succeeded during an
-   * actual submission. If any transaction fails or is missing a signature, this will
-   * be false.
+   * @param evalOverrides - The set of parameters and limits override during simulation. If this set of
+   * parameters is present, then evaluation parameters may differ from standard
+   * evaluation in certain ways.
    */
   constructor({
     lastRound,
     txnGroups,
     version,
-    wouldSucceed,
+    evalOverrides,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
-    wouldSucceed: boolean;
+    evalOverrides?: SimulationEvalOverrides;
   }) {
     super();
     this.lastRound = lastRound;
     this.txnGroups = txnGroups;
     this.version = version;
-    this.wouldSucceed = wouldSucceed;
+    this.evalOverrides = evalOverrides;
 
     this.attribute_map = {
       lastRound: 'last-round',
       txnGroups: 'txn-groups',
       version: 'version',
-      wouldSucceed: 'would-succeed',
+      evalOverrides: 'eval-overrides',
     };
   }
 
@@ -3235,17 +3477,18 @@ export class SimulateResponse extends BaseModel {
       );
     if (typeof data['version'] === 'undefined')
       throw new Error(`Response is missing required field 'version': ${data}`);
-    if (typeof data['would-succeed'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'would-succeed': ${data}`
-      );
     return new SimulateResponse({
       lastRound: data['last-round'],
       txnGroups: data['txn-groups'].map(
         SimulateTransactionGroupResult.from_obj_for_encoding
       ),
       version: data['version'],
-      wouldSucceed: data['would-succeed'],
+      evalOverrides:
+        typeof data['eval-overrides'] !== 'undefined'
+          ? SimulationEvalOverrides.from_obj_for_encoding(
+              data['eval-overrides']
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3369,41 +3612,31 @@ export class SimulateTransactionResult extends BaseModel {
   public logicSigBudgetConsumed?: number | bigint;
 
   /**
-   * A boolean indicating whether this transaction is missing signatures
-   */
-  public missingSignature?: boolean;
-
-  /**
    * Creates a new `SimulateTransactionResult` object.
    * @param txnResult - Details about a pending transaction. If the transaction was recently confirmed,
    * includes confirmation details like the round and reward details.
    * @param appBudgetConsumed - Budget used during execution of an app call transaction. This value includes
    * budged used by inner app calls spawned by this transaction.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
-   * @param missingSignature - A boolean indicating whether this transaction is missing signatures
    */
   constructor({
     txnResult,
     appBudgetConsumed,
     logicSigBudgetConsumed,
-    missingSignature,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
     logicSigBudgetConsumed?: number | bigint;
-    missingSignature?: boolean;
   }) {
     super();
     this.txnResult = txnResult;
     this.appBudgetConsumed = appBudgetConsumed;
     this.logicSigBudgetConsumed = logicSigBudgetConsumed;
-    this.missingSignature = missingSignature;
 
     this.attribute_map = {
       txnResult: 'txn-result',
       appBudgetConsumed: 'app-budget-consumed',
       logicSigBudgetConsumed: 'logic-sig-budget-consumed',
-      missingSignature: 'missing-signature',
     };
   }
 
@@ -3422,7 +3655,70 @@ export class SimulateTransactionResult extends BaseModel {
       ),
       appBudgetConsumed: data['app-budget-consumed'],
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
-      missingSignature: data['missing-signature'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The set of parameters and limits override during simulation. If this set of
+ * parameters is present, then evaluation parameters may differ from standard
+ * evaluation in certain ways.
+ */
+export class SimulationEvalOverrides extends BaseModel {
+  /**
+   * If true, transactions without signatures are allowed and simulated as if they
+   * were properly signed.
+   */
+  public allowEmptySignatures?: boolean;
+
+  /**
+   * The maximum log calls one can make during simulation
+   */
+  public maxLogCalls?: number | bigint;
+
+  /**
+   * The maximum byte number to log during simulation
+   */
+  public maxLogSize?: number | bigint;
+
+  /**
+   * Creates a new `SimulationEvalOverrides` object.
+   * @param allowEmptySignatures - If true, transactions without signatures are allowed and simulated as if they
+   * were properly signed.
+   * @param maxLogCalls - The maximum log calls one can make during simulation
+   * @param maxLogSize - The maximum byte number to log during simulation
+   */
+  constructor({
+    allowEmptySignatures,
+    maxLogCalls,
+    maxLogSize,
+  }: {
+    allowEmptySignatures?: boolean;
+    maxLogCalls?: number | bigint;
+    maxLogSize?: number | bigint;
+  }) {
+    super();
+    this.allowEmptySignatures = allowEmptySignatures;
+    this.maxLogCalls = maxLogCalls;
+    this.maxLogSize = maxLogSize;
+
+    this.attribute_map = {
+      allowEmptySignatures: 'allow-empty-signatures',
+      maxLogCalls: 'max-log-calls',
+      maxLogSize: 'max-log-size',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationEvalOverrides {
+    /* eslint-disable dot-notation */
+    return new SimulationEvalOverrides({
+      allowEmptySignatures: data['allow-empty-signatures'],
+      maxLogCalls: data['max-log-calls'],
+      maxLogSize: data['max-log-size'],
     });
     /* eslint-enable dot-notation */
   }
