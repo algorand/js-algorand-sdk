@@ -12,7 +12,12 @@ import {
   ABIValue,
 } from './abi';
 import Algodv2 from './client/v2/algod/algod';
-import { SimulateResponse } from './client/v2/algod/models/types';
+import {
+  SimulateResponse,
+  SimulateRequest,
+  SimulateRequestTransactionGroup,
+} from './client/v2/algod/models/types';
+import { EncodedSignedTransaction } from './types';
 import { assignGroupID } from './group';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
 import {
@@ -27,6 +32,7 @@ import {
   SuggestedParams,
 } from './types/transactions/base';
 import { waitForConfirmation } from './wait';
+import * as encoding from './encoding/encoding';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
@@ -615,7 +621,8 @@ export class AtomicTransactionComposer {
    *   in this group (ABIResult[]) and the SimulateResponse object.
    */
   async simulate(
-    client: Algodv2
+    client: Algodv2,
+    request?: SimulateRequest
   ): Promise<{
     methodResults: ABIResult[];
     simulateResponse: SimulateResponse;
@@ -627,8 +634,24 @@ export class AtomicTransactionComposer {
     }
 
     const stxns = await this.gatherSignatures();
+    const txnObjects: EncodedSignedTransaction[] = stxns.map(
+      (stxn) => encoding.decode(stxn) as EncodedSignedTransaction
+    );
 
-    const simulateResponse = await client.simulateRawTransactions(stxns).do();
+    const currentRequest: SimulateRequest = new SimulateRequest({
+      txnGroups: [
+        new SimulateRequestTransactionGroup({
+          txns: txnObjects,
+        }),
+      ],
+      allowMoreLogging: request == null ? null : request.allowMoreLogging,
+      allowEmptySignatures:
+        request == null ? null : request.allowEmptySignatures,
+    });
+
+    const simulateResponse = await client
+      .simulateTransactions(currentRequest)
+      .do();
 
     // Parse method response
     const methodResults: ABIResult[] = [];

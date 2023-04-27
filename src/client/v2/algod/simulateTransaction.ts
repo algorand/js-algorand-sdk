@@ -30,7 +30,7 @@ export default class SimulateRawTransactions extends JSONRequest<
   constructor(c: HTTPClient, request: SimulateRequest) {
     super(c);
     this.query.format = 'msgpack';
-    this.requestBytes = encoding.encode(request.get_obj_for_encoding(true));
+    this.requestBytes = encoding.rawEncode(request.get_obj_for_encoding(true));
   }
 
   // eslint-disable-next-line class-methods-use-this

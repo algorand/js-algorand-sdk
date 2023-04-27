@@ -4666,7 +4666,9 @@ module.exports = function getSteps(options) {
   Then(
     'the simulation should succeed without any failure message',
     async function () {
-      assert.deepStrictEqual(true, this.simulateResponse.wouldSucceed);
+      for (const txnGroup of this.simulateResponse.txnGroups) {
+        assert.deepStrictEqual(undefined, txnGroup.failedMessage);
+      }
     }
   );
 
@@ -4678,7 +4680,6 @@ module.exports = function getSteps(options) {
       const txnIndexes = stringPath.map((n) => parseInt(n, 10));
       const groupNum = parseInt(txnGroupIndex, 10);
 
-      assert.deepStrictEqual(false, this.simulateResponse.wouldSucceed);
       // Check for missing signature flag
       for (const txnIndex of txnIndexes) {
         assert.deepStrictEqual(
@@ -4702,7 +4703,6 @@ module.exports = function getSteps(options) {
 
       const failedMessage = this.simulateResponse.txnGroups[groupNum]
         .failureMessage;
-      assert.ok(!this.simulateResponse.wouldSucceed);
       assert.ok(
         failedMessage.includes(errorMsg),
         `Error message: "${failedMessage}" does not contain "${errorMsg}"`
@@ -4711,6 +4711,46 @@ module.exports = function getSteps(options) {
       // Check path array
       const { failedAt } = this.simulateResponse.txnGroups[groupNum];
       assert.deepStrictEqual(makeArray(...failedAt), makeArray(...failPath));
+    }
+  );
+
+  When('I make a new simulate request.', async function () {
+    this.simulateRequest = new algosdk.modelsv2.SimulateRequest(
+      [],
+      false,
+      false
+    );
+  });
+
+  Then('I allow more logs on that simulate request.', async function () {
+    // Write code here that turns the phrase above into concrete actions
+    this.simulateRequest.allowMoreLogging = true;
+  });
+
+  Then(
+    'I attach the simulate request to simulate the transaction group.',
+    async function () {
+      this.composerExecuteResponse = await this.composer.simulate(
+        this.v2Client,
+        this.simulateRequest
+      );
+      this.simulateResponse = this.composerExecuteResponse.simulateResponse;
+      this.methodResults = this.composerExecuteResponse.methodResults;
+    }
+  );
+
+  Then(
+    'I check the simulation result has power packs allow-more-logging.',
+    async function () {
+      assert.notDeepStrictEqual(undefined, this.simulateResponse.evalOverrides);
+      assert.notDeepStrictEqual(
+        undefined,
+        this.simulateResponse.evalOverrides.maxLogCalls
+      );
+      assert.notDeepStrictEqual(
+        undefined,
+        this.simulateResponse.evalOverrides.maxLogSize
+      );
     }
   );
 
