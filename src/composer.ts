@@ -644,9 +644,9 @@ export class AtomicTransactionComposer {
           txns: txnObjects,
         }),
       ],
-      allowMoreLogging: request == null ? null : request.allowMoreLogging,
+      allowMoreLogging: request == null ? false : request.allowMoreLogging,
       allowEmptySignatures:
-        request == null ? null : request.allowEmptySignatures,
+        request == null ? false : request.allowEmptySignatures,
     });
 
     const simulateResponse = await client
