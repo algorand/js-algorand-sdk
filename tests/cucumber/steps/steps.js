@@ -4715,11 +4715,9 @@ module.exports = function getSteps(options) {
   );
 
   When('I make a new simulate request.', async function () {
-    this.simulateRequest = new algosdk.modelsv2.SimulateRequest(
-      [],
-      false,
-      false
-    );
+    this.simulateRequest = new algosdk.modelsv2.SimulateRequest({
+      txnGroups: [],
+    });
   });
 
   Then('I allow more logs on that simulate request.', async function () {

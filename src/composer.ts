@@ -615,6 +615,9 @@ export class AtomicTransactionComposer {
    * Simulating the group will not change the composer's status.
    *
    * @param client - An Algodv2 client
+   * @param request - SimulateRequest with options in simulation.
+   *   If provided, the request's transaction group will be overrwritten by the composer's group,
+   *   only simulation related options will be used.
    *
    * @returns A promise that, upon success, resolves to an object containing an
    *   array of results containing one element for each method call transaction
@@ -638,16 +641,14 @@ export class AtomicTransactionComposer {
       (stxn) => encoding.decode(stxn) as EncodedSignedTransaction
     );
 
-    const currentRequest: SimulateRequest = new SimulateRequest({
-      txnGroups: [
-        new SimulateRequestTransactionGroup({
-          txns: txnObjects,
-        }),
-      ],
-      allowMoreLogging: request == null ? false : request.allowMoreLogging,
-      allowEmptySignatures:
-        request == null ? false : request.allowEmptySignatures,
-    });
+    const currentRequest: SimulateRequest =
+      request == null ? new SimulateRequest({ txnGroups: [] }) : request;
+
+    currentRequest.txnGroups = [
+      new SimulateRequestTransactionGroup({
+        txns: txnObjects,
+      }),
+    ];
 
     const simulateResponse = await client
       .simulateTransactions(currentRequest)
