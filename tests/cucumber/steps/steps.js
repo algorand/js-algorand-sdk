@@ -4723,7 +4723,6 @@ module.exports = function getSteps(options) {
   });
 
   Then('I allow more logs on that simulate request.', async function () {
-    // Write code here that turns the phrase above into concrete actions
     this.simulateRequest.allowMoreLogging = true;
   });
 
