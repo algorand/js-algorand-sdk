@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
+import { CompileResponse } from './models/types';
 
 /**
  * Sets the default header (if not previously set)
@@ -18,7 +19,7 @@ export function setHeaders(headers = {}) {
 /**
  * Executes compile
  */
-export default class Compile extends JSONRequest {
+export default class Compile extends JSONRequest<CompileResponse> {
   constructor(c: HTTPClient, private source: string | Uint8Array) {
     super(c);
     this.source = source;

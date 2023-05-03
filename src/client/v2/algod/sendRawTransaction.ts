@@ -2,6 +2,7 @@ import { Buffer } from 'buffer';
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import { concatArrays } from '../../../utils/utils';
+import { PostTransactionsResponse } from './models/types';
 
 /**
  * Sets the default header (if not previously set) for sending a raw
@@ -24,7 +25,7 @@ function isByteArray(array: any): array is Uint8Array {
 /**
  * broadcasts the passed signed txns to the network
  */
-export default class SendRawTransaction extends JSONRequest {
+export default class SendRawTransaction extends JSONRequest<PostTransactionsResponse> {
   private txnBytesToPost: Uint8Array;
 
   constructor(c: HTTPClient, stxOrStxs: Uint8Array | Uint8Array[]) {

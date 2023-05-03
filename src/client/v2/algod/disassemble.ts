@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
+import { DisassembleResponse } from './models/types';
 
 /**
  * Sets the default header (if not previously set)
@@ -18,7 +19,7 @@ export function setHeaders(headers = {}) {
 /**
  * Executes disassemble
  */
-export default class Disassemble extends JSONRequest {
+export default class Disassemble extends JSONRequest<DisassembleResponse> {
   constructor(c: HTTPClient, private source: string | Uint8Array) {
     super(c);
     this.source = source;

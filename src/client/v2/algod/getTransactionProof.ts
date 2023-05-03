@@ -1,8 +1,9 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { TransactionProofResponse } from './models/types';
 
-export default class GetTransactionProof extends JSONRequest {
+export default class GetTransactionProof extends JSONRequest<TransactionProofResponse> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,

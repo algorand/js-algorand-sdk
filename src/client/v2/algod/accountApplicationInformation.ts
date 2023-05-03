@@ -1,8 +1,9 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { AccountApplicationResponse } from './models/types';
 
-export default class AccountApplicationInformation extends JSONRequest {
+export default class AccountApplicationInformation extends JSONRequest<AccountApplicationResponse> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,

@@ -4,8 +4,9 @@ import HTTPClient from '../../client';
 import * as modelsv2 from './models/types';
 import * as encoding from '../../../encoding/encoding';
 import { setHeaders } from './compile';
+import { DryrunResponse } from './models/types';
 
-export default class Dryrun extends JSONRequest {
+export default class Dryrun extends JSONRequest<DryrunResponse> {
   private blob: Uint8Array;
 
   constructor(c: HTTPClient, dr: modelsv2.DryrunRequest) {

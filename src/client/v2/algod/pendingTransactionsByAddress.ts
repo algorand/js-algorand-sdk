@@ -1,11 +1,12 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import * as encoding from '../../../encoding/encoding';
+import { PendingTransactionsResponse } from './models/types';
 
 /**
  * returns all transactions for a PK [addr] in the [first, last] rounds range.
  */
-export default class PendingTransactionsByAddress extends JSONRequest {
+export default class PendingTransactionsByAddress extends JSONRequest<PendingTransactionsResponse> {
   constructor(c: HTTPClient, private address: string) {
     super(c);
     this.address = address;
@@ -13,9 +14,9 @@ export default class PendingTransactionsByAddress extends JSONRequest {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): Record<string, any> {
+  prepare(body: Uint8Array): PendingTransactionsResponse {
     if (body && body.byteLength > 0) {
-      return encoding.decode(body) as Record<string, any>;
+      return encoding.decode(body) as PendingTransactionsResponse;
     }
     return undefined;
   }
