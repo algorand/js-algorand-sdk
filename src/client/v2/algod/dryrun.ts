@@ -28,6 +28,7 @@ export default class Dryrun extends JSONRequest<DryrunResponse> {
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.blob),
+      null,
       txHeaders
     );
     return res.body;

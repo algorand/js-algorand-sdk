@@ -14,7 +14,7 @@ export default class SetBlockOffsetTimestamp extends JSONRequest {
   }
 
   async do(headers = {}) {
-    const res = await this.c.post(this.path(), headers);
+    const res = await this.c.post(this.path(), null, null, headers);
     return res.body;
   }
 }

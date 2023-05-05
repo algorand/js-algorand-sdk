@@ -54,6 +54,7 @@ export default class SendRawTransaction extends JSONRequest<PostTransactionsResp
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.txnBytesToPost),
+      null,
       txHeaders
     );
     return res.body;

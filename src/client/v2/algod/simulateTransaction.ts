@@ -43,8 +43,8 @@ export default class SimulateRawTransactions extends JSONRequest<
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.requestBytes),
-      txHeaders,
       this.query,
+      txHeaders,
       false
     );
     return this.prepare(res.body);

@@ -39,8 +39,8 @@ export default class Disassemble extends JSONRequest<DisassembleResponse> {
     const res = await this.c.post(
       this.path(),
       Buffer.from(this.source),
-      txHeaders,
-      this.query
+      this.query,
+      txHeaders
     );
     return res.body;
   }
