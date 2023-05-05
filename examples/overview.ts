@@ -45,7 +45,7 @@ async function main() {
 
   // example: ALGOD_FETCH_ACCOUNT_INFO
   const acctInfo = await algodClient.accountInformation(acct.addr).do();
-  console.log(`Account balance: ${acctInfo.amount} microAlgos`);
+  console.log(`Account balance: ${acctInfo.account.amount} microAlgos`);
   // example: ALGOD_FETCH_ACCOUNT_INFO
 }
 main();
