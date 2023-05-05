@@ -1367,8 +1367,8 @@ describe('Sign', () => {
         freeze,
         clawback,
         suggestedParams,
-        true,
-        rekeyTo
+        rekeyTo,
+        true
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
