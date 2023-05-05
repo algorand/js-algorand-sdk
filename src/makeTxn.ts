@@ -350,7 +350,6 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
  * @param reserve - string representation of new reserve Algorand address
  * @param freeze - string representation of new freeze manager Algorand address
  * @param clawback - string representation of new revocation manager Algorand address
- * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
@@ -360,6 +359,7 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
+ * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
  */
 export function makeAssetConfigTxnWithSuggestedParams(
   from: AssetConfigTxn['from'],
@@ -370,8 +370,8 @@ export function makeAssetConfigTxnWithSuggestedParams(
   freeze: AssetConfigTxn['assetFreeze'],
   clawback: AssetConfigTxn['assetClawback'],
   suggestedParams: MustHaveSuggestedParams<AssetConfigTxn>['suggestedParams'],
-  strictEmptyAddressChecking = true,
-  rekeyTo?: AssetConfigTxn['reKeyTo']
+  rekeyTo?: AssetConfigTxn['reKeyTo'],
+  strictEmptyAddressChecking = true
 ) {
   if (
     strictEmptyAddressChecking &&
@@ -436,8 +436,8 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
     o.freeze,
     o.clawback,
     o.suggestedParams,
-    o.strictEmptyAddressChecking,
-    o.rekeyTo
+    o.rekeyTo,
+    o.strictEmptyAddressChecking
   );
 }
 

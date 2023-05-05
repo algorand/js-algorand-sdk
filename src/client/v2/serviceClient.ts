@@ -15,8 +15,8 @@ export type TokenHeaderIdentifier =
  * @param headerIdentifier - An identifier for the token header
  */
 function convertTokenStringToTokenHeader(
-  token: string = '',
-  headerIdentifier: TokenHeaderIdentifier
+  headerIdentifier: TokenHeaderIdentifier,
+  token: string = ''
 ): TokenHeader {
   const tokenHeader = {};
   tokenHeader[headerIdentifier] = token;
@@ -54,8 +54,8 @@ export default abstract class ServiceClient {
       let tokenHeader: TokenHeader;
       if (typeof tokenHeaderOrStrOrBaseClient === 'string') {
         tokenHeader = convertTokenStringToTokenHeader(
-          tokenHeaderOrStrOrBaseClient,
-          tokenHeaderIdentifier
+          tokenHeaderIdentifier,
+          tokenHeaderOrStrOrBaseClient
         );
       } else {
         tokenHeader = tokenHeaderOrStrOrBaseClient;

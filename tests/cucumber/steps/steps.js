@@ -4521,7 +4521,10 @@ module.exports = function getSteps(options) {
   Then(
     'I sleep for {int} milliseconds for indexer to digest things down.',
     async (milliseconds) => {
-      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const sleep = (ms) =>
+        new Promise((r) => {
+          setTimeout(r, ms);
+        });
       await sleep(milliseconds);
     }
   );
