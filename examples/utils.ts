@@ -1,7 +1,8 @@
+import fs from 'fs';
+import path from 'path';
 import { Buffer } from 'buffer';
 import algosdk from '../src';
 
-// example: APP_COMPILE
 export async function compileProgram(
   client: algosdk.Algodv2,
   programSource: string
@@ -12,36 +13,46 @@ export async function compileProgram(
   );
   return compiledBytes;
 }
-// example: APP_COMPILE
 
-// example: CREATE_INDEXER_CLIENT
-export function getLocalIndexerClient() {
-  const indexerToken = '';
-  const indexerServer = 'http://localhost';
-  const indexerPort = 8980;
+export function getLocalKmdClient() {
+  const kmdToken = 'a'.repeat(64);
+  const kmdServer = 'http://localhost';
+  const kmdPort = process.env.KMD_PORT || '4002';
 
-  return new algosdk.Indexer(indexerToken, indexerServer, indexerPort);
+  const kmdClient = new algosdk.Kmd(kmdToken, kmdServer, kmdPort);
+  return kmdClient;
 }
-// example: CREATE_INDEXER_CLIENT
 
-// example: ALGOD_CREATE_CLIENT
+export function getLocalIndexerClient() {
+  const indexerToken = 'a'.repeat(64);
+  const indexerServer = 'http://localhost';
+  const indexerPort = process.env.INDEXER_PORT || '8980';
+
+  const indexerClient = new algosdk.Indexer(
+    indexerToken,
+    indexerServer,
+    indexerPort
+  );
+  return indexerClient;
+}
+
 export function getLocalAlgodClient() {
   const algodToken = 'a'.repeat(64);
   const algodServer = 'http://localhost';
-  const algodPort = 4001;
+  const algodPort = process.env.ALGOD_PORT || '4001';
 
-  return new algosdk.Algodv2(algodToken, algodServer, algodPort);
+  const algodClient = new algosdk.Algodv2(algodToken, algodServer, algodPort);
+  return algodClient;
 }
-// example: ALGOD_CREATE_CLIENT
 
-export async function getLocalAccounts(): Promise<
-  {
-    addr: string;
-    privateKey: Uint8Array;
-    signer: algosdk.TransactionSigner;
-  }[]
-> {
-  const kmdClient = new algosdk.Kmd('a'.repeat(64), 'http://localhost', 4002);
+export interface SandboxAccount {
+  addr: string;
+  privateKey: Uint8Array;
+  signer: algosdk.TransactionSigner;
+}
+
+export async function getLocalAccounts(): Promise<SandboxAccount[]> {
+  const kmdClient = getLocalKmdClient();
 
   const wallets = await kmdClient.listWallets();
 
@@ -81,4 +92,45 @@ export async function getLocalAccounts(): Promise<
       signer,
     };
   });
+}
+
+export async function deployCalculatorApp(
+  algodClient: algosdk.Algodv2,
+  creator: SandboxAccount
+): Promise<number> {
+  const approvalProgram = fs.readFileSync(
+    path.join(__dirname, '/calculator/approval.teal'),
+    'utf8'
+  );
+  const clearProgram = fs.readFileSync(
+    path.join(__dirname, '/calculator/clear.teal'),
+    'utf8'
+  );
+
+  const approvalBin = await compileProgram(algodClient, approvalProgram);
+  const clearBin = await compileProgram(algodClient, clearProgram);
+  const suggestedParams = await algodClient.getTransactionParams().do();
+  const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
+    from: creator.addr,
+    approvalProgram: approvalBin,
+    clearProgram: clearBin,
+    numGlobalByteSlices: 0,
+    numGlobalInts: 0,
+    numLocalByteSlices: 0,
+    numLocalInts: 0,
+    suggestedParams,
+    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+  });
+
+  await algodClient
+    .sendRawTransaction(appCreateTxn.signTxn(creator.privateKey))
+    .do();
+
+  const result = await algosdk.waitForConfirmation(
+    algodClient,
+    appCreateTxn.txID().toString(),
+    3
+  );
+  const appId = result['application-index'];
+  return appId;
 }

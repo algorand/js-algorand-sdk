@@ -10,9 +10,27 @@ import {
 } from './utils';
 import algosdk from '../src';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getIndexerClient(): void {
+  // example: INDEXER_CREATE_CLIENT
+  const indexerToken = 'a'.repeat(64);
+  const indexerServer = 'http://localhost';
+  const indexerPort = 8980;
+
+  const indexerClient = new algosdk.Indexer(
+    indexerToken,
+    indexerServer,
+    indexerPort
+  );
+  // example: INDEXER_CREATE_CLIENT
+
+  console.log(indexerClient);
+}
+
 async function main() {
-  // example: INDEXER_SEARCH_MIN_AMOUNT
   const indexerClient = getLocalIndexerClient();
+
+  // example: INDEXER_SEARCH_MIN_AMOUNT
   const transactionInfo = await indexerClient
     .searchForTransactions()
     .currencyGreaterThan(100)

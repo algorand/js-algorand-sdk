@@ -12,7 +12,7 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
   && apt-get -qqy --no-install-recommends install google-chrome-stable firefox
 
 # install node
-RUN wget -q -O - https://deb.nodesource.com/setup_14.x | bash \
+RUN wget -q -O - https://deb.nodesource.com/setup_16.x | bash \
   && apt-get -qqy --no-install-recommends install nodejs \
   && echo "node version: $(node --version)" \
   && echo "npm version: $(npm --version)"
@@ -32,4 +32,4 @@ RUN npm ci
 RUN npm run prepare-browser-tests
 
 # Run integration tests
-CMD ["/bin/bash", "-c", "make unit && make integration"]
+CMD ["/bin/bash", "-c", "make unit && make integration && make smoke-test-examples"]

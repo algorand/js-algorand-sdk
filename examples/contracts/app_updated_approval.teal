@@ -1,6 +1,0 @@
-#pragma version 8
-txn OnCompletion
-int DeleteApplication
-==
-
-return

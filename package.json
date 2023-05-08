@@ -1,6 +1,6 @@
 {
   "name": "algosdk",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "The official JavaScript SDK for Algorand",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -82,6 +82,6 @@
   "author": "Algorand, llc",
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   }
 }
