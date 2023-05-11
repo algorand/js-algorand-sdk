@@ -24,8 +24,8 @@ async function main() {
   const appId = 123;
   const appAddr = algosdk.getApplicationAddress(appId);
 
-  console.log(`Application ID:      ${  appId}`);
-  console.log(`Application Address: ${  appAddr}`);
+  console.log(`Application ID:      ${appId}`);
+  console.log(`Application Address: ${appAddr}`);
   // example: CODEC_APPLICATION_ACCOUNT
 
   // example: CODEC_BASE64
