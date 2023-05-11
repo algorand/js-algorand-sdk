@@ -12,7 +12,12 @@ import {
   ABIValue,
 } from './abi';
 import Algodv2 from './client/v2/algod/algod';
-import { SimulateResponse } from './client/v2/algod/models/types';
+import {
+  SimulateResponse,
+  SimulateRequest,
+  SimulateRequestTransactionGroup,
+} from './client/v2/algod/models/types';
+import { EncodedSignedTransaction } from './types';
 import { assignGroupID } from './group';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
 import {
@@ -27,6 +32,7 @@ import {
   SuggestedParams,
 } from './types/transactions/base';
 import { waitForConfirmation } from './wait';
+import * as encoding from './encoding/encoding';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
@@ -609,13 +615,17 @@ export class AtomicTransactionComposer {
    * Simulating the group will not change the composer's status.
    *
    * @param client - An Algodv2 client
+   * @param request - SimulateRequest with options in simulation.
+   *   If provided, the request's transaction group will be overrwritten by the composer's group,
+   *   only simulation related options will be used.
    *
    * @returns A promise that, upon success, resolves to an object containing an
    *   array of results containing one element for each method call transaction
    *   in this group (ABIResult[]) and the SimulateResponse object.
    */
   async simulate(
-    client: Algodv2
+    client: Algodv2,
+    request?: SimulateRequest
   ): Promise<{
     methodResults: ABIResult[];
     simulateResponse: SimulateResponse;
@@ -627,8 +637,22 @@ export class AtomicTransactionComposer {
     }
 
     const stxns = await this.gatherSignatures();
+    const txnObjects: EncodedSignedTransaction[] = stxns.map(
+      (stxn) => encoding.decode(stxn) as EncodedSignedTransaction
+    );
 
-    const simulateResponse = await client.simulateRawTransactions(stxns).do();
+    const currentRequest: SimulateRequest =
+      request == null ? new SimulateRequest({ txnGroups: [] }) : request;
+
+    currentRequest.txnGroups = [
+      new SimulateRequestTransactionGroup({
+        txns: txnObjects,
+      }),
+    ];
+
+    const simulateResponse = await client
+      .simulateTransactions(currentRequest)
+      .do();
 
     // Parse method response
     const methodResults: ABIResult[] = [];

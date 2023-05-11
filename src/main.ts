@@ -127,6 +127,13 @@ export {
   BaseHTTPClientResponse,
   BaseHTTPClientError,
 } from './client/baseHTTPClient';
+export {
+  AlgodTokenHeader,
+  IndexerTokenHeader,
+  KMDTokenHeader,
+  CustomTokenHeader,
+  TokenHeader,
+} from './client/urlTokenBaseHTTPClient';
 export { waitForConfirmation } from './wait';
 export {
   isValidAddress,

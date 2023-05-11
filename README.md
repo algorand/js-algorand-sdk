@@ -1,6 +1,6 @@
 # js-algorand-sdk
 
-[![Build Status](https://travis-ci.com/algorand/js-algorand-sdk.svg?branch=master)](https://travis-ci.com/algorand/js-algorand-sdk) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://www.npmjs.com/package/algosdk)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/algorand/js-algorand-sdk/tree/develop.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/algorand/js-algorand-sdk/tree/develop) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://www.npmjs.com/package/algosdk)
 
 AlgoSDK is the official JavaScript library for communicating with the Algorand network. It's designed for modern browsers and Node.js.
 
@@ -14,16 +14,14 @@ $ npm install algosdk
 
 > This package provides TypeScript types, but you will need [TypeScript](https://www.typescriptlang.org/) version 4.2 or higher to use them properly.
 
-For errors in Webpack 5 or Vite projects, you will need to [install extra dependencies](FAQ.md#it-says-error-cant-resolve-in-the-sdk).
-
 ### Browser
 
 Include a minified browser bundle directly in your HTML like so:
 
 ```html
 <script
-  src="https://unpkg.com/algosdk@v2.2.0/dist/browser/algosdk.min.js"
-  integrity="sha384-znctcpmM127r1SpRzV9waJMVOQahRDY2qodrS+rtd0HaYNPPCxDeaXTEu2safkCy"
+  src="https://unpkg.com/algosdk@v2.3.0/dist/browser/algosdk.min.js"
+  integrity="sha384-fgeAt2Eu1e4m+Ci+iZyaZGF3GrvtcavVyjUEFuHyhiRjMi60ape5AxIWR08Js1S9"
   crossorigin="anonymous"
 ></script>
 ```
@@ -32,8 +30,8 @@ or
 
 ```html
 <script
-  src="https://cdn.jsdelivr.net/npm/algosdk@v2.2.0/dist/browser/algosdk.min.js"
-  integrity="sha384-znctcpmM127r1SpRzV9waJMVOQahRDY2qodrS+rtd0HaYNPPCxDeaXTEu2safkCy"
+  src="https://cdn.jsdelivr.net/npm/algosdk@v2.3.0/dist/browser/algosdk.min.js"
+  integrity="sha384-fgeAt2Eu1e4m+Ci+iZyaZGF3GrvtcavVyjUEFuHyhiRjMi60ape5AxIWR08Js1S9"
   crossorigin="anonymous"
 ></script>
 ```

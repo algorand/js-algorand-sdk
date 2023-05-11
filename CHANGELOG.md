@@ -1,3 +1,33 @@
+# v2.3.0
+
+## What's Changed
+
+### Bugfixes
+
+- Docs: Repair the links in the docs to developer.algorand.org by @bbroder-algo in https://github.com/algorand/js-algorand-sdk/pull/755
+- Fix: Allow nonParticipation flag to be a boolean by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/757
+- BugFix: Min fee sp fix by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/760
+
+### New Features
+
+- Simulation: Lift log limits option in SimulateRequest by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/768
+
+### Enhancements
+
+- Docs: Examples by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/754
+- API: Support updated simulate endpoint by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/764
+- algod: Add blockOffsetTimestamp, syncRound APIs to algod client by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/769
+- node: Drop support for node v14, npm audit fix by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/773
+- client: Export token header types by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/772
+- DevOps: Add CODEOWNERS to restrict workflow editing by @onetechnical in https://github.com/algorand/js-algorand-sdk/pull/775
+- Docs: Update README & FAQ by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/774
+
+## New Contributors
+
+- @bbroder-algo made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/755
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.2.0...v2.3.0
+
 # v2.2.0
 
 ## What's Changed
