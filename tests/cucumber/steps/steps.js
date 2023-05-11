@@ -1607,13 +1607,35 @@ module.exports = function getSteps(options) {
   Then(
     'expect the path used to be {string}',
     (algodSeenRequests, indexerSeenRequests, expectedRequestPath) => {
-      let actualRequestPath;
+      let actualRequest;
       if (algodSeenRequests.length !== 0) {
-        [actualRequestPath] = algodSeenRequests;
+        [actualRequest] = algodSeenRequests;
       } else if (indexerSeenRequests.length !== 0) {
-        [actualRequestPath] = indexerSeenRequests;
+        [actualRequest] = indexerSeenRequests;
       }
-      assert.strictEqual(actualRequestPath, expectedRequestPath);
+      assert.strictEqual(actualRequest.url, expectedRequestPath);
+    }
+  );
+
+  Then(
+    'expect the request to be {string} {string}',
+    (
+      algodSeenRequests,
+      indexerSeenRequests,
+      expectedRequestType,
+      expectedRequestPath
+    ) => {
+      let actualRequest;
+      if (algodSeenRequests.length !== 0) {
+        [actualRequest] = algodSeenRequests;
+      } else if (indexerSeenRequests.length !== 0) {
+        [actualRequest] = indexerSeenRequests;
+      }
+      assert.strictEqual(
+        actualRequest.method.toLowerCase(),
+        expectedRequestType.toLowerCase()
+      );
+      assert.strictEqual(actualRequest.url, expectedRequestPath);
     }
   );
 
@@ -4644,7 +4666,9 @@ module.exports = function getSteps(options) {
   Then(
     'the simulation should succeed without any failure message',
     async function () {
-      assert.deepStrictEqual(true, this.simulateResponse.wouldSucceed);
+      for (const txnGroup of this.simulateResponse.txnGroups) {
+        assert.deepStrictEqual(undefined, txnGroup.failedMessage);
+      }
     }
   );
 
@@ -4656,7 +4680,6 @@ module.exports = function getSteps(options) {
       const txnIndexes = stringPath.map((n) => parseInt(n, 10));
       const groupNum = parseInt(txnGroupIndex, 10);
 
-      assert.deepStrictEqual(false, this.simulateResponse.wouldSucceed);
       // Check for missing signature flag
       for (const txnIndex of txnIndexes) {
         assert.deepStrictEqual(
@@ -4680,19 +4703,83 @@ module.exports = function getSteps(options) {
 
       const failedMessage = this.simulateResponse.txnGroups[groupNum]
         .failureMessage;
-      assert.deepStrictEqual(false, this.simulateResponse.wouldSucceed);
-      const errorContainsString = failedMessage.includes(errorMsg);
-      assert.deepStrictEqual(true, errorContainsString);
+      assert.ok(
+        failedMessage.includes(errorMsg),
+        `Error message: "${failedMessage}" does not contain "${errorMsg}"`
+      );
 
       // Check path array
-      // deepStrictEqual fails for firefox tests, so compare array manually.
       const { failedAt } = this.simulateResponse.txnGroups[groupNum];
-      assert.strictEqual(failPath.length, failedAt.length);
-      for (let i = 0; i < failPath.length; i++) {
-        assert.strictEqual(failPath[i], failedAt[i]);
-      }
+      assert.deepStrictEqual(makeArray(...failedAt), makeArray(...failPath));
     }
   );
+
+  When('I make a new simulate request.', async function () {
+    this.simulateRequest = new algosdk.modelsv2.SimulateRequest({
+      txnGroups: [],
+    });
+  });
+
+  Then('I allow more logs on that simulate request.', async function () {
+    this.simulateRequest.allowMoreLogging = true;
+  });
+
+  Then(
+    'I simulate the transaction group with the simulate request.',
+    async function () {
+      this.composerExecuteResponse = await this.composer.simulate(
+        this.v2Client,
+        this.simulateRequest
+      );
+      this.simulateResponse = this.composerExecuteResponse.simulateResponse;
+      this.methodResults = this.composerExecuteResponse.methodResults;
+    }
+  );
+
+  Then(
+    'I check the simulation result has power packs allow-more-logging.',
+    async function () {
+      assert.notDeepStrictEqual(undefined, this.simulateResponse.evalOverrides);
+      assert.notDeepStrictEqual(
+        undefined,
+        this.simulateResponse.evalOverrides.maxLogCalls
+      );
+      assert.notDeepStrictEqual(
+        undefined,
+        this.simulateResponse.evalOverrides.maxLogSize
+      );
+    }
+  );
+
+  When('we make a Ready call', async function () {
+    await this.v2Client.ready().do();
+  });
+
+  When(
+    'we make a SetBlockTimeStampOffset call against offset {int}',
+    async function (offset) {
+      await this.v2Client.setBlockOffsetTimestamp(offset).do();
+    }
+  );
+
+  When('we make a GetBlockTimeStampOffset call', async function () {
+    await this.v2Client.getBlockOffsetTimestamp().doRaw();
+  });
+
+  When(
+    'we make a SetSyncRound call against round {int}',
+    async function (round) {
+      await this.v2Client.setSyncRound(round).do();
+    }
+  );
+
+  When('we make a GetSyncRound call', async function () {
+    await this.v2Client.getSyncRound().doRaw();
+  });
+
+  When('we make a UnsetSyncRound call', async function () {
+    await this.v2Client.unsetSyncRound().do();
+  });
 
   if (!options.ignoreReturn) {
     return steps;

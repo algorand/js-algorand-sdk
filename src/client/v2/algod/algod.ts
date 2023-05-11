@@ -30,8 +30,16 @@ import {
 } from '../../urlTokenBaseHTTPClient';
 import LightBlockHeaderProof from './lightBlockHeaderProof';
 import StateProof from './stateproof';
+import SetSyncRound from './setSyncRound';
+import GetSyncRound from './getSyncRound';
+import SetBlockOffsetTimestamp from './setBlockOffsetTimestamp';
+import GetBlockOffsetTimestamp from './getBlockOffsetTimestamp';
 import Disassemble from './disassemble';
 import SimulateRawTransactions from './simulateTransaction';
+import { EncodedSignedTransaction } from '../../../types';
+import * as encoding from '../../../encoding/encoding';
+import Ready from './ready';
+import UnsetSyncRound from './unsetSyncRound';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -86,7 +94,7 @@ export default class AlgodClient extends ServiceClient {
    * const health = await algodClient.healthCheck().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-health)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-health)
    * @category GET
    */
   healthCheck() {
@@ -101,7 +109,7 @@ export default class AlgodClient extends ServiceClient {
    * const versionsDetails = await algodClient.versionsCheck().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-versions)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-versions)
    * @category GET
    */
   versionsCheck() {
@@ -117,7 +125,7 @@ export default class AlgodClient extends ServiceClient {
    * const result = await waitForConfirmation(algodClient, txid, 3);
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactions)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2transactions)
    *
    * @remarks
    * Often used with {@linkcode waitForConfirmation}
@@ -137,7 +145,7 @@ export default class AlgodClient extends ServiceClient {
    * const accountInfo = await algodClient.accountInformation(address).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress)
    * @param account - The address of the account to look up.
    * @category GET
    */
@@ -155,7 +163,7 @@ export default class AlgodClient extends ServiceClient {
    * const accountAssetInfo = await algodClient.accountAssetInformation(address, index).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress)
    * @param account - The address of the account to look up.
    * @param index - The asset ID to look up.
    * @category GET
@@ -179,7 +187,7 @@ export default class AlgodClient extends ServiceClient {
    * const accountInfo = await algodClient.accountApplicationInformation(address, index).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddress)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress)
    * @param account - The address of the account to look up.
    * @param index - The application ID to look up.
    * @category GET
@@ -202,7 +210,7 @@ export default class AlgodClient extends ServiceClient {
    * const block = await algodClient.block(roundNumber).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksround)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2blocksround)
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
@@ -219,7 +227,7 @@ export default class AlgodClient extends ServiceClient {
    * const block = await algodClient.getBlockHash(roundNumber).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundhash)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2blocksroundhash)
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
@@ -236,7 +244,7 @@ export default class AlgodClient extends ServiceClient {
    * const pending = await algodClient.pendingTransactionInformation(txId).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionspendingtxid)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2transactionspendingtxid)
    *
    * @remarks
    * <br><br>
@@ -272,7 +280,7 @@ export default class AlgodClient extends ServiceClient {
    *     .do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionspending)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2transactionspending)
    * @category GET
    */
   pendingTransactionsInformation() {
@@ -299,7 +307,7 @@ export default class AlgodClient extends ServiceClient {
    *     .do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2accountsaddresstransactionspending)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddresstransactionspending)
    * @param address - The address of the sender.
    * @category GET
    */
@@ -315,7 +323,7 @@ export default class AlgodClient extends ServiceClient {
    * const status = await algodClient.status().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2status)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2status)
    * @category GET
    */
   status() {
@@ -331,7 +339,7 @@ export default class AlgodClient extends ServiceClient {
    * const statusAfterBlock = await algodClient.statusAfterBlock(round).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2statuswait-for-block-afterround)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2statuswait-for-block-afterround)
    * @param round - The number of the round to wait for.
    * @category GET
    */
@@ -354,7 +362,7 @@ export default class AlgodClient extends ServiceClient {
    * });
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2transactionsparams)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2transactionsparams)
    *
    * @remarks
    * Often used with
@@ -373,7 +381,7 @@ export default class AlgodClient extends ServiceClient {
    * const supplyDetails = await algodClient.supply().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2ledgersupply)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2ledgersupply)
    * @category GET
    */
   supply() {
@@ -389,7 +397,7 @@ export default class AlgodClient extends ServiceClient {
    * const compiledSmartContract = await algodClient.compile(source).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2tealcompile)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2tealcompile)
    * @remarks
    * This endpoint is only enabled when a node's configuration file sets `EnableDeveloperAPI` to true.
    * @param source
@@ -425,7 +433,7 @@ export default class AlgodClient extends ServiceClient {
    * const dryRunResult = await algodClient.dryrun(dr).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2tealdryrun)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2tealdryrun)
    * @param dr
    * @category POST
    */
@@ -443,7 +451,7 @@ export default class AlgodClient extends ServiceClient {
    * const asset = await algodClient.getAssetByID(asset_id).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2assetsasset-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2assetsasset-id)
    * @param index - The asset ID to look up.
    * @category GET
    */
@@ -461,7 +469,7 @@ export default class AlgodClient extends ServiceClient {
    * const app = await algodClient.getApplicationByID(index).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-id)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-id)
    * @param index - The application ID to look up.
    * @category GET
    */
@@ -480,7 +488,7 @@ export default class AlgodClient extends ServiceClient {
    * const boxValue = boxResponse.value;
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idbox)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idbox)
    * @param index - The application ID to look up.
    * @category GET
    */
@@ -503,7 +511,7 @@ export default class AlgodClient extends ServiceClient {
    * const boxNames = boxesResponse.boxes.map(box => box.name);
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idboxes)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idboxes)
    * @param index - The application ID to look up.
    * @category GET
    */
@@ -519,7 +527,7 @@ export default class AlgodClient extends ServiceClient {
    * const genesis = await algodClient.genesis().do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-genesis)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-genesis)
    * @category GET
    */
   genesis() {
@@ -536,7 +544,7 @@ export default class AlgodClient extends ServiceClient {
    * const proof = await algodClient.getTransactionProof(round, txId).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2blocksroundtransactionstxidproof)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2blocksroundtransactionstxidproof)
    * @param round - The round in which the transaction appears.
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
@@ -582,14 +590,165 @@ export default class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
+   * const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn1Params);
+   * const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn2Params);
+   * const txgroup = algosdk.assignGroupID([txn1, txn2]);
+   *
+   * // Actually sign the first transaction
+   * const signedTxn1 = txgroup[0].signTxn(senderSk).blob;
+   * // Simulate does not require signed transactions -- use this method to encode an unsigned transaction
+   * const signedTxn2 = algosdk.encodeUnsignedSimulateTransaction(txgroup[1]);
+   *
    * const resp = await client.simulateRawTransactions([signedTxn1, signedTxn2]).do();
    * ```
    *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#post-v2transactionssimulate)
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2transactionssimulate)
    * @param stxOrStxs
    * @category POST
    */
   simulateRawTransactions(stxOrStxs: Uint8Array | Uint8Array[]) {
-    return new SimulateRawTransactions(this.c, stxOrStxs);
+    const txnObjects: EncodedSignedTransaction[] = [];
+    if (Array.isArray(stxOrStxs)) {
+      for (const stxn of stxOrStxs) {
+        txnObjects.push(encoding.decode(stxn) as EncodedSignedTransaction);
+      }
+    } else {
+      txnObjects.push(encoding.decode(stxOrStxs) as EncodedSignedTransaction);
+    }
+    const request = new modelsv2.SimulateRequest({
+      txnGroups: [
+        new modelsv2.SimulateRequestTransactionGroup({
+          txns: txnObjects,
+        }),
+      ],
+    });
+    return this.simulateTransactions(request);
+  }
+
+  /**
+   * Simulate transactions being sent to the network.
+   *
+   * #### Example
+   * ```typescript
+   * const txn1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn1Params);
+   * const txn2 = algosdk.makePaymentTxnWithSuggestedParamsFromObject(txn2Params);
+   * const txgroup = algosdk.assignGroupID([txn1, txn2]);
+   *
+   * // Actually sign the first transaction
+   * const signedTxn1 = txgroup[0].signTxn(senderSk).blob;
+   * // Simulate does not require signed transactions -- use this method to encode an unsigned transaction
+   * const signedTxn2 = algosdk.encodeUnsignedSimulateTransaction(txgroup[1]);
+   *
+   * const request = new modelsv2.SimulateRequest({
+   *  txnGroups: [
+   *    new modelsv2.SimulateRequestTransactionGroup({
+   *       // Must decode the signed txn bytes into an object
+   *       txns: [algosdk.decodeObj(signedTxn1), algosdk.decodeObj(signedTxn2)]
+   *     }),
+   *   ],
+   * });
+   * const resp = await client.simulateRawTransactions(request).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2transactionssimulate)
+   * @param request
+   * @category POST
+   */
+  simulateTransactions(request: modelsv2.SimulateRequest) {
+    return new SimulateRawTransactions(this.c, request);
+  }
+
+  /**
+   * Set the offset (in seconds) applied to the block timestamp when creating new blocks in devmode.
+   *
+   *  #### Example
+   *  ```typesecript
+   *  const offset = 60
+   *  await client.setBlockOffsetTimestamp(offset).do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2devmodeblocksoffsetoffset)
+   * @param offset
+   * @category POST
+   */
+  setBlockOffsetTimestamp(offset: number) {
+    return new SetBlockOffsetTimestamp(this.c, this.intDecoding, offset);
+  }
+
+  /**
+   * Get the offset (in seconds) applied to the block timestamp when creating new blocks in devmode.
+   *
+   *  #### Example
+   *  ```typesecript
+   *  const currentOffset = await client.getBlockOffsetTimestamp().do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2devmodeblocksoffset)
+   * @category GET
+   */
+  getBlockOffsetTimestamp() {
+    return new GetBlockOffsetTimestamp(this.c, this.intDecoding);
+  }
+
+  /**
+   * Set the sync round on the ledger (algod must have EnableFollowMode: true), restricting catchup.
+   *
+   *  #### Example
+   *  ```typesecript
+   *  const round = 10000
+   *  await client.setSyncRound(round).do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2ledgersyncround)
+   * @param round
+   * @category POST
+   */
+  setSyncRound(round: number) {
+    return new SetSyncRound(this.c, this.intDecoding, round);
+  }
+
+  /**
+   * Un-Set the sync round on the ledger (algod must have EnableFollowMode: true), removing the restriction on catchup.
+   *
+   *  #### Example
+   *  ```typesecript
+   *  await client.unsetSyncRound().do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#delete-v2ledgersync)
+   * @category DELETE
+   */
+  unsetSyncRound() {
+    return new UnsetSyncRound(this.c, this.intDecoding);
+  }
+
+  /**
+   * Get the current sync round on the ledger (algod must have EnableFollowMode: true).
+   *
+   *  #### Example
+   *  ```typesecript
+   *  const currentSyncRound = await client.getSyncRound().do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2ledgersync)
+   * @category GET
+   */
+  getSyncRound() {
+    return new GetSyncRound(this.c, this.intDecoding);
+  }
+
+  /**
+   * Ready check which returns 200 OK if algod is healthy and caught up
+   *
+   *  #### Example
+   *  ```typesecript
+   *  await client.ready().do();
+   *  ```
+   *
+   [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-ready)
+   * @category GET
+   */
+  ready() {
+    return new Ready(this.c, this.intDecoding);
   }
 }

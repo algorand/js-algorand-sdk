@@ -1290,10 +1290,9 @@ export function encodeUnsignedSimulateTransaction(
   transactionObject: Transaction
 ) {
   const objToEncode: EncodedSignedTransaction = {
-    sig: null,
     txn: transactionObject.get_obj_for_encoding(),
   };
-  return encoding.rawEncode(objToEncode);
+  return encoding.encode(objToEncode);
 }
 
 /**
