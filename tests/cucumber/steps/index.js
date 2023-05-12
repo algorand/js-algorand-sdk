@@ -325,11 +325,11 @@ function setupMockServerForPaths(mockServer) {
   });
 }
 
-function getMockServerRequestUrlsMethods(mockServer) {
+function getMockServerRequestUrlsMethodsHeaders(mockServer) {
   return mockServer
     .requests()
     .filter((req) => req.method !== 'OPTIONS') // ignore cors preflight requests from the browser
-    .map((req) => ({ method: req.method, url: req.url }));
+    .map((req) => ({ method: req.method, url: req.url, headers: req.headers }));
 }
 
 function isFunction(functionToCheck) {
@@ -478,10 +478,10 @@ for (const name of Object.keys(steps.then)) {
   if (name === 'expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrlsMethods(
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrlsMethods(
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -494,10 +494,10 @@ for (const name of Object.keys(steps.then)) {
   } else if (name === 'expect the request to be {string} {string}') {
     Then(name, function (expectedRequestType, expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrlsMethods(
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrlsMethods(
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -511,10 +511,10 @@ for (const name of Object.keys(steps.then)) {
   } else if (name === 'we expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrlsMethods(
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrlsMethods(
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -522,6 +522,21 @@ for (const name of Object.keys(steps.then)) {
         algodSeenRequests,
         indexerSeenRequests,
         expectedRequestPath
+      );
+    });
+  } else if (name === 'expect the observed header keys to equal the expected header keys') {
+    Then(name, function () {
+      // get all requests the mockservers have seen since reset
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
+        algodMockServerPathRecorder
+      );
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
+        indexerMockServerPathRecorder
+      );
+      return fn.call(
+        this,
+        algodSeenRequests,
+        indexerSeenRequests,
       );
     });
   } else if (

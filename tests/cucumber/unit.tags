@@ -6,6 +6,7 @@
 @unit.applications.boxes
 @unit.atomic_transaction_composer
 @unit.blocksummary
+@unit.client-no-headers
 @unit.dryrun
 @unit.dryrun.trace.application
 @unit.feetest

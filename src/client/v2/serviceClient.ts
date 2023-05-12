@@ -19,6 +19,9 @@ function convertTokenStringToTokenHeader(
   headerIdentifier: TokenHeaderIdentifier
 ): TokenHeader {
   const tokenHeader = {};
+  if (token === '') {
+    return tokenHeader
+  }
   tokenHeader[headerIdentifier] = token;
   return tokenHeader as TokenHeader;
 }
