@@ -524,7 +524,9 @@ for (const name of Object.keys(steps.then)) {
         expectedRequestPath
       );
     });
-  } else if (name === 'expect the observed header keys to equal the expected header keys') {
+  } else if (
+    name === 'expect the observed header keys to equal the expected header keys'
+  ) {
     Then(name, function () {
       // get all requests the mockservers have seen since reset
       const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
@@ -533,11 +535,7 @@ for (const name of Object.keys(steps.then)) {
       const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         indexerMockServerPathRecorder
       );
-      return fn.call(
-        this,
-        algodSeenRequests,
-        indexerSeenRequests,
-      );
+      return fn.call(this, algodSeenRequests, indexerSeenRequests);
     });
   } else if (
     name === 'the produced json should equal {string} loaded from {string}'

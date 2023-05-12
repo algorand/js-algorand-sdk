@@ -1605,23 +1605,26 @@ module.exports = function getSteps(options) {
   });
 
   Given('expected headers', (headersTable) => {
-    this.expectedHeaders = headersTable.hashes()
-  })
+    this.expectedHeaders = headersTable.hashes();
+  });
 
-  Then('expect the observed header keys to equal the expected header keys', (algodSeenRequests, indexerSeenRequests) => {
-    let actualRequests;
-    if (algodSeenRequests.length !== 0) {
-      [actualRequests] = algodSeenRequests;
-    } else if (indexerSeenRequests.length !== 0) {
-      [actualRequests] = indexerSeenRequests;
-    } else {
-      throw new Error("no requests observed.")
+  Then(
+    'expect the observed header keys to equal the expected header keys',
+    (algodSeenRequests, indexerSeenRequests) => {
+      let actualRequests;
+      if (algodSeenRequests.length !== 0) {
+        [actualRequests] = algodSeenRequests;
+      } else if (indexerSeenRequests.length !== 0) {
+        [actualRequests] = indexerSeenRequests;
+      } else {
+        throw new Error('no requests observed.');
+      }
+      assert.deepStrictEqual(
+        Object.keys(actualRequests.headers).sort(),
+        this.expectedHeaders.map((entry) => entry.key).sort()
+      );
     }
-    assert.deepStrictEqual(
-      Object.keys(actualRequests.headers).sort(),
-      this.expectedHeaders.map((entry) => entry.key).sort()
-    );
-  })
+  );
 
   Then(
     'expect the path used to be {string}',
@@ -3291,14 +3294,24 @@ module.exports = function getSteps(options) {
   Given(
     'an algod v2 client connected to mock server with token {string}',
     function (token) {
-      this.v2Client = new algosdk.Algodv2(token, `http://${mockAlgodPathRecorderHost}`, mockAlgodPathRecorderPort, {});
+      this.v2Client = new algosdk.Algodv2(
+        token,
+        `http://${mockAlgodPathRecorderHost}`,
+        mockAlgodPathRecorderPort,
+        {}
+      );
     }
   );
 
   Given(
     'an indexer v2 client connected to mock server with token {string}',
     function (token) {
-      this.indexerV2client = new algosdk.Indexer(token, `http://${mockIndexerPathRecorderHost}`, mockIndexerPathRecorderPort, {});
+      this.indexerV2client = new algosdk.Indexer(
+        token,
+        `http://${mockIndexerPathRecorderHost}`,
+        mockIndexerPathRecorderPort,
+        {}
+      );
     }
   );
 
