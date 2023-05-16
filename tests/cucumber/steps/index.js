@@ -54,7 +54,6 @@ if (browser) {
   } else if (browser === 'chrome') {
     require('chromedriver');
     browserHeaders = [
-      'accept-language',
       'origin',
       'referer',
       'sec-ch-ua',
@@ -70,9 +69,6 @@ if (browser) {
       'accept-language',
       'origin',
       'referer',
-      'sec-ch-ua',
-      'sec-ch-ua-mobile',
-      'sec-ch-ua-platform',
       'sec-fetch-dest',
       'sec-fetch-mode',
       'sec-fetch-site',
