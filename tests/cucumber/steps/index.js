@@ -494,13 +494,10 @@ for (const name of Object.keys(steps.given)) {
     });
   } else if (name === 'expected headers') {
     Given(name, function (dataTable) {
-      return fn.call(
-        this,
-        dataTable
-          .rows()
-          .map((entry) => entry[0])
-          .concat(browserHeaders)
-      );
+      return fn.call(this, [
+        ...dataTable.rows().map((entry) => entry[0]),
+        ...browserHeaders,
+      ]);
     });
   } else {
     Given(name, fn);

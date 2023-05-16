@@ -1619,10 +1619,16 @@ module.exports = function getSteps(options) {
       } else {
         throw new Error('no requests observed.');
       }
-      assert.deepStrictEqual(
-        Object.keys(actualRequests.headers).sort(),
-        this.expectedHeaders.sort()
+      const actualHeaders = Object.keys(actualRequests.headers).sort();
+      const expectedHeaders = this.expectedHeaders.sort();
+      assert.strictEqual(
+        actualHeaders.length,
+        expectedHeaders.length,
+        `expected headers ${expectedHeaders}, got ${actualHeaders}`
       );
+      for (let i = 0; i < actualHeaders.length; i++) {
+        assert.deepStrictEqual(actualHeaders[i], expectedHeaders[i]);
+      }
     }
   );
 
