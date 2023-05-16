@@ -1604,8 +1604,8 @@ module.exports = function getSteps(options) {
     );
   });
 
-  Given('expected headers', (headersTable) => {
-    this.expectedHeaders = headersTable.hashes();
+  Given('expected headers', (tableRows) => {
+    this.expectedHeaders = tableRows;
   });
 
   Then(
@@ -1621,7 +1621,7 @@ module.exports = function getSteps(options) {
       }
       assert.deepStrictEqual(
         Object.keys(actualRequests.headers).sort(),
-        this.expectedHeaders.map((entry) => entry.key).sort()
+        this.expectedHeaders.sort()
       );
     }
   );

@@ -1,4 +1,5 @@
 /* eslint-disable no-console,global-require,no-loop-func,func-names */
+const assert = require('assert');
 const { Buffer } = require('buffer');
 const path = require('path');
 const fs = require('fs');
@@ -20,6 +21,7 @@ const browser = process.env.TEST_BROWSER;
 
 console.log('TEST_BROWSER is', browser);
 
+let browserHeaders = [];
 let driver;
 let driverBuilder;
 if (browser) {
@@ -51,8 +53,30 @@ if (browser) {
     driverBuilder = driverBuilder.usingServer(process.env.SELENIUM_SERVER_URL);
   } else if (browser === 'chrome') {
     require('chromedriver');
+    browserHeaders = [
+      'accept-language',
+      'origin',
+      'referer',
+      'sec-ch-ua',
+      'sec-ch-ua-mobile',
+      'sec-ch-ua-platform',
+      'sec-fetch-dest',
+      'sec-fetch-mode',
+      'sec-fetch-site',
+    ];
   } else if (browser === 'firefox') {
     require('geckodriver');
+    browserHeaders = [
+      'accept-language',
+      'origin',
+      'referer',
+      'sec-ch-ua',
+      'sec-ch-ua-mobile',
+      'sec-ch-ua-platform',
+      'sec-fetch-dest',
+      'sec-fetch-mode',
+      'sec-fetch-site',
+    ];
   }
 
   console.log('Testing in browser');
@@ -357,6 +381,13 @@ if (browser) {
           }
 
           for (const arg of rpcArgs) {
+            assert.deepStrictEqual(
+              JSON.parse(JSON.stringify(arg)),
+              arg,
+              `${JSON.stringify(
+                arg
+              )} cannot be deserialized via JSON.parse and will fail browser tests`
+            );
             if (arg instanceof Uint8Array) {
               // cannot send Uint8Array or Buffer objects because the arguments will get JSON
               // encoded when transmitted to the browser
@@ -464,6 +495,16 @@ for (const name of Object.keys(steps.given)) {
       setupMockServerForPaths(algodMockServerPathRecorder);
       setupMockServerForPaths(indexerMockServerPathRecorder);
       return fn.call(this);
+    });
+  } else if (name === 'expected headers') {
+    Given(name, function (dataTable) {
+      return fn.call(
+        this,
+        dataTable
+          .rows()
+          .map((entry) => entry[0])
+          .concat(browserHeaders)
+      );
     });
   } else {
     Given(name, fn);
