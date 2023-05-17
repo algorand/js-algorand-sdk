@@ -4751,6 +4751,24 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    'I allow {int} more budget on that simulate request.',
+    async function (budget) {
+      this.simulateRequest.extraOpcodeBudget = budget;
+    }
+  );
+
+  Then(
+    'I check the simulation result has power packs extra-opcode-budget with extra budget {int}.',
+    async function (budget) {
+      assert.notDeepStrictEqual(undefined, this.simulateResponse.evalOverrides);
+      assert.equal(
+        budget,
+        this.simulateResponse.evalOverrides.extraOpcodeBudget
+      );
+    }
+  );
+
   When('we make a Ready call', async function () {
     await this.v2Client.ready().do();
   });
