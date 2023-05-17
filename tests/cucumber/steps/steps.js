@@ -1604,6 +1604,34 @@ module.exports = function getSteps(options) {
     );
   });
 
+  Given('expected headers', (tableRows) => {
+    this.expectedHeaders = tableRows;
+  });
+
+  Then(
+    'expect the observed header keys to equal the expected header keys',
+    (algodSeenRequests, indexerSeenRequests) => {
+      let actualRequests;
+      if (algodSeenRequests.length !== 0) {
+        [actualRequests] = algodSeenRequests;
+      } else if (indexerSeenRequests.length !== 0) {
+        [actualRequests] = indexerSeenRequests;
+      } else {
+        throw new Error('no requests observed.');
+      }
+      const actualHeaders = Object.keys(actualRequests.headers).sort();
+      const expectedHeaders = this.expectedHeaders.sort();
+      assert.strictEqual(
+        actualHeaders.length,
+        expectedHeaders.length,
+        `expected headers ${expectedHeaders}, got ${actualHeaders}`
+      );
+      for (let i = 0; i < actualHeaders.length; i++) {
+        assert.deepStrictEqual(actualHeaders[i], expectedHeaders[i]);
+      }
+    }
+  );
+
   Then(
     'expect the path used to be {string}',
     (algodSeenRequests, indexerSeenRequests, expectedRequestPath) => {
@@ -3270,6 +3298,30 @@ module.exports = function getSteps(options) {
   );
 
   Given(
+    'an algod v2 client connected to mock server with token {string}',
+    function (token) {
+      this.v2Client = new algosdk.Algodv2(
+        token,
+        `http://${mockAlgodPathRecorderHost}`,
+        mockAlgodPathRecorderPort,
+        {}
+      );
+    }
+  );
+
+  Given(
+    'an indexer v2 client connected to mock server with token {string}',
+    function (token) {
+      this.indexerV2client = new algosdk.Indexer(
+        token,
+        `http://${mockIndexerPathRecorderHost}`,
+        mockIndexerPathRecorderPort,
+        {}
+      );
+    }
+  );
+
+  Given(
     'I create a new transient account and fund it with {int} microalgos.',
     async function (fundingAmount) {
       this.transientAccount = algosdk.generateAccount();
@@ -4779,6 +4831,14 @@ module.exports = function getSteps(options) {
 
   When('we make a UnsetSyncRound call', async function () {
     await this.v2Client.unsetSyncRound().do();
+  });
+
+  When('we make an arbitrary algod call', async function () {
+    await this.v2Client.healthCheck().do();
+  });
+
+  When('we make an arbitrary indexer call', async function () {
+    await this.indexerV2client.makeHealthCheck().do();
   });
 
   if (!options.ignoreReturn) {
