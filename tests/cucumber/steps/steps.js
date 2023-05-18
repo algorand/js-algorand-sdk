@@ -4739,15 +4739,9 @@ module.exports = function getSteps(options) {
   Then(
     'I check the simulation result has power packs allow-more-logging.',
     async function () {
-      assert.notDeepStrictEqual(undefined, this.simulateResponse.evalOverrides);
-      assert.notDeepStrictEqual(
-        undefined,
-        this.simulateResponse.evalOverrides.maxLogCalls
-      );
-      assert.notDeepStrictEqual(
-        undefined,
-        this.simulateResponse.evalOverrides.maxLogSize
-      );
+      assert.ok(this.simulateResponse.evalOverrides);
+      assert.ok(this.simulateResponse.evalOverrides.maxLogCalls);
+      assert.ok(this.simulateResponse.evalOverrides.maxLogSize);
     }
   );
 
@@ -4761,8 +4755,8 @@ module.exports = function getSteps(options) {
   Then(
     'I check the simulation result has power packs extra-opcode-budget with extra budget {int}.',
     async function (budget) {
-      assert.notDeepStrictEqual(undefined, this.simulateResponse.evalOverrides);
-      assert.equal(
+      assert.ok(this.simulateResponse.evalOverrides);
+      assert.strictEqual(
         budget,
         this.simulateResponse.evalOverrides.extraOpcodeBudget
       );
