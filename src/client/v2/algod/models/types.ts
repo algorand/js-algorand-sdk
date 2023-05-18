@@ -1494,6 +1494,11 @@ export class Box extends BaseModel {
   public name: Uint8Array;
 
   /**
+   * The round for which this information is relevant
+   */
+  public round: number | bigint;
+
+  /**
    * (value) box value, base64 encoded.
    */
   public value: Uint8Array;
@@ -1501,13 +1506,16 @@ export class Box extends BaseModel {
   /**
    * Creates a new `Box` object.
    * @param name - (name) box name, base64 encoded
+   * @param round - The round for which this information is relevant
    * @param value - (value) box value, base64 encoded.
    */
   constructor({
     name,
+    round,
     value,
   }: {
     name: string | Uint8Array;
+    round: number | bigint;
     value: string | Uint8Array;
   }) {
     super();
@@ -1515,6 +1523,7 @@ export class Box extends BaseModel {
       typeof name === 'string'
         ? new Uint8Array(Buffer.from(name, 'base64'))
         : name;
+    this.round = round;
     this.value =
       typeof value === 'string'
         ? new Uint8Array(Buffer.from(value, 'base64'))
@@ -1522,6 +1531,7 @@ export class Box extends BaseModel {
 
     this.attribute_map = {
       name: 'name',
+      round: 'round',
       value: 'value',
     };
   }
@@ -1531,10 +1541,13 @@ export class Box extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new Box({
       name: data['name'],
+      round: data['round'],
       value: data['value'],
     });
     /* eslint-enable dot-notation */
@@ -2559,6 +2572,52 @@ export class KvDelta extends BaseModel {
 }
 
 /**
+ * Contains a ledger delta for a single transaction group
+ */
+export class LedgerStateDeltaForTransactionGroup extends BaseModel {
+  /**
+   * Ledger StateDelta object
+   */
+  public delta: Record<string, any>;
+
+  public ids: string[];
+
+  /**
+   * Creates a new `LedgerStateDeltaForTransactionGroup` object.
+   * @param delta - Ledger StateDelta object
+   * @param ids -
+   */
+  constructor({ delta, ids }: { delta: Record<string, any>; ids: string[] }) {
+    super();
+    this.delta = delta;
+    this.ids = ids;
+
+    this.attribute_map = {
+      delta: 'delta',
+      ids: 'ids',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): LedgerStateDeltaForTransactionGroup {
+    /* eslint-disable dot-notation */
+    if (typeof data['delta'] === 'undefined')
+      throw new Error(`Response is missing required field 'delta': ${data}`);
+    if (!Array.isArray(data['ids']))
+      throw new Error(
+        `Response is missing required array field 'ids': ${data}`
+      );
+    return new LedgerStateDeltaForTransactionGroup({
+      delta: data['delta'],
+      ids: data['ids'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Proof of membership and position of a light block header.
  */
 export class LightBlockHeaderProof extends BaseModel {
@@ -3319,30 +3378,40 @@ export class SimulateRequest extends BaseModel {
   public allowMoreLogging?: boolean;
 
   /**
+   * Applies extra opcode budget during simulation for each transaction group.
+   */
+  public extraOpcodeBudget?: number | bigint;
+
+  /**
    * Creates a new `SimulateRequest` object.
    * @param txnGroups - The transaction groups to simulate.
    * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
    * signatures.
    * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
+   * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
    */
   constructor({
     txnGroups,
     allowEmptySignatures,
     allowMoreLogging,
+    extraOpcodeBudget,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
     allowMoreLogging?: boolean;
+    extraOpcodeBudget?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowMoreLogging = allowMoreLogging;
+    this.extraOpcodeBudget = extraOpcodeBudget;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
       allowEmptySignatures: 'allow-empty-signatures',
       allowMoreLogging: 'allow-more-logging',
+      extraOpcodeBudget: 'extra-opcode-budget',
     };
   }
 
@@ -3359,6 +3428,7 @@ export class SimulateRequest extends BaseModel {
       ),
       allowEmptySignatures: data['allow-empty-signatures'],
       allowMoreLogging: data['allow-more-logging'],
+      extraOpcodeBudget: data['extra-opcode-budget'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3673,6 +3743,11 @@ export class SimulationEvalOverrides extends BaseModel {
   public allowEmptySignatures?: boolean;
 
   /**
+   * The extra opcode budget added to each transaction group during simulation
+   */
+  public extraOpcodeBudget?: number | bigint;
+
+  /**
    * The maximum log calls one can make during simulation
    */
   public maxLogCalls?: number | bigint;
@@ -3686,25 +3761,30 @@ export class SimulationEvalOverrides extends BaseModel {
    * Creates a new `SimulationEvalOverrides` object.
    * @param allowEmptySignatures - If true, transactions without signatures are allowed and simulated as if they
    * were properly signed.
+   * @param extraOpcodeBudget - The extra opcode budget added to each transaction group during simulation
    * @param maxLogCalls - The maximum log calls one can make during simulation
    * @param maxLogSize - The maximum byte number to log during simulation
    */
   constructor({
     allowEmptySignatures,
+    extraOpcodeBudget,
     maxLogCalls,
     maxLogSize,
   }: {
     allowEmptySignatures?: boolean;
+    extraOpcodeBudget?: number | bigint;
     maxLogCalls?: number | bigint;
     maxLogSize?: number | bigint;
   }) {
     super();
     this.allowEmptySignatures = allowEmptySignatures;
+    this.extraOpcodeBudget = extraOpcodeBudget;
     this.maxLogCalls = maxLogCalls;
     this.maxLogSize = maxLogSize;
 
     this.attribute_map = {
       allowEmptySignatures: 'allow-empty-signatures',
+      extraOpcodeBudget: 'extra-opcode-budget',
       maxLogCalls: 'max-log-calls',
       maxLogSize: 'max-log-size',
     };
@@ -3717,6 +3797,7 @@ export class SimulationEvalOverrides extends BaseModel {
     /* eslint-disable dot-notation */
     return new SimulationEvalOverrides({
       allowEmptySignatures: data['allow-empty-signatures'],
+      extraOpcodeBudget: data['extra-opcode-budget'],
       maxLogCalls: data['max-log-calls'],
       maxLogSize: data['max-log-size'],
     });

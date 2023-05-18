@@ -40,6 +40,9 @@ import { EncodedSignedTransaction } from '../../../types';
 import * as encoding from '../../../encoding/encoding';
 import Ready from './ready';
 import UnsetSyncRound from './unsetSyncRound';
+import GetLedgerStateDeltaForTransactionGroup from './getLedgerStateDeltaForTransactionGroup';
+import GetLedgerStateDelta from './getLedgerStateDelta';
+import GetTransactionGroupLedgerStateDeltasForRound from './getTransactionGroupLedgerStateDeltasForRound';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -750,5 +753,64 @@ export default class AlgodClient extends ServiceClient {
    */
   ready() {
     return new Ready(this.c, this.intDecoding);
+  }
+
+  /**
+   * GetLedgerStateDeltaForTransactionGroup returns the ledger delta for the txn group identified by id
+   *
+   * #### Example
+   * ```typescript
+   * const id = "ABC123";
+   * await client.getLedgerStateDeltaForTransactionGroup(id).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2deltastxngroupid)
+   * @param id txn ID or group ID to be searched for
+   * @category GET
+   */
+  getLedgerStateDeltaForTransactionGroup(id: string) {
+    return new GetLedgerStateDeltaForTransactionGroup(
+      this.c,
+      this.intDecoding,
+      id
+    );
+  }
+
+  /**
+   * GetLedgerStateDelta returns the ledger delta for the entire round
+   *
+   * #### Example
+   * ```typescript
+   * const round = 12345;
+   * await client.getLedgerStateDelta(round).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2deltasround)
+   * @param round the round number to be searched for
+   * @category GET
+   */
+  getLedgerStateDelta(round: bigint) {
+    return new GetLedgerStateDelta(this.c, this.intDecoding, round);
+  }
+
+  /**
+   * GetTransactionGroupLedgerStateDeltasForRound returns all ledger deltas for txn groups in the provided round
+   *
+   * #### Example
+   * ```typescript
+   * const round = 12345;
+   * await client.getTransactionGroupLedgerStateDeltasForRound(round).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2deltasroundtxngroup)
+   * @param round the round number to be searched for
+   * @category GET
+   */
+  getTransactionGroupLedgerStateDeltasForRound(round: bigint) {
+    return new GetTransactionGroupLedgerStateDeltasForRound(
+      this.c,
+      this.intDecoding,
+      round
+    );
   }
 }

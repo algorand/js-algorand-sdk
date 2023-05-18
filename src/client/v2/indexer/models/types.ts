@@ -2654,6 +2654,11 @@ export class Box extends BaseModel {
   public name: Uint8Array;
 
   /**
+   * The round for which this information is relevant
+   */
+  public round: number | bigint;
+
+  /**
    * (value) box value, base64 encoded.
    */
   public value: Uint8Array;
@@ -2661,13 +2666,16 @@ export class Box extends BaseModel {
   /**
    * Creates a new `Box` object.
    * @param name - (name) box name, base64 encoded
+   * @param round - The round for which this information is relevant
    * @param value - (value) box value, base64 encoded.
    */
   constructor({
     name,
+    round,
     value,
   }: {
     name: string | Uint8Array;
+    round: number | bigint;
     value: string | Uint8Array;
   }) {
     super();
@@ -2675,6 +2683,7 @@ export class Box extends BaseModel {
       typeof name === 'string'
         ? new Uint8Array(Buffer.from(name, 'base64'))
         : name;
+    this.round = round;
     this.value =
       typeof value === 'string'
         ? new Uint8Array(Buffer.from(value, 'base64'))
@@ -2682,6 +2691,7 @@ export class Box extends BaseModel {
 
     this.attribute_map = {
       name: 'name',
+      round: 'round',
       value: 'value',
     };
   }
@@ -2691,10 +2701,13 @@ export class Box extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new Box({
       name: data['name'],
+      round: data['round'],
       value: data['value'],
     });
     /* eslint-enable dot-notation */
