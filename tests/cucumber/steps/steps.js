@@ -4846,7 +4846,7 @@ module.exports = function getSteps(options) {
     async function (round) {
       await this.v2Client
         .getTransactionGroupLedgerStateDeltasForRound(round)
-        .do();
+        .doRaw();
     }
   );
 

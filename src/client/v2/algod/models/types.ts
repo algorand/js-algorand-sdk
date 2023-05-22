@@ -4135,6 +4135,44 @@ export class TealValue extends BaseModel {
 }
 
 /**
+ * Response containing all ledger state deltas for transaction groups, with their
+ * associated Ids, in a single round.
+ */
+export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel {
+  public deltas: LedgerStateDeltaForTransactionGroup[];
+
+  /**
+   * Creates a new `TransactionGroupLedgerStateDeltasForRoundResponse` object.
+   * @param deltas -
+   */
+  constructor({ deltas }: { deltas: LedgerStateDeltaForTransactionGroup[] }) {
+    super();
+    this.deltas = deltas;
+
+    this.attribute_map = {
+      deltas: 'deltas',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionGroupLedgerStateDeltasForRoundResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['Deltas']))
+      throw new Error(
+        `Response is missing required array field 'Deltas': ${data}`
+      );
+    return new TransactionGroupLedgerStateDeltasForRoundResponse({
+      deltas: data['Deltas'].map(
+        LedgerStateDeltaForTransactionGroup.from_obj_for_encoding
+      ),
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * TransactionParams contains the parameters that help a client construct a new
  * transaction.
  */

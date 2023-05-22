@@ -24,6 +24,7 @@
 @unit.responses.blocksummary
 @unit.responses.sync
 @unit.responses.timestamp
+@unit.responses.txngroupdeltas
 @unit.sourcemap
 @unit.statedelta
 @unit.stateproof.paths
