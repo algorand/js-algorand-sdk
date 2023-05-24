@@ -2559,6 +2559,52 @@ export class KvDelta extends BaseModel {
 }
 
 /**
+ * Contains a ledger delta for a single transaction group
+ */
+export class LedgerStateDeltaForTransactionGroup extends BaseModel {
+  /**
+   * Ledger StateDelta object
+   */
+  public delta: Record<string, any>;
+
+  public ids: string[];
+
+  /**
+   * Creates a new `LedgerStateDeltaForTransactionGroup` object.
+   * @param delta - Ledger StateDelta object
+   * @param ids -
+   */
+  constructor({ delta, ids }: { delta: Record<string, any>; ids: string[] }) {
+    super();
+    this.delta = delta;
+    this.ids = ids;
+
+    this.attribute_map = {
+      delta: 'delta',
+      ids: 'ids',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): LedgerStateDeltaForTransactionGroup {
+    /* eslint-disable dot-notation */
+    if (typeof data['delta'] === 'undefined')
+      throw new Error(`Response is missing required field 'delta': ${data}`);
+    if (!Array.isArray(data['ids']))
+      throw new Error(
+        `Response is missing required array field 'ids': ${data}`
+      );
+    return new LedgerStateDeltaForTransactionGroup({
+      delta: data['delta'],
+      ids: data['ids'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Proof of membership and position of a light block header.
  */
 export class LightBlockHeaderProof extends BaseModel {
@@ -4083,6 +4129,44 @@ export class TealValue extends BaseModel {
       type: data['type'],
       bytes: data['bytes'],
       uint: data['uint'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Response containing all ledger state deltas for transaction groups, with their
+ * associated Ids, in a single round.
+ */
+export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel {
+  public deltas: LedgerStateDeltaForTransactionGroup[];
+
+  /**
+   * Creates a new `TransactionGroupLedgerStateDeltasForRoundResponse` object.
+   * @param deltas -
+   */
+  constructor({ deltas }: { deltas: LedgerStateDeltaForTransactionGroup[] }) {
+    super();
+    this.deltas = deltas;
+
+    this.attribute_map = {
+      deltas: 'deltas',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionGroupLedgerStateDeltasForRoundResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['Deltas']))
+      throw new Error(
+        `Response is missing required array field 'Deltas': ${data}`
+      );
+    return new TransactionGroupLedgerStateDeltasForRoundResponse({
+      deltas: data['Deltas'].map(
+        LedgerStateDeltaForTransactionGroup.from_obj_for_encoding
+      ),
     });
     /* eslint-enable dot-notation */
   }

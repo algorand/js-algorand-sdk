@@ -4853,6 +4853,29 @@ module.exports = function getSteps(options) {
     await this.indexerV2client.makeHealthCheck().do();
   });
 
+  When(
+    'we make a TransactionGroupLedgerStateDeltaForRoundResponse call for round {int}',
+    async function (round) {
+      await this.v2Client
+        .getTransactionGroupLedgerStateDeltasForRound(round)
+        .doRaw();
+    }
+  );
+
+  When(
+    'we make a LedgerStateDeltaForTransactionGroupResponse call for ID {string}',
+    async function (id) {
+      await this.v2Client.getLedgerStateDeltaForTransactionGroup(id).do();
+    }
+  );
+
+  When(
+    'we make a GetLedgerStateDelta call against round {int}',
+    async function (round) {
+      await this.v2Client.getLedgerStateDelta(round).do();
+    }
+  );
+
   if (!options.ignoreReturn) {
     return steps;
   }
