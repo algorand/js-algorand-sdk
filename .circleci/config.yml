@@ -5,6 +5,7 @@ orbs:
   slack: circleci/slack@4.4.2
   browser-tools: circleci/browser-tools@1.2.4
   gh-pages: sugarshin/gh-pages@1.0.0
+  codecov: codecov/codecov@3.2.5
 
 parameters:
   ubuntu_machine:
@@ -96,6 +97,7 @@ jobs:
             if [ "<< parameters.browser >>" == "node" ]; then unset TEST_BROWSER; else export TEST_BROWSER=<< parameters.browser >> ; fi
             npm test
             make docker-test
+      - codecov/upload
 
   generate_docs:
     docker:
