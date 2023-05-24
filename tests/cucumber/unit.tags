@@ -22,6 +22,7 @@
 @unit.responses.participationupdates
 @unit.responses.unlimited_assets
 @unit.responses.blocksummary
+@unit.responses.statedelta
 @unit.responses.sync
 @unit.responses.timestamp
 @unit.responses.txngroupdeltas
