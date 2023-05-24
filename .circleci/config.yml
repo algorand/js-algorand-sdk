@@ -99,10 +99,10 @@ jobs:
             make docker-test
       - when:
         condition:
-          equal: [node, << parameters.browser >>]
+          equal: ['node', << parameters.browser >>]
           steps:
             - run: make unit
-            - run: make make integration
+            - run: make integration
             - codecov/upload
 
   generate_docs:
