@@ -4,3 +4,4 @@ tests/cucumber/features
 tests/cucumber/browser/build
 tests/browser/bundle.*
 .github
+CODE_OF_CONDUCT.md
