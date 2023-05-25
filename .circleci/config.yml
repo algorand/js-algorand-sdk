@@ -99,7 +99,7 @@ jobs:
             make docker-test
       - when:
         condition:
-          equal: ['node', << parameters.browser >>]
+          equal: ['node', <<parameters.browser>>]
           steps:
             - run: make unit
             - run: make integration
