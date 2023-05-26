@@ -9,6 +9,19 @@
     "crypto": false
   },
   "types": "dist/types/index.d.ts",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "dist/types/index.d.ts"
+      ],
+      "dist/cjs/*": [
+        "dist/types/*"
+      ],
+      "dist/esm/*": [
+        "dist/types/*"
+      ]
+    }
+  },
   "files": [
     "dist/",
     "src/"
