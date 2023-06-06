@@ -10,6 +10,7 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
   constructor(c: HTTPClient, intDecoding: IntDecoding, private round: bigint) {
     super(c, intDecoding);
     this.round = round;
+    this.query = { format: 'msgpack' };
   }
 
   // eslint-disable-next-line class-methods-use-this
