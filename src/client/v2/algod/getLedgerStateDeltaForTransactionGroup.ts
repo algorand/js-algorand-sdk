@@ -6,7 +6,7 @@ export default class GetLedgerStateDeltaForTransactionGroup extends JSONRequest 
   constructor(c: HTTPClient, intDecoding: IntDecoding, private id: string) {
     super(c, intDecoding);
     this.id = id;
-    this.query = { format: 'msgpack' };
+    this.query = { format: 'json' };
   }
 
   // eslint-disable-next-line class-methods-use-this
