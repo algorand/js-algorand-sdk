@@ -49,7 +49,7 @@ async function main() {
   console.log(`Asset Params: ${assetInfo.params}`);
   // example: ASSET_INFO
 
-  await new Promise((f) => setTimeout(f, 1000)); // sleep to ensure indexer is caught up
+  await new Promise((f) => setTimeout(f, 2000)); // sleep to ensure indexer is caught up
 
   // example: INDEXER_LOOKUP_ASSET
   const indexer = getLocalIndexerClient();
