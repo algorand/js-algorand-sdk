@@ -1,3 +1,29 @@
+# v2.4.0
+
+## What's Changed
+
+### Bugfixes
+
+- docs: fix error message by @barnjamin in https://github.com/algorand/js-algorand-sdk/pull/780
+
+### New Features
+
+- Algod: Simulation run with extra budget per transaction group by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/784
+
+### Enhancements
+
+- DevOps: Update CODEOWNERS to only refer to the devops group by @onetechnical in https://github.com/algorand/js-algorand-sdk/pull/783
+- Client: Don't send auth header when token is empty by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/782
+- algod: Add state delta APIs by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/785
+- deps: Remove coveralls, mocha lcov by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/787
+- algod: Add json query arg to delta endpoints by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/793
+
+### Other
+
+- Bump semver-regex from 3.1.2 to 3.1.4 by @dependabot in https://github.com/algorand/js-algorand-sdk/pull/580
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.3.0...v2.4.0
+
 # v2.3.0
 
 ## What's Changed
