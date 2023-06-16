@@ -6,6 +6,7 @@
 @unit.applications.boxes
 @unit.atomic_transaction_composer
 @unit.blocksummary
+@unit.client-no-headers
 @unit.dryrun
 @unit.dryrun.trace.application
 @unit.feetest
@@ -21,8 +22,10 @@
 @unit.responses.participationupdates
 @unit.responses.unlimited_assets
 @unit.responses.blocksummary
+@unit.responses.statedelta.json
 @unit.responses.sync
 @unit.responses.timestamp
+@unit.responses.txngroupdeltas.json
 @unit.sourcemap
 @unit.stateproof.paths
 @unit.stateproof.responses
