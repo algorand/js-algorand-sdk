@@ -78,52 +78,25 @@ jobs:
           fi
 
       - name: Build Changelog
-        uses: mikepenz/release-changelog-builder-action@v3.7.2
         id: build-changelog
         env:
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
-        with:
-          fromTag: ${{ env.PREVIOUS_VERSION }}
-          toTag: ${{ env.RELEASE_BRANCH }}
-          failOnError: true
-          configurationJson: |
-            {
-                "categories": [
-                    {
-                        "title": "## New Features",
-                        "labels": [
-                            "New Feature"
-                        ]
-                    },
-                    {
-                        "title": "## Enhancements",
-                        "labels": [
-                            "Enhancement"
-                        ]
-                    },
-                    {
-                        "title": "## Bug Fixes",
-                        "labels": [
-                            "Bug-Fix"
-                        ]
-                    },
-                    {
-                        "title": "## Not Yet Enabled",
-                        "labels": [
-                            "Not-Yet-Enabled"
-                        ]
-                    }
-                ],
-                "ignore_labels": [
-                    "Skip-Release-Notes"
-                ],
-                "sort": {
-                    "order": "ASC",
-                    "on_property": "mergedAt"
-                },
-                "template": "#{{CHANGELOG}}",
-                "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}"
-            }
+        run: |
+          CHANGELOG=$(curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}"\
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
+            -d '{"tag_name":"${{ env.RELEASE_VERSION }}","target_commitish":"${{ env.RELEASE_BRANCH }}","previous_tag_name":"${{ env.PREVIOUS_VERSION }}","configuration_file_path":".github/release.yml"}' \
+            | jq -r '.body')
+
+          # The EOF steps are used to save multiline string in github:
+          # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "changelog<<$EOF" >> $GITHUB_OUTPUT
+          echo -e "${CHANGELOG}" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Update Changelog
         if: ${{ env.PRE_RELEASE_VERSION == '' }}
@@ -131,7 +104,7 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
         run: |
-          echo -e "# ${RELEASE_VERSION}\n\n${CHANGELOG_CONTENT}**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_VERSION}...${RELEASE_VERSION}\n" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
+          echo -e "# ${RELEASE_VERSION}\n\n${CHANGELOG_CONTENT}" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
 
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -163,15 +136,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
-          echo -e "# What's Changed\n\n${CHANGELOG_CONTENT}**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_VERSION}...${RELEASE_TAG}" > tmp_msg_body.txt
-          export msg_body=$(cat tmp_msg_body.txt)
-          rm tmp_msg_body.txt
           # Note: There's an issue adding teams as reviewers, see https://github.com/cli/cli/issues/6395
           PULL_REQUEST_URL=$(gh pr create --base "master" \
             --title "FOR REVIEW ONLY: ${{ github.event.repository.name }} $RELEASE_TAG" \
             --label "Skip-Release-Notes" \
             --label "Team Hyper Flow" \
-            --body "$msg_body" | tail -n 1)
+            --body "${CHANGELOG_CONTENT}" | tail -n 1)
           if [[ $PULL_REQUEST_URL =~ ^https://github.com/${{ github.repository }}/pull/[0-9]+$ ]]; then
             PULL_REQUEST_NUM=$(echo $PULL_REQUEST_URL | sed 's:.*/::')
             echo "pull-request-master=$PULL_REQUEST_URL" >> $GITHUB_ENV
