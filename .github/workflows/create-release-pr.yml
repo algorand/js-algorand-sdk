@@ -116,7 +116,7 @@ jobs:
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
           rm -rf dist node_modules
-          npm install
+          npm ci
           npm run build
           NEW_HASH=$(cat dist/browser/algosdk.min.js | openssl dgst -sha384 -binary | openssl base64 -A)
           python3 scripts/bump_version.py ${RELEASE_TAG:1} --new_hash "${NEW_HASH}"
