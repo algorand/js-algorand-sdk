@@ -104,7 +104,7 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
         run: |
-          echo -e "# ${RELEASE_VERSION}\n\n${CHANGELOG_CONTENT}" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
+          echo -e "# ${RELEASE_VERSION}\n\n${CHANGELOG_CONTENT}\n" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
 
       - name: Use Node.js
         uses: actions/setup-node@v3
