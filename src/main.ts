@@ -188,4 +188,3 @@ export * from './signer';
 export * from './composer';
 export * from './types';
 export * from './abi';
-export * from './logging';

@@ -1,7 +1,6 @@
 import nacl from 'tweetnacl';
 import sha512 from 'js-sha512';
 import { isReactNative } from '../utils/utils';
-import { LOG } from '../logging';
 
 export function genericHash(arr: sha512.Message) {
   return sha512.sha512_256.array(arr);
@@ -9,7 +8,7 @@ export function genericHash(arr: sha512.Message) {
 
 export function randomBytes(length: number) {
   if (isReactNative()) {
-    LOG.warn(
+    console.warn(
       `It looks like you're running in react-native. In order to perform common crypto operations you will need to polyfill common operations such as crypto.getRandomValues`
     );
   }
