@@ -403,7 +403,11 @@ export class ABIStringType extends ABIType {
         `byte string is too short to be decoded. Actual length is ${byteString.length}, but expected at least ${LENGTH_ENCODE_BYTE_SIZE}`
       );
     }
-    const view = new DataView(byteString.buffer, 0, LENGTH_ENCODE_BYTE_SIZE);
+    const view = new DataView(
+      byteString.buffer,
+      byteString.byteOffset,
+      LENGTH_ENCODE_BYTE_SIZE
+    );
     const byteLength = view.getUint16(0);
     const byteValue = byteString.slice(
       LENGTH_ENCODE_BYTE_SIZE,
