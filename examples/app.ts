@@ -29,11 +29,15 @@ async function main() {
   // example: APP_COMPILE
   const approvalCompileResp = await algodClient.compile(approvalProgram).do();
 
-  const compiledApprovalProgram = base64ToBytes(approvalCompileResp.result);
+  const compiledApprovalProgram: Uint8Array = base64ToBytes(
+    approvalCompileResp.result
+  );
 
   const clearCompileResp = await algodClient.compile(clearProgram).do();
 
-  const compiledClearProgram = base64ToBytes(clearCompileResp.result);
+  const compiledClearProgram: Uint8Array = base64ToBytes(
+    clearCompileResp.result
+  );
   // example: APP_COMPILE
 
   // example: APP_SCHEMA
@@ -47,8 +51,8 @@ async function main() {
   // example: APP_CREATE
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
     from: creator.addr,
-    approvalProgram: compiledApprovalProgram,
-    clearProgram: compiledClearProgram,
+    approvalProgram: new Uint8Array(compiledApprovalProgram),
+    clearProgram: new Uint8Array(compiledClearProgram),
     numGlobalByteSlices,
     numGlobalInts,
     numLocalByteSlices,
@@ -201,8 +205,8 @@ async function main() {
     suggestedParams,
     appIndex: appId,
     // updates must define both approval and clear programs, even if unchanged
-    approvalProgram: compiledNewProgram,
-    clearProgram: compiledClearProgram,
+    approvalProgram: new Uint8Array(compiledNewProgram),
+    clearProgram: new Uint8Array(compiledClearProgram),
   });
 
   await algodClient

@@ -147,3 +147,27 @@ export function base64ToString(base64String: string) {
   // eslint-disable-next-line no-undef
   return btoa(base64String);
 }
+
+/**
+ * Convert a a Uint8Array to a base64 string for Node.js and browser environments.
+ * @returns A base64 string
+ */
+export function bytesToBase64(byteArray: Uint8Array) {
+  if (isNode()) {
+    return Buffer.from(byteArray).toString('base64');
+  }
+  return new TextDecoder().decode(byteArray);
+}
+
+/**
+ * Convert a a Uint8Array to a hex string for Node.js and browser environments.
+ * @returns A hex string
+ */
+export function bytesToHex(byteArray: Uint8Array) {
+  if (isNode()) {
+    return Buffer.from(byteArray).toString('hex');
+  }
+  return Array.from(byteArray)
+    .map((i) => i.toString(16).padStart(2, '0'))
+    .join('');
+}

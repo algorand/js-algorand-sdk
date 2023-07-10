@@ -100,7 +100,11 @@ async function main() {
 
   const acctInfo = await client.accountInformation(acct1.addr).do();
 
-  console.log(`Account Info: ${acctInfo} Auth Addr: ${acctInfo['auth-addr']}`);
+  console.log(
+    `Account Info: ${JSON.stringify(acctInfo)} Auth Addr: ${
+      acctInfo['auth-addr']
+    }`
+  );
   // example: ACCOUNT_REKEY
 
   // the transaction is from originalAccount, but signed with newSigner private key

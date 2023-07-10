@@ -2,8 +2,8 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import { Buffer } from 'buffer';
 import algosdk from '../src';
+import { base64ToBytes } from '../src/utils/utils';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 
 async function main() {
@@ -14,7 +14,9 @@ async function main() {
 
   // example: LSIG_COMPILE
   const smartSigSource = '#pragma version 8\nint 1\nreturn'; // approve everything
-  const result = await client.compile(Buffer.from(smartSigSource)).do();
+  const result = await client
+    .compile(new TextEncoder().encode(smartSigSource))
+    .do();
 
   // Hash is equivalent to the contract address
   console.log('Hash: ', result.hash);
@@ -23,17 +25,12 @@ async function main() {
   // example: LSIG_COMPILE
 
   // example: LSIG_INIT
-  let smartSig = new algosdk.LogicSig(
-    new Uint8Array(Buffer.from(b64program, 'base64'))
-  );
+  let smartSig = new algosdk.LogicSig(base64ToBytes(b64program));
   // example: LSIG_INIT
 
   // example: LSIG_PASS_ARGS
   const args = [new TextEncoder().encode('This is an argument!')];
-  smartSig = new algosdk.LogicSig(
-    new Uint8Array(Buffer.from(b64program, 'base64')),
-    args
-  );
+  smartSig = new algosdk.LogicSig(base64ToBytes(b64program), args);
   // example: LSIG_PASS_ARGS
 
   const fundSmartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
