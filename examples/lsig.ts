@@ -29,7 +29,7 @@ async function main() {
   // example: LSIG_INIT
 
   // example: LSIG_PASS_ARGS
-  const args = [Buffer.from('This is an argument!')];
+  const args = [new TextEncoder().encode('This is an argument!')];
   smartSig = new algosdk.LogicSig(
     new Uint8Array(Buffer.from(b64program, 'base64')),
     args

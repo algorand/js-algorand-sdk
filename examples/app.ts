@@ -4,9 +4,9 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 import algosdk from '../src';
+import { base64ToBytes, base64ToString } from '../src/utils/utils';
 
 async function main() {
   const algodClient = getLocalAlgodClient();
@@ -27,21 +27,13 @@ async function main() {
   // example: APP_SOURCE
 
   // example: APP_COMPILE
-  const approvalCompileResp = await algodClient
-    .compile(Buffer.from(approvalProgram))
-    .do();
+  const approvalCompileResp = await algodClient.compile(approvalProgram).do();
 
-  const compiledApprovalProgram = new Uint8Array(
-    Buffer.from(approvalCompileResp.result, 'base64')
-  );
+  const compiledApprovalProgram = base64ToBytes(approvalCompileResp.result);
 
-  const clearCompileResp = await algodClient
-    .compile(Buffer.from(clearProgram))
-    .do();
+  const clearCompileResp = await algodClient.compile(clearProgram).do();
 
-  const compiledClearProgram = new Uint8Array(
-    Buffer.from(clearCompileResp.result, 'base64')
-  );
+  const compiledClearProgram = base64ToBytes(clearCompileResp.result);
   // example: APP_COMPILE
 
   // example: APP_SCHEMA
@@ -138,7 +130,7 @@ async function main() {
     from: caller.addr,
     suggestedParams,
     appIndex: appId,
-    appArgs: [new Uint8Array(Buffer.from(now))],
+    appArgs: [new Uint8Array(new TextEncoder().encode(now))],
   });
 
   await algodClient
@@ -157,10 +149,10 @@ async function main() {
   console.log(`Raw global state - ${JSON.stringify(globalState)}`);
 
   // decode b64 string key with Buffer
-  const globalKey = Buffer.from(globalState.key, 'base64').toString();
+  const globalKey = base64ToString(globalState.key);
   // decode b64 address value with encodeAddress and Buffer
   const globalValue = algosdk.encodeAddress(
-    Buffer.from(globalState.value.bytes, 'base64')
+    base64ToBytes(globalState.value.bytes)
   );
 
   console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
@@ -173,7 +165,7 @@ async function main() {
   console.log(`Raw local state - ${JSON.stringify(localState)}`);
 
   // decode b64 string key with Buffer
-  const localKey = Buffer.from(localState.key, 'base64').toString();
+  const localKey = base64ToString(localState.key);
   // get uint value directly
   const localValue = localState.value.uint;
 

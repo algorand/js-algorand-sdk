@@ -1,4 +1,5 @@
 import JSONbigWithoutConfig from 'json-bigint';
+import { Buffer } from 'buffer';
 import IntDecoding from '../types/intDecoding';
 
 const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
@@ -121,4 +122,28 @@ export function isNode() {
     // @ts-ignore
     typeof process.versions.node !== 'undefined'
   );
+}
+
+/**
+ * Convert a base64 string to a Uint8Array for Node.js and browser environments.
+ * @returns A Uint8Array
+ */
+export function base64ToBytes(base64String: string) {
+  if (isNode()) {
+    return Buffer.from(base64String, 'base64');
+  }
+  // eslint-disable-next-line no-undef
+  return new Uint8Array(new TextEncoder().encode(btoa(base64String)));
+}
+
+/**
+ * Decode a base64 string for Node.js and browser environments.
+ * @returns A decoded string
+ */
+export function base64ToString(base64String: string) {
+  if (isNode()) {
+    return base64ToBytes(base64String).toString();
+  }
+  // eslint-disable-next-line no-undef
+  return btoa(base64String);
 }
