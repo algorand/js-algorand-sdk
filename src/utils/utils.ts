@@ -156,7 +156,8 @@ export function bytesToBase64(byteArray: Uint8Array) {
   if (isNode()) {
     return Buffer.from(byteArray).toString('base64');
   }
-  return new TextDecoder().decode(byteArray);
+  // eslint-disable-next-line no-undef
+  return atob(new TextDecoder().decode(byteArray));
 }
 
 /**
