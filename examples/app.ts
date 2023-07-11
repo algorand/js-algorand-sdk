@@ -134,7 +134,7 @@ async function main() {
     from: caller.addr,
     suggestedParams,
     appIndex: appId,
-    appArgs: [new Uint8Array(new TextEncoder().encode(now))],
+    appArgs: [new TextEncoder().encode(now)],
   });
 
   await algodClient

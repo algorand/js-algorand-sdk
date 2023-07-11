@@ -67,7 +67,7 @@ async function main() {
     from: sender.addr,
     to: sender.addr,
     amount: 1e6,
-    note: new Uint8Array(new TextEncoder().encode('Hello World!')),
+    note: new TextEncoder().encode('Hello World!'),
     suggestedParams,
   });
 

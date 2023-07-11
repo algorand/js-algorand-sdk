@@ -26,7 +26,7 @@ async function main() {
     suggestedParams,
     to: acct2.addr,
     amount: 10000,
-    note: new Uint8Array(new TextEncoder().encode('hello world')),
+    note: new TextEncoder().encode('hello world'),
   });
   // example: TRANSACTION_PAYMENT_CREATE
 
