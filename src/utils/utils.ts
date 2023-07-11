@@ -130,7 +130,7 @@ export function isNode() {
  */
 export function base64ToBytes(base64String: string) {
   if (isNode()) {
-    return Buffer.from(base64String, 'base64');
+    return new Uint8Array(Buffer.from(base64String, 'base64'));
   }
   // eslint-disable-next-line no-undef
   return new Uint8Array(new TextEncoder().encode(btoa(base64String)));
