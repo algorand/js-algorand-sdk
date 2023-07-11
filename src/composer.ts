@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import {
   ABIAddressType,
   abiCheckTransactionType,
@@ -33,9 +32,10 @@ import {
 } from './types/transactions/base';
 import { waitForConfirmation } from './wait';
 import * as encoding from './encoding/encoding';
+import { arrayEqual, base64ToBytes } from './utils/utils';
 
 // First 4 bytes of SHA-512/256 hash of "return"
-const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
+const RETURN_PREFIX = new Uint8Array([21, 31, 124, 117]);
 
 // The maximum number of arguments for an application call transaction
 const MAX_APP_ARGS = 16;
@@ -786,10 +786,10 @@ export class AtomicTransactionComposer {
           throw new Error('App call transaction did not log a return value');
         }
 
-        const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+        const lastLog = base64ToBytes(logs[logs.length - 1]);
         if (
           lastLog.byteLength < 4 ||
-          !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+          !arrayEqual(lastLog.slice(0, 4), RETURN_PREFIX)
         ) {
           throw new Error('App call transaction did not log a return value');
         }
