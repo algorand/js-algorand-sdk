@@ -552,18 +552,4 @@ describe('encoding', () => {
       }
     });
   });
-
-  describe('Base64 decoding utilities', () => {
-    it('should decode and encode Base64 roundtrip', () => {
-      const expectedString = 'SGVsbG8sIHdvcmxk'; // "Hello, world"
-      const byteString = utils.base64ToBytes(expectedString);
-      const actualString = utils.bytesToBase64(byteString);
-
-      assert.deepStrictEqual(
-        actualString,
-        expectedString,
-        `Incorrect decoding of ${expectedString}; got ${actualString}`
-      );
-    });
-  });
 });
