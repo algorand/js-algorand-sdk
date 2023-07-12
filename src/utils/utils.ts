@@ -143,10 +143,10 @@ export function base64ToBytes(base64String: string): Uint8Array {
  */
 export function base64ToString(base64String: string): string {
   if (isNode()) {
-    return base64ToBytes(base64String).toString();
+    return Buffer.from(base64String, 'base64').toString();
   }
-  /* eslint-env browser */
-  return atob(base64String);
+  const binString = base64ToBytes(base64String);
+  return new TextDecoder().decode(binString);
 }
 
 /**
