@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
 import * as nacl from './nacl/naclWrappers';
@@ -27,7 +26,7 @@ export type BidOptions = Omit<
  * */
 export default class Bid implements BidStorageStructure {
   name = 'Bid';
-  tag = Buffer.from([97, 66]); // "aB"
+  tag = Uint8Array.from([97, 66]); // "aB"
 
   bidderKey: Address;
   bidAmount: number;
@@ -67,23 +66,23 @@ export default class Bid implements BidStorageStructure {
   // eslint-disable-next-line camelcase
   get_obj_for_encoding() {
     return {
-      bidder: Buffer.from(this.bidderKey.publicKey),
+      bidder: this.bidderKey.publicKey,
       cur: this.bidAmount,
       price: this.maxPrice,
       id: this.bidID,
-      auc: Buffer.from(this.auctionKey.publicKey),
+      auc: this.auctionKey.publicKey,
       aid: this.auctionID,
     };
   }
 
   signBid(sk: Uint8Array) {
     const encodedMsg = encoding.encode(this.get_obj_for_encoding());
-    const toBeSigned = Buffer.from(utils.concatArrays(this.tag, encodedMsg));
+    const toBeSigned = utils.concatArrays(this.tag, encodedMsg);
     const sig = nacl.sign(toBeSigned, sk);
 
     // construct signed message
     const sBid = {
-      sig: Buffer.from(sig),
+      sig,
       bid: this.get_obj_for_encoding(),
     };
 

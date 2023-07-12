@@ -1304,7 +1304,7 @@ export function encodeUnsignedTransaction(transactionObject: Transaction) {
 }
 
 /**
- * decodeUnsignedTransaction takes a Buffer (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
+ * decodeUnsignedTransaction takes a Uint8Array (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
  * @param transactionBuffer - the Uint8Array containing a transaction
  */
 export function decodeUnsignedTransaction(

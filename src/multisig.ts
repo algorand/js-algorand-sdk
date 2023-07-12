@@ -56,7 +56,7 @@ export function createMultisigTransaction(
 ) {
   // construct the appendable multisigned transaction format
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
-  const subsigs = pks.map((pk) => ({ pk: Buffer.from(pk) }));
+  const subsigs = pks.map((pk) => ({ pk }));
 
   const msig: EncodedMultisig = {
     v: version,
@@ -80,7 +80,7 @@ export function createMultisigTransaction(
     address.encodeAddress(txnForEncoding.snd) !==
     address.encodeAddress(msigAddr)
   ) {
-    signedTxn.sgnr = Buffer.from(msigAddr);
+    signedTxn.sgnr = msigAddr;
   }
 
   return new Uint8Array(encoding.encode(signedTxn));
@@ -89,7 +89,7 @@ export function createMultisigTransaction(
 /**
  * createMultisigTransactionWithSignature creates a multisig transaction blob with an included signature.
  * @param txn - the actual transaction to sign.
- * @param rawSig - a Buffer raw signature of that transaction
+ * @param rawSig - a Uint8Array raw signature of that transaction
  * @param myPk - a public key that corresponds with rawSig
  * @param version - multisig version
  * @param threshold - multisig threshold
@@ -132,7 +132,7 @@ function createMultisigTransactionWithSignature(
   if (
     address.encodeAddress(signedTxn.txn.snd) !== address.encodeAddress(msigAddr)
   ) {
-    signedTxn.sgnr = Buffer.from(msigAddr);
+    signedTxn.sgnr = msigAddr;
   }
 
   return new Uint8Array(encoding.encode(signedTxn));
@@ -291,7 +291,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
       // info: https://github.com/algorand/js-algorand-sdk/issues/252
       if (
         current.s &&
-        Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0
+        Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0 // TODO: Check this Buffer usage
       ) {
         // mismatch
         throw new Error(MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG);
@@ -309,7 +309,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     txn: refSigTx.txn,
   };
   if (typeof refAuthAddr !== 'undefined') {
-    signedTxn.sgnr = Buffer.from(address.decodeAddress(refAuthAddr).publicKey);
+    signedTxn.sgnr = Buffer.from(address.decodeAddress(refAuthAddr).publicKey); // TODO: Check this Buffer usage
   }
   return new Uint8Array(encoding.encode(signedTxn));
 }

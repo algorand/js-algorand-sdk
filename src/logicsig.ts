@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
@@ -39,12 +38,12 @@ export function sanityCheckProgram(program: Uint8Array) {
   );
 
   if (isAsciiPrintable) {
-    const programStr = Buffer.from(program).toString();
+    const programStr = new TextDecoder().decode(program);
 
     if (isValidAddress(programStr))
       throw new Error('requesting program bytes, get Algorand address');
 
-    if (Buffer.from(programStr, 'base64').toString('base64') === programStr)
+    if (utils.base64ToString(utils.bytesToBase64(program)) === programStr)
       throw new Error('program should not be b64 encoded');
 
     throw new Error(
@@ -59,23 +58,18 @@ export function sanityCheckProgram(program: Uint8Array) {
  LogicSig cannot sign transactions in all cases.  Instead, use LogicSigAccount as a safe, general purpose signing mechanism.  Since LogicSig does not track the provided signature's public key, LogicSig cannot sign transactions when delegated to a non-multisig account _and_ the sender is not the delegating account.
  */
 export class LogicSig implements LogicSigStorageStructure {
-  tag = Buffer.from('Program');
+  tag = new TextEncoder().encode('Program');
 
   logic: Uint8Array;
   args: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
 
-  constructor(
-    program: Uint8Array,
-    programArgs?: Array<Uint8Array | Buffer> | null
-  ) {
+  constructor(program: Uint8Array, programArgs?: Array<Uint8Array> | null) {
     if (
       programArgs &&
       (!Array.isArray(programArgs) ||
-        !programArgs.every(
-          (arg) => arg.constructor === Uint8Array || Buffer.isBuffer(arg)
-        ))
+        !programArgs.every((arg) => arg.constructor === Uint8Array))
     ) {
       throw new TypeError('Invalid arguments');
     }
@@ -243,7 +237,7 @@ export class LogicSigAccount {
    *   this LogicSig.
    * @param args - An optional array of arguments for the program.
    */
-  constructor(program: Uint8Array, args?: Array<Uint8Array | Buffer> | null) {
+  constructor(program: Uint8Array, args?: Array<Uint8Array> | null) {
     this.lsig = new LogicSig(program, args);
     this.sigkey = undefined;
   }
@@ -395,7 +389,7 @@ function signLogicSigTransactionWithAddress(
   };
 
   if (!nacl.bytesEqual(lsigAddress, txn.from.publicKey)) {
-    signedTxn.sgnr = Buffer.from(lsigAddress);
+    signedTxn.sgnr = lsigAddress;
   }
 
   return {
@@ -473,38 +467,36 @@ export function logicSigFromByte(encoded: Uint8Array) {
   return LogicSig.fromByte(encoded);
 }
 
-const SIGN_PROGRAM_DATA_PREFIX = Buffer.from('ProgData');
+const SIGN_PROGRAM_DATA_PREFIX = new TextEncoder().encode('ProgData');
 
 /**
  * tealSign creates a signature compatible with ed25519verify opcode from program hash
- * @param sk - uint8array with secret key
- * @param data - buffer with data to sign
+ * @param sk - Uint8Array with secret key
+ * @param data - Uint8Array with data to sign
  * @param programHash - string representation of teal program hash (= contract address for LogicSigs)
  */
 export function tealSign(
   sk: Uint8Array,
-  data: Uint8Array | Buffer,
+  data: Uint8Array,
   programHash: string
 ) {
   const parts = utils.concatArrays(
     address.decodeAddress(programHash).publicKey,
     data
   );
-  const toBeSigned = Buffer.from(
-    utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
-  );
+  const toBeSigned = utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts);
   return nacl.sign(toBeSigned, sk);
 }
 
 /**
  * verifyTealSign verifies a signature as would the ed25519verify opcode
- * @param data - buffer with original signed data
+ * @param data - Uint8Array with original signed data
  * @param programHash - string representation of teal program hash (= contract address for LogicSigs)
  * @param sig - uint8array with the signature to verify (produced by tealSign/tealSignFromProgram)
  * @param pk - uint8array with public key to verify against
  */
 export function verifyTealSign(
-  data: Uint8Array | Buffer,
+  data: Uint8Array,
   programHash: string,
   sig: Uint8Array,
   pk: Uint8Array
@@ -513,21 +505,19 @@ export function verifyTealSign(
     address.decodeAddress(programHash).publicKey,
     data
   );
-  const toBeSigned = Buffer.from(
-    utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
-  );
+  const toBeSigned = utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts);
   return nacl.verify(toBeSigned, sig, pk);
 }
 
 /**
  * tealSignFromProgram creates a signature compatible with ed25519verify opcode from raw program bytes
  * @param sk - uint8array with secret key
- * @param data - buffer with data to sign
- * @param program - buffer with teal program
+ * @param data - Uint8Array with data to sign
+ * @param program - Uint8Array with teal program
  */
 export function tealSignFromProgram(
   sk: Uint8Array,
-  data: Uint8Array | Buffer,
+  data: Uint8Array,
   program: Uint8Array
 ) {
   const lsig = new LogicSig(program);

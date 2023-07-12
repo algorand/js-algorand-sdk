@@ -133,7 +133,7 @@ export function base64ToBytes(base64String: string) {
     return Buffer.from(base64String, 'base64');
   }
   // eslint-disable-next-line no-undef
-  return new Uint8Array(new TextEncoder().encode(btoa(base64String)));
+  return new TextEncoder().encode(btoa(base64String));
 }
 
 /**
