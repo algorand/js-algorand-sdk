@@ -555,15 +555,24 @@ describe('encoding', () => {
 
   describe('Base64 decoding utilities', () => {
     it('should decode and encode Base64 roundtrip', () => {
-      const expectedString = 'SGVsbG8sIHdvcmxk'; // "Hello, world"
-      const byteString = utils.base64ToBytes(expectedString);
-      const actualString = utils.bytesToBase64(byteString);
+      const testCases = [
+        'Hello, Algorand!',
+        'a Ā 𐀀 文 🦄',
+        '(╯°□°）``` ┻━┻ 00\\',
+      ];
+      for (const testCase of testCases) {
+        const byteArray = new TextEncoder().encode(testCase);
+        const base64String = utils.bytesToBase64(byteArray);
+        const roundTripString = new TextDecoder().decode(
+          utils.base64ToBytes(base64String)
+        );
 
-      assert.deepStrictEqual(
-        actualString,
-        expectedString,
-        `Incorrect decoding of ${expectedString}; got ${actualString}`
-      );
+        assert.deepStrictEqual(
+          roundTripString,
+          testCase,
+          `Incorrect decoding of ${testCase}; got ${roundTripString}`
+        );
+      }
     });
   });
 });

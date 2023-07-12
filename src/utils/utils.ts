@@ -128,43 +128,47 @@ export function isNode() {
  * Convert a base64 string to a Uint8Array for Node.js and browser environments.
  * @returns A Uint8Array
  */
-export function base64ToBytes(base64String: string) {
+export function base64ToBytes(base64String: string): Uint8Array {
   if (isNode()) {
     return new Uint8Array(Buffer.from(base64String, 'base64'));
   }
-  // eslint-disable-next-line no-undef
-  return new Uint8Array(new TextEncoder().encode(btoa(base64String)));
+  /* eslint-env browser */
+  const binString = atob(base64String);
+  return Uint8Array.from(binString, (m) => m.codePointAt(0));
 }
 
 /**
  * Decode a base64 string for Node.js and browser environments.
  * @returns A decoded string
  */
-export function base64ToString(base64String: string) {
+export function base64ToString(base64String: string): string {
   if (isNode()) {
     return base64ToBytes(base64String).toString();
   }
-  // eslint-disable-next-line no-undef
-  return btoa(base64String);
+  /* eslint-env browser */
+  return atob(base64String);
 }
 
 /**
- * Convert a a Uint8Array to a base64 string for Node.js and browser environments.
+ * Convert a Uint8Array to a base64 string for Node.js and browser environments.
  * @returns A base64 string
  */
-export function bytesToBase64(byteArray: Uint8Array) {
+export function bytesToBase64(byteArray: Uint8Array): string {
   if (isNode()) {
     return Buffer.from(byteArray).toString('base64');
   }
-  // eslint-disable-next-line no-undef
-  return atob(new TextDecoder().decode(byteArray));
+  /* eslint-env browser */
+  const binString = Array.from(byteArray, (x) => String.fromCodePoint(x)).join(
+    ''
+  );
+  return btoa(binString);
 }
 
 /**
  * Convert a a Uint8Array to a hex string for Node.js and browser environments.
  * @returns A hex string
  */
-export function bytesToHex(byteArray: Uint8Array) {
+export function bytesToHex(byteArray: Uint8Array): string {
   if (isNode()) {
     return Buffer.from(byteArray).toString('hex');
   }
