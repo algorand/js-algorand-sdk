@@ -125,6 +125,18 @@ export function isNode() {
 }
 
 /**
+ * Check whether the environment is ReactNative
+ * @returns True if ReactNative, false otherwise
+ */
+export function isReactNative() {
+  const { navigator } = globalThis as { navigator?: { product?: string } };
+  if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Convert a base64 string to a Uint8Array for Node.js and browser environments.
  * @returns A Uint8Array
  */

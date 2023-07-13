@@ -15,3 +15,4 @@
 @send.keyregtxn
 @simulate
 @simulate.lift_log_limits
+@simulate.extra_opcode_budget
