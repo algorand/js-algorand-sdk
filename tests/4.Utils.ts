@@ -36,7 +36,47 @@ describe('utils', () => {
   });
 
   describe('Base64 decoding utilities', () => {
-    it('should decode and encode Base64 roundtrip', () => {
+    it('should decode bytes from Base64', () => {
+      const testCases = [
+        [
+          Uint8Array.from([
+            97,
+            32,
+            196,
+            128,
+            32,
+            240,
+            144,
+            128,
+            128,
+            32,
+            230,
+            150,
+            135,
+            32,
+            240,
+            159,
+            166,
+            132,
+          ]), // a Ā 𐀀 文 🦄
+          'YSDEgCDwkICAIOaWhyDwn6aE',
+        ],
+        [
+          Uint8Array.from([0, 1, 2, 3, 4, 46, 46, 46, 254, 255]), // non UTF-8 bytes
+          'AAECAwQuLi7+/w==',
+        ],
+      ];
+      for (const [expectedBytes, expectedEncoding] of testCases) {
+        const actualBytes = utils.base64ToBytes(expectedEncoding as string);
+        assert.deepStrictEqual(
+          actualBytes,
+          expectedBytes,
+          `Incorrect encoding of ${expectedBytes}; got ${actualBytes}`
+        );
+      }
+    });
+
+    it('should decode and encode Base64 roundtrip for UTF-8 strings', () => {
       const testCases = [
         ['Hello, Algorand!', 'SGVsbG8sIEFsZ29yYW5kIQ=='],
         ['a Ā 𐀀 文 🦄', 'YSDEgCDwkICAIOaWhyDwn6aE'],
