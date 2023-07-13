@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
@@ -285,14 +284,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     unisig.msig.subsig.forEach((uniSubsig, index) => {
       if (!uniSubsig.s) return;
       const current = newSubsigs[index];
-      // we convert the Uint8Arrays uniSubsig.s and current.s to Buffers here because (as
-      // of Dec 2020) React overrides the buffer package with an older version that does
-      // not support Uint8Arrays in the comparison function. See this thread for more
-      // info: https://github.com/algorand/js-algorand-sdk/issues/252
-      if (
-        current.s &&
-        Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0 // TODO: Check this Buffer usage
-      ) {
+      if (current.s && !utils.arrayEqual(uniSubsig.s, current.s)) {
         // mismatch
         throw new Error(MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG);
       }
@@ -309,7 +301,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     txn: refSigTx.txn,
   };
   if (typeof refAuthAddr !== 'undefined') {
-    signedTxn.sgnr = Buffer.from(address.decodeAddress(refAuthAddr).publicKey); // TODO: Check this Buffer usage
+    signedTxn.sgnr = address.decodeAddress(refAuthAddr).publicKey;
   }
   return new Uint8Array(encoding.encode(signedTxn));
 }

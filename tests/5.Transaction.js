@@ -1,9 +1,9 @@
 /* eslint-env mocha */
-const { Buffer } = require('buffer');
 const assert = require('assert');
 const algosdk = require('../src/index');
 const { translateBoxReferences } = require('../src/boxStorage');
 const group = require('../src/group');
+const { base64ToBytes } = require('../src/utils/utils');
 
 describe('Sign', () => {
   /* eslint-disable no-console */
@@ -508,7 +508,7 @@ describe('Sign', () => {
         assetName: 'testcoin',
         assetURL: 'testURL',
         assetMetadataHash: new Uint8Array(
-          Buffer.from('ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=', 'base64')
+          base64ToBytes('ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=')
         ),
         assetManager: address,
         assetReserve: address,
@@ -569,7 +569,7 @@ describe('Sign', () => {
         foreignAssets: [5, 6],
         boxes: [{ appIndex: 0, name: Uint8Array.from([0]) }],
         lease: Uint8Array.from(new Array(32).fill(7)),
-        note: new Uint8Array(Buffer.from('note value')),
+        note: new TextEncoder().encode('note value'),
         rekeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         suggestedParams: {
           fee: 0,
@@ -1039,7 +1039,7 @@ describe('Sign', () => {
       const assetName = 'testcoin';
       const assetURL = 'testURL';
       const assetMetadataHash = new Uint8Array(
-        Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64')
+        base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
       const firstRound = 322575;
@@ -1111,7 +1111,7 @@ describe('Sign', () => {
       const assetName = 'testcoin';
       const assetURL = 'testURL';
       const assetMetadataHash = new Uint8Array(
-        Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64')
+        base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
       const firstRound = 322575;
@@ -1183,7 +1183,7 @@ describe('Sign', () => {
       const assetName = 'testcoin';
       const assetURL = 'testURL';
       const assetMetadataHash = new Uint8Array(
-        Buffer.from('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'base64')
+        base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
       const firstRound = 322575;

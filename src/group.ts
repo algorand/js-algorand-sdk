@@ -42,7 +42,7 @@ export class TxGroup {
     txn.tag = new TextEncoder().encode('TG');
     txn.txGroupHashes = [];
     for (const hash of txgroupForEnc.txlist) {
-      utils.concatArrays(txn.txGroupHashes, hash);
+      txn.txGroupHashes.push(hash);
     }
     return txn;
   }
