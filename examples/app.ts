@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 import algosdk from '../src';
-import { base64ToBytes, base64ToString } from '../src/utils/utils';
+import { base64ToBytes, base64ToString } from '../src/encoding/binarydata';
 
 async function main() {
   const algodClient = getLocalAlgodClient();
