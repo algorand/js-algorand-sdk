@@ -599,6 +599,7 @@ describe('encoding', () => {
         ['Hello, Algorand!', 'SGVsbG8sIEFsZ29yYW5kIQ=='],
         ['a Ā 𐀀 文 🦄', 'YSDEgCDwkICAIOaWhyDwn6aE'],
         ['(╯°□°）``` ┻━┻ 00\\', 'KOKVr8Kw4pahwrDvvIlgYGAg4pS74pSB4pS7IDAwXA=='],
+        ['\uFFFD\uFFFD', '/v8='], // Non UTF-8 bytes should still decode to same (invalid) output
       ];
       for (const [testCase, expectedEncoding] of testCases) {
         const actualB64Decoding = algosdk.base64ToString(expectedEncoding);
