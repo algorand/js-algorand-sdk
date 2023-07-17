@@ -351,7 +351,7 @@ export class AtomicTransactionComposer {
           !abiCheckTransactionType(argType, argValue.txn)
         ) {
           throw new Error(
-            `Expected ${argType} transaction for argument at index ${i}`
+            `Expected ${argType} TransactionWithSigner for argument at index ${i}`
           );
         }
         if (argValue.txn.group && argValue.txn.group.some((v) => v !== 0)) {

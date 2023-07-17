@@ -34,56 +34,6 @@ describe('utils', () => {
       assert.deepStrictEqual(expected, actual);
     });
   });
-
-  describe('Base64 decoding utilities', () => {
-    it('should decode and encode Base64 roundtrip', () => {
-      const testCases = [
-        ['Hello, Algorand!', 'SGVsbG8sIEFsZ29yYW5kIQ=='],
-        ['a Ā 𐀀 文 🦄', 'YSDEgCDwkICAIOaWhyDwn6aE'],
-        ['(╯°□°）``` ┻━┻ 00\\', 'KOKVr8Kw4pahwrDvvIlgYGAg4pS74pSB4pS7IDAwXA=='],
-      ];
-      for (const [testCase, expectedEncoding] of testCases) {
-        const actualB64Decoding = utils.base64ToString(expectedEncoding);
-        assert.deepStrictEqual(
-          actualB64Decoding,
-          testCase,
-          `Incorrect encoding of ${testCase}; got ${actualB64Decoding}`
-        );
-
-        const byteArray = new TextEncoder().encode(testCase);
-        const base64String = utils.bytesToBase64(byteArray);
-        const roundTripString = new TextDecoder().decode(
-          utils.base64ToBytes(base64String)
-        );
-
-        assert.deepStrictEqual(
-          roundTripString,
-          testCase,
-          `Incorrect decoding of ${testCase}; got ${roundTripString}`
-        );
-      }
-    });
-
-    it('should encode bytes to hex', () => {
-      const testCases = [
-        ['Hello, Algorand!', '48656c6c6f2c20416c676f72616e6421'],
-        ['a Ā 𐀀 文 🦄', '6120c48020f090808020e6968720f09fa684'],
-        [
-          '(╯°□°）``` ┻━┻ 00\\',
-          '28e295afc2b0e296a1c2b0efbc8960606020e294bbe29481e294bb2030305c',
-        ],
-      ];
-      for (const [testCase, expectedEncoding] of testCases) {
-        const binString = new TextEncoder().encode(testCase);
-        const actualHexString = utils.bytesToHex(binString);
-        assert.deepStrictEqual(
-          actualHexString,
-          expectedEncoding,
-          `Incorrect encoding of ${testCase}; got ${actualHexString}`
-        );
-      }
-    });
-  });
 });
 
 describe('nacl wrapper', () => {

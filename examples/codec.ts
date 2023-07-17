@@ -9,7 +9,7 @@ import {
   base64ToString,
   bytesToBase64,
   bytesToHex,
-} from '../src/utils/utils';
+} from '../src/encoding/binarydata';
 
 async function main() {
   const client = getLocalAlgodClient();

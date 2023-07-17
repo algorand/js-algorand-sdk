@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import algosdk from '../src';
-import { base64ToBytes } from '../src/utils/utils';
+import { base64ToBytes } from '../src/encoding/binarydata';
 
 export async function compileProgram(
   client: algosdk.Algodv2,

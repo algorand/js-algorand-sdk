@@ -3,7 +3,7 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
 import algosdk from '../src';
-import { base64ToBytes } from '../src/utils/utils';
+import { base64ToBytes } from '../src/encoding/binarydata';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 
 async function main() {

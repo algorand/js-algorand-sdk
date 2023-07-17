@@ -1,4 +1,5 @@
 /* eslint-disable no-console,global-require,no-loop-func,func-names */
+const assert = require('assert');
 const { Buffer } = require('buffer');
 const path = require('path');
 const fs = require('fs');
@@ -20,6 +21,7 @@ const browser = process.env.TEST_BROWSER;
 
 console.log('TEST_BROWSER is', browser);
 
+let browserHeaders = [];
 let driver;
 let driverBuilder;
 if (browser) {
@@ -51,8 +53,26 @@ if (browser) {
     driverBuilder = driverBuilder.usingServer(process.env.SELENIUM_SERVER_URL);
   } else if (browser === 'chrome') {
     require('chromedriver');
+    browserHeaders = [
+      'origin',
+      'referer',
+      'sec-ch-ua',
+      'sec-ch-ua-mobile',
+      'sec-ch-ua-platform',
+      'sec-fetch-dest',
+      'sec-fetch-mode',
+      'sec-fetch-site',
+    ];
   } else if (browser === 'firefox') {
     require('geckodriver');
+    browserHeaders = [
+      'accept-language',
+      'origin',
+      'referer',
+      'sec-fetch-dest',
+      'sec-fetch-mode',
+      'sec-fetch-site',
+    ];
   }
 
   console.log('Testing in browser');
@@ -325,11 +345,11 @@ function setupMockServerForPaths(mockServer) {
   });
 }
 
-function getMockServerRequestUrlsMethods(mockServer) {
+function getMockServerRequestUrlsMethodsHeaders(mockServer) {
   return mockServer
     .requests()
     .filter((req) => req.method !== 'OPTIONS') // ignore cors preflight requests from the browser
-    .map((req) => ({ method: req.method, url: req.url }));
+    .map((req) => ({ method: req.method, url: req.url, headers: req.headers }));
 }
 
 function isFunction(functionToCheck) {
@@ -357,6 +377,13 @@ if (browser) {
           }
 
           for (const arg of rpcArgs) {
+            assert.deepStrictEqual(
+              JSON.parse(JSON.stringify(arg)),
+              arg,
+              `${JSON.stringify(
+                arg
+              )} cannot be deserialized via JSON.parse and will fail browser tests`
+            );
             if (arg instanceof Uint8Array) {
               // cannot send Uint8Array or Buffer objects because the arguments will get JSON
               // encoded when transmitted to the browser
@@ -465,6 +492,13 @@ for (const name of Object.keys(steps.given)) {
       setupMockServerForPaths(indexerMockServerPathRecorder);
       return fn.call(this);
     });
+  } else if (name === 'expected headers') {
+    Given(name, function (dataTable) {
+      return fn.call(this, [
+        ...dataTable.rows().map((entry) => entry[0]),
+        ...browserHeaders,
+      ]);
+    });
   } else {
     Given(name, fn);
   }
@@ -478,10 +512,10 @@ for (const name of Object.keys(steps.then)) {
   if (name === 'expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrlsMethods(
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrlsMethods(
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -494,10 +528,10 @@ for (const name of Object.keys(steps.then)) {
   } else if (name === 'expect the request to be {string} {string}') {
     Then(name, function (expectedRequestType, expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrlsMethods(
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrlsMethods(
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -511,10 +545,10 @@ for (const name of Object.keys(steps.then)) {
   } else if (name === 'we expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrlsMethods(
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrlsMethods(
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -523,6 +557,19 @@ for (const name of Object.keys(steps.then)) {
         indexerSeenRequests,
         expectedRequestPath
       );
+    });
+  } else if (
+    name === 'expect the observed header keys to equal the expected header keys'
+  ) {
+    Then(name, function () {
+      // get all requests the mockservers have seen since reset
+      const algodSeenRequests = getMockServerRequestUrlsMethodsHeaders(
+        algodMockServerPathRecorder
+      );
+      const indexerSeenRequests = getMockServerRequestUrlsMethodsHeaders(
+        indexerMockServerPathRecorder
+      );
+      return fn.call(this, algodSeenRequests, indexerSeenRequests);
     });
   } else if (
     name === 'the produced json should equal {string} loaded from {string}'
