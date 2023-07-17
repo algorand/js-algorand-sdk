@@ -4,12 +4,6 @@
 /* eslint-disable no-console */
 import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
-import {
-  base64ToBytes,
-  base64ToString,
-  bytesToBase64,
-  bytesToHex,
-} from '../src/encoding/binarydata';
 
 async function main() {
   const client = getLocalAlgodClient();
@@ -27,7 +21,7 @@ async function main() {
 
   // example: CODEC_BASE64
   const b64Encoded = 'SGksIEknbSBkZWNvZGVkIGZyb20gYmFzZTY0';
-  const b64Decoded = base64ToString(b64Encoded);
+  const b64Decoded = algosdk.base64ToString(b64Encoded);
   console.log(b64Encoded, b64Decoded);
   // example: CODEC_BASE64
 
@@ -48,17 +42,19 @@ async function main() {
   });
 
   const txnBytes = algosdk.encodeUnsignedTransaction(txn);
-  const txnB64 = bytesToBase64(txnBytes);
+  const txnB64 = algosdk.bytesToBase64(txnBytes);
   // ...
-  const restoredTxn = algosdk.decodeUnsignedTransaction(base64ToBytes(txnB64));
+  const restoredTxn = algosdk.decodeUnsignedTransaction(
+    algosdk.base64ToBytes(txnB64)
+  );
   console.log(restoredTxn);
   // example: CODEC_TRANSACTION_UNSIGNED
 
   // example: CODEC_TRANSACTION_SIGNED
   const signedTxn = txn.signTxn(sender.privateKey);
-  const signedB64Txn = bytesToBase64(signedTxn);
+  const signedB64Txn = algosdk.bytesToBase64(signedTxn);
   const restoredSignedTxn = algosdk.decodeSignedTransaction(
-    base64ToBytes(signedB64Txn)
+    algosdk.base64ToBytes(signedB64Txn)
   );
   console.log(restoredSignedTxn);
   // example: CODEC_TRANSACTION_SIGNED
@@ -68,7 +64,7 @@ async function main() {
 
   const stringTupleData = ['hello', 'world'];
   const encodedTuple = stringTupleCodec.encode(stringTupleData);
-  console.log(bytesToHex(encodedTuple));
+  console.log(algosdk.bytesToHex(encodedTuple));
 
   const decodedTuple = stringTupleCodec.decode(encodedTuple);
   console.log(decodedTuple); // ['hello', 'world']
@@ -77,7 +73,7 @@ async function main() {
 
   const uintArrayData = [1, 2, 3, 4, 5];
   const encodedArray = uintArrayCodec.encode(uintArrayData);
-  console.log(bytesToHex(encodedArray));
+  console.log(algosdk.bytesToHex(encodedArray));
 
   const decodeArray = uintArrayCodec.decode(encodedArray);
   console.log(decodeArray); // [1, 2, 3, 4, 5]
