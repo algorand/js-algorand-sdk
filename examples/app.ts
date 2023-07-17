@@ -6,7 +6,6 @@ import fs from 'fs';
 import path from 'path';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 import algosdk from '../src';
-import { base64ToBytes, base64ToString } from '../src/encoding/binarydata';
 
 async function main() {
   const algodClient = getLocalAlgodClient();
@@ -29,13 +28,13 @@ async function main() {
   // example: APP_COMPILE
   const approvalCompileResp = await algodClient.compile(approvalProgram).do();
 
-  const compiledApprovalProgram: Uint8Array = base64ToBytes(
+  const compiledApprovalProgram: Uint8Array = algosdk.base64ToBytes(
     approvalCompileResp.result
   );
 
   const clearCompileResp = await algodClient.compile(clearProgram).do();
 
-  const compiledClearProgram: Uint8Array = base64ToBytes(
+  const compiledClearProgram: Uint8Array = algosdk.base64ToBytes(
     clearCompileResp.result
   );
   // example: APP_COMPILE
@@ -153,10 +152,10 @@ async function main() {
   console.log(`Raw global state - ${JSON.stringify(globalState)}`);
 
   // decode b64 string key with Buffer
-  const globalKey = base64ToString(globalState.key);
+  const globalKey = algosdk.base64ToString(globalState.key);
   // decode b64 address value with encodeAddress and Buffer
   const globalValue = algosdk.encodeAddress(
-    base64ToBytes(globalState.value.bytes)
+    algosdk.base64ToBytes(globalState.value.bytes)
   );
 
   console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
@@ -169,7 +168,7 @@ async function main() {
   console.log(`Raw local state - ${JSON.stringify(localState)}`);
 
   // decode b64 string key with Buffer
-  const localKey = base64ToString(localState.key);
+  const localKey = algosdk.base64ToString(localState.key);
   // get uint value directly
   const localValue = localState.value.uint;
 
