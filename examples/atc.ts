@@ -4,7 +4,6 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 
@@ -99,7 +98,7 @@ async function main() {
 
   // example: ATC_BOX_REF
   const boxATC = new algosdk.AtomicTransactionComposer();
-  const boxKey = new Uint8Array(Buffer.from('key'));
+  const boxKey = new TextEncoder().encode('key');
   boxATC.addMethodCall({
     appID: appIndex,
     method: boxAccessorMethod,

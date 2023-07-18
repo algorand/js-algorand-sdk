@@ -4,7 +4,6 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 import algosdk from '../src';
 
@@ -27,20 +26,16 @@ async function main() {
   // example: APP_SOURCE
 
   // example: APP_COMPILE
-  const approvalCompileResp = await algodClient
-    .compile(Buffer.from(approvalProgram))
-    .do();
+  const approvalCompileResp = await algodClient.compile(approvalProgram).do();
 
-  const compiledApprovalProgram = new Uint8Array(
-    Buffer.from(approvalCompileResp.result, 'base64')
+  const compiledApprovalProgram: Uint8Array = algosdk.base64ToBytes(
+    approvalCompileResp.result
   );
 
-  const clearCompileResp = await algodClient
-    .compile(Buffer.from(clearProgram))
-    .do();
+  const clearCompileResp = await algodClient.compile(clearProgram).do();
 
-  const compiledClearProgram = new Uint8Array(
-    Buffer.from(clearCompileResp.result, 'base64')
+  const compiledClearProgram: Uint8Array = algosdk.base64ToBytes(
+    clearCompileResp.result
   );
   // example: APP_COMPILE
 
@@ -55,8 +50,8 @@ async function main() {
   // example: APP_CREATE
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
     from: creator.addr,
-    approvalProgram: compiledApprovalProgram,
-    clearProgram: compiledClearProgram,
+    approvalProgram: new Uint8Array(compiledApprovalProgram),
+    clearProgram: new Uint8Array(compiledClearProgram),
     numGlobalByteSlices,
     numGlobalInts,
     numLocalByteSlices,
@@ -138,7 +133,7 @@ async function main() {
     from: caller.addr,
     suggestedParams,
     appIndex: appId,
-    appArgs: [new Uint8Array(Buffer.from(now))],
+    appArgs: [new TextEncoder().encode(now)],
   });
 
   await algodClient
@@ -157,10 +152,10 @@ async function main() {
   console.log(`Raw global state - ${JSON.stringify(globalState)}`);
 
   // decode b64 string key with Buffer
-  const globalKey = Buffer.from(globalState.key, 'base64').toString();
+  const globalKey = algosdk.base64ToString(globalState.key);
   // decode b64 address value with encodeAddress and Buffer
   const globalValue = algosdk.encodeAddress(
-    Buffer.from(globalState.value.bytes, 'base64')
+    algosdk.base64ToBytes(globalState.value.bytes)
   );
 
   console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
@@ -173,7 +168,7 @@ async function main() {
   console.log(`Raw local state - ${JSON.stringify(localState)}`);
 
   // decode b64 string key with Buffer
-  const localKey = Buffer.from(localState.key, 'base64').toString();
+  const localKey = algosdk.base64ToString(localState.key);
   // get uint value directly
   const localValue = localState.value.uint;
 
@@ -209,8 +204,8 @@ async function main() {
     suggestedParams,
     appIndex: appId,
     // updates must define both approval and clear programs, even if unchanged
-    approvalProgram: compiledNewProgram,
-    clearProgram: compiledClearProgram,
+    approvalProgram: new Uint8Array(compiledNewProgram),
+    clearProgram: new Uint8Array(compiledClearProgram),
   });
 
   await algodClient
