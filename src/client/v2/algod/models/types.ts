@@ -3355,11 +3355,6 @@ export class SimulateRequest extends BaseModel {
   public allowMoreLogging?: boolean;
 
   /**
-   * An object that configures simulation execution trace.
-   */
-  public execTraceConfig?: SimulateTraceConfig;
-
-  /**
    * Applies extra opcode budget during simulation for each transaction group.
    */
   public extraOpcodeBudget?: number | bigint;
@@ -3370,34 +3365,29 @@ export class SimulateRequest extends BaseModel {
    * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
    * signatures.
    * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
-   * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
    */
   constructor({
     txnGroups,
     allowEmptySignatures,
     allowMoreLogging,
-    execTraceConfig,
     extraOpcodeBudget,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
     allowMoreLogging?: boolean;
-    execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowMoreLogging = allowMoreLogging;
-    this.execTraceConfig = execTraceConfig;
     this.extraOpcodeBudget = extraOpcodeBudget;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
       allowEmptySignatures: 'allow-empty-signatures',
       allowMoreLogging: 'allow-more-logging',
-      execTraceConfig: 'exec-trace-config',
       extraOpcodeBudget: 'extra-opcode-budget',
     };
   }
@@ -3415,10 +3405,6 @@ export class SimulateRequest extends BaseModel {
       ),
       allowEmptySignatures: data['allow-empty-signatures'],
       allowMoreLogging: data['allow-more-logging'],
-      execTraceConfig:
-        typeof data['exec-trace-config'] !== 'undefined'
-          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
-          : undefined,
       extraOpcodeBudget: data['extra-opcode-budget'],
     });
     /* eslint-enable dot-notation */
@@ -3491,11 +3477,6 @@ export class SimulateResponse extends BaseModel {
   public evalOverrides?: SimulationEvalOverrides;
 
   /**
-   * An object that configures simulation execution trace.
-   */
-  public execTraceConfig?: SimulateTraceConfig;
-
-  /**
    * Creates a new `SimulateResponse` object.
    * @param lastRound - The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -3504,34 +3485,29 @@ export class SimulateResponse extends BaseModel {
    * @param evalOverrides - The set of parameters and limits override during simulation. If this set of
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
-   * @param execTraceConfig - An object that configures simulation execution trace.
    */
   constructor({
     lastRound,
     txnGroups,
     version,
     evalOverrides,
-    execTraceConfig,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
     evalOverrides?: SimulationEvalOverrides;
-    execTraceConfig?: SimulateTraceConfig;
   }) {
     super();
     this.lastRound = lastRound;
     this.txnGroups = txnGroups;
     this.version = version;
     this.evalOverrides = evalOverrides;
-    this.execTraceConfig = execTraceConfig;
 
     this.attribute_map = {
       lastRound: 'last-round',
       txnGroups: 'txn-groups',
       version: 'version',
       evalOverrides: 'eval-overrides',
-      execTraceConfig: 'exec-trace-config',
     };
   }
 
@@ -3560,42 +3536,6 @@ export class SimulateResponse extends BaseModel {
               data['eval-overrides']
             )
           : undefined,
-      execTraceConfig:
-        typeof data['exec-trace-config'] !== 'undefined'
-          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-}
-
-/**
- * An object that configures simulation execution trace.
- */
-export class SimulateTraceConfig extends BaseModel {
-  /**
-   * A boolean option for opting in execution trace features simulation endpoint.
-   */
-  public enable?: boolean;
-
-  /**
-   * Creates a new `SimulateTraceConfig` object.
-   * @param enable - A boolean option for opting in execution trace features simulation endpoint.
-   */
-  constructor({ enable }: { enable?: boolean }) {
-    super();
-    this.enable = enable;
-
-    this.attribute_map = {
-      enable: 'enable',
-    };
-  }
-
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): SimulateTraceConfig {
-    /* eslint-disable dot-notation */
-    return new SimulateTraceConfig({
-      enable: data['enable'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3714,12 +3654,6 @@ export class SimulateTransactionResult extends BaseModel {
   public appBudgetConsumed?: number | bigint;
 
   /**
-   * The execution trace of calling an app or a logic sig, containing the inner app
-   * call trace in a recursive way.
-   */
-  public execTrace?: SimulationTransactionExecTrace;
-
-  /**
    * Budget used during execution of a logic sig transaction.
    */
   public logicSigBudgetConsumed?: number | bigint;
@@ -3730,31 +3664,25 @@ export class SimulateTransactionResult extends BaseModel {
    * includes confirmation details like the round and reward details.
    * @param appBudgetConsumed - Budget used during execution of an app call transaction. This value includes
    * budged used by inner app calls spawned by this transaction.
-   * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
-   * call trace in a recursive way.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
    */
   constructor({
     txnResult,
     appBudgetConsumed,
-    execTrace,
     logicSigBudgetConsumed,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
-    execTrace?: SimulationTransactionExecTrace;
     logicSigBudgetConsumed?: number | bigint;
   }) {
     super();
     this.txnResult = txnResult;
     this.appBudgetConsumed = appBudgetConsumed;
-    this.execTrace = execTrace;
     this.logicSigBudgetConsumed = logicSigBudgetConsumed;
 
     this.attribute_map = {
       txnResult: 'txn-result',
       appBudgetConsumed: 'app-budget-consumed',
-      execTrace: 'exec-trace',
       logicSigBudgetConsumed: 'logic-sig-budget-consumed',
     };
   }
@@ -3773,12 +3701,6 @@ export class SimulateTransactionResult extends BaseModel {
         data['txn-result']
       ),
       appBudgetConsumed: data['app-budget-consumed'],
-      execTrace:
-        typeof data['exec-trace'] !== 'undefined'
-          ? SimulationTransactionExecTrace.from_obj_for_encoding(
-              data['exec-trace']
-            )
-          : undefined,
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
     });
     /* eslint-enable dot-notation */
@@ -3855,151 +3777,6 @@ export class SimulationEvalOverrides extends BaseModel {
       extraOpcodeBudget: data['extra-opcode-budget'],
       maxLogCalls: data['max-log-calls'],
       maxLogSize: data['max-log-size'],
-    });
-    /* eslint-enable dot-notation */
-  }
-}
-
-/**
- * The set of trace information and effect from evaluating a single opcode.
- */
-export class SimulationOpcodeTraceUnit extends BaseModel {
-  /**
-   * The program counter of the current opcode being evaluated.
-   */
-  public pc: number | bigint;
-
-  /**
-   * The indexes of the traces for inner transactions spawned by this opcode, if any.
-   */
-  public spawnedInners?: (number | bigint)[];
-
-  /**
-   * Creates a new `SimulationOpcodeTraceUnit` object.
-   * @param pc - The program counter of the current opcode being evaluated.
-   * @param spawnedInners - The indexes of the traces for inner transactions spawned by this opcode, if any.
-   */
-  constructor({
-    pc,
-    spawnedInners,
-  }: {
-    pc: number | bigint;
-    spawnedInners?: (number | bigint)[];
-  }) {
-    super();
-    this.pc = pc;
-    this.spawnedInners = spawnedInners;
-
-    this.attribute_map = {
-      pc: 'pc',
-      spawnedInners: 'spawned-inners',
-    };
-  }
-
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): SimulationOpcodeTraceUnit {
-    /* eslint-disable dot-notation */
-    if (typeof data['pc'] === 'undefined')
-      throw new Error(`Response is missing required field 'pc': ${data}`);
-    return new SimulationOpcodeTraceUnit({
-      pc: data['pc'],
-      spawnedInners: data['spawned-inners'],
-    });
-    /* eslint-enable dot-notation */
-  }
-}
-
-/**
- * The execution trace of calling an app or a logic sig, containing the inner app
- * call trace in a recursive way.
- */
-export class SimulationTransactionExecTrace extends BaseModel {
-  /**
-   * Program trace that contains a trace of opcode effects in an approval program.
-   */
-  public approvalProgramTrace?: SimulationOpcodeTraceUnit[];
-
-  /**
-   * Program trace that contains a trace of opcode effects in a clear state program.
-   */
-  public clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
-
-  /**
-   * An array of SimulationTransactionExecTrace representing the execution trace of
-   * any inner transactions executed.
-   */
-  public innerTrace?: SimulationTransactionExecTrace[];
-
-  /**
-   * Program trace that contains a trace of opcode effects in a logic sig.
-   */
-  public logicSigTrace?: SimulationOpcodeTraceUnit[];
-
-  /**
-   * Creates a new `SimulationTransactionExecTrace` object.
-   * @param approvalProgramTrace - Program trace that contains a trace of opcode effects in an approval program.
-   * @param clearStateProgramTrace - Program trace that contains a trace of opcode effects in a clear state program.
-   * @param innerTrace - An array of SimulationTransactionExecTrace representing the execution trace of
-   * any inner transactions executed.
-   * @param logicSigTrace - Program trace that contains a trace of opcode effects in a logic sig.
-   */
-  constructor({
-    approvalProgramTrace,
-    clearStateProgramTrace,
-    innerTrace,
-    logicSigTrace,
-  }: {
-    approvalProgramTrace?: SimulationOpcodeTraceUnit[];
-    clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
-    innerTrace?: SimulationTransactionExecTrace[];
-    logicSigTrace?: SimulationOpcodeTraceUnit[];
-  }) {
-    super();
-    this.approvalProgramTrace = approvalProgramTrace;
-    this.clearStateProgramTrace = clearStateProgramTrace;
-    this.innerTrace = innerTrace;
-    this.logicSigTrace = logicSigTrace;
-
-    this.attribute_map = {
-      approvalProgramTrace: 'approval-program-trace',
-      clearStateProgramTrace: 'clear-state-program-trace',
-      innerTrace: 'inner-trace',
-      logicSigTrace: 'logic-sig-trace',
-    };
-  }
-
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): SimulationTransactionExecTrace {
-    /* eslint-disable dot-notation */
-    return new SimulationTransactionExecTrace({
-      approvalProgramTrace:
-        typeof data['approval-program-trace'] !== 'undefined'
-          ? data['approval-program-trace'].map(
-              SimulationOpcodeTraceUnit.from_obj_for_encoding
-            )
-          : undefined,
-      clearStateProgramTrace:
-        typeof data['clear-state-program-trace'] !== 'undefined'
-          ? data['clear-state-program-trace'].map(
-              SimulationOpcodeTraceUnit.from_obj_for_encoding
-            )
-          : undefined,
-      innerTrace:
-        typeof data['inner-trace'] !== 'undefined'
-          ? data['inner-trace'].map(
-              SimulationTransactionExecTrace.from_obj_for_encoding
-            )
-          : undefined,
-      logicSigTrace:
-        typeof data['logic-sig-trace'] !== 'undefined'
-          ? data['logic-sig-trace'].map(
-              SimulationOpcodeTraceUnit.from_obj_for_encoding
-            )
-          : undefined,
     });
     /* eslint-enable dot-notation */
   }
