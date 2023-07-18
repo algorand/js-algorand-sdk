@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import algosdk from '../src';
-import { base64ToBytes } from '../src/encoding/binarydata';
 
 export async function compileProgram(
   client: algosdk.Algodv2,
@@ -10,7 +9,7 @@ export async function compileProgram(
   const compileResponse = await client
     .compile(new TextEncoder().encode(programSource))
     .do();
-  const compiledBytes = base64ToBytes(compileResponse.result);
+  const compiledBytes = algosdk.base64ToBytes(compileResponse.result);
   return compiledBytes;
 }
 

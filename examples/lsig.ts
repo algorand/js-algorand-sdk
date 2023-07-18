@@ -3,7 +3,6 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
 import algosdk from '../src';
-import { base64ToBytes } from '../src/encoding/binarydata';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 
 async function main() {
@@ -25,12 +24,12 @@ async function main() {
   // example: LSIG_COMPILE
 
   // example: LSIG_INIT
-  let smartSig = new algosdk.LogicSig(base64ToBytes(b64program));
+  let smartSig = new algosdk.LogicSig(algosdk.base64ToBytes(b64program));
   // example: LSIG_INIT
 
   // example: LSIG_PASS_ARGS
   const args = [new TextEncoder().encode('This is an argument!')];
-  smartSig = new algosdk.LogicSig(base64ToBytes(b64program), args);
+  smartSig = new algosdk.LogicSig(algosdk.base64ToBytes(b64program), args);
   // example: LSIG_PASS_ARGS
 
   const fundSmartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
