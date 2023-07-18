@@ -9,10 +9,10 @@ import {
   EvalDeltaKeyValue,
   TealValue,
 } from './client/v2/algod/models/types';
+import { encodeAddress, getApplicationAddress } from './encoding/address';
+import { base64ToBytes, bytesToHex } from './encoding/binarydata';
 import { SignedTransaction } from './transaction';
 import { TransactionType } from './types/transactions';
-import { encodeAddress, getApplicationAddress } from './encoding/address';
-import { base64ToBytes, bytesToHex } from './utils/utils';
 
 const defaultAppId = 1380011588;
 const defaultMaxWidth = 30;

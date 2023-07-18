@@ -4268,7 +4268,7 @@ module.exports = function getSteps(options) {
 
       // Check the random int against the witness
       const witnessHash = genericHash(witnessResult).slice(0, 8);
-      const witness = algosdk.bytesToBigInt(witnessHash);
+      const witness = algosdk.bytesToBigInt(Uint8Array.from(witnessHash));
       const quotient = witness % BigInt(methodArg);
       assert.strictEqual(quotient, randomIntResult);
     }
@@ -4288,7 +4288,7 @@ module.exports = function getSteps(options) {
 
       // Check the random character against the witness
       const witnessHash = genericHash(witnessResult).slice(0, 8);
-      const witness = algosdk.bytesToBigInt(witnessHash);
+      const witness = algosdk.bytesToBigInt(Uint8Array.from(witnessHash));
       const quotient = witness % BigInt(methodArg.length);
       assert.strictEqual(
         methodArg[quotient],

@@ -3,10 +3,10 @@
  */
 
 /* eslint-disable no-use-before-define */
-import { Buffer } from 'buffer';
-import BaseModel from '../../basemodel';
-import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
+import { base64ToBytes } from '../../../../encoding/binarydata';
 import BlockHeader from '../../../../types/blockHeader';
+import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
+import BaseModel from '../../basemodel';
 
 /**
  * Account information at a given round.
@@ -622,18 +622,18 @@ export class AccountParticipation extends BaseModel {
     super();
     this.selectionParticipationKey =
       typeof selectionParticipationKey === 'string'
-        ? new Uint8Array(Buffer.from(selectionParticipationKey, 'base64'))
+        ? base64ToBytes(selectionParticipationKey)
         : selectionParticipationKey;
     this.voteFirstValid = voteFirstValid;
     this.voteKeyDilution = voteKeyDilution;
     this.voteLastValid = voteLastValid;
     this.voteParticipationKey =
       typeof voteParticipationKey === 'string'
-        ? new Uint8Array(Buffer.from(voteParticipationKey, 'base64'))
+        ? base64ToBytes(voteParticipationKey)
         : voteParticipationKey;
     this.stateProofKey =
       typeof stateProofKey === 'string'
-        ? new Uint8Array(Buffer.from(stateProofKey, 'base64'))
+        ? base64ToBytes(stateProofKey)
         : stateProofKey;
 
     this.attribute_map = {
@@ -922,11 +922,11 @@ export class ApplicationParams extends BaseModel {
     super();
     this.approvalProgram =
       typeof approvalProgram === 'string'
-        ? new Uint8Array(Buffer.from(approvalProgram, 'base64'))
+        ? base64ToBytes(approvalProgram)
         : approvalProgram;
     this.clearStateProgram =
       typeof clearStateProgram === 'string'
-        ? new Uint8Array(Buffer.from(clearStateProgram, 'base64'))
+        ? base64ToBytes(clearStateProgram)
         : clearStateProgram;
     this.creator = creator;
     this.extraProgramPages = extraProgramPages;
@@ -1329,24 +1329,19 @@ export class AssetParams extends BaseModel {
     this.manager = manager;
     this.metadataHash =
       typeof metadataHash === 'string'
-        ? new Uint8Array(Buffer.from(metadataHash, 'base64'))
+        ? base64ToBytes(metadataHash)
         : metadataHash;
     this.name = name;
     this.nameB64 =
-      typeof nameB64 === 'string'
-        ? new Uint8Array(Buffer.from(nameB64, 'base64'))
-        : nameB64;
+      typeof nameB64 === 'string' ? base64ToBytes(nameB64) : nameB64;
     this.reserve = reserve;
     this.unitName = unitName;
     this.unitNameB64 =
       typeof unitNameB64 === 'string'
-        ? new Uint8Array(Buffer.from(unitNameB64, 'base64'))
+        ? base64ToBytes(unitNameB64)
         : unitNameB64;
     this.url = url;
-    this.urlB64 =
-      typeof urlB64 === 'string'
-        ? new Uint8Array(Buffer.from(urlB64, 'base64'))
-        : urlB64;
+    this.urlB64 = typeof urlB64 === 'string' ? base64ToBytes(urlB64) : urlB64;
 
     this.attribute_map = {
       creator: 'creator',
@@ -1494,6 +1489,11 @@ export class Box extends BaseModel {
   public name: Uint8Array;
 
   /**
+   * The round for which this information is relevant
+   */
+  public round: number | bigint;
+
+  /**
    * (value) box value, base64 encoded.
    */
   public value: Uint8Array;
@@ -1501,27 +1501,26 @@ export class Box extends BaseModel {
   /**
    * Creates a new `Box` object.
    * @param name - (name) box name, base64 encoded
+   * @param round - The round for which this information is relevant
    * @param value - (value) box value, base64 encoded.
    */
   constructor({
     name,
+    round,
     value,
   }: {
     name: string | Uint8Array;
+    round: number | bigint;
     value: string | Uint8Array;
   }) {
     super();
-    this.name =
-      typeof name === 'string'
-        ? new Uint8Array(Buffer.from(name, 'base64'))
-        : name;
-    this.value =
-      typeof value === 'string'
-        ? new Uint8Array(Buffer.from(value, 'base64'))
-        : value;
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
+    this.round = round;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
 
     this.attribute_map = {
       name: 'name',
+      round: 'round',
       value: 'value',
     };
   }
@@ -1531,10 +1530,13 @@ export class Box extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new Box({
       name: data['name'],
+      round: data['round'],
       value: data['value'],
     });
     /* eslint-enable dot-notation */
@@ -1556,10 +1558,7 @@ export class BoxDescriptor extends BaseModel {
    */
   constructor({ name }: { name: string | Uint8Array }) {
     super();
-    this.name =
-      typeof name === 'string'
-        ? new Uint8Array(Buffer.from(name, 'base64'))
-        : name;
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
 
     this.attribute_map = {
       name: 'name',
@@ -2532,14 +2531,8 @@ export class KvDelta extends BaseModel {
     value?: string | Uint8Array;
   }) {
     super();
-    this.key =
-      typeof key === 'string'
-        ? new Uint8Array(Buffer.from(key, 'base64'))
-        : key;
-    this.value =
-      typeof value === 'string'
-        ? new Uint8Array(Buffer.from(value, 'base64'))
-        : value;
+    this.key = typeof key === 'string' ? base64ToBytes(key) : key;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
 
     this.attribute_map = {
       key: 'key',
@@ -2580,8 +2573,8 @@ export class LedgerStateDeltaForTransactionGroup extends BaseModel {
     this.ids = ids;
 
     this.attribute_map = {
-      delta: 'delta',
-      ids: 'ids',
+      delta: 'Delta',
+      ids: 'Ids',
     };
   }
 
@@ -2590,15 +2583,15 @@ export class LedgerStateDeltaForTransactionGroup extends BaseModel {
     data: Record<string, any>
   ): LedgerStateDeltaForTransactionGroup {
     /* eslint-disable dot-notation */
-    if (typeof data['delta'] === 'undefined')
-      throw new Error(`Response is missing required field 'delta': ${data}`);
-    if (!Array.isArray(data['ids']))
+    if (typeof data['Delta'] === 'undefined')
+      throw new Error(`Response is missing required field 'Delta': ${data}`);
+    if (!Array.isArray(data['Ids']))
       throw new Error(
-        `Response is missing required array field 'ids': ${data}`
+        `Response is missing required array field 'Ids': ${data}`
       );
     return new LedgerStateDeltaForTransactionGroup({
-      delta: data['delta'],
-      ids: data['ids'],
+      delta: data['Delta'],
+      ids: data['Ids'],
     });
     /* eslint-enable dot-notation */
   }
@@ -2642,10 +2635,7 @@ export class LightBlockHeaderProof extends BaseModel {
   }) {
     super();
     this.index = index;
-    this.proof =
-      typeof proof === 'string'
-        ? new Uint8Array(Buffer.from(proof, 'base64'))
-        : proof;
+    this.proof = typeof proof === 'string' ? base64ToBytes(proof) : proof;
     this.treedepth = treedepth;
 
     this.attribute_map = {
@@ -3365,6 +3355,11 @@ export class SimulateRequest extends BaseModel {
   public allowMoreLogging?: boolean;
 
   /**
+   * An object that configures simulation execution trace.
+   */
+  public execTraceConfig?: SimulateTraceConfig;
+
+  /**
    * Applies extra opcode budget during simulation for each transaction group.
    */
   public extraOpcodeBudget?: number | bigint;
@@ -3375,29 +3370,34 @@ export class SimulateRequest extends BaseModel {
    * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
    * signatures.
    * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
+   * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
    */
   constructor({
     txnGroups,
     allowEmptySignatures,
     allowMoreLogging,
+    execTraceConfig,
     extraOpcodeBudget,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
     allowMoreLogging?: boolean;
+    execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowMoreLogging = allowMoreLogging;
+    this.execTraceConfig = execTraceConfig;
     this.extraOpcodeBudget = extraOpcodeBudget;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
       allowEmptySignatures: 'allow-empty-signatures',
       allowMoreLogging: 'allow-more-logging',
+      execTraceConfig: 'exec-trace-config',
       extraOpcodeBudget: 'extra-opcode-budget',
     };
   }
@@ -3415,6 +3415,10 @@ export class SimulateRequest extends BaseModel {
       ),
       allowEmptySignatures: data['allow-empty-signatures'],
       allowMoreLogging: data['allow-more-logging'],
+      execTraceConfig:
+        typeof data['exec-trace-config'] !== 'undefined'
+          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
+          : undefined,
       extraOpcodeBudget: data['extra-opcode-budget'],
     });
     /* eslint-enable dot-notation */
@@ -3487,6 +3491,11 @@ export class SimulateResponse extends BaseModel {
   public evalOverrides?: SimulationEvalOverrides;
 
   /**
+   * An object that configures simulation execution trace.
+   */
+  public execTraceConfig?: SimulateTraceConfig;
+
+  /**
    * Creates a new `SimulateResponse` object.
    * @param lastRound - The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -3495,29 +3504,34 @@ export class SimulateResponse extends BaseModel {
    * @param evalOverrides - The set of parameters and limits override during simulation. If this set of
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
+   * @param execTraceConfig - An object that configures simulation execution trace.
    */
   constructor({
     lastRound,
     txnGroups,
     version,
     evalOverrides,
+    execTraceConfig,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
     evalOverrides?: SimulationEvalOverrides;
+    execTraceConfig?: SimulateTraceConfig;
   }) {
     super();
     this.lastRound = lastRound;
     this.txnGroups = txnGroups;
     this.version = version;
     this.evalOverrides = evalOverrides;
+    this.execTraceConfig = execTraceConfig;
 
     this.attribute_map = {
       lastRound: 'last-round',
       txnGroups: 'txn-groups',
       version: 'version',
       evalOverrides: 'eval-overrides',
+      execTraceConfig: 'exec-trace-config',
     };
   }
 
@@ -3546,6 +3560,42 @@ export class SimulateResponse extends BaseModel {
               data['eval-overrides']
             )
           : undefined,
+      execTraceConfig:
+        typeof data['exec-trace-config'] !== 'undefined'
+          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * An object that configures simulation execution trace.
+ */
+export class SimulateTraceConfig extends BaseModel {
+  /**
+   * A boolean option for opting in execution trace features simulation endpoint.
+   */
+  public enable?: boolean;
+
+  /**
+   * Creates a new `SimulateTraceConfig` object.
+   * @param enable - A boolean option for opting in execution trace features simulation endpoint.
+   */
+  constructor({ enable }: { enable?: boolean }) {
+    super();
+    this.enable = enable;
+
+    this.attribute_map = {
+      enable: 'enable',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): SimulateTraceConfig {
+    /* eslint-disable dot-notation */
+    return new SimulateTraceConfig({
+      enable: data['enable'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3664,6 +3714,12 @@ export class SimulateTransactionResult extends BaseModel {
   public appBudgetConsumed?: number | bigint;
 
   /**
+   * The execution trace of calling an app or a logic sig, containing the inner app
+   * call trace in a recursive way.
+   */
+  public execTrace?: SimulationTransactionExecTrace;
+
+  /**
    * Budget used during execution of a logic sig transaction.
    */
   public logicSigBudgetConsumed?: number | bigint;
@@ -3674,25 +3730,31 @@ export class SimulateTransactionResult extends BaseModel {
    * includes confirmation details like the round and reward details.
    * @param appBudgetConsumed - Budget used during execution of an app call transaction. This value includes
    * budged used by inner app calls spawned by this transaction.
+   * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
+   * call trace in a recursive way.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
    */
   constructor({
     txnResult,
     appBudgetConsumed,
+    execTrace,
     logicSigBudgetConsumed,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
+    execTrace?: SimulationTransactionExecTrace;
     logicSigBudgetConsumed?: number | bigint;
   }) {
     super();
     this.txnResult = txnResult;
     this.appBudgetConsumed = appBudgetConsumed;
+    this.execTrace = execTrace;
     this.logicSigBudgetConsumed = logicSigBudgetConsumed;
 
     this.attribute_map = {
       txnResult: 'txn-result',
       appBudgetConsumed: 'app-budget-consumed',
+      execTrace: 'exec-trace',
       logicSigBudgetConsumed: 'logic-sig-budget-consumed',
     };
   }
@@ -3711,6 +3773,12 @@ export class SimulateTransactionResult extends BaseModel {
         data['txn-result']
       ),
       appBudgetConsumed: data['app-budget-consumed'],
+      execTrace:
+        typeof data['exec-trace'] !== 'undefined'
+          ? SimulationTransactionExecTrace.from_obj_for_encoding(
+              data['exec-trace']
+            )
+          : undefined,
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
     });
     /* eslint-enable dot-notation */
@@ -3793,6 +3861,151 @@ export class SimulationEvalOverrides extends BaseModel {
 }
 
 /**
+ * The set of trace information and effect from evaluating a single opcode.
+ */
+export class SimulationOpcodeTraceUnit extends BaseModel {
+  /**
+   * The program counter of the current opcode being evaluated.
+   */
+  public pc: number | bigint;
+
+  /**
+   * The indexes of the traces for inner transactions spawned by this opcode, if any.
+   */
+  public spawnedInners?: (number | bigint)[];
+
+  /**
+   * Creates a new `SimulationOpcodeTraceUnit` object.
+   * @param pc - The program counter of the current opcode being evaluated.
+   * @param spawnedInners - The indexes of the traces for inner transactions spawned by this opcode, if any.
+   */
+  constructor({
+    pc,
+    spawnedInners,
+  }: {
+    pc: number | bigint;
+    spawnedInners?: (number | bigint)[];
+  }) {
+    super();
+    this.pc = pc;
+    this.spawnedInners = spawnedInners;
+
+    this.attribute_map = {
+      pc: 'pc',
+      spawnedInners: 'spawned-inners',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationOpcodeTraceUnit {
+    /* eslint-disable dot-notation */
+    if (typeof data['pc'] === 'undefined')
+      throw new Error(`Response is missing required field 'pc': ${data}`);
+    return new SimulationOpcodeTraceUnit({
+      pc: data['pc'],
+      spawnedInners: data['spawned-inners'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The execution trace of calling an app or a logic sig, containing the inner app
+ * call trace in a recursive way.
+ */
+export class SimulationTransactionExecTrace extends BaseModel {
+  /**
+   * Program trace that contains a trace of opcode effects in an approval program.
+   */
+  public approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * Program trace that contains a trace of opcode effects in a clear state program.
+   */
+  public clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * An array of SimulationTransactionExecTrace representing the execution trace of
+   * any inner transactions executed.
+   */
+  public innerTrace?: SimulationTransactionExecTrace[];
+
+  /**
+   * Program trace that contains a trace of opcode effects in a logic sig.
+   */
+  public logicSigTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * Creates a new `SimulationTransactionExecTrace` object.
+   * @param approvalProgramTrace - Program trace that contains a trace of opcode effects in an approval program.
+   * @param clearStateProgramTrace - Program trace that contains a trace of opcode effects in a clear state program.
+   * @param innerTrace - An array of SimulationTransactionExecTrace representing the execution trace of
+   * any inner transactions executed.
+   * @param logicSigTrace - Program trace that contains a trace of opcode effects in a logic sig.
+   */
+  constructor({
+    approvalProgramTrace,
+    clearStateProgramTrace,
+    innerTrace,
+    logicSigTrace,
+  }: {
+    approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+    clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
+    innerTrace?: SimulationTransactionExecTrace[];
+    logicSigTrace?: SimulationOpcodeTraceUnit[];
+  }) {
+    super();
+    this.approvalProgramTrace = approvalProgramTrace;
+    this.clearStateProgramTrace = clearStateProgramTrace;
+    this.innerTrace = innerTrace;
+    this.logicSigTrace = logicSigTrace;
+
+    this.attribute_map = {
+      approvalProgramTrace: 'approval-program-trace',
+      clearStateProgramTrace: 'clear-state-program-trace',
+      innerTrace: 'inner-trace',
+      logicSigTrace: 'logic-sig-trace',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationTransactionExecTrace {
+    /* eslint-disable dot-notation */
+    return new SimulationTransactionExecTrace({
+      approvalProgramTrace:
+        typeof data['approval-program-trace'] !== 'undefined'
+          ? data['approval-program-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
+      clearStateProgramTrace:
+        typeof data['clear-state-program-trace'] !== 'undefined'
+          ? data['clear-state-program-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
+      innerTrace:
+        typeof data['inner-trace'] !== 'undefined'
+          ? data['inner-trace'].map(
+              SimulationTransactionExecTrace.from_obj_for_encoding
+            )
+          : undefined,
+      logicSigTrace:
+        typeof data['logic-sig-trace'] !== 'undefined'
+          ? data['logic-sig-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Represents a state proof and its corresponding message
  */
 export class StateProof extends BaseModel {
@@ -3821,9 +4034,7 @@ export class StateProof extends BaseModel {
     super();
     this.message = message;
     this.stateproof =
-      typeof stateproof === 'string'
-        ? new Uint8Array(Buffer.from(stateproof, 'base64'))
-        : stateproof;
+      typeof stateproof === 'string' ? base64ToBytes(stateproof) : stateproof;
 
     this.attribute_map = {
       message: 'Message',
@@ -3905,14 +4116,14 @@ export class StateProofMessage extends BaseModel {
     super();
     this.blockheaderscommitment =
       typeof blockheaderscommitment === 'string'
-        ? new Uint8Array(Buffer.from(blockheaderscommitment, 'base64'))
+        ? base64ToBytes(blockheaderscommitment)
         : blockheaderscommitment;
     this.firstattestedround = firstattestedround;
     this.lastattestedround = lastattestedround;
     this.lnprovenweight = lnprovenweight;
     this.voterscommitment =
       typeof voterscommitment === 'string'
-        ? new Uint8Array(Buffer.from(voterscommitment, 'base64'))
+        ? base64ToBytes(voterscommitment)
         : voterscommitment;
 
     this.attribute_map = {
@@ -4150,7 +4361,7 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel
     this.deltas = deltas;
 
     this.attribute_map = {
-      deltas: 'deltas',
+      deltas: 'Deltas',
     };
   }
 
@@ -4246,7 +4457,7 @@ export class TransactionParametersResponse extends BaseModel {
     this.fee = fee;
     this.genesisHash =
       typeof genesisHash === 'string'
-        ? new Uint8Array(Buffer.from(genesisHash, 'base64'))
+        ? base64ToBytes(genesisHash)
         : genesisHash;
     this.genesisId = genesisId;
     this.lastRound = lastRound;
@@ -4357,14 +4568,9 @@ export class TransactionProofResponse extends BaseModel {
   }) {
     super();
     this.idx = idx;
-    this.proof =
-      typeof proof === 'string'
-        ? new Uint8Array(Buffer.from(proof, 'base64'))
-        : proof;
+    this.proof = typeof proof === 'string' ? base64ToBytes(proof) : proof;
     this.stibhash =
-      typeof stibhash === 'string'
-        ? new Uint8Array(Buffer.from(stibhash, 'base64'))
-        : stibhash;
+      typeof stibhash === 'string' ? base64ToBytes(stibhash) : stibhash;
     this.treedepth = treedepth;
     this.hashtype = hashtype;
 
@@ -4437,7 +4643,7 @@ export class Version extends BaseModel {
     this.build = build;
     this.genesisHashB64 =
       typeof genesisHashB64 === 'string'
-        ? new Uint8Array(Buffer.from(genesisHashB64, 'base64'))
+        ? base64ToBytes(genesisHashB64)
         : genesisHashB64;
     this.genesisId = genesisId;
     this.versions = versions;

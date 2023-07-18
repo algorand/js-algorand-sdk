@@ -1,25 +1,26 @@
 import base32 from 'hi-base32';
+import { translateBoxReferences } from './boxStorage';
 import * as address from './encoding/address';
+import { base64ToBytes, bytesToBase64 } from './encoding/binarydata';
 import * as encoding from './encoding/encoding';
 import * as nacl from './nacl/naclWrappers';
-import * as utils from './utils/utils';
-import { translateBoxReferences } from './boxStorage';
+import { Address } from './types/address';
+import AnyTransaction, {
+  EncodedLogicSig,
+  EncodedMultisig,
+  EncodedSignedTransaction,
+  EncodedTransaction,
+  MustHaveSuggestedParams,
+  MustHaveSuggestedParamsInline,
+} from './types/transactions';
 import {
+  BoxReference,
   OnApplicationComplete,
   TransactionParams,
   TransactionType,
   isTransactionType,
-  BoxReference,
 } from './types/transactions/base';
-import AnyTransaction, {
-  MustHaveSuggestedParams,
-  MustHaveSuggestedParamsInline,
-  EncodedTransaction,
-  EncodedSignedTransaction,
-  EncodedMultisig,
-  EncodedLogicSig,
-} from './types/transactions';
-import { Address } from './types/address';
+import * as utils from './utils/utils';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 export const ALGORAND_MIN_TX_FEE = 1000; // version v5
@@ -130,7 +131,7 @@ function getKeyregKey(
   let inputAsBuffer: Uint8Array | undefined;
 
   if (typeof input === 'string') {
-    inputAsBuffer = utils.base64ToBytes(input);
+    inputAsBuffer = base64ToBytes(input);
   } else if (input.constructor === Uint8Array) {
     inputAsBuffer = input;
   }
@@ -283,7 +284,7 @@ export class Transaction implements TransactionStorageStructure {
     if (txn.genesisHash === undefined)
       throw Error('genesis hash must be specified and in a base64 string.');
 
-    txn.genesisHash = utils.base64ToBytes(txn.genesisHash as string);
+    txn.genesisHash = base64ToBytes(txn.genesisHash as string);
 
     if (
       txn.amount !== undefined &&
@@ -1259,7 +1260,7 @@ export class Transaction implements TransactionStorageStructure {
         (forPrinting.reKeyTo as Address).publicKey
       );
     if (typeof forPrinting.genesisHash !== 'string')
-      forPrinting.genesisHash = utils.bytesToBase64(forPrinting.genesisHash); // TODO: double check this
+      forPrinting.genesisHash = bytesToBase64(forPrinting.genesisHash); // TODO: double check this
     return forPrinting;
   }
 

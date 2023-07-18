@@ -3,7 +3,6 @@ const assert = require('assert');
 const algosdk = require('../src/index');
 const { translateBoxReferences } = require('../src/boxStorage');
 const group = require('../src/group');
-const { base64ToBytes } = require('../src/utils/utils');
 
 describe('Sign', () => {
   /* eslint-disable no-console */
@@ -508,7 +507,7 @@ describe('Sign', () => {
         assetName: 'testcoin',
         assetURL: 'testURL',
         assetMetadataHash: new Uint8Array(
-          base64ToBytes('ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=')
+          algosdk.base64ToBytes('ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=')
         ),
         assetManager: address,
         assetReserve: address,
@@ -1039,7 +1038,7 @@ describe('Sign', () => {
       const assetName = 'testcoin';
       const assetURL = 'testURL';
       const assetMetadataHash = new Uint8Array(
-        base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
+        algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
       const firstRound = 322575;
@@ -1111,7 +1110,7 @@ describe('Sign', () => {
       const assetName = 'testcoin';
       const assetURL = 'testURL';
       const assetMetadataHash = new Uint8Array(
-        base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
+        algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
       const firstRound = 322575;
@@ -1183,7 +1182,7 @@ describe('Sign', () => {
       const assetName = 'testcoin';
       const assetURL = 'testURL';
       const assetMetadataHash = new Uint8Array(
-        base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
+        algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
       const firstRound = 322575;

@@ -12,11 +12,12 @@ import {
 } from './abi';
 import Algodv2 from './client/v2/algod/algod';
 import {
-  SimulateResponse,
   SimulateRequest,
   SimulateRequestTransactionGroup,
+  SimulateResponse,
 } from './client/v2/algod/models/types';
-import { EncodedSignedTransaction } from './types';
+import { base64ToBytes } from './encoding/binarydata';
+import * as encoding from './encoding/encoding';
 import { assignGroupID } from './group';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
 import {
@@ -25,14 +26,14 @@ import {
   TransactionWithSigner,
 } from './signer';
 import { decodeSignedTransaction, Transaction } from './transaction';
+import { EncodedSignedTransaction } from './types';
 import {
   BoxReference,
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base';
+import { arrayEqual } from './utils/utils';
 import { waitForConfirmation } from './wait';
-import * as encoding from './encoding/encoding';
-import { arrayEqual, base64ToBytes } from './utils/utils';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = new Uint8Array([21, 31, 124, 117]);
