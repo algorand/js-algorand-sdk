@@ -16,6 +16,7 @@ import {
   SimulateRequestTransactionGroup,
   SimulateResponse,
 } from './client/v2/algod/models/types';
+import { base64ToBytes } from './encoding/binarydata';
 import * as encoding from './encoding/encoding';
 import { assignGroupID } from './group';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
@@ -781,7 +782,7 @@ export class AtomicTransactionComposer {
     try {
       returnedResult.txInfo = pendingInfo;
       if (method.returns.type !== 'void') {
-        const logs = pendingInfo.logs || [];
+        const logs: string[] = pendingInfo.logs || [];
         if (logs.length === 0) {
           throw new Error(
             `App call transaction did not log a return value ${JSON.stringify(
@@ -790,13 +791,13 @@ export class AtomicTransactionComposer {
           );
         }
 
-        const lastLog: Uint8Array = logs[logs.length - 1];
+        const lastLog: Uint8Array = base64ToBytes(logs[logs.length - 1]);
         if (
           lastLog.byteLength < 4 ||
           !arrayEqual(lastLog.slice(0, 4), RETURN_PREFIX)
         ) {
           throw new Error(
-            `App call transaction did not log a return value ${JSON.stringify(
+            `App call transaction did not log a ABI return value ${JSON.stringify(
               pendingInfo
             )}`
           );
