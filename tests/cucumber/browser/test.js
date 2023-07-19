@@ -23,7 +23,7 @@ window.loadResource = async function loadResource(resource) {
     throw new Error(`Failed to load resource (${res.status}): ${resource}`);
   }
 
-  return res.arrayBuffer();
+  return Uint8Array.from(await res.arrayBuffer());
 };
 
 window.steps = {
