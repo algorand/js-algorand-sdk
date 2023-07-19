@@ -9,9 +9,18 @@ export function base64ToBytes(base64String: string): Uint8Array {
   if (isNode()) {
     return new Uint8Array(Buffer.from(base64String, 'base64'));
   }
+  if (typeof base64String !== 'string') {
+    throw new Error(`base64String is not string: ${base64String}`);
+  }
   /* eslint-env browser */
-  const binString = atob(base64String);
-  return Uint8Array.from(binString, (m) => m.codePointAt(0));
+  try {
+    const binString = atob(base64String);
+    return Uint8Array.from(binString, (m) => m.codePointAt(0));
+  } catch (err) {
+    throw new Error(
+      `base64String is invalid: ${base64String}; ${typeof base64String};`
+    );
+  }
 }
 
 /**
@@ -35,10 +44,14 @@ export function bytesToBase64(byteArray: Uint8Array): string {
     return Buffer.from(byteArray).toString('base64');
   }
   /* eslint-env browser */
-  const binString = Array.from(byteArray, (x) => String.fromCodePoint(x)).join(
-    ''
-  );
-  return btoa(binString);
+  try {
+    const binString = Array.from(byteArray, (x) =>
+      String.fromCodePoint(x)
+    ).join('');
+    return btoa(binString);
+  } catch (err) {
+    throw new Error(`byteArray is invalid: ${byteArray}; ${typeof byteArray}`);
+  }
 }
 
 /**

@@ -5,7 +5,6 @@ const path = require('path');
 
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
-const { concatArrays } = require('../../../src/utils/utils');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
 
@@ -175,6 +174,19 @@ module.exports = function getSteps(options) {
       }
     }
     return boxRefArray;
+  }
+
+  function concatArrays(...arrs) {
+    const size = arrs.reduce((sum, arr) => sum + arr.length, 0);
+    const c = new Uint8Array(size);
+
+    let offset = 0;
+    for (let i = 0; i < arrs.length; i++) {
+      c.set(arrs[i], offset);
+      offset += arrs[i].length;
+    }
+
+    return c;
   }
 
   Given('a kmd client', function () {
@@ -1026,7 +1038,7 @@ module.exports = function getSteps(options) {
         unitname: unitName,
         assetname: assetName,
         url: assetURL,
-        metadatahash: algosdk.bytesToBase64(metadataHash),
+        metadatahash: metadataHash,
         managerkey: manager,
         reserveaddr: reserve,
         freezeaddr: freeze,
@@ -1092,7 +1104,7 @@ module.exports = function getSteps(options) {
         unitname: unitName,
         assetname: assetName,
         url: assetURL,
-        metadatahash: algosdk.bytesToBase64(metadataHash),
+        metadatahash: metadataHash,
         managerkey: manager,
         reserveaddr: reserve,
         freezeaddr: freeze,
@@ -4499,9 +4511,7 @@ module.exports = function getSteps(options) {
         .do();
 
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
-      const actualBoxes = new Set(
-        resp.boxes.map((b) => algosdk.base64ToBytes(b.name))
-      );
+      const actualBoxes = new Set(resp.boxes.map((b) => b.name));
       const expectedBoxes = new Set(boxes);
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
@@ -4548,9 +4558,7 @@ module.exports = function getSteps(options) {
       }
 
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
-      const actualBoxes = new Set(
-        resp.boxes.map((b) => algosdk.base64ToBytes(b.name))
-      );
+      const actualBoxes = new Set(resp.boxes.map((b) => b.name));
       const expectedBoxes = new Set(boxes);
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
