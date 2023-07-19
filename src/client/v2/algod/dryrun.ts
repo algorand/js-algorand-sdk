@@ -1,9 +1,8 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import * as modelsv2 from './models/types';
 import * as encoding from '../../../encoding/encoding';
+import HTTPClient from '../../client';
+import JSONRequest from '../jsonrequest';
 import { setHeaders } from './compile';
+import * as modelsv2 from './models/types';
 
 export default class Dryrun extends JSONRequest {
   private blob: Uint8Array;
@@ -24,11 +23,7 @@ export default class Dryrun extends JSONRequest {
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      Buffer.from(this.blob),
-      txHeaders
-    );
+    const res = await this.c.post(this.path(), this.blob, txHeaders);
     return res.body;
   }
 }

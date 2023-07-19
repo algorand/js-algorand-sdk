@@ -1,7 +1,6 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
 import { concatArrays } from '../../../utils/utils';
+import HTTPClient from '../../client';
+import JSONRequest from '../jsonrequest';
 
 /**
  * Sets the default header (if not previously set) for sending a raw
@@ -50,11 +49,7 @@ export default class SendRawTransaction extends JSONRequest {
 
   async do(headers = {}) {
     const txHeaders = setSendTransactionHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      Buffer.from(this.txnBytesToPost),
-      txHeaders
-    );
+    const res = await this.c.post(this.path(), this.txnBytesToPost, txHeaders);
     return res.body;
   }
 }

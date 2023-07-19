@@ -1,6 +1,6 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
+import { coerceToBytes } from '../../../encoding/binarydata';
 import HTTPClient from '../../client';
+import JSONRequest from '../jsonrequest';
 
 /**
  * Sets the default header (if not previously set)
@@ -37,7 +37,7 @@ export default class Disassemble extends JSONRequest {
     const txHeaders = setHeaders(headers);
     const res = await this.c.post(
       this.path(),
-      Buffer.from(this.source),
+      coerceToBytes(this.source),
       txHeaders,
       this.query
     );

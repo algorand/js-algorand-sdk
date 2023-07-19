@@ -1,4 +1,8 @@
-import { base64ToBytes, bytesToBase64 } from '../encoding/binarydata';
+import {
+  base64ToBytes,
+  bytesToBase64,
+  coerceToBytes,
+} from '../encoding/binarydata';
 import * as txn from '../transaction';
 import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient';
 import ServiceClient from './v2/serviceClient';
@@ -290,13 +294,7 @@ export default class Kmd extends ServiceClient {
     publicKey: Uint8Array | string
   ) {
     const tx = txn.instantiateTxnIfNeeded(transaction);
-    let pk: Uint8Array;
-
-    if (typeof publicKey === 'string') {
-      pk = new TextEncoder().encode(publicKey);
-    } else {
-      pk = publicKey;
-    }
+    const pk = coerceToBytes(publicKey);
 
     const req = {
       wallet_handle_token: walletHandle,
@@ -393,12 +391,7 @@ export default class Kmd extends ServiceClient {
     partial: string
   ) {
     const tx = txn.instantiateTxnIfNeeded(transaction);
-    let pubkey: Uint8Array;
-    if (typeof pk === 'string') {
-      pubkey = new TextEncoder().encode(pk);
-    } else {
-      pubkey = pk;
-    }
+    const pubkey = coerceToBytes(pk);
     const req = {
       wallet_handle_token: walletHandle,
       transaction: bytesToBase64(tx.toByte()),

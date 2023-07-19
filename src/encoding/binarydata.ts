@@ -42,6 +42,17 @@ export function bytesToBase64(byteArray: Uint8Array): string {
 }
 
 /**
+ * Returns a Uint8Array given an input string or Uint8Array.
+ * @returns A base64 string
+ */
+export function coerceToBytes(input: Uint8Array | string): Uint8Array {
+  if (typeof input === 'string') {
+    return new TextEncoder().encode(input);
+  }
+  return input;
+}
+
+/**
  * Convert a Uint8Array to a hex string for Node.js and browser environments.
  * @returns A hex string
  */

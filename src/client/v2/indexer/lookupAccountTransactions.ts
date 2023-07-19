@@ -1,7 +1,7 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
+import { bytesToBase64 } from '../../../encoding/binarydata';
 import IntDecoding from '../../../types/intDecoding';
+import HTTPClient from '../../client';
+import JSONRequest from '../jsonrequest';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string
@@ -12,7 +12,7 @@ export function base64StringFunnel(data: Uint8Array | string) {
   if (typeof data === 'string') {
     return data;
   }
-  return Buffer.from(data).toString('base64');
+  return bytesToBase64(data);
 }
 
 export default class LookupAccountTransactions extends JSONRequest {

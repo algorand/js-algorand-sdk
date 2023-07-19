@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as encoding from '../../../encoding/encoding';
 import HTTPClient from '../../client';
 import JSONRequest from '../jsonrequest';
@@ -42,7 +41,7 @@ export default class SimulateRawTransactions extends JSONRequest<
     const txHeaders = setSimulateTransactionsHeaders(headers);
     const res = await this.c.post(
       this.path(),
-      Buffer.from(this.requestBytes),
+      this.requestBytes,
       txHeaders,
       this.query,
       false
