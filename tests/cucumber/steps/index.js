@@ -1,6 +1,5 @@
 /* eslint-disable no-console,global-require,no-loop-func,func-names */
 const assert = require('assert');
-const { Buffer } = require('buffer');
 const path = require('path');
 const fs = require('fs');
 const {
@@ -14,6 +13,7 @@ const {
 } = require('cucumber');
 const express = require('express');
 const ServerMock = require('mock-http-server');
+const algosdk = require('../../../src/index');
 const getSteps = require('./steps');
 
 const cucumberPath = path.dirname(__dirname);
@@ -275,7 +275,7 @@ function setupMockServerForResponses(fileName, jsonDirectory, mockServer) {
   }
   if (fileName.endsWith('base64')) {
     headers = { 'content-type': 'application/msgpack', ...corsHeaders };
-    body = Buffer.from(resultString, 'base64');
+    body = algosdk.base64ToBytes(resultString);
   }
   let statusCode = 200;
   if (fileName.indexOf('Error') > -1) {
@@ -451,11 +451,11 @@ for (const name of Object.keys(steps.given)) {
       if (fileName.endsWith('base64')) {
         format = 'msgp';
       }
-      if (Buffer.isBuffer(body1)) {
-        body1 = body1.toString('base64');
+      if (ArrayBuffer.isView(body1)) {
+        body1 = algosdk.bytesToBase64(body1);
       }
-      if (Buffer.isBuffer(body2)) {
-        body2 = body2.toString('base64');
+      if (ArrayBuffer.isView(body2)) {
+        body2 = algosdk.bytesToBase64(body2);
       }
       return fn.call(this, body2 || body1, format);
     });
@@ -478,11 +478,11 @@ for (const name of Object.keys(steps.given)) {
       if (fileName.endsWith('base64')) {
         format = 'msgp';
       }
-      if (Buffer.isBuffer(body1)) {
-        body1 = body1.toString('base64');
+      if (ArrayBuffer.isView(body1)) {
+        body1 = algosdk.bytesToBase64(body1);
       }
-      if (Buffer.isBuffer(body2)) {
-        body2 = body2.toString('base64');
+      if (ArrayBuffer.isView(body2)) {
+        body2 = algosdk.bytesToBase64(body2);
       }
       return fn.call(this, body2 || body1, status, format);
     });

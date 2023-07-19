@@ -1,11 +1,11 @@
 /* eslint-disable func-names,radix */
-const { Buffer } = require('buffer');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
+const { concatArrays } = require('../../../src/utils/utils');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
 
@@ -127,13 +127,13 @@ module.exports = function getSteps(options) {
   function processAppArgs(subArg) {
     switch (subArg[0]) {
       case 'str':
-        return makeUint8Array(Buffer.from(subArg[1]));
+        return makeUint8Array(new TextEncoder().encode(subArg[1]));
       case 'int':
         return makeUint8Array(algosdk.encodeUint64(parseInt(subArg[1], 10)));
       case 'addr':
         return algosdk.decodeAddress(subArg[1]).publicKey;
       case 'b64':
-        return makeUint8Array(Buffer.from(subArg[1], 'base64'));
+        return makeUint8Array(algosdk.base64ToBytes(subArg[1]));
       default:
         throw Error(`did not recognize app arg of type ${subArg[0]}`);
     }
@@ -248,7 +248,7 @@ module.exports = function getSteps(options) {
         this.gen = gen;
       }
       if (note !== 'none') {
-        this.note = makeUint8Array(Buffer.from(note, 'base64'));
+        this.note = makeUint8Array(algosdk.base64ToBytes(note));
       }
     }
   );
@@ -293,9 +293,9 @@ module.exports = function getSteps(options) {
     const addrs = [];
     for (let i = 0; i < this.msig.addrs.length; i++) {
       addrs.push(
-        Buffer.from(
+        algosdk.bytesToBase64(
           algosdk.decodeAddress(this.msig.addrs[i]).publicKey
-        ).toString('base64')
+        )
       );
     }
     await this.kcl.importMultisig(
@@ -320,17 +320,14 @@ module.exports = function getSteps(options) {
   Then(
     'the signed transaction should equal the golden {string}',
     function (golden) {
-      assert.deepStrictEqual(
-        Buffer.from(golden, 'base64'),
-        Buffer.from(this.stx)
-      );
+      assert.deepStrictEqual(algosdk.base64ToBytes(golden), this.stx);
     }
   );
 
   Then(
     'the signed transaction should equal the kmd signed transaction',
     function () {
-      assert.deepStrictEqual(Buffer.from(this.stx), Buffer.from(this.stxKmd));
+      assert.deepStrictEqual(this.stx, this.stxKmd);
     }
   );
 
@@ -344,10 +341,7 @@ module.exports = function getSteps(options) {
   Then(
     'the multisig transaction should equal the golden {string}',
     function (golden) {
-      assert.deepStrictEqual(
-        Buffer.from(golden, 'base64'),
-        Buffer.from(this.stx)
-      );
+      assert.deepStrictEqual(algosdk.base64ToBytes(golden), this.stx);
     }
   );
 
@@ -361,10 +355,7 @@ module.exports = function getSteps(options) {
       );
       const s = algosdk.decodeObj(this.stx);
       const m = algosdk.encodeObj(s.msig);
-      assert.deepStrictEqual(
-        Buffer.from(m),
-        Buffer.from(this.stxKmd, 'base64')
-      );
+      assert.deepStrictEqual(m, algosdk.base64ToBytes(this.stxKmd));
     }
   );
 
@@ -441,8 +432,8 @@ module.exports = function getSteps(options) {
       );
       exp = exp.private_key;
       assert.deepStrictEqual(
-        Buffer.from(exp).toString('base64'),
-        Buffer.from(this.sk).toString('base64')
+        algosdk.bytesToBase64(exp),
+        algosdk.bytesToBase64(this.sk)
       );
       return this.kcl.deleteKey(this.handle, this.wallet_pswd, this.pk);
     }
@@ -464,7 +455,7 @@ module.exports = function getSteps(options) {
         to: this.accounts[1],
         amount: parseInt(amt),
         suggestedParams: result,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
+        note: makeUint8Array(algosdk.base64ToBytes(note)),
       });
       return this.txn;
     }
@@ -484,7 +475,7 @@ module.exports = function getSteps(options) {
         lastRound: result.lastRound,
         genesisHash: result.genesisHash,
         genesisID: result.genesisID,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
+        note: makeUint8Array(algosdk.base64ToBytes(note)),
         amount: parseInt(amt),
       };
       return this.txn;
@@ -510,7 +501,7 @@ module.exports = function getSteps(options) {
         lastRound: result.lastRound,
         genesisHash: result.genesisHash,
         genesisID: result.genesisID,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
+        note: makeUint8Array(algosdk.base64ToBytes(note)),
         amount: parseInt(amt),
       };
       return this.txn;
@@ -521,9 +512,9 @@ module.exports = function getSteps(options) {
     const addrs = [];
     for (let i = 0; i < this.msig.addrs.length; i++) {
       addrs.push(
-        Buffer.from(
+        algosdk.bytesToBase64(
           algosdk.decodeAddress(this.msig.addrs[i]).publicKey
-        ).toString('base64')
+        )
       );
     }
     return this.kcl.importMultisig(
@@ -577,7 +568,7 @@ module.exports = function getSteps(options) {
   Then('the multisig should equal the exported multisig', function () {
     for (let i = 0; i < this.msigExp.length; i++) {
       assert.deepStrictEqual(
-        algosdk.encodeAddress(Buffer.from(this.msigExp[i], 'base64')),
+        algosdk.encodeAddress(algosdk.base64ToBytes(this.msigExp[i])),
         this.msig.addrs[i]
       );
     }
@@ -677,7 +668,7 @@ module.exports = function getSteps(options) {
   });
 
   Given('encoded multisig transaction {string}', function (encTxn) {
-    this.mtx = Buffer.from(encTxn, 'base64');
+    this.mtx = algosdk.base64ToBytes(encTxn);
     this.stx = algosdk.decodeObj(this.mtx);
   });
 
@@ -719,7 +710,7 @@ module.exports = function getSteps(options) {
     this.mtxs = [];
     const mtxs = encTxns.split(' ');
     for (let i = 0; i < mtxs.length; i++) {
-      this.mtxs.push(Buffer.from(mtxs[i], 'base64'));
+      this.mtxs.push(algosdk.base64ToBytes(mtxs[i]));
     }
   });
 
@@ -912,15 +903,14 @@ module.exports = function getSteps(options) {
     'default V2 key registration transaction {string}',
     async function (type) {
       const voteKey = makeUint8Array(
-        Buffer.from('9mr13Ri8rFepxN3ghIUrZNui6LqqM5hEzB45Rri5lkU=', 'base64')
+        algosdk.base64ToBytes('9mr13Ri8rFepxN3ghIUrZNui6LqqM5hEzB45Rri5lkU=')
       );
       const selectionKey = makeUint8Array(
-        Buffer.from('dx717L3uOIIb/jr9OIyls1l5Ei00NFgRa380w7TnPr4=', 'base64')
+        algosdk.base64ToBytes('dx717L3uOIIb/jr9OIyls1l5Ei00NFgRa380w7TnPr4=')
       );
       const stateProofKey = makeUint8Array(
-        Buffer.from(
-          'mYR0GVEObMTSNdsKM6RwYywHYPqVDqg3E4JFzxZOreH9NU8B+tKzUanyY8AQ144hETgSMX7fXWwjBdHz6AWk9w==',
-          'base64'
+        algosdk.base64ToBytes(
+          'mYR0GVEObMTSNdsKM6RwYywHYPqVDqg3E4JFzxZOreH9NU8B+tKzUanyY8AQ144hETgSMX7fXWwjBdHz6AWk9w=='
         )
       );
 
@@ -1036,7 +1026,7 @@ module.exports = function getSteps(options) {
         unitname: unitName,
         assetname: assetName,
         url: assetURL,
-        metadatahash: Buffer.from(metadataHash).toString('base64'),
+        metadatahash: algosdk.bytesToBase64(metadataHash),
         managerkey: manager,
         reserveaddr: reserve,
         freezeaddr: freeze,
@@ -1102,7 +1092,7 @@ module.exports = function getSteps(options) {
         unitname: unitName,
         assetname: assetName,
         url: assetURL,
-        metadatahash: Buffer.from(metadataHash).toString('base64'),
+        metadatahash: algosdk.bytesToBase64(metadataHash),
         managerkey: manager,
         reserveaddr: reserve,
         freezeaddr: freeze,
@@ -1477,7 +1467,7 @@ module.exports = function getSteps(options) {
         expectedMockResponse = expectedBody;
         if (format === 'msgp') {
           expectedMockResponse = new Uint8Array(
-            Buffer.from(expectedMockResponse, 'base64')
+            algosdk.base64ToBytes(expectedMockResponse)
           );
         }
       }
@@ -1504,7 +1494,7 @@ module.exports = function getSteps(options) {
         expectedMockResponse = expectedBody;
         if (format === 'msgp') {
           expectedMockResponse = new Uint8Array(
-            Buffer.from(expectedMockResponse, 'base64')
+            algosdk.base64ToBytes(expectedMockResponse)
           );
         }
       }
@@ -1945,9 +1935,9 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Get Block response should have rewards pool {string}',
     (rewardsPoolAddress) => {
-      const rewardsPoolB64String = Buffer.from(
+      const rewardsPoolB64String = algosdk.bytesToBase64(
         anyBlockResponse.block.rwd
-      ).toString('base64');
+      );
       assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
     }
   );
@@ -2849,7 +2839,7 @@ module.exports = function getSteps(options) {
     async (program) => {
       const data = await loadResource(program);
       const decodedResult = makeUint8Array(
-        Buffer.from(compileResponse.result, 'base64')
+        algosdk.base64ToBytes(compileResponse.result)
       );
       assert.deepStrictEqual(makeUint8Array(data), decodedResult);
     }
@@ -2860,7 +2850,7 @@ module.exports = function getSteps(options) {
   /// /////////////////////////////////
 
   Given('base64 encoded data to sign {string}', function (data) {
-    this.data = Buffer.from(data, 'base64');
+    this.data = algosdk.base64ToBytes(data);
   });
 
   Given('program hash {string}', function (contractAddress) {
@@ -2868,13 +2858,13 @@ module.exports = function getSteps(options) {
   });
 
   Given('base64 encoded program {string}', function (programEncoded) {
-    const program = Buffer.from(programEncoded, 'base64');
+    const program = algosdk.base64ToBytes(programEncoded);
     const lsig = new algosdk.LogicSig(program);
     this.contractAddress = lsig.address();
   });
 
   Given('base64 encoded private key {string}', function (keyEncoded) {
-    const seed = Buffer.from(keyEncoded, 'base64');
+    const seed = algosdk.base64ToBytes(keyEncoded);
     const keys = keyPairFromSeed(seed);
     this.sk = keys.secretKey;
   });
@@ -2884,7 +2874,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the signature should be equal to {string}', function (expectedEncoded) {
-    const expected = makeUint8Array(Buffer.from(expectedEncoded, 'base64'));
+    const expected = makeUint8Array(algosdk.base64ToBytes(expectedEncoded));
     assert.deepStrictEqual(this.sig, expected);
   });
 
@@ -2932,10 +2922,10 @@ module.exports = function getSteps(options) {
     "I get the account address for the current application and see that it matches the app id's hash",
     async function () {
       const appID = this.currentApplicationIndex;
-      const toSign = Buffer.concat([
-        Buffer.from('appID'),
-        algosdk.encodeUint64(appID),
-      ]);
+      const toSign = concatArrays(
+        new TextEncoder().encode('appID'),
+        algosdk.encodeUint64(appID)
+      );
       const expected = algosdk.encodeAddress(
         makeUint8Array(genericHash(toSign))
       );
@@ -3048,7 +3038,7 @@ module.exports = function getSteps(options) {
       try {
         const compiledResponse = await client.compile(data).do();
         const compiledProgram = makeUint8Array(
-          Buffer.from(compiledResponse.result, 'base64')
+          algosdk.base64ToBytes(compiledResponse.result)
         );
         return compiledProgram;
       } catch (err) {
@@ -3270,7 +3260,7 @@ module.exports = function getSteps(options) {
   Then(
     'the base64 encoded signed transaction should equal {string}',
     function (base64golden) {
-      const actualBase64 = Buffer.from(this.stx).toString('base64');
+      const actualBase64 = algosdk.bytesToBase64(this.stx);
       assert.strictEqual(actualBase64, base64golden);
     }
   );
@@ -3680,7 +3670,7 @@ module.exports = function getSteps(options) {
     function (expectedSelectorHex) {
       const actualSelector = this.method.getSelector();
       const expectedSelector = makeUint8Array(
-        Buffer.from(expectedSelectorHex, 'hex')
+        algosdk.hexToBytes(expectedSelectorHex)
       );
       assert.deepStrictEqual(actualSelector, expectedSelector);
     }
@@ -3830,7 +3820,7 @@ module.exports = function getSteps(options) {
           const appID = this.appIDs[parseInt(b64Arg[1], 10)];
           args.push(algosdk.encodeUint64(appID));
         } else {
-          args.push(makeUint8Array(Buffer.from(b64Arg, 'base64')));
+          args.push(makeUint8Array(algosdk.base64ToBytes(b64Arg)));
         }
       }
       this.encodedMethodArguments.push(...args);
@@ -4063,7 +4053,7 @@ module.exports = function getSteps(options) {
   Given(
     'I add a nonced method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
     async function (onComplete) {
-      const nonce = makeUint8Array(Buffer.from(this.nonce));
+      const nonce = makeUint8Array(new TextEncoder().encode(this.nonce));
       await addMethodCallToComposer.call(
         this,
         this.transientAccount.addr,
@@ -4154,10 +4144,10 @@ module.exports = function getSteps(options) {
     function (commaSeparatedB64SignedTxns) {
       const expectedSignedTxns = commaSeparatedB64SignedTxns
         .split(',')
-        .map((b64SignedTxn) => Buffer.from(b64SignedTxn, 'base64'));
+        .map((b64SignedTxn) => algosdk.base64ToBytes(b64SignedTxn));
 
       const actualSignedTxns = this.composerSignedTransactions.map(
-        (signedTxn) => Buffer.from(signedTxn)
+        (signedTxn) => signedTxn
       );
       assert.deepStrictEqual(
         [...actualSignedTxns],
@@ -4191,20 +4181,19 @@ module.exports = function getSteps(options) {
       for (let i = 0; i < methodResults.length; i++) {
         const actualResult = methodResults[i];
         const { method } = actualResult;
-        const expectedReturnValue = Buffer.from(
-          b64ExpectedReturnValues[i],
-          'base64'
+        const expectedReturnValue = algosdk.base64ToBytes(
+          b64ExpectedReturnValues[i]
         );
 
         if (actualResult.decodeError) {
           throw actualResult.decodeError;
         }
         assert.deepStrictEqual(
-          Buffer.from(actualResult.rawReturnValue),
+          actualResult.rawReturnValue,
           expectedReturnValue,
-          `Actual return value for method at index ${i} does not match expected. Actual: ${Buffer.from(
-            actualResult.rawReturnValue
-          ).toString('base64')}`
+          `Actual return value for method at index ${i} does not match expected. Actual: ${actualResult.rawReturnValue.toString(
+            'base64'
+          )}`
         );
 
         const returnType = method.returns.type;
@@ -4292,7 +4281,7 @@ module.exports = function getSteps(options) {
       const quotient = witness % BigInt(methodArg.length);
       assert.strictEqual(
         methodArg[quotient],
-        Buffer.from(makeUint8Array([randomResult])).toString('utf-8')
+        new TextDecoder().decode(makeUint8Array([randomResult]))
       );
     }
   );
@@ -4361,7 +4350,7 @@ module.exports = function getSteps(options) {
       );
       const actualResult = this.composerExecuteResponse.methodResults[index];
       let spin = abiType.decode(actualResult.rawReturnValue)[0];
-      spin = Buffer.from(spin).toString('utf-8');
+      spin = new TextDecoder().decode(Uint8Array.from(spin));
 
       assert.ok(spin.match(regexString));
     }
@@ -4471,11 +4460,8 @@ module.exports = function getSteps(options) {
 
         const actualName = resp.name;
         const actualValue = resp.value;
-        assert.deepStrictEqual(Buffer.from(boxKey), Buffer.from(actualName));
-        assert.deepStrictEqual(
-          Buffer.from(boxValue, 'base64'),
-          Buffer.from(actualValue)
-        );
+        assert.deepStrictEqual(boxKey, actualName);
+        assert.deepStrictEqual(algosdk.base64ToBytes(boxValue), actualValue);
       } catch (err) {
         if (errString !== '') {
           assert.deepStrictEqual(
@@ -4497,7 +4483,7 @@ module.exports = function getSteps(options) {
     const splitBoxB64Names = boxB64Names.split(':');
     const boxNames = [];
     splitBoxB64Names.forEach((subArg) => {
-      boxNames.push(makeUint8Array(Buffer.from(subArg, 'base64')));
+      boxNames.push(makeUint8Array(algosdk.base64ToBytes(subArg)));
     });
     return boxNames;
   }
@@ -4514,9 +4500,9 @@ module.exports = function getSteps(options) {
 
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
       const actualBoxes = new Set(
-        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
+        resp.boxes.map((b) => algosdk.base64ToBytes(b.name))
       );
-      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      const expectedBoxes = new Set(boxes);
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
   );
@@ -4563,9 +4549,9 @@ module.exports = function getSteps(options) {
 
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
       const actualBoxes = new Set(
-        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
+        resp.boxes.map((b) => algosdk.base64ToBytes(b.name))
       );
-      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      const expectedBoxes = new Set(boxes);
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
   );
@@ -4665,7 +4651,7 @@ module.exports = function getSteps(options) {
     'a base64 encoded program bytes for heuristic sanity check {string}',
     async function (programByteStr) {
       this.seeminglyProgram = new Uint8Array(
-        Buffer.from(programByteStr, 'base64')
+        algosdk.base64ToBytes(programByteStr)
       );
     }
   );

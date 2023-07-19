@@ -1,7 +1,7 @@
-import { Buffer } from 'buffer';
-import ServiceClient from './v2/serviceClient';
+import { base64ToBytes, bytesToBase64 } from '../encoding/binarydata';
 import * as txn from '../transaction';
 import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient';
+import ServiceClient from './v2/serviceClient';
 
 export default class Kmd extends ServiceClient {
   constructor(
@@ -50,7 +50,7 @@ export default class Kmd extends ServiceClient {
       wallet_name: walletName,
       wallet_driver_name: walletDriverName,
       wallet_password: walletPassword,
-      master_derivation_key: Buffer.from(walletMDK).toString('base64'),
+      master_derivation_key: bytesToBase64(walletMDK),
     };
     const res = await this.c.post('/v1/wallet', req);
     return res.body;
@@ -157,10 +157,7 @@ export default class Kmd extends ServiceClient {
     };
     const res = await this.c.post('/v1/master-key/export', req);
     return {
-      master_derivation_key: Buffer.from(
-        res.body.master_derivation_key,
-        'base64'
-      ),
+      master_derivation_key: base64ToBytes(res.body.master_derivation_key),
     };
   }
 
@@ -174,7 +171,7 @@ export default class Kmd extends ServiceClient {
   async importKey(walletHandle: string, secretKey: Uint8Array) {
     const req = {
       wallet_handle_token: walletHandle,
-      private_key: Buffer.from(secretKey).toString('base64'),
+      private_key: bytesToBase64(secretKey),
     };
     const res = await this.c.post('/v1/key/import', req);
     return res.body;
@@ -195,7 +192,7 @@ export default class Kmd extends ServiceClient {
       wallet_password: walletPassword,
     };
     const res = await this.c.post('/v1/key/export', req);
-    return { private_key: Buffer.from(res.body.private_key, 'base64') };
+    return { private_key: base64ToBytes(res.body.private_key) };
   }
 
   /**
@@ -266,12 +263,12 @@ export default class Kmd extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
-      transaction: Buffer.from(tx.toByte()).toString('base64'),
+      transaction: bytesToBase64(tx.toByte()),
     };
     const res = await this.c.post('/v1/transaction/sign', req);
 
     if (res.status === 200) {
-      return Buffer.from(res.body.signed_transaction, 'base64');
+      return base64ToBytes(res.body.signed_transaction);
     }
     return res.body;
   }
@@ -293,17 +290,24 @@ export default class Kmd extends ServiceClient {
     publicKey: Uint8Array | string
   ) {
     const tx = txn.instantiateTxnIfNeeded(transaction);
+    let pk: Uint8Array;
+
+    if (typeof publicKey === 'string') {
+      pk = new TextEncoder().encode(publicKey);
+    } else {
+      pk = publicKey;
+    }
 
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
-      transaction: Buffer.from(tx.toByte()).toString('base64'),
-      public_key: Buffer.from(publicKey).toString('base64'),
+      transaction: bytesToBase64(tx.toByte()),
+      public_key: bytesToBase64(pk),
     };
     const res = await this.c.post('/v1/transaction/sign', req);
 
     if (res.status === 200) {
-      return Buffer.from(res.body.signed_transaction, 'base64');
+      return base64ToBytes(res.body.signed_transaction);
     }
     return res.body;
   }
@@ -389,10 +393,16 @@ export default class Kmd extends ServiceClient {
     partial: string
   ) {
     const tx = txn.instantiateTxnIfNeeded(transaction);
+    let pubkey: Uint8Array;
+    if (typeof pk === 'string') {
+      pubkey = new TextEncoder().encode(pk);
+    } else {
+      pubkey = pk;
+    }
     const req = {
       wallet_handle_token: walletHandle,
-      transaction: Buffer.from(tx.toByte()).toString('base64'),
-      public_key: Buffer.from(pk).toString('base64'),
+      transaction: bytesToBase64(tx.toByte()),
+      public_key: bytesToBase64(pubkey),
       partial_multisig: partial,
       wallet_password: pw,
     };

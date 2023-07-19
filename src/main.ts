@@ -144,6 +144,7 @@ export {
   base64ToString,
   bytesToBase64,
   bytesToHex,
+  hexToBytes,
 } from './encoding/binarydata';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
 export { default as generateAccount } from './account';

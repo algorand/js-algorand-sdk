@@ -1,11 +1,9 @@
 /* eslint-env browser */
-const { Buffer } = require('buffer');
 const assert = require('assert');
 const sha512 = require('js-sha512');
 const nacl = require('tweetnacl');
 
 window.assert = assert;
-window.Buffer = Buffer;
 
 window.keyPairFromSecretKey = function keyPairFromSecretKey(sk) {
   return nacl.sign.keyPair.fromSecretKey(sk);
@@ -25,7 +23,7 @@ window.loadResource = async function loadResource(resource) {
     throw new Error(`Failed to load resource (${res.status}): ${resource}`);
   }
 
-  return Buffer.from(await res.arrayBuffer());
+  return res.arrayBuffer();
 };
 
 window.steps = {
