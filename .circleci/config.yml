@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.0
   slack: circleci/slack@4.4.2
-  browser-tools: circleci/browser-tools@1.2.4
+  browser-tools: circleci/browser-tools@1.4.3
   gh-pages: sugarshin/gh-pages@1.0.0
 
 parameters:
@@ -133,4 +133,3 @@ commands:
           command: |
             set -e
             npm ci
-            npm install chromedriver@latest
