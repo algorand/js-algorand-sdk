@@ -782,7 +782,7 @@ export class AtomicTransactionComposer {
     try {
       returnedResult.txInfo = pendingInfo;
       if (method.returns.type !== 'void') {
-        const logs: string[] = pendingInfo.logs || [];
+        const logs = pendingInfo.logs || [];
         if (logs.length === 0) {
           throw new Error(
             `App call transaction did not log a return value ${JSON.stringify(
@@ -790,8 +790,12 @@ export class AtomicTransactionComposer {
             )}`
           );
         }
-
-        const lastLog: Uint8Array = base64ToBytes(logs[logs.length - 1]);
+        let lastLog: Uint8Array;
+        if (typeof logs[logs.length - 1] === 'string') {
+          lastLog = base64ToBytes(logs[logs.length - 1]);
+        } else {
+          lastLog = Uint8Array.from(logs[logs.length - 1]);
+        }
         if (
           lastLog.byteLength < 4 ||
           !arrayEqual(lastLog.slice(0, 4), RETURN_PREFIX)
