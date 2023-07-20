@@ -133,4 +133,4 @@ commands:
           command: |
             set -e
             npm ci
-            npm install chromedriver --chromedriver_cdnurl=https://npmmirror.com/metadata --chromedriver_cdnbinariesurl=https://npmmirror.com/binaries
+            npx --yes @puppeteer/browsers install chromedriver@stable
