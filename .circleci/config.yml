@@ -133,4 +133,4 @@ commands:
           command: |
             set -e
             npm ci
-            # npx --yes @puppeteer/browsers install chromedriver@115.0.5790.98
+            npx --yes @puppeteer/browsers install chromedriver@115.0.5790.98
