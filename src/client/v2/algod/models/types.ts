@@ -2559,6 +2559,52 @@ export class KvDelta extends BaseModel {
 }
 
 /**
+ * Contains a ledger delta for a single transaction group
+ */
+export class LedgerStateDeltaForTransactionGroup extends BaseModel {
+  /**
+   * Ledger StateDelta object
+   */
+  public delta: Record<string, any>;
+
+  public ids: string[];
+
+  /**
+   * Creates a new `LedgerStateDeltaForTransactionGroup` object.
+   * @param delta - Ledger StateDelta object
+   * @param ids -
+   */
+  constructor({ delta, ids }: { delta: Record<string, any>; ids: string[] }) {
+    super();
+    this.delta = delta;
+    this.ids = ids;
+
+    this.attribute_map = {
+      delta: 'delta',
+      ids: 'ids',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): LedgerStateDeltaForTransactionGroup {
+    /* eslint-disable dot-notation */
+    if (typeof data['delta'] === 'undefined')
+      throw new Error(`Response is missing required field 'delta': ${data}`);
+    if (!Array.isArray(data['ids']))
+      throw new Error(
+        `Response is missing required array field 'ids': ${data}`
+      );
+    return new LedgerStateDeltaForTransactionGroup({
+      delta: data['delta'],
+      ids: data['ids'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Proof of membership and position of a light block header.
  */
 export class LightBlockHeaderProof extends BaseModel {
@@ -3319,30 +3365,40 @@ export class SimulateRequest extends BaseModel {
   public allowMoreLogging?: boolean;
 
   /**
+   * Applies extra opcode budget during simulation for each transaction group.
+   */
+  public extraOpcodeBudget?: number | bigint;
+
+  /**
    * Creates a new `SimulateRequest` object.
    * @param txnGroups - The transaction groups to simulate.
    * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
    * signatures.
    * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
+   * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
    */
   constructor({
     txnGroups,
     allowEmptySignatures,
     allowMoreLogging,
+    extraOpcodeBudget,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
     allowMoreLogging?: boolean;
+    extraOpcodeBudget?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowMoreLogging = allowMoreLogging;
+    this.extraOpcodeBudget = extraOpcodeBudget;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
       allowEmptySignatures: 'allow-empty-signatures',
       allowMoreLogging: 'allow-more-logging',
+      extraOpcodeBudget: 'extra-opcode-budget',
     };
   }
 
@@ -3359,6 +3415,7 @@ export class SimulateRequest extends BaseModel {
       ),
       allowEmptySignatures: data['allow-empty-signatures'],
       allowMoreLogging: data['allow-more-logging'],
+      extraOpcodeBudget: data['extra-opcode-budget'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3673,6 +3730,11 @@ export class SimulationEvalOverrides extends BaseModel {
   public allowEmptySignatures?: boolean;
 
   /**
+   * The extra opcode budget added to each transaction group during simulation
+   */
+  public extraOpcodeBudget?: number | bigint;
+
+  /**
    * The maximum log calls one can make during simulation
    */
   public maxLogCalls?: number | bigint;
@@ -3686,25 +3748,30 @@ export class SimulationEvalOverrides extends BaseModel {
    * Creates a new `SimulationEvalOverrides` object.
    * @param allowEmptySignatures - If true, transactions without signatures are allowed and simulated as if they
    * were properly signed.
+   * @param extraOpcodeBudget - The extra opcode budget added to each transaction group during simulation
    * @param maxLogCalls - The maximum log calls one can make during simulation
    * @param maxLogSize - The maximum byte number to log during simulation
    */
   constructor({
     allowEmptySignatures,
+    extraOpcodeBudget,
     maxLogCalls,
     maxLogSize,
   }: {
     allowEmptySignatures?: boolean;
+    extraOpcodeBudget?: number | bigint;
     maxLogCalls?: number | bigint;
     maxLogSize?: number | bigint;
   }) {
     super();
     this.allowEmptySignatures = allowEmptySignatures;
+    this.extraOpcodeBudget = extraOpcodeBudget;
     this.maxLogCalls = maxLogCalls;
     this.maxLogSize = maxLogSize;
 
     this.attribute_map = {
       allowEmptySignatures: 'allow-empty-signatures',
+      extraOpcodeBudget: 'extra-opcode-budget',
       maxLogCalls: 'max-log-calls',
       maxLogSize: 'max-log-size',
     };
@@ -3717,6 +3784,7 @@ export class SimulationEvalOverrides extends BaseModel {
     /* eslint-disable dot-notation */
     return new SimulationEvalOverrides({
       allowEmptySignatures: data['allow-empty-signatures'],
+      extraOpcodeBudget: data['extra-opcode-budget'],
       maxLogCalls: data['max-log-calls'],
       maxLogSize: data['max-log-size'],
     });
@@ -4061,6 +4129,44 @@ export class TealValue extends BaseModel {
       type: data['type'],
       bytes: data['bytes'],
       uint: data['uint'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Response containing all ledger state deltas for transaction groups, with their
+ * associated Ids, in a single round.
+ */
+export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel {
+  public deltas: LedgerStateDeltaForTransactionGroup[];
+
+  /**
+   * Creates a new `TransactionGroupLedgerStateDeltasForRoundResponse` object.
+   * @param deltas -
+   */
+  constructor({ deltas }: { deltas: LedgerStateDeltaForTransactionGroup[] }) {
+    super();
+    this.deltas = deltas;
+
+    this.attribute_map = {
+      deltas: 'deltas',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionGroupLedgerStateDeltasForRoundResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['Deltas']))
+      throw new Error(
+        `Response is missing required array field 'Deltas': ${data}`
+      );
+    return new TransactionGroupLedgerStateDeltasForRoundResponse({
+      deltas: data['Deltas'].map(
+        LedgerStateDeltaForTransactionGroup.from_obj_for_encoding
+      ),
     });
     /* eslint-enable dot-notation */
   }

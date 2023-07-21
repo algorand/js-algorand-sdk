@@ -1,16 +1,15 @@
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 import algosdk from '../src';
 
 export async function compileProgram(
   client: algosdk.Algodv2,
   programSource: string
 ) {
-  const compileResponse = await client.compile(Buffer.from(programSource)).do();
-  const compiledBytes = new Uint8Array(
-    Buffer.from(compileResponse.result, 'base64')
-  );
+  const compileResponse = await client
+    .compile(new TextEncoder().encode(programSource))
+    .do();
+  const compiledBytes = algosdk.base64ToBytes(compileResponse.result);
   return compiledBytes;
 }
 
@@ -70,7 +69,7 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
 
   const addresses = await kmdClient.listKeys(handle);
   // eslint-disable-next-line camelcase
-  const acctPromises: Promise<{ private_key: Buffer }>[] = [];
+  const acctPromises: Promise<{ private_key: Uint8Array }>[] = [];
 
   // eslint-disable-next-line no-restricted-syntax
   for (const addr of addresses.addresses) {

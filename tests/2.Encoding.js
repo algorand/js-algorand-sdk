@@ -1,5 +1,4 @@
 /* eslint-env mocha */
-const { Buffer } = require('buffer');
 const assert = require('assert');
 const algosdk = require('../src/index');
 const utils = require('../src/utils/utils');
@@ -18,11 +17,11 @@ describe('encoding', () => {
   // This will check consistency with golden that were produced by protocol.encoding
   describe('#encode', () => {
     it('should match encode every integer must be encoded to the smallest type possible', () => {
-      let golden = Buffer.from([0x81, 0xa1, 0x41, 0x78]);
+      let golden = new Uint8Array([0x81, 0xa1, 0x41, 0x78]);
       let o = { A: 120 };
       assert.notStrictEqual(algosdk.encodeObj(o), golden);
 
-      golden = Buffer.from([0x81, 0xa1, 0x41, 0xcd, 0x1, 0x2c]);
+      golden = new Uint8Array([0x81, 0xa1, 0x41, 0xcd, 0x1, 0x2c]);
       o = { A: 300 };
       assert.notStrictEqual(algosdk.encodeObj(o), golden);
     });
@@ -61,8 +60,23 @@ describe('encoding', () => {
 
     it('should encode Binary blob should be used for binary data and string for strings', () => {
       // prettier-ignore
-      const golden = Buffer.from([0x82, 0xa1, 0x4a, 0xc4, 0x3, 0x14, 0x1e, 0x28, 0xa1, 0x4b, 0xa3, 0x61, 0x61, 0x61]);
-      const o = { J: Buffer.from([20, 30, 40]), K: 'aaa' };
+      const golden = new Uint8Array([
+        0x82,
+        0xa1,
+        0x4a,
+        0xc4,
+        0x3,
+        0x14,
+        0x1e,
+        0x28,
+        0xa1,
+        0x4b,
+        0xa3,
+        0x61,
+        0x61,
+        0x61,
+      ]);
+      const o = { J: new Uint8Array([20, 30, 40]), K: 'aaa' };
       assert.notStrictEqual(algosdk.encodeObj(o), golden);
     });
 
@@ -86,8 +100,8 @@ describe('encoding', () => {
       const golden = new Uint8Array([134, 163, 97, 109, 116, 205, 3, 79, 163, 102, 101, 101, 10, 162, 102, 118, 51, 162, 108, 118, 61, 163, 114, 99, 118, 196, 32, 145, 154, 160, 178, 192, 112, 147, 3, 73, 200, 52, 23, 24, 49, 180, 79, 91, 78, 35, 190, 125, 207, 231, 37, 41, 131, 96, 252, 244, 221, 54, 208, 163, 115, 110, 100, 196, 32, 145, 154, 160, 178, 192, 112, 147, 3, 73, 200, 52, 23, 24, 49, 180, 79, 91, 78, 35, 190, 125, 207, 231, 37, 41, 131, 96, 252, 244, 221, 54, 208]);
       const ad = 'SGNKBMWAOCJQGSOIGQLRQMNUJ5NU4I56PXH6OJJJQNQPZ5G5G3IOVLI5VM';
       const o = {
-        snd: Buffer.from(algosdk.decodeAddress(ad).publicKey),
-        rcv: Buffer.from(algosdk.decodeAddress(ad).publicKey),
+        snd: algosdk.decodeAddress(ad).publicKey,
+        rcv: algosdk.decodeAddress(ad).publicKey,
         fee: 10,
         amt: 847,
         fv: 51,
@@ -534,6 +548,97 @@ describe('encoding', () => {
           actual,
           expected,
           `Error when intDecoding = ${intDecoding}`
+        );
+      }
+    });
+  });
+
+  describe('Base64 decoding utilities', () => {
+    it('should decode bytes from Base64', () => {
+      const testCases = [
+        [
+          Uint8Array.from([
+            97,
+            32,
+            196,
+            128,
+            32,
+            240,
+            144,
+            128,
+            128,
+            32,
+            230,
+            150,
+            135,
+            32,
+            240,
+            159,
+            166,
+            132,
+          ]), // a Ā 𐀀 文 🦄
+          'YSDEgCDwkICAIOaWhyDwn6aE',
+        ],
+        [
+          Uint8Array.from([0, 1, 2, 3, 4, 46, 46, 46, 254, 255]), // non UTF-8 bytes
+          'AAECAwQuLi7+/w==',
+        ],
+      ];
+      for (const [expectedBytes, expectedEncoding] of testCases) {
+        const actualBytes = algosdk.base64ToBytes(expectedEncoding);
+        assert.deepStrictEqual(
+          actualBytes,
+          expectedBytes,
+          `Incorrect encoding of ${expectedBytes}; got ${actualBytes}`
+        );
+      }
+    });
+
+    it('should decode and encode Base64 roundtrip for UTF-8 strings', () => {
+      const testCases = [
+        ['Hello, Algorand!', 'SGVsbG8sIEFsZ29yYW5kIQ=='],
+        ['a Ā 𐀀 文 🦄', 'YSDEgCDwkICAIOaWhyDwn6aE'],
+        ['(╯°□°）``` ┻━┻ 00\\', 'KOKVr8Kw4pahwrDvvIlgYGAg4pS74pSB4pS7IDAwXA=='],
+        ['\uFFFD\uFFFD', '/v8='], // Non UTF-8 bytes should still decode to same (invalid) output
+      ];
+      for (const [testCase, expectedEncoding] of testCases) {
+        const actualB64Decoding = algosdk.base64ToString(expectedEncoding);
+        assert.deepStrictEqual(
+          actualB64Decoding,
+          testCase,
+          `Incorrect encoding of ${testCase}; got ${actualB64Decoding}`
+        );
+
+        const byteArray = new TextEncoder().encode(testCase);
+        const base64String = algosdk.bytesToBase64(byteArray);
+        const roundTripString = new TextDecoder().decode(
+          algosdk.base64ToBytes(base64String)
+        );
+
+        assert.deepStrictEqual(
+          roundTripString,
+          testCase,
+          `Incorrect decoding of ${testCase}; got ${roundTripString}`
+        );
+      }
+    });
+
+    it('should encode bytes to hex', () => {
+      const testCases = [
+        ['Hello, Algorand!', '48656c6c6f2c20416c676f72616e6421'],
+        ['a Ā 𐀀 文 🦄', '6120c48020f090808020e6968720f09fa684'],
+        [
+          '(╯°□°）``` ┻━┻ 00\\',
+          '28e295afc2b0e296a1c2b0efbc8960606020e294bbe29481e294bb2030305c',
+        ],
+      ];
+      for (const [testCase, expectedEncoding] of testCases) {
+        const binString = new TextEncoder().encode(testCase);
+        const actualHexString = algosdk.bytesToHex(binString);
+        assert.deepStrictEqual(
+          actualHexString,
+          expectedEncoding,
+          `Incorrect encoding of ${testCase}; got ${actualHexString}`
         );
       }
     });

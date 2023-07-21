@@ -122,3 +122,15 @@ export function isNode() {
     typeof process.versions.node !== 'undefined'
   );
 }
+
+/**
+ * Check whether the environment is ReactNative
+ * @returns True if ReactNative, false otherwise
+ */
+export function isReactNative() {
+  const { navigator } = globalThis as { navigator?: { product?: string } };
+  if (typeof navigator === 'object' && navigator.product === 'ReactNative') {
+    return true;
+  }
+  return false;
+}

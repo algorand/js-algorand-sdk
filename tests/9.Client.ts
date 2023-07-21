@@ -161,6 +161,17 @@ describe('client', () => {
       assert.strictEqual(client.c['bc']['baseURL']['port'], '456');
     });
 
+    it('should not provide auth request headers when the token is empty', () => {
+      const client = new AlgodClient('', `${baseServer}:${123}`, 456);
+      assert.deepStrictEqual(
+        {
+          ...client.c['bc']['tokenHeaders'],
+          ...client.c['bc']['defaultHeaders'],
+        },
+        {}
+      );
+    });
+
     /* eslint-disable dot-notation */
   });
 });

@@ -46,10 +46,10 @@ async function main() {
   // example: ASSET_INFO
   const assetInfo = await algodClient.getAssetByID(assetIndex).do();
   console.log(`Asset Name: ${assetInfo.params.name}`);
-  console.log(`Asset Params: ${assetInfo.params}`);
+  console.log(`Asset Params: ${JSON.stringify(assetInfo.params)}`);
   // example: ASSET_INFO
 
-  await new Promise((f) => setTimeout(f, 1000)); // sleep to ensure indexer is caught up
+  await new Promise((f) => setTimeout(f, 2000)); // sleep to ensure indexer is caught up
 
   // example: INDEXER_LOOKUP_ASSET
   const indexer = getLocalIndexerClient();

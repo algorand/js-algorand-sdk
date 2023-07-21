@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import algosdk from '../src';
 import { getLocalAccounts, getLocalAlgodClient } from './utils';
 
@@ -27,7 +26,7 @@ async function main() {
     suggestedParams,
     to: acct2.addr,
     amount: 10000,
-    note: new Uint8Array(Buffer.from('hello world')),
+    note: new TextEncoder().encode('hello world'),
   });
   // example: TRANSACTION_PAYMENT_CREATE
 
@@ -39,8 +38,10 @@ async function main() {
   const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
   const result = await algosdk.waitForConfirmation(algodClient, txId, 4);
   console.log(result);
-  console.log(`Transaction Information: ${result.txn}`);
-  console.log(`Decoded Note: ${Buffer.from(result.txn.txn.note).toString()}`);
+  console.log(`Transaction Information: ${JSON.stringify(result.txn)}`);
+  console.log(
+    `Decoded Note: ${new TextDecoder('utf-8').decode(result.txn.txn.note)}`
+  );
   // example: TRANSACTION_PAYMENT_SUBMIT
 
   // example: ALGOD_FETCH_ACCOUNT_INFO

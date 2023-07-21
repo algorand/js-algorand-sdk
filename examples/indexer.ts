@@ -2,7 +2,6 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import { Buffer } from 'buffer';
 import {
   getLocalIndexerClient,
   getLocalAccounts,
@@ -68,7 +67,7 @@ async function main() {
     from: sender.addr,
     to: sender.addr,
     amount: 1e6,
-    note: new Uint8Array(Buffer.from('Hello World!')),
+    note: new TextEncoder().encode('Hello World!'),
     suggestedParams,
   });
 
@@ -80,7 +79,7 @@ async function main() {
   // example: INDEXER_PREFIX_SEARCH
   const txnsWithNotePrefix = await indexerClient
     .searchForTransactions()
-    .notePrefix(Buffer.from('Hello'))
+    .notePrefix(new TextEncoder().encode('Hello'))
     .do();
   console.log(
     `Transactions with note prefix "Hello" ${JSON.stringify(
