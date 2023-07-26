@@ -6,4 +6,9 @@ export default class Supply extends JSONRequest<SupplyResponse> {
   path() {
     return '/v2/ledger/supply';
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): SupplyResponse {
+    return SupplyResponse.from_obj_for_encoding(body);
+  }
 }

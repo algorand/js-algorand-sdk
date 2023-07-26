@@ -16,4 +16,9 @@ export default class GetBlockHash extends JSONRequest<BlockHashResponse> {
   path() {
     return `/v2/blocks/${this.round}/hash`;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): BlockHashResponse {
+    return BlockHashResponse.from_obj_for_encoding(body);
+  }
 }

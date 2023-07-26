@@ -177,6 +177,24 @@ module.exports = function getSteps(options) {
     return boxRefArray;
   }
 
+  let doRaw = false;
+
+  function doOrDoRaw(req) {
+    if (doRaw === true) {
+      doRaw = false;
+      return req.doRaw();
+    }
+    return req.do();
+  }
+
+  async function doOrDoRawAsync(req) {
+    if (doRaw === true) {
+      doRaw = false;
+      return req.doRaw();
+    }
+    return req.do();
+  }
+
   Given('a kmd client', function () {
     this.kcl = new algosdk.Kmd(kmdToken, 'http://localhost', 60001);
     return this.kcl;
@@ -1131,7 +1149,7 @@ module.exports = function getSteps(options) {
     const accountResponse = await this.v2Client
       .accountInformation(this.assetTestFixture.creator)
       .do();
-    const heldAssets = accountResponse['created-assets'];
+    const heldAssets = accountResponse.createdAssets;
     let assetIds = heldAssets.map((asset) => asset.index);
     assetIds = assetIds.sort(sortKeysAscending);
     const assetIndex = assetIds[assetIds.length - 1];
@@ -1473,6 +1491,7 @@ module.exports = function getSteps(options) {
   Given(
     'mock http responses in {string} loaded from {string}',
     function (expectedBody, format) {
+      doRaw = false;
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
         if (format === 'msgp') {
@@ -1500,6 +1519,7 @@ module.exports = function getSteps(options) {
   Given(
     'mock http responses in {string} loaded from {string} with status {int}.',
     function (expectedBody, status, format) {
+      doRaw = false;
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
         if (format === 'msgp') {
@@ -1535,7 +1555,7 @@ module.exports = function getSteps(options) {
           if (responseFormat === 'msgp') {
             this.actualMockResponse = await this.v2Client.block(0).do();
           } else {
-            this.actualMockResponse = await this.v2Client.status().do();
+            this.actualMockResponse = await this.v2Client.genesis().do();
           }
         } else if (client === 'indexer') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
@@ -1590,6 +1610,7 @@ module.exports = function getSteps(options) {
   });
 
   Given('mock server recording request paths', function () {
+    doRaw = true;
     this.v2Client = new algosdk.Algodv2(
       '',
       `http://${mockAlgodPathRecorderHost}`,
@@ -1686,7 +1707,7 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.pendingTransactionInformation(txid).do();
+      await doOrDoRawAsync(this.v2Client.pendingTransactionInformation(txid));
     }
   );
 
@@ -1696,14 +1717,16 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.pendingTransactionsInformation().max(max).do();
+      await doOrDoRawAsync(
+        this.v2Client.pendingTransactionsInformation().max(max)
+      );
     }
   );
 
   When(
     'we make a Pending Transactions By Address call against account {string} and max {int}',
     function (account, max) {
-      this.v2Client.pendingTransactionByAddress(account).max(max).do();
+      doOrDoRaw(this.v2Client.pendingTransactionByAddress(account).max(max));
     }
   );
 
@@ -1713,51 +1736,57 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.pendingTransactionByAddress(account).max(max).do();
+      await doOrDoRawAsync(
+        this.v2Client.pendingTransactionByAddress(account).max(max)
+      );
     }
   );
 
   When(
     'we make a Status after Block call with round {int}',
     async function (round) {
-      await this.v2Client.statusAfterBlock(round).do();
+      await doOrDoRawAsync(this.v2Client.statusAfterBlock(round));
     }
   );
 
   When(
     'we make an Account Information call against account {string} with exclude {string}',
     async function (account, exclude) {
-      await this.v2Client.accountInformation(account).exclude(exclude).do();
+      await doOrDoRawAsync(
+        this.v2Client.accountInformation(account).exclude(exclude)
+      );
     }
   );
 
   When(
     'we make an Account Information call against account {string}',
     async function (account) {
-      await this.v2Client.accountInformation(account).do();
+      await doOrDoRawAsync(this.v2Client.accountInformation(account));
     }
   );
 
   When(
     'we make an Account Asset Information call against account {string} assetID {int}',
     async function (account, assetID) {
-      await this.v2Client.accountAssetInformation(account, assetID).do();
+      await doOrDoRawAsync(
+        this.v2Client.accountAssetInformation(account, assetID)
+      );
     }
   );
 
   When(
     'we make an Account Application Information call against account {string} applicationID {int}',
     async function (account, applicationID) {
-      await this.v2Client
-        .accountApplicationInformation(account, applicationID)
-        .do();
+      await doOrDoRawAsync(
+        this.v2Client.accountApplicationInformation(account, applicationID)
+      );
     }
   );
 
   When(
     'we make a Get Block call against block number {int}',
     function (blockNum) {
-      this.v2Client.block(blockNum).do();
+      doOrDoRaw(this.v2Client.block(blockNum));
     }
   );
 
@@ -1767,18 +1796,18 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.block(blockNum).do();
+      await doOrDoRawAsync(this.v2Client.block(blockNum));
     }
   );
 
   When('we make a GetAssetByID call for assetID {int}', async function (index) {
-    await this.v2Client.getAssetByID(index).do();
+    await doOrDoRawAsync(this.v2Client.getAssetByID(index));
   });
 
   When(
     'we make a GetApplicationByID call for applicationID {int}',
     async function (index) {
-      await this.v2Client.getApplicationByID(index).do();
+      await doOrDoRawAsync(this.v2Client.getApplicationByID(index));
     }
   );
 
@@ -1800,9 +1829,9 @@ module.exports = function getSteps(options) {
   let anyPendingTransactionInfoResponse;
 
   When('we make any Pending Transaction Information call', async function () {
-    anyPendingTransactionInfoResponse = await this.v2Client
-      .pendingTransactionInformation()
-      .do();
+    anyPendingTransactionInfoResponse = await doOrDoRawAsync(
+      this.v2Client.pendingTransactionInformation()
+    );
   });
 
   Then(
@@ -1818,9 +1847,9 @@ module.exports = function getSteps(options) {
   let anyPendingTransactionsInfoResponse;
 
   When('we make any Pending Transactions Information call', async function () {
-    anyPendingTransactionsInfoResponse = await this.v2Client
-      .pendingTransactionsInformation()
-      .do();
+    anyPendingTransactionsInfoResponse = await doOrDoRawAsync(
+      this.v2Client.pendingTransactionsInformation()
+    );
   });
 
   Then(
@@ -1844,9 +1873,9 @@ module.exports = function getSteps(options) {
   let anySendRawTransactionResponse;
 
   When('we make any Send Raw Transaction call', async function () {
-    anySendRawTransactionResponse = await this.v2Client
-      .sendRawTransaction(makeUint8Array(0))
-      .do();
+    anySendRawTransactionResponse = await doOrDoRawAsync(
+      this.v2Client.sendRawTransaction(makeUint8Array(0))
+    );
   });
 
   Then(
@@ -1859,9 +1888,9 @@ module.exports = function getSteps(options) {
   let anyPendingTransactionsByAddressResponse;
 
   When('we make any Pending Transactions By Address call', async function () {
-    anyPendingTransactionsByAddressResponse = await this.v2Client
-      .pendingTransactionByAddress()
-      .do();
+    anyPendingTransactionsByAddressResponse = await doOrDoRawAsync(
+      this.v2Client.pendingTransactionByAddress()
+    );
   });
 
   Then(
@@ -1885,48 +1914,50 @@ module.exports = function getSteps(options) {
   let anyNodeStatusResponse;
 
   When('we make any Node Status call', async function () {
-    anyNodeStatusResponse = await this.v2Client.status().do();
+    anyNodeStatusResponse = await doOrDoRawAsync(this.v2Client.status());
   });
 
   Then(
     'the parsed Node Status response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse['last-round']);
+      assert.strictEqual(lastRound, anyNodeStatusResponse.lastRound);
     }
   );
 
   let anyLedgerSupplyResponse;
 
   When('we make any Ledger Supply call', async function () {
-    anyLedgerSupplyResponse = await this.v2Client.supply().do();
+    anyLedgerSupplyResponse = await doOrDoRawAsync(this.v2Client.supply());
   });
 
   Then(
     'the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}',
     (totalMoney, onlineMoney, round) => {
-      assert.strictEqual(totalMoney, anyLedgerSupplyResponse['total-money']);
-      assert.strictEqual(onlineMoney, anyLedgerSupplyResponse['online-money']);
-      assert.strictEqual(round, anyLedgerSupplyResponse.current_round);
+      assert.strictEqual(totalMoney, anyLedgerSupplyResponse.totalMoney);
+      assert.strictEqual(onlineMoney, anyLedgerSupplyResponse.onlineMoney);
+      assert.strictEqual(round, anyLedgerSupplyResponse.currentRound);
     }
   );
 
   When('we make any Status After Block call', async function () {
-    anyNodeStatusResponse = await this.v2Client.statusAfterBlock(1).do();
+    anyNodeStatusResponse = await doOrDoRawAsync(
+      this.v2Client.statusAfterBlock(1)
+    );
   });
 
   Then(
     'the parsed Status After Block response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse['last-round']);
+      assert.strictEqual(lastRound, anyNodeStatusResponse.lastRound);
     }
   );
 
   let anyAccountInformationResponse;
 
   When('we make any Account Information call', async function () {
-    anyAccountInformationResponse = await this.v2Client
-      .accountInformation()
-      .do();
+    anyAccountInformationResponse = await doOrDoRawAsync(
+      this.v2Client.accountInformation()
+    );
   });
 
   Then(
@@ -1939,7 +1970,7 @@ module.exports = function getSteps(options) {
   let anyBlockResponse;
 
   When('we make any Get Block call', async function () {
-    anyBlockResponse = await this.v2Client.block(1).do();
+    anyBlockResponse = await doOrDoRawAsync(this.v2Client.block(1));
   });
 
   Then(
@@ -1955,9 +1986,9 @@ module.exports = function getSteps(options) {
   let anySuggestedTransactionsResponse;
 
   When('we make any Suggested Transaction Parameters call', async function () {
-    anySuggestedTransactionsResponse = await this.v2Client
-      .getTransactionParams()
-      .do();
+    anySuggestedTransactionsResponse = await doOrDoRawAsync(
+      this.v2Client.getTransactionParams()
+    );
   });
 
   Then(
@@ -1979,12 +2010,13 @@ module.exports = function getSteps(options) {
       currencyGreater,
       currencyLesser
     ) {
-      await this.indexerClient
-        .lookupAssetBalances(index)
-        .limit(limit)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .do();
+      await doOrDoRawAsync(
+        this.indexerClient
+          .lookupAssetBalances(index)
+          .limit(limit)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+      );
     }
   );
 
@@ -3508,12 +3540,12 @@ module.exports = function getSteps(options) {
       const accountInfo = await this.v2Client
         .accountInformation(this.transientAccount.addr)
         .do();
-      const appTotalSchema = accountInfo['apps-total-schema'];
-      assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
-      assert.strictEqual(appTotalSchema['num-uint'], numUints);
+      const appTotalSchema = accountInfo.appsTotalSchema;
+      assert.strictEqual(appTotalSchema.numByteSlice, numByteSlices);
+      assert.strictEqual(appTotalSchema.numUint, numUints);
 
       const appCreated = appCreatedBoolAsString === 'true';
-      const createdApps = accountInfo['created-apps'];
+      const { createdApps } = accountInfo;
       //  If we don't expect the app to exist, verify that it isn't there and exit.
       if (!appCreated) {
         for (let i = 0; i < createdApps.length; i++) {
@@ -3541,20 +3573,20 @@ module.exports = function getSteps(options) {
       let keyValues = [];
       if (applicationState === 'local') {
         let counter = 0;
-        for (let i = 0; i < accountInfo['apps-local-state'].length; i++) {
-          const localState = accountInfo['apps-local-state'][i];
+        for (let i = 0; i < accountInfo.appsLocalState.length; i++) {
+          const localState = accountInfo.appsLocalState[i];
           if (localState.id === this.currentApplicationIndex) {
-            keyValues = localState['key-value'];
+            keyValues = localState.keyValue;
             counter += 1;
           }
         }
         assert.strictEqual(counter, 1);
       } else if (applicationState === 'global') {
         let counter = 0;
-        for (let i = 0; i < accountInfo['created-apps'].length; i++) {
-          const createdApp = accountInfo['created-apps'][i];
+        for (let i = 0; i < accountInfo.createdApps.length; i++) {
+          const createdApp = accountInfo.createdApps[i];
           if (createdApp.id === this.currentApplicationIndex) {
-            keyValues = createdApp.params['global-state'];
+            keyValues = createdApp.params.globalState;
             counter += 1;
           }
         }
@@ -4649,18 +4681,18 @@ module.exports = function getSteps(options) {
   When(
     'we make a GetLightBlockHeaderProof call for round {int}',
     async function (int) {
-      await this.v2Client.getLightBlockHeaderProof(int).do();
+      await doOrDoRawAsync(this.v2Client.getLightBlockHeaderProof(int));
     }
   );
 
   When('we make a GetStateProof call for round {int}', async function (int) {
-    await this.v2Client.getStateProof(int).do();
+    await doOrDoRawAsync(this.v2Client.getStateProof(int));
   });
 
   When(
     'we make a Lookup Block Hash call against round {int}',
     async function (int) {
-      await this.v2Client.getBlockHash(int).do();
+      await doOrDoRawAsync(this.v2Client.getBlockHash(int));
     }
   );
 

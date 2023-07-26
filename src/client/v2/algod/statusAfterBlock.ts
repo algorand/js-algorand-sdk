@@ -13,4 +13,9 @@ export default class StatusAfterBlock extends JSONRequest<NodeStatusResponse> {
   path() {
     return `/v2/status/wait-for-block-after/${this.round}`;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): NodeStatusResponse {
+    return NodeStatusResponse.from_obj_for_encoding(body);
+  }
 }

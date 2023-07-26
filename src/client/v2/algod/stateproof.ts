@@ -13,4 +13,9 @@ export default class StateProof extends JSONRequest<SP> {
   path() {
     return `/v2/stateproofs/${this.round}`;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): SP {
+    return SP.from_obj_for_encoding(body);
+  }
 }

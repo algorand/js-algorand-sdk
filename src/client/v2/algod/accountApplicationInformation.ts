@@ -18,4 +18,9 @@ export default class AccountApplicationInformation extends JSONRequest<AccountAp
   path() {
     return `/v2/accounts/${this.account}/applications/${this.applicationID}`;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): AccountApplicationResponse {
+    return AccountApplicationResponse.from_obj_for_encoding(body);
+  }
 }

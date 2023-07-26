@@ -59,4 +59,9 @@ export default class SendRawTransaction extends JSONRequest<PostTransactionsResp
     );
     return res.body;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): PostTransactionsResponse {
+    return PostTransactionsResponse.from_obj_for_encoding(body);
+  }
 }

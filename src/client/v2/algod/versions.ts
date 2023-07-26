@@ -9,4 +9,9 @@ export default class Versions extends JSONRequest<Version> {
   path() {
     return '/versions';
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): Version {
+    return Version.from_obj_for_encoding(body);
+  }
 }

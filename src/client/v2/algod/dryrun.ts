@@ -33,4 +33,9 @@ export default class Dryrun extends JSONRequest<DryrunResponse> {
     );
     return res.body;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): DryrunResponse {
+    return DryrunResponse.from_obj_for_encoding(body);
+  }
 }

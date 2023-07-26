@@ -35,4 +35,9 @@ export default class AccountInformation extends JSONRequest<Account> {
     this.query.exclude = exclude;
     return this;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): Account {
+    return Account.from_obj_for_encoding(body);
+  }
 }

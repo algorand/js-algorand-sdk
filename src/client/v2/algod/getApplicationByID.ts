@@ -12,4 +12,9 @@ export default class GetApplicationByID extends JSONRequest<Application> {
   path() {
     return `/v2/applications/${this.index}`;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): Application {
+    return Application.from_obj_for_encoding(body);
+  }
 }

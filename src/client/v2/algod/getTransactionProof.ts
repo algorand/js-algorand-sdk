@@ -41,4 +41,9 @@ export default class GetTransactionProof extends JSONRequest<TransactionProofRes
     this.query.hashtype = hashType;
     return this;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): TransactionProofResponse {
+    return TransactionProofResponse.from_obj_for_encoding(body);
+  }
 }

@@ -49,4 +49,9 @@ export default class Compile extends JSONRequest<CompileResponse> {
     );
     return res.body;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): CompileResponse {
+    return CompileResponse.from_obj_for_encoding(body);
+  }
 }

@@ -12,4 +12,9 @@ export default class GetAssetByID extends JSONRequest<Asset> {
   path() {
     return `/v2/assets/${this.index}`;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): Asset {
+    return Asset.from_obj_for_encoding(body);
+  }
 }

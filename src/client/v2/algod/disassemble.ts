@@ -44,4 +44,9 @@ export default class Disassemble extends JSONRequest<DisassembleResponse> {
     );
     return res.body;
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Uint8Array): DisassembleResponse {
+    return DisassembleResponse.from_obj_for_encoding(body);
+  }
 }
