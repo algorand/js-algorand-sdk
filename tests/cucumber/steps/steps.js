@@ -4169,7 +4169,7 @@ module.exports = function getSteps(options) {
         [...actualSignedTxns],
         [...expectedSignedTxns],
         `Got ${actualSignedTxns
-          .map((stxn) => stxn.toString('base64'))
+          .map((stxn) => algosdk.bytesToBase64(stxn))
           .join(',')}`
       );
     }
@@ -4207,8 +4207,8 @@ module.exports = function getSteps(options) {
         assert.deepStrictEqual(
           actualResult.rawReturnValue,
           expectedReturnValue,
-          `Actual return value for method at index ${i} does not match expected. Actual: ${actualResult.rawReturnValue.toString(
-            'base64'
+          `Actual return value for method at index ${i} does not match expected. Actual: ${algosdk.bytesToBase64(
+            actualResult.rawReturnValue
           )}`
         );
 
