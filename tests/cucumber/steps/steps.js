@@ -41,7 +41,7 @@ async function loadResource(res) {
 }
 
 async function loadResourceAsJson(res) {
-  return JSON.parse(await loadResource(res));
+  return JSON.parse((await loadResource(res)).toString());
 }
 
 // START OBJECT CREATION FUNCTIONS
