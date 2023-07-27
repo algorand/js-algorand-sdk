@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
@@ -56,7 +55,7 @@ export function createMultisigTransaction(
 ) {
   // construct the appendable multisigned transaction format
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
-  const subsigs = pks.map((pk) => ({ pk: Buffer.from(pk) }));
+  const subsigs = pks.map((pk) => ({ pk }));
 
   const msig: EncodedMultisig = {
     v: version,
@@ -80,7 +79,7 @@ export function createMultisigTransaction(
     address.encodeAddress(txnForEncoding.snd) !==
     address.encodeAddress(msigAddr)
   ) {
-    signedTxn.sgnr = Buffer.from(msigAddr);
+    signedTxn.sgnr = msigAddr;
   }
 
   return new Uint8Array(encoding.encode(signedTxn));
@@ -89,7 +88,7 @@ export function createMultisigTransaction(
 /**
  * createMultisigTransactionWithSignature creates a multisig transaction blob with an included signature.
  * @param txn - the actual transaction to sign.
- * @param rawSig - a Buffer raw signature of that transaction
+ * @param rawSig - a Uint8Array raw signature of that transaction
  * @param myPk - a public key that corresponds with rawSig
  * @param version - multisig version
  * @param threshold - multisig threshold
@@ -132,7 +131,7 @@ function createMultisigTransactionWithSignature(
   if (
     address.encodeAddress(signedTxn.txn.snd) !== address.encodeAddress(msigAddr)
   ) {
-    signedTxn.sgnr = Buffer.from(msigAddr);
+    signedTxn.sgnr = msigAddr;
   }
 
   return new Uint8Array(encoding.encode(signedTxn));
@@ -285,14 +284,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     unisig.msig.subsig.forEach((uniSubsig, index) => {
       if (!uniSubsig.s) return;
       const current = newSubsigs[index];
-      // we convert the Uint8Arrays uniSubsig.s and current.s to Buffers here because (as
-      // of Dec 2020) React overrides the buffer package with an older version that does
-      // not support Uint8Arrays in the comparison function. See this thread for more
-      // info: https://github.com/algorand/js-algorand-sdk/issues/252
-      if (
-        current.s &&
-        Buffer.compare(Buffer.from(uniSubsig.s), Buffer.from(current.s)) !== 0
-      ) {
+      if (current.s && !utils.arrayEqual(uniSubsig.s, current.s)) {
         // mismatch
         throw new Error(MULTISIG_MERGE_SIG_MISMATCH_ERROR_MSG);
       }
@@ -309,7 +301,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     txn: refSigTx.txn,
   };
   if (typeof refAuthAddr !== 'undefined') {
-    signedTxn.sgnr = Buffer.from(address.decodeAddress(refAuthAddr).publicKey);
+    signedTxn.sgnr = address.decodeAddress(refAuthAddr).publicKey;
   }
   return new Uint8Array(encoding.encode(signedTxn));
 }

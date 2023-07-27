@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 /**
  * Interfaces for the encoded transaction object. Every property is labelled with its associated Transaction type property
  */
@@ -23,22 +21,22 @@ export interface EncodedAssetParams {
   /**
    * assetManager
    */
-  m?: Buffer;
+  m?: Uint8Array;
 
   /**
    * assetReserve
    */
-  r?: Buffer;
+  r?: Uint8Array;
 
   /**
    * assetFreeze
    */
-  f?: Buffer;
+  f?: Uint8Array;
 
   /**
    * assetClawback
    */
-  c?: Buffer;
+  c?: Uint8Array;
 
   /**
    * assetName
@@ -58,7 +56,7 @@ export interface EncodedAssetParams {
   /**
    * assetMetadataHash
    */
-  am?: Buffer;
+  am?: Uint8Array;
 }
 
 export interface EncodedLocalStateSchema {
@@ -119,12 +117,12 @@ export interface EncodedTransaction {
   /**
    * note
    */
-  note?: Buffer;
+  note?: Uint8Array;
 
   /**
    * from
    */
-  snd: Buffer;
+  snd: Uint8Array;
 
   /**
    * type
@@ -139,17 +137,17 @@ export interface EncodedTransaction {
   /**
    * genesisHash
    */
-  gh: Buffer;
+  gh: Uint8Array;
 
   /**
    * lease
    */
-  lx?: Buffer;
+  lx?: Uint8Array;
 
   /**
    * group
    */
-  grp?: Buffer;
+  grp?: Uint8Array;
 
   /**
    * amount
@@ -164,42 +162,42 @@ export interface EncodedTransaction {
   /**
    * closeRemainderTo
    */
-  close?: Buffer;
+  close?: Uint8Array;
 
   /**
    * closeRemainderTo (but for asset transfers)
    */
-  aclose?: Buffer;
+  aclose?: Uint8Array;
 
   /**
    * reKeyTo
    */
-  rekey?: Buffer;
+  rekey?: Uint8Array;
 
   /**
    * to
    */
-  rcv?: Buffer;
+  rcv?: Uint8Array;
 
   /**
    * to (but for asset transfers)
    */
-  arcv?: Buffer;
+  arcv?: Uint8Array;
 
   /**
    * voteKey
    */
-  votekey?: Buffer;
+  votekey?: Uint8Array;
 
   /**
    * selectionKey
    */
-  selkey?: Buffer;
+  selkey?: Uint8Array;
 
   /**
    * stateProofKey
    */
-  sprfkey?: Buffer;
+  sprfkey?: Uint8Array;
 
   /**
    * voteFirst
@@ -244,12 +242,12 @@ export interface EncodedTransaction {
   /**
    * freezeAccount
    */
-  fadd?: Buffer;
+  fadd?: Uint8Array;
 
   /**
    * assetRevocationTarget
    */
-  asnd?: Buffer;
+  asnd?: Uint8Array;
 
   /**
    * See EncodedAssetParams type
@@ -289,22 +287,22 @@ export interface EncodedTransaction {
   /**
    * appApprovalProgram
    */
-  apap?: Buffer;
+  apap?: Uint8Array;
 
   /**
    * appClearProgram
    */
-  apsu?: Buffer;
+  apsu?: Uint8Array;
 
   /**
    * appArgs
    */
-  apaa?: Buffer[];
+  apaa?: Uint8Array[];
 
   /**
    * appAccounts
    */
-  apat?: Buffer[];
+  apat?: Uint8Array[];
 
   /**
    * extraPages
@@ -324,12 +322,12 @@ export interface EncodedTransaction {
   /**
    * stateProof
    */
-  sp?: Buffer;
+  sp?: Uint8Array;
 
   /**
    * stateProofMessage
    */
-  spmsg?: Buffer;
+  spmsg?: Uint8Array;
 }
 
 export interface EncodedSubsig {
@@ -384,7 +382,7 @@ export interface EncodedSignedTransaction {
   /**
    * Transaction signature
    */
-  sig?: Buffer;
+  sig?: Uint8Array;
 
   /**
    * The transaction that was signed
@@ -404,5 +402,5 @@ export interface EncodedSignedTransaction {
   /**
    * The signer, if signing with a different key than the Transaction type `from` property indicates
    */
-  sgnr?: Buffer;
+  sgnr?: Uint8Array;
 }

@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import base32 from 'hi-base32';
 import * as nacl from '../nacl/naclWrappers';
 import * as utils from '../utils/utils';
@@ -28,7 +27,7 @@ const MULTISIG_PREIMG2ADDR_PREFIX = new Uint8Array([
   114,
 ]);
 
-const APP_ID_PREFIX = Buffer.from('appID');
+const APP_ID_PREFIX = new TextEncoder().encode('appID');
 
 export const MALFORMED_ADDRESS_ERROR_MSG = 'address seems to be malformed';
 export const CHECKSUM_ADDRESS_ERROR_MSG = 'wrong checksum for address';

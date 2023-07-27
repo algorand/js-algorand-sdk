@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import AlgodClient from './client/v2/algod/algod';
 import {
   AccountStateDelta,
@@ -10,9 +9,10 @@ import {
   EvalDeltaKeyValue,
   TealValue,
 } from './client/v2/algod/models/types';
+import { encodeAddress, getApplicationAddress } from './encoding/address';
+import { base64ToBytes, bytesToHex } from './encoding/binarydata';
 import { SignedTransaction } from './transaction';
 import { TransactionType } from './types/transactions';
-import { encodeAddress, getApplicationAddress } from './encoding/address';
 
 const defaultAppId = 1380011588;
 const defaultMaxWidth = 30;
@@ -30,14 +30,12 @@ interface AppWithAppParams {
 
 function decodePrograms(ap: AppWithAppParams): AppWithAppParams {
   // eslint-disable-next-line no-param-reassign
-  ap.params['approval-program'] = Buffer.from(
-    ap.params['approval-program'].toString(),
-    'base64'
+  ap.params['approval-program'] = base64ToBytes(
+    ap.params['approval-program'].toString()
   );
   // eslint-disable-next-line no-param-reassign
-  ap.params['clear-state-program'] = Buffer.from(
-    ap.params['clear-state-program'].toString(),
-    'base64'
+  ap.params['clear-state-program'] = base64ToBytes(
+    ap.params['clear-state-program'].toString()
   );
 
   return ap;
@@ -197,7 +195,7 @@ class DryrunStackValue {
 
   toString(): string {
     if (this.type === 1) {
-      return `0x${Buffer.from(this.bytes, 'base64').toString('hex')}`;
+      return `0x${bytesToHex(base64ToBytes(this.bytes))}`;
     }
     return this.uint.toString();
   }
@@ -284,10 +282,9 @@ function scratchToString(
 
   const newScratch = currScratch[newScratchIdx];
   if (newScratch.bytes.length > 0) {
-    return `${newScratchIdx} = 0x${Buffer.from(
-      newScratch.bytes,
-      'base64'
-    ).toString('hex')}`;
+    return `${newScratchIdx} = 0x${bytesToHex(
+      base64ToBytes(newScratch.bytes)
+    )}`;
   }
   return `${newScratchIdx} = ${newScratch.uint.toString()}`;
 }
@@ -298,7 +295,7 @@ function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
     .map((sv: DryrunStackValue) => {
       switch (sv.type) {
         case 1:
-          return `0x${Buffer.from(sv.bytes, 'base64').toString('hex')}`;
+          return `0x${bytesToHex(base64ToBytes(sv.bytes))}`;
         case 2:
           return `${sv.uint.toString()}`;
         default:
