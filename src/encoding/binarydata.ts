@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import { isNode } from '../utils/utils';
 
 /**

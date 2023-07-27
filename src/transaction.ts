@@ -1260,7 +1260,7 @@ export class Transaction implements TransactionStorageStructure {
         (forPrinting.reKeyTo as Address).publicKey
       );
     if (typeof forPrinting.genesisHash !== 'string')
-      forPrinting.genesisHash = bytesToBase64(forPrinting.genesisHash); // TODO: double check this
+      forPrinting.genesisHash = bytesToBase64(forPrinting.genesisHash);
     return forPrinting;
   }
 

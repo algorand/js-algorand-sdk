@@ -40,6 +40,10 @@ async function loadResource(res) {
   });
 }
 
+async function loadResourceAsJson(res) {
+  return JSON.parse(await loadResource(res));
+}
+
 // START OBJECT CREATION FUNCTIONS
 
 /**
@@ -2786,7 +2790,7 @@ module.exports = function getSteps(options) {
         sources = [
           new algosdk.modelsv2.DryrunSource({
             fieldName: 'lsig',
-            source: data.toString('utf8'),
+            source: new TextDecoder().decode(data),
             txnIndex: 0,
           }),
         ];
@@ -4371,17 +4375,18 @@ module.exports = function getSteps(options) {
   Given(
     'a dryrun response file {string} and a transaction at index {string}',
     async function (drrFile, txId) {
-      const drContents = await loadResource(drrFile);
-      const js = parseJSON(drContents);
-      const drr = new algosdk.DryrunResult(js);
+      const drContents = await loadResourceAsJson(drrFile);
+      const drr = new algosdk.DryrunResult(drContents);
       this.txtrace = drr.txns[parseInt(txId)];
     }
   );
 
   Then('calling app trace produces {string}', async function (expected) {
     const traceString = this.txtrace.appTrace();
-    const expectedString = (await loadResource(expected)).toString();
-    assert.equal(traceString, expectedString);
+    const expectedString = new TextDecoder().decode(
+      await loadResource(expected)
+    );
+    assert.deepStrictEqual(traceString, expectedString);
   });
 
   When(
@@ -4573,7 +4578,7 @@ module.exports = function getSteps(options) {
   );
 
   Given('a source map json file {string}', async function (srcmap) {
-    const js = parseJSON(await loadResource(srcmap));
+    const js = await loadResourceAsJson(srcmap);
     this.sourcemap = new algosdk.SourceMap(js);
   });
 
@@ -4583,7 +4588,7 @@ module.exports = function getSteps(options) {
       const buff = Object.entries(this.sourcemap.pcToLine).map(
         ([pc, line]) => `${pc}:${line}`
       );
-      assert.equal(buff.join(';'), mapping);
+      assert.deepStrictEqual(buff.join(';'), mapping);
     }
   );
 
@@ -4591,7 +4596,7 @@ module.exports = function getSteps(options) {
     'getting the line associated with a pc {string} equals {string}',
     function (pc, expectedLine) {
       const actualLine = this.sourcemap.getLineForPc(parseInt(pc));
-      assert.equal(actualLine, parseInt(expectedLine));
+      assert.deepStrictEqual(actualLine, parseInt(expectedLine));
     }
   );
 
@@ -4599,7 +4604,7 @@ module.exports = function getSteps(options) {
     'getting the last pc associated with a line {string} equals {string}',
     function (line, expectedPc) {
       const actualPcs = this.sourcemap.getPcsForLine(parseInt(line));
-      assert.equal(actualPcs.pop(), parseInt(expectedPc));
+      assert.deepStrictEqual(actualPcs.pop(), parseInt(expectedPc));
     }
   );
 
@@ -4618,8 +4623,10 @@ module.exports = function getSteps(options) {
   Then(
     'the resulting source map is the same as the json {string}',
     async function (expectedJsonPath) {
-      const expected = await loadResource(expectedJsonPath);
-      assert.equal(this.rawSourceMap, expected.toString().trim());
+      const expected = new TextDecoder()
+        .decode(await loadResource(expectedJsonPath))
+        .trim();
+      assert.deepStrictEqual(this.rawSourceMap, expected);
     }
   );
 
@@ -4628,12 +4635,11 @@ module.exports = function getSteps(options) {
     async function (bytecodeFilename, sourceFilename) {
       const bytecode = await loadResource(bytecodeFilename);
       const resp = await this.v2Client.disassemble(bytecode).do();
-      const expectedSource = await loadResource(sourceFilename);
-
-      assert.deepStrictEqual(
-        resp.result.toString('UTF-8'),
-        expectedSource.toString('UTF-8')
+      const expectedSource = new TextDecoder().decode(
+        await loadResource(sourceFilename)
       );
+
+      assert.deepStrictEqual(resp.result.toString('UTF-8'), expectedSource);
     }
   );
 
