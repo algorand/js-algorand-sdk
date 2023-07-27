@@ -78,7 +78,7 @@ export function hexToBytes(hexString: string): Uint8Array {
   }
   const byteArray = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length / 2; i++) {
-    byteArray[i] = parseInt(hex.slice(2*i, 2*i + 2), 16);
+    byteArray[i] = parseInt(hex.slice(2 * i, 2 * i + 2), 16);
   }
   return byteArray;
 }
