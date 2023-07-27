@@ -26,7 +26,7 @@ window.loadResource = async function loadResource(resource) {
   return new Uint8Array(await res.arrayBuffer());
 };
 
-window.loadResourceAsJson = async function loadResource(resource) {
+window.loadResourceAsJson = async function loadResourceAsJson(resource) {
   const res = await fetch(`/features/resources/${resource}`);
   if (!res.ok) {
     throw new Error(`Failed to load resource (${res.status}): ${resource}`);
