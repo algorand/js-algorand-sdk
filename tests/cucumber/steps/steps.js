@@ -2781,9 +2781,9 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Dryrun Response should have global delta {string} with {int}',
     (key, action) => {
-      assert.strictEqual(dryrunResponse.txns[0]['global-delta'][0].key, key);
+      assert.strictEqual(dryrunResponse.txns[0].globalDelta[0].key, key);
       assert.strictEqual(
-        dryrunResponse.txns[0]['global-delta'][0].value.action,
+        dryrunResponse.txns[0].globalDelta[0].value.action,
         action
       );
     }
