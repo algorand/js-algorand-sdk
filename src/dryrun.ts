@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import AlgodClient from './client/v2/algod/algod';
 import {
   AccountStateDelta,
@@ -10,9 +9,10 @@ import {
   EvalDeltaKeyValue,
   TealValue,
 } from './client/v2/algod/models/types';
+import { encodeAddress, getApplicationAddress } from './encoding/address';
+import { base64ToBytes, bytesToHex } from './encoding/binarydata';
 import { SignedTransaction } from './transaction';
 import { TransactionType } from './types/transactions';
-import { encodeAddress, getApplicationAddress } from './encoding/address';
 
 const defaultAppId = 1380011588;
 const defaultMaxWidth = 30;
@@ -166,7 +166,7 @@ class DryrunStackValue {
 
   toString(): string {
     if (this.type === 1) {
-      return `0x${Buffer.from(this.bytes, 'base64').toString('hex')}`;
+      return `0x${bytesToHex(base64ToBytes(this.bytes))}`;
     }
     return this.uint.toString();
   }
@@ -253,10 +253,9 @@ function scratchToString(
 
   const newScratch = currScratch[newScratchIdx];
   if (newScratch.bytes.length > 0) {
-    return `${newScratchIdx} = 0x${Buffer.from(
-      newScratch.bytes,
-      'base64'
-    ).toString('hex')}`;
+    return `${newScratchIdx} = 0x${bytesToHex(
+      base64ToBytes(newScratch.bytes)
+    )}`;
   }
   return `${newScratchIdx} = ${newScratch.uint.toString()}`;
 }
@@ -267,7 +266,7 @@ function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
     .map((sv: DryrunStackValue) => {
       switch (sv.type) {
         case 1:
-          return `0x${Buffer.from(sv.bytes, 'base64').toString('hex')}`;
+          return `0x${bytesToHex(base64ToBytes(sv.bytes))}`;
         case 2:
           return `${sv.uint.toString()}`;
         default:

@@ -1,8 +1,7 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
 import { concatArrays } from '../../../utils/utils';
 import { PostTransactionsResponse } from './models/types';
+import HTTPClient from '../../client';
+import JSONRequest from '../jsonrequest';
 
 /**
  * Sets the default header (if not previously set) for sending a raw

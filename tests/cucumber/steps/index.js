@@ -1,6 +1,5 @@
 /* eslint-disable no-console,global-require,no-loop-func,func-names */
 const assert = require('assert');
-const { Buffer } = require('buffer');
 const path = require('path');
 const fs = require('fs');
 const {

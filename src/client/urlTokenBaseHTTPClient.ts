@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import { fetch, Response, Headers } from 'cross-fetch';
 import {
   BaseHTTPClient,
@@ -118,7 +117,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     try {
       body = new Uint8Array(await res.arrayBuffer());
       const decoded: Record<string, any> = JSON.parse(
-        Buffer.from(body).toString()
+        new TextDecoder().decode(body)
       );
       if (decoded.message) {
         bodyErrorMessage = decoded.message;

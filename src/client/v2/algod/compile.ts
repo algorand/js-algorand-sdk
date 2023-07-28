@@ -1,7 +1,7 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
+import { coerceToBytes } from '../../../encoding/binarydata';
 import HTTPClient from '../../client';
 import { CompileResponse } from './models/types';
+import JSONRequest from '../jsonrequest';
 
 /**
  * Sets the default header (if not previously set)
@@ -43,7 +43,7 @@ export default class Compile extends JSONRequest<CompileResponse> {
     const txHeaders = setHeaders(headers);
     const res = await this.c.post(
       this.path(),
-      Buffer.from(this.source),
+      coerceToBytes(this.source),
       this.query,
       txHeaders
     );

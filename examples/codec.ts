@@ -3,7 +3,7 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
 import algosdk from '../src';
-import { getLocalAlgodClient, getLocalAccounts } from './utils';
+import { getLocalAccounts, getLocalAlgodClient } from './utils';
 
 async function main() {
   const client = getLocalAlgodClient();

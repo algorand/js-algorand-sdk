@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as txnBuilder from './transaction';
 import * as nacl from './nacl/naclWrappers';
 import * as encoding from './encoding/encoding';
@@ -8,7 +7,7 @@ import * as utils from './utils/utils';
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 
 interface EncodedTxGroup {
-  txlist: Buffer[];
+  txlist: Uint8Array[];
 }
 
 /**
@@ -16,10 +15,10 @@ interface EncodedTxGroup {
  */
 export class TxGroup {
   name = 'Transaction group';
-  tag = Buffer.from('TG');
-  txGroupHashes: Buffer[];
+  tag = new TextEncoder().encode('TG');
+  txGroupHashes: Uint8Array[];
 
-  constructor(hashes: Buffer[]) {
+  constructor(hashes: Uint8Array[]) {
     if (hashes.length > ALGORAND_MAX_TX_GROUP_SIZE) {
       const errorMsg = `${hashes.length.toString()} transactions grouped together but max group size is ${ALGORAND_MAX_TX_GROUP_SIZE.toString()}`;
       throw Error(errorMsg);
@@ -40,10 +39,10 @@ export class TxGroup {
   static from_obj_for_encoding(txgroupForEnc: EncodedTxGroup) {
     const txn = Object.create(this.prototype);
     txn.name = 'Transaction group';
-    txn.tag = Buffer.from('TG');
+    txn.tag = new TextEncoder().encode('TG');
     txn.txGroupHashes = [];
     for (const hash of txgroupForEnc.txlist) {
-      txn.txGroupHashes.push(Buffer.from(hash));
+      txn.txGroupHashes.push(hash);
     }
     return txn;
   }
@@ -56,7 +55,7 @@ export class TxGroup {
 /**
  * computeGroupID returns group ID for a group of transactions
  * @param txns - array of transactions (every element is a dict or Transaction)
- * @returns Buffer
+ * @returns Uint8Array
  */
 export function computeGroupID(txns: txnBuilder.TransactionLike[]) {
   const hashes = [];
@@ -68,9 +67,9 @@ export function computeGroupID(txns: txnBuilder.TransactionLike[]) {
   const txgroup = new TxGroup(hashes);
 
   const bytes = txgroup.toByte();
-  const toBeHashed = Buffer.from(utils.concatArrays(txgroup.tag, bytes));
+  const toBeHashed = utils.concatArrays(txgroup.tag, bytes);
   const gid = nacl.genericHash(toBeHashed);
-  return Buffer.from(gid);
+  return Uint8Array.from(gid);
 }
 
 /**

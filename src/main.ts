@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as nacl from './nacl/naclWrappers';
 import * as address from './encoding/address';
 import * as encoding from './encoding/encoding';
@@ -7,7 +6,7 @@ import Bid, { BidOptions } from './bid';
 import * as convert from './convert';
 import * as utils from './utils/utils';
 
-const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
+const SIGN_BYTES_PREFIX = Uint8Array.from([77, 88]); // "MX"
 
 // Errors
 export const MULTISIG_BAD_SENDER_ERROR_MSG =
@@ -66,7 +65,7 @@ export function signBid(bid: BidOptions, sk: Uint8Array) {
  * @returns binary signature
  */
 export function signBytes(bytes: Uint8Array, sk: Uint8Array) {
-  const toBeSigned = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
+  const toBeSigned = utils.concatArrays(SIGN_BYTES_PREFIX, bytes);
   const sig = nacl.sign(toBeSigned, sk);
   return sig;
 }
@@ -84,9 +83,7 @@ export function verifyBytes(
   signature: Uint8Array,
   addr: string
 ) {
-  const toBeVerified = Buffer.from(
-    utils.concatArrays(SIGN_BYTES_PREFIX, bytes)
-  );
+  const toBeVerified = utils.concatArrays(SIGN_BYTES_PREFIX, bytes);
   const pk = address.decodeAddress(addr).publicKey;
   return nacl.verify(toBeVerified, signature, pk);
 }
@@ -147,6 +144,7 @@ export {
   base64ToString,
   bytesToBase64,
   bytesToHex,
+  hexToBytes,
 } from './encoding/binarydata';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
 export { default as generateAccount } from './account';

@@ -15,16 +15,6 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'eslint-plugin-tsdoc'],
   rules: {
-    'no-restricted-globals': [
-      'error',
-      {
-        // This is to ensure that we use the 'buffer' package in the browser. In Node it doesn't
-        // make a difference.
-        name: 'Buffer',
-        message:
-          "Explictly import Buffer with `import { Buffer } from 'buffer'`",
-      },
-    ],
     'no-constant-condition': ['error', { checkLoops: false }],
     'no-restricted-syntax': ['error', 'LabeledStatement', 'WithStatement'],
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],

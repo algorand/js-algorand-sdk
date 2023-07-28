@@ -1,8 +1,8 @@
-import { Buffer } from 'buffer';
-
 /**
  * Base class for models
  */
+
+import { bytesToBase64 } from '../../encoding/binarydata';
 
 /* eslint-disable no-underscore-dangle,camelcase */
 function _is_primitive(val: any): val is string | boolean | number | bigint {
@@ -29,7 +29,7 @@ function _get_obj_for_encoding(val: any, binary: boolean): any {
   let targetPropValue: any;
 
   if (val instanceof Uint8Array) {
-    targetPropValue = binary ? val : Buffer.from(val).toString('base64');
+    targetPropValue = binary ? val : bytesToBase64(val);
   } else if (typeof val.get_obj_for_encoding === 'function') {
     targetPropValue = val.get_obj_for_encoding(binary);
   } else if (Array.isArray(val)) {

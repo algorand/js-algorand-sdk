@@ -1,5 +1,4 @@
 /* eslint-env mocha */
-const { Buffer } = require('buffer');
 const assert = require('assert');
 const algosdk = require('../src/index');
 const nacl = require('../src/nacl/naclWrappers');
@@ -39,7 +38,7 @@ describe('Algosdk (AKA end to end)', () => {
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
-      const note = new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64'));
+      const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
       const from = to;
       const suggestedParams = {
         genesisHash,
@@ -63,9 +62,8 @@ describe('Algosdk (AKA end to end)', () => {
       );
       assert.deepStrictEqual(txnAsBuffer, txnAsBufferRecovered);
       const txnAsBufferGolden = new Uint8Array(
-        Buffer.from(
-          'i6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=',
-          'base64'
+        algosdk.base64ToBytes(
+          'i6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk='
         )
       );
       assert.deepStrictEqual(txnAsBufferGolden, txnAsBufferRecovered);
@@ -81,7 +79,7 @@ describe('Algosdk (AKA end to end)', () => {
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
-      const note = new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64'));
+      const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
       const from = to;
       const suggestedParams = {
         genesisHash,
@@ -109,7 +107,7 @@ describe('Algosdk (AKA end to end)', () => {
       const recoveredSignedTxnBytes = txnAsObjRecovered.signTxn(sk.sk);
       assert.deepStrictEqual(initialSignedTxnBytes, recoveredSignedTxnBytes);
       const signedTxnBytesGolden = new Uint8Array(
-        Buffer.from(
+        algosdk.base64ToBytes(
           'g6RzZ25yxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaNzaWfEQDJHtrytU9p3nhRH1XS8tX+KmeKGyekigG7M704dOkBMTqiOJFuukbK2gUViJtivsPrKNiV0+WIrdbBk7gmNkgGjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=',
           'base64'
         )
@@ -134,16 +132,13 @@ describe('Algosdk (AKA end to end)', () => {
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
-        note: new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64')),
+        note: new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y=')),
       };
 
       sk = algosdk.mnemonicToSecretKey(sk);
 
       const jsDec = algosdk.signTransaction(o, sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(jsDec.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
 
       // // Check txid
       const txGolden = '5FJDJD5LMZC3EHUYYJNH5I23U4X6H2KXABNDGPIL557ZMJ33GZHQ';
@@ -165,17 +160,14 @@ describe('Algosdk (AKA end to end)', () => {
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
-        note: new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64')),
+        note: new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y=')),
         flatFee: true,
       };
 
       sk = algosdk.mnemonicToSecretKey(sk);
 
       const jsDec = algosdk.signTransaction(o, sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(jsDec.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
 
       // // Check txid
       const txGolden = '5FJDJD5LMZC3EHUYYJNH5I23U4X6H2KXABNDGPIL557ZMJ33GZHQ';
@@ -199,17 +191,14 @@ describe('Algosdk (AKA end to end)', () => {
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
-        note: new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64')),
+        note: new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y=')),
         lease,
       };
 
       sk = algosdk.mnemonicToSecretKey(sk);
 
       const jsDec = algosdk.signTransaction(o, sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(jsDec.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
 
       // Check txid
       const txGolden = '7BG6COBZKF6I6W5XY72ZE4HXV6LLZ6ENSR6DASEGSTXYXR4XJOOQ';
@@ -232,7 +221,7 @@ describe('Algosdk (AKA end to end)', () => {
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
-      const note = new Uint8Array(Buffer.from('6gAVR0Nsv5Y=', 'base64'));
+      const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
       sk = algosdk.mnemonicToSecretKey(sk);
       const key = nacl.keyPairFromSecretKey(sk.sk);
       const from = algosdk.encodeAddress(key.publicKey);
@@ -254,10 +243,7 @@ describe('Algosdk (AKA end to end)', () => {
       txn.addLease(lease, fee);
 
       const txnBytes = txn.signTxn(sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(txnBytes),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(txnBytes, algosdk.base64ToBytes(golden));
 
       // Check txid
       const txGolden = '7BG6COBZKF6I6W5XY72ZE4HXV6LLZ6ENSR6DASEGSTXYXR4XJOOQ';
@@ -268,14 +254,14 @@ describe('Algosdk (AKA end to end)', () => {
   describe('Sign and verify bytes', () => {
     it('should verify a correct signature', () => {
       const account = algosdk.generateAccount();
-      const toSign = new Uint8Array(Buffer.from([1, 9, 25, 49]));
+      const toSign = Uint8Array.from([1, 9, 25, 49]);
       const signed = algosdk.signBytes(toSign, account.sk);
       assert.equal(true, algosdk.verifyBytes(toSign, signed, account.addr));
     });
 
     it('should not verify a corrupted signature', () => {
       const account = algosdk.generateAccount();
-      const toSign = Buffer.from([1, 9, 25, 49]);
+      const toSign = Uint8Array.from([1, 9, 25, 49]);
       const signed = algosdk.signBytes(toSign, account.sk);
       signed[0] = (signed[0] + 1) % 256;
       assert.equal(false, algosdk.verifyBytes(toSign, signed, account.addr));
@@ -373,16 +359,15 @@ describe('Algosdk (AKA end to end)', () => {
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
-        note: new Uint8Array(Buffer.from('X4Bl4wQ9rCo=', 'base64')),
+        note: algosdk.base64ToBytes('X4Bl4wQ9rCo='),
       };
 
       const jsDec = algosdk.signMultisigTransaction(o, params, sk);
       // this golden also contains the correct multisig address
-      const golden = Buffer.from(
-        'gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==',
-        'base64'
+      const golden = algosdk.base64ToBytes(
+        'gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
       );
-      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
+      assert.deepStrictEqual(jsDec.blob, golden);
 
       // Check txid
       const txGolden = 'TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A';
@@ -416,7 +401,7 @@ describe('Algosdk (AKA end to end)', () => {
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainder =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
-      const note = new Uint8Array(Buffer.from('X4Bl4wQ9rCo=', 'base64'));
+      const note = algosdk.base64ToBytes('X4Bl4wQ9rCo=');
       const oDict = {
         to: toAddr,
         from: fromAddr,
@@ -468,17 +453,15 @@ describe('Algosdk (AKA end to end)', () => {
       const { sk } = algosdk.mnemonicToSecretKey(mnem1);
 
       // this is a multisig transaction with an existing signature
-      const o = Buffer.from(
-        'gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ==',
-        'base64'
+      const o = algosdk.base64ToBytes(
+        'gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
       );
 
       const jsDec = algosdk.appendSignMultisigTransaction(o, params, sk);
-      const golden = Buffer.from(
-        'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAjmG2MILQVLoKg8q7jAYpu0r42zu9edYHrkkuSAikJAnDPplY1Pq90/ssyFhpKLrmvDDcSwNAwTGBjqtSOFYUAIGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgqJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGhc8RAXqddnsKAid3WHs1Wykg8Vk2GQ8v68YWlM3AfcSH2DA8zyl/UQ9Md8++N/XixLvE3uZMr7CvPs52Gnit1YE1QBKN0aHICoXYBo3R4boujYW10zQPopWNsb3NlxCBA6TSSiCVky86cWaabZ1Qmiemhw6Kp6ltlpuikQh/8V6NmZWXNBJiiZnbNMLKjZ2VurGRldm5ldC12MzMuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbNNJqkbm90ZcQIX4Bl4wQ9rCqjcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5',
-        'base64'
+      const golden = algosdk.base64ToBytes(
+        'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAjmG2MILQVLoKg8q7jAYpu0r42zu9edYHrkkuSAikJAnDPplY1Pq90/ssyFhpKLrmvDDcSwNAwTGBjqtSOFYUAIGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgqJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGhc8RAXqddnsKAid3WHs1Wykg8Vk2GQ8v68YWlM3AfcSH2DA8zyl/UQ9Md8++N/XixLvE3uZMr7CvPs52Gnit1YE1QBKN0aHICoXYBo3R4boujYW10zQPopWNsb3NlxCBA6TSSiCVky86cWaabZ1Qmiemhw6Kp6ltlpuikQh/8V6NmZWXNBJiiZnbNMLKjZ2VurGRldm5ldC12MzMuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbNNJqkbm90ZcQIX4Bl4wQ9rCqjcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5'
       );
-      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
+      assert.deepStrictEqual(jsDec.blob, golden);
 
       // Check txid
       const txGolden = 'TDIO6RJWJIVDDJZELMSX5CPJW7MUNM3QR4YAHYAKHF3W2CFRTI7A';
@@ -515,7 +498,7 @@ describe('Algosdk (AKA end to end)', () => {
       const genesisID = 'devnet-v1.0';
       const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E';
       const firstRound1 = 710399;
-      const note1 = new Uint8Array(Buffer.from('wRKw5cJ0CMo=', 'base64'));
+      const note1 = algosdk.base64ToBytes('wRKw5cJ0CMo=');
       const o1 = {
         to: toAddress,
         from: fromAddress,
@@ -530,7 +513,7 @@ describe('Algosdk (AKA end to end)', () => {
       };
 
       const firstRound2 = 710515;
-      const note2 = new Uint8Array(Buffer.from('dBlHI6BdrIg=', 'base64'));
+      const note2 = algosdk.base64ToBytes('dBlHI6BdrIg=');
 
       const o2 = {
         to: toAddress,
@@ -554,14 +537,10 @@ describe('Algosdk (AKA end to end)', () => {
       const tx2 = new algosdk.Transaction(o2);
 
       // goal clerk send dumps unsigned transaction as signed with empty signature in order to save tx type
-      let stx1 = Buffer.from(
-        algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() })
-      );
-      let stx2 = Buffer.from(
-        algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() })
-      );
-      assert.deepStrictEqual(stx1, Buffer.from(goldenTx1, 'base64'));
-      assert.deepStrictEqual(stx2, Buffer.from(goldenTx2, 'base64'));
+      let stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
+      let stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
+      assert.deepStrictEqual(stx1, algosdk.base64ToBytes(goldenTx1));
+      assert.deepStrictEqual(stx2, algosdk.base64ToBytes(goldenTx2));
 
       // goal clerk group sets Group to every transaction and concatenate them in output file
       // simulating that behavior here
@@ -573,8 +552,8 @@ describe('Algosdk (AKA end to end)', () => {
         tx2.group = gid;
         stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
         stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
-        const concat = Buffer.concat([stx1, stx2]);
-        assert.deepStrictEqual(concat, Buffer.from(goldenTxg, 'base64'));
+        const concat = utils.concatArrays(stx1, stx2);
+        assert.deepStrictEqual(concat, algosdk.base64ToBytes(goldenTxg));
       }
 
       // check computeGroupID for list of dicts (not Transaction objects)
@@ -584,8 +563,8 @@ describe('Algosdk (AKA end to end)', () => {
         tx2.group = gid;
         stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
         stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
-        const concat = Buffer.concat([stx1, stx2]);
-        assert.deepStrictEqual(concat, Buffer.from(goldenTxg, 'base64'));
+        const concat = utils.concatArrays(stx1, stx2);
+        assert.deepStrictEqual(concat, algosdk.base64ToBytes(goldenTxg));
       }
 
       // check filtering by address in assignGroupID
@@ -636,10 +615,7 @@ describe('Algosdk (AKA end to end)', () => {
       };
       sk = algosdk.mnemonicToSecretKey(sk);
       const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(jsDecCreate.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDecCreate.blob, algosdk.base64ToBytes(golden));
     });
 
     it('should return a blob that matches the go code for asset create with decimals', () => {
@@ -670,10 +646,7 @@ describe('Algosdk (AKA end to end)', () => {
       };
       sk = algosdk.mnemonicToSecretKey(sk);
       const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(jsDecCreate.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDecCreate.blob, algosdk.base64ToBytes(golden));
     });
 
     it('should return a blob that matches the go code for asset configuration', () => {
@@ -698,10 +671,7 @@ describe('Algosdk (AKA end to end)', () => {
       };
       sk = algosdk.mnemonicToSecretKey(sk);
       const jsDec = algosdk.signTransaction(o, sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(jsDec.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
 
     it('should return a blob that matches the go code for asset destroy', () => {
@@ -722,10 +692,7 @@ describe('Algosdk (AKA end to end)', () => {
       };
       sk = algosdk.mnemonicToSecretKey(sk);
       const jsDec = algosdk.signTransaction(o, sk.sk);
-      assert.deepStrictEqual(
-        Buffer.from(jsDec.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
     it('should return a blob that matches the go code for asset freeze', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -745,11 +712,10 @@ describe('Algosdk (AKA end to end)', () => {
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
       const jsDec = algosdk.signTransaction(o, sk);
-      const golden = Buffer.from(
-        'gqNzaWfEQAhru5V2Xvr19s4pGnI0aslqwY4lA2skzpYtDTAN9DKSH5+qsfQQhm4oq+9VHVj7e1rQC49S28vQZmzDTVnYDQGjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkAaNmZWXNCRqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg==',
-        'base64'
+      const golden = algosdk.base64ToBytes(
+        'gqNzaWfEQAhru5V2Xvr19s4pGnI0aslqwY4lA2skzpYtDTAN9DKSH5+qsfQQhm4oq+9VHVj7e1rQC49S28vQZmzDTVnYDQGjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkAaNmZWXNCRqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg=='
       );
-      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
+      assert.deepStrictEqual(jsDec.blob, golden);
     });
     it('should return a blob that matches the go code for asset transfer', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -771,11 +737,10 @@ describe('Algosdk (AKA end to end)', () => {
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
       const jsDec = algosdk.signTransaction(o, sk);
-      const golden = Buffer.from(
-        'gqNzaWfEQNkEs3WdfFq6IQKJdF1n0/hbV9waLsvojy9pM1T4fvwfMNdjGQDy+LeesuQUfQVTneJD4VfMP7zKx4OUlItbrwSjdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0KvqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkAQ==',
-        'base64'
+      const golden = algosdk.base64ToBytes(
+        'gqNzaWfEQNkEs3WdfFq6IQKJdF1n0/hbV9waLsvojy9pM1T4fvwfMNdjGQDy+LeesuQUfQVTneJD4VfMP7zKx4OUlItbrwSjdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0KvqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkAQ=='
       );
-      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
+      assert.deepStrictEqual(jsDec.blob, golden);
     });
     it('should return a blob that matches the go code for asset accept', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -796,11 +761,10 @@ describe('Algosdk (AKA end to end)', () => {
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
       const jsDec = algosdk.signTransaction(o, sk);
-      const golden = Buffer.from(
-        'gqNzaWfEQJ7q2rOT8Sb/wB0F87ld+1zMprxVlYqbUbe+oz0WM63FctIi+K9eYFSqT26XBZ4Rr3+VTJpBE+JLKs8nctl9hgijdHhuiKRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCOiiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=',
-        'base64'
+      const golden = algosdk.base64ToBytes(
+        'gqNzaWfEQJ7q2rOT8Sb/wB0F87ld+1zMprxVlYqbUbe+oz0WM63FctIi+K9eYFSqT26XBZ4Rr3+VTJpBE+JLKs8nctl9hgijdHhuiKRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCOiiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE='
       );
-      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
+      assert.deepStrictEqual(jsDec.blob, golden);
     });
     it('should return a blob that matches the go code for asset revoke', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
@@ -822,11 +786,10 @@ describe('Algosdk (AKA end to end)', () => {
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const { sk } = algosdk.mnemonicToSecretKey(mnem);
       const jsDec = algosdk.signTransaction(o, sk);
-      const golden = Buffer.from(
-        'gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE=',
-        'base64'
+      const golden = algosdk.base64ToBytes(
+        'gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE='
       );
-      assert.deepStrictEqual(Buffer.from(jsDec.blob), golden);
+      assert.deepStrictEqual(jsDec.blob, golden);
     });
   });
 
@@ -926,7 +889,7 @@ describe('Algosdk (AKA end to end)', () => {
       const firstRound = 2063137;
       const genesisID = 'devnet-v1.0';
       const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E=';
-      const note = new Uint8Array(Buffer.from('8xMCTuLQ810=', 'base64'));
+      const note = algosdk.base64ToBytes('8xMCTuLQ810=');
 
       const txn = {
         to: toAddress,
@@ -958,10 +921,7 @@ describe('Algosdk (AKA end to end)', () => {
       const golden =
         'gqRsc2lng6NhcmeSxAMxMjPEAzQ1NqFsxAUBIAEBIqNzaWfEQE6HXaI5K0lcq50o/y3bWOYsyw9TLi/oorZB4xaNdn1Z14351u2f6JTON478fl+JhIP4HNRRAIh/I8EWXBPpJQ2jdHhuiqNhbXTNB9CjZmVlzQPoomZ2zgAfeyGjZ2Vuq2Rldm5ldC12MS4womdoxCCwLc/t7ZJ1uookrS1uIJ0r211Klt7pd4IYp2g3OaWPQaJsds4AH38JpG5vdGXECPMTAk7i0PNdo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaR0eXBlo3BheQ==';
 
-      assert.deepStrictEqual(
-        Buffer.from(jsDec.blob),
-        Buffer.from(golden, 'base64')
-      );
+      assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
       const senderPk = algosdk.decodeAddress(fromAddress).publicKey;
       const verified = lsig.verify(senderPk);
       assert.equal(verified, true);
@@ -969,13 +929,12 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('tealSign', () => {
-    const data = Buffer.from('Ux8jntyBJQarjKGF8A==', 'base64');
-    const prog = Buffer.from('ASABASI=', 'base64');
+    const data = algosdk.base64ToBytes('Ux8jntyBJQarjKGF8A==');
+    const prog = algosdk.base64ToBytes('ASABASI=');
     const addr = new algosdk.LogicSig(prog).address();
 
-    const seed = Buffer.from(
-      '5Pf7eGMA52qfMT4R4/vYCt7con/7U3yejkdXkrcb26Q=',
-      'base64'
+    const seed = algosdk.base64ToBytes(
+      '5Pf7eGMA52qfMT4R4/vYCt7con/7U3yejkdXkrcb26Q='
     );
     const { publicKey: pk, secretKey: sk } = nacl.keyPairFromSeed(seed);
 
@@ -986,8 +945,9 @@ describe('Algosdk (AKA end to end)', () => {
         algosdk.decodeAddress(addr).publicKey,
         data
       );
-      const toBeVerified = Buffer.from(
-        utils.concatArrays(Buffer.from('ProgData'), parts)
+      const toBeVerified = utils.concatArrays(
+        new TextEncoder().encode('ProgData'),
+        parts
       );
       const verified = nacl.verify(toBeVerified, sig, pk);
       assert.equal(verified, true);
@@ -1059,7 +1019,7 @@ describe('Algosdk (AKA end to end)', () => {
 
       const golden =
         'ewogICJhY2NvdW50cyI6IFsKICAgIHsKICAgICAgImFkZHJlc3MiOiAiVUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TSIsCiAgICAgICJhbW91bnQiOiA1MDAyMjgwMDAwMDAwMDAwLAogICAgICAiYW1vdW50LXdpdGhvdXQtcGVuZGluZy1yZXdhcmRzIjogNTAwMDAwMDAwMDAwMDAwMCwKICAgICAgInBlbmRpbmctcmV3YXJkcyI6IDIyODAwMDAwMDAwMDAsCiAgICAgICJyZXdhcmQtYmFzZSI6IDQ1NiwKICAgICAgInJld2FyZHMiOiAyMjgwMDAwMDAwMDAwLAogICAgICAicm91bmQiOiAxODI0MSwKICAgICAgInN0YXR1cyI6ICJPbmxpbmUiCiAgICB9CiAgXSwKICAiYXBwcyI6IFsKICAgIHsKICAgICAgImlkIjogMTM4MDAxMTU4OCwKICAgICAgInBhcmFtcyI6IHsKICAgICAgICAiY3JlYXRvciI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAiYXBwcm92YWwtcHJvZ3JhbSI6ICJBaUFCQVNJPSIsCiAgICAgICAgImNsZWFyLXN0YXRlLXByb2dyYW0iOiAiQWlBQkFTST0iLAogICAgICAgICJnbG9iYWwtc3RhdGUtc2NoZW1hIjogewogICAgICAgICAgIm51bS1ieXRlLXNsaWNlIjogNSwKICAgICAgICAgICJudW0tdWludCI6IDUKICAgICAgICB9LAogICAgICAgICJsb2NhbC1zdGF0ZS1zY2hlbWEiOiB7CiAgICAgICAgICAibnVtLWJ5dGUtc2xpY2UiOiA1LAogICAgICAgICAgIm51bS11aW50IjogNQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImxhdGVzdC10aW1lc3RhbXAiOiAxNTkyNTM3NzU3LAogICJwcm90b2NvbC12ZXJzaW9uIjogImZ1dHVyZSIsCiAgInJvdW5kIjogMTgyNDEsCiAgInR4bnMiOiBbCiAgICB7CiAgICAgICJ0eG4iOiB7CiAgICAgICAgImFwc3UiOiAiQWlBQkFTST0iLAogICAgICAgICJmZWUiOiAxMDAwLAogICAgICAgICJmdiI6IDE4MjQyLAogICAgICAgICJnaCI6ICJaSWtQczhwVER4YlJKc0ZCMXlKN2d2bnBEdTBRODVGUmtsMk5Da0VBUUxVPSIsCiAgICAgICAgImx2IjogMTkyNDIsCiAgICAgICAgIm5vdGUiOiAidGpwTmdlNzhKRDg9IiwKICAgICAgICAic25kIjogIlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN00iLAogICAgICAgICJ0eXBlIjogImFwcGwiCiAgICAgIH0KICAgIH0KICBdCn0K';
-      const goldenString = Buffer.from(golden, 'base64').toString('utf8');
+      const goldenString = algosdk.base64ToString(golden, 'base64');
       const expected = JSON.parse(goldenString);
 
       assert.deepStrictEqual(actual, expected);
@@ -1069,7 +1029,7 @@ describe('Algosdk (AKA end to end)', () => {
       const actual = req.get_obj_for_encoding(true);
       const golden =
         'hqhhY2NvdW50c5GIp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAK9wZW5kaW5nLXJld2FyZHPPAAACEtqXEACrcmV3YXJkLWJhc2XNAcincmV3YXJkc88AAAIS2pcQAKVyb3VuZM1HQaZzdGF0dXOmT25saW5lpGFwcHORgqJpZM5SQU5EpnBhcmFtc4WwYXBwcm92YWwtcHJvZ3JhbcQFAiABASKzY2xlYXItc3RhdGUtcHJvZ3JhbcQFAiABASKnY3JlYXRvctk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TbNnbG9iYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsmxvY2FsLXN0YXRlLXNjaGVtYYKubnVtLWJ5dGUtc2xpY2UFqG51bS11aW50BbBsYXRlc3QtdGltZXN0YW1wzl7sMp2wcHJvdG9jb2wtdmVyc2lvbqZmdXR1cmWlcm91bmTNR0GkdHhuc5GBo3R4boikYXBzdahBaUFCQVNJPaNmZWXNA+iiZnbNR0KiZ2jZLFpJa1BzOHBURHhiUkpzRkIxeUo3Z3ZucER1MFE4NUZSa2wyTkNrRUFRTFU9omx2zUsqpG5vdGWsdGpwTmdlNzhKRDg9o3NuZNk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TaR0eXBlpGFwcGw=';
-      const goldenBinary = new Uint8Array(Buffer.from(golden, 'base64'));
+      const goldenBinary = new Uint8Array(algosdk.base64ToBytes(golden));
       const expected = algosdk.decodeObj(goldenBinary);
 
       assert.deepStrictEqual(actual, expected);

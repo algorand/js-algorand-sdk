@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import * as utils from '../utils/utils';
 import {
   BaseHTTPClient,
@@ -151,10 +150,10 @@ export default class HTTPClient {
       return new Uint8Array(0); // empty Uint8Array
     }
     if (requestHeaders['content-type'] === 'application/json') {
-      return new Uint8Array(Buffer.from(JSON.stringify(data)));
+      return new TextEncoder().encode(JSON.stringify(data));
     }
     if (typeof data === 'string') {
-      return new Uint8Array(Buffer.from(data));
+      return new TextEncoder().encode(data);
     }
     if (data instanceof Uint8Array) {
       return data;
@@ -179,7 +178,7 @@ export default class HTTPClient {
     let text;
 
     if (format !== 'application/msgpack') {
-      text = (body && Buffer.from(body).toString()) || '';
+      text = (body && new TextDecoder().decode(body)) || '';
     }
 
     if (parseBody && format === 'application/json') {
