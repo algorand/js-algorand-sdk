@@ -16,7 +16,9 @@ export default class PendingTransactionInformation extends JSONRequest<PendingTr
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array) {
     if (body && body.byteLength > 0) {
-      return encoding.decode(body) as PendingTransactionResponse;
+      return PendingTransactionResponse.from_obj_for_encoding(
+        encoding.decode(body)
+      );
     }
     return undefined;
   }

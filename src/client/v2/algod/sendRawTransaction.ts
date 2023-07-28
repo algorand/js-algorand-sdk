@@ -57,7 +57,7 @@ export default class SendRawTransaction extends JSONRequest<PostTransactionsResp
       null,
       txHeaders
     );
-    return res.body;
+    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this

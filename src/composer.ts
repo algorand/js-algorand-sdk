@@ -16,6 +16,7 @@ import {
   SimulateResponse,
   SimulateRequest,
   SimulateRequestTransactionGroup,
+  PendingTransactionResponse,
 } from './client/v2/algod/models/types';
 import { EncodedSignedTransaction } from './types';
 import { assignGroupID } from './group';
@@ -671,7 +672,7 @@ export class AtomicTransactionComposer {
         AtomicTransactionComposer.parseMethodResponse(
           method,
           methodResult,
-          pendingInfo.get_obj_for_encoding()
+          pendingInfo
         )
       );
     }
@@ -725,7 +726,7 @@ export class AtomicTransactionComposer {
     );
     this.status = AtomicTransactionComposerStatus.COMMITTED;
 
-    const confirmedRound: number = confirmedTxnInfo['confirmed-round'];
+    const confirmedRound = Number(confirmedTxnInfo.confirmedRound);
 
     const methodResults: ABIResult[] = [];
 
@@ -775,13 +776,19 @@ export class AtomicTransactionComposer {
   static parseMethodResponse(
     method: ABIMethod,
     methodResult: ABIResult,
-    pendingInfo: Record<string, any>
+    pendingInfo: PendingTransactionResponse
   ): ABIResult {
     const returnedResult: ABIResult = methodResult;
     try {
       returnedResult.txInfo = pendingInfo;
       if (method.returns.type !== 'void') {
-        const logs: string[] = pendingInfo.logs || [];
+        const logs: string[] = [];
+        if (pendingInfo.logs) {
+          pendingInfo.logs.forEach((value) =>
+            logs.push(new TextDecoder().decode(value))
+          );
+        }
+        // const logs: string[] = pendingInfo.logs || [];
         if (logs.length === 0) {
           throw new Error('App call transaction did not log a return value');
         }

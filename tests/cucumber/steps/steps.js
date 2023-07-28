@@ -792,14 +792,14 @@ module.exports = function getSteps(options) {
 
   When('I send the transaction', async function () {
     const txid = await this.v2Client.sendRawTransaction(this.stx).do();
-    this.txid = txid.txId;
+    this.txid = txid.txid;
     this.appTxid = txid; // Alias to use in waitForTransaction.
     return this.txid;
   });
 
   When('I send the kmd-signed transaction', async function () {
     const txid = await this.v2Client.sendRawTransaction(this.stxKmd).do();
-    this.txid = txid.txId;
+    this.txid = txid.txid;
     this.appTxid = txid; // Alias to use in waitForTransaction.
     return this.txid;
   });
@@ -1362,7 +1362,7 @@ module.exports = function getSteps(options) {
         .accountInformation(this.assetTestFixture.creator)
         .do();
       for (const asset of accountInformation.assets) {
-        if (asset['asset-id'] === this.assetTestFixture.index) {
+        if (asset.assetId === this.assetTestFixture.index) {
           assert.deepStrictEqual(asset.amount, parseInt(expectedTotal));
         }
       }
@@ -1857,13 +1857,13 @@ module.exports = function getSteps(options) {
     (len, idx, sender) => {
       assert.strictEqual(
         len,
-        anyPendingTransactionsInfoResponse['top-transactions'].length
+        anyPendingTransactionsInfoResponse.topTransactions.length
       );
       if (len !== 0) {
         assert.strictEqual(
           sender,
           algosdk.encodeAddress(
-            anyPendingTransactionsInfoResponse['top-transactions'][idx].txn.snd
+            anyPendingTransactionsInfoResponse.topTransactions[idx].txn.snd
           )
         );
       }
@@ -1881,7 +1881,7 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Send Raw Transaction response should have txid {string}',
     (txid) => {
-      assert.strictEqual(txid, anySendRawTransactionResponse.txId);
+      assert.strictEqual(txid, anySendRawTransactionResponse.txid);
     }
   );
 
@@ -1898,14 +1898,13 @@ module.exports = function getSteps(options) {
     (len, idx, sender) => {
       assert.strictEqual(
         len,
-        anyPendingTransactionsByAddressResponse['total-transactions']
+        anyPendingTransactionsByAddressResponse.totalTransactions
       );
       if (len === 0) {
         return;
       }
       let actualSender =
-        anyPendingTransactionsByAddressResponse['top-transactions'][idx].txn
-          .snd;
+        anyPendingTransactionsByAddressResponse.topTransactions[idx].txn.snd;
       actualSender = algosdk.encodeAddress(actualSender);
       assert.strictEqual(sender, actualSender);
     }
@@ -2996,10 +2995,10 @@ module.exports = function getSteps(options) {
       const fundingResponse = await this.v2Client.sendRawTransaction(stxn).do();
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
-        fundingResponse.txId,
+        fundingResponse.txid,
         1
       );
-      assert.ok(info['confirmed-round'] > 0);
+      assert.ok(info.confirmedRound > 0);
     }
   );
 
@@ -3376,10 +3375,10 @@ module.exports = function getSteps(options) {
         .do();
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
-        fundingResponse.txId,
+        fundingResponse.txid,
         1
       );
-      assert.ok(info['confirmed-round'] > 0);
+      assert.ok(info.confirmedRound > 0);
     }
   );
 
@@ -3504,10 +3503,10 @@ module.exports = function getSteps(options) {
   Given('I wait for the transaction to be confirmed.', async function () {
     const info = await algosdk.waitForConfirmation(
       this.v2Client,
-      this.appTxid.txId,
+      this.appTxid.txid,
       1
     );
-    assert.ok(info['confirmed-round'] > 0);
+    assert.ok(info.confirmedRound > 0);
   });
 
   Given('I reset the array of application IDs to remember.', async function () {
@@ -3516,9 +3515,9 @@ module.exports = function getSteps(options) {
 
   Given('I remember the new application ID.', async function () {
     const info = await this.v2Client
-      .pendingTransactionInformation(this.appTxid.txId)
+      .pendingTransactionInformation(this.appTxid.txid)
       .do();
-    this.currentApplicationIndex = info['application-index'];
+    this.currentApplicationIndex = info.applicationIndex;
 
     if (!Object.prototype.hasOwnProperty.call(this, 'appIDs')) {
       this.appIDs = [];
