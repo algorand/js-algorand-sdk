@@ -24,8 +24,8 @@ export default class Dryrun extends JSONRequest<DryrunResponse> {
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(this.path(), this.blob, txHeaders);
-    return res.body;
+    const res = await this.c.post(this.path(), this.blob, null, txHeaders);
+    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this

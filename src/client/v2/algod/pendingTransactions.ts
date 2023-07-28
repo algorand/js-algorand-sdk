@@ -19,7 +19,9 @@ export default class PendingTransactions extends JSONRequest<PendingTransactions
 
   prepare(body: Uint8Array) {
     if (body && body.byteLength > 0) {
-      return encoding.decode(body) as PendingTransactionsResponse;
+      return PendingTransactionsResponse.from_obj_for_encoding(
+        encoding.decode(body)
+      );
     }
     return undefined;
   }

@@ -2840,16 +2840,13 @@ module.exports = function getSteps(options) {
   Then('I get execution result {string}', (result) => {
     let msgs;
     const res = dryrunResponse.txns[0];
-    if (
-      res['logic-sig-messages'] !== undefined &&
-      res['logic-sig-messages'].length > 0
-    ) {
-      msgs = res['logic-sig-messages'];
+    if (res.logicSigMessages !== undefined && res.logicSigMessages.length > 0) {
+      msgs = res.logicSigMessages;
     } else if (
-      res['app-call-messages'] !== undefined &&
-      res['app-call-messages'].length > 0
+      res.appCallMessages !== undefined &&
+      res.appCallMessages.length > 0
     ) {
-      msgs = res['app-call-messages'];
+      msgs = res.appCallMessages;
     }
     assert.ok(msgs.length > 0);
     assert.strictEqual(msgs[0], result);
@@ -4352,7 +4349,7 @@ module.exports = function getSteps(options) {
     function (index, pathString, expectedResult) {
       let actualResult = this.composerExecuteResponse.methodResults[index]
         .txInfo;
-      actualResult = glom(actualResult, pathString);
+      actualResult = glom(actualResult.get_obj_for_encoding(), pathString);
 
       assert.strictEqual(expectedResult, actualResult.toString());
     }
@@ -4372,7 +4369,7 @@ module.exports = function getSteps(options) {
           if (j === 0) {
             actualResults = actualResults[itxnIndex].txInfo;
           } else {
-            actualResults = actualResults['inner-txns'][itxnIndex];
+            actualResults = actualResults.innerTxns[itxnIndex];
           }
 
           const thisGroupID = actualResults.txn.txn.group;
