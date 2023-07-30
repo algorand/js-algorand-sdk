@@ -1398,6 +1398,69 @@ export class AssetParams extends BaseModel {
 }
 
 /**
+ * Represents an AVM value.
+ */
+export class AvmValue extends BaseModel {
+  /**
+   * value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
+   */
+  public type: number | bigint;
+
+  /**
+   * bytes value.
+   */
+  public bytes?: Uint8Array;
+
+  /**
+   * uint value.
+   */
+  public uint?: number | bigint;
+
+  /**
+   * Creates a new `AvmValue` object.
+   * @param type - value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
+   * @param bytes - bytes value.
+   * @param uint - uint value.
+   */
+  constructor({
+    type,
+    bytes,
+    uint,
+  }: {
+    type: number | bigint;
+    bytes?: string | Uint8Array;
+    uint?: number | bigint;
+  }) {
+    super();
+    this.type = type;
+    this.bytes =
+      typeof bytes === 'string'
+        ? new Uint8Array(Buffer.from(bytes, 'base64'))
+        : bytes;
+    this.uint = uint;
+
+    this.attribute_map = {
+      type: 'type',
+      bytes: 'bytes',
+      uint: 'uint',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AvmValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['type'] === 'undefined')
+      throw new Error(`Response is missing required field 'type': ${data}`);
+    return new AvmValue({
+      type: data['type'],
+      bytes: data['bytes'],
+      uint: data['uint'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Hash of a block header.
  */
 export class BlockHashResponse extends BaseModel {
@@ -1494,6 +1557,11 @@ export class Box extends BaseModel {
   public name: Uint8Array;
 
   /**
+   * The round for which this information is relevant
+   */
+  public round: number | bigint;
+
+  /**
    * (value) box value, base64 encoded.
    */
   public value: Uint8Array;
@@ -1501,13 +1569,16 @@ export class Box extends BaseModel {
   /**
    * Creates a new `Box` object.
    * @param name - (name) box name, base64 encoded
+   * @param round - The round for which this information is relevant
    * @param value - (value) box value, base64 encoded.
    */
   constructor({
     name,
+    round,
     value,
   }: {
     name: string | Uint8Array;
+    round: number | bigint;
     value: string | Uint8Array;
   }) {
     super();
@@ -1515,6 +1586,7 @@ export class Box extends BaseModel {
       typeof name === 'string'
         ? new Uint8Array(Buffer.from(name, 'base64'))
         : name;
+    this.round = round;
     this.value =
       typeof value === 'string'
         ? new Uint8Array(Buffer.from(value, 'base64'))
@@ -1522,6 +1594,7 @@ export class Box extends BaseModel {
 
     this.attribute_map = {
       name: 'name',
+      round: 'round',
       value: 'value',
     };
   }
@@ -1531,10 +1604,13 @@ export class Box extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new Box({
       name: data['name'],
+      round: data['round'],
       value: data['value'],
     });
     /* eslint-enable dot-notation */
@@ -2580,8 +2656,8 @@ export class LedgerStateDeltaForTransactionGroup extends BaseModel {
     this.ids = ids;
 
     this.attribute_map = {
-      delta: 'delta',
-      ids: 'ids',
+      delta: 'Delta',
+      ids: 'Ids',
     };
   }
 
@@ -2590,15 +2666,15 @@ export class LedgerStateDeltaForTransactionGroup extends BaseModel {
     data: Record<string, any>
   ): LedgerStateDeltaForTransactionGroup {
     /* eslint-disable dot-notation */
-    if (typeof data['delta'] === 'undefined')
-      throw new Error(`Response is missing required field 'delta': ${data}`);
-    if (!Array.isArray(data['ids']))
+    if (typeof data['Delta'] === 'undefined')
+      throw new Error(`Response is missing required field 'Delta': ${data}`);
+    if (!Array.isArray(data['Ids']))
       throw new Error(
-        `Response is missing required array field 'ids': ${data}`
+        `Response is missing required array field 'Ids': ${data}`
       );
     return new LedgerStateDeltaForTransactionGroup({
-      delta: data['delta'],
-      ids: data['ids'],
+      delta: data['Delta'],
+      ids: data['Ids'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3345,6 +3421,59 @@ export class PostTransactionsResponse extends BaseModel {
 }
 
 /**
+ * A write operation into a scratch slot.
+ */
+export class ScratchChange extends BaseModel {
+  /**
+   * Represents an AVM value.
+   */
+  public newValue: AvmValue;
+
+  /**
+   * The scratch slot written.
+   */
+  public slot: number | bigint;
+
+  /**
+   * Creates a new `ScratchChange` object.
+   * @param newValue - Represents an AVM value.
+   * @param slot - The scratch slot written.
+   */
+  constructor({
+    newValue,
+    slot,
+  }: {
+    newValue: AvmValue;
+    slot: number | bigint;
+  }) {
+    super();
+    this.newValue = newValue;
+    this.slot = slot;
+
+    this.attribute_map = {
+      newValue: 'new-value',
+      slot: 'slot',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ScratchChange {
+    /* eslint-disable dot-notation */
+    if (typeof data['new-value'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'new-value': ${data}`
+      );
+    if (typeof data['slot'] === 'undefined')
+      throw new Error(`Response is missing required field 'slot': ${data}`);
+    return new ScratchChange({
+      newValue: AvmValue.from_obj_for_encoding(data['new-value']),
+      slot: data['slot'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Request type for simulation endpoint.
  */
 export class SimulateRequest extends BaseModel {
@@ -3589,15 +3718,43 @@ export class SimulateTraceConfig extends BaseModel {
   public enable?: boolean;
 
   /**
+   * A boolean option enabling returning scratch slot changes together with execution
+   * trace during simulation.
+   */
+  public scratchChange?: boolean;
+
+  /**
+   * A boolean option enabling returning stack changes together with execution trace
+   * during simulation.
+   */
+  public stackChange?: boolean;
+
+  /**
    * Creates a new `SimulateTraceConfig` object.
    * @param enable - A boolean option for opting in execution trace features simulation endpoint.
+   * @param scratchChange - A boolean option enabling returning scratch slot changes together with execution
+   * trace during simulation.
+   * @param stackChange - A boolean option enabling returning stack changes together with execution trace
+   * during simulation.
    */
-  constructor({ enable }: { enable?: boolean }) {
+  constructor({
+    enable,
+    scratchChange,
+    stackChange,
+  }: {
+    enable?: boolean;
+    scratchChange?: boolean;
+    stackChange?: boolean;
+  }) {
     super();
     this.enable = enable;
+    this.scratchChange = scratchChange;
+    this.stackChange = stackChange;
 
     this.attribute_map = {
       enable: 'enable',
+      scratchChange: 'scratch-change',
+      stackChange: 'stack-change',
     };
   }
 
@@ -3606,6 +3763,8 @@ export class SimulateTraceConfig extends BaseModel {
     /* eslint-disable dot-notation */
     return new SimulateTraceConfig({
       enable: data['enable'],
+      scratchChange: data['scratch-change'],
+      stackChange: data['stack-change'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3880,29 +4039,59 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
   public pc: number | bigint;
 
   /**
+   * The writes into scratch slots.
+   */
+  public scratchChanges?: ScratchChange[];
+
+  /**
    * The indexes of the traces for inner transactions spawned by this opcode, if any.
    */
   public spawnedInners?: (number | bigint)[];
 
   /**
+   * The values added by this opcode to the stack.
+   */
+  public stackAdditions?: AvmValue[];
+
+  /**
+   * The number of deleted stack values by this opcode.
+   */
+  public stackPopCount?: number | bigint;
+
+  /**
    * Creates a new `SimulationOpcodeTraceUnit` object.
    * @param pc - The program counter of the current opcode being evaluated.
+   * @param scratchChanges - The writes into scratch slots.
    * @param spawnedInners - The indexes of the traces for inner transactions spawned by this opcode, if any.
+   * @param stackAdditions - The values added by this opcode to the stack.
+   * @param stackPopCount - The number of deleted stack values by this opcode.
    */
   constructor({
     pc,
+    scratchChanges,
     spawnedInners,
+    stackAdditions,
+    stackPopCount,
   }: {
     pc: number | bigint;
+    scratchChanges?: ScratchChange[];
     spawnedInners?: (number | bigint)[];
+    stackAdditions?: AvmValue[];
+    stackPopCount?: number | bigint;
   }) {
     super();
     this.pc = pc;
+    this.scratchChanges = scratchChanges;
     this.spawnedInners = spawnedInners;
+    this.stackAdditions = stackAdditions;
+    this.stackPopCount = stackPopCount;
 
     this.attribute_map = {
       pc: 'pc',
+      scratchChanges: 'scratch-changes',
       spawnedInners: 'spawned-inners',
+      stackAdditions: 'stack-additions',
+      stackPopCount: 'stack-pop-count',
     };
   }
 
@@ -3915,7 +4104,16 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
       throw new Error(`Response is missing required field 'pc': ${data}`);
     return new SimulationOpcodeTraceUnit({
       pc: data['pc'],
+      scratchChanges:
+        typeof data['scratch-changes'] !== 'undefined'
+          ? data['scratch-changes'].map(ScratchChange.from_obj_for_encoding)
+          : undefined,
       spawnedInners: data['spawned-inners'],
+      stackAdditions:
+        typeof data['stack-additions'] !== 'undefined'
+          ? data['stack-additions'].map(AvmValue.from_obj_for_encoding)
+          : undefined,
+      stackPopCount: data['stack-pop-count'],
     });
     /* eslint-enable dot-notation */
   }
@@ -4373,7 +4571,7 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel
     this.deltas = deltas;
 
     this.attribute_map = {
-      deltas: 'deltas',
+      deltas: 'Deltas',
     };
   }
 
