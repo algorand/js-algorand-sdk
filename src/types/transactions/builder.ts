@@ -6,7 +6,7 @@ import { TransactionParams, SuggestedParams } from './base';
  */
 type TransactionBaseWithSuggestedParams = Pick<
   TransactionParams,
-  'suggestedParams' | 'from' | 'type' | 'lease' | 'note' | 'reKeyTo'
+  'suggestedParams' | 'sender' | 'type' | 'lease' | 'note' | 'reKeyTo'
 >;
 
 /**
@@ -19,7 +19,7 @@ type TransactionBaseWithoutSuggestedParams = Pick<
   | 'firstValid'
   | 'lastValid'
   | 'genesisHash'
-  | 'from'
+  | 'sender'
   | 'type'
   | 'genesisID'
   | 'lease'

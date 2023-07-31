@@ -46,8 +46,8 @@ type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransacti
 interface TransactionStorageStructure
   extends Omit<
     TransactionParams,
-    | 'from'
-    | 'to'
+    | 'sender'
+    | 'receiver'
     | 'genesisHash'
     | 'closeRemainderTo'
     | 'voteKey'
@@ -63,8 +63,8 @@ interface TransactionStorageStructure
     | 'suggestedParams'
     | 'reKeyTo'
   > {
-  from: string | Address;
-  to: string | Address;
+  sender: string | Address;
+  receiver: string | Address;
   fee: number;
   amount: number | bigint;
   firstValid: number;
@@ -153,8 +153,8 @@ export class Transaction implements TransactionStorageStructure {
   tag = new TextEncoder().encode('TX');
 
   // Implement transaction params
-  from: Address;
-  to: Address;
+  sender: Address;
+  receiver: Address;
   fee: number;
   amount: number | bigint;
   firstValid: number;
@@ -259,8 +259,9 @@ export class Transaction implements TransactionStorageStructure {
     // to one which is more useful as we prepare properties for storing
     const txn = transaction as TransactionStorageStructure;
 
-    txn.from = address.decodeAddress(txn.from as string);
-    if (txn.to !== undefined) txn.to = address.decodeAddress(txn.to as string);
+    txn.sender = address.decodeAddress(txn.sender as string);
+    if (txn.receiver !== undefined)
+      txn.receiver = address.decodeAddress(txn.receiver as string);
     if (txn.closeRemainderTo !== undefined)
       txn.closeRemainderTo = address.decodeAddress(
         txn.closeRemainderTo as string
@@ -583,7 +584,7 @@ export class Transaction implements TransactionStorageStructure {
         fv: this.firstValid,
         lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: 'pay',
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -603,7 +604,7 @@ export class Transaction implements TransactionStorageStructure {
         txn.rekey = this.reKeyTo.publicKey;
       }
       // allowed zero values
-      if (this.to !== undefined) txn.rcv = this.to.publicKey;
+      if (this.receiver !== undefined) txn.rcv = this.receiver.publicKey;
       if (!txn.note.length) delete txn.note;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
@@ -620,7 +621,7 @@ export class Transaction implements TransactionStorageStructure {
         fv: this.firstValid,
         lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -661,7 +662,7 @@ export class Transaction implements TransactionStorageStructure {
         fv: this.firstValid,
         lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -739,8 +740,8 @@ export class Transaction implements TransactionStorageStructure {
         fv: this.firstValid,
         lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
-        arcv: this.to.publicKey,
+        snd: this.sender.publicKey,
+        arcv: this.receiver.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -776,7 +777,7 @@ export class Transaction implements TransactionStorageStructure {
         fv: this.firstValid,
         lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -808,7 +809,7 @@ export class Transaction implements TransactionStorageStructure {
         fv: this.firstValid,
         lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -887,7 +888,7 @@ export class Transaction implements TransactionStorageStructure {
         fv: this.firstValid,
         lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -937,7 +938,7 @@ export class Transaction implements TransactionStorageStructure {
     txn.lastValid = txnForEnc.lv;
     txn.note = new Uint8Array(txnForEnc.note);
     txn.lease = new Uint8Array(txnForEnc.lx);
-    txn.from = address.decodeAddress(
+    txn.sender = address.decodeAddress(
       address.encodeAddress(new Uint8Array(txnForEnc.snd))
     );
     if (txnForEnc.grp !== undefined) txn.group = txnForEnc.grp;
@@ -948,7 +949,7 @@ export class Transaction implements TransactionStorageStructure {
 
     if (txnForEnc.type === 'pay') {
       txn.amount = txnForEnc.amt;
-      txn.to = address.decodeAddress(
+      txn.receiver = address.decodeAddress(
         address.encodeAddress(new Uint8Array(txnForEnc.rcv))
       );
       if (txnForEnc.close !== undefined)
@@ -1026,7 +1027,7 @@ export class Transaction implements TransactionStorageStructure {
           address.encodeAddress(new Uint8Array(txnForEnc.asnd))
         );
       }
-      txn.to = address.decodeAddress(
+      txn.receiver = address.decodeAddress(
         address.encodeAddress(new Uint8Array(txnForEnc.arcv))
       );
     } else if (txnForEnc.type === 'afrz') {
@@ -1133,12 +1134,12 @@ export class Transaction implements TransactionStorageStructure {
       sig: this.rawSignTxn(sk),
       txn: this.get_obj_for_encoding(),
     };
-    // add AuthAddr if signing with a different key than From indicates
+    // add AuthAddr if signing with a different key than sender indicates
     const keypair = nacl.keyPairFromSecretKey(sk);
     const pubKeyFromSk = keypair.publicKey;
     if (
       address.encodeAddress(pubKeyFromSk) !==
-      address.encodeAddress(this.from.publicKey)
+      address.encodeAddress(this.sender.publicKey)
     ) {
       sTxn.sgnr = pubKeyFromSk;
     }
@@ -1154,7 +1155,7 @@ export class Transaction implements TransactionStorageStructure {
       txn: this.get_obj_for_encoding(),
     };
     // add AuthAddr if signing with a different key than From indicates
-    if (signerAddr !== address.encodeAddress(this.from.publicKey)) {
+    if (signerAddr !== address.encodeAddress(this.sender.publicKey)) {
       const signerPublicKey = address.decodeAddress(signerAddr).publicKey;
       sTxn.sgnr = signerPublicKey;
     }
@@ -1219,12 +1220,12 @@ export class Transaction implements TransactionStorageStructure {
       ...this,
     };
     forPrinting.tag = forPrinting.tag.toString();
-    forPrinting.from = address.encodeAddress(
-      (forPrinting.from as Address).publicKey
+    forPrinting.sender = address.encodeAddress(
+      (forPrinting.sender as Address).publicKey
     );
-    if (forPrinting.to !== undefined)
-      forPrinting.to = address.encodeAddress(
-        (forPrinting.to as Address).publicKey
+    if (forPrinting.receiver !== undefined)
+      forPrinting.receiver = address.encodeAddress(
+        (forPrinting.receiver as Address).publicKey
       );
     // things that need fixing:
     if (forPrinting.freezeAccount !== undefined)
@@ -1342,7 +1343,7 @@ export interface SignedTransaction {
   lsig?: EncodedLogicSig;
 
   /**
-   * The signer, if signing with a different key than the Transaction type `from` property indicates
+   * The signer, if signing with a different key than the Transaction type `sender` property indicates
    */
   sgnr?: Uint8Array;
 }

@@ -421,8 +421,8 @@ describe('signLogicSigTransaction', () => {
     expected: { txID: string; blob: Uint8Array }
   ) {
     const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: sender,
-      to: otherAddr,
+      sender,
+      receiver: otherAddr,
       amount: 5000,
       suggestedParams: {
         flatFee: true,
@@ -493,8 +493,8 @@ describe('signLogicSigTransaction', () => {
 
       it('should throw an error when sender is not LogicSig address', () => {
         const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-          from: otherAddr,
-          to: otherAddr,
+          sender: otherAddr,
+          receiver: otherAddr,
           amount: 5000,
           suggestedParams: {
             flatFee: true,
@@ -650,8 +650,9 @@ describe('signLogicSigTransaction', () => {
   it('should sign a raw transaction object', () => {
     const lsig = new algosdk.LogicSig(program);
 
-    const from = lsig.address();
-    const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
+    const sender = lsig.address();
+    const receiver =
+      'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
     const fee = 10;
     const amount = 847;
     const firstValid = 51;
@@ -663,8 +664,8 @@ describe('signLogicSigTransaction', () => {
       'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
     let closeRemainderTo;
     const txn = {
-      from,
-      to,
+      sender,
+      receiver,
       fee,
       amount,
       closeRemainderTo,

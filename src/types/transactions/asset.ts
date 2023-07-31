@@ -90,8 +90,8 @@ export type AssetFreezeTransaction = ConstructTransaction<
 
 type SpecificParametersForTransfer = Pick<
   TransactionParams,
-  | 'from'
-  | 'to'
+  | 'sender'
+  | 'receiver'
   | 'closeRemainderTo'
   | 'assetRevocationTarget'
   | 'amount'

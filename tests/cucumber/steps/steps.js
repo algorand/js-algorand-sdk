@@ -250,12 +250,12 @@ module.exports = function getSteps(options) {
 
   Given(
     'payment transaction parameters {int} {int} {int} {string} {string} {string} {int} {string} {string}',
-    function (fee, fv, lv, gh, to, close, amt, gen, note) {
+    function (fee, fv, lv, gh, receiver, close, amt, gen, note) {
       this.fee = parseInt(fee);
       this.fv = parseInt(fv);
       this.lv = parseInt(lv);
       this.gh = gh;
-      this.to = to;
+      this.receiver = receiver;
       if (close !== 'none') {
         this.close = close;
       }
@@ -390,8 +390,8 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstValid === 0) sp.firstValid = 1;
       const fundingTxnArgs = {
-        from: this.accounts[0],
-        to: this.rekey,
+        sender: this.accounts[0],
+        receiver: this.rekey,
         amount: DEV_MODE_INITIAL_MICROALGOS,
         fee: sp.fee,
         firstValid: sp.firstValid,
@@ -467,8 +467,8 @@ module.exports = function getSteps(options) {
       [this.pk] = this.accounts;
       const result = await this.v2Client.getTransactionParams().do();
       this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: this.accounts[0],
-        to: this.accounts[1],
+        sender: this.accounts[0],
+        receiver: this.accounts[1],
         amount: parseInt(amt),
         suggestedParams: result,
         note: makeUint8Array(algosdk.base64ToBytes(note)),
@@ -484,8 +484,8 @@ module.exports = function getSteps(options) {
       const result = await this.v2Client.getTransactionParams().do();
       this.lastValid = result.lastValid;
       this.txn = {
-        from: this.rekey,
-        to: this.accounts[1],
+        sender: this.rekey,
+        receiver: this.accounts[1],
         fee: result.fee,
         firstValid: result.firstValid,
         lastValid: result.lastValid,
@@ -510,8 +510,8 @@ module.exports = function getSteps(options) {
       };
 
       this.txn = {
-        from: algosdk.multisigAddress(this.msig),
-        to: this.accounts[1],
+        sender: algosdk.multisigAddress(this.msig),
+        receiver: this.accounts[1],
         fee: result.fee,
         firstValid: result.firstValid,
         lastValid: result.lastValid,
@@ -662,7 +662,7 @@ module.exports = function getSteps(options) {
 
   When('I create the flat fee payment transaction', function () {
     this.txn = {
-      to: this.to,
+      receiver: this.receiver,
       fee: this.fee,
       firstValid: this.fv,
       lastValid: this.lv,
@@ -732,8 +732,8 @@ module.exports = function getSteps(options) {
 
   When('I create the multisig payment transaction', function () {
     this.txn = {
-      from: algosdk.multisigAddress(this.msig),
-      to: this.to,
+      sender: algosdk.multisigAddress(this.msig),
+      receiver: this.receiver,
       fee: this.fee,
       firstValid: this.fv,
       lastValid: this.lv,
@@ -756,8 +756,8 @@ module.exports = function getSteps(options) {
 
   When('I create the multisig payment transaction with zero fee', function () {
     this.txn = {
-      from: algosdk.multisigAddress(this.msig),
-      to: this.to,
+      sender: algosdk.multisigAddress(this.msig),
+      receiver: this.receiver,
       fee: this.fee,
       flatFee: true,
       firstValid: this.fv,
@@ -945,7 +945,7 @@ module.exports = function getSteps(options) {
 
       if (type === 'online') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-          from,
+          sender: from,
           voteKey,
           selectionKey,
           stateProofKey,
@@ -956,12 +956,12 @@ module.exports = function getSteps(options) {
         });
       } else if (type === 'offline') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-          from,
+          sender: from,
           suggestedParams,
         });
       } else if (type === 'nonparticipation') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-          from,
+          sender: from,
           nonParticipation: true,
           suggestedParams,
         });
@@ -1014,7 +1014,7 @@ module.exports = function getSteps(options) {
       const type = 'acfg';
 
       this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
+        sender: this.assetTestFixture.creator,
         fee: this.fee,
         firstValid: this.fv,
         lastValid: this.lv,
@@ -1080,7 +1080,7 @@ module.exports = function getSteps(options) {
       const type = 'acfg';
 
       this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
+        sender: this.assetTestFixture.creator,
         fee: this.fee,
         firstValid: this.fv,
         lastValid: this.lv,
@@ -1184,7 +1184,7 @@ module.exports = function getSteps(options) {
       const type = 'acfg';
 
       this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
+        sender: this.assetTestFixture.creator,
         fee: this.fee,
         firstValid: this.fv,
         lastValid: this.lv,
@@ -1220,7 +1220,7 @@ module.exports = function getSteps(options) {
     const type = 'acfg';
 
     this.assetTestFixture.lastTxn = {
-      from: this.assetTestFixture.creator,
+      sender: this.assetTestFixture.creator,
       fee: this.fee,
       firstValid: this.fv,
       lastValid: this.lv,
@@ -1260,8 +1260,8 @@ module.exports = function getSteps(options) {
       const type = 'axfer';
 
       this.assetTestFixture.lastTxn = {
-        from: accountToUse,
-        to: accountToUse,
+        sender: accountToUse,
+        receiver: accountToUse,
         amount: 0,
         fee: this.fee,
         firstValid: this.fv,
@@ -1292,8 +1292,8 @@ module.exports = function getSteps(options) {
       const type = 'axfer';
 
       this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
-        to: this.accounts[1],
+        sender: this.assetTestFixture.creator,
+        receiver: this.accounts[1],
         amount: parseInt(amount),
         fee: this.fee,
         firstValid: this.fv,
@@ -1324,8 +1324,8 @@ module.exports = function getSteps(options) {
       const type = 'axfer';
 
       this.assetTestFixture.lastTxn = {
-        to: this.assetTestFixture.creator,
-        from: this.accounts[1],
+        receiver: this.assetTestFixture.creator,
+        sender: this.accounts[1],
         amount: parseInt(amount),
         fee: this.fee,
         firstValid: this.fv,
@@ -1378,7 +1378,7 @@ module.exports = function getSteps(options) {
       const freezer = this.assetTestFixture.creator;
 
       this.assetTestFixture.lastTxn = {
-        from: freezer,
+        sender: freezer,
         fee: this.fee,
         firstValid: this.fv,
         lastValid: this.lv,
@@ -1408,7 +1408,7 @@ module.exports = function getSteps(options) {
       const freezer = this.assetTestFixture.creator;
 
       this.assetTestFixture.lastTxn = {
-        from: freezer,
+        sender: freezer,
         fee: this.fee,
         firstValid: this.fv,
         lastValid: this.lv,
@@ -1439,8 +1439,8 @@ module.exports = function getSteps(options) {
       const type = 'axfer';
 
       this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
-        to: this.assetTestFixture.creator,
+        sender: this.assetTestFixture.creator,
+        receiver: this.assetTestFixture.creator,
         assetRevocationTarget: this.accounts[1],
         amount: parseInt(amount),
         fee: this.fee,
@@ -2736,8 +2736,8 @@ module.exports = function getSteps(options) {
     }
   );
 
-  When('I set the from address to {string}', function (from) {
-    this.txn.from = from;
+  When('I set the from address to {string}', function (sender) {
+    this.txn.sender = sender;
   });
 
   let dryrunResponse;
@@ -2761,7 +2761,7 @@ module.exports = function getSteps(options) {
   When('I dryrun a {string} program {string}', async function (kind, program) {
     const data = await loadResource(program);
     const algoTxn = new algosdk.Transaction({
-      from: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
+      sender: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       fee: 1000,
       amount: 1000,
       firstValid: 1,
@@ -2925,8 +2925,8 @@ module.exports = function getSteps(options) {
         receiver === 'transient' ? this.transientAccount.addr : receiver;
 
       this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from,
-        to,
+        sender: from,
+        receiver: to,
         amount: parseInt(amount, 10),
         closeRemainderTo: closeTo.length === 0 ? undefined : closeTo,
         suggestedParams: this.suggestedParams,
@@ -2956,8 +2956,8 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstValid === 0) sp.firstValid = 1;
       const fundingTxnArgs = {
-        from: this.accounts[0],
-        to: algosdk.getApplicationAddress(this.currentApplicationIndex),
+        sender: this.accounts[0],
+        receiver: algosdk.getApplicationAddress(this.currentApplicationIndex),
         amount,
         suggestedParams: sp,
       };
@@ -3335,8 +3335,8 @@ module.exports = function getSteps(options) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstValid === 0) sp.firstValid = 1;
       const fundingTxnArgs = {
-        from: this.accounts[0],
-        to: this.transientAccount.addr,
+        sender: this.accounts[0],
+        receiver: this.transientAccount.addr,
         amount: fundingAmount,
         suggestedParams: sp,
       };
@@ -3435,7 +3435,7 @@ module.exports = function getSteps(options) {
       if (sp.firstValid === 0) sp.firstValid = 1;
       const o = {
         type: 'appl',
-        from: this.transientAccount.addr,
+        sender: this.transientAccount.addr,
         suggestedParams: sp,
         appIndex: this.currentApplicationIndex,
         appOnComplete: operation,

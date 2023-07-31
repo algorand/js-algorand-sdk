@@ -27,7 +27,7 @@ async function main() {
   const compiledClearProgram = await compileProgram(client, clearProgram);
 
   const createTxn = algosdk.makeApplicationCreateTxnFromObject({
-    from: sender.addr,
+    sender: sender.addr,
     suggestedParams,
     onComplete: algosdk.OnApplicationComplete.NoOpOC,
     approvalProgram: compiledApprovalProgram,
@@ -61,9 +61,9 @@ async function main() {
   // example: ATC_ADD_TRANSACTION
   // construct a transaction
   const paymentTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: sender.addr,
+    sender: sender.addr,
     suggestedParams,
-    to: sender.addr,
+    receiver: sender.addr,
     amount: 1000,
   });
 

@@ -39,7 +39,7 @@ describe('Sign', () => {
     const appForeignAssets = [7, 8, 9];
     const boxes = [{ appIndex: 0, name: Uint8Array.from([0]) }];
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       firstValid: 51,
       lastValid: 61,
@@ -73,8 +73,8 @@ describe('Sign', () => {
 
   it('should not complain on a missing note', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -87,8 +87,8 @@ describe('Sign', () => {
 
   it('should respect min tx fee', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 0,
       amount: 847,
       firstValid: 51,
@@ -104,8 +104,8 @@ describe('Sign', () => {
 
   it('should accept 0 fee', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 0,
       flatFee: true,
       amount: 847,
@@ -120,8 +120,8 @@ describe('Sign', () => {
 
   it('should accept lower than min fee', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       flatFee: true,
       amount: 847,
@@ -138,8 +138,8 @@ describe('Sign', () => {
 
   it('should not complain on a missing genesisID', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -153,8 +153,8 @@ describe('Sign', () => {
 
   it('should not complain on an empty genesisID', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -169,8 +169,8 @@ describe('Sign', () => {
 
   it('should complain if note isnt Uint8Array', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -186,8 +186,8 @@ describe('Sign', () => {
 
   it('should not drop a note of all zeros', () => {
     const txnWithNote = new algosdk.Transaction({
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -197,8 +197,8 @@ describe('Sign', () => {
     });
 
     const txnWithoutNote = new algosdk.Transaction({
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -216,8 +216,8 @@ describe('Sign', () => {
 
   it('should drop a lease of all zeros', () => {
     const txnWithLease = new algosdk.Transaction({
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -227,8 +227,8 @@ describe('Sign', () => {
     });
 
     const txnWithoutLease = new algosdk.Transaction({
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -249,7 +249,7 @@ describe('Sign', () => {
       'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
 
     const txnWithHash = new algosdk.Transaction({
-      from: address,
+      sender: address,
       fee: 10,
       firstValid: 322575,
       lastValid: 323575,
@@ -264,7 +264,7 @@ describe('Sign', () => {
     });
 
     const txnWithoutHash = new algosdk.Transaction({
-      from: address,
+      sender: address,
       fee: 10,
       firstValid: 322575,
       lastValid: 323575,
@@ -287,8 +287,8 @@ describe('Sign', () => {
 
   it('should be able to prettyprint and go toString without throwing', () => {
     const o = {
-      from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
       firstValid: 51,
@@ -305,8 +305,8 @@ describe('Sign', () => {
   describe('should correctly serialize and deserialize from msgpack representation', () => {
     it('should correctly serialize and deserialize from msgpack representation', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 847,
         firstValid: 51,
@@ -326,8 +326,8 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize from msgpack representation with flat fee', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 2063,
         amount: 847,
         firstValid: 51,
@@ -348,7 +348,7 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize a state proof transaction from msgpack representation', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
         firstValid: 51,
         lastValid: 61,
@@ -382,7 +382,7 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize a key registration transaction from msgpack representation', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
         firstValid: 51,
         lastValid: 61,
@@ -407,7 +407,7 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
         firstValid: 51,
         lastValid: 61,
@@ -427,7 +427,7 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation with explicit nonParticipation=false', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
         firstValid: 51,
         lastValid: 61,
@@ -448,7 +448,7 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize a nonparticipating key registration transaction from msgpack representation', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
         firstValid: 51,
         lastValid: 61,
@@ -471,7 +471,7 @@ describe('Sign', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 322575,
         lastValid: 323575,
@@ -496,7 +496,7 @@ describe('Sign', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 322575,
         lastValid: 323575,
@@ -529,8 +529,8 @@ describe('Sign', () => {
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
         type: 'axfer',
-        from: address,
-        to: address,
+        sender: address,
+        receiver: address,
         amount: 100,
         fee: 10,
         firstValid: 322575,
@@ -551,7 +551,7 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize an application create transaction from msgpack representation', () => {
       const expectedTxn = algosdk.makeApplicationCreateTxnFromObject({
-        from: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
         approvalProgram: Uint8Array.from([1, 32, 1, 1, 34]),
         clearProgram: Uint8Array.from([2, 32, 1, 1, 34]),
         numGlobalInts: 1,
@@ -590,7 +590,7 @@ describe('Sign', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 322575,
         lastValid: 323575,
@@ -614,7 +614,7 @@ describe('Sign', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 0,
         lastValid: 1000,
@@ -636,8 +636,8 @@ describe('Sign', () => {
 
     it('reserializes correctly no genesis ID', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 847,
         firstValid: 51,
@@ -656,8 +656,8 @@ describe('Sign', () => {
 
     it('reserializes correctly zero amount', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 0,
         firstValid: 51,
@@ -676,8 +676,8 @@ describe('Sign', () => {
 
     it('should correctly serialize and deserialize group object', () => {
       const o = {
-        from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 0,
         firstValid: 51,
@@ -712,8 +712,10 @@ describe('Sign', () => {
 
   describe('transaction making functions', () => {
     it('should be able to use helper to make a payment transaction', () => {
-      const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
-      const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
+      const sender =
+        'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+      const receiver =
+        'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
       const fee = 10;
       const amount = 847;
       const firstValid = 51;
@@ -725,8 +727,8 @@ describe('Sign', () => {
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       let closeRemainderTo;
       const o = {
-        from,
-        to,
+        sender,
+        receiver,
         fee,
         amount,
         closeRemainderTo,
@@ -746,8 +748,8 @@ describe('Sign', () => {
         fee,
       };
       const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -758,8 +760,10 @@ describe('Sign', () => {
     });
 
     it('should be able to use helper to make a payment transaction with BigInt amount', () => {
-      const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
-      const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
+      const sender =
+        'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+      const receiver =
+        'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
       const fee = 10;
       const amount = 0xffffffffffffffffn;
       const firstValid = 51;
@@ -771,8 +775,8 @@ describe('Sign', () => {
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       let closeRemainderTo;
       const o = {
-        from,
-        to,
+        sender,
+        receiver,
         fee,
         amount,
         closeRemainderTo,
@@ -792,8 +796,8 @@ describe('Sign', () => {
         fee,
       };
       const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -804,8 +808,10 @@ describe('Sign', () => {
     });
 
     it('should throw if payment amount is too large', () => {
-      const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
-      const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
+      const sender =
+        'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+      const receiver =
+        'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
       const fee = 10;
       const amount = 0x10000000000000000n;
       const firstValid = 51;
@@ -817,8 +823,8 @@ describe('Sign', () => {
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       let closeRemainderTo;
       const o = {
-        from,
-        to,
+        sender,
+        receiver,
         fee,
         amount,
         closeRemainderTo,
@@ -838,7 +844,8 @@ describe('Sign', () => {
     });
 
     it('should be able to use helper to make a keyreg transaction', () => {
-      const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+      const sender =
+        'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const fee = 10;
       const firstValid = 51;
       const lastValid = 61;
@@ -853,7 +860,7 @@ describe('Sign', () => {
       const voteFirst = 123;
       const voteLast = 456;
       const o = {
-        from,
+        sender,
         fee,
         firstValid,
         lastValid,
@@ -877,7 +884,7 @@ describe('Sign', () => {
         fee,
       };
       const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
-        from,
+        sender,
         note,
         voteKey,
         selectionKey,
@@ -891,7 +898,8 @@ describe('Sign', () => {
     });
 
     it('should be able to use helper to make an offline keyreg transaction', () => {
-      const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+      const sender =
+        'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const fee = 10;
       const firstValid = 51;
       const lastValid = 61;
@@ -906,7 +914,7 @@ describe('Sign', () => {
       const voteFirst = undefined;
       const voteLast = undefined;
       const o = {
-        from,
+        sender,
         fee,
         firstValid,
         lastValid,
@@ -944,7 +952,7 @@ describe('Sign', () => {
         fee,
       };
       const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
-        from,
+        sender,
         note,
         voteKey,
         selectionKey,
@@ -958,7 +966,8 @@ describe('Sign', () => {
     });
 
     it('should be able to use helper to make a nonparticipating keyreg transaction', () => {
-      const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+      const sender =
+        'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const fee = 10;
       const firstValid = 51;
       const lastValid = 61;
@@ -974,7 +983,7 @@ describe('Sign', () => {
       const voteLast = 456;
       const nonParticipation = true;
       const o = {
-        from,
+        sender,
         fee,
         firstValid,
         lastValid,
@@ -1010,7 +1019,7 @@ describe('Sign', () => {
         fee,
       };
       const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
-        from,
+        sender,
         note,
         undefined,
         undefined,
@@ -1047,7 +1056,7 @@ describe('Sign', () => {
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
-        from: addr,
+        sender: addr,
         fee,
         firstValid,
         lastValid,
@@ -1119,7 +1128,7 @@ describe('Sign', () => {
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
-        from: addr,
+        sender: addr,
         fee,
         firstValid,
         lastValid,
@@ -1191,7 +1200,7 @@ describe('Sign', () => {
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
-        from: addr,
+        sender: addr,
         fee,
         firstValid,
         lastValid,
@@ -1240,7 +1249,7 @@ describe('Sign', () => {
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const txnTemplate = {
-        from: addr,
+        sender: addr,
         fee,
         firstValid,
         lastValid,
@@ -1334,7 +1343,7 @@ describe('Sign', () => {
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
-        from: addr,
+        sender: addr,
         fee,
         firstValid,
         lastValid,
@@ -1422,7 +1431,7 @@ describe('Sign', () => {
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
-        from: addr,
+        sender: addr,
         fee,
         firstValid,
         lastValid,
@@ -1469,8 +1478,8 @@ describe('Sign', () => {
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         type: 'axfer',
-        from: sender,
-        to: recipient,
+        sender,
+        receiver: recipient,
         amount,
         fee,
         firstValid,
@@ -1520,7 +1529,7 @@ describe('Sign', () => {
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
-        from: addr,
+        sender: addr,
         fee,
         firstValid,
         lastValid,
@@ -1573,8 +1582,8 @@ describe('Sign', () => {
       );
 
       const dictTx = {
-        from: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
-        to: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
+        sender: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
+        receiver: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
         fee: 1000,
         flatFee: true,
         amount: 0,

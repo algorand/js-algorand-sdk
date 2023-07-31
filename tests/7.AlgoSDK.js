@@ -29,7 +29,8 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should not mutate unsigned transaction when going to or from encoded buffer', () => {
-      const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
+      const receiver =
+        'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
       const firstValid = 12466;
@@ -39,7 +40,7 @@ describe('Algosdk (AKA end to end)', () => {
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
-      const from = to;
+      const sender = receiver;
       const suggestedParams = {
         genesisHash,
         genesisID,
@@ -48,8 +49,8 @@ describe('Algosdk (AKA end to end)', () => {
         fee,
       };
       const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -70,7 +71,8 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should not mutate signed transaction when going to or from encoded buffer', () => {
-      const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
+      const receiver =
+        'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
       const firstValid = 12466;
@@ -80,7 +82,7 @@ describe('Algosdk (AKA end to end)', () => {
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
-      const from = to;
+      const sender = receiver;
       const suggestedParams = {
         genesisHash,
         genesisID,
@@ -89,8 +91,8 @@ describe('Algosdk (AKA end to end)', () => {
         fee,
       };
       const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -123,7 +125,7 @@ describe('Algosdk (AKA end to end)', () => {
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
         firstValid: 12466,
@@ -151,7 +153,7 @@ describe('Algosdk (AKA end to end)', () => {
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 1176,
         amount: 1000,
         firstValid: 12466,
@@ -182,7 +184,7 @@ describe('Algosdk (AKA end to end)', () => {
       // prettier-ignore
       const lease = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]);
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
         firstValid: 12466,
@@ -212,7 +214,8 @@ describe('Algosdk (AKA end to end)', () => {
         'gqNzaWfEQOMmFSIKsZvpW0txwzhmbgQjxv6IyN7BbV5sZ2aNgFbVcrWUnqPpQQxfPhV/wdu9jzEPUU1jAujYtcNCxJ7ONgejdHhujKNhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0FLKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqJseMQgAQIDBAECAwQBAgMEAQIDBAECAwQBAgMEAQIDBAECAwSkbm90ZcQI6gAVR0Nsv5ajcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihpHR5cGWjcGF5';
       // prettier-ignore
       const lease = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]);
-      const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
+      const receiver =
+        'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
       const firstValid = 12466;
@@ -224,7 +227,7 @@ describe('Algosdk (AKA end to end)', () => {
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
       sk = algosdk.mnemonicToSecretKey(sk);
       const key = nacl.keyPairFromSecretKey(sk.sk);
-      const from = algosdk.encodeAddress(key.publicKey);
+      const sender = algosdk.encodeAddress(key.publicKey);
       const suggestedParams = {
         genesisHash,
         genesisID,
@@ -233,8 +236,8 @@ describe('Algosdk (AKA end to end)', () => {
         fee,
       };
       const txn = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -273,8 +276,8 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Create a transaction
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: sender.addr,
-        to: signer.addr,
+        sender: sender.addr,
+        receiver: signer.addr,
         amount: 1000,
         suggestedParams: {
           firstValid: 12466,
@@ -308,8 +311,8 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Create a transaction
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: sender.addr,
-        to: signer.addr,
+        sender: sender.addr,
+        receiver: signer.addr,
         amount: 1000,
         suggestedParams: {
           firstValid: 12466,
@@ -350,7 +353,7 @@ describe('Algosdk (AKA end to end)', () => {
       const { sk } = algosdk.mnemonicToSecretKey(mnem3);
 
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
         firstValid: 12466,
@@ -403,8 +406,8 @@ describe('Algosdk (AKA end to end)', () => {
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = algosdk.base64ToBytes('X4Bl4wQ9rCo=');
       const oDict = {
-        to: toAddr,
-        from: fromAddr,
+        receiver: toAddr,
+        sender: fromAddr,
         fee,
         amount,
         firstValid,
@@ -500,8 +503,8 @@ describe('Algosdk (AKA end to end)', () => {
       const firstValid1 = 710399;
       const note1 = algosdk.base64ToBytes('wRKw5cJ0CMo=');
       const o1 = {
-        to: toAddress,
-        from: fromAddress,
+        receiver: toAddress,
+        sender: fromAddress,
         fee,
         amount,
         firstValid: firstValid1,
@@ -516,8 +519,8 @@ describe('Algosdk (AKA end to end)', () => {
       const note2 = algosdk.base64ToBytes('dBlHI6BdrIg=');
 
       const o2 = {
-        to: toAddress,
-        from: fromAddress,
+        receiver: toAddress,
+        sender: fromAddress,
         fee,
         amount,
         firstValid: firstValid2,
@@ -596,7 +599,7 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const createTxn = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 322575,
         lastValid: 323575,
@@ -626,7 +629,7 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const createTxn = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 322575,
         lastValid: 323575,
@@ -657,7 +660,7 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 322575,
         lastValid: 323575,
@@ -682,7 +685,7 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
         firstValid: 322575,
         lastValid: 323575,
@@ -697,7 +700,7 @@ describe('Algosdk (AKA end to end)', () => {
     it('should return a blob that matches the go code for asset freeze', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
-        from: addr,
+        sender: addr,
         fee: 10,
         firstValid: 322575,
         lastValid: 323576,
@@ -722,8 +725,8 @@ describe('Algosdk (AKA end to end)', () => {
 
       const o = {
         type: 'axfer',
-        from: addr,
-        to: addr,
+        sender: addr,
+        receiver: addr,
         amount: 1,
         fee: 10,
         firstValid: 322575,
@@ -747,8 +750,8 @@ describe('Algosdk (AKA end to end)', () => {
 
       const o = {
         type: 'axfer',
-        from: addr,
-        to: addr,
+        sender: addr,
+        receiver: addr,
         amount: 0,
         fee: 10,
         firstValid: 322575,
@@ -771,8 +774,8 @@ describe('Algosdk (AKA end to end)', () => {
 
       const o = {
         type: 'axfer',
-        from: addr,
-        to: addr,
+        sender: addr,
+        receiver: addr,
         assetRevocationTarget: addr,
         amount: 1,
         fee: 10,
@@ -892,8 +895,8 @@ describe('Algosdk (AKA end to end)', () => {
       const note = algosdk.base64ToBytes('8xMCTuLQ810=');
 
       const txn = {
-        to: toAddress,
-        from: fromAddress,
+        receiver: toAddress,
+        sender: fromAddress,
         fee,
         amount,
         firstValid,

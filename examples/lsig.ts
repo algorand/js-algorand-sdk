@@ -33,8 +33,8 @@ async function main() {
   // example: LSIG_PASS_ARGS
 
   const fundSmartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: funder.addr,
-    to: smartSig.address(),
+    sender: funder.addr,
+    receiver: smartSig.address(),
     amount: 1e6,
     suggestedParams,
   });
@@ -50,8 +50,8 @@ async function main() {
 
   // example: LSIG_SIGN_FULL
   const smartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: smartSig.address(),
-    to: funder.addr,
+    sender: smartSig.address(),
+    receiver: funder.addr,
     amount: 0.1e6,
     suggestedParams,
   });
@@ -72,8 +72,8 @@ async function main() {
   smartSig.sign(userAccount.privateKey);
 
   const delegatedTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: userAccount.addr,
-    to: funder.addr,
+    sender: userAccount.addr,
+    receiver: funder.addr,
     amount: 0.1e6,
     suggestedParams,
   });

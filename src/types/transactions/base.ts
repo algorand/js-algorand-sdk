@@ -162,12 +162,12 @@ export interface TransactionParams {
   /**
    * String representation of Algorand address of sender
    */
-  from: string;
+  sender: string;
 
   /**
    * String representation of Algorand address of recipient
    */
-  to: string;
+  receiver: string;
 
   /**
    * Integer fee per byte, in microAlgos. For a flat fee, set flatFee to true
@@ -314,8 +314,8 @@ export interface TransactionParams {
   assetFrozen: boolean;
 
   /**
-   * String representation of Algorand address – if provided, and if "from" is
-   * the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
+   * String representation of Algorand address – if provided, and if "sender" is
+   * the asset's revocation manager, then deduct from "revocationTarget" rather than "sender"
    */
   assetRevocationTarget?: string;
 

@@ -17,7 +17,7 @@ async function main() {
   // example: ASSET_CREATE
   const suggestedParams = await algodClient.getTransactionParams().do();
   const txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     suggestedParams,
     defaultFrozen: false,
     unitName: 'rug',
@@ -61,7 +61,7 @@ async function main() {
   const manager = accounts[1];
 
   const configTxn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     manager: manager.addr,
     freeze: manager.addr,
     clawback: manager.addr,
@@ -87,8 +87,8 @@ async function main() {
 
   // opt-in is simply a 0 amount transfer of the asset to oneself
   const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    from: receiver.addr,
-    to: receiver.addr,
+    sender: receiver.addr,
+    receiver: receiver.addr,
     suggestedParams,
     assetIndex,
     amount: 0,
@@ -101,8 +101,8 @@ async function main() {
 
   // example: ASSET_XFER
   const xferTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    from: creator.addr,
-    to: receiver.addr,
+    sender: creator.addr,
+    receiver: receiver.addr,
     suggestedParams,
     assetIndex,
     amount: 1,
@@ -115,7 +115,7 @@ async function main() {
 
   // example: ASSET_FREEZE
   const freezeTxn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
-    from: manager.addr,
+    sender: manager.addr,
     suggestedParams,
     assetIndex,
     // assetFrozen: false would unfreeze the account's asset holding
@@ -136,8 +136,8 @@ async function main() {
   // example: ASSET_CLAWBACK
   const clawbackTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
     {
-      from: manager.addr,
-      to: creator.addr,
+      sender: manager.addr,
+      receiver: creator.addr,
       // revocationTarget is the account that is being clawed back from
       revocationTarget: receiver.addr,
       suggestedParams,
@@ -161,8 +161,8 @@ async function main() {
   // any account that can receive the asset.
   // note that closing to the asset creator will always succeed
   const optOutTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    from: receiver.addr,
-    to: creator.addr,
+    sender: receiver.addr,
+    receiver: creator.addr,
     closeRemainderTo: creator.addr,
     suggestedParams,
     assetIndex,
@@ -180,7 +180,7 @@ async function main() {
 
   // example: ASSET_DELETE
   const deleteTxn = algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
-    from: manager.addr,
+    sender: manager.addr,
     suggestedParams,
     assetIndex,
   });

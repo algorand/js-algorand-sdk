@@ -52,8 +52,8 @@ describe('Multisig Functionality', () => {
   describe('signMultisigTransaction', () => {
     it('should match golden main repo result', () => {
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: sampleMultisigAddr,
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        sender: sampleMultisigAddr,
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         amount: 1000,
         note: algosdk.base64ToBytes('RSYiABhShvs='),
         closeRemainderTo:
@@ -86,8 +86,8 @@ describe('Multisig Functionality', () => {
 
     it('should correctly handle a different sender', () => {
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: 'EHGMQCXBIFBE364DEKWQVVNCTCTVCGQL3BR2Q5I7CFTRXWIVTF4SYA3GHU',
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        sender: 'EHGMQCXBIFBE364DEKWQVVNCTCTVCGQL3BR2Q5I7CFTRXWIVTF4SYA3GHU',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         amount: 1000,
         note: algosdk.base64ToBytes('RSYiABhShvs='),
         closeRemainderTo:
