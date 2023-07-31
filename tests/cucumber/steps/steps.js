@@ -4832,6 +4832,100 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    '{int}th unit in the {string} trace at txn-groups path {string} should add to stack {string}, pop from stack by {int}, write to {string} scratch slot by {string}.',
+    async function (
+      unitIndex,
+      traceType,
+      txnGroupPath,
+      stackAddition,
+      stackPopCount,
+      slotID,
+      scratchWriteContent
+    ) {
+      const unitFinder = (txnGroupPathStr, traceTypeStr, unitIndexInt) => {
+        const txnGroupPathSplit = txnGroupPathStr
+          .split(',')
+          .filter((r) => r !== '')
+          .map(Number);
+        assert.ok(txnGroupPathSplit.length > 0);
+
+        let traces = this.simulateResponse.txnGroups[0].txnResults[
+          txnGroupPathSplit[0]
+        ].execTrace;
+        assert.ok(traces);
+
+        for (let i = 1; i < txnGroupPathSplit.length; i++) {
+          traces = traces.innerTrace[txnGroupPathSplit[i]];
+          assert.ok(traces);
+        }
+
+        let trace = traces.approvalProgramTrace;
+
+        if (traceTypeStr === 'approval') {
+          trace = traces.approvalProgramTrace;
+        } else if (traceTypeStr === 'clearState') {
+          trace = traces.clearStateProgramTrace;
+        } else if (traceTypeStr === 'logic') {
+          trace = traces.logicSigTrace;
+        }
+        const changeUnit = trace[unitIndexInt];
+        return changeUnit;
+      };
+
+      const avmValueCheck = (scratchWriteStr, avmValue) => {
+        const [scratchType, writeContent] = scratchWriteStr.split(',');
+
+        if (scratchType === 'uint64') {
+          assert.equal(avmValue.type, 2);
+          assert.ok(avmValue.uint);
+          assert.equal(avmValue.uint, Number(writeContent));
+        } else if (scratchType === 'bytes') {
+          assert.equal(avmValue.type, 1);
+          assert.ok(avmValue.bytes);
+          assert.equal(avmValue.bytes, writeContent);
+        }
+      };
+
+      assert.ok(this.simulateResponse);
+
+      const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
+      assert.equal(changeUnit.stackPopCount, stackPopCount);
+
+      const stackAdditionSplit = stackAddition
+        .split(',')
+        .filter((r) => r !== '');
+
+      if (changeUnit.stackAdditions) {
+        assert.equal(
+          changeUnit.stackAdditions.length,
+          stackAdditionSplit.length
+        );
+        for (let i = 0; i < stackAdditionSplit.length; i++) {
+          avmValueCheck(stackAdditionSplit[i], changeUnit.stackAdditions[i]);
+        }
+      } else {
+        assert.equal(stackAdditionSplit.length, 0);
+      }
+
+      if (slotID !== 'none') {
+        assert.equal(changeUnit.scratchChanges.length, 1);
+
+        const slotIDint = Number(slotID);
+        assert.equal(changeUnit.scratchChanges[0].slot, slotIDint);
+        assert.notEqual(scratchWriteContent, 'none');
+
+        const newValue = changeUnit.scratchChanges[0]?.newValue;
+        assert.ok(newValue);
+
+        avmValueCheck(scratchWriteContent, newValue);
+      } else {
+        assert.ok(!changeUnit.scratchChanges);
+        assert.equal(scratchWriteContent, 'none');
+      }
+    }
+  );
+
   When('we make a Ready call', async function () {
     await this.v2Client.ready().do();
   });
