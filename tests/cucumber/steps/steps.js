@@ -4815,6 +4815,22 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    'I allow exec trace options {string} on that simulate request.',
+    async function (execTraceOptions) {
+      const optionList = execTraceOptions.split(',');
+
+      assert.ok(this.simulateRequest);
+      this.simulateRequest.execTraceConfig = new algosdk.modelsv2.SimulateTraceConfig(
+        {
+          enable: true,
+          scratchChange: optionList.includes('scratch'),
+          stackChange: optionList.includes('stack'),
+        }
+      );
+    }
+  );
+
   When('we make a Ready call', async function () {
     await this.v2Client.ready().do();
   });
