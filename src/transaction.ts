@@ -67,8 +67,8 @@ interface TransactionStorageStructure
   to: string | Address;
   fee: number;
   amount: number | bigint;
-  firstRound: number;
-  lastRound: number;
+  firstValid: number;
+  lastValid: number;
   note?: Uint8Array;
   genesisID: string;
   genesisHash: string | Uint8Array;
@@ -157,8 +157,8 @@ export class Transaction implements TransactionStorageStructure {
   to: Address;
   fee: number;
   amount: number | bigint;
-  firstRound: number;
-  lastRound: number;
+  firstValid: number;
+  lastValid: number;
   note?: Uint8Array;
   genesisID: string;
   genesisHash: Uint8Array;
@@ -250,8 +250,8 @@ export class Transaction implements TransactionStorageStructure {
       reference.fee = reference.suggestedParams.fee;
       if (reference.suggestedParams.flatFee !== undefined)
         reference.flatFee = reference.suggestedParams.flatFee;
-      reference.firstRound = reference.suggestedParams.firstRound;
-      reference.lastRound = reference.suggestedParams.lastRound;
+      reference.firstValid = reference.suggestedParams.firstValid;
+      reference.lastValid = reference.suggestedParams.lastValid;
       reference.genesisID = reference.suggestedParams.genesisID;
     }
 
@@ -300,10 +300,10 @@ export class Transaction implements TransactionStorageStructure {
       );
     if (!Number.isSafeInteger(txn.fee) || txn.fee < 0)
       throw Error('fee must be a positive number and smaller than 2^53-1');
-    if (!Number.isSafeInteger(txn.firstRound) || txn.firstRound < 0)
-      throw Error('firstRound must be a positive number');
-    if (!Number.isSafeInteger(txn.lastRound) || txn.lastRound < 0)
-      throw Error('lastRound must be a positive number');
+    if (!Number.isSafeInteger(txn.firstValid) || txn.firstValid < 0)
+      throw Error('firstValid must be a positive number');
+    if (!Number.isSafeInteger(txn.lastValid) || txn.lastValid < 0)
+      throw Error('lastValid must be a positive number');
     if (
       txn.extraPages !== undefined &&
       (!Number.isInteger(txn.extraPages) ||
@@ -580,8 +580,8 @@ export class Transaction implements TransactionStorageStructure {
       const txn: EncodedTransaction = {
         amt: this.amount,
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
         snd: this.from.publicKey,
         type: 'pay',
@@ -617,8 +617,8 @@ export class Transaction implements TransactionStorageStructure {
     if (this.type === 'keyreg') {
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
         snd: this.from.publicKey,
         type: this.type,
@@ -658,8 +658,8 @@ export class Transaction implements TransactionStorageStructure {
       // asset creation, or asset reconfigure, or asset destruction
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
         snd: this.from.publicKey,
         type: this.type,
@@ -736,8 +736,8 @@ export class Transaction implements TransactionStorageStructure {
       const txn: EncodedTransaction = {
         aamt: this.amount,
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
         snd: this.from.publicKey,
         arcv: this.to.publicKey,
@@ -773,8 +773,8 @@ export class Transaction implements TransactionStorageStructure {
       // asset freeze or unfreeze
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
         snd: this.from.publicKey,
         type: this.type,
@@ -805,8 +805,8 @@ export class Transaction implements TransactionStorageStructure {
       // application call of some kind
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
         snd: this.from.publicKey,
         type: this.type,
@@ -884,8 +884,8 @@ export class Transaction implements TransactionStorageStructure {
       // state proof txn
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
         snd: this.from.publicKey,
         type: this.type,
@@ -933,8 +933,8 @@ export class Transaction implements TransactionStorageStructure {
     }
     txn.type = txnForEnc.type;
     txn.fee = txnForEnc.fee;
-    txn.firstRound = txnForEnc.fv;
-    txn.lastRound = txnForEnc.lv;
+    txn.firstValid = txnForEnc.fv;
+    txn.lastValid = txnForEnc.lv;
     txn.note = new Uint8Array(txnForEnc.note);
     txn.lease = new Uint8Array(txnForEnc.lx);
     txn.from = address.decodeAddress(

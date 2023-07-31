@@ -105,12 +105,12 @@ export interface EncodedTransaction {
   fee?: number;
 
   /**
-   * firstRound
+   * firstValid
    */
   fv?: number;
 
   /**
-   * lastRound
+   * lastValid
    */
   lv: number;
 

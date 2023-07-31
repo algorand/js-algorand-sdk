@@ -112,12 +112,12 @@ export interface SuggestedParams {
   /**
    * First protocol round on which this txn is valid
    */
-  firstRound: number;
+  firstValid: number;
 
   /**
    * Last protocol round on which this txn is valid
    */
-  lastRound: number;
+  lastValid: number;
 
   /**
    * Specifies genesis ID of network in use
@@ -182,12 +182,12 @@ export interface TransactionParams {
   /**
    * Integer first protocol round on which this txn is valid
    */
-  firstRound: number;
+  firstValid: number;
 
   /**
    * Integer last protocol round on which this txn is valid
    */
-  lastRound: number;
+  lastValid: number;
 
   /**
    * Arbitrary data for sender to store

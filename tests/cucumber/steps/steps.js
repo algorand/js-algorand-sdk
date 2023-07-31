@@ -388,14 +388,14 @@ module.exports = function getSteps(options) {
       this.rekey = this.rekey.address;
       // Fund the rekey address with some Algos
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
+      if (sp.firstValid === 0) sp.firstValid = 1;
       const fundingTxnArgs = {
         from: this.accounts[0],
         to: this.rekey,
         amount: DEV_MODE_INITIAL_MICROALGOS,
         fee: sp.fee,
-        firstRound: sp.firstRound,
-        lastRound: sp.lastRound,
+        firstValid: sp.firstValid,
+        lastValid: sp.lastValid,
         genesisHash: sp.genesisHash,
         genesisID: sp.genesisID,
       };
@@ -482,13 +482,13 @@ module.exports = function getSteps(options) {
     async function (amt, note) {
       this.pk = this.rekey;
       const result = await this.v2Client.getTransactionParams().do();
-      this.lastRound = result.lastRound;
+      this.lastValid = result.lastValid;
       this.txn = {
         from: this.rekey,
         to: this.accounts[1],
         fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
+        firstValid: result.firstValid,
+        lastValid: result.lastValid,
         genesisHash: result.genesisHash,
         genesisID: result.genesisID,
         note: makeUint8Array(algosdk.base64ToBytes(note)),
@@ -513,8 +513,8 @@ module.exports = function getSteps(options) {
         from: algosdk.multisigAddress(this.msig),
         to: this.accounts[1],
         fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
+        firstValid: result.firstValid,
+        lastValid: result.lastValid,
         genesisHash: result.genesisHash,
         genesisID: result.genesisID,
         note: makeUint8Array(algosdk.base64ToBytes(note)),
@@ -664,8 +664,8 @@ module.exports = function getSteps(options) {
     this.txn = {
       to: this.to,
       fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
+      firstValid: this.fv,
+      lastValid: this.lv,
       genesisHash: this.gh,
       flatFee: true,
     };
@@ -735,8 +735,8 @@ module.exports = function getSteps(options) {
       from: algosdk.multisigAddress(this.msig),
       to: this.to,
       fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
+      firstValid: this.fv,
+      lastValid: this.lv,
       genesisHash: this.gh,
     };
     if (this.gen) {
@@ -760,8 +760,8 @@ module.exports = function getSteps(options) {
       to: this.to,
       fee: this.fee,
       flatFee: true,
-      firstRound: this.fv,
-      lastRound: this.lv,
+      firstValid: this.fv,
+      lastValid: this.lv,
       genesisHash: this.gh,
     };
     if (this.gen) {
@@ -936,12 +936,12 @@ module.exports = function getSteps(options) {
       const result = await this.v2Client.getTransactionParams().do();
       const suggestedParams = {
         fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
+        firstValid: result.firstValid,
+        lastValid: result.lastValid,
         genesisHash: result.genesisHash,
         genesisID: result.genesisID,
       };
-      this.lastRound = result.lastRound;
+      this.lastValid = result.lastValid;
 
       if (type === 'online') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
@@ -995,8 +995,8 @@ module.exports = function getSteps(options) {
       [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const parsedIssuance = parseInt(issuance);
@@ -1016,8 +1016,8 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.lastTxn = {
         from: this.assetTestFixture.creator,
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         note: this.note,
         genesisHash: this.gh,
         assetTotal: parsedIssuance,
@@ -1050,7 +1050,7 @@ module.exports = function getSteps(options) {
         decimals,
       };
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1061,8 +1061,8 @@ module.exports = function getSteps(options) {
       [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const parsedIssuance = parseInt(issuance);
@@ -1082,8 +1082,8 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.lastTxn = {
         from: this.assetTestFixture.creator,
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         note: this.note,
         genesisHash: this.gh,
         assetTotal: parsedIssuance,
@@ -1116,7 +1116,7 @@ module.exports = function getSteps(options) {
         decimals,
       };
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1170,8 +1170,8 @@ module.exports = function getSteps(options) {
       [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       // if we truly supplied no managers at all, it would be an asset destroy txn
@@ -1186,8 +1186,8 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.lastTxn = {
         from: this.assetTestFixture.creator,
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         note: this.note,
         genesisHash: this.gh,
         assetManager: manager,
@@ -1203,7 +1203,7 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.expectedParams.freezeaddr = '';
       this.assetTestFixture.expectedParams.clawbackaddr = '';
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1212,8 +1212,8 @@ module.exports = function getSteps(options) {
     [this.assetTestFixture.creator] = this.accounts;
     this.params = await this.v2Client.getTransactionParams().do();
     this.fee = this.params.fee;
-    this.fv = this.params.firstRound;
-    this.lv = this.params.lastRound;
+    this.fv = this.params.firstValid;
+    this.lv = this.params.lastValid;
     this.note = undefined;
     this.gh = this.params.genesisHash;
     const genesisID = '';
@@ -1222,8 +1222,8 @@ module.exports = function getSteps(options) {
     this.assetTestFixture.lastTxn = {
       from: this.assetTestFixture.creator,
       fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
+      firstValid: this.fv,
+      lastValid: this.lv,
       note: this.note,
       genesisHash: this.gh,
       assetIndex: parseInt(this.assetTestFixture.index),
@@ -1232,7 +1232,7 @@ module.exports = function getSteps(options) {
     };
     // update vars used by other helpers
     this.txn = this.assetTestFixture.lastTxn;
-    this.lastRound = this.params.lastRound;
+    this.lastValid = this.params.lastValid;
     [this.pk] = this.accounts;
   });
 
@@ -1252,8 +1252,8 @@ module.exports = function getSteps(options) {
       const accountToUse = this.accounts[1];
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const genesisID = '';
@@ -1264,8 +1264,8 @@ module.exports = function getSteps(options) {
         to: accountToUse,
         amount: 0,
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         note: this.note,
         genesisHash: this.gh,
         assetIndex: parseInt(this.assetTestFixture.index),
@@ -1274,7 +1274,7 @@ module.exports = function getSteps(options) {
       };
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = accountToUse;
     }
   );
@@ -1284,8 +1284,8 @@ module.exports = function getSteps(options) {
     async function (amount) {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const genesisID = '';
@@ -1296,8 +1296,8 @@ module.exports = function getSteps(options) {
         to: this.accounts[1],
         amount: parseInt(amount),
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         note: this.note,
         genesisHash: this.gh,
         assetIndex: parseInt(this.assetTestFixture.index),
@@ -1306,7 +1306,7 @@ module.exports = function getSteps(options) {
       };
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1316,8 +1316,8 @@ module.exports = function getSteps(options) {
     async function (amount) {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const genesisID = '';
@@ -1328,8 +1328,8 @@ module.exports = function getSteps(options) {
         from: this.accounts[1],
         amount: parseInt(amount),
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         note: this.note,
         genesisHash: this.gh,
         assetIndex: parseInt(this.assetTestFixture.index),
@@ -1338,7 +1338,7 @@ module.exports = function getSteps(options) {
       };
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1371,8 +1371,8 @@ module.exports = function getSteps(options) {
     async function () {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const freezer = this.assetTestFixture.creator;
@@ -1380,8 +1380,8 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.lastTxn = {
         from: freezer,
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         genesisHash: this.gh,
         type: 'afrz',
         freezeAccount: this.accounts[1],
@@ -1391,7 +1391,7 @@ module.exports = function getSteps(options) {
       };
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1401,8 +1401,8 @@ module.exports = function getSteps(options) {
     async function () {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const freezer = this.assetTestFixture.creator;
@@ -1410,8 +1410,8 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.lastTxn = {
         from: freezer,
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         genesisHash: this.gh,
         type: 'afrz',
         freezeAccount: this.accounts[1],
@@ -1421,7 +1421,7 @@ module.exports = function getSteps(options) {
       };
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1431,8 +1431,8 @@ module.exports = function getSteps(options) {
     async function (amount) {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const genesisID = '';
@@ -1444,8 +1444,8 @@ module.exports = function getSteps(options) {
         assetRevocationTarget: this.accounts[1],
         amount: parseInt(amount),
         fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
+        firstValid: this.fv,
+        lastValid: this.lv,
         note: this.note,
         genesisHash: this.gh,
         assetIndex: parseInt(this.assetTestFixture.index),
@@ -1454,7 +1454,7 @@ module.exports = function getSteps(options) {
       };
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1968,10 +1968,10 @@ module.exports = function getSteps(options) {
 
   Then(
     'the parsed Suggested Transaction Parameters response should have first round valid of {int}',
-    (firstRound) => {
+    (firstValid) => {
       assert.strictEqual(
-        firstRound,
-        anySuggestedTransactionsResponse.firstRound
+        firstValid,
+        anySuggestedTransactionsResponse.firstValid
       );
     }
   );
@@ -2764,8 +2764,8 @@ module.exports = function getSteps(options) {
       from: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       fee: 1000,
       amount: 1000,
-      firstRound: 1,
-      lastRound: 1000,
+      firstValid: 1,
+      lastValid: 1000,
       type: 'pay',
       genesisHash: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
     });
@@ -2954,7 +2954,7 @@ module.exports = function getSteps(options) {
     "I fund the current application's address with {int} microalgos.",
     async function (amount) {
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
+      if (sp.firstValid === 0) sp.firstValid = 1;
       const fundingTxnArgs = {
         from: this.accounts[0],
         to: algosdk.getApplicationAddress(this.currentApplicationIndex),
@@ -2979,14 +2979,14 @@ module.exports = function getSteps(options) {
 
   Given(
     'suggested transaction parameters fee {int}, flat-fee {string}, first-valid {int}, last-valid {int}, genesis-hash {string}, genesis-id {string}',
-    function (fee, flatFee, firstRound, lastRound, genesisHash, genesisID) {
+    function (fee, flatFee, firstValid, lastValid, genesisHash, genesisID) {
       assert.ok(['true', 'false'].includes(flatFee));
 
       this.suggestedParams = {
         flatFee: flatFee === 'true',
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisID,
         genesisHash,
       };
@@ -3143,8 +3143,8 @@ module.exports = function getSteps(options) {
       // build suggested params object
       const sp = {
         genesisHash: genesisHashBase64,
-        firstRound: firstValid,
-        lastRound: lastValid,
+        firstValid,
+        lastValid,
         fee,
         flatFee: true,
       };
@@ -3333,7 +3333,7 @@ module.exports = function getSteps(options) {
       this.transientAccount = algosdk.generateAccount();
 
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
+      if (sp.firstValid === 0) sp.firstValid = 1;
       const fundingTxnArgs = {
         from: this.accounts[0],
         to: this.transientAccount.addr,
@@ -3432,7 +3432,7 @@ module.exports = function getSteps(options) {
         boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
       }
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
+      if (sp.firstValid === 0) sp.firstValid = 1;
       const o = {
         type: 'appl',
         from: this.transientAccount.addr,

@@ -61,8 +61,8 @@ describe('Multisig Functionality', () => {
         suggestedParams: {
           fee: 1000,
           flatFee: true,
-          firstRound: 62229,
-          lastRound: 63229,
+          firstValid: 62229,
+          lastValid: 63229,
           genesisID: 'devnet-v38.0',
           genesisHash: '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0=',
         },
@@ -95,8 +95,8 @@ describe('Multisig Functionality', () => {
         suggestedParams: {
           fee: 1000,
           flatFee: true,
-          firstRound: 62229,
-          lastRound: 63229,
+          firstValid: 62229,
+          lastValid: 63229,
           genesisID: 'devnet-v38.0',
           genesisHash: '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0=',
         },

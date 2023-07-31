@@ -31,8 +31,8 @@ async function main() {
       voteKey,
       selectionKey,
       stateProofKey,
-      voteFirst: params.firstRound,
-      voteLast: params.firstRound + numRounds,
+      voteFirst: params.firstValid,
+      voteLast: params.firstValid + numRounds,
       voteKeyDilution: keyDilution,
       suggestedParams: params,
     }

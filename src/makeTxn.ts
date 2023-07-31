@@ -34,8 +34,8 @@ import { RenameProperties, RenameProperty, Expand } from './types/utils';
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -103,8 +103,8 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -240,8 +240,8 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -355,8 +355,8 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -451,8 +451,8 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -509,8 +509,8 @@ export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -587,8 +587,8 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
  * * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -662,8 +662,8 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param onComplete - algosdk.OnApplicationComplete, what application should do once the program is done being run
@@ -798,8 +798,8 @@ export function makeApplicationCreateTxnFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to be updated
@@ -904,8 +904,8 @@ export function makeApplicationUpdateTxnFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to be deleted
@@ -998,8 +998,8 @@ export function makeApplicationDeleteTxnFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to join
@@ -1092,8 +1092,8 @@ export function makeApplicationOptInTxnFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
@@ -1186,8 +1186,8 @@ export function makeApplicationCloseOutTxnFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
@@ -1280,8 +1280,8 @@ export function makeApplicationClearStateTxnFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use

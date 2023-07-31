@@ -16,10 +16,10 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * signTransaction takes an object with either payment or key registration fields and
  * a secret key and returns a signed blob.
  *
- * Payment transaction fields: from, to, amount, fee, firstRound, lastRound, genesisHash,
+ * Payment transaction fields: from, to, amount, fee, firstValid, lastValid, genesisHash,
  * note(optional), GenesisID(optional), closeRemainderTo(optional)
  *
- * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
+ * Key registration fields: fee, firstValid, lastValid, voteKey, selectionKey, voteFirst,
  * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
  *
  * If flatFee is not set and the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.

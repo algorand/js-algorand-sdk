@@ -32,8 +32,8 @@ describe('Algosdk (AKA end to end)', () => {
       const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
@@ -43,8 +43,8 @@ describe('Algosdk (AKA end to end)', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
@@ -73,8 +73,8 @@ describe('Algosdk (AKA end to end)', () => {
       const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
@@ -84,8 +84,8 @@ describe('Algosdk (AKA end to end)', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
@@ -126,8 +126,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -154,8 +154,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 1176,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -185,8 +185,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -215,8 +215,8 @@ describe('Algosdk (AKA end to end)', () => {
       const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
@@ -228,8 +228,8 @@ describe('Algosdk (AKA end to end)', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const txn = algosdk.makePaymentTxnWithSuggestedParams(
@@ -277,8 +277,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: signer.addr,
         amount: 1000,
         suggestedParams: {
-          firstRound: 12466,
-          lastRound: 13466,
+          firstValid: 12466,
+          lastValid: 13466,
           genesisID: 'devnet-v33.0',
           genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
           fee: 4,
@@ -312,8 +312,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: signer.addr,
         amount: 1000,
         suggestedParams: {
-          firstRound: 12466,
-          lastRound: 13466,
+          firstValid: 12466,
+          lastValid: 13466,
           genesisID: 'devnet-v33.0',
           genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
           fee: 4,
@@ -353,8 +353,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -395,8 +395,8 @@ describe('Algosdk (AKA end to end)', () => {
         'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainder =
@@ -407,8 +407,8 @@ describe('Algosdk (AKA end to end)', () => {
         from: fromAddr,
         fee,
         amount,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisID,
         genesisHash,
         closeRemainderTo: closeRemainder,
@@ -417,8 +417,8 @@ describe('Algosdk (AKA end to end)', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const oObj = algosdk.makePaymentTxnWithSuggestedParams(
@@ -497,22 +497,22 @@ describe('Algosdk (AKA end to end)', () => {
       const amount = 2000;
       const genesisID = 'devnet-v1.0';
       const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E';
-      const firstRound1 = 710399;
+      const firstValid1 = 710399;
       const note1 = algosdk.base64ToBytes('wRKw5cJ0CMo=');
       const o1 = {
         to: toAddress,
         from: fromAddress,
         fee,
         amount,
-        firstRound: firstRound1,
-        lastRound: firstRound1 + 1000,
+        firstValid: firstValid1,
+        lastValid: firstValid1 + 1000,
         genesisID,
         genesisHash,
         note: note1,
         flatFee: true,
       };
 
-      const firstRound2 = 710515;
+      const firstValid2 = 710515;
       const note2 = algosdk.base64ToBytes('dBlHI6BdrIg=');
 
       const o2 = {
@@ -520,8 +520,8 @@ describe('Algosdk (AKA end to end)', () => {
         from: fromAddress,
         fee,
         amount,
-        firstRound: firstRound2,
-        lastRound: firstRound2 + 1000,
+        firstValid: firstValid2,
+        lastValid: firstValid2 + 1000,
         genesisID,
         genesisHash,
         note: note2,
@@ -598,8 +598,8 @@ describe('Algosdk (AKA end to end)', () => {
       const createTxn = {
         from: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetTotal: 100,
         assetDefaultFrozen: false,
@@ -628,8 +628,8 @@ describe('Algosdk (AKA end to end)', () => {
       const createTxn = {
         from: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetTotal: 100,
         assetDecimals: 1,
@@ -659,8 +659,8 @@ describe('Algosdk (AKA end to end)', () => {
       const o = {
         from: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1234,
         assetManager: address,
@@ -684,8 +684,8 @@ describe('Algosdk (AKA end to end)', () => {
       const o = {
         from: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
         type: 'acfg',
@@ -699,8 +699,8 @@ describe('Algosdk (AKA end to end)', () => {
       const o = {
         from: addr,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323576,
+        firstValid: 322575,
+        lastValid: 323576,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         type: 'afrz',
         freezeAccount: addr,
@@ -726,8 +726,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: addr,
         amount: 1,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323576,
+        firstValid: 322575,
+        lastValid: 323576,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
         closeRemainderTo: addr,
@@ -751,8 +751,8 @@ describe('Algosdk (AKA end to end)', () => {
         to: addr,
         amount: 0,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
       };
@@ -776,8 +776,8 @@ describe('Algosdk (AKA end to end)', () => {
         assetRevocationTarget: addr,
         amount: 1,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
       };
@@ -886,7 +886,7 @@ describe('Algosdk (AKA end to end)', () => {
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
       const fee = 1000;
       const amount = 2000;
-      const firstRound = 2063137;
+      const firstValid = 2063137;
       const genesisID = 'devnet-v1.0';
       const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E=';
       const note = algosdk.base64ToBytes('8xMCTuLQ810=');
@@ -896,8 +896,8 @@ describe('Algosdk (AKA end to end)', () => {
         from: fromAddress,
         fee,
         amount,
-        firstRound,
-        lastRound: firstRound + 1000,
+        firstValid,
+        lastValid: firstValid + 1000,
         genesisID,
         genesisHash,
         note,

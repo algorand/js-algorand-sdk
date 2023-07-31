@@ -41,8 +41,8 @@ describe('Sign', () => {
     const o = {
       from: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(0),
       type: 'appl',
@@ -77,8 +77,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(0),
     };
@@ -91,8 +91,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 0,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
     };
@@ -109,8 +109,8 @@ describe('Sign', () => {
       fee: 0,
       flatFee: true,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
     };
@@ -125,8 +125,8 @@ describe('Sign', () => {
       fee: 10,
       flatFee: true,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
     };
@@ -142,8 +142,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
     };
@@ -157,8 +157,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       note: new Uint8Array([123, 12, 200]),
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       genesisID: '',
@@ -173,8 +173,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: 'new Uint8Array(0)',
     };
@@ -190,8 +190,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(32),
     });
@@ -201,8 +201,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
     });
 
@@ -220,8 +220,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       lease: new Uint8Array(32),
     });
@@ -231,8 +231,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
     });
 
@@ -251,8 +251,8 @@ describe('Sign', () => {
     const txnWithHash = new algosdk.Transaction({
       from: address,
       fee: 10,
-      firstRound: 322575,
-      lastRound: 323575,
+      firstValid: 322575,
+      lastValid: 323575,
       genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
       assetIndex: 1234,
       assetManager: address,
@@ -266,8 +266,8 @@ describe('Sign', () => {
     const txnWithoutHash = new algosdk.Transaction({
       from: address,
       fee: 10,
-      firstRound: 322575,
-      lastRound: 323575,
+      firstValid: 322575,
+      lastValid: 323575,
       genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
       assetIndex: 1234,
       assetManager: address,
@@ -291,8 +291,8 @@ describe('Sign', () => {
       to: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       fee: 10,
       amount: 847,
-      firstRound: 51,
-      lastRound: 61,
+      firstValid: 51,
+      lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(0),
     };
@@ -309,8 +309,8 @@ describe('Sign', () => {
         to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 847,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         note: new Uint8Array([123, 12, 200]),
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         genesisID: '',
@@ -330,8 +330,8 @@ describe('Sign', () => {
         to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 2063,
         amount: 847,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         note: new Uint8Array([123, 12, 200]),
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         genesisID: '',
@@ -350,8 +350,8 @@ describe('Sign', () => {
       const o = {
         from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         note: new Uint8Array([123, 12, 200]),
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
@@ -384,8 +384,8 @@ describe('Sign', () => {
       const o = {
         from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         note: new Uint8Array([123, 12, 200]),
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
@@ -409,8 +409,8 @@ describe('Sign', () => {
       const o = {
         from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         note: new Uint8Array([123, 12, 200]),
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         genesisID: '',
@@ -429,8 +429,8 @@ describe('Sign', () => {
       const o = {
         from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         note: new Uint8Array([123, 12, 200]),
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         genesisID: '',
@@ -450,8 +450,8 @@ describe('Sign', () => {
       const o = {
         from: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         fee: 10,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         note: new Uint8Array([123, 12, 200]),
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         nonParticipation: true,
@@ -473,8 +473,8 @@ describe('Sign', () => {
       const o = {
         from: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1234,
         assetManager: address,
@@ -498,8 +498,8 @@ describe('Sign', () => {
       const o = {
         from: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetTotal: 1000,
         assetDefaultFrozen: true,
@@ -533,8 +533,8 @@ describe('Sign', () => {
         to: address,
         amount: 100,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1234,
         assetRevocationTarget: address,
@@ -572,8 +572,8 @@ describe('Sign', () => {
         rekeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         suggestedParams: {
           fee: 0,
-          firstRound: 322575,
-          lastRound: 323575,
+          firstValid: 322575,
+          lastValid: 323575,
           genesisID: 'testnet-v1.0',
           genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         },
@@ -592,8 +592,8 @@ describe('Sign', () => {
       const o = {
         from: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         type: 'afrz',
         freezeAccount: address,
@@ -616,8 +616,8 @@ describe('Sign', () => {
       const o = {
         from: address,
         fee: 10,
-        firstRound: 0,
-        lastRound: 1000,
+        firstValid: 0,
+        lastValid: 1000,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         type: 'afrz',
         freezeAccount: address,
@@ -640,8 +640,8 @@ describe('Sign', () => {
         to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 847,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         note: new Uint8Array([123, 12, 200]),
       };
@@ -660,8 +660,8 @@ describe('Sign', () => {
         to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 0,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         note: new Uint8Array([123, 12, 200]),
       };
@@ -680,8 +680,8 @@ describe('Sign', () => {
         to: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         fee: 10,
         amount: 0,
-        firstRound: 51,
-        lastRound: 61,
+        firstValid: 51,
+        lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         note: new Uint8Array([123, 12, 200]),
       };
@@ -716,8 +716,8 @@ describe('Sign', () => {
       const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
       const fee = 10;
       const amount = 847;
-      const firstRound = 51;
-      const lastRound = 61;
+      const firstValid = 51;
+      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
@@ -730,8 +730,8 @@ describe('Sign', () => {
         fee,
         amount,
         closeRemainderTo,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         genesisID,
@@ -741,8 +741,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
@@ -762,8 +762,8 @@ describe('Sign', () => {
       const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
       const fee = 10;
       const amount = 0xffffffffffffffffn;
-      const firstRound = 51;
-      const lastRound = 61;
+      const firstValid = 51;
+      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
@@ -776,8 +776,8 @@ describe('Sign', () => {
         fee,
         amount,
         closeRemainderTo,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         genesisID,
@@ -787,8 +787,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
@@ -808,8 +808,8 @@ describe('Sign', () => {
       const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
       const fee = 10;
       const amount = 0x10000000000000000n;
-      const firstRound = 51;
-      const lastRound = 61;
+      const firstValid = 51;
+      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
@@ -822,8 +822,8 @@ describe('Sign', () => {
         fee,
         amount,
         closeRemainderTo,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         genesisID,
@@ -840,8 +840,8 @@ describe('Sign', () => {
     it('should be able to use helper to make a keyreg transaction', () => {
       const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const fee = 10;
-      const firstRound = 51;
-      const lastRound = 61;
+      const firstValid = 51;
+      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
@@ -855,8 +855,8 @@ describe('Sign', () => {
       const o = {
         from,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         voteKey,
@@ -872,8 +872,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
@@ -893,8 +893,8 @@ describe('Sign', () => {
     it('should be able to use helper to make an offline keyreg transaction', () => {
       const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const fee = 10;
-      const firstRound = 51;
-      const lastRound = 61;
+      const firstValid = 51;
+      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
@@ -908,8 +908,8 @@ describe('Sign', () => {
       const o = {
         from,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         voteKey,
@@ -939,8 +939,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
@@ -960,8 +960,8 @@ describe('Sign', () => {
     it('should be able to use helper to make a nonparticipating keyreg transaction', () => {
       const from = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const fee = 10;
-      const firstRound = 51;
-      const lastRound = 61;
+      const firstValid = 51;
+      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const genesisID = '';
@@ -976,8 +976,8 @@ describe('Sign', () => {
       const o = {
         from,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         nonParticipation,
@@ -1005,8 +1005,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
@@ -1041,16 +1041,16 @@ describe('Sign', () => {
         algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         assetTotal: total,
@@ -1072,8 +1072,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParams(
@@ -1113,16 +1113,16 @@ describe('Sign', () => {
         algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         assetTotal: total,
@@ -1144,8 +1144,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParams(
@@ -1185,16 +1185,16 @@ describe('Sign', () => {
         algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         assetTotal: total,
@@ -1234,16 +1234,16 @@ describe('Sign', () => {
       const assetName = 'testcoin';
       const assetURL = 'testURL';
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const txnTemplate = {
         from: addr,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         note,
         genesisHash,
         assetTotal: total,
@@ -1328,16 +1328,16 @@ describe('Sign', () => {
       const freeze = addr;
       const clawback = addr;
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisHash,
         genesisID,
         assetIndex,
@@ -1353,8 +1353,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makeAssetConfigTxnWithSuggestedParams(
@@ -1382,16 +1382,16 @@ describe('Sign', () => {
       let freeze;
       const clawback = addr;
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       let threw = false;
       try {
         const suggestedParams = {
           genesisHash,
           genesisID,
-          firstRound,
-          lastRound,
+          firstValid,
+          lastValid,
           fee,
         };
         algosdk.makeAssetConfigTxnWithSuggestedParams(
@@ -1416,16 +1416,16 @@ describe('Sign', () => {
       const assetIndex = 1234;
       const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
       const o = {
         from: addr,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisHash,
         genesisID,
         assetIndex,
@@ -1437,8 +1437,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const actualTxn = algosdk.makeAssetDestroyTxnWithSuggestedParams(
@@ -1462,8 +1462,8 @@ describe('Sign', () => {
       const amount = 100;
       const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
@@ -1473,8 +1473,8 @@ describe('Sign', () => {
         to: recipient,
         amount,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisHash,
         genesisID,
         assetIndex,
@@ -1487,8 +1487,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
 
@@ -1513,8 +1513,8 @@ describe('Sign', () => {
       const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const freezeTarget = addr;
       const genesisID = '';
-      const firstRound = 322575;
-      const lastRound = 322575;
+      const firstValid = 322575;
+      const lastValid = 322575;
       const freezeState = true;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
@@ -1522,8 +1522,8 @@ describe('Sign', () => {
       const o = {
         from: addr,
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisHash,
         type: 'afrz',
         freezeAccount: freezeTarget,
@@ -1537,8 +1537,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
 
@@ -1557,8 +1557,8 @@ describe('Sign', () => {
       const suggestedParams = {
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         genesisID: '',
-        firstRound: 322575,
-        lastRound: 322575 + 1000,
+        firstValid: 322575,
+        lastValid: 322575 + 1000,
         fee: 1000,
         flatFee: true,
       };
@@ -1578,8 +1578,8 @@ describe('Sign', () => {
         fee: 1000,
         flatFee: true,
         amount: 0,
-        firstRound: 322575,
-        lastRound: 322575 + 1000,
+        firstValid: 322575,
+        lastValid: 322575 + 1000,
         genesisID: '',
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         type: 'pay',

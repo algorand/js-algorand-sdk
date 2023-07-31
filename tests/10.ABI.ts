@@ -490,8 +490,8 @@ describe('ABI encoding', () => {
     const sender = 'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
     const sp = {
       fee: 1000,
-      firstRound: 1,
-      lastRound: 1001,
+      firstValid: 1,
+      lastValid: 1001,
       genesisID: 'gi',
       genesisHash: 'gh',
     };

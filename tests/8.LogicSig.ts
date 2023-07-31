@@ -427,8 +427,8 @@ describe('signLogicSigTransaction', () => {
       suggestedParams: {
         flatFee: true,
         fee: 217000,
-        firstRound: 972508,
-        lastRound: 973508,
+        firstValid: 972508,
+        lastValid: 973508,
         genesisID: 'testnet-v31.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       },
@@ -499,8 +499,8 @@ describe('signLogicSigTransaction', () => {
           suggestedParams: {
             flatFee: true,
             fee: 217000,
-            firstRound: 972508,
-            lastRound: 973508,
+            firstValid: 972508,
+            lastValid: 973508,
             genesisID: 'testnet-v31.0',
             genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
           },
@@ -654,8 +654,8 @@ describe('signLogicSigTransaction', () => {
     const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
     const fee = 10;
     const amount = 847;
-    const firstRound = 51;
-    const lastRound = 61;
+    const firstValid = 51;
+    const lastValid = 61;
     const note = new Uint8Array([123, 12, 200]);
     const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
     const genesisID = '';
@@ -668,8 +668,8 @@ describe('signLogicSigTransaction', () => {
       fee,
       amount,
       closeRemainderTo,
-      firstRound,
-      lastRound,
+      firstValid,
+      lastValid,
       note,
       genesisHash,
       genesisID,

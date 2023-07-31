@@ -16,8 +16,8 @@ type TransactionBaseWithoutSuggestedParams = Pick<
   TransactionParams,
   | 'flatFee'
   | 'fee'
-  | 'firstRound'
-  | 'lastRound'
+  | 'firstValid'
+  | 'lastValid'
   | 'genesisHash'
   | 'from'
   | 'type'
