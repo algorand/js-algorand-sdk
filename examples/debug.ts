@@ -49,8 +49,7 @@ async function main() {
   // example: DEBUG_DRYRUN_SUBMIT
   const dryrunResponse = await algodClient.dryrun(dryrunRequest).do();
   dryrunResponse.txns.forEach((txn) => {
-    console.log('Txn:', txn.txn);
-    console.log('Txn Results:', txn.txnresults);
+    console.log('Txn:', txn);
   });
   // example: DEBUG_DRYRUN_SUBMIT
 }
