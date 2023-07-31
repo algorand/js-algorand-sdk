@@ -45,7 +45,7 @@ async function main() {
     createTxn.txID().toString(),
     3
   );
-  const appIndex = response['application-index'];
+  const appIndex = Number(response.applicationIndex);
 
   // example: ATC_CREATE
   const atc = new algosdk.AtomicTransactionComposer();

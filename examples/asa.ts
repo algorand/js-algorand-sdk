@@ -39,7 +39,7 @@ async function main() {
     3
   );
 
-  const assetIndex = result['asset-index'];
+  const assetIndex = Number(result.assetIndex);
   console.log(`Asset ID created: ${assetIndex}`);
   // example: ASSET_CREATE
 
@@ -79,7 +79,7 @@ async function main() {
     txn.txID().toString(),
     3
   );
-  console.log(`Result confirmed in round: ${configResult['confirmed-round']}`);
+  console.log(`Result confirmed in round: ${configResult.confirmedRound}`);
   // example: ASSET_CONFIG
 
   const receiver = accounts[2];
