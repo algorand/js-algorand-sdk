@@ -27,7 +27,7 @@ async function main() {
   // create transaction
   const onlineKeyreg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     {
-      from: addr,
+      sender: addr,
       voteKey,
       selectionKey,
       stateProofKey,
@@ -47,7 +47,7 @@ async function main() {
   // create keyreg transaction to take this account offline
   const offlineKeyReg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     {
-      from: addr,
+      sender: addr,
       suggestedParams,
       nonParticipation: true,
     }

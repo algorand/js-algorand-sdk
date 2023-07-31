@@ -31,11 +31,11 @@ export function signTransaction(
   txn: txnBuilder.TransactionLike,
   sk: Uint8Array
 ) {
-  if (typeof txn.from === 'undefined') {
+  if (typeof txn.sender === 'undefined') {
     // Get pk from sk if no sender specified
     const key = nacl.keyPairFromSecretKey(sk);
     // eslint-disable-next-line no-param-reassign
-    txn.from = address.encodeAddress(key.publicKey);
+    txn.sender = address.encodeAddress(key.publicKey);
   }
   const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
 

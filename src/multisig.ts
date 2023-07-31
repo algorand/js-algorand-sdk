@@ -382,7 +382,7 @@ export function signMultisigTransaction(
   });
   if (!Object.prototype.hasOwnProperty.call(txn, 'from')) {
     // eslint-disable-next-line no-param-reassign
-    txn.from = expectedFromRaw;
+    txn.sender = expectedFromRaw;
   }
   // build pks for partialSign
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
