@@ -504,7 +504,7 @@ export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
- * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
+ * @param assetFrozen - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
@@ -520,7 +520,7 @@ export function makeAssetFreezeTxnWithSuggestedParams(
   note: AssetFreezeTxn['note'],
   assetIndex: AssetFreezeTxn['assetIndex'],
   freezeTarget: AssetFreezeTxn['freezeAccount'],
-  freezeState: AssetFreezeTxn['freezeState'],
+  assetFrozen: AssetFreezeTxn['assetFrozen'],
   suggestedParams: MustHaveSuggestedParams<AssetFreezeTxn>['suggestedParams'],
   rekeyTo?: AssetFreezeTxn['reKeyTo']
 ) {
@@ -529,7 +529,7 @@ export function makeAssetFreezeTxnWithSuggestedParams(
     type: TransactionType.afrz,
     freezeAccount: freezeTarget,
     assetIndex,
-    freezeState,
+    assetFrozen,
     note,
     suggestedParams,
     reKeyTo: rekeyTo,
@@ -552,7 +552,7 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
       | 'note'
       | 'assetIndex'
       | 'freezeTarget'
-      | 'freezeState'
+      | 'assetFrozen'
       | 'suggestedParams'
       | 'rekeyTo'
     >
@@ -563,7 +563,7 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
     o.note,
     o.assetIndex,
     o.freezeTarget,
-    o.freezeState,
+    o.assetFrozen,
     o.suggestedParams,
     o.rekeyTo
   );

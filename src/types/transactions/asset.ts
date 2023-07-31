@@ -72,7 +72,7 @@ export type AssetDestroyTransaction = ConstructTransaction<
 
 type SpecificParametersForFreeze = Pick<
   TransactionParams,
-  'assetIndex' | 'freezeAccount' | 'freezeState'
+  'assetIndex' | 'freezeAccount' | 'assetFrozen'
 >;
 
 interface OverwritesForFreeze {

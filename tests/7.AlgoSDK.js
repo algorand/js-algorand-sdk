@@ -705,7 +705,7 @@ describe('Algosdk (AKA end to end)', () => {
         type: 'afrz',
         freezeAccount: addr,
         assetIndex: 1,
-        freezeState: true,
+        assetFrozen: true,
       };
 
       const mnem =

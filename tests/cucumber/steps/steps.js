@@ -1386,7 +1386,7 @@ module.exports = function getSteps(options) {
         type: 'afrz',
         freezeAccount: this.accounts[1],
         assetIndex: parseInt(this.assetTestFixture.index),
-        freezeState: false,
+        assetFrozen: false,
         note: this.note,
       };
       // update vars used by other helpers
@@ -1416,7 +1416,7 @@ module.exports = function getSteps(options) {
         type: 'afrz',
         freezeAccount: this.accounts[1],
         assetIndex: parseInt(this.assetTestFixture.index),
-        freezeState: true,
+        assetFrozen: true,
         note: this.note,
       };
       // update vars used by other helpers

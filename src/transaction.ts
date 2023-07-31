@@ -93,7 +93,7 @@ interface TransactionStorageStructure
   assetURL: string;
   assetMetadataHash?: string | Uint8Array;
   freezeAccount: string | Address;
-  freezeState: boolean;
+  assetFrozen: boolean;
   assetRevocationTarget?: string | Address;
   appIndex: number;
   appOnComplete: OnApplicationComplete;
@@ -183,7 +183,7 @@ export class Transaction implements TransactionStorageStructure {
   assetURL: string;
   assetMetadataHash?: Uint8Array;
   freezeAccount: Address;
-  freezeState: boolean;
+  assetFrozen: boolean;
   assetRevocationTarget?: Address;
   appIndex: number;
   appOnComplete: OnApplicationComplete;
@@ -783,7 +783,7 @@ export class Transaction implements TransactionStorageStructure {
         lx: this.lease,
         grp: this.group,
         faid: this.assetIndex,
-        afrz: this.freezeState,
+        afrz: this.assetFrozen,
       };
       if (this.freezeAccount !== undefined)
         txn.fadd = this.freezeAccount.publicKey;
@@ -1031,7 +1031,7 @@ export class Transaction implements TransactionStorageStructure {
       );
     } else if (txnForEnc.type === 'afrz') {
       if (txnForEnc.afrz !== undefined) {
-        txn.freezeState = txnForEnc.afrz;
+        txn.assetFrozen = txnForEnc.afrz;
       }
       if (txnForEnc.faid !== undefined) {
         txn.assetIndex = txnForEnc.faid;

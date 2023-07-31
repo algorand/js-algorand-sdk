@@ -235,7 +235,7 @@ export interface EncodedTransaction {
   faid?: number;
 
   /**
-   * freezeState
+   * assetFrozen
    */
   afrz?: boolean;
 

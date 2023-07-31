@@ -311,7 +311,7 @@ export interface TransactionParams {
   /**
    * true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
    */
-  freezeState: boolean;
+  assetFrozen: boolean;
 
   /**
    * String representation of Algorand address – if provided, and if "from" is

@@ -598,7 +598,7 @@ describe('Sign', () => {
         type: 'afrz',
         freezeAccount: address,
         assetIndex: 1,
-        freezeState: true,
+        assetFrozen: true,
       };
 
       const expectedTxn = new algosdk.Transaction(o);
@@ -622,7 +622,7 @@ describe('Sign', () => {
         type: 'afrz',
         freezeAccount: address,
         assetIndex: 1,
-        freezeState: true,
+        assetFrozen: true,
       };
 
       const expectedTxn = new algosdk.Transaction(o);
@@ -1515,7 +1515,7 @@ describe('Sign', () => {
       const genesisID = '';
       const firstValid = 322575;
       const lastValid = 322575;
-      const freezeState = true;
+      const assetFrozen = true;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
@@ -1528,7 +1528,7 @@ describe('Sign', () => {
         type: 'afrz',
         freezeAccount: freezeTarget,
         assetIndex,
-        freezeState,
+        assetFrozen,
         note,
         genesisID,
         reKeyTo: rekeyTo,
@@ -1547,7 +1547,7 @@ describe('Sign', () => {
         note,
         assetIndex,
         freezeTarget,
-        freezeState,
+        assetFrozen,
         suggestedParams,
         rekeyTo
       );

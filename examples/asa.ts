@@ -118,8 +118,8 @@ async function main() {
     from: manager.addr,
     suggestedParams,
     assetIndex,
-    // freezeState: false would unfreeze the account's asset holding
-    freezeState: true,
+    // assetFrozen: false would unfreeze the account's asset holding
+    assetFrozen: true,
     // freezeTarget is the account that is being frozen or unfrozen
     freezeTarget: receiver.addr,
   });
