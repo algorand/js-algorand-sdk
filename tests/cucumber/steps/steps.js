@@ -4879,7 +4879,7 @@ module.exports = function getSteps(options) {
         if (avmType === 'uint64') {
           assert.equal(avmValue.type, 2);
           assert.ok(avmValue.uint);
-          assert.equal(avmValue.uint, Number(value));
+          assert.equal(avmValue.uint, BigInt(value));
         } else if (avmType === 'bytes') {
           assert.equal(avmValue.type, 1);
           assert.ok(avmValue.bytes);
