@@ -180,6 +180,12 @@ module.exports = function getSteps(options) {
     return boxRefArray;
   }
 
+  /*
+  doRaw and the associated functions are used to allow test servers to return unexpected response data in cases where
+  we're not testing the functionality of the response. It is the responsibility of the mocking step to set the doRaw
+  variable to true if it intends to send bad responses.
+  By default, we you `do` which will throw an exception if malformed response data is returned.
+   */
   let doRaw = false;
 
   function doOrDoRaw(req) {
