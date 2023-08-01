@@ -4833,15 +4833,15 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    '{int}th unit in the {string} trace at txn-groups path {string} should add to stack {string}, pop from stack by {int}, write to {string} scratch slot by {string}.',
+    '{int}th unit in the {string} trace at txn-groups path {string} should add value {string} to stack, pop {int} values from stack, write value {string} to scratch slot {string}.',
     async function (
       unitIndex,
       traceType,
       txnGroupPath,
       stackAddition,
       stackPopCount,
-      slotID,
-      scratchWriteContent
+      scratchWriteContent,
+      slotID
     ) {
       const unitFinder = (txnGroupPathStr, traceTypeStr, unitIndexInt) => {
         const txnGroupPathSplit = txnGroupPathStr
@@ -4883,14 +4883,23 @@ module.exports = function getSteps(options) {
         } else if (avmType === 'bytes') {
           assert.equal(avmValue.type, 1);
           assert.ok(avmValue.bytes);
-          assert.equal(avmValue.bytes, value);
+          assert.deepEqual(
+            avmValue.bytes,
+            makeUint8Array(Buffer.from(value, 'base64'))
+          );
+        } else {
+          assert.fail('avmType should be either uint64 or bytes');
         }
       };
 
       assert.ok(this.simulateResponse);
 
       const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
-      assert.equal(changeUnit.stackPopCount, stackPopCount);
+      if (stackPopCount > 0) {
+        assert.equal(changeUnit.stackPopCount, stackPopCount);
+      } else {
+        assert.ok(!changeUnit.stackPopCount);
+      }
 
       const stackAdditionSplit = stackAddition
         .split(',')
@@ -4908,12 +4917,12 @@ module.exports = function getSteps(options) {
         assert.equal(stackAdditionSplit.length, 0);
       }
 
-      if (slotID !== 'none') {
+      if (slotID !== '') {
         assert.equal(changeUnit.scratchChanges.length, 1);
 
         const slotIDint = Number(slotID);
         assert.equal(changeUnit.scratchChanges[0].slot, slotIDint);
-        assert.notEqual(scratchWriteContent, 'none');
+        assert.notEqual(scratchWriteContent, '');
 
         const newValue = changeUnit.scratchChanges[0]?.newValue;
         assert.ok(newValue);
@@ -4921,7 +4930,7 @@ module.exports = function getSteps(options) {
         avmValueCheck(scratchWriteContent, newValue);
       } else {
         assert.ok(!changeUnit.scratchChanges);
-        assert.equal(scratchWriteContent, 'none');
+        assert.equal(scratchWriteContent, '');
       }
     }
   );
