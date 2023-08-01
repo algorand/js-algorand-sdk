@@ -138,8 +138,8 @@ async function main() {
     {
       sender: manager.addr,
       receiver: creator.addr,
-      // revocationTarget is the account that is being clawed back from
-      revocationTarget: receiver.addr,
+      // assetSender is the account that is being clawed back from
+      assetSender: receiver.addr,
       suggestedParams,
       assetIndex,
       amount: 1,

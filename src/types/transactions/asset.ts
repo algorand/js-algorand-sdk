@@ -93,7 +93,7 @@ type SpecificParametersForTransfer = Pick<
   | 'sender'
   | 'receiver'
   | 'closeRemainderTo'
-  | 'assetRevocationTarget'
+  | 'assetSender'
   | 'amount'
   | 'assetIndex'
 >;

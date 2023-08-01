@@ -776,7 +776,7 @@ describe('Algosdk (AKA end to end)', () => {
         type: 'axfer',
         sender: addr,
         receiver: addr,
-        assetRevocationTarget: addr,
+        assetSender: addr,
         amount: 1,
         fee: 10,
         firstValid: 322575,

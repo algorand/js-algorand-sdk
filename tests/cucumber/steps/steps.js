@@ -1441,7 +1441,7 @@ module.exports = function getSteps(options) {
       this.assetTestFixture.lastTxn = {
         sender: this.assetTestFixture.creator,
         receiver: this.assetTestFixture.creator,
-        assetRevocationTarget: this.accounts[1],
+        assetSender: this.accounts[1],
         amount: parseInt(amount),
         fee: this.fee,
         firstValid: this.fv,

@@ -57,7 +57,7 @@ interface TransactionStorageStructure
     | 'assetReserve'
     | 'assetFreeze'
     | 'assetClawback'
-    | 'assetRevocationTarget'
+    | 'assetSender'
     | 'freezeAccount'
     | 'appAccounts'
     | 'suggestedParams'
@@ -94,7 +94,7 @@ interface TransactionStorageStructure
   assetMetadataHash?: string | Uint8Array;
   freezeAccount: string | Address;
   assetFrozen: boolean;
-  assetRevocationTarget?: string | Address;
+  assetSender?: string | Address;
   appIndex: number;
   appOnComplete: OnApplicationComplete;
   appLocalInts: number;
@@ -184,7 +184,7 @@ export class Transaction implements TransactionStorageStructure {
   assetMetadataHash?: Uint8Array;
   freezeAccount: Address;
   assetFrozen: boolean;
-  assetRevocationTarget?: Address;
+  assetSender?: Address;
   appIndex: number;
   appOnComplete: OnApplicationComplete;
   appLocalInts: number;
@@ -274,10 +274,8 @@ export class Transaction implements TransactionStorageStructure {
       txn.assetFreeze = address.decodeAddress(txn.assetFreeze as string);
     if (txn.assetClawback !== undefined)
       txn.assetClawback = address.decodeAddress(txn.assetClawback as string);
-    if (txn.assetRevocationTarget !== undefined)
-      txn.assetRevocationTarget = address.decodeAddress(
-        txn.assetRevocationTarget as string
-      );
+    if (txn.assetSender !== undefined)
+      txn.assetSender = address.decodeAddress(txn.assetSender as string);
     if (txn.freezeAccount !== undefined)
       txn.freezeAccount = address.decodeAddress(txn.freezeAccount as string);
     if (txn.reKeyTo !== undefined)
@@ -751,8 +749,7 @@ export class Transaction implements TransactionStorageStructure {
       };
       if (this.closeRemainderTo !== undefined)
         txn.aclose = this.closeRemainderTo.publicKey;
-      if (this.assetRevocationTarget !== undefined)
-        txn.asnd = this.assetRevocationTarget.publicKey;
+      if (this.assetSender !== undefined) txn.asnd = this.assetSender.publicKey;
       // allowed zero values
       if (!txn.note.length) delete txn.note;
       if (!txn.lx.length) delete txn.lx;
@@ -1023,7 +1020,7 @@ export class Transaction implements TransactionStorageStructure {
         );
       }
       if (txnForEnc.asnd !== undefined) {
-        txn.assetRevocationTarget = address.decodeAddress(
+        txn.assetSender = address.decodeAddress(
           address.encodeAddress(new Uint8Array(txnForEnc.asnd))
         );
       }
@@ -1252,9 +1249,9 @@ export class Transaction implements TransactionStorageStructure {
       forPrinting.assetClawback = address.encodeAddress(
         (forPrinting.assetClawback as Address).publicKey
       );
-    if (forPrinting.assetRevocationTarget !== undefined)
-      forPrinting.assetRevocationTarget = address.encodeAddress(
-        (forPrinting.assetRevocationTarget as Address).publicKey
+    if (forPrinting.assetSender !== undefined)
+      forPrinting.assetSender = address.encodeAddress(
+        (forPrinting.assetSender as Address).publicKey
       );
     if (forPrinting.reKeyTo !== undefined)
       forPrinting.reKeyTo = address.encodeAddress(

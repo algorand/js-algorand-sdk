@@ -537,7 +537,7 @@ describe('Sign', () => {
         lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1234,
-        assetRevocationTarget: address,
+        assetSender: address,
         closeRemainderTo: address,
       };
       const expectedTxn = new algosdk.Transaction(o);
@@ -1465,7 +1465,7 @@ describe('Sign', () => {
       const fee = 10;
       const sender = addr;
       const recipient = addr;
-      const revocationTarget = addr;
+      const assetSender = addr;
       const closeRemainderTo = addr;
       const assetIndex = 1234;
       const amount = 100;
@@ -1488,7 +1488,7 @@ describe('Sign', () => {
         genesisID,
         assetIndex,
         note,
-        assetRevocationTarget: revocationTarget,
+        assetSender,
         closeRemainderTo,
         reKeyTo: rekeyTo,
       };
@@ -1505,7 +1505,7 @@ describe('Sign', () => {
         sender,
         recipient,
         closeRemainderTo,
-        revocationTarget,
+        assetSender,
         amount,
         note,
         assetIndex,

@@ -576,8 +576,8 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
  * @param receiver - string representation of Algorand address of asset recipient
  * @param closeRemainderTo - optional - string representation of Algorand address - if provided,
  * send all remaining assets after transfer to the "closeRemainderTo" address and close "sender"'s asset holdings
- * @param revocationTarget - optional - string representation of Algorand address - if provided,
- * and if "sender" is the asset's revocation manager, then deduct from "revocationTarget" rather than "sender"
+ * @param assetSender - optional - string representation of Algorand address - if provided,
+ * and if "sender" is the asset's revocation manager, then deduct from "assetSender" rather than "sender"
  * @param amount - integer amount of assets to send
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
@@ -597,7 +597,7 @@ export function makeAssetTransferTxnWithSuggestedParams(
   sender: AssetTransferTxn['sender'],
   receiver: AssetTransferTxn['receiver'],
   closeRemainderTo: AssetTransferTxn['closeRemainderTo'],
-  revocationTarget: AssetTransferTxn['assetRevocationTarget'],
+  assetSender: AssetTransferTxn['assetSender'],
   amount: AssetTransferTxn['amount'],
   note: AssetTransferTxn['note'],
   assetIndex: AssetTransferTxn['assetIndex'],
@@ -612,7 +612,7 @@ export function makeAssetTransferTxnWithSuggestedParams(
     suggestedParams,
     assetIndex,
     note,
-    assetRevocationTarget: revocationTarget,
+    assetSender,
     closeRemainderTo,
     reKeyTo: rekeyTo,
   };
@@ -626,14 +626,14 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
       RenameProperties<
         MustHaveSuggestedParams<AssetTransferTxn>,
         {
-          assetRevocationTarget: 'revocationTarget';
+          assetSender: 'assetSender';
           reKeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
       | 'receiver'
       | 'closeRemainderTo'
-      | 'revocationTarget'
+      | 'assetSender'
       | 'amount'
       | 'note'
       | 'assetIndex'
@@ -646,7 +646,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
     o.sender,
     o.receiver,
     o.closeRemainderTo,
-    o.revocationTarget,
+    o.assetSender,
     o.amount,
     o.note,
     o.assetIndex,

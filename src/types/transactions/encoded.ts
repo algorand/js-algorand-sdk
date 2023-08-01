@@ -245,7 +245,7 @@ export interface EncodedTransaction {
   fadd?: Uint8Array;
 
   /**
-   * assetRevocationTarget
+   * assetSender
    */
   asnd?: Uint8Array;
 
