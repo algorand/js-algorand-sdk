@@ -4873,17 +4873,17 @@ module.exports = function getSteps(options) {
         return changeUnit;
       };
 
-      const avmValueCheck = (scratchWriteStr, avmValue) => {
-        const [scratchType, writeContent] = scratchWriteStr.split(',');
+      const avmValueCheck = (stringLiteral, avmValue) => {
+        const [avmType, value] = stringLiteral.split(':');
 
-        if (scratchType === 'uint64') {
+        if (avmType === 'uint64') {
           assert.equal(avmValue.type, 2);
           assert.ok(avmValue.uint);
-          assert.equal(avmValue.uint, Number(writeContent));
-        } else if (scratchType === 'bytes') {
+          assert.equal(avmValue.uint, Number(value));
+        } else if (avmType === 'bytes') {
           assert.equal(avmValue.type, 1);
           assert.ok(avmValue.bytes);
-          assert.equal(avmValue.bytes, writeContent);
+          assert.equal(avmValue.bytes, value);
         }
       };
 
