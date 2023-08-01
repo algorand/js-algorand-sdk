@@ -7,7 +7,11 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
   TransactionGroupLedgerStateDeltasForRoundResponse,
   Record<string, any>
 > {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: bigint) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private round: number | bigint
+  ) {
     super(c, intDecoding);
     this.round = round;
     this.query = { format: 'json' };

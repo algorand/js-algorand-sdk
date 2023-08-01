@@ -6,9 +6,9 @@ import HTTPClient from '../../client';
  * block gets the block info for the given round. this call may block
  */
 export default class Block extends JSONRequest {
-  private round: number;
+  private round: number | bigint;
 
-  constructor(c: HTTPClient, roundNumber: number) {
+  constructor(c: HTTPClient, roundNumber: number | bigint) {
     super(c);
     if (!Number.isInteger(roundNumber))
       throw Error('roundNumber should be an integer');

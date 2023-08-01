@@ -4,7 +4,11 @@ import IntDecoding from '../../../types/intDecoding';
 import { Application } from './models/types';
 
 export default class GetApplicationByID extends JSONRequest<Application> {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private index: number | bigint
+  ) {
     super(c, intDecoding);
     this.index = index;
   }

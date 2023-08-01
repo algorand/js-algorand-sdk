@@ -8,7 +8,7 @@ export default class AccountApplicationInformation extends JSONRequest<AccountAp
     c: HTTPClient,
     intDecoding: IntDecoding,
     private account: string,
-    private applicationID: number
+    private applicationID: number | bigint
   ) {
     super(c, intDecoding);
     this.account = account;

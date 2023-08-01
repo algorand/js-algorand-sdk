@@ -4,7 +4,11 @@ import IntDecoding from '../../../types/intDecoding';
 import { Asset } from './models/types';
 
 export default class GetAssetByID extends JSONRequest<Asset> {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private index: number | bigint
+  ) {
     super(c, intDecoding);
     this.index = index;
   }

@@ -171,7 +171,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  accountAssetInformation(account: string, index: number) {
+  accountAssetInformation(account: string, index: number | bigint) {
     return new AccountAssetInformation(
       this.c,
       this.intDecoding,
@@ -195,7 +195,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  accountApplicationInformation(account: string, index: number) {
+  accountApplicationInformation(account: string, index: number | bigint) {
     return new AccountApplicationInformation(
       this.c,
       this.intDecoding,
@@ -217,7 +217,7 @@ export default class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  block(roundNumber: number) {
+  block(roundNumber: number | bigint) {
     return new Block(this.c, roundNumber);
   }
 
@@ -234,7 +234,7 @@ export default class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  getBlockHash(roundNumber: number) {
+  getBlockHash(roundNumber: number | bigint) {
     return new GetBlockHash(this.c, this.intDecoding, roundNumber);
   }
 
@@ -346,7 +346,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round - The number of the round to wait for.
    * @category GET
    */
-  statusAfterBlock(round: number) {
+  statusAfterBlock(round: number | bigint) {
     return new StatusAfterBlock(this.c, this.intDecoding, round);
   }
 
@@ -458,7 +458,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  getAssetByID(index: number) {
+  getAssetByID(index: number | bigint) {
     return new GetAssetByID(this.c, this.intDecoding, index);
   }
 
@@ -476,7 +476,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationByID(index: number) {
+  getApplicationByID(index: number | bigint) {
     return new GetApplicationByID(this.c, this.intDecoding, index);
   }
 
@@ -495,7 +495,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationBoxByName(index: number, boxName: Uint8Array) {
+  getApplicationBoxByName(index: number | bigint, boxName: Uint8Array) {
     return new GetApplicationBoxByName(
       this.c,
       this.intDecoding,
@@ -518,7 +518,7 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationBoxes(index: number) {
+  getApplicationBoxes(index: number | bigint) {
     return new GetApplicationBoxes(this.c, this.intDecoding, index);
   }
 
@@ -552,7 +552,7 @@ export default class AlgodClient extends ServiceClient {
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
    */
-  getTransactionProof(round: number, txID: string) {
+  getTransactionProof(round: number | bigint, txID: string) {
     return new GetTransactionProof(this.c, this.intDecoding, round, txID);
   }
 
@@ -568,7 +568,7 @@ export default class AlgodClient extends ServiceClient {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2blocksroundlightheaderproof)
    * @param round
    */
-  getLightBlockHeaderProof(round: number) {
+  getLightBlockHeaderProof(round: number | bigint) {
     return new LightBlockHeaderProof(this.c, this.intDecoding, round);
   }
 
@@ -584,7 +584,7 @@ export default class AlgodClient extends ServiceClient {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2stateproofsround)
    * @param round
    */
-  getStateProof(round: number) {
+  getStateProof(round: number | bigint) {
     return new StateProof(this.c, this.intDecoding, round);
   }
 
@@ -706,7 +706,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round
    * @category POST
    */
-  setSyncRound(round: number) {
+  setSyncRound(round: number | bigint) {
     return new SetSyncRound(this.c, this.intDecoding, round);
   }
 
@@ -789,7 +789,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getLedgerStateDelta(round: bigint) {
+  getLedgerStateDelta(round: number | bigint) {
     return new GetLedgerStateDelta(this.c, this.intDecoding, round);
   }
 
@@ -806,7 +806,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getTransactionGroupLedgerStateDeltasForRound(round: bigint) {
+  getTransactionGroupLedgerStateDeltasForRound(round: number | bigint) {
     return new GetTransactionGroupLedgerStateDeltasForRound(
       this.c,
       this.intDecoding,

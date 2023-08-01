@@ -4,9 +4,13 @@ import IntDecoding from '../../../types/intDecoding';
 import { BlockHashResponse } from './models/types';
 
 export default class GetBlockHash extends JSONRequest<BlockHashResponse> {
-  round: number;
+  round: number | bigint;
 
-  constructor(c: HTTPClient, intDecoding: IntDecoding, roundNumber: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    roundNumber: number | bigint
+  ) {
     super(c, intDecoding);
     if (!Number.isInteger(roundNumber))
       throw Error('roundNumber should be an integer');

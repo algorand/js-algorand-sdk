@@ -4,7 +4,11 @@ import IntDecoding from '../../../types/intDecoding';
 import { LightBlockHeaderProof as LBHP } from './models/types';
 
 export default class LightBlockHeaderProof extends JSONRequest<LBHP> {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private round: number | bigint
+  ) {
     super(c, intDecoding);
 
     this.round = round;
