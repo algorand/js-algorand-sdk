@@ -2018,17 +2018,17 @@ module.exports = function getSteps(options) {
         .txType(txType)
         .sigType(sigType)
         .txid(txid)
-        .round(round)
         .minRound(minRound)
         .maxRound(maxRound)
         .limit(limit)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
+        .excludeCloseTo(excludeCloseTo)
+        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .beforeTime(beforeTime)
+        .afterTime(afterTime)
         .address(address)
         .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseTo)
         .do();
     }
   );
@@ -2068,18 +2068,18 @@ module.exports = function getSteps(options) {
         .txType(txType)
         .sigType(sigType)
         .txid(txid)
-        .round(round)
         .minRound(minRound)
         .maxRound(maxRound)
         .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
         .address(address)
-        .addressRole(addressRole)
         .excludeCloseTo(excludeCloseTo)
         .rekeyTo(rekeyTo)
+        .round(round)
+        .currencyGreaterThan(currencyGreater)
+        .currencyLessThan(currencyLesser)
+        .addressRole(addressRole)
         .do();
     }
   );
@@ -2108,15 +2108,15 @@ module.exports = function getSteps(options) {
         .txType(txType)
         .sigType(sigType)
         .txid(txid)
-        .round(round)
         .minRound(minRound)
         .maxRound(maxRound)
         .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
+        .round(round)
+        .assetID(assetIndex)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .assetID(assetIndex)
         .do();
     }
   );
@@ -2150,16 +2150,16 @@ module.exports = function getSteps(options) {
         .txType(txType)
         .sigType(sigType)
         .txid(txid)
-        .round(round)
         .minRound(minRound)
         .maxRound(maxRound)
         .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
+        .round(round)
         .assetID(assetIndex)
         .rekeyTo(rekeyTo)
+        .currencyGreaterThan(currencyGreater)
+        .currencyLessThan(currencyLesser)
         .do();
     }
   );
@@ -2242,9 +2242,9 @@ module.exports = function getSteps(options) {
         .searchAccounts()
         .assetID(assetIndex)
         .limit(limit)
+        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .round(round)
         .do();
     }
   );
@@ -2263,9 +2263,9 @@ module.exports = function getSteps(options) {
         .searchAccounts()
         .assetID(assetIndex)
         .limit(limit)
+        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .round(round)
         .authAddr(authAddress)
         .do();
     }
@@ -2316,17 +2316,17 @@ module.exports = function getSteps(options) {
         .txType(txType)
         .sigType(sigType)
         .txid(txid)
-        .round(round)
         .minRound(minRound)
         .maxRound(maxRound)
+        .addressRole(addressRole)
         .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
+        .assetID(assetIndex)
+        .excludeCloseTo(excludeCloseTo)
+        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .assetID(assetIndex)
-        .addressRole(addressRole)
-        .excludeCloseTo(excludeCloseTo)
         .do();
     }
   );
@@ -2367,18 +2367,18 @@ module.exports = function getSteps(options) {
         .txType(txType)
         .sigType(sigType)
         .txid(txid)
-        .round(round)
         .minRound(minRound)
         .maxRound(maxRound)
         .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
         .assetID(assetIndex)
-        .addressRole(addressRole)
         .excludeCloseTo(excludeCloseTo)
         .rekeyTo(rekeyTo)
+        .round(round)
+        .currencyGreaterThan(currencyGreater)
+        .currencyLessThan(currencyLesser)
+        .addressRole(addressRole)
         .do();
     }
   );

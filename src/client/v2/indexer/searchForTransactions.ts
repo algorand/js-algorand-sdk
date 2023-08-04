@@ -243,70 +243,6 @@ export default class SearchForTransactions extends JSONRequest {
   }
 
   /**
-   * Filtered results should have an amount greater than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units.
-   *
-   * #### Example 1
-   * ```typescript
-   * const minBalance = 300000;
-   * const txns = await indexerClient
-   *        .searchForTransactions()
-   *        .currencyGreaterThan(minBalance - 1)
-   *        .do();
-   * ```
-   *
-   * #### Example 2
-   * ```typescript
-   * const assetID = 163650;
-   * const minBalance = 300000;
-   * const txns = await indexerClient
-   *        .searchForTransactions()
-   *        .assetID(assetID)
-   *        .currencyGreaterThan(minBalance - 1)
-   *        .do();
-   * ```
-   * @remarks
-   * If you are looking for transactions with the currency amount greater than 0, simply construct the query without `currencyGreaterThan` because it doesn't accept `-1`, and passing the `0` `currency-greater-than` value would exclude transactions with a 0 amount.
-   *
-   * @param greater
-   * @category query
-   */
-  currencyGreaterThan(greater: number) {
-    this.query['currency-greater-than'] = greater;
-    return this;
-  }
-
-  /**
-   * Filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units.
-   *
-   * #### Example 1
-   * ```typescript
-   * const maxBalance = 500000;
-   * const txns = await indexerClient
-   *        .searchForTransactions()
-   *        .currencyLessThan(maxBalance + 1)
-   *        .do();
-   * ```
-   *
-   * #### Example 2
-   * ```typescript
-   * const assetID = 163650;
-   * const maxBalance = 500000;
-   * const txns = await indexerClient
-   *        .searchForTransactions()
-   *        .assetID(assetID)
-   *        .currencyLessThan(maxBalance + 1)
-   *        .do();
-   * ```
-   *
-   * @param lesser
-   * @category query
-   */
-  currencyLessThan(lesser: number) {
-    this.query['currency-less-than'] = lesser;
-    return this;
-  }
-
-  /**
    * Combined with address, defines what address to filter on, as string.
    *
    * #### Example
@@ -430,6 +366,71 @@ export default class SearchForTransactions extends JSONRequest {
    */
   applicationID(applicationID: number) {
     this.query['application-id'] = applicationID;
+    return this;
+  }
+
+  /**
+   * Filtered results should have an amount greater than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units.
+   *
+   * #### Example 1
+   * ```typescript
+   * const minBalance = 300000;
+   * const txns = await indexerClient
+   *        .searchForTransactions()
+   *        .currencyGreaterThan(minBalance - 1)
+   *        .do();
+   * ```
+   *
+   * #### Example 2
+   * ```typescript
+   * const assetID = 163650;
+   * const minBalance = 300000;
+   * const txns = await indexerClient
+   *        .searchForTransactions()
+   *        .assetID(assetID)
+   *        .currencyGreaterThan(minBalance - 1)
+   *        .do();
+   * ```
+   * @remarks
+   * If you are looking for transactions with the currency amount greater than 0, simply construct the query without `currencyGreaterThan` because it doesn't accept `-1`, and passing the `0` `currency-greater-than` value would exclude transactions with a 0 amount.
+   *
+   * @param greater
+   * @category query
+   */
+  currencyGreaterThan(greater: number) {
+    if (greater === 0) this.query['currency-greater-than'] = '0';
+    else this.query['currency-greater-than'] = greater;
+    return this;
+  }
+
+  /**
+   * Filtered results should have an amount less than this value, as int, representing microAlgos, unless an asset-id is provided, in which case units are in the asset's units.
+   *
+   * #### Example 1
+   * ```typescript
+   * const maxBalance = 500000;
+   * const txns = await indexerClient
+   *        .searchForTransactions()
+   *        .currencyLessThan(maxBalance + 1)
+   *        .do();
+   * ```
+   *
+   * #### Example 2
+   * ```typescript
+   * const assetID = 163650;
+   * const maxBalance = 500000;
+   * const txns = await indexerClient
+   *        .searchForTransactions()
+   *        .assetID(assetID)
+   *        .currencyLessThan(maxBalance + 1)
+   *        .do();
+   * ```
+   *
+   * @param lesser
+   * @category query
+   */
+  currencyLessThan(lesser: number) {
+    this.query['currency-less-than'] = lesser;
     return this;
   }
 }
