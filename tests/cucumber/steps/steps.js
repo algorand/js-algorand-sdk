@@ -1981,9 +1981,9 @@ module.exports = function getSteps(options) {
     ) {
       await this.indexerClient
         .lookupAssetBalances(index)
-        .limit(limit)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
         .do();
     }
   );
@@ -2014,21 +2014,21 @@ module.exports = function getSteps(options) {
       }
       await this.indexerClient
         .lookupAssetTransactions(assetIndex)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
-        .excludeCloseTo(excludeCloseTo)
-        .round(round)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
         .address(address)
         .addressRole(addressRole)
+        .currencyGreaterThan(currencyGreater)
+        .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .minRound(minRound)
+        .maxRound(maxRound)
+        .notePrefix(notePrefix)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
+        .excludeCloseTo(excludeCloseTo)
         .do();
     }
   );
@@ -2064,22 +2064,22 @@ module.exports = function getSteps(options) {
       }
       await this.indexerClient
         .lookupAssetTransactions(assetIndex)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
         .minRound(minRound)
         .maxRound(maxRound)
         .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
         .address(address)
-        .excludeCloseTo(excludeCloseTo)
-        .rekeyTo(rekeyTo)
-        .round(round)
+        .addressRole(addressRole)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .addressRole(addressRole)
+        .excludeCloseTo(excludeCloseTo)
+        .notePrefix(notePrefix)
+        .rekeyTo(rekeyTo)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .do();
     }
   );
@@ -2104,19 +2104,19 @@ module.exports = function getSteps(options) {
     ) {
       await this.indexerClient
         .lookupAccountTransactions(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .round(round)
         .assetID(assetIndex)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .notePrefix(notePrefix)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .do();
     }
   );
@@ -2147,19 +2147,20 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .lookupAccountTransactions(account)
         .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .round(round)
-        .assetID(assetIndex)
-        .rekeyTo(rekeyTo)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .minRound(minRound)
+        .maxRound(maxRound)
+        .assetID(assetIndex)
+        .rekeyTo(rekeyTo)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
+
         .do();
     }
   );
@@ -2241,10 +2242,10 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchAccounts()
         .assetID(assetIndex)
-        .limit(limit)
-        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .round(round)
         .do();
     }
   );
@@ -2262,10 +2263,10 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchAccounts()
         .assetID(assetIndex)
-        .limit(limit)
-        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .round(round)
         .authAddr(authAddress)
         .do();
     }
@@ -2312,21 +2313,21 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchForTransactions()
         .address(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .minRound(minRound)
-        .maxRound(maxRound)
         .addressRole(addressRole)
-        .limit(limit)
+        .assetID(assetIndex)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .assetID(assetIndex)
-        .excludeCloseTo(excludeCloseTo)
-        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .notePrefix(notePrefix)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
+        .excludeCloseTo(excludeCloseTo)
         .do();
     }
   );
@@ -2363,22 +2364,22 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchForTransactions()
         .address(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
+        .assetID(assetIndex)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .assetID(assetIndex)
-        .excludeCloseTo(excludeCloseTo)
-        .rekeyTo(rekeyTo)
-        .round(round)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
         .addressRole(addressRole)
+        .excludeCloseTo(excludeCloseTo)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .notePrefix(notePrefix)
+        .rekeyTo(rekeyTo)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .do();
     }
   );
