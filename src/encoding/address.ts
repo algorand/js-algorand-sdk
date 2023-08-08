@@ -105,7 +105,9 @@ export function encodeAddress(address: Uint8Array) {
     address.length !==
     ALGORAND_ADDRESS_BYTE_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH
   )
-    throw new Error(MALFORMED_ADDRESS_ERROR_MSG);
+    throw new Error(
+      `${MALFORMED_ADDRESS_ERROR_MSG}: ${address}, length ${address.length}`
+    );
   // compute checksum
   const checksum = nacl
     .genericHash(address)

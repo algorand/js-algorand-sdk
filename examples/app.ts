@@ -153,10 +153,8 @@ async function main() {
 
   // decode b64 string key with Buffer
   const globalKey = algosdk.base64ToString(globalState.key);
-  // decode b64 address value with encodeAddress and Buffer
-  const globalValue = algosdk.encodeAddress(
-    algosdk.base64ToBytes(globalState.value.bytes)
-  );
+  // show global value
+  const globalValue = globalState.value.bytes;
 
   console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
 
