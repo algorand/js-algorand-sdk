@@ -170,7 +170,7 @@ export interface EncodedTransaction {
   aclose?: Uint8Array;
 
   /**
-   * reKeyTo
+   * rekeyTo
    */
   rekey?: Uint8Array;
 

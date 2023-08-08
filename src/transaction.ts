@@ -61,7 +61,7 @@ interface TransactionStorageStructure
     | 'freezeAccount'
     | 'appAccounts'
     | 'suggestedParams'
-    | 'reKeyTo'
+    | 'rekeyTo'
   > {
   sender: string | Address;
   receiver: string | Address;
@@ -109,7 +109,7 @@ interface TransactionStorageStructure
   appForeignAssets?: number[];
   type?: TransactionType;
   flatFee: boolean;
-  reKeyTo?: string | Address;
+  rekeyTo?: string | Address;
   nonParticipation?: boolean;
   group?: Uint8Array;
   extraPages?: number;
@@ -200,7 +200,7 @@ export class Transaction implements TransactionStorageStructure {
   boxes?: BoxReference[];
   type?: TransactionType;
   flatFee: boolean;
-  reKeyTo?: Address;
+  rekeyTo?: Address;
   nonParticipation?: boolean;
   group?: Uint8Array;
   extraPages?: number;
@@ -278,8 +278,8 @@ export class Transaction implements TransactionStorageStructure {
       txn.assetSender = address.decodeAddress(txn.assetSender as string);
     if (txn.freezeAccount !== undefined)
       txn.freezeAccount = address.decodeAddress(txn.freezeAccount as string);
-    if (txn.reKeyTo !== undefined)
-      txn.reKeyTo = address.decodeAddress(txn.reKeyTo as string);
+    if (txn.rekeyTo !== undefined)
+      txn.rekeyTo = address.decodeAddress(txn.rekeyTo as string);
     if (txn.genesisHash === undefined)
       throw Error('genesis hash must be specified and in a base64 string.');
 
@@ -598,8 +598,8 @@ export class Transaction implements TransactionStorageStructure {
       ) {
         txn.close = this.closeRemainderTo.publicKey;
       }
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       // allowed zero values
       if (this.receiver !== undefined) txn.rcv = this.receiver.publicKey;
@@ -639,8 +639,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       if (this.nonParticipation) {
         txn.nonpart = true;
@@ -694,8 +694,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.fee) delete txn.fee;
       if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
 
       if (!txn.caid) delete txn.caid;
@@ -762,8 +762,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.aclose) delete txn.aclose;
       if (!txn.asnd) delete txn.asnd;
       if (!txn.rekey) delete txn.rekey;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       return txn;
     }
@@ -794,8 +794,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.gen) delete txn.gen;
       if (!txn.afrz) delete txn.afrz;
       if (txn.grp === undefined) delete txn.grp;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       return txn;
     }
@@ -831,8 +831,8 @@ export class Transaction implements TransactionStorageStructure {
           this.appIndex
         ),
       };
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       if (this.appApprovalProgram !== undefined) {
         txn.apap = this.appApprovalProgram;
@@ -940,7 +940,7 @@ export class Transaction implements TransactionStorageStructure {
     );
     if (txnForEnc.grp !== undefined) txn.group = txnForEnc.grp;
     if (txnForEnc.rekey !== undefined)
-      txn.reKeyTo = address.decodeAddress(
+      txn.rekeyTo = address.decodeAddress(
         address.encodeAddress(new Uint8Array(txnForEnc.rekey))
       );
 
@@ -1198,9 +1198,9 @@ export class Transaction implements TransactionStorageStructure {
 
   // add the rekey-to field to a transaction not yet having it
   // supply feePerByte to increment fee accordingly
-  addRekey(reKeyTo: string, feePerByte = 0) {
-    if (reKeyTo !== undefined) {
-      this.reKeyTo = address.decodeAddress(reKeyTo);
+  addRekey(rekeyTo: string, feePerByte = 0) {
+    if (rekeyTo !== undefined) {
+      this.rekeyTo = address.decodeAddress(rekeyTo);
     }
     if (feePerByte !== 0) {
       this.fee +=
@@ -1253,9 +1253,9 @@ export class Transaction implements TransactionStorageStructure {
       forPrinting.assetSender = address.encodeAddress(
         (forPrinting.assetSender as Address).publicKey
       );
-    if (forPrinting.reKeyTo !== undefined)
-      forPrinting.reKeyTo = address.encodeAddress(
-        (forPrinting.reKeyTo as Address).publicKey
+    if (forPrinting.rekeyTo !== undefined)
+      forPrinting.rekeyTo = address.encodeAddress(
+        (forPrinting.rekeyTo as Address).publicKey
       );
     if (typeof forPrinting.genesisHash !== 'string')
       forPrinting.genesisHash = bytesToBase64(forPrinting.genesisHash);

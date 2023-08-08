@@ -399,7 +399,7 @@ export interface TransactionParams {
   /**
    * String representation of the Algorand address that will be used to authorize all future transactions
    */
-  reKeyTo?: string;
+  rekeyTo?: string;
 
   /**
    * Set this value to true to mark this account as nonparticipating.

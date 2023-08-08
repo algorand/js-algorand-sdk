@@ -2724,7 +2724,7 @@ module.exports = function getSteps(options) {
   /// /////////////////////////////////
 
   When('I add a rekeyTo field with address {string}', function (address) {
-    this.txn.reKeyTo = address;
+    this.txn.rekeyTo = address;
   });
 
   When(
@@ -2732,7 +2732,7 @@ module.exports = function getSteps(options) {
     function () {
       const keypair = keyPairFromSecretKey(this.sk);
       const pubKeyFromSk = keypair.publicKey;
-      this.txn.reKeyTo = algosdk.encodeAddress(pubKeyFromSk);
+      this.txn.rekeyTo = algosdk.encodeAddress(pubKeyFromSk);
     }
   );
 

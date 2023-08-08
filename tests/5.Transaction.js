@@ -737,7 +737,7 @@ describe('Sign', () => {
         note,
         genesisHash,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
@@ -785,7 +785,7 @@ describe('Sign', () => {
         note,
         genesisHash,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
@@ -833,7 +833,7 @@ describe('Sign', () => {
         note,
         genesisHash,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
       };
       assert.throws(
         () => new algosdk.Transaction(o),
@@ -872,7 +872,7 @@ describe('Sign', () => {
         voteLast,
         voteKeyDilution,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
         type: 'keyreg',
       };
       const expectedTxn = new algosdk.Transaction(o);
@@ -926,7 +926,7 @@ describe('Sign', () => {
         voteLast,
         voteKeyDilution,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
         type: 'keyreg',
         nonParticipation: false,
       };
@@ -991,7 +991,7 @@ describe('Sign', () => {
         genesisHash,
         nonParticipation,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
         type: 'keyreg',
       };
 
@@ -1074,7 +1074,7 @@ describe('Sign', () => {
         assetFreeze: freeze,
         assetClawback: clawback,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
         type: 'acfg',
       };
       const expectedTxn = new algosdk.Transaction(o);
@@ -1146,7 +1146,7 @@ describe('Sign', () => {
         assetFreeze: freeze,
         assetClawback: clawback,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
         type: 'acfg',
       };
       const expectedTxn = new algosdk.Transaction(o);
@@ -1218,7 +1218,7 @@ describe('Sign', () => {
         assetFreeze: freeze,
         assetClawback: clawback,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
         type: 'acfg',
       };
       assert.throws(
@@ -1266,7 +1266,7 @@ describe('Sign', () => {
         assetFreeze: freeze,
         assetClawback: clawback,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
         type: 'acfg',
       };
       assert.doesNotThrow(() => {
@@ -1356,7 +1356,7 @@ describe('Sign', () => {
         assetClawback: clawback,
         type: 'acfg',
         note,
-        reKeyTo: rekeyTo,
+        rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
@@ -1440,7 +1440,7 @@ describe('Sign', () => {
         assetIndex,
         type: 'acfg',
         note,
-        reKeyTo: rekeyTo,
+        rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
@@ -1490,7 +1490,7 @@ describe('Sign', () => {
         note,
         assetSender,
         closeRemainderTo,
-        reKeyTo: rekeyTo,
+        rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
@@ -1540,7 +1540,7 @@ describe('Sign', () => {
         assetFrozen,
         note,
         genesisID,
-        reKeyTo: rekeyTo,
+        rekeyTo,
       };
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {

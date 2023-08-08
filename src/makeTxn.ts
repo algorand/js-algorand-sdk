@@ -47,7 +47,7 @@ export function makePaymentTxnWithSuggestedParams(
   closeRemainderTo: PaymentTxn['closeRemainderTo'],
   note: PaymentTxn['note'],
   suggestedParams: MustHaveSuggestedParams<PaymentTxn>['suggestedParams'],
-  rekeyTo?: PaymentTxn['reKeyTo']
+  rekeyTo?: PaymentTxn['rekeyTo']
 ) {
   const o: PaymentTxn = {
     sender,
@@ -57,7 +57,7 @@ export function makePaymentTxnWithSuggestedParams(
     note,
     suggestedParams,
     type: TransactionType.pay,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -66,7 +66,7 @@ export function makePaymentTxnWithSuggestedParams(
 export function makePaymentTxnWithSuggestedParamsFromObject(
   o: Expand<
     Pick<
-      RenameProperty<MustHaveSuggestedParams<PaymentTxn>, 'reKeyTo', 'rekeyTo'>,
+      RenameProperty<MustHaveSuggestedParams<PaymentTxn>, 'rekeyTo', 'rekeyTo'>,
       | 'sender'
       | 'receiver'
       | 'amount'
@@ -121,7 +121,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteLast: KeyRegistrationTxn['voteLast'],
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
-  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  rekeyTo?: KeyRegistrationTxn['rekeyTo'],
   nonParticipation?: false,
   stateProofKey?: KeyRegistrationTxn['stateProofKey']
 ): txnBuilder.Transaction;
@@ -134,7 +134,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteLast: undefined,
   voteKeyDilution: undefined,
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
-  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  rekeyTo?: KeyRegistrationTxn['rekeyTo'],
   nonParticipation?: true,
   stateProofKey?: undefined
 ): txnBuilder.Transaction;
@@ -161,7 +161,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
     voteKeyDilution,
     suggestedParams,
     type: TransactionType.keyreg,
-    reKeyTo: rekeyTo,
+    rekeyTo,
     nonParticipation,
     stateProofKey,
   };
@@ -174,7 +174,7 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     Pick<
       RenameProperty<
         MustHaveSuggestedParams<KeyRegistrationTxn>,
-        'reKeyTo',
+        'rekeyTo',
         'rekeyTo'
       >,
       | 'sender'
@@ -197,7 +197,7 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     Pick<
       RenameProperty<
         MustHaveSuggestedParams<KeyRegistrationTxn>,
-        'reKeyTo',
+        'rekeyTo',
         'rekeyTo'
       >,
       'sender' | 'note' | 'suggestedParams' | 'rekeyTo' | 'nonParticipation'
@@ -261,7 +261,7 @@ export function makeAssetCreateTxnWithSuggestedParams(
   assetURL: AssetCreateTxn['assetURL'],
   assetMetadataHash: AssetCreateTxn['assetMetadataHash'] | undefined,
   suggestedParams: MustHaveSuggestedParams<AssetCreateTxn>['suggestedParams'],
-  rekeyTo?: AssetCreateTxn['reKeyTo']
+  rekeyTo?: AssetCreateTxn['rekeyTo']
 ) {
   const o: AssetCreateTxn = {
     sender,
@@ -279,7 +279,7 @@ export function makeAssetCreateTxnWithSuggestedParams(
     assetFreeze: freeze,
     assetClawback: clawback,
     type: TransactionType.acfg,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -291,7 +291,7 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
       RenameProperties<
         MustHaveSuggestedParams<AssetCreateTxn>,
         {
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
           assetTotal: 'total';
           assetDecimals: 'decimals';
           assetDefaultFrozen: 'defaultFrozen';
@@ -371,7 +371,7 @@ export function makeAssetConfigTxnWithSuggestedParams(
   clawback: AssetConfigTxn['assetClawback'],
   suggestedParams: MustHaveSuggestedParams<AssetConfigTxn>['suggestedParams'],
   strictEmptyAddressChecking = true,
-  rekeyTo?: AssetConfigTxn['reKeyTo']
+  rekeyTo?: AssetConfigTxn['rekeyTo']
 ) {
   if (
     strictEmptyAddressChecking &&
@@ -394,7 +394,7 @@ export function makeAssetConfigTxnWithSuggestedParams(
     assetClawback: clawback,
     type: TransactionType.acfg,
     note,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -406,7 +406,7 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
       RenameProperties<
         MustHaveSuggestedParams<AssetConfigTxn>,
         {
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
           assetManager: 'manager';
           assetReserve: 'reserve';
           assetFreeze: 'freeze';
@@ -462,7 +462,7 @@ export function makeAssetDestroyTxnWithSuggestedParams(
   note: AssetDestroyTxn['note'],
   assetIndex: AssetDestroyTxn['assetIndex'],
   suggestedParams: MustHaveSuggestedParams<AssetDestroyTxn>['suggestedParams'],
-  rekeyTo?: AssetDestroyTxn['reKeyTo']
+  rekeyTo?: AssetDestroyTxn['rekeyTo']
 ) {
   const o: AssetDestroyTxn = {
     sender,
@@ -470,7 +470,7 @@ export function makeAssetDestroyTxnWithSuggestedParams(
     assetIndex,
     type: TransactionType.acfg,
     note,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -481,7 +481,7 @@ export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
     Pick<
       RenameProperty<
         MustHaveSuggestedParams<AssetDestroyTxn>,
-        'reKeyTo',
+        'rekeyTo',
         'rekeyTo'
       >,
       'sender' | 'note' | 'assetIndex' | 'suggestedParams' | 'rekeyTo'
@@ -522,7 +522,7 @@ export function makeAssetFreezeTxnWithSuggestedParams(
   freezeTarget: AssetFreezeTxn['freezeAccount'],
   assetFrozen: AssetFreezeTxn['assetFrozen'],
   suggestedParams: MustHaveSuggestedParams<AssetFreezeTxn>['suggestedParams'],
-  rekeyTo?: AssetFreezeTxn['reKeyTo']
+  rekeyTo?: AssetFreezeTxn['rekeyTo']
 ) {
   const o: AssetFreezeTxn = {
     sender,
@@ -532,7 +532,7 @@ export function makeAssetFreezeTxnWithSuggestedParams(
     assetFrozen,
     note,
     suggestedParams,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -545,7 +545,7 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
         MustHaveSuggestedParams<AssetFreezeTxn>,
         {
           freezeAccount: 'freezeTarget';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -602,7 +602,7 @@ export function makeAssetTransferTxnWithSuggestedParams(
   note: AssetTransferTxn['note'],
   assetIndex: AssetTransferTxn['assetIndex'],
   suggestedParams: MustHaveSuggestedParams<AssetTransferTxn>['suggestedParams'],
-  rekeyTo?: AssetTransferTxn['reKeyTo']
+  rekeyTo?: AssetTransferTxn['rekeyTo']
 ) {
   const o: AssetTransferTxn = {
     type: TransactionType.axfer,
@@ -614,7 +614,7 @@ export function makeAssetTransferTxnWithSuggestedParams(
     note,
     assetSender,
     closeRemainderTo,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -627,7 +627,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
         MustHaveSuggestedParams<AssetTransferTxn>,
         {
           assetSender: 'assetSender';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -699,7 +699,7 @@ export function makeApplicationCreateTxn(
   foreignAssets?: AppCreateTxn['appForeignAssets'],
   note?: AppCreateTxn['note'],
   lease?: AppCreateTxn['lease'],
-  rekeyTo?: AppCreateTxn['reKeyTo'],
+  rekeyTo?: AppCreateTxn['rekeyTo'],
   extraPages?: AppCreateTxn['extraPages'],
   boxes?: AppCreateTxn['boxes']
 ) {
@@ -722,7 +722,7 @@ export function makeApplicationCreateTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
     extraPages,
   };
   return new txnBuilder.Transaction(o);
@@ -745,7 +745,7 @@ export function makeApplicationCreateTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -826,7 +826,7 @@ export function makeApplicationUpdateTxn(
   foreignAssets?: AppUpdateTxn['appForeignAssets'],
   note?: AppUpdateTxn['note'],
   lease?: AppUpdateTxn['lease'],
-  rekeyTo?: AppUpdateTxn['reKeyTo'],
+  rekeyTo?: AppUpdateTxn['rekeyTo'],
   boxes?: AppUpdateTxn['boxes']
 ) {
   const o: AppUpdateTxn = {
@@ -844,7 +844,7 @@ export function makeApplicationUpdateTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -861,7 +861,7 @@ export function makeApplicationUpdateTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -928,7 +928,7 @@ export function makeApplicationDeleteTxn(
   foreignAssets?: AppDeleteTxn['appForeignAssets'],
   note?: AppDeleteTxn['note'],
   lease?: AppDeleteTxn['lease'],
-  rekeyTo?: AppDeleteTxn['reKeyTo'],
+  rekeyTo?: AppDeleteTxn['rekeyTo'],
   boxes?: AppDeleteTxn['boxes']
 ) {
   const o: AppDeleteTxn = {
@@ -944,7 +944,7 @@ export function makeApplicationDeleteTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -959,7 +959,7 @@ export function makeApplicationDeleteTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -1022,7 +1022,7 @@ export function makeApplicationOptInTxn(
   foreignAssets?: AppOptInTxn['appForeignAssets'],
   note?: AppOptInTxn['note'],
   lease?: AppOptInTxn['lease'],
-  rekeyTo?: AppOptInTxn['reKeyTo'],
+  rekeyTo?: AppOptInTxn['rekeyTo'],
   boxes?: AppOptInTxn['boxes']
 ) {
   const o: AppOptInTxn = {
@@ -1038,7 +1038,7 @@ export function makeApplicationOptInTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1053,7 +1053,7 @@ export function makeApplicationOptInTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -1116,7 +1116,7 @@ export function makeApplicationCloseOutTxn(
   foreignAssets?: AppCloseOutTxn['appForeignAssets'],
   note?: AppCloseOutTxn['note'],
   lease?: AppCloseOutTxn['lease'],
-  rekeyTo?: AppCloseOutTxn['reKeyTo'],
+  rekeyTo?: AppCloseOutTxn['rekeyTo'],
   boxes?: AppCloseOutTxn['boxes']
 ) {
   const o: AppCloseOutTxn = {
@@ -1132,7 +1132,7 @@ export function makeApplicationCloseOutTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1147,7 +1147,7 @@ export function makeApplicationCloseOutTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -1210,7 +1210,7 @@ export function makeApplicationClearStateTxn(
   foreignAssets?: AppClearStateTxn['appForeignAssets'],
   note?: AppClearStateTxn['note'],
   lease?: AppClearStateTxn['lease'],
-  rekeyTo?: AppClearStateTxn['reKeyTo'],
+  rekeyTo?: AppClearStateTxn['rekeyTo'],
   boxes?: AppClearStateTxn['boxes']
 ) {
   const o: AppClearStateTxn = {
@@ -1226,7 +1226,7 @@ export function makeApplicationClearStateTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1241,7 +1241,7 @@ export function makeApplicationClearStateTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -1304,7 +1304,7 @@ export function makeApplicationNoOpTxn(
   foreignAssets?: AppNoOpTxn['appForeignAssets'],
   note?: AppNoOpTxn['note'],
   lease?: AppNoOpTxn['lease'],
-  rekeyTo?: AppNoOpTxn['reKeyTo'],
+  rekeyTo?: AppNoOpTxn['rekeyTo'],
   boxes?: AppNoOpTxn['boxes']
 ) {
   const o: AppNoOpTxn = {
@@ -1320,7 +1320,7 @@ export function makeApplicationNoOpTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1335,7 +1335,7 @@ export function makeApplicationNoOpTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -1382,7 +1382,7 @@ export function makeApplicationCallTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
       | 'sender'
@@ -1441,7 +1441,7 @@ export function makeApplicationCallTxnFromObject(
     boxes: options.boxes,
     note: options.note,
     lease: options.lease,
-    reKeyTo: options.rekeyTo,
+    rekeyTo: options.rekeyTo,
     extraPages: options.extraPages,
   };
   return new txnBuilder.Transaction(o);

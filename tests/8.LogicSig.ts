@@ -674,7 +674,7 @@ describe('signLogicSigTransaction', () => {
       note,
       genesisHash,
       genesisID,
-      reKeyTo: rekeyTo,
+      rekeyTo,
     };
 
     const actual = algosdk.signLogicSigTransaction(txn, lsig);
