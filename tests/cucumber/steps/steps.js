@@ -4821,7 +4821,6 @@ module.exports = function getSteps(options) {
       const optionList = execTraceOptions.split(',');
 
       assert.ok(this.simulateRequest);
-      // TODO: check if this is the best practice
       this.simulateRequest.execTraceConfig = new algosdk.modelsv2.SimulateTraceConfig(
         {
           enable: true,
