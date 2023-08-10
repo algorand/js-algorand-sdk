@@ -391,8 +391,6 @@ export default class SearchForTransactions extends JSONRequest {
    *        .currencyGreaterThan(minBalance - 1)
    *        .do();
    * ```
-   * @remarks
-   * If you are looking for transactions with the currency amount greater than 0, simply construct the query without `currencyGreaterThan` because it doesn't accept `-1`, and passing the `0` `currency-greater-than` value would exclude transactions with a 0 amount.
    *
    * @param greater
    * @category query
