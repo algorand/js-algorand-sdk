@@ -16,15 +16,15 @@ async function main() {
   const suggestedParams = await client.getTransactionParams().do();
 
   const alicesTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct1.addr,
-    to: acct2.addr,
+    sender: acct1.addr,
+    receiver: acct2.addr,
     amount: 1e6,
     suggestedParams,
   });
 
   const bobsTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct2.addr,
-    to: acct1.addr,
+    sender: acct2.addr,
+    receiver: acct1.addr,
     amount: 1e6,
     suggestedParams,
   });

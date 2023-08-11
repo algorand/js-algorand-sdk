@@ -27,12 +27,12 @@ async function main() {
   // create transaction
   const onlineKeyreg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     {
-      from: addr,
+      sender: addr,
       voteKey,
       selectionKey,
       stateProofKey,
-      voteFirst: params.firstRound,
-      voteLast: params.firstRound + numRounds,
+      voteFirst: params.firstValid,
+      voteLast: params.firstValid + numRounds,
       voteKeyDilution: keyDilution,
       suggestedParams: params,
     }
@@ -47,7 +47,7 @@ async function main() {
   // create keyreg transaction to take this account offline
   const offlineKeyReg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     {
-      from: addr,
+      sender: addr,
       suggestedParams,
       nonParticipation: true,
     }

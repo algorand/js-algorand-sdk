@@ -42,8 +42,8 @@ async function main() {
   // example: MULTISIG_CREATE
 
   const fundMsigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: funder.addr,
-    to: multisigAddr,
+    sender: funder.addr,
+    receiver: multisigAddr,
     amount: 1_000_000,
     suggestedParams,
   });
@@ -53,8 +53,8 @@ async function main() {
 
   // example: MULTISIG_SIGN
   const msigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: multisigAddr,
-    to: funder.addr,
+    sender: multisigAddr,
+    receiver: funder.addr,
     amount: 100,
     suggestedParams,
   });
@@ -88,8 +88,8 @@ async function main() {
   // rekey the original account to the new signer via a payment transaction
   // Note any transaction type can be used to rekey an account
   const rekeyTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct1.addr,
-    to: acct1.addr,
+    sender: acct1.addr,
+    receiver: acct1.addr,
     amount: 0,
     suggestedParams,
     rekeyTo: acct2.addr, // set the rekeyTo field to the new signer
@@ -110,8 +110,8 @@ async function main() {
   // the transaction is from originalAccount, but signed with newSigner private key
 
   const rekeyBack = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct1.addr,
-    to: acct1.addr,
+    sender: acct1.addr,
+    receiver: acct1.addr,
     amount: 0,
     suggestedParams,
     rekeyTo: acct1.addr,

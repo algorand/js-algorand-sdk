@@ -64,8 +64,8 @@ async function main() {
   const sender = accounts[0];
 
   const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: sender.addr,
-    to: sender.addr,
+    sender: sender.addr,
+    receiver: sender.addr,
     amount: 1e6,
     note: new TextEncoder().encode('Hello World!'),
     suggestedParams,

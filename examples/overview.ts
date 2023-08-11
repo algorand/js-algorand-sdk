@@ -22,9 +22,9 @@ async function main() {
   // example: TRANSACTION_PAYMENT_CREATE
   const suggestedParams = await algodClient.getTransactionParams().do();
   const ptxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct.addr,
+    sender: acct.addr,
     suggestedParams,
-    to: acct2.addr,
+    receiver: acct2.addr,
     amount: 10000,
     note: new TextEncoder().encode('hello world'),
   });

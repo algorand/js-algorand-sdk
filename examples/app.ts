@@ -49,7 +49,7 @@ async function main() {
 
   // example: APP_CREATE
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     approvalProgram: new Uint8Array(compiledApprovalProgram),
     clearProgram: new Uint8Array(compiledClearProgram),
     numGlobalByteSlices,
@@ -78,7 +78,7 @@ async function main() {
 
   // example: APP_OPTIN
   const appOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -95,7 +95,7 @@ async function main() {
 
   // example: APP_NOOP
   const appNoOpTxn = algosdk.makeApplicationNoOpTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -113,7 +113,7 @@ async function main() {
   const anotherCaller = accounts[2];
 
   const anotherAppOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
-    from: anotherCaller.addr,
+    sender: anotherCaller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -130,7 +130,7 @@ async function main() {
   // example: APP_CALL
   const now = new Date().toString();
   const simpleAddTxn = algosdk.makeApplicationNoOpTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     suggestedParams,
     appIndex: appId,
     appArgs: [new TextEncoder().encode(now)],
@@ -175,7 +175,7 @@ async function main() {
 
   // example: APP_CLOSEOUT
   const appCloseOutTxn = algosdk.makeApplicationCloseOutTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -198,7 +198,7 @@ async function main() {
   const compiledNewProgram = await compileProgram(algodClient, newProgram);
 
   const appUpdateTxn = algosdk.makeApplicationUpdateTxnFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     suggestedParams,
     appIndex: appId,
     // updates must define both approval and clear programs, even if unchanged
@@ -218,7 +218,7 @@ async function main() {
 
   // example: APP_CLEAR
   const appClearTxn = algosdk.makeApplicationClearStateTxnFromObject({
-    from: anotherCaller.addr,
+    sender: anotherCaller.addr,
     suggestedParams,
     appIndex: appId,
   });
@@ -235,7 +235,7 @@ async function main() {
 
   // example: APP_DELETE
   const appDeleteTxn = algosdk.makeApplicationDeleteTxnFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     suggestedParams,
     appIndex: appId,
   });

@@ -75,18 +75,18 @@ export function computeGroupID(txns: txnBuilder.TransactionLike[]) {
 /**
  * assignGroupID assigns group id to a given list of unsigned transactions
  * @param txns - array of transactions (every element is a dict or Transaction)
- * @param from - optional sender address specifying which transaction return
+ * @param sender - optional sender address specifying which transaction return
  * @returns possible list of matching transactions
  */
 export function assignGroupID(
   txns: txnBuilder.TransactionLike[],
-  from?: string
+  sender?: string
 ) {
   const gid = computeGroupID(txns);
   const result: txnBuilder.Transaction[] = [];
   for (const txn of txns) {
     const tx = txnBuilder.instantiateTxnIfNeeded(txn);
-    if (!from || address.encodeAddress(tx.from.publicKey) === from) {
+    if (!sender || address.encodeAddress(tx.sender.publicKey) === sender) {
       tx.group = gid;
       result.push(tx);
     }
