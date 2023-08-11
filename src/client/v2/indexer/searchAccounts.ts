@@ -49,6 +49,7 @@ export default class SearchAccounts extends JSONRequest {
    * @category query
    */
   currencyGreaterThan(greater: number) {
+    // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
   }
