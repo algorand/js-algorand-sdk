@@ -1398,6 +1398,69 @@ export class AssetParams extends BaseModel {
 }
 
 /**
+ * Represents an AVM value.
+ */
+export class AvmValue extends BaseModel {
+  /**
+   * value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
+   */
+  public type: number | bigint;
+
+  /**
+   * bytes value.
+   */
+  public bytes?: Uint8Array;
+
+  /**
+   * uint value.
+   */
+  public uint?: number | bigint;
+
+  /**
+   * Creates a new `AvmValue` object.
+   * @param type - value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
+   * @param bytes - bytes value.
+   * @param uint - uint value.
+   */
+  constructor({
+    type,
+    bytes,
+    uint,
+  }: {
+    type: number | bigint;
+    bytes?: string | Uint8Array;
+    uint?: number | bigint;
+  }) {
+    super();
+    this.type = type;
+    this.bytes =
+      typeof bytes === 'string'
+        ? new Uint8Array(Buffer.from(bytes, 'base64'))
+        : bytes;
+    this.uint = uint;
+
+    this.attribute_map = {
+      type: 'type',
+      bytes: 'bytes',
+      uint: 'uint',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AvmValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['type'] === 'undefined')
+      throw new Error(`Response is missing required field 'type': ${data}`);
+    return new AvmValue({
+      type: data['type'],
+      bytes: data['bytes'],
+      uint: data['uint'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Hash of a block header.
  */
 export class BlockHashResponse extends BaseModel {
@@ -1494,6 +1557,11 @@ export class Box extends BaseModel {
   public name: Uint8Array;
 
   /**
+   * The round for which this information is relevant
+   */
+  public round: number | bigint;
+
+  /**
    * (value) box value, base64 encoded.
    */
   public value: Uint8Array;
@@ -1501,13 +1569,16 @@ export class Box extends BaseModel {
   /**
    * Creates a new `Box` object.
    * @param name - (name) box name, base64 encoded
+   * @param round - The round for which this information is relevant
    * @param value - (value) box value, base64 encoded.
    */
   constructor({
     name,
+    round,
     value,
   }: {
     name: string | Uint8Array;
+    round: number | bigint;
     value: string | Uint8Array;
   }) {
     super();
@@ -1515,6 +1586,7 @@ export class Box extends BaseModel {
       typeof name === 'string'
         ? new Uint8Array(Buffer.from(name, 'base64'))
         : name;
+    this.round = round;
     this.value =
       typeof value === 'string'
         ? new Uint8Array(Buffer.from(value, 'base64'))
@@ -1522,6 +1594,7 @@ export class Box extends BaseModel {
 
     this.attribute_map = {
       name: 'name',
+      round: 'round',
       value: 'value',
     };
   }
@@ -1531,10 +1604,13 @@ export class Box extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new Box({
       name: data['name'],
+      round: data['round'],
       value: data['value'],
     });
     /* eslint-enable dot-notation */
@@ -2580,8 +2656,8 @@ export class LedgerStateDeltaForTransactionGroup extends BaseModel {
     this.ids = ids;
 
     this.attribute_map = {
-      delta: 'delta',
-      ids: 'ids',
+      delta: 'Delta',
+      ids: 'Ids',
     };
   }
 
@@ -2590,15 +2666,15 @@ export class LedgerStateDeltaForTransactionGroup extends BaseModel {
     data: Record<string, any>
   ): LedgerStateDeltaForTransactionGroup {
     /* eslint-disable dot-notation */
-    if (typeof data['delta'] === 'undefined')
-      throw new Error(`Response is missing required field 'delta': ${data}`);
-    if (!Array.isArray(data['ids']))
+    if (typeof data['Delta'] === 'undefined')
+      throw new Error(`Response is missing required field 'Delta': ${data}`);
+    if (!Array.isArray(data['Ids']))
       throw new Error(
-        `Response is missing required array field 'ids': ${data}`
+        `Response is missing required array field 'Ids': ${data}`
       );
     return new LedgerStateDeltaForTransactionGroup({
-      delta: data['delta'],
-      ids: data['ids'],
+      delta: data['Delta'],
+      ids: data['Ids'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3345,6 +3421,59 @@ export class PostTransactionsResponse extends BaseModel {
 }
 
 /**
+ * A write operation into a scratch slot.
+ */
+export class ScratchChange extends BaseModel {
+  /**
+   * Represents an AVM value.
+   */
+  public newValue: AvmValue;
+
+  /**
+   * The scratch slot written.
+   */
+  public slot: number | bigint;
+
+  /**
+   * Creates a new `ScratchChange` object.
+   * @param newValue - Represents an AVM value.
+   * @param slot - The scratch slot written.
+   */
+  constructor({
+    newValue,
+    slot,
+  }: {
+    newValue: AvmValue;
+    slot: number | bigint;
+  }) {
+    super();
+    this.newValue = newValue;
+    this.slot = slot;
+
+    this.attribute_map = {
+      newValue: 'new-value',
+      slot: 'slot',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ScratchChange {
+    /* eslint-disable dot-notation */
+    if (typeof data['new-value'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'new-value': ${data}`
+      );
+    if (typeof data['slot'] === 'undefined')
+      throw new Error(`Response is missing required field 'slot': ${data}`);
+    return new ScratchChange({
+      newValue: AvmValue.from_obj_for_encoding(data['new-value']),
+      slot: data['slot'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Request type for simulation endpoint.
  */
 export class SimulateRequest extends BaseModel {
@@ -3365,6 +3494,11 @@ export class SimulateRequest extends BaseModel {
   public allowMoreLogging?: boolean;
 
   /**
+   * An object that configures simulation execution trace.
+   */
+  public execTraceConfig?: SimulateTraceConfig;
+
+  /**
    * Applies extra opcode budget during simulation for each transaction group.
    */
   public extraOpcodeBudget?: number | bigint;
@@ -3375,29 +3509,34 @@ export class SimulateRequest extends BaseModel {
    * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
    * signatures.
    * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
+   * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
    */
   constructor({
     txnGroups,
     allowEmptySignatures,
     allowMoreLogging,
+    execTraceConfig,
     extraOpcodeBudget,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
     allowMoreLogging?: boolean;
+    execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowMoreLogging = allowMoreLogging;
+    this.execTraceConfig = execTraceConfig;
     this.extraOpcodeBudget = extraOpcodeBudget;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
       allowEmptySignatures: 'allow-empty-signatures',
       allowMoreLogging: 'allow-more-logging',
+      execTraceConfig: 'exec-trace-config',
       extraOpcodeBudget: 'extra-opcode-budget',
     };
   }
@@ -3415,6 +3554,10 @@ export class SimulateRequest extends BaseModel {
       ),
       allowEmptySignatures: data['allow-empty-signatures'],
       allowMoreLogging: data['allow-more-logging'],
+      execTraceConfig:
+        typeof data['exec-trace-config'] !== 'undefined'
+          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
+          : undefined,
       extraOpcodeBudget: data['extra-opcode-budget'],
     });
     /* eslint-enable dot-notation */
@@ -3487,6 +3630,11 @@ export class SimulateResponse extends BaseModel {
   public evalOverrides?: SimulationEvalOverrides;
 
   /**
+   * An object that configures simulation execution trace.
+   */
+  public execTraceConfig?: SimulateTraceConfig;
+
+  /**
    * Creates a new `SimulateResponse` object.
    * @param lastRound - The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -3495,29 +3643,34 @@ export class SimulateResponse extends BaseModel {
    * @param evalOverrides - The set of parameters and limits override during simulation. If this set of
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
+   * @param execTraceConfig - An object that configures simulation execution trace.
    */
   constructor({
     lastRound,
     txnGroups,
     version,
     evalOverrides,
+    execTraceConfig,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
     evalOverrides?: SimulationEvalOverrides;
+    execTraceConfig?: SimulateTraceConfig;
   }) {
     super();
     this.lastRound = lastRound;
     this.txnGroups = txnGroups;
     this.version = version;
     this.evalOverrides = evalOverrides;
+    this.execTraceConfig = execTraceConfig;
 
     this.attribute_map = {
       lastRound: 'last-round',
       txnGroups: 'txn-groups',
       version: 'version',
       evalOverrides: 'eval-overrides',
+      execTraceConfig: 'exec-trace-config',
     };
   }
 
@@ -3546,6 +3699,72 @@ export class SimulateResponse extends BaseModel {
               data['eval-overrides']
             )
           : undefined,
+      execTraceConfig:
+        typeof data['exec-trace-config'] !== 'undefined'
+          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * An object that configures simulation execution trace.
+ */
+export class SimulateTraceConfig extends BaseModel {
+  /**
+   * A boolean option for opting in execution trace features simulation endpoint.
+   */
+  public enable?: boolean;
+
+  /**
+   * A boolean option enabling returning scratch slot changes together with execution
+   * trace during simulation.
+   */
+  public scratchChange?: boolean;
+
+  /**
+   * A boolean option enabling returning stack changes together with execution trace
+   * during simulation.
+   */
+  public stackChange?: boolean;
+
+  /**
+   * Creates a new `SimulateTraceConfig` object.
+   * @param enable - A boolean option for opting in execution trace features simulation endpoint.
+   * @param scratchChange - A boolean option enabling returning scratch slot changes together with execution
+   * trace during simulation.
+   * @param stackChange - A boolean option enabling returning stack changes together with execution trace
+   * during simulation.
+   */
+  constructor({
+    enable,
+    scratchChange,
+    stackChange,
+  }: {
+    enable?: boolean;
+    scratchChange?: boolean;
+    stackChange?: boolean;
+  }) {
+    super();
+    this.enable = enable;
+    this.scratchChange = scratchChange;
+    this.stackChange = stackChange;
+
+    this.attribute_map = {
+      enable: 'enable',
+      scratchChange: 'scratch-change',
+      stackChange: 'stack-change',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): SimulateTraceConfig {
+    /* eslint-disable dot-notation */
+    return new SimulateTraceConfig({
+      enable: data['enable'],
+      scratchChange: data['scratch-change'],
+      stackChange: data['stack-change'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3664,6 +3883,12 @@ export class SimulateTransactionResult extends BaseModel {
   public appBudgetConsumed?: number | bigint;
 
   /**
+   * The execution trace of calling an app or a logic sig, containing the inner app
+   * call trace in a recursive way.
+   */
+  public execTrace?: SimulationTransactionExecTrace;
+
+  /**
    * Budget used during execution of a logic sig transaction.
    */
   public logicSigBudgetConsumed?: number | bigint;
@@ -3674,25 +3899,31 @@ export class SimulateTransactionResult extends BaseModel {
    * includes confirmation details like the round and reward details.
    * @param appBudgetConsumed - Budget used during execution of an app call transaction. This value includes
    * budged used by inner app calls spawned by this transaction.
+   * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
+   * call trace in a recursive way.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
    */
   constructor({
     txnResult,
     appBudgetConsumed,
+    execTrace,
     logicSigBudgetConsumed,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
+    execTrace?: SimulationTransactionExecTrace;
     logicSigBudgetConsumed?: number | bigint;
   }) {
     super();
     this.txnResult = txnResult;
     this.appBudgetConsumed = appBudgetConsumed;
+    this.execTrace = execTrace;
     this.logicSigBudgetConsumed = logicSigBudgetConsumed;
 
     this.attribute_map = {
       txnResult: 'txn-result',
       appBudgetConsumed: 'app-budget-consumed',
+      execTrace: 'exec-trace',
       logicSigBudgetConsumed: 'logic-sig-budget-consumed',
     };
   }
@@ -3711,6 +3942,12 @@ export class SimulateTransactionResult extends BaseModel {
         data['txn-result']
       ),
       appBudgetConsumed: data['app-budget-consumed'],
+      execTrace:
+        typeof data['exec-trace'] !== 'undefined'
+          ? SimulationTransactionExecTrace.from_obj_for_encoding(
+              data['exec-trace']
+            )
+          : undefined,
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
     });
     /* eslint-enable dot-notation */
@@ -3787,6 +4024,190 @@ export class SimulationEvalOverrides extends BaseModel {
       extraOpcodeBudget: data['extra-opcode-budget'],
       maxLogCalls: data['max-log-calls'],
       maxLogSize: data['max-log-size'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The set of trace information and effect from evaluating a single opcode.
+ */
+export class SimulationOpcodeTraceUnit extends BaseModel {
+  /**
+   * The program counter of the current opcode being evaluated.
+   */
+  public pc: number | bigint;
+
+  /**
+   * The writes into scratch slots.
+   */
+  public scratchChanges?: ScratchChange[];
+
+  /**
+   * The indexes of the traces for inner transactions spawned by this opcode, if any.
+   */
+  public spawnedInners?: (number | bigint)[];
+
+  /**
+   * The values added by this opcode to the stack.
+   */
+  public stackAdditions?: AvmValue[];
+
+  /**
+   * The number of deleted stack values by this opcode.
+   */
+  public stackPopCount?: number | bigint;
+
+  /**
+   * Creates a new `SimulationOpcodeTraceUnit` object.
+   * @param pc - The program counter of the current opcode being evaluated.
+   * @param scratchChanges - The writes into scratch slots.
+   * @param spawnedInners - The indexes of the traces for inner transactions spawned by this opcode, if any.
+   * @param stackAdditions - The values added by this opcode to the stack.
+   * @param stackPopCount - The number of deleted stack values by this opcode.
+   */
+  constructor({
+    pc,
+    scratchChanges,
+    spawnedInners,
+    stackAdditions,
+    stackPopCount,
+  }: {
+    pc: number | bigint;
+    scratchChanges?: ScratchChange[];
+    spawnedInners?: (number | bigint)[];
+    stackAdditions?: AvmValue[];
+    stackPopCount?: number | bigint;
+  }) {
+    super();
+    this.pc = pc;
+    this.scratchChanges = scratchChanges;
+    this.spawnedInners = spawnedInners;
+    this.stackAdditions = stackAdditions;
+    this.stackPopCount = stackPopCount;
+
+    this.attribute_map = {
+      pc: 'pc',
+      scratchChanges: 'scratch-changes',
+      spawnedInners: 'spawned-inners',
+      stackAdditions: 'stack-additions',
+      stackPopCount: 'stack-pop-count',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationOpcodeTraceUnit {
+    /* eslint-disable dot-notation */
+    if (typeof data['pc'] === 'undefined')
+      throw new Error(`Response is missing required field 'pc': ${data}`);
+    return new SimulationOpcodeTraceUnit({
+      pc: data['pc'],
+      scratchChanges:
+        typeof data['scratch-changes'] !== 'undefined'
+          ? data['scratch-changes'].map(ScratchChange.from_obj_for_encoding)
+          : undefined,
+      spawnedInners: data['spawned-inners'],
+      stackAdditions:
+        typeof data['stack-additions'] !== 'undefined'
+          ? data['stack-additions'].map(AvmValue.from_obj_for_encoding)
+          : undefined,
+      stackPopCount: data['stack-pop-count'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The execution trace of calling an app or a logic sig, containing the inner app
+ * call trace in a recursive way.
+ */
+export class SimulationTransactionExecTrace extends BaseModel {
+  /**
+   * Program trace that contains a trace of opcode effects in an approval program.
+   */
+  public approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * Program trace that contains a trace of opcode effects in a clear state program.
+   */
+  public clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * An array of SimulationTransactionExecTrace representing the execution trace of
+   * any inner transactions executed.
+   */
+  public innerTrace?: SimulationTransactionExecTrace[];
+
+  /**
+   * Program trace that contains a trace of opcode effects in a logic sig.
+   */
+  public logicSigTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * Creates a new `SimulationTransactionExecTrace` object.
+   * @param approvalProgramTrace - Program trace that contains a trace of opcode effects in an approval program.
+   * @param clearStateProgramTrace - Program trace that contains a trace of opcode effects in a clear state program.
+   * @param innerTrace - An array of SimulationTransactionExecTrace representing the execution trace of
+   * any inner transactions executed.
+   * @param logicSigTrace - Program trace that contains a trace of opcode effects in a logic sig.
+   */
+  constructor({
+    approvalProgramTrace,
+    clearStateProgramTrace,
+    innerTrace,
+    logicSigTrace,
+  }: {
+    approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+    clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
+    innerTrace?: SimulationTransactionExecTrace[];
+    logicSigTrace?: SimulationOpcodeTraceUnit[];
+  }) {
+    super();
+    this.approvalProgramTrace = approvalProgramTrace;
+    this.clearStateProgramTrace = clearStateProgramTrace;
+    this.innerTrace = innerTrace;
+    this.logicSigTrace = logicSigTrace;
+
+    this.attribute_map = {
+      approvalProgramTrace: 'approval-program-trace',
+      clearStateProgramTrace: 'clear-state-program-trace',
+      innerTrace: 'inner-trace',
+      logicSigTrace: 'logic-sig-trace',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationTransactionExecTrace {
+    /* eslint-disable dot-notation */
+    return new SimulationTransactionExecTrace({
+      approvalProgramTrace:
+        typeof data['approval-program-trace'] !== 'undefined'
+          ? data['approval-program-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
+      clearStateProgramTrace:
+        typeof data['clear-state-program-trace'] !== 'undefined'
+          ? data['clear-state-program-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
+      innerTrace:
+        typeof data['inner-trace'] !== 'undefined'
+          ? data['inner-trace'].map(
+              SimulationTransactionExecTrace.from_obj_for_encoding
+            )
+          : undefined,
+      logicSigTrace:
+        typeof data['logic-sig-trace'] !== 'undefined'
+          ? data['logic-sig-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -4150,7 +4571,7 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel
     this.deltas = deltas;
 
     this.attribute_map = {
-      deltas: 'deltas',
+      deltas: 'Deltas',
     };
   }
 
