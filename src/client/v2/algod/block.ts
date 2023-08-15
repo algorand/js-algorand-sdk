@@ -10,8 +10,6 @@ export default class Block extends JSONRequest {
 
   constructor(c: HTTPClient, roundNumber: number | bigint) {
     super(c);
-    if (!Number.isInteger(roundNumber))
-      throw Error('roundNumber should be an integer');
     this.round = roundNumber;
     this.query = { format: 'msgpack' };
   }

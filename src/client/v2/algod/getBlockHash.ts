@@ -15,8 +15,6 @@ export default class GetBlockHash extends JSONRequest<
     roundNumber: number | bigint
   ) {
     super(c, intDecoding);
-    if (!Number.isInteger(roundNumber))
-      throw Error('roundNumber should be an integer');
     this.round = roundNumber;
   }
 
