@@ -6,7 +6,10 @@ import { PendingTransactionResponse } from './models/types';
 /**
  * returns the transaction information for a specific txid of a pending transaction
  */
-export default class PendingTransactionInformation extends JSONRequest<PendingTransactionResponse> {
+export default class PendingTransactionInformation extends JSONRequest<
+  PendingTransactionResponse,
+  Uint8Array
+> {
   constructor(c: HTTPClient, private txid: string) {
     super(c);
     this.txid = txid;

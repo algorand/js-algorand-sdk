@@ -2,6 +2,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const JSONBig = require('json-bigint');
 
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
@@ -188,15 +189,7 @@ module.exports = function getSteps(options) {
    */
   let doRaw = false;
 
-  function doOrDoRaw(req) {
-    if (doRaw === true) {
-      doRaw = false;
-      return req.doRaw();
-    }
-    return req.do();
-  }
-
-  async function doOrDoRawAsync(req) {
+  async function doOrDoRaw(req) {
     if (doRaw === true) {
       doRaw = false;
       return req.doRaw();
@@ -1599,8 +1592,8 @@ module.exports = function getSteps(options) {
       // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
         assert.strictEqual(
-          JSON.stringify(JSON.parse(expectedMockResponse)),
-          JSON.stringify(this.actualMockResponse)
+          JSONBig.stringify(JSONBig.parse(expectedMockResponse)),
+          JSONBig.stringify(this.actualMockResponse)
         );
       } else {
         assert.deepStrictEqual(
@@ -1719,7 +1712,7 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await doOrDoRawAsync(this.v2Client.pendingTransactionInformation(txid));
+      await doOrDoRaw(this.v2Client.pendingTransactionInformation(txid));
     }
   );
 
@@ -1729,16 +1722,16 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await doOrDoRawAsync(
-        this.v2Client.pendingTransactionsInformation().max(max)
-      );
+      await doOrDoRaw(this.v2Client.pendingTransactionsInformation().max(max));
     }
   );
 
   When(
     'we make a Pending Transactions By Address call against account {string} and max {int}',
-    function (account, max) {
-      doOrDoRaw(this.v2Client.pendingTransactionByAddress(account).max(max));
+    async function (account, max) {
+      await doOrDoRaw(
+        this.v2Client.pendingTransactionByAddress(account).max(max)
+      );
     }
   );
 
@@ -1748,7 +1741,7 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await doOrDoRawAsync(
+      await doOrDoRaw(
         this.v2Client.pendingTransactionByAddress(account).max(max)
       );
     }
@@ -1757,14 +1750,14 @@ module.exports = function getSteps(options) {
   When(
     'we make a Status after Block call with round {int}',
     async function (round) {
-      await doOrDoRawAsync(this.v2Client.statusAfterBlock(round));
+      await doOrDoRaw(this.v2Client.statusAfterBlock(round));
     }
   );
 
   When(
     'we make an Account Information call against account {string} with exclude {string}',
     async function (account, exclude) {
-      await doOrDoRawAsync(
+      await doOrDoRaw(
         this.v2Client.accountInformation(account).exclude(exclude)
       );
     }
@@ -1773,23 +1766,21 @@ module.exports = function getSteps(options) {
   When(
     'we make an Account Information call against account {string}',
     async function (account) {
-      await doOrDoRawAsync(this.v2Client.accountInformation(account));
+      await doOrDoRaw(this.v2Client.accountInformation(account));
     }
   );
 
   When(
     'we make an Account Asset Information call against account {string} assetID {int}',
     async function (account, assetID) {
-      await doOrDoRawAsync(
-        this.v2Client.accountAssetInformation(account, assetID)
-      );
+      await doOrDoRaw(this.v2Client.accountAssetInformation(account, assetID));
     }
   );
 
   When(
     'we make an Account Application Information call against account {string} applicationID {int}',
     async function (account, applicationID) {
-      await doOrDoRawAsync(
+      await doOrDoRaw(
         this.v2Client.accountApplicationInformation(account, applicationID)
       );
     }
@@ -1797,8 +1788,8 @@ module.exports = function getSteps(options) {
 
   When(
     'we make a Get Block call against block number {int}',
-    function (blockNum) {
-      doOrDoRaw(this.v2Client.block(blockNum));
+    async function (blockNum) {
+      await doOrDoRaw(this.v2Client.block(blockNum));
     }
   );
 
@@ -1808,18 +1799,18 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await doOrDoRawAsync(this.v2Client.block(blockNum));
+      await doOrDoRaw(this.v2Client.block(blockNum));
     }
   );
 
   When('we make a GetAssetByID call for assetID {int}', async function (index) {
-    await doOrDoRawAsync(this.v2Client.getAssetByID(index));
+    await doOrDoRaw(this.v2Client.getAssetByID(index));
   });
 
   When(
     'we make a GetApplicationByID call for applicationID {int}',
     async function (index) {
-      await doOrDoRawAsync(this.v2Client.getApplicationByID(index));
+      await doOrDoRaw(this.v2Client.getApplicationByID(index));
     }
   );
 
@@ -1841,7 +1832,7 @@ module.exports = function getSteps(options) {
   let anyPendingTransactionInfoResponse;
 
   When('we make any Pending Transaction Information call', async function () {
-    anyPendingTransactionInfoResponse = await doOrDoRawAsync(
+    anyPendingTransactionInfoResponse = await doOrDoRaw(
       this.v2Client.pendingTransactionInformation()
     );
   });
@@ -1859,7 +1850,7 @@ module.exports = function getSteps(options) {
   let anyPendingTransactionsInfoResponse;
 
   When('we make any Pending Transactions Information call', async function () {
-    anyPendingTransactionsInfoResponse = await doOrDoRawAsync(
+    anyPendingTransactionsInfoResponse = await doOrDoRaw(
       this.v2Client.pendingTransactionsInformation()
     );
   });
@@ -1885,7 +1876,7 @@ module.exports = function getSteps(options) {
   let anySendRawTransactionResponse;
 
   When('we make any Send Raw Transaction call', async function () {
-    anySendRawTransactionResponse = await doOrDoRawAsync(
+    anySendRawTransactionResponse = await doOrDoRaw(
       this.v2Client.sendRawTransaction(makeUint8Array(0))
     );
   });
@@ -1900,7 +1891,7 @@ module.exports = function getSteps(options) {
   let anyPendingTransactionsByAddressResponse;
 
   When('we make any Pending Transactions By Address call', async function () {
-    anyPendingTransactionsByAddressResponse = await doOrDoRawAsync(
+    anyPendingTransactionsByAddressResponse = await doOrDoRaw(
       this.v2Client.pendingTransactionByAddress()
     );
   });
@@ -1925,48 +1916,61 @@ module.exports = function getSteps(options) {
   let anyNodeStatusResponse;
 
   When('we make any Node Status call', async function () {
-    anyNodeStatusResponse = await doOrDoRawAsync(this.v2Client.status());
+    anyNodeStatusResponse = await doOrDoRaw(this.v2Client.status());
   });
 
   Then(
     'the parsed Node Status response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse.lastRound);
+      assert.strictEqual(
+        lastRound.toString(),
+        anyNodeStatusResponse.lastRound.toString()
+      );
     }
   );
 
   let anyLedgerSupplyResponse;
 
   When('we make any Ledger Supply call', async function () {
-    anyLedgerSupplyResponse = await doOrDoRawAsync(this.v2Client.supply());
+    anyLedgerSupplyResponse = await doOrDoRaw(this.v2Client.supply());
   });
 
   Then(
     'the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}',
     (totalMoney, onlineMoney, round) => {
-      assert.strictEqual(totalMoney, anyLedgerSupplyResponse.totalMoney);
-      assert.strictEqual(onlineMoney, anyLedgerSupplyResponse.onlineMoney);
-      assert.strictEqual(round, anyLedgerSupplyResponse.currentRound);
+      assert.strictEqual(
+        totalMoney.toString(),
+        anyLedgerSupplyResponse.totalMoney.toString()
+      );
+      assert.strictEqual(
+        onlineMoney.toString(),
+        anyLedgerSupplyResponse.onlineMoney.toString()
+      );
+      assert.strictEqual(
+        round.toString(),
+        anyLedgerSupplyResponse.currentRound.toString()
+      );
     }
   );
 
   When('we make any Status After Block call', async function () {
-    anyNodeStatusResponse = await doOrDoRawAsync(
-      this.v2Client.statusAfterBlock(1)
-    );
+    anyNodeStatusResponse = await doOrDoRaw(this.v2Client.statusAfterBlock(1));
   });
 
   Then(
     'the parsed Status After Block response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse.lastRound);
+      assert.strictEqual(
+        lastRound.toString(),
+        anyNodeStatusResponse.lastRound.toString()
+      );
     }
   );
 
   let anyAccountInformationResponse;
 
   When('we make any Account Information call', async function () {
-    anyAccountInformationResponse = await doOrDoRawAsync(
+    anyAccountInformationResponse = await doOrDoRaw(
       this.v2Client.accountInformation()
     );
   });
@@ -1981,7 +1985,7 @@ module.exports = function getSteps(options) {
   let anyBlockResponse;
 
   When('we make any Get Block call', async function () {
-    anyBlockResponse = await doOrDoRawAsync(this.v2Client.block(1));
+    anyBlockResponse = await doOrDoRaw(this.v2Client.block(1));
   });
 
   Then(
@@ -1997,7 +2001,7 @@ module.exports = function getSteps(options) {
   let anySuggestedTransactionsResponse;
 
   When('we make any Suggested Transaction Parameters call', async function () {
-    anySuggestedTransactionsResponse = await doOrDoRawAsync(
+    anySuggestedTransactionsResponse = await doOrDoRaw(
       this.v2Client.getTransactionParams()
     );
   });
@@ -2021,7 +2025,7 @@ module.exports = function getSteps(options) {
       currencyGreater,
       currencyLesser
     ) {
-      await doOrDoRawAsync(
+      await doOrDoRaw(
         this.indexerClient
           .lookupAssetBalances(index)
           .limit(limit)
@@ -2586,8 +2590,8 @@ module.exports = function getSteps(options) {
     'the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
-        anyLookupAccountTransactionsResponse['current-round']
+        round.toString(),
+        anyLookupAccountTransactionsResponse['current-round'].toString()
       );
       assert.strictEqual(
         length,
@@ -2656,7 +2660,10 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}',
     (round, length, idx, address) => {
-      assert.strictEqual(round, anySearchAccountsResponse['current-round']);
+      assert.strictEqual(
+        round.toString(),
+        anySearchAccountsResponse['current-round'].toString()
+      );
       assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
       if (length === 0) {
         return;
@@ -2695,8 +2702,8 @@ module.exports = function getSteps(options) {
     'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
-        anySearchForTransactionsResponse['current-round']
+        round.toString(),
+        anySearchForTransactionsResponse['current-round'].toString()
       );
       assert.strictEqual(
         length,
@@ -2744,14 +2751,17 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}',
     (round, length, idx, assetIndex) => {
-      assert.strictEqual(round, anySearchForAssetsResponse['current-round']);
+      assert.strictEqual(
+        round.toString(),
+        anySearchForAssetsResponse['current-round'].toString()
+      );
       assert.strictEqual(length, anySearchForAssetsResponse.assets.length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        assetIndex,
-        anySearchForAssetsResponse.assets[idx].index
+        assetIndex.toString(),
+        anySearchForAssetsResponse.assets[idx].index.toString()
       );
     }
   );
@@ -4683,18 +4693,18 @@ module.exports = function getSteps(options) {
   When(
     'we make a GetLightBlockHeaderProof call for round {int}',
     async function (int) {
-      await doOrDoRawAsync(this.v2Client.getLightBlockHeaderProof(int));
+      await doOrDoRaw(this.v2Client.getLightBlockHeaderProof(int));
     }
   );
 
   When('we make a GetStateProof call for round {int}', async function (int) {
-    await doOrDoRawAsync(this.v2Client.getStateProof(int));
+    await doOrDoRaw(this.v2Client.getStateProof(int));
   });
 
   When(
     'we make a Lookup Block Hash call against round {int}',
     async function (int) {
-      await doOrDoRawAsync(this.v2Client.getBlockHash(int));
+      await doOrDoRaw(this.v2Client.getBlockHash(int));
     }
   );
 

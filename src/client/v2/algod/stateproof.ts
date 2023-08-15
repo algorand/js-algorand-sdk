@@ -3,7 +3,7 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { StateProof as SP } from './models/types';
 
-export default class StateProof extends JSONRequest<SP> {
+export default class StateProof extends JSONRequest<SP, Record<string, any>> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -19,7 +19,7 @@ export default class StateProof extends JSONRequest<SP> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): SP {
+  prepare(body: Record<string, any>): SP {
     return SP.from_obj_for_encoding(body);
   }
 }

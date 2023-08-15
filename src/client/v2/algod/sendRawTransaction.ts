@@ -24,7 +24,10 @@ function isByteArray(array: any): array is Uint8Array {
 /**
  * broadcasts the passed signed txns to the network
  */
-export default class SendRawTransaction extends JSONRequest<PostTransactionsResponse> {
+export default class SendRawTransaction extends JSONRequest<
+  PostTransactionsResponse,
+  Record<string, any>
+> {
   private txnBytesToPost: Uint8Array;
 
   constructor(c: HTTPClient, stxOrStxs: Uint8Array | Uint8Array[]) {
@@ -60,7 +63,7 @@ export default class SendRawTransaction extends JSONRequest<PostTransactionsResp
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): PostTransactionsResponse {
+  prepare(body: Record<string, any>): PostTransactionsResponse {
     return PostTransactionsResponse.from_obj_for_encoding(body);
   }
 }

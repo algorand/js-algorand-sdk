@@ -64,7 +64,7 @@ export interface ABIResult {
   /** If the SDK was unable to decode a return value, the error will be here. */
   decodeError?: Error;
   /** The pending transaction information from the method transaction */
-  txInfo?: Record<string, any>;
+  txInfo?: PendingTransactionResponse;
 }
 
 export enum AtomicTransactionComposerStatus {

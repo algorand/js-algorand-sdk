@@ -3,7 +3,10 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { NodeStatusResponse } from './models/types';
 
-export default class StatusAfterBlock extends JSONRequest<NodeStatusResponse> {
+export default class StatusAfterBlock extends JSONRequest<
+  NodeStatusResponse,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -19,7 +22,7 @@ export default class StatusAfterBlock extends JSONRequest<NodeStatusResponse> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): NodeStatusResponse {
+  prepare(body: Record<string, any>): NodeStatusResponse {
     return NodeStatusResponse.from_obj_for_encoding(body);
   }
 }

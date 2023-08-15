@@ -3,7 +3,10 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { LightBlockHeaderProof as LBHP } from './models/types';
 
-export default class LightBlockHeaderProof extends JSONRequest<LBHP> {
+export default class LightBlockHeaderProof extends JSONRequest<
+  LBHP,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -19,7 +22,7 @@ export default class LightBlockHeaderProof extends JSONRequest<LBHP> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): LBHP {
+  prepare(body: Record<string, any>): LBHP {
     return LBHP.from_obj_for_encoding(body);
   }
 }

@@ -3,7 +3,10 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { AccountAssetResponse } from './models/types';
 
-export default class AccountAssetInformation extends JSONRequest<AccountAssetResponse> {
+export default class AccountAssetInformation extends JSONRequest<
+  AccountAssetResponse,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -20,7 +23,7 @@ export default class AccountAssetInformation extends JSONRequest<AccountAssetRes
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): AccountAssetResponse {
+  prepare(body: Record<string, any>): AccountAssetResponse {
     return AccountAssetResponse.from_obj_for_encoding(body);
   }
 }

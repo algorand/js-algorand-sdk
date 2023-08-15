@@ -3,7 +3,10 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { Application } from './models/types';
 
-export default class GetApplicationByID extends JSONRequest<Application> {
+export default class GetApplicationByID extends JSONRequest<
+  Application,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -18,7 +21,7 @@ export default class GetApplicationByID extends JSONRequest<Application> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): Application {
+  prepare(body: Record<string, any>): Application {
     return Application.from_obj_for_encoding(body);
   }
 }

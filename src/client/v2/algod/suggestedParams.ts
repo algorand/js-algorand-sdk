@@ -4,7 +4,10 @@ import { SuggestedParamsWithMinFee } from '../../../types/transactions/base';
 /**
  * Returns the common needed parameters for a new transaction, in a format the transaction builder expects
  */
-export default class SuggestedParamsRequest extends JSONRequest<SuggestedParamsWithMinFee> {
+export default class SuggestedParamsRequest extends JSONRequest<
+  SuggestedParamsWithMinFee,
+  Record<string, any>
+> {
   /* eslint-disable class-methods-use-this */
   path() {
     return '/v2/transactions/params';

@@ -5,7 +5,10 @@ import { setHeaders } from './compile';
 import { DryrunResponse } from './models/types';
 import * as modelsv2 from './models/types';
 
-export default class Dryrun extends JSONRequest<DryrunResponse> {
+export default class Dryrun extends JSONRequest<
+  DryrunResponse,
+  Record<string, any>
+> {
   private blob: Uint8Array;
 
   constructor(c: HTTPClient, dr: modelsv2.DryrunRequest) {
@@ -29,7 +32,7 @@ export default class Dryrun extends JSONRequest<DryrunResponse> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): DryrunResponse {
+  prepare(body: Record<string, any>): DryrunResponse {
     return DryrunResponse.from_obj_for_encoding(body);
   }
 }

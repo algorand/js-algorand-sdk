@@ -67,7 +67,7 @@ export default abstract class ServiceClient {
       this.c = new HTTPClient(tokenHeader, baseServer, port, defaultHeaders);
     }
 
-    this.intDecoding = IntDecoding.DEFAULT;
+    this.intDecoding = IntDecoding.BIGINT;
   }
 
   /**

@@ -19,7 +19,10 @@ export function setHeaders(headers = {}) {
 /**
  * Executes compile
  */
-export default class Compile extends JSONRequest<CompileResponse> {
+export default class Compile extends JSONRequest<
+  CompileResponse,
+  Record<string, any>
+> {
   constructor(c: HTTPClient, private source: string | Uint8Array) {
     super(c);
     this.source = source;
@@ -51,7 +54,7 @@ export default class Compile extends JSONRequest<CompileResponse> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): CompileResponse {
+  prepare(body: Record<string, any>): CompileResponse {
     return CompileResponse.from_obj_for_encoding(body);
   }
 }

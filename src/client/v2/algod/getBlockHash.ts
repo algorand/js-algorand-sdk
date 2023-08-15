@@ -3,7 +3,10 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { BlockHashResponse } from './models/types';
 
-export default class GetBlockHash extends JSONRequest<BlockHashResponse> {
+export default class GetBlockHash extends JSONRequest<
+  BlockHashResponse,
+  Record<string, any>
+> {
   round: number | bigint;
 
   constructor(
@@ -22,7 +25,7 @@ export default class GetBlockHash extends JSONRequest<BlockHashResponse> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): BlockHashResponse {
+  prepare(body: Record<string, any>): BlockHashResponse {
     return BlockHashResponse.from_obj_for_encoding(body);
   }
 }

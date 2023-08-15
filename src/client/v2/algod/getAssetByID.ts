@@ -3,7 +3,10 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { Asset } from './models/types';
 
-export default class GetAssetByID extends JSONRequest<Asset> {
+export default class GetAssetByID extends JSONRequest<
+  Asset,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -18,7 +21,7 @@ export default class GetAssetByID extends JSONRequest<Asset> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): Asset {
+  prepare(body: Record<string, any>): Asset {
     return Asset.from_obj_for_encoding(body);
   }
 }

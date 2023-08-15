@@ -3,7 +3,10 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 import { TransactionProofResponse } from './models/types';
 
-export default class GetTransactionProof extends JSONRequest<TransactionProofResponse> {
+export default class GetTransactionProof extends JSONRequest<
+  TransactionProofResponse,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -43,7 +46,7 @@ export default class GetTransactionProof extends JSONRequest<TransactionProofRes
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): TransactionProofResponse {
+  prepare(body: Record<string, any>): TransactionProofResponse {
     return TransactionProofResponse.from_obj_for_encoding(body);
   }
 }

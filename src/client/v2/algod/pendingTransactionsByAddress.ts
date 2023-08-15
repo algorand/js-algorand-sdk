@@ -6,7 +6,10 @@ import { PendingTransactionsResponse } from './models/types';
 /**
  * returns all transactions for a PK [addr] in the [first, last] rounds range.
  */
-export default class PendingTransactionsByAddress extends JSONRequest<PendingTransactionsResponse> {
+export default class PendingTransactionsByAddress extends JSONRequest<
+  PendingTransactionsResponse,
+  Uint8Array
+> {
   constructor(c: HTTPClient, private address: string) {
     super(c);
     this.address = address;
