@@ -52,7 +52,7 @@ export async function createDryrun({
 
   for (const t of txns) {
     if (t.txn.type === TransactionType.appl) {
-      accts.push(encodeAddress(t.txn.from.publicKey));
+      accts.push(encodeAddress(t.txn.sender.publicKey));
 
       if (t.txn.appAccounts)
         accts.push(...t.txn.appAccounts.map((a) => encodeAddress(a.publicKey)));
@@ -72,7 +72,7 @@ export async function createDryrun({
           new Application({
             id: defaultAppId,
             params: new ApplicationParams({
-              creator: encodeAddress(t.txn.from.publicKey),
+              creator: encodeAddress(t.txn.sender.publicKey),
               approvalProgram: t.txn.appApprovalProgram,
               clearStateProgram: t.txn.appClearProgram,
               localStateSchema: new ApplicationStateSchema({

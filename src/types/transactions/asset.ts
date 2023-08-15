@@ -72,7 +72,7 @@ export type AssetDestroyTransaction = ConstructTransaction<
 
 type SpecificParametersForFreeze = Pick<
   TransactionParams,
-  'assetIndex' | 'freezeAccount' | 'freezeState'
+  'assetIndex' | 'freezeAccount' | 'assetFrozen'
 >;
 
 interface OverwritesForFreeze {
@@ -90,10 +90,10 @@ export type AssetFreezeTransaction = ConstructTransaction<
 
 type SpecificParametersForTransfer = Pick<
   TransactionParams,
-  | 'from'
-  | 'to'
+  | 'sender'
+  | 'receiver'
   | 'closeRemainderTo'
-  | 'assetRevocationTarget'
+  | 'assetSender'
   | 'amount'
   | 'assetIndex'
 >;

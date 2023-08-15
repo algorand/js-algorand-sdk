@@ -74,6 +74,16 @@ describe('address', () => {
       assert.ok(algosdk.isValidAddress(addr));
     });
 
+    it('should throw an error for addresses with incorrect length', () => {
+      const pk = nacl.randomBytes(15);
+      assert.throws(
+        () => {
+          algosdk.encodeAddress(pk);
+        },
+        (err) => err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
+      );
+    });
+
     it('should be able to encode and decode an address', () => {
       const pk = nacl.randomBytes(32);
       const addr = algosdk.encodeAddress(pk);

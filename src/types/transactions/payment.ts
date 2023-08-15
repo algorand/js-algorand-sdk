@@ -3,7 +3,7 @@ import { ConstructTransaction } from './builder';
 
 type SpecificParameters = Pick<
   TransactionParams,
-  'to' | 'amount' | 'closeRemainderTo'
+  'receiver' | 'amount' | 'closeRemainderTo'
 >;
 
 interface Overwrites {

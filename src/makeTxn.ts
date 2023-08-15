@@ -25,8 +25,8 @@ import { RenameProperties, RenameProperty, Expand } from './types/utils';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
- * @param from - string representation of Algorand address of sender
- * @param to - string representation of Algorand address of recipient
+ * @param sender - string representation of Algorand address of sender
+ * @param receiver - string representation of Algorand address of recipient
  * @param amount - integer amount to send, in microAlgos
  * @param closeRemainderTo - optionally close out remaining account balance to this account, represented as string rep of Algorand address
  * @param note - uint8array of arbitrary data for sender to store
@@ -34,30 +34,30 @@ import { RenameProperties, RenameProperty, Expand } from './types/utils';
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  */
 export function makePaymentTxnWithSuggestedParams(
-  from: PaymentTxn['from'],
-  to: PaymentTxn['to'],
+  sender: PaymentTxn['sender'],
+  receiver: PaymentTxn['receiver'],
   amount: PaymentTxn['amount'],
   closeRemainderTo: PaymentTxn['closeRemainderTo'],
   note: PaymentTxn['note'],
   suggestedParams: MustHaveSuggestedParams<PaymentTxn>['suggestedParams'],
-  rekeyTo?: PaymentTxn['reKeyTo']
+  rekeyTo?: PaymentTxn['rekeyTo']
 ) {
   const o: PaymentTxn = {
-    from,
-    to,
+    sender,
+    receiver,
     amount,
     closeRemainderTo,
     note,
     suggestedParams,
     type: TransactionType.pay,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -66,9 +66,9 @@ export function makePaymentTxnWithSuggestedParams(
 export function makePaymentTxnWithSuggestedParamsFromObject(
   o: Expand<
     Pick<
-      RenameProperty<MustHaveSuggestedParams<PaymentTxn>, 'reKeyTo', 'rekeyTo'>,
-      | 'from'
-      | 'to'
+      RenameProperty<MustHaveSuggestedParams<PaymentTxn>, 'rekeyTo', 'rekeyTo'>,
+      | 'sender'
+      | 'receiver'
       | 'amount'
       | 'closeRemainderTo'
       | 'note'
@@ -78,8 +78,8 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
   >
 ) {
   return makePaymentTxnWithSuggestedParams(
-    o.from,
-    o.to,
+    o.sender,
+    o.receiver,
     o.amount,
     o.closeRemainderTo,
     o.note,
@@ -92,7 +92,7 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * makeKeyRegistrationTxnWithSuggestedParams takes key registration arguments and returns a Transaction object for
  * that key registration operation
  *
- * @param from - string representation of Algorand address of sender
+ * @param sender - string representation of Algorand address of sender
  * @param note - uint8array of arbitrary data for sender to store
  * @param voteKey - voting key. for key deregistration, leave undefined
  * @param selectionKey - selection key. for key deregistration, leave undefined
@@ -103,8 +103,8 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
@@ -113,7 +113,7 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * @param stateProofKey - state proof key. for key deregistration, leave undefined
  */
 export function makeKeyRegistrationTxnWithSuggestedParams(
-  from: KeyRegistrationTxn['from'],
+  sender: KeyRegistrationTxn['sender'],
   note: KeyRegistrationTxn['note'],
   voteKey: KeyRegistrationTxn['voteKey'],
   selectionKey: KeyRegistrationTxn['selectionKey'],
@@ -121,12 +121,12 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteLast: KeyRegistrationTxn['voteLast'],
   voteKeyDilution: KeyRegistrationTxn['voteKeyDilution'],
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
-  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  rekeyTo?: KeyRegistrationTxn['rekeyTo'],
   nonParticipation?: false,
   stateProofKey?: KeyRegistrationTxn['stateProofKey']
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParams(
-  from: KeyRegistrationTxn['from'],
+  sender: KeyRegistrationTxn['sender'],
   note: KeyRegistrationTxn['note'],
   voteKey: undefined,
   selectionKey: undefined,
@@ -134,12 +134,12 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteLast: undefined,
   voteKeyDilution: undefined,
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
-  rekeyTo?: KeyRegistrationTxn['reKeyTo'],
+  rekeyTo?: KeyRegistrationTxn['rekeyTo'],
   nonParticipation?: true,
   stateProofKey?: undefined
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParams(
-  from: any,
+  sender: any,
   note: any,
   voteKey: any,
   selectionKey: any,
@@ -152,7 +152,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   stateProofKey: any = undefined
 ) {
   const o: KeyRegistrationTxn = {
-    from,
+    sender,
     note,
     voteKey,
     selectionKey,
@@ -161,7 +161,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
     voteKeyDilution,
     suggestedParams,
     type: TransactionType.keyreg,
-    reKeyTo: rekeyTo,
+    rekeyTo,
     nonParticipation,
     stateProofKey,
   };
@@ -174,10 +174,10 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     Pick<
       RenameProperty<
         MustHaveSuggestedParams<KeyRegistrationTxn>,
-        'reKeyTo',
+        'rekeyTo',
         'rekeyTo'
       >,
-      | 'from'
+      | 'sender'
       | 'note'
       | 'voteKey'
       | 'selectionKey'
@@ -197,16 +197,16 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(
     Pick<
       RenameProperty<
         MustHaveSuggestedParams<KeyRegistrationTxn>,
-        'reKeyTo',
+        'rekeyTo',
         'rekeyTo'
       >,
-      'from' | 'note' | 'suggestedParams' | 'rekeyTo' | 'nonParticipation'
+      'sender' | 'note' | 'suggestedParams' | 'rekeyTo' | 'nonParticipation'
     >
   >
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
   return makeKeyRegistrationTxnWithSuggestedParams(
-    o.from,
+    o.sender,
     o.note,
     o.voteKey,
     o.selectionKey,
@@ -223,7 +223,7 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
 /** makeAssetCreateTxnWithSuggestedParams takes asset creation arguments and returns a Transaction object
  * for creating that asset
  *
- * @param from - string representation of Algorand address of sender
+ * @param sender - string representation of Algorand address of sender
  * @param note - uint8array of arbitrary data for sender to store
  * @param total - integer total supply of the asset
  * @param decimals - integer number of decimals for asset unit calculation
@@ -240,14 +240,14 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  */
 export function makeAssetCreateTxnWithSuggestedParams(
-  from: AssetCreateTxn['from'],
+  sender: AssetCreateTxn['sender'],
   note: AssetCreateTxn['note'],
   total: AssetCreateTxn['assetTotal'],
   decimals: AssetCreateTxn['assetDecimals'],
@@ -261,10 +261,10 @@ export function makeAssetCreateTxnWithSuggestedParams(
   assetURL: AssetCreateTxn['assetURL'],
   assetMetadataHash: AssetCreateTxn['assetMetadataHash'] | undefined,
   suggestedParams: MustHaveSuggestedParams<AssetCreateTxn>['suggestedParams'],
-  rekeyTo?: AssetCreateTxn['reKeyTo']
+  rekeyTo?: AssetCreateTxn['rekeyTo']
 ) {
   const o: AssetCreateTxn = {
-    from,
+    sender,
     note,
     suggestedParams,
     assetTotal: total,
@@ -279,7 +279,7 @@ export function makeAssetCreateTxnWithSuggestedParams(
     assetFreeze: freeze,
     assetClawback: clawback,
     type: TransactionType.acfg,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -291,7 +291,7 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
       RenameProperties<
         MustHaveSuggestedParams<AssetCreateTxn>,
         {
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
           assetTotal: 'total';
           assetDecimals: 'decimals';
           assetDefaultFrozen: 'defaultFrozen';
@@ -302,7 +302,7 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
           assetUnitName: 'unitName';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'note'
       | 'total'
       | 'decimals'
@@ -321,7 +321,7 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
   >
 ) {
   return makeAssetCreateTxnWithSuggestedParams(
-    o.from,
+    o.sender,
     o.note,
     o.total,
     o.decimals,
@@ -343,7 +343,7 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
  * you must respecify existing addresses to keep them the same; leaving a field blank is the same as turning
  * that feature off for this asset
  *
- * @param from - string representation of Algorand address of sender
+ * @param sender - string representation of Algorand address of sender
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param manager - string representation of new asset manager Algorand address
@@ -354,15 +354,15 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  * @param strictEmptyAddressChecking - boolean - throw an error if any of manager, reserve, freeze, or clawback are undefined. optional, defaults to true.
  */
 export function makeAssetConfigTxnWithSuggestedParams(
-  from: AssetConfigTxn['from'],
+  sender: AssetConfigTxn['sender'],
   note: AssetConfigTxn['note'],
   assetIndex: AssetConfigTxn['assetIndex'],
   manager: AssetConfigTxn['assetManager'],
@@ -370,7 +370,7 @@ export function makeAssetConfigTxnWithSuggestedParams(
   freeze: AssetConfigTxn['assetFreeze'],
   clawback: AssetConfigTxn['assetClawback'],
   suggestedParams: MustHaveSuggestedParams<AssetConfigTxn>['suggestedParams'],
-  rekeyTo?: AssetConfigTxn['reKeyTo'],
+  rekeyTo?: AssetConfigTxn['rekeyTo'],
   strictEmptyAddressChecking = true
 ) {
   if (
@@ -385,7 +385,7 @@ export function makeAssetConfigTxnWithSuggestedParams(
     );
   }
   const o: AssetConfigTxn = {
-    from,
+    sender,
     suggestedParams,
     assetIndex,
     assetManager: manager,
@@ -394,7 +394,7 @@ export function makeAssetConfigTxnWithSuggestedParams(
     assetClawback: clawback,
     type: TransactionType.acfg,
     note,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -406,14 +406,14 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
       RenameProperties<
         MustHaveSuggestedParams<AssetConfigTxn>,
         {
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
           assetManager: 'manager';
           assetReserve: 'reserve';
           assetFreeze: 'freeze';
           assetClawback: 'clawback';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'note'
       | 'assetIndex'
       | 'manager'
@@ -428,7 +428,7 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
   >
 ) {
   return makeAssetConfigTxnWithSuggestedParams(
-    o.from,
+    o.sender,
     o.note,
     o.assetIndex,
     o.manager,
@@ -444,33 +444,33 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
 /** makeAssetDestroyTxnWithSuggestedParams will allow the asset's manager to remove this asset from the ledger, so long
  * as all outstanding assets are held by the creator.
  *
- * @param from - string representation of Algorand address of sender
+ * @param sender - string representation of Algorand address of sender
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  */
 export function makeAssetDestroyTxnWithSuggestedParams(
-  from: AssetDestroyTxn['from'],
+  sender: AssetDestroyTxn['sender'],
   note: AssetDestroyTxn['note'],
   assetIndex: AssetDestroyTxn['assetIndex'],
   suggestedParams: MustHaveSuggestedParams<AssetDestroyTxn>['suggestedParams'],
-  rekeyTo?: AssetDestroyTxn['reKeyTo']
+  rekeyTo?: AssetDestroyTxn['rekeyTo']
 ) {
   const o: AssetDestroyTxn = {
-    from,
+    sender,
     suggestedParams,
     assetIndex,
     type: TransactionType.acfg,
     note,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -481,15 +481,15 @@ export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
     Pick<
       RenameProperty<
         MustHaveSuggestedParams<AssetDestroyTxn>,
-        'reKeyTo',
+        'rekeyTo',
         'rekeyTo'
       >,
-      'from' | 'note' | 'assetIndex' | 'suggestedParams' | 'rekeyTo'
+      'sender' | 'note' | 'assetIndex' | 'suggestedParams' | 'rekeyTo'
     >
   >
 ) {
   return makeAssetDestroyTxnWithSuggestedParams(
-    o.from,
+    o.sender,
     o.note,
     o.assetIndex,
     o.suggestedParams,
@@ -500,39 +500,39 @@ export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
 /** makeAssetFreezeTxnWithSuggestedParams will allow the asset's freeze manager to freeze or un-freeze an account,
  * blocking or allowing asset transfers to and from the targeted account.
  *
- * @param from - string representation of Algorand address of sender
+ * @param sender - string representation of Algorand address of sender
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
  * @param freezeTarget - string representation of Algorand address being frozen or unfrozen
- * @param freezeState - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
+ * @param assetFrozen - true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  */
 export function makeAssetFreezeTxnWithSuggestedParams(
-  from: AssetFreezeTxn['from'],
+  sender: AssetFreezeTxn['sender'],
   note: AssetFreezeTxn['note'],
   assetIndex: AssetFreezeTxn['assetIndex'],
   freezeTarget: AssetFreezeTxn['freezeAccount'],
-  freezeState: AssetFreezeTxn['freezeState'],
+  assetFrozen: AssetFreezeTxn['assetFrozen'],
   suggestedParams: MustHaveSuggestedParams<AssetFreezeTxn>['suggestedParams'],
-  rekeyTo?: AssetFreezeTxn['reKeyTo']
+  rekeyTo?: AssetFreezeTxn['rekeyTo']
 ) {
   const o: AssetFreezeTxn = {
-    from,
+    sender,
     type: TransactionType.afrz,
     freezeAccount: freezeTarget,
     assetIndex,
-    freezeState,
+    assetFrozen,
     note,
     suggestedParams,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -545,39 +545,39 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
         MustHaveSuggestedParams<AssetFreezeTxn>,
         {
           freezeAccount: 'freezeTarget';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'note'
       | 'assetIndex'
       | 'freezeTarget'
-      | 'freezeState'
+      | 'assetFrozen'
       | 'suggestedParams'
       | 'rekeyTo'
     >
   >
 ) {
   return makeAssetFreezeTxnWithSuggestedParams(
-    o.from,
+    o.sender,
     o.note,
     o.assetIndex,
     o.freezeTarget,
-    o.freezeState,
+    o.assetFrozen,
     o.suggestedParams,
     o.rekeyTo
   );
 }
 
 /** makeAssetTransferTxnWithSuggestedParams allows for the creation of an asset transfer transaction.
- * Special case: to begin accepting assets, set amount=0 and from=to.
+ * Special case: to begin accepting assets, set amount=0 and sender=receiver.
  *
- * @param from - string representation of Algorand address of sender
- * @param to - string representation of Algorand address of asset recipient
+ * @param sender - string representation of Algorand address of sender
+ * @param receiver - string representation of Algorand address of asset recipient
  * @param closeRemainderTo - optional - string representation of Algorand address - if provided,
- * send all remaining assets after transfer to the "closeRemainderTo" address and close "from"'s asset holdings
- * @param revocationTarget - optional - string representation of Algorand address - if provided,
- * and if "from" is the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
+ * send all remaining assets after transfer to the "closeRemainderTo" address and close "sender"'s asset holdings
+ * @param assetSender - optional - string representation of Algorand address - if provided,
+ * and if "sender" is the asset's revocation manager, then deduct from "assetSender" rather than "sender"
  * @param amount - integer amount of assets to send
  * @param note - uint8array of arbitrary data for sender to store
  * @param assetIndex - int asset index uniquely specifying the asset
@@ -587,34 +587,34 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
  * * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
  */
 export function makeAssetTransferTxnWithSuggestedParams(
-  from: AssetTransferTxn['from'],
-  to: AssetTransferTxn['to'],
+  sender: AssetTransferTxn['sender'],
+  receiver: AssetTransferTxn['receiver'],
   closeRemainderTo: AssetTransferTxn['closeRemainderTo'],
-  revocationTarget: AssetTransferTxn['assetRevocationTarget'],
+  assetSender: AssetTransferTxn['assetSender'],
   amount: AssetTransferTxn['amount'],
   note: AssetTransferTxn['note'],
   assetIndex: AssetTransferTxn['assetIndex'],
   suggestedParams: MustHaveSuggestedParams<AssetTransferTxn>['suggestedParams'],
-  rekeyTo?: AssetTransferTxn['reKeyTo']
+  rekeyTo?: AssetTransferTxn['rekeyTo']
 ) {
   const o: AssetTransferTxn = {
     type: TransactionType.axfer,
-    from,
-    to,
+    sender,
+    receiver,
     amount,
     suggestedParams,
     assetIndex,
     note,
-    assetRevocationTarget: revocationTarget,
+    assetSender,
     closeRemainderTo,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -626,14 +626,14 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
       RenameProperties<
         MustHaveSuggestedParams<AssetTransferTxn>,
         {
-          assetRevocationTarget: 'revocationTarget';
-          reKeyTo: 'rekeyTo';
+          assetSender: 'assetSender';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
-      | 'to'
+      | 'sender'
+      | 'receiver'
       | 'closeRemainderTo'
-      | 'revocationTarget'
+      | 'assetSender'
       | 'amount'
       | 'note'
       | 'assetIndex'
@@ -643,10 +643,10 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
   >
 ) {
   return makeAssetTransferTxnWithSuggestedParams(
-    o.from,
-    o.to,
+    o.sender,
+    o.receiver,
     o.closeRemainderTo,
-    o.revocationTarget,
+    o.assetSender,
     o.amount,
     o.note,
     o.assetIndex,
@@ -657,13 +657,13 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
 
 /**
  * Make a transaction that will create an application.
- * @param from - address of sender
+ * @param sender - address of sender
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param onComplete - algosdk.OnApplicationComplete, what application should do once the program is done being run
@@ -684,7 +684,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationCreateTxn(
-  from: AppCreateTxn['from'],
+  sender: AppCreateTxn['sender'],
   suggestedParams: MustHaveSuggestedParams<AppCreateTxn>['suggestedParams'],
   onComplete: AppCreateTxn['appOnComplete'],
   approvalProgram: AppCreateTxn['appApprovalProgram'],
@@ -699,13 +699,13 @@ export function makeApplicationCreateTxn(
   foreignAssets?: AppCreateTxn['appForeignAssets'],
   note?: AppCreateTxn['note'],
   lease?: AppCreateTxn['lease'],
-  rekeyTo?: AppCreateTxn['reKeyTo'],
+  rekeyTo?: AppCreateTxn['rekeyTo'],
   extraPages?: AppCreateTxn['extraPages'],
   boxes?: AppCreateTxn['boxes']
 ) {
   const o: AppCreateTxn = {
     type: TransactionType.appl,
-    from,
+    sender,
     suggestedParams,
     appIndex: 0,
     appOnComplete: onComplete,
@@ -722,7 +722,7 @@ export function makeApplicationCreateTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
     extraPages,
   };
   return new txnBuilder.Transaction(o);
@@ -745,10 +745,10 @@ export function makeApplicationCreateTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'onComplete'
       | 'approvalProgram'
@@ -770,7 +770,7 @@ export function makeApplicationCreateTxnFromObject(
   >
 ) {
   return makeApplicationCreateTxn(
-    o.from,
+    o.sender,
     o.suggestedParams,
     o.onComplete,
     o.approvalProgram,
@@ -793,13 +793,13 @@ export function makeApplicationCreateTxnFromObject(
 
 /**
  * Make a transaction that changes an application's approval and clear programs
- * @param from - address of sender
+ * @param sender - address of sender
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to be updated
@@ -815,7 +815,7 @@ export function makeApplicationCreateTxnFromObject(
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationUpdateTxn(
-  from: AppUpdateTxn['from'],
+  sender: AppUpdateTxn['sender'],
   suggestedParams: MustHaveSuggestedParams<AppUpdateTxn>['suggestedParams'],
   appIndex: AppUpdateTxn['appIndex'],
   approvalProgram: AppUpdateTxn['appApprovalProgram'],
@@ -826,12 +826,12 @@ export function makeApplicationUpdateTxn(
   foreignAssets?: AppUpdateTxn['appForeignAssets'],
   note?: AppUpdateTxn['note'],
   lease?: AppUpdateTxn['lease'],
-  rekeyTo?: AppUpdateTxn['reKeyTo'],
+  rekeyTo?: AppUpdateTxn['rekeyTo'],
   boxes?: AppUpdateTxn['boxes']
 ) {
   const o: AppUpdateTxn = {
     type: TransactionType.appl,
-    from,
+    sender,
     suggestedParams,
     appIndex,
     appApprovalProgram: approvalProgram,
@@ -844,7 +844,7 @@ export function makeApplicationUpdateTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -861,10 +861,10 @@ export function makeApplicationUpdateTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'appIndex'
       | 'approvalProgram'
@@ -881,7 +881,7 @@ export function makeApplicationUpdateTxnFromObject(
   >
 ) {
   return makeApplicationUpdateTxn(
-    o.from,
+    o.sender,
     o.suggestedParams,
     o.appIndex,
     o.approvalProgram,
@@ -899,13 +899,13 @@ export function makeApplicationUpdateTxnFromObject(
 
 /**
  * Make a transaction that deletes an application
- * @param from - address of sender
+ * @param sender - address of sender
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to be deleted
@@ -919,7 +919,7 @@ export function makeApplicationUpdateTxnFromObject(
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationDeleteTxn(
-  from: AppDeleteTxn['from'],
+  sender: AppDeleteTxn['sender'],
   suggestedParams: MustHaveSuggestedParams<AppDeleteTxn>['suggestedParams'],
   appIndex: AppDeleteTxn['appIndex'],
   appArgs?: AppDeleteTxn['appArgs'],
@@ -928,12 +928,12 @@ export function makeApplicationDeleteTxn(
   foreignAssets?: AppDeleteTxn['appForeignAssets'],
   note?: AppDeleteTxn['note'],
   lease?: AppDeleteTxn['lease'],
-  rekeyTo?: AppDeleteTxn['reKeyTo'],
+  rekeyTo?: AppDeleteTxn['rekeyTo'],
   boxes?: AppDeleteTxn['boxes']
 ) {
   const o: AppDeleteTxn = {
     type: TransactionType.appl,
-    from,
+    sender,
     suggestedParams,
     appIndex,
     appOnComplete: OnApplicationComplete.DeleteApplicationOC,
@@ -944,7 +944,7 @@ export function makeApplicationDeleteTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -959,10 +959,10 @@ export function makeApplicationDeleteTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'appIndex'
       | 'appArgs'
@@ -977,7 +977,7 @@ export function makeApplicationDeleteTxnFromObject(
   >
 ) {
   return makeApplicationDeleteTxn(
-    o.from,
+    o.sender,
     o.suggestedParams,
     o.appIndex,
     o.appArgs,
@@ -993,13 +993,13 @@ export function makeApplicationDeleteTxnFromObject(
 
 /**
  * Make a transaction that opts in to use an application
- * @param from - address of sender
+ * @param sender - address of sender
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to join
@@ -1013,7 +1013,7 @@ export function makeApplicationDeleteTxnFromObject(
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationOptInTxn(
-  from: AppOptInTxn['from'],
+  sender: AppOptInTxn['sender'],
   suggestedParams: MustHaveSuggestedParams<AppOptInTxn>['suggestedParams'],
   appIndex: AppOptInTxn['appIndex'],
   appArgs?: AppOptInTxn['appArgs'],
@@ -1022,12 +1022,12 @@ export function makeApplicationOptInTxn(
   foreignAssets?: AppOptInTxn['appForeignAssets'],
   note?: AppOptInTxn['note'],
   lease?: AppOptInTxn['lease'],
-  rekeyTo?: AppOptInTxn['reKeyTo'],
+  rekeyTo?: AppOptInTxn['rekeyTo'],
   boxes?: AppOptInTxn['boxes']
 ) {
   const o: AppOptInTxn = {
     type: TransactionType.appl,
-    from,
+    sender,
     suggestedParams,
     appIndex,
     appOnComplete: OnApplicationComplete.OptInOC,
@@ -1038,7 +1038,7 @@ export function makeApplicationOptInTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1053,10 +1053,10 @@ export function makeApplicationOptInTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'appIndex'
       | 'appArgs'
@@ -1071,7 +1071,7 @@ export function makeApplicationOptInTxnFromObject(
   >
 ) {
   return makeApplicationOptInTxn(
-    o.from,
+    o.sender,
     o.suggestedParams,
     o.appIndex,
     o.appArgs,
@@ -1087,13 +1087,13 @@ export function makeApplicationOptInTxnFromObject(
 
 /**
  * Make a transaction that closes out a user's state in an application
- * @param from - address of sender
+ * @param sender - address of sender
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
@@ -1107,7 +1107,7 @@ export function makeApplicationOptInTxnFromObject(
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationCloseOutTxn(
-  from: AppCloseOutTxn['from'],
+  sender: AppCloseOutTxn['sender'],
   suggestedParams: MustHaveSuggestedParams<AppCloseOutTxn>['suggestedParams'],
   appIndex: AppCloseOutTxn['appIndex'],
   appArgs?: AppCloseOutTxn['appArgs'],
@@ -1116,12 +1116,12 @@ export function makeApplicationCloseOutTxn(
   foreignAssets?: AppCloseOutTxn['appForeignAssets'],
   note?: AppCloseOutTxn['note'],
   lease?: AppCloseOutTxn['lease'],
-  rekeyTo?: AppCloseOutTxn['reKeyTo'],
+  rekeyTo?: AppCloseOutTxn['rekeyTo'],
   boxes?: AppCloseOutTxn['boxes']
 ) {
   const o: AppCloseOutTxn = {
     type: TransactionType.appl,
-    from,
+    sender,
     suggestedParams,
     appIndex,
     appOnComplete: OnApplicationComplete.CloseOutOC,
@@ -1132,7 +1132,7 @@ export function makeApplicationCloseOutTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1147,10 +1147,10 @@ export function makeApplicationCloseOutTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'appIndex'
       | 'appArgs'
@@ -1165,7 +1165,7 @@ export function makeApplicationCloseOutTxnFromObject(
   >
 ) {
   return makeApplicationCloseOutTxn(
-    o.from,
+    o.sender,
     o.suggestedParams,
     o.appIndex,
     o.appArgs,
@@ -1181,13 +1181,13 @@ export function makeApplicationCloseOutTxnFromObject(
 
 /**
  * Make a transaction that clears a user's state in an application
- * @param from - address of sender
+ * @param sender - address of sender
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
@@ -1201,7 +1201,7 @@ export function makeApplicationCloseOutTxnFromObject(
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationClearStateTxn(
-  from: AppClearStateTxn['from'],
+  sender: AppClearStateTxn['sender'],
   suggestedParams: MustHaveSuggestedParams<AppClearStateTxn>['suggestedParams'],
   appIndex: AppClearStateTxn['appIndex'],
   appArgs?: AppClearStateTxn['appArgs'],
@@ -1210,12 +1210,12 @@ export function makeApplicationClearStateTxn(
   foreignAssets?: AppClearStateTxn['appForeignAssets'],
   note?: AppClearStateTxn['note'],
   lease?: AppClearStateTxn['lease'],
-  rekeyTo?: AppClearStateTxn['reKeyTo'],
+  rekeyTo?: AppClearStateTxn['rekeyTo'],
   boxes?: AppClearStateTxn['boxes']
 ) {
   const o: AppClearStateTxn = {
     type: TransactionType.appl,
-    from,
+    sender,
     suggestedParams,
     appIndex,
     appOnComplete: OnApplicationComplete.ClearStateOC,
@@ -1226,7 +1226,7 @@ export function makeApplicationClearStateTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1241,10 +1241,10 @@ export function makeApplicationClearStateTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'appIndex'
       | 'appArgs'
@@ -1259,7 +1259,7 @@ export function makeApplicationClearStateTxnFromObject(
   >
 ) {
   return makeApplicationClearStateTxn(
-    o.from,
+    o.sender,
     o.suggestedParams,
     o.appIndex,
     o.appArgs,
@@ -1275,13 +1275,13 @@ export function makeApplicationClearStateTxnFromObject(
 
 /**
  * Make a transaction that just calls an application, doing nothing on completion
- * @param from - address of sender
+ * @param sender - address of sender
  * @param suggestedParams - a dict holding common-to-all-txns args:
  * fee - integer fee per byte, in microAlgos. for a flat fee, set flatFee to true
  * flatFee - bool optionally set this to true to specify fee as microalgos-per-txn
  *       If true, txn fee may fall below the ALGORAND_MIN_TX_FEE
- * firstRound - integer first protocol round on which this txn is valid
- * lastRound - integer last protocol round on which this txn is valid
+ * firstValid - integer first protocol round on which this txn is valid
+ * lastValid - integer last protocol round on which this txn is valid
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param appIndex - the ID of the app to use
@@ -1295,7 +1295,7 @@ export function makeApplicationClearStateTxnFromObject(
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
  */
 export function makeApplicationNoOpTxn(
-  from: AppNoOpTxn['from'],
+  sender: AppNoOpTxn['sender'],
   suggestedParams: MustHaveSuggestedParams<AppNoOpTxn>['suggestedParams'],
   appIndex: AppNoOpTxn['appIndex'],
   appArgs?: AppNoOpTxn['appArgs'],
@@ -1304,12 +1304,12 @@ export function makeApplicationNoOpTxn(
   foreignAssets?: AppNoOpTxn['appForeignAssets'],
   note?: AppNoOpTxn['note'],
   lease?: AppNoOpTxn['lease'],
-  rekeyTo?: AppNoOpTxn['reKeyTo'],
+  rekeyTo?: AppNoOpTxn['rekeyTo'],
   boxes?: AppNoOpTxn['boxes']
 ) {
   const o: AppNoOpTxn = {
     type: TransactionType.appl,
-    from,
+    sender,
     suggestedParams,
     appIndex,
     appOnComplete: OnApplicationComplete.NoOpOC,
@@ -1320,7 +1320,7 @@ export function makeApplicationNoOpTxn(
     boxes,
     note,
     lease,
-    reKeyTo: rekeyTo,
+    rekeyTo,
   };
   return new txnBuilder.Transaction(o);
 }
@@ -1335,10 +1335,10 @@ export function makeApplicationNoOpTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'appIndex'
       | 'appArgs'
@@ -1353,7 +1353,7 @@ export function makeApplicationNoOpTxnFromObject(
   >
 ) {
   return makeApplicationNoOpTxn(
-    o.from,
+    o.sender,
     o.suggestedParams,
     o.appIndex,
     o.appArgs,
@@ -1382,10 +1382,10 @@ export function makeApplicationCallTxnFromObject(
           appAccounts: 'accounts';
           appForeignApps: 'foreignApps';
           appForeignAssets: 'foreignAssets';
-          reKeyTo: 'rekeyTo';
+          rekeyTo: 'rekeyTo';
         }
       >,
-      | 'from'
+      | 'sender'
       | 'suggestedParams'
       | 'appIndex'
       | 'onComplete'
@@ -1424,7 +1424,7 @@ export function makeApplicationCallTxnFromObject(
 ) {
   const o: AppCreateTxn = {
     type: TransactionType.appl,
-    from: options.from,
+    sender: options.sender,
     suggestedParams: options.suggestedParams,
     appIndex: options.appIndex,
     appOnComplete: options.onComplete,
@@ -1441,7 +1441,7 @@ export function makeApplicationCallTxnFromObject(
     boxes: options.boxes,
     note: options.note,
     lease: options.lease,
-    reKeyTo: options.rekeyTo,
+    rekeyTo: options.rekeyTo,
     extraPages: options.extraPages,
   };
   return new txnBuilder.Transaction(o);

@@ -105,12 +105,12 @@ export interface EncodedTransaction {
   fee?: number;
 
   /**
-   * firstRound
+   * firstValid
    */
   fv?: number;
 
   /**
-   * lastRound
+   * lastValid
    */
   lv: number;
 
@@ -120,7 +120,7 @@ export interface EncodedTransaction {
   note?: Uint8Array;
 
   /**
-   * from
+   * sender
    */
   snd: Uint8Array;
 
@@ -170,17 +170,17 @@ export interface EncodedTransaction {
   aclose?: Uint8Array;
 
   /**
-   * reKeyTo
+   * rekeyTo
    */
   rekey?: Uint8Array;
 
   /**
-   * to
+   * receiver
    */
   rcv?: Uint8Array;
 
   /**
-   * to (but for asset transfers)
+   * receiver (but for asset transfers)
    */
   arcv?: Uint8Array;
 
@@ -235,7 +235,7 @@ export interface EncodedTransaction {
   faid?: number;
 
   /**
-   * freezeState
+   * assetFrozen
    */
   afrz?: boolean;
 
@@ -245,7 +245,7 @@ export interface EncodedTransaction {
   fadd?: Uint8Array;
 
   /**
-   * assetRevocationTarget
+   * assetSender
    */
   asnd?: Uint8Array;
 
@@ -400,7 +400,7 @@ export interface EncodedSignedTransaction {
   lsig?: EncodedLogicSig;
 
   /**
-   * The signer, if signing with a different key than the Transaction type `from` property indicates
+   * The signer, if signing with a different key than the Transaction type `sender` property indicates
    */
   sgnr?: Uint8Array;
 }

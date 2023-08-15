@@ -110,7 +110,7 @@ export async function deployCalculatorApp(
   const clearBin = await compileProgram(algodClient, clearProgram);
   const suggestedParams = await algodClient.getTransactionParams().do();
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     approvalProgram: approvalBin,
     clearProgram: clearBin,
     numGlobalByteSlices: 0,

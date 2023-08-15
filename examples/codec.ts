@@ -35,8 +35,8 @@ async function main() {
 
   // example: CODEC_TRANSACTION_UNSIGNED
   const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: sender.addr,
-    to: receiver.addr,
+    sender: sender.addr,
+    receiver: receiver.addr,
     amount: 1e6,
     suggestedParams,
   });
