@@ -13,7 +13,6 @@ export default class StatusAfterBlock extends JSONRequest<
     private round: number | bigint
   ) {
     super(c, intDecoding);
-    if (!Number.isInteger(round)) throw Error('round should be an integer');
     this.round = round;
   }
 
