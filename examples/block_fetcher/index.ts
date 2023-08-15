@@ -33,7 +33,7 @@ function removeNulls(obj) {
     console.log(`Round: ${lastRound}`);
 
     // Fetch block
-    const round = await client.block(lastRound as number).do();
+    const round = await client.block(lastRound).do();
     const { block } = round;
     const { txns } = block;
 
@@ -79,7 +79,7 @@ function removeNulls(obj) {
     }
 
     // Wait for next round
-    status = await client.statusAfterBlock(lastRound as number).do();
+    status = await client.statusAfterBlock(lastRound).do();
     lastRound = status['last-round'];
   }
 })();
