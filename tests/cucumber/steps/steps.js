@@ -77,11 +77,7 @@ function makeObject(obj) {
 }
 
 function parseJSON(json) {
-  return JSONBig.parse(json);
-}
-
-function stringifyJSON(obj) {
-  return JSONBig.stringify(obj);
+  return JSON.parse(json);
 }
 
 // END OBJECT CREATION FUNCTIONS
@@ -1597,8 +1593,8 @@ module.exports = function getSteps(options) {
       // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
         assert.strictEqual(
-          stringifyJSON(parseJSON(expectedMockResponse)),
-          stringifyJSON(this.actualMockResponse)
+          JSONBig.stringify(JSONBig.parse(expectedMockResponse)),
+          JSONBig.stringify(this.actualMockResponse)
         );
       } else {
         assert.deepStrictEqual(
