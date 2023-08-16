@@ -2,7 +2,6 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const JSONBig = require('json-bigint');
 
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
@@ -121,6 +120,10 @@ module.exports = function getSteps(options) {
     }
     steps.then[name] = fn;
   }
+
+  // We need to import inside the steps export so that the browser tests have the dependency imported
+  // eslint-disable-next-line global-require
+  const JSONBig = require('json-bigint');
 
   // Dev Mode State
   const DEV_MODE_INITIAL_MICROALGOS = 100_000_000;
