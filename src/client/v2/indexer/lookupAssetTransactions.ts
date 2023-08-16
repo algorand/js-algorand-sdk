@@ -252,14 +252,12 @@ export default class LookupAssetTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @remarks
-   * If you are looking for transactions with the currency amount greater than 0, simply construct the query without `currencyGreaterThan` because it doesn't accept `-1`, and passing the `0` `currency-greater-than` value would exclude transactions with a 0 amount.
-   *
    * @param greater
    * @category query
    */
   currencyGreaterThan(greater: number) {
-    this.query['currency-greater-than'] = greater;
+    // We convert the following to a string for now to correctly include zero values in request parameters.
+    this.query['currency-greater-than'] = greater.toString();
     return this;
   }
 
