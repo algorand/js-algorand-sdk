@@ -1054,7 +1054,7 @@ module.exports = function getSteps(options) {
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
-        total: parsedIssuance,
+        total: BigInt(parsedIssuance),
         defaultfrozen: defaultFrozen,
         unitname: unitName,
         assetname: assetName,
@@ -1064,7 +1064,7 @@ module.exports = function getSteps(options) {
         reserveaddr: reserve,
         freezeaddr: freeze,
         clawbackaddr: clawback,
-        decimals,
+        decimals: BigInt(decimals),
       };
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -1120,7 +1120,7 @@ module.exports = function getSteps(options) {
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
-        total: parsedIssuance,
+        total: BigInt(parsedIssuance),
         defaultfrozen: defaultFrozen,
         unitname: unitName,
         assetname: assetName,
@@ -3559,8 +3559,14 @@ module.exports = function getSteps(options) {
         .accountInformation(this.transientAccount.addr)
         .do();
       const appTotalSchema = accountInfo.appsTotalSchema;
-      assert.strictEqual(appTotalSchema.numByteSlice, numByteSlices);
-      assert.strictEqual(appTotalSchema.numUint, numUints);
+      assert.strictEqual(
+        appTotalSchema.numByteSlice.toString(),
+        numByteSlices.toString()
+      );
+      assert.strictEqual(
+        appTotalSchema.numUint.toString(),
+        numUints.toString()
+      );
 
       const appCreated = appCreatedBoolAsString === 'true';
       const { createdApps } = accountInfo;
@@ -3578,7 +3584,9 @@ module.exports = function getSteps(options) {
       let foundApp = false;
       for (let i = 0; i < createdApps.length; i++) {
         foundApp =
-          foundApp || createdApps[i].id === this.currentApplicationIndex;
+          foundApp ||
+          createdApps[i].id.toString() ===
+            this.currentApplicationIndex.toString();
       }
       assert.ok(foundApp);
 
@@ -3593,7 +3601,9 @@ module.exports = function getSteps(options) {
         let counter = 0;
         for (let i = 0; i < accountInfo.appsLocalState.length; i++) {
           const localState = accountInfo.appsLocalState[i];
-          if (localState.id === this.currentApplicationIndex) {
+          if (
+            localState.id.toString() === this.currentApplicationIndex.toString()
+          ) {
             keyValues = localState.keyValue;
             counter += 1;
           }
@@ -3603,7 +3613,9 @@ module.exports = function getSteps(options) {
         let counter = 0;
         for (let i = 0; i < accountInfo.createdApps.length; i++) {
           const createdApp = accountInfo.createdApps[i];
-          if (createdApp.id === this.currentApplicationIndex) {
+          if (
+            createdApp.id.toString() === this.currentApplicationIndex.toString()
+          ) {
             keyValues = createdApp.params.globalState;
             counter += 1;
           }
