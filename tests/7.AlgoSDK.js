@@ -2,7 +2,7 @@
 const assert = require('assert');
 const algosdk = require('../src/index');
 const nacl = require('../src/nacl/naclWrappers');
-const utils = require('../src/utils/utils');
+const { concatArrays } = require('../src/utils/utils');
 
 describe('Algosdk (AKA end to end)', () => {
   describe('#mnemonic', () => {
@@ -552,7 +552,7 @@ describe('Algosdk (AKA end to end)', () => {
         tx2.group = gid;
         stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
         stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
-        const concat = utils.concatArrays(stx1, stx2);
+        const concat = concatArrays(stx1, stx2);
         assert.deepStrictEqual(concat, algosdk.base64ToBytes(goldenTxg));
       }
 
@@ -563,7 +563,7 @@ describe('Algosdk (AKA end to end)', () => {
         tx2.group = gid;
         stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
         stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
-        const concat = utils.concatArrays(stx1, stx2);
+        const concat = concatArrays(stx1, stx2);
         assert.deepStrictEqual(concat, algosdk.base64ToBytes(goldenTxg));
       }
 
@@ -941,11 +941,8 @@ describe('Algosdk (AKA end to end)', () => {
     it('should produce a verifiable signature', () => {
       const sig = algosdk.tealSign(sk, data, addr);
 
-      const parts = utils.concatArrays(
-        algosdk.decodeAddress(addr).publicKey,
-        data
-      );
-      const toBeVerified = utils.concatArrays(
+      const parts = concatArrays(algosdk.decodeAddress(addr).publicKey, data);
+      const toBeVerified = concatArrays(
         new TextEncoder().encode('ProgData'),
         parts
       );
@@ -977,11 +974,16 @@ describe('Algosdk (AKA end to end)', () => {
       address: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       amount: 5002280000000000,
       amountWithoutPendingRewards: 5000000000000000,
+      minBalance: 100000,
       pendingRewards: 2280000000000,
       rewardBase: 456,
       rewards: 2280000000000,
       round: 18241,
       status: 'Online',
+      totalAppsOptedIn: 0,
+      totalAssetsOptedIn: 0,
+      totalCreatedApps: 0,
+      totalCreatedAssets: 0,
     });
     const params = new algosdk.modelsv2.ApplicationParams({
       creator: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
@@ -997,10 +999,10 @@ describe('Algosdk (AKA end to end)', () => {
     // make a raw txn
     const txn = {
       apsu: 'AiABASI=',
-      fee: 1000,
-      fv: 18242,
+      fee: BigInt(1000),
+      fv: BigInt(18242),
       gh: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
-      lv: 19242,
+      lv: BigInt(19242),
       note: 'tjpNge78JD8=',
       snd: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       type: 'appl',
@@ -1018,20 +1020,21 @@ describe('Algosdk (AKA end to end)', () => {
       const actual = req.get_obj_for_encoding();
 
       const golden =
-        'ewogICJhY2NvdW50cyI6IFsKICAgIHsKICAgICAgImFkZHJlc3MiOiAiVUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TSIsCiAgICAgICJhbW91bnQiOiA1MDAyMjgwMDAwMDAwMDAwLAogICAgICAiYW1vdW50LXdpdGhvdXQtcGVuZGluZy1yZXdhcmRzIjogNTAwMDAwMDAwMDAwMDAwMCwKICAgICAgInBlbmRpbmctcmV3YXJkcyI6IDIyODAwMDAwMDAwMDAsCiAgICAgICJyZXdhcmQtYmFzZSI6IDQ1NiwKICAgICAgInJld2FyZHMiOiAyMjgwMDAwMDAwMDAwLAogICAgICAicm91bmQiOiAxODI0MSwKICAgICAgInN0YXR1cyI6ICJPbmxpbmUiCiAgICB9CiAgXSwKICAiYXBwcyI6IFsKICAgIHsKICAgICAgImlkIjogMTM4MDAxMTU4OCwKICAgICAgInBhcmFtcyI6IHsKICAgICAgICAiY3JlYXRvciI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAiYXBwcm92YWwtcHJvZ3JhbSI6ICJBaUFCQVNJPSIsCiAgICAgICAgImNsZWFyLXN0YXRlLXByb2dyYW0iOiAiQWlBQkFTST0iLAogICAgICAgICJnbG9iYWwtc3RhdGUtc2NoZW1hIjogewogICAgICAgICAgIm51bS1ieXRlLXNsaWNlIjogNSwKICAgICAgICAgICJudW0tdWludCI6IDUKICAgICAgICB9LAogICAgICAgICJsb2NhbC1zdGF0ZS1zY2hlbWEiOiB7CiAgICAgICAgICAibnVtLWJ5dGUtc2xpY2UiOiA1LAogICAgICAgICAgIm51bS11aW50IjogNQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImxhdGVzdC10aW1lc3RhbXAiOiAxNTkyNTM3NzU3LAogICJwcm90b2NvbC12ZXJzaW9uIjogImZ1dHVyZSIsCiAgInJvdW5kIjogMTgyNDEsCiAgInR4bnMiOiBbCiAgICB7CiAgICAgICJ0eG4iOiB7CiAgICAgICAgImFwc3UiOiAiQWlBQkFTST0iLAogICAgICAgICJmZWUiOiAxMDAwLAogICAgICAgICJmdiI6IDE4MjQyLAogICAgICAgICJnaCI6ICJaSWtQczhwVER4YlJKc0ZCMXlKN2d2bnBEdTBRODVGUmtsMk5Da0VBUUxVPSIsCiAgICAgICAgImx2IjogMTkyNDIsCiAgICAgICAgIm5vdGUiOiAidGpwTmdlNzhKRDg9IiwKICAgICAgICAic25kIjogIlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN00iLAogICAgICAgICJ0eXBlIjogImFwcGwiCiAgICAgIH0KICAgIH0KICBdCn0K';
+        'ewogICJhY2NvdW50cyI6IFsKICAgIHsKICAgICAgImFkZHJlc3MiOiAiVUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TSIsCiAgICAgICJhbW91bnQiOiA1MDAyMjgwMDAwMDAwMDAwLAogICAgICAiYW1vdW50LXdpdGhvdXQtcGVuZGluZy1yZXdhcmRzIjogNTAwMDAwMDAwMDAwMDAwMCwKICAgICAgIm1pbi1iYWxhbmNlIjogMTAwMDAwLAogICAgICAicGVuZGluZy1yZXdhcmRzIjogMjI4MDAwMDAwMDAwMCwKICAgICAgInJld2FyZC1iYXNlIjogNDU2LAogICAgICAicmV3YXJkcyI6IDIyODAwMDAwMDAwMDAsCiAgICAgICJyb3VuZCI6IDE4MjQxLAogICAgICAic3RhdHVzIjogIk9ubGluZSIsCiAgICAgICJ0b3RhbC1hcHBzLW9wdGVkLWluIjogMCwKICAgICAgInRvdGFsLWFzc2V0cy1vcHRlZC1pbiI6IDAsCiAgICAgICJ0b3RhbC1jcmVhdGVkLWFwcHMiOiAwLAogICAgICAidG90YWwtY3JlYXRlZC1hc3NldHMiOiAwCiAgICB9CiAgXSwKICAiYXBwcyI6IFsKICAgIHsKICAgICAgImlkIjogMTM4MDAxMTU4OCwKICAgICAgInBhcmFtcyI6IHsKICAgICAgICAiY3JlYXRvciI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAiYXBwcm92YWwtcHJvZ3JhbSI6ICJBaUFCQVNJPSIsCiAgICAgICAgImNsZWFyLXN0YXRlLXByb2dyYW0iOiAiQWlBQkFTST0iLAogICAgICAgICJnbG9iYWwtc3RhdGUtc2NoZW1hIjogewogICAgICAgICAgIm51bS1ieXRlLXNsaWNlIjogNSwKICAgICAgICAgICJudW0tdWludCI6IDUKICAgICAgICB9LAogICAgICAgICJsb2NhbC1zdGF0ZS1zY2hlbWEiOiB7CiAgICAgICAgICAibnVtLWJ5dGUtc2xpY2UiOiA1LAogICAgICAgICAgIm51bS11aW50IjogNQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImxhdGVzdC10aW1lc3RhbXAiOiAxNTkyNTM3NzU3LAogICJwcm90b2NvbC12ZXJzaW9uIjogImZ1dHVyZSIsCiAgInJvdW5kIjogMTgyNDEsCiAgInR4bnMiOiBbCiAgICB7CiAgICAgICJ0eG4iOiB7CiAgICAgICAgImFwc3UiOiAiQWlBQkFTST0iLAogICAgICAgICJmZWUiOiAxMDAwLAogICAgICAgICJmdiI6IDE4MjQyLAogICAgICAgICJnaCI6ICJaSWtQczhwVER4YlJKc0ZCMXlKN2d2bnBEdTBRODVGUmtsMk5Da0VBUUxVPSIsCiAgICAgICAgImx2IjogMTkyNDIsCiAgICAgICAgIm5vdGUiOiAidGpwTmdlNzhKRDg9IiwKICAgICAgICAic25kIjogIlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN00iLAogICAgICAgICJ0eXBlIjogImFwcGwiCiAgICAgIH0KICAgIH0KICBdCn0K';
       const goldenString = algosdk.base64ToString(golden, 'base64');
-      const expected = JSON.parse(goldenString);
+      const expected = algosdk.parseJSON(goldenString, {
+        intDecoding: algosdk.IntDecoding.BIGINT,
+      });
 
       assert.deepStrictEqual(actual, expected);
     });
 
     it('should be properly serialized to msgpack', () => {
-      const actual = req.get_obj_for_encoding(true);
-      const golden =
-        'hqhhY2NvdW50c5GIp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAK9wZW5kaW5nLXJld2FyZHPPAAACEtqXEACrcmV3YXJkLWJhc2XNAcincmV3YXJkc88AAAIS2pcQAKVyb3VuZM1HQaZzdGF0dXOmT25saW5lpGFwcHORgqJpZM5SQU5EpnBhcmFtc4WwYXBwcm92YWwtcHJvZ3JhbcQFAiABASKzY2xlYXItc3RhdGUtcHJvZ3JhbcQFAiABASKnY3JlYXRvctk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TbNnbG9iYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsmxvY2FsLXN0YXRlLXNjaGVtYYKubnVtLWJ5dGUtc2xpY2UFqG51bS11aW50BbBsYXRlc3QtdGltZXN0YW1wzl7sMp2wcHJvdG9jb2wtdmVyc2lvbqZmdXR1cmWlcm91bmTNR0GkdHhuc5GBo3R4boikYXBzdahBaUFCQVNJPaNmZWXNA+iiZnbNR0KiZ2jZLFpJa1BzOHBURHhiUkpzRkIxeUo3Z3ZucER1MFE4NUZSa2wyTkNrRUFRTFU9omx2zUsqpG5vdGWsdGpwTmdlNzhKRDg9o3NuZNk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TaR0eXBlpGFwcGw=';
-      const goldenBinary = new Uint8Array(algosdk.base64ToBytes(golden));
-      const expected = algosdk.decodeObj(goldenBinary);
-
+      const forEncoding = req.get_obj_for_encoding(true);
+      const actual = algosdk.encodeObj(forEncoding);
+      const expected = algosdk.base64ToBytes(
+        'hqhhY2NvdW50c5GNp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWzdG90YWwtYXBwcy1vcHRlZC1pbgC1dG90YWwtYXNzZXRzLW9wdGVkLWluALJ0b3RhbC1jcmVhdGVkLWFwcHMAtHRvdGFsLWNyZWF0ZWQtYXNzZXRzAKRhcHBzkYKiaWTOUkFORKZwYXJhbXOFsGFwcHJvdmFsLXByb2dyYW3EBQIgAQEis2NsZWFyLXN0YXRlLXByb2dyYW3EBQIgAQEip2NyZWF0b3LZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02zZ2xvYmFsLXN0YXRlLXNjaGVtYYKubnVtLWJ5dGUtc2xpY2UFqG51bS11aW50BbJsb2NhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWwbGF0ZXN0LXRpbWVzdGFtcM5e7DKdsHByb3RvY29sLXZlcnNpb26mZnV0dXJlpXJvdW5kzUdBpHR4bnORgaN0eG6IpGFwc3WoQWlBQkFTST2jZmVlzQPoomZ2zUdComdo2SxaSWtQczhwVER4YlJKc0ZCMXlKN2d2bnBEdTBRODVGUmtsMk5Da0VBUUxVPaJsds1LKqRub3RlrHRqcE5nZTc4SkQ4PaNzbmTZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02kdHlwZaRhcHBs'
+      );
       assert.deepStrictEqual(actual, expected);
     });
   });

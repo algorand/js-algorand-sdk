@@ -147,6 +147,7 @@ export {
   hexToBytes,
 } from './encoding/binarydata';
 export { encodeUint64, decodeUint64 } from './encoding/uint64';
+export { parseJSON, stringifyJSON, JSONOptions } from './utils/utils';
 export { default as generateAccount } from './account';
 export * as modelsv2 from './client/v2/algod/models/types';
 export * as indexerModels from './client/v2/indexer/models/types';

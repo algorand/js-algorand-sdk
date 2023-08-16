@@ -66,6 +66,23 @@ export function parseJSON(str: string, options?: JSONOptions) {
 }
 
 /**
+ * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
+ *
+ * This functions differs from the built-in JSON.stringify in that it supports serializing BigInts.
+ *
+ * @param value - A JavaScript value, usually an object or array, to be converted.
+ * @param replacer - A function that transforms the results.
+ * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+ */
+export function stringifyJSON(
+  value: any,
+  replacer?: (this: any, key: string, value: any) => any,
+  space?: string | number
+): string {
+  return JSONbig.stringify(value, replacer, space);
+}
+
+/**
  * ArrayEqual takes two arrays and return true if equal, false otherwise
  */
 export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {

@@ -353,7 +353,7 @@ describe('encoding', () => {
     });
   });
 
-  describe('JSON parse BigInt', () => {
+  describe('JSON BigInt', () => {
     it('should parse null', () => {
       const input = 'null';
 
@@ -366,6 +366,13 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
+          `Error when intDecoding = ${intDecoding}`
+        );
       }
     });
 
@@ -376,9 +383,17 @@ describe('encoding', () => {
           const actual = utils.parseJSON(input, { intDecoding });
           const expected =
             intDecoding === 'bigint' ? BigInt(input) : Number(input);
+
           assert.deepStrictEqual(
             actual,
             expected,
+            `Error when intDecoding = ${intDecoding}`
+          );
+
+          const roundtrip = utils.stringifyJSON(actual);
+          assert.deepStrictEqual(
+            roundtrip,
+            input,
             `Error when intDecoding = ${intDecoding}`
           );
         }
@@ -395,6 +410,13 @@ describe('encoding', () => {
         assert.deepStrictEqual(
           actual,
           expected,
+          `Error when intDecoding = ${intDecoding}`
+        );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
           `Error when intDecoding = ${intDecoding}`
         );
       }
@@ -430,6 +452,13 @@ describe('encoding', () => {
         assert.deepStrictEqual(
           actual,
           expected,
+          `Error when intDecoding = ${intDecoding}`
+        );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
           `Error when intDecoding = ${intDecoding}`
         );
       }
@@ -473,6 +502,15 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        if (intDecoding !== 'default') {
+          const roundtrip = utils.stringifyJSON(actual);
+          assert.deepStrictEqual(
+            roundtrip,
+            input,
+            `Error when intDecoding = ${intDecoding}`
+          );
+        }
       }
     });
 
@@ -486,6 +524,13 @@ describe('encoding', () => {
         assert.deepStrictEqual(
           actual,
           expected,
+          `Error when intDecoding = ${intDecoding}`
+        );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
           `Error when intDecoding = ${intDecoding}`
         );
       }
@@ -507,6 +552,13 @@ describe('encoding', () => {
         assert.deepStrictEqual(
           actual,
           expected,
+          `Error when intDecoding = ${intDecoding}`
+        );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
           `Error when intDecoding = ${intDecoding}`
         );
       }
@@ -549,7 +601,34 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        if (intDecoding !== 'default') {
+          const roundtrip = utils.stringifyJSON(actual);
+          assert.deepStrictEqual(
+            roundtrip,
+            input,
+            `Error when intDecoding = ${intDecoding}`
+          );
+        }
       }
+    });
+
+    it('should stringify with spacing', () => {
+      const input = { a: 1, b: 'value', c: [1, 2, 3], d: null, e: {}, f: true };
+      const actual = utils.stringifyJSON(input, null, 2);
+      const expected = `{
+  "a": 1,
+  "b": "value",
+  "c": [
+    1,
+    2,
+    3
+  ],
+  "d": null,
+  "e": {},
+  "f": true
+}`;
+      assert.deepStrictEqual(actual, expected);
     });
   });
 

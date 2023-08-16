@@ -22,34 +22,34 @@ export class Account extends BaseModel {
   /**
    * (algo) total number of MicroAlgos in the account
    */
-  public amount: number | bigint;
+  public amount: bigint;
 
   /**
    * specifies the amount of MicroAlgos in the account, without the pending rewards.
    */
-  public amountWithoutPendingRewards: number | bigint;
+  public amountWithoutPendingRewards: bigint;
 
   /**
    * MicroAlgo balance required by the account.
    * The requirement grows based on asset and application usage.
    */
-  public minBalance: number | bigint;
+  public minBalance: bigint;
 
   /**
    * amount of MicroAlgos of pending rewards in this account.
    */
-  public pendingRewards: number | bigint;
+  public pendingRewards: bigint;
 
   /**
    * (ern) total rewards of MicroAlgos the account has received, including pending
    * rewards.
    */
-  public rewards: number | bigint;
+  public rewards: bigint;
 
   /**
    * The round for which this information is relevant.
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * (onl) delegation status of the account's MicroAlgos
@@ -65,23 +65,23 @@ export class Account extends BaseModel {
    * The count of all applications that have been opted in, equivalent to the count
    * of application local data (AppLocalState objects) stored in this account.
    */
-  public totalAppsOptedIn: number | bigint;
+  public totalAppsOptedIn: bigint;
 
   /**
    * The count of all assets that have been opted in, equivalent to the count of
    * AssetHolding objects held by this account.
    */
-  public totalAssetsOptedIn: number | bigint;
+  public totalAssetsOptedIn: bigint;
 
   /**
    * The count of all apps (AppParams objects) created by this account.
    */
-  public totalCreatedApps: number | bigint;
+  public totalCreatedApps: bigint;
 
   /**
    * The count of all assets (AssetParams objects) created by this account.
    */
-  public totalCreatedAssets: number | bigint;
+  public totalCreatedAssets: bigint;
 
   /**
    * (appl) applications local data stored in this account.
@@ -92,7 +92,7 @@ export class Account extends BaseModel {
   /**
    * (teap) the sum of all extra application program pages for this account.
    */
-  public appsTotalExtraPages?: number | bigint;
+  public appsTotalExtraPages?: bigint;
 
   /**
    * (tsch) stores the sum of all of the local schemas and global schemas in this
@@ -137,7 +137,7 @@ export class Account extends BaseModel {
    * (ebase) used as part of the rewards computation. Only applicable to accounts
    * which are participating.
    */
-  public rewardBase?: number | bigint;
+  public rewardBase?: bigint;
 
   /**
    * Indicates what type of signature is used by this account, must be one of:
@@ -151,12 +151,12 @@ export class Account extends BaseModel {
    * (tbxb) The total number of bytes used by this account's app's box keys and
    * values.
    */
-  public totalBoxBytes?: number | bigint;
+  public totalBoxBytes?: bigint;
 
   /**
    * (tbx) The number of existing boxes created by this account's app.
    */
-  public totalBoxes?: number | bigint;
+  public totalBoxes?: bigint;
 
   /**
    * Creates a new `Account` object.
@@ -262,29 +262,35 @@ export class Account extends BaseModel {
   }) {
     super();
     this.address = address;
-    this.amount = amount;
-    this.amountWithoutPendingRewards = amountWithoutPendingRewards;
-    this.minBalance = minBalance;
-    this.pendingRewards = pendingRewards;
-    this.rewards = rewards;
-    this.round = round;
+    this.amount = BigInt(amount);
+    this.amountWithoutPendingRewards = BigInt(amountWithoutPendingRewards);
+    this.minBalance = BigInt(minBalance);
+    this.pendingRewards = BigInt(pendingRewards);
+    this.rewards = BigInt(rewards);
+    this.round = BigInt(round);
     this.status = status;
-    this.totalAppsOptedIn = totalAppsOptedIn;
-    this.totalAssetsOptedIn = totalAssetsOptedIn;
-    this.totalCreatedApps = totalCreatedApps;
-    this.totalCreatedAssets = totalCreatedAssets;
+    this.totalAppsOptedIn = BigInt(totalAppsOptedIn);
+    this.totalAssetsOptedIn = BigInt(totalAssetsOptedIn);
+    this.totalCreatedApps = BigInt(totalCreatedApps);
+    this.totalCreatedAssets = BigInt(totalCreatedAssets);
     this.appsLocalState = appsLocalState;
-    this.appsTotalExtraPages = appsTotalExtraPages;
+    this.appsTotalExtraPages =
+      typeof appsTotalExtraPages === 'undefined'
+        ? undefined
+        : BigInt(appsTotalExtraPages);
     this.appsTotalSchema = appsTotalSchema;
     this.assets = assets;
     this.authAddr = authAddr;
     this.createdApps = createdApps;
     this.createdAssets = createdAssets;
     this.participation = participation;
-    this.rewardBase = rewardBase;
+    this.rewardBase =
+      typeof rewardBase === 'undefined' ? undefined : BigInt(rewardBase);
     this.sigType = sigType;
-    this.totalBoxBytes = totalBoxBytes;
-    this.totalBoxes = totalBoxes;
+    this.totalBoxBytes =
+      typeof totalBoxBytes === 'undefined' ? undefined : BigInt(totalBoxBytes);
+    this.totalBoxes =
+      typeof totalBoxes === 'undefined' ? undefined : BigInt(totalBoxes);
 
     this.attribute_map = {
       address: 'address',
@@ -417,7 +423,7 @@ export class AccountApplicationResponse extends BaseModel {
   /**
    * The round for which this information is relevant.
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * (appl) the application local data stored in this account.
@@ -451,7 +457,7 @@ export class AccountApplicationResponse extends BaseModel {
     createdApp?: ApplicationParams;
   }) {
     super();
-    this.round = round;
+    this.round = BigInt(round);
     this.appLocalState = appLocalState;
     this.createdApp = createdApp;
 
@@ -493,7 +499,7 @@ export class AccountAssetResponse extends BaseModel {
   /**
    * The round for which this information is relevant.
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * (asset) Details about the asset held by this account.
@@ -525,7 +531,7 @@ export class AccountAssetResponse extends BaseModel {
     createdAsset?: AssetParams;
   }) {
     super();
-    this.round = round;
+    this.round = BigInt(round);
     this.assetHolding = assetHolding;
     this.createdAsset = createdAsset;
 
@@ -571,17 +577,17 @@ export class AccountParticipation extends BaseModel {
   /**
    * (voteFst) First round for which this participation is valid.
    */
-  public voteFirstValid: number | bigint;
+  public voteFirstValid: bigint;
 
   /**
    * (voteKD) Number of subkeys in each batch of participation keys.
    */
-  public voteKeyDilution: number | bigint;
+  public voteKeyDilution: bigint;
 
   /**
    * (voteLst) Last round for which this participation is valid.
    */
-  public voteLastValid: number | bigint;
+  public voteLastValid: bigint;
 
   /**
    * (vote) root participation public key (if any) currently registered for this
@@ -624,9 +630,9 @@ export class AccountParticipation extends BaseModel {
       typeof selectionParticipationKey === 'string'
         ? base64ToBytes(selectionParticipationKey)
         : selectionParticipationKey;
-    this.voteFirstValid = voteFirstValid;
-    this.voteKeyDilution = voteKeyDilution;
-    this.voteLastValid = voteLastValid;
+    this.voteFirstValid = BigInt(voteFirstValid);
+    this.voteKeyDilution = BigInt(voteKeyDilution);
+    this.voteLastValid = BigInt(voteLastValid);
     this.voteParticipationKey =
       typeof voteParticipationKey === 'string'
         ? base64ToBytes(voteParticipationKey)
@@ -740,7 +746,7 @@ export class Application extends BaseModel {
   /**
    * (appidx) application index.
    */
-  public id: number | bigint;
+  public id: bigint;
 
   /**
    * (appparams) application parameters.
@@ -760,7 +766,7 @@ export class Application extends BaseModel {
     params: ApplicationParams;
   }) {
     super();
-    this.id = id;
+    this.id = BigInt(id);
     this.params = params;
 
     this.attribute_map = {
@@ -785,13 +791,60 @@ export class Application extends BaseModel {
 }
 
 /**
+ * References an account's local state for an application.
+ */
+export class ApplicationLocalReference extends BaseModel {
+  /**
+   * Address of the account with the local state.
+   */
+  public account: string;
+
+  /**
+   * Application ID of the local state application.
+   */
+  public app: bigint;
+
+  /**
+   * Creates a new `ApplicationLocalReference` object.
+   * @param account - Address of the account with the local state.
+   * @param app - Application ID of the local state application.
+   */
+  constructor({ account, app }: { account: string; app: number | bigint }) {
+    super();
+    this.account = account;
+    this.app = BigInt(app);
+
+    this.attribute_map = {
+      account: 'account',
+      app: 'app',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationLocalReference {
+    /* eslint-disable dot-notation */
+    if (typeof data['account'] === 'undefined')
+      throw new Error(`Response is missing required field 'account': ${data}`);
+    if (typeof data['app'] === 'undefined')
+      throw new Error(`Response is missing required field 'app': ${data}`);
+    return new ApplicationLocalReference({
+      account: data['account'],
+      app: data['app'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Stores local state associated with an application.
  */
 export class ApplicationLocalState extends BaseModel {
   /**
    * The application which this local state is for.
    */
-  public id: number | bigint;
+  public id: bigint;
 
   /**
    * (hsch) schema.
@@ -819,7 +872,7 @@ export class ApplicationLocalState extends BaseModel {
     keyValue?: TealKeyValue[];
   }) {
     super();
-    this.id = id;
+    this.id = BigInt(id);
     this.schema = schema;
     this.keyValue = keyValue;
 
@@ -874,7 +927,7 @@ export class ApplicationParams extends BaseModel {
   /**
    * (epp) the amount of extra program pages available to this app.
    */
-  public extraProgramPages?: number | bigint;
+  public extraProgramPages?: bigint;
 
   /**
    * (gs) global state
@@ -929,7 +982,10 @@ export class ApplicationParams extends BaseModel {
         ? base64ToBytes(clearStateProgram)
         : clearStateProgram;
     this.creator = creator;
-    this.extraProgramPages = extraProgramPages;
+    this.extraProgramPages =
+      typeof extraProgramPages === 'undefined'
+        ? undefined
+        : BigInt(extraProgramPages);
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
@@ -991,12 +1047,12 @@ export class ApplicationStateSchema extends BaseModel {
   /**
    * (nui) num of uints.
    */
-  public numUint: number | bigint;
+  public numUint: bigint;
 
   /**
    * (nbs) num of byte slices.
    */
-  public numByteSlice: number | bigint;
+  public numByteSlice: bigint;
 
   /**
    * Creates a new `ApplicationStateSchema` object.
@@ -1011,8 +1067,8 @@ export class ApplicationStateSchema extends BaseModel {
     numByteSlice: number | bigint;
   }) {
     super();
-    this.numUint = numUint;
-    this.numByteSlice = numByteSlice;
+    this.numUint = BigInt(numUint);
+    this.numByteSlice = BigInt(numByteSlice);
 
     this.attribute_map = {
       numUint: 'num-uint',
@@ -1046,7 +1102,7 @@ export class Asset extends BaseModel {
   /**
    * unique asset identifier
    */
-  public index: number | bigint;
+  public index: bigint;
 
   /**
    * AssetParams specifies the parameters for an asset.
@@ -1072,7 +1128,7 @@ export class Asset extends BaseModel {
     params: AssetParams;
   }) {
     super();
-    this.index = index;
+    this.index = BigInt(index);
     this.params = params;
 
     this.attribute_map = {
@@ -1105,12 +1161,12 @@ export class AssetHolding extends BaseModel {
   /**
    * (a) number of units held.
    */
-  public amount: number | bigint;
+  public amount: bigint;
 
   /**
    * Asset ID of the holding.
    */
-  public assetId: number | bigint;
+  public assetId: bigint;
 
   /**
    * (f) whether or not the holding is frozen.
@@ -1133,8 +1189,8 @@ export class AssetHolding extends BaseModel {
     isFrozen: boolean;
   }) {
     super();
-    this.amount = amount;
-    this.assetId = assetId;
+    this.amount = BigInt(amount);
+    this.assetId = BigInt(assetId);
     this.isFrozen = isFrozen;
 
     this.attribute_map = {
@@ -1165,6 +1221,53 @@ export class AssetHolding extends BaseModel {
 }
 
 /**
+ * References an asset held by an account.
+ */
+export class AssetHoldingReference extends BaseModel {
+  /**
+   * Address of the account holding the asset.
+   */
+  public account: string;
+
+  /**
+   * Asset ID of the holding.
+   */
+  public asset: bigint;
+
+  /**
+   * Creates a new `AssetHoldingReference` object.
+   * @param account - Address of the account holding the asset.
+   * @param asset - Asset ID of the holding.
+   */
+  constructor({ account, asset }: { account: string; asset: number | bigint }) {
+    super();
+    this.account = account;
+    this.asset = BigInt(asset);
+
+    this.attribute_map = {
+      account: 'account',
+      asset: 'asset',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AssetHoldingReference {
+    /* eslint-disable dot-notation */
+    if (typeof data['account'] === 'undefined')
+      throw new Error(`Response is missing required field 'account': ${data}`);
+    if (typeof data['asset'] === 'undefined')
+      throw new Error(`Response is missing required field 'asset': ${data}`);
+    return new AssetHoldingReference({
+      account: data['account'],
+      asset: data['asset'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * AssetParams specifies the parameters for an asset.
  * (apar) when part of an AssetConfig transaction.
  * Definition:
@@ -1184,12 +1287,12 @@ export class AssetParams extends BaseModel {
    * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
    * must be between 0 and 19 (inclusive).
    */
-  public decimals: number | bigint;
+  public decimals: bigint;
 
   /**
    * (t) The total number of units of this asset.
    */
-  public total: number | bigint;
+  public total: bigint;
 
   /**
    * (c) Address of account used to clawback holdings of this asset. If empty,
@@ -1321,8 +1424,8 @@ export class AssetParams extends BaseModel {
   }) {
     super();
     this.creator = creator;
-    this.decimals = decimals;
-    this.total = total;
+    this.decimals = BigInt(decimals);
+    this.total = BigInt(total);
     this.clawback = clawback;
     this.defaultFrozen = defaultFrozen;
     this.freeze = freeze;
@@ -1387,6 +1490,66 @@ export class AssetParams extends BaseModel {
       unitNameB64: data['unit-name-b64'],
       url: data['url'],
       urlB64: data['url-b64'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Represents an AVM value.
+ */
+export class AvmValue extends BaseModel {
+  /**
+   * value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
+   */
+  public type: bigint;
+
+  /**
+   * bytes value.
+   */
+  public bytes?: Uint8Array;
+
+  /**
+   * uint value.
+   */
+  public uint?: bigint;
+
+  /**
+   * Creates a new `AvmValue` object.
+   * @param type - value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
+   * @param bytes - bytes value.
+   * @param uint - uint value.
+   */
+  constructor({
+    type,
+    bytes,
+    uint,
+  }: {
+    type: number | bigint;
+    bytes?: string | Uint8Array;
+    uint?: number | bigint;
+  }) {
+    super();
+    this.type = BigInt(type);
+    this.bytes = typeof bytes === 'string' ? base64ToBytes(bytes) : bytes;
+    this.uint = typeof uint === 'undefined' ? undefined : BigInt(uint);
+
+    this.attribute_map = {
+      type: 'type',
+      bytes: 'bytes',
+      uint: 'uint',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AvmValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['type'] === 'undefined')
+      throw new Error(`Response is missing required field 'type': ${data}`);
+    return new AvmValue({
+      type: data['type'],
+      bytes: data['bytes'],
+      uint: data['uint'],
     });
     /* eslint-enable dot-notation */
   }
@@ -1480,6 +1643,42 @@ export class BlockResponse extends BaseModel {
 }
 
 /**
+ * Top level transaction IDs in a block.
+ */
+export class BlockTxidsResponse extends BaseModel {
+  /**
+   * Block transaction IDs.
+   */
+  public blocktxids: string[];
+
+  /**
+   * Creates a new `BlockTxidsResponse` object.
+   * @param blocktxids - Block transaction IDs.
+   */
+  constructor({ blocktxids }: { blocktxids: string[] }) {
+    super();
+    this.blocktxids = blocktxids;
+
+    this.attribute_map = {
+      blocktxids: 'blockTxids',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockTxidsResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['blockTxids']))
+      throw new Error(
+        `Response is missing required array field 'blockTxids': ${data}`
+      );
+    return new BlockTxidsResponse({
+      blocktxids: data['blockTxids'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Box name and its content.
  */
 export class Box extends BaseModel {
@@ -1491,7 +1690,7 @@ export class Box extends BaseModel {
   /**
    * The round for which this information is relevant
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * (value) box value, base64 encoded.
@@ -1515,7 +1714,7 @@ export class Box extends BaseModel {
   }) {
     super();
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
-    this.round = round;
+    this.round = BigInt(round);
     this.value = typeof value === 'string' ? base64ToBytes(value) : value;
 
     this.attribute_map = {
@@ -1578,6 +1777,57 @@ export class BoxDescriptor extends BaseModel {
 }
 
 /**
+ * References a box of an application.
+ */
+export class BoxReference extends BaseModel {
+  /**
+   * Application ID which this box belongs to
+   */
+  public app: bigint;
+
+  /**
+   * Base64 encoded box name
+   */
+  public name: Uint8Array;
+
+  /**
+   * Creates a new `BoxReference` object.
+   * @param app - Application ID which this box belongs to
+   * @param name - Base64 encoded box name
+   */
+  constructor({
+    app,
+    name,
+  }: {
+    app: number | bigint;
+    name: string | Uint8Array;
+  }) {
+    super();
+    this.app = BigInt(app);
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
+
+    this.attribute_map = {
+      app: 'app',
+      name: 'name',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxReference {
+    /* eslint-disable dot-notation */
+    if (typeof data['app'] === 'undefined')
+      throw new Error(`Response is missing required field 'app': ${data}`);
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    return new BoxReference({
+      app: data['app'],
+      name: data['name'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Box names of an application
  */
 export class BoxesResponse extends BaseModel {
@@ -1613,15 +1863,15 @@ export class BoxesResponse extends BaseModel {
 export class BuildVersion extends BaseModel {
   public branch: string;
 
-  public buildNumber: number | bigint;
+  public buildNumber: bigint;
 
   public channel: string;
 
   public commitHash: string;
 
-  public major: number | bigint;
+  public major: bigint;
 
-  public minor: number | bigint;
+  public minor: bigint;
 
   /**
    * Creates a new `BuildVersion` object.
@@ -1649,11 +1899,11 @@ export class BuildVersion extends BaseModel {
   }) {
     super();
     this.branch = branch;
-    this.buildNumber = buildNumber;
+    this.buildNumber = BigInt(buildNumber);
     this.channel = channel;
     this.commitHash = commitHash;
-    this.major = major;
-    this.minor = minor;
+    this.major = BigInt(major);
+    this.minor = BigInt(minor);
 
     this.attribute_map = {
       branch: 'branch',
@@ -1805,7 +2055,7 @@ export class DryrunRequest extends BaseModel {
    * LatestTimestamp is available to some TEAL scripts. Defaults to the latest
    * confirmed timestamp this algod is attached to.
    */
-  public latestTimestamp: number | bigint;
+  public latestTimestamp: bigint;
 
   /**
    * ProtocolVersion specifies a specific version string to operate under, otherwise
@@ -1817,7 +2067,7 @@ export class DryrunRequest extends BaseModel {
    * Round is available to some TEAL scripts. Defaults to the current round on the
    * network this algod is attached to.
    */
-  public round: number | bigint;
+  public round: bigint;
 
   public sources: DryrunSource[];
 
@@ -1856,9 +2106,9 @@ export class DryrunRequest extends BaseModel {
     super();
     this.accounts = accounts;
     this.apps = apps;
-    this.latestTimestamp = latestTimestamp;
+    this.latestTimestamp = BigInt(latestTimestamp);
     this.protocolVersion = protocolVersion;
-    this.round = round;
+    this.round = BigInt(round);
     this.sources = sources;
     this.txns = txns;
 
@@ -1991,9 +2241,9 @@ export class DryrunSource extends BaseModel {
 
   public source: string;
 
-  public txnIndex: number | bigint;
+  public txnIndex: bigint;
 
-  public appIndex: number | bigint;
+  public appIndex: bigint;
 
   /**
    * Creates a new `DryrunSource` object.
@@ -2018,8 +2268,8 @@ export class DryrunSource extends BaseModel {
     super();
     this.fieldName = fieldName;
     this.source = source;
-    this.txnIndex = txnIndex;
-    this.appIndex = appIndex;
+    this.txnIndex = BigInt(txnIndex);
+    this.appIndex = BigInt(appIndex);
 
     this.attribute_map = {
       fieldName: 'field-name',
@@ -2063,12 +2313,12 @@ export class DryrunState extends BaseModel {
   /**
    * Line number
    */
-  public line: number | bigint;
+  public line: bigint;
 
   /**
    * Program counter
    */
-  public pc: number | bigint;
+  public pc: bigint;
 
   public stack: TealValue[];
 
@@ -2101,8 +2351,8 @@ export class DryrunState extends BaseModel {
     scratch?: TealValue[];
   }) {
     super();
-    this.line = line;
-    this.pc = pc;
+    this.line = BigInt(line);
+    this.pc = BigInt(pc);
     this.stack = stack;
     this.error = error;
     this.scratch = scratch;
@@ -2158,12 +2408,12 @@ export class DryrunTxnResult extends BaseModel {
   /**
    * Budget added during execution of app call transaction.
    */
-  public budgetAdded?: number | bigint;
+  public budgetAdded?: bigint;
 
   /**
    * Budget consumed during execution of app call transaction.
    */
-  public budgetConsumed?: number | bigint;
+  public budgetConsumed?: bigint;
 
   /**
    * Application state delta.
@@ -2226,8 +2476,12 @@ export class DryrunTxnResult extends BaseModel {
     this.disassembly = disassembly;
     this.appCallMessages = appCallMessages;
     this.appCallTrace = appCallTrace;
-    this.budgetAdded = budgetAdded;
-    this.budgetConsumed = budgetConsumed;
+    this.budgetAdded =
+      typeof budgetAdded === 'undefined' ? undefined : BigInt(budgetAdded);
+    this.budgetConsumed =
+      typeof budgetConsumed === 'undefined'
+        ? undefined
+        : BigInt(budgetConsumed);
     this.globalDelta = globalDelta;
     this.localDeltas = localDeltas;
     this.logicSigDisassembly = logicSigDisassembly;
@@ -2336,7 +2590,7 @@ export class EvalDelta extends BaseModel {
   /**
    * (at) delta action.
    */
-  public action: number | bigint;
+  public action: bigint;
 
   /**
    * (bs) bytes value.
@@ -2346,7 +2600,7 @@ export class EvalDelta extends BaseModel {
   /**
    * (ui) uint value.
    */
-  public uint?: number | bigint;
+  public uint?: bigint;
 
   /**
    * Creates a new `EvalDelta` object.
@@ -2364,9 +2618,9 @@ export class EvalDelta extends BaseModel {
     uint?: number | bigint;
   }) {
     super();
-    this.action = action;
+    this.action = BigInt(action);
     this.bytes = bytes;
-    this.uint = uint;
+    this.uint = typeof uint === 'undefined' ? undefined : BigInt(uint);
 
     this.attribute_map = {
       action: 'action',
@@ -2438,7 +2692,7 @@ export class GetBlockTimeStampOffsetResponse extends BaseModel {
   /**
    * Timestamp offset in seconds.
    */
-  public offset: number | bigint;
+  public offset: bigint;
 
   /**
    * Creates a new `GetBlockTimeStampOffsetResponse` object.
@@ -2446,7 +2700,7 @@ export class GetBlockTimeStampOffsetResponse extends BaseModel {
    */
   constructor({ offset }: { offset: number | bigint }) {
     super();
-    this.offset = offset;
+    this.offset = BigInt(offset);
 
     this.attribute_map = {
       offset: 'offset',
@@ -2474,7 +2728,7 @@ export class GetSyncRoundResponse extends BaseModel {
   /**
    * The minimum sync round for the ledger.
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * Creates a new `GetSyncRoundResponse` object.
@@ -2482,7 +2736,7 @@ export class GetSyncRoundResponse extends BaseModel {
    */
   constructor({ round }: { round: number | bigint }) {
     super();
-    this.round = round;
+    this.round = BigInt(round);
 
     this.attribute_map = {
       round: 'round',
@@ -2604,7 +2858,7 @@ export class LightBlockHeaderProof extends BaseModel {
   /**
    * The index of the light block header in the vector commitment tree
    */
-  public index: number | bigint;
+  public index: bigint;
 
   /**
    * The encoded proof.
@@ -2615,7 +2869,7 @@ export class LightBlockHeaderProof extends BaseModel {
    * Represents the depth of the tree that is being proven, i.e. the number of edges
    * from a leaf to the root.
    */
-  public treedepth: number | bigint;
+  public treedepth: bigint;
 
   /**
    * Creates a new `LightBlockHeaderProof` object.
@@ -2634,9 +2888,9 @@ export class LightBlockHeaderProof extends BaseModel {
     treedepth: number | bigint;
   }) {
     super();
-    this.index = index;
+    this.index = BigInt(index);
     this.proof = typeof proof === 'string' ? base64ToBytes(proof) : proof;
-    this.treedepth = treedepth;
+    this.treedepth = BigInt(treedepth);
 
     this.attribute_map = {
       index: 'index',
@@ -2674,12 +2928,12 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * CatchupTime in nanoseconds
    */
-  public catchupTime: number | bigint;
+  public catchupTime: bigint;
 
   /**
    * LastRound indicates the last round seen
    */
-  public lastRound: number | bigint;
+  public lastRound: bigint;
 
   /**
    * LastVersion indicates the last consensus version supported
@@ -2694,7 +2948,7 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * NextVersionRound is the round at which the next consensus version will apply
    */
-  public nextVersionRound: number | bigint;
+  public nextVersionRound: bigint;
 
   /**
    * NextVersionSupported indicates whether the next consensus version is supported
@@ -2711,7 +2965,7 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * TimeSinceLastRound in nanoseconds
    */
-  public timeSinceLastRound: number | bigint;
+  public timeSinceLastRound: bigint;
 
   /**
    * The current catchpoint that is being caught up to
@@ -2722,47 +2976,47 @@ export class NodeStatusResponse extends BaseModel {
    * The number of blocks that have already been obtained by the node as part of the
    * catchup
    */
-  public catchpointAcquiredBlocks?: number | bigint;
+  public catchpointAcquiredBlocks?: bigint;
 
   /**
    * The number of accounts from the current catchpoint that have been processed so
    * far as part of the catchup
    */
-  public catchpointProcessedAccounts?: number | bigint;
+  public catchpointProcessedAccounts?: bigint;
 
   /**
    * The number of key-values (KVs) from the current catchpoint that have been
    * processed so far as part of the catchup
    */
-  public catchpointProcessedKvs?: number | bigint;
+  public catchpointProcessedKvs?: bigint;
 
   /**
    * The total number of accounts included in the current catchpoint
    */
-  public catchpointTotalAccounts?: number | bigint;
+  public catchpointTotalAccounts?: bigint;
 
   /**
    * The total number of blocks that are required to complete the current catchpoint
    * catchup
    */
-  public catchpointTotalBlocks?: number | bigint;
+  public catchpointTotalBlocks?: bigint;
 
   /**
    * The total number of key-values (KVs) included in the current catchpoint
    */
-  public catchpointTotalKvs?: number | bigint;
+  public catchpointTotalKvs?: bigint;
 
   /**
    * The number of accounts from the current catchpoint that have been verified so
    * far as part of the catchup
    */
-  public catchpointVerifiedAccounts?: number | bigint;
+  public catchpointVerifiedAccounts?: bigint;
 
   /**
    * The number of key-values (KVs) from the current catchpoint that have been
    * verified so far as part of the catchup
    */
-  public catchpointVerifiedKvs?: number | bigint;
+  public catchpointVerifiedKvs?: bigint;
 
   /**
    * The last catchpoint seen by the node
@@ -2772,17 +3026,17 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * Upgrade delay
    */
-  public upgradeDelay?: number | bigint;
+  public upgradeDelay?: bigint;
 
   /**
    * Next protocol round
    */
-  public upgradeNextProtocolVoteBefore?: number | bigint;
+  public upgradeNextProtocolVoteBefore?: bigint;
 
   /**
    * No votes cast for consensus upgrade
    */
-  public upgradeNoVotes?: number | bigint;
+  public upgradeNoVotes?: bigint;
 
   /**
    * This node's upgrade vote
@@ -2792,22 +3046,22 @@ export class NodeStatusResponse extends BaseModel {
   /**
    * Total voting rounds for current upgrade
    */
-  public upgradeVoteRounds?: number | bigint;
+  public upgradeVoteRounds?: bigint;
 
   /**
    * Total votes cast for consensus upgrade
    */
-  public upgradeVotes?: number | bigint;
+  public upgradeVotes?: bigint;
 
   /**
    * Yes votes required for consensus upgrade
    */
-  public upgradeVotesRequired?: number | bigint;
+  public upgradeVotesRequired?: bigint;
 
   /**
    * Yes votes cast for consensus upgrade
    */
-  public upgradeYesVotes?: number | bigint;
+  public upgradeYesVotes?: bigint;
 
   /**
    * Creates a new `NodeStatusResponse` object.
@@ -2902,32 +3156,73 @@ export class NodeStatusResponse extends BaseModel {
     upgradeYesVotes?: number | bigint;
   }) {
     super();
-    this.catchupTime = catchupTime;
-    this.lastRound = lastRound;
+    this.catchupTime = BigInt(catchupTime);
+    this.lastRound = BigInt(lastRound);
     this.lastVersion = lastVersion;
     this.nextVersion = nextVersion;
-    this.nextVersionRound = nextVersionRound;
+    this.nextVersionRound = BigInt(nextVersionRound);
     this.nextVersionSupported = nextVersionSupported;
     this.stoppedAtUnsupportedRound = stoppedAtUnsupportedRound;
-    this.timeSinceLastRound = timeSinceLastRound;
+    this.timeSinceLastRound = BigInt(timeSinceLastRound);
     this.catchpoint = catchpoint;
-    this.catchpointAcquiredBlocks = catchpointAcquiredBlocks;
-    this.catchpointProcessedAccounts = catchpointProcessedAccounts;
-    this.catchpointProcessedKvs = catchpointProcessedKvs;
-    this.catchpointTotalAccounts = catchpointTotalAccounts;
-    this.catchpointTotalBlocks = catchpointTotalBlocks;
-    this.catchpointTotalKvs = catchpointTotalKvs;
-    this.catchpointVerifiedAccounts = catchpointVerifiedAccounts;
-    this.catchpointVerifiedKvs = catchpointVerifiedKvs;
+    this.catchpointAcquiredBlocks =
+      typeof catchpointAcquiredBlocks === 'undefined'
+        ? undefined
+        : BigInt(catchpointAcquiredBlocks);
+    this.catchpointProcessedAccounts =
+      typeof catchpointProcessedAccounts === 'undefined'
+        ? undefined
+        : BigInt(catchpointProcessedAccounts);
+    this.catchpointProcessedKvs =
+      typeof catchpointProcessedKvs === 'undefined'
+        ? undefined
+        : BigInt(catchpointProcessedKvs);
+    this.catchpointTotalAccounts =
+      typeof catchpointTotalAccounts === 'undefined'
+        ? undefined
+        : BigInt(catchpointTotalAccounts);
+    this.catchpointTotalBlocks =
+      typeof catchpointTotalBlocks === 'undefined'
+        ? undefined
+        : BigInt(catchpointTotalBlocks);
+    this.catchpointTotalKvs =
+      typeof catchpointTotalKvs === 'undefined'
+        ? undefined
+        : BigInt(catchpointTotalKvs);
+    this.catchpointVerifiedAccounts =
+      typeof catchpointVerifiedAccounts === 'undefined'
+        ? undefined
+        : BigInt(catchpointVerifiedAccounts);
+    this.catchpointVerifiedKvs =
+      typeof catchpointVerifiedKvs === 'undefined'
+        ? undefined
+        : BigInt(catchpointVerifiedKvs);
     this.lastCatchpoint = lastCatchpoint;
-    this.upgradeDelay = upgradeDelay;
-    this.upgradeNextProtocolVoteBefore = upgradeNextProtocolVoteBefore;
-    this.upgradeNoVotes = upgradeNoVotes;
+    this.upgradeDelay =
+      typeof upgradeDelay === 'undefined' ? undefined : BigInt(upgradeDelay);
+    this.upgradeNextProtocolVoteBefore =
+      typeof upgradeNextProtocolVoteBefore === 'undefined'
+        ? undefined
+        : BigInt(upgradeNextProtocolVoteBefore);
+    this.upgradeNoVotes =
+      typeof upgradeNoVotes === 'undefined'
+        ? undefined
+        : BigInt(upgradeNoVotes);
     this.upgradeNodeVote = upgradeNodeVote;
-    this.upgradeVoteRounds = upgradeVoteRounds;
-    this.upgradeVotes = upgradeVotes;
-    this.upgradeVotesRequired = upgradeVotesRequired;
-    this.upgradeYesVotes = upgradeYesVotes;
+    this.upgradeVoteRounds =
+      typeof upgradeVoteRounds === 'undefined'
+        ? undefined
+        : BigInt(upgradeVoteRounds);
+    this.upgradeVotes =
+      typeof upgradeVotes === 'undefined' ? undefined : BigInt(upgradeVotes);
+    this.upgradeVotesRequired =
+      typeof upgradeVotesRequired === 'undefined'
+        ? undefined
+        : BigInt(upgradeVotesRequired);
+    this.upgradeYesVotes =
+      typeof upgradeYesVotes === 'undefined'
+        ? undefined
+        : BigInt(upgradeYesVotes);
 
     this.attribute_map = {
       catchupTime: 'catchup-time',
@@ -3047,32 +3342,32 @@ export class PendingTransactionResponse extends BaseModel {
    * The application index if the transaction was found and it created an
    * application.
    */
-  public applicationIndex?: number | bigint;
+  public applicationIndex?: bigint;
 
   /**
    * The number of the asset's unit that were transferred to the close-to address.
    */
-  public assetClosingAmount?: number | bigint;
+  public assetClosingAmount?: bigint;
 
   /**
    * The asset index if the transaction was found and it created an asset.
    */
-  public assetIndex?: number | bigint;
+  public assetIndex?: bigint;
 
   /**
    * Rewards in microalgos applied to the close remainder to account.
    */
-  public closeRewards?: number | bigint;
+  public closeRewards?: bigint;
 
   /**
    * Closing amount for the transaction.
    */
-  public closingAmount?: number | bigint;
+  public closingAmount?: bigint;
 
   /**
    * The round where this transaction was confirmed, if present.
    */
-  public confirmedRound?: number | bigint;
+  public confirmedRound?: bigint;
 
   /**
    * Global state key/value changes for the application being executed by this
@@ -3099,12 +3394,12 @@ export class PendingTransactionResponse extends BaseModel {
   /**
    * Rewards in microalgos applied to the receiver account.
    */
-  public receiverRewards?: number | bigint;
+  public receiverRewards?: bigint;
 
   /**
    * Rewards in microalgos applied to the sender account.
    */
-  public senderRewards?: number | bigint;
+  public senderRewards?: bigint;
 
   /**
    * Creates a new `PendingTransactionResponse` object.
@@ -3162,18 +3457,34 @@ export class PendingTransactionResponse extends BaseModel {
     super();
     this.poolError = poolError;
     this.txn = txn;
-    this.applicationIndex = applicationIndex;
-    this.assetClosingAmount = assetClosingAmount;
-    this.assetIndex = assetIndex;
-    this.closeRewards = closeRewards;
-    this.closingAmount = closingAmount;
-    this.confirmedRound = confirmedRound;
+    this.applicationIndex =
+      typeof applicationIndex === 'undefined'
+        ? undefined
+        : BigInt(applicationIndex);
+    this.assetClosingAmount =
+      typeof assetClosingAmount === 'undefined'
+        ? undefined
+        : BigInt(assetClosingAmount);
+    this.assetIndex =
+      typeof assetIndex === 'undefined' ? undefined : BigInt(assetIndex);
+    this.closeRewards =
+      typeof closeRewards === 'undefined' ? undefined : BigInt(closeRewards);
+    this.closingAmount =
+      typeof closingAmount === 'undefined' ? undefined : BigInt(closingAmount);
+    this.confirmedRound =
+      typeof confirmedRound === 'undefined'
+        ? undefined
+        : BigInt(confirmedRound);
     this.globalStateDelta = globalStateDelta;
     this.innerTxns = innerTxns;
     this.localStateDelta = localStateDelta;
     this.logs = logs;
-    this.receiverRewards = receiverRewards;
-    this.senderRewards = senderRewards;
+    this.receiverRewards =
+      typeof receiverRewards === 'undefined'
+        ? undefined
+        : BigInt(receiverRewards);
+    this.senderRewards =
+      typeof senderRewards === 'undefined' ? undefined : BigInt(senderRewards);
 
     this.attribute_map = {
       poolError: 'pool-error',
@@ -3253,7 +3564,7 @@ export class PendingTransactionsResponse extends BaseModel {
   /**
    * Total number of transactions in the pool.
    */
-  public totalTransactions: number | bigint;
+  public totalTransactions: bigint;
 
   /**
    * Creates a new `PendingTransactionsResponse` object.
@@ -3269,7 +3580,7 @@ export class PendingTransactionsResponse extends BaseModel {
   }) {
     super();
     this.topTransactions = topTransactions;
-    this.totalTransactions = totalTransactions;
+    this.totalTransactions = BigInt(totalTransactions);
 
     this.attribute_map = {
       topTransactions: 'top-transactions',
@@ -3335,6 +3646,59 @@ export class PostTransactionsResponse extends BaseModel {
 }
 
 /**
+ * A write operation into a scratch slot.
+ */
+export class ScratchChange extends BaseModel {
+  /**
+   * Represents an AVM value.
+   */
+  public newValue: AvmValue;
+
+  /**
+   * The scratch slot written.
+   */
+  public slot: bigint;
+
+  /**
+   * Creates a new `ScratchChange` object.
+   * @param newValue - Represents an AVM value.
+   * @param slot - The scratch slot written.
+   */
+  constructor({
+    newValue,
+    slot,
+  }: {
+    newValue: AvmValue;
+    slot: number | bigint;
+  }) {
+    super();
+    this.newValue = newValue;
+    this.slot = BigInt(slot);
+
+    this.attribute_map = {
+      newValue: 'new-value',
+      slot: 'slot',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): ScratchChange {
+    /* eslint-disable dot-notation */
+    if (typeof data['new-value'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'new-value': ${data}`
+      );
+    if (typeof data['slot'] === 'undefined')
+      throw new Error(`Response is missing required field 'slot': ${data}`);
+    return new ScratchChange({
+      newValue: AvmValue.from_obj_for_encoding(data['new-value']),
+      slot: data['slot'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Request type for simulation endpoint.
  */
 export class SimulateRequest extends BaseModel {
@@ -3344,7 +3708,7 @@ export class SimulateRequest extends BaseModel {
   public txnGroups: SimulateRequestTransactionGroup[];
 
   /**
-   * Allow transactions without signatures to be simulated as if they had correct
+   * Allows transactions without signatures to be simulated as if they had correct
    * signatures.
    */
   public allowEmptySignatures?: boolean;
@@ -3355,39 +3719,62 @@ export class SimulateRequest extends BaseModel {
   public allowMoreLogging?: boolean;
 
   /**
+   * Allows access to unnamed resources during simulation.
+   */
+  public allowUnnamedResources?: boolean;
+
+  /**
+   * An object that configures simulation execution trace.
+   */
+  public execTraceConfig?: SimulateTraceConfig;
+
+  /**
    * Applies extra opcode budget during simulation for each transaction group.
    */
-  public extraOpcodeBudget?: number | bigint;
+  public extraOpcodeBudget?: bigint;
 
   /**
    * Creates a new `SimulateRequest` object.
    * @param txnGroups - The transaction groups to simulate.
-   * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
+   * @param allowEmptySignatures - Allows transactions without signatures to be simulated as if they had correct
    * signatures.
    * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
+   * @param allowUnnamedResources - Allows access to unnamed resources during simulation.
+   * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
    */
   constructor({
     txnGroups,
     allowEmptySignatures,
     allowMoreLogging,
+    allowUnnamedResources,
+    execTraceConfig,
     extraOpcodeBudget,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
     allowMoreLogging?: boolean;
+    allowUnnamedResources?: boolean;
+    execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowMoreLogging = allowMoreLogging;
-    this.extraOpcodeBudget = extraOpcodeBudget;
+    this.allowUnnamedResources = allowUnnamedResources;
+    this.execTraceConfig = execTraceConfig;
+    this.extraOpcodeBudget =
+      typeof extraOpcodeBudget === 'undefined'
+        ? undefined
+        : BigInt(extraOpcodeBudget);
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
       allowEmptySignatures: 'allow-empty-signatures',
       allowMoreLogging: 'allow-more-logging',
+      allowUnnamedResources: 'allow-unnamed-resources',
+      execTraceConfig: 'exec-trace-config',
       extraOpcodeBudget: 'extra-opcode-budget',
     };
   }
@@ -3405,6 +3792,11 @@ export class SimulateRequest extends BaseModel {
       ),
       allowEmptySignatures: data['allow-empty-signatures'],
       allowMoreLogging: data['allow-more-logging'],
+      allowUnnamedResources: data['allow-unnamed-resources'],
+      execTraceConfig:
+        typeof data['exec-trace-config'] !== 'undefined'
+          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
+          : undefined,
       extraOpcodeBudget: data['extra-opcode-budget'],
     });
     /* eslint-enable dot-notation */
@@ -3457,7 +3849,7 @@ export class SimulateResponse extends BaseModel {
    * The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
    */
-  public lastRound: number | bigint;
+  public lastRound: bigint;
 
   /**
    * A result object for each transaction group that was simulated.
@@ -3467,7 +3859,7 @@ export class SimulateResponse extends BaseModel {
   /**
    * The version of this response object.
    */
-  public version: number | bigint;
+  public version: bigint;
 
   /**
    * The set of parameters and limits override during simulation. If this set of
@@ -3475,6 +3867,11 @@ export class SimulateResponse extends BaseModel {
    * evaluation in certain ways.
    */
   public evalOverrides?: SimulationEvalOverrides;
+
+  /**
+   * An object that configures simulation execution trace.
+   */
+  public execTraceConfig?: SimulateTraceConfig;
 
   /**
    * Creates a new `SimulateResponse` object.
@@ -3485,29 +3882,34 @@ export class SimulateResponse extends BaseModel {
    * @param evalOverrides - The set of parameters and limits override during simulation. If this set of
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
+   * @param execTraceConfig - An object that configures simulation execution trace.
    */
   constructor({
     lastRound,
     txnGroups,
     version,
     evalOverrides,
+    execTraceConfig,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
     evalOverrides?: SimulationEvalOverrides;
+    execTraceConfig?: SimulateTraceConfig;
   }) {
     super();
-    this.lastRound = lastRound;
+    this.lastRound = BigInt(lastRound);
     this.txnGroups = txnGroups;
-    this.version = version;
+    this.version = BigInt(version);
     this.evalOverrides = evalOverrides;
+    this.execTraceConfig = execTraceConfig;
 
     this.attribute_map = {
       lastRound: 'last-round',
       txnGroups: 'txn-groups',
       version: 'version',
       evalOverrides: 'eval-overrides',
+      execTraceConfig: 'exec-trace-config',
     };
   }
 
@@ -3536,6 +3938,72 @@ export class SimulateResponse extends BaseModel {
               data['eval-overrides']
             )
           : undefined,
+      execTraceConfig:
+        typeof data['exec-trace-config'] !== 'undefined'
+          ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * An object that configures simulation execution trace.
+ */
+export class SimulateTraceConfig extends BaseModel {
+  /**
+   * A boolean option for opting in execution trace features simulation endpoint.
+   */
+  public enable?: boolean;
+
+  /**
+   * A boolean option enabling returning scratch slot changes together with execution
+   * trace during simulation.
+   */
+  public scratchChange?: boolean;
+
+  /**
+   * A boolean option enabling returning stack changes together with execution trace
+   * during simulation.
+   */
+  public stackChange?: boolean;
+
+  /**
+   * Creates a new `SimulateTraceConfig` object.
+   * @param enable - A boolean option for opting in execution trace features simulation endpoint.
+   * @param scratchChange - A boolean option enabling returning scratch slot changes together with execution
+   * trace during simulation.
+   * @param stackChange - A boolean option enabling returning stack changes together with execution trace
+   * during simulation.
+   */
+  constructor({
+    enable,
+    scratchChange,
+    stackChange,
+  }: {
+    enable?: boolean;
+    scratchChange?: boolean;
+    stackChange?: boolean;
+  }) {
+    super();
+    this.enable = enable;
+    this.scratchChange = scratchChange;
+    this.stackChange = stackChange;
+
+    this.attribute_map = {
+      enable: 'enable',
+      scratchChange: 'scratch-change',
+      stackChange: 'stack-change',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): SimulateTraceConfig {
+    /* eslint-disable dot-notation */
+    return new SimulateTraceConfig({
+      enable: data['enable'],
+      scratchChange: data['scratch-change'],
+      stackChange: data['stack-change'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3553,12 +4021,12 @@ export class SimulateTransactionGroupResult extends BaseModel {
   /**
    * Total budget added during execution of app calls in the transaction group.
    */
-  public appBudgetAdded?: number | bigint;
+  public appBudgetAdded?: bigint;
 
   /**
    * Total budget consumed during execution of app calls in the transaction group.
    */
-  public appBudgetConsumed?: number | bigint;
+  public appBudgetConsumed?: bigint;
 
   /**
    * If present, indicates which transaction in this group caused the failure. This
@@ -3566,13 +4034,26 @@ export class SimulateTransactionGroupResult extends BaseModel {
    * the first element indicates the top-level transaction, and successive elements
    * indicate deeper inner transactions.
    */
-  public failedAt?: (number | bigint)[];
+  public failedAt?: bigint[];
 
   /**
    * If present, indicates that the transaction group failed and specifies why that
    * happened
    */
   public failureMessage?: string;
+
+  /**
+   * These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
+   */
+  public unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
 
   /**
    * Creates a new `SimulateTransactionGroupResult` object.
@@ -3585,6 +4066,15 @@ export class SimulateTransactionGroupResult extends BaseModel {
    * indicate deeper inner transactions.
    * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
    * happened
+   * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
    */
   constructor({
     txnResults,
@@ -3592,19 +4082,28 @@ export class SimulateTransactionGroupResult extends BaseModel {
     appBudgetConsumed,
     failedAt,
     failureMessage,
+    unnamedResourcesAccessed,
   }: {
     txnResults: SimulateTransactionResult[];
     appBudgetAdded?: number | bigint;
     appBudgetConsumed?: number | bigint;
     failedAt?: (number | bigint)[];
     failureMessage?: string;
+    unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     super();
     this.txnResults = txnResults;
-    this.appBudgetAdded = appBudgetAdded;
-    this.appBudgetConsumed = appBudgetConsumed;
-    this.failedAt = failedAt;
+    this.appBudgetAdded =
+      typeof appBudgetAdded === 'undefined'
+        ? undefined
+        : BigInt(appBudgetAdded);
+    this.appBudgetConsumed =
+      typeof appBudgetConsumed === 'undefined'
+        ? undefined
+        : BigInt(appBudgetConsumed);
+    this.failedAt = failedAt.map(BigInt);
     this.failureMessage = failureMessage;
+    this.unnamedResourcesAccessed = unnamedResourcesAccessed;
 
     this.attribute_map = {
       txnResults: 'txn-results',
@@ -3612,6 +4111,7 @@ export class SimulateTransactionGroupResult extends BaseModel {
       appBudgetConsumed: 'app-budget-consumed',
       failedAt: 'failed-at',
       failureMessage: 'failure-message',
+      unnamedResourcesAccessed: 'unnamed-resources-accessed',
     };
   }
 
@@ -3632,6 +4132,12 @@ export class SimulateTransactionGroupResult extends BaseModel {
       appBudgetConsumed: data['app-budget-consumed'],
       failedAt: data['failed-at'],
       failureMessage: data['failure-message'],
+      unnamedResourcesAccessed:
+        typeof data['unnamed-resources-accessed'] !== 'undefined'
+          ? SimulateUnnamedResourcesAccessed.from_obj_for_encoding(
+              data['unnamed-resources-accessed']
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3651,12 +4157,31 @@ export class SimulateTransactionResult extends BaseModel {
    * Budget used during execution of an app call transaction. This value includes
    * budged used by inner app calls spawned by this transaction.
    */
-  public appBudgetConsumed?: number | bigint;
+  public appBudgetConsumed?: bigint;
+
+  /**
+   * The execution trace of calling an app or a logic sig, containing the inner app
+   * call trace in a recursive way.
+   */
+  public execTrace?: SimulationTransactionExecTrace;
 
   /**
    * Budget used during execution of a logic sig transaction.
    */
-  public logicSigBudgetConsumed?: number | bigint;
+  public logicSigBudgetConsumed?: bigint;
+
+  /**
+   * These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
+   */
+  public unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
 
   /**
    * Creates a new `SimulateTransactionResult` object.
@@ -3664,26 +4189,51 @@ export class SimulateTransactionResult extends BaseModel {
    * includes confirmation details like the round and reward details.
    * @param appBudgetConsumed - Budget used during execution of an app call transaction. This value includes
    * budged used by inner app calls spawned by this transaction.
+   * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
+   * call trace in a recursive way.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
+   * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
    */
   constructor({
     txnResult,
     appBudgetConsumed,
+    execTrace,
     logicSigBudgetConsumed,
+    unnamedResourcesAccessed,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
+    execTrace?: SimulationTransactionExecTrace;
     logicSigBudgetConsumed?: number | bigint;
+    unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     super();
     this.txnResult = txnResult;
-    this.appBudgetConsumed = appBudgetConsumed;
-    this.logicSigBudgetConsumed = logicSigBudgetConsumed;
+    this.appBudgetConsumed =
+      typeof appBudgetConsumed === 'undefined'
+        ? undefined
+        : BigInt(appBudgetConsumed);
+    this.execTrace = execTrace;
+    this.logicSigBudgetConsumed =
+      typeof logicSigBudgetConsumed === 'undefined'
+        ? undefined
+        : BigInt(logicSigBudgetConsumed);
+    this.unnamedResourcesAccessed = unnamedResourcesAccessed;
 
     this.attribute_map = {
       txnResult: 'txn-result',
       appBudgetConsumed: 'app-budget-consumed',
+      execTrace: 'exec-trace',
       logicSigBudgetConsumed: 'logic-sig-budget-consumed',
+      unnamedResourcesAccessed: 'unnamed-resources-accessed',
     };
   }
 
@@ -3701,7 +4251,155 @@ export class SimulateTransactionResult extends BaseModel {
         data['txn-result']
       ),
       appBudgetConsumed: data['app-budget-consumed'],
+      execTrace:
+        typeof data['exec-trace'] !== 'undefined'
+          ? SimulationTransactionExecTrace.from_obj_for_encoding(
+              data['exec-trace']
+            )
+          : undefined,
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
+      unnamedResourcesAccessed:
+        typeof data['unnamed-resources-accessed'] !== 'undefined'
+          ? SimulateUnnamedResourcesAccessed.from_obj_for_encoding(
+              data['unnamed-resources-accessed']
+            )
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * These are resources that were accessed by this group that would normally have
+ * caused failure, but were allowed in simulation. Depending on where this object
+ * is in the response, the unnamed resources it contains may or may not qualify for
+ * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+ * the resources do qualify, but if this is a field in SimulateTransactionResult,
+ * they do not qualify. In order to make this group valid for actual submission,
+ * resources that qualify for group sharing can be made available by any
+ * transaction of the group; otherwise, resources must be placed in the same
+ * transaction which accessed them.
+ */
+export class SimulateUnnamedResourcesAccessed extends BaseModel {
+  /**
+   * The unnamed accounts that were referenced. The order of this array is arbitrary.
+   */
+  public accounts?: string[];
+
+  /**
+   * The unnamed application local states that were referenced. The order of this
+   * array is arbitrary.
+   */
+  public appLocals?: ApplicationLocalReference[];
+
+  /**
+   * The unnamed applications that were referenced. The order of this array is
+   * arbitrary.
+   */
+  public apps?: bigint[];
+
+  /**
+   * The unnamed asset holdings that were referenced. The order of this array is
+   * arbitrary.
+   */
+  public assetHoldings?: AssetHoldingReference[];
+
+  /**
+   * The unnamed assets that were referenced. The order of this array is arbitrary.
+   */
+  public assets?: bigint[];
+
+  /**
+   * The unnamed boxes that were referenced. The order of this array is arbitrary.
+   */
+  public boxes?: BoxReference[];
+
+  /**
+   * The number of extra box references used to increase the IO budget. This is in
+   * addition to the references defined in the input transaction group and any
+   * referenced to unnamed boxes.
+   */
+  public extraBoxRefs?: bigint;
+
+  /**
+   * Creates a new `SimulateUnnamedResourcesAccessed` object.
+   * @param accounts - The unnamed accounts that were referenced. The order of this array is arbitrary.
+   * @param appLocals - The unnamed application local states that were referenced. The order of this
+   * array is arbitrary.
+   * @param apps - The unnamed applications that were referenced. The order of this array is
+   * arbitrary.
+   * @param assetHoldings - The unnamed asset holdings that were referenced. The order of this array is
+   * arbitrary.
+   * @param assets - The unnamed assets that were referenced. The order of this array is arbitrary.
+   * @param boxes - The unnamed boxes that were referenced. The order of this array is arbitrary.
+   * @param extraBoxRefs - The number of extra box references used to increase the IO budget. This is in
+   * addition to the references defined in the input transaction group and any
+   * referenced to unnamed boxes.
+   */
+  constructor({
+    accounts,
+    appLocals,
+    apps,
+    assetHoldings,
+    assets,
+    boxes,
+    extraBoxRefs,
+  }: {
+    accounts?: string[];
+    appLocals?: ApplicationLocalReference[];
+    apps?: (number | bigint)[];
+    assetHoldings?: AssetHoldingReference[];
+    assets?: (number | bigint)[];
+    boxes?: BoxReference[];
+    extraBoxRefs?: number | bigint;
+  }) {
+    super();
+    this.accounts = accounts;
+    this.appLocals = appLocals;
+    this.apps = apps.map(BigInt);
+    this.assetHoldings = assetHoldings;
+    this.assets = assets.map(BigInt);
+    this.boxes = boxes;
+    this.extraBoxRefs =
+      typeof extraBoxRefs === 'undefined' ? undefined : BigInt(extraBoxRefs);
+
+    this.attribute_map = {
+      accounts: 'accounts',
+      appLocals: 'app-locals',
+      apps: 'apps',
+      assetHoldings: 'asset-holdings',
+      assets: 'assets',
+      boxes: 'boxes',
+      extraBoxRefs: 'extra-box-refs',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulateUnnamedResourcesAccessed {
+    /* eslint-disable dot-notation */
+    return new SimulateUnnamedResourcesAccessed({
+      accounts: data['accounts'],
+      appLocals:
+        typeof data['app-locals'] !== 'undefined'
+          ? data['app-locals'].map(
+              ApplicationLocalReference.from_obj_for_encoding
+            )
+          : undefined,
+      apps: data['apps'],
+      assetHoldings:
+        typeof data['asset-holdings'] !== 'undefined'
+          ? data['asset-holdings'].map(
+              AssetHoldingReference.from_obj_for_encoding
+            )
+          : undefined,
+      assets: data['assets'],
+      boxes:
+        typeof data['boxes'] !== 'undefined'
+          ? data['boxes'].map(BoxReference.from_obj_for_encoding)
+          : undefined,
+      extraBoxRefs: data['extra-box-refs'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3720,47 +4418,62 @@ export class SimulationEvalOverrides extends BaseModel {
   public allowEmptySignatures?: boolean;
 
   /**
+   * If true, allows access to unnamed resources during simulation.
+   */
+  public allowUnnamedResources?: boolean;
+
+  /**
    * The extra opcode budget added to each transaction group during simulation
    */
-  public extraOpcodeBudget?: number | bigint;
+  public extraOpcodeBudget?: bigint;
 
   /**
    * The maximum log calls one can make during simulation
    */
-  public maxLogCalls?: number | bigint;
+  public maxLogCalls?: bigint;
 
   /**
    * The maximum byte number to log during simulation
    */
-  public maxLogSize?: number | bigint;
+  public maxLogSize?: bigint;
 
   /**
    * Creates a new `SimulationEvalOverrides` object.
    * @param allowEmptySignatures - If true, transactions without signatures are allowed and simulated as if they
    * were properly signed.
+   * @param allowUnnamedResources - If true, allows access to unnamed resources during simulation.
    * @param extraOpcodeBudget - The extra opcode budget added to each transaction group during simulation
    * @param maxLogCalls - The maximum log calls one can make during simulation
    * @param maxLogSize - The maximum byte number to log during simulation
    */
   constructor({
     allowEmptySignatures,
+    allowUnnamedResources,
     extraOpcodeBudget,
     maxLogCalls,
     maxLogSize,
   }: {
     allowEmptySignatures?: boolean;
+    allowUnnamedResources?: boolean;
     extraOpcodeBudget?: number | bigint;
     maxLogCalls?: number | bigint;
     maxLogSize?: number | bigint;
   }) {
     super();
     this.allowEmptySignatures = allowEmptySignatures;
-    this.extraOpcodeBudget = extraOpcodeBudget;
-    this.maxLogCalls = maxLogCalls;
-    this.maxLogSize = maxLogSize;
+    this.allowUnnamedResources = allowUnnamedResources;
+    this.extraOpcodeBudget =
+      typeof extraOpcodeBudget === 'undefined'
+        ? undefined
+        : BigInt(extraOpcodeBudget);
+    this.maxLogCalls =
+      typeof maxLogCalls === 'undefined' ? undefined : BigInt(maxLogCalls);
+    this.maxLogSize =
+      typeof maxLogSize === 'undefined' ? undefined : BigInt(maxLogSize);
 
     this.attribute_map = {
       allowEmptySignatures: 'allow-empty-signatures',
+      allowUnnamedResources: 'allow-unnamed-resources',
       extraOpcodeBudget: 'extra-opcode-budget',
       maxLogCalls: 'max-log-calls',
       maxLogSize: 'max-log-size',
@@ -3774,9 +4487,195 @@ export class SimulationEvalOverrides extends BaseModel {
     /* eslint-disable dot-notation */
     return new SimulationEvalOverrides({
       allowEmptySignatures: data['allow-empty-signatures'],
+      allowUnnamedResources: data['allow-unnamed-resources'],
       extraOpcodeBudget: data['extra-opcode-budget'],
       maxLogCalls: data['max-log-calls'],
       maxLogSize: data['max-log-size'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The set of trace information and effect from evaluating a single opcode.
+ */
+export class SimulationOpcodeTraceUnit extends BaseModel {
+  /**
+   * The program counter of the current opcode being evaluated.
+   */
+  public pc: bigint;
+
+  /**
+   * The writes into scratch slots.
+   */
+  public scratchChanges?: ScratchChange[];
+
+  /**
+   * The indexes of the traces for inner transactions spawned by this opcode, if any.
+   */
+  public spawnedInners?: bigint[];
+
+  /**
+   * The values added by this opcode to the stack.
+   */
+  public stackAdditions?: AvmValue[];
+
+  /**
+   * The number of deleted stack values by this opcode.
+   */
+  public stackPopCount?: bigint;
+
+  /**
+   * Creates a new `SimulationOpcodeTraceUnit` object.
+   * @param pc - The program counter of the current opcode being evaluated.
+   * @param scratchChanges - The writes into scratch slots.
+   * @param spawnedInners - The indexes of the traces for inner transactions spawned by this opcode, if any.
+   * @param stackAdditions - The values added by this opcode to the stack.
+   * @param stackPopCount - The number of deleted stack values by this opcode.
+   */
+  constructor({
+    pc,
+    scratchChanges,
+    spawnedInners,
+    stackAdditions,
+    stackPopCount,
+  }: {
+    pc: number | bigint;
+    scratchChanges?: ScratchChange[];
+    spawnedInners?: (number | bigint)[];
+    stackAdditions?: AvmValue[];
+    stackPopCount?: number | bigint;
+  }) {
+    super();
+    this.pc = BigInt(pc);
+    this.scratchChanges = scratchChanges;
+    this.spawnedInners = spawnedInners.map(BigInt);
+    this.stackAdditions = stackAdditions;
+    this.stackPopCount =
+      typeof stackPopCount === 'undefined' ? undefined : BigInt(stackPopCount);
+
+    this.attribute_map = {
+      pc: 'pc',
+      scratchChanges: 'scratch-changes',
+      spawnedInners: 'spawned-inners',
+      stackAdditions: 'stack-additions',
+      stackPopCount: 'stack-pop-count',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationOpcodeTraceUnit {
+    /* eslint-disable dot-notation */
+    if (typeof data['pc'] === 'undefined')
+      throw new Error(`Response is missing required field 'pc': ${data}`);
+    return new SimulationOpcodeTraceUnit({
+      pc: data['pc'],
+      scratchChanges:
+        typeof data['scratch-changes'] !== 'undefined'
+          ? data['scratch-changes'].map(ScratchChange.from_obj_for_encoding)
+          : undefined,
+      spawnedInners: data['spawned-inners'],
+      stackAdditions:
+        typeof data['stack-additions'] !== 'undefined'
+          ? data['stack-additions'].map(AvmValue.from_obj_for_encoding)
+          : undefined,
+      stackPopCount: data['stack-pop-count'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The execution trace of calling an app or a logic sig, containing the inner app
+ * call trace in a recursive way.
+ */
+export class SimulationTransactionExecTrace extends BaseModel {
+  /**
+   * Program trace that contains a trace of opcode effects in an approval program.
+   */
+  public approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * Program trace that contains a trace of opcode effects in a clear state program.
+   */
+  public clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * An array of SimulationTransactionExecTrace representing the execution trace of
+   * any inner transactions executed.
+   */
+  public innerTrace?: SimulationTransactionExecTrace[];
+
+  /**
+   * Program trace that contains a trace of opcode effects in a logic sig.
+   */
+  public logicSigTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * Creates a new `SimulationTransactionExecTrace` object.
+   * @param approvalProgramTrace - Program trace that contains a trace of opcode effects in an approval program.
+   * @param clearStateProgramTrace - Program trace that contains a trace of opcode effects in a clear state program.
+   * @param innerTrace - An array of SimulationTransactionExecTrace representing the execution trace of
+   * any inner transactions executed.
+   * @param logicSigTrace - Program trace that contains a trace of opcode effects in a logic sig.
+   */
+  constructor({
+    approvalProgramTrace,
+    clearStateProgramTrace,
+    innerTrace,
+    logicSigTrace,
+  }: {
+    approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+    clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
+    innerTrace?: SimulationTransactionExecTrace[];
+    logicSigTrace?: SimulationOpcodeTraceUnit[];
+  }) {
+    super();
+    this.approvalProgramTrace = approvalProgramTrace;
+    this.clearStateProgramTrace = clearStateProgramTrace;
+    this.innerTrace = innerTrace;
+    this.logicSigTrace = logicSigTrace;
+
+    this.attribute_map = {
+      approvalProgramTrace: 'approval-program-trace',
+      clearStateProgramTrace: 'clear-state-program-trace',
+      innerTrace: 'inner-trace',
+      logicSigTrace: 'logic-sig-trace',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulationTransactionExecTrace {
+    /* eslint-disable dot-notation */
+    return new SimulationTransactionExecTrace({
+      approvalProgramTrace:
+        typeof data['approval-program-trace'] !== 'undefined'
+          ? data['approval-program-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
+      clearStateProgramTrace:
+        typeof data['clear-state-program-trace'] !== 'undefined'
+          ? data['clear-state-program-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
+      innerTrace:
+        typeof data['inner-trace'] !== 'undefined'
+          ? data['inner-trace'].map(
+              SimulationTransactionExecTrace.from_obj_for_encoding
+            )
+          : undefined,
+      logicSigTrace:
+        typeof data['logic-sig-trace'] !== 'undefined'
+          ? data['logic-sig-trace'].map(
+              SimulationOpcodeTraceUnit.from_obj_for_encoding
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3849,18 +4748,18 @@ export class StateProofMessage extends BaseModel {
   /**
    * The first round the message attests to.
    */
-  public firstattestedround: number | bigint;
+  public firstattestedround: bigint;
 
   /**
    * The last round the message attests to.
    */
-  public lastattestedround: number | bigint;
+  public lastattestedround: bigint;
 
   /**
    * An integer value representing the natural log of the proven weight with 16 bits
    * of precision. This value would be used to verify the next state proof.
    */
-  public lnprovenweight: number | bigint;
+  public lnprovenweight: bigint;
 
   /**
    * The vector commitment root of the top N accounts to sign the next StateProof.
@@ -3895,9 +4794,9 @@ export class StateProofMessage extends BaseModel {
       typeof blockheaderscommitment === 'string'
         ? base64ToBytes(blockheaderscommitment)
         : blockheaderscommitment;
-    this.firstattestedround = firstattestedround;
-    this.lastattestedround = lastattestedround;
-    this.lnprovenweight = lnprovenweight;
+    this.firstattestedround = BigInt(firstattestedround);
+    this.lastattestedround = BigInt(lastattestedround);
+    this.lnprovenweight = BigInt(lnprovenweight);
     this.voterscommitment =
       typeof voterscommitment === 'string'
         ? base64ToBytes(voterscommitment)
@@ -3953,17 +4852,17 @@ export class SupplyResponse extends BaseModel {
   /**
    * Round
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * OnlineMoney
    */
-  public onlineMoney: number | bigint;
+  public onlineMoney: bigint;
 
   /**
    * TotalMoney
    */
-  public totalMoney: number | bigint;
+  public totalMoney: bigint;
 
   /**
    * Creates a new `SupplyResponse` object.
@@ -3981,9 +4880,9 @@ export class SupplyResponse extends BaseModel {
     totalMoney: number | bigint;
   }) {
     super();
-    this.currentRound = currentRound;
-    this.onlineMoney = onlineMoney;
-    this.totalMoney = totalMoney;
+    this.currentRound = BigInt(currentRound);
+    this.onlineMoney = BigInt(onlineMoney);
+    this.totalMoney = BigInt(totalMoney);
 
     this.attribute_map = {
       currentRound: 'current_round',
@@ -4065,7 +4964,7 @@ export class TealValue extends BaseModel {
   /**
    * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
-  public type: number | bigint;
+  public type: bigint;
 
   /**
    * (tb) bytes value.
@@ -4075,7 +4974,7 @@ export class TealValue extends BaseModel {
   /**
    * (ui) uint value.
    */
-  public uint: number | bigint;
+  public uint: bigint;
 
   /**
    * Creates a new `TealValue` object.
@@ -4093,9 +4992,9 @@ export class TealValue extends BaseModel {
     uint: number | bigint;
   }) {
     super();
-    this.type = type;
+    this.type = BigInt(type);
     this.bytes = bytes;
-    this.uint = uint;
+    this.uint = BigInt(uint);
 
     this.attribute_map = {
       type: 'type',
@@ -4177,7 +5076,7 @@ export class TransactionParametersResponse extends BaseModel {
    * Fee may fall to zero but transactions must still have a fee of
    * at least MinTxnFee for the current network protocol.
    */
-  public fee: number | bigint;
+  public fee: bigint;
 
   /**
    * GenesisHash is the hash of the genesis block.
@@ -4192,13 +5091,13 @@ export class TransactionParametersResponse extends BaseModel {
   /**
    * LastRound indicates the last round seen
    */
-  public lastRound: number | bigint;
+  public lastRound: bigint;
 
   /**
    * The minimum transaction fee (not per byte) required for the
    * txn to validate for the current network protocol.
    */
-  public minFee: number | bigint;
+  public minFee: bigint;
 
   /**
    * Creates a new `TransactionParametersResponse` object.
@@ -4231,14 +5130,14 @@ export class TransactionParametersResponse extends BaseModel {
   }) {
     super();
     this.consensusVersion = consensusVersion;
-    this.fee = fee;
+    this.fee = BigInt(fee);
     this.genesisHash =
       typeof genesisHash === 'string'
         ? base64ToBytes(genesisHash)
         : genesisHash;
     this.genesisId = genesisId;
-    this.lastRound = lastRound;
-    this.minFee = minFee;
+    this.lastRound = BigInt(lastRound);
+    this.minFee = BigInt(minFee);
 
     this.attribute_map = {
       consensusVersion: 'consensus-version',
@@ -4294,7 +5193,7 @@ export class TransactionProofResponse extends BaseModel {
   /**
    * Index of the transaction in the block's payset.
    */
-  public idx: number | bigint;
+  public idx: bigint;
 
   /**
    * Proof of transaction membership.
@@ -4310,7 +5209,7 @@ export class TransactionProofResponse extends BaseModel {
    * Represents the depth of the tree that is being proven, i.e. the number of edges
    * from a leaf to the root.
    */
-  public treedepth: number | bigint;
+  public treedepth: bigint;
 
   /**
    * The type of hash function used to create the proof, must be one of:
@@ -4344,11 +5243,11 @@ export class TransactionProofResponse extends BaseModel {
     hashtype?: string;
   }) {
     super();
-    this.idx = idx;
+    this.idx = BigInt(idx);
     this.proof = typeof proof === 'string' ? base64ToBytes(proof) : proof;
     this.stibhash =
       typeof stibhash === 'string' ? base64ToBytes(stibhash) : stibhash;
-    this.treedepth = treedepth;
+    this.treedepth = BigInt(treedepth);
     this.hashtype = hashtype;
 
     this.attribute_map = {
