@@ -380,9 +380,9 @@ export function signMultisigTransaction(
     threshold,
     addrs,
   });
-  if (!Object.prototype.hasOwnProperty.call(txn, 'from')) {
+  if (!Object.prototype.hasOwnProperty.call(txn, 'sender')) {
     // eslint-disable-next-line no-param-reassign
-    txn.from = expectedFromRaw;
+    txn.sender = expectedFromRaw;
   }
   // build pks for partialSign
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);

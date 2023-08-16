@@ -29,27 +29,28 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should not mutate unsigned transaction when going to or from encoded buffer', () => {
-      const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
+      const receiver =
+        'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
-      const from = to;
+      const sender = receiver;
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -70,27 +71,28 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should not mutate signed transaction when going to or from encoded buffer', () => {
-      const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
+      const receiver =
+        'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
-      const from = to;
+      const sender = receiver;
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const txnAsObj = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -123,11 +125,11 @@ describe('Algosdk (AKA end to end)', () => {
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -151,11 +153,11 @@ describe('Algosdk (AKA end to end)', () => {
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 1176,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -182,11 +184,11 @@ describe('Algosdk (AKA end to end)', () => {
       // prettier-ignore
       const lease = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]);
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -212,11 +214,12 @@ describe('Algosdk (AKA end to end)', () => {
         'gqNzaWfEQOMmFSIKsZvpW0txwzhmbgQjxv6IyN7BbV5sZ2aNgFbVcrWUnqPpQQxfPhV/wdu9jzEPUU1jAujYtcNCxJ7ONgejdHhujKNhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0FLKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqJseMQgAQIDBAECAwQBAgMEAQIDBAECAwQBAgMEAQIDBAECAwSkbm90ZcQI6gAVR0Nsv5ajcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihpHR5cGWjcGF5';
       // prettier-ignore
       const lease = new Uint8Array([1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4]);
-      const to = 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
+      const receiver =
+        'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainderTo =
@@ -224,17 +227,17 @@ describe('Algosdk (AKA end to end)', () => {
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
       sk = algosdk.mnemonicToSecretKey(sk);
       const key = nacl.keyPairFromSecretKey(sk.sk);
-      const from = algosdk.encodeAddress(key.publicKey);
+      const sender = algosdk.encodeAddress(key.publicKey);
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const txn = algosdk.makePaymentTxnWithSuggestedParams(
-        from,
-        to,
+        sender,
+        receiver,
         amount,
         closeRemainderTo,
         note,
@@ -273,12 +276,12 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Create a transaction
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: sender.addr,
-        to: signer.addr,
+        sender: sender.addr,
+        receiver: signer.addr,
         amount: 1000,
         suggestedParams: {
-          firstRound: 12466,
-          lastRound: 13466,
+          firstValid: 12466,
+          lastValid: 13466,
           genesisID: 'devnet-v33.0',
           genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
           fee: 4,
@@ -308,12 +311,12 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Create a transaction
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: sender.addr,
-        to: signer.addr,
+        sender: sender.addr,
+        receiver: signer.addr,
         amount: 1000,
         suggestedParams: {
-          firstRound: 12466,
-          lastRound: 13466,
+          firstValid: 12466,
+          lastValid: 13466,
           genesisID: 'devnet-v33.0',
           genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
           fee: 4,
@@ -350,11 +353,11 @@ describe('Algosdk (AKA end to end)', () => {
       const { sk } = algosdk.mnemonicToSecretKey(mnem3);
 
       const o = {
-        to: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
+        receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         fee: 4,
         amount: 1000,
-        firstRound: 12466,
-        lastRound: 13466,
+        firstValid: 12466,
+        lastValid: 13466,
         genesisID: 'devnet-v33.0',
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         closeRemainderTo:
@@ -395,20 +398,20 @@ describe('Algosdk (AKA end to end)', () => {
         'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM';
       const fee = 4;
       const amount = 1000;
-      const firstRound = 12466;
-      const lastRound = 13466;
+      const firstValid = 12466;
+      const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
       const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
       const closeRemainder =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = algosdk.base64ToBytes('X4Bl4wQ9rCo=');
       const oDict = {
-        to: toAddr,
-        from: fromAddr,
+        receiver: toAddr,
+        sender: fromAddr,
         fee,
         amount,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisID,
         genesisHash,
         closeRemainderTo: closeRemainder,
@@ -417,8 +420,8 @@ describe('Algosdk (AKA end to end)', () => {
       const suggestedParams = {
         genesisHash,
         genesisID,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         fee,
       };
       const oObj = algosdk.makePaymentTxnWithSuggestedParams(
@@ -497,31 +500,31 @@ describe('Algosdk (AKA end to end)', () => {
       const amount = 2000;
       const genesisID = 'devnet-v1.0';
       const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E';
-      const firstRound1 = 710399;
+      const firstValid1 = 710399;
       const note1 = algosdk.base64ToBytes('wRKw5cJ0CMo=');
       const o1 = {
-        to: toAddress,
-        from: fromAddress,
+        receiver: toAddress,
+        sender: fromAddress,
         fee,
         amount,
-        firstRound: firstRound1,
-        lastRound: firstRound1 + 1000,
+        firstValid: firstValid1,
+        lastValid: firstValid1 + 1000,
         genesisID,
         genesisHash,
         note: note1,
         flatFee: true,
       };
 
-      const firstRound2 = 710515;
+      const firstValid2 = 710515;
       const note2 = algosdk.base64ToBytes('dBlHI6BdrIg=');
 
       const o2 = {
-        to: toAddress,
-        from: fromAddress,
+        receiver: toAddress,
+        sender: fromAddress,
         fee,
         amount,
-        firstRound: firstRound2,
-        lastRound: firstRound2 + 1000,
+        firstValid: firstValid2,
+        lastValid: firstValid2 + 1000,
         genesisID,
         genesisHash,
         note: note2,
@@ -596,10 +599,10 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const createTxn = {
-        from: address,
+        sender: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetTotal: 100,
         assetDefaultFrozen: false,
@@ -626,10 +629,10 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const createTxn = {
-        from: address,
+        sender: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetTotal: 100,
         assetDecimals: 1,
@@ -657,10 +660,10 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1234,
         assetManager: address,
@@ -682,10 +685,10 @@ describe('Algosdk (AKA end to end)', () => {
       let sk =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
       const o = {
-        from: address,
+        sender: address,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
         type: 'acfg',
@@ -697,15 +700,15 @@ describe('Algosdk (AKA end to end)', () => {
     it('should return a blob that matches the go code for asset freeze', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const o = {
-        from: addr,
+        sender: addr,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323576,
+        firstValid: 322575,
+        lastValid: 323576,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         type: 'afrz',
         freezeAccount: addr,
         assetIndex: 1,
-        freezeState: true,
+        assetFrozen: true,
       };
 
       const mnem =
@@ -722,12 +725,12 @@ describe('Algosdk (AKA end to end)', () => {
 
       const o = {
         type: 'axfer',
-        from: addr,
-        to: addr,
+        sender: addr,
+        receiver: addr,
         amount: 1,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323576,
+        firstValid: 322575,
+        lastValid: 323576,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
         closeRemainderTo: addr,
@@ -747,12 +750,12 @@ describe('Algosdk (AKA end to end)', () => {
 
       const o = {
         type: 'axfer',
-        from: addr,
-        to: addr,
+        sender: addr,
+        receiver: addr,
         amount: 0,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
       };
@@ -771,13 +774,13 @@ describe('Algosdk (AKA end to end)', () => {
 
       const o = {
         type: 'axfer',
-        from: addr,
-        to: addr,
-        assetRevocationTarget: addr,
+        sender: addr,
+        receiver: addr,
+        assetSender: addr,
         amount: 1,
         fee: 10,
-        firstRound: 322575,
-        lastRound: 323575,
+        firstValid: 322575,
+        lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
       };
@@ -886,18 +889,18 @@ describe('Algosdk (AKA end to end)', () => {
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
       const fee = 1000;
       const amount = 2000;
-      const firstRound = 2063137;
+      const firstValid = 2063137;
       const genesisID = 'devnet-v1.0';
       const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E=';
       const note = algosdk.base64ToBytes('8xMCTuLQ810=');
 
       const txn = {
-        to: toAddress,
-        from: fromAddress,
+        receiver: toAddress,
+        sender: fromAddress,
         fee,
         amount,
-        firstRound,
-        lastRound: firstRound + 1000,
+        firstValid,
+        lastValid: firstValid + 1000,
         genesisID,
         genesisHash,
         note,

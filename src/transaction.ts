@@ -46,8 +46,8 @@ type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransacti
 interface TransactionStorageStructure
   extends Omit<
     TransactionParams,
-    | 'from'
-    | 'to'
+    | 'sender'
+    | 'receiver'
     | 'genesisHash'
     | 'closeRemainderTo'
     | 'voteKey'
@@ -57,18 +57,18 @@ interface TransactionStorageStructure
     | 'assetReserve'
     | 'assetFreeze'
     | 'assetClawback'
-    | 'assetRevocationTarget'
+    | 'assetSender'
     | 'freezeAccount'
     | 'appAccounts'
     | 'suggestedParams'
-    | 'reKeyTo'
+    | 'rekeyTo'
   > {
-  from: string | Address;
-  to: string | Address;
+  sender: string | Address;
+  receiver: string | Address;
   fee: number;
   amount: number | bigint;
-  firstRound: number;
-  lastRound: number;
+  firstValid: number;
+  lastValid: number;
   note?: Uint8Array;
   genesisID: string;
   genesisHash: string | Uint8Array;
@@ -93,8 +93,8 @@ interface TransactionStorageStructure
   assetURL: string;
   assetMetadataHash?: string | Uint8Array;
   freezeAccount: string | Address;
-  freezeState: boolean;
-  assetRevocationTarget?: string | Address;
+  assetFrozen: boolean;
+  assetSender?: string | Address;
   appIndex: number;
   appOnComplete: OnApplicationComplete;
   appLocalInts: number;
@@ -109,7 +109,7 @@ interface TransactionStorageStructure
   appForeignAssets?: number[];
   type?: TransactionType;
   flatFee: boolean;
-  reKeyTo?: string | Address;
+  rekeyTo?: string | Address;
   nonParticipation?: boolean;
   group?: Uint8Array;
   extraPages?: number;
@@ -153,12 +153,12 @@ export class Transaction implements TransactionStorageStructure {
   tag = new TextEncoder().encode('TX');
 
   // Implement transaction params
-  from: Address;
-  to: Address;
+  sender: Address;
+  receiver: Address;
   fee: number;
   amount: number | bigint;
-  firstRound: number;
-  lastRound: number;
+  firstValid: number;
+  lastValid: number;
   note?: Uint8Array;
   genesisID: string;
   genesisHash: Uint8Array;
@@ -183,8 +183,8 @@ export class Transaction implements TransactionStorageStructure {
   assetURL: string;
   assetMetadataHash?: Uint8Array;
   freezeAccount: Address;
-  freezeState: boolean;
-  assetRevocationTarget?: Address;
+  assetFrozen: boolean;
+  assetSender?: Address;
   appIndex: number;
   appOnComplete: OnApplicationComplete;
   appLocalInts: number;
@@ -200,7 +200,7 @@ export class Transaction implements TransactionStorageStructure {
   boxes?: BoxReference[];
   type?: TransactionType;
   flatFee: boolean;
-  reKeyTo?: Address;
+  rekeyTo?: Address;
   nonParticipation?: boolean;
   group?: Uint8Array;
   extraPages?: number;
@@ -250,8 +250,8 @@ export class Transaction implements TransactionStorageStructure {
       reference.fee = reference.suggestedParams.fee;
       if (reference.suggestedParams.flatFee !== undefined)
         reference.flatFee = reference.suggestedParams.flatFee;
-      reference.firstRound = reference.suggestedParams.firstRound;
-      reference.lastRound = reference.suggestedParams.lastRound;
+      reference.firstValid = reference.suggestedParams.firstValid;
+      reference.lastValid = reference.suggestedParams.lastValid;
       reference.genesisID = reference.suggestedParams.genesisID;
     }
 
@@ -259,8 +259,9 @@ export class Transaction implements TransactionStorageStructure {
     // to one which is more useful as we prepare properties for storing
     const txn = transaction as TransactionStorageStructure;
 
-    txn.from = address.decodeAddress(txn.from as string);
-    if (txn.to !== undefined) txn.to = address.decodeAddress(txn.to as string);
+    txn.sender = address.decodeAddress(txn.sender as string);
+    if (txn.receiver !== undefined)
+      txn.receiver = address.decodeAddress(txn.receiver as string);
     if (txn.closeRemainderTo !== undefined)
       txn.closeRemainderTo = address.decodeAddress(
         txn.closeRemainderTo as string
@@ -273,14 +274,12 @@ export class Transaction implements TransactionStorageStructure {
       txn.assetFreeze = address.decodeAddress(txn.assetFreeze as string);
     if (txn.assetClawback !== undefined)
       txn.assetClawback = address.decodeAddress(txn.assetClawback as string);
-    if (txn.assetRevocationTarget !== undefined)
-      txn.assetRevocationTarget = address.decodeAddress(
-        txn.assetRevocationTarget as string
-      );
+    if (txn.assetSender !== undefined)
+      txn.assetSender = address.decodeAddress(txn.assetSender as string);
     if (txn.freezeAccount !== undefined)
       txn.freezeAccount = address.decodeAddress(txn.freezeAccount as string);
-    if (txn.reKeyTo !== undefined)
-      txn.reKeyTo = address.decodeAddress(txn.reKeyTo as string);
+    if (txn.rekeyTo !== undefined)
+      txn.rekeyTo = address.decodeAddress(txn.rekeyTo as string);
     if (txn.genesisHash === undefined)
       throw Error('genesis hash must be specified and in a base64 string.');
 
@@ -300,10 +299,10 @@ export class Transaction implements TransactionStorageStructure {
       );
     if (!Number.isSafeInteger(txn.fee) || txn.fee < 0)
       throw Error('fee must be a positive number and smaller than 2^53-1');
-    if (!Number.isSafeInteger(txn.firstRound) || txn.firstRound < 0)
-      throw Error('firstRound must be a positive number');
-    if (!Number.isSafeInteger(txn.lastRound) || txn.lastRound < 0)
-      throw Error('lastRound must be a positive number');
+    if (!Number.isSafeInteger(txn.firstValid) || txn.firstValid < 0)
+      throw Error('firstValid must be a positive number');
+    if (!Number.isSafeInteger(txn.lastValid) || txn.lastValid < 0)
+      throw Error('lastValid must be a positive number');
     if (
       txn.extraPages !== undefined &&
       (!Number.isInteger(txn.extraPages) ||
@@ -580,10 +579,10 @@ export class Transaction implements TransactionStorageStructure {
       const txn: EncodedTransaction = {
         amt: this.amount,
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: 'pay',
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -599,11 +598,11 @@ export class Transaction implements TransactionStorageStructure {
       ) {
         txn.close = this.closeRemainderTo.publicKey;
       }
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       // allowed zero values
-      if (this.to !== undefined) txn.rcv = this.to.publicKey;
+      if (this.receiver !== undefined) txn.rcv = this.receiver.publicKey;
       if (!txn.note.length) delete txn.note;
       if (!txn.amt) delete txn.amt;
       if (!txn.fee) delete txn.fee;
@@ -617,10 +616,10 @@ export class Transaction implements TransactionStorageStructure {
     if (this.type === 'keyreg') {
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -640,8 +639,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
       if (txn.grp === undefined) delete txn.grp;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       if (this.nonParticipation) {
         txn.nonpart = true;
@@ -658,10 +657,10 @@ export class Transaction implements TransactionStorageStructure {
       // asset creation, or asset reconfigure, or asset destruction
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -695,8 +694,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.fee) delete txn.fee;
       if (!txn.fv) delete txn.fv;
       if (!txn.gen) delete txn.gen;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
 
       if (!txn.caid) delete txn.caid;
@@ -736,11 +735,11 @@ export class Transaction implements TransactionStorageStructure {
       const txn: EncodedTransaction = {
         aamt: this.amount,
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
-        arcv: this.to.publicKey,
+        snd: this.sender.publicKey,
+        arcv: this.receiver.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -750,8 +749,7 @@ export class Transaction implements TransactionStorageStructure {
       };
       if (this.closeRemainderTo !== undefined)
         txn.aclose = this.closeRemainderTo.publicKey;
-      if (this.assetRevocationTarget !== undefined)
-        txn.asnd = this.assetRevocationTarget.publicKey;
+      if (this.assetSender !== undefined) txn.asnd = this.assetSender.publicKey;
       // allowed zero values
       if (!txn.note.length) delete txn.note;
       if (!txn.lx.length) delete txn.lx;
@@ -764,8 +762,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.aclose) delete txn.aclose;
       if (!txn.asnd) delete txn.asnd;
       if (!txn.rekey) delete txn.rekey;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       return txn;
     }
@@ -773,17 +771,17 @@ export class Transaction implements TransactionStorageStructure {
       // asset freeze or unfreeze
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
         lx: this.lease,
         grp: this.group,
         faid: this.assetIndex,
-        afrz: this.freezeState,
+        afrz: this.assetFrozen,
       };
       if (this.freezeAccount !== undefined)
         txn.fadd = this.freezeAccount.publicKey;
@@ -796,8 +794,8 @@ export class Transaction implements TransactionStorageStructure {
       if (!txn.gen) delete txn.gen;
       if (!txn.afrz) delete txn.afrz;
       if (txn.grp === undefined) delete txn.grp;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       return txn;
     }
@@ -805,10 +803,10 @@ export class Transaction implements TransactionStorageStructure {
       // application call of some kind
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -833,8 +831,8 @@ export class Transaction implements TransactionStorageStructure {
           this.appIndex
         ),
       };
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = this.reKeyTo.publicKey;
+      if (this.rekeyTo !== undefined) {
+        txn.rekey = this.rekeyTo.publicKey;
       }
       if (this.appApprovalProgram !== undefined) {
         txn.apap = this.appApprovalProgram;
@@ -884,10 +882,10 @@ export class Transaction implements TransactionStorageStructure {
       // state proof txn
       const txn: EncodedTransaction = {
         fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
+        fv: this.firstValid,
+        lv: this.lastValid,
         note: this.note,
-        snd: this.from.publicKey,
+        snd: this.sender.publicKey,
         type: this.type,
         gen: this.genesisID,
         gh: this.genesisHash,
@@ -933,22 +931,22 @@ export class Transaction implements TransactionStorageStructure {
     }
     txn.type = txnForEnc.type;
     txn.fee = txnForEnc.fee;
-    txn.firstRound = txnForEnc.fv;
-    txn.lastRound = txnForEnc.lv;
+    txn.firstValid = txnForEnc.fv;
+    txn.lastValid = txnForEnc.lv;
     txn.note = new Uint8Array(txnForEnc.note);
     txn.lease = new Uint8Array(txnForEnc.lx);
-    txn.from = address.decodeAddress(
+    txn.sender = address.decodeAddress(
       address.encodeAddress(new Uint8Array(txnForEnc.snd))
     );
     if (txnForEnc.grp !== undefined) txn.group = txnForEnc.grp;
     if (txnForEnc.rekey !== undefined)
-      txn.reKeyTo = address.decodeAddress(
+      txn.rekeyTo = address.decodeAddress(
         address.encodeAddress(new Uint8Array(txnForEnc.rekey))
       );
 
     if (txnForEnc.type === 'pay') {
       txn.amount = txnForEnc.amt;
-      txn.to = address.decodeAddress(
+      txn.receiver = address.decodeAddress(
         address.encodeAddress(new Uint8Array(txnForEnc.rcv))
       );
       if (txnForEnc.close !== undefined)
@@ -1022,16 +1020,16 @@ export class Transaction implements TransactionStorageStructure {
         );
       }
       if (txnForEnc.asnd !== undefined) {
-        txn.assetRevocationTarget = address.decodeAddress(
+        txn.assetSender = address.decodeAddress(
           address.encodeAddress(new Uint8Array(txnForEnc.asnd))
         );
       }
-      txn.to = address.decodeAddress(
+      txn.receiver = address.decodeAddress(
         address.encodeAddress(new Uint8Array(txnForEnc.arcv))
       );
     } else if (txnForEnc.type === 'afrz') {
       if (txnForEnc.afrz !== undefined) {
-        txn.freezeState = txnForEnc.afrz;
+        txn.assetFrozen = txnForEnc.afrz;
       }
       if (txnForEnc.faid !== undefined) {
         txn.assetIndex = txnForEnc.faid;
@@ -1133,12 +1131,12 @@ export class Transaction implements TransactionStorageStructure {
       sig: this.rawSignTxn(sk),
       txn: this.get_obj_for_encoding(),
     };
-    // add AuthAddr if signing with a different key than From indicates
+    // add AuthAddr if signing with a different key than sender indicates
     const keypair = nacl.keyPairFromSecretKey(sk);
     const pubKeyFromSk = keypair.publicKey;
     if (
       address.encodeAddress(pubKeyFromSk) !==
-      address.encodeAddress(this.from.publicKey)
+      address.encodeAddress(this.sender.publicKey)
     ) {
       sTxn.sgnr = pubKeyFromSk;
     }
@@ -1154,7 +1152,7 @@ export class Transaction implements TransactionStorageStructure {
       txn: this.get_obj_for_encoding(),
     };
     // add AuthAddr if signing with a different key than From indicates
-    if (signerAddr !== address.encodeAddress(this.from.publicKey)) {
+    if (signerAddr !== address.encodeAddress(this.sender.publicKey)) {
       const signerPublicKey = address.decodeAddress(signerAddr).publicKey;
       sTxn.sgnr = signerPublicKey;
     }
@@ -1200,9 +1198,9 @@ export class Transaction implements TransactionStorageStructure {
 
   // add the rekey-to field to a transaction not yet having it
   // supply feePerByte to increment fee accordingly
-  addRekey(reKeyTo: string, feePerByte = 0) {
-    if (reKeyTo !== undefined) {
-      this.reKeyTo = address.decodeAddress(reKeyTo);
+  addRekey(rekeyTo: string, feePerByte = 0) {
+    if (rekeyTo !== undefined) {
+      this.rekeyTo = address.decodeAddress(rekeyTo);
     }
     if (feePerByte !== 0) {
       this.fee +=
@@ -1219,12 +1217,12 @@ export class Transaction implements TransactionStorageStructure {
       ...this,
     };
     forPrinting.tag = forPrinting.tag.toString();
-    forPrinting.from = address.encodeAddress(
-      (forPrinting.from as Address).publicKey
+    forPrinting.sender = address.encodeAddress(
+      (forPrinting.sender as Address).publicKey
     );
-    if (forPrinting.to !== undefined)
-      forPrinting.to = address.encodeAddress(
-        (forPrinting.to as Address).publicKey
+    if (forPrinting.receiver !== undefined)
+      forPrinting.receiver = address.encodeAddress(
+        (forPrinting.receiver as Address).publicKey
       );
     // things that need fixing:
     if (forPrinting.freezeAccount !== undefined)
@@ -1251,13 +1249,13 @@ export class Transaction implements TransactionStorageStructure {
       forPrinting.assetClawback = address.encodeAddress(
         (forPrinting.assetClawback as Address).publicKey
       );
-    if (forPrinting.assetRevocationTarget !== undefined)
-      forPrinting.assetRevocationTarget = address.encodeAddress(
-        (forPrinting.assetRevocationTarget as Address).publicKey
+    if (forPrinting.assetSender !== undefined)
+      forPrinting.assetSender = address.encodeAddress(
+        (forPrinting.assetSender as Address).publicKey
       );
-    if (forPrinting.reKeyTo !== undefined)
-      forPrinting.reKeyTo = address.encodeAddress(
-        (forPrinting.reKeyTo as Address).publicKey
+    if (forPrinting.rekeyTo !== undefined)
+      forPrinting.rekeyTo = address.encodeAddress(
+        (forPrinting.rekeyTo as Address).publicKey
       );
     if (typeof forPrinting.genesisHash !== 'string')
       forPrinting.genesisHash = bytesToBase64(forPrinting.genesisHash);
@@ -1342,7 +1340,7 @@ export interface SignedTransaction {
   lsig?: EncodedLogicSig;
 
   /**
-   * The signer, if signing with a different key than the Transaction type `from` property indicates
+   * The signer, if signing with a different key than the Transaction type `sender` property indicates
    */
   sgnr?: Uint8Array;
 }

@@ -348,8 +348,8 @@ export default class AlgodClient extends ServiceClient {
    * const suggestedParams = await algodClient.getTransactionParams().do();
    * const amountInMicroAlgos = algosdk.algosToMicroalgos(2); // 2 Algos
    * const unsignedTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-   *   from: senderAddress,
-   *   to: receiverAddress,
+   *   sender: senderAddress,
+   *   receiver: receiverAddress,
    *   amount: amountInMicroAlgos,
    *   suggestedParams: suggestedParams,
    * });

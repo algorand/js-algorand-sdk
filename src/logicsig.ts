@@ -391,7 +391,7 @@ function signLogicSigTransactionWithAddress(
     txn: txn.get_obj_for_encoding(),
   };
 
-  if (!nacl.bytesEqual(lsigAddress, txn.from.publicKey)) {
+  if (!nacl.bytesEqual(lsigAddress, txn.sender.publicKey)) {
     signedTxn.sgnr = lsigAddress;
   }
 
@@ -428,7 +428,7 @@ export function signLogicSigTransactionObject(
       // the address of that account from only its signature, so assume the
       // delegating account is the sender. If that's not the case, the signing
       // will fail.
-      lsigAddress = txn.from.publicKey;
+      lsigAddress = txn.sender.publicKey;
     } else if (lsig.msig) {
       const msigMetadata = {
         version: lsig.msig.v,

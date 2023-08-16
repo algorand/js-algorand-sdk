@@ -112,12 +112,12 @@ export interface SuggestedParams {
   /**
    * First protocol round on which this txn is valid
    */
-  firstRound: number;
+  firstValid: number;
 
   /**
    * Last protocol round on which this txn is valid
    */
-  lastRound: number;
+  lastValid: number;
 
   /**
    * Specifies genesis ID of network in use
@@ -162,12 +162,12 @@ export interface TransactionParams {
   /**
    * String representation of Algorand address of sender
    */
-  from: string;
+  sender: string;
 
   /**
    * String representation of Algorand address of recipient
    */
-  to: string;
+  receiver: string;
 
   /**
    * Integer fee per byte, in microAlgos. For a flat fee, set flatFee to true
@@ -182,12 +182,12 @@ export interface TransactionParams {
   /**
    * Integer first protocol round on which this txn is valid
    */
-  firstRound: number;
+  firstValid: number;
 
   /**
    * Integer last protocol round on which this txn is valid
    */
-  lastRound: number;
+  lastValid: number;
 
   /**
    * Arbitrary data for sender to store
@@ -311,13 +311,13 @@ export interface TransactionParams {
   /**
    * true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
    */
-  freezeState: boolean;
+  assetFrozen: boolean;
 
   /**
-   * String representation of Algorand address – if provided, and if "from" is
-   * the asset's revocation manager, then deduct from "revocationTarget" rather than "from"
+   * String representation of Algorand address – if provided, and if "sender" is
+   * the asset's revocation manager, then deduct from "assetSender" rather than "sender"
    */
-  assetRevocationTarget?: string;
+  assetSender?: string;
 
   /**
    * A unique application index
@@ -399,7 +399,7 @@ export interface TransactionParams {
   /**
    * String representation of the Algorand address that will be used to authorize all future transactions
    */
-  reKeyTo?: string;
+  rekeyTo?: string;
 
   /**
    * Set this value to true to mark this account as nonparticipating.
