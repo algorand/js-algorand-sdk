@@ -3,6 +3,8 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
+const JSONBig = require('json-bigint');
+
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
 
@@ -75,7 +77,11 @@ function makeObject(obj) {
 }
 
 function parseJSON(json) {
-  return JSON.parse(json);
+  return JSONBig.parse(json);
+}
+
+function stringifyJSON(obj) {
+  return JSONBig.stringify(obj);
 }
 
 // END OBJECT CREATION FUNCTIONS
@@ -120,10 +126,6 @@ module.exports = function getSteps(options) {
     }
     steps.then[name] = fn;
   }
-
-  // We need to import inside the steps export so that the browser tests have the dependency imported
-  // eslint-disable-next-line global-require
-  const JSONBig = require('json-bigint');
 
   // Dev Mode State
   const DEV_MODE_INITIAL_MICROALGOS = 100_000_000;
@@ -1595,8 +1597,8 @@ module.exports = function getSteps(options) {
       // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
         assert.strictEqual(
-          JSONBig.stringify(JSONBig.parse(expectedMockResponse)),
-          JSONBig.stringify(this.actualMockResponse)
+          stringifyJSON(parseJSON(expectedMockResponse)),
+          stringifyJSON(this.actualMockResponse)
         );
       } else {
         assert.deepStrictEqual(
