@@ -1,10 +1,9 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 
 export default class SetBlockOffsetTimestamp extends JSONRequest {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private offset: number) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private offset: number) {
+    super(c);
 
     this.offset = offset;
   }

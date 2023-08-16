@@ -10,23 +10,13 @@ export interface JSONOptions {
 /**
  * Parse JSON with additional options.
  * @param str - The JSON string to parse.
- * @param options - Options object to configure how integers in
- *   this request's JSON response will be decoded. Use the `intDecoding`
- *   property with one of the following options:
- *
- *   * "default": All integers will be decoded as Numbers, meaning any values greater than
- *     Number.MAX_SAFE_INTEGER will lose precision.
- *   * "safe": All integers will be decoded as Numbers, but if any values are greater than
- *     Number.MAX_SAFE_INTEGER an error will be thrown.
- *   * "mixed": Integers will be decoded as Numbers if they are less than or equal to
- *     Number.MAX_SAFE_INTEGER, otherwise they will be decoded as BigInts.
- *   * "bigint": All integers will be decoded as BigInts.
- *
- *   Defaults to "default" if not included.
+ * @param options - Options object to configure how integers in this request's JSON response will be
+ *   decoded. If options.intDecoding is not provided, IntDecoding.BIGINT will be used, meaning all
+ *   numeric values will be decoded as BigInts. See the IntDecoding enum for more details.
  */
 export function parseJSON(str: string, options?: JSONOptions) {
   const intDecoding =
-    options && options.intDecoding ? options.intDecoding : IntDecoding.DEFAULT;
+    options && options.intDecoding ? options.intDecoding : IntDecoding.BIGINT;
   return JSONbig.parse(str, (_, value) => {
     if (
       value != null &&
@@ -39,14 +29,14 @@ export function parseJSON(str: string, options?: JSONOptions) {
     }
 
     if (typeof value === 'bigint') {
-      if (intDecoding === 'safe' && value > Number.MAX_SAFE_INTEGER) {
+      if (intDecoding === IntDecoding.SAFE && value > Number.MAX_SAFE_INTEGER) {
         throw new Error(
           `Integer exceeds maximum safe integer: ${value.toString()}. Try parsing with a different intDecoding option.`
         );
       }
       if (
-        intDecoding === 'bigint' ||
-        (intDecoding === 'mixed' && value > Number.MAX_SAFE_INTEGER)
+        intDecoding === IntDecoding.BIGINT ||
+        (intDecoding === IntDecoding.MIXED && value > Number.MAX_SAFE_INTEGER)
       ) {
         return value;
       }
@@ -56,7 +46,7 @@ export function parseJSON(str: string, options?: JSONOptions) {
     }
 
     if (typeof value === 'number') {
-      if (intDecoding === 'bigint' && Number.isInteger(value)) {
+      if (intDecoding === IntDecoding.BIGINT && Number.isInteger(value)) {
         return BigInt(value);
       }
     }

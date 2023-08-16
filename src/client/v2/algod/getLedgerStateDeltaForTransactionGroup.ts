@@ -1,10 +1,9 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 
 export default class GetLedgerStateDeltaForTransactionGroup extends JSONRequest {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private id: string) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private id: string) {
+    super(c);
     this.id = id;
     this.query = { format: 'json' };
   }

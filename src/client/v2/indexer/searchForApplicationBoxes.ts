@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 import { BoxesResponse } from './models/types';
 
 export default class SearchForApplicationBoxes extends JSONRequest<
@@ -33,8 +32,8 @@ export default class SearchForApplicationBoxes extends JSONRequest<
    * @oaram index - application index.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private index: number) {
+    super(c);
     this.index = index;
   }
 

@@ -120,9 +120,6 @@ export default class HTTPClient {
     jsonOptions: utils.JSONOptions = {}
   ) {
     try {
-      if (Object.keys(jsonOptions).length === 0) {
-        return text && JSON.parse(text);
-      }
       return text && utils.parseJSON(text, jsonOptions);
     } catch (err_) {
       const err: ErrorWithAdditionalInfo = err_;
@@ -150,7 +147,7 @@ export default class HTTPClient {
       return new Uint8Array(0); // empty Uint8Array
     }
     if (requestHeaders['content-type'] === 'application/json') {
-      return new TextEncoder().encode(JSON.stringify(data));
+      return new TextEncoder().encode(utils.stringifyJSON(data));
     }
     if (typeof data === 'string') {
       return new TextEncoder().encode(data);

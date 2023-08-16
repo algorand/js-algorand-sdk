@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 
 export default class LookupAssetBalances extends JSONRequest {
   /**
@@ -15,8 +14,8 @@ export default class LookupAssetBalances extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-idbalances)
    * @param index - The asset ID to look up.
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private index: number) {
+    super(c);
     this.index = index;
   }
 

@@ -1,5 +1,4 @@
 import HTTPClient from '../client';
-import IntDecoding from '../../types/intDecoding';
 import { BaseHTTPClient } from '../baseHTTPClient';
 import { TokenHeader } from '../urlTokenBaseHTTPClient';
 
@@ -38,8 +37,6 @@ function isBaseHTTPClient(
 export default abstract class ServiceClient {
   /** @ignore */
   c: HTTPClient;
-  /** @ignore */
-  intDecoding: IntDecoding;
 
   constructor(
     tokenHeaderIdentifier: TokenHeaderIdentifier,
@@ -66,24 +63,5 @@ export default abstract class ServiceClient {
 
       this.c = new HTTPClient(tokenHeader, baseServer, port, defaultHeaders);
     }
-
-    this.intDecoding = IntDecoding.DEFAULT;
-  }
-
-  /**
-   * Set the default int decoding method for all JSON requests this client creates.
-   * @param method - \{"default" | "safe" | "mixed" | "bigint"\} method The method to use when parsing the
-   *   response for request. Must be one of "default", "safe", "mixed", or "bigint". See
-   *   JSONRequest.setIntDecoding for more details about what each method does.
-   */
-  setIntEncoding(method: IntDecoding) {
-    this.intDecoding = method;
-  }
-
-  /**
-   * Get the default int decoding method for all JSON requests this client creates.
-   */
-  getIntEncoding() {
-    return this.intDecoding;
   }
 }

@@ -1,15 +1,9 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 
 export default class GetTransactionProof extends JSONRequest {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private round: number,
-    private txID: string
-  ) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private round: number, private txID: string) {
+    super(c);
 
     this.round = round;
     this.txID = txID;

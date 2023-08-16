@@ -357,7 +357,12 @@ describe('encoding', () => {
     it('should parse null', () => {
       const input = 'null';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.UNSAFE,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = null;
 
@@ -379,10 +384,17 @@ describe('encoding', () => {
     it('should parse number', () => {
       const inputs = ['17', '9007199254740991'];
       for (const input of inputs) {
-        for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+        for (const intDecoding of [
+          algosdk.IntDecoding.UNSAFE,
+          algosdk.IntDecoding.SAFE,
+          algosdk.IntDecoding.MIXED,
+          algosdk.IntDecoding.BIGINT,
+        ]) {
           const actual = utils.parseJSON(input, { intDecoding });
           const expected =
-            intDecoding === 'bigint' ? BigInt(input) : Number(input);
+            intDecoding === algosdk.IntDecoding.BIGINT
+              ? BigInt(input)
+              : Number(input);
 
           assert.deepStrictEqual(
             actual,
@@ -403,7 +415,12 @@ describe('encoding', () => {
     it('should parse empty object', () => {
       const input = '{}';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.UNSAFE,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = {};
 
@@ -425,11 +442,16 @@ describe('encoding', () => {
     it('should parse populated object', () => {
       const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{},"f":true}';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.UNSAFE,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
-        if (intDecoding === 'bigint') {
+        if (intDecoding === algosdk.IntDecoding.BIGINT) {
           expected = {
             a: 1n,
             b: 'value',
@@ -468,20 +490,26 @@ describe('encoding', () => {
       const input =
         '{"a":0,"b":9007199254740991,"c":9007199254740992,"d":9223372036854775807}';
 
-      assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
+      assert.throws(() =>
+        utils.parseJSON(input, { intDecoding: algosdk.IntDecoding.SAFE })
+      );
 
-      for (const intDecoding of ['default', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.UNSAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
-        if (intDecoding === 'bigint') {
+        if (intDecoding === algosdk.IntDecoding.BIGINT) {
           expected = {
             a: 0n,
             b: 9007199254740991n,
             c: 9007199254740992n,
             d: 9223372036854775807n,
           };
-        } else if (intDecoding === 'mixed') {
+        } else if (intDecoding === algosdk.IntDecoding.MIXED) {
           expected = {
             a: 0,
             b: 9007199254740991,
@@ -503,7 +531,7 @@ describe('encoding', () => {
           `Error when intDecoding = ${intDecoding}`
         );
 
-        if (intDecoding !== 'default') {
+        if (intDecoding !== algosdk.IntDecoding.UNSAFE) {
           const roundtrip = utils.stringifyJSON(actual);
           assert.deepStrictEqual(
             roundtrip,
@@ -517,7 +545,12 @@ describe('encoding', () => {
     it('should parse empty array', () => {
       const input = '[]';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.UNSAFE,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = [];
 
@@ -539,11 +572,16 @@ describe('encoding', () => {
     it('should parse populated array', () => {
       const input = '["test",2,null,[7],{"a":9.5},true]';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.UNSAFE,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
-        if (intDecoding === 'bigint') {
+        if (intDecoding === algosdk.IntDecoding.BIGINT) {
           expected = ['test', 2n, null, [7n], { a: 9.5 }, true];
         } else {
           expected = ['test', 2, null, [7], { a: 9.5 }, true];
@@ -569,18 +607,22 @@ describe('encoding', () => {
 
       assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
 
-      for (const intDecoding of ['default', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.UNSAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
-        if (intDecoding === 'bigint') {
+        if (intDecoding === algosdk.IntDecoding.BIGINT) {
           expected = [
             0n,
             9007199254740991n,
             9007199254740992n,
             9223372036854775807n,
           ];
-        } else if (intDecoding === 'mixed') {
+        } else if (intDecoding === algosdk.IntDecoding.MIXED) {
           expected = [
             0,
             9007199254740991,
@@ -602,7 +644,7 @@ describe('encoding', () => {
           `Error when intDecoding = ${intDecoding}`
         );
 
-        if (intDecoding !== 'default') {
+        if (intDecoding !== algosdk.IntDecoding.UNSAFE) {
           const roundtrip = utils.stringifyJSON(actual);
           assert.deepStrictEqual(
             roundtrip,

@@ -69,12 +69,13 @@ describe('client', () => {
       const j = '{"total":18446744073709551615, "base":42}';
 
       let options = {
-        // intDecoding: IntDecoding.DEFAULT,
+        // Should default to IntDecoding.BIGINT,
       };
       let actual = HTTPClient.parseJSON(j, 200, options);
-      let expected = JSON.parse(j);
+      let expected = utils.parseJSON(j, options);
       assert.strictEqual(actual.total, expected.total);
-      assert.strictEqual(typeof actual.total, 'number');
+      assert.strictEqual(typeof actual.total, 'bigint');
+      assert.strictEqual(typeof actual.base, 'bigint');
 
       options = {
         intDecoding: IntDecoding.BIGINT,
@@ -83,6 +84,7 @@ describe('client', () => {
       expected = utils.parseJSON(j, options);
       assert.strictEqual(actual.total, expected.total);
       assert.strictEqual(typeof actual.total, 'bigint');
+      assert.strictEqual(typeof actual.base, 'bigint');
 
       options = {
         intDecoding: IntDecoding.MIXED,
@@ -91,6 +93,15 @@ describe('client', () => {
       expected = utils.parseJSON(j, options);
       assert.strictEqual(actual.total, expected.total);
       assert.strictEqual(typeof actual.total, 'bigint');
+      assert.strictEqual(typeof actual.base, 'number');
+
+      options = {
+        intDecoding: IntDecoding.UNSAFE,
+      };
+      actual = HTTPClient.parseJSON(j, 200, options);
+      expected = JSON.parse(j);
+      assert.strictEqual(actual.total, expected.total);
+      assert.strictEqual(typeof actual.total, 'number');
       assert.strictEqual(typeof actual.base, 'number');
 
       options = {

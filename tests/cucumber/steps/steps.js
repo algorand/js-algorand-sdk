@@ -2422,7 +2422,6 @@ module.exports = function getSteps(options) {
   When('we make any LookupAssetBalances call', async function () {
     anyLookupAssetBalancesResponse = await this.indexerClient
       .lookupAssetBalances()
-      .setIntDecoding('mixed')
       .do();
   });
 
@@ -2512,7 +2511,6 @@ module.exports = function getSteps(options) {
   When('we make any LookupAssetTransactions call', async function () {
     anyLookupAssetTransactionsResponse = await this.indexerClient
       .lookupAssetTransactions()
-      .setIntDecoding('mixed')
       .do();
   });
 
@@ -2602,7 +2600,6 @@ module.exports = function getSteps(options) {
   When('we make any LookupAssetByID call', async function () {
     anyLookupAssetByIDResponse = await this.indexerClient
       .lookupAssetByID()
-      .setIntDecoding('mixed')
       .do();
   });
 

@@ -1,15 +1,9 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 
 export default class AccountAssetInformation extends JSONRequest {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string,
-    private assetID: number
-  ) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private account: string, private assetID: number) {
+    super(c);
     this.account = account;
     this.assetID = assetID;
   }

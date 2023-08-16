@@ -1,5 +1,4 @@
 import { bytesToBase64 } from '../../../encoding/binarydata';
-import IntDecoding from '../../../types/intDecoding';
 import HTTPClient from '../../client';
 import JSONRequest from '../jsonrequest';
 
@@ -28,12 +27,8 @@ export default class LookupAccountTransactions extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idtransactions)
    * @param account - The address of the account.
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private account: string) {
+    super(c);
     this.account = account;
   }
 

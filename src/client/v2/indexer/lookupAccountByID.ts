@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 
 export default class LookupAccountByID extends JSONRequest {
   /**
@@ -16,12 +15,8 @@ export default class LookupAccountByID extends JSONRequest {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private account: string) {
+    super(c);
     this.account = account;
   }
 

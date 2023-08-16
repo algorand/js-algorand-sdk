@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 
 export default class LookupTransactionByID extends JSONRequest {
   /**
@@ -16,8 +15,8 @@ export default class LookupTransactionByID extends JSONRequest {
    * @param txID - The ID of the transaction to look up.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private txID: string) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private txID: string) {
+    super(c);
     this.txID = txID;
   }
 

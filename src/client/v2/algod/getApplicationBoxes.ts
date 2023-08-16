@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
 import { BoxesResponse } from './models/types';
 
 /**
@@ -21,8 +20,8 @@ export default class GetApplicationBoxes extends JSONRequest<
   BoxesResponse,
   Record<string, any>
 > {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, private index: number) {
+    super(c);
     this.index = index;
     this.query.max = 0;
   }
