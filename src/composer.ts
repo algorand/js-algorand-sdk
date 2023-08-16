@@ -1,3 +1,4 @@
+import { stringify } from 'json-bigint';
 import {
   ABIAddressType,
   abiCheckTransactionType,
@@ -785,7 +786,7 @@ export class AtomicTransactionComposer {
         const logs = pendingInfo.logs || [];
         if (logs.length === 0) {
           throw new Error(
-            `App call transaction did not log a return value ${JSON.stringify(
+            `App call transaction did not log a return value ${stringify(
               pendingInfo
             )}`
           );
@@ -796,7 +797,7 @@ export class AtomicTransactionComposer {
           !arrayEqual(lastLog.slice(0, 4), RETURN_PREFIX)
         ) {
           throw new Error(
-            `App call transaction did not log a ABI return value ${JSON.stringify(
+            `App call transaction did not log a ABI return value ${stringify(
               pendingInfo
             )}`
           );

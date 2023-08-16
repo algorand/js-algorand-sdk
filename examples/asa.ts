@@ -2,6 +2,7 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
+import { stringify } from 'json-bigint';
 import algosdk from '../src';
 import {
   getLocalAlgodClient,
@@ -46,7 +47,7 @@ async function main() {
   // example: ASSET_INFO
   const assetInfo = await algodClient.getAssetByID(assetIndex).do();
   console.log(`Asset Name: ${assetInfo.params.name}`);
-  console.log(`Asset Params: ${JSON.stringify(assetInfo.params)}`);
+  console.log(`Asset Params: ${stringify(assetInfo.params)}`);
   // example: ASSET_INFO
 
   await new Promise((f) => setTimeout(f, 5000)); // sleep to ensure indexer is caught up

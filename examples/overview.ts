@@ -1,3 +1,4 @@
+import { stringify } from 'json-bigint';
 import algosdk from '../src';
 import { getLocalAccounts, getLocalAlgodClient } from './utils';
 
@@ -38,7 +39,7 @@ async function main() {
   const { txid } = await algodClient.sendRawTransaction(signedTxn).do();
   const result = await algosdk.waitForConfirmation(algodClient, txid, 4);
   console.log(result);
-  console.log(`Transaction Information: ${JSON.stringify(result.txn)}`);
+  console.log(`Transaction Information: ${stringify(result.txn)}`);
   console.log(
     `Decoded Note: ${new TextDecoder('utf-8').decode(result.txn.txn.note)}`
   );

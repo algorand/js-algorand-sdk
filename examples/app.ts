@@ -4,6 +4,7 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
+import { stringify } from 'json-bigint';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 import algosdk from '../src';
 
@@ -149,7 +150,7 @@ async function main() {
   // example: APP_READ_STATE
   const appInfo = await algodClient.getApplicationByID(appId).do();
   const globalState = appInfo.params.globalState[0];
-  console.log(`Raw global state - ${JSON.stringify(globalState)}`);
+  console.log(`Raw global state - ${stringify(globalState)}`);
 
   // decode b64 string key with Buffer
   const globalKey = algosdk.base64ToString(globalState.key);
@@ -163,7 +164,7 @@ async function main() {
     .do();
 
   const localState = accountAppInfo.appLocalState.keyValue[0];
-  console.log(`Raw local state - ${JSON.stringify(localState)}`);
+  console.log(`Raw local state - ${stringify(localState)}`);
 
   // decode b64 string key with Buffer
   const localKey = algosdk.base64ToString(localState.key);
