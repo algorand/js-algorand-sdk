@@ -3,8 +3,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const JSONBig = require('json-bigint');
-
+const utils = require('../../../src/utils/utils');
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
 
@@ -1593,8 +1592,8 @@ module.exports = function getSteps(options) {
       // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
         assert.strictEqual(
-          JSONBig.stringify(JSONBig.parse(expectedMockResponse)),
-          JSONBig.stringify(this.actualMockResponse)
+          utils.JSONbig.stringify(utils.JSONbig.parse(expectedMockResponse)),
+          utils.JSONbig.stringify(this.actualMockResponse)
         );
       } else {
         assert.deepStrictEqual(

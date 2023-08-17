@@ -1,7 +1,10 @@
 import JSONbigWithoutConfig from 'json-bigint';
 import IntDecoding from '../types/intDecoding';
 
-const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
+export const JSONbig = JSONbigWithoutConfig({
+  useNativeBigInt: true,
+  strict: true,
+});
 
 export interface JSONOptions {
   intDecoding?: IntDecoding;
