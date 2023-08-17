@@ -1981,9 +1981,9 @@ module.exports = function getSteps(options) {
     ) {
       await this.indexerClient
         .lookupAssetBalances(index)
-        .limit(limit)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
         .do();
     }
   );
@@ -2014,20 +2014,20 @@ module.exports = function getSteps(options) {
       }
       await this.indexerClient
         .lookupAssetTransactions(assetIndex)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
         .address(address)
         .addressRole(addressRole)
+        .currencyGreaterThan(currencyGreater)
+        .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .minRound(minRound)
+        .maxRound(maxRound)
+        .notePrefix(notePrefix)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .excludeCloseTo(excludeCloseTo)
         .do();
     }
@@ -2064,22 +2064,22 @@ module.exports = function getSteps(options) {
       }
       await this.indexerClient
         .lookupAssetTransactions(assetIndex)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
         .minRound(minRound)
         .maxRound(maxRound)
         .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
         .address(address)
         .addressRole(addressRole)
+        .currencyGreaterThan(currencyGreater)
+        .currencyLessThan(currencyLesser)
         .excludeCloseTo(excludeCloseTo)
+        .notePrefix(notePrefix)
         .rekeyTo(rekeyTo)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .do();
     }
   );
@@ -2104,19 +2104,19 @@ module.exports = function getSteps(options) {
     ) {
       await this.indexerClient
         .lookupAccountTransactions(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
+        .assetID(assetIndex)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .assetID(assetIndex)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .notePrefix(notePrefix)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .do();
     }
   );
@@ -2147,19 +2147,20 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .lookupAccountTransactions(account)
         .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
+        .minRound(minRound)
+        .maxRound(maxRound)
         .assetID(assetIndex)
         .rekeyTo(rekeyTo)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
+
         .do();
     }
   );
@@ -2241,9 +2242,9 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchAccounts()
         .assetID(assetIndex)
-        .limit(limit)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
         .round(round)
         .do();
     }
@@ -2262,9 +2263,9 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchAccounts()
         .assetID(assetIndex)
-        .limit(limit)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
+        .limit(limit)
         .round(round)
         .authAddr(authAddress)
         .do();
@@ -2312,20 +2313,20 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchForTransactions()
         .address(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
+        .addressRole(addressRole)
+        .assetID(assetIndex)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .assetID(assetIndex)
-        .addressRole(addressRole)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .notePrefix(notePrefix)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .excludeCloseTo(excludeCloseTo)
         .do();
     }
@@ -2363,22 +2364,22 @@ module.exports = function getSteps(options) {
       await this.indexerClient
         .searchForTransactions()
         .address(account)
-        .notePrefix(notePrefix)
-        .txType(txType)
-        .sigType(sigType)
-        .txid(txid)
-        .round(round)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .limit(limit)
+        .assetID(assetIndex)
         .beforeTime(beforeTime)
         .afterTime(afterTime)
         .currencyGreaterThan(currencyGreater)
         .currencyLessThan(currencyLesser)
-        .assetID(assetIndex)
         .addressRole(addressRole)
         .excludeCloseTo(excludeCloseTo)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .notePrefix(notePrefix)
         .rekeyTo(rekeyTo)
+        .round(round)
+        .sigType(sigType)
+        .txid(txid)
+        .txType(txType)
         .do();
     }
   );
@@ -4812,6 +4813,125 @@ module.exports = function getSteps(options) {
         budget,
         this.simulateResponse.evalOverrides.extraOpcodeBudget
       );
+    }
+  );
+
+  Then(
+    'I allow exec trace options {string} on that simulate request.',
+    async function (execTraceOptions) {
+      const optionList = execTraceOptions.split(',');
+
+      assert.ok(this.simulateRequest);
+      this.simulateRequest.execTraceConfig = new algosdk.modelsv2.SimulateTraceConfig(
+        {
+          enable: true,
+          scratchChange: optionList.includes('scratch'),
+          stackChange: optionList.includes('stack'),
+        }
+      );
+    }
+  );
+
+  Then(
+    '{int}th unit in the {string} trace at txn-groups path {string} should add value {string} to stack, pop {int} values from stack, write value {string} to scratch slot {string}.',
+    async function (
+      unitIndex,
+      traceType,
+      txnGroupPath,
+      stackAddition,
+      stackPopCount,
+      scratchWriteContent,
+      slotID
+    ) {
+      const unitFinder = (txnGroupPathStr, traceTypeStr, unitIndexInt) => {
+        const txnGroupPathSplit = txnGroupPathStr
+          .split(',')
+          .filter((r) => r !== '')
+          .map(Number);
+        assert.ok(txnGroupPathSplit.length > 0);
+
+        let traces = this.simulateResponse.txnGroups[0].txnResults[
+          txnGroupPathSplit[0]
+        ].execTrace;
+        assert.ok(traces);
+
+        for (let i = 1; i < txnGroupPathSplit.length; i++) {
+          traces = traces.innerTrace[txnGroupPathSplit[i]];
+          assert.ok(traces);
+        }
+
+        let trace = traces.approvalProgramTrace;
+
+        if (traceTypeStr === 'approval') {
+          trace = traces.approvalProgramTrace;
+        } else if (traceTypeStr === 'clearState') {
+          trace = traces.clearStateProgramTrace;
+        } else if (traceTypeStr === 'logic') {
+          trace = traces.logicSigTrace;
+        }
+        const changeUnit = trace[unitIndexInt];
+        return changeUnit;
+      };
+
+      const avmValueCheck = (stringLiteral, avmValue) => {
+        const [avmType, value] = stringLiteral.split(':');
+
+        if (avmType === 'uint64') {
+          assert.equal(avmValue.type, 2);
+          assert.ok(avmValue.uint);
+          assert.equal(avmValue.uint, BigInt(value));
+        } else if (avmType === 'bytes') {
+          assert.equal(avmValue.type, 1);
+          assert.ok(avmValue.bytes);
+          assert.deepEqual(
+            avmValue.bytes,
+            makeUint8Array(Buffer.from(value, 'base64'))
+          );
+        } else {
+          assert.fail('avmType should be either uint64 or bytes');
+        }
+      };
+
+      assert.ok(this.simulateResponse);
+
+      const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
+      if (stackPopCount > 0) {
+        assert.equal(changeUnit.stackPopCount, stackPopCount);
+      } else {
+        assert.ok(!changeUnit.stackPopCount);
+      }
+
+      const stackAdditionSplit = stackAddition
+        .split(',')
+        .filter((r) => r !== '');
+
+      if (changeUnit.stackAdditions) {
+        assert.equal(
+          changeUnit.stackAdditions.length,
+          stackAdditionSplit.length
+        );
+        for (let i = 0; i < stackAdditionSplit.length; i++) {
+          avmValueCheck(stackAdditionSplit[i], changeUnit.stackAdditions[i]);
+        }
+      } else {
+        assert.equal(stackAdditionSplit.length, 0);
+      }
+
+      if (slotID !== '') {
+        assert.equal(changeUnit.scratchChanges.length, 1);
+
+        const slotIDint = Number(slotID);
+        assert.equal(changeUnit.scratchChanges[0].slot, slotIDint);
+        assert.notEqual(scratchWriteContent, '');
+
+        const newValue = changeUnit.scratchChanges[0]?.newValue;
+        assert.ok(newValue);
+
+        avmValueCheck(scratchWriteContent, newValue);
+      } else {
+        assert.ok(!changeUnit.scratchChanges);
+        assert.equal(scratchWriteContent, '');
+      }
     }
   );
 

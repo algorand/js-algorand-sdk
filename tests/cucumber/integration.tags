@@ -16,3 +16,4 @@
 @simulate
 @simulate.lift_log_limits
 @simulate.extra_opcode_budget
+@simulate.exec_trace_with_stack_scratch
