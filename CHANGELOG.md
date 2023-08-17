@@ -1,3 +1,30 @@
+# v2.5.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v2.5.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- bug-fix: include currency-greater-than param for 0 value by @shiqizng in https://github.com/algorand/js-algorand-sdk/pull/807
+
+### New Features
+
+- Simulation: Execution trace (PC/Stack/Scratch) support by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/803
+
+### Enhancements
+
+- fetch: Add Cloudflare Workers support (cross-fetch v4) by @spencercap in https://github.com/algorand/js-algorand-sdk/pull/794
+- logging: Add rn warning and logging by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/798
+- CICD: Update Chromedriver version and CI orb by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/802
+- CICD: Update chromedriver in package.json to 116+ by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/811
+
+## New Contributors
+
+- @spencercap made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/794
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.4.0...v2.5.0
+
 # v2.4.0
 
 ## What's Changed
