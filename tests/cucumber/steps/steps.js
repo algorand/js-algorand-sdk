@@ -1573,8 +1573,8 @@ module.exports = function getSteps(options) {
       // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
         assert.strictEqual(
-          JSON.stringify(JSON.parse(expectedMockResponse)),
-          JSON.stringify(this.actualMockResponse)
+          algosdk.stringifyJSON(algosdk.parseJSON(expectedMockResponse)),
+          algosdk.stringifyJSON(this.actualMockResponse)
         );
       } else {
         assert.deepStrictEqual(
@@ -1897,7 +1897,10 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Node Status response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse['last-round']);
+      assert.strictEqual(
+        BigInt(lastRound),
+        anyNodeStatusResponse['last-round']
+      );
     }
   );
 
@@ -1910,9 +1913,15 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}',
     (totalMoney, onlineMoney, round) => {
-      assert.strictEqual(totalMoney, anyLedgerSupplyResponse['total-money']);
-      assert.strictEqual(onlineMoney, anyLedgerSupplyResponse['online-money']);
-      assert.strictEqual(round, anyLedgerSupplyResponse.current_round);
+      assert.strictEqual(
+        BigInt(totalMoney),
+        anyLedgerSupplyResponse['total-money']
+      );
+      assert.strictEqual(
+        BigInt(onlineMoney),
+        anyLedgerSupplyResponse['online-money']
+      );
+      assert.strictEqual(BigInt(round), anyLedgerSupplyResponse.current_round);
     }
   );
 
@@ -1923,7 +1932,10 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Status After Block response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse['last-round']);
+      assert.strictEqual(
+        BigInt(lastRound),
+        anyNodeStatusResponse['last-round']
+      );
     }
   );
 
@@ -1970,7 +1982,7 @@ module.exports = function getSteps(options) {
     'the parsed Suggested Transaction Parameters response should have first round valid of {int}',
     (firstValid) => {
       assert.strictEqual(
-        firstValid,
+        BigInt(firstValid),
         anySuggestedTransactionsResponse.firstValid
       );
     }
@@ -2429,7 +2441,7 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}',
     (round, length, idx, address, amount, frozenStateAsString) => {
       assert.strictEqual(
-        round,
+        BigInt(round),
         anyLookupAssetBalancesResponse['current-round']
       );
       assert.strictEqual(
@@ -2444,7 +2456,7 @@ module.exports = function getSteps(options) {
         frozenState = true;
       }
       assert.strictEqual(
-        amount,
+        BigInt(amount),
         anyLookupAssetBalancesResponse.balances[idx].amount
       );
       assert.strictEqual(
@@ -2518,7 +2530,7 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
+        BigInt(round),
         anyLookupAssetTransactionsResponse['current-round']
       );
       assert.strictEqual(
@@ -2547,7 +2559,7 @@ module.exports = function getSteps(options) {
     'the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
+        BigInt(round),
         anyLookupAccountTransactionsResponse['current-round']
       );
       assert.strictEqual(
@@ -2604,7 +2616,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the parsed LookupAssetByID response should have index {int}', (idx) => {
-    assert.strictEqual(idx, anyLookupAssetByIDResponse.asset.index);
+    assert.strictEqual(BigInt(idx), anyLookupAssetByIDResponse.asset.index);
   });
 
   let anySearchAccountsResponse;
@@ -2616,7 +2628,10 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}',
     (round, length, idx, address) => {
-      assert.strictEqual(round, anySearchAccountsResponse['current-round']);
+      assert.strictEqual(
+        BigInt(round),
+        anySearchAccountsResponse['current-round']
+      );
       assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
       if (length === 0) {
         return;
@@ -2631,7 +2646,10 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have authorizing address {string}',
     (round, length, idx, authAddress) => {
-      assert.strictEqual(round, anySearchAccountsResponse['current-round']);
+      assert.strictEqual(
+        BigInt(round),
+        anySearchAccountsResponse['current-round']
+      );
       assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
       if (length === 0) {
         return;
@@ -2655,7 +2673,7 @@ module.exports = function getSteps(options) {
     'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
+        BigInt(round),
         anySearchForTransactionsResponse['current-round']
       );
       assert.strictEqual(
@@ -2676,7 +2694,7 @@ module.exports = function getSteps(options) {
     'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have rekey-to {string}',
     (round, length, idx, rekeyTo) => {
       assert.strictEqual(
-        round,
+        BigInt(round),
         anySearchForTransactionsResponse['current-round']
       );
       assert.strictEqual(
@@ -2704,13 +2722,16 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}',
     (round, length, idx, assetIndex) => {
-      assert.strictEqual(round, anySearchForAssetsResponse['current-round']);
+      assert.strictEqual(
+        BigInt(round),
+        anySearchForAssetsResponse['current-round']
+      );
       assert.strictEqual(length, anySearchForAssetsResponse.assets.length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        assetIndex,
+        BigInt(assetIndex),
         anySearchForAssetsResponse.assets[idx].index
       );
     }
@@ -2740,7 +2761,15 @@ module.exports = function getSteps(options) {
   let dryrunResponse;
 
   When('we make any Dryrun call', async function () {
-    const dr = new algosdk.modelsv2.DryrunRequest({});
+    const dr = new algosdk.modelsv2.DryrunRequest({
+      accounts: [],
+      apps: [],
+      latestTimestamp: 0,
+      protocolVersion: '',
+      round: 0,
+      sources: [],
+      txns: [],
+    });
     dryrunResponse = await this.v2Client.dryrun(dr).do();
   });
 
@@ -2749,8 +2778,8 @@ module.exports = function getSteps(options) {
     (key, action) => {
       assert.strictEqual(dryrunResponse.txns[0]['global-delta'][0].key, key);
       assert.strictEqual(
-        dryrunResponse.txns[0]['global-delta'][0].value.action,
-        action
+        BigInt(action),
+        dryrunResponse.txns[0]['global-delta'][0].value.action
       );
     }
   );

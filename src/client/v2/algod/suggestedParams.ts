@@ -15,7 +15,7 @@ export default class SuggestedParamsRequest extends JSONRequest<SuggestedParamsW
       flatFee: false,
       fee: body.fee,
       firstValid: body['last-round'],
-      lastValid: body['last-round'] + 1000,
+      lastValid: body['last-round'] + BigInt(1000),
       genesisID: body['genesis-id'],
       genesisHash: body['genesis-hash'],
       minFee: body['min-fee'],

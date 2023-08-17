@@ -107,17 +107,17 @@ export interface SuggestedParams {
   /**
    * Integer fee per byte, in microAlgos. For a flat fee, set flatFee to true
    */
-  fee: number;
+  fee: number | bigint;
 
   /**
    * First protocol round on which this txn is valid
    */
-  firstValid: number;
+  firstValid: number | bigint;
 
   /**
    * Last protocol round on which this txn is valid
    */
-  lastValid: number;
+  lastValid: number | bigint;
 
   /**
    * Specifies genesis ID of network in use
@@ -134,7 +134,7 @@ export type SuggestedParamsWithMinFee = SuggestedParams & {
   /**
    * Minimum fee (not per byte) required for the transaction to be confirmed
    */
-  minFee: number;
+  minFee: bigint;
 };
 
 /**
