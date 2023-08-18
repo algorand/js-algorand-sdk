@@ -9,7 +9,7 @@ on:
         required: true
         type: string
       pre_release_version:
-        description: "Pre-Release version, e.g. 'beta.1'"
+        description: "(Optional) Pre-Release version, e.g. 'beta.1'. Used mainly to support consensus release on betanet."
         required: false
         type: string
 
