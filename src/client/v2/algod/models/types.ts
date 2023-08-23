@@ -1577,15 +1577,9 @@ export class Box extends BaseModel {
     value: string | Uint8Array;
   }) {
     super();
-    this.name =
-      typeof name === 'string'
-        ? new Uint8Array(Buffer.from(name, 'base64'))
-        : name;
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
     this.round = round;
-    this.value =
-      typeof value === 'string'
-        ? new Uint8Array(Buffer.from(value, 'base64'))
-        : value;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
 
     this.attribute_map = {
       name: 'name',

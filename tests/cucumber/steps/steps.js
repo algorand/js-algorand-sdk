@@ -4950,10 +4950,7 @@ module.exports = function getSteps(options) {
         } else if (avmType === 'bytes') {
           assert.equal(avmValue.type, 1);
           assert.ok(avmValue.bytes);
-          assert.deepEqual(
-            avmValue.bytes,
-            makeUint8Array(Buffer.from(value, 'base64'))
-          );
+          assert.deepEqual(avmValue.bytes, algosdk.base64ToBytes(value));
         } else {
           assert.fail('avmType should be either uint64 or bytes');
         }
