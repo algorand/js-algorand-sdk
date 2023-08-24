@@ -5019,6 +5019,41 @@ module.exports = function getSteps(options) {
     }
   );
 
+  Then(
+    '{string} hash at txn-groups path {string} should be {string}.',
+    async function (traceType, txnGroupPath, b64ProgHash) {
+      const txnGroupPathSplit = txnGroupPath
+        .split(',')
+        .filter((r) => r !== '')
+        .map(Number);
+      assert.ok(txnGroupPathSplit.length > 0);
+
+      let traces = this.simulateResponse.txnGroups[0].txnResults[
+        txnGroupPathSplit[0]
+      ].execTrace;
+      assert.ok(traces);
+
+      for (let i = 1; i < txnGroupPathSplit.length; i++) {
+        traces = traces.innerTrace[txnGroupPathSplit[i]];
+        assert.ok(traces);
+      }
+
+      let hash = traces.approvalProgramHash;
+
+      if (traceType === 'approval') {
+        hash = traces.approvalProgramHash;
+      } else if (traceType === 'clearState') {
+        hash = traces.clearStateProgramHash;
+      } else if (traceType === 'logic') {
+        hash = traces.logicSigHash;
+      }
+      assert.deepEqual(
+        hash,
+        makeUint8Array(Buffer.from(b64ProgHash, 'base64'))
+      );
+    }
+  );
+
   When('we make a Ready call', async function () {
     await this.v2Client.ready().do();
   });
