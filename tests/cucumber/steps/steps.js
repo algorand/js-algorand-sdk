@@ -4827,6 +4827,7 @@ module.exports = function getSteps(options) {
           enable: true,
           scratchChange: optionList.includes('scratch'),
           stackChange: optionList.includes('stack'),
+          stateChange: optionList.includes('state'),
         }
       );
     }
@@ -4932,6 +4933,89 @@ module.exports = function getSteps(options) {
         assert.ok(!changeUnit.scratchChanges);
         assert.equal(scratchWriteContent, '');
       }
+    }
+  );
+
+  Then(
+    '{int}th unit in the {string} trace at txn-groups path {string} should write to {string} state {string} with new value {string}.',
+    async function (
+      unitIndex,
+      traceType,
+      txnGroupPath,
+      stateType,
+      stateName,
+      newValue
+    ) {
+      const unitFinder = (txnGroupPathStr, traceTypeStr, unitIndexInt) => {
+        const txnGroupPathSplit = txnGroupPathStr
+          .split(',')
+          .filter((r) => r !== '')
+          .map(Number);
+        assert.ok(txnGroupPathSplit.length > 0);
+
+        let traces = this.simulateResponse.txnGroups[0].txnResults[
+          txnGroupPathSplit[0]
+        ].execTrace;
+        assert.ok(traces);
+
+        for (let i = 1; i < txnGroupPathSplit.length; i++) {
+          traces = traces.innerTrace[txnGroupPathSplit[i]];
+          assert.ok(traces);
+        }
+
+        let trace = traces.approvalProgramTrace;
+
+        if (traceTypeStr === 'approval') {
+          trace = traces.approvalProgramTrace;
+        } else if (traceTypeStr === 'clearState') {
+          trace = traces.clearStateProgramTrace;
+        } else if (traceTypeStr === 'logic') {
+          trace = traces.logicSigTrace;
+        }
+        const changeUnit = trace[unitIndexInt];
+        return changeUnit;
+      };
+
+      const avmValueCheck = (stringLiteral, avmValue) => {
+        const [avmType, value] = stringLiteral.split(':');
+
+        if (avmType === 'uint64') {
+          assert.equal(avmValue.type, 2);
+          assert.ok(avmValue.uint);
+          assert.equal(avmValue.uint, BigInt(value));
+        } else if (avmType === 'bytes') {
+          assert.equal(avmValue.type, 1);
+          assert.ok(avmValue.bytes);
+          assert.deepEqual(
+            avmValue.bytes,
+            makeUint8Array(Buffer.from(value, 'base64'))
+          );
+        } else {
+          assert.fail('avmType should be either uint64 or bytes');
+        }
+      };
+
+      assert.ok(this.simulateResponse);
+
+      const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
+      assert.ok(changeUnit.stateChanges);
+
+      if (stateType === 'global') {
+        assert.deepEqual(changeUnit.stateChanges[0].appStateType, 'g');
+      } else if (stateType === 'local') {
+        assert.deepEqual(changeUnit.stateChanges[0].appStateType, 'l');
+      } else if (stateType === 'box') {
+        assert.deepEqual(changeUnit.stateChanges[0].appStateType, 'b');
+      } else {
+        assert.fail('state type can only be one of local/global/box');
+      }
+
+      assert.deepEqual(
+        changeUnit.stateChanges[0].key,
+        new Uint8Array(Buffer.from(stateName))
+      );
+      assert.ok(changeUnit.stateChanges[0].newValue);
+      avmValueCheck(newValue, changeUnit.stateChanges[0].newValue);
     }
   );
 
