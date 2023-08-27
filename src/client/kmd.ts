@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
-import ServiceClient from './v2/serviceClient';
-import * as txn from '../transaction';
-import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient';
+import ServiceClient from './v2/serviceClient.js';
+import * as txn from '../transaction.js';
+import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient.js';
 
 export default class Kmd extends ServiceClient {
   constructor(

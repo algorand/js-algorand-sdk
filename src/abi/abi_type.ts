@@ -14,9 +14,9 @@
     // | (T1, ..., Tn)
 */
 import { Buffer } from 'buffer';
-import { encodeAddress, decodeAddress } from '../encoding/address';
-import { bigIntToBytes, bytesToBigInt } from '../encoding/bigint';
-import { concatArrays } from '../utils/utils';
+import { encodeAddress, decodeAddress } from '../encoding/address.js';
+import { bigIntToBytes, bytesToBigInt } from '../encoding/bigint.js';
+import { concatArrays } from '../utils/utils.js';
 
 export const MAX_LEN = 2 ** 16 - 1;
 export const ADDR_BYTE_SIZE = 32;

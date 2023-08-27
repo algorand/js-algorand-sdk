@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import AlgodClient from './client/v2/algod/algod';
+import AlgodClient from './client/v2/algod/algod.js';
 import {
   AccountStateDelta,
   Application,
@@ -9,10 +9,10 @@ import {
   DryrunSource,
   EvalDeltaKeyValue,
   TealValue,
-} from './client/v2/algod/models/types';
-import { SignedTransaction } from './transaction';
-import { TransactionType } from './types/transactions';
-import { encodeAddress, getApplicationAddress } from './encoding/address';
+} from './client/v2/algod/models/types.js';
+import { SignedTransaction } from './transaction.js';
+import { TransactionType } from './types/transactions/index.js';
+import { encodeAddress, getApplicationAddress } from './encoding/address.js';
 
 const defaultAppId = 1380011588;
 const defaultMaxWidth = 30;

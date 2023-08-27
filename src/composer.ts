@@ -10,29 +10,29 @@ import {
   abiTypeIsTransaction,
   ABIUintType,
   ABIValue,
-} from './abi';
-import Algodv2 from './client/v2/algod/algod';
+} from './abi/index.js';
+import Algodv2 from './client/v2/algod/algod.js';
 import {
   SimulateResponse,
   SimulateRequest,
   SimulateRequestTransactionGroup,
-} from './client/v2/algod/models/types';
-import { EncodedSignedTransaction } from './types';
-import { assignGroupID } from './group';
-import { makeApplicationCallTxnFromObject } from './makeTxn';
+} from './client/v2/algod/models/types.js';
+import { EncodedSignedTransaction } from './types/index.js';
+import { assignGroupID } from './group.js';
+import { makeApplicationCallTxnFromObject } from './makeTxn.js';
 import {
   isTransactionWithSigner,
   TransactionSigner,
   TransactionWithSigner,
-} from './signer';
-import { decodeSignedTransaction, Transaction } from './transaction';
+} from './signer.js';
+import { decodeSignedTransaction, Transaction } from './transaction.js';
 import {
   BoxReference,
   OnApplicationComplete,
   SuggestedParams,
-} from './types/transactions/base';
-import { waitForConfirmation } from './wait';
-import * as encoding from './encoding/encoding';
+} from './types/transactions/base.js';
+import { waitForConfirmation } from './wait.js';
+import * as encoding from './encoding/encoding.js';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);

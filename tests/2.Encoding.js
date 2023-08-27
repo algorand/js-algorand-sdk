@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-const { Buffer } = require('buffer');
-const assert = require('assert');
-const algosdk = require('../src/index');
-const utils = require('../src/utils/utils');
+import { Buffer } from 'buffer';
+import assert from 'assert';
+import algosdk from '../src/index';
+import * as utils from '../src/utils/utils';
 
 const ERROR_CONTAINS_EMPTY_STRING =
   'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';

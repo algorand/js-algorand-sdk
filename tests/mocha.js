@@ -1,11 +1,14 @@
 /* eslint-env node, mocha */
 /* eslint-disable no-console */
-const Mocha = require('mocha');
-const webpack = require('webpack');
-const fs = require('fs');
-const path = require('path');
+import * as url from 'url';
+import Mocha from 'mocha';
+import webpack from 'webpack';
+import fs from 'fs';
+import path from 'path';
+import webpackConfig from '../webpack.config';
 
-const webpackConfig = require('../webpack.config');
+// eslint-disable-next-line no-underscore-dangle
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const browser = process.env.TEST_BROWSER;
 
@@ -122,8 +125,9 @@ async function testRunner() {
     console.log('Testing in Node');
 
     const mocha = new Mocha();
-    testFiles.forEach((file) => mocha.addFile(file));
 
+    testFiles.forEach((file) => mocha.addFile(file));
+    await mocha.loadFilesAsync();
     mocha.run((failures) => {
       process.exitCode = failures ? 1 : 0;
     });

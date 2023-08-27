@@ -1,4 +1,4 @@
-import { Transaction } from '../transaction';
+import { Transaction } from '../transaction.js';
 
 export enum ABITransactionType {
   /**

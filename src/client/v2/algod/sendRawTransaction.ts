@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import { concatArrays } from '../../../utils/utils';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import { concatArrays } from '../../../utils/utils.js';
 
 /**
  * Sets the default header (if not previously set) for sending a raw

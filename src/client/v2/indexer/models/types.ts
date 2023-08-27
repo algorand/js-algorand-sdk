@@ -4,7 +4,7 @@
 
 /* eslint-disable no-use-before-define */
 import { Buffer } from 'buffer';
-import BaseModel from '../../basemodel';
+import BaseModel from '../../basemodel.js';
 
 /**
  * Account information at a given round.

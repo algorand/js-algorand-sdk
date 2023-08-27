@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { GetSyncRoundResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { GetSyncRoundResponse } from './models/types.js';
 
 export default class GetSyncRound extends JSONRequest<
   GetSyncRoundResponse,

@@ -1,11 +1,11 @@
 import { Buffer } from 'buffer';
-import * as nacl from './nacl/naclWrappers';
-import * as address from './encoding/address';
-import * as encoding from './encoding/encoding';
-import * as txnBuilder from './transaction';
-import Bid, { BidOptions } from './bid';
-import * as convert from './convert';
-import * as utils from './utils/utils';
+import * as nacl from './nacl/naclWrappers.js';
+import * as address from './encoding/address.js';
+import * as encoding from './encoding/encoding.js';
+import * as txnBuilder from './transaction.js';
+import Bid, { BidOptions } from './bid.js';
+import * as convert from './convert.js';
+import * as utils from './utils/utils.js';
 
 const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
 
@@ -117,35 +117,35 @@ export const ERROR_INVALID_MICROALGOS = new Error(
   convert.INVALID_MICROALGOS_ERROR_MSG
 );
 
-export { default as Algodv2 } from './client/v2/algod/algod';
-export { default as Kmd } from './client/kmd';
-export { default as IntDecoding } from './types/intDecoding';
-export { default as Account } from './types/account';
-export { default as Indexer } from './client/v2/indexer/indexer';
-export {
+export { default as Algodv2 } from './client/v2/algod/algod.js';
+export { default as Kmd } from './client/kmd.js';
+export { default as IntDecoding } from './types/intDecoding.js';
+export type { default as Account } from './types/account.js';
+export { default as Indexer } from './client/v2/indexer/indexer.js';
+export type {
   BaseHTTPClient,
   BaseHTTPClientResponse,
   BaseHTTPClientError,
-} from './client/baseHTTPClient';
-export {
+} from './client/baseHTTPClient.js';
+export type {
   AlgodTokenHeader,
   IndexerTokenHeader,
   KMDTokenHeader,
   CustomTokenHeader,
   TokenHeader,
-} from './client/urlTokenBaseHTTPClient';
-export { waitForConfirmation } from './wait';
+} from './client/urlTokenBaseHTTPClient.js';
+export { waitForConfirmation } from './wait.js';
 export {
   isValidAddress,
   encodeAddress,
   decodeAddress,
   getApplicationAddress,
-} from './encoding/address';
-export { bytesToBigInt, bigIntToBytes } from './encoding/bigint';
-export { encodeUint64, decodeUint64 } from './encoding/uint64';
-export { default as generateAccount } from './account';
-export * as modelsv2 from './client/v2/algod/models/types';
-export * as indexerModels from './client/v2/indexer/models/types';
+} from './encoding/address.js';
+export { bytesToBigInt, bigIntToBytes } from './encoding/bigint.js';
+export { encodeUint64, decodeUint64 } from './encoding/uint64.js';
+export { default as generateAccount } from './account.js';
+export * as modelsv2 from './client/v2/algod/models/types.js';
+export * as indexerModels from './client/v2/indexer/models/types.js';
 export {
   mnemonicToMasterDerivationKey,
   masterDerivationKeyToMnemonic,
@@ -153,13 +153,13 @@ export {
   mnemonicToSecretKey,
   seedFromMnemonic,
   mnemonicFromSeed,
-} from './mnemonic/mnemonic';
+} from './mnemonic/mnemonic.js';
 export {
   microalgosToAlgos,
   algosToMicroalgos,
   INVALID_MICROALGOS_ERROR_MSG,
-} from './convert';
-export { computeGroupID, assignGroupID } from './group';
+} from './convert.js';
+export { computeGroupID, assignGroupID } from './group.js';
 export {
   LogicSig,
   LogicSigAccount,
@@ -169,7 +169,7 @@ export {
   tealSign,
   tealSignFromProgram,
   verifyTealSign,
-} from './logicsig';
+} from './logicsig.js';
 export {
   signMultisigTransaction,
   mergeMultisigTransactions,
@@ -178,13 +178,13 @@ export {
   appendSignRawMultisigSignature,
   verifyMultisig,
   multisigAddress,
-} from './multisig';
-export { SourceMap } from './logic/sourcemap';
+} from './multisig.js';
+export { SourceMap } from './logic/sourcemap.js';
 
-export * from './dryrun';
-export * from './makeTxn';
-export * from './transaction';
-export * from './signer';
-export * from './composer';
-export * from './types';
-export * from './abi';
+export * from './dryrun.js';
+export * from './makeTxn.js';
+export * from './transaction.js';
+export * from './signer.js';
+export * from './composer.js';
+export * from './types/index.js';
+export * from './abi/index.js';

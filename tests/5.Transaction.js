@@ -1,9 +1,9 @@
 /* eslint-env mocha */
-const { Buffer } = require('buffer');
-const assert = require('assert');
-const algosdk = require('../src/index');
-const { translateBoxReferences } = require('../src/boxStorage');
-const group = require('../src/group');
+import { Buffer } from 'buffer';
+import assert from 'assert';
+import algosdk from '../src/index';
+import { translateBoxReferences } from '../src/boxStorage';
+import * as group from '../src/group';
 
 describe('Sign', () => {
   /* eslint-disable no-console */

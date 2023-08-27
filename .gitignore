@@ -23,7 +23,10 @@ tests/cucumber/browser/build
 tests/browser/bundle.*
 
 # Builds
-dist/
+dist/*
+!dist/cjs
+dist/cjs/*
+!dist/cjs/package.json
 docs/
 built/
 

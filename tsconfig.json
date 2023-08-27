@@ -2,9 +2,10 @@
   "compilerOptions": {
     "lib": ["es5", "es2015.promise", "dom", "es2015"],
     "outDir": "./dist",
-    "allowJs": true,
-    "target": "es2020",
+    "allowJs": false,
+    "target": "es2022",
     "moduleResolution": "node",
+    "module": "ES2022",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true

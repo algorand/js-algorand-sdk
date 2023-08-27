@@ -1,8 +1,8 @@
 import { Buffer } from 'buffer';
-import * as encoding from '../../../encoding/encoding';
-import HTTPClient from '../../client';
-import JSONRequest from '../jsonrequest';
-import { SimulateRequest, SimulateResponse } from './models/types';
+import * as encoding from '../../../encoding/encoding.js';
+import HTTPClient from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
+import { SimulateRequest, SimulateResponse } from './models/types.js';
 
 /**
  * Sets the default header (if not previously set) for simulating a raw

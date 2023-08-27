@@ -1,5 +1,5 @@
-import { TransactionType, TransactionParams } from './base';
-import { ConstructTransaction } from './builder';
+import { TransactionType, TransactionParams } from './base.js';
+import { ConstructTransaction } from './builder.js';
 
 type SpecificParameters = Pick<
   TransactionParams,

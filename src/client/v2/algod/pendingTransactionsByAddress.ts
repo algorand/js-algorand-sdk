@@ -1,6 +1,6 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import * as encoding from '../../../encoding/encoding';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import * as encoding from '../../../encoding/encoding.js';
 
 /**
  * returns all transactions for a PK [addr] in the [first, last] rounds range.

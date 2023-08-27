@@ -1,12 +1,14 @@
-import * as txnBuilder from './transaction';
-import { OnApplicationComplete } from './types/transactions/base';
+import * as txnBuilder from './transaction.js';
 import {
+  OnApplicationComplete,
+  TransactionType,
+} from './types/transactions/base.js';
+import type {
   // Transaction types
   PaymentTxn,
   KeyRegistrationTxn,
 
   // Utilities
-  TransactionType,
   MustHaveSuggestedParams,
   AssetCreateTxn,
   AssetConfigTxn,
@@ -20,8 +22,8 @@ import {
   AppCloseOutTxn,
   AppClearStateTxn,
   AppNoOpTxn,
-} from './types/transactions';
-import { RenameProperties, RenameProperty, Expand } from './types/utils';
+} from './types/transactions/index.js';
+import { RenameProperties, RenameProperty, Expand } from './types/utils.js';
 
 /**
  * makePaymentTxnWithSuggestedParams takes payment arguments and returns a Transaction object
@@ -1367,7 +1369,7 @@ export function makeApplicationNoOpTxnFromObject(
   );
 }
 
-export { OnApplicationComplete } from './types/transactions/base';
+export { OnApplicationComplete } from './types/transactions/base.js';
 
 /**
  * Generic function for creating any application call transaction.

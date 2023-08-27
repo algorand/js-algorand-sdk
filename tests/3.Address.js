@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const nacl = require('../src/nacl/naclWrappers');
-const algosdk = require('../src/index');
-const address = require('../src/encoding/address');
+import assert from 'assert';
+import * as nacl from '../src/nacl/naclWrappers';
+import algosdk from '../src/index';
+import * as address from '../src/encoding/address';
 
 describe('address', () => {
   describe('#isValid', () => {

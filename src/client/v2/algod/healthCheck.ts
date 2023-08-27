@@ -1,4 +1,4 @@
-import JSONRequest from '../jsonrequest';
+import JSONRequest from '../jsonrequest.js';
 
 /**
  * healthCheck returns an empty object iff the node is running

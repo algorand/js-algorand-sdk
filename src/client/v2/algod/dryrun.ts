@@ -1,9 +1,9 @@
 import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import * as modelsv2 from './models/types';
-import * as encoding from '../../../encoding/encoding';
-import { setHeaders } from './compile';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import * as modelsv2 from './models/types.js';
+import * as encoding from '../../../encoding/encoding.js';
+import { setHeaders } from './compile.js';
 
 export default class Dryrun extends JSONRequest {
   private blob: Uint8Array;

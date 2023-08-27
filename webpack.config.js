@@ -1,6 +1,9 @@
-const path = require('path');
+import path from 'path';
+import url from 'url';
 
-module.exports = {
+// eslint-disable-next-line no-underscore-dangle
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const webpackConfig = {
   mode: 'production',
   entry: './src/index.ts',
   output: {
@@ -15,6 +18,7 @@ module.exports = {
   resolve: {
     // Add '.ts' as resolvable extensions
     extensions: ['.ts', '.js'],
+    extensionAlias: { '.js': ['.ts', '.js'] },
   },
   module: {
     rules: [
@@ -34,3 +38,5 @@ module.exports = {
     noParse: [/[\\/]tweetnacl[\\/]/, /[\\/]tweetnacl-auth[\\/]/],
   },
 };
+
+export default webpackConfig;

@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import IntDecoding from '../../../types/intDecoding.js';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string

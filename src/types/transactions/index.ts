@@ -1,12 +1,12 @@
-import PaymentTxn from './payment';
-import KeyRegistrationTxn from './keyreg';
+import PaymentTxn from './payment.js';
+import KeyRegistrationTxn from './keyreg.js';
 import {
   AssetCreateTransaction as AssetCreateTxn,
   AssetConfigurationTransaction as AssetConfigTxn,
   AssetDestroyTransaction as AssetDestroyTxn,
   AssetFreezeTransaction as AssetFreezeTxn,
   AssetTransferTransaction as AssetTransferTxn,
-} from './asset';
+} from './asset.js';
 import {
   ApplicationCreateTransaction as AppCreateTxn,
   ApplicationUpdateTransaction as AppUpdateTxn,
@@ -15,33 +15,33 @@ import {
   ApplicationCloseOutTransaction as AppCloseOutTxn,
   ApplicationClearStateTransaction as AppClearStateTxn,
   ApplicationNoOpTransaction as AppNoOpTxn,
-} from './application';
-import StateProofTxn from './stateproof';
+} from './application.js';
+import StateProofTxn from './stateproof.js';
 
+export { TransactionType } from './base.js';
 // Utilities
-export {
+export type {
   TransactionParams,
-  TransactionType,
   SuggestedParams,
   BoxReference,
-} from './base';
-export {
+} from './base.js';
+export type {
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,
-} from './builder';
-export * from './encoded';
+} from './builder.js';
+export * from './encoded.js';
 
 // Transaction types
-export { default as PaymentTxn } from './payment';
-export { default as KeyRegistrationTxn } from './keyreg';
-export {
+export type { default as PaymentTxn } from './payment.js';
+export type { default as KeyRegistrationTxn } from './keyreg.js';
+export type {
   AssetCreateTransaction as AssetCreateTxn,
   AssetConfigurationTransaction as AssetConfigTxn,
   AssetDestroyTransaction as AssetDestroyTxn,
   AssetFreezeTransaction as AssetFreezeTxn,
   AssetTransferTransaction as AssetTransferTxn,
-} from './asset';
-export {
+} from './asset.js';
+export type {
   ApplicationCreateTransaction as AppCreateTxn,
   ApplicationUpdateTransaction as AppUpdateTxn,
   ApplicationDeleteTransaction as AppDeleteTxn,
@@ -49,8 +49,8 @@ export {
   ApplicationCloseOutTransaction as AppCloseOutTxn,
   ApplicationClearStateTransaction as AppClearStateTxn,
   ApplicationNoOpTransaction as AppNoOpTxn,
-} from './application';
-export { default as StateProofTxn } from './stateproof';
+} from './application.js';
+export type { default as StateProofTxn } from './stateproof.js';
 
 // All possible transaction types
 type AnyTransaction =

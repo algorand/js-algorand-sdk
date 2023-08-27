@@ -4,9 +4,9 @@
 
 /* eslint-disable no-use-before-define */
 import { Buffer } from 'buffer';
-import BaseModel from '../../basemodel';
-import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
-import BlockHeader from '../../../../types/blockHeader';
+import BaseModel from '../../basemodel.js';
+import { EncodedSignedTransaction } from '../../../../types/transactions/encoded.js';
+import BlockHeader from '../../../../types/blockHeader.js';
 
 /**
  * Account information at a given round.

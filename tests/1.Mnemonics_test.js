@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const algosdk = require('../src/index');
-const nacl = require('../src/nacl/naclWrappers');
-const passphrase = require('../src/mnemonic/mnemonic');
+import assert from 'assert';
+import algosdk from '../src/index';
+import * as nacl from '../src/nacl/naclWrappers';
+import * as passphrase from '../src/mnemonic/mnemonic';
 
 describe('#mnemonic', () => {
   it('should return a 25 words passphrase', () => {

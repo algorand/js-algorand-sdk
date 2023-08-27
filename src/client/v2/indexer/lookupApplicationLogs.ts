@@ -1,6 +1,6 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import IntDecoding from '../../../types/intDecoding.js';
 
 export default class LookupApplicationLogs extends JSONRequest {
   /**

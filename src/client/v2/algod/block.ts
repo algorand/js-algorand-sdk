@@ -1,6 +1,6 @@
-import * as encoding from '../../../encoding/encoding';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
+import * as encoding from '../../../encoding/encoding.js';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
 
 /**
  * block gets the block info for the given round. this call may block

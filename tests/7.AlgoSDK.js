@@ -1,9 +1,9 @@
 /* eslint-env mocha */
-const { Buffer } = require('buffer');
-const assert = require('assert');
-const algosdk = require('../src/index');
-const nacl = require('../src/nacl/naclWrappers');
-const utils = require('../src/utils/utils');
+import { Buffer } from 'buffer';
+import assert from 'assert';
+import algosdk from '../src/index';
+import * as nacl from '../src/nacl/naclWrappers';
+import * as utils from '../src/utils/utils';
 
 describe('Algosdk (AKA end to end)', () => {
   describe('#mnemonic', () => {

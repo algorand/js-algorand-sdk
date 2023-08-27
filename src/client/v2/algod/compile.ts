@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
 
 /**
  * Sets the default header (if not previously set)

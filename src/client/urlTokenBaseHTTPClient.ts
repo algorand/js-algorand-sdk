@@ -5,7 +5,7 @@ import {
   BaseHTTPClientResponse,
   BaseHTTPClientError,
   Query,
-} from './baseHTTPClient';
+} from './baseHTTPClient.js';
 
 export interface AlgodTokenHeader {
   'X-Algo-API-Token': string;

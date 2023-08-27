@@ -1,4 +1,4 @@
-import Algodv2 from './client/v2/algod/algod';
+import Algodv2 from './client/v2/algod/algod.js';
 
 /**
  * Wait until a transaction has been confirmed or rejected by the network, or
