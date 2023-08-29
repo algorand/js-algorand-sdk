@@ -26,7 +26,7 @@ export default class GetApplicationBoxByName extends JSONRequest<
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
-    private index: number | bigint,
+    private index: number,
     name: Uint8Array
   ) {
     super(c, intDecoding);

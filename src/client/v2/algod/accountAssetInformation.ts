@@ -11,7 +11,7 @@ export default class AccountAssetInformation extends JSONRequest<
     c: HTTPClient,
     intDecoding: IntDecoding,
     private account: string,
-    private assetID: number | bigint
+    private assetID: number
   ) {
     super(c, intDecoding);
     this.account = account;

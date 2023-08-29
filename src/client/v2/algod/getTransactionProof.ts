@@ -10,7 +10,7 @@ export default class GetTransactionProof extends JSONRequest<
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
-    private round: number | bigint,
+    private round: number,
     private txID: string
   ) {
     super(c, intDecoding);

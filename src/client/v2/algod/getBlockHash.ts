@@ -9,11 +9,7 @@ export default class GetBlockHash extends JSONRequest<
 > {
   round: number | bigint;
 
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    roundNumber: number | bigint
-  ) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, roundNumber: number) {
     super(c, intDecoding);
     this.round = roundNumber;
   }

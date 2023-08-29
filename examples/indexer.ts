@@ -2,7 +2,6 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import { stringify } from 'json-bigint';
 import {
   getLocalIndexerClient,
   getLocalAccounts,
@@ -83,7 +82,7 @@ async function main() {
     .notePrefix(new TextEncoder().encode('Hello'))
     .do();
   console.log(
-    `Transactions with note prefix "Hello" ${stringify(
+    `Transactions with note prefix "Hello" ${JSON.stringify(
       txnsWithNotePrefix,
       undefined,
       2

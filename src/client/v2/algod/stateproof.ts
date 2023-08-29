@@ -4,11 +4,7 @@ import IntDecoding from '../../../types/intDecoding';
 import { StateProof as SP } from './models/types';
 
 export default class StateProof extends JSONRequest<SP, Record<string, any>> {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private round: number | bigint
-  ) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
     super(c, intDecoding);
 
     this.round = round;

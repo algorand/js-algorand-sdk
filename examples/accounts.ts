@@ -2,7 +2,6 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import { stringify } from 'json-bigint';
 import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 
@@ -102,7 +101,9 @@ async function main() {
   const acctInfo = await client.accountInformation(acct1.addr).do();
 
   console.log(
-    `Account Info: ${stringify(acctInfo)} Auth Addr: ${acctInfo['auth-addr']}`
+    `Account Info: ${JSON.stringify(acctInfo)} Auth Addr: ${
+      acctInfo['auth-addr']
+    }`
   );
   // example: ACCOUNT_REKEY
 

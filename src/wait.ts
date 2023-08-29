@@ -22,7 +22,7 @@ export async function waitForConfirmation(
   if (typeof status === 'undefined') {
     throw new Error('Unable to get node status');
   }
-  const startRound = Number(status.lastRound) + 1;
+  const startRound = status.lastRound + 1;
   let currentRound = startRound;
 
   /* eslint-disable no-await-in-loop */

@@ -13,8 +13,6 @@ const {
 } = require('cucumber');
 const express = require('express');
 const ServerMock = require('mock-http-server');
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const JSONBig = require('json-bigint');
 const getSteps = require('./steps');
 
 const cucumberPath = path.dirname(__dirname);

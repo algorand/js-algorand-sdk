@@ -21,11 +21,7 @@ export default class GetApplicationBoxes extends JSONRequest<
   BoxesResponse,
   Record<string, any>
 > {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private index: number | bigint
-  ) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
     super(c, intDecoding);
     this.index = index;
     this.query.max = 0;

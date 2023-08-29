@@ -2,7 +2,6 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const JSONBig = require('json-bigint');
 
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
@@ -77,14 +76,6 @@ function makeObject(obj) {
 
 function parseJSON(json) {
   return JSON.parse(json);
-}
-
-function parseJSONBig(json) {
-  return JSONBig.parse(json);
-}
-
-function stringifyJSONBig(obj) {
-  return JSONBig.stringify(obj);
 }
 
 // END OBJECT CREATION FUNCTIONS
@@ -1062,7 +1053,7 @@ module.exports = function getSteps(options) {
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
-        total: BigInt(parsedIssuance),
+        total: parsedIssuance,
         defaultfrozen: defaultFrozen,
         unitname: unitName,
         assetname: assetName,
@@ -1072,7 +1063,7 @@ module.exports = function getSteps(options) {
         reserveaddr: reserve,
         freezeaddr: freeze,
         clawbackaddr: clawback,
-        decimals: BigInt(decimals),
+        decimals,
       };
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -1128,7 +1119,7 @@ module.exports = function getSteps(options) {
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
-        total: BigInt(parsedIssuance),
+        total: parsedIssuance,
         defaultfrozen: defaultFrozen,
         unitname: unitName,
         assetname: assetName,
@@ -1600,8 +1591,8 @@ module.exports = function getSteps(options) {
       // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
         assert.strictEqual(
-          stringifyJSONBig(parseJSONBig(expectedMockResponse)),
-          stringifyJSONBig(this.actualMockResponse)
+          JSON.stringify(JSON.parse(expectedMockResponse)),
+          JSON.stringify(this.actualMockResponse)
         );
       } else {
         assert.deepStrictEqual(

@@ -130,6 +130,6 @@ export async function deployCalculatorApp(
     appCreateTxn.txID().toString(),
     3
   );
-  const appId = Number(result.applicationIndex);
+  const appId = result.applicationIndex;
   return appId;
 }

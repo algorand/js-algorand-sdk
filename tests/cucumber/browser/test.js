@@ -2,7 +2,6 @@
 const assert = require('assert');
 const sha512 = require('js-sha512');
 const nacl = require('tweetnacl');
-const JSONBig = require('json-bigint');
 
 window.assert = assert;
 
@@ -73,14 +72,6 @@ window.makeObject = function makeObject(obj) {
 
 window.parseJSON = function parseJSON(json) {
   return JSON.parse(json);
-};
-
-window.parseJSONBig = function parseJSONBig(json) {
-  return JSONBig.parse(json);
-};
-
-window.stringifyJSONBig = function stringifyJSONBig(obj) {
-  return JSONBig.stringify(obj);
 };
 
 window.formatIncludeAll = function formatIncludeAll(includeAll) {

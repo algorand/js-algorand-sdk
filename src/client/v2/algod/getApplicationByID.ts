@@ -7,11 +7,7 @@ export default class GetApplicationByID extends JSONRequest<
   Application,
   Record<string, any>
 > {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private index: number | bigint
-  ) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
     super(c, intDecoding);
     this.index = index;
   }
