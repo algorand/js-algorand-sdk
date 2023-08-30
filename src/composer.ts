@@ -726,7 +726,7 @@ export class AtomicTransactionComposer {
     );
     this.status = AtomicTransactionComposerStatus.COMMITTED;
 
-    const {confirmedRound} = confirmedTxnInfo;
+    const confirmedRound = Number(confirmedTxnInfo.confirmedRound);
 
     const methodResults: ABIResult[] = [];
 
