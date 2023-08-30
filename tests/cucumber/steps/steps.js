@@ -1557,7 +1557,8 @@ module.exports = function getSteps(options) {
         if (client === 'algod') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
           if (responseFormat === 'msgp') {
-            this.actualMockResponse = await this.v2Client.block(0).do();
+            const response = await this.v2Client.block(0).do();
+            this.actualMockResponse = response.get_obj_for_encoding(true);
           } else {
             this.actualMockResponse = await this.v2Client.genesis().do();
           }
