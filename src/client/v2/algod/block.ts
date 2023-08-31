@@ -1,17 +1,16 @@
 import * as encoding from '../../../encoding/encoding';
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
+import { BlockResponse } from './models/types';
 
 /**
  * block gets the block info for the given round. this call may block
  */
-export default class Block extends JSONRequest {
+export default class Block extends JSONRequest<BlockResponse, Uint8Array> {
   private round: number;
 
   constructor(c: HTTPClient, roundNumber: number) {
     super(c);
-    if (!Number.isInteger(roundNumber))
-      throw Error('roundNumber should be an integer');
     this.round = roundNumber;
     this.query = { format: 'msgpack' };
   }
@@ -21,9 +20,9 @@ export default class Block extends JSONRequest {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array) {
+  prepare(body: Uint8Array): BlockResponse {
     if (body && body.byteLength > 0) {
-      return encoding.decode(body) as Record<string, any>;
+      return BlockResponse.from_obj_for_encoding(encoding.decode(body));
     }
     return undefined;
   }

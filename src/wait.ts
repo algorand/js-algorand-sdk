@@ -1,4 +1,5 @@
 import Algodv2 from './client/v2/algod/algod';
+import { PendingTransactionResponse } from './client/v2/algod/models/types';
 
 /**
  * Wait until a transaction has been confirmed or rejected by the network, or
@@ -13,7 +14,7 @@ export async function waitForConfirmation(
   client: Algodv2,
   txid: string,
   waitRounds: number
-): Promise<Record<string, any>> {
+): Promise<PendingTransactionResponse> {
   // Wait until the transaction is confirmed or rejected, or until 'waitRounds'
   // number of rounds have passed.
 
@@ -21,7 +22,7 @@ export async function waitForConfirmation(
   if (typeof status === 'undefined') {
     throw new Error('Unable to get node status');
   }
-  const startRound = status['last-round'] + 1;
+  const startRound = Number(status.lastRound) + 1;
   let currentRound = startRound;
 
   /* eslint-disable no-await-in-loop */
@@ -30,15 +31,15 @@ export async function waitForConfirmation(
     try {
       const pendingInfo = await client.pendingTransactionInformation(txid).do();
 
-      if (pendingInfo['confirmed-round']) {
+      if (pendingInfo.confirmedRound) {
         // Got the completed Transaction
         return pendingInfo;
       }
 
-      if (pendingInfo['pool-error']) {
+      if (pendingInfo.poolError) {
         // If there was a pool error, then the transaction has been rejected
         poolError = true;
-        throw new Error(`Transaction Rejected: ${pendingInfo['pool-error']}`);
+        throw new Error(`Transaction Rejected: ${pendingInfo.poolError}`);
       }
     } catch (err) {
       // Ignore errors from PendingTransactionInformation, since it may return 404 if the algod

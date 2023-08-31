@@ -1,8 +1,12 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { Account } from './models/types';
 
-export default class AccountInformation extends JSONRequest {
+export default class AccountInformation extends JSONRequest<
+  Account,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -33,5 +37,10 @@ export default class AccountInformation extends JSONRequest {
   exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): Account {
+    return Account.from_obj_for_encoding(body);
   }
 }

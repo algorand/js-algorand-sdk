@@ -35,8 +35,8 @@ async function main() {
   // example: TRANSACTION_PAYMENT_SIGN
 
   // example: TRANSACTION_PAYMENT_SUBMIT
-  const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
-  const result = await algosdk.waitForConfirmation(algodClient, txId, 4);
+  const { txid } = await algodClient.sendRawTransaction(signedTxn).do();
+  const result = await algosdk.waitForConfirmation(algodClient, txid, 4);
   console.log(result);
   console.log(`Transaction Information: ${JSON.stringify(result.txn)}`);
   console.log(

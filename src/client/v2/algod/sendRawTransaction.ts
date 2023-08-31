@@ -1,4 +1,5 @@
 import { concatArrays } from '../../../utils/utils';
+import { PostTransactionsResponse } from './models/types';
 import HTTPClient from '../../client';
 import JSONRequest from '../jsonrequest';
 
@@ -23,7 +24,10 @@ function isByteArray(array: any): array is Uint8Array {
 /**
  * broadcasts the passed signed txns to the network
  */
-export default class SendRawTransaction extends JSONRequest {
+export default class SendRawTransaction extends JSONRequest<
+  PostTransactionsResponse,
+  Record<string, any>
+> {
   private txnBytesToPost: Uint8Array;
 
   constructor(c: HTTPClient, stxOrStxs: Uint8Array | Uint8Array[]) {
@@ -49,7 +53,17 @@ export default class SendRawTransaction extends JSONRequest {
 
   async do(headers = {}) {
     const txHeaders = setSendTransactionHeaders(headers);
-    const res = await this.c.post(this.path(), this.txnBytesToPost, txHeaders);
-    return res.body;
+    const res = await this.c.post(
+      this.path(),
+      this.txnBytesToPost,
+      null,
+      txHeaders
+    );
+    return this.prepare(res.body);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): PostTransactionsResponse {
+    return PostTransactionsResponse.from_obj_for_encoding(body);
   }
 }

@@ -17,30 +17,6 @@ import { TransactionType } from './types/transactions';
 const defaultAppId = 1380011588;
 const defaultMaxWidth = 30;
 
-// When writing the DryrunRequest object as msgpack the output needs to be the byte arrays not b64 string
-interface AppParamsWithPrograms {
-  ['approval-program']: string | Uint8Array;
-  ['clear-state-program']: string | Uint8Array;
-  ['creator']: string;
-}
-
-interface AppWithAppParams {
-  ['params']: AppParamsWithPrograms;
-}
-
-function decodePrograms(ap: AppWithAppParams): AppWithAppParams {
-  // eslint-disable-next-line no-param-reassign
-  ap.params['approval-program'] = base64ToBytes(
-    ap.params['approval-program'].toString()
-  );
-  // eslint-disable-next-line no-param-reassign
-  ap.params['clear-state-program'] = base64ToBytes(
-    ap.params['clear-state-program'].toString()
-  );
-
-  return ap;
-}
-
 /**
  * createDryrun takes an Algod Client (from algod.AlgodV2Client) and an array of Signed Transactions
  * from (transaction.SignedTransaction) and creates a DryrunRequest object with relevant balances
@@ -48,6 +24,8 @@ function decodePrograms(ap: AppWithAppParams): AppWithAppParams {
  * @param txns - the array of SignedTransaction to use for generating the DryrunRequest object
  * @param protocolVersion - the string representing the protocol version to use
  * @param latestTimestamp - the timestamp
+ * @param round - the round available to some TEAL scripts. Defaults to the current round on the network.
+ * @param sources - TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
  * @returns the DryrunRequest object constructed from the SignedTransactions passed
  */
 export async function createDryrun({
@@ -138,9 +116,8 @@ export async function createDryrun({
         .getApplicationByID(appId)
         .do()
         .then((appInfo) => {
-          const ai = decodePrograms(appInfo as AppWithAppParams);
-          appInfos.push(ai);
-          accts.push(ai.params.creator);
+          appInfos.push(appInfo);
+          accts.push(appInfo.params.creator);
         })
     );
   }
@@ -153,12 +130,6 @@ export async function createDryrun({
         .accountInformation(acct)
         .do()
         .then((acctInfo) => {
-          if ('created-apps' in acctInfo) {
-            // eslint-disable-next-line no-param-reassign
-            acctInfo['created-apps'] = acctInfo['created-apps'].map((app) =>
-              decodePrograms(app)
-            );
-          }
           acctInfos.push(acctInfo);
         })
     );

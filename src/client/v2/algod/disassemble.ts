@@ -1,5 +1,6 @@
 import { coerceToBytes } from '../../../encoding/binarydata';
 import HTTPClient from '../../client';
+import { DisassembleResponse } from './models/types';
 import JSONRequest from '../jsonrequest';
 
 /**
@@ -18,7 +19,10 @@ export function setHeaders(headers = {}) {
 /**
  * Executes disassemble
  */
-export default class Disassemble extends JSONRequest {
+export default class Disassemble extends JSONRequest<
+  DisassembleResponse,
+  Record<string, any>
+> {
   constructor(c: HTTPClient, private source: string | Uint8Array) {
     super(c);
     this.source = source;
@@ -38,9 +42,14 @@ export default class Disassemble extends JSONRequest {
     const res = await this.c.post(
       this.path(),
       coerceToBytes(this.source),
-      txHeaders,
-      this.query
+      this.query,
+      txHeaders
     );
     return res.body;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): DisassembleResponse {
+    return DisassembleResponse.from_obj_for_encoding(body);
   }
 }

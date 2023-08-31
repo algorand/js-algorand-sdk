@@ -3,7 +3,7 @@ import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
 
 export default class GetLedgerStateDelta extends JSONRequest {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: bigint) {
+  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
     super(c, intDecoding);
     this.round = round;
     this.query = { format: 'json' };

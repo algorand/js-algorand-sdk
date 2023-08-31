@@ -1,5 +1,6 @@
 import { coerceToBytes } from '../../../encoding/binarydata';
 import HTTPClient from '../../client';
+import { CompileResponse } from './models/types';
 import JSONRequest from '../jsonrequest';
 
 /**
@@ -18,7 +19,10 @@ export function setHeaders(headers = {}) {
 /**
  * Executes compile
  */
-export default class Compile extends JSONRequest {
+export default class Compile extends JSONRequest<
+  CompileResponse,
+  Record<string, any>
+> {
   constructor(c: HTTPClient, private source: string | Uint8Array) {
     super(c);
     this.source = source;
@@ -43,9 +47,14 @@ export default class Compile extends JSONRequest {
     const res = await this.c.post(
       this.path(),
       coerceToBytes(this.source),
-      txHeaders,
-      this.query
+      this.query,
+      txHeaders
     );
     return res.body;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): CompileResponse {
+    return CompileResponse.from_obj_for_encoding(body);
   }
 }

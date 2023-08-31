@@ -39,7 +39,7 @@ async function main() {
     3
   );
 
-  const assetIndex = result['asset-index'];
+  const { assetIndex } = result;
   console.log(`Asset ID created: ${assetIndex}`);
   // example: ASSET_CREATE
 
@@ -49,7 +49,7 @@ async function main() {
   console.log(`Asset Params: ${JSON.stringify(assetInfo.params)}`);
   // example: ASSET_INFO
 
-  await new Promise((f) => setTimeout(f, 5000)); // sleep to ensure indexer is caught up
+  await new Promise((f) => setTimeout(f, 45000)); // sleep to ensure indexer is caught up
 
   // example: INDEXER_LOOKUP_ASSET
   const indexer = getLocalIndexerClient();
@@ -79,7 +79,7 @@ async function main() {
     txn.txID().toString(),
     3
   );
-  console.log(`Result confirmed in round: ${configResult['confirmed-round']}`);
+  console.log(`Result confirmed in round: ${configResult.confirmedRound}`);
   // example: ASSET_CONFIG
 
   const receiver = accounts[2];

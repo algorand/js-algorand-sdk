@@ -1,8 +1,12 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { NodeStatusResponse } from './models/types';
 
-export default class StatusAfterBlock extends JSONRequest {
+export default class StatusAfterBlock extends JSONRequest<
+  NodeStatusResponse,
+  Record<string, any>
+> {
   constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
     super(c, intDecoding);
     if (!Number.isInteger(round)) throw Error('round should be an integer');
@@ -11,5 +15,10 @@ export default class StatusAfterBlock extends JSONRequest {
 
   path() {
     return `/v2/status/wait-for-block-after/${this.round}`;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): NodeStatusResponse {
+    return NodeStatusResponse.from_obj_for_encoding(body);
   }
 }

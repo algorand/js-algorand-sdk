@@ -255,8 +255,8 @@ export default class HTTPClient {
   async post(
     relativePath: string,
     data: any,
-    requestHeaders: Record<string, string> = {},
     query?: Query<any>,
+    requestHeaders: Record<string, string> = {},
     parseBody: boolean = true
   ): Promise<HTTPClientResponse> {
     const fullHeaders = {

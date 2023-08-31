@@ -1,11 +1,15 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import * as encoding from '../../../encoding/encoding';
+import { PendingTransactionsResponse } from './models/types';
 
 /**
  * pendingTransactionsInformation returns transactions that are pending in the pool
  */
-export default class PendingTransactions extends JSONRequest {
+export default class PendingTransactions extends JSONRequest<
+  PendingTransactionsResponse,
+  Uint8Array
+> {
   constructor(c: HTTPClient) {
     super(c);
     this.query.format = 'msgpack';
@@ -18,7 +22,9 @@ export default class PendingTransactions extends JSONRequest {
 
   prepare(body: Uint8Array) {
     if (body && body.byteLength > 0) {
-      return encoding.decode(body) as Record<string, any>;
+      return PendingTransactionsResponse.from_obj_for_encoding(
+        encoding.decode(body)
+      );
     }
     return undefined;
   }

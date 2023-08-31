@@ -1,8 +1,12 @@
 import JSONRequest from '../jsonrequest';
 import HTTPClient from '../../client';
 import IntDecoding from '../../../types/intDecoding';
+import { TransactionProofResponse } from './models/types';
 
-export default class GetTransactionProof extends JSONRequest {
+export default class GetTransactionProof extends JSONRequest<
+  TransactionProofResponse,
+  Record<string, any>
+> {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
@@ -39,5 +43,10 @@ export default class GetTransactionProof extends JSONRequest {
   hashType(hashType: string) {
     this.query.hashtype = hashType;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): TransactionProofResponse {
+    return TransactionProofResponse.from_obj_for_encoding(body);
   }
 }

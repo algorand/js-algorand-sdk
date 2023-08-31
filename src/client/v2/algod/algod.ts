@@ -789,7 +789,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getLedgerStateDelta(round: bigint) {
+  getLedgerStateDelta(round: number) {
     return new GetLedgerStateDelta(this.c, this.intDecoding, round);
   }
 
@@ -806,7 +806,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getTransactionGroupLedgerStateDeltasForRound(round: bigint) {
+  getTransactionGroupLedgerStateDeltasForRound(round: number) {
     return new GetTransactionGroupLedgerStateDeltasForRound(
       this.c,
       this.intDecoding,

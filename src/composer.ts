@@ -14,9 +14,9 @@ import Algodv2 from './client/v2/algod/algod';
 import {
   SimulateRequest,
   SimulateRequestTransactionGroup,
+  PendingTransactionResponse,
   SimulateResponse,
 } from './client/v2/algod/models/types';
-import { base64ToBytes } from './encoding/binarydata';
 import * as encoding from './encoding/encoding';
 import { assignGroupID } from './group';
 import { makeApplicationCallTxnFromObject } from './makeTxn';
@@ -64,7 +64,7 @@ export interface ABIResult {
   /** If the SDK was unable to decode a return value, the error will be here. */
   decodeError?: Error;
   /** The pending transaction information from the method transaction */
-  txInfo?: Record<string, any>;
+  txInfo?: PendingTransactionResponse;
 }
 
 export enum AtomicTransactionComposerStatus {
@@ -672,7 +672,7 @@ export class AtomicTransactionComposer {
         AtomicTransactionComposer.parseMethodResponse(
           method,
           methodResult,
-          pendingInfo.get_obj_for_encoding()
+          pendingInfo
         )
       );
     }
@@ -726,7 +726,7 @@ export class AtomicTransactionComposer {
     );
     this.status = AtomicTransactionComposerStatus.COMMITTED;
 
-    const confirmedRound: number = confirmedTxnInfo['confirmed-round'];
+    const confirmedRound = Number(confirmedTxnInfo.confirmedRound);
 
     const methodResults: ABIResult[] = [];
 
@@ -776,7 +776,7 @@ export class AtomicTransactionComposer {
   static parseMethodResponse(
     method: ABIMethod,
     methodResult: ABIResult,
-    pendingInfo: Record<string, any>
+    pendingInfo: PendingTransactionResponse
   ): ABIResult {
     const returnedResult: ABIResult = methodResult;
     try {
@@ -790,12 +790,7 @@ export class AtomicTransactionComposer {
             )}`
           );
         }
-        let lastLog: Uint8Array;
-        if (typeof logs[logs.length - 1] === 'string') {
-          lastLog = base64ToBytes(logs[logs.length - 1]);
-        } else {
-          lastLog = Uint8Array.from(logs[logs.length - 1]);
-        }
+        const lastLog = logs[logs.length - 1];
         if (
           lastLog.byteLength < 4 ||
           !arrayEqual(lastLog.slice(0, 4), RETURN_PREFIX)
