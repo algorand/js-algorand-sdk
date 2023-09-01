@@ -73,11 +73,11 @@ export function makeMultiSigAccountTransactionSigner(
         partialSigs.push(blob);
       }
 
-      if (partialSigs.length > 1) {
-        signed.push(mergeMultisigTransactions(partialSigs));
-      } else {
-        signed.push(partialSigs[0]);
-      }
+      // if (partialSigs.length > 1) {
+      signed.push(mergeMultisigTransactions(partialSigs));
+      // } else {
+      //   signed.push(partialSigs[0]);
+      // }
     }
 
     return Promise.resolve(signed);
