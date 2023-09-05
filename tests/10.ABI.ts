@@ -1,6 +1,16 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import {
+  ABIMethod,
+  AtomicTransactionComposer,
+  AtomicTransactionComposerStatus,
+  MultisigMetadata,
+  generateAccount,
+  makeBasicAccountTransactionSigner,
+  makeMultiSigAccountTransactionSigner,
+  makePaymentTxnWithSuggestedParams,
+} from '../src';
+import {
   ABIAddressType,
   ABIArrayDynamicType,
   ABIArrayStaticType,
@@ -8,18 +18,11 @@ import {
   ABIByteType,
   ABIStringType,
   ABITupleType,
+  ABIType,
   ABIUfixedType,
   ABIUintType,
-  ABIType,
   ABIValue,
 } from '../src/abi/abi_type';
-import {
-  AtomicTransactionComposer,
-  ABIMethod,
-  makeBasicAccountTransactionSigner,
-  generateAccount,
-  AtomicTransactionComposerStatus,
-} from '../src';
 import { decodeAddress } from '../src/encoding/address';
 
 describe('ABI type checking', () => {
@@ -533,5 +536,42 @@ describe('ABI encoding', () => {
 
     assert.deepStrictEqual(txn.appAccounts?.length, 1);
     assert.deepStrictEqual(txn.appAccounts[0], decodeAddress(foreignAcct));
+  });
+
+  it('should accept at least one signature in the multisig', () => {
+    const account1 = generateAccount();
+    const account2 = generateAccount();
+
+    // Create a multisig signer
+    const msig: MultisigMetadata = {
+      version: 1,
+      threshold: 1,
+      addrs: [account1.addr, account2.addr],
+    };
+    const sks: Uint8Array[] = [account1.sk];
+    const signer = makeMultiSigAccountTransactionSigner(msig, sks);
+
+    // Create a transaction
+    const suggestedParams = {
+      genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+      genesisID: '',
+      firstRound: 0,
+      lastRound: 1000,
+      fee: 1000,
+      flatFee: true,
+    };
+    const actualTxn = makePaymentTxnWithSuggestedParams(
+      account1.addr,
+      account2.addr,
+      1000,
+      undefined,
+      undefined,
+      suggestedParams
+    );
+
+    // A multisig with 1 signature should be accepted
+    signer([actualTxn], [0]).then((signedTxns) => {
+      assert.deepStrictEqual(signedTxns.length, 1);
+    });
   });
 });
