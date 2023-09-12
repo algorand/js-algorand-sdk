@@ -4763,9 +4763,9 @@ module.exports = function getSteps(options) {
 
   Then(
     'the simulation should succeed without any failure message',
-    async function () {
+    function () {
       for (const txnGroup of this.simulateResponse.txnGroups) {
-        assert.deepStrictEqual(undefined, txnGroup.failedMessage);
+        assert.equal(txnGroup.failureMessage, undefined);
       }
     }
   );
@@ -4878,6 +4878,31 @@ module.exports = function getSteps(options) {
     }
   );
 
+  function avmValueCheck(expectedStringLiteral, actualAvmValue) {
+    const [expectedAvmType, expectedValue] = expectedStringLiteral.split(':');
+
+    if (expectedAvmType === 'uint64') {
+      assert.equal(actualAvmValue.type, 2);
+      if (expectedValue === 0) {
+        assert.equal(actualAvmValue.uint, undefined);
+      } else {
+        assert.equal(actualAvmValue.uint, BigInt(expectedValue));
+      }
+    } else if (expectedAvmType === 'bytes') {
+      assert.equal(actualAvmValue.type, 1);
+      if (expectedValue.length === 0) {
+        assert.equal(actualAvmValue.bytes, undefined);
+      } else {
+        assert.deepStrictEqual(
+          actualAvmValue.bytes,
+          makeUint8Array(Buffer.from(expectedValue, 'base64'))
+        );
+      }
+    } else {
+      assert.fail('expectedAvmType should be either uint64 or bytes');
+    }
+  }
+
   Then(
     '{int}th unit in the {string} trace at txn-groups path {string} should add value {string} to stack, pop {int} values from stack, write value {string} to scratch slot {string}.',
     async function (
@@ -4917,25 +4942,6 @@ module.exports = function getSteps(options) {
         }
         const changeUnit = trace[unitIndexInt];
         return changeUnit;
-      };
-
-      const avmValueCheck = (stringLiteral, avmValue) => {
-        const [avmType, value] = stringLiteral.split(':');
-
-        if (avmType === 'uint64') {
-          assert.equal(avmValue.type, 2);
-          assert.ok(avmValue.uint);
-          assert.equal(avmValue.uint, BigInt(value));
-        } else if (avmType === 'bytes') {
-          assert.equal(avmValue.type, 1);
-          assert.ok(avmValue.bytes);
-          assert.deepEqual(
-            avmValue.bytes,
-            makeUint8Array(Buffer.from(value, 'base64'))
-          );
-        } else {
-          assert.fail('avmType should be either uint64 or bytes');
-        }
       };
 
       assert.ok(this.simulateResponse);
@@ -4982,8 +4988,99 @@ module.exports = function getSteps(options) {
   );
 
   Then(
+    'the current application initial {string} state should be empty.',
+    function (stateType) {
+      assert.ok(this.simulateResponse.initialStates);
+      assert.ok(this.simulateResponse.initialStates.appInitialStates);
+      let initialAppState = null;
+      let found = false;
+      for (const entry of this.simulateResponse.initialStates
+        .appInitialStates) {
+        if (entry.id !== this.currentApplicationIndex) {
+          continue;
+        }
+        initialAppState = entry;
+        found = true;
+        break;
+      }
+      assert.ok(found);
+      if (initialAppState) {
+        switch (stateType) {
+          case 'local':
+            assert.ok(!initialAppState.appLocals);
+            break;
+          case 'global':
+            assert.ok(!initialAppState.appGlobals);
+            break;
+          case 'box':
+            assert.ok(!initialAppState.appBoxes);
+            break;
+          default:
+            assert.fail('state type can only be one of local/global/box');
+        }
+      }
+    }
+  );
+
+  Then(
+    'the current application initial {string} state should contain {string} with value {string}.',
+    function (stateType, keyStr, valueStr) {
+      assert.ok(this.simulateResponse.initialStates);
+      assert.ok(this.simulateResponse.initialStates.appInitialStates);
+      let initialAppState = null;
+      for (const entry of this.simulateResponse.initialStates
+        .appInitialStates) {
+        if (entry.id !== this.currentApplicationIndex) {
+          continue;
+        }
+        initialAppState = entry;
+        break;
+      }
+      assert.ok(initialAppState);
+      let kvs = null;
+      switch (stateType) {
+        case 'local':
+          assert.ok(initialAppState.appLocals);
+          assert.strictEqual(initialAppState.appLocals.length, 1);
+          assert.ok(initialAppState.appLocals[0].account);
+          algosdk.decodeAddress(initialAppState.appLocals[0].account);
+          assert.ok(initialAppState.appLocals[0].kvs);
+          kvs = initialAppState.appLocals[0].kvs;
+          break;
+        case 'global':
+          assert.ok(initialAppState.appGlobals);
+          assert.ok(!initialAppState.appGlobals.account);
+          assert.ok(initialAppState.appGlobals.kvs);
+          kvs = initialAppState.appGlobals.kvs;
+          break;
+        case 'box':
+          assert.ok(initialAppState.appBoxes);
+          assert.ok(!initialAppState.appBoxes.account);
+          assert.ok(initialAppState.appBoxes.kvs);
+          kvs = initialAppState.appBoxes.kvs;
+          break;
+        default:
+          assert.fail('state type can only be one of local/global/box');
+      }
+      assert.ok(kvs.length > 0);
+
+      const binaryKey = Buffer.from(keyStr);
+
+      let actualValue = null;
+      for (const kv of kvs) {
+        if (binaryKey.equals(kv.key)) {
+          actualValue = kv.value;
+          break;
+        }
+      }
+      assert.ok(actualValue);
+      avmValueCheck(valueStr, actualValue);
+    }
+  );
+
+  Then(
     '{int}th unit in the {string} trace at txn-groups path {string} should write to {string} state {string} with new value {string}.',
-    async function (
+    function (
       unitIndex,
       traceType,
       txnGroupPath,
@@ -5026,29 +5123,6 @@ module.exports = function getSteps(options) {
         return changeUnit;
       };
 
-      const avmValueCheck = (stringLiteral, avmValue) => {
-        const [avmType, value] = stringLiteral.split(':');
-
-        if (avmType === 'uint64') {
-          assert.equal(avmValue.type, 2);
-          assert.ok(avmValue.uint);
-          assert.equal(avmValue.uint, BigInt(value));
-        } else if (avmType === 'bytes') {
-          assert.equal(avmValue.type, 1);
-          if (value.length > 0) {
-            assert.ok(avmValue.bytes);
-            assert.deepStrictEqual(
-              avmValue.bytes,
-              makeUint8Array(Buffer.from(value, 'base64'))
-            );
-          } else {
-            assert.equal(avmValue.bytes, undefined);
-          }
-        } else {
-          assert.fail('avmType should be either uint64 or bytes');
-        }
-      };
-
       assert.ok(this.simulateResponse);
 
       const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
@@ -5083,7 +5157,7 @@ module.exports = function getSteps(options) {
 
   Then(
     '{string} hash at txn-groups path {string} should be {string}.',
-    async function (traceType, txnGroupPath, b64ProgHash) {
+    function (traceType, txnGroupPath, b64ProgHash) {
       const txnGroupPathSplit = txnGroupPath
         .split(',')
         .filter((r) => r !== '')
