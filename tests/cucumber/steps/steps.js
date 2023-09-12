@@ -5068,7 +5068,7 @@ module.exports = function getSteps(options) {
 
       let actualValue = null;
       for (const kv of kvs) {
-        if (binaryKey.equals(kv.key)) {
+        if (binaryKey.equals(Buffer.from(kv.key))) {
           actualValue = kv.value;
           break;
         }
