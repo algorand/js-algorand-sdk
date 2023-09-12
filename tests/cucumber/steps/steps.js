@@ -3028,6 +3028,8 @@ module.exports = function getSteps(options) {
         return algosdk.OnApplicationComplete.NoOpOC;
       case 'update':
         return algosdk.OnApplicationComplete.UpdateApplicationOC;
+      case 'create-and-optin':
+        return algosdk.OnApplicationComplete.OptInOC;
       case 'optin':
         return algosdk.OnApplicationComplete.OptInOC;
       case 'delete':
@@ -3369,7 +3371,10 @@ module.exports = function getSteps(options) {
       extraPages,
       boxesCommaSeparatedString
     ) {
-      if (operationString === 'create') {
+      if (
+        operationString === 'create' ||
+        operationString === 'create-and-optin'
+      ) {
         this.currentApplicationIndex = 0;
       }
 
@@ -4964,7 +4969,6 @@ module.exports = function getSteps(options) {
         }
 
         let trace = traces.approvalProgramTrace;
-
         if (traceTypeStr === 'approval') {
           trace = traces.approvalProgramTrace;
         } else if (traceTypeStr === 'clearState') {
@@ -4972,6 +4976,12 @@ module.exports = function getSteps(options) {
         } else if (traceTypeStr === 'logic') {
           trace = traces.logicSigTrace;
         }
+
+        assert.ok(
+          unitIndexInt < trace.length,
+          `unitIndexInt (${unitIndexInt}) < trace.length (${trace.length})`
+        );
+
         const changeUnit = trace[unitIndexInt];
         return changeUnit;
       };
@@ -4999,23 +5009,31 @@ module.exports = function getSteps(options) {
 
       const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
       assert.ok(changeUnit.stateChanges);
+      assert.strictEqual(changeUnit.stateChanges.length, 1);
+      const stateChange = changeUnit.stateChanges[0];
 
       if (stateType === 'global') {
-        assert.deepEqual(changeUnit.stateChanges[0].appStateType, 'g');
+        assert.strictEqual(stateChange.appStateType, 'g');
+        assert.ok(!stateChange.account);
       } else if (stateType === 'local') {
-        assert.deepEqual(changeUnit.stateChanges[0].appStateType, 'l');
+        assert.strictEqual(stateChange.appStateType, 'l');
+        assert.ok(stateChange.account);
+        algosdk.decodeAddress(stateChange.account);
       } else if (stateType === 'box') {
-        assert.deepEqual(changeUnit.stateChanges[0].appStateType, 'b');
+        assert.strictEqual(stateChange.appStateType, 'b');
+        assert.ok(!stateChange.account);
       } else {
         assert.fail('state type can only be one of local/global/box');
       }
 
-      assert.deepEqual(
-        changeUnit.stateChanges[0].key,
-        new Uint8Array(Buffer.from(stateName))
+      assert.strictEqual(stateChange.operation, 'w');
+
+      assert.deepStrictEqual(
+        stateChange.key,
+        makeUint8Array(Buffer.from(stateName))
       );
-      assert.ok(changeUnit.stateChanges[0].newValue);
-      avmValueCheck(newValue, changeUnit.stateChanges[0].newValue);
+      assert.ok(stateChange.newValue);
+      avmValueCheck(newValue, stateChange.newValue);
     }
   );
 
@@ -5047,7 +5065,7 @@ module.exports = function getSteps(options) {
       } else if (traceType === 'logic') {
         hash = traces.logicSigHash;
       }
-      assert.deepEqual(
+      assert.deepStrictEqual(
         hash,
         makeUint8Array(Buffer.from(b64ProgHash, 'base64'))
       );

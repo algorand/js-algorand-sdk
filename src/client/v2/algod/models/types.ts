@@ -785,6 +785,136 @@ export class Application extends BaseModel {
 }
 
 /**
+ * An application's initial global/local/box states that were accessed during
+ * simulation.
+ */
+export class ApplicationInitialStates extends BaseModel {
+  /**
+   * Application index.
+   */
+  public id: number | bigint;
+
+  /**
+   * An application's global/local/box state.
+   */
+  public appBoxes?: ApplicationKVStorage;
+
+  /**
+   * An application's global/local/box state.
+   */
+  public appGlobals?: ApplicationKVStorage;
+
+  /**
+   * An application's initial local states tied to different accounts.
+   */
+  public appLocals?: ApplicationKVStorage[];
+
+  /**
+   * Creates a new `ApplicationInitialStates` object.
+   * @param id - Application index.
+   * @param appBoxes - An application's global/local/box state.
+   * @param appGlobals - An application's global/local/box state.
+   * @param appLocals - An application's initial local states tied to different accounts.
+   */
+  constructor({
+    id,
+    appBoxes,
+    appGlobals,
+    appLocals,
+  }: {
+    id: number | bigint;
+    appBoxes?: ApplicationKVStorage;
+    appGlobals?: ApplicationKVStorage;
+    appLocals?: ApplicationKVStorage[];
+  }) {
+    super();
+    this.id = id;
+    this.appBoxes = appBoxes;
+    this.appGlobals = appGlobals;
+    this.appLocals = appLocals;
+
+    this.attribute_map = {
+      id: 'id',
+      appBoxes: 'app-boxes',
+      appGlobals: 'app-globals',
+      appLocals: 'app-locals',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationInitialStates {
+    /* eslint-disable dot-notation */
+    if (typeof data['id'] === 'undefined')
+      throw new Error(`Response is missing required field 'id': ${data}`);
+    return new ApplicationInitialStates({
+      id: data['id'],
+      appBoxes:
+        typeof data['app-boxes'] !== 'undefined'
+          ? ApplicationKVStorage.from_obj_for_encoding(data['app-boxes'])
+          : undefined,
+      appGlobals:
+        typeof data['app-globals'] !== 'undefined'
+          ? ApplicationKVStorage.from_obj_for_encoding(data['app-globals'])
+          : undefined,
+      appLocals:
+        typeof data['app-locals'] !== 'undefined'
+          ? data['app-locals'].map(ApplicationKVStorage.from_obj_for_encoding)
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * An application's global/local/box state.
+ */
+export class ApplicationKVStorage extends BaseModel {
+  /**
+   * Key-Value pairs representing application states.
+   */
+  public kvs: AvmKeyValue[];
+
+  /**
+   * The address of the account associated with the local state.
+   */
+  public account?: string;
+
+  /**
+   * Creates a new `ApplicationKVStorage` object.
+   * @param kvs - Key-Value pairs representing application states.
+   * @param account - The address of the account associated with the local state.
+   */
+  constructor({ kvs, account }: { kvs: AvmKeyValue[]; account?: string }) {
+    super();
+    this.kvs = kvs;
+    this.account = account;
+
+    this.attribute_map = {
+      kvs: 'kvs',
+      account: 'account',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationKVStorage {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['kvs']))
+      throw new Error(
+        `Response is missing required array field 'kvs': ${data}`
+      );
+    return new ApplicationKVStorage({
+      kvs: data['kvs'].map(AvmKeyValue.from_obj_for_encoding),
+      account: data['account'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * References an account's local state for an application.
  */
 export class ApplicationLocalReference extends BaseModel {
@@ -1588,6 +1718,51 @@ export class AssetParams extends BaseModel {
       unitNameB64: data['unit-name-b64'],
       url: data['url'],
       urlB64: data['url-b64'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Represents an AVM key-value pair in an application store.
+ */
+export class AvmKeyValue extends BaseModel {
+  public key: Uint8Array;
+
+  /**
+   * Represents an AVM value.
+   */
+  public value: AvmValue;
+
+  /**
+   * Creates a new `AvmKeyValue` object.
+   * @param key -
+   * @param value - Represents an AVM value.
+   */
+  constructor({ key, value }: { key: string | Uint8Array; value: AvmValue }) {
+    super();
+    this.key =
+      typeof key === 'string'
+        ? new Uint8Array(Buffer.from(key, 'base64'))
+        : key;
+    this.value = value;
+
+    this.attribute_map = {
+      key: 'key',
+      value: 'value',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AvmKeyValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['key'] === 'undefined')
+      throw new Error(`Response is missing required field 'key': ${data}`);
+    if (typeof data['value'] === 'undefined')
+      throw new Error(`Response is missing required field 'value': ${data}`);
+    return new AvmKeyValue({
+      key: data['key'],
+      value: AvmValue.from_obj_for_encoding(data['value']),
     });
     /* eslint-enable dot-notation */
   }
@@ -3760,6 +3935,51 @@ export class ScratchChange extends BaseModel {
 }
 
 /**
+ * Initial states of resources that were accessed during simulation.
+ */
+export class SimulateInitialStates extends BaseModel {
+  /**
+   * The initial states of accessed application before simulation. The order of this
+   * array is arbitrary.
+   */
+  public appInitialStates?: ApplicationInitialStates[];
+
+  /**
+   * Creates a new `SimulateInitialStates` object.
+   * @param appInitialStates - The initial states of accessed application before simulation. The order of this
+   * array is arbitrary.
+   */
+  constructor({
+    appInitialStates,
+  }: {
+    appInitialStates?: ApplicationInitialStates[];
+  }) {
+    super();
+    this.appInitialStates = appInitialStates;
+
+    this.attribute_map = {
+      appInitialStates: 'app-initial-states',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulateInitialStates {
+    /* eslint-disable dot-notation */
+    return new SimulateInitialStates({
+      appInitialStates:
+        typeof data['app-initial-states'] !== 'undefined'
+          ? data['app-initial-states'].map(
+              ApplicationInitialStates.from_obj_for_encoding
+            )
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Request type for simulation endpoint.
  */
 export class SimulateRequest extends BaseModel {
@@ -3795,6 +4015,14 @@ export class SimulateRequest extends BaseModel {
   public extraOpcodeBudget?: number | bigint;
 
   /**
+   * If provided, specifies the round preceding the simulation. State changes through
+   * this round will be used to run this simulation. Usually only the 4 most recent
+   * rounds will be available (controlled by the node config value MaxAcctLookback).
+   * If not specified, defaults to the latest available round.
+   */
+  public round?: number | bigint;
+
+  /**
    * Creates a new `SimulateRequest` object.
    * @param txnGroups - The transaction groups to simulate.
    * @param allowEmptySignatures - Allows transactions without signatures to be simulated as if they had correct
@@ -3803,6 +4031,10 @@ export class SimulateRequest extends BaseModel {
    * @param allowUnnamedResources - Allows access to unnamed resources during simulation.
    * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
+   * @param round - If provided, specifies the round preceding the simulation. State changes through
+   * this round will be used to run this simulation. Usually only the 4 most recent
+   * rounds will be available (controlled by the node config value MaxAcctLookback).
+   * If not specified, defaults to the latest available round.
    */
   constructor({
     txnGroups,
@@ -3811,6 +4043,7 @@ export class SimulateRequest extends BaseModel {
     allowUnnamedResources,
     execTraceConfig,
     extraOpcodeBudget,
+    round,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
@@ -3818,6 +4051,7 @@ export class SimulateRequest extends BaseModel {
     allowUnnamedResources?: boolean;
     execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
+    round?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
@@ -3826,6 +4060,7 @@ export class SimulateRequest extends BaseModel {
     this.allowUnnamedResources = allowUnnamedResources;
     this.execTraceConfig = execTraceConfig;
     this.extraOpcodeBudget = extraOpcodeBudget;
+    this.round = round;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
@@ -3834,6 +4069,7 @@ export class SimulateRequest extends BaseModel {
       allowUnnamedResources: 'allow-unnamed-resources',
       execTraceConfig: 'exec-trace-config',
       extraOpcodeBudget: 'extra-opcode-budget',
+      round: 'round',
     };
   }
 
@@ -3856,6 +4092,7 @@ export class SimulateRequest extends BaseModel {
           ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
           : undefined,
       extraOpcodeBudget: data['extra-opcode-budget'],
+      round: data['round'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3932,6 +4169,11 @@ export class SimulateResponse extends BaseModel {
   public execTraceConfig?: SimulateTraceConfig;
 
   /**
+   * Initial states of resources that were accessed during simulation.
+   */
+  public initialStates?: SimulateInitialStates;
+
+  /**
    * Creates a new `SimulateResponse` object.
    * @param lastRound - The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -3941,6 +4183,7 @@ export class SimulateResponse extends BaseModel {
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
    * @param execTraceConfig - An object that configures simulation execution trace.
+   * @param initialStates - Initial states of resources that were accessed during simulation.
    */
   constructor({
     lastRound,
@@ -3948,12 +4191,14 @@ export class SimulateResponse extends BaseModel {
     version,
     evalOverrides,
     execTraceConfig,
+    initialStates,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
     evalOverrides?: SimulationEvalOverrides;
     execTraceConfig?: SimulateTraceConfig;
+    initialStates?: SimulateInitialStates;
   }) {
     super();
     this.lastRound = lastRound;
@@ -3961,6 +4206,7 @@ export class SimulateResponse extends BaseModel {
     this.version = version;
     this.evalOverrides = evalOverrides;
     this.execTraceConfig = execTraceConfig;
+    this.initialStates = initialStates;
 
     this.attribute_map = {
       lastRound: 'last-round',
@@ -3968,6 +4214,7 @@ export class SimulateResponse extends BaseModel {
       version: 'version',
       evalOverrides: 'eval-overrides',
       execTraceConfig: 'exec-trace-config',
+      initialStates: 'initial-states',
     };
   }
 
@@ -3999,6 +4246,10 @@ export class SimulateResponse extends BaseModel {
       execTraceConfig:
         typeof data['exec-trace-config'] !== 'undefined'
           ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
+          : undefined,
+      initialStates:
+        typeof data['initial-states'] !== 'undefined'
+          ? SimulateInitialStates.from_obj_for_encoding(data['initial-states'])
           : undefined,
     });
     /* eslint-enable dot-notation */
