@@ -3860,7 +3860,8 @@ module.exports = function getSteps(options) {
     localBytes,
     localInts,
     extraPages,
-    note
+    note,
+    boxesCommaSeparatedString
   ) {
     // open and load in approval program
     let approvalProgramBytes;
@@ -3915,6 +3916,11 @@ module.exports = function getSteps(options) {
       methodArgs.push(typeToDecode.decode(encodedArg));
     }
 
+    let boxes;
+    if (boxesCommaSeparatedString !== '') {
+      boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
+    }
+
     this.composer.addMethodCall({
       appID: this.currentApplicationIndex,
       method: this.method,
@@ -3930,6 +3936,7 @@ module.exports = function getSteps(options) {
       numLocalByteSlices: localBytes,
       extraPages,
       note,
+      boxes,
       signer: this.transactionSigner,
     });
   }
@@ -3943,6 +3950,8 @@ module.exports = function getSteps(options) {
         onComplete,
         '',
         '',
+        undefined,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -3965,7 +3974,29 @@ module.exports = function getSteps(options) {
         undefined,
         undefined,
         undefined,
+        undefined,
+        undefined,
         undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, boxes {string}.',
+    async function (onComplete, boxesCommaSeparatedString) {
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        boxesCommaSeparatedString
       );
     }
   );
@@ -3992,7 +4023,9 @@ module.exports = function getSteps(options) {
         parseInt(globalInts, 10),
         parseInt(localBytes, 10),
         parseInt(localInts, 10),
-        parseInt(extraPages, 10)
+        parseInt(extraPages, 10),
+        undefined,
+        undefined
       );
     }
   );
@@ -4019,7 +4052,9 @@ module.exports = function getSteps(options) {
         parseInt(globalInts, 10),
         parseInt(localBytes, 10),
         parseInt(localInts, 10),
-        parseInt(extraPages, 10)
+        parseInt(extraPages, 10),
+        undefined,
+        undefined
       );
     }
   );
@@ -4034,6 +4069,8 @@ module.exports = function getSteps(options) {
         onCompletion,
         approvalProg,
         clearProg,
+        undefined,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -4053,6 +4090,8 @@ module.exports = function getSteps(options) {
         onCompletion,
         approvalProg,
         clearProg,
+        undefined,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -4081,7 +4120,8 @@ module.exports = function getSteps(options) {
         undefined,
         undefined,
         undefined,
-        nonce
+        nonce,
+        undefined
       );
     }
   );
@@ -4995,11 +5035,15 @@ module.exports = function getSteps(options) {
           assert.equal(avmValue.uint, BigInt(value));
         } else if (avmType === 'bytes') {
           assert.equal(avmValue.type, 1);
-          assert.ok(avmValue.bytes);
-          assert.deepEqual(
-            avmValue.bytes,
-            makeUint8Array(Buffer.from(value, 'base64'))
-          );
+          if (value.length > 0) {
+            assert.ok(avmValue.bytes);
+            assert.deepStrictEqual(
+              avmValue.bytes,
+              makeUint8Array(Buffer.from(value, 'base64'))
+            );
+          } else {
+            assert.equal(avmValue.bytes, undefined);
+          }
         } else {
           assert.fail('avmType should be either uint64 or bytes');
         }
