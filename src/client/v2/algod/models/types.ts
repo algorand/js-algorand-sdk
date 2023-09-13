@@ -785,6 +785,183 @@ export class Application extends BaseModel {
 }
 
 /**
+ * An application's initial global/local/box states that were accessed during
+ * simulation.
+ */
+export class ApplicationInitialStates extends BaseModel {
+  /**
+   * Application index.
+   */
+  public id: number | bigint;
+
+  /**
+   * An application's global/local/box state.
+   */
+  public appBoxes?: ApplicationKVStorage;
+
+  /**
+   * An application's global/local/box state.
+   */
+  public appGlobals?: ApplicationKVStorage;
+
+  /**
+   * An application's initial local states tied to different accounts.
+   */
+  public appLocals?: ApplicationKVStorage[];
+
+  /**
+   * Creates a new `ApplicationInitialStates` object.
+   * @param id - Application index.
+   * @param appBoxes - An application's global/local/box state.
+   * @param appGlobals - An application's global/local/box state.
+   * @param appLocals - An application's initial local states tied to different accounts.
+   */
+  constructor({
+    id,
+    appBoxes,
+    appGlobals,
+    appLocals,
+  }: {
+    id: number | bigint;
+    appBoxes?: ApplicationKVStorage;
+    appGlobals?: ApplicationKVStorage;
+    appLocals?: ApplicationKVStorage[];
+  }) {
+    super();
+    this.id = id;
+    this.appBoxes = appBoxes;
+    this.appGlobals = appGlobals;
+    this.appLocals = appLocals;
+
+    this.attribute_map = {
+      id: 'id',
+      appBoxes: 'app-boxes',
+      appGlobals: 'app-globals',
+      appLocals: 'app-locals',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationInitialStates {
+    /* eslint-disable dot-notation */
+    if (typeof data['id'] === 'undefined')
+      throw new Error(`Response is missing required field 'id': ${data}`);
+    return new ApplicationInitialStates({
+      id: data['id'],
+      appBoxes:
+        typeof data['app-boxes'] !== 'undefined'
+          ? ApplicationKVStorage.from_obj_for_encoding(data['app-boxes'])
+          : undefined,
+      appGlobals:
+        typeof data['app-globals'] !== 'undefined'
+          ? ApplicationKVStorage.from_obj_for_encoding(data['app-globals'])
+          : undefined,
+      appLocals:
+        typeof data['app-locals'] !== 'undefined'
+          ? data['app-locals'].map(ApplicationKVStorage.from_obj_for_encoding)
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * An application's global/local/box state.
+ */
+export class ApplicationKVStorage extends BaseModel {
+  /**
+   * Key-Value pairs representing application states.
+   */
+  public kvs: AvmKeyValue[];
+
+  /**
+   * The address of the account associated with the local state.
+   */
+  public account?: string;
+
+  /**
+   * Creates a new `ApplicationKVStorage` object.
+   * @param kvs - Key-Value pairs representing application states.
+   * @param account - The address of the account associated with the local state.
+   */
+  constructor({ kvs, account }: { kvs: AvmKeyValue[]; account?: string }) {
+    super();
+    this.kvs = kvs;
+    this.account = account;
+
+    this.attribute_map = {
+      kvs: 'kvs',
+      account: 'account',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationKVStorage {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['kvs']))
+      throw new Error(
+        `Response is missing required array field 'kvs': ${data}`
+      );
+    return new ApplicationKVStorage({
+      kvs: data['kvs'].map(AvmKeyValue.from_obj_for_encoding),
+      account: data['account'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * References an account's local state for an application.
+ */
+export class ApplicationLocalReference extends BaseModel {
+  /**
+   * Address of the account with the local state.
+   */
+  public account: string;
+
+  /**
+   * Application ID of the local state application.
+   */
+  public app: number | bigint;
+
+  /**
+   * Creates a new `ApplicationLocalReference` object.
+   * @param account - Address of the account with the local state.
+   * @param app - Application ID of the local state application.
+   */
+  constructor({ account, app }: { account: string; app: number | bigint }) {
+    super();
+    this.account = account;
+    this.app = app;
+
+    this.attribute_map = {
+      account: 'account',
+      app: 'app',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationLocalReference {
+    /* eslint-disable dot-notation */
+    if (typeof data['account'] === 'undefined')
+      throw new Error(`Response is missing required field 'account': ${data}`);
+    if (typeof data['app'] === 'undefined')
+      throw new Error(`Response is missing required field 'app': ${data}`);
+    return new ApplicationLocalReference({
+      account: data['account'],
+      app: data['app'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Stores local state associated with an application.
  */
 export class ApplicationLocalState extends BaseModel {
@@ -985,6 +1162,108 @@ export class ApplicationParams extends BaseModel {
 }
 
 /**
+ * An operation against an application's global/local/box state.
+ */
+export class ApplicationStateOperation extends BaseModel {
+  /**
+   * Type of application state. Value `g` is **global state**, `l` is **local
+   * state**, `b` is **boxes**.
+   */
+  public appStateType: string;
+
+  /**
+   * The key (name) of the global/local/box state.
+   */
+  public key: Uint8Array;
+
+  /**
+   * Operation type. Value `w` is **write**, `d` is **delete**.
+   */
+  public operation: string;
+
+  /**
+   * For local state changes, the address of the account associated with the local
+   * state.
+   */
+  public account?: string;
+
+  /**
+   * Represents an AVM value.
+   */
+  public newValue?: AvmValue;
+
+  /**
+   * Creates a new `ApplicationStateOperation` object.
+   * @param appStateType - Type of application state. Value `g` is **global state**, `l` is **local
+   * state**, `b` is **boxes**.
+   * @param key - The key (name) of the global/local/box state.
+   * @param operation - Operation type. Value `w` is **write**, `d` is **delete**.
+   * @param account - For local state changes, the address of the account associated with the local
+   * state.
+   * @param newValue - Represents an AVM value.
+   */
+  constructor({
+    appStateType,
+    key,
+    operation,
+    account,
+    newValue,
+  }: {
+    appStateType: string;
+    key: string | Uint8Array;
+    operation: string;
+    account?: string;
+    newValue?: AvmValue;
+  }) {
+    super();
+    this.appStateType = appStateType;
+    this.key =
+      typeof key === 'string'
+        ? new Uint8Array(Buffer.from(key, 'base64'))
+        : key;
+    this.operation = operation;
+    this.account = account;
+    this.newValue = newValue;
+
+    this.attribute_map = {
+      appStateType: 'app-state-type',
+      key: 'key',
+      operation: 'operation',
+      account: 'account',
+      newValue: 'new-value',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): ApplicationStateOperation {
+    /* eslint-disable dot-notation */
+    if (typeof data['app-state-type'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'app-state-type': ${data}`
+      );
+    if (typeof data['key'] === 'undefined')
+      throw new Error(`Response is missing required field 'key': ${data}`);
+    if (typeof data['operation'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'operation': ${data}`
+      );
+    return new ApplicationStateOperation({
+      appStateType: data['app-state-type'],
+      key: data['key'],
+      operation: data['operation'],
+      account: data['account'],
+      newValue:
+        typeof data['new-value'] !== 'undefined'
+          ? AvmValue.from_obj_for_encoding(data['new-value'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Specifies maximums on the number of each type that may be stored.
  */
 export class ApplicationStateSchema extends BaseModel {
@@ -1159,6 +1438,53 @@ export class AssetHolding extends BaseModel {
       amount: data['amount'],
       assetId: data['asset-id'],
       isFrozen: data['is-frozen'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * References an asset held by an account.
+ */
+export class AssetHoldingReference extends BaseModel {
+  /**
+   * Address of the account holding the asset.
+   */
+  public account: string;
+
+  /**
+   * Asset ID of the holding.
+   */
+  public asset: number | bigint;
+
+  /**
+   * Creates a new `AssetHoldingReference` object.
+   * @param account - Address of the account holding the asset.
+   * @param asset - Asset ID of the holding.
+   */
+  constructor({ account, asset }: { account: string; asset: number | bigint }) {
+    super();
+    this.account = account;
+    this.asset = asset;
+
+    this.attribute_map = {
+      account: 'account',
+      asset: 'asset',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AssetHoldingReference {
+    /* eslint-disable dot-notation */
+    if (typeof data['account'] === 'undefined')
+      throw new Error(`Response is missing required field 'account': ${data}`);
+    if (typeof data['asset'] === 'undefined')
+      throw new Error(`Response is missing required field 'asset': ${data}`);
+    return new AssetHoldingReference({
+      account: data['account'],
+      asset: data['asset'],
     });
     /* eslint-enable dot-notation */
   }
@@ -1398,6 +1724,51 @@ export class AssetParams extends BaseModel {
 }
 
 /**
+ * Represents an AVM key-value pair in an application store.
+ */
+export class AvmKeyValue extends BaseModel {
+  public key: Uint8Array;
+
+  /**
+   * Represents an AVM value.
+   */
+  public value: AvmValue;
+
+  /**
+   * Creates a new `AvmKeyValue` object.
+   * @param key -
+   * @param value - Represents an AVM value.
+   */
+  constructor({ key, value }: { key: string | Uint8Array; value: AvmValue }) {
+    super();
+    this.key =
+      typeof key === 'string'
+        ? new Uint8Array(Buffer.from(key, 'base64'))
+        : key;
+    this.value = value;
+
+    this.attribute_map = {
+      key: 'key',
+      value: 'value',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AvmKeyValue {
+    /* eslint-disable dot-notation */
+    if (typeof data['key'] === 'undefined')
+      throw new Error(`Response is missing required field 'key': ${data}`);
+    if (typeof data['value'] === 'undefined')
+      throw new Error(`Response is missing required field 'value': ${data}`);
+    return new AvmKeyValue({
+      key: data['key'],
+      value: AvmValue.from_obj_for_encoding(data['value']),
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Represents an AVM value.
  */
 export class AvmValue extends BaseModel {
@@ -1548,6 +1919,42 @@ export class BlockResponse extends BaseModel {
 }
 
 /**
+ * Top level transaction IDs in a block.
+ */
+export class BlockTxidsResponse extends BaseModel {
+  /**
+   * Block transaction IDs.
+   */
+  public blocktxids: string[];
+
+  /**
+   * Creates a new `BlockTxidsResponse` object.
+   * @param blocktxids - Block transaction IDs.
+   */
+  constructor({ blocktxids }: { blocktxids: string[] }) {
+    super();
+    this.blocktxids = blocktxids;
+
+    this.attribute_map = {
+      blocktxids: 'blockTxids',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockTxidsResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['blockTxids']))
+      throw new Error(
+        `Response is missing required array field 'blockTxids': ${data}`
+      );
+    return new BlockTxidsResponse({
+      blocktxids: data['blockTxids'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Box name and its content.
  */
 export class Box extends BaseModel {
@@ -1648,6 +2055,60 @@ export class BoxDescriptor extends BaseModel {
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
     return new BoxDescriptor({
+      name: data['name'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * References a box of an application.
+ */
+export class BoxReference extends BaseModel {
+  /**
+   * Application ID which this box belongs to
+   */
+  public app: number | bigint;
+
+  /**
+   * Base64 encoded box name
+   */
+  public name: Uint8Array;
+
+  /**
+   * Creates a new `BoxReference` object.
+   * @param app - Application ID which this box belongs to
+   * @param name - Base64 encoded box name
+   */
+  constructor({
+    app,
+    name,
+  }: {
+    app: number | bigint;
+    name: string | Uint8Array;
+  }) {
+    super();
+    this.app = app;
+    this.name =
+      typeof name === 'string'
+        ? new Uint8Array(Buffer.from(name, 'base64'))
+        : name;
+
+    this.attribute_map = {
+      app: 'app',
+      name: 'name',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BoxReference {
+    /* eslint-disable dot-notation */
+    if (typeof data['app'] === 'undefined')
+      throw new Error(`Response is missing required field 'app': ${data}`);
+    if (typeof data['name'] === 'undefined')
+      throw new Error(`Response is missing required field 'name': ${data}`);
+    return new BoxReference({
+      app: data['app'],
       name: data['name'],
     });
     /* eslint-enable dot-notation */
@@ -3474,6 +3935,51 @@ export class ScratchChange extends BaseModel {
 }
 
 /**
+ * Initial states of resources that were accessed during simulation.
+ */
+export class SimulateInitialStates extends BaseModel {
+  /**
+   * The initial states of accessed application before simulation. The order of this
+   * array is arbitrary.
+   */
+  public appInitialStates?: ApplicationInitialStates[];
+
+  /**
+   * Creates a new `SimulateInitialStates` object.
+   * @param appInitialStates - The initial states of accessed application before simulation. The order of this
+   * array is arbitrary.
+   */
+  constructor({
+    appInitialStates,
+  }: {
+    appInitialStates?: ApplicationInitialStates[];
+  }) {
+    super();
+    this.appInitialStates = appInitialStates;
+
+    this.attribute_map = {
+      appInitialStates: 'app-initial-states',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulateInitialStates {
+    /* eslint-disable dot-notation */
+    return new SimulateInitialStates({
+      appInitialStates:
+        typeof data['app-initial-states'] !== 'undefined'
+          ? data['app-initial-states'].map(
+              ApplicationInitialStates.from_obj_for_encoding
+            )
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Request type for simulation endpoint.
  */
 export class SimulateRequest extends BaseModel {
@@ -3483,7 +3989,7 @@ export class SimulateRequest extends BaseModel {
   public txnGroups: SimulateRequestTransactionGroup[];
 
   /**
-   * Allow transactions without signatures to be simulated as if they had correct
+   * Allows transactions without signatures to be simulated as if they had correct
    * signatures.
    */
   public allowEmptySignatures?: boolean;
@@ -3492,6 +3998,11 @@ export class SimulateRequest extends BaseModel {
    * Lifts limits on log opcode usage during simulation.
    */
   public allowMoreLogging?: boolean;
+
+  /**
+   * Allows access to unnamed resources during simulation.
+   */
+  public allowUnnamedResources?: boolean;
 
   /**
    * An object that configures simulation execution trace.
@@ -3504,40 +4015,61 @@ export class SimulateRequest extends BaseModel {
   public extraOpcodeBudget?: number | bigint;
 
   /**
+   * If provided, specifies the round preceding the simulation. State changes through
+   * this round will be used to run this simulation. Usually only the 4 most recent
+   * rounds will be available (controlled by the node config value MaxAcctLookback).
+   * If not specified, defaults to the latest available round.
+   */
+  public round?: number | bigint;
+
+  /**
    * Creates a new `SimulateRequest` object.
    * @param txnGroups - The transaction groups to simulate.
-   * @param allowEmptySignatures - Allow transactions without signatures to be simulated as if they had correct
+   * @param allowEmptySignatures - Allows transactions without signatures to be simulated as if they had correct
    * signatures.
    * @param allowMoreLogging - Lifts limits on log opcode usage during simulation.
+   * @param allowUnnamedResources - Allows access to unnamed resources during simulation.
    * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
+   * @param round - If provided, specifies the round preceding the simulation. State changes through
+   * this round will be used to run this simulation. Usually only the 4 most recent
+   * rounds will be available (controlled by the node config value MaxAcctLookback).
+   * If not specified, defaults to the latest available round.
    */
   constructor({
     txnGroups,
     allowEmptySignatures,
     allowMoreLogging,
+    allowUnnamedResources,
     execTraceConfig,
     extraOpcodeBudget,
+    round,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
     allowEmptySignatures?: boolean;
     allowMoreLogging?: boolean;
+    allowUnnamedResources?: boolean;
     execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
+    round?: number | bigint;
   }) {
     super();
     this.txnGroups = txnGroups;
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowMoreLogging = allowMoreLogging;
+    this.allowUnnamedResources = allowUnnamedResources;
     this.execTraceConfig = execTraceConfig;
     this.extraOpcodeBudget = extraOpcodeBudget;
+    this.round = round;
 
     this.attribute_map = {
       txnGroups: 'txn-groups',
       allowEmptySignatures: 'allow-empty-signatures',
       allowMoreLogging: 'allow-more-logging',
+      allowUnnamedResources: 'allow-unnamed-resources',
       execTraceConfig: 'exec-trace-config',
       extraOpcodeBudget: 'extra-opcode-budget',
+      round: 'round',
     };
   }
 
@@ -3554,11 +4086,13 @@ export class SimulateRequest extends BaseModel {
       ),
       allowEmptySignatures: data['allow-empty-signatures'],
       allowMoreLogging: data['allow-more-logging'],
+      allowUnnamedResources: data['allow-unnamed-resources'],
       execTraceConfig:
         typeof data['exec-trace-config'] !== 'undefined'
           ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
           : undefined,
       extraOpcodeBudget: data['extra-opcode-budget'],
+      round: data['round'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3635,6 +4169,11 @@ export class SimulateResponse extends BaseModel {
   public execTraceConfig?: SimulateTraceConfig;
 
   /**
+   * Initial states of resources that were accessed during simulation.
+   */
+  public initialStates?: SimulateInitialStates;
+
+  /**
    * Creates a new `SimulateResponse` object.
    * @param lastRound - The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -3644,6 +4183,7 @@ export class SimulateResponse extends BaseModel {
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
    * @param execTraceConfig - An object that configures simulation execution trace.
+   * @param initialStates - Initial states of resources that were accessed during simulation.
    */
   constructor({
     lastRound,
@@ -3651,12 +4191,14 @@ export class SimulateResponse extends BaseModel {
     version,
     evalOverrides,
     execTraceConfig,
+    initialStates,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
     version: number | bigint;
     evalOverrides?: SimulationEvalOverrides;
     execTraceConfig?: SimulateTraceConfig;
+    initialStates?: SimulateInitialStates;
   }) {
     super();
     this.lastRound = lastRound;
@@ -3664,6 +4206,7 @@ export class SimulateResponse extends BaseModel {
     this.version = version;
     this.evalOverrides = evalOverrides;
     this.execTraceConfig = execTraceConfig;
+    this.initialStates = initialStates;
 
     this.attribute_map = {
       lastRound: 'last-round',
@@ -3671,6 +4214,7 @@ export class SimulateResponse extends BaseModel {
       version: 'version',
       evalOverrides: 'eval-overrides',
       execTraceConfig: 'exec-trace-config',
+      initialStates: 'initial-states',
     };
   }
 
@@ -3703,6 +4247,10 @@ export class SimulateResponse extends BaseModel {
         typeof data['exec-trace-config'] !== 'undefined'
           ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
           : undefined,
+      initialStates:
+        typeof data['initial-states'] !== 'undefined'
+          ? SimulateInitialStates.from_obj_for_encoding(data['initial-states'])
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3730,31 +4278,43 @@ export class SimulateTraceConfig extends BaseModel {
   public stackChange?: boolean;
 
   /**
+   * A boolean option enabling returning application state changes (global, local,
+   * and box changes) with the execution trace during simulation.
+   */
+  public stateChange?: boolean;
+
+  /**
    * Creates a new `SimulateTraceConfig` object.
    * @param enable - A boolean option for opting in execution trace features simulation endpoint.
    * @param scratchChange - A boolean option enabling returning scratch slot changes together with execution
    * trace during simulation.
    * @param stackChange - A boolean option enabling returning stack changes together with execution trace
    * during simulation.
+   * @param stateChange - A boolean option enabling returning application state changes (global, local,
+   * and box changes) with the execution trace during simulation.
    */
   constructor({
     enable,
     scratchChange,
     stackChange,
+    stateChange,
   }: {
     enable?: boolean;
     scratchChange?: boolean;
     stackChange?: boolean;
+    stateChange?: boolean;
   }) {
     super();
     this.enable = enable;
     this.scratchChange = scratchChange;
     this.stackChange = stackChange;
+    this.stateChange = stateChange;
 
     this.attribute_map = {
       enable: 'enable',
       scratchChange: 'scratch-change',
       stackChange: 'stack-change',
+      stateChange: 'state-change',
     };
   }
 
@@ -3765,6 +4325,7 @@ export class SimulateTraceConfig extends BaseModel {
       enable: data['enable'],
       scratchChange: data['scratch-change'],
       stackChange: data['stack-change'],
+      stateChange: data['state-change'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3804,6 +4365,19 @@ export class SimulateTransactionGroupResult extends BaseModel {
   public failureMessage?: string;
 
   /**
+   * These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
+   */
+  public unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
+
+  /**
    * Creates a new `SimulateTransactionGroupResult` object.
    * @param txnResults - Simulation result for individual transactions
    * @param appBudgetAdded - Total budget added during execution of app calls in the transaction group.
@@ -3814,6 +4388,15 @@ export class SimulateTransactionGroupResult extends BaseModel {
    * indicate deeper inner transactions.
    * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
    * happened
+   * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
    */
   constructor({
     txnResults,
@@ -3821,12 +4404,14 @@ export class SimulateTransactionGroupResult extends BaseModel {
     appBudgetConsumed,
     failedAt,
     failureMessage,
+    unnamedResourcesAccessed,
   }: {
     txnResults: SimulateTransactionResult[];
     appBudgetAdded?: number | bigint;
     appBudgetConsumed?: number | bigint;
     failedAt?: (number | bigint)[];
     failureMessage?: string;
+    unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     super();
     this.txnResults = txnResults;
@@ -3834,6 +4419,7 @@ export class SimulateTransactionGroupResult extends BaseModel {
     this.appBudgetConsumed = appBudgetConsumed;
     this.failedAt = failedAt;
     this.failureMessage = failureMessage;
+    this.unnamedResourcesAccessed = unnamedResourcesAccessed;
 
     this.attribute_map = {
       txnResults: 'txn-results',
@@ -3841,6 +4427,7 @@ export class SimulateTransactionGroupResult extends BaseModel {
       appBudgetConsumed: 'app-budget-consumed',
       failedAt: 'failed-at',
       failureMessage: 'failure-message',
+      unnamedResourcesAccessed: 'unnamed-resources-accessed',
     };
   }
 
@@ -3861,6 +4448,12 @@ export class SimulateTransactionGroupResult extends BaseModel {
       appBudgetConsumed: data['app-budget-consumed'],
       failedAt: data['failed-at'],
       failureMessage: data['failure-message'],
+      unnamedResourcesAccessed:
+        typeof data['unnamed-resources-accessed'] !== 'undefined'
+          ? SimulateUnnamedResourcesAccessed.from_obj_for_encoding(
+              data['unnamed-resources-accessed']
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3894,6 +4487,19 @@ export class SimulateTransactionResult extends BaseModel {
   public logicSigBudgetConsumed?: number | bigint;
 
   /**
+   * These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
+   */
+  public unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
+
+  /**
    * Creates a new `SimulateTransactionResult` object.
    * @param txnResult - Details about a pending transaction. If the transaction was recently confirmed,
    * includes confirmation details like the round and reward details.
@@ -3902,29 +4508,42 @@ export class SimulateTransactionResult extends BaseModel {
    * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
    * call trace in a recursive way.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
+   * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
+   * caused failure, but were allowed in simulation. Depending on where this object
+   * is in the response, the unnamed resources it contains may or may not qualify for
+   * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+   * the resources do qualify, but if this is a field in SimulateTransactionResult,
+   * they do not qualify. In order to make this group valid for actual submission,
+   * resources that qualify for group sharing can be made available by any
+   * transaction of the group; otherwise, resources must be placed in the same
+   * transaction which accessed them.
    */
   constructor({
     txnResult,
     appBudgetConsumed,
     execTrace,
     logicSigBudgetConsumed,
+    unnamedResourcesAccessed,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
     execTrace?: SimulationTransactionExecTrace;
     logicSigBudgetConsumed?: number | bigint;
+    unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     super();
     this.txnResult = txnResult;
     this.appBudgetConsumed = appBudgetConsumed;
     this.execTrace = execTrace;
     this.logicSigBudgetConsumed = logicSigBudgetConsumed;
+    this.unnamedResourcesAccessed = unnamedResourcesAccessed;
 
     this.attribute_map = {
       txnResult: 'txn-result',
       appBudgetConsumed: 'app-budget-consumed',
       execTrace: 'exec-trace',
       logicSigBudgetConsumed: 'logic-sig-budget-consumed',
+      unnamedResourcesAccessed: 'unnamed-resources-accessed',
     };
   }
 
@@ -3949,6 +4568,147 @@ export class SimulateTransactionResult extends BaseModel {
             )
           : undefined,
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
+      unnamedResourcesAccessed:
+        typeof data['unnamed-resources-accessed'] !== 'undefined'
+          ? SimulateUnnamedResourcesAccessed.from_obj_for_encoding(
+              data['unnamed-resources-accessed']
+            )
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * These are resources that were accessed by this group that would normally have
+ * caused failure, but were allowed in simulation. Depending on where this object
+ * is in the response, the unnamed resources it contains may or may not qualify for
+ * group resource sharing. If this is a field in SimulateTransactionGroupResult,
+ * the resources do qualify, but if this is a field in SimulateTransactionResult,
+ * they do not qualify. In order to make this group valid for actual submission,
+ * resources that qualify for group sharing can be made available by any
+ * transaction of the group; otherwise, resources must be placed in the same
+ * transaction which accessed them.
+ */
+export class SimulateUnnamedResourcesAccessed extends BaseModel {
+  /**
+   * The unnamed accounts that were referenced. The order of this array is arbitrary.
+   */
+  public accounts?: string[];
+
+  /**
+   * The unnamed application local states that were referenced. The order of this
+   * array is arbitrary.
+   */
+  public appLocals?: ApplicationLocalReference[];
+
+  /**
+   * The unnamed applications that were referenced. The order of this array is
+   * arbitrary.
+   */
+  public apps?: (number | bigint)[];
+
+  /**
+   * The unnamed asset holdings that were referenced. The order of this array is
+   * arbitrary.
+   */
+  public assetHoldings?: AssetHoldingReference[];
+
+  /**
+   * The unnamed assets that were referenced. The order of this array is arbitrary.
+   */
+  public assets?: (number | bigint)[];
+
+  /**
+   * The unnamed boxes that were referenced. The order of this array is arbitrary.
+   */
+  public boxes?: BoxReference[];
+
+  /**
+   * The number of extra box references used to increase the IO budget. This is in
+   * addition to the references defined in the input transaction group and any
+   * referenced to unnamed boxes.
+   */
+  public extraBoxRefs?: number | bigint;
+
+  /**
+   * Creates a new `SimulateUnnamedResourcesAccessed` object.
+   * @param accounts - The unnamed accounts that were referenced. The order of this array is arbitrary.
+   * @param appLocals - The unnamed application local states that were referenced. The order of this
+   * array is arbitrary.
+   * @param apps - The unnamed applications that were referenced. The order of this array is
+   * arbitrary.
+   * @param assetHoldings - The unnamed asset holdings that were referenced. The order of this array is
+   * arbitrary.
+   * @param assets - The unnamed assets that were referenced. The order of this array is arbitrary.
+   * @param boxes - The unnamed boxes that were referenced. The order of this array is arbitrary.
+   * @param extraBoxRefs - The number of extra box references used to increase the IO budget. This is in
+   * addition to the references defined in the input transaction group and any
+   * referenced to unnamed boxes.
+   */
+  constructor({
+    accounts,
+    appLocals,
+    apps,
+    assetHoldings,
+    assets,
+    boxes,
+    extraBoxRefs,
+  }: {
+    accounts?: string[];
+    appLocals?: ApplicationLocalReference[];
+    apps?: (number | bigint)[];
+    assetHoldings?: AssetHoldingReference[];
+    assets?: (number | bigint)[];
+    boxes?: BoxReference[];
+    extraBoxRefs?: number | bigint;
+  }) {
+    super();
+    this.accounts = accounts;
+    this.appLocals = appLocals;
+    this.apps = apps;
+    this.assetHoldings = assetHoldings;
+    this.assets = assets;
+    this.boxes = boxes;
+    this.extraBoxRefs = extraBoxRefs;
+
+    this.attribute_map = {
+      accounts: 'accounts',
+      appLocals: 'app-locals',
+      apps: 'apps',
+      assetHoldings: 'asset-holdings',
+      assets: 'assets',
+      boxes: 'boxes',
+      extraBoxRefs: 'extra-box-refs',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): SimulateUnnamedResourcesAccessed {
+    /* eslint-disable dot-notation */
+    return new SimulateUnnamedResourcesAccessed({
+      accounts: data['accounts'],
+      appLocals:
+        typeof data['app-locals'] !== 'undefined'
+          ? data['app-locals'].map(
+              ApplicationLocalReference.from_obj_for_encoding
+            )
+          : undefined,
+      apps: data['apps'],
+      assetHoldings:
+        typeof data['asset-holdings'] !== 'undefined'
+          ? data['asset-holdings'].map(
+              AssetHoldingReference.from_obj_for_encoding
+            )
+          : undefined,
+      assets: data['assets'],
+      boxes:
+        typeof data['boxes'] !== 'undefined'
+          ? data['boxes'].map(BoxReference.from_obj_for_encoding)
+          : undefined,
+      extraBoxRefs: data['extra-box-refs'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3965,6 +4725,11 @@ export class SimulationEvalOverrides extends BaseModel {
    * were properly signed.
    */
   public allowEmptySignatures?: boolean;
+
+  /**
+   * If true, allows access to unnamed resources during simulation.
+   */
+  public allowUnnamedResources?: boolean;
 
   /**
    * The extra opcode budget added to each transaction group during simulation
@@ -3985,29 +4750,34 @@ export class SimulationEvalOverrides extends BaseModel {
    * Creates a new `SimulationEvalOverrides` object.
    * @param allowEmptySignatures - If true, transactions without signatures are allowed and simulated as if they
    * were properly signed.
+   * @param allowUnnamedResources - If true, allows access to unnamed resources during simulation.
    * @param extraOpcodeBudget - The extra opcode budget added to each transaction group during simulation
    * @param maxLogCalls - The maximum log calls one can make during simulation
    * @param maxLogSize - The maximum byte number to log during simulation
    */
   constructor({
     allowEmptySignatures,
+    allowUnnamedResources,
     extraOpcodeBudget,
     maxLogCalls,
     maxLogSize,
   }: {
     allowEmptySignatures?: boolean;
+    allowUnnamedResources?: boolean;
     extraOpcodeBudget?: number | bigint;
     maxLogCalls?: number | bigint;
     maxLogSize?: number | bigint;
   }) {
     super();
     this.allowEmptySignatures = allowEmptySignatures;
+    this.allowUnnamedResources = allowUnnamedResources;
     this.extraOpcodeBudget = extraOpcodeBudget;
     this.maxLogCalls = maxLogCalls;
     this.maxLogSize = maxLogSize;
 
     this.attribute_map = {
       allowEmptySignatures: 'allow-empty-signatures',
+      allowUnnamedResources: 'allow-unnamed-resources',
       extraOpcodeBudget: 'extra-opcode-budget',
       maxLogCalls: 'max-log-calls',
       maxLogSize: 'max-log-size',
@@ -4021,6 +4791,7 @@ export class SimulationEvalOverrides extends BaseModel {
     /* eslint-disable dot-notation */
     return new SimulationEvalOverrides({
       allowEmptySignatures: data['allow-empty-signatures'],
+      allowUnnamedResources: data['allow-unnamed-resources'],
       extraOpcodeBudget: data['extra-opcode-budget'],
       maxLogCalls: data['max-log-calls'],
       maxLogSize: data['max-log-size'],
@@ -4059,12 +4830,18 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
   public stackPopCount?: number | bigint;
 
   /**
+   * The operations against the current application's states.
+   */
+  public stateChanges?: ApplicationStateOperation[];
+
+  /**
    * Creates a new `SimulationOpcodeTraceUnit` object.
    * @param pc - The program counter of the current opcode being evaluated.
    * @param scratchChanges - The writes into scratch slots.
    * @param spawnedInners - The indexes of the traces for inner transactions spawned by this opcode, if any.
    * @param stackAdditions - The values added by this opcode to the stack.
    * @param stackPopCount - The number of deleted stack values by this opcode.
+   * @param stateChanges - The operations against the current application's states.
    */
   constructor({
     pc,
@@ -4072,12 +4849,14 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
     spawnedInners,
     stackAdditions,
     stackPopCount,
+    stateChanges,
   }: {
     pc: number | bigint;
     scratchChanges?: ScratchChange[];
     spawnedInners?: (number | bigint)[];
     stackAdditions?: AvmValue[];
     stackPopCount?: number | bigint;
+    stateChanges?: ApplicationStateOperation[];
   }) {
     super();
     this.pc = pc;
@@ -4085,6 +4864,7 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
     this.spawnedInners = spawnedInners;
     this.stackAdditions = stackAdditions;
     this.stackPopCount = stackPopCount;
+    this.stateChanges = stateChanges;
 
     this.attribute_map = {
       pc: 'pc',
@@ -4092,6 +4872,7 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
       spawnedInners: 'spawned-inners',
       stackAdditions: 'stack-additions',
       stackPopCount: 'stack-pop-count',
+      stateChanges: 'state-changes',
     };
   }
 
@@ -4114,6 +4895,12 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
           ? data['stack-additions'].map(AvmValue.from_obj_for_encoding)
           : undefined,
       stackPopCount: data['stack-pop-count'],
+      stateChanges:
+        typeof data['state-changes'] !== 'undefined'
+          ? data['state-changes'].map(
+              ApplicationStateOperation.from_obj_for_encoding
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -4125,9 +4912,19 @@ export class SimulationOpcodeTraceUnit extends BaseModel {
  */
 export class SimulationTransactionExecTrace extends BaseModel {
   /**
+   * SHA512_256 hash digest of the approval program executed in transaction.
+   */
+  public approvalProgramHash?: Uint8Array;
+
+  /**
    * Program trace that contains a trace of opcode effects in an approval program.
    */
   public approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+
+  /**
+   * SHA512_256 hash digest of the clear state program executed in transaction.
+   */
+  public clearStateProgramHash?: Uint8Array;
 
   /**
    * Program trace that contains a trace of opcode effects in a clear state program.
@@ -4141,39 +4938,68 @@ export class SimulationTransactionExecTrace extends BaseModel {
   public innerTrace?: SimulationTransactionExecTrace[];
 
   /**
+   * SHA512_256 hash digest of the logic sig executed in transaction.
+   */
+  public logicSigHash?: Uint8Array;
+
+  /**
    * Program trace that contains a trace of opcode effects in a logic sig.
    */
   public logicSigTrace?: SimulationOpcodeTraceUnit[];
 
   /**
    * Creates a new `SimulationTransactionExecTrace` object.
+   * @param approvalProgramHash - SHA512_256 hash digest of the approval program executed in transaction.
    * @param approvalProgramTrace - Program trace that contains a trace of opcode effects in an approval program.
+   * @param clearStateProgramHash - SHA512_256 hash digest of the clear state program executed in transaction.
    * @param clearStateProgramTrace - Program trace that contains a trace of opcode effects in a clear state program.
    * @param innerTrace - An array of SimulationTransactionExecTrace representing the execution trace of
    * any inner transactions executed.
+   * @param logicSigHash - SHA512_256 hash digest of the logic sig executed in transaction.
    * @param logicSigTrace - Program trace that contains a trace of opcode effects in a logic sig.
    */
   constructor({
+    approvalProgramHash,
     approvalProgramTrace,
+    clearStateProgramHash,
     clearStateProgramTrace,
     innerTrace,
+    logicSigHash,
     logicSigTrace,
   }: {
+    approvalProgramHash?: string | Uint8Array;
     approvalProgramTrace?: SimulationOpcodeTraceUnit[];
+    clearStateProgramHash?: string | Uint8Array;
     clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
     innerTrace?: SimulationTransactionExecTrace[];
+    logicSigHash?: string | Uint8Array;
     logicSigTrace?: SimulationOpcodeTraceUnit[];
   }) {
     super();
+    this.approvalProgramHash =
+      typeof approvalProgramHash === 'string'
+        ? new Uint8Array(Buffer.from(approvalProgramHash, 'base64'))
+        : approvalProgramHash;
     this.approvalProgramTrace = approvalProgramTrace;
+    this.clearStateProgramHash =
+      typeof clearStateProgramHash === 'string'
+        ? new Uint8Array(Buffer.from(clearStateProgramHash, 'base64'))
+        : clearStateProgramHash;
     this.clearStateProgramTrace = clearStateProgramTrace;
     this.innerTrace = innerTrace;
+    this.logicSigHash =
+      typeof logicSigHash === 'string'
+        ? new Uint8Array(Buffer.from(logicSigHash, 'base64'))
+        : logicSigHash;
     this.logicSigTrace = logicSigTrace;
 
     this.attribute_map = {
+      approvalProgramHash: 'approval-program-hash',
       approvalProgramTrace: 'approval-program-trace',
+      clearStateProgramHash: 'clear-state-program-hash',
       clearStateProgramTrace: 'clear-state-program-trace',
       innerTrace: 'inner-trace',
+      logicSigHash: 'logic-sig-hash',
       logicSigTrace: 'logic-sig-trace',
     };
   }
@@ -4184,12 +5010,14 @@ export class SimulationTransactionExecTrace extends BaseModel {
   ): SimulationTransactionExecTrace {
     /* eslint-disable dot-notation */
     return new SimulationTransactionExecTrace({
+      approvalProgramHash: data['approval-program-hash'],
       approvalProgramTrace:
         typeof data['approval-program-trace'] !== 'undefined'
           ? data['approval-program-trace'].map(
               SimulationOpcodeTraceUnit.from_obj_for_encoding
             )
           : undefined,
+      clearStateProgramHash: data['clear-state-program-hash'],
       clearStateProgramTrace:
         typeof data['clear-state-program-trace'] !== 'undefined'
           ? data['clear-state-program-trace'].map(
@@ -4202,6 +5030,7 @@ export class SimulationTransactionExecTrace extends BaseModel {
               SimulationTransactionExecTrace.from_obj_for_encoding
             )
           : undefined,
+      logicSigHash: data['logic-sig-hash'],
       logicSigTrace:
         typeof data['logic-sig-trace'] !== 'undefined'
           ? data['logic-sig-trace'].map(
