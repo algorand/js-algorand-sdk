@@ -49,7 +49,6 @@ async function main() {
     {
       from: addr,
       suggestedParams,
-      nonParticipation: true,
     }
   );
   console.log(offlineKeyReg.get_obj_for_encoding());

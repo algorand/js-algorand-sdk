@@ -130,6 +130,13 @@ export interface SuggestedParams {
   genesisHash: string;
 }
 
+export type SuggestedParamsWithMinFee = SuggestedParams & {
+  /**
+   * Minimum fee (not per byte) required for the transaction to be confirmed
+   */
+  minFee: number;
+};
+
 /**
  * A grouping of the app ID and name of the box in an Uint8Array
  */

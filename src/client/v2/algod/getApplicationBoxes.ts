@@ -13,7 +13,7 @@ import { BoxesResponse } from './models/types';
  * const boxNames = boxesResponse.boxes.map(box => box.name);
  * ```
  *
- * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2/#get-v2applicationsapplication-idboxes)
+ * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idboxes)
  * @param index - The application ID to look up.
  * @category GET
  */
