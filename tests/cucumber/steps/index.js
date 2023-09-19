@@ -226,7 +226,7 @@ AfterAll(async () => {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'OPTIONS, POST, GET',
+  'Access-Control-Allow-Methods': 'OPTIONS, POST, GET, DELETE',
   'Access-Control-Allow-Headers':
     'X-Algo-API-Token, X-Indexer-API-Token, Content-Type',
   'Access-Control-Max-Age': 2592000,
@@ -315,13 +315,21 @@ function setupMockServerForPaths(mockServer) {
       status: 200,
     },
   });
+  mockServer.on({
+    method: 'DELETE',
+    path: '*',
+    reply: {
+      headers: corsHeaders,
+      status: 200,
+    },
+  });
 }
 
-function getMockServerRequestUrls(mockServer) {
+function getMockServerRequestUrlsMethods(mockServer) {
   return mockServer
     .requests()
     .filter((req) => req.method !== 'OPTIONS') // ignore cors preflight requests from the browser
-    .map((req) => req.url);
+    .map((req) => ({ method: req.method, url: req.url }));
 }
 
 function isFunction(functionToCheck) {
@@ -470,10 +478,10 @@ for (const name of Object.keys(steps.then)) {
   if (name === 'expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrls(
+      const algodSeenRequests = getMockServerRequestUrlsMethods(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrls(
+      const indexerSeenRequests = getMockServerRequestUrlsMethods(
         indexerMockServerPathRecorder
       );
       return fn.call(
@@ -483,13 +491,30 @@ for (const name of Object.keys(steps.then)) {
         expectedRequestPath
       );
     });
+  } else if (name === 'expect the request to be {string} {string}') {
+    Then(name, function (expectedRequestType, expectedRequestPath) {
+      // get all requests the mockservers have seen since reset
+      const algodSeenRequests = getMockServerRequestUrlsMethods(
+        algodMockServerPathRecorder
+      );
+      const indexerSeenRequests = getMockServerRequestUrlsMethods(
+        indexerMockServerPathRecorder
+      );
+      return fn.call(
+        this,
+        algodSeenRequests,
+        indexerSeenRequests,
+        expectedRequestType,
+        expectedRequestPath
+      );
+    });
   } else if (name === 'we expect the path used to be {string}') {
     Then(name, function (expectedRequestPath) {
       // get all requests the mockservers have seen since reset
-      const algodSeenRequests = getMockServerRequestUrls(
+      const algodSeenRequests = getMockServerRequestUrlsMethods(
         algodMockServerPathRecorder
       );
-      const indexerSeenRequests = getMockServerRequestUrls(
+      const indexerSeenRequests = getMockServerRequestUrlsMethods(
         indexerMockServerPathRecorder
       );
       return fn.call(
