@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:focal
 
 # install wget, gnupg2, make
 RUN apt-get update -qqy \
