@@ -5252,7 +5252,7 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a GetBlockTxids call against round {int}',
+    'we make a GetBlockTxids call against block number {int}',
     async function (round) {
       await this.v2Client.getBlockTxids(round).do();
     }
