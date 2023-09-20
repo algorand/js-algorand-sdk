@@ -10,6 +10,7 @@ import Genesis from './genesis';
 import GetAssetByID from './getAssetByID';
 import GetApplicationByID from './getApplicationByID';
 import GetBlockHash from './getBlockHash';
+import GetBlockTxids from './getBlockTxids';
 import GetApplicationBoxByName from './getApplicationBoxByName';
 import GetApplicationBoxes from './getApplicationBoxes';
 import HealthCheck from './healthCheck';
@@ -236,6 +237,23 @@ export default class AlgodClient extends ServiceClient {
    */
   getBlockHash(roundNumber: number) {
     return new GetBlockHash(this.c, this.intDecoding, roundNumber);
+  }
+
+  /**
+   * Get the top level transaction IDs for the block on the given round.
+   *
+   * #### Example
+   * ```typescript
+   * const roundNumber = 18038133;
+   * const block = await algodClient.getBlockTxids(roundNumber).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2blocksroundtxids)
+   * @param roundNumber - The round number of the block to get.
+   * @category GET
+   */
+  getBlockTxids(roundNumber: number) {
+    return new GetBlockTxids(this.c, this.intDecoding, roundNumber);
   }
 
   /**

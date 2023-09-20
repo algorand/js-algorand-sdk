@@ -5251,6 +5251,13 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'we make a GetBlockTxids call against round {int}',
+    async function (round) {
+      await this.v2Client.getBlockTxids(round).do();
+    }
+  );
+
   if (!options.ignoreReturn) {
     return steps;
   }
