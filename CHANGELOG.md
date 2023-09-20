@@ -1,3 +1,28 @@
+# v2.6.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v2.6.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- signer: Only merge multisigs if there are more than 1 by @acfunk in https://github.com/algorand/js-algorand-sdk/pull/822
+
+### New Features
+
+- Simulate: Application State Change and Hash of Executed Bytecode by @ahangsu in https://github.com/algorand/js-algorand-sdk/pull/818
+
+### Enhancements
+
+- node: Update to node 18, drop support for node 16 by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/827
+- api: Regenerate client. by @winder in https://github.com/algorand/js-algorand-sdk/pull/826
+
+## New Contributors
+
+- @acfunk made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/822
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.5.0...v2.6.0
+
 # v2.5.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.5.0 -->
