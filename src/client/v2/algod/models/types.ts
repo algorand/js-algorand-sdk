@@ -3,10 +3,10 @@
  */
 
 /* eslint-disable no-use-before-define */
-import { Buffer } from 'buffer';
-import BaseModel from '../../basemodel';
-import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
+import { base64ToBytes } from '../../../../encoding/binarydata';
 import BlockHeader from '../../../../types/blockHeader';
+import { EncodedSignedTransaction } from '../../../../types/transactions/encoded';
+import BaseModel from '../../basemodel';
 
 /**
  * Account information at a given round.
@@ -622,18 +622,18 @@ export class AccountParticipation extends BaseModel {
     super();
     this.selectionParticipationKey =
       typeof selectionParticipationKey === 'string'
-        ? new Uint8Array(Buffer.from(selectionParticipationKey, 'base64'))
+        ? base64ToBytes(selectionParticipationKey)
         : selectionParticipationKey;
     this.voteFirstValid = voteFirstValid;
     this.voteKeyDilution = voteKeyDilution;
     this.voteLastValid = voteLastValid;
     this.voteParticipationKey =
       typeof voteParticipationKey === 'string'
-        ? new Uint8Array(Buffer.from(voteParticipationKey, 'base64'))
+        ? base64ToBytes(voteParticipationKey)
         : voteParticipationKey;
     this.stateProofKey =
       typeof stateProofKey === 'string'
-        ? new Uint8Array(Buffer.from(stateProofKey, 'base64'))
+        ? base64ToBytes(stateProofKey)
         : stateProofKey;
 
     this.attribute_map = {
@@ -1099,11 +1099,11 @@ export class ApplicationParams extends BaseModel {
     super();
     this.approvalProgram =
       typeof approvalProgram === 'string'
-        ? new Uint8Array(Buffer.from(approvalProgram, 'base64'))
+        ? base64ToBytes(approvalProgram)
         : approvalProgram;
     this.clearStateProgram =
       typeof clearStateProgram === 'string'
-        ? new Uint8Array(Buffer.from(clearStateProgram, 'base64'))
+        ? base64ToBytes(clearStateProgram)
         : clearStateProgram;
     this.creator = creator;
     this.extraProgramPages = extraProgramPages;
@@ -1217,10 +1217,7 @@ export class ApplicationStateOperation extends BaseModel {
   }) {
     super();
     this.appStateType = appStateType;
-    this.key =
-      typeof key === 'string'
-        ? new Uint8Array(Buffer.from(key, 'base64'))
-        : key;
+    this.key = typeof key === 'string' ? base64ToBytes(key) : key;
     this.operation = operation;
     this.account = account;
     this.newValue = newValue;
@@ -1655,24 +1652,19 @@ export class AssetParams extends BaseModel {
     this.manager = manager;
     this.metadataHash =
       typeof metadataHash === 'string'
-        ? new Uint8Array(Buffer.from(metadataHash, 'base64'))
+        ? base64ToBytes(metadataHash)
         : metadataHash;
     this.name = name;
     this.nameB64 =
-      typeof nameB64 === 'string'
-        ? new Uint8Array(Buffer.from(nameB64, 'base64'))
-        : nameB64;
+      typeof nameB64 === 'string' ? base64ToBytes(nameB64) : nameB64;
     this.reserve = reserve;
     this.unitName = unitName;
     this.unitNameB64 =
       typeof unitNameB64 === 'string'
-        ? new Uint8Array(Buffer.from(unitNameB64, 'base64'))
+        ? base64ToBytes(unitNameB64)
         : unitNameB64;
     this.url = url;
-    this.urlB64 =
-      typeof urlB64 === 'string'
-        ? new Uint8Array(Buffer.from(urlB64, 'base64'))
-        : urlB64;
+    this.urlB64 = typeof urlB64 === 'string' ? base64ToBytes(urlB64) : urlB64;
 
     this.attribute_map = {
       creator: 'creator',
@@ -1741,10 +1733,7 @@ export class AvmKeyValue extends BaseModel {
    */
   constructor({ key, value }: { key: string | Uint8Array; value: AvmValue }) {
     super();
-    this.key =
-      typeof key === 'string'
-        ? new Uint8Array(Buffer.from(key, 'base64'))
-        : key;
+    this.key = typeof key === 'string' ? base64ToBytes(key) : key;
     this.value = value;
 
     this.attribute_map = {
@@ -1804,10 +1793,7 @@ export class AvmValue extends BaseModel {
   }) {
     super();
     this.type = type;
-    this.bytes =
-      typeof bytes === 'string'
-        ? new Uint8Array(Buffer.from(bytes, 'base64'))
-        : bytes;
+    this.bytes = typeof bytes === 'string' ? base64ToBytes(bytes) : bytes;
     this.uint = uint;
 
     this.attribute_map = {
@@ -1989,15 +1975,9 @@ export class Box extends BaseModel {
     value: string | Uint8Array;
   }) {
     super();
-    this.name =
-      typeof name === 'string'
-        ? new Uint8Array(Buffer.from(name, 'base64'))
-        : name;
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
     this.round = round;
-    this.value =
-      typeof value === 'string'
-        ? new Uint8Array(Buffer.from(value, 'base64'))
-        : value;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
 
     this.attribute_map = {
       name: 'name',
@@ -2039,10 +2019,7 @@ export class BoxDescriptor extends BaseModel {
    */
   constructor({ name }: { name: string | Uint8Array }) {
     super();
-    this.name =
-      typeof name === 'string'
-        ? new Uint8Array(Buffer.from(name, 'base64'))
-        : name;
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
 
     this.attribute_map = {
       name: 'name',
@@ -2089,10 +2066,7 @@ export class BoxReference extends BaseModel {
   }) {
     super();
     this.app = app;
-    this.name =
-      typeof name === 'string'
-        ? new Uint8Array(Buffer.from(name, 'base64'))
-        : name;
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
 
     this.attribute_map = {
       app: 'app',
@@ -3069,14 +3043,8 @@ export class KvDelta extends BaseModel {
     value?: string | Uint8Array;
   }) {
     super();
-    this.key =
-      typeof key === 'string'
-        ? new Uint8Array(Buffer.from(key, 'base64'))
-        : key;
-    this.value =
-      typeof value === 'string'
-        ? new Uint8Array(Buffer.from(value, 'base64'))
-        : value;
+    this.key = typeof key === 'string' ? base64ToBytes(key) : key;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
 
     this.attribute_map = {
       key: 'key',
@@ -3179,10 +3147,7 @@ export class LightBlockHeaderProof extends BaseModel {
   }) {
     super();
     this.index = index;
-    this.proof =
-      typeof proof === 'string'
-        ? new Uint8Array(Buffer.from(proof, 'base64'))
-        : proof;
+    this.proof = typeof proof === 'string' ? base64ToBytes(proof) : proof;
     this.treedepth = treedepth;
 
     this.attribute_map = {
@@ -4978,18 +4943,18 @@ export class SimulationTransactionExecTrace extends BaseModel {
     super();
     this.approvalProgramHash =
       typeof approvalProgramHash === 'string'
-        ? new Uint8Array(Buffer.from(approvalProgramHash, 'base64'))
+        ? base64ToBytes(approvalProgramHash)
         : approvalProgramHash;
     this.approvalProgramTrace = approvalProgramTrace;
     this.clearStateProgramHash =
       typeof clearStateProgramHash === 'string'
-        ? new Uint8Array(Buffer.from(clearStateProgramHash, 'base64'))
+        ? base64ToBytes(clearStateProgramHash)
         : clearStateProgramHash;
     this.clearStateProgramTrace = clearStateProgramTrace;
     this.innerTrace = innerTrace;
     this.logicSigHash =
       typeof logicSigHash === 'string'
-        ? new Uint8Array(Buffer.from(logicSigHash, 'base64'))
+        ? base64ToBytes(logicSigHash)
         : logicSigHash;
     this.logicSigTrace = logicSigTrace;
 
@@ -5071,9 +5036,7 @@ export class StateProof extends BaseModel {
     super();
     this.message = message;
     this.stateproof =
-      typeof stateproof === 'string'
-        ? new Uint8Array(Buffer.from(stateproof, 'base64'))
-        : stateproof;
+      typeof stateproof === 'string' ? base64ToBytes(stateproof) : stateproof;
 
     this.attribute_map = {
       message: 'Message',
@@ -5155,14 +5118,14 @@ export class StateProofMessage extends BaseModel {
     super();
     this.blockheaderscommitment =
       typeof blockheaderscommitment === 'string'
-        ? new Uint8Array(Buffer.from(blockheaderscommitment, 'base64'))
+        ? base64ToBytes(blockheaderscommitment)
         : blockheaderscommitment;
     this.firstattestedround = firstattestedround;
     this.lastattestedround = lastattestedround;
     this.lnprovenweight = lnprovenweight;
     this.voterscommitment =
       typeof voterscommitment === 'string'
-        ? new Uint8Array(Buffer.from(voterscommitment, 'base64'))
+        ? base64ToBytes(voterscommitment)
         : voterscommitment;
 
     this.attribute_map = {
@@ -5496,7 +5459,7 @@ export class TransactionParametersResponse extends BaseModel {
     this.fee = fee;
     this.genesisHash =
       typeof genesisHash === 'string'
-        ? new Uint8Array(Buffer.from(genesisHash, 'base64'))
+        ? base64ToBytes(genesisHash)
         : genesisHash;
     this.genesisId = genesisId;
     this.lastRound = lastRound;
@@ -5607,14 +5570,9 @@ export class TransactionProofResponse extends BaseModel {
   }) {
     super();
     this.idx = idx;
-    this.proof =
-      typeof proof === 'string'
-        ? new Uint8Array(Buffer.from(proof, 'base64'))
-        : proof;
+    this.proof = typeof proof === 'string' ? base64ToBytes(proof) : proof;
     this.stibhash =
-      typeof stibhash === 'string'
-        ? new Uint8Array(Buffer.from(stibhash, 'base64'))
-        : stibhash;
+      typeof stibhash === 'string' ? base64ToBytes(stibhash) : stibhash;
     this.treedepth = treedepth;
     this.hashtype = hashtype;
 
@@ -5687,7 +5645,7 @@ export class Version extends BaseModel {
     this.build = build;
     this.genesisHashB64 =
       typeof genesisHashB64 === 'string'
-        ? new Uint8Array(Buffer.from(genesisHashB64, 'base64'))
+        ? base64ToBytes(genesisHashB64)
         : genesisHashB64;
     this.genesisId = genesisId;
     this.versions = versions;
