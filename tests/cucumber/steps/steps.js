@@ -3028,6 +3028,8 @@ module.exports = function getSteps(options) {
         return algosdk.OnApplicationComplete.NoOpOC;
       case 'update':
         return algosdk.OnApplicationComplete.UpdateApplicationOC;
+      case 'create-and-optin':
+        return algosdk.OnApplicationComplete.OptInOC;
       case 'optin':
         return algosdk.OnApplicationComplete.OptInOC;
       case 'delete':
@@ -3369,7 +3371,10 @@ module.exports = function getSteps(options) {
       extraPages,
       boxesCommaSeparatedString
     ) {
-      if (operationString === 'create') {
+      if (
+        operationString === 'create' ||
+        operationString === 'create-and-optin'
+      ) {
         this.currentApplicationIndex = 0;
       }
 
@@ -3855,7 +3860,8 @@ module.exports = function getSteps(options) {
     localBytes,
     localInts,
     extraPages,
-    note
+    note,
+    boxesCommaSeparatedString
   ) {
     // open and load in approval program
     let approvalProgramBytes;
@@ -3910,6 +3916,11 @@ module.exports = function getSteps(options) {
       methodArgs.push(typeToDecode.decode(encodedArg));
     }
 
+    let boxes;
+    if (boxesCommaSeparatedString !== '') {
+      boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
+    }
+
     this.composer.addMethodCall({
       appID: this.currentApplicationIndex,
       method: this.method,
@@ -3925,6 +3936,7 @@ module.exports = function getSteps(options) {
       numLocalByteSlices: localBytes,
       extraPages,
       note,
+      boxes,
       signer: this.transactionSigner,
     });
   }
@@ -3938,6 +3950,8 @@ module.exports = function getSteps(options) {
         onComplete,
         '',
         '',
+        undefined,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -3960,7 +3974,29 @@ module.exports = function getSteps(options) {
         undefined,
         undefined,
         undefined,
+        undefined,
+        undefined,
         undefined
+      );
+    }
+  );
+
+  When(
+    'I add a method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments, boxes {string}.',
+    async function (onComplete, boxesCommaSeparatedString) {
+      await addMethodCallToComposer.call(
+        this,
+        this.transientAccount.addr,
+        onComplete,
+        '',
+        '',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        boxesCommaSeparatedString
       );
     }
   );
@@ -3987,7 +4023,9 @@ module.exports = function getSteps(options) {
         parseInt(globalInts, 10),
         parseInt(localBytes, 10),
         parseInt(localInts, 10),
-        parseInt(extraPages, 10)
+        parseInt(extraPages, 10),
+        undefined,
+        undefined
       );
     }
   );
@@ -4014,7 +4052,9 @@ module.exports = function getSteps(options) {
         parseInt(globalInts, 10),
         parseInt(localBytes, 10),
         parseInt(localInts, 10),
-        parseInt(extraPages, 10)
+        parseInt(extraPages, 10),
+        undefined,
+        undefined
       );
     }
   );
@@ -4029,6 +4069,8 @@ module.exports = function getSteps(options) {
         onCompletion,
         approvalProg,
         clearProg,
+        undefined,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -4048,6 +4090,8 @@ module.exports = function getSteps(options) {
         onCompletion,
         approvalProg,
         clearProg,
+        undefined,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -4076,7 +4120,8 @@ module.exports = function getSteps(options) {
         undefined,
         undefined,
         undefined,
-        nonce
+        nonce,
+        undefined
       );
     }
   );
@@ -4718,9 +4763,9 @@ module.exports = function getSteps(options) {
 
   Then(
     'the simulation should succeed without any failure message',
-    async function () {
+    function () {
       for (const txnGroup of this.simulateResponse.txnGroups) {
-        assert.deepStrictEqual(undefined, txnGroup.failedMessage);
+        assert.equal(txnGroup.failureMessage, undefined);
       }
     }
   );
@@ -4827,10 +4872,36 @@ module.exports = function getSteps(options) {
           enable: true,
           scratchChange: optionList.includes('scratch'),
           stackChange: optionList.includes('stack'),
+          stateChange: optionList.includes('state'),
         }
       );
     }
   );
+
+  function avmValueCheck(expectedStringLiteral, actualAvmValue) {
+    const [expectedAvmType, expectedValue] = expectedStringLiteral.split(':');
+
+    if (expectedAvmType === 'uint64') {
+      assert.equal(actualAvmValue.type, 2);
+      if (expectedValue === 0) {
+        assert.equal(actualAvmValue.uint, undefined);
+      } else {
+        assert.equal(actualAvmValue.uint, BigInt(expectedValue));
+      }
+    } else if (expectedAvmType === 'bytes') {
+      assert.equal(actualAvmValue.type, 1);
+      if (expectedValue.length === 0) {
+        assert.equal(actualAvmValue.bytes, undefined);
+      } else {
+        assert.deepStrictEqual(
+          actualAvmValue.bytes,
+          makeUint8Array(Buffer.from(expectedValue, 'base64'))
+        );
+      }
+    } else {
+      assert.fail('expectedAvmType should be either uint64 or bytes');
+    }
+  }
 
   Then(
     '{int}th unit in the {string} trace at txn-groups path {string} should add value {string} to stack, pop {int} values from stack, write value {string} to scratch slot {string}.',
@@ -4873,25 +4944,6 @@ module.exports = function getSteps(options) {
         return changeUnit;
       };
 
-      const avmValueCheck = (stringLiteral, avmValue) => {
-        const [avmType, value] = stringLiteral.split(':');
-
-        if (avmType === 'uint64') {
-          assert.equal(avmValue.type, 2);
-          assert.ok(avmValue.uint);
-          assert.equal(avmValue.uint, BigInt(value));
-        } else if (avmType === 'bytes') {
-          assert.equal(avmValue.type, 1);
-          assert.ok(avmValue.bytes);
-          assert.deepEqual(
-            avmValue.bytes,
-            makeUint8Array(Buffer.from(value, 'base64'))
-          );
-        } else {
-          assert.fail('avmType should be either uint64 or bytes');
-        }
-      };
-
       assert.ok(this.simulateResponse);
 
       const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
@@ -4932,6 +4984,209 @@ module.exports = function getSteps(options) {
         assert.ok(!changeUnit.scratchChanges);
         assert.equal(scratchWriteContent, '');
       }
+    }
+  );
+
+  Then(
+    'the current application initial {string} state should be empty.',
+    function (stateType) {
+      assert.ok(this.simulateResponse.initialStates);
+      assert.ok(this.simulateResponse.initialStates.appInitialStates);
+      let initialAppState = null;
+      let found = false;
+      for (const entry of this.simulateResponse.initialStates
+        .appInitialStates) {
+        if (entry.id !== this.currentApplicationIndex) {
+          continue;
+        }
+        initialAppState = entry;
+        found = true;
+        break;
+      }
+      assert.ok(found);
+      if (initialAppState) {
+        switch (stateType) {
+          case 'local':
+            assert.ok(!initialAppState.appLocals);
+            break;
+          case 'global':
+            assert.ok(!initialAppState.appGlobals);
+            break;
+          case 'box':
+            assert.ok(!initialAppState.appBoxes);
+            break;
+          default:
+            assert.fail('state type can only be one of local/global/box');
+        }
+      }
+    }
+  );
+
+  Then(
+    'the current application initial {string} state should contain {string} with value {string}.',
+    function (stateType, keyStr, valueStr) {
+      assert.ok(this.simulateResponse.initialStates);
+      assert.ok(this.simulateResponse.initialStates.appInitialStates);
+      let initialAppState = null;
+      for (const entry of this.simulateResponse.initialStates
+        .appInitialStates) {
+        if (entry.id !== this.currentApplicationIndex) {
+          continue;
+        }
+        initialAppState = entry;
+        break;
+      }
+      assert.ok(initialAppState);
+      let kvs = null;
+      switch (stateType) {
+        case 'local':
+          assert.ok(initialAppState.appLocals);
+          assert.strictEqual(initialAppState.appLocals.length, 1);
+          assert.ok(initialAppState.appLocals[0].account);
+          algosdk.decodeAddress(initialAppState.appLocals[0].account);
+          assert.ok(initialAppState.appLocals[0].kvs);
+          kvs = initialAppState.appLocals[0].kvs;
+          break;
+        case 'global':
+          assert.ok(initialAppState.appGlobals);
+          assert.ok(!initialAppState.appGlobals.account);
+          assert.ok(initialAppState.appGlobals.kvs);
+          kvs = initialAppState.appGlobals.kvs;
+          break;
+        case 'box':
+          assert.ok(initialAppState.appBoxes);
+          assert.ok(!initialAppState.appBoxes.account);
+          assert.ok(initialAppState.appBoxes.kvs);
+          kvs = initialAppState.appBoxes.kvs;
+          break;
+        default:
+          assert.fail('state type can only be one of local/global/box');
+      }
+      assert.ok(kvs.length > 0);
+
+      const binaryKey = Buffer.from(keyStr);
+
+      let actualValue = null;
+      for (const kv of kvs) {
+        if (binaryKey.equals(Buffer.from(kv.key))) {
+          actualValue = kv.value;
+          break;
+        }
+      }
+      assert.ok(actualValue);
+      avmValueCheck(valueStr, actualValue);
+    }
+  );
+
+  Then(
+    '{int}th unit in the {string} trace at txn-groups path {string} should write to {string} state {string} with new value {string}.',
+    function (
+      unitIndex,
+      traceType,
+      txnGroupPath,
+      stateType,
+      stateName,
+      newValue
+    ) {
+      const unitFinder = (txnGroupPathStr, traceTypeStr, unitIndexInt) => {
+        const txnGroupPathSplit = txnGroupPathStr
+          .split(',')
+          .filter((r) => r !== '')
+          .map(Number);
+        assert.ok(txnGroupPathSplit.length > 0);
+
+        let traces = this.simulateResponse.txnGroups[0].txnResults[
+          txnGroupPathSplit[0]
+        ].execTrace;
+        assert.ok(traces);
+
+        for (let i = 1; i < txnGroupPathSplit.length; i++) {
+          traces = traces.innerTrace[txnGroupPathSplit[i]];
+          assert.ok(traces);
+        }
+
+        let trace = traces.approvalProgramTrace;
+        if (traceTypeStr === 'approval') {
+          trace = traces.approvalProgramTrace;
+        } else if (traceTypeStr === 'clearState') {
+          trace = traces.clearStateProgramTrace;
+        } else if (traceTypeStr === 'logic') {
+          trace = traces.logicSigTrace;
+        }
+
+        assert.ok(
+          unitIndexInt < trace.length,
+          `unitIndexInt (${unitIndexInt}) < trace.length (${trace.length})`
+        );
+
+        const changeUnit = trace[unitIndexInt];
+        return changeUnit;
+      };
+
+      assert.ok(this.simulateResponse);
+
+      const changeUnit = unitFinder(txnGroupPath, traceType, unitIndex);
+      assert.ok(changeUnit.stateChanges);
+      assert.strictEqual(changeUnit.stateChanges.length, 1);
+      const stateChange = changeUnit.stateChanges[0];
+
+      if (stateType === 'global') {
+        assert.strictEqual(stateChange.appStateType, 'g');
+        assert.ok(!stateChange.account);
+      } else if (stateType === 'local') {
+        assert.strictEqual(stateChange.appStateType, 'l');
+        assert.ok(stateChange.account);
+        algosdk.decodeAddress(stateChange.account);
+      } else if (stateType === 'box') {
+        assert.strictEqual(stateChange.appStateType, 'b');
+        assert.ok(!stateChange.account);
+      } else {
+        assert.fail('state type can only be one of local/global/box');
+      }
+
+      assert.strictEqual(stateChange.operation, 'w');
+
+      assert.deepStrictEqual(
+        stateChange.key,
+        makeUint8Array(Buffer.from(stateName))
+      );
+      assert.ok(stateChange.newValue);
+      avmValueCheck(newValue, stateChange.newValue);
+    }
+  );
+
+  Then(
+    '{string} hash at txn-groups path {string} should be {string}.',
+    function (traceType, txnGroupPath, b64ProgHash) {
+      const txnGroupPathSplit = txnGroupPath
+        .split(',')
+        .filter((r) => r !== '')
+        .map(Number);
+      assert.ok(txnGroupPathSplit.length > 0);
+
+      let traces = this.simulateResponse.txnGroups[0].txnResults[
+        txnGroupPathSplit[0]
+      ].execTrace;
+      assert.ok(traces);
+
+      for (let i = 1; i < txnGroupPathSplit.length; i++) {
+        traces = traces.innerTrace[txnGroupPathSplit[i]];
+        assert.ok(traces);
+      }
+
+      let hash = traces.approvalProgramHash;
+
+      if (traceType === 'approval') {
+        hash = traces.approvalProgramHash;
+      } else if (traceType === 'clearState') {
+        hash = traces.clearStateProgramHash;
+      } else if (traceType === 'logic') {
+        hash = traces.logicSigHash;
+      }
+      assert.deepStrictEqual(
+        hash,
+        makeUint8Array(Buffer.from(b64ProgHash, 'base64'))
+      );
     }
   );
 
@@ -4993,6 +5248,13 @@ module.exports = function getSteps(options) {
     'we make a GetLedgerStateDelta call against round {int}',
     async function (round) {
       await this.v2Client.getLedgerStateDelta(round).do();
+    }
+  );
+
+  When(
+    'we make a GetBlockTxids call against block number {int}',
+    async function (round) {
+      await this.v2Client.getBlockTxids(round).do();
     }
   );
 
