@@ -54,6 +54,7 @@ if (browser) {
   } else if (browser === 'chrome') {
     require('chromedriver');
     browserHeaders = [
+      'accept-language',
       'origin',
       'referer',
       'sec-ch-ua',
@@ -77,6 +78,7 @@ if (browser) {
 
   console.log('Testing in browser');
 } else {
+  browserHeaders = ['sec-fetch-mode', 'accept-language'];
   console.log('Testing in node');
 }
 
