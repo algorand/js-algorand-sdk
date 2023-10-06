@@ -39,7 +39,7 @@ async function main() {
     3
   );
 
-  const { assetIndex } = result;
+  const assetIndex = Number(result.assetIndex);
   console.log(`Asset ID created: ${assetIndex}`);
   // example: ASSET_CREATE
 
