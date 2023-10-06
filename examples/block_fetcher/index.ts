@@ -29,7 +29,7 @@ function removeNulls(obj) {
 
   while (true) {
     // Get latest round number
-    let { lastRound } = status;
+    let lastRound = Number(status.lastRound);
     console.log(`Round: ${lastRound}`);
 
     // Fetch block
