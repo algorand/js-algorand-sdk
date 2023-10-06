@@ -1,4 +1,3 @@
-import { fetch, Response, Headers } from 'cross-fetch';
 import {
   BaseHTTPClient,
   BaseHTTPClientResponse,
