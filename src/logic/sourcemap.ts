@@ -6,6 +6,8 @@ import * as vlq from 'vlq';
 export interface SourceLocation {
   line: number;
   column: number;
+  sourceIndex: number;
+  nameIndex?: number;
 }
 
 /**
@@ -14,6 +16,7 @@ export interface SourceLocation {
 export interface PcLineLocation {
   pc: number;
   column: number;
+  nameIndex?: number;
 }
 
 /**
@@ -21,12 +24,23 @@ export interface PcLineLocation {
  */
 export class SourceMap {
   public readonly version: number;
+  /**
+   * A list of original sources used by the "mappings" entry.
+   */
   public readonly sources: string[];
+  /**
+   * A list of symbol names used by the "mappings" entry.
+   */
   public readonly names: string[];
+  /**
+   * A string with the encoded mapping data.
+   */
   public readonly mappings: string;
 
   private pcToLocation: Map<number, SourceLocation>;
-  private lineToPc: Map<number, PcLineLocation[]>;
+
+  // Key is `${sourceIndex}:${line}`
+  private sourceAndLineToPc: Map<string, PcLineLocation[]>;
 
   constructor({
     version,
@@ -55,34 +69,50 @@ export class SourceMap {
     const pcList = this.mappings.split(';').map(vlq.decode);
 
     this.pcToLocation = new Map();
-    this.lineToPc = new Map();
+    this.sourceAndLineToPc = new Map();
 
     const lastLocation: SourceLocation = {
       line: 0,
       column: 0,
+      sourceIndex: 0,
+      nameIndex: 0,
     };
     for (const [pc, data] of pcList.entries()) {
       if (data.length < 4) continue;
 
-      const [, , lineDelta, columnDelta] = data;
+      const nameDelta = data.length > 4 ? data[4] : undefined;
+      const [, sourceDelta, lineDelta, columnDelta] = data;
 
+      lastLocation.sourceIndex += sourceDelta;
       lastLocation.line += lineDelta;
       lastLocation.column += columnDelta;
-
-      let pcsForLine = this.lineToPc.get(lastLocation.line);
-      if (pcsForLine === undefined) {
-        pcsForLine = [];
-        this.lineToPc.set(lastLocation.line, pcsForLine);
+      if (typeof nameDelta !== 'undefined') {
+        lastLocation.nameIndex += nameDelta;
       }
 
-      pcsForLine.push({
+      const sourceAndLineKey = `${lastLocation.sourceIndex}:${lastLocation.line}`;
+      let pcsForSourceAndLine = this.sourceAndLineToPc.get(sourceAndLineKey);
+      if (pcsForSourceAndLine === undefined) {
+        pcsForSourceAndLine = [];
+        this.sourceAndLineToPc.set(sourceAndLineKey, pcsForSourceAndLine);
+      }
+
+      const pcInLine: PcLineLocation = {
         pc,
         column: lastLocation.column,
-      });
-      this.pcToLocation.set(pc, {
+      };
+      const pcLocation: SourceLocation = {
         line: lastLocation.line,
         column: lastLocation.column,
-      });
+        sourceIndex: lastLocation.sourceIndex,
+      };
+      if (typeof nameDelta !== 'undefined') {
+        pcInLine.nameIndex = lastLocation.nameIndex;
+        pcLocation.nameIndex = lastLocation.nameIndex;
+      }
+
+      pcsForSourceAndLine.push(pcInLine);
+      this.pcToLocation.set(pc, pcLocation);
     }
   }
 
@@ -94,8 +124,8 @@ export class SourceMap {
     return this.pcToLocation.get(pc);
   }
 
-  getPcsForLine(line: number): PcLineLocation[] {
-    const pcs = this.lineToPc.get(line);
+  getPcsOnSourceLine(sourceIndex: number, line: number): PcLineLocation[] {
+    const pcs = this.sourceAndLineToPc.get(`${sourceIndex}:${line}`);
     if (pcs === undefined) return [];
     return pcs;
   }

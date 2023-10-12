@@ -701,20 +701,20 @@ describe('SourceMap', () => {
   };
 
   const expectedLocations = new Map<number, algosdk.SourceLocation>([
-    [4, { line: 3, column: 0 }],
-    [6, { line: 3, column: 19 }],
-    [8, { line: 3, column: 26 }],
-    [9, { line: 3, column: 30 }],
-    [12, { line: 5, column: 0 }],
-    [14, { line: 5, column: 7 }],
-    [16, { line: 5, column: 14 }],
-    [17, { line: 6, column: 0 }],
-    [19, { line: 6, column: 7 }],
-    [20, { line: 6, column: 14 }],
-    [21, { line: 1, column: 21 }],
-    [22, { line: 1, column: 25 }],
-    [23, { line: 10, column: 4 }],
-    [24, { line: 11, column: 4 }],
+    [4, { sourceIndex: 0, line: 3, column: 0 }],
+    [6, { sourceIndex: 0, line: 3, column: 19 }],
+    [8, { sourceIndex: 0, line: 3, column: 26 }],
+    [9, { sourceIndex: 0, line: 3, column: 30 }],
+    [12, { sourceIndex: 0, line: 5, column: 0 }],
+    [14, { sourceIndex: 0, line: 5, column: 7 }],
+    [16, { sourceIndex: 0, line: 5, column: 14 }],
+    [17, { sourceIndex: 0, line: 6, column: 0 }],
+    [19, { sourceIndex: 0, line: 6, column: 7 }],
+    [20, { sourceIndex: 0, line: 6, column: 14 }],
+    [21, { sourceIndex: 0, line: 1, column: 21 }],
+    [22, { sourceIndex: 0, line: 1, column: 25 }],
+    [23, { sourceIndex: 0, line: 10, column: 4 }],
+    [24, { sourceIndex: 0, line: 11, column: 4 }],
   ]);
 
   const expectedPcsForLine = new Map<number, algosdk.PcLineLocation[]>([
@@ -795,7 +795,7 @@ describe('SourceMap', () => {
       for (let line = 1; line <= maxLineToCheck; line++) {
         const expected = expectedPcsForLine.get(line) || [];
         assert.deepStrictEqual(
-          sourceMap.getPcsForLine(line),
+          sourceMap.getPcsOnSourceLine(0, line),
           expected,
           `line=${line}`
         );
