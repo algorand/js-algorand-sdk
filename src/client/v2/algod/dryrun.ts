@@ -1,9 +1,9 @@
-import * as encoding from '../../../encoding/encoding';
-import HTTPClient from '../../client';
-import JSONRequest from '../jsonrequest';
-import { setHeaders } from './compile';
-import { DryrunResponse } from './models/types';
-import * as modelsv2 from './models/types';
+import * as encoding from '../../../encoding/encoding.js';
+import HTTPClient from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
+import { setHeaders } from './compile.js';
+import { DryrunResponse } from './models/types.js';
+import * as modelsv2 from './models/types.js';
 
 export default class Dryrun extends JSONRequest<
   DryrunResponse,

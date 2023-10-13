@@ -1,7 +1,7 @@
-import { coerceToBytes } from '../../../encoding/binarydata';
-import HTTPClient from '../../client';
-import { CompileResponse } from './models/types';
-import JSONRequest from '../jsonrequest';
+import { coerceToBytes } from '../../../encoding/binarydata.js';
+import HTTPClient from '../../client.js';
+import { CompileResponse } from './models/types.js';
+import JSONRequest from '../jsonrequest.js';
 
 /**
  * Sets the default header (if not previously set)

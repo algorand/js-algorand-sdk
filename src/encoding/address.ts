@@ -1,9 +1,9 @@
 import base32 from 'hi-base32';
-import * as nacl from '../nacl/naclWrappers';
-import * as utils from '../utils/utils';
-import { encodeUint64 } from './uint64';
-import { Address } from '../types/address';
-import { MultisigMetadata } from '../types/multisig';
+import * as nacl from '../nacl/naclWrappers.js';
+import * as utils from '../utils/utils.js';
+import { encodeUint64 } from './uint64.js';
+import { Address } from '../types/address.js';
+import { MultisigMetadata } from '../types/multisig.js';
 
 const ALGORAND_ADDRESS_BYTE_LENGTH = 36;
 const ALGORAND_CHECKSUM_BYTE_LENGTH = 4;

@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { NodeStatusResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { NodeStatusResponse } from './models/types.js';
 
 export default class Status extends JSONRequest<
   NodeStatusResponse,

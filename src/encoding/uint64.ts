@@ -1,4 +1,4 @@
-import { concatArrays } from '../utils/utils';
+import { concatArrays } from '../utils/utils.js';
 
 // NOTE: at the moment we specifically do not use Buffer.writeBigUInt64BE and
 // Buffer.readBigUInt64BE. This is because projects using webpack v4

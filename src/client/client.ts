@@ -1,10 +1,13 @@
-import * as utils from '../utils/utils';
+import * as utils from '../utils/utils.js';
 import {
   BaseHTTPClient,
   BaseHTTPClientResponse,
   Query,
-} from './baseHTTPClient';
-import { TokenHeader, URLTokenBaseHTTPClient } from './urlTokenBaseHTTPClient';
+} from './baseHTTPClient.js';
+import {
+  TokenHeader,
+  URLTokenBaseHTTPClient,
+} from './urlTokenBaseHTTPClient.js';
 
 interface ErrorWithAdditionalInfo extends Error {
   rawResponse: string | null;

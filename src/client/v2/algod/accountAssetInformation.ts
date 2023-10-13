@@ -1,7 +1,7 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { AccountAssetResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import IntDecoding from '../../../types/intDecoding.js';
+import { AccountAssetResponse } from './models/types.js';
 
 export default class AccountAssetInformation extends JSONRequest<
   AccountAssetResponse,

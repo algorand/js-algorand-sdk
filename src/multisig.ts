@@ -1,14 +1,16 @@
-import * as nacl from './nacl/naclWrappers';
-import * as address from './encoding/address';
-import * as encoding from './encoding/encoding';
-import * as txnBuilder from './transaction';
-import * as utils from './utils/utils';
-import AnyTransaction, { EncodedTransaction } from './types/transactions';
-import { MultisigMetadata } from './types/multisig';
+import * as nacl from './nacl/naclWrappers.js';
+import * as address from './encoding/address.js';
+import * as encoding from './encoding/encoding.js';
+import * as txnBuilder from './transaction.js';
+import * as utils from './utils/utils.js';
+import AnyTransaction, {
+  EncodedTransaction,
+} from './types/transactions/index.js';
+import { MultisigMetadata } from './types/multisig.js';
 import {
   EncodedMultisig,
   EncodedSignedTransaction,
-} from './types/transactions/encoded';
+} from './types/transactions/encoded.js';
 
 /**
  Utilities for manipulating multisig transaction blobs.

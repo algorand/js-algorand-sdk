@@ -9,31 +9,31 @@ import {
   abiTypeIsTransaction,
   ABIUintType,
   ABIValue,
-} from './abi';
-import Algodv2 from './client/v2/algod/algod';
+} from './abi/index.js';
+import Algodv2 from './client/v2/algod/algod.js';
 import {
   SimulateRequest,
   SimulateRequestTransactionGroup,
   PendingTransactionResponse,
   SimulateResponse,
-} from './client/v2/algod/models/types';
-import * as encoding from './encoding/encoding';
-import { assignGroupID } from './group';
-import { makeApplicationCallTxnFromObject } from './makeTxn';
+} from './client/v2/algod/models/types.js';
+import * as encoding from './encoding/encoding.js';
+import { assignGroupID } from './group.js';
+import { makeApplicationCallTxnFromObject } from './makeTxn.js';
 import {
   isTransactionWithSigner,
   TransactionSigner,
   TransactionWithSigner,
-} from './signer';
-import { decodeSignedTransaction, Transaction } from './transaction';
-import { EncodedSignedTransaction } from './types';
+} from './signer.js';
+import { decodeSignedTransaction, Transaction } from './transaction.js';
+import { EncodedSignedTransaction } from './types/index.js';
 import {
   BoxReference,
   OnApplicationComplete,
   SuggestedParams,
-} from './types/transactions/base';
-import { arrayEqual } from './utils/utils';
-import { waitForConfirmation } from './wait';
+} from './types/transactions/base.js';
+import { arrayEqual } from './utils/utils.js';
+import { waitForConfirmation } from './wait.js';
 
 // First 4 bytes of SHA-512/256 hash of "return"
 const RETURN_PREFIX = new Uint8Array([21, 31, 124, 117]);

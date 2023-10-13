@@ -1,8 +1,8 @@
 /* eslint-disable no-bitwise */
-import english from './wordlists/english';
-import * as nacl from '../nacl/naclWrappers';
-import * as address from '../encoding/address';
-import Account from '../types/account';
+import english from './wordlists/english.js';
+import * as nacl from '../nacl/naclWrappers.js';
+import * as address from '../encoding/address.js';
+import Account from '../types/account.js';
 
 export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 export const NOT_IN_WORDS_LIST_ERROR_MSG =

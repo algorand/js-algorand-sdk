@@ -1,4 +1,4 @@
-import { isNode } from '../utils/utils';
+import { isNode } from '../utils/utils.js';
 
 /**
  * Convert a base64 string to a Uint8Array for Node.js and browser environments.

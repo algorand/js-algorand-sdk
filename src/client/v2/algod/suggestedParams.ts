@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { SuggestedParamsWithMinFee } from '../../../types/transactions/base';
+import JSONRequest from '../jsonrequest.js';
+import { SuggestedParamsWithMinFee } from '../../../types/transactions/base.js';
 
 /**
  * Returns the common needed parameters for a new transaction, in a format the transaction builder expects

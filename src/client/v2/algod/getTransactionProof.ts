@@ -1,7 +1,7 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { TransactionProofResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import IntDecoding from '../../../types/intDecoding.js';
+import { TransactionProofResponse } from './models/types.js';
 
 export default class GetTransactionProof extends JSONRequest<
   TransactionProofResponse,

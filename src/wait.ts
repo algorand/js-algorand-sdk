@@ -1,5 +1,5 @@
-import Algodv2 from './client/v2/algod/algod';
-import { PendingTransactionResponse } from './client/v2/algod/models/types';
+import Algodv2 from './client/v2/algod/algod.js';
+import { PendingTransactionResponse } from './client/v2/algod/models/types.js';
 
 /**
  * Wait until a transaction has been confirmed or rejected by the network, or

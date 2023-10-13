@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { Version } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { Version } from './models/types.js';
 
 /**
  * retrieves the VersionResponse from the running node

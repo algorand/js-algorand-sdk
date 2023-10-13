@@ -1,6 +1,6 @@
-import * as nacl from './nacl/naclWrappers';
-import * as address from './encoding/address';
-import Account from './types/account';
+import * as nacl from './nacl/naclWrappers.js';
+import * as address from './encoding/address.js';
+import Account from './types/account.js';
 
 /**
  * generateAccount returns a new Algorand address and its corresponding secret key

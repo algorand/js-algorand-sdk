@@ -1,7 +1,7 @@
-import { bytesToBase64 } from '../../../encoding/binarydata';
-import IntDecoding from '../../../types/intDecoding';
-import HTTPClient from '../../client';
-import JSONRequest from '../jsonrequest';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import IntDecoding from '../../../types/intDecoding.js';
+import HTTPClient from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string

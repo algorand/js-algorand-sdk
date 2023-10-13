@@ -1,7 +1,7 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { base64StringFunnel } from './lookupAccountTransactions';
+import JSONRequest from '../jsonrequest.js';
+import HTTPClient from '../../client.js';
+import IntDecoding from '../../../types/intDecoding.js';
+import { base64StringFunnel } from './lookupAccountTransactions.js';
 
 export default class LookupAssetTransactions extends JSONRequest {
   /**

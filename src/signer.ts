@@ -1,8 +1,14 @@
-import { encodeUnsignedSimulateTransaction, Transaction } from './transaction';
-import Account from './types/account';
-import { LogicSigAccount, signLogicSigTransactionObject } from './logicsig';
-import { MultisigMetadata } from './types/multisig';
-import { signMultisigTransaction, mergeMultisigTransactions } from './multisig';
+import {
+  encodeUnsignedSimulateTransaction,
+  Transaction,
+} from './transaction.js';
+import Account from './types/account.js';
+import { LogicSigAccount, signLogicSigTransactionObject } from './logicsig.js';
+import { MultisigMetadata } from './types/multisig.js';
+import {
+  signMultisigTransaction,
+  mergeMultisigTransactions,
+} from './multisig.js';
 
 /**
  * This type represents a function which can sign transactions from an atomic transaction group.

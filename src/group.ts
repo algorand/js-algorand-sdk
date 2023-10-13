@@ -1,8 +1,8 @@
-import * as txnBuilder from './transaction';
-import * as nacl from './nacl/naclWrappers';
-import * as encoding from './encoding/encoding';
-import * as address from './encoding/address';
-import * as utils from './utils/utils';
+import * as txnBuilder from './transaction.js';
+import * as nacl from './nacl/naclWrappers.js';
+import * as encoding from './encoding/encoding.js';
+import * as address from './encoding/address.js';
+import * as utils from './utils/utils.js';
 
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
 

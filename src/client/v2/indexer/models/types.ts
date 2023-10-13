@@ -3,8 +3,8 @@
  */
 
 /* eslint-disable no-use-before-define */
-import { base64ToBytes } from '../../../../encoding/binarydata';
-import BaseModel from '../../basemodel';
+import { base64ToBytes } from '../../../../encoding/binarydata.js';
+import BaseModel from '../../basemodel.js';
 
 /**
  * Account information at a given round.
