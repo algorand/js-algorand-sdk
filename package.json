@@ -62,7 +62,7 @@
     "selenium-webdriver": "^4.10.0",
     "source-map-loader": "^2.0.2",
     "ts-loader": "^9.3.1",
-    "ts-node": "^10.9.1",
+    "tsx": "^3.13.0",
     "typedoc": "^0.23.8",
     "typedoc-plugin-missing-exports": "^0.23.0",
     "typedoc-plugin-rename-defaults": "^0.6.4",
@@ -71,7 +71,7 @@
     "webpack-cli": "^5.0.1"
   },
   "scripts": {
-    "test": "node -r ts-node/register tests/mocha.js",
+    "test": "tsx tests/mocha.js",
     "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
     "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",
