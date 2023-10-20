@@ -7,7 +7,6 @@
 @unit.atomic_transaction_composer
 @unit.blocksummary
 @unit.blocktxids
-@unit.client-no-headers
 @unit.dryrun
 @unit.dryrun.trace.application
 @unit.feetest
