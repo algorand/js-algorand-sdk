@@ -1,5 +1,5 @@
 // Indexer
-export { default as AlgodClient } from './indexer.js';
+export { default as IndexerClient } from './indexer.js';
 export * from './models/types.js';
 
 // Generics
