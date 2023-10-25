@@ -14,90 +14,20 @@
       "require": "./dist/cjs/index.js",
       "types": "./dist/types/index.d.ts"
     },
-    "./abi": {
-      "import": "./dist/esm/abi/index.js",
-      "require": "./dist/cjs/abi/index.js",
-      "types": "./dist/types/abi/index.d.ts"
+    "./client/algod": {
+      "import": "./dist/esm/client/v2/algod/index.js",
+      "require": "./dist/cjs/client/v2/algod/index.js",
+      "types": "./dist/types/client/v2/algod/index.d.ts"
     },
-    "./client/v2/algod/algod": {
-      "import": "./dist/esm/client/v2/algod/algod.js",
-      "require": "./dist/cjs/client/v2/algod/algod.js",
-      "types": "./dist/types/client/v2/algod/algod.d.ts"
-    },
-    "./client/v2/algod/models/types": {
-      "import": "./dist/esm/client/v2/algod/models/types.js",
-      "require": "./dist/cjs/client/v2/algod/models/types.js",
-      "types": "./dist/types/client/v2/algod/models/types.d.ts"
-    },
-    "./client/v2/indexer/indexer": {
-      "import": "./dist/esm/client/v2/indexer/indexer.js",
-      "require": "./dist/cjs/client/v2/indexer/indexer.js",
-      "types": "./dist/types/client/v2/indexer/indexer.d.ts"
-    },
-    "./client/v2/indexer/models/types": {
-      "import": "./dist/esm/client/v2/indexer/models/types.js",
-      "require": "./dist/cjs/client/v2/indexer/models/types.js",
-      "types": "./dist/types/client/v2/indexer/models/types.d.ts"
-    },
-    "./client/baseHTTPClient": {
-      "import": "./dist/esm/client/baseHTTPClient.js",
-      "require": "./dist/cjs/client/baseHTTPClient.js",
-      "types": "./dist/types/client/baseHTTPClient.d.ts"
-    },
-    "./client/client": {
-      "import": "./dist/esm/client/client.js",
-      "require": "./dist/cjs/client/client.js",
-      "types": "./dist/types/client/client.d.ts"
+    "./client/indexer": {
+      "import": "./dist/esm/client/v2/indexer/index.js",
+      "require": "./dist/cjs/client/v2/indexer/index.js",
+      "types": "./dist/types/client/v2/indexer/index.d.ts"
     },
     "./client/kmd": {
       "import": "./dist/esm/client/kmd.js",
       "require": "./dist/cjs/client/kmd.js",
       "types": "./dist/types/client/kmd.d.ts"
-    },
-    "./client/urlTokenBaseHTTPClient": {
-      "import": "./dist/esm/client/urlTokenBaseHTTPClient.js",
-      "require": "./dist/cjs/client/urlTokenBaseHTTPClient.js",
-      "types": "./dist/types/client/urlTokenBaseHTTPClient.d.ts"
-    },
-    "./encoding": {
-      "import": "./dist/esm/encoding/index.js",
-      "require": "./dist/cjs/encoding/index.js",
-      "types": "./dist/types/encoding/index.d.ts"
-    },
-    "./logic/sourcemap": {
-      "import": "./dist/esm/logic/sourcemap.js",
-      "require": "./dist/cjs/logic/sourcemap.js",
-      "types": "./dist/types/logic/sourcemap.d.ts"
-    },
-    "./mnemonic/mnemonic": {
-      "import": "./dist/esm/mnemonic/mnemonic.js",
-      "require": "./dist/cjs/mnemonic/mnemonic.js",
-      "types": "./dist/types/mnemonic/mnemonic.d.ts"
-    },
-    "./mnemonic/wordlists/english": {
-      "import": "./dist/esm/mnemonic/wordlists/english.js",
-      "require": "./dist/cjs/mnemonic/wordlists/english.js",
-      "types": "./dist/types/mnemonic/wordlists/english.d.ts"
-    },
-    "./nacl/naclWrapper": {
-      "import": "./dist/esm/nacl/naclWrapper.js",
-      "require": "./dist/cjs/nacl/naclWrapper.js",
-      "types": "./dist/types/nacl/naclWrapper.d.ts"
-    },
-    "./types": {
-      "import": "./dist/esm/types/index.js",
-      "require": "./dist/cjs/types/index.js",
-      "types": "./dist/types/types/index.d.ts"
-    },
-    "./types/transactions": {
-      "import": "./dist/esm/types/transactions/index.js",
-      "require": "./dist/cjs/types/transactions/index.js",
-      "types": "./dist/types/types/transactions/index.d.ts"
-    },
-    "./utils/utils": {
-      "import": "./dist/esm/utils/utils.js",
-      "require": "./dist/cjs/utils/utils.js",
-      "types": "./dist/types/utils/utils.d.ts"
     }
   },
   "types": "dist/types/index.d.ts",
