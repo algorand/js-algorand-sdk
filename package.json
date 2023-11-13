@@ -14,6 +14,11 @@
       "require": "./dist/cjs/index.js",
       "types": "./dist/types/index.d.ts"
     },
+    "./client": {
+      "import": "./dist/esm/client/index.js",
+      "require": "./dist/cjs/client/index.js",
+      "types": "./dist/types/client/index.d.ts"
+    },
     "./client/algod": {
       "import": "./dist/esm/client/v2/algod/index.js",
       "require": "./dist/cjs/client/v2/algod/index.js",

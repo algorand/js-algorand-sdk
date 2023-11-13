@@ -7,12 +7,6 @@ import * as txn from '../transaction.js';
 import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient.js';
 import ServiceClient from './v2/serviceClient.js';
 
-export { default as BaseModel } from './v2/basemodel.js';
-export { default as JSONRequest } from './v2/jsonrequest.js';
-export * from './baseHTTPClient.js';
-export * from './urlTokenBaseHTTPClient.js';
-export { default as ServiceClient } from './v2/serviceClient.js';
-
 export class KmdClient extends ServiceClient {
   constructor(
     token: string | KMDTokenHeader | CustomTokenHeader,
