@@ -13,7 +13,7 @@ export * from './baseHTTPClient.js';
 export * from './urlTokenBaseHTTPClient.js';
 export { default as ServiceClient } from './v2/serviceClient.js';
 
-export default class Kmd extends ServiceClient {
+export class KmdClient extends ServiceClient {
   constructor(
     token: string | KMDTokenHeader | CustomTokenHeader,
     baseServer = 'http://127.0.0.1',
@@ -431,3 +431,5 @@ export default class Kmd extends ServiceClient {
     return res.body;
   }
 }
+
+export default KmdClient;
