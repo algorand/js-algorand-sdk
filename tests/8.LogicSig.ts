@@ -691,7 +691,7 @@ describe('signLogicSigTransaction', () => {
   });
 });
 
-describe('SourceMap', () => {
+describe('ProgramSourceMap', () => {
   const input = {
     version: 3,
     sources: ['test/scripts/e2e_subs/tealprogs/sourcemap-test.teal'],
@@ -754,8 +754,8 @@ describe('SourceMap', () => {
     [11, [{ pc: 24, column: 4 }]],
   ]);
 
-  it('should be able to read a SourceMap', () => {
-    const sourceMap = new algosdk.SourceMap(input);
+  it('should be able to read a ProgramSourceMap', () => {
+    const sourceMap = new algosdk.ProgramSourceMap(input);
 
     assert.strictEqual(sourceMap.version, input.version);
     assert.deepStrictEqual(sourceMap.sources, input.sources);
@@ -765,7 +765,7 @@ describe('SourceMap', () => {
 
   describe('getLocationForPc', () => {
     it('should return the correct location for all pcs', () => {
-      const sourceMap = new algosdk.SourceMap(input);
+      const sourceMap = new algosdk.ProgramSourceMap(input);
       const maxPcToCheck = 30;
 
       for (let pc = 0; pc < maxPcToCheck; pc++) {
@@ -781,7 +781,7 @@ describe('SourceMap', () => {
 
   describe('getPcs', () => {
     it('should return the correct pcs', () => {
-      const sourceMap = new algosdk.SourceMap(input);
+      const sourceMap = new algosdk.ProgramSourceMap(input);
       const expectedPcs = Array.from(expectedLocations.keys());
       assert.deepStrictEqual(sourceMap.getPcs(), expectedPcs);
     });
@@ -789,7 +789,7 @@ describe('SourceMap', () => {
 
   describe('getPcsForLine', () => {
     it('should return the correct pcs for all lines', () => {
-      const sourceMap = new algosdk.SourceMap(input);
+      const sourceMap = new algosdk.ProgramSourceMap(input);
       const maxLineToCheck = 15;
 
       for (let line = 1; line <= maxLineToCheck; line++) {
