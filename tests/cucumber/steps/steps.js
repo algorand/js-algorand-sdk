@@ -4697,29 +4697,35 @@ module.exports = function getSteps(options) {
     this.sourcemap = new algosdk.SourceMap(js);
   });
 
+  Then('the source map contains pcs {string}', function (pcsString) {
+    const pcs = pcsString.split(',').map((pc) => parseInt(pc, 10));
+    assert.deepStrictEqual(this.sourcemap.getPcs(), pcs);
+  });
+
   Then(
-    'the string composed of pc:line number equals {string}',
-    function (mapping) {
-      const buff = Object.entries(this.sourcemap.pcToLine).map(
-        ([pc, line]) => `${pc}:${line}`
-      );
-      assert.deepStrictEqual(buff.join(';'), mapping);
+    'the source map maps pc {int} to line {int} and column {int} of source {string}',
+    function (pc, expectedLine, expectedColumn, source) {
+      const actual = this.sourcemap.getLocationForPc(pc);
+      assert.ok(actual);
+      assert.strictEqual(actual.line, expectedLine);
+      assert.strictEqual(actual.column, expectedColumn);
+      assert.strictEqual(this.sourcemap.sources[actual.sourceIndex], source);
     }
   );
 
   Then(
-    'getting the line associated with a pc {string} equals {string}',
-    function (pc, expectedLine) {
-      const actualLine = this.sourcemap.getLineForPc(parseInt(pc));
-      assert.deepStrictEqual(actualLine, parseInt(expectedLine));
-    }
-  );
-
-  Then(
-    'getting the last pc associated with a line {string} equals {string}',
-    function (line, expectedPc) {
-      const actualPcs = this.sourcemap.getPcsForLine(parseInt(line));
-      assert.deepStrictEqual(actualPcs.pop(), parseInt(expectedPc));
+    'the source map maps source {string} and line {int} to pc {int} at column {int}',
+    function (source, line, pc, expectedColumn) {
+      const sourceIndex = this.sourcemap.sources.indexOf(source);
+      assert.ok(sourceIndex >= 0);
+      const actualPcs = this.sourcemap.getPcsOnSourceLine(sourceIndex, line);
+      for (const actualPcInfo of actualPcs) {
+        if (actualPcInfo.pc === pc) {
+          assert.strictEqual(actualPcInfo.column, expectedColumn);
+          return;
+        }
+      }
+      throw new Error(`Could not find pc ${pc}`);
     }
   );
 
