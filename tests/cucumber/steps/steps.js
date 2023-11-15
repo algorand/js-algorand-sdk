@@ -4698,8 +4698,11 @@ module.exports = function getSteps(options) {
   });
 
   Then('the source map contains pcs {string}', function (pcsString) {
-    const pcs = pcsString.split(',').map((pc) => parseInt(pc, 10));
-    assert.deepStrictEqual(this.sourcemap.getPcs(), pcs);
+    const expectedPcs = makeArray(
+      ...pcsString.split(',').map((pc) => parseInt(pc, 10))
+    );
+    const actualPcs = makeArray(...this.sourcemap.getPcs());
+    assert.deepStrictEqual(actualPcs, expectedPcs);
   });
 
   Then(
