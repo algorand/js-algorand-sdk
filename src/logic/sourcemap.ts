@@ -22,7 +22,7 @@ export interface PcLineLocation {
 /**
  * Contains a mapping from TEAL program PC to source file location.
  */
-export class SourceMap {
+export class ProgramSourceMap {
   public readonly version: number;
   /**
    * A list of original sources used by the "mappings" entry.

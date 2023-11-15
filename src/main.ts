@@ -183,7 +183,11 @@ export {
   verifyMultisig,
   multisigAddress,
 } from './multisig';
-export { SourceMap, SourceLocation, PcLineLocation } from './logic/sourcemap';
+export {
+  ProgramSourceMap,
+  SourceLocation,
+  PcLineLocation,
+} from './logic/sourcemap';
 
 export * from './dryrun';
 export * from './makeTxn';

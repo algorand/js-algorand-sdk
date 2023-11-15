@@ -4694,7 +4694,7 @@ module.exports = function getSteps(options) {
 
   Given('a source map json file {string}', async function (srcmap) {
     const js = await loadResourceAsJson(srcmap);
-    this.sourcemap = new algosdk.SourceMap(js);
+    this.sourcemap = new algosdk.ProgramSourceMap(js);
   });
 
   Then('the source map contains pcs {string}', function (pcsString) {
