@@ -5,7 +5,10 @@ const Mocha = require('mocha');
 const fs = require('fs');
 const path = require('path');
 
-// const webpackConfig = require('../webpack.config');
+/**
+ * @TODO - https://www.npmjs.com/package/esbuild-runner
+ */
+const webpackConfig = require('../webpack.config');
 
 const browser = process.env.TEST_BROWSER;
 
@@ -22,23 +25,25 @@ async function testRunner() {
 
   if (browser) {
     const browserEntry = path.join(__dirname, 'browser', 'index.html');
-    // const bundleLocation = path.join(__dirname, 'browser', 'bundle.js');
+    const bundleLocation = path.join(__dirname, 'browser', 'bundle.js');
 
-    // await new Promise((resolve, reject) => {
-    // Change entry and output for webpack config
-    // const webpackTestConfig = Object.assign(webpackConfig);
-    // webpackTestConfig.entry = testFiles;
-    // webpackTestConfig.output = {
-    //   filename: path.basename(bundleLocation),
-    //   path: path.dirname(bundleLocation),
-    // };
-    // webpack(webpackTestConfig, (err, stats) => {
-    //   if (err || stats.hasErrors()) {
-    //     return reject(err || stats.toJson());
-    //   }
-    //   return resolve();
-    // });
-    // });
+    await new Promise((resolve, reject) => {
+      // Change entry and output for webpack config
+      const webpackTestConfig = Object.assign(webpackConfig);
+
+      webpackTestConfig.entry = testFiles;
+      webpackTestConfig.output = {
+        filename: path.basename(bundleLocation),
+        path: path.dirname(bundleLocation),
+      };
+
+      webpack(webpackTestConfig, (err, stats) => {
+        if (err || stats.hasErrors()) {
+          return reject(err || stats.toJson());
+        }
+        return resolve();
+      });
+    });
 
     console.log('Testing in browser');
 
