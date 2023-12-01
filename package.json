@@ -9,10 +9,7 @@
     "crypto": false
   },
   "types": "dist/types/index.d.ts",
-  "files": [
-    "dist/",
-    "src/"
-  ],
+  "files": ["dist/", "src/"],
   "directories": {
     "test": "tests"
   },
