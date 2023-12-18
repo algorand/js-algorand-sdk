@@ -4932,6 +4932,19 @@ export class SimulationTransactionExecTrace extends BaseModel {
   public clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
 
   /**
+   * If true, indicates that the clear state program failed and any persistent state
+   * changes it produced should be reverted once the program exits.
+   */
+  public clearStateRollback?: boolean;
+
+  /**
+   * The error message explaining why the clear state program failed. This field will
+   * only be populated if clear-state-rollback is true and the failure was due to an
+   * execution error.
+   */
+  public clearStateRollbackError?: string;
+
+  /**
    * An array of SimulationTransactionExecTrace representing the execution trace of
    * any inner transactions executed.
    */
@@ -4953,6 +4966,11 @@ export class SimulationTransactionExecTrace extends BaseModel {
    * @param approvalProgramTrace - Program trace that contains a trace of opcode effects in an approval program.
    * @param clearStateProgramHash - SHA512_256 hash digest of the clear state program executed in transaction.
    * @param clearStateProgramTrace - Program trace that contains a trace of opcode effects in a clear state program.
+   * @param clearStateRollback - If true, indicates that the clear state program failed and any persistent state
+   * changes it produced should be reverted once the program exits.
+   * @param clearStateRollbackError - The error message explaining why the clear state program failed. This field will
+   * only be populated if clear-state-rollback is true and the failure was due to an
+   * execution error.
    * @param innerTrace - An array of SimulationTransactionExecTrace representing the execution trace of
    * any inner transactions executed.
    * @param logicSigHash - SHA512_256 hash digest of the logic sig executed in transaction.
@@ -4963,6 +4981,8 @@ export class SimulationTransactionExecTrace extends BaseModel {
     approvalProgramTrace,
     clearStateProgramHash,
     clearStateProgramTrace,
+    clearStateRollback,
+    clearStateRollbackError,
     innerTrace,
     logicSigHash,
     logicSigTrace,
@@ -4971,6 +4991,8 @@ export class SimulationTransactionExecTrace extends BaseModel {
     approvalProgramTrace?: SimulationOpcodeTraceUnit[];
     clearStateProgramHash?: string | Uint8Array;
     clearStateProgramTrace?: SimulationOpcodeTraceUnit[];
+    clearStateRollback?: boolean;
+    clearStateRollbackError?: string;
     innerTrace?: SimulationTransactionExecTrace[];
     logicSigHash?: string | Uint8Array;
     logicSigTrace?: SimulationOpcodeTraceUnit[];
@@ -4986,6 +5008,8 @@ export class SimulationTransactionExecTrace extends BaseModel {
         ? new Uint8Array(Buffer.from(clearStateProgramHash, 'base64'))
         : clearStateProgramHash;
     this.clearStateProgramTrace = clearStateProgramTrace;
+    this.clearStateRollback = clearStateRollback;
+    this.clearStateRollbackError = clearStateRollbackError;
     this.innerTrace = innerTrace;
     this.logicSigHash =
       typeof logicSigHash === 'string'
@@ -4998,6 +5022,8 @@ export class SimulationTransactionExecTrace extends BaseModel {
       approvalProgramTrace: 'approval-program-trace',
       clearStateProgramHash: 'clear-state-program-hash',
       clearStateProgramTrace: 'clear-state-program-trace',
+      clearStateRollback: 'clear-state-rollback',
+      clearStateRollbackError: 'clear-state-rollback-error',
       innerTrace: 'inner-trace',
       logicSigHash: 'logic-sig-hash',
       logicSigTrace: 'logic-sig-trace',
@@ -5024,6 +5050,8 @@ export class SimulationTransactionExecTrace extends BaseModel {
               SimulationOpcodeTraceUnit.from_obj_for_encoding
             )
           : undefined,
+      clearStateRollback: data['clear-state-rollback'],
+      clearStateRollbackError: data['clear-state-rollback-error'],
       innerTrace:
         typeof data['inner-trace'] !== 'undefined'
           ? data['inner-trace'].map(
