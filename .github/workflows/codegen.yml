@@ -1,5 +1,7 @@
 name: "SDK Code Generation"
 on:
+  pull_request:
+  workflow_dispatch:
   schedule:
     - cron: '20 23 * * *'
 permissions:
@@ -12,7 +14,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
       - name: Generate and PR
-        uses: algorand/generator/.github/actions/sdk-codegen/@master
+        uses: algorand/generator/.github/actions/sdk-codegen/@fix-js-github-action
         with:
           args: "-k JS"
         env:
