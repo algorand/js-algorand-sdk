@@ -33,6 +33,9 @@ async function testRunner() {
         filename: path.basename(bundleLocation),
         path: path.dirname(bundleLocation),
       };
+      webpackTestConfig.optimization = {
+        minimize: false,
+      };
 
       webpack(webpackTestConfig, (err, stats) => {
         if (err || stats.hasErrors()) {
