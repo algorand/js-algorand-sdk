@@ -690,3 +690,116 @@ describe('signLogicSigTransaction', () => {
     assert.deepStrictEqual(actual, expected);
   });
 });
+
+describe('ProgramSourceMap', () => {
+  const input = {
+    version: 3,
+    sources: ['test/scripts/e2e_subs/tealprogs/sourcemap-test.teal'],
+    names: [],
+    mappings:
+      ';;;;AAGA;;AAAmB;;AAAO;AAAI;;;AAE9B;;AAAO;;AAAO;AACd;;AAAO;AAAO;AALO;AAAI;AASrB;AACA',
+  };
+
+  const expectedLocations = new Map<number, algosdk.SourceLocation>([
+    [4, { sourceIndex: 0, line: 3, column: 0 }],
+    [6, { sourceIndex: 0, line: 3, column: 19 }],
+    [8, { sourceIndex: 0, line: 3, column: 26 }],
+    [9, { sourceIndex: 0, line: 3, column: 30 }],
+    [12, { sourceIndex: 0, line: 5, column: 0 }],
+    [14, { sourceIndex: 0, line: 5, column: 7 }],
+    [16, { sourceIndex: 0, line: 5, column: 14 }],
+    [17, { sourceIndex: 0, line: 6, column: 0 }],
+    [19, { sourceIndex: 0, line: 6, column: 7 }],
+    [20, { sourceIndex: 0, line: 6, column: 14 }],
+    [21, { sourceIndex: 0, line: 1, column: 21 }],
+    [22, { sourceIndex: 0, line: 1, column: 25 }],
+    [23, { sourceIndex: 0, line: 10, column: 4 }],
+    [24, { sourceIndex: 0, line: 11, column: 4 }],
+  ]);
+
+  const expectedPcsForLine = new Map<number, algosdk.PcLineLocation[]>([
+    [
+      3,
+      [
+        { pc: 4, column: 0 },
+        { pc: 6, column: 19 },
+        { pc: 8, column: 26 },
+        { pc: 9, column: 30 },
+      ],
+    ],
+    [
+      5,
+      [
+        { pc: 12, column: 0 },
+        { pc: 14, column: 7 },
+        { pc: 16, column: 14 },
+      ],
+    ],
+    [
+      6,
+      [
+        { pc: 17, column: 0 },
+        { pc: 19, column: 7 },
+        { pc: 20, column: 14 },
+      ],
+    ],
+    [
+      1,
+      [
+        { pc: 21, column: 21 },
+        { pc: 22, column: 25 },
+      ],
+    ],
+    [10, [{ pc: 23, column: 4 }]],
+    [11, [{ pc: 24, column: 4 }]],
+  ]);
+
+  it('should be able to read a ProgramSourceMap', () => {
+    const sourceMap = new algosdk.ProgramSourceMap(input);
+
+    assert.strictEqual(sourceMap.version, input.version);
+    assert.deepStrictEqual(sourceMap.sources, input.sources);
+    assert.deepStrictEqual(sourceMap.names, input.names);
+    assert.strictEqual(sourceMap.mappings, input.mappings);
+  });
+
+  describe('getLocationForPc', () => {
+    it('should return the correct location for all pcs', () => {
+      const sourceMap = new algosdk.ProgramSourceMap(input);
+      const maxPcToCheck = 30;
+
+      for (let pc = 0; pc < maxPcToCheck; pc++) {
+        const expected = expectedLocations.get(pc);
+        assert.deepStrictEqual(
+          sourceMap.getLocationForPc(pc),
+          expected,
+          `pc=${pc}`
+        );
+      }
+    });
+  });
+
+  describe('getPcs', () => {
+    it('should return the correct pcs', () => {
+      const sourceMap = new algosdk.ProgramSourceMap(input);
+      const expectedPcs = Array.from(expectedLocations.keys());
+      assert.deepStrictEqual(sourceMap.getPcs(), expectedPcs);
+    });
+  });
+
+  describe('getPcsForLine', () => {
+    it('should return the correct pcs for all lines', () => {
+      const sourceMap = new algosdk.ProgramSourceMap(input);
+      const maxLineToCheck = 15;
+
+      for (let line = 1; line <= maxLineToCheck; line++) {
+        const expected = expectedPcsForLine.get(line) || [];
+        assert.deepStrictEqual(
+          sourceMap.getPcsOnSourceLine(0, line),
+          expected,
+          `line=${line}`
+        );
+      }
+    });
+  });
+});

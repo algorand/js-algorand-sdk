@@ -183,7 +183,11 @@ export {
   verifyMultisig,
   multisigAddress,
 } from './multisig.js';
-export { SourceMap } from './logic/sourcemap.js';
+export {
+  ProgramSourceMap,
+  SourceLocation,
+  PcLineLocation,
+} from './logic/sourcemap.js';
 
 export * from './dryrun.js';
 export * from './makeTxn.js';

@@ -1,3 +1,19 @@
+# v2.7.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v2.7.0 -->
+
+## What's Changed
+
+### Enhancements
+
+- fix: remove cross-fetch by @PhearZero in https://github.com/algorand/js-algorand-sdk/pull/833
+
+## New Contributors
+
+- @PhearZero made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/833
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.6.0...v2.7.0
+
 # v2.6.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.6.0 -->
