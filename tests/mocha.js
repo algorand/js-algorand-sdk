@@ -28,6 +28,7 @@ async function testRunner() {
       // Change entry and output for webpack config
       const webpackTestConfig = Object.assign(webpackConfig);
 
+      webpackTestConfig.mode = 'development';
       webpackTestConfig.entry = testFiles;
       webpackTestConfig.output = {
         filename: path.basename(bundleLocation),
