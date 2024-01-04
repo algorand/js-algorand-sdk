@@ -8,4 +8,7 @@ module.exports = {
     path: path.resolve(__dirname, 'build'),
   },
   devtool: 'source-map',
+  optimization: {
+    minimize: false,
+  },
 };

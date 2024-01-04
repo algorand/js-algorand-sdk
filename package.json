@@ -83,7 +83,7 @@
     "selenium-webdriver": "^4.10.0",
     "source-map-loader": "^2.0.2",
     "ts-loader": "^9.3.1",
-    "tsx": "^3.13.0",
+    "tsx": "^4.7.0",
     "typedoc": "^0.23.8",
     "typedoc-plugin-missing-exports": "^0.23.0",
     "typedoc-plugin-rename-defaults": "^0.6.4",
