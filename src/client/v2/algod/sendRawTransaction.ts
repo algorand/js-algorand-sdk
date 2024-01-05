@@ -1,6 +1,6 @@
 import { concatArrays } from '../../../utils/utils.js';
 import { PostTransactionsResponse } from './models/types.js';
-import HTTPClient from '../../client.js';
+import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
 
 /**

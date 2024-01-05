@@ -1,5 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
-import HTTPClient from '../../client.js';
+import { HTTPClient } from '../../client.js';
 import IntDecoding from '../../../types/intDecoding.js';
 
 export default class SetBlockOffsetTimestamp extends JSONRequest {

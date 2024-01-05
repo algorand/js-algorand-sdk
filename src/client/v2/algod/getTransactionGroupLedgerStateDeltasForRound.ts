@@ -1,6 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
 import { TransactionGroupLedgerStateDeltasForRoundResponse } from './models/types.js';
-import HTTPClient from '../../client.js';
+import { HTTPClient } from '../../client.js';
 import IntDecoding from '../../../types/intDecoding.js';
 
 export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRequest<

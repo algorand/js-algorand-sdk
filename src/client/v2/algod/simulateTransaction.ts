@@ -1,5 +1,5 @@
 import * as encoding from '../../../encoding/encoding.js';
-import HTTPClient from '../../client.js';
+import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
 import { SimulateRequest, SimulateResponse } from './models/types.js';
 

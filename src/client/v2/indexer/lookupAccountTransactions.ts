@@ -1,6 +1,6 @@
 import { bytesToBase64 } from '../../../encoding/binarydata.js';
 import IntDecoding from '../../../types/intDecoding.js';
-import HTTPClient from '../../client.js';
+import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
 
 /**

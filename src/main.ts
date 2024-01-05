@@ -114,11 +114,11 @@ export const ERROR_INVALID_MICROALGOS = new Error(
   convert.INVALID_MICROALGOS_ERROR_MSG
 );
 
-export { default as Algodv2 } from './client/v2/algod/algod.js';
-export { default as Kmd } from './client/kmd.js';
+export { AlgodClient as Algodv2 } from './client/v2/algod/algod.js';
+export { KmdClient as Kmd } from './client/kmd.js';
 export { default as IntDecoding } from './types/intDecoding.js';
 export { default as Account } from './types/account.js';
-export { default as Indexer } from './client/v2/indexer/indexer.js';
+export { IndexerClient as Indexer } from './client/v2/indexer/indexer.js';
 export {
   BaseHTTPClient,
   BaseHTTPClientResponse,

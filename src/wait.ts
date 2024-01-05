@@ -1,4 +1,4 @@
-import Algodv2 from './client/v2/algod/algod.js';
+import { AlgodClient } from './client/v2/algod/algod.js';
 import { PendingTransactionResponse } from './client/v2/algod/models/types.js';
 
 /**
@@ -11,7 +11,7 @@ import { PendingTransactionResponse } from './client/v2/algod/models/types.js';
  *   `pendingTransactionInformation` call for the confirmed transaction.
  */
 export async function waitForConfirmation(
-  client: Algodv2,
+  client: AlgodClient,
   txid: string,
   waitRounds: number
 ): Promise<PendingTransactionResponse> {

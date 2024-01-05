@@ -425,5 +425,3 @@ export class KmdClient extends ServiceClient {
     return res.body;
   }
 }
-
-export default KmdClient;

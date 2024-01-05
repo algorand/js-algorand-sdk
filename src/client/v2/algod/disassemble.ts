@@ -1,5 +1,5 @@
 import { coerceToBytes } from '../../../encoding/binarydata.js';
-import HTTPClient from '../../client.js';
+import { HTTPClient } from '../../client.js';
 import { DisassembleResponse } from './models/types.js';
 import JSONRequest from '../jsonrequest.js';
 

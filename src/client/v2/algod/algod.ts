@@ -55,7 +55,7 @@ import GetTransactionGroupLedgerStateDeltasForRound from './getTransactionGroupL
  *
  * [Run Algod in Postman OAS3](https://developer.algorand.org/docs/rest-apis/restendpoints/?from_query=algod#algod-indexer-and-kmd-rest-endpoints)
  */
-export default class AlgodClient extends ServiceClient {
+export class AlgodClient extends ServiceClient {
   /**
    * Create an AlgodClient from
    * * either a token, baseServer, port, and optional headers

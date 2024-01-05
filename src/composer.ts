@@ -10,7 +10,7 @@ import {
   ABIUintType,
   ABIValue,
 } from './abi/index.js';
-import Algodv2 from './client/v2/algod/algod.js';
+import { AlgodClient } from './client/v2/algod/algod.js';
 import {
   SimulateRequest,
   SimulateRequestTransactionGroup,
@@ -594,7 +594,7 @@ export class AtomicTransactionComposer {
    *
    * @returns A promise that, upon success, resolves to a list of TxIDs of the submitted transactions.
    */
-  async submit(client: Algodv2): Promise<string[]> {
+  async submit(client: AlgodClient): Promise<string[]> {
     if (this.status > AtomicTransactionComposerStatus.SUBMITTED) {
       throw new Error('Transaction group cannot be resubmitted');
     }
@@ -625,7 +625,7 @@ export class AtomicTransactionComposer {
    *   in this group (ABIResult[]) and the SimulateResponse object.
    */
   async simulate(
-    client: Algodv2,
+    client: AlgodClient,
     request?: SimulateRequest
   ): Promise<{
     methodResults: ABIResult[];
@@ -698,7 +698,7 @@ export class AtomicTransactionComposer {
    *   one element for each method call transaction in this group.
    */
   async execute(
-    client: Algodv2,
+    client: AlgodClient,
     waitRounds: number
   ): Promise<{
     confirmedRound: number;

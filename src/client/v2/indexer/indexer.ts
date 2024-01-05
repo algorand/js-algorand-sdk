@@ -39,7 +39,7 @@ import {
  *
  * [Run Indexer in Postman OAS3](https://developer.algorand.org/docs/rest-apis/restendpoints/#algod-indexer-and-kmd-rest-endpoints)
  */
-export default class IndexerClient extends ServiceClient {
+export class IndexerClient extends ServiceClient {
   /**
    * Create an IndexerClient from
    * * either a token, baseServer, port, and optional headers

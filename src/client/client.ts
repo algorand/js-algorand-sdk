@@ -72,7 +72,7 @@ function getAcceptFormat(
  * It takes care of setting the proper "Accept" header and of
  * decoding the JSON outputs.
  */
-export default class HTTPClient {
+export class HTTPClient {
   private bc: BaseHTTPClient;
 
   /**

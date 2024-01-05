@@ -1,4 +1,4 @@
-import AlgodClient from './client/v2/algod/algod.js';
+import { AlgodClient } from './client/v2/algod/algod.js';
 import {
   AccountStateDelta,
   Application,

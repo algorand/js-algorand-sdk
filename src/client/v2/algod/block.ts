@@ -1,6 +1,6 @@
 import * as encoding from '../../../encoding/encoding.js';
 import JSONRequest from '../jsonrequest.js';
-import HTTPClient from '../../client.js';
+import { HTTPClient } from '../../client.js';
 import { BlockResponse } from './models/types.js';
 
 /**
