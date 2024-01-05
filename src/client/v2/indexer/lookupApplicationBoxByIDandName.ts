@@ -1,8 +1,8 @@
-import { bytesToBase64 } from '../../../encoding/binarydata';
-import IntDecoding from '../../../types/intDecoding';
-import HTTPClient from '../../client';
-import JSONRequest from '../jsonrequest';
-import { Box } from './models/types';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import IntDecoding from '../../../types/intDecoding.js';
+import { HTTPClient } from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
+import { Box } from './models/types.js';
 
 export default class LookupApplicationBoxByIDandName extends JSONRequest<
   Box,

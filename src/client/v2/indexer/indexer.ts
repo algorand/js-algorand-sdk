@@ -1,29 +1,29 @@
-import ServiceClient from '../serviceClient';
-import MakeHealthCheck from './makeHealthCheck';
-import LookupAssetBalances from './lookupAssetBalances';
-import LookupAssetTransactions from './lookupAssetTransactions';
-import LookupAccountTransactions from './lookupAccountTransactions';
-import LookupBlock from './lookupBlock';
-import LookupTransactionByID from './lookupTransactionByID';
-import LookupAccountByID from './lookupAccountByID';
-import LookupAccountAssets from './lookupAccountAssets';
-import LookupAccountCreatedAssets from './lookupAccountCreatedAssets';
-import LookupAccountAppLocalStates from './lookupAccountAppLocalStates';
-import LookupAccountCreatedApplications from './lookupAccountCreatedApplications';
-import LookupAssetByID from './lookupAssetByID';
-import LookupApplications from './lookupApplications';
-import LookupApplicationLogs from './lookupApplicationLogs';
-import LookupApplicationBoxByIDandName from './lookupApplicationBoxByIDandName';
-import SearchAccounts from './searchAccounts';
-import SearchForTransactions from './searchForTransactions';
-import SearchForAssets from './searchForAssets';
-import SearchForApplications from './searchForApplications';
-import SearchForApplicationBoxes from './searchForApplicationBoxes';
-import { BaseHTTPClient } from '../../baseHTTPClient';
+import ServiceClient from '../serviceClient.js';
+import MakeHealthCheck from './makeHealthCheck.js';
+import LookupAssetBalances from './lookupAssetBalances.js';
+import LookupAssetTransactions from './lookupAssetTransactions.js';
+import LookupAccountTransactions from './lookupAccountTransactions.js';
+import LookupBlock from './lookupBlock.js';
+import LookupTransactionByID from './lookupTransactionByID.js';
+import LookupAccountByID from './lookupAccountByID.js';
+import LookupAccountAssets from './lookupAccountAssets.js';
+import LookupAccountCreatedAssets from './lookupAccountCreatedAssets.js';
+import LookupAccountAppLocalStates from './lookupAccountAppLocalStates.js';
+import LookupAccountCreatedApplications from './lookupAccountCreatedApplications.js';
+import LookupAssetByID from './lookupAssetByID.js';
+import LookupApplications from './lookupApplications.js';
+import LookupApplicationLogs from './lookupApplicationLogs.js';
+import LookupApplicationBoxByIDandName from './lookupApplicationBoxByIDandName.js';
+import SearchAccounts from './searchAccounts.js';
+import SearchForTransactions from './searchForTransactions.js';
+import SearchForAssets from './searchForAssets.js';
+import SearchForApplications from './searchForApplications.js';
+import SearchForApplicationBoxes from './searchForApplicationBoxes.js';
+import { BaseHTTPClient } from '../../baseHTTPClient.js';
 import {
   CustomTokenHeader,
   IndexerTokenHeader,
-} from '../../urlTokenBaseHTTPClient';
+} from '../../urlTokenBaseHTTPClient.js';
 
 /**
  * The Indexer provides a REST API interface of API calls to support searching the Algorand Blockchain.
@@ -39,7 +39,7 @@ import {
  *
  * [Run Indexer in Postman OAS3](https://developer.algorand.org/docs/rest-apis/restendpoints/#algod-indexer-and-kmd-rest-endpoints)
  */
-export default class IndexerClient extends ServiceClient {
+export class IndexerClient extends ServiceClient {
   /**
    * Create an IndexerClient from
    * * either a token, baseServer, port, and optional headers

@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { SupplyResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { SupplyResponse } from './models/types.js';
 
 export default class Supply extends JSONRequest<
   SupplyResponse,

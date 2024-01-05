@@ -1,9 +1,9 @@
 /* eslint-env mocha */
 import assert from 'assert';
-import HTTPClient from '../src/client/client';
+import { HTTPClient } from '../src/client/client';
 import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';
 import IntDecoding from '../src/types/intDecoding';
-import AlgodClient from '../src/client/v2/algod/algod';
+import { AlgodClient } from '../src/client/v2/algod/algod';
 import * as utils from '../src/utils/utils';
 
 describe('client', () => {

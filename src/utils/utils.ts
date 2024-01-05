@@ -1,5 +1,5 @@
 import JSONbigWithoutConfig from 'json-bigint';
-import IntDecoding from '../types/intDecoding';
+import IntDecoding from '../types/intDecoding.js';
 
 const JSONbig = JSONbigWithoutConfig({
   useNativeBigInt: true,

@@ -1,5 +1,5 @@
-import { EncodedBoxReference } from './types';
-import { BoxReference } from './types/transactions/base';
+import { EncodedBoxReference } from './types/index.js';
+import { BoxReference } from './types/transactions/base.js';
 
 function translateBoxReference(
   reference: BoxReference,

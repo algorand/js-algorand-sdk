@@ -2,12 +2,12 @@ import {
   base64ToBytes,
   bytesToBase64,
   coerceToBytes,
-} from '../encoding/binarydata';
-import * as txn from '../transaction';
-import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient';
-import ServiceClient from './v2/serviceClient';
+} from '../encoding/binarydata.js';
+import * as txn from '../transaction.js';
+import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient.js';
+import ServiceClient from './v2/serviceClient.js';
 
-export default class Kmd extends ServiceClient {
+export class KmdClient extends ServiceClient {
   constructor(
     token: string | KMDTokenHeader | CustomTokenHeader,
     baseServer = 'http://127.0.0.1',

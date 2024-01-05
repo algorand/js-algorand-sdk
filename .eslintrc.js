@@ -58,4 +58,13 @@ module.exports = {
     'tests/cucumber/browser/build/',
     'tests/browser/bundle.*',
   ],
+  settings: {
+    'import/resolver': {
+      typescript: {
+        extensionAlias: {
+          '.js': ['.ts', '.d.ts', '.js'],
+        },
+      },
+    },
+  },
 };

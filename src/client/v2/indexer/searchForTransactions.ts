@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { base64StringFunnel } from './lookupAccountTransactions';
+import JSONRequest from '../jsonrequest.js';
+import { base64StringFunnel } from './lookupAccountTransactions.js';
 
 /**
  * Returns information about indexed transactions.

@@ -1,7 +1,7 @@
-import { concatArrays } from '../../../utils/utils';
-import { PostTransactionsResponse } from './models/types';
-import HTTPClient from '../../client';
-import JSONRequest from '../jsonrequest';
+import { concatArrays } from '../../../utils/utils.js';
+import { PostTransactionsResponse } from './models/types.js';
+import { HTTPClient } from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
 
 /**
  * Sets the default header (if not previously set) for sending a raw

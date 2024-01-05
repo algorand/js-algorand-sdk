@@ -1,10 +1,10 @@
 import base32 from 'hi-base32';
-import { translateBoxReferences } from './boxStorage';
-import * as address from './encoding/address';
-import { base64ToBytes, bytesToBase64 } from './encoding/binarydata';
-import * as encoding from './encoding/encoding';
-import * as nacl from './nacl/naclWrappers';
-import { Address } from './types/address';
+import { translateBoxReferences } from './boxStorage.js';
+import * as address from './encoding/address.js';
+import { base64ToBytes, bytesToBase64 } from './encoding/binarydata.js';
+import * as encoding from './encoding/encoding.js';
+import * as nacl from './nacl/naclWrappers.js';
+import { Address } from './types/address.js';
 import AnyTransaction, {
   EncodedLogicSig,
   EncodedMultisig,
@@ -12,15 +12,15 @@ import AnyTransaction, {
   EncodedTransaction,
   MustHaveSuggestedParams,
   MustHaveSuggestedParamsInline,
-} from './types/transactions';
+} from './types/transactions/index.js';
 import {
   BoxReference,
   OnApplicationComplete,
   TransactionParams,
   TransactionType,
   isTransactionType,
-} from './types/transactions/base';
-import * as utils from './utils/utils';
+} from './types/transactions/base.js';
+import * as utils from './utils/utils.js';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
 export const ALGORAND_MIN_TX_FEE = 1000; // version v5

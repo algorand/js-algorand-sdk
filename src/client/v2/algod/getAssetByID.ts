@@ -1,7 +1,7 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { Asset } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
+import IntDecoding from '../../../types/intDecoding.js';
+import { Asset } from './models/types.js';
 
 export default class GetAssetByID extends JSONRequest<
   Asset,

@@ -1,5 +1,5 @@
-import HTTPClient from '../client';
-import IntDecoding from '../../types/intDecoding';
+import { HTTPClient } from '../client.js';
+import IntDecoding from '../../types/intDecoding.js';
 
 /**
  * Base abstract class for JSON requests.

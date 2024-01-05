@@ -1,8 +1,8 @@
-import * as address from './encoding/address';
-import * as encoding from './encoding/encoding';
-import * as nacl from './nacl/naclWrappers';
-import * as utils from './utils/utils';
-import { Address } from './types/address';
+import * as address from './encoding/address.js';
+import * as encoding from './encoding/encoding.js';
+import * as nacl from './nacl/naclWrappers.js';
+import * as utils from './utils/utils.js';
+import { Address } from './types/address.js';
 
 interface BidStorageStructure {
   bidderKey: Address;

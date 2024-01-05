@@ -1,5 +1,5 @@
-import { DistributiveOverwrite } from '../utils';
-import { TransactionParams, SuggestedParams } from './base';
+import { DistributiveOverwrite } from '../utils.js';
+import { TransactionParams, SuggestedParams } from './base.js';
 
 /**
  * Transaction base with suggested params as object

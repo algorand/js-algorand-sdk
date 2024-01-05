@@ -1,17 +1,17 @@
-import * as nacl from './nacl/naclWrappers';
-import * as address from './encoding/address';
-import * as encoding from './encoding/encoding';
-import { verifyMultisig } from './multisig';
-import * as utils from './utils/utils';
-import * as txnBuilder from './transaction';
-import { isValidAddress } from './encoding/address';
+import * as nacl from './nacl/naclWrappers.js';
+import * as address from './encoding/address.js';
+import * as encoding from './encoding/encoding.js';
+import { verifyMultisig } from './multisig.js';
+import * as utils from './utils/utils.js';
+import * as txnBuilder from './transaction.js';
+import { isValidAddress } from './encoding/address.js';
 import {
   EncodedLogicSig,
   EncodedLogicSigAccount,
   EncodedMultisig,
   EncodedSignedTransaction,
-} from './types/transactions/encoded';
-import { MultisigMetadata } from './types/multisig';
+} from './types/transactions/encoded.js';
+import { MultisigMetadata } from './types/multisig.js';
 
 interface LogicSigStorageStructure {
   logic: Uint8Array;

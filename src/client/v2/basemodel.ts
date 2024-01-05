@@ -2,7 +2,7 @@
  * Base class for models
  */
 
-import { bytesToBase64 } from '../../encoding/binarydata';
+import { bytesToBase64 } from '../../encoding/binarydata.js';
 
 /* eslint-disable no-underscore-dangle,camelcase */
 function _is_primitive(val: any): val is string | boolean | number | bigint {

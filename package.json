@@ -8,6 +8,33 @@
     ".": "dist/browser/algosdk.min.js",
     "crypto": false
   },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/esm/client/index.js",
+      "require": "./dist/cjs/client/index.js",
+      "types": "./dist/types/client/index.d.ts"
+    },
+    "./client/algod": {
+      "import": "./dist/esm/client/v2/algod/index.js",
+      "require": "./dist/cjs/client/v2/algod/index.js",
+      "types": "./dist/types/client/v2/algod/index.d.ts"
+    },
+    "./client/indexer": {
+      "import": "./dist/esm/client/v2/indexer/index.js",
+      "require": "./dist/cjs/client/v2/indexer/index.js",
+      "types": "./dist/types/client/v2/indexer/index.d.ts"
+    },
+    "./client/kmd": {
+      "import": "./dist/esm/client/kmd.js",
+      "require": "./dist/cjs/client/kmd.js",
+      "types": "./dist/types/client/kmd.d.ts"
+    }
+  },
   "types": "dist/types/index.d.ts",
   "files": [
     "dist/",
@@ -43,6 +70,7 @@
     "eslint": "8.22.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.1.0",
+    "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-tsdoc": "^0.2.11",
     "express": "^4.17.1",
@@ -55,7 +83,7 @@
     "selenium-webdriver": "^4.10.0",
     "source-map-loader": "^2.0.2",
     "ts-loader": "^9.3.1",
-    "ts-node": "^10.9.1",
+    "tsx": "^4.7.0",
     "typedoc": "^0.23.8",
     "typedoc-plugin-missing-exports": "^0.23.0",
     "typedoc-plugin-rename-defaults": "^0.6.4",
@@ -64,7 +92,7 @@
     "webpack-cli": "^5.0.1"
   },
   "scripts": {
-    "test": "node -r ts-node/register tests/mocha.js",
+    "test": "tsx tests/mocha.js",
     "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
     "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",

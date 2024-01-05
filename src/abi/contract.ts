@@ -1,4 +1,4 @@
-import { ABIMethod, ABIMethodParams, getMethodByName } from './method';
+import { ABIMethod, ABIMethodParams, getMethodByName } from './method.js';
 
 export interface ABIContractNetworkInfo {
   appID: number;
