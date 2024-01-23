@@ -16,7 +16,11 @@ export default class LookupTransactionByID extends JSONRequest {
    * @param txID - The ID of the transaction to look up.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private txID: string) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private txID: string
+  ) {
     super(c, intDecoding);
     this.txID = txID;
   }

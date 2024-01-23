@@ -16,7 +16,11 @@ export default class LookupBlock extends JSONRequest {
    * @param round - The number of the round to look up.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private round: number
+  ) {
     super(c, intDecoding);
     this.round = round;
   }
