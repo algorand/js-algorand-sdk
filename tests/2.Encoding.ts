@@ -1,7 +1,7 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const algosdk = require('../src/index');
-const utils = require('../src/utils/utils');
+import assert from 'assert';
+import algosdk from '../src/index.js';
+import * as utils from '../src/utils/utils.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =
   'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
@@ -38,7 +38,7 @@ describe('encoding', () => {
         () => {
           algosdk.encodeObj(a);
         },
-        (err) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
+        (err: Error) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
       );
 
       const b = { a: 4, B: [] };
@@ -46,7 +46,7 @@ describe('encoding', () => {
         () => {
           algosdk.encodeObj(b);
         },
-        (err) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
+        (err: Error) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
       );
 
       const c = { a: 4, B: 0 };
@@ -54,7 +54,7 @@ describe('encoding', () => {
         () => {
           algosdk.encodeObj(c);
         },
-        (err) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
+        (err: Error) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
       );
     });
 
@@ -82,15 +82,17 @@ describe('encoding', () => {
 
     it('should safely encode/decode bigints', () => {
       const beforeZero = BigInt('0');
-      const afterZero = algosdk.decodeObj(algosdk.encodeObj(beforeZero));
+      const afterZero = algosdk.decodeObj(algosdk.encodeObj(beforeZero as any));
       // eslint-disable-next-line eqeqeq
       assert.ok(beforeZero == afterZero); // after is a Number because 0 fits into a Number - so we do this loose comparison
       const beforeLarge = BigInt('18446744073709551612'); // larger than a Number, but fits into a uint64
-      const afterLarge = algosdk.decodeObj(algosdk.encodeObj(beforeLarge));
+      const afterLarge = algosdk.decodeObj(
+        algosdk.encodeObj(beforeLarge as any)
+      );
       assert.strictEqual(beforeLarge, afterLarge);
       const beforeTooLarge = BigInt('18446744073709551616'); // larger than even fits into a uint64. we do not want to work with these too-large numbers
       const afterTooLarge = algosdk.decodeObj(
-        algosdk.encodeObj(beforeTooLarge)
+        algosdk.encodeObj(beforeTooLarge as any)
       );
       assert.notStrictEqual(beforeTooLarge, afterTooLarge);
     });
@@ -115,7 +117,7 @@ describe('encoding', () => {
 
   describe('uint64', () => {
     it('should encode properly', () => {
-      const testcases = [
+      const testcases: Array<[number | bigint, Uint8Array]> = [
         [0, Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])],
         [0n, Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])],
         [1, Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1])],
@@ -172,7 +174,7 @@ describe('encoding', () => {
 
     it('should decode properly in default mode', () => {
       // should be the same as safe mode
-      const testcases = [
+      const testcases: Array<[Uint8Array, number | bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0],
         [Uint8Array.from([0]), 0],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1],
@@ -214,7 +216,7 @@ describe('encoding', () => {
     });
 
     it('should decode properly in safe mode', () => {
-      const testcases = [
+      const testcases: Array<[Uint8Array, number | bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0],
         [Uint8Array.from([0]), 0],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1],
@@ -257,7 +259,7 @@ describe('encoding', () => {
     });
 
     it('should decode properly in mixed mode', () => {
-      const testcases = [
+      const testcases: Array<[Uint8Array, number | bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0],
         [Uint8Array.from([0]), 0],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1],
@@ -297,7 +299,7 @@ describe('encoding', () => {
     });
 
     it('should decode properly in bigint mode', () => {
-      const testcases = [
+      const testcases: Array<[Uint8Array, bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0n],
         [Uint8Array.from([0]), 0n],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1n],
@@ -347,7 +349,7 @@ describe('encoding', () => {
       assert.throws(() =>
         algosdk.decodeUint64(
           Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]),
-          'unknown'
+          'unknown' as any
         )
       );
     });
@@ -357,7 +359,12 @@ describe('encoding', () => {
     it('should parse null', () => {
       const input = 'null';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = null;
 
@@ -372,7 +379,12 @@ describe('encoding', () => {
     it('should parse number', () => {
       const inputs = ['17', '9007199254740991'];
       for (const input of inputs) {
-        for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+        for (const intDecoding of [
+          algosdk.IntDecoding.DEFAULT,
+          algosdk.IntDecoding.SAFE,
+          algosdk.IntDecoding.MIXED,
+          algosdk.IntDecoding.BIGINT,
+        ]) {
           const actual = utils.parseJSON(input, { intDecoding });
           const expected =
             intDecoding === 'bigint' ? BigInt(input) : Number(input);
@@ -388,7 +400,12 @@ describe('encoding', () => {
     it('should parse empty object', () => {
       const input = '{}';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = {};
 
@@ -403,7 +420,12 @@ describe('encoding', () => {
     it('should parse populated object', () => {
       const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{},"f":true}';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -439,9 +461,15 @@ describe('encoding', () => {
       const input =
         '{"a":0,"b":9007199254740991,"c":9007199254740992,"d":9223372036854775807}';
 
-      assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
+      assert.throws(() =>
+        utils.parseJSON(input, { intDecoding: algosdk.IntDecoding.SAFE })
+      );
 
-      for (const intDecoding of ['default', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -479,7 +507,12 @@ describe('encoding', () => {
     it('should parse empty array', () => {
       const input = '[]';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = [];
 
@@ -494,7 +527,12 @@ describe('encoding', () => {
     it('should parse populated array', () => {
       const input = '["test",2,null,[7],{"a":9.5},true]';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -515,9 +553,15 @@ describe('encoding', () => {
     it('should parse array with BigInt', () => {
       const input = '[0,9007199254740991,9007199254740992,9223372036854775807]';
 
-      assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
+      assert.throws(() =>
+        utils.parseJSON(input, { intDecoding: algosdk.IntDecoding.SAFE })
+      );
 
-      for (const intDecoding of ['default', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -555,27 +599,11 @@ describe('encoding', () => {
 
   describe('Base64 decoding utilities', () => {
     it('should decode bytes from Base64', () => {
-      const testCases = [
+      const testCases: Array<[Uint8Array, string]> = [
         [
           Uint8Array.from([
-            97,
-            32,
-            196,
-            128,
-            32,
-            240,
-            144,
-            128,
-            128,
-            32,
-            230,
-            150,
-            135,
-            32,
-            240,
-            159,
-            166,
-            132,
+            97, 32, 196, 128, 32, 240, 144, 128, 128, 32, 230, 150, 135, 32,
+            240, 159, 166, 132,
           ]), // a Ā 𐀀 文 🦄
           'YSDEgCDwkICAIOaWhyDwn6aE',
         ],

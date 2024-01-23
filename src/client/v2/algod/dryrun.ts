@@ -27,7 +27,7 @@ export default class Dryrun extends JSONRequest<
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(this.path(), this.blob, null, txHeaders);
+    const res = await this.c.post(this.path(), this.blob, undefined, txHeaders);
     return this.prepare(res.body);
   }
 

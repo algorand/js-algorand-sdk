@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const nacl = require('../src/nacl/naclWrappers');
-const algosdk = require('../src/index');
-const address = require('../src/encoding/address');
+import assert from 'assert';
+import * as nacl from '../src/nacl/naclWrappers.js';
+import algosdk from '../src/index.js';
+import * as address from '../src/encoding/address.js';
 
 describe('address', () => {
   describe('#isValid', () => {
@@ -13,7 +13,7 @@ describe('address', () => {
     const correctChecksum = new Uint8Array([122, 240, 2, 74]);
     const malformedAddress1 =
       'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJ';
-    const maldformedAddress2 = 123;
+    const malformedAddress2 = 123 as any;
     const malformedAddress3 =
       'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACererZQGI113RBSRVYHV4ACJI';
     const wrongChecksumAddress =
@@ -27,34 +27,22 @@ describe('address', () => {
     });
 
     it('should fail to verify a malformed Algorand address', () => {
-      assert.throws(
-        () => {
-          algosdk.decodeAddress(malformedAddress1);
-        },
-        (err) => err.message === address.MALFORMED_ADDRESS_ERROR_MSG
-      );
-      assert.throws(
-        () => {
-          algosdk.decodeAddress(maldformedAddress2);
-        },
-        (err) => err.message === address.MALFORMED_ADDRESS_ERROR_MSG
-      );
+      assert.throws(() => {
+        algosdk.decodeAddress(malformedAddress1);
+      }, new Error(address.MALFORMED_ADDRESS_ERROR_MSG));
+      assert.throws(() => {
+        algosdk.decodeAddress(malformedAddress2);
+      }, new Error(address.MALFORMED_ADDRESS_ERROR_MSG));
       // Catch an exception possibly thrown by base32 decoding function
-      assert.throws(
-        () => {
-          algosdk.decodeAddress(malformedAddress3);
-        },
-        (err) => err.message === 'Invalid base32 characters'
-      );
+      assert.throws(() => {
+        algosdk.decodeAddress(malformedAddress3);
+      }, new Error('Invalid base32 characters'));
     });
 
     it('should fail to verify a checksum for an invalid Algorand address', () => {
-      assert.throws(
-        () => {
-          algosdk.decodeAddress(wrongChecksumAddress);
-        },
-        (err) => err.message === address.CHECKSUM_ADDRESS_ERROR_MSG
-      );
+      assert.throws(() => {
+        algosdk.decodeAddress(wrongChecksumAddress);
+      }, new Error(address.CHECKSUM_ADDRESS_ERROR_MSG));
     });
 
     // Check helper functions
@@ -80,7 +68,8 @@ describe('address', () => {
         () => {
           algosdk.encodeAddress(pk);
         },
-        (err) => err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
+        (err: Error) =>
+          err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
       );
     });
 

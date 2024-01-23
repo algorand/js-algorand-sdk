@@ -389,7 +389,7 @@ function signLogicSigTransactionWithAddress(
 
   const signedTxn: EncodedSignedTransaction = {
     lsig: lsig.get_obj_for_encoding(),
-    txn: txn.get_obj_for_encoding(),
+    txn: txn.get_obj_for_encoding()!,
   };
 
   if (!nacl.bytesEqual(lsigAddress, txn.sender.publicKey)) {

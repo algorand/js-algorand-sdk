@@ -53,14 +53,12 @@ export default class Bid implements BidStorageStructure {
     if (!Number.isSafeInteger(auctionID) || auctionID < 0)
       throw Error('auctionID must be positive');
 
-    Object.assign(this, {
-      bidderKey: decodedBidderKey,
-      bidAmount,
-      bidID,
-      auctionKey: decodedAuctionKey,
-      auctionID,
-      maxPrice,
-    });
+    this.bidderKey = decodedBidderKey;
+    this.bidAmount = bidAmount;
+    this.bidID = bidID;
+    this.auctionKey = decodedAuctionKey;
+    this.auctionID = auctionID;
+    this.maxPrice = maxPrice;
   }
 
   // eslint-disable-next-line camelcase

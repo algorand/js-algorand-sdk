@@ -1,34 +1,10 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const algosdk = require('../src/index');
-const { translateBoxReferences } = require('../src/boxStorage');
-const group = require('../src/group');
+import assert from 'assert';
+import algosdk from '../src/index.js';
+import { translateBoxReferences } from '../src/boxStorage.js';
+import * as group from '../src/group.js';
 
 describe('Sign', () => {
-  /* eslint-disable no-console */
-  const originalLogFunction = console.log;
-  let logs;
-
-  beforeEach(() => {
-    logs = '';
-
-    // Mock console.log to suppress logs during tests
-    console.log = (msg) => {
-      logs += `${msg}\n`;
-    };
-  });
-
-  afterEach(function Cleanup() {
-    // Unmock console.log
-    console.log = originalLogFunction;
-
-    // Unsuppress logs if the test failed
-    if (this.currentTest.state === 'failed') {
-      console.log(logs);
-    }
-  });
-  /* eslint-enable no-console */
-
   it('should not modify input arrays', () => {
     const appArgs = [Uint8Array.from([1, 2]), Uint8Array.from([3, 4])];
     const appAccounts = [
@@ -52,7 +28,7 @@ describe('Sign', () => {
       appForeignApps,
       appForeignAssets,
       boxes,
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     const txn = new algosdk.Transaction(o);
     assert.deepStrictEqual(appArgs, [
       Uint8Array.from([1, 2]),
@@ -65,7 +41,7 @@ describe('Sign', () => {
     assert.deepStrictEqual(appForeignApps, [17, 200]);
     assert.deepStrictEqual(appForeignAssets, [7, 8, 9]);
     assert.ok(txn.appArgs !== appArgs);
-    assert.ok(txn.appAccounts !== appAccounts);
+    assert.ok((txn.appAccounts as any) !== appAccounts);
     assert.ok(txn.appForeignApps !== appForeignApps);
     assert.ok(txn.appForeignAssets !== appForeignAssets);
     assert.ok(txn.boxes !== boxes);
@@ -81,7 +57,7 @@ describe('Sign', () => {
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(0),
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     assert.doesNotThrow(() => new algosdk.Transaction(o));
   });
 
@@ -95,10 +71,10 @@ describe('Sign', () => {
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     const txn = new algosdk.Transaction(o);
     assert.strictEqual(txn.fee, 1000); // 1000 is the v5 min txn fee
-    const txnEnc = txn.get_obj_for_encoding();
+    const txnEnc = txn.get_obj_for_encoding()!;
     assert.strictEqual(txnEnc.fee, 1000);
   });
 
@@ -113,7 +89,7 @@ describe('Sign', () => {
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     const txn = new algosdk.Transaction(o);
     assert.equal(txn.fee, 0);
   });
@@ -129,11 +105,11 @@ describe('Sign', () => {
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     const txn = new algosdk.Transaction(o);
     assert.equal(txn.fee, 10);
     const txnEnc = txn.get_obj_for_encoding();
-    assert.equal(txnEnc.fee, 10);
+    assert.equal(txnEnc!.fee, 10);
   });
 
   it('should not complain on a missing genesisID', () => {
@@ -146,7 +122,7 @@ describe('Sign', () => {
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array([123, 12, 200]),
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
 
     assert.doesNotThrow(() => new algosdk.Transaction(o));
   });
@@ -177,69 +153,75 @@ describe('Sign', () => {
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: 'new Uint8Array(0)',
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     assert.throws(
       () => new algosdk.Transaction(o),
-      (err) => err.toString() === 'Error: note must be a Uint8Array.'
+      new Error('note must be a Uint8Array.')
     );
   });
 
   it('should not drop a note of all zeros', () => {
-    const txnWithNote = new algosdk.Transaction({
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      note: new Uint8Array(32),
-    });
+    const txnWithNote = new algosdk.Transaction(
+      {
+        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        fee: 10,
+        amount: 847,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        note: new Uint8Array(32),
+      } as any // Temporary type fix, will be unnecessary in following PR
+    );
 
-    const txnWithoutNote = new algosdk.Transaction({
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-    });
+    const txnWithoutNote = new algosdk.Transaction(
+      {
+        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        fee: 10,
+        amount: 847,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      } as any // Temporary type fix, will be unnecessary in following PR
+    );
 
     const serializedWithNote = algosdk.encodeUnsignedTransaction(txnWithNote);
-    const serializedWithoutNote = algosdk.encodeUnsignedTransaction(
-      txnWithoutNote
-    );
+    const serializedWithoutNote =
+      algosdk.encodeUnsignedTransaction(txnWithoutNote);
 
     assert.notDeepStrictEqual(serializedWithNote, serializedWithoutNote);
   });
 
   it('should drop a lease of all zeros', () => {
-    const txnWithLease = new algosdk.Transaction({
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      lease: new Uint8Array(32),
-    });
+    const txnWithLease = new algosdk.Transaction(
+      {
+        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        fee: 10,
+        amount: 847,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        lease: new Uint8Array(32),
+      } as any // Temporary type fix, will be unnecessary in following PR
+    );
 
-    const txnWithoutLease = new algosdk.Transaction({
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-    });
+    const txnWithoutLease = new algosdk.Transaction(
+      {
+        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        fee: 10,
+        amount: 847,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      } as any // Temporary type fix, will be unnecessary in following PR
+    );
 
     const serializedWithLease = algosdk.encodeUnsignedTransaction(txnWithLease);
-    const serializedWithoutLease = algosdk.encodeUnsignedTransaction(
-      txnWithoutLease
-    );
+    const serializedWithoutLease =
+      algosdk.encodeUnsignedTransaction(txnWithoutLease);
 
     assert.deepStrictEqual(serializedWithLease, serializedWithoutLease);
   });
@@ -248,39 +230,42 @@ describe('Sign', () => {
     const address =
       'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
 
-    const txnWithHash = new algosdk.Transaction({
-      sender: address,
-      fee: 10,
-      firstValid: 322575,
-      lastValid: 323575,
-      genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-      assetIndex: 1234,
-      assetManager: address,
-      assetReserve: address,
-      assetFreeze: address,
-      assetClawback: address,
-      type: 'acfg',
-      assetMetadataHash: new Uint8Array(32),
-    });
+    const txnWithHash = new algosdk.Transaction(
+      {
+        sender: address,
+        fee: 10,
+        firstValid: 322575,
+        lastValid: 323575,
+        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+        assetIndex: 1234,
+        assetManager: address,
+        assetReserve: address,
+        assetFreeze: address,
+        assetClawback: address,
+        type: 'acfg',
+        assetMetadataHash: new Uint8Array(32),
+      } as any // Temporary type fix, will be unnecessary in following PR
+    );
 
-    const txnWithoutHash = new algosdk.Transaction({
-      sender: address,
-      fee: 10,
-      firstValid: 322575,
-      lastValid: 323575,
-      genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-      assetIndex: 1234,
-      assetManager: address,
-      assetReserve: address,
-      assetFreeze: address,
-      assetClawback: address,
-      type: 'acfg',
-    });
+    const txnWithoutHash = new algosdk.Transaction(
+      {
+        sender: address,
+        fee: 10,
+        firstValid: 322575,
+        lastValid: 323575,
+        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+        assetIndex: 1234,
+        assetManager: address,
+        assetReserve: address,
+        assetFreeze: address,
+        assetClawback: address,
+        type: 'acfg',
+      } as any // Temporary type fix, will be unnecessary in following PR
+    );
 
     const serializedWithHash = algosdk.encodeUnsignedTransaction(txnWithHash);
-    const serializedWithoutHash = algosdk.encodeUnsignedTransaction(
-      txnWithoutHash
-    );
+    const serializedWithoutHash =
+      algosdk.encodeUnsignedTransaction(txnWithoutHash);
 
     assert.deepStrictEqual(serializedWithHash, serializedWithoutHash);
   });
@@ -295,7 +280,7 @@ describe('Sign', () => {
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(0),
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     const txn = new algosdk.Transaction(o);
     // assert package recommends just calling prettyPrint over using assert.doesNotThrow
     txn.prettyPrint(); // should not throw
@@ -316,10 +301,12 @@ describe('Sign', () => {
         genesisID: '',
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -338,10 +325,12 @@ describe('Sign', () => {
         flatFee: true,
       };
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -364,18 +353,14 @@ describe('Sign', () => {
         stateProofType: 0,
         stateProof: new Uint8Array([1, 1, 1, 1]),
         stateProofMessage: new Uint8Array([0, 0, 0, 0]),
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      console.log(
-        `${expectedTxn.stateProofType} ${expectedTxn.stateProofMessage} ${expectedTxn.stateProof} ${expectedTxn.type}`
-      );
-      const encRep = expectedTxn.get_obj_for_encoding();
-      console.log(
-        `${encRep.sptype} ${encRep.spmsg} ${encRep.sp} ${encRep.type}`
-      );
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -395,12 +380,14 @@ describe('Sign', () => {
         voteKeyDilution: 1234,
         genesisID: '',
         type: 'keyreg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -415,12 +402,14 @@ describe('Sign', () => {
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         genesisID: '',
         type: 'keyreg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -436,12 +425,14 @@ describe('Sign', () => {
         genesisID: '',
         nonParticipation: false,
         type: 'keyreg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -457,12 +448,14 @@ describe('Sign', () => {
         nonParticipation: true,
         genesisID: '',
         type: 'keyreg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -482,12 +475,14 @@ describe('Sign', () => {
         assetFreeze: address,
         assetClawback: address,
         type: 'acfg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -514,12 +509,14 @@ describe('Sign', () => {
         assetFreeze: address,
         assetClawback: address,
         type: 'acfg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -539,12 +536,14 @@ describe('Sign', () => {
         assetIndex: 1234,
         assetSender: address,
         closeRemainderTo: address,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -578,10 +577,12 @@ describe('Sign', () => {
           genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         },
       });
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -599,13 +600,15 @@ describe('Sign', () => {
         freezeAccount: address,
         assetIndex: 1,
         assetFrozen: true,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -623,13 +626,15 @@ describe('Sign', () => {
         freezeAccount: address,
         assetIndex: 1,
         assetFrozen: true,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -644,12 +649,14 @@ describe('Sign', () => {
         lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         note: new Uint8Array([123, 12, 200]),
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -664,12 +671,14 @@ describe('Sign', () => {
         lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         note: new Uint8Array([123, 12, 200]),
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding();
+      const encRep = expectedTxn.get_obj_for_encoding()!;
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
-      const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -684,14 +693,14 @@ describe('Sign', () => {
         lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
         note: new Uint8Array([123, 12, 200]),
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const tx = new algosdk.Transaction(o);
 
       {
         const expectedTxg = new group.TxGroup([tx.rawTxID(), tx.rawTxID()]);
         const encRep = expectedTxg.get_obj_for_encoding();
         const encTxg = algosdk.encodeObj(encRep);
-        const decEncRep = algosdk.decodeObj(encTxg);
+        const decEncRep = algosdk.decodeObj(encTxg) as any; // Temporary type fix, will be unnecessary in following PR;
         const decTxg = group.TxGroup.from_obj_for_encoding(decEncRep);
         const reencRep = decTxg.get_obj_for_encoding();
         assert.deepStrictEqual(reencRep, encRep);
@@ -700,10 +709,12 @@ describe('Sign', () => {
       {
         const expectedTxn = tx;
         expectedTxn.group = tx.rawTxID();
-        const encRep = expectedTxn.get_obj_for_encoding();
+        const encRep = expectedTxn.get_obj_for_encoding()!;
         const encTxn = algosdk.encodeObj(encRep);
         const decEncRep = algosdk.decodeObj(encTxn);
-        const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
+        const decTxn = algosdk.Transaction.from_obj_for_encoding(
+          decEncRep as algosdk.EncodedTransaction
+        );
         const reencRep = decTxn.get_obj_for_encoding();
         assert.deepStrictEqual(reencRep, encRep);
       }
@@ -874,7 +885,7 @@ describe('Sign', () => {
         genesisID,
         rekeyTo,
         type: 'keyreg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
         genesisHash,
@@ -929,7 +940,7 @@ describe('Sign', () => {
         rekeyTo,
         type: 'keyreg',
         nonParticipation: false,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       assert.throws(
         () =>
@@ -993,7 +1004,7 @@ describe('Sign', () => {
         genesisID,
         rekeyTo,
         type: 'keyreg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       assert.throws(
         () =>
@@ -1076,7 +1087,7 @@ describe('Sign', () => {
         genesisID,
         rekeyTo,
         type: 'acfg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
         genesisHash,
@@ -1148,7 +1159,7 @@ describe('Sign', () => {
         genesisID,
         rekeyTo,
         type: 'acfg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
         genesisHash,
@@ -1220,7 +1231,7 @@ describe('Sign', () => {
         genesisID,
         rekeyTo,
         type: 'acfg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       assert.throws(
         () => new algosdk.Transaction(o),
         new Error(
@@ -1268,7 +1279,7 @@ describe('Sign', () => {
         genesisID,
         rekeyTo,
         type: 'acfg',
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       assert.doesNotThrow(() => {
         const txnParams = {
           assetMetadataHash: '',
@@ -1357,7 +1368,7 @@ describe('Sign', () => {
         type: 'acfg',
         note,
         rekeyTo,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
         genesisHash,
@@ -1441,7 +1452,7 @@ describe('Sign', () => {
         type: 'acfg',
         note,
         rekeyTo,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
         genesisHash,
@@ -1491,7 +1502,7 @@ describe('Sign', () => {
         assetSender,
         closeRemainderTo,
         rekeyTo,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
         genesisHash,
@@ -1541,7 +1552,7 @@ describe('Sign', () => {
         note,
         genesisID,
         rekeyTo,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const expectedTxn = new algosdk.Transaction(o);
       const suggestedParams = {
         genesisHash,
@@ -1595,7 +1606,7 @@ describe('Sign', () => {
       };
 
       // Store both transactions
-      const txns = [helperTx, dictTx];
+      const txns = [helperTx, dictTx] as any[]; // Temporary type fix, will be unnecessary in following PR
 
       // Group both transactions
       const txgroup = algosdk.assignGroupID(txns);
@@ -1603,42 +1614,49 @@ describe('Sign', () => {
       assert.deepStrictEqual(txgroup[0].group, txgroup[1].group);
     });
     it('should be able to translate box references to encoded references', () => {
-      const testCases = [
+      const testCases: Array<
         [
-          [{ appIndex: 100, name: [0, 1, 2, 3] }],
+          algosdk.BoxReference[],
+          number[],
+          number,
+          algosdk.EncodedBoxReference[],
+        ]
+      > = [
+        [
+          [{ appIndex: 100, name: Uint8Array.from([0, 1, 2, 3]) }],
           [100],
           9999,
-          [{ i: 1, n: [0, 1, 2, 3] }],
+          [{ i: 1, n: Uint8Array.from([0, 1, 2, 3]) }],
         ],
         [[], [], 9999, []],
         [
           [
-            { appIndex: 0, name: [0, 1, 2, 3] },
-            { appIndex: 9999, name: [4, 5, 6, 7] },
+            { appIndex: 0, name: Uint8Array.from([0, 1, 2, 3]) },
+            { appIndex: 9999, name: Uint8Array.from([4, 5, 6, 7]) },
           ],
           [100],
           9999,
           [
-            { i: 0, n: [0, 1, 2, 3] },
-            { i: 0, n: [4, 5, 6, 7] },
+            { i: 0, n: Uint8Array.from([0, 1, 2, 3]) },
+            { i: 0, n: Uint8Array.from([4, 5, 6, 7]) },
           ],
         ],
         [
-          [{ appIndex: 100, name: [0, 1, 2, 3] }],
+          [{ appIndex: 100, name: Uint8Array.from([0, 1, 2, 3]) }],
           [100],
           100,
-          [{ i: 1, n: [0, 1, 2, 3] }],
+          [{ i: 1, n: Uint8Array.from([0, 1, 2, 3]) }],
         ],
         [
           [
-            { appIndex: 7777, name: [0, 1, 2, 3] },
-            { appIndex: 8888, name: [4, 5, 6, 7] },
+            { appIndex: 7777, name: Uint8Array.from([0, 1, 2, 3]) },
+            { appIndex: 8888, name: Uint8Array.from([4, 5, 6, 7]) },
           ],
           [100, 7777, 8888, 9999],
           9999,
           [
-            { i: 2, n: [0, 1, 2, 3] },
-            { i: 3, n: [4, 5, 6, 7] },
+            { i: 2, n: Uint8Array.from([0, 1, 2, 3]) },
+            { i: 3, n: Uint8Array.from([4, 5, 6, 7]) },
           ],
         ],
       ];

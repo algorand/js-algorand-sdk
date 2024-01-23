@@ -205,7 +205,7 @@ export class HTTPClient {
    * by adding the status and preparing the internal response
    * @private
    */
-  private static prepareResponseError(err) {
+  private static prepareResponseError(err: any) {
     if (err.response) {
       // eslint-disable-next-line no-param-reassign
       err.response = HTTPClient.prepareResponse(

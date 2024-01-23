@@ -138,13 +138,13 @@ export async function createDryrun({
   await Promise.all(acctPromises);
 
   return new DryrunRequest({
-    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
+    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding()! })),
     accounts: acctInfos,
     apps: appInfos,
-    latestTimestamp,
-    round,
-    protocolVersion,
-    sources,
+    latestTimestamp: latestTimestamp ?? 0,
+    round: round ?? 0,
+    protocolVersion: protocolVersion ?? '',
+    sources: sources ?? [],
   });
 }
 
@@ -261,7 +261,10 @@ function scratchToString(
   return `${newScratchIdx} = ${newScratch.uint.toString()}`;
 }
 
-function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
+function stackToString(
+  stack: DryrunStackValue[],
+  reverse: boolean | undefined
+): string {
   const svs = reverse ? stack.reverse() : stack;
   return `[${svs
     .map((sv) => {
@@ -303,7 +306,8 @@ class DryrunTransactionResult {
 
   traces = ['app-call-trace', 'logic-sig-trace'];
 
-  constructor(dtr: DryrunTransactionResultResponse) {
+  constructor(dtr: DryrunTransactionResultResponse | any) {
+    // Temporary type fix, will be unnecessary in following PR
     this.disassembly = dtr.disassembly;
     this.appCallMessages = dtr['app-call-messages'];
     this.localDeltas = dtr['local-deltas'];
@@ -383,11 +387,13 @@ class DryrunTransactionResult {
     if (this.appCallTrace === undefined || !this.disassembly) return '';
 
     let conf = spc;
-    if (spc === undefined)
+    if (spc !== undefined) conf = spc;
+    else {
       conf = {
         maxValueWidth: defaultMaxWidth,
         topOfStackFirst: false,
-      } as StackPrinterConfig;
+      };
+    }
 
     return DryrunTransactionResult.trace(
       this.appCallTrace,
@@ -403,12 +409,14 @@ class DryrunTransactionResult {
     )
       return '';
 
-    let conf = spc;
-    if (spc === undefined)
+    let conf: StackPrinterConfig;
+    if (spc !== undefined) conf = spc;
+    else {
       conf = {
         maxValueWidth: defaultMaxWidth,
         topOfStackFirst: true,
-      } as StackPrinterConfig;
+      };
+    }
 
     return DryrunTransactionResult.trace(
       this.logicSigTrace,

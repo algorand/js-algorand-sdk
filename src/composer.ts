@@ -153,7 +153,7 @@ export class AtomicTransactionComposer {
     theClone.transactions = this.transactions.map(({ txn, signer }) => ({
       // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
       txn: Transaction.from_obj_for_encoding({
-        ...txn.get_obj_for_encoding(),
+        ...txn.get_obj_for_encoding()!,
         // erase the group ID
         grp: undefined,
       }),
