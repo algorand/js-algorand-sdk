@@ -514,7 +514,7 @@ describe('encoding', () => {
         algosdk.IntDecoding.BIGINT,
       ]) {
         const actual = utils.parseJSON(input, { intDecoding });
-        const expected = [];
+        const expected: unknown[] = [];
 
         assert.deepStrictEqual(
           actual,

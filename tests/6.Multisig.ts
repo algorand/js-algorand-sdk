@@ -460,11 +460,11 @@ describe('Multisig Functionality', () => {
   });
 
   describe('read-only transaction methods should work as expected on multisig transactions', () => {
-    let stdPaymentTxn;
-    let msigPaymentTxn;
+    let stdPaymentTxn: algosdk.Transaction;
+    let msigPaymentTxn: MultisigTransaction;
 
-    let stdKeyregTxn;
-    let msigKeyregTxn;
+    let stdKeyregTxn: algosdk.Transaction;
+    let msigKeyregTxn: MultisigTransaction;
 
     // Create a multisig transaction to use for each test
     beforeEach(() => {
@@ -544,8 +544,8 @@ describe('Multisig Functionality', () => {
   });
 
   describe('inherited MultisigTransaction methods that mutate transactions should throw errors', () => {
-    let msigPaymentTxn;
-    let msigKeyregTxn;
+    let msigPaymentTxn: MultisigTransaction;
+    let msigKeyregTxn: MultisigTransaction;
 
     // Create a multisig transaction to use for each test
     beforeEach(() => {
@@ -602,29 +602,29 @@ describe('Multisig Functionality', () => {
     it('error should be thrown when attempting to add a lease to a transaction', () => {
       assert.throws(
         msigPaymentTxn.addLease,
-        (err) => err.message === MULTISIG_NO_MUTATE_ERROR_MSG
+        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
       );
       assert.throws(
         msigKeyregTxn.addLease,
-        (err) => err.message === MULTISIG_NO_MUTATE_ERROR_MSG
+        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
       );
     });
 
     it('error should be thrown when attempting to add a rekey to a transaction', () => {
       assert.throws(
         msigPaymentTxn.addRekey,
-        (err) => err.message === MULTISIG_NO_MUTATE_ERROR_MSG
+        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
       );
       assert.throws(
         msigKeyregTxn.addRekey,
-        (err) => err.message === MULTISIG_NO_MUTATE_ERROR_MSG
+        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
       );
     });
   });
 
   describe('error should be thrown when attempting to sign a transaction', () => {
-    let msigPaymentTxn;
-    let msigKeyregTxn;
+    let msigPaymentTxn: MultisigTransaction;
+    let msigKeyregTxn: MultisigTransaction;
 
     // Create a multisig transaction to use for each test
     beforeEach(() => {
@@ -680,12 +680,12 @@ describe('Multisig Functionality', () => {
 
     it('signTxn method should throw an error', () => {
       assert.throws(
-        msigPaymentTxn.signTxn,
-        (err) => err.message === MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG
+        () => msigPaymentTxn.signTxn(new Uint8Array()),
+        new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG)
       );
       assert.throws(
-        msigKeyregTxn.signTxn,
-        (err) => err.message === MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG
+        () => msigKeyregTxn.signTxn(new Uint8Array()),
+        new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG)
       );
     });
   });
