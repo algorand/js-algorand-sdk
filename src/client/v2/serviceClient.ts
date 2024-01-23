@@ -18,12 +18,12 @@ function convertTokenStringToTokenHeader(
   headerIdentifier: TokenHeaderIdentifier,
   token: string = ''
 ): TokenHeader {
-  const tokenHeader = {};
+  const tokenHeader: TokenHeader = {};
   if (token === '') {
     return tokenHeader;
   }
   tokenHeader[headerIdentifier] = token;
-  return tokenHeader as TokenHeader;
+  return tokenHeader;
 }
 
 function isBaseHTTPClient(

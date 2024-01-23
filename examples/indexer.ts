@@ -72,7 +72,7 @@ async function main() {
   });
 
   await client.sendRawTransaction(txn.signTxn(sender.privateKey)).do();
-  await algosdk.waitForConfirmation(client, txn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, txn.txID(), 3);
 
   await new Promise((f) => setTimeout(f, 1000)); // sleep to ensure indexer is caught up
 

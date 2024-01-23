@@ -51,7 +51,7 @@ export interface BaseHTTPClient {
   ): Promise<BaseHTTPClientResponse>;
   delete(
     relativePath: string,
-    data: Uint8Array,
+    data?: Uint8Array,
     query?: Query<string>,
     requestHeaders?: Record<string, string>
   ): Promise<BaseHTTPClientResponse>;

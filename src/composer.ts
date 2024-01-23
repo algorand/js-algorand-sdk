@@ -436,7 +436,7 @@ export class AtomicTransactionComposer {
     }
 
     for (let i = 0; i < resolvedRefIndexes.length; i++) {
-      const basicArgIndex = refArgIndexToBasicArgIndex.get(i);
+      const basicArgIndex = refArgIndexToBasicArgIndex.get(i)!;
       basicArgValues[basicArgIndex] = resolvedRefIndexes[i];
     }
 
@@ -534,7 +534,7 @@ export class AtomicTransactionComposer {
         indexesPerSigner.set(signer, []);
       }
 
-      indexesPerSigner.get(signer).push(i);
+      indexesPerSigner.get(signer)!.push(i);
     }
 
     const orderedSigners = Array.from(indexesPerSigner);
@@ -560,7 +560,11 @@ export class AtomicTransactionComposer {
       }
     }
 
-    if (!signedTxns.every((sig) => sig != null)) {
+    function fullyPopulated(a: Array<Uint8Array | null>): a is Uint8Array[] {
+      return a.every((v) => v != null);
+    }
+
+    if (!fullyPopulated(signedTxns)) {
       throw new Error(`Missing signatures. Got ${signedTxns}`);
     }
 
@@ -752,7 +756,7 @@ export class AtomicTransactionComposer {
           pendingInfo
         );
       } catch (err) {
-        methodResult.decodeError = err;
+        methodResult.decodeError = err as Error;
       }
 
       methodResults.push(methodResult);
@@ -808,7 +812,7 @@ export class AtomicTransactionComposer {
         );
       }
     } catch (err) {
-      returnedResult.decodeError = err;
+      returnedResult.decodeError = err as Error;
     }
 
     return returnedResult;

@@ -1,5 +1,6 @@
 import { AlgodClient } from './client/v2/algod/algod.js';
 import {
+  Account,
   AccountStateDelta,
   Application,
   ApplicationParams,
@@ -43,8 +44,8 @@ export async function createDryrun({
   round?: number | bigint;
   sources?: DryrunSource[];
 }): Promise<DryrunRequest> {
-  const appInfos = [];
-  const acctInfos = [];
+  const appInfos: Application[] = [];
+  const acctInfos: Account[] = [];
 
   const apps: number[] = [];
   const assets: number[] = [];
@@ -95,7 +96,7 @@ export async function createDryrun({
 
   // Dedupe and add creator to accts array
   const assetPromises = [];
-  for (const assetId of [...new Set(assets)]) {
+  for (const assetId of new Set(assets)) {
     assetPromises.push(
       client
         .getAssetByID(assetId)
@@ -110,7 +111,7 @@ export async function createDryrun({
 
   // Dedupe and get app info for all apps
   const appPromises = [];
-  for (const appId of [...new Set(apps)]) {
+  for (const appId of new Set(apps)) {
     appPromises.push(
       client
         .getApplicationByID(appId)
@@ -263,12 +264,12 @@ function scratchToString(
 function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
   const svs = reverse ? stack.reverse() : stack;
   return `[${svs
-    .map((sv: DryrunStackValue) => {
+    .map((sv) => {
       switch (sv.type) {
         case 1:
           return `0x${bytesToHex(base64ToBytes(sv.bytes))}`;
         case 2:
-          return `${sv.uint.toString()}`;
+          return sv.uint.toString();
         default:
           return '';
       }

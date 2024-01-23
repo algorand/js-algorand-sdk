@@ -40,9 +40,12 @@ function removeFalsyOrEmpty(obj: Record<string, any>) {
  * See https://codereview.stackexchange.com/a/162418
  * Used to ensure all headers are lower-case and to work more easily with them
  */
-function tolowerCaseKeys(o: object): object {
+function tolowerCaseKeys(o: Record<string, any>): Record<string, any> {
   /* eslint-disable no-param-reassign,no-return-assign,no-sequences */
-  return Object.keys(o).reduce((c, k) => ((c[k.toLowerCase()] = o[k]), c), {});
+  return Object.keys(o).reduce(
+    (c, k) => ((c[k.toLowerCase()] = o[k]), c),
+    {} as Record<string, any>
+  );
   /* eslint-enable no-param-reassign,no-return-assign,no-sequences */
 }
 
@@ -128,7 +131,7 @@ export class HTTPClient {
       }
       return text && utils.parseJSON(text, jsonOptions);
     } catch (err_) {
-      const err: ErrorWithAdditionalInfo = err_;
+      const err = err_ as ErrorWithAdditionalInfo;
       // return the raw response if the response parsing fails
       err.rawResponse = text || null;
       // return the http status code if the response parsing fails
@@ -178,14 +181,14 @@ export class HTTPClient {
     jsonOptions: utils.JSONOptions = {}
   ): HTTPClientResponse {
     let { body } = res;
-    let text;
+    let text: string | undefined;
 
     if (format !== 'application/msgpack') {
       text = (body && new TextDecoder().decode(body)) || '';
     }
 
     if (parseBody && format === 'application/json') {
-      body = HTTPClient.parseJSON(text, res.status, jsonOptions);
+      body = HTTPClient.parseJSON(text!, res.status, jsonOptions);
     }
 
     return {
@@ -240,7 +243,7 @@ export class HTTPClient {
     try {
       const res = await this.bc.get(
         relativePath,
-        removeFalsyOrEmpty(query),
+        query ? removeFalsyOrEmpty(query) : undefined,
         fullHeaders
       );
 

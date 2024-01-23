@@ -8,7 +8,9 @@ import { SimulateRequest, SimulateResponse } from './models/types.js';
  * transaction.
  * @param headers - A headers object
  */
-export function setSimulateTransactionsHeaders(headers = {}) {
+export function setSimulateTransactionsHeaders(
+  headers: Record<string, any> = {}
+) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
@@ -29,7 +31,9 @@ export default class SimulateRawTransactions extends JSONRequest<
   constructor(c: HTTPClient, request: SimulateRequest) {
     super(c);
     this.query.format = 'msgpack';
-    this.requestBytes = encoding.rawEncode(request.get_obj_for_encoding(true));
+    this.requestBytes = encoding.rawEncode(
+      request.get_obj_for_encoding(true, true)!
+    );
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -51,7 +55,7 @@ export default class SimulateRawTransactions extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array): SimulateResponse {
-    const decoded = encoding.decode(body);
+    const decoded = encoding.decode(body) as Record<string, any>;
     return SimulateResponse.from_obj_for_encoding(decoded);
   }
 }

@@ -10,7 +10,7 @@ export function base64ToBytes(base64String: string): Uint8Array {
   }
   /* eslint-env browser */
   const binString = atob(base64String);
-  return Uint8Array.from(binString, (m) => m.codePointAt(0));
+  return Uint8Array.from(binString, (m) => m.codePointAt(0)!);
 }
 
 /**

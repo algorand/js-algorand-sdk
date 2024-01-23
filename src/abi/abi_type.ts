@@ -61,7 +61,7 @@ export abstract class ABIType {
     if (str.endsWith(']')) {
       const stringMatches = str.match(staticArrayRegexp);
       // Match the string itself, array element type, then array length
-      if (stringMatches.length !== 3) {
+      if (!stringMatches || stringMatches.length !== 3) {
         throw new Error(`malformed static array string: ${str}`);
       }
       // Parse static array using regex
@@ -76,8 +76,8 @@ export abstract class ABIType {
     }
     if (str.startsWith('uint')) {
       // Checks if the parsed number contains only digits, no whitespaces
-      const digitsOnly = (string) =>
-        [...string].every((c) => '0123456789'.includes(c));
+      const digitsOnly = (s: string) =>
+        [...s].every((c) => '0123456789'.includes(c));
       const typeSizeStr = str.slice(4, str.length);
       if (!digitsOnly(typeSizeStr)) {
         throw new Error(`malformed uint string: ${typeSizeStr}`);
@@ -93,7 +93,7 @@ export abstract class ABIType {
     }
     if (str.startsWith('ufixed')) {
       const stringMatches = str.match(ufixedRegexp);
-      if (stringMatches.length !== 3) {
+      if (!stringMatches || stringMatches.length !== 3) {
         throw new Error(`malformed ufixed type: ${str}`);
       }
       const ufixedSize = parseInt(stringMatches[1], 10);
@@ -665,7 +665,7 @@ export class ABITupleType extends ABIType {
   decode(byteString: Uint8Array): ABIValue[] {
     const tupleTypes = this.childTypes;
     const dynamicSegments: Segment[] = [];
-    const valuePartition: Uint8Array[] = [];
+    const valuePartition: Array<Uint8Array | null> = [];
     let i = 0;
     let iterIndex = 0;
     const view = new DataView(byteString.buffer);
@@ -771,7 +771,7 @@ export class ABITupleType extends ABIType {
     // Decode each tuple element
     const returnValues: ABIValue[] = [];
     for (let j = 0; j < tupleTypes.length; j++) {
-      const valueTi = tupleTypes[j].decode(valuePartition[j]);
+      const valueTi = tupleTypes[j].decode(valuePartition[j]!);
       returnValues.push(valueTi);
     }
     return returnValues;

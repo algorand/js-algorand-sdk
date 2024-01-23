@@ -66,7 +66,7 @@ async function main() {
     .do();
   const result = await algosdk.waitForConfirmation(
     algodClient,
-    appCreateTxn.txID().toString(),
+    appCreateTxn.txID(),
     3
   );
   // Grab app id from confirmed transaction result
@@ -86,11 +86,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appOptInTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appOptInTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appOptInTxn.txID(), 3);
   // example: APP_OPTIN
 
   // example: APP_NOOP
@@ -103,11 +99,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appNoOpTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appNoOpTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appNoOpTxn.txID(), 3);
   // example: APP_NOOP
 
   const anotherCaller = accounts[2];
@@ -121,11 +113,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(anotherAppOptInTxn.signTxn(anotherCaller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    anotherAppOptInTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, anotherAppOptInTxn.txID(), 3);
 
   // example: APP_CALL
   const now = new Date().toString();
@@ -139,11 +127,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(simpleAddTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    simpleAddTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, simpleAddTxn.txID(), 3);
   // example: APP_CALL
 
   // example: APP_READ_STATE
@@ -183,11 +167,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appCloseOutTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appCloseOutTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appCloseOutTxn.txID(), 3);
   // example: APP_CLOSEOUT
 
   // example: APP_UPDATE
@@ -209,11 +189,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appUpdateTxn.signTxn(creator.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appUpdateTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appUpdateTxn.txID(), 3);
   // example: APP_UPDATE
 
   // example: APP_CLEAR
@@ -226,11 +202,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appClearTxn.signTxn(anotherCaller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appClearTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appClearTxn.txID(), 3);
   // example: APP_CLEAR
 
   // example: APP_DELETE
@@ -243,11 +215,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appDeleteTxn.signTxn(creator.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appDeleteTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appDeleteTxn.txID(), 3);
   // example: APP_DELETE
 }
 

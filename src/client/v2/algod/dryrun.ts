@@ -13,7 +13,7 @@ export default class Dryrun extends JSONRequest<
 
   constructor(c: HTTPClient, dr: modelsv2.DryrunRequest) {
     super(c);
-    this.blob = encoding.encode(dr.get_obj_for_encoding(true));
+    this.blob = encoding.encode(dr.get_obj_for_encoding(true, true)!);
   }
 
   // eslint-disable-next-line class-methods-use-this

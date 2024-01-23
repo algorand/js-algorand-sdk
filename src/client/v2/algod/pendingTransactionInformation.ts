@@ -10,20 +10,20 @@ export default class PendingTransactionInformation extends JSONRequest<
   PendingTransactionResponse,
   Uint8Array
 > {
-  constructor(c: HTTPClient, private txid: string) {
+  constructor(
+    c: HTTPClient,
+    private txid: string
+  ) {
     super(c);
     this.txid = txid;
     this.query.format = 'msgpack';
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array) {
-    if (body && body.byteLength > 0) {
-      return PendingTransactionResponse.from_obj_for_encoding(
-        encoding.decode(body)
-      );
-    }
-    return undefined;
+  prepare(body: Uint8Array): PendingTransactionResponse {
+    return PendingTransactionResponse.from_obj_for_encoding(
+      encoding.decode(body) as Record<string, any>
+    );
   }
 
   path() {

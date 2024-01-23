@@ -8,7 +8,9 @@ import JSONRequest from '../jsonrequest.js';
  * transaction.
  * @param headers - A headers object
  */
-export function setSendTransactionHeaders(headers = {}) {
+export function setSendTransactionHeaders(
+  headers: Record<string, string> = {}
+) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };

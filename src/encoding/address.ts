@@ -13,18 +13,7 @@ export const ALGORAND_ZERO_ADDRESS_STRING =
 
 // Convert "MultisigAddr" UTF-8 to byte array
 const MULTISIG_PREIMG2ADDR_PREFIX = new Uint8Array([
-  77,
-  117,
-  108,
-  116,
-  105,
-  115,
-  105,
-  103,
-  65,
-  100,
-  100,
-  114,
+  77, 117, 108, 116, 105, 115, 105, 103, 65, 100, 100, 114,
 ]);
 
 const APP_ID_PREFIX = new TextEncoder().encode('appID');

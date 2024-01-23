@@ -22,7 +22,10 @@ export interface CustomTokenHeader {
 }
 
 class URLTokenBaseHTTPError extends Error implements BaseHTTPClientError {
-  constructor(message: string, public response: BaseHTTPClientResponse) {
+  constructor(
+    message: string,
+    public response: BaseHTTPClientResponse
+  ) {
     super(message);
     this.name = 'URLTokenBaseHTTPError';
     this.response = response;
@@ -110,7 +113,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       return;
     }
 
-    let body: Uint8Array | null = null;
+    let body = new Uint8Array();
     let bodyErrorMessage: string | null = null;
 
     try {
@@ -191,7 +194,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
 
   async delete(
     relativePath: string,
-    data: Uint8Array,
+    data?: Uint8Array,
     query?: Query<string>,
     requestHeaders: Record<string, string> = {}
   ): Promise<BaseHTTPClientResponse> {

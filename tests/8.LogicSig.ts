@@ -138,8 +138,9 @@ describe('LogicSigAccount', () => {
           'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
         )
       );
-      const expectedSigKey = algosdk.decodeAddress(sampleAccount1.addr)
-        .publicKey;
+      const expectedSigKey = algosdk.decodeAddress(
+        sampleAccount1.addr
+      ).publicKey;
 
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
       assert.deepStrictEqual(lsigAccount.lsig.args, args);
@@ -307,7 +308,7 @@ describe('LogicSigAccount', () => {
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
 
       // modify signature
-      lsigAccount.lsig.msig!.subsig[0].s[0] = 0;
+      lsigAccount.lsig.msig!.subsig[0].s![0] = 0;
 
       assert.strictEqual(lsigAccount.verify(), false);
     });
@@ -509,9 +510,9 @@ describe('signLogicSigTransaction', () => {
 
         assert.throws(
           () => algosdk.signLogicSigTransaction(txn, lsig),
-          (err) =>
-            err.message ===
+          new Error(
             'Logic signature verification failed. Ensure the program and signature are valid.'
+          )
         );
       });
     });

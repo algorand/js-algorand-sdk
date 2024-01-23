@@ -49,7 +49,7 @@ async function main() {
   });
 
   await client.sendRawTransaction(fundMsigTxn.signTxn(funder.privateKey)).do();
-  await algosdk.waitForConfirmation(client, fundMsigTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, fundMsigTxn.txID(), 3);
 
   // example: MULTISIG_SIGN
   const msigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -74,7 +74,7 @@ async function main() {
   ).blob;
 
   await client.sendRawTransaction(msigWithSecondSig).do();
-  await algosdk.waitForConfirmation(client, msigTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, msigTxn.txID(), 3);
   // example: MULTISIG_SIGN
 
   // example: ACCOUNT_GENERATE
@@ -96,7 +96,7 @@ async function main() {
   });
 
   await client.sendRawTransaction(rekeyTxn.signTxn(acct1.privateKey)).do();
-  await algosdk.waitForConfirmation(client, rekeyTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
 
   const acctInfo = await client.accountInformation(acct1.addr).do();
 
