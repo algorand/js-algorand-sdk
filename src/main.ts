@@ -1,8 +1,7 @@
 import * as nacl from './nacl/naclWrappers.js';
 import * as address from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
-import * as txnBuilder from './transaction.js';
-import Bid, { BidOptions } from './bid.js';
+import { Transaction } from './transaction.js';
 import * as convert from './convert.js';
 import * as utils from './utils/utils.js';
 
@@ -27,34 +26,11 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * @param sk - Algorand Secret Key
  * @returns object contains the binary signed transaction and its txID
  */
-export function signTransaction(
-  txn: txnBuilder.TransactionLike,
-  sk: Uint8Array
-) {
-  if (typeof txn.sender === 'undefined') {
-    // Get pk from sk if no sender specified
-    const key = nacl.keyPairFromSecretKey(sk);
-    // eslint-disable-next-line no-param-reassign
-    txn.sender = address.encodeAddress(key.publicKey);
-  }
-  const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
-
+export function signTransaction(txn: Transaction, sk: Uint8Array) {
   return {
-    txID: algoTxn.txID().toString(),
-    blob: algoTxn.signTxn(sk),
+    txID: txn.txID(),
+    blob: txn.signTxn(sk),
   };
-}
-
-/**
- * signBid takes an object with the following fields: bidder key, bid amount, max price, bid ID, auctionKey, auction ID,
- * and a secret key and returns a signed blob to be inserted into a transaction Algorand note field.
- * @param bid - Algorand Bid
- * @param sk - Algorand secret key
- * @returns Uint8Array binary signed bid
- */
-export function signBid(bid: BidOptions, sk: Uint8Array) {
-  const signedBid = new Bid(bid);
-  return signedBid.signBid(sk);
 }
 
 /**
@@ -137,6 +113,7 @@ export {
   encodeAddress,
   decodeAddress,
   getApplicationAddress,
+  ALGORAND_ZERO_ADDRESS_STRING,
 } from './encoding/address.js';
 export { bytesToBigInt, bigIntToBytes } from './encoding/bigint.js';
 export {

@@ -476,7 +476,7 @@ export class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  getAssetByID(index: number) {
+  getAssetByID(index: number | bigint) {
     return new GetAssetByID(this.c, this.intDecoding, index);
   }
 
@@ -494,7 +494,7 @@ export class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationByID(index: number) {
+  getApplicationByID(index: number | bigint) {
     return new GetApplicationByID(this.c, this.intDecoding, index);
   }
 

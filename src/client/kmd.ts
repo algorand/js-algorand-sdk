@@ -3,7 +3,7 @@ import {
   bytesToBase64,
   coerceToBytes,
 } from '../encoding/binarydata.js';
-import * as txn from '../transaction.js';
+import { Transaction } from '../transaction.js';
 import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient.js';
 import ServiceClient from './v2/serviceClient.js';
 
@@ -260,14 +260,12 @@ export class KmdClient extends ServiceClient {
   async signTransaction(
     walletHandle: string,
     walletPassword: string,
-    transaction: txn.TransactionLike
+    transaction: Transaction
   ) {
-    const tx = txn.instantiateTxnIfNeeded(transaction);
-
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
-      transaction: bytesToBase64(tx.toByte()),
+      transaction: bytesToBase64(transaction.toByte()),
     };
     const res = await this.c.post('/v1/transaction/sign', req);
 
@@ -290,16 +288,15 @@ export class KmdClient extends ServiceClient {
   async signTransactionWithSpecificPublicKey(
     walletHandle: string,
     walletPassword: string,
-    transaction: txn.TransactionLike,
+    transaction: Transaction,
     publicKey: Uint8Array | string
   ) {
-    const tx = txn.instantiateTxnIfNeeded(transaction);
     const pk = coerceToBytes(publicKey);
 
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
-      transaction: bytesToBase64(tx.toByte()),
+      transaction: bytesToBase64(transaction.toByte()),
       public_key: bytesToBase64(pk),
     };
     const res = await this.c.post('/v1/transaction/sign', req);
@@ -386,15 +383,14 @@ export class KmdClient extends ServiceClient {
   async signMultisigTransaction(
     walletHandle: string,
     pw: string,
-    transaction: txn.TransactionLike,
+    transaction: Transaction,
     pk: Uint8Array | string,
     partial: string
   ) {
-    const tx = txn.instantiateTxnIfNeeded(transaction);
     const pubkey = coerceToBytes(pk);
     const req = {
       wallet_handle_token: walletHandle,
-      transaction: bytesToBase64(tx.toByte()),
+      transaction: bytesToBase64(transaction.toByte()),
       public_key: bytesToBase64(pubkey),
       partial_multisig: partial,
       wallet_password: pw,

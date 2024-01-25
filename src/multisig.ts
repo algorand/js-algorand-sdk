@@ -1,11 +1,8 @@
 import * as nacl from './nacl/naclWrappers.js';
 import * as address from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
-import * as txnBuilder from './transaction.js';
+import { Transaction } from './transaction.js';
 import * as utils from './utils/utils.js';
-import AnyTransaction, {
-  EncodedTransaction,
-} from './types/transactions/index.js';
 import { MultisigMetadata } from './types/multisig.js';
 import {
   EncodedMultisig,
@@ -52,7 +49,7 @@ interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
  * @returns encoded multisig blob
  */
 export function createMultisigTransaction(
-  txn: txnBuilder.Transaction,
+  txn: Transaction,
   { version, threshold, addrs }: MultisigMetadata
 ) {
   // construct the appendable multisigned transaction format
@@ -77,10 +74,10 @@ export function createMultisigTransaction(
     threshold,
     pks,
   });
-  if (
-    address.encodeAddress(txnForEncoding.snd) !==
-    address.encodeAddress(msigAddr)
-  ) {
+  const senderAddr = txnForEncoding.snd
+    ? address.encodeAddress(txnForEncoding.snd)
+    : address.ALGORAND_ZERO_ADDRESS_STRING;
+  if (senderAddr !== address.encodeAddress(msigAddr)) {
     signedTxn.sgnr = msigAddr;
   }
 
@@ -98,10 +95,10 @@ export function createMultisigTransaction(
  * @returns encoded multisig blob
  */
 function createMultisigTransactionWithSignature(
-  txn: txnBuilder.Transaction,
+  txn: Transaction,
   { rawSig, myPk }: MultisigOptions,
   { version, threshold, pks }: MultisigMetadataWithPks
-) {
+): Uint8Array {
   // Create an empty encoded multisig transaction
   const encodedMsig = createMultisigTransaction(txn, {
     version,
@@ -119,7 +116,7 @@ function createMultisigTransactionWithSignature(
       signedTxn.msig!.subsig[i].s = rawSig;
     }
   });
-  if (keyExist === false) {
+  if (!keyExist) {
     throw new Error(MULTISIG_KEY_NOT_EXIST_ERROR_MSG);
   }
 
@@ -130,9 +127,10 @@ function createMultisigTransactionWithSignature(
     threshold,
     pks,
   });
-  if (
-    address.encodeAddress(signedTxn.txn.snd) !== address.encodeAddress(msigAddr)
-  ) {
+  const senderAddr = signedTxn.txn.snd
+    ? address.encodeAddress(signedTxn.txn.snd)
+    : address.ALGORAND_ZERO_ADDRESS_STRING;
+  if (senderAddr !== address.encodeAddress(msigAddr)) {
     signedTxn.sgnr = msigAddr;
   }
 
@@ -140,87 +138,55 @@ function createMultisigTransactionWithSignature(
 }
 
 /**
- * MultisigTransaction is a Transaction that also supports creating partially-signed multisig transactions.
+ * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
+ * encoded with msgpack as a typed array.
+ * @param transaction - The transaction to sign
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param pks - multisig public key list, order is important.
+ * @param sk - an Algorand secret key to sign with.
+ * @returns an encoded, partially signed multisig transaction.
  */
-export class MultisigTransaction extends txnBuilder.Transaction {
-  /* eslint-disable class-methods-use-this,@typescript-eslint/no-unused-vars,no-dupe-class-members */
-  /**
-   * Override inherited method to throw an error, as mutating transactions are prohibited in this context
-   */
-  addLease() {
-    throw new Error(MULTISIG_NO_MUTATE_ERROR_MSG);
-  }
+function partialSignTxn(
+  transaction: Transaction,
+  { version, threshold, pks }: MultisigMetadataWithPks,
+  sk: Uint8Array
+) {
+  // get signature verifier
+  const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
+  return createMultisigTransactionWithSignature(
+    transaction,
+    { rawSig: transaction.rawSignTxn(sk), myPk },
+    { version, threshold, pks }
+  );
+}
 
-  /**
-   * Override inherited method to throw an error, as mutating transactions are prohibited in this context
-   */
-  addRekey() {
-    throw new Error(MULTISIG_NO_MUTATE_ERROR_MSG);
+/**
+ * partialSignWithMultisigSignature partially signs this transaction with an external raw multisig signature and returns
+ * a partially-signed multisig transaction, encoded with msgpack as a typed array.
+ * @param transaction - The transaction to sign
+ * @param metadata - multisig metadata
+ * @param signerAddr - address of the signer
+ * @param signature - raw multisig signature
+ * @returns an encoded, partially signed multisig transaction.
+ */
+function partialSignWithMultisigSignature(
+  transaction: Transaction,
+  metadata: MultisigMetadataWithPks,
+  signerAddr: string,
+  signature: Uint8Array
+) {
+  if (!nacl.isValidSignatureLength(signature.length)) {
+    throw new Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG);
   }
-
-  /**
-   * Override inherited method to throw an error, as traditional signing is not allowed
-   */
-  signTxn(sk: Uint8Array): Uint8Array; // This overload ensures that the override has a compatible type definition with the parent method
-  signTxn(sk: any): any {
-    throw new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG);
-  }
-  /* eslint-enable class-methods-use-this,@typescript-eslint/no-unused-vars,no-dupe-class-members */
-
-  /**
-   * partialSignTxn partially signs this transaction and returns a partially-signed multisig transaction,
-   * encoded with msgpack as a typed array.
-   * @param version - multisig version
-   * @param threshold - multisig threshold
-   * @param pks - multisig public key list, order is important.
-   * @param sk - an Algorand secret key to sign with.
-   * @returns an encoded, partially signed multisig transaction.
-   */
-  partialSignTxn(
-    { version, threshold, pks }: MultisigMetadataWithPks,
-    sk: Uint8Array
-  ) {
-    // get signature verifier
-    const myPk = nacl.keyPairFromSecretKey(sk).publicKey;
-    return createMultisigTransactionWithSignature(
-      this,
-      { rawSig: this.rawSignTxn(sk), myPk },
-      { version, threshold, pks }
-    );
-  }
-
-  /**
-   * partialSignWithMultisigSignature partially signs this transaction with an external raw multisig signature and returns
-   * a partially-signed multisig transaction, encoded with msgpack as a typed array.
-   * @param metadata - multisig metadata
-   * @param signerAddr - address of the signer
-   * @param signature - raw multisig signature
-   * @returns an encoded, partially signed multisig transaction.
-   */
-  partialSignWithMultisigSignature(
-    metadata: MultisigMetadataWithPks,
-    signerAddr: string,
-    signature: Uint8Array
-  ) {
-    if (!nacl.isValidSignatureLength(signature.length)) {
-      throw new Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG);
-    }
-    return createMultisigTransactionWithSignature(
-      this,
-      {
-        rawSig: signature,
-        myPk: address.decodeAddress(signerAddr).publicKey,
-      },
-      metadata
-    );
-  }
-
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    txnForEnc: EncodedTransaction
-  ): MultisigTransaction {
-    return super.from_obj_for_encoding(txnForEnc) as MultisigTransaction;
-  }
+  return createMultisigTransactionWithSignature(
+    transaction,
+    {
+      rawSig: signature,
+      myPk: address.decodeAddress(signerAddr).publicKey,
+    },
+    metadata
+  );
 }
 
 /**
@@ -240,9 +206,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
       'Invalid multisig transaction, multisig structure missing at index 0'
     );
   }
-  const refTxID = MultisigTransaction.from_obj_for_encoding(
-    refSigTx.txn
-  ).txID();
+  const refTxID = Transaction.from_obj_for_encoding(refSigTx.txn).txID();
   const refAuthAddr = refSigTx.sgnr
     ? address.encodeAddress(refSigTx.sgnr)
     : undefined;
@@ -266,7 +230,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
       );
     }
 
-    const unisigAlgoTxn = MultisigTransaction.from_obj_for_encoding(unisig.txn);
+    const unisigAlgoTxn = Transaction.from_obj_for_encoding(unisig.txn);
     if (unisigAlgoTxn.txID() !== refTxID) {
       throw new Error(MULTISIG_MERGE_MISMATCH_ERROR_MSG);
     }
@@ -382,39 +346,15 @@ export function verifyMultisig(
  * If the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
  */
 export function signMultisigTransaction(
-  txn: txnBuilder.TransactionLike,
+  txn: Transaction,
   { version, threshold, addrs }: MultisigMetadata,
   sk: Uint8Array
 ) {
-  // check that the from field matches the mSigPreImage. If from field is not populated, fill it in.
-  const expectedFromRaw = address.fromMultisigPreImgAddrs({
-    version,
-    threshold,
-    addrs,
-  });
-  if (!Object.prototype.hasOwnProperty.call(txn, 'sender')) {
-    // eslint-disable-next-line no-param-reassign
-    txn.sender = expectedFromRaw;
-  }
   // build pks for partialSign
   const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
-  // `txn` needs to be handled differently if it's a constructed `Transaction` vs a dict of constructor args
-  const txnAlreadyBuilt = txn instanceof txnBuilder.Transaction;
-  let algoTxn: MultisigTransaction;
-  let blob: Uint8Array;
-  if (txnAlreadyBuilt) {
-    algoTxn = txn as unknown as MultisigTransaction;
-    blob = MultisigTransaction.prototype.partialSignTxn.call(
-      algoTxn,
-      { version, threshold, pks },
-      sk
-    );
-  } else {
-    algoTxn = new MultisigTransaction(txn as AnyTransaction);
-    blob = algoTxn.partialSignTxn({ version, threshold, pks }, sk);
-  }
+  const blob = partialSignTxn(txn, { version, threshold, pks }, sk);
   return {
-    txID: algoTxn.txID().toString(),
+    txID: txn.txID(),
     blob,
   };
 }
@@ -440,13 +380,14 @@ export function appendSignMultisigTransaction(
   const multisigTxObj = encoding.decode(
     multisigTxnBlob
   ) as EncodedSignedTransaction;
-  const msigTxn = MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
-  const partialSignedBlob = msigTxn.partialSignTxn(
+  const msigTxn = Transaction.from_obj_for_encoding(multisigTxObj.txn);
+  const partialSignedBlob = partialSignTxn(
+    msigTxn,
     { version, threshold, pks },
     sk
   );
   return {
-    txID: msigTxn.txID().toString(),
+    txID: msigTxn.txID(),
     blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
   };
 }
@@ -473,14 +414,15 @@ export function appendSignRawMultisigSignature(
   const multisigTxObj = encoding.decode(
     multisigTxnBlob
   ) as EncodedSignedTransaction;
-  const msigTxn = MultisigTransaction.from_obj_for_encoding(multisigTxObj.txn);
-  const partialSignedBlob = msigTxn.partialSignWithMultisigSignature(
+  const msigTxn = Transaction.from_obj_for_encoding(multisigTxObj.txn);
+  const partialSignedBlob = partialSignWithMultisigSignature(
+    msigTxn,
     { version, threshold, pks },
     signerAddr,
     signature
   );
   return {
-    txID: msigTxn.txID().toString(),
+    txID: msigTxn.txID(),
     blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
   };
 }

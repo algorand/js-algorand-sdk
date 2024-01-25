@@ -47,49 +47,51 @@ export async function createDryrun({
   const appInfos: Application[] = [];
   const acctInfos: Account[] = [];
 
-  const apps: number[] = [];
-  const assets: number[] = [];
+  const apps: bigint[] = [];
+  const assets: bigint[] = [];
   const accts: string[] = [];
 
   for (const t of txns) {
     if (t.txn.type === TransactionType.appl) {
       accts.push(encodeAddress(t.txn.sender.publicKey));
 
-      if (t.txn.appAccounts)
-        accts.push(...t.txn.appAccounts.map((a) => encodeAddress(a.publicKey)));
+      accts.push(
+        ...t.txn.applicationCall!.appAccounts.map((a) =>
+          encodeAddress(a.publicKey)
+        )
+      );
 
-      if (t.txn.appForeignApps) {
-        apps.push(...t.txn.appForeignApps);
-        accts.push(
-          ...t.txn.appForeignApps.map((aidx) => getApplicationAddress(aidx))
-        );
-      }
+      apps.push(...t.txn.applicationCall!.appForeignApps);
+      accts.push(
+        ...t.txn.applicationCall!.appForeignApps.map(getApplicationAddress)
+      );
 
-      if (t.txn.appForeignAssets) assets.push(...t.txn.appForeignAssets);
+      assets.push(...t.txn.applicationCall!.appForeignAssets);
 
       // Create application,
-      if (t.txn.appIndex === undefined || t.txn.appIndex === 0) {
+      if (t.txn.applicationCall!.appId === BigInt(0)) {
         appInfos.push(
           new Application({
             id: defaultAppId,
             params: new ApplicationParams({
               creator: encodeAddress(t.txn.sender.publicKey),
-              approvalProgram: t.txn.appApprovalProgram,
-              clearStateProgram: t.txn.appClearProgram,
+              approvalProgram: t.txn.applicationCall!.appApprovalProgram,
+              clearStateProgram: t.txn.applicationCall!.appClearProgram,
               localStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.appLocalInts,
-                numByteSlice: t.txn.appLocalByteSlices,
+                numUint: t.txn.applicationCall!.appLocalInts,
+                numByteSlice: t.txn.applicationCall!.appLocalByteSlices,
               }),
               globalStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.appGlobalInts,
-                numByteSlice: t.txn.appGlobalByteSlices,
+                numUint: t.txn.applicationCall!.appGlobalInts,
+                numByteSlice: t.txn.applicationCall!.appGlobalByteSlices,
               }),
             }),
           })
         );
       } else {
-        apps.push(t.txn.appIndex);
-        accts.push(getApplicationAddress(t.txn.appIndex));
+        const { appId } = t.txn.applicationCall!;
+        apps.push(appId);
+        accts.push(getApplicationAddress(appId));
       }
     }
   }

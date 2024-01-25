@@ -415,16 +415,13 @@ module.exports = function getSteps(options) {
       // Fund the rekey address with some Algos
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstValid === 0) sp.firstValid = 1;
-      const fundingTxnArgs = {
-        sender: this.accounts[0],
-        receiver: this.rekey,
-        amount: DEV_MODE_INITIAL_MICROALGOS,
-        fee: sp.fee,
-        firstValid: sp.firstValid,
-        lastValid: sp.lastValid,
-        genesisHash: sp.genesisHash,
-        genesisID: sp.genesisID,
-      };
+      const fundingTxnArgs =
+        algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+          sender: this.accounts[0],
+          receiver: this.rekey,
+          amount: DEV_MODE_INITIAL_MICROALGOS,
+          suggestedParams: sp,
+        });
 
       const stxKmd = await this.kcl.signTransaction(
         this.handle,
@@ -509,17 +506,13 @@ module.exports = function getSteps(options) {
       this.pk = this.rekey;
       const result = await this.v2Client.getTransactionParams().do();
       this.lastValid = result.lastValid;
-      this.txn = {
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: this.rekey,
         receiver: this.accounts[1],
-        fee: result.fee,
-        firstValid: result.firstValid,
-        lastValid: result.lastValid,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
         note: makeUint8Array(algosdk.base64ToBytes(note)),
         amount: parseInt(amt),
-      };
+        suggestedParams: result,
+      });
       return this.txn;
     }
   );
@@ -535,17 +528,13 @@ module.exports = function getSteps(options) {
         addrs: this.accounts,
       };
 
-      this.txn = {
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: algosdk.multisigAddress(this.msig),
         receiver: this.accounts[1],
-        fee: result.fee,
-        firstValid: result.firstValid,
-        lastValid: result.lastValid,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
         note: makeUint8Array(algosdk.base64ToBytes(note)),
         amount: parseInt(amt),
-      };
+        suggestedParams: result,
+      });
       return this.txn;
     }
   );
@@ -687,26 +676,22 @@ module.exports = function getSteps(options) {
   });
 
   When('I create the flat fee payment transaction', function () {
-    this.txn = {
+    this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: this.pk,
       receiver: this.receiver,
-      fee: this.fee,
-      firstValid: this.fv,
-      lastValid: this.lv,
-      genesisHash: this.gh,
-      flatFee: true,
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.close) {
-      this.txn.closeRemainderTo = this.close;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
-    if (this.amt) {
-      this.txn.amount = this.amt;
-    }
+      amount: this.amt ?? 0,
+      closeRemainderTo: this.close,
+      note: this.note,
+      suggestedParams: {
+        minFee: 1000, // Shouldn't matter because flatFee=true
+        flatFee: true,
+        fee: this.fee,
+        firstValid: this.fv,
+        lastValid: this.lv,
+        genesisHash: this.gh,
+        genesisID: this.gen,
+      },
+    });
   });
 
   Given('encoded multisig transaction {string}', function (encTxn) {
@@ -757,51 +742,41 @@ module.exports = function getSteps(options) {
   });
 
   When('I create the multisig payment transaction', function () {
-    this.txn = {
+    this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender: algosdk.multisigAddress(this.msig),
       receiver: this.receiver,
-      fee: this.fee,
-      firstValid: this.fv,
-      lastValid: this.lv,
-      genesisHash: this.gh,
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.close) {
-      this.txn.closeRemainderTo = this.close;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
-    if (this.amt) {
-      this.txn.amount = this.amt;
-    }
+      amount: this.amt ?? 0,
+      closeRemainderTo: this.close,
+      note: this.note,
+      suggestedParams: {
+        minFee: 1000, // Hardcoding, but it would be nice to take this as an argument
+        fee: this.fee,
+        firstValid: this.fv,
+        lastValid: this.lv,
+        genesisHash: this.gh,
+        genesisID: this.gen,
+      },
+    });
     return this.txn;
   });
 
   When('I create the multisig payment transaction with zero fee', function () {
-    this.txn = {
+    this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender: algosdk.multisigAddress(this.msig),
       receiver: this.receiver,
-      fee: this.fee,
-      flatFee: true,
-      firstValid: this.fv,
-      lastValid: this.lv,
-      genesisHash: this.gh,
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.close) {
-      this.txn.closeRemainderTo = this.close;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
-    if (this.amt) {
-      this.txn.amount = this.amt;
-    }
+      amount: this.amt ?? 0,
+      closeRemainderTo: this.close,
+      note: this.note,
+      suggestedParams: {
+        minFee: 1000, // Shouldn't matter because flatFee=true
+        fee: this.fee,
+        flatFee: true,
+        firstValid: this.fv,
+        lastValid: this.lv,
+        genesisHash: this.gh,
+        genesisID: this.gen,
+      },
+    });
     return this.txn;
   });
 
@@ -960,13 +935,6 @@ module.exports = function getSteps(options) {
       this.pk = from;
 
       const result = await this.v2Client.getTransactionParams().do();
-      const suggestedParams = {
-        fee: result.fee,
-        firstValid: result.firstValid,
-        lastValid: result.lastValid,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
-      };
       this.lastValid = result.lastValid;
 
       if (type === 'online') {
@@ -978,18 +946,18 @@ module.exports = function getSteps(options) {
           voteFirst: 1,
           voteLast: 2000,
           voteKeyDilution: 10,
-          suggestedParams,
+          suggestedParams: result,
         });
       } else if (type === 'offline') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
           sender: from,
-          suggestedParams,
+          suggestedParams: result,
         });
       } else if (type === 'nonparticipation') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
           sender: from,
           nonParticipation: true,
-          suggestedParams,
+          suggestedParams: result,
         });
       } else {
         throw new Error(`Unrecognized keyreg type: ${type}`);
@@ -1008,7 +976,9 @@ module.exports = function getSteps(options) {
       name: 'testcoin',
       unitname: 'coins',
       url: 'http://test',
-      metadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh',
+      metadataHash: new TextEncoder().encode(
+        'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh'
+      ),
       expectedParams: undefined,
       queriedParams: undefined,
       lastTxn: undefined,
@@ -1025,7 +995,7 @@ module.exports = function getSteps(options) {
       this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const parsedIssuance = parseInt(issuance);
+      const parsedIssuance = BigInt(issuance);
       const decimals = 0;
       const defaultFrozen = false;
       const assetName = this.assetTestFixture.name;
@@ -1036,43 +1006,37 @@ module.exports = function getSteps(options) {
       const reserve = this.assetTestFixture.creator;
       const freeze = this.assetTestFixture.creator;
       const clawback = this.assetTestFixture.creator;
-      const genesisID = '';
-      const type = 'acfg';
 
-      this.assetTestFixture.lastTxn = {
-        sender: this.assetTestFixture.creator,
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetTotal: parsedIssuance,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash: metadataHash,
-        assetManager: manager,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          note: this.note,
+          total: parsedIssuance,
+          decimals,
+          defaultFrozen,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash: metadataHash,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
         total: parsedIssuance,
-        defaultfrozen: defaultFrozen,
-        unitname: unitName,
-        assetname: assetName,
+        defaultFrozen,
+        unitName,
+        name: assetName,
         url: assetURL,
-        metadatahash: metadataHash,
-        managerkey: manager,
-        reserveaddr: reserve,
-        freezeaddr: freeze,
-        clawbackaddr: clawback,
+        metadataHash,
+        manager,
+        reserve,
+        freeze,
+        clawback,
         decimals,
       };
       this.txn = this.assetTestFixture.lastTxn;
@@ -1091,7 +1055,7 @@ module.exports = function getSteps(options) {
       this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const parsedIssuance = parseInt(issuance);
+      const parsedIssuance = BigInt(issuance);
       const decimals = 0;
       const defaultFrozen = true;
       const assetName = this.assetTestFixture.name;
@@ -1102,43 +1066,37 @@ module.exports = function getSteps(options) {
       const reserve = this.assetTestFixture.creator;
       const freeze = this.assetTestFixture.creator;
       const clawback = this.assetTestFixture.creator;
-      const genesisID = '';
-      const type = 'acfg';
 
-      this.assetTestFixture.lastTxn = {
-        sender: this.assetTestFixture.creator,
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetTotal: parsedIssuance,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash: metadataHash,
-        assetManager: manager,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          note: this.note,
+          total: parsedIssuance,
+          decimals,
+          defaultFrozen,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash: metadataHash,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
         total: parsedIssuance,
-        defaultfrozen: defaultFrozen,
-        unitname: unitName,
-        assetname: assetName,
+        defaultFrozen,
+        unitName,
+        name: assetName,
         url: assetURL,
-        metadatahash: metadataHash,
-        managerkey: manager,
-        reserveaddr: reserve,
-        freezeaddr: freeze,
-        clawbackaddr: clawback,
+        metadataHash,
+        manager,
+        reserve,
+        freeze,
+        clawback,
         decimals,
       };
       this.txn = this.assetTestFixture.lastTxn;
@@ -1179,15 +1137,16 @@ module.exports = function getSteps(options) {
   });
 
   Then('the asset info should match the expected asset info', function () {
-    Object.keys(this.assetTestFixture.expectedParams).forEach((key) => {
-      assert.strictEqual(
-        true,
-        this.assetTestFixture.expectedParams[key] ===
-          this.assetTestFixture.queriedParams.params[key] ||
-          typeof this.assetTestFixture.expectedParams[key] === 'undefined' ||
-          typeof this.assetTestFixture.queriedParams.params[key] === 'undefined'
+    for (const [key, expectedValue] of Object.entries(
+      this.assetTestFixture.expectedParams
+    )) {
+      const actualValue = this.assetTestFixture.queriedParams.params[key];
+      assert.deepStrictEqual(
+        actualValue,
+        expectedValue,
+        `Asset params do not match for ${key}. Actual: ${actualValue}, Expected: ${expectedValue}`
       );
-    });
+    }
   });
 
   When(
@@ -1206,28 +1165,23 @@ module.exports = function getSteps(options) {
       let reserve;
       let freeze;
       let clawback;
-      const genesisID = '';
-      const type = 'acfg';
 
-      this.assetTestFixture.lastTxn = {
-        sender: this.assetTestFixture.creator,
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetManager: manager,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          note: this.note,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+          allowRoleRemoval: true,
+        });
       // update vars used by other helpers
-      this.assetTestFixture.expectedParams.reserveaddr = '';
-      this.assetTestFixture.expectedParams.freezeaddr = '';
-      this.assetTestFixture.expectedParams.clawbackaddr = '';
+      this.assetTestFixture.expectedParams.reserve = undefined;
+      this.assetTestFixture.expectedParams.freeze = undefined;
+      this.assetTestFixture.expectedParams.clawback = undefined;
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
@@ -1242,20 +1196,14 @@ module.exports = function getSteps(options) {
     this.lv = this.params.lastValid;
     this.note = undefined;
     this.gh = this.params.genesisHash;
-    const genesisID = '';
-    const type = 'acfg';
 
-    this.assetTestFixture.lastTxn = {
-      sender: this.assetTestFixture.creator,
-      fee: this.fee,
-      firstValid: this.fv,
-      lastValid: this.lv,
-      note: this.note,
-      genesisHash: this.gh,
-      assetIndex: parseInt(this.assetTestFixture.index),
-      genesisID,
-      type,
-    };
+    this.assetTestFixture.lastTxn =
+      algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
+        sender: this.assetTestFixture.creator,
+        note: this.note,
+        assetIndex: parseInt(this.assetTestFixture.index),
+        suggestedParams: this.params,
+      });
     // update vars used by other helpers
     this.txn = this.assetTestFixture.lastTxn;
     this.lastValid = this.params.lastValid;
@@ -1282,22 +1230,16 @@ module.exports = function getSteps(options) {
       this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        sender: accountToUse,
-        receiver: accountToUse,
-        amount: 0,
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: accountToUse,
+          receiver: accountToUse,
+          amount: 0,
+          note: this.note,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -1314,22 +1256,16 @@ module.exports = function getSteps(options) {
       this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        sender: this.assetTestFixture.creator,
-        receiver: this.accounts[1],
-        amount: parseInt(amount),
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          receiver: this.accounts[1],
+          amount: parseInt(amount),
+          note: this.note,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -1346,22 +1282,16 @@ module.exports = function getSteps(options) {
       this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        receiver: this.assetTestFixture.creator,
-        sender: this.accounts[1],
-        amount: parseInt(amount),
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          receiver: this.assetTestFixture.creator,
+          sender: this.accounts[1],
+          amount: parseInt(amount),
+          note: this.note,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -1403,18 +1333,15 @@ module.exports = function getSteps(options) {
       this.gh = this.params.genesisHash;
       const freezer = this.assetTestFixture.creator;
 
-      this.assetTestFixture.lastTxn = {
-        sender: freezer,
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        genesisHash: this.gh,
-        type: 'afrz',
-        freezeAccount: this.accounts[1],
-        assetIndex: parseInt(this.assetTestFixture.index),
-        assetFrozen: false,
-        note: this.note,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
+          sender: freezer,
+          freezeTarget: this.accounts[1],
+          assetIndex: parseInt(this.assetTestFixture.index),
+          assetFrozen: false,
+          note: this.note,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -1433,18 +1360,15 @@ module.exports = function getSteps(options) {
       this.gh = this.params.genesisHash;
       const freezer = this.assetTestFixture.creator;
 
-      this.assetTestFixture.lastTxn = {
-        sender: freezer,
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        genesisHash: this.gh,
-        type: 'afrz',
-        freezeAccount: this.accounts[1],
-        assetIndex: parseInt(this.assetTestFixture.index),
-        assetFrozen: true,
-        note: this.note,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
+          sender: freezer,
+          freezeTarget: this.accounts[1],
+          assetIndex: parseInt(this.assetTestFixture.index),
+          assetFrozen: true,
+          note: this.note,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -1461,23 +1385,18 @@ module.exports = function getSteps(options) {
       this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        sender: this.assetTestFixture.creator,
-        receiver: this.assetTestFixture.creator,
-        assetSender: this.accounts[1],
-        amount: parseInt(amount),
-        fee: this.fee,
-        firstValid: this.fv,
-        lastValid: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          receiver: this.assetTestFixture.creator,
+          assetSender: this.accounts[1],
+          amount: parseInt(amount),
+          note: this.note,
+          genesisHash: this.gh,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
       this.lastValid = this.params.lastValid;
@@ -2020,7 +1939,7 @@ module.exports = function getSteps(options) {
     'the parsed Suggested Transaction Parameters response should have first round valid of {int}',
     (firstValid) => {
       assert.strictEqual(
-        firstValid,
+        BigInt(firstValid),
         anySuggestedTransactionsResponse.firstValid
       );
     }
@@ -2782,7 +2701,7 @@ module.exports = function getSteps(options) {
   /// /////////////////////////////////
 
   When('I add a rekeyTo field with address {string}', function (address) {
-    this.txn.rekeyTo = address;
+    this.txn.rekeyTo = algosdk.decodeAddress(address);
   });
 
   When(
@@ -2790,12 +2709,14 @@ module.exports = function getSteps(options) {
     function () {
       const keypair = keyPairFromSecretKey(this.sk);
       const pubKeyFromSk = keypair.publicKey;
-      this.txn.rekeyTo = algosdk.encodeAddress(pubKeyFromSk);
+      this.txn.rekeyTo = algosdk.decodeAddress(
+        algosdk.encodeAddress(pubKeyFromSk)
+      );
     }
   );
 
   When('I set the from address to {string}', function (sender) {
-    this.txn.sender = sender;
+    this.txn.sender = algosdk.decodeAddress(sender);
   });
 
   let dryrunResponse;
@@ -2818,14 +2739,12 @@ module.exports = function getSteps(options) {
 
   When('I dryrun a {string} program {string}', async function (kind, program) {
     const data = await loadResource(program);
-    const algoTxn = new algosdk.Transaction({
+    const sp = await this.v2Client.getTransactionParams().do();
+    const algoTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-      fee: 1000,
+      receiver: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       amount: 1000,
-      firstValid: 1,
-      lastValid: 1000,
-      type: 'pay',
-      genesisHash: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
+      suggestedParams: sp,
     });
     let txns;
     let sources;
@@ -3010,16 +2929,16 @@ module.exports = function getSteps(options) {
     async function (amount) {
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstValid === 0) sp.firstValid = 1;
-      const fundingTxnArgs = {
+      const fundingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: this.accounts[0],
         receiver: algosdk.getApplicationAddress(this.currentApplicationIndex),
         amount,
         suggestedParams: sp,
-      };
+      });
       const stxn = await this.kcl.signTransaction(
         this.handle,
         this.wallet_pswd,
-        fundingTxnArgs
+        fundingTxn
       );
 
       const fundingResponse = await this.v2Client.sendRawTransaction(stxn).do();
@@ -3038,6 +2957,7 @@ module.exports = function getSteps(options) {
       assert.ok(['true', 'false'].includes(flatFee));
 
       this.suggestedParams = {
+        minFee: 1000, // Would be nice to  take this as an argument in the future
         flatFee: flatFee === 'true',
         fee,
         firstValid,
@@ -3062,19 +2982,21 @@ module.exports = function getSteps(options) {
     ) {
       assert.ok(['true', 'false'].includes(nonpart));
 
-      this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+      this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
         sender,
-        undefined,
-        votePk.length ? votePk : undefined,
-        selectionPk.length ? selectionPk : undefined,
-        voteFirst,
-        voteLast,
-        keyDilution,
-        this.suggestedParams,
-        undefined,
-        nonpart === 'true',
-        stateProofPk.length ? stateProofPk : undefined
-      );
+        voteKey: votePk.length ? algosdk.base64ToBytes(votePk) : undefined,
+        selectionKey: selectionPk.length
+          ? algosdk.base64ToBytes(selectionPk)
+          : undefined,
+        stateProofKey: stateProofPk.length
+          ? algosdk.base64ToBytes(stateProofPk)
+          : undefined,
+        voteFirst: voteFirst || undefined,
+        voteLast: voteLast || undefined,
+        voteKeyDilution: keyDilution || undefined,
+        nonParticipation: nonpart === 'true',
+        suggestedParams: this.suggestedParams,
+      });
     }
   );
 
@@ -3204,119 +3126,102 @@ module.exports = function getSteps(options) {
         lastValid,
         fee,
         flatFee: true,
+        minFee: 1000, // Shouldn't matter because flatFee=true
       };
 
       switch (operationString) {
         case 'call':
-          this.txn = algosdk.makeApplicationNoOpTxn(
+          this.txn = algosdk.makeApplicationNoOpTxnFromObject({
             sender,
-            sp,
-            appIndex,
+            appId: appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'create':
-          this.txn = algosdk.makeApplicationCreateTxn(
+          this.txn = algosdk.makeApplicationCreateTxnFromObject({
             sender,
-            sp,
-            operation,
-            approvalProgramBytes,
-            clearProgramBytes,
+            onComplete: operation,
+            approvalProgram: approvalProgramBytes,
+            clearProgram: clearProgramBytes,
             numLocalInts,
             numLocalByteSlices,
             numGlobalInts,
             numGlobalByteSlices,
+            extraPages,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            extraPages,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'update':
-          this.txn = algosdk.makeApplicationUpdateTxn(
+          this.txn = algosdk.makeApplicationUpdateTxnFromObject({
             sender,
-            sp,
-            appIndex,
-            approvalProgramBytes,
-            clearProgramBytes,
+            appId: appIndex,
+            approvalProgram: approvalProgramBytes,
+            clearProgram: clearProgramBytes,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'optin':
-          this.txn = algosdk.makeApplicationOptInTxn(
+          this.txn = algosdk.makeApplicationOptInTxnFromObject({
             sender,
-            sp,
-            appIndex,
+            appId: appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'delete':
-          this.txn = algosdk.makeApplicationDeleteTxn(
+          this.txn = algosdk.makeApplicationDeleteTxnFromObject({
             sender,
-            sp,
-            appIndex,
+            appId: appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'clear':
-          this.txn = algosdk.makeApplicationClearStateTxn(
+          this.txn = algosdk.makeApplicationClearStateTxnFromObject({
             sender,
-            sp,
-            appIndex,
+            appId: appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'closeout':
-          this.txn = algosdk.makeApplicationCloseOutTxn(
+          this.txn = algosdk.makeApplicationCloseOutTxnFromObject({
             sender,
-            sp,
-            appIndex,
+            appId: appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         default:
           throw Error(
@@ -3391,16 +3296,16 @@ module.exports = function getSteps(options) {
 
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstValid === 0) sp.firstValid = 1;
-      const fundingTxnArgs = {
+      const fundingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: this.accounts[0],
         receiver: this.transientAccount.addr,
         amount: fundingAmount,
         suggestedParams: sp,
-      };
+      });
       const stxKmd = await this.kcl.signTransaction(
         this.handle,
         this.wallet_pswd,
-        fundingTxnArgs
+        fundingTxn
       );
       const fundingResponse = await this.v2Client
         .sendRawTransaction(stxKmd)
@@ -3493,26 +3398,24 @@ module.exports = function getSteps(options) {
       }
       const sp = await this.v2Client.getTransactionParams().do();
       if (sp.firstValid === 0) sp.firstValid = 1;
-      const o = {
-        type: 'appl',
+      this.txn = algosdk.makeApplicationCallTxnFromObject({
         sender: this.transientAccount.addr,
-        suggestedParams: sp,
-        appIndex: this.currentApplicationIndex,
-        appOnComplete: operation,
-        appLocalInts: numLocalInts,
-        appLocalByteSlices: numLocalByteSlices,
-        appGlobalInts: numGlobalInts,
-        appGlobalByteSlices: numGlobalByteSlices,
-        appApprovalProgram: approvalProgramBytes,
-        appClearProgram: clearProgramBytes,
-        appArgs,
-        appAccounts,
-        appForeignApps: foreignApps,
-        appForeignAssets: foreignAssets,
-        boxes,
+        appId: this.currentApplicationIndex,
+        onComplete: operation,
+        numLocalInts,
+        numLocalByteSlices,
+        numGlobalInts,
+        numGlobalByteSlices,
         extraPages,
-      };
-      this.txn = new algosdk.Transaction(o);
+        approvalProgram: approvalProgramBytes,
+        clearProgram: clearProgramBytes,
+        appArgs,
+        accounts: appAccounts,
+        foreignApps,
+        foreignAssets,
+        boxes,
+        suggestedParams: sp,
+      });
     }
   );
 
@@ -3525,8 +3428,7 @@ module.exports = function getSteps(options) {
       } catch (err) {
         if (errorString !== '') {
           // error was expected. check that err.message includes expected string.
-          const errorContainsString = err.message.includes(errorString);
-          assert.deepStrictEqual(true, errorContainsString);
+          assert.ok(err.message.includes(errorString), err);
         } else {
           // unexpected error, rethrow.
           throw err;

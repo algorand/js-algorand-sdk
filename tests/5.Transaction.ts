@@ -2,189 +2,262 @@
 import assert from 'assert';
 import algosdk from '../src/index.js';
 import { translateBoxReferences } from '../src/boxStorage.js';
-import * as group from '../src/group.js';
 
 describe('Sign', () => {
   it('should not modify input arrays', () => {
     const appArgs = [Uint8Array.from([1, 2]), Uint8Array.from([3, 4])];
-    const appAccounts = [
+    const accounts = [
       '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
     ];
-    const appForeignApps = [17, 200];
-    const appForeignAssets = [7, 8, 9];
+    const foreignApps = [17, 200];
+    const foreignAssets = [7, 8, 9];
     const boxes = [{ appIndex: 0, name: Uint8Array.from([0]) }];
-    const o = {
+    const txn = new algosdk.Transaction({
       sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
       note: new Uint8Array(0),
-      type: 'appl',
-      appIndex: 5,
-      appArgs,
-      appAccounts,
-      appForeignApps,
-      appForeignAssets,
-      boxes,
-    } as any; // Temporary type fix, will be unnecessary in following PR
-    const txn = new algosdk.Transaction(o);
+      type: algosdk.TransactionType.appl,
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'mock-network',
+      },
+      appCallParams: {
+        appId: 5,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        appArgs,
+        accounts,
+        foreignApps,
+        foreignAssets,
+        boxes,
+      },
+    });
     assert.deepStrictEqual(appArgs, [
       Uint8Array.from([1, 2]),
       Uint8Array.from([3, 4]),
     ]);
-    assert.deepStrictEqual(appAccounts, [
+    assert.deepStrictEqual(accounts, [
       '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
       'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
     ]);
-    assert.deepStrictEqual(appForeignApps, [17, 200]);
-    assert.deepStrictEqual(appForeignAssets, [7, 8, 9]);
-    assert.ok(txn.appArgs !== appArgs);
-    assert.ok((txn.appAccounts as any) !== appAccounts);
-    assert.ok(txn.appForeignApps !== appForeignApps);
-    assert.ok(txn.appForeignAssets !== appForeignAssets);
-    assert.ok(txn.boxes !== boxes);
+    assert.deepStrictEqual(foreignApps, [17, 200]);
+    assert.deepStrictEqual(foreignAssets, [7, 8, 9]);
+    assert.ok(txn.applicationCall);
+    assert.ok(txn.applicationCall.appArgs !== appArgs);
+    assert.ok((txn.applicationCall.appAccounts as any) !== accounts);
+    assert.ok((txn.applicationCall.appForeignApps as any) !== foreignApps);
+    assert.ok((txn.applicationCall.appForeignAssets as any) !== foreignAssets);
+    assert.ok((txn.applicationCall.boxes as any) !== boxes);
   });
 
   it('should not complain on a missing note', () => {
-    const o = {
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      note: new Uint8Array(0),
-    } as any; // Temporary type fix, will be unnecessary in following PR
-    assert.doesNotThrow(() => new algosdk.Transaction(o));
+    for (const note of [undefined, new Uint8Array()]) {
+      const txn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
+        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        paymentParams: {
+          receiver:
+            '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
+        note,
+      });
+      assert.deepStrictEqual(txn.note, new Uint8Array());
+    }
   });
 
   it('should respect min tx fee', () => {
-    const o = {
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 0,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      note: new Uint8Array([123, 12, 200]),
-    } as any; // Temporary type fix, will be unnecessary in following PR
-    const txn = new algosdk.Transaction(o);
-    assert.strictEqual(txn.fee, 1000); // 1000 is the v5 min txn fee
-    const txnEnc = txn.get_obj_for_encoding()!;
-    assert.strictEqual(txnEnc.fee, 1000);
+    for (const minFee of [1000n, 1001n]) {
+      const params: algosdk.TransactionParams = {
+        type: algosdk.TransactionType.pay,
+        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        paymentParams: {
+          receiver:
+            '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee,
+          fee: 0,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
+      };
+      const zeroFee = new algosdk.Transaction(params);
+      assert.strictEqual(zeroFee.fee, minFee);
+      const encZeroFee = zeroFee.get_obj_for_encoding();
+      assert.strictEqual(encZeroFee.fee, minFee);
+
+      params.suggestedParams.fee = minFee; // since this is fee per byte, it will be far greater than minFee
+      const excessFee = new algosdk.Transaction(params);
+      assert.ok(excessFee.fee > minFee);
+      const encExcessFee = excessFee.get_obj_for_encoding();
+      assert.strictEqual(encExcessFee.fee, excessFee.fee);
+    }
   });
 
   it('should accept 0 fee', () => {
-    const o = {
+    const txn = new algosdk.Transaction({
+      type: algosdk.TransactionType.pay,
       sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 0,
-      flatFee: true,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      note: new Uint8Array([123, 12, 200]),
-    } as any; // Temporary type fix, will be unnecessary in following PR
-    const txn = new algosdk.Transaction(o);
-    assert.equal(txn.fee, 0);
+      paymentParams: {
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 0,
+        flatFee: true,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'mock-network',
+      },
+    });
+    assert.strictEqual(txn.fee, 0n);
+    const encTxn = txn.get_obj_for_encoding();
+    assert.strictEqual(encTxn.fee, undefined); // Should be omitted from encoding
   });
 
   it('should accept lower than min fee', () => {
-    const o = {
+    const txn = new algosdk.Transaction({
+      type: algosdk.TransactionType.pay,
       sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      flatFee: true,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      paymentParams: {
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
+        flatFee: true,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'mock-network',
+      },
       note: new Uint8Array([123, 12, 200]),
-    } as any; // Temporary type fix, will be unnecessary in following PR
-    const txn = new algosdk.Transaction(o);
-    assert.equal(txn.fee, 10);
+    });
+    assert.strictEqual(txn.fee, 10n);
     const txnEnc = txn.get_obj_for_encoding();
-    assert.equal(txnEnc!.fee, 10);
+    assert.strictEqual(txnEnc.fee, 10n);
   });
 
   it('should not complain on a missing genesisID', () => {
-    const o = {
+    const o: algosdk.TransactionParams = {
+      type: algosdk.TransactionType.pay,
       sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      paymentParams: {
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      },
       note: new Uint8Array([123, 12, 200]),
-    } as any; // Temporary type fix, will be unnecessary in following PR
-
-    assert.doesNotThrow(() => new algosdk.Transaction(o));
-  });
-
-  it('should not complain on an empty genesisID', () => {
-    const o = {
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      note: new Uint8Array([123, 12, 200]),
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      genesisID: '',
     };
 
     assert.doesNotThrow(() => new algosdk.Transaction(o));
   });
 
-  it('should complain if note isnt Uint8Array', () => {
-    const o = {
+  it('should not complain on an empty genesisID', () => {
+    const o: algosdk.TransactionParams = {
+      type: algosdk.TransactionType.pay,
       sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      fee: 10,
-      amount: 847,
-      firstValid: 51,
-      lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      note: 'new Uint8Array(0)',
-    } as any; // Temporary type fix, will be unnecessary in following PR
+      paymentParams: {
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: '',
+      },
+      note: new Uint8Array([123, 12, 200]),
+    };
+
+    assert.doesNotThrow(() => new algosdk.Transaction(o));
+  });
+
+  it('should complain if note is not Uint8Array', () => {
+    const o: algosdk.TransactionParams = {
+      type: algosdk.TransactionType.pay,
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      paymentParams: {
+        receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+        amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'mock-network',
+      },
+      note: 'abcdefg' as any,
+    };
     assert.throws(
       () => new algosdk.Transaction(o),
-      new Error('note must be a Uint8Array.')
+      new Error('Not a Uint8Array: abcdefg')
     );
   });
 
   it('should not drop a note of all zeros', () => {
-    const txnWithNote = new algosdk.Transaction(
-      {
-        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+    const txnWithNote = new algosdk.Transaction({
+      type: algosdk.TransactionType.pay,
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      paymentParams: {
         receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-        fee: 10,
         amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
         firstValid: 51,
         lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        note: new Uint8Array(32),
-      } as any // Temporary type fix, will be unnecessary in following PR
-    );
+        genesisID: 'mock-network',
+      },
+      note: new Uint8Array(32),
+    });
 
-    const txnWithoutNote = new algosdk.Transaction(
-      {
-        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+    const txnWithoutNote = new algosdk.Transaction({
+      type: algosdk.TransactionType.pay,
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      paymentParams: {
         receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-        fee: 10,
         amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
         firstValid: 51,
         lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      } as any // Temporary type fix, will be unnecessary in following PR
-    );
+        genesisID: 'mock-network',
+      },
+    });
 
     const serializedWithNote = algosdk.encodeUnsignedTransaction(txnWithNote);
     const serializedWithoutNote =
@@ -194,30 +267,41 @@ describe('Sign', () => {
   });
 
   it('should drop a lease of all zeros', () => {
-    const txnWithLease = new algosdk.Transaction(
-      {
-        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+    const txnWithLease = new algosdk.Transaction({
+      type: algosdk.TransactionType.pay,
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      paymentParams: {
         receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-        fee: 10,
         amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
         firstValid: 51,
         lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        lease: new Uint8Array(32),
-      } as any // Temporary type fix, will be unnecessary in following PR
-    );
+        genesisID: 'mock-network',
+      },
+      lease: new Uint8Array(32),
+    });
 
-    const txnWithoutLease = new algosdk.Transaction(
-      {
-        sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+    const txnWithoutLease = new algosdk.Transaction({
+      type: algosdk.TransactionType.pay,
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      paymentParams: {
         receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-        fee: 10,
         amount: 847,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
         firstValid: 51,
         lastValid: 61,
         genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      } as any // Temporary type fix, will be unnecessary in following PR
-    );
+        genesisID: 'mock-network',
+      },
+      lease: new Uint8Array(32),
+    });
 
     const serializedWithLease = algosdk.encodeUnsignedTransaction(txnWithLease);
     const serializedWithoutLease =
@@ -230,38 +314,46 @@ describe('Sign', () => {
     const address =
       'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
 
-    const txnWithHash = new algosdk.Transaction(
-      {
-        sender: address,
-        fee: 10,
-        firstValid: 322575,
-        lastValid: 323575,
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+    const txnWithHash = new algosdk.Transaction({
+      type: algosdk.TransactionType.acfg,
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      assetConfigParams: {
         assetIndex: 1234,
-        assetManager: address,
-        assetReserve: address,
-        assetFreeze: address,
-        assetClawback: address,
-        type: 'acfg',
+        manager: address,
+        reserve: address,
+        freeze: address,
+        clawback: address,
         assetMetadataHash: new Uint8Array(32),
-      } as any // Temporary type fix, will be unnecessary in following PR
-    );
-
-    const txnWithoutHash = new algosdk.Transaction(
-      {
-        sender: address,
+      },
+      suggestedParams: {
+        minFee: 1000,
         fee: 10,
-        firstValid: 322575,
-        lastValid: 323575,
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'mock-network',
+      },
+    });
+
+    const txnWithoutHash = new algosdk.Transaction({
+      type: algosdk.TransactionType.acfg,
+      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+      assetConfigParams: {
         assetIndex: 1234,
-        assetManager: address,
-        assetReserve: address,
-        assetFreeze: address,
-        assetClawback: address,
-        type: 'acfg',
-      } as any // Temporary type fix, will be unnecessary in following PR
-    );
+        manager: address,
+        reserve: address,
+        freeze: address,
+        clawback: address,
+      },
+      suggestedParams: {
+        minFee: 1000,
+        fee: 10,
+        firstValid: 51,
+        lastValid: 61,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'mock-network',
+      },
+    });
 
     const serializedWithHash = algosdk.encodeUnsignedTransaction(txnWithHash);
     const serializedWithoutHash =
@@ -270,192 +362,367 @@ describe('Sign', () => {
     assert.deepStrictEqual(serializedWithHash, serializedWithoutHash);
   });
 
-  it('should be able to prettyprint and go toString without throwing', () => {
-    const o = {
-      sender: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
-      receiver: '7ZUECA7HFLZTXENRV24SHLU4AVPUTMTTDUFUBNBD64C73F3UHRTHAIOF6Q',
+  it('should error when the zero address is used for an optional field', () => {
+    const sender = 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
+    const suggestedParams: algosdk.SuggestedParams = {
+      minFee: 1000,
       fee: 10,
-      amount: 847,
       firstValid: 51,
       lastValid: 61,
       genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-      note: new Uint8Array(0),
-    } as any; // Temporary type fix, will be unnecessary in following PR
-    const txn = new algosdk.Transaction(o);
-    // assert package recommends just calling prettyPrint over using assert.doesNotThrow
-    txn.prettyPrint(); // should not throw
-    txn.toString(); // also should not throw
+      genesisID: 'mock-network',
+    };
+
+    const expectedError = new Error(
+      'Invalid use of the zero address. To omit this value, pass in undefined'
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.pay,
+          sender,
+          paymentParams: {
+            receiver: sender,
+            amount: 0,
+          },
+          rekeyTo: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          suggestedParams,
+        }),
+      expectedError
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.pay,
+          sender,
+          paymentParams: {
+            receiver: sender,
+            amount: 0,
+            closeRemainderTo: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          },
+          suggestedParams,
+        }),
+      expectedError
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.axfer,
+          sender,
+          assetTransferParams: {
+            assetIndex: 9999,
+            receiver: sender,
+            amount: 0,
+            closeRemainderTo: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          },
+          suggestedParams,
+        }),
+      expectedError
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.axfer,
+          sender,
+          assetTransferParams: {
+            assetIndex: 9999,
+            receiver: sender,
+            amount: 0,
+            assetSender: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          },
+          suggestedParams,
+        }),
+      expectedError
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.acfg,
+          sender,
+          assetConfigParams: {
+            assetIndex: 9999,
+            manager: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+            reserve: sender,
+            freeze: sender,
+            clawback: sender,
+          },
+          suggestedParams,
+        }),
+      expectedError
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.acfg,
+          sender,
+          assetConfigParams: {
+            assetIndex: 9999,
+            manager: sender,
+            reserve: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+            freeze: sender,
+            clawback: sender,
+          },
+          suggestedParams,
+        }),
+      expectedError
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.acfg,
+          sender,
+          assetConfigParams: {
+            assetIndex: 9999,
+            manager: sender,
+            reserve: sender,
+            freeze: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+            clawback: sender,
+          },
+          suggestedParams,
+        }),
+      expectedError
+    );
+
+    assert.throws(
+      () =>
+        new algosdk.Transaction({
+          type: algosdk.TransactionType.acfg,
+          sender,
+          assetConfigParams: {
+            assetIndex: 9999,
+            manager: sender,
+            reserve: sender,
+            freeze: sender,
+            clawback: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          },
+          suggestedParams,
+        }),
+      expectedError
+    );
   });
 
   describe('should correctly serialize and deserialize from msgpack representation', () => {
     it('should correctly serialize and deserialize from msgpack representation', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
-        fee: 10,
-        amount: 847,
-        firstValid: 51,
-        lastValid: 61,
+        paymentParams: {
+          receiver:
+            'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        genesisID: '',
-      };
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('should correctly serialize and deserialize from msgpack representation with flat fee', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
-        fee: 2063,
-        amount: 847,
-        firstValid: 51,
-        lastValid: 61,
+        paymentParams: {
+          receiver:
+            'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 2063,
+          flatFee: true,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        genesisID: '',
-        flatFee: true,
-      };
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('should correctly serialize and deserialize a state proof transaction from msgpack representation', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.stpf,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        fee: 10,
-        firstValid: 51,
-        lastValid: 61,
+        stateProofParams: {
+          stateProofType: 0,
+          stateProof: new Uint8Array([1, 1, 1, 1]),
+          stateProofMessage: new Uint8Array([0, 0, 0, 0]),
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
-        selectionKey: 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=',
-        voteFirst: 123,
-        voteLast: 456,
-        voteKeyDilution: 1234,
-        genesisID: '',
-        type: 'stpf',
-        stateProofType: 0,
-        stateProof: new Uint8Array([1, 1, 1, 1]),
-        stateProofMessage: new Uint8Array([0, 0, 0, 0]),
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      // console.log(
+      //   `${expectedTxn.stateProofType} ${expectedTxn.stateProofMessage} ${expectedTxn.stateProof} ${expectedTxn.type}`
+      // );
+      const encRep = expectedTxn.get_obj_for_encoding();
+      // console.log(
+      //   `${encRep.sptype} ${encRep.spmsg} ${encRep.sp} ${encRep.type}`
+      // );
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('should correctly serialize and deserialize a key registration transaction from msgpack representation', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        fee: 10,
-        firstValid: 51,
-        lastValid: 61,
+        keyregParams: {
+          voteKey: algosdk.base64ToBytes(
+            '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
+          ),
+          selectionKey: algosdk.base64ToBytes(
+            'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
+          ),
+          stateProofKey: algosdk.base64ToBytes(
+            'mgh7ddGf7dF1Z5/9RDzN/JZZF9yA7XYCKJXvqhwPdvI7pLKh7hizaM5rTC2kizVOpVRIU9PXSLeapvBJ/OxQYA=='
+          ),
+          voteFirst: 123,
+          voteLast: 456,
+          voteKeyDilution: 1234,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
-        selectionKey: 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=',
-        voteFirst: 123,
-        voteLast: 456,
-        voteKeyDilution: 1234,
-        genesisID: '',
-        type: 'keyreg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        fee: 10,
-        firstValid: 51,
-        lastValid: 61,
+        keyregParams: {},
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        genesisID: '',
-        type: 'keyreg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('should correctly serialize and deserialize an offline key registration transaction from msgpack representation with explicit nonParticipation=false', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        fee: 10,
-        firstValid: 51,
-        lastValid: 61,
+        keyregParams: {
+          nonParticipation: false,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        genesisID: '',
-        nonParticipation: false,
-        type: 'keyreg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('should correctly serialize and deserialize a nonparticipating key registration transaction from msgpack representation', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        fee: 10,
-        firstValid: 51,
-        lastValid: 61,
+        keyregParams: {
+          nonParticipation: true,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
-        nonParticipation: true,
-        genesisID: '',
-        type: 'keyreg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -463,26 +730,33 @@ describe('Sign', () => {
     it('should correctly serialize and deserialize an asset configuration transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const o = {
-        sender: address,
-        fee: 10,
-        firstValid: 322575,
-        lastValid: 323575,
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-        assetIndex: 1234,
-        assetManager: address,
-        assetReserve: address,
-        assetFreeze: address,
-        assetClawback: address,
-        type: 'acfg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.acfg,
+        sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
+        assetConfigParams: {
+          assetIndex: 1234,
+          manager: address,
+          reserve: address,
+          freeze: address,
+          clawback: address,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -490,33 +764,41 @@ describe('Sign', () => {
     it('should correctly serialize and deserialize an asset creation transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.acfg,
         sender: address,
-        fee: 10,
-        firstValid: 322575,
-        lastValid: 323575,
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-        assetTotal: 1000,
-        assetDefaultFrozen: true,
-        assetUnitName: 'tests',
-        assetName: 'testcoin',
-        assetURL: 'testURL',
-        assetMetadataHash: new Uint8Array(
-          algosdk.base64ToBytes('ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg=')
-        ),
-        assetManager: address,
-        assetReserve: address,
-        assetFreeze: address,
-        assetClawback: address,
-        type: 'acfg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+        assetConfigParams: {
+          manager: address,
+          reserve: address,
+          freeze: address,
+          clawback: address,
+          total: 2n ** 64n - 1n,
+          decimals: 5,
+          defaultFrozen: true,
+          unitName: 'tests',
+          assetName: 'testcoin',
+          assetURL: 'https://example.com',
+          assetMetadataHash: algosdk.base64ToBytes(
+            'ZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5Rmg='
+          ),
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -524,26 +806,33 @@ describe('Sign', () => {
     it('should correctly serialize and deserialize an asset transfer transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const o = {
-        type: 'axfer',
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.axfer,
         sender: address,
-        receiver: address,
-        amount: 100,
-        fee: 10,
-        firstValid: 322575,
-        lastValid: 323575,
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-        assetIndex: 1234,
-        assetSender: address,
-        closeRemainderTo: address,
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+        assetTransferParams: {
+          assetIndex: 1234,
+          receiver: address,
+          amount: 100,
+          closeRemainderTo: address,
+          assetSender: address,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -570,6 +859,7 @@ describe('Sign', () => {
         note: new TextEncoder().encode('note value'),
         rekeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
         suggestedParams: {
+          minFee: 1000,
           fee: 0,
           firstValid: 322575,
           lastValid: 323575,
@@ -577,12 +867,13 @@ describe('Sign', () => {
           genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         },
       });
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -590,25 +881,141 @@ describe('Sign', () => {
     it('should correctly serialize and deserialize an asset freeze transaction from msgpack representation', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.afrz,
         sender: address,
-        fee: 10,
-        firstValid: 322575,
-        lastValid: 323575,
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-        type: 'afrz',
-        freezeAccount: address,
-        assetIndex: 1,
-        assetFrozen: true,
-      } as any; // Temporary type fix, will be unnecessary in following PR
-
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+        assetFreezeParams: {
+          assetIndex: 1,
+          assetFrozen: true,
+          freezeTarget: address,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize a payment transaction when the receiver is the zero address', () => {
+      const txn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
+        sender: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        paymentParams: {
+          receiver: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 1,
+          lastValid: 1001,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = txn.get_obj_for_encoding();
+      assert.strictEqual(encRep.rcv, undefined);
+      const encTxn = algosdk.encodeObj(encRep);
+
+      const golden = algosdk.base64ToBytes(
+        'iaNhbXTNA0+jZmVlzQgqomZ2AaNnZW6sbW9jay1uZXR3b3JromdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds0D6aRub3RlxAN7DMijc25kxCCgiappIuO5mPrf9s1ICN354CHklE44nqPVxjh4ZokZfqR0eXBlo3BheQ=='
+      );
+      assert.deepStrictEqual(encTxn, golden);
+
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
+      assert.deepStrictEqual(decTxn, txn);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize an asset transfer transaction when the receiver is the zero address', () => {
+      const txn = new algosdk.Transaction({
+        type: algosdk.TransactionType.axfer,
+        sender: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        assetTransferParams: {
+          assetIndex: 9999,
+          receiver: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 1,
+          lastValid: 1001,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = txn.get_obj_for_encoding();
+      assert.strictEqual(encRep.arcv, undefined);
+      const encTxn = algosdk.encodeObj(encRep);
+
+      const golden = algosdk.base64ToBytes(
+        'iqRhYW10zQNPo2ZlZc0ImKJmdgGjZ2VurG1vY2stbmV0d29ya6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbNA+mkbm90ZcQDewzIo3NuZMQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6kdHlwZaVheGZlcqR4YWlkzScP'
+      );
+      assert.deepStrictEqual(encTxn, golden);
+
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
+      assert.deepStrictEqual(decTxn, txn);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize an asset freeze transaction when the freeze account is the zero address', () => {
+      const txn = new algosdk.Transaction({
+        type: algosdk.TransactionType.afrz,
+        sender: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        assetFreezeParams: {
+          assetIndex: 9999,
+          freezeTarget: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+          assetFrozen: true,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 1,
+          lastValid: 1001,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = txn.get_obj_for_encoding();
+      assert.strictEqual(encRep.fadd, undefined);
+      const encTxn = algosdk.encodeObj(encRep);
+
+      const golden = algosdk.base64ToBytes(
+        'iqRhZnJ6w6RmYWlkzScPo2ZlZc0IeqJmdgGjZ2VurG1vY2stbmV0d29ya6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbNA+mkbm90ZcQDewzIo3NuZMQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6kdHlwZaRhZnJ6'
+      );
+      assert.deepStrictEqual(encTxn, golden);
+
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
+      assert.deepStrictEqual(decTxn, txn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
@@ -616,108 +1023,161 @@ describe('Sign', () => {
     it('should correctly serialize and deserialize a first round of 0', () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.afrz,
         sender: address,
-        fee: 10,
-        firstValid: 0,
-        lastValid: 1000,
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-        type: 'afrz',
-        freezeAccount: address,
-        assetIndex: 1,
-        assetFrozen: true,
-      } as any; // Temporary type fix, will be unnecessary in following PR
-
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+        assetFreezeParams: {
+          assetIndex: 1,
+          assetFrozen: true,
+          freezeTarget: address,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 0,
+          lastValid: 1000,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize when the sender is the zero address', () => {
+      const txn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
+        sender: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+        paymentParams: {
+          receiver:
+            'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 1,
+          lastValid: 1001,
+          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisID: 'mock-network',
+        },
+        note: new Uint8Array([123, 12, 200]),
+      });
+      const encRep = txn.get_obj_for_encoding();
+      assert.strictEqual(encRep.snd, undefined);
+      const encTxn = algosdk.encodeObj(encRep);
+
+      const golden = algosdk.base64ToBytes(
+        'iaNhbXTNA0+jZmVlzQgqomZ2AaNnZW6sbW9jay1uZXR3b3JromdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds0D6aRub3RlxAN7DMijcmN2xCCgiappIuO5mPrf9s1ICN354CHklE44nqPVxjh4ZokZfqR0eXBlo3BheQ=='
+      );
+      assert.deepStrictEqual(encTxn, golden);
+
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
+      assert.deepStrictEqual(decTxn, txn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('reserializes correctly no genesis ID', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
-        fee: 10,
-        amount: 847,
-        firstValid: 51,
-        lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        paymentParams: {
+          receiver:
+            'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        },
         note: new Uint8Array([123, 12, 200]),
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('reserializes correctly zero amount', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
-        fee: 10,
-        amount: 0,
-        firstValid: 51,
-        lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        paymentParams: {
+          receiver:
+            'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+          amount: 0,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const encRep = expectedTxn.get_obj_for_encoding()!;
+      });
+      const encRep = expectedTxn.get_obj_for_encoding();
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
         decEncRep as algosdk.EncodedTransaction
       );
+      assert.deepStrictEqual(decTxn, expectedTxn);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
     it('should correctly serialize and deserialize group object', () => {
-      const o = {
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
-        receiver: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
-        fee: 10,
-        amount: 0,
-        firstValid: 51,
-        lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        paymentParams: {
+          receiver:
+            'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+          amount: 847,
+        },
+        suggestedParams: {
+          minFee: 1000,
+          fee: 10,
+          firstValid: 51,
+          lastValid: 61,
+          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisID: 'mock-network',
+        },
         note: new Uint8Array([123, 12, 200]),
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const tx = new algosdk.Transaction(o);
+      });
 
-      {
-        const expectedTxg = new group.TxGroup([tx.rawTxID(), tx.rawTxID()]);
-        const encRep = expectedTxg.get_obj_for_encoding();
-        const encTxg = algosdk.encodeObj(encRep);
-        const decEncRep = algosdk.decodeObj(encTxg) as any; // Temporary type fix, will be unnecessary in following PR;
-        const decTxg = group.TxGroup.from_obj_for_encoding(decEncRep);
-        const reencRep = decTxg.get_obj_for_encoding();
-        assert.deepStrictEqual(reencRep, encRep);
-      }
-
-      {
-        const expectedTxn = tx;
-        expectedTxn.group = tx.rawTxID();
-        const encRep = expectedTxn.get_obj_for_encoding()!;
-        const encTxn = algosdk.encodeObj(encRep);
-        const decEncRep = algosdk.decodeObj(encTxn);
-        const decTxn = algosdk.Transaction.from_obj_for_encoding(
-          decEncRep as algosdk.EncodedTransaction
-        );
-        const reencRep = decTxn.get_obj_for_encoding();
-        assert.deepStrictEqual(reencRep, encRep);
-      }
+      expectedTxn.group = algosdk.computeGroupID([expectedTxn]);
+      const encRep = expectedTxn.get_obj_for_encoding();
+      const encTxn = algosdk.encodeObj(encRep);
+      const decEncRep = algosdk.decodeObj(encTxn);
+      const decTxn = algosdk.Transaction.from_obj_for_encoding(
+        decEncRep as algosdk.EncodedTransaction
+      );
+      assert.deepStrictEqual(decTxn, expectedTxn);
+      const reencRep = decTxn.get_obj_for_encoding();
+      assert.deepStrictEqual(reencRep, encRep);
     });
   });
 
@@ -727,47 +1187,42 @@ describe('Sign', () => {
         'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const receiver =
         'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
-      const fee = 10;
       const amount = 847;
-      const firstValid = 51;
-      const lastValid = 61;
-      const note = new Uint8Array([123, 12, 200]);
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-      const genesisID = '';
+      const closeRemainderTo =
+        'RJB34GFP2BR5YJHKXDUMA2W4UX7DFUUR7QZ4AU5TWVKNA2KTNZIYB4BMRM';
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      let closeRemainderTo;
-      const o = {
+      const note = new Uint8Array([123, 12, 200]);
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
         sender,
-        receiver,
-        fee,
-        amount,
-        closeRemainderTo,
-        firstValid,
-        lastValid,
+        paymentParams: {
+          receiver,
+          amount,
+          closeRemainderTo,
+        },
         note,
-        genesisHash,
-        genesisID,
         rekeyTo,
-      };
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
-      };
-      const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
+        suggestedParams,
+      });
+      const actualTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender,
         receiver,
         amount,
         closeRemainderTo,
         note,
         suggestedParams,
-        rekeyTo
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+        rekeyTo,
+      });
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should be able to use helper to make a payment transaction with BigInt amount', () => {
@@ -775,47 +1230,42 @@ describe('Sign', () => {
         'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const receiver =
         'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
-      const fee = 10;
       const amount = 0xffffffffffffffffn;
-      const firstValid = 51;
-      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-      const genesisID = '';
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      let closeRemainderTo;
-      const o = {
+      const closeRemainderTo =
+        'RJB34GFP2BR5YJHKXDUMA2W4UX7DFUUR7QZ4AU5TWVKNA2KTNZIYB4BMRM';
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.pay,
         sender,
-        receiver,
-        fee,
-        amount,
-        closeRemainderTo,
-        firstValid,
-        lastValid,
+        paymentParams: {
+          receiver,
+          amount,
+          closeRemainderTo,
+        },
         note,
-        genesisHash,
-        genesisID,
         rekeyTo,
-      };
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
-      };
-      const actualTxn = algosdk.makePaymentTxnWithSuggestedParams(
+        suggestedParams,
+      });
+      const actualTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender,
         receiver,
         amount,
         closeRemainderTo,
         note,
         suggestedParams,
-        rekeyTo
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+        rekeyTo,
+      });
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should throw if payment amount is too large', () => {
@@ -823,234 +1273,216 @@ describe('Sign', () => {
         'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
       const receiver =
         'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
-      const fee = 10;
       const amount = 0x10000000000000000n;
-      const firstValid = 51;
-      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-      const genesisID = '';
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      let closeRemainderTo;
-      const o = {
+      const closeRemainderTo =
+        'RJB34GFP2BR5YJHKXDUMA2W4UX7DFUUR7QZ4AU5TWVKNA2KTNZIYB4BMRM';
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
+      const o: algosdk.TransactionParams = {
+        type: algosdk.TransactionType.pay,
         sender,
-        receiver,
-        fee,
-        amount,
-        closeRemainderTo,
-        firstValid,
-        lastValid,
+        paymentParams: {
+          receiver,
+          amount,
+          closeRemainderTo,
+        },
         note,
-        genesisHash,
-        genesisID,
         rekeyTo,
+        suggestedParams,
       };
       assert.throws(
         () => new algosdk.Transaction(o),
-        new Error(
-          'Amount must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
-        )
+        new Error('Value 18446744073709551616 is not a uint64')
       );
     });
 
     it('should be able to use helper to make a keyreg transaction', () => {
       const sender =
         'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
-      const fee = 10;
-      const firstValid = 51;
-      const lastValid = 61;
-      const note = new Uint8Array([123, 12, 200]);
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-      const genesisID = '';
-      const rekeyTo =
-        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const voteKey = '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=';
-      const selectionKey = 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=';
+      const voteKey = algosdk.base64ToBytes(
+        '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
+      );
+      const selectionKey = algosdk.base64ToBytes(
+        'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
+      );
+      const stateProofKey = algosdk.base64ToBytes(
+        'mgh7ddGf7dF1Z5/9RDzN/JZZF9yA7XYCKJXvqhwPdvI7pLKh7hizaM5rTC2kizVOpVRIU9PXSLeapvBJ/OxQYA=='
+      );
       const voteKeyDilution = 1234;
       const voteFirst = 123;
       const voteLast = 456;
-      const o = {
-        sender,
-        fee,
-        firstValid,
-        lastValid,
-        note,
-        genesisHash,
-        voteKey,
-        selectionKey,
-        voteFirst,
-        voteLast,
-        voteKeyDilution,
-        genesisID,
-        rekeyTo,
-        type: 'keyreg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
+      const note = new Uint8Array([123, 12, 200]);
+      const rekeyTo =
+        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
       };
-      const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
         sender,
-        note,
-        voteKey,
-        selectionKey,
-        voteFirst,
-        voteLast,
-        voteKeyDilution,
+        keyregParams: {
+          voteKey,
+          selectionKey,
+          stateProofKey,
+          voteFirst,
+          voteLast,
+          voteKeyDilution,
+        },
         suggestedParams,
-        rekeyTo
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+        note,
+        rekeyTo,
+      });
+      const actualTxn =
+        algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+          sender,
+          note,
+          voteKey,
+          selectionKey,
+          stateProofKey,
+          voteFirst,
+          voteLast,
+          voteKeyDilution,
+          suggestedParams,
+          rekeyTo,
+        });
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should be able to use helper to make an offline keyreg transaction', () => {
       const sender =
         'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
-      const fee = 10;
-      const firstValid = 51;
-      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-      const genesisID = '';
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const voteKey = undefined;
-      const selectionKey = undefined;
-      const voteKeyDilution = undefined;
-      const voteFirst = undefined;
-      const voteLast = undefined;
-      const o = {
-        sender,
-        fee,
-        firstValid,
-        lastValid,
-        note,
-        genesisHash,
-        voteKey,
-        selectionKey,
-        voteFirst,
-        voteLast,
-        voteKeyDilution,
-        genesisID,
-        rekeyTo,
-        type: 'keyreg',
-        nonParticipation: false,
-      } as any; // Temporary type fix, will be unnecessary in following PR
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
 
       assert.throws(
         () =>
           new algosdk.Transaction({
-            ...o,
-            voteKey: '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=',
+            type: algosdk.TransactionType.keyreg,
+            sender,
+            keyregParams: {
+              voteKey: algosdk.base64ToBytes(
+                '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
+              ),
+            },
+            suggestedParams,
+            note,
+            rekeyTo,
           }),
         new Error(
-          'online key registration missing at least one of the following fields: ' +
+          'Online key registration missing at least one of the following fields: ' +
             'voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution'
         )
       );
 
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
-      };
-      const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
         sender,
-        note,
-        voteKey,
-        selectionKey,
-        voteFirst,
-        voteLast,
-        voteKeyDilution,
+        keyregParams: {},
         suggestedParams,
-        rekeyTo
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+        note,
+        rekeyTo,
+      });
+      const actualTxn =
+        algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+          sender,
+          note,
+          suggestedParams,
+          rekeyTo,
+        });
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should be able to use helper to make a nonparticipating keyreg transaction', () => {
       const sender =
         'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU';
-      const fee = 10;
-      const firstValid = 51;
-      const lastValid = 61;
       const note = new Uint8Array([123, 12, 200]);
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-      const genesisID = '';
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const voteKey = '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE=';
-      const selectionKey = 'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4=';
-      const voteKeyDilution = 1234;
-      const voteFirst = 123;
-      const voteLast = 456;
-      const nonParticipation = true;
-      const o = {
-        sender,
-        fee,
-        firstValid,
-        lastValid,
-        note,
-        genesisHash,
-        nonParticipation,
-        genesisID,
-        rekeyTo,
-        type: 'keyreg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
 
       assert.throws(
         () =>
           new algosdk.Transaction({
-            ...o,
-            voteKey,
-            selectionKey,
-            voteFirst,
-            voteLast,
-            voteKeyDilution,
+            type: algosdk.TransactionType.keyreg,
+            sender,
+            keyregParams: {
+              voteKey: algosdk.base64ToBytes(
+                '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
+              ),
+              selectionKey: algosdk.base64ToBytes(
+                'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
+              ),
+              voteFirst: 123,
+              voteLast: 456,
+              voteKeyDilution: 1234,
+              nonParticipation: true,
+            },
+            suggestedParams,
+            note,
+            rekeyTo,
           }),
         new Error(
           'nonParticipation is true but participation params are present.'
         )
       );
 
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
-      };
-      const actualTxn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.keyreg,
         sender,
-        note,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
+        keyregParams: {
+          nonParticipation: true,
+        },
         suggestedParams,
+        note,
         rekeyTo,
-        nonParticipation
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+      });
+      const actualTxn =
+        algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+          sender,
+          note,
+          suggestedParams,
+          rekeyTo,
+          nonParticipation: true,
+        });
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should be able to use helper to make an asset create transaction', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
       const defaultFrozen = false;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const total = 100;
-      const decimals = 0;
+      const decimals = 1;
+      const manager = addr;
       const reserve = addr;
       const freeze = addr;
       const clawback = addr;
@@ -1060,69 +1492,65 @@ describe('Sign', () => {
       const assetMetadataHash = new Uint8Array(
         algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const o = {
-        sender: addr,
-        fee,
-        firstValid,
-        lastValid,
-        note,
-        genesisHash,
-        assetTotal: total,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash,
-        assetManager: addr,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
-        rekeyTo,
-        type: 'acfg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
       };
-      const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParams(
-        addr,
-        note,
-        total,
-        decimals,
-        defaultFrozen,
-        addr,
-        reserve,
-        freeze,
-        clawback,
-        unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash,
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.acfg,
+        sender: addr,
+        assetConfigParams: {
+          defaultFrozen,
+          total,
+          decimals,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash,
+        },
         suggestedParams,
-        rekeyTo
+        note,
+        rekeyTo,
+      });
+      const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject(
+        {
+          sender: addr,
+          note,
+          total,
+          decimals,
+          defaultFrozen,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash,
+          suggestedParams,
+          rekeyTo,
+        }
       );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should be able to use helper to make an asset create transaction with BigInt total', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
       const defaultFrozen = false;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const total = 0xffffffffffffffffn;
-      const decimals = 0;
+      const decimals = 1;
+      const manager = addr;
       const reserve = addr;
       const freeze = addr;
       const clawback = addr;
@@ -1132,69 +1560,65 @@ describe('Sign', () => {
       const assetMetadataHash = new Uint8Array(
         algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const o = {
-        sender: addr,
-        fee,
-        firstValid,
-        lastValid,
-        note,
-        genesisHash,
-        assetTotal: total,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash,
-        assetManager: addr,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
-        rekeyTo,
-        type: 'acfg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
       };
-      const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParams(
-        addr,
-        note,
-        total,
-        decimals,
-        defaultFrozen,
-        addr,
-        reserve,
-        freeze,
-        clawback,
-        unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash,
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.acfg,
+        sender: addr,
+        assetConfigParams: {
+          defaultFrozen,
+          total,
+          decimals,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash,
+        },
         suggestedParams,
-        rekeyTo
+        note,
+        rekeyTo,
+      });
+      const actualTxn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject(
+        {
+          sender: addr,
+          note,
+          total,
+          decimals,
+          defaultFrozen,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash,
+          suggestedParams,
+          rekeyTo,
+        }
       );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should throw if asset creation total is too large', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
       const defaultFrozen = false;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const total = 0x10000000000000000n;
-      const decimals = 0;
+      const decimals = 1;
+      const manager = addr;
       const reserve = addr;
       const freeze = addr;
       const clawback = addr;
@@ -1204,415 +1628,318 @@ describe('Sign', () => {
       const assetMetadataHash = new Uint8Array(
         algosdk.base64ToBytes('dGVzdGhhc2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
       );
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const o = {
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
+      const params: algosdk.TransactionParams = {
+        type: algosdk.TransactionType.acfg,
         sender: addr,
-        fee,
-        firstValid,
-        lastValid,
+        assetConfigParams: {
+          defaultFrozen,
+          total,
+          decimals,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash,
+        },
+        suggestedParams,
         note,
-        genesisHash,
-        assetTotal: total,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash,
-        assetManager: addr,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
         rekeyTo,
-        type: 'acfg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
+      };
       assert.throws(
-        () => new algosdk.Transaction(o),
-        new Error(
-          'Total asset issuance must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
-        )
+        () => new algosdk.Transaction(params),
+        new Error('Value 18446744073709551616 is not a uint64')
       );
     });
 
     it('should fail to make an asset create transaction with an invalid assetMetadataHash', () => {
-      const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
-      const defaultFrozen = false;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-      const total = 100;
-      const decimals = 0;
-      const reserve = addr;
-      const freeze = addr;
-      const clawback = addr;
-      const unitName = 'tst';
-      const assetName = 'testcoin';
-      const assetURL = 'testURL';
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
-      const note = new Uint8Array([123, 12, 200]);
-      const rekeyTo =
-        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const txnTemplate = {
-        sender: addr,
-        fee,
-        firstValid,
-        lastValid,
-        note,
-        genesisHash,
-        assetTotal: total,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetManager: addr,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
-        rekeyTo,
-        type: 'acfg',
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      assert.doesNotThrow(() => {
-        const txnParams = {
-          assetMetadataHash: '',
-          ...txnTemplate,
+      function paramsWithMetadataHash(
+        assetMetadataHash: any
+      ): algosdk.TransactionParams {
+        const addr =
+          'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+        return {
+          type: algosdk.TransactionType.acfg,
+          sender: addr,
+          assetConfigParams: {
+            defaultFrozen: false,
+            total: 100,
+            decimals: 0,
+            manager: addr,
+            reserve: addr,
+            freeze: addr,
+            clawback: addr,
+            unitName: 'tst',
+            assetName: 'testcoin',
+            assetURL: 'https://example.com',
+            assetMetadataHash,
+          },
+          suggestedParams: {
+            minFee: 1000,
+            fee: 10,
+            genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+            genesisID: 'testnet-v1.0',
+            firstValid: 51,
+            lastValid: 61,
+          },
+          note: new Uint8Array([123, 12, 200]),
+          rekeyTo: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
         };
+      }
+      assert.doesNotThrow(() => {
+        const txnParams = paramsWithMetadataHash(undefined);
         return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
-        const txnParams = {
-          assetMetadataHash: 'abc',
-          ...txnTemplate,
-        };
-        return new algosdk.Transaction(txnParams);
-      });
-      assert.doesNotThrow(() => {
-        const txnParams = {
-          assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh',
-          ...txnTemplate,
-        };
+        const txnParams = paramsWithMetadataHash(new Uint8Array());
         return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
-        const txnParams = {
-          assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh1',
-          ...txnTemplate,
-        };
+        const txnParams = paramsWithMetadataHash(Uint8Array.from([1, 2, 3]));
         return new algosdk.Transaction(txnParams);
       });
       assert.doesNotThrow(() => {
-        const txnParams = {
-          assetMetadataHash: new Uint8Array(0),
-          ...txnTemplate,
-        };
+        const txnParams = paramsWithMetadataHash(new Uint8Array(32));
         return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
-        const txnParams = {
-          assetMetadataHash: new Uint8Array([1, 2, 3]),
-          ...txnTemplate,
-        };
-        return new algosdk.Transaction(txnParams);
-      });
-      assert.doesNotThrow(() => {
-        const txnParams = {
-          assetMetadataHash: new Uint8Array(32),
-          ...txnTemplate,
-        };
+        const txnParams = paramsWithMetadataHash(new Uint8Array(33));
         return new algosdk.Transaction(txnParams);
       });
       assert.throws(() => {
-        const txnParams = {
-          assetMetadataHash: new Uint8Array(33),
-          ...txnTemplate,
-        };
+        const txnParams = paramsWithMetadataHash('');
+        return new algosdk.Transaction(txnParams);
+      });
+      assert.throws(() => {
+        const txnParams = paramsWithMetadataHash(
+          'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh'
+        );
         return new algosdk.Transaction(txnParams);
       });
     });
 
     it('should be able to use helper to make an asset config transaction', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
       const assetIndex = 1234;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const manager = addr;
       const reserve = addr;
       const freeze = addr;
       const clawback = addr;
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const o = {
-        sender: addr,
-        fee,
-        firstValid,
-        lastValid,
-        genesisHash,
-        genesisID,
-        assetIndex,
-        assetManager: manager,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        type: 'acfg',
-        note,
-        rekeyTo,
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
       };
-      const actualTxn = algosdk.makeAssetConfigTxnWithSuggestedParams(
-        addr,
-        note,
-        assetIndex,
-        manager,
-        reserve,
-        freeze,
-        clawback,
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.acfg,
+        sender: addr,
+        assetConfigParams: {
+          assetIndex,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+        },
         suggestedParams,
+        note,
         rekeyTo,
-        true
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
-    });
-
-    it('should throw when disobeying strict address checking in make asset config', () => {
-      const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
-      const assetIndex = 1234;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-      const manager = addr;
-      let reserve;
-      let freeze;
-      const clawback = addr;
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
-      const note = new Uint8Array([123, 12, 200]);
-      let threw = false;
-      try {
-        const suggestedParams = {
-          genesisHash,
-          genesisID,
-          firstValid,
-          lastValid,
-          fee,
-        };
-        algosdk.makeAssetConfigTxnWithSuggestedParams(
-          addr,
+      });
+      const actualTxn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject(
+        {
+          sender: addr,
           note,
           assetIndex,
           manager,
           reserve,
           freeze,
           clawback,
-          suggestedParams
-        );
-      } catch {
-        threw = true;
-      }
-      assert.deepStrictEqual(true, threw);
+          suggestedParams,
+          rekeyTo,
+        }
+      );
+      assert.deepStrictEqual(actualTxn, expectedTxn);
+    });
+
+    it('should throw when disobeying strict address checking in make asset config', () => {
+      const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
+      const assetIndex = 1234;
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
+      assert.throws(() =>
+        algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
+          sender: addr,
+          assetIndex,
+          manager: addr,
+          reserve: addr,
+          freeze: undefined,
+          clawback: undefined,
+          suggestedParams,
+        })
+      );
+
+      // does not throw when flag enabled
+      algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
+        sender: addr,
+        assetIndex,
+        manager: addr,
+        reserve: addr,
+        freeze: undefined,
+        clawback: undefined,
+        suggestedParams,
+        allowRoleRemoval: true,
+      });
     });
 
     it('should be able to use helper to make an asset destroy transaction', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
       const assetIndex = 1234;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const o = {
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
+      };
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.acfg,
         sender: addr,
-        fee,
-        firstValid,
-        lastValid,
-        genesisHash,
-        genesisID,
-        assetIndex,
-        type: 'acfg',
+        assetConfigParams: {
+          assetIndex,
+        },
+        suggestedParams,
         note,
         rekeyTo,
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
-      };
-      const actualTxn = algosdk.makeAssetDestroyTxnWithSuggestedParams(
-        addr,
-        note,
-        assetIndex,
-        suggestedParams,
-        rekeyTo
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+      });
+      const actualTxn =
+        algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
+          sender: addr,
+          note,
+          assetIndex,
+          suggestedParams,
+          rekeyTo,
+        });
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should be able to use helper to make an asset transfer transaction', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
       const sender = addr;
-      const recipient = addr;
+      const receiver = addr;
       const assetSender = addr;
       const closeRemainderTo = addr;
       const assetIndex = 1234;
       const amount = 100;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const o = {
-        type: 'axfer',
-        sender,
-        receiver: recipient,
-        amount,
-        fee,
-        firstValid,
-        lastValid,
-        genesisHash,
-        genesisID,
-        assetIndex,
-        note,
-        assetSender,
-        closeRemainderTo,
-        rekeyTo,
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
       };
-
-      const actualTxn = algosdk.makeAssetTransferTxnWithSuggestedParams(
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.axfer,
         sender,
-        recipient,
-        closeRemainderTo,
-        assetSender,
-        amount,
-        note,
-        assetIndex,
+        assetTransferParams: {
+          receiver,
+          assetSender,
+          closeRemainderTo,
+          assetIndex,
+          amount,
+        },
         suggestedParams,
-        rekeyTo
-      );
-      assert.deepStrictEqual(expectedTxn, actualTxn);
+        note,
+        rekeyTo,
+      });
+      const actualTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender,
+          receiver,
+          closeRemainderTo,
+          assetSender,
+          amount,
+          note,
+          assetIndex,
+          suggestedParams,
+          rekeyTo,
+        });
+      assert.deepStrictEqual(actualTxn, expectedTxn);
     });
 
     it('should be able to use helper to make an asset freeze transaction', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
-      const fee = 10;
       const assetIndex = 1234;
-      const genesisHash = 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=';
       const freezeTarget = addr;
-      const genesisID = '';
-      const firstValid = 322575;
-      const lastValid = 322575;
       const assetFrozen = true;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-      const o = {
-        sender: addr,
-        fee,
-        firstValid,
-        lastValid,
-        genesisHash,
-        type: 'afrz',
-        freezeAccount: freezeTarget,
-        assetIndex,
-        assetFrozen,
-        note,
-        genesisID,
-        rekeyTo,
-      } as any; // Temporary type fix, will be unnecessary in following PR
-      const expectedTxn = new algosdk.Transaction(o);
-      const suggestedParams = {
-        genesisHash,
-        genesisID,
-        firstValid,
-        lastValid,
-        fee,
+      const suggestedParams: algosdk.SuggestedParams = {
+        minFee: 1000,
+        fee: 10,
+        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisID: 'testnet-v1.0',
+        firstValid: 51,
+        lastValid: 61,
       };
-
-      const actualTxn = algosdk.makeAssetFreezeTxnWithSuggestedParams(
-        addr,
-        note,
-        assetIndex,
-        freezeTarget,
-        assetFrozen,
+      const expectedTxn = new algosdk.Transaction({
+        type: algosdk.TransactionType.afrz,
+        sender: addr,
+        assetFreezeParams: {
+          freezeTarget,
+          assetFrozen,
+          assetIndex,
+        },
         suggestedParams,
-        rekeyTo
+        note,
+        rekeyTo,
+      });
+      const actualTxn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject(
+        {
+          sender: addr,
+          note,
+          assetIndex,
+          freezeTarget,
+          assetFrozen,
+          suggestedParams,
+          rekeyTo,
+        }
       );
       assert.deepStrictEqual(expectedTxn, actualTxn);
     });
-    it('should be able to use helper to assign group ID to mixed Transaction and Dict', () => {
-      const suggestedParams = {
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-        genesisID: '',
-        firstValid: 322575,
-        lastValid: 322575 + 1000,
-        fee: 1000,
-        flatFee: true,
-      };
 
-      const helperTx = algosdk.makePaymentTxnWithSuggestedParams(
-        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
-        'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
-        1000,
-        undefined,
-        new Uint8Array(0),
-        suggestedParams
-      );
-
-      const dictTx = {
-        sender: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
-        receiver: 'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM',
-        fee: 1000,
-        flatFee: true,
-        amount: 0,
-        firstValid: 322575,
-        lastValid: 322575 + 1000,
-        genesisID: '',
-        genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
-        type: 'pay',
-      };
-
-      // Store both transactions
-      const txns = [helperTx, dictTx] as any[]; // Temporary type fix, will be unnecessary in following PR
-
-      // Group both transactions
-      const txgroup = algosdk.assignGroupID(txns);
-
-      assert.deepStrictEqual(txgroup[0].group, txgroup[1].group);
-    });
     it('should be able to translate box references to encoded references', () => {
       const testCases: Array<
         [
@@ -1637,8 +1964,8 @@ describe('Sign', () => {
           [100],
           9999,
           [
-            { i: 0, n: Uint8Array.from([0, 1, 2, 3]) },
-            { i: 0, n: Uint8Array.from([4, 5, 6, 7]) },
+            { n: Uint8Array.from([0, 1, 2, 3]) },
+            { n: Uint8Array.from([4, 5, 6, 7]) },
           ],
         ],
         [

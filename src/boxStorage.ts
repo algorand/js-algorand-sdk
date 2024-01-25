@@ -3,18 +3,16 @@ import { BoxReference } from './types/transactions/base.js';
 
 function translateBoxReference(
   reference: BoxReference,
-  foreignApps: number[],
-  appIndex: number
+  foreignApps: bigint[],
+  appIndex: bigint
 ): EncodedBoxReference {
-  const referenceId = reference.appIndex;
+  const referenceId = BigInt(reference.appIndex);
   const referenceName = reference.name;
-  const isOwnReference = referenceId === 0 || referenceId === appIndex;
-  let index = 0;
+  const isOwnReference = referenceId === BigInt(0) || referenceId === appIndex;
 
-  if (foreignApps != null) {
-    // Foreign apps start from index 1; index 0 is its own app ID.
-    index = foreignApps.indexOf(referenceId) + 1;
-  }
+  // Foreign apps start from index 1; index 0 is its own app ID.
+  const index = foreignApps.indexOf(referenceId) + 1;
+
   // Check if the app referenced is itself after checking the foreign apps array.
   // If index is zero, then the app ID was not found in the foreign apps array
   // or the foreign apps array was null.
@@ -23,7 +21,15 @@ function translateBoxReference(
     // its own foreign apps array.
     throw new Error(`Box ref with appId ${referenceId} not in foreign-apps`);
   }
-  return { i: index, n: referenceName };
+
+  const encodedReference: EncodedBoxReference = {};
+  if (index !== 0) {
+    encodedReference.i = index;
+  }
+  if (referenceName.length) {
+    encodedReference.n = referenceName;
+  }
+  return encodedReference;
 }
 
 /**
@@ -31,12 +37,13 @@ function translateBoxReference(
  * into an array of EncodedBoxReferences with foreign indices.
  */
 export function translateBoxReferences(
-  references: BoxReference[] | undefined,
-  foreignApps: number[],
-  appIndex: number
+  references: ReadonlyArray<BoxReference>,
+  foreignApps: ReadonlyArray<number | bigint>,
+  appIndex: number | bigint
 ): EncodedBoxReference[] {
-  if (references == null) return [];
+  const appIndexBigInt = BigInt(appIndex);
+  const foreignAppsBigInt = foreignApps.map(BigInt);
   return references.map((bx) =>
-    translateBoxReference(bx, foreignApps, appIndex)
+    translateBoxReference(bx, foreignAppsBigInt, appIndexBigInt)
   );
 }

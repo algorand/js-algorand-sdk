@@ -1,11 +1,21 @@
 import JSONRequest from '../jsonrequest.js';
-import { SuggestedParamsWithMinFee } from '../../../types/transactions/base.js';
+import { SuggestedParams } from '../../../types/transactions/base.js';
+
+export interface SuggestedParamsFromAlgod extends SuggestedParams {
+  flatFee: boolean;
+  fee: bigint;
+  minFee: bigint;
+  firstValid: bigint;
+  lastValid: bigint;
+  genesisID: string;
+  genesisHash: string;
+}
 
 /**
  * Returns the common needed parameters for a new transaction, in a format the transaction builder expects
  */
 export default class SuggestedParamsRequest extends JSONRequest<
-  SuggestedParamsWithMinFee,
+  SuggestedParamsFromAlgod,
   Record<string, any>
 > {
   /* eslint-disable class-methods-use-this */
@@ -13,15 +23,15 @@ export default class SuggestedParamsRequest extends JSONRequest<
     return '/v2/transactions/params';
   }
 
-  prepare(body: Record<string, any>): SuggestedParamsWithMinFee {
+  prepare(body: Record<string, any>): SuggestedParamsFromAlgod {
     return {
       flatFee: false,
-      fee: body.fee,
-      firstValid: body['last-round'],
-      lastValid: body['last-round'] + 1000,
+      fee: BigInt(body.fee),
+      firstValid: BigInt(body['last-round']),
+      lastValid: BigInt(body['last-round']) + BigInt(1000),
       genesisID: body['genesis-id'],
       genesisHash: body['genesis-hash'],
-      minFee: body['min-fee'],
+      minFee: BigInt(body['min-fee']),
     };
   }
   /* eslint-enable class-methods-use-this */

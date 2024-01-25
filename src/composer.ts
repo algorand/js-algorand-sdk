@@ -459,7 +459,7 @@ export class AtomicTransactionComposer {
     const appCall = {
       txn: makeApplicationCallTxnFromObject({
         sender,
-        appIndex: appID,
+        appId: appID,
         appArgs: appArgsEncoded,
         accounts: foreignAccounts,
         foreignApps,

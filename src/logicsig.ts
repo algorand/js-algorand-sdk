@@ -3,7 +3,7 @@ import * as address from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import { verifyMultisig } from './multisig.js';
 import * as utils from './utils/utils.js';
-import * as txnBuilder from './transaction.js';
+import { Transaction } from './transaction.js';
 import { isValidAddress } from './encoding/address.js';
 import {
   EncodedLogicSig,
@@ -377,7 +377,7 @@ export class LogicSigAccount {
 }
 
 function signLogicSigTransactionWithAddress(
-  txn: txnBuilder.Transaction,
+  txn: Transaction,
   lsig: LogicSig,
   lsigAddress: Uint8Array
 ) {
@@ -412,7 +412,7 @@ function signLogicSigTransactionWithAddress(
  * @returns Object containing txID and blob representing signed transaction.
  */
 export function signLogicSigTransactionObject(
-  txn: txnBuilder.Transaction,
+  txn: Transaction,
   lsigObject: LogicSig | LogicSigAccount
 ) {
   let lsig: LogicSig;
@@ -456,11 +456,10 @@ export function signLogicSigTransactionObject(
  * @throws error on failure
  */
 export function signLogicSigTransaction(
-  txn: txnBuilder.TransactionLike,
+  txn: Transaction,
   lsigObject: LogicSig | LogicSigAccount
 ) {
-  const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
-  return signLogicSigTransactionObject(algoTxn, lsigObject);
+  return signLogicSigTransactionObject(txn, lsigObject);
 }
 
 /**

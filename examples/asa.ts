@@ -65,7 +65,7 @@ async function main() {
     suggestedParams,
     assetIndex,
     // don't throw error if freeze, clawback, or manager are empty
-    strictEmptyAddressChecking: false,
+    allowRoleRemoval: true,
   });
 
   const signedConfigTxn = configTxn.signTxn(creator.privateKey);

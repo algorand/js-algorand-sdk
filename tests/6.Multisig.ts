@@ -1,12 +1,7 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import algosdk from '../src/index';
-import {
-  MultisigTransaction,
-  MULTISIG_NO_MUTATE_ERROR_MSG,
-  MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG,
-  MULTISIG_SIGNATURE_LENGTH_ERROR_MSG,
-} from '../src/multisig';
+import { MULTISIG_SIGNATURE_LENGTH_ERROR_MSG } from '../src/multisig';
 
 const sampleAccount1 = algosdk.mnemonicToSecretKey(
   'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch'
@@ -59,6 +54,7 @@ describe('Multisig Functionality', () => {
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
         suggestedParams: {
+          minFee: 1000,
           fee: 1000,
           flatFee: true,
           firstValid: 62229,
@@ -93,6 +89,7 @@ describe('Multisig Functionality', () => {
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
         suggestedParams: {
+          minFee: 1000,
           fee: 1000,
           flatFee: true,
           firstValid: 62229,
@@ -476,237 +473,6 @@ describe('Multisig Functionality', () => {
       assert.throws(() => {
         algosdk.mergeMultisigTransactions([oneAndThreeBlob, noMsigBlob]);
       }, new Error('Invalid multisig transaction, multisig structure missing at index 1'));
-    });
-  });
-
-  describe('read-only transaction methods should work as expected on multisig transactions', () => {
-    let stdPaymentTxn: algosdk.Transaction;
-    let msigPaymentTxn: MultisigTransaction;
-
-    let stdKeyregTxn: algosdk.Transaction;
-    let msigKeyregTxn: MultisigTransaction;
-
-    // Create a multisig transaction to use for each test
-    beforeEach(() => {
-      const paymentTxnObj = {
-        snd: algosdk.decodeAddress(
-          'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
-        ).publicKey,
-        rcv: algosdk.decodeAddress(
-          'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI'
-        ).publicKey,
-        fee: 1000,
-        amt: 1000,
-        close: algosdk.decodeAddress(
-          'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA'
-        ).publicKey,
-        gh: algosdk.base64ToBytes(
-          '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0='
-        ),
-        fv: 62229,
-        lv: 63229,
-        gen: 'devnet-v38.0',
-        type: 'pay',
-        note: algosdk.base64ToBytes('RSYiABhShvs='),
-      };
-
-      stdPaymentTxn = algosdk.Transaction.from_obj_for_encoding(paymentTxnObj);
-      msigPaymentTxn = MultisigTransaction.from_obj_for_encoding(paymentTxnObj);
-
-      const keyregTxnObj = {
-        snd: algosdk.decodeAddress(
-          'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
-        ).publicKey,
-        fee: 10,
-        fv: 51,
-        lv: 61,
-        note: Uint8Array.from([123, 12, 200]),
-        gh: algosdk.base64ToBytes(
-          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
-        ),
-        votekey: algosdk.base64ToBytes(
-          '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
-        ),
-        selkey: algosdk.base64ToBytes(
-          'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
-        ),
-        votefst: 123,
-        votelst: 456,
-        votekd: 1234,
-        gen: 'devnet-v38.0',
-        type: 'keyreg',
-      };
-
-      stdKeyregTxn = algosdk.Transaction.from_obj_for_encoding(keyregTxnObj);
-      msigKeyregTxn = MultisigTransaction.from_obj_for_encoding(keyregTxnObj);
-    });
-
-    it('`estimateSize` method should match expected result', () => {
-      assert.strictEqual(
-        stdPaymentTxn.estimateSize(),
-        msigPaymentTxn.estimateSize()
-      );
-      assert.strictEqual(
-        stdKeyregTxn.estimateSize(),
-        msigKeyregTxn.estimateSize()
-      );
-    });
-
-    it('`txID` method should match expected result', () => {
-      assert.strictEqual(stdPaymentTxn.txID(), msigPaymentTxn.txID());
-      assert.strictEqual(stdKeyregTxn.txID(), msigKeyregTxn.txID());
-    });
-
-    it('`toString` method should match expected result', () => {
-      assert.strictEqual(stdPaymentTxn.toString(), msigPaymentTxn.toString());
-      assert.strictEqual(stdKeyregTxn.toString(), msigKeyregTxn.toString());
-    });
-  });
-
-  describe('inherited MultisigTransaction methods that mutate transactions should throw errors', () => {
-    let msigPaymentTxn: MultisigTransaction;
-    let msigKeyregTxn: MultisigTransaction;
-
-    // Create a multisig transaction to use for each test
-    beforeEach(() => {
-      const paymentTxnObj = {
-        snd: algosdk.decodeAddress(
-          'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
-        ).publicKey,
-        rcv: algosdk.decodeAddress(
-          'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI'
-        ).publicKey,
-        fee: 1000,
-        amt: 1000,
-        close: algosdk.decodeAddress(
-          'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA'
-        ).publicKey,
-        gh: algosdk.base64ToBytes(
-          '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0='
-        ),
-        fv: 62229,
-        lv: 63229,
-        gen: 'devnet-v38.0',
-        type: 'pay',
-        note: algosdk.base64ToBytes('RSYiABhShvs='),
-      };
-
-      const keyregTxnObj = {
-        snd: algosdk.decodeAddress(
-          'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
-        ).publicKey,
-        fee: 10,
-        fv: 51,
-        lv: 61,
-        note: Uint8Array.from([123, 12, 200]),
-        gh: algosdk.base64ToBytes(
-          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
-        ),
-        votekey: algosdk.base64ToBytes(
-          '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
-        ),
-        selkey: algosdk.base64ToBytes(
-          'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
-        ),
-        votefst: 123,
-        votelst: 456,
-        votekd: 1234,
-        gen: 'devnet-v38.0',
-        type: 'keyreg',
-      };
-
-      msigPaymentTxn = MultisigTransaction.from_obj_for_encoding(paymentTxnObj);
-      msigKeyregTxn = MultisigTransaction.from_obj_for_encoding(keyregTxnObj);
-    });
-
-    it('error should be thrown when attempting to add a lease to a transaction', () => {
-      assert.throws(
-        msigPaymentTxn.addLease,
-        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
-      );
-      assert.throws(
-        msigKeyregTxn.addLease,
-        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
-      );
-    });
-
-    it('error should be thrown when attempting to add a rekey to a transaction', () => {
-      assert.throws(
-        msigPaymentTxn.addRekey,
-        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
-      );
-      assert.throws(
-        msigKeyregTxn.addRekey,
-        new Error(MULTISIG_NO_MUTATE_ERROR_MSG)
-      );
-    });
-  });
-
-  describe('error should be thrown when attempting to sign a transaction', () => {
-    let msigPaymentTxn: MultisigTransaction;
-    let msigKeyregTxn: MultisigTransaction;
-
-    // Create a multisig transaction to use for each test
-    beforeEach(() => {
-      const paymentTxnObj = {
-        snd: algosdk.decodeAddress(
-          'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
-        ).publicKey,
-        rcv: algosdk.decodeAddress(
-          'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI'
-        ).publicKey,
-        fee: 1000,
-        amt: 1000,
-        close: algosdk.decodeAddress(
-          'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA'
-        ).publicKey,
-        gh: algosdk.base64ToBytes(
-          '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0='
-        ),
-        fv: 62229,
-        lv: 63229,
-        gen: 'devnet-v38.0',
-        type: 'pay',
-        note: algosdk.base64ToBytes('RSYiABhShvs='),
-      };
-
-      const keyregTxnObj = {
-        snd: algosdk.decodeAddress(
-          'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
-        ).publicKey,
-        fee: 10,
-        fv: 51,
-        lv: 61,
-        note: Uint8Array.from([123, 12, 200]),
-        gh: algosdk.base64ToBytes(
-          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
-        ),
-        votekey: algosdk.base64ToBytes(
-          '5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE='
-        ),
-        selkey: algosdk.base64ToBytes(
-          'oImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX4='
-        ),
-        votefst: 123,
-        votelst: 456,
-        votekd: 1234,
-        gen: 'devnet-v38.0',
-        type: 'keyreg',
-      };
-
-      msigPaymentTxn = MultisigTransaction.from_obj_for_encoding(paymentTxnObj);
-      msigKeyregTxn = MultisigTransaction.from_obj_for_encoding(keyregTxnObj);
-    });
-
-    it('signTxn method should throw an error', () => {
-      assert.throws(
-        () => msigPaymentTxn.signTxn(new Uint8Array()),
-        new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG)
-      );
-      assert.throws(
-        () => msigKeyregTxn.signTxn(new Uint8Array()),
-        new Error(MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG)
-      );
     });
   });
 });

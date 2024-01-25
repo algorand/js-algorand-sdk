@@ -426,6 +426,7 @@ describe('signLogicSigTransaction', () => {
       receiver: otherAddr,
       amount: 5000,
       suggestedParams: {
+        minFee: 1000,
         flatFee: true,
         fee: 217000,
         firstValid: 972508,
@@ -498,6 +499,7 @@ describe('signLogicSigTransaction', () => {
           receiver: otherAddr,
           amount: 5000,
           suggestedParams: {
+            minFee: 1000,
             flatFee: true,
             fee: 217000,
             firstValid: 972508,
@@ -646,49 +648,6 @@ describe('signLogicSigTransaction', () => {
         testSign(lsigAccount, sender, expected);
       });
     });
-  });
-
-  it('should sign a raw transaction object', () => {
-    const lsig = new algosdk.LogicSig(program);
-
-    const sender = lsig.address();
-    const receiver =
-      'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
-    const fee = 10;
-    const amount = 847;
-    const firstValid = 51;
-    const lastValid = 61;
-    const note = new Uint8Array([123, 12, 200]);
-    const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-    const genesisID = '';
-    const rekeyTo =
-      'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-    let closeRemainderTo;
-    const txn = {
-      sender,
-      receiver,
-      fee,
-      amount,
-      closeRemainderTo,
-      firstValid,
-      lastValid,
-      note,
-      genesisHash,
-      genesisID,
-      rekeyTo,
-    };
-
-    const actual = algosdk.signLogicSigTransaction(txn, lsig);
-    const expected = {
-      txID: 'D7H6THOHOCEWJYNWMKHVOR2W36KAJXSGG6DMNTHTBWONBCG4XATA',
-      blob: new Uint8Array(
-        algosdk.base64ToBytes(
-          'gqRsc2lngaFsxAUBIAEBIqN0eG6Ko2FtdM0DT6NmZWXNCniiZnYzomdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsdj2kbm90ZcQDewzIo3JjdsQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6lcmVrZXnEIDAhUOuXI/Dnhg1MAE4rbltxOOB+7lUduJbsxucZf2DUo3NuZMQg9nYtrHWxmX1sLJYYBoBQdJDXlREv/n+3YLJzivnH8a2kdHlwZaNwYXk='
-        )
-      ),
-    };
-
-    assert.deepStrictEqual(actual, expected);
   });
 });
 

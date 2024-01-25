@@ -111,4 +111,13 @@ describe('address', () => {
       assert.strictEqual(actual, expected);
     });
   });
+
+  describe('Zero address', () => {
+    it('should be correct', () => {
+      assert.strictEqual(
+        algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+        algosdk.encodeAddress(new Uint8Array(32))
+      );
+    });
+  });
 });
