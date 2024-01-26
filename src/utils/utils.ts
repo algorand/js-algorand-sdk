@@ -71,7 +71,7 @@ export function parseJSON(str: string, options?: JSONOptions) {
 /**
  * ArrayEqual takes two arrays and return true if equal, false otherwise
  */
-export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {
+export function arrayEqual<T>(a: ArrayLike<T>, b: ArrayLike<T>): boolean {
   if (a.length !== b.length) {
     return false;
   }

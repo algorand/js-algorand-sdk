@@ -10,7 +10,7 @@ import {
   EvalDeltaKeyValue,
   TealValue,
 } from './client/v2/algod/models/types.js';
-import { encodeAddress, getApplicationAddress } from './encoding/address.js';
+import { getApplicationAddress } from './encoding/address.js';
 import { base64ToBytes, bytesToHex } from './encoding/binarydata.js';
 import { SignedTransaction } from './transaction.js';
 import { TransactionType } from './types/transactions/index.js';
@@ -53,17 +53,17 @@ export async function createDryrun({
 
   for (const t of txns) {
     if (t.txn.type === TransactionType.appl) {
-      accts.push(encodeAddress(t.txn.sender.publicKey));
+      accts.push(t.txn.sender.toString());
 
       accts.push(
-        ...t.txn.applicationCall!.appAccounts.map((a) =>
-          encodeAddress(a.publicKey)
-        )
+        ...t.txn.applicationCall!.appAccounts.map((a) => a.toString())
       );
 
       apps.push(...t.txn.applicationCall!.appForeignApps);
       accts.push(
-        ...t.txn.applicationCall!.appForeignApps.map(getApplicationAddress)
+        ...t.txn
+          .applicationCall!.appForeignApps.map(getApplicationAddress)
+          .map((a) => a.toString())
       );
 
       assets.push(...t.txn.applicationCall!.appForeignAssets);
@@ -74,7 +74,7 @@ export async function createDryrun({
           new Application({
             id: defaultAppId,
             params: new ApplicationParams({
-              creator: encodeAddress(t.txn.sender.publicKey),
+              creator: t.txn.sender.toString(),
               approvalProgram: t.txn.applicationCall!.appApprovalProgram,
               clearStateProgram: t.txn.applicationCall!.appClearProgram,
               localStateSchema: new ApplicationStateSchema({
@@ -91,7 +91,7 @@ export async function createDryrun({
       } else {
         const { appId } = t.txn.applicationCall!;
         apps.push(appId);
-        accts.push(getApplicationAddress(appId));
+        accts.push(getApplicationAddress(appId).toString());
       }
     }
   }
@@ -140,7 +140,7 @@ export async function createDryrun({
   await Promise.all(acctPromises);
 
   return new DryrunRequest({
-    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding()! })),
+    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
     accounts: acctInfos,
     apps: appInfos,
     latestTimestamp: latestTimestamp ?? 0,

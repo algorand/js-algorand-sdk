@@ -13,11 +13,11 @@ const sampleAccount3 = algosdk.mnemonicToSecretKey(
 );
 
 // Multisig Golden Params
-const sampleMultisigParams: algosdk.MultisigMetadata = {
+const sampleMultisigParams = {
   version: 1,
   threshold: 2,
   addrs: [sampleAccount1.addr, sampleAccount2.addr, sampleAccount3.addr],
-};
+} satisfies algosdk.MultisigMetadata;
 
 const sampleMultisigAddr = algosdk.multisigAddress(sampleMultisigParams);
 
@@ -25,15 +25,16 @@ describe('LogicSig', () => {
   describe('makeLogicSig', () => {
     it('should work on valid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      const programHash =
-        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
-      const pk = algosdk.decodeAddress(programHash).publicKey;
+      const programHash = algosdk.Address.fromString(
+        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY'
+      );
+      const pk = programHash.publicKey;
       let lsig = new algosdk.LogicSig(program);
       assert.strictEqual(lsig.logic, program);
       assert.strictEqual(lsig.args, undefined);
       assert.strictEqual(lsig.sig, undefined);
       assert.strictEqual(lsig.msig, undefined);
-      assert.strictEqual(lsig.address(), programHash);
+      assert.deepStrictEqual(lsig.address(), programHash);
 
       let verified = lsig.verify(pk);
       assert.strictEqual(verified, true);
@@ -75,7 +76,8 @@ describe('LogicSig', () => {
       const lsig = new algosdk.LogicSig(program);
       const address = lsig.address();
 
-      assert.deepStrictEqual(address, programHash);
+      assert.strictEqual(address.toString(), programHash);
+      assert.ok(address.equals(algosdk.Address.fromString(programHash)));
     });
   });
 });
@@ -138,9 +140,7 @@ describe('LogicSigAccount', () => {
           'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
         )
       );
-      const expectedSigKey = algosdk.decodeAddress(
-        sampleAccount1.addr
-      ).publicKey;
+      const expectedSigKey = sampleAccount1.addr.publicKey;
 
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
       assert.deepStrictEqual(lsigAccount.lsig.args, args);
@@ -179,7 +179,7 @@ describe('LogicSigAccount', () => {
         v: sampleMultisigParams.version,
         thr: sampleMultisigParams.threshold,
         subsig: sampleMultisigParams.addrs.map((addr) => ({
-          pk: algosdk.decodeAddress(addr).publicKey,
+          pk: addr.publicKey,
         })),
       };
       expectedMsig.subsig[0].s = expectedSig;
@@ -229,7 +229,7 @@ describe('LogicSigAccount', () => {
         v: sampleMultisigParams.version,
         thr: sampleMultisigParams.threshold,
         subsig: sampleMultisigParams.addrs.map((addr) => ({
-          pk: algosdk.decodeAddress(addr).publicKey,
+          pk: addr.publicKey,
         })),
       };
       expectedMsig.subsig[0].s = expectedSig1;
@@ -369,10 +369,11 @@ describe('LogicSigAccount', () => {
 
       const addr = lsigAccount.address();
 
-      const expectedAddr =
-        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
+      const expectedAddr = algosdk.Address.fromString(
+        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY'
+      );
 
-      assert.strictEqual(addr, expectedAddr);
+      assert.deepStrictEqual(addr, expectedAddr);
     });
 
     it('should be correct for single sig', () => {
@@ -385,10 +386,11 @@ describe('LogicSigAccount', () => {
 
       const addr = lsigAccount.address();
 
-      const expectedAddr =
-        'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
+      const expectedAddr = algosdk.Address.fromString(
+        'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA'
+      );
 
-      assert.strictEqual(addr, expectedAddr);
+      assert.deepStrictEqual(addr, expectedAddr);
     });
 
     it('should be correct for multisig', () => {
@@ -401,10 +403,11 @@ describe('LogicSigAccount', () => {
 
       const addr = lsigAccount.address();
 
-      const expectedAddr =
-        'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM';
+      const expectedAddr = algosdk.Address.fromString(
+        'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
+      );
 
-      assert.strictEqual(addr, expectedAddr);
+      assert.deepStrictEqual(addr, expectedAddr);
     });
   });
 });
@@ -418,7 +421,7 @@ describe('signLogicSigTransaction', () => {
 
   function testSign(
     lsigObject: algosdk.LogicSig | algosdk.LogicSigAccount,
-    sender: string,
+    sender: string | algosdk.Address,
     expected: { txID: string; blob: Uint8Array }
   ) {
     const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({

@@ -1,11 +1,10 @@
 // @ts-nocheck // Temporary type fix, will be unnecessary in following PR
 import base32 from 'hi-base32';
 import { translateBoxReferences } from './boxStorage.js';
-import * as address from './encoding/address.js';
+import { Address } from './encoding/address.js';
 import { base64ToBytes, bytesToBase64 } from './encoding/binarydata.js';
 import * as encoding from './encoding/encoding.js';
 import * as nacl from './nacl/naclWrappers.js';
-import { Address } from './types/address.js';
 import {
   EncodedLogicSig,
   EncodedMultisig,
@@ -19,6 +18,7 @@ import {
   SuggestedParams,
   BoxReference,
   OnApplicationComplete,
+  isOnApplicationComplete,
   TransactionParams,
   TransactionType,
   isTransactionType,
@@ -77,14 +77,10 @@ function ensureAddress(input: unknown): Address {
     throw new Error('Address must not be null or undefined');
   }
   if (typeof input === 'string') {
-    return address.decodeAddress(input);
+    return Address.fromString(input);
   }
-  if (
-    typeof input === 'object' &&
-    (input as Record<string, unknown>).publicKey instanceof Uint8Array &&
-    (input as Record<string, unknown>).checksum instanceof Uint8Array
-  ) {
-    return input as Address;
+  if (input instanceof Address) {
+    return input;
   }
   throw new Error(`Not an address: ${input}`);
 }
@@ -94,14 +90,10 @@ function optionalAddress(input: unknown): Address | undefined {
     return undefined;
   }
   let addr: Address;
-  if (
-    typeof input === 'object' &&
-    (input as Record<string, unknown>).publicKey instanceof Uint8Array &&
-    (input as Record<string, unknown>).checksum instanceof Uint8Array
-  ) {
-    addr = input as Address;
+  if (input instanceof Address) {
+    addr = input;
   } else if (typeof input === 'string') {
-    addr = address.decodeAddress(input);
+    addr = Address.fromString(input);
   } else {
     throw new Error(`Not an address: ${input}`);
   }
@@ -468,9 +460,13 @@ export class Transaction {
     }
 
     if (params.appCallParams) {
+      const { onComplete } = params.appCallParams;
+      if (!isOnApplicationComplete(onComplete)) {
+        throw new Error(`Invalid onCompletion value: ${onComplete}`);
+      }
       this.applicationCall = {
         appId: utils.ensureUint64(params.appCallParams.appId),
-        appOnComplete: params.appCallParams.onComplete, // TODO: verify
+        appOnComplete: onComplete,
         appLocalInts: utils.ensureSafeUnsignedInteger(
           params.appCallParams.numLocalInts ?? 0
         ),
@@ -783,26 +779,26 @@ export class Transaction {
     const params: TransactionParams = {
       type: txnForEnc.type,
       sender: txnForEnc.snd
-        ? address.encodeAddress(txnForEnc.snd)
-        : address.ALGORAND_ZERO_ADDRESS_STRING,
+        ? new Address(txnForEnc.snd)
+        : Address.zeroAddress(),
       note: txnForEnc.note,
       lease: txnForEnc.lx,
       suggestedParams,
     };
 
     if (txnForEnc.rekey) {
-      params.rekeyTo = address.encodeAddress(txnForEnc.rekey);
+      params.rekeyTo = new Address(txnForEnc.rekey);
     }
 
     if (params.type === TransactionType.pay) {
       const paymentParams: PaymentTransactionParams = {
         amount: txnForEnc.amt ?? 0,
         receiver: txnForEnc.rcv
-          ? address.encodeAddress(txnForEnc.rcv)
-          : address.ALGORAND_ZERO_ADDRESS_STRING,
+          ? new Address(txnForEnc.rcv)
+          : Address.zeroAddress(),
       };
       if (txnForEnc.close) {
-        paymentParams.closeRemainderTo = address.encodeAddress(txnForEnc.close);
+        paymentParams.closeRemainderTo = new Address(txnForEnc.close);
       }
       params.paymentParams = paymentParams;
     } else if (params.type === TransactionType.keyreg) {
@@ -829,16 +825,16 @@ export class Transaction {
         assetConfigParams.assetURL = txnForEnc.apar.au;
         assetConfigParams.assetMetadataHash = txnForEnc.apar.am;
         if (txnForEnc.apar.m) {
-          assetConfigParams.manager = address.encodeAddress(txnForEnc.apar.m);
+          assetConfigParams.manager = new Address(txnForEnc.apar.m);
         }
         if (txnForEnc.apar.r) {
-          assetConfigParams.reserve = address.encodeAddress(txnForEnc.apar.r);
+          assetConfigParams.reserve = new Address(txnForEnc.apar.r);
         }
         if (txnForEnc.apar.f) {
-          assetConfigParams.freeze = address.encodeAddress(txnForEnc.apar.f);
+          assetConfigParams.freeze = new Address(txnForEnc.apar.f);
         }
         if (txnForEnc.apar.c) {
-          assetConfigParams.clawback = address.encodeAddress(txnForEnc.apar.c);
+          assetConfigParams.clawback = new Address(txnForEnc.apar.c);
         }
       }
       params.assetConfigParams = assetConfigParams;
@@ -847,24 +843,22 @@ export class Transaction {
         assetIndex: txnForEnc.xaid ?? 0,
         amount: txnForEnc.aamt ?? 0,
         receiver: txnForEnc.arcv
-          ? address.encodeAddress(txnForEnc.arcv)
-          : address.ALGORAND_ZERO_ADDRESS_STRING,
+          ? new Address(txnForEnc.arcv)
+          : Address.zeroAddress(),
       };
       if (txnForEnc.aclose) {
-        assetTransferParams.closeRemainderTo = address.encodeAddress(
-          txnForEnc.aclose
-        );
+        assetTransferParams.closeRemainderTo = new Address(txnForEnc.aclose);
       }
       if (txnForEnc.asnd) {
-        assetTransferParams.assetSender = address.encodeAddress(txnForEnc.asnd);
+        assetTransferParams.assetSender = new Address(txnForEnc.asnd);
       }
       params.assetTransferParams = assetTransferParams;
     } else if (params.type === TransactionType.afrz) {
       const assetFreezeParams: AssetFreezeTransactionParams = {
         assetIndex: txnForEnc.faid ?? 0,
         freezeTarget: txnForEnc.fadd
-          ? address.encodeAddress(txnForEnc.fadd)
-          : address.ALGORAND_ZERO_ADDRESS_STRING,
+          ? new Address(txnForEnc.fadd)
+          : Address.zeroAddress(),
         assetFrozen: txnForEnc.afrz ?? false,
       };
       params.assetFreezeParams = assetFreezeParams;
@@ -873,7 +867,7 @@ export class Transaction {
         appId: txnForEnc.apid ?? 0,
         onComplete: utils.ensureSafeUnsignedInteger(txnForEnc.apan ?? 0),
         appArgs: txnForEnc.apaa,
-        accounts: (txnForEnc.apat ?? []).map(address.encodeAddress),
+        accounts: (txnForEnc.apat ?? []).map((pk) => new Address(pk)),
         foreignAssets: txnForEnc.apas,
         foreignApps: txnForEnc.apfa,
         approvalProgram: txnForEnc.apap,
@@ -967,16 +961,16 @@ export class Transaction {
     // add AuthAddr if signing with a different key than sender indicates
     const keypair = nacl.keyPairFromSecretKey(sk);
     const pubKeyFromSk = keypair.publicKey;
-    if (
-      address.encodeAddress(pubKeyFromSk) !==
-      address.encodeAddress(this.sender.publicKey)
-    ) {
+    if (!utils.arrayEqual(pubKeyFromSk, this.sender.publicKey)) {
       sTxn.sgnr = pubKeyFromSk;
     }
     return new Uint8Array(encoding.encode(sTxn));
   }
 
-  attachSignature(signerAddr: string, signature: Uint8Array): Uint8Array {
+  attachSignature(
+    signerAddr: string | Address,
+    signature: Uint8Array
+  ): Uint8Array {
     if (!nacl.isValidSignatureLength(signature.length)) {
       throw new Error('Invalid signature length');
     }
@@ -984,10 +978,10 @@ export class Transaction {
       sig: signature,
       txn: this.get_obj_for_encoding(),
     };
+    const signerAddrObj = ensureAddress(signerAddr);
     // add AuthAddr if signing with a different key than From indicates
-    if (signerAddr !== address.encodeAddress(this.sender.publicKey)) {
-      const signerPublicKey = address.decodeAddress(signerAddr).publicKey;
-      sTxn.sgnr = signerPublicKey;
+    if (!this.sender.equals(signerAddrObj)) {
+      sTxn.sgnr = signerAddrObj.publicKey;
     }
     return new Uint8Array(encoding.encode(sTxn));
   }

@@ -23,16 +23,24 @@ describe('address', () => {
     it('should verify a valid Algorand address', () => {
       const decodedAddress = algosdk.decodeAddress(correctCase);
       assert.deepStrictEqual(decodedAddress.publicKey, correctPublicKey);
-      assert.deepStrictEqual(decodedAddress.checksum, correctChecksum);
+      assert.deepStrictEqual(decodedAddress.checksum(), correctChecksum);
     });
 
     it('should fail to verify a malformed Algorand address', () => {
-      assert.throws(() => {
-        algosdk.decodeAddress(malformedAddress1);
-      }, new Error(address.MALFORMED_ADDRESS_ERROR_MSG));
-      assert.throws(() => {
-        algosdk.decodeAddress(malformedAddress2);
-      }, new Error(address.MALFORMED_ADDRESS_ERROR_MSG));
+      assert.throws(
+        () => {
+          algosdk.decodeAddress(malformedAddress1);
+        },
+        (err: Error) =>
+          err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
+      );
+      assert.throws(
+        () => {
+          algosdk.decodeAddress(malformedAddress2);
+        },
+        (err: Error) =>
+          err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
+      );
       // Catch an exception possibly thrown by base32 decoding function
       assert.throws(() => {
         algosdk.decodeAddress(malformedAddress3);
@@ -94,10 +102,10 @@ describe('address', () => {
         threshold: 2,
         addrs: [addr1, addr2, addr3],
       };
-      const expectAddr =
-        'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
+      const expectAddr = algosdk.Address.fromString(
+        'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM'
+      );
       const actualAddr = algosdk.multisigAddress(params);
-      assert.ok(algosdk.isValidAddress(actualAddr));
       assert.deepStrictEqual(actualAddr, expectAddr);
     });
   });
@@ -105,10 +113,11 @@ describe('address', () => {
   describe('#getApplicationAddress', () => {
     it('should produce the correct address', () => {
       const appID = 77;
-      const expected =
-        'PCYUFPA2ZTOYWTP43MX2MOX2OWAIAXUDNC2WFCXAGMRUZ3DYD6BWFDL5YM';
+      const expected = algosdk.Address.fromString(
+        'PCYUFPA2ZTOYWTP43MX2MOX2OWAIAXUDNC2WFCXAGMRUZ3DYD6BWFDL5YM'
+      );
       const actual = algosdk.getApplicationAddress(appID);
-      assert.strictEqual(actual, expected);
+      assert.deepStrictEqual(actual, expected);
     });
   });
 

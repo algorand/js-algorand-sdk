@@ -10,7 +10,7 @@ import {
   AssetFreezeTransactionParams,
   ApplicationCallTransactionParams,
 } from './types/transactions/base.js';
-import { Address } from './types/address.js';
+import { Address } from './encoding/address.js';
 
 /** Contains parameters common to every transaction type */
 export interface CommonTransactionParams {
@@ -408,6 +408,9 @@ export function makeApplicationCallTxnFromObject({
   rekeyTo,
   suggestedParams,
 }: ApplicationCallTransactionParams & CommonTransactionParams): Transaction {
+  if (onComplete == null) {
+    throw Error('onComplete must be provided');
+  }
   return new Transaction({
     type: TransactionType.appl,
     sender,
@@ -458,8 +461,20 @@ export function makeApplicationCreateTxnFromObject({
   lease,
   rekeyTo,
   suggestedParams,
-}: Omit<ApplicationCallTransactionParams, 'appId'> & // TODO: make programs required
+}: Omit<
+  ApplicationCallTransactionParams,
+  'appId' | 'approvalProgram' | 'clearProgram'
+> &
+  Required<
+    Pick<ApplicationCallTransactionParams, 'approvalProgram' | 'clearProgram'>
+  > &
   CommonTransactionParams): Transaction {
+  if (!approvalProgram || !clearProgram) {
+    throw Error('approvalProgram and clearProgram must be provided');
+  }
+  if (onComplete == null) {
+    throw Error('onComplete must be provided');
+  }
   return makeApplicationCallTxnFromObject({
     sender,
     appId: 0,
@@ -510,10 +525,18 @@ export function makeApplicationUpdateTxnFromObject({
   | 'numGlobalInts'
   | 'numGlobalByteSlices'
   | 'extraPages'
-> & // TODO: make programs required
+  | 'approvalProgram'
+  | 'clearProgram'
+> &
+  Required<
+    Pick<ApplicationCallTransactionParams, 'approvalProgram' | 'clearProgram'>
+  > &
   CommonTransactionParams): Transaction {
   if (!appId) {
     throw Error('appId must be provided');
+  }
+  if (!approvalProgram || !clearProgram) {
+    throw Error('approvalProgram and clearProgram must be provided');
   }
   return makeApplicationCallTxnFromObject({
     sender,

@@ -1,4 +1,4 @@
-import { Address } from '../address.js';
+import { Address } from '../../encoding/address.js';
 
 /**
  * Enum for application transaction types.
@@ -97,6 +97,24 @@ export enum OnApplicationComplete {
    * record
    */
   DeleteApplicationOC,
+}
+
+/**
+ * Check if a value is a valid OnApplicationComplete value
+ * @param v - value to check
+ * @returns true if v is a valid OnApplicationComplete value
+ */
+export function isOnApplicationComplete(
+  v: unknown
+): v is OnApplicationComplete {
+  return (
+    v === OnApplicationComplete.NoOpOC ||
+    v === OnApplicationComplete.OptInOC ||
+    v === OnApplicationComplete.CloseOutOC ||
+    v === OnApplicationComplete.ClearStateOC ||
+    v === OnApplicationComplete.UpdateApplicationOC ||
+    v === OnApplicationComplete.DeleteApplicationOC
+  );
 }
 
 /**

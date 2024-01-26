@@ -24,21 +24,29 @@ const sampleMultisigAddr = algosdk.multisigAddress(sampleMultisigParams);
 
 describe('Sample Multisig Info', () => {
   it('is correct', () => {
-    assert.strictEqual(
+    assert.deepStrictEqual(
       sampleAccount1.addr,
-      'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA'
+      algosdk.Address.fromString(
+        'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA'
+      )
     );
-    assert.strictEqual(
+    assert.deepStrictEqual(
       sampleAccount2.addr,
-      'BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM'
+      algosdk.Address.fromString(
+        'BFRTECKTOOE7A5LHCF3TTEOH2A7BW46IYT2SX5VP6ANKEXHZYJY77SJTVM'
+      )
     );
-    assert.strictEqual(
+    assert.deepStrictEqual(
       sampleAccount3.addr,
-      '47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU'
+      algosdk.Address.fromString(
+        '47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU'
+      )
     );
-    assert.strictEqual(
+    assert.deepStrictEqual(
       sampleMultisigAddr,
-      'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
+      algosdk.Address.fromString(
+        'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
+      )
     );
   });
 });
@@ -272,7 +280,7 @@ describe('Multisig Functionality', () => {
       ) as ExpectedMultisigTxStructure;
       assert.deepStrictEqual(
         unsignedMultisigTxBlob.msig.subsig[0].pk,
-        algosdk.decodeAddress(sampleAccount1.addr).publicKey
+        sampleAccount1.addr.publicKey
       );
       assert.strictEqual(unsignedMultisigTxBlob.msig.subsig[1].s, undefined);
 

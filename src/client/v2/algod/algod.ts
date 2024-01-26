@@ -37,7 +37,7 @@ import SetBlockOffsetTimestamp from './setBlockOffsetTimestamp.js';
 import GetBlockOffsetTimestamp from './getBlockOffsetTimestamp.js';
 import Disassemble from './disassemble.js';
 import SimulateRawTransactions from './simulateTransaction.js';
-import { EncodedSignedTransaction } from '../../../types/index.js';
+import { EncodedSignedTransaction } from '../../../types/transactions/index.js';
 import * as encoding from '../../../encoding/encoding.js';
 import Ready from './ready.js';
 import UnsetSyncRound from './unsetSyncRound.js';

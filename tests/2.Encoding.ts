@@ -401,6 +401,31 @@ describe('encoding', () => {
       }
     });
 
+    it('should parse string', () => {
+      const input =
+        '"IRK7XSCO7LPIBQKIUJXTQ5I7XBP3362ACPME5SOUUIJXN77T44RG4FZSLI"';
+
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
+        const actual = utils.parseJSON(input, { intDecoding });
+
+        assert.strictEqual(typeof actual, 'string');
+
+        const expected =
+          'IRK7XSCO7LPIBQKIUJXTQ5I7XBP3362ACPME5SOUUIJXN77T44RG4FZSLI';
+
+        assert.strictEqual(
+          actual,
+          expected,
+          `Error when intDecoding = ${intDecoding}`
+        );
+      }
+    });
+
     it('should parse empty object', () => {
       const input = '{}';
 

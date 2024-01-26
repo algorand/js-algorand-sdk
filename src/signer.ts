@@ -4,8 +4,8 @@ import {
 } from './transaction.js';
 import Account from './types/account.js';
 import { LogicSigAccount, signLogicSigTransactionObject } from './logicsig.js';
-import { MultisigMetadata } from './types/multisig.js';
 import {
+  MultisigMetadata,
   signMultisigTransaction,
   mergeMultisigTransactions,
 } from './multisig.js';

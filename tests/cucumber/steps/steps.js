@@ -376,7 +376,8 @@ module.exports = function getSteps(options) {
   Then(
     'the multisig address should equal the golden {string}',
     function (golden) {
-      assert.deepStrictEqual(algosdk.multisigAddress(this.msig), golden);
+      const goldenAddr = algosdk.Address.fromString(golden);
+      assert.deepStrictEqual(algosdk.multisigAddress(this.msig), goldenAddr);
     }
   );
 
@@ -393,7 +394,7 @@ module.exports = function getSteps(options) {
       await this.kcl.deleteMultisig(
         this.handle,
         this.wallet_pswd,
-        algosdk.multisigAddress(this.msig)
+        algosdk.multisigAddress(this.msig).toString()
       );
       const s = algosdk.decodeObj(this.stx);
       const m = algosdk.encodeObj(s.msig);
@@ -453,7 +454,7 @@ module.exports = function getSteps(options) {
 
   When('I generate a key', function () {
     const result = algosdk.generateAccount();
-    this.pk = result.addr;
+    this.pk = result.addr.toString();
     this.sk = result.sk;
   });
 
@@ -557,12 +558,10 @@ module.exports = function getSteps(options) {
   });
 
   Then('the multisig should be in the wallet', async function () {
-    let keys = await this.kcl.listMultisig(this.handle);
-    keys = keys.addresses;
-    assert.deepStrictEqual(
-      true,
-      keys.indexOf(algosdk.multisigAddress(this.msig)) >= 0
-    );
+    const resp = await this.kcl.listMultisig(this.handle);
+    const keys = resp.addresses;
+    const addr = algosdk.multisigAddress(this.msig).toString();
+    assert.ok(keys.indexOf(addr) >= 0, `Can't find address ${addr} in ${keys}`);
     return keys;
   });
 
@@ -2876,7 +2875,7 @@ module.exports = function getSteps(options) {
     'a signing account with address {string} and mnemonic {string}',
     function (address, mnemonic) {
       this.signingAccount = algosdk.mnemonicToSecretKey(mnemonic);
-      if (this.signingAccount.addr !== address) {
+      if (this.signingAccount.addr.toString() !== address) {
         throw new Error(
           `Address does not match mnemonic: ${this.signingAccount.addr} !== ${address}`
         );
@@ -2916,11 +2915,9 @@ module.exports = function getSteps(options) {
         new TextEncoder().encode('appID'),
         algosdk.encodeUint64(appID)
       );
-      const expected = algosdk.encodeAddress(
-        makeUint8Array(genericHash(toSign))
-      );
+      const expected = new algosdk.Address(makeUint8Array(genericHash(toSign)));
       const actual = algosdk.getApplicationAddress(appID);
-      assert.strictEqual(expected, actual);
+      assert.deepStrictEqual(expected, actual);
     }
   );
 

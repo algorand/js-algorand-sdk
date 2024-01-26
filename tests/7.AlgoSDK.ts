@@ -321,16 +321,13 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Attach the signature to the transaction indirectly, and compare
       const signedWithSignature = txn.attachSignature(signer.addr, signature);
-      assert.deepEqual(signedWithSk, signedWithSignature);
+      assert.deepStrictEqual(signedWithSk, signedWithSignature);
 
       // Check that signer was set
       const decodedWithSigner = algosdk.decodeObj(
         signedWithSignature
       ) as algosdk.EncodedSignedTransaction;
-      assert.deepEqual(
-        decodedWithSigner.sgnr,
-        algosdk.decodeAddress(signer.addr).publicKey
-      );
+      assert.deepStrictEqual(decodedWithSigner.sgnr, signer.addr.publicKey);
     });
 
     it('should not attach signature with incorrect length', () => {
@@ -460,7 +457,9 @@ describe('Algosdk (AKA end to end)', () => {
       const outAddr = algosdk.multisigAddress(params);
       assert.deepStrictEqual(
         outAddr,
-        'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
+        algosdk.Address.fromString(
+          'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
+        )
       );
     });
   });
@@ -806,7 +805,7 @@ describe('Algosdk (AKA end to end)', () => {
       const keys = algosdk.generateAccount();
       const lsig = new algosdk.LogicSig(program);
       lsig.sign(keys.sk);
-      const verified = lsig.verify(algosdk.decodeAddress(keys.addr).publicKey);
+      const verified = lsig.verify(keys.addr.publicKey);
       assert.equal(verified, true);
 
       // check serialization
@@ -833,7 +832,7 @@ describe('Algosdk (AKA end to end)', () => {
         ],
       };
       const outAddr = algosdk.multisigAddress(params);
-      const msigPk = algosdk.decodeAddress(outAddr).publicKey;
+      const msigPk = outAddr.publicKey;
       const mn1 =
         'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch';
       const mn2 =
@@ -937,10 +936,7 @@ describe('Algosdk (AKA end to end)', () => {
     it('should produce a verifiable signature', () => {
       const sig = algosdk.tealSign(sk, data, addr);
 
-      const parts = utils.concatArrays(
-        algosdk.decodeAddress(addr).publicKey,
-        data
-      );
+      const parts = utils.concatArrays(addr.publicKey, data);
       const toBeVerified = utils.concatArrays(
         new TextEncoder().encode('ProgData'),
         parts

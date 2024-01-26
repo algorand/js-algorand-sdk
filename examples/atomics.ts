@@ -57,7 +57,7 @@ async function main() {
 
   // example: TRANSACTION_FEE_OVERRIDE
   const sp = await client.getTransactionParams().do();
-  sp.fee = 2 * minFee;
+  sp.fee = BigInt(2) * sp.minFee;
   sp.flatFee = true;
   // example: TRANSACTION_FEE_OVERRIDE
 

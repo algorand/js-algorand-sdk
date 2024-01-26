@@ -1,5 +1,5 @@
 import * as nacl from './nacl/naclWrappers.js';
-import * as address from './encoding/address.js';
+import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import { Transaction } from './transaction.js';
 import * as convert from './convert.js';
@@ -57,11 +57,11 @@ export function signBytes(bytes: Uint8Array, sk: Uint8Array) {
 export function verifyBytes(
   bytes: Uint8Array,
   signature: Uint8Array,
-  addr: string
+  addr: string | Address
 ) {
   const toBeVerified = utils.concatArrays(SIGN_BYTES_PREFIX, bytes);
-  const pk = address.decodeAddress(addr).publicKey;
-  return nacl.verify(toBeVerified, signature, pk);
+  const addrObj = typeof addr === 'string' ? Address.fromString(addr) : addr;
+  return nacl.verify(toBeVerified, signature, addrObj.publicKey);
 }
 
 /**
@@ -109,6 +109,7 @@ export {
 } from './client/urlTokenBaseHTTPClient.js';
 export { waitForConfirmation } from './wait.js';
 export {
+  Address,
   isValidAddress,
   encodeAddress,
   decodeAddress,
@@ -152,6 +153,7 @@ export {
   verifyTealSign,
 } from './logicsig.js';
 export {
+  MultisigMetadata,
   signMultisigTransaction,
   mergeMultisigTransactions,
   appendSignMultisigTransaction,
@@ -171,5 +173,5 @@ export * from './makeTxn.js';
 export * from './transaction.js';
 export * from './signer.js';
 export * from './composer.js';
-export * from './types/index.js';
+export * from './types/transactions/index.js';
 export * from './abi/index.js';

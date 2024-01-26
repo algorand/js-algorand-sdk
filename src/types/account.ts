@@ -1,3 +1,5 @@
+import { Address } from '../encoding/address.js';
+
 /**
  * An Algorand account object.
  *
@@ -7,7 +9,7 @@ export default interface Account {
   /**
    * Algorand address
    */
-  addr: string;
+  addr: Address;
 
   /**
    * Secret key belonging to the Algorand address

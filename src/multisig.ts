@@ -1,9 +1,12 @@
 import * as nacl from './nacl/naclWrappers.js';
-import * as address from './encoding/address.js';
+import {
+  Address,
+  ALGORAND_ADDRESS_BYTE_LENGTH,
+  ALGORAND_CHECKSUM_BYTE_LENGTH,
+} from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import { Transaction } from './transaction.js';
 import * as utils from './utils/utils.js';
-import { MultisigMetadata } from './types/multisig.js';
 import {
   EncodedMultisig,
   EncodedSignedTransaction,
@@ -31,6 +34,29 @@ export const MULTISIG_USE_PARTIAL_SIGN_ERROR_MSG =
 export const MULTISIG_SIGNATURE_LENGTH_ERROR_MSG =
   'Cannot add multisig signature. Signature is not of the correct length.';
 
+/**
+ * Required options for creating a multisignature
+ *
+ * Documentation available at: https://developer.algorand.org/docs/get-details/transactions/signatures/#multisignatures
+ */
+export interface MultisigMetadata {
+  /**
+   * Multisig version
+   */
+  version: number;
+
+  /**
+   * Multisig threshold value. Authorization requires a subset of signatures,
+   * equal to or greater than the threshold value.
+   */
+  threshold: number;
+
+  /**
+   * A list of Algorand addresses representing possible signers for this multisig. Order is important.
+   */
+  addrs: Array<string | Address>;
+}
+
 interface MultisigOptions {
   rawSig: Uint8Array;
   myPk: Uint8Array;
@@ -38,6 +64,88 @@ interface MultisigOptions {
 
 interface MultisigMetadataWithPks extends Omit<MultisigMetadata, 'addrs'> {
   pks: Uint8Array[];
+}
+
+// Convert "MultisigAddr" UTF-8 to byte array
+const MULTISIG_PREIMG2ADDR_PREFIX = new Uint8Array([
+  77, 117, 108, 116, 105, 115, 105, 103, 65, 100, 100, 114,
+]);
+
+const INVALID_MSIG_VERSION_ERROR_MSG = 'invalid multisig version';
+const INVALID_MSIG_THRESHOLD_ERROR_MSG = 'bad multisig threshold';
+const INVALID_MSIG_PK_ERROR_MSG = 'bad multisig public key - wrong length';
+const UNEXPECTED_PK_LEN_ERROR_MSG = 'nacl public key length is not 32 bytes';
+
+export function pksFromAddresses(addrs: Array<string | Address>): Uint8Array[] {
+  return addrs.map((addr) => {
+    if (typeof addr === 'string') {
+      return Address.fromString(addr).publicKey;
+    }
+    return addr.publicKey;
+  });
+}
+
+/**
+ * fromMultisigPreImg takes multisig parameters and returns a 32 byte typed array public key,
+ * representing an address that identifies the "exact group, version, and public keys" that are required for signing.
+ * Hash("MultisigAddr" || version uint8 || threshold uint8 || PK1 || PK2 || ...)
+ * Encoding this output yields a human readable address.
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param pks - array of typed array public keys
+ */
+export function addressFromMultisigPreImg({
+  version,
+  threshold,
+  pks,
+}: Omit<MultisigMetadata, 'addrs'> & {
+  pks: Uint8Array[];
+}): Address {
+  if (version !== 1 || version > 255 || version < 0) {
+    // ^ a tad redundant, but in case in the future version != 1, still check for uint8
+    throw new Error(INVALID_MSIG_VERSION_ERROR_MSG);
+  }
+  if (
+    threshold === 0 ||
+    pks.length === 0 ||
+    threshold > pks.length ||
+    threshold > 255
+  ) {
+    throw new Error(INVALID_MSIG_THRESHOLD_ERROR_MSG);
+  }
+  const pkLen = ALGORAND_ADDRESS_BYTE_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH;
+  if (pkLen !== nacl.PUBLIC_KEY_LENGTH) {
+    throw new Error(UNEXPECTED_PK_LEN_ERROR_MSG);
+  }
+  const merged = new Uint8Array(
+    MULTISIG_PREIMG2ADDR_PREFIX.length + 2 + pkLen * pks.length
+  );
+  merged.set(MULTISIG_PREIMG2ADDR_PREFIX, 0);
+  merged.set([version], MULTISIG_PREIMG2ADDR_PREFIX.length);
+  merged.set([threshold], MULTISIG_PREIMG2ADDR_PREFIX.length + 1);
+  for (let i = 0; i < pks.length; i++) {
+    if (pks[i].length !== pkLen) {
+      throw new Error(INVALID_MSIG_PK_ERROR_MSG);
+    }
+    merged.set(pks[i], MULTISIG_PREIMG2ADDR_PREFIX.length + 2 + i * pkLen);
+  }
+  return new Address(Uint8Array.from(nacl.genericHash(merged)));
+}
+
+/**
+ * fromMultisigPreImgAddrs takes multisig parameters and returns a human readable Algorand address.
+ * This is equivalent to fromMultisigPreImg, but interfaces with encoded addresses.
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - array of encoded addresses
+ */
+export function addressFromMultisigPreImgAddrs({
+  version,
+  threshold,
+  addrs,
+}: MultisigMetadata): Address {
+  const pks = pksFromAddresses(addrs);
+  return addressFromMultisigPreImg({ version, threshold, pks });
 }
 
 /**
@@ -53,7 +161,7 @@ export function createMultisigTransaction(
   { version, threshold, addrs }: MultisigMetadata
 ) {
   // construct the appendable multisigned transaction format
-  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  const pks = pksFromAddresses(addrs);
   const subsigs = pks.map((pk) => ({ pk }));
 
   const msig: EncodedMultisig = {
@@ -61,7 +169,7 @@ export function createMultisigTransaction(
     thr: threshold,
     subsig: subsigs,
   };
-  const txnForEncoding = txn.get_obj_for_encoding()!;
+  const txnForEncoding = txn.get_obj_for_encoding();
   const signedTxn: EncodedSignedTransaction = {
     msig,
     txn: txnForEncoding,
@@ -69,16 +177,16 @@ export function createMultisigTransaction(
 
   // if the address of this multisig is different from the transaction sender,
   // we need to add the auth-addr field
-  const msigAddr = address.fromMultisigPreImg({
+  const msigAddr = addressFromMultisigPreImg({
     version,
     threshold,
     pks,
   });
   const senderAddr = txnForEncoding.snd
-    ? address.encodeAddress(txnForEncoding.snd)
-    : address.ALGORAND_ZERO_ADDRESS_STRING;
-  if (senderAddr !== address.encodeAddress(msigAddr)) {
-    signedTxn.sgnr = msigAddr;
+    ? new Address(txnForEncoding.snd)
+    : Address.zeroAddress();
+  if (!senderAddr.equals(msigAddr)) {
+    signedTxn.sgnr = msigAddr.publicKey;
   }
 
   return new Uint8Array(encoding.encode(signedTxn));
@@ -103,7 +211,7 @@ function createMultisigTransactionWithSignature(
   const encodedMsig = createMultisigTransaction(txn, {
     version,
     threshold,
-    addrs: pks.map((pk) => address.encodeAddress(pk)),
+    addrs: pks.map((pk) => new Address(pk)),
   });
   // note: this is not signed yet, but will be shortly
   const signedTxn = encoding.decode(encodedMsig) as EncodedSignedTransaction;
@@ -122,16 +230,16 @@ function createMultisigTransactionWithSignature(
 
   // if the address of this multisig is different from the transaction sender,
   // we need to add the auth-addr field
-  const msigAddr = address.fromMultisigPreImg({
+  const msigAddr = addressFromMultisigPreImg({
     version,
     threshold,
     pks,
   });
   const senderAddr = signedTxn.txn.snd
-    ? address.encodeAddress(signedTxn.txn.snd)
-    : address.ALGORAND_ZERO_ADDRESS_STRING;
-  if (senderAddr !== address.encodeAddress(msigAddr)) {
-    signedTxn.sgnr = msigAddr;
+    ? new Address(signedTxn.txn.snd)
+    : Address.zeroAddress();
+  if (!senderAddr.equals(msigAddr)) {
+    signedTxn.sgnr = msigAddr.publicKey;
   }
 
   return new Uint8Array(encoding.encode(signedTxn));
@@ -173,17 +281,21 @@ function partialSignTxn(
 function partialSignWithMultisigSignature(
   transaction: Transaction,
   metadata: MultisigMetadataWithPks,
-  signerAddr: string,
+  signerAddr: string | Address,
   signature: Uint8Array
 ) {
   if (!nacl.isValidSignatureLength(signature.length)) {
     throw new Error(MULTISIG_SIGNATURE_LENGTH_ERROR_MSG);
   }
+  const signerAddressObj =
+    typeof signerAddr === 'string'
+      ? Address.fromString(signerAddr)
+      : signerAddr;
   return createMultisigTransactionWithSignature(
     transaction,
     {
       rawSig: signature,
-      myPk: address.decodeAddress(signerAddr).publicKey,
+      myPk: signerAddressObj.publicKey,
     },
     metadata
   );
@@ -208,16 +320,14 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
   }
   const refTxID = Transaction.from_obj_for_encoding(refSigTx.txn).txID();
   const refAuthAddr = refSigTx.sgnr
-    ? address.encodeAddress(refSigTx.sgnr)
+    ? new Address(refSigTx.sgnr).toString()
     : undefined;
   const refPreImage = {
     version: refSigTx.msig.v,
     threshold: refSigTx.msig.thr,
     pks: refSigTx.msig.subsig.map((subsig) => subsig.pk),
   };
-  const refMsigAddr = address.encodeAddress(
-    address.fromMultisigPreImg(refPreImage)
-  );
+  const refMsigAddr = addressFromMultisigPreImg(refPreImage);
 
   const newSubsigs = refSigTx.msig.subsig.map((sig) => ({ ...sig }));
   for (let i = 1; i < multisigTxnBlobs.length; i++) {
@@ -236,7 +346,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     }
 
     const authAddr = unisig.sgnr
-      ? address.encodeAddress(unisig.sgnr)
+      ? new Address(unisig.sgnr).toString()
       : undefined;
     if (refAuthAddr !== authAddr) {
       throw new Error(MULTISIG_MERGE_MISMATCH_AUTH_ADDR_MSG);
@@ -251,8 +361,8 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
       threshold: unisig.msig.thr,
       pks: unisig.msig.subsig.map((subsig) => subsig.pk),
     };
-    const msgigAddr = address.encodeAddress(address.fromMultisigPreImg(preimg));
-    if (refMsigAddr !== msgigAddr) {
+    const msgigAddr = addressFromMultisigPreImg(preimg);
+    if (!refMsigAddr.equals(msgigAddr)) {
       throw new Error(MULTISIG_MERGE_WRONG_PREIMAGE_ERROR_MSG);
     }
 
@@ -277,7 +387,7 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     txn: refSigTx.txn,
   };
   if (typeof refAuthAddr !== 'undefined') {
-    signedTxn.sgnr = address.decodeAddress(refAuthAddr).publicKey;
+    signedTxn.sgnr = Address.fromString(refAuthAddr).publicKey;
   }
   return new Uint8Array(encoding.encode(signedTxn));
 }
@@ -298,7 +408,7 @@ export function verifyMultisig(
 
   let pk: Uint8Array;
   try {
-    pk = address.fromMultisigPreImg({ version, threshold, pks });
+    pk = addressFromMultisigPreImg({ version, threshold, pks }).publicKey;
   } catch (e) {
     return false;
   }
@@ -351,7 +461,7 @@ export function signMultisigTransaction(
   sk: Uint8Array
 ) {
   // build pks for partialSign
-  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  const pks = pksFromAddresses(addrs);
   const blob = partialSignTxn(txn, { version, threshold, pks }, sk);
   return {
     txID: txn.txID(),
@@ -375,7 +485,7 @@ export function appendSignMultisigTransaction(
   { version, threshold, addrs }: MultisigMetadata,
   sk: Uint8Array
 ) {
-  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  const pks = pksFromAddresses(addrs);
   // obtain underlying txn, sign it, and merge it
   const multisigTxObj = encoding.decode(
     multisigTxnBlob
@@ -406,10 +516,10 @@ export function appendSignMultisigTransaction(
 export function appendSignRawMultisigSignature(
   multisigTxnBlob: Uint8Array,
   { version, threshold, addrs }: MultisigMetadata,
-  signerAddr: string,
+  signerAddr: string | Address,
   signature: Uint8Array
 ) {
-  const pks = addrs.map((addr) => address.decodeAddress(addr).publicKey);
+  const pks = pksFromAddresses(addrs);
   // obtain underlying txn, sign it, and merge it
   const multisigTxObj = encoding.decode(
     multisigTxnBlob
@@ -437,6 +547,6 @@ export function multisigAddress({
   version,
   threshold,
   addrs,
-}: MultisigMetadata) {
-  return address.fromMultisigPreImgAddrs({ version, threshold, addrs });
+}: MultisigMetadata): Address {
+  return addressFromMultisigPreImgAddrs({ version, threshold, addrs });
 }
