@@ -437,7 +437,7 @@ module.exports = function getSteps(options) {
   Then('the key should be in the wallet', async function () {
     let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
-    assert.deepStrictEqual(true, keys.indexOf(this.pk) >= 0);
+    assert.ok(keys.indexOf(this.pk) >= 0);
     return keys;
   });
 
@@ -448,7 +448,7 @@ module.exports = function getSteps(options) {
   Then('the key should not be in the wallet', async function () {
     let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
-    assert.deepStrictEqual(false, keys.indexOf(this.pk) >= 0);
+    assert.ok(keys.indexOf(this.pk) < 0);
     return keys;
   });
 
@@ -572,10 +572,7 @@ module.exports = function getSteps(options) {
     }
 
     keys = keys.addresses;
-    assert.deepStrictEqual(
-      false,
-      keys.indexOf(algosdk.multisigAddress(this.msig)) >= 0
-    );
+    assert.ok(keys.indexOf(algosdk.multisigAddress(this.msig).toString()) < 0);
     return keys;
   });
 
@@ -591,7 +588,7 @@ module.exports = function getSteps(options) {
     return this.kcl.deleteMultisig(
       this.handle,
       this.wallet_pswd,
-      algosdk.multisigAddress(this.msig)
+      algosdk.multisigAddress(this.msig).toString()
     );
   });
 
