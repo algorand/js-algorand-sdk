@@ -582,7 +582,7 @@ module.exports = function getSteps(options) {
   When('I export the multisig', async function () {
     this.msigExp = await this.kcl.exportMultisig(
       this.handle,
-      algosdk.multisigAddress(this.msig)
+      algosdk.multisigAddress(this.msig).toString()
     );
     return this.msigExp;
   });
