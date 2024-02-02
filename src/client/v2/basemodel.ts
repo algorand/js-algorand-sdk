@@ -15,34 +15,40 @@ function _is_primitive(val: any): val is string | boolean | number | bigint {
 }
 
 /* eslint-disable no-underscore-dangle,camelcase,no-redeclare,no-unused-vars */
-function _get_obj_for_encoding(
+export function _get_obj_for_encoding(
   val: Function,
   binary: boolean,
   omitEmpty: boolean
 ): Record<string, any>;
-function _get_obj_for_encoding(
+export function _get_obj_for_encoding(
   val: any[],
   binary: boolean,
   omitEmpty: boolean
 ): any[];
-function _get_obj_for_encoding(
+export function _get_obj_for_encoding(
   val: Record<string, any>,
   binary: boolean,
   omitEmpty: boolean
 ): Record<string, any>;
-function _get_obj_for_encoding(
+export function _get_obj_for_encoding(
   val: any,
   binary: boolean,
   omitEmpty: boolean
 ): any {
   /* eslint-enable no-underscore-dangle,camelcase,no-redeclare,no-unused-vars */
+  if (val == null) {
+    if (omitEmpty) {
+      return undefined;
+    }
+    return val;
+  }
   if (val instanceof Uint8Array) {
     if (omitEmpty && val.byteLength === 0) {
       return undefined;
     }
     return binary ? val : bytesToBase64(val);
   }
-  if (val != null && typeof val.get_obj_for_encoding === 'function') {
+  if (typeof val.get_obj_for_encoding === 'function') {
     return val.get_obj_for_encoding(binary, omitEmpty);
   }
   if (Array.isArray(val)) {
@@ -51,7 +57,17 @@ function _get_obj_for_encoding(
     }
     const targetPropValue = [];
     for (const elem of val) {
-      targetPropValue.push(_get_obj_for_encoding(elem, binary, omitEmpty));
+      const omitEmptyForChild =
+        _is_primitive(elem) || elem instanceof Uint8Array ? false : omitEmpty;
+      let forEncoding = _get_obj_for_encoding(elem, binary, omitEmptyForChild);
+      if (omitEmpty && typeof forEncoding === 'undefined') {
+        if (Array.isArray(elem)) {
+          forEncoding = [];
+        } else if (elem && typeof elem === 'object') {
+          forEncoding = {};
+        }
+      }
+      targetPropValue.push(forEncoding);
     }
     return targetPropValue;
   }

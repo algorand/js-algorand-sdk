@@ -1,6 +1,10 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import algosdk from '../src/index.js';
+import BaseModel, {
+  // eslint-disable-next-line camelcase
+  _get_obj_for_encoding,
+} from '../src/client/v2/basemodel.js';
 import * as utils from '../src/utils/utils.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =
@@ -670,5 +674,381 @@ describe('encoding', () => {
         );
       }
     });
+  });
+  describe('_get_obj_for_encoding', () => {
+    interface TestCase {
+      input: any;
+      notBinaryNotOmitEmpty: any;
+      binaryNotOmitEmpty: any;
+      notBinaryOmitEmpty: any;
+      binaryOmitEmpty: any;
+    }
+
+    const testcases: TestCase[] = [
+      {
+        input: undefined,
+        notBinaryNotOmitEmpty: undefined,
+        binaryNotOmitEmpty: undefined,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: null,
+        notBinaryNotOmitEmpty: null,
+        binaryNotOmitEmpty: null,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: 1,
+        notBinaryNotOmitEmpty: 1,
+        binaryNotOmitEmpty: 1,
+        notBinaryOmitEmpty: 1,
+        binaryOmitEmpty: 1,
+      },
+      {
+        input: 1n,
+        notBinaryNotOmitEmpty: 1n,
+        binaryNotOmitEmpty: 1n,
+        notBinaryOmitEmpty: 1n,
+        binaryOmitEmpty: 1n,
+      },
+      {
+        input: 0,
+        notBinaryNotOmitEmpty: 0,
+        binaryNotOmitEmpty: 0,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: 0n,
+        notBinaryNotOmitEmpty: 0n,
+        binaryNotOmitEmpty: 0n,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: true,
+        notBinaryNotOmitEmpty: true,
+        binaryNotOmitEmpty: true,
+        notBinaryOmitEmpty: true,
+        binaryOmitEmpty: true,
+      },
+      {
+        input: false,
+        notBinaryNotOmitEmpty: false,
+        binaryNotOmitEmpty: false,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: 'abc',
+        notBinaryNotOmitEmpty: 'abc',
+        binaryNotOmitEmpty: 'abc',
+        notBinaryOmitEmpty: 'abc',
+        binaryOmitEmpty: 'abc',
+      },
+      {
+        input: '',
+        notBinaryNotOmitEmpty: '',
+        binaryNotOmitEmpty: '',
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: Uint8Array.from([1, 2, 3]),
+        notBinaryNotOmitEmpty: 'AQID',
+        binaryNotOmitEmpty: Uint8Array.from([1, 2, 3]),
+        notBinaryOmitEmpty: 'AQID',
+        binaryOmitEmpty: Uint8Array.from([1, 2, 3]),
+      },
+      {
+        input: Uint8Array.from([]),
+        notBinaryNotOmitEmpty: '',
+        binaryNotOmitEmpty: Uint8Array.from([]),
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: [99],
+        notBinaryNotOmitEmpty: [99],
+        binaryNotOmitEmpty: [99],
+        notBinaryOmitEmpty: [99],
+        binaryOmitEmpty: [99],
+      },
+      {
+        input: [],
+        notBinaryNotOmitEmpty: [],
+        binaryNotOmitEmpty: [],
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: [0],
+        notBinaryNotOmitEmpty: [0],
+        binaryNotOmitEmpty: [0],
+        notBinaryOmitEmpty: [0],
+        binaryOmitEmpty: [0],
+      },
+      {
+        input: [Uint8Array.from([1, 2, 3])],
+        notBinaryNotOmitEmpty: ['AQID'],
+        binaryNotOmitEmpty: [Uint8Array.from([1, 2, 3])],
+        notBinaryOmitEmpty: ['AQID'],
+        binaryOmitEmpty: [Uint8Array.from([1, 2, 3])],
+      },
+      {
+        input: [Uint8Array.from([])],
+        notBinaryNotOmitEmpty: [''],
+        binaryNotOmitEmpty: [Uint8Array.from([])],
+        notBinaryOmitEmpty: [''],
+        binaryOmitEmpty: [Uint8Array.from([])],
+      },
+      {
+        input: { a: 1 },
+        notBinaryNotOmitEmpty: { a: 1 },
+        binaryNotOmitEmpty: { a: 1 },
+        notBinaryOmitEmpty: { a: 1 },
+        binaryOmitEmpty: { a: 1 },
+      },
+      {
+        input: {},
+        notBinaryNotOmitEmpty: {},
+        binaryNotOmitEmpty: {},
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: { a: 1, b: 0 },
+        notBinaryNotOmitEmpty: { a: 1, b: 0 },
+        binaryNotOmitEmpty: { a: 1, b: 0 },
+        notBinaryOmitEmpty: { a: 1 },
+        binaryOmitEmpty: { a: 1 },
+      },
+      {
+        input: { a: { b: 1 } },
+        notBinaryNotOmitEmpty: { a: { b: 1 } },
+        binaryNotOmitEmpty: { a: { b: 1 } },
+        notBinaryOmitEmpty: { a: { b: 1 } },
+        binaryOmitEmpty: { a: { b: 1 } },
+      },
+      {
+        input: { a: {} },
+        notBinaryNotOmitEmpty: { a: {} },
+        binaryNotOmitEmpty: { a: {} },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: { a: { b: 0 } },
+        notBinaryNotOmitEmpty: { a: { b: 0 } },
+        binaryNotOmitEmpty: { a: { b: 0 } },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: { a: { b: 0, c: 1 } },
+        notBinaryNotOmitEmpty: { a: { b: 0, c: 1 } },
+        binaryNotOmitEmpty: { a: { b: 0, c: 1 } },
+        notBinaryOmitEmpty: { a: { c: 1 } },
+        binaryOmitEmpty: { a: { c: 1 } },
+      },
+      {
+        input: { a: { b: Uint8Array.from([1, 2, 3]) } },
+        notBinaryNotOmitEmpty: { a: { b: 'AQID' } },
+        binaryNotOmitEmpty: { a: { b: Uint8Array.from([1, 2, 3]) } },
+        notBinaryOmitEmpty: { a: { b: 'AQID' } },
+        binaryOmitEmpty: { a: { b: Uint8Array.from([1, 2, 3]) } },
+      },
+      {
+        input: { a: { b: Uint8Array.from([]) } },
+        notBinaryNotOmitEmpty: { a: { b: '' } },
+        binaryNotOmitEmpty: { a: { b: Uint8Array.from([]) } },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: [{}],
+        notBinaryNotOmitEmpty: [{}],
+        binaryNotOmitEmpty: [{}],
+        notBinaryOmitEmpty: [{}],
+        binaryOmitEmpty: [{}],
+      },
+      {
+        input: [{ a: 0 }],
+        notBinaryNotOmitEmpty: [{ a: 0 }],
+        binaryNotOmitEmpty: [{ a: 0 }],
+        notBinaryOmitEmpty: [{}],
+        binaryOmitEmpty: [{}],
+      },
+      {
+        input: [[{ a: 0 }]],
+        notBinaryNotOmitEmpty: [[{ a: 0 }]],
+        binaryNotOmitEmpty: [[{ a: 0 }]],
+        notBinaryOmitEmpty: [[{}]],
+        binaryOmitEmpty: [[{}]],
+      },
+      {
+        input: [[]],
+        notBinaryNotOmitEmpty: [[]],
+        binaryNotOmitEmpty: [[]],
+        notBinaryOmitEmpty: [[]],
+        binaryOmitEmpty: [[]],
+      },
+      {
+        input: [null],
+        notBinaryNotOmitEmpty: [null],
+        binaryNotOmitEmpty: [null],
+        notBinaryOmitEmpty: [null],
+        binaryOmitEmpty: [null],
+      },
+    ];
+
+    for (let i = 0; i < testcases.length; i++) {
+      const tc = testcases[i];
+      it(`should correctly encode case ${i}: '${tc.input}'`, () => {
+        const actualNotBinaryNotOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          false,
+          false
+        );
+        assert.deepStrictEqual(
+          actualNotBinaryNotOmitEmpty,
+          tc.notBinaryNotOmitEmpty
+        );
+
+        const actualBinaryNotOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          true,
+          false
+        );
+        assert.deepStrictEqual(actualBinaryNotOmitEmpty, tc.binaryNotOmitEmpty);
+
+        const actualNotBinaryOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          false,
+          true
+        );
+        assert.deepStrictEqual(actualNotBinaryOmitEmpty, tc.notBinaryOmitEmpty);
+
+        const actualBinaryOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          true,
+          true
+        );
+        assert.deepStrictEqual(actualBinaryOmitEmpty, tc.binaryOmitEmpty);
+      });
+    }
+  });
+  describe('BaseModel', () => {
+    class ExampleModel extends BaseModel {
+      constructor(
+        public a: number,
+        public b: string,
+        public c: Uint8Array
+      ) {
+        super();
+
+        this.attribute_map = {
+          a: 'a',
+          b: 'b',
+          c: 'c',
+        };
+      }
+
+      toString(): string {
+        return `ExampleModel(a=${this.a}, b=${this.b}, c=${this.c})`;
+      }
+    }
+
+    class EmptyModel extends BaseModel {
+      constructor() {
+        super();
+
+        this.attribute_map = {};
+      }
+
+      // eslint-disable-next-line class-methods-use-this
+      toString(): string {
+        return 'EmptyModel()';
+      }
+    }
+
+    interface TestCase {
+      input: BaseModel;
+      notBinaryNotOmitEmpty: any;
+      binaryNotOmitEmpty: any;
+      notBinaryOmitEmpty: any;
+      binaryOmitEmpty: any;
+    }
+
+    const testcases: TestCase[] = [
+      {
+        input: new ExampleModel(99, 'x', Uint8Array.from([1, 2, 3])),
+        notBinaryNotOmitEmpty: { a: 99, b: 'x', c: 'AQID' },
+        binaryNotOmitEmpty: { a: 99, b: 'x', c: Uint8Array.from([1, 2, 3]) },
+        notBinaryOmitEmpty: { a: 99, b: 'x', c: 'AQID' },
+        binaryOmitEmpty: { a: 99, b: 'x', c: Uint8Array.from([1, 2, 3]) },
+      },
+      {
+        input: new ExampleModel(99, '', Uint8Array.from([1, 2, 3])),
+        notBinaryNotOmitEmpty: { a: 99, b: '', c: 'AQID' },
+        binaryNotOmitEmpty: { a: 99, b: '', c: Uint8Array.from([1, 2, 3]) },
+        notBinaryOmitEmpty: { a: 99, c: 'AQID' },
+        binaryOmitEmpty: { a: 99, c: Uint8Array.from([1, 2, 3]) },
+      },
+      {
+        input: new ExampleModel(99, '', Uint8Array.from([])),
+        notBinaryNotOmitEmpty: { a: 99, b: '', c: '' },
+        binaryNotOmitEmpty: { a: 99, b: '', c: Uint8Array.from([]) },
+        notBinaryOmitEmpty: { a: 99 },
+        binaryOmitEmpty: { a: 99 },
+      },
+      {
+        input: new ExampleModel(0, '', Uint8Array.from([])),
+        notBinaryNotOmitEmpty: { a: 0, b: '', c: '' },
+        binaryNotOmitEmpty: { a: 0, b: '', c: Uint8Array.from([]) },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: new EmptyModel(),
+        notBinaryNotOmitEmpty: {},
+        binaryNotOmitEmpty: {},
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+    ];
+
+    for (let i = 0; i < testcases.length; i++) {
+      const tc = testcases[i];
+      it(`should correctly encode case ${i}: '${tc.input}'`, () => {
+        const model = tc.input;
+
+        const actualNotBinaryNotOmitEmpty = model.get_obj_for_encoding(
+          false,
+          false
+        );
+        assert.deepStrictEqual(
+          actualNotBinaryNotOmitEmpty,
+          tc.notBinaryNotOmitEmpty
+        );
+
+        const actualBinaryNotOmitEmpty = model.get_obj_for_encoding(
+          true,
+          false
+        );
+        assert.deepStrictEqual(actualBinaryNotOmitEmpty, tc.binaryNotOmitEmpty);
+
+        const actualNotBinaryOmitEmpty = model.get_obj_for_encoding(
+          false,
+          true
+        );
+        assert.deepStrictEqual(actualNotBinaryOmitEmpty, tc.notBinaryOmitEmpty);
+
+        const actualBinaryOmitEmpty = model.get_obj_for_encoding(true, true);
+        assert.deepStrictEqual(actualBinaryOmitEmpty, tc.binaryOmitEmpty);
+      });
+    }
   });
 });
