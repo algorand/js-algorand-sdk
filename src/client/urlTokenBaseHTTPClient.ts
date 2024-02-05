@@ -113,8 +113,8 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
       return;
     }
 
-    let body = new Uint8Array();
-    let bodyErrorMessage: string | null = null;
+    let body: Uint8Array | undefined;
+    let bodyErrorMessage: string | undefined;
 
     try {
       body = new Uint8Array(await res.arrayBuffer());
@@ -134,7 +134,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     }
 
     throw new URLTokenBaseHTTPError(message, {
-      body,
+      body: body ?? new Uint8Array(),
       status: res.status,
       headers: URLTokenBaseHTTPClient.formatFetchResponseHeaders(res.headers),
     });
