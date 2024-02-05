@@ -7,7 +7,11 @@ export default class GetAssetByID extends JSONRequest<
   Asset,
   Record<string, any>
 > {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private index: number
+  ) {
     super(c, intDecoding);
     this.index = index;
   }

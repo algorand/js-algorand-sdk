@@ -64,7 +64,7 @@ export function createMultisigTransaction(
     thr: threshold,
     subsig: subsigs,
   };
-  const txnForEncoding = txn.get_obj_for_encoding();
+  const txnForEncoding = txn.get_obj_for_encoding()!;
   const signedTxn: EncodedSignedTransaction = {
     msig,
     txn: txnForEncoding,
@@ -113,10 +113,10 @@ function createMultisigTransactionWithSignature(
 
   let keyExist = false;
   // append the multisig signature to the corresponding public key in the multisig blob
-  signedTxn.msig.subsig.forEach((subsig, i) => {
+  signedTxn.msig!.subsig.forEach((subsig, i) => {
     if (nacl.bytesEqual(subsig.pk, myPk)) {
       keyExist = true;
-      signedTxn.msig.subsig[i].s = rawSig;
+      signedTxn.msig!.subsig[i].s = rawSig;
     }
   });
   if (keyExist === false) {
@@ -235,6 +235,11 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
   const refSigTx = encoding.decode(
     multisigTxnBlobs[0]
   ) as EncodedSignedTransaction;
+  if (!refSigTx.msig) {
+    throw new Error(
+      'Invalid multisig transaction, multisig structure missing at index 0'
+    );
+  }
   const refTxID = MultisigTransaction.from_obj_for_encoding(
     refSigTx.txn
   ).txID();
@@ -255,6 +260,11 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
     const unisig = encoding.decode(
       multisigTxnBlobs[i]
     ) as EncodedSignedTransaction;
+    if (!unisig.msig) {
+      throw new Error(
+        `Invalid multisig transaction, multisig structure missing at index ${i}`
+      );
+    }
 
     const unisigAlgoTxn = MultisigTransaction.from_obj_for_encoding(unisig.txn);
     if (unisigAlgoTxn.txID() !== refTxID) {
@@ -393,7 +403,7 @@ export function signMultisigTransaction(
   let algoTxn: MultisigTransaction;
   let blob: Uint8Array;
   if (txnAlreadyBuilt) {
-    algoTxn = (txn as unknown) as MultisigTransaction;
+    algoTxn = txn as unknown as MultisigTransaction;
     blob = MultisigTransaction.prototype.partialSignTxn.call(
       algoTxn,
       { version, threshold, pks },

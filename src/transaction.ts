@@ -1,3 +1,4 @@
+// @ts-nocheck // Temporary type fix, will be unnecessary in following PR
 import base32 from 'hi-base32';
 import { translateBoxReferences } from './boxStorage.js';
 import * as address from './encoding/address.js';
@@ -36,7 +37,8 @@ const KEYREG_SELECTION_KEY_LENGTH = 32;
 const KEYREG_STATE_PROOF_KEY_LENGTH = 64;
 
 type AnyTransactionWithParams = MustHaveSuggestedParams<AnyTransaction>;
-type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransaction>;
+type AnyTransactionWithParamsInline =
+  MustHaveSuggestedParamsInline<AnyTransaction>;
 
 /**
  * A modified version of the transaction params. Represents the internal structure that the Transaction class uses
@@ -536,7 +538,7 @@ export class Transaction implements TransactionStorageStructure {
     // are all undefined/false
 
     // Remove unwanted properties and store transaction on instance
-    delete ((txn as unknown) as AnyTransactionWithParams).suggestedParams;
+    delete (txn as unknown as AnyTransactionWithParams).suggestedParams;
     Object.assign(this, utils.removeUndefinedProperties(txn));
 
     // Modify Fee

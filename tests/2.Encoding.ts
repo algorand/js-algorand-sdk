@@ -1,7 +1,11 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const algosdk = require('../src/index');
-const utils = require('../src/utils/utils');
+import assert from 'assert';
+import algosdk from '../src/index.js';
+import BaseModel, {
+  // eslint-disable-next-line camelcase
+  _get_obj_for_encoding,
+} from '../src/client/v2/basemodel.js';
+import * as utils from '../src/utils/utils.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =
   'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
@@ -38,7 +42,7 @@ describe('encoding', () => {
         () => {
           algosdk.encodeObj(a);
         },
-        (err) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
+        (err: Error) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
       );
 
       const b = { a: 4, B: [] };
@@ -46,7 +50,7 @@ describe('encoding', () => {
         () => {
           algosdk.encodeObj(b);
         },
-        (err) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
+        (err: Error) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
       );
 
       const c = { a: 4, B: 0 };
@@ -54,7 +58,7 @@ describe('encoding', () => {
         () => {
           algosdk.encodeObj(c);
         },
-        (err) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
+        (err: Error) => err.toString().includes(ERROR_CONTAINS_EMPTY_STRING)
       );
     });
 
@@ -82,15 +86,17 @@ describe('encoding', () => {
 
     it('should safely encode/decode bigints', () => {
       const beforeZero = BigInt('0');
-      const afterZero = algosdk.decodeObj(algosdk.encodeObj(beforeZero));
+      const afterZero = algosdk.decodeObj(algosdk.encodeObj(beforeZero as any));
       // eslint-disable-next-line eqeqeq
       assert.ok(beforeZero == afterZero); // after is a Number because 0 fits into a Number - so we do this loose comparison
       const beforeLarge = BigInt('18446744073709551612'); // larger than a Number, but fits into a uint64
-      const afterLarge = algosdk.decodeObj(algosdk.encodeObj(beforeLarge));
+      const afterLarge = algosdk.decodeObj(
+        algosdk.encodeObj(beforeLarge as any)
+      );
       assert.strictEqual(beforeLarge, afterLarge);
       const beforeTooLarge = BigInt('18446744073709551616'); // larger than even fits into a uint64. we do not want to work with these too-large numbers
       const afterTooLarge = algosdk.decodeObj(
-        algosdk.encodeObj(beforeTooLarge)
+        algosdk.encodeObj(beforeTooLarge as any)
       );
       assert.notStrictEqual(beforeTooLarge, afterTooLarge);
     });
@@ -115,7 +121,7 @@ describe('encoding', () => {
 
   describe('uint64', () => {
     it('should encode properly', () => {
-      const testcases = [
+      const testcases: Array<[number | bigint, Uint8Array]> = [
         [0, Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])],
         [0n, Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0])],
         [1, Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1])],
@@ -172,7 +178,7 @@ describe('encoding', () => {
 
     it('should decode properly in default mode', () => {
       // should be the same as safe mode
-      const testcases = [
+      const testcases: Array<[Uint8Array, number | bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0],
         [Uint8Array.from([0]), 0],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1],
@@ -214,7 +220,7 @@ describe('encoding', () => {
     });
 
     it('should decode properly in safe mode', () => {
-      const testcases = [
+      const testcases: Array<[Uint8Array, number | bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0],
         [Uint8Array.from([0]), 0],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1],
@@ -257,7 +263,7 @@ describe('encoding', () => {
     });
 
     it('should decode properly in mixed mode', () => {
-      const testcases = [
+      const testcases: Array<[Uint8Array, number | bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0],
         [Uint8Array.from([0]), 0],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1],
@@ -297,7 +303,7 @@ describe('encoding', () => {
     });
 
     it('should decode properly in bigint mode', () => {
-      const testcases = [
+      const testcases: Array<[Uint8Array, bigint]> = [
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]), 0n],
         [Uint8Array.from([0]), 0n],
         [Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 1]), 1n],
@@ -347,7 +353,7 @@ describe('encoding', () => {
       assert.throws(() =>
         algosdk.decodeUint64(
           Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]),
-          'unknown'
+          'unknown' as any
         )
       );
     });
@@ -357,7 +363,12 @@ describe('encoding', () => {
     it('should parse null', () => {
       const input = 'null';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = null;
 
@@ -372,7 +383,12 @@ describe('encoding', () => {
     it('should parse number', () => {
       const inputs = ['17', '9007199254740991'];
       for (const input of inputs) {
-        for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+        for (const intDecoding of [
+          algosdk.IntDecoding.DEFAULT,
+          algosdk.IntDecoding.SAFE,
+          algosdk.IntDecoding.MIXED,
+          algosdk.IntDecoding.BIGINT,
+        ]) {
           const actual = utils.parseJSON(input, { intDecoding });
           const expected =
             intDecoding === 'bigint' ? BigInt(input) : Number(input);
@@ -388,7 +404,12 @@ describe('encoding', () => {
     it('should parse empty object', () => {
       const input = '{}';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
         const expected = {};
 
@@ -403,7 +424,12 @@ describe('encoding', () => {
     it('should parse populated object', () => {
       const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{},"f":true}';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -439,9 +465,15 @@ describe('encoding', () => {
       const input =
         '{"a":0,"b":9007199254740991,"c":9007199254740992,"d":9223372036854775807}';
 
-      assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
+      assert.throws(() =>
+        utils.parseJSON(input, { intDecoding: algosdk.IntDecoding.SAFE })
+      );
 
-      for (const intDecoding of ['default', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -479,9 +511,14 @@ describe('encoding', () => {
     it('should parse empty array', () => {
       const input = '[]';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
-        const expected = [];
+        const expected: unknown[] = [];
 
         assert.deepStrictEqual(
           actual,
@@ -494,7 +531,12 @@ describe('encoding', () => {
     it('should parse populated array', () => {
       const input = '["test",2,null,[7],{"a":9.5},true]';
 
-      for (const intDecoding of ['default', 'safe', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.SAFE,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -515,9 +557,15 @@ describe('encoding', () => {
     it('should parse array with BigInt', () => {
       const input = '[0,9007199254740991,9007199254740992,9223372036854775807]';
 
-      assert.throws(() => utils.parseJSON(input, { intDecoding: 'safe' }));
+      assert.throws(() =>
+        utils.parseJSON(input, { intDecoding: algosdk.IntDecoding.SAFE })
+      );
 
-      for (const intDecoding of ['default', 'mixed', 'bigint']) {
+      for (const intDecoding of [
+        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.MIXED,
+        algosdk.IntDecoding.BIGINT,
+      ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
@@ -555,27 +603,11 @@ describe('encoding', () => {
 
   describe('Base64 decoding utilities', () => {
     it('should decode bytes from Base64', () => {
-      const testCases = [
+      const testCases: Array<[Uint8Array, string]> = [
         [
           Uint8Array.from([
-            97,
-            32,
-            196,
-            128,
-            32,
-            240,
-            144,
-            128,
-            128,
-            32,
-            230,
-            150,
-            135,
-            32,
-            240,
-            159,
-            166,
-            132,
+            97, 32, 196, 128, 32, 240, 144, 128, 128, 32, 230, 150, 135, 32,
+            240, 159, 166, 132,
           ]), // a Ā 𐀀 文 🦄
           'YSDEgCDwkICAIOaWhyDwn6aE',
         ],
@@ -642,5 +674,381 @@ describe('encoding', () => {
         );
       }
     });
+  });
+  describe('_get_obj_for_encoding', () => {
+    interface TestCase {
+      input: any;
+      notBinaryNotOmitEmpty: any;
+      binaryNotOmitEmpty: any;
+      notBinaryOmitEmpty: any;
+      binaryOmitEmpty: any;
+    }
+
+    const testcases: TestCase[] = [
+      {
+        input: undefined,
+        notBinaryNotOmitEmpty: undefined,
+        binaryNotOmitEmpty: undefined,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: null,
+        notBinaryNotOmitEmpty: null,
+        binaryNotOmitEmpty: null,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: 1,
+        notBinaryNotOmitEmpty: 1,
+        binaryNotOmitEmpty: 1,
+        notBinaryOmitEmpty: 1,
+        binaryOmitEmpty: 1,
+      },
+      {
+        input: 1n,
+        notBinaryNotOmitEmpty: 1n,
+        binaryNotOmitEmpty: 1n,
+        notBinaryOmitEmpty: 1n,
+        binaryOmitEmpty: 1n,
+      },
+      {
+        input: 0,
+        notBinaryNotOmitEmpty: 0,
+        binaryNotOmitEmpty: 0,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: 0n,
+        notBinaryNotOmitEmpty: 0n,
+        binaryNotOmitEmpty: 0n,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: true,
+        notBinaryNotOmitEmpty: true,
+        binaryNotOmitEmpty: true,
+        notBinaryOmitEmpty: true,
+        binaryOmitEmpty: true,
+      },
+      {
+        input: false,
+        notBinaryNotOmitEmpty: false,
+        binaryNotOmitEmpty: false,
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: 'abc',
+        notBinaryNotOmitEmpty: 'abc',
+        binaryNotOmitEmpty: 'abc',
+        notBinaryOmitEmpty: 'abc',
+        binaryOmitEmpty: 'abc',
+      },
+      {
+        input: '',
+        notBinaryNotOmitEmpty: '',
+        binaryNotOmitEmpty: '',
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: Uint8Array.from([1, 2, 3]),
+        notBinaryNotOmitEmpty: 'AQID',
+        binaryNotOmitEmpty: Uint8Array.from([1, 2, 3]),
+        notBinaryOmitEmpty: 'AQID',
+        binaryOmitEmpty: Uint8Array.from([1, 2, 3]),
+      },
+      {
+        input: Uint8Array.from([]),
+        notBinaryNotOmitEmpty: '',
+        binaryNotOmitEmpty: Uint8Array.from([]),
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: [99],
+        notBinaryNotOmitEmpty: [99],
+        binaryNotOmitEmpty: [99],
+        notBinaryOmitEmpty: [99],
+        binaryOmitEmpty: [99],
+      },
+      {
+        input: [],
+        notBinaryNotOmitEmpty: [],
+        binaryNotOmitEmpty: [],
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: [0],
+        notBinaryNotOmitEmpty: [0],
+        binaryNotOmitEmpty: [0],
+        notBinaryOmitEmpty: [0],
+        binaryOmitEmpty: [0],
+      },
+      {
+        input: [Uint8Array.from([1, 2, 3])],
+        notBinaryNotOmitEmpty: ['AQID'],
+        binaryNotOmitEmpty: [Uint8Array.from([1, 2, 3])],
+        notBinaryOmitEmpty: ['AQID'],
+        binaryOmitEmpty: [Uint8Array.from([1, 2, 3])],
+      },
+      {
+        input: [Uint8Array.from([])],
+        notBinaryNotOmitEmpty: [''],
+        binaryNotOmitEmpty: [Uint8Array.from([])],
+        notBinaryOmitEmpty: [''],
+        binaryOmitEmpty: [Uint8Array.from([])],
+      },
+      {
+        input: { a: 1 },
+        notBinaryNotOmitEmpty: { a: 1 },
+        binaryNotOmitEmpty: { a: 1 },
+        notBinaryOmitEmpty: { a: 1 },
+        binaryOmitEmpty: { a: 1 },
+      },
+      {
+        input: {},
+        notBinaryNotOmitEmpty: {},
+        binaryNotOmitEmpty: {},
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: { a: 1, b: 0 },
+        notBinaryNotOmitEmpty: { a: 1, b: 0 },
+        binaryNotOmitEmpty: { a: 1, b: 0 },
+        notBinaryOmitEmpty: { a: 1 },
+        binaryOmitEmpty: { a: 1 },
+      },
+      {
+        input: { a: { b: 1 } },
+        notBinaryNotOmitEmpty: { a: { b: 1 } },
+        binaryNotOmitEmpty: { a: { b: 1 } },
+        notBinaryOmitEmpty: { a: { b: 1 } },
+        binaryOmitEmpty: { a: { b: 1 } },
+      },
+      {
+        input: { a: {} },
+        notBinaryNotOmitEmpty: { a: {} },
+        binaryNotOmitEmpty: { a: {} },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: { a: { b: 0 } },
+        notBinaryNotOmitEmpty: { a: { b: 0 } },
+        binaryNotOmitEmpty: { a: { b: 0 } },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: { a: { b: 0, c: 1 } },
+        notBinaryNotOmitEmpty: { a: { b: 0, c: 1 } },
+        binaryNotOmitEmpty: { a: { b: 0, c: 1 } },
+        notBinaryOmitEmpty: { a: { c: 1 } },
+        binaryOmitEmpty: { a: { c: 1 } },
+      },
+      {
+        input: { a: { b: Uint8Array.from([1, 2, 3]) } },
+        notBinaryNotOmitEmpty: { a: { b: 'AQID' } },
+        binaryNotOmitEmpty: { a: { b: Uint8Array.from([1, 2, 3]) } },
+        notBinaryOmitEmpty: { a: { b: 'AQID' } },
+        binaryOmitEmpty: { a: { b: Uint8Array.from([1, 2, 3]) } },
+      },
+      {
+        input: { a: { b: Uint8Array.from([]) } },
+        notBinaryNotOmitEmpty: { a: { b: '' } },
+        binaryNotOmitEmpty: { a: { b: Uint8Array.from([]) } },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: [{}],
+        notBinaryNotOmitEmpty: [{}],
+        binaryNotOmitEmpty: [{}],
+        notBinaryOmitEmpty: [{}],
+        binaryOmitEmpty: [{}],
+      },
+      {
+        input: [{ a: 0 }],
+        notBinaryNotOmitEmpty: [{ a: 0 }],
+        binaryNotOmitEmpty: [{ a: 0 }],
+        notBinaryOmitEmpty: [{}],
+        binaryOmitEmpty: [{}],
+      },
+      {
+        input: [[{ a: 0 }]],
+        notBinaryNotOmitEmpty: [[{ a: 0 }]],
+        binaryNotOmitEmpty: [[{ a: 0 }]],
+        notBinaryOmitEmpty: [[{}]],
+        binaryOmitEmpty: [[{}]],
+      },
+      {
+        input: [[]],
+        notBinaryNotOmitEmpty: [[]],
+        binaryNotOmitEmpty: [[]],
+        notBinaryOmitEmpty: [[]],
+        binaryOmitEmpty: [[]],
+      },
+      {
+        input: [null],
+        notBinaryNotOmitEmpty: [null],
+        binaryNotOmitEmpty: [null],
+        notBinaryOmitEmpty: [null],
+        binaryOmitEmpty: [null],
+      },
+    ];
+
+    for (let i = 0; i < testcases.length; i++) {
+      const tc = testcases[i];
+      it(`should correctly encode case ${i}: '${tc.input}'`, () => {
+        const actualNotBinaryNotOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          false,
+          false
+        );
+        assert.deepStrictEqual(
+          actualNotBinaryNotOmitEmpty,
+          tc.notBinaryNotOmitEmpty
+        );
+
+        const actualBinaryNotOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          true,
+          false
+        );
+        assert.deepStrictEqual(actualBinaryNotOmitEmpty, tc.binaryNotOmitEmpty);
+
+        const actualNotBinaryOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          false,
+          true
+        );
+        assert.deepStrictEqual(actualNotBinaryOmitEmpty, tc.notBinaryOmitEmpty);
+
+        const actualBinaryOmitEmpty = _get_obj_for_encoding(
+          tc.input,
+          true,
+          true
+        );
+        assert.deepStrictEqual(actualBinaryOmitEmpty, tc.binaryOmitEmpty);
+      });
+    }
+  });
+  describe('BaseModel', () => {
+    class ExampleModel extends BaseModel {
+      constructor(
+        public a: number,
+        public b: string,
+        public c: Uint8Array
+      ) {
+        super();
+
+        this.attribute_map = {
+          a: 'a',
+          b: 'b',
+          c: 'c',
+        };
+      }
+
+      toString(): string {
+        return `ExampleModel(a=${this.a}, b=${this.b}, c=${this.c})`;
+      }
+    }
+
+    class EmptyModel extends BaseModel {
+      constructor() {
+        super();
+
+        this.attribute_map = {};
+      }
+
+      // eslint-disable-next-line class-methods-use-this
+      toString(): string {
+        return 'EmptyModel()';
+      }
+    }
+
+    interface TestCase {
+      input: BaseModel;
+      notBinaryNotOmitEmpty: any;
+      binaryNotOmitEmpty: any;
+      notBinaryOmitEmpty: any;
+      binaryOmitEmpty: any;
+    }
+
+    const testcases: TestCase[] = [
+      {
+        input: new ExampleModel(99, 'x', Uint8Array.from([1, 2, 3])),
+        notBinaryNotOmitEmpty: { a: 99, b: 'x', c: 'AQID' },
+        binaryNotOmitEmpty: { a: 99, b: 'x', c: Uint8Array.from([1, 2, 3]) },
+        notBinaryOmitEmpty: { a: 99, b: 'x', c: 'AQID' },
+        binaryOmitEmpty: { a: 99, b: 'x', c: Uint8Array.from([1, 2, 3]) },
+      },
+      {
+        input: new ExampleModel(99, '', Uint8Array.from([1, 2, 3])),
+        notBinaryNotOmitEmpty: { a: 99, b: '', c: 'AQID' },
+        binaryNotOmitEmpty: { a: 99, b: '', c: Uint8Array.from([1, 2, 3]) },
+        notBinaryOmitEmpty: { a: 99, c: 'AQID' },
+        binaryOmitEmpty: { a: 99, c: Uint8Array.from([1, 2, 3]) },
+      },
+      {
+        input: new ExampleModel(99, '', Uint8Array.from([])),
+        notBinaryNotOmitEmpty: { a: 99, b: '', c: '' },
+        binaryNotOmitEmpty: { a: 99, b: '', c: Uint8Array.from([]) },
+        notBinaryOmitEmpty: { a: 99 },
+        binaryOmitEmpty: { a: 99 },
+      },
+      {
+        input: new ExampleModel(0, '', Uint8Array.from([])),
+        notBinaryNotOmitEmpty: { a: 0, b: '', c: '' },
+        binaryNotOmitEmpty: { a: 0, b: '', c: Uint8Array.from([]) },
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+      {
+        input: new EmptyModel(),
+        notBinaryNotOmitEmpty: {},
+        binaryNotOmitEmpty: {},
+        notBinaryOmitEmpty: undefined,
+        binaryOmitEmpty: undefined,
+      },
+    ];
+
+    for (let i = 0; i < testcases.length; i++) {
+      const tc = testcases[i];
+      it(`should correctly encode case ${i}: '${tc.input}'`, () => {
+        const model = tc.input;
+
+        const actualNotBinaryNotOmitEmpty = model.get_obj_for_encoding(
+          false,
+          false
+        );
+        assert.deepStrictEqual(
+          actualNotBinaryNotOmitEmpty,
+          tc.notBinaryNotOmitEmpty
+        );
+
+        const actualBinaryNotOmitEmpty = model.get_obj_for_encoding(
+          true,
+          false
+        );
+        assert.deepStrictEqual(actualBinaryNotOmitEmpty, tc.binaryNotOmitEmpty);
+
+        const actualNotBinaryOmitEmpty = model.get_obj_for_encoding(
+          false,
+          true
+        );
+        assert.deepStrictEqual(actualNotBinaryOmitEmpty, tc.notBinaryOmitEmpty);
+
+        const actualBinaryOmitEmpty = model.get_obj_for_encoding(true, true);
+        assert.deepStrictEqual(actualBinaryOmitEmpty, tc.binaryOmitEmpty);
+      });
+    }
   });
 });

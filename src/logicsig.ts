@@ -15,13 +15,14 @@ import { MultisigMetadata } from './types/multisig.js';
 
 interface LogicSigStorageStructure {
   logic: Uint8Array;
-  args: Uint8Array[];
+  args?: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
 }
 
 // base64regex is the regex to test for base64 strings
-const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+const base64regex =
+  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 /** sanityCheckProgram performs heuristic program validation:
  * check if passed in bytes are Algorand address or is B64 encoded, rather than Teal bytes
@@ -64,7 +65,7 @@ export class LogicSig implements LogicSigStorageStructure {
   tag = new TextEncoder().encode('Program');
 
   logic: Uint8Array;
-  args: Uint8Array[];
+  args?: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
 
@@ -139,7 +140,7 @@ export class LogicSig implements LogicSigStorageStructure {
       return nacl.verify(toBeSigned, this.sig, publicKey);
     }
 
-    return verifyMultisig(toBeSigned, this.msig, publicKey);
+    return verifyMultisig(toBeSigned, this.msig!, publicKey);
   }
 
   /**
@@ -388,7 +389,7 @@ function signLogicSigTransactionWithAddress(
 
   const signedTxn: EncodedSignedTransaction = {
     lsig: lsig.get_obj_for_encoding(),
-    txn: txn.get_obj_for_encoding(),
+    txn: txn.get_obj_for_encoding()!,
   };
 
   if (!nacl.bytesEqual(lsigAddress, txn.sender.publicKey)) {
@@ -396,7 +397,7 @@ function signLogicSigTransactionWithAddress(
   }
 
   return {
-    txID: txn.txID().toString(),
+    txID: txn.txID(),
     blob: encoding.encode(signedTxn),
   };
 }

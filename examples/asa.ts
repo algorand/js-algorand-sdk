@@ -33,11 +33,7 @@ async function main() {
 
   const signedTxn = txn.signTxn(creator.privateKey);
   await algodClient.sendRawTransaction(signedTxn).do();
-  const result = await algosdk.waitForConfirmation(
-    algodClient,
-    txn.txID().toString(),
-    3
-  );
+  const result = await algosdk.waitForConfirmation(algodClient, txn.txID(), 3);
 
   const assetIndex = Number(result.assetIndex);
   console.log(`Asset ID created: ${assetIndex}`);
@@ -76,7 +72,7 @@ async function main() {
   await algodClient.sendRawTransaction(signedConfigTxn).do();
   const configResult = await algosdk.waitForConfirmation(
     algodClient,
-    txn.txID().toString(),
+    txn.txID(),
     3
   );
   console.log(`Result confirmed in round: ${configResult.confirmedRound}`);
@@ -96,7 +92,7 @@ async function main() {
 
   const signedOptInTxn = optInTxn.signTxn(receiver.privateKey);
   await algodClient.sendRawTransaction(signedOptInTxn).do();
-  await algosdk.waitForConfirmation(algodClient, optInTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(algodClient, optInTxn.txID(), 3);
   // example: ASSET_OPTIN
 
   // example: ASSET_XFER
@@ -110,7 +106,7 @@ async function main() {
 
   const signedXferTxn = xferTxn.signTxn(creator.privateKey);
   await algodClient.sendRawTransaction(signedXferTxn).do();
-  await algosdk.waitForConfirmation(algodClient, xferTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(algodClient, xferTxn.txID(), 3);
   // example: ASSET_XFER
 
   // example: ASSET_FREEZE
@@ -126,11 +122,7 @@ async function main() {
 
   const signedFreezeTxn = freezeTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedFreezeTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    freezeTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, freezeTxn.txID(), 3);
   // example: ASSET_FREEZE
 
   // example: ASSET_CLAWBACK
@@ -148,11 +140,7 @@ async function main() {
 
   const signedClawbackTxn = clawbackTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedClawbackTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    clawbackTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, clawbackTxn.txID(), 3);
   // example: ASSET_CLAWBACK
 
   // example: ASSET_OPT_OUT
@@ -171,11 +159,7 @@ async function main() {
 
   const signedOptOutTxn = optOutTxn.signTxn(receiver.privateKey);
   await algodClient.sendRawTransaction(signedOptOutTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    optOutTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, optOutTxn.txID(), 3);
   // example: ASSET_OPT_OUT
 
   // example: ASSET_DELETE
@@ -187,11 +171,7 @@ async function main() {
 
   const signedDeleteTxn = deleteTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedDeleteTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    deleteTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, deleteTxn.txID(), 3);
   // example: ASSET_DELETE
 }
 

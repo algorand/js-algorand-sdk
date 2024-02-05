@@ -71,12 +71,12 @@ export class ProgramSourceMap {
     this.pcToLocation = new Map();
     this.sourceAndLineToPc = new Map();
 
-    const lastLocation: SourceLocation = {
+    const lastLocation = {
       line: 0,
       column: 0,
       sourceIndex: 0,
       nameIndex: 0,
-    };
+    } satisfies SourceLocation;
     for (const [pc, data] of pcList.entries()) {
       if (data.length < 4) continue;
 

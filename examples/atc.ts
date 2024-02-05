@@ -42,7 +42,7 @@ async function main() {
   await client.sendRawTransaction(createTxn.signTxn(sender.privateKey)).do();
   const response = await algosdk.waitForConfirmation(
     client,
-    createTxn.txID().toString(),
+    createTxn.txID(),
     3
   );
   const appIndex = Number(response.applicationIndex);

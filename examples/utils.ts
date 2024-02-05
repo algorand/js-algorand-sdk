@@ -127,7 +127,7 @@ export async function deployCalculatorApp(
 
   const result = await algosdk.waitForConfirmation(
     algodClient,
-    appCreateTxn.txID().toString(),
+    appCreateTxn.txID(),
     3
   );
   const appId = Number(result.applicationIndex);

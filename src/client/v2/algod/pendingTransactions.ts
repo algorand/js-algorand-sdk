@@ -21,12 +21,9 @@ export default class PendingTransactions extends JSONRequest<
   }
 
   prepare(body: Uint8Array) {
-    if (body && body.byteLength > 0) {
-      return PendingTransactionsResponse.from_obj_for_encoding(
-        encoding.decode(body)
-      );
-    }
-    return undefined;
+    return PendingTransactionsResponse.from_obj_for_encoding(
+      encoding.decode(body) as Record<string, any>
+    );
   }
   /* eslint-enable class-methods-use-this */
 

@@ -42,11 +42,7 @@ async function main() {
   await client
     .sendRawTransaction(fundSmartSigTxn.signTxn(funder.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    client,
-    fundSmartSigTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(client, fundSmartSigTxn.txID(), 3);
 
   // example: LSIG_SIGN_FULL
   const smartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({

@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const algosdk = require('../src/index');
-const nacl = require('../src/nacl/naclWrappers');
-const utils = require('../src/utils/utils');
+import assert from 'assert';
+import algosdk from '../src/index.js';
+import * as nacl from '../src/nacl/naclWrappers.js';
+import * as utils from '../src/utils/utils.js';
 
 describe('Algosdk (AKA end to end)', () => {
   describe('#mnemonic', () => {
@@ -25,7 +25,7 @@ describe('Algosdk (AKA end to end)', () => {
 
     it('should encode and decode strings', () => {
       const o = 'Hi there';
-      assert.deepStrictEqual(o, algosdk.decodeObj(algosdk.encodeObj(o)));
+      assert.deepStrictEqual(o, algosdk.decodeObj(algosdk.encodeObj(o as any)));
     });
 
     it('should not mutate unsigned transaction when going to or from encoded buffer', () => {
@@ -58,9 +58,8 @@ describe('Algosdk (AKA end to end)', () => {
       );
       const txnAsBuffer = algosdk.encodeUnsignedTransaction(txnAsObj);
       const txnAsObjRecovered = algosdk.decodeUnsignedTransaction(txnAsBuffer);
-      const txnAsBufferRecovered = algosdk.encodeUnsignedTransaction(
-        txnAsObjRecovered
-      );
+      const txnAsBufferRecovered =
+        algosdk.encodeUnsignedTransaction(txnAsObjRecovered);
       assert.deepStrictEqual(txnAsBuffer, txnAsBufferRecovered);
       const txnAsBufferGolden = new Uint8Array(
         algosdk.base64ToBytes(
@@ -98,9 +97,9 @@ describe('Algosdk (AKA end to end)', () => {
         note,
         suggestedParams
       );
-      let sk =
-        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
-      sk = algosdk.mnemonicToSecretKey(sk);
+      const sk = algosdk.mnemonicToSecretKey(
+        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
+      );
       const initialSignedTxnBytes = txnAsObj.signTxn(sk.sk);
       const signedTxnRecovered = algosdk.decodeSignedTransaction(
         initialSignedTxnBytes
@@ -110,8 +109,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(initialSignedTxnBytes, recoveredSignedTxnBytes);
       const signedTxnBytesGolden = new Uint8Array(
         algosdk.base64ToBytes(
-          'g6RzZ25yxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaNzaWfEQDJHtrytU9p3nhRH1XS8tX+KmeKGyekigG7M704dOkBMTqiOJFuukbK2gUViJtivsPrKNiV0+WIrdbBk7gmNkgGjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk=',
-          'base64'
+          'g6RzZ25yxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaNzaWfEQDJHtrytU9p3nhRH1XS8tX+KmeKGyekigG7M704dOkBMTqiOJFuukbK2gUViJtivsPrKNiV0+WIrdbBk7gmNkgGjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKkdHlwZaNwYXk='
         )
       );
       assert.deepStrictEqual(signedTxnBytesGolden, recoveredSignedTxnBytes);
@@ -120,8 +118,9 @@ describe('Algosdk (AKA end to end)', () => {
 
   describe('Sign', () => {
     it('should return a blob that matches the go code', () => {
-      let sk =
-        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
+      const sk = algosdk.mnemonicToSecretKey(
+        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
+      );
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
       const o = {
@@ -135,9 +134,7 @@ describe('Algosdk (AKA end to end)', () => {
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
         note: new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y=')),
-      };
-
-      sk = algosdk.mnemonicToSecretKey(sk);
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
@@ -148,8 +145,9 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should return a blob that matches the go code when using a flat fee', () => {
-      let sk =
-        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
+      const sk = algosdk.mnemonicToSecretKey(
+        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
+      );
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
       const o = {
@@ -164,9 +162,7 @@ describe('Algosdk (AKA end to end)', () => {
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
         note: new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y=')),
         flatFee: true,
-      };
-
-      sk = algosdk.mnemonicToSecretKey(sk);
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
@@ -177,8 +173,9 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should return a blob that matches the go code when constructing with a lease', () => {
-      let sk =
-        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
+      const sk = algosdk.mnemonicToSecretKey(
+        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
+      );
       const golden =
         'gqNzaWfEQOMmFSIKsZvpW0txwzhmbgQjxv6IyN7BbV5sZ2aNgFbVcrWUnqPpQQxfPhV/wdu9jzEPUU1jAujYtcNCxJ7ONgejdHhujKNhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0FLKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqJseMQgAQIDBAECAwQBAgMEAQIDBAECAwQBAgMEAQIDBAECAwSkbm90ZcQI6gAVR0Nsv5ajcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihpHR5cGWjcGF5';
       // prettier-ignore
@@ -195,9 +192,7 @@ describe('Algosdk (AKA end to end)', () => {
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
         note: new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y=')),
         lease,
-      };
-
-      sk = algosdk.mnemonicToSecretKey(sk);
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
@@ -208,8 +203,9 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should return a blob that matches the go code when adding a lease', () => {
-      let sk =
-        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
+      const sk = algosdk.mnemonicToSecretKey(
+        'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
+      );
       const golden =
         'gqNzaWfEQOMmFSIKsZvpW0txwzhmbgQjxv6IyN7BbV5sZ2aNgFbVcrWUnqPpQQxfPhV/wdu9jzEPUU1jAujYtcNCxJ7ONgejdHhujKNhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0FLKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqJseMQgAQIDBAECAwQBAgMEAQIDBAECAwQBAgMEAQIDBAECAwSkbm90ZcQI6gAVR0Nsv5ajcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihpHR5cGWjcGF5';
       // prettier-ignore
@@ -225,7 +221,6 @@ describe('Algosdk (AKA end to end)', () => {
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
-      sk = algosdk.mnemonicToSecretKey(sk);
       const key = nacl.keyPairFromSecretKey(sk.sk);
       const sender = algosdk.encodeAddress(key.publicKey);
       const suggestedParams = {
@@ -290,15 +285,19 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Sign it directly to get a signature
       const signedWithSk = txn.signTxn(signer.sk);
-      const decoded = algosdk.decodeObj(signedWithSk);
-      const signature = decoded.sig;
+      const decoded = algosdk.decodeObj(
+        signedWithSk
+      ) as algosdk.EncodedSignedTransaction;
+      const signature = decoded.sig!;
 
       // Attach the signature to the transaction indirectly, and compare
       const signedWithSignature = txn.attachSignature(signer.addr, signature);
       assert.deepEqual(signedWithSk, signedWithSignature);
 
       // Check that signer was set
-      const decodedWithSigner = algosdk.decodeObj(signedWithSignature);
+      const decodedWithSigner = algosdk.decodeObj(
+        signedWithSignature
+      ) as algosdk.EncodedSignedTransaction;
       assert.deepEqual(
         decodedWithSigner.sgnr,
         algosdk.decodeAddress(signer.addr).publicKey
@@ -325,8 +324,10 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Sign it directly to get a signature
       const signedWithSk = txn.signTxn(signer.sk);
-      const decoded = algosdk.decodeObj(signedWithSk);
-      const signature = decoded.sig.slice(0, -1); // without the last byte
+      const decoded = algosdk.decodeObj(
+        signedWithSk
+      ) as algosdk.EncodedSignedTransaction;
+      const signature = decoded.sig!.slice(0, -1); // without the last byte
 
       // Check that the signature is not attached
       assert.throws(
@@ -363,7 +364,7 @@ describe('Algosdk (AKA end to end)', () => {
         closeRemainderTo:
           'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA',
         note: algosdk.base64ToBytes('X4Bl4wQ9rCo='),
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const jsDec = algosdk.signMultisigTransaction(o, params, sk);
       // this golden also contains the correct multisig address
@@ -596,8 +597,9 @@ describe('Algosdk (AKA end to end)', () => {
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
         'gqNzaWfEQEDd1OMRoQI/rzNlU4iiF50XQXmup3k5czI9hEsNqHT7K4KsfmA/0DUVkbzOwtJdRsHS8trm3Arjpy9r7AXlbAujdHhuh6RhcGFyiaJhbcQgZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5RmiiYW6odGVzdGNvaW6iYXWnd2Vic2l0ZaFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aF0ZKJ1bqN0c3SjZmVlzQ+0omZ2zgAE7A+iZ2jEIEhjtRiks8hOyBDyLU8QgcsPcfBZp6wg3sYvf3DlCToiomx2zgAE7/ejc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aR0eXBlpGFjZmc=';
-      let sk =
-        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
+      const sk = algosdk.mnemonicToSecretKey(
+        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred'
+      );
       const createTxn = {
         sender: address,
         fee: 10,
@@ -615,8 +617,7 @@ describe('Algosdk (AKA end to end)', () => {
         assetURL: 'website',
         assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh',
         type: 'acfg',
-      };
-      sk = algosdk.mnemonicToSecretKey(sk);
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
       assert.deepStrictEqual(jsDecCreate.blob, algosdk.base64ToBytes(golden));
     });
@@ -626,8 +627,9 @@ describe('Algosdk (AKA end to end)', () => {
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
         'gqNzaWfEQCj5xLqNozR5ahB+LNBlTG+d0gl0vWBrGdAXj1ibsCkvAwOsXs5KHZK1YdLgkdJecQiWm4oiZ+pm5Yg0m3KFqgqjdHhuh6RhcGFyiqJhbcQgZkFDUE80blJnTzU1ajFuZEFLM1c2U2djNEFQa2N5RmiiYW6odGVzdGNvaW6iYXWnd2Vic2l0ZaFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aJkYwGhZsQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2hbcQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2hcsQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2hdGSidW6jdHN0o2ZlZc0P3KJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaRhY2Zn';
-      let sk =
-        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
+      const sk = algosdk.mnemonicToSecretKey(
+        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred'
+      );
       const createTxn = {
         sender: address,
         fee: 10,
@@ -646,8 +648,7 @@ describe('Algosdk (AKA end to end)', () => {
         assetURL: 'website',
         assetMetadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh',
         type: 'acfg',
-      };
-      sk = algosdk.mnemonicToSecretKey(sk);
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
       assert.deepStrictEqual(jsDecCreate.blob, algosdk.base64ToBytes(golden));
     });
@@ -657,8 +658,9 @@ describe('Algosdk (AKA end to end)', () => {
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
         'gqNzaWfEQBBkfw5n6UevuIMDo2lHyU4dS80JCCQ/vTRUcTx5m0ivX68zTKyuVRrHaTbxbRRc3YpJ4zeVEnC9Fiw3Wf4REwejdHhuiKRhcGFyhKFjxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFmxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFtxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aFyxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRjYWlkzQTSo2ZlZc0NSKJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/3o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaRhY2Zn';
-      let sk =
-        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
+      const sk = algosdk.mnemonicToSecretKey(
+        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred'
+      );
       const o = {
         sender: address,
         fee: 10,
@@ -671,8 +673,7 @@ describe('Algosdk (AKA end to end)', () => {
         assetFreeze: address,
         assetClawback: address,
         type: 'acfg',
-      };
-      sk = algosdk.mnemonicToSecretKey(sk);
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
@@ -682,8 +683,9 @@ describe('Algosdk (AKA end to end)', () => {
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
         'gqNzaWfEQBSP7HtzD/Lvn4aVvaNpeR4T93dQgo4LvywEwcZgDEoc/WVl3aKsZGcZkcRFoiWk8AidhfOZzZYutckkccB8RgGjdHhuh6RjYWlkAaNmZWXNB1iiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWNmZw==';
-      let sk =
-        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
+      const sk = algosdk.mnemonicToSecretKey(
+        'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred'
+      );
       const o = {
         sender: address,
         fee: 10,
@@ -692,8 +694,7 @@ describe('Algosdk (AKA end to end)', () => {
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
         type: 'acfg',
-      };
-      sk = algosdk.mnemonicToSecretKey(sk);
+      } as any; // Temporary type fix, will be unnecessary in following PR
       const jsDec = algosdk.signTransaction(o, sk.sk);
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
@@ -709,7 +710,7 @@ describe('Algosdk (AKA end to end)', () => {
         freezeAccount: addr,
         assetIndex: 1,
         assetFrozen: true,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
@@ -734,7 +735,7 @@ describe('Algosdk (AKA end to end)', () => {
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
         closeRemainderTo: addr,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
@@ -758,7 +759,7 @@ describe('Algosdk (AKA end to end)', () => {
         lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
@@ -783,7 +784,7 @@ describe('Algosdk (AKA end to end)', () => {
         lastValid: 323575,
         genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
         assetIndex: 1,
-      };
+      } as any; // Temporary type fix, will be unnecessary in following PR
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
@@ -805,7 +806,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.equal(lsig.sig, undefined);
       assert.equal(lsig.msig, undefined);
 
-      const args = [Uint8Array.from('123'), Uint8Array.from('456')];
+      const args = [Uint8Array.from([1, 2, 3]), Uint8Array.from([4, 5, 6])];
       lsig = new algosdk.LogicSig(program, args);
       assert.equal(lsig.logic, program);
       assert.deepEqual(lsig.args, args);
@@ -980,11 +981,16 @@ describe('Algosdk (AKA end to end)', () => {
       address: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       amount: 5002280000000000,
       amountWithoutPendingRewards: 5000000000000000,
+      minBalance: 100000,
       pendingRewards: 2280000000000,
       rewardBase: 456,
       rewards: 2280000000000,
       round: 18241,
       status: 'Online',
+      totalAppsOptedIn: 0,
+      totalAssetsOptedIn: 0,
+      totalCreatedApps: 0,
+      totalCreatedAssets: 0,
     });
     const params = new algosdk.modelsv2.ApplicationParams({
       creator: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
@@ -1007,7 +1013,7 @@ describe('Algosdk (AKA end to end)', () => {
       note: 'tjpNge78JD8=',
       snd: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       type: 'appl',
-    };
+    } as any; // Temporary type fix, will be unnecessary in following PR
     const req = new algosdk.modelsv2.DryrunRequest({
       accounts: [acc],
       apps: [app],
@@ -1015,26 +1021,80 @@ describe('Algosdk (AKA end to end)', () => {
       protocolVersion: 'future',
       latestTimestamp: 1592537757,
       txns: [{ txn }],
+      sources: [],
     });
 
     it('should be properly serialized to JSON', () => {
-      const actual = req.get_obj_for_encoding();
+      const forEncoding = req.get_obj_for_encoding();
+      const actual = JSON.stringify(forEncoding, null, 2);
 
-      const golden =
-        'ewogICJhY2NvdW50cyI6IFsKICAgIHsKICAgICAgImFkZHJlc3MiOiAiVUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TSIsCiAgICAgICJhbW91bnQiOiA1MDAyMjgwMDAwMDAwMDAwLAogICAgICAiYW1vdW50LXdpdGhvdXQtcGVuZGluZy1yZXdhcmRzIjogNTAwMDAwMDAwMDAwMDAwMCwKICAgICAgInBlbmRpbmctcmV3YXJkcyI6IDIyODAwMDAwMDAwMDAsCiAgICAgICJyZXdhcmQtYmFzZSI6IDQ1NiwKICAgICAgInJld2FyZHMiOiAyMjgwMDAwMDAwMDAwLAogICAgICAicm91bmQiOiAxODI0MSwKICAgICAgInN0YXR1cyI6ICJPbmxpbmUiCiAgICB9CiAgXSwKICAiYXBwcyI6IFsKICAgIHsKICAgICAgImlkIjogMTM4MDAxMTU4OCwKICAgICAgInBhcmFtcyI6IHsKICAgICAgICAiY3JlYXRvciI6ICJVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNIiwKICAgICAgICAiYXBwcm92YWwtcHJvZ3JhbSI6ICJBaUFCQVNJPSIsCiAgICAgICAgImNsZWFyLXN0YXRlLXByb2dyYW0iOiAiQWlBQkFTST0iLAogICAgICAgICJnbG9iYWwtc3RhdGUtc2NoZW1hIjogewogICAgICAgICAgIm51bS1ieXRlLXNsaWNlIjogNSwKICAgICAgICAgICJudW0tdWludCI6IDUKICAgICAgICB9LAogICAgICAgICJsb2NhbC1zdGF0ZS1zY2hlbWEiOiB7CiAgICAgICAgICAibnVtLWJ5dGUtc2xpY2UiOiA1LAogICAgICAgICAgIm51bS11aW50IjogNQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImxhdGVzdC10aW1lc3RhbXAiOiAxNTkyNTM3NzU3LAogICJwcm90b2NvbC12ZXJzaW9uIjogImZ1dHVyZSIsCiAgInJvdW5kIjogMTgyNDEsCiAgInR4bnMiOiBbCiAgICB7CiAgICAgICJ0eG4iOiB7CiAgICAgICAgImFwc3UiOiAiQWlBQkFTST0iLAogICAgICAgICJmZWUiOiAxMDAwLAogICAgICAgICJmdiI6IDE4MjQyLAogICAgICAgICJnaCI6ICJaSWtQczhwVER4YlJKc0ZCMXlKN2d2bnBEdTBRODVGUmtsMk5Da0VBUUxVPSIsCiAgICAgICAgImx2IjogMTkyNDIsCiAgICAgICAgIm5vdGUiOiAidGpwTmdlNzhKRDg9IiwKICAgICAgICAic25kIjogIlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN00iLAogICAgICAgICJ0eXBlIjogImFwcGwiCiAgICAgIH0KICAgIH0KICBdCn0K';
-      const goldenString = algosdk.base64ToString(golden, 'base64');
-      const expected = JSON.parse(goldenString);
-
-      assert.deepStrictEqual(actual, expected);
+      const expected = `{
+  "accounts": [
+    {
+      "address": "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+      "amount": 5002280000000000,
+      "amount-without-pending-rewards": 5000000000000000,
+      "min-balance": 100000,
+      "pending-rewards": 2280000000000,
+      "reward-base": 456,
+      "rewards": 2280000000000,
+      "round": 18241,
+      "status": "Online",
+      "total-apps-opted-in": 0,
+      "total-assets-opted-in": 0,
+      "total-created-apps": 0,
+      "total-created-assets": 0
+    }
+  ],
+  "apps": [
+    {
+      "id": 1380011588,
+      "params": {
+        "creator": "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+        "approval-program": "AiABASI=",
+        "clear-state-program": "AiABASI=",
+        "global-state-schema": {
+          "num-byte-slice": 5,
+          "num-uint": 5
+        },
+        "local-state-schema": {
+          "num-byte-slice": 5,
+          "num-uint": 5
+        }
+      }
+    }
+  ],
+  "latest-timestamp": 1592537757,
+  "protocol-version": "future",
+  "round": 18241,
+  "sources": [],
+  "txns": [
+    {
+      "txn": {
+        "apsu": "AiABASI=",
+        "fee": 1000,
+        "fv": 18242,
+        "gh": "ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=",
+        "lv": 19242,
+        "note": "tjpNge78JD8=",
+        "snd": "UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M",
+        "type": "appl"
+      }
+    }
+  ]
+}`;
+      // Cannot directly compare JSON strings because order of keys is not guaranteed
+      const actualDecoded = JSON.parse(actual);
+      const expectedDecoded = JSON.parse(expected);
+      assert.deepStrictEqual(actualDecoded, expectedDecoded);
     });
 
     it('should be properly serialized to msgpack', () => {
-      const actual = req.get_obj_for_encoding(true);
-      const golden =
-        'hqhhY2NvdW50c5GIp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAK9wZW5kaW5nLXJld2FyZHPPAAACEtqXEACrcmV3YXJkLWJhc2XNAcincmV3YXJkc88AAAIS2pcQAKVyb3VuZM1HQaZzdGF0dXOmT25saW5lpGFwcHORgqJpZM5SQU5EpnBhcmFtc4WwYXBwcm92YWwtcHJvZ3JhbcQFAiABASKzY2xlYXItc3RhdGUtcHJvZ3JhbcQFAiABASKnY3JlYXRvctk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TbNnbG9iYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsmxvY2FsLXN0YXRlLXNjaGVtYYKubnVtLWJ5dGUtc2xpY2UFqG51bS11aW50BbBsYXRlc3QtdGltZXN0YW1wzl7sMp2wcHJvdG9jb2wtdmVyc2lvbqZmdXR1cmWlcm91bmTNR0GkdHhuc5GBo3R4boikYXBzdahBaUFCQVNJPaNmZWXNA+iiZnbNR0KiZ2jZLFpJa1BzOHBURHhiUkpzRkIxeUo3Z3ZucER1MFE4NUZSa2wyTkNrRUFRTFU9omx2zUsqpG5vdGWsdGpwTmdlNzhKRDg9o3NuZNk6VUFQSkUzNTVLN0JHN1JRVk1UWk9XN1FXNElDWkpFSUMzUlpHWUc1TFNIWjY1SzZMQ05GUEpEU1I3TaR0eXBlpGFwcGw=';
-      const goldenBinary = new Uint8Array(algosdk.base64ToBytes(golden));
-      const expected = algosdk.decodeObj(goldenBinary);
-
+      const forEncoding = req.get_obj_for_encoding(true, true)!;
+      const actual = algosdk.encodeObj(forEncoding);
+      const expected = algosdk.base64ToBytes(
+        'hqhhY2NvdW50c5GJp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWkYXBwc5GComlkzlJBTkSmcGFyYW1zhbBhcHByb3ZhbC1wcm9ncmFtxAUCIAEBIrNjbGVhci1zdGF0ZS1wcm9ncmFtxAUCIAEBIqdjcmVhdG9y2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNs2dsb2JhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWybG9jYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsGxhdGVzdC10aW1lc3RhbXDOXuwynbBwcm90b2NvbC12ZXJzaW9upmZ1dHVyZaVyb3VuZM1HQaR0eG5zkYGjdHhuiKRhcHN1qEFpQUJBU0k9o2ZlZc0D6KJmds1HQqJnaNksWklrUHM4cFREeGJSSnNGQjF5Sjdndm5wRHUwUTg1RlJrbDJOQ2tFQVFMVT2ibHbNSyqkbm90Zax0anBOZ2U3OEpEOD2jc25k2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNpHR5cGWkYXBwbA=='
+      );
       assert.deepStrictEqual(actual, expected);
     });
   });

@@ -21,9 +21,8 @@ export default class Block extends JSONRequest<BlockResponse, Uint8Array> {
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array): BlockResponse {
-    if (body && body.byteLength > 0) {
-      return BlockResponse.from_obj_for_encoding(encoding.decode(body));
-    }
-    return undefined;
+    return BlockResponse.from_obj_for_encoding(
+      encoding.decode(body) as Record<string, any>
+    );
   }
 }

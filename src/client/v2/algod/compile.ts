@@ -7,7 +7,7 @@ import JSONRequest from '../jsonrequest.js';
  * Sets the default header (if not previously set)
  * @param headers - A headers object
  */
-export function setHeaders(headers = {}) {
+export function setHeaders(headers: Record<string, any> = {}) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
@@ -23,7 +23,10 @@ export default class Compile extends JSONRequest<
   CompileResponse,
   Record<string, any>
 > {
-  constructor(c: HTTPClient, private source: string | Uint8Array) {
+  constructor(
+    c: HTTPClient,
+    private source: string | Uint8Array
+  ) {
     super(c);
     this.source = source;
   }

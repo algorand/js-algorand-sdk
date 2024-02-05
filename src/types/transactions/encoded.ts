@@ -132,7 +132,7 @@ export interface EncodedTransaction {
   /**
    * genesisID
    */
-  gen: string;
+  gen?: string;
 
   /**
    * genesisHash

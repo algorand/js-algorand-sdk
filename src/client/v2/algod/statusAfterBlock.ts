@@ -7,7 +7,11 @@ export default class StatusAfterBlock extends JSONRequest<
   NodeStatusResponse,
   Record<string, any>
 > {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private round: number
+  ) {
     super(c, intDecoding);
     if (!Number.isInteger(round)) throw Error('round should be an integer');
     this.round = round;

@@ -332,32 +332,32 @@ export interface TransactionParams {
   /**
    * Restricts number of ints in per-user local state
    */
-  appLocalInts: number;
+  appLocalInts?: number;
 
   /**
    * Restricts number of byte slices in per-user local state
    */
-  appLocalByteSlices: number;
+  appLocalByteSlices?: number;
 
   /**
    * Restricts number of ints in global state
    */
-  appGlobalInts: number;
+  appGlobalInts?: number;
 
   /**
    * Restricts number of byte slices in global state
    */
-  appGlobalByteSlices: number;
+  appGlobalByteSlices?: number;
 
   /**
    * The compiled TEAL that approves a transaction
    */
-  appApprovalProgram: Uint8Array;
+  appApprovalProgram?: Uint8Array;
 
   /**
    * The compiled TEAL program that runs when clearing state
    */
-  appClearProgram: Uint8Array;
+  appClearProgram?: Uint8Array;
 
   /**
    * Array of Uint8Array, any additional arguments to the application

@@ -57,5 +57,5 @@ export function abiCheckTransactionType(
     return true;
   }
 
-  return txn.type && txn.type.toString() === type.toString();
+  return txn.type ? txn.type.toString() === type.toString() : false;
 }

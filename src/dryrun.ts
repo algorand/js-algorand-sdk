@@ -1,5 +1,6 @@
 import { AlgodClient } from './client/v2/algod/algod.js';
 import {
+  Account,
   AccountStateDelta,
   Application,
   ApplicationParams,
@@ -43,8 +44,8 @@ export async function createDryrun({
   round?: number | bigint;
   sources?: DryrunSource[];
 }): Promise<DryrunRequest> {
-  const appInfos = [];
-  const acctInfos = [];
+  const appInfos: Application[] = [];
+  const acctInfos: Account[] = [];
 
   const apps: number[] = [];
   const assets: number[] = [];
@@ -95,7 +96,7 @@ export async function createDryrun({
 
   // Dedupe and add creator to accts array
   const assetPromises = [];
-  for (const assetId of [...new Set(assets)]) {
+  for (const assetId of new Set(assets)) {
     assetPromises.push(
       client
         .getAssetByID(assetId)
@@ -110,7 +111,7 @@ export async function createDryrun({
 
   // Dedupe and get app info for all apps
   const appPromises = [];
-  for (const appId of [...new Set(apps)]) {
+  for (const appId of new Set(apps)) {
     appPromises.push(
       client
         .getApplicationByID(appId)
@@ -137,13 +138,13 @@ export async function createDryrun({
   await Promise.all(acctPromises);
 
   return new DryrunRequest({
-    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
+    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding()! })),
     accounts: acctInfos,
     apps: appInfos,
-    latestTimestamp,
-    round,
-    protocolVersion,
-    sources,
+    latestTimestamp: latestTimestamp ?? 0,
+    round: round ?? 0,
+    protocolVersion: protocolVersion ?? '',
+    sources: sources ?? [],
   });
 }
 
@@ -260,15 +261,18 @@ function scratchToString(
   return `${newScratchIdx} = ${newScratch.uint.toString()}`;
 }
 
-function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
+function stackToString(
+  stack: DryrunStackValue[],
+  reverse: boolean | undefined
+): string {
   const svs = reverse ? stack.reverse() : stack;
   return `[${svs
-    .map((sv: DryrunStackValue) => {
+    .map((sv) => {
       switch (sv.type) {
         case 1:
           return `0x${bytesToHex(base64ToBytes(sv.bytes))}`;
         case 2:
-          return `${sv.uint.toString()}`;
+          return sv.uint.toString();
         default:
           return '';
       }
@@ -302,7 +306,8 @@ class DryrunTransactionResult {
 
   traces = ['app-call-trace', 'logic-sig-trace'];
 
-  constructor(dtr: DryrunTransactionResultResponse) {
+  constructor(dtr: DryrunTransactionResultResponse | any) {
+    // Temporary type fix, will be unnecessary in following PR
     this.disassembly = dtr.disassembly;
     this.appCallMessages = dtr['app-call-messages'];
     this.localDeltas = dtr['local-deltas'];
@@ -382,11 +387,13 @@ class DryrunTransactionResult {
     if (this.appCallTrace === undefined || !this.disassembly) return '';
 
     let conf = spc;
-    if (spc === undefined)
+    if (spc !== undefined) conf = spc;
+    else {
       conf = {
         maxValueWidth: defaultMaxWidth,
         topOfStackFirst: false,
-      } as StackPrinterConfig;
+      };
+    }
 
     return DryrunTransactionResult.trace(
       this.appCallTrace,
@@ -402,12 +409,14 @@ class DryrunTransactionResult {
     )
       return '';
 
-    let conf = spc;
-    if (spc === undefined)
+    let conf: StackPrinterConfig;
+    if (spc !== undefined) conf = spc;
+    else {
       conf = {
         maxValueWidth: defaultMaxWidth,
         topOfStackFirst: true,
-      } as StackPrinterConfig;
+      };
+    }
 
     return DryrunTransactionResult.trace(
       this.logicSigTrace,

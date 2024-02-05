@@ -50,6 +50,7 @@ export function decodeUint64(
   decodingMode: 'mixed'
 ): number | bigint;
 export function decodeUint64(data: Uint8Array, decodingMode: 'bigint'): bigint;
+export function decodeUint64(data: Uint8Array): number;
 export function decodeUint64(data: any, decodingMode: any = 'safe') {
   if (
     decodingMode !== 'safe' &&

@@ -25,8 +25,8 @@ async function main() {
   const keyDilution = numRounds ** 0.5;
 
   // create transaction
-  const onlineKeyreg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-    {
+  const onlineKeyreg =
+    algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
       sender: addr,
       voteKey,
       selectionKey,
@@ -35,8 +35,7 @@ async function main() {
       voteLast: params.firstValid + numRounds,
       voteKeyDilution: keyDilution,
       suggestedParams: params,
-    }
-  );
+    });
 
   console.log(onlineKeyreg.get_obj_for_encoding());
   // example: TRANSACTION_KEYREG_ONLINE_CREATE
@@ -45,13 +44,12 @@ async function main() {
   // get suggested parameters
   const suggestedParams = await algodClient.getTransactionParams().do();
   // create keyreg transaction to take this account offline
-  const offlineKeyReg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-    {
+  const offlineKeyReg =
+    algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
       sender: addr,
       suggestedParams,
       nonParticipation: true,
-    }
-  );
+    });
   console.log(offlineKeyReg.get_obj_for_encoding());
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
 }

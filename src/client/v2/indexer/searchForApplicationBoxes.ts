@@ -33,7 +33,11 @@ export default class SearchForApplicationBoxes extends JSONRequest<
    * @oaram index - application index.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private index: number
+  ) {
     super(c, intDecoding);
     this.index = index;
   }

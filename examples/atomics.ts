@@ -47,11 +47,12 @@ async function main() {
 
   // example: ATOMIC_GROUP_SEND
   await client.sendRawTransaction(signedTxns).do();
-  await algosdk.waitForConfirmation(client, alicesTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, alicesTxn.txID(), 3);
   // example: ATOMIC_GROUP_SEND
 
   // example: CONST_MIN_FEE
   const minFee = algosdk.ALGORAND_MIN_TX_FEE;
+  console.log(minFee);
   // example: CONST_MIN_FEE
 
   // example: TRANSACTION_FEE_OVERRIDE
@@ -61,7 +62,8 @@ async function main() {
   // example: TRANSACTION_FEE_OVERRIDE
 
   // example: SP_MIN_FEE
-  // Not supported because getTransactionParams erases the information
+  const params = await client.getTransactionParams().do();
+  console.log(params.minFee);
   // example: SP_MIN_FEE
 }
 

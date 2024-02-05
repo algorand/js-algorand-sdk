@@ -3,7 +3,11 @@ import { HTTPClient } from '../../client.js';
 import IntDecoding from '../../../types/intDecoding.js';
 
 export default class SetSyncRound extends JSONRequest {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private round: number
+  ) {
     super(c, intDecoding);
 
     this.round = round;
@@ -14,7 +18,7 @@ export default class SetSyncRound extends JSONRequest {
   }
 
   async do(headers = {}) {
-    const res = await this.c.post(this.path(), null, null, headers);
+    const res = await this.c.post(this.path(), null, undefined, headers);
     return res.body;
   }
 }

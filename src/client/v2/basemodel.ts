@@ -15,45 +15,90 @@ function _is_primitive(val: any): val is string | boolean | number | bigint {
 }
 
 /* eslint-disable no-underscore-dangle,camelcase,no-redeclare,no-unused-vars */
-function _get_obj_for_encoding(
+export function _get_obj_for_encoding(
   val: Function,
-  binary: boolean
+  binary: boolean,
+  omitEmpty: boolean
 ): Record<string, any>;
-function _get_obj_for_encoding(val: any[], binary: boolean): any[];
-function _get_obj_for_encoding(
+export function _get_obj_for_encoding(
+  val: any[],
+  binary: boolean,
+  omitEmpty: boolean
+): any[];
+export function _get_obj_for_encoding(
   val: Record<string, any>,
-  binary: boolean
+  binary: boolean,
+  omitEmpty: boolean
 ): Record<string, any>;
-function _get_obj_for_encoding(val: any, binary: boolean): any {
+export function _get_obj_for_encoding(
+  val: any,
+  binary: boolean,
+  omitEmpty: boolean
+): any {
   /* eslint-enable no-underscore-dangle,camelcase,no-redeclare,no-unused-vars */
-  let targetPropValue: any;
-
-  if (val instanceof Uint8Array) {
-    targetPropValue = binary ? val : bytesToBase64(val);
-  } else if (typeof val.get_obj_for_encoding === 'function') {
-    targetPropValue = val.get_obj_for_encoding(binary);
-  } else if (Array.isArray(val)) {
-    targetPropValue = [];
-    for (const elem of val) {
-      targetPropValue.push(_get_obj_for_encoding(elem, binary));
+  if (val == null) {
+    if (omitEmpty) {
+      return undefined;
     }
-  } else if (typeof val === 'object') {
-    const obj = {};
-    for (const prop of Object.keys(val)) {
-      obj[prop] = _get_obj_for_encoding(val[prop], binary);
-    }
-    targetPropValue = obj;
-  } else if (_is_primitive(val)) {
-    targetPropValue = val;
-  } else {
-    throw new Error(`Unsupported value: ${String(val)}`);
+    return val;
   }
-  return targetPropValue;
+  if (val instanceof Uint8Array) {
+    if (omitEmpty && val.byteLength === 0) {
+      return undefined;
+    }
+    return binary ? val : bytesToBase64(val);
+  }
+  if (typeof val.get_obj_for_encoding === 'function') {
+    return val.get_obj_for_encoding(binary, omitEmpty);
+  }
+  if (Array.isArray(val)) {
+    if (omitEmpty && val.length === 0) {
+      return undefined;
+    }
+    const targetPropValue = [];
+    for (const elem of val) {
+      const omitEmptyForChild =
+        _is_primitive(elem) || elem instanceof Uint8Array ? false : omitEmpty;
+      let forEncoding = _get_obj_for_encoding(elem, binary, omitEmptyForChild);
+      if (omitEmpty && typeof forEncoding === 'undefined') {
+        if (Array.isArray(elem)) {
+          forEncoding = [];
+        } else if (elem && typeof elem === 'object') {
+          forEncoding = {};
+        }
+      }
+      targetPropValue.push(forEncoding);
+    }
+    return targetPropValue;
+  }
+  if (typeof val === 'object') {
+    let keyCount = 0;
+    const obj: Record<string, unknown> = {};
+    for (const prop of Object.keys(val)) {
+      const forEncoding = _get_obj_for_encoding(val[prop], binary, omitEmpty);
+      if (omitEmpty && typeof forEncoding === 'undefined') {
+        continue;
+      }
+      obj[prop] = forEncoding;
+      keyCount += 1;
+    }
+    if (omitEmpty && keyCount === 0) {
+      return undefined;
+    }
+    return obj;
+  }
+  if (_is_primitive(val)) {
+    if (omitEmpty && !val) {
+      return undefined;
+    }
+    return val;
+  }
+  throw new Error(`Unsupported value, type "${typeof val}": ${val}`);
 }
 
 export default class BaseModel {
   /* eslint-disable no-underscore-dangle,camelcase */
-  attribute_map: Record<string, string>;
+  attribute_map!: Record<string, string>;
 
   /**
    * Get an object ready for encoding to either JSON or msgpack.
@@ -61,19 +106,34 @@ export default class BaseModel {
    *   (Uint8Arrays). Use false to indicate that raw binary objects should be converted to base64
    *   strings. True should be used for objects that will be encoded with msgpack, and false should
    *   be used for objects that will be encoded with JSON.
+   * @param omitEmpty - Use true to omit all properties with falsy or empty values. This is useful
+   *   for encoding objects for msgpack, since our encoder will error if it encounters any empty or
+   *   falsy values.
    */
-  get_obj_for_encoding(binary = false) {
+  get_obj_for_encoding(
+    binary: boolean = false,
+    omitEmpty: boolean = false
+  ): Record<string, any> | undefined {
     /* eslint-enable no-underscore-dangle,camelcase */
+    let keyCount = 0;
     const obj: Record<string, any> = {};
 
     for (const prop of Object.keys(this.attribute_map)) {
       const name = this.attribute_map[prop];
-      const value = this[prop];
-
-      if (typeof value !== 'undefined') {
-        obj[name] =
-          value === null ? null : _get_obj_for_encoding(value, binary);
+      const value: any = this[prop as keyof this]; // Add an index signature to allow indexing with a string parameter
+      if (typeof value === 'undefined') {
+        continue;
       }
+      const valueForEncoding = _get_obj_for_encoding(value, binary, omitEmpty);
+      if (omitEmpty && typeof valueForEncoding === 'undefined') {
+        continue;
+      }
+      obj[name] = valueForEncoding;
+      keyCount += 1;
+    }
+
+    if (omitEmpty && keyCount === 0) {
+      return undefined;
     }
 
     return obj;

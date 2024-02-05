@@ -13,7 +13,7 @@ export default class Dryrun extends JSONRequest<
 
   constructor(c: HTTPClient, dr: modelsv2.DryrunRequest) {
     super(c);
-    this.blob = encoding.encode(dr.get_obj_for_encoding(true));
+    this.blob = encoding.encode(dr.get_obj_for_encoding(true, true)!);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -27,7 +27,7 @@ export default class Dryrun extends JSONRequest<
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(this.path(), this.blob, null, txHeaders);
+    const res = await this.c.post(this.path(), this.blob, undefined, txHeaders);
     return this.prepare(res.body);
   }
 

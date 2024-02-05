@@ -7,7 +7,11 @@ export default class LightBlockHeaderProof extends JSONRequest<
   LBHP,
   Record<string, any>
 > {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private round: number
+  ) {
     super(c, intDecoding);
 
     this.round = round;

@@ -16,7 +16,11 @@ export default class LookupAssetTransactions extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-idtransactions)
    * @param index - The asset ID to look up.
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
+  constructor(
+    c: HTTPClient,
+    intDecoding: IntDecoding,
+    private index: number
+  ) {
     super(c, intDecoding);
     this.index = index;
   }

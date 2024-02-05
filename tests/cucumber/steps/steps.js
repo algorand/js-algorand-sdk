@@ -4376,9 +4376,8 @@ module.exports = function getSteps(options) {
     function (resultIndex, methodArg) {
       // Return format for randomInt method
       const methodReturnType = algosdk.ABIType.from('(uint64,byte[17])');
-      const actualResult = this.composerExecuteResponse.methodResults[
-        resultIndex
-      ];
+      const actualResult =
+        this.composerExecuteResponse.methodResults[resultIndex];
       const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
       assert.strictEqual(resultArray.length, 2);
       const [randomIntResult, witnessResult] = resultArray;
@@ -4396,9 +4395,8 @@ module.exports = function getSteps(options) {
     function (resultIndex, methodArg) {
       // Return format for randElement method
       const methodReturnType = algosdk.ABIType.from('(byte,byte[17])');
-      const actualResult = this.composerExecuteResponse.methodResults[
-        resultIndex
-      ];
+      const actualResult =
+        this.composerExecuteResponse.methodResults[resultIndex];
       const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
       assert.strictEqual(resultArray.length, 2);
       const [randomResult, witnessResult] = resultArray;
@@ -4431,8 +4429,8 @@ module.exports = function getSteps(options) {
   Then(
     'I can dig the {int}th atomic result with path {string} and see the value {string}',
     function (index, pathString, expectedResult) {
-      let actualResult = this.composerExecuteResponse.methodResults[index]
-        .txInfo;
+      let actualResult =
+        this.composerExecuteResponse.methodResults[index].txInfo;
       actualResult = glom(actualResult.get_obj_for_encoding(), pathString);
 
       assert.strictEqual(expectedResult, actualResult.toString());
@@ -4877,8 +4875,8 @@ module.exports = function getSteps(options) {
       const stringPath = failAt.split(',');
       const failPath = stringPath.map((n) => parseInt(n, 10));
 
-      const failedMessage = this.simulateResponse.txnGroups[groupNum]
-        .failureMessage;
+      const failedMessage =
+        this.simulateResponse.txnGroups[groupNum].failureMessage;
       assert.ok(
         failedMessage.includes(errorMsg),
         `Error message: "${failedMessage}" does not contain "${errorMsg}"`
@@ -4945,14 +4943,13 @@ module.exports = function getSteps(options) {
       const optionList = execTraceOptions.split(',');
 
       assert.ok(this.simulateRequest);
-      this.simulateRequest.execTraceConfig = new algosdk.modelsv2.SimulateTraceConfig(
-        {
+      this.simulateRequest.execTraceConfig =
+        new algosdk.modelsv2.SimulateTraceConfig({
           enable: true,
           scratchChange: optionList.includes('scratch'),
           stackChange: optionList.includes('stack'),
           stateChange: optionList.includes('state'),
-        }
-      );
+        });
     }
   );
 
@@ -4999,9 +4996,9 @@ module.exports = function getSteps(options) {
           .map(Number);
         assert.ok(txnGroupPathSplit.length > 0);
 
-        let traces = this.simulateResponse.txnGroups[0].txnResults[
-          txnGroupPathSplit[0]
-        ].execTrace;
+        let traces =
+          this.simulateResponse.txnGroups[0].txnResults[txnGroupPathSplit[0]]
+            .execTrace;
         assert.ok(traces);
 
         for (let i = 1; i < txnGroupPathSplit.length; i++) {
@@ -5173,9 +5170,9 @@ module.exports = function getSteps(options) {
           .map(Number);
         assert.ok(txnGroupPathSplit.length > 0);
 
-        let traces = this.simulateResponse.txnGroups[0].txnResults[
-          txnGroupPathSplit[0]
-        ].execTrace;
+        let traces =
+          this.simulateResponse.txnGroups[0].txnResults[txnGroupPathSplit[0]]
+            .execTrace;
         assert.ok(traces);
 
         for (let i = 1; i < txnGroupPathSplit.length; i++) {
@@ -5242,9 +5239,9 @@ module.exports = function getSteps(options) {
         .map(Number);
       assert.ok(txnGroupPathSplit.length > 0);
 
-      let traces = this.simulateResponse.txnGroups[0].txnResults[
-        txnGroupPathSplit[0]
-      ].execTrace;
+      let traces =
+        this.simulateResponse.txnGroups[0].txnResults[txnGroupPathSplit[0]]
+          .execTrace;
       assert.ok(traces);
 
       for (let i = 1; i < txnGroupPathSplit.length; i++) {
