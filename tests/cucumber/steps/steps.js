@@ -1334,7 +1334,7 @@ module.exports = function getSteps(options) {
           sender: freezer,
           freezeTarget: this.accounts[1],
           assetIndex: parseInt(this.assetTestFixture.index),
-          assetFrozen: false,
+          freezeState: false,
           note: this.note,
           suggestedParams: this.params,
         });
@@ -1361,7 +1361,7 @@ module.exports = function getSteps(options) {
           sender: freezer,
           freezeTarget: this.accounts[1],
           assetIndex: parseInt(this.assetTestFixture.index),
-          assetFrozen: true,
+          freezeState: true,
           note: this.note,
           suggestedParams: this.params,
         });
@@ -1386,7 +1386,7 @@ module.exports = function getSteps(options) {
         algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
           sender: this.assetTestFixture.creator,
           receiver: this.assetTestFixture.creator,
-          assetSender: this.accounts[1],
+          revocationTarget: this.accounts[1],
           amount: parseInt(amount),
           note: this.note,
           genesisHash: this.gh,
@@ -3127,7 +3127,7 @@ module.exports = function getSteps(options) {
         case 'call':
           this.txn = algosdk.makeApplicationNoOpTxnFromObject({
             sender,
-            appId: appIndex,
+            appIndex,
             appArgs,
             accounts: appAccounts,
             foreignApps,
@@ -3158,7 +3158,7 @@ module.exports = function getSteps(options) {
         case 'update':
           this.txn = algosdk.makeApplicationUpdateTxnFromObject({
             sender,
-            appId: appIndex,
+            appIndex,
             approvalProgram: approvalProgramBytes,
             clearProgram: clearProgramBytes,
             appArgs,
@@ -3172,7 +3172,7 @@ module.exports = function getSteps(options) {
         case 'optin':
           this.txn = algosdk.makeApplicationOptInTxnFromObject({
             sender,
-            appId: appIndex,
+            appIndex,
             appArgs,
             accounts: appAccounts,
             foreignApps,
@@ -3184,7 +3184,7 @@ module.exports = function getSteps(options) {
         case 'delete':
           this.txn = algosdk.makeApplicationDeleteTxnFromObject({
             sender,
-            appId: appIndex,
+            appIndex,
             appArgs,
             accounts: appAccounts,
             foreignApps,
@@ -3196,7 +3196,7 @@ module.exports = function getSteps(options) {
         case 'clear':
           this.txn = algosdk.makeApplicationClearStateTxnFromObject({
             sender,
-            appId: appIndex,
+            appIndex,
             appArgs,
             accounts: appAccounts,
             foreignApps,
@@ -3208,7 +3208,7 @@ module.exports = function getSteps(options) {
         case 'closeout':
           this.txn = algosdk.makeApplicationCloseOutTxnFromObject({
             sender,
-            appId: appIndex,
+            appIndex,
             appArgs,
             accounts: appAccounts,
             foreignApps,
@@ -3394,7 +3394,7 @@ module.exports = function getSteps(options) {
       if (sp.firstValid === 0) sp.firstValid = 1;
       this.txn = algosdk.makeApplicationCallTxnFromObject({
         sender: this.transientAccount.addr,
-        appId: this.currentApplicationIndex,
+        appIndex: this.currentApplicationIndex,
         onComplete: operation,
         numLocalInts,
         numLocalByteSlices,

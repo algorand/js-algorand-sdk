@@ -133,10 +133,7 @@ These interfaces differ slightly from the v2 types. Some field names have change
 | "                | `selectionKey`      | `string \| Uint8Array` | `selectionKey`      | `Uint8Array`        | Base64 encoded value is no longer accepted |
 | "                | `stateProofKey`     | `string \| Uint8Array` | `stateProofKey`     | `Uint8Array`        | Base64 encoded value is no longer accepted |
 | Asset Config     | `assetMetadataHash` | `string \| Uint8Array` | `assetMetadataHash` | `Uint8Array`        | Base64 encoded value is no longer accepted |
-| Asset Freeze     | `freezeState`       | `boolean`              | `assetFrozen`       | `boolean`           |                                            |
 | Asset Transfer   | `to`                | `string`               | `receiver`          | `string \| Address` |                                            |
-| "                | `revocationTarget`  | `string`               | `assetSender`       | `string \| Address` |                                            |
-| Application Call | `appIndex`          | `number`               | `appId`             | `number \| bigint`  |                                            |
 
 Given these changes, the earlier v2 example would be equivalent to the following in v3:
 
@@ -185,36 +182,36 @@ The following table shows the correspondence between v2 and v3 fields in the `Tr
 | `voteLast`              | `number`                | `keyreg.voteLast`                     | `bigint`                    |                                           |
 | `voteKeyDilution`       | `number`                | `keyreg.voteKeyDilution`              | `bigint`                    |                                           |
 | `nonParticipation`      | `boolean`               | `keyreg.nonParticipation`             | `boolean`                   |                                           |
-| `assetIndex`            | `number`                | `assetConfig.assetId`                 | `bigint`                    | If the transaction type is asset config   |
-| "                       | "                       | `assetTransfer.assetId`               | `bigint`                    | If the transaction type is asset transfer |
-| "                       | "                       | `assetFreeze.assetId`                 | `bigint`                    | If the transaction type is asset freeze   |
-| `assetTotal`            | `number \| bigint`      | `assetConfig.assetTotal`              | `bigint`                    |                                           |
-| `assetDecimals`         | `number`                | `assetConfig.assetDecimals`           | `number`                    |                                           |
-| `assetDefaultFrozen`    | `boolean`               | `assetConfig.assetDefaultFrozen`      | `boolean`                   |                                           |
-| `assetManager`          | `Address`               | `assetConfig.assetManager`            | `Address`                   |                                           |
-| `assetReserve`          | `Address`               | `assetConfig.assetReserve`            | `Address`                   |                                           |
-| `assetFreeze`           | `Address`               | `assetConfig.assetFreeze`             | `Address`                   |                                           |
-| `assetClawback`         | `Address`               | `assetConfig.assetClawback`           | `Address`                   |                                           |
-| `assetUnitName`         | `string`                | `assetConfig.assetUnitName`           | `string`                    |                                           |
+| `assetIndex`            | `number`                | `assetConfig.assetIndex`              | `bigint`                    | If the transaction type is asset config   |
+| "                       | "                       | `assetTransfer.assetIndex`            | `bigint`                    | If the transaction type is asset transfer |
+| "                       | "                       | `assetFreeze.assetIndex`              | `bigint`                    | If the transaction type is asset freeze   |
+| `assetTotal`            | `number \| bigint`      | `assetConfig.total`                   | `bigint`                    |                                           |
+| `assetDecimals`         | `number`                | `assetConfig.decimals`                | `number`                    |                                           |
+| `assetDefaultFrozen`    | `boolean`               | `assetConfig.defaultFrozen`           | `boolean`                   |                                           |
+| `assetManager`          | `Address`               | `assetConfig.manager`                 | `Address`                   |                                           |
+| `assetReserve`          | `Address`               | `assetConfig.reserve`                 | `Address`                   |                                           |
+| `assetFreeze`           | `Address`               | `assetConfig.freeze`                  | `Address`                   |                                           |
+| `assetClawback`         | `Address`               | `assetConfig.clawback`                | `Address`                   |                                           |
+| `assetUnitName`         | `string`                | `assetConfig.unitName`                | `string`                    |                                           |
 | `assetName`             | `string`                | `assetConfig.assetName`               | `string`                    |                                           |
 | `assetURL`              | `string`                | `assetConfig.assetURL`                | `string`                    |                                           |
 | `assetMetadataHash`     | `Uint8Array`            | `assetConfig.assetMetadataHash`       | `Uint8Array`                |                                           |
 | `freezeAccount`         | `Address`               | `assetFreeze.freezeAccount`           | `Address`                   |                                           |
-| `freezeState`           | `boolean`               | `assetFreeze.assetFrozen`             | `boolean`                   |                                           |
-| `assetRevocationTarget` | `Address`               | `assetTransfer.sender`                | `Address`                   |                                           |
-| `appIndex`              | `number`                | `applicationCall.appId`               | `bigint`                    |                                           |
-| `appOnComplete`         | `OnApplicationComplete` | `applicationCall.appOnComplete`       | `OnApplicationComplete`     |                                           |
-| `appLocalInts`          | `number`                | `applicationCall.appLocalInts`        | `number`                    |                                           |
-| `appLocalByteSlices`    | `number`                | `applicationCall.appLocalByteSlices`  | `number`                    |                                           |
-| `appGlobalInts`         | `number`                | `applicationCall.appGlobalInts`       | `number`                    |                                           |
-| `appGlobalByteSlices`   | `number`                | `applicationCall.appGlobalByteSlices` | `number`                    |                                           |
+| `freezeState`           | `boolean`               | `assetFreeze.freezeState`             | `boolean`                   |                                           |
+| `assetRevocationTarget` | `Address`               | `assetTransfer.revocationTarget`      | `Address`                   |                                           |
+| `appIndex`              | `number`                | `applicationCall.appIndex`            | `bigint`                    |                                           |
+| `appOnComplete`         | `OnApplicationComplete` | `applicationCall.onComplete`          | `OnApplicationComplete`     |                                           |
+| `appLocalInts`          | `number`                | `applicationCall.numLocalInts`        | `number`                    |                                           |
+| `appLocalByteSlices`    | `number`                | `applicationCall.numLocalByteSlices`  | `number`                    |                                           |
+| `appGlobalInts`         | `number`                | `applicationCall.numGlobalInts`       | `number`                    |                                           |
+| `appGlobalByteSlices`   | `number`                | `applicationCall.numGlobalByteSlices` | `number`                    |                                           |
 | `extraPages`            | `number`                | `applicationCall.extraPages`          | `number`                    |                                           |
-| `appApprovalProgram`    | `Uint8Array`            | `applicationCall.appApprovalProgram`  | `Uint8Array`                |                                           |
-| `appClearProgram`       | `Uint8Array`            | `applicationCall.appClearProgram`     | `Uint8Array`                |                                           |
+| `appApprovalProgram`    | `Uint8Array`            | `applicationCall.approvalProgram`     | `Uint8Array`                |                                           |
+| `appClearProgram`       | `Uint8Array`            | `applicationCall.clearProgram`        | `Uint8Array`                |                                           |
 | `appArgs`               | `Uint8Array[]`          | `applicationCall.appArgs`             | `Uint8Array[]`              |                                           |
-| `appAccounts`           | `Address[]`             | `applicationCall.appAccounts`         | `Address[]`                 |                                           |
-| `appForeignApps`        | `number[]`              | `applicationCall.appForeignApps`      | `bigint[]`                  |                                           |
-| `appForeignAssets`      | `number[]`              | `applicationCall.appForeignAssets`    | `bigint[]`                  |                                           |
+| `appAccounts`           | `Address[]`             | `applicationCall.accounts`            | `Address[]`                 |                                           |
+| `appForeignApps`        | `number[]`              | `applicationCall.foreignApps`         | `bigint[]`                  |                                           |
+| `appForeignAssets`      | `number[]`              | `applicationCall.foreignAssets`       | `bigint[]`                  |                                           |
 | `boxes`                 | `BoxReference[]`        | `applicationCall.boxes`               | `TransactionBoxReference[]` |                                           |
 | `stateProofType`        | `number \| bigint`      | `stateProof.stateProofType`           | `number`                    |                                           |
 | `stateProof`            | `Uint8Array`            | `stateProof.stateProof`               | `Uint8Array`                |                                           |

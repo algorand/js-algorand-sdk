@@ -26,7 +26,7 @@ describe('Sign', () => {
         genesisID: 'mock-network',
       },
       appCallParams: {
-        appId: 5,
+        appIndex: 5,
         onComplete: algosdk.OnApplicationComplete.NoOpOC,
         appArgs,
         accounts,
@@ -47,9 +47,9 @@ describe('Sign', () => {
     assert.deepStrictEqual(foreignAssets, [7, 8, 9]);
     assert.ok(txn.applicationCall);
     assert.ok(txn.applicationCall.appArgs !== appArgs);
-    assert.ok((txn.applicationCall.appAccounts as any) !== accounts);
-    assert.ok((txn.applicationCall.appForeignApps as any) !== foreignApps);
-    assert.ok((txn.applicationCall.appForeignAssets as any) !== foreignAssets);
+    assert.ok((txn.applicationCall.accounts as any) !== accounts);
+    assert.ok((txn.applicationCall.foreignApps as any) !== foreignApps);
+    assert.ok((txn.applicationCall.foreignAssets as any) !== foreignAssets);
     assert.ok((txn.applicationCall.boxes as any) !== boxes);
   });
 
@@ -432,7 +432,7 @@ describe('Sign', () => {
             assetIndex: 9999,
             receiver: sender,
             amount: 0,
-            assetSender: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+            revocationTarget: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
           },
           suggestedParams,
         }),
@@ -814,7 +814,7 @@ describe('Sign', () => {
           receiver: address,
           amount: 100,
           closeRemainderTo: address,
-          assetSender: address,
+          revocationTarget: address,
         },
         suggestedParams: {
           minFee: 1000,
@@ -886,7 +886,7 @@ describe('Sign', () => {
         sender: address,
         assetFreezeParams: {
           assetIndex: 1,
-          assetFrozen: true,
+          freezeState: true,
           freezeTarget: address,
         },
         suggestedParams: {
@@ -990,7 +990,7 @@ describe('Sign', () => {
         assetFreezeParams: {
           assetIndex: 9999,
           freezeTarget: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
-          assetFrozen: true,
+          freezeState: true,
         },
         suggestedParams: {
           minFee: 1000,
@@ -1028,7 +1028,7 @@ describe('Sign', () => {
         sender: address,
         assetFreezeParams: {
           assetIndex: 1,
-          assetFrozen: true,
+          freezeState: true,
           freezeTarget: address,
         },
         suggestedParams: {
@@ -1858,7 +1858,7 @@ describe('Sign', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const sender = addr;
       const receiver = addr;
-      const assetSender = addr;
+      const revocationTarget = addr;
       const closeRemainderTo = addr;
       const assetIndex = 1234;
       const amount = 100;
@@ -1878,7 +1878,7 @@ describe('Sign', () => {
         sender,
         assetTransferParams: {
           receiver,
-          assetSender,
+          revocationTarget,
           closeRemainderTo,
           assetIndex,
           amount,
@@ -1892,7 +1892,7 @@ describe('Sign', () => {
           sender,
           receiver,
           closeRemainderTo,
-          assetSender,
+          revocationTarget,
           amount,
           note,
           assetIndex,
@@ -1906,7 +1906,7 @@ describe('Sign', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const assetIndex = 1234;
       const freezeTarget = addr;
-      const assetFrozen = true;
+      const freezeState = true;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
@@ -1923,7 +1923,7 @@ describe('Sign', () => {
         sender: addr,
         assetFreezeParams: {
           freezeTarget,
-          assetFrozen,
+          freezeState,
           assetIndex,
         },
         suggestedParams,
@@ -1936,7 +1936,7 @@ describe('Sign', () => {
           note,
           assetIndex,
           freezeTarget,
-          assetFrozen,
+          freezeState,
           suggestedParams,
           rekeyTo,
         }

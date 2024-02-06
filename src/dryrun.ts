@@ -55,43 +55,41 @@ export async function createDryrun({
     if (t.txn.type === TransactionType.appl) {
       accts.push(t.txn.sender.toString());
 
-      accts.push(
-        ...t.txn.applicationCall!.appAccounts.map((a) => a.toString())
-      );
+      accts.push(...t.txn.applicationCall!.accounts.map((a) => a.toString()));
 
-      apps.push(...t.txn.applicationCall!.appForeignApps);
+      apps.push(...t.txn.applicationCall!.foreignApps);
       accts.push(
         ...t.txn
-          .applicationCall!.appForeignApps.map(getApplicationAddress)
+          .applicationCall!.foreignApps.map(getApplicationAddress)
           .map((a) => a.toString())
       );
 
-      assets.push(...t.txn.applicationCall!.appForeignAssets);
+      assets.push(...t.txn.applicationCall!.foreignAssets);
 
       // Create application,
-      if (t.txn.applicationCall!.appId === BigInt(0)) {
+      if (t.txn.applicationCall!.appIndex === BigInt(0)) {
         appInfos.push(
           new Application({
             id: defaultAppId,
             params: new ApplicationParams({
               creator: t.txn.sender.toString(),
-              approvalProgram: t.txn.applicationCall!.appApprovalProgram,
-              clearStateProgram: t.txn.applicationCall!.appClearProgram,
+              approvalProgram: t.txn.applicationCall!.approvalProgram,
+              clearStateProgram: t.txn.applicationCall!.clearProgram,
               localStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.applicationCall!.appLocalInts,
-                numByteSlice: t.txn.applicationCall!.appLocalByteSlices,
+                numUint: t.txn.applicationCall!.numLocalInts,
+                numByteSlice: t.txn.applicationCall!.numLocalByteSlices,
               }),
               globalStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.applicationCall!.appGlobalInts,
-                numByteSlice: t.txn.applicationCall!.appGlobalByteSlices,
+                numUint: t.txn.applicationCall!.numGlobalInts,
+                numByteSlice: t.txn.applicationCall!.numGlobalByteSlices,
               }),
             }),
           })
         );
       } else {
-        const { appId } = t.txn.applicationCall!;
-        apps.push(appId);
-        accts.push(getApplicationAddress(appId).toString());
+        const { appIndex } = t.txn.applicationCall!;
+        apps.push(appIndex);
+        accts.push(getApplicationAddress(appIndex).toString());
       }
     }
   }

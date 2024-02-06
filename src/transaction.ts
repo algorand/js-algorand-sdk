@@ -199,48 +199,48 @@ export interface KeyRegistrationTransactionFields {
 }
 
 export interface AssetConfigTransactionFields {
-  readonly assetId: bigint;
-  readonly assetTotal: bigint;
-  readonly assetDecimals: number;
-  readonly assetDefaultFrozen: boolean;
-  readonly assetManager?: Address;
-  readonly assetReserve?: Address;
-  readonly assetFreeze?: Address;
-  readonly assetClawback?: Address;
-  readonly assetUnitName?: string;
+  readonly assetIndex: bigint;
+  readonly total: bigint;
+  readonly decimals: number;
+  readonly defaultFrozen: boolean;
+  readonly manager?: Address;
+  readonly reserve?: Address;
+  readonly freeze?: Address;
+  readonly clawback?: Address;
+  readonly unitName?: string;
   readonly assetName?: string;
   readonly assetURL?: string;
   readonly assetMetadataHash?: Uint8Array;
 }
 
 export interface AssetTransferTransactionFields {
-  readonly assetId: bigint;
+  readonly assetIndex: bigint;
   readonly amount: bigint;
-  readonly sender?: Address;
+  readonly revocationTarget?: Address;
   readonly receiver: Address;
   readonly closeRemainderTo?: Address;
 }
 
 export interface AssetFreezeTransactionFields {
-  readonly assetId: bigint;
+  readonly assetIndex: bigint;
   readonly freezeAccount: Address;
-  readonly assetFrozen: boolean;
+  readonly freezeState: boolean;
 }
 
 export interface ApplicationTransactionFields {
-  readonly appId: bigint;
-  readonly appOnComplete: OnApplicationComplete;
-  readonly appLocalInts: number;
-  readonly appLocalByteSlices: number;
-  readonly appGlobalInts: number;
-  readonly appGlobalByteSlices: number;
+  readonly appIndex: bigint;
+  readonly onComplete: OnApplicationComplete;
+  readonly numLocalInts: number;
+  readonly numLocalByteSlices: number;
+  readonly numGlobalInts: number;
+  readonly numGlobalByteSlices: number;
   readonly extraPages: number;
-  readonly appApprovalProgram: Uint8Array;
-  readonly appClearProgram: Uint8Array;
+  readonly approvalProgram: Uint8Array;
+  readonly clearProgram: Uint8Array;
   readonly appArgs: ReadonlyArray<Uint8Array>;
-  readonly appAccounts: ReadonlyArray<Address>;
-  readonly appForeignApps: ReadonlyArray<bigint>;
-  readonly appForeignAssets: ReadonlyArray<bigint>;
+  readonly accounts: ReadonlyArray<Address>;
+  readonly foreignApps: ReadonlyArray<bigint>;
+  readonly foreignAssets: ReadonlyArray<bigint>;
   readonly boxes: ReadonlyArray<TransactionBoxReference>;
 }
 
@@ -415,19 +415,21 @@ export class Transaction {
 
     if (params.assetConfigParams) {
       this.assetConfig = {
-        assetId: utils.ensureUint64(params.assetConfigParams.assetIndex ?? 0),
-        assetTotal: utils.ensureUint64(params.assetConfigParams.total ?? 0),
-        assetDecimals: utils.ensureSafeUnsignedInteger(
+        assetIndex: utils.ensureUint64(
+          params.assetConfigParams.assetIndex ?? 0
+        ),
+        total: utils.ensureUint64(params.assetConfigParams.total ?? 0),
+        decimals: utils.ensureSafeUnsignedInteger(
           params.assetConfigParams.decimals ?? 0
         ),
-        assetDefaultFrozen: ensureBoolean(
+        defaultFrozen: ensureBoolean(
           params.assetConfigParams.defaultFrozen ?? false
         ),
-        assetManager: optionalAddress(params.assetConfigParams.manager),
-        assetReserve: optionalAddress(params.assetConfigParams.reserve),
-        assetFreeze: optionalAddress(params.assetConfigParams.freeze),
-        assetClawback: optionalAddress(params.assetConfigParams.clawback),
-        assetUnitName: params.assetConfigParams.unitName ?? '',
+        manager: optionalAddress(params.assetConfigParams.manager),
+        reserve: optionalAddress(params.assetConfigParams.reserve),
+        freeze: optionalAddress(params.assetConfigParams.freeze),
+        clawback: optionalAddress(params.assetConfigParams.clawback),
+        unitName: params.assetConfigParams.unitName ?? '',
         assetName: params.assetConfigParams.assetName ?? '',
         assetURL: params.assetConfigParams.assetURL ?? '',
         assetMetadataHash: optionalFixedLengthByteArray(
@@ -440,9 +442,11 @@ export class Transaction {
 
     if (params.assetTransferParams) {
       this.assetTransfer = {
-        assetId: utils.ensureUint64(params.assetTransferParams.assetIndex),
+        assetIndex: utils.ensureUint64(params.assetTransferParams.assetIndex),
         amount: utils.ensureUint64(params.assetTransferParams.amount),
-        sender: optionalAddress(params.assetTransferParams.assetSender),
+        revocationTarget: optionalAddress(
+          params.assetTransferParams.revocationTarget
+        ),
         receiver: ensureAddress(params.assetTransferParams.receiver),
         closeRemainderTo: optionalAddress(
           params.assetTransferParams.closeRemainderTo
@@ -452,9 +456,9 @@ export class Transaction {
 
     if (params.assetFreezeParams) {
       this.assetFreeze = {
-        assetId: utils.ensureUint64(params.assetFreezeParams.assetIndex),
+        assetIndex: utils.ensureUint64(params.assetFreezeParams.assetIndex),
         freezeAccount: ensureAddress(params.assetFreezeParams.freezeTarget),
-        assetFrozen: ensureBoolean(params.assetFreezeParams.assetFrozen),
+        freezeState: ensureBoolean(params.assetFreezeParams.freezeState),
       };
     }
 
@@ -464,39 +468,39 @@ export class Transaction {
         throw new Error(`Invalid onCompletion value: ${onComplete}`);
       }
       this.applicationCall = {
-        appId: utils.ensureUint64(params.appCallParams.appId),
-        appOnComplete: onComplete,
-        appLocalInts: utils.ensureSafeUnsignedInteger(
+        appIndex: utils.ensureUint64(params.appCallParams.appIndex),
+        onComplete,
+        numLocalInts: utils.ensureSafeUnsignedInteger(
           params.appCallParams.numLocalInts ?? 0
         ),
-        appLocalByteSlices: utils.ensureSafeUnsignedInteger(
+        numLocalByteSlices: utils.ensureSafeUnsignedInteger(
           params.appCallParams.numLocalByteSlices ?? 0
         ),
-        appGlobalInts: utils.ensureSafeUnsignedInteger(
+        numGlobalInts: utils.ensureSafeUnsignedInteger(
           params.appCallParams.numGlobalInts ?? 0
         ),
-        appGlobalByteSlices: utils.ensureSafeUnsignedInteger(
+        numGlobalByteSlices: utils.ensureSafeUnsignedInteger(
           params.appCallParams.numGlobalByteSlices ?? 0
         ),
         extraPages: utils.ensureSafeUnsignedInteger(
           params.appCallParams.extraPages ?? 0
         ),
-        appApprovalProgram: ensureUint8Array(
+        approvalProgram: ensureUint8Array(
           params.appCallParams.approvalProgram ?? new Uint8Array()
         ),
-        appClearProgram: ensureUint8Array(
+        clearProgram: ensureUint8Array(
           params.appCallParams.clearProgram ?? new Uint8Array()
         ),
         appArgs: ensureArray(params.appCallParams.appArgs ?? []).map(
           ensureUint8Array
         ),
-        appAccounts: ensureArray(params.appCallParams.accounts ?? []).map(
+        accounts: ensureArray(params.appCallParams.accounts ?? []).map(
           ensureAddress
         ),
-        appForeignApps: ensureArray(params.appCallParams.foreignApps ?? []).map(
+        foreignApps: ensureArray(params.appCallParams.foreignApps ?? []).map(
           utils.ensureUint64
         ),
-        appForeignAssets: ensureArray(
+        foreignAssets: ensureArray(
           params.appCallParams.foreignAssets ?? []
         ).map(utils.ensureUint64),
         boxes: ensureArray(params.appCallParams.boxes ?? []).map(
@@ -606,33 +610,33 @@ export class Transaction {
     }
 
     if (this.assetConfig) {
-      if (this.assetConfig.assetId) {
-        forEncoding.caid = this.assetConfig.assetId;
+      if (this.assetConfig.assetIndex) {
+        forEncoding.caid = this.assetConfig.assetIndex;
       }
       const assetParams: EncodedAssetParams = {};
-      if (this.assetConfig.assetTotal) {
-        assetParams.t = this.assetConfig.assetTotal;
+      if (this.assetConfig.total) {
+        assetParams.t = this.assetConfig.total;
       }
-      if (this.assetConfig.assetDecimals) {
-        assetParams.dc = this.assetConfig.assetDecimals;
+      if (this.assetConfig.decimals) {
+        assetParams.dc = this.assetConfig.decimals;
       }
-      if (this.assetConfig.assetDefaultFrozen) {
-        assetParams.df = this.assetConfig.assetDefaultFrozen;
+      if (this.assetConfig.defaultFrozen) {
+        assetParams.df = this.assetConfig.defaultFrozen;
       }
-      if (this.assetConfig.assetManager) {
-        assetParams.m = this.assetConfig.assetManager.publicKey;
+      if (this.assetConfig.manager) {
+        assetParams.m = this.assetConfig.manager.publicKey;
       }
-      if (this.assetConfig.assetReserve) {
-        assetParams.r = this.assetConfig.assetReserve.publicKey;
+      if (this.assetConfig.reserve) {
+        assetParams.r = this.assetConfig.reserve.publicKey;
       }
-      if (this.assetConfig.assetFreeze) {
-        assetParams.f = this.assetConfig.assetFreeze.publicKey;
+      if (this.assetConfig.freeze) {
+        assetParams.f = this.assetConfig.freeze.publicKey;
       }
-      if (this.assetConfig.assetClawback) {
-        assetParams.c = this.assetConfig.assetClawback.publicKey;
+      if (this.assetConfig.clawback) {
+        assetParams.c = this.assetConfig.clawback.publicKey;
       }
-      if (this.assetConfig.assetUnitName) {
-        assetParams.un = this.assetConfig.assetUnitName;
+      if (this.assetConfig.unitName) {
+        assetParams.un = this.assetConfig.unitName;
       }
       if (this.assetConfig.assetName) {
         assetParams.an = this.assetConfig.assetName;
@@ -650,8 +654,8 @@ export class Transaction {
     }
 
     if (this.assetTransfer) {
-      if (this.assetTransfer.assetId) {
-        forEncoding.xaid = this.assetTransfer.assetId;
+      if (this.assetTransfer.assetIndex) {
+        forEncoding.xaid = this.assetTransfer.assetIndex;
       }
       if (this.assetTransfer.amount) {
         forEncoding.aamt = this.assetTransfer.amount;
@@ -662,18 +666,18 @@ export class Transaction {
       if (this.assetTransfer.closeRemainderTo) {
         forEncoding.aclose = this.assetTransfer.closeRemainderTo.publicKey;
       }
-      if (this.assetTransfer.sender) {
-        forEncoding.asnd = this.assetTransfer.sender.publicKey;
+      if (this.assetTransfer.revocationTarget) {
+        forEncoding.asnd = this.assetTransfer.revocationTarget.publicKey;
       }
       return forEncoding;
     }
 
     if (this.assetFreeze) {
-      if (this.assetFreeze.assetId) {
-        forEncoding.faid = this.assetFreeze.assetId;
+      if (this.assetFreeze.assetIndex) {
+        forEncoding.faid = this.assetFreeze.assetIndex;
       }
-      if (this.assetFreeze.assetFrozen) {
-        forEncoding.afrz = this.assetFreeze.assetFrozen;
+      if (this.assetFreeze.freezeState) {
+        forEncoding.afrz = this.assetFreeze.freezeState;
       }
       if (!uint8ArrayIsEmpty(this.assetFreeze.freezeAccount.publicKey)) {
         forEncoding.fadd = this.assetFreeze.freezeAccount.publicKey;
@@ -682,62 +686,62 @@ export class Transaction {
     }
 
     if (this.applicationCall) {
-      if (this.applicationCall.appId) {
-        forEncoding.apid = this.applicationCall.appId;
+      if (this.applicationCall.appIndex) {
+        forEncoding.apid = this.applicationCall.appIndex;
       }
-      if (this.applicationCall.appOnComplete) {
-        forEncoding.apan = this.applicationCall.appOnComplete;
+      if (this.applicationCall.onComplete) {
+        forEncoding.apan = this.applicationCall.onComplete;
       }
       if (this.applicationCall.appArgs.length) {
         forEncoding.apaa = this.applicationCall.appArgs.slice();
       }
-      if (this.applicationCall.appAccounts.length) {
-        forEncoding.apat = this.applicationCall.appAccounts.map(
+      if (this.applicationCall.accounts.length) {
+        forEncoding.apat = this.applicationCall.accounts.map(
           (decodedAddress) => decodedAddress.publicKey
         );
       }
-      if (this.applicationCall.appForeignAssets.length) {
-        forEncoding.apas = this.applicationCall.appForeignAssets.slice();
+      if (this.applicationCall.foreignAssets.length) {
+        forEncoding.apas = this.applicationCall.foreignAssets.slice();
       }
-      if (this.applicationCall.appForeignApps.length) {
-        forEncoding.apfa = this.applicationCall.appForeignApps.slice();
+      if (this.applicationCall.foreignApps.length) {
+        forEncoding.apfa = this.applicationCall.foreignApps.slice();
       }
       if (this.applicationCall.boxes.length) {
         forEncoding.apbx = translateBoxReferences(
           this.applicationCall.boxes,
-          this.applicationCall.appForeignApps,
-          this.applicationCall.appId
+          this.applicationCall.foreignApps,
+          this.applicationCall.appIndex
         );
       }
-      if (this.applicationCall.appApprovalProgram.length) {
-        forEncoding.apap = this.applicationCall.appApprovalProgram;
+      if (this.applicationCall.approvalProgram.length) {
+        forEncoding.apap = this.applicationCall.approvalProgram;
       }
-      if (this.applicationCall.appClearProgram.length) {
-        forEncoding.apsu = this.applicationCall.appClearProgram;
+      if (this.applicationCall.clearProgram.length) {
+        forEncoding.apsu = this.applicationCall.clearProgram;
       }
       if (
-        this.applicationCall.appLocalInts ||
-        this.applicationCall.appLocalByteSlices
+        this.applicationCall.numLocalInts ||
+        this.applicationCall.numLocalByteSlices
       ) {
         const localSchema: EncodedLocalStateSchema = {};
-        if (this.applicationCall.appLocalInts) {
-          localSchema.nui = this.applicationCall.appLocalInts;
+        if (this.applicationCall.numLocalInts) {
+          localSchema.nui = this.applicationCall.numLocalInts;
         }
-        if (this.applicationCall.appLocalByteSlices) {
-          localSchema.nbs = this.applicationCall.appLocalByteSlices;
+        if (this.applicationCall.numLocalByteSlices) {
+          localSchema.nbs = this.applicationCall.numLocalByteSlices;
         }
         forEncoding.apls = localSchema;
       }
       if (
-        this.applicationCall.appGlobalInts ||
-        this.applicationCall.appGlobalByteSlices
+        this.applicationCall.numGlobalInts ||
+        this.applicationCall.numGlobalByteSlices
       ) {
         const globalSchema: EncodedGlobalStateSchema = {};
-        if (this.applicationCall.appGlobalInts) {
-          globalSchema.nui = this.applicationCall.appGlobalInts;
+        if (this.applicationCall.numGlobalInts) {
+          globalSchema.nui = this.applicationCall.numGlobalInts;
         }
-        if (this.applicationCall.appGlobalByteSlices) {
-          globalSchema.nbs = this.applicationCall.appGlobalByteSlices;
+        if (this.applicationCall.numGlobalByteSlices) {
+          globalSchema.nbs = this.applicationCall.numGlobalByteSlices;
         }
         forEncoding.apgs = globalSchema;
       }
@@ -849,7 +853,7 @@ export class Transaction {
         assetTransferParams.closeRemainderTo = new Address(txnForEnc.aclose);
       }
       if (txnForEnc.asnd) {
-        assetTransferParams.assetSender = new Address(txnForEnc.asnd);
+        assetTransferParams.revocationTarget = new Address(txnForEnc.asnd);
       }
       params.assetTransferParams = assetTransferParams;
     } else if (params.type === TransactionType.afrz) {
@@ -858,12 +862,12 @@ export class Transaction {
         freezeTarget: txnForEnc.fadd
           ? new Address(txnForEnc.fadd)
           : Address.zeroAddress(),
-        assetFrozen: txnForEnc.afrz ?? false,
+        freezeState: txnForEnc.afrz ?? false,
       };
       params.assetFreezeParams = assetFreezeParams;
     } else if (params.type === TransactionType.appl) {
       const appCallParams: ApplicationCallTransactionParams = {
-        appId: txnForEnc.apid ?? 0,
+        appIndex: txnForEnc.apid ?? 0,
         onComplete: utils.ensureSafeUnsignedInteger(txnForEnc.apan ?? 0),
         appArgs: txnForEnc.apaa,
         accounts: (txnForEnc.apat ?? []).map((pk) => new Address(pk)),

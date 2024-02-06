@@ -492,16 +492,16 @@ describe('ABI encoding', () => {
     const txn = txns[0].txn;
 
     // Assert that foreign objects were passed in and ordering was correct.
-    assert.deepStrictEqual(txn.applicationCall?.appForeignApps?.length, 2);
-    assert.deepStrictEqual(txn.applicationCall?.appForeignApps[0], 1n);
-    assert.deepStrictEqual(txn.applicationCall?.appForeignApps[1], 2n);
+    assert.deepStrictEqual(txn.applicationCall?.foreignApps?.length, 2);
+    assert.deepStrictEqual(txn.applicationCall?.foreignApps[0], 1n);
+    assert.deepStrictEqual(txn.applicationCall?.foreignApps[1], 2n);
 
-    assert.deepStrictEqual(txn.applicationCall?.appForeignAssets?.length, 1);
-    assert.deepStrictEqual(txn.applicationCall?.appForeignAssets[0], 124n);
+    assert.deepStrictEqual(txn.applicationCall?.foreignAssets?.length, 1);
+    assert.deepStrictEqual(txn.applicationCall?.foreignAssets[0], 124n);
 
-    assert.deepStrictEqual(txn.applicationCall?.appAccounts?.length, 1);
+    assert.deepStrictEqual(txn.applicationCall?.accounts?.length, 1);
     assert.deepStrictEqual(
-      txn.applicationCall?.appAccounts[0],
+      txn.applicationCall?.accounts[0],
       decodeAddress(foreignAcct)
     );
   });

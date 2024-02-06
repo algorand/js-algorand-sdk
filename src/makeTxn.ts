@@ -323,7 +323,7 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject({
   sender,
   assetIndex,
   freezeTarget,
-  assetFrozen,
+  freezeState,
   suggestedParams,
   note,
   lease,
@@ -339,7 +339,7 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject({
     assetFreezeParams: {
       assetIndex,
       freezeTarget,
-      assetFrozen,
+      freezeState,
     },
   });
 }
@@ -356,7 +356,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject({
   receiver,
   amount,
   closeRemainderTo,
-  assetSender,
+  revocationTarget,
   note,
   assetIndex,
   suggestedParams,
@@ -377,7 +377,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject({
       assetIndex,
       receiver,
       amount,
-      assetSender,
+      revocationTarget,
       closeRemainderTo,
     },
   });
@@ -390,7 +390,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject({
  */
 export function makeApplicationCallTxnFromObject({
   sender,
-  appId,
+  appIndex,
   onComplete,
   appArgs,
   accounts,
@@ -420,7 +420,7 @@ export function makeApplicationCallTxnFromObject({
     rekeyTo,
     suggestedParams,
     appCallParams: {
-      appId,
+      appIndex,
       onComplete,
       appArgs,
       accounts,
@@ -464,7 +464,7 @@ export function makeApplicationCreateTxnFromObject({
   suggestedParams,
 }: Omit<
   ApplicationCallTransactionParams,
-  'appId' | 'approvalProgram' | 'clearProgram'
+  'appIndex' | 'approvalProgram' | 'clearProgram'
 > &
   Required<
     Pick<ApplicationCallTransactionParams, 'approvalProgram' | 'clearProgram'>
@@ -478,7 +478,7 @@ export function makeApplicationCreateTxnFromObject({
   }
   return makeApplicationCallTxnFromObject({
     sender,
-    appId: 0,
+    appIndex: 0,
     onComplete,
     appArgs,
     accounts,
@@ -506,7 +506,7 @@ export function makeApplicationCreateTxnFromObject({
  */
 export function makeApplicationUpdateTxnFromObject({
   sender,
-  appId,
+  appIndex,
   appArgs,
   accounts,
   foreignApps,
@@ -533,15 +533,15 @@ export function makeApplicationUpdateTxnFromObject({
     Pick<ApplicationCallTransactionParams, 'approvalProgram' | 'clearProgram'>
   > &
   CommonTransactionParams): Transaction {
-  if (!appId) {
-    throw Error('appId must be provided');
+  if (!appIndex) {
+    throw Error('appIndex must be provided');
   }
   if (!approvalProgram || !clearProgram) {
     throw Error('approvalProgram and clearProgram must be provided');
   }
   return makeApplicationCallTxnFromObject({
     sender,
-    appId,
+    appIndex,
     onComplete: OnApplicationComplete.UpdateApplicationOC,
     appArgs,
     accounts,
@@ -564,7 +564,7 @@ export function makeApplicationUpdateTxnFromObject({
  */
 export function makeApplicationDeleteTxnFromObject({
   sender,
-  appId,
+  appIndex,
   appArgs,
   accounts,
   foreignApps,
@@ -586,12 +586,12 @@ export function makeApplicationDeleteTxnFromObject({
   | 'clearProgram'
 > &
   CommonTransactionParams): Transaction {
-  if (!appId) {
-    throw Error('appId must be provided');
+  if (!appIndex) {
+    throw Error('appIndex must be provided');
   }
   return makeApplicationCallTxnFromObject({
     sender,
-    appId,
+    appIndex,
     onComplete: OnApplicationComplete.DeleteApplicationOC,
     appArgs,
     accounts,
@@ -612,7 +612,7 @@ export function makeApplicationDeleteTxnFromObject({
  */
 export function makeApplicationOptInTxnFromObject({
   sender,
-  appId,
+  appIndex,
   appArgs,
   accounts,
   foreignApps,
@@ -634,12 +634,12 @@ export function makeApplicationOptInTxnFromObject({
   | 'clearProgram'
 > &
   CommonTransactionParams): Transaction {
-  if (!appId) {
-    throw Error('appId must be provided');
+  if (!appIndex) {
+    throw Error('appIndex must be provided');
   }
   return makeApplicationCallTxnFromObject({
     sender,
-    appId,
+    appIndex,
     onComplete: OnApplicationComplete.OptInOC,
     appArgs,
     accounts,
@@ -660,7 +660,7 @@ export function makeApplicationOptInTxnFromObject({
  */
 export function makeApplicationCloseOutTxnFromObject({
   sender,
-  appId,
+  appIndex,
   appArgs,
   accounts,
   foreignApps,
@@ -682,12 +682,12 @@ export function makeApplicationCloseOutTxnFromObject({
   | 'clearProgram'
 > &
   CommonTransactionParams): Transaction {
-  if (!appId) {
-    throw Error('appId must be provided');
+  if (!appIndex) {
+    throw Error('appIndex must be provided');
   }
   return makeApplicationCallTxnFromObject({
     sender,
-    appId,
+    appIndex,
     onComplete: OnApplicationComplete.CloseOutOC,
     appArgs,
     accounts,
@@ -708,7 +708,7 @@ export function makeApplicationCloseOutTxnFromObject({
  */
 export function makeApplicationClearStateTxnFromObject({
   sender,
-  appId,
+  appIndex,
   appArgs,
   accounts,
   foreignApps,
@@ -730,12 +730,12 @@ export function makeApplicationClearStateTxnFromObject({
   | 'clearProgram'
 > &
   CommonTransactionParams): Transaction {
-  if (!appId) {
-    throw Error('appId must be provided');
+  if (!appIndex) {
+    throw Error('appIndex must be provided');
   }
   return makeApplicationCallTxnFromObject({
     sender,
-    appId,
+    appIndex,
     onComplete: OnApplicationComplete.ClearStateOC,
     appArgs,
     accounts,
@@ -756,7 +756,7 @@ export function makeApplicationClearStateTxnFromObject({
  */
 export function makeApplicationNoOpTxnFromObject({
   sender,
-  appId,
+  appIndex,
   appArgs,
   accounts,
   foreignApps,
@@ -778,12 +778,12 @@ export function makeApplicationNoOpTxnFromObject({
   | 'clearProgram'
 > &
   CommonTransactionParams): Transaction {
-  if (!appId) {
-    throw Error('appId must be provided');
+  if (!appIndex) {
+    throw Error('appIndex must be provided');
   }
   return makeApplicationCallTxnFromObject({
     sender,
-    appId,
+    appIndex,
     onComplete: OnApplicationComplete.NoOpOC,
     appArgs,
     accounts,
