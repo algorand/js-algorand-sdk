@@ -79,7 +79,7 @@ async function main() {
   // example: APP_OPTIN
   const appOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
     sender: caller.addr,
-    appId,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -92,7 +92,7 @@ async function main() {
   // example: APP_NOOP
   const appNoOpTxn = algosdk.makeApplicationNoOpTxnFromObject({
     sender: caller.addr,
-    appId,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -106,7 +106,7 @@ async function main() {
 
   const anotherAppOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
     sender: anotherCaller.addr,
-    appId,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -120,7 +120,7 @@ async function main() {
   const simpleAddTxn = algosdk.makeApplicationNoOpTxnFromObject({
     sender: caller.addr,
     suggestedParams,
-    appId,
+    appIndex: appId,
     appArgs: [new TextEncoder().encode(now)],
   });
 
@@ -160,7 +160,7 @@ async function main() {
   // example: APP_CLOSEOUT
   const appCloseOutTxn = algosdk.makeApplicationCloseOutTxnFromObject({
     sender: caller.addr,
-    appId,
+    appIndex: appId,
     suggestedParams,
   });
 
@@ -180,7 +180,7 @@ async function main() {
   const appUpdateTxn = algosdk.makeApplicationUpdateTxnFromObject({
     sender: creator.addr,
     suggestedParams,
-    appId,
+    appIndex: appId,
     // updates must define both approval and clear programs, even if unchanged
     approvalProgram: new Uint8Array(compiledNewProgram),
     clearProgram: new Uint8Array(compiledClearProgram),
@@ -196,7 +196,7 @@ async function main() {
   const appClearTxn = algosdk.makeApplicationClearStateTxnFromObject({
     sender: anotherCaller.addr,
     suggestedParams,
-    appId,
+    appIndex: appId,
   });
 
   await algodClient
@@ -209,7 +209,7 @@ async function main() {
   const appDeleteTxn = algosdk.makeApplicationDeleteTxnFromObject({
     sender: creator.addr,
     suggestedParams,
-    appId,
+    appIndex: appId,
   });
 
   await algodClient
