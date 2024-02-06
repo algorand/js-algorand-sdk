@@ -14,8 +14,7 @@ async function main() {
 
   // example: CODEC_ADDRESS
   const address = '4H5UNRBJ2Q6JENAXQ6HNTGKLKINP4J4VTQBEPK5F3I6RDICMZBPGNH6KD4';
-  const pk = algosdk.decodeAddress(address);
-  const addr = algosdk.encodeAddress(pk.publicKey);
+  const addr = algosdk.Address.fromString(address);
   console.log(address, addr);
   // example: CODEC_ADDRESS
 

@@ -227,13 +227,13 @@ export interface AssetModificationTransactionParams {
   clawback?: string | Address;
 
   /**
-   * This is a safety flag to prevent unintentionally removing a role from an asset. If false or
-   * undefined, an error will be thrown if any of assetManager, assetReserve, assetFreeze, or
+   * This is a safety flag to prevent unintentionally removing a role from an asset. If undefined or
+   * true, an error will be thrown if any of assetManager, assetReserve, assetFreeze, or
    * assetClawback are empty.
    *
-   * Set this to true to allow removing roles by leaving the corresponding address empty.
+   * Set this to false to allow removing roles by leaving the corresponding address empty.
    */
-  allowRoleRemoval?: boolean;
+  strictEmptyAddressChecking?: boolean;
 }
 
 /**
@@ -252,7 +252,7 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject({
   reserve,
   freeze,
   clawback,
-  allowRoleRemoval,
+  strictEmptyAddressChecking,
   note,
   lease,
   rekeyTo,
@@ -261,12 +261,13 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject({
   if (!assetIndex) {
     throw Error('assetIndex must be provided');
   }
+  const strictChecking = strictEmptyAddressChecking ?? true;
   if (
-    !allowRoleRemoval &&
+    strictChecking &&
     (manager == null || reserve == null || freeze == null || clawback == null)
   ) {
     throw Error(
-      'allowRoleRemoval is not enabled, but an address is empty. If this is intentional, set allowRoleRemoval to true.'
+      'strictEmptyAddressChecking is enabled, but an address is empty. If this is intentional, set strictEmptyAddressChecking to false.'
     );
   }
   return makeBaseAssetConfigTxn({

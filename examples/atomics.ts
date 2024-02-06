@@ -51,8 +51,7 @@ async function main() {
   // example: ATOMIC_GROUP_SEND
 
   // example: CONST_MIN_FEE
-  const minFee = algosdk.ALGORAND_MIN_TX_FEE;
-  console.log(minFee);
+  // This SDK does not expose a constant for the minimum fee
   // example: CONST_MIN_FEE
 
   // example: TRANSACTION_FEE_OVERRIDE

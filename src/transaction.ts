@@ -33,7 +33,6 @@ import {
 import * as utils from './utils/utils.js';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
-export const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
 const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the number of bytes added to a txn after signing it
 const ASSET_METADATA_HASH_LENGTH = 32;
@@ -165,7 +164,7 @@ function optionalFixedLengthByteArray(
   return bytes;
 }
 
-interface TransactionBoxReference {
+export interface TransactionBoxReference {
   readonly appIndex: bigint;
   readonly name: Uint8Array;
 }
@@ -183,13 +182,13 @@ function ensureBoxReference(input: unknown): TransactionBoxReference {
 
 const TX_TAG = new TextEncoder().encode('TX');
 
-interface PaymentTransactionFields {
+export interface PaymentTransactionFields {
   readonly receiver: Address;
   readonly amount: bigint;
   readonly closeRemainderTo?: Address;
 }
 
-interface KeyRegistrationTransactionFields {
+export interface KeyRegistrationTransactionFields {
   readonly voteKey?: Uint8Array;
   readonly selectionKey?: Uint8Array;
   readonly stateProofKey?: Uint8Array;
@@ -199,7 +198,7 @@ interface KeyRegistrationTransactionFields {
   readonly nonParticipation: boolean;
 }
 
-interface AssetConfigTransactionFields {
+export interface AssetConfigTransactionFields {
   readonly assetId: bigint;
   readonly assetTotal: bigint;
   readonly assetDecimals: number;
@@ -214,7 +213,7 @@ interface AssetConfigTransactionFields {
   readonly assetMetadataHash?: Uint8Array;
 }
 
-interface AssetTransferTransactionFields {
+export interface AssetTransferTransactionFields {
   readonly assetId: bigint;
   readonly amount: bigint;
   readonly sender?: Address;
@@ -222,13 +221,13 @@ interface AssetTransferTransactionFields {
   readonly closeRemainderTo?: Address;
 }
 
-interface AssetFreezeTransactionFields {
+export interface AssetFreezeTransactionFields {
   readonly assetId: bigint;
   readonly freezeAccount: Address;
   readonly assetFrozen: boolean;
 }
 
-interface ApplicationTransactionFields {
+export interface ApplicationTransactionFields {
   readonly appId: bigint;
   readonly appOnComplete: OnApplicationComplete;
   readonly appLocalInts: number;
@@ -245,7 +244,7 @@ interface ApplicationTransactionFields {
   readonly boxes: ReadonlyArray<TransactionBoxReference>;
 }
 
-interface StateProofTransactionFields {
+export interface StateProofTransactionFields {
   readonly stateProofType: number;
   readonly stateProof: Uint8Array;
   readonly stateProofMessage: Uint8Array;

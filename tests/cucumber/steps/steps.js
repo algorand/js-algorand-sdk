@@ -1172,7 +1172,7 @@ module.exports = function getSteps(options) {
           clawback,
           assetIndex: parseInt(this.assetTestFixture.index),
           suggestedParams: this.params,
-          allowRoleRemoval: true,
+          strictEmptyAddressChecking: false,
         });
       // update vars used by other helpers
       this.assetTestFixture.expectedParams.reserve = undefined;

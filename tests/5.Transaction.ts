@@ -1790,16 +1790,20 @@ describe('Sign', () => {
         firstValid: 51,
         lastValid: 61,
       };
-      assert.throws(() =>
-        algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
-          sender: addr,
-          assetIndex,
-          manager: addr,
-          reserve: addr,
-          freeze: undefined,
-          clawback: undefined,
-          suggestedParams,
-        })
+      assert.throws(
+        () =>
+          algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
+            sender: addr,
+            assetIndex,
+            manager: addr,
+            reserve: addr,
+            freeze: undefined,
+            clawback: undefined,
+            suggestedParams,
+          }),
+        new Error(
+          'strictEmptyAddressChecking is enabled, but an address is empty. If this is intentional, set strictEmptyAddressChecking to false.'
+        )
       );
 
       // does not throw when flag enabled
@@ -1811,7 +1815,7 @@ describe('Sign', () => {
         freeze: undefined,
         clawback: undefined,
         suggestedParams,
-        allowRoleRemoval: true,
+        strictEmptyAddressChecking: false,
       });
     });
 
