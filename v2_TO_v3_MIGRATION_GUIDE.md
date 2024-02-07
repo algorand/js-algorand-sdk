@@ -133,7 +133,9 @@ These interfaces differ slightly from the v2 types. Some field names have change
 | "                | `selectionKey`      | `string \| Uint8Array` | `selectionKey`      | `Uint8Array`        | Base64 encoded value is no longer accepted |
 | "                | `stateProofKey`     | `string \| Uint8Array` | `stateProofKey`     | `Uint8Array`        | Base64 encoded value is no longer accepted |
 | Asset Config     | `assetMetadataHash` | `string \| Uint8Array` | `assetMetadataHash` | `Uint8Array`        | Base64 encoded value is no longer accepted |
+| Asset Freeze     | `freezeState`       | `boolean`              | `frozen`            | `boolean`           |                                            |
 | Asset Transfer   | `to`                | `string`               | `receiver`          | `string \| Address` |                                            |
+| "                | `revocationTarget`  | `string`               | `assetSender`       | `string \| Address` |                                            |
 
 Given these changes, the earlier v2 example would be equivalent to the following in v3:
 
@@ -197,8 +199,8 @@ The following table shows the correspondence between v2 and v3 fields in the `Tr
 | `assetURL`              | `string`                | `assetConfig.assetURL`                | `string`                    |                                           |
 | `assetMetadataHash`     | `Uint8Array`            | `assetConfig.assetMetadataHash`       | `Uint8Array`                |                                           |
 | `freezeAccount`         | `Address`               | `assetFreeze.freezeAccount`           | `Address`                   |                                           |
-| `freezeState`           | `boolean`               | `assetFreeze.freezeState`             | `boolean`                   |                                           |
-| `assetRevocationTarget` | `Address`               | `assetTransfer.revocationTarget`      | `Address`                   |                                           |
+| `freezeState`           | `boolean`               | `assetFreeze.frozen`                  | `boolean`                   |                                           |
+| `assetRevocationTarget` | `Address`               | `assetTransfer.assetSender`           | `Address`                   |                                           |
 | `appIndex`              | `number`                | `applicationCall.appIndex`            | `bigint`                    |                                           |
 | `appOnComplete`         | `OnApplicationComplete` | `applicationCall.onComplete`          | `OnApplicationComplete`     |                                           |
 | `appLocalInts`          | `number`                | `applicationCall.numLocalInts`        | `number`                    |                                           |

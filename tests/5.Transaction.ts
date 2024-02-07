@@ -432,7 +432,7 @@ describe('Sign', () => {
             assetIndex: 9999,
             receiver: sender,
             amount: 0,
-            revocationTarget: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+            assetSender: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
           },
           suggestedParams,
         }),
@@ -814,7 +814,7 @@ describe('Sign', () => {
           receiver: address,
           amount: 100,
           closeRemainderTo: address,
-          revocationTarget: address,
+          assetSender: address,
         },
         suggestedParams: {
           minFee: 1000,
@@ -886,7 +886,7 @@ describe('Sign', () => {
         sender: address,
         assetFreezeParams: {
           assetIndex: 1,
-          freezeState: true,
+          frozen: true,
           freezeTarget: address,
         },
         suggestedParams: {
@@ -990,7 +990,7 @@ describe('Sign', () => {
         assetFreezeParams: {
           assetIndex: 9999,
           freezeTarget: algosdk.ALGORAND_ZERO_ADDRESS_STRING,
-          freezeState: true,
+          frozen: true,
         },
         suggestedParams: {
           minFee: 1000,
@@ -1028,7 +1028,7 @@ describe('Sign', () => {
         sender: address,
         assetFreezeParams: {
           assetIndex: 1,
-          freezeState: true,
+          frozen: true,
           freezeTarget: address,
         },
         suggestedParams: {
@@ -1858,7 +1858,7 @@ describe('Sign', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const sender = addr;
       const receiver = addr;
-      const revocationTarget = addr;
+      const assetSender = addr;
       const closeRemainderTo = addr;
       const assetIndex = 1234;
       const amount = 100;
@@ -1878,7 +1878,7 @@ describe('Sign', () => {
         sender,
         assetTransferParams: {
           receiver,
-          revocationTarget,
+          assetSender,
           closeRemainderTo,
           assetIndex,
           amount,
@@ -1892,7 +1892,7 @@ describe('Sign', () => {
           sender,
           receiver,
           closeRemainderTo,
-          revocationTarget,
+          assetSender,
           amount,
           note,
           assetIndex,
@@ -1906,7 +1906,7 @@ describe('Sign', () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const assetIndex = 1234;
       const freezeTarget = addr;
-      const freezeState = true;
+      const frozen = true;
       const note = new Uint8Array([123, 12, 200]);
       const rekeyTo =
         'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
@@ -1923,7 +1923,7 @@ describe('Sign', () => {
         sender: addr,
         assetFreezeParams: {
           freezeTarget,
-          freezeState,
+          frozen,
           assetIndex,
         },
         suggestedParams,
@@ -1936,7 +1936,7 @@ describe('Sign', () => {
           note,
           assetIndex,
           freezeTarget,
-          freezeState,
+          frozen,
           suggestedParams,
           rekeyTo,
         }

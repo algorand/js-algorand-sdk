@@ -216,7 +216,7 @@ export interface AssetConfigTransactionFields {
 export interface AssetTransferTransactionFields {
   readonly assetIndex: bigint;
   readonly amount: bigint;
-  readonly revocationTarget?: Address;
+  readonly assetSender?: Address;
   readonly receiver: Address;
   readonly closeRemainderTo?: Address;
 }
@@ -224,7 +224,7 @@ export interface AssetTransferTransactionFields {
 export interface AssetFreezeTransactionFields {
   readonly assetIndex: bigint;
   readonly freezeAccount: Address;
-  readonly freezeState: boolean;
+  readonly frozen: boolean;
 }
 
 export interface ApplicationTransactionFields {
@@ -444,9 +444,7 @@ export class Transaction {
       this.assetTransfer = {
         assetIndex: utils.ensureUint64(params.assetTransferParams.assetIndex),
         amount: utils.ensureUint64(params.assetTransferParams.amount),
-        revocationTarget: optionalAddress(
-          params.assetTransferParams.revocationTarget
-        ),
+        assetSender: optionalAddress(params.assetTransferParams.assetSender),
         receiver: ensureAddress(params.assetTransferParams.receiver),
         closeRemainderTo: optionalAddress(
           params.assetTransferParams.closeRemainderTo
@@ -458,7 +456,7 @@ export class Transaction {
       this.assetFreeze = {
         assetIndex: utils.ensureUint64(params.assetFreezeParams.assetIndex),
         freezeAccount: ensureAddress(params.assetFreezeParams.freezeTarget),
-        freezeState: ensureBoolean(params.assetFreezeParams.freezeState),
+        frozen: ensureBoolean(params.assetFreezeParams.frozen),
       };
     }
 
@@ -666,8 +664,8 @@ export class Transaction {
       if (this.assetTransfer.closeRemainderTo) {
         forEncoding.aclose = this.assetTransfer.closeRemainderTo.publicKey;
       }
-      if (this.assetTransfer.revocationTarget) {
-        forEncoding.asnd = this.assetTransfer.revocationTarget.publicKey;
+      if (this.assetTransfer.assetSender) {
+        forEncoding.asnd = this.assetTransfer.assetSender.publicKey;
       }
       return forEncoding;
     }
@@ -676,8 +674,8 @@ export class Transaction {
       if (this.assetFreeze.assetIndex) {
         forEncoding.faid = this.assetFreeze.assetIndex;
       }
-      if (this.assetFreeze.freezeState) {
-        forEncoding.afrz = this.assetFreeze.freezeState;
+      if (this.assetFreeze.frozen) {
+        forEncoding.afrz = this.assetFreeze.frozen;
       }
       if (!uint8ArrayIsEmpty(this.assetFreeze.freezeAccount.publicKey)) {
         forEncoding.fadd = this.assetFreeze.freezeAccount.publicKey;
@@ -853,7 +851,7 @@ export class Transaction {
         assetTransferParams.closeRemainderTo = new Address(txnForEnc.aclose);
       }
       if (txnForEnc.asnd) {
-        assetTransferParams.revocationTarget = new Address(txnForEnc.asnd);
+        assetTransferParams.assetSender = new Address(txnForEnc.asnd);
       }
       params.assetTransferParams = assetTransferParams;
     } else if (params.type === TransactionType.afrz) {
@@ -862,7 +860,7 @@ export class Transaction {
         freezeTarget: txnForEnc.fadd
           ? new Address(txnForEnc.fadd)
           : Address.zeroAddress(),
-        freezeState: txnForEnc.afrz ?? false,
+        frozen: txnForEnc.afrz ?? false,
       };
       params.assetFreezeParams = assetFreezeParams;
     } else if (params.type === TransactionType.appl) {

@@ -323,7 +323,7 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject({
   sender,
   assetIndex,
   freezeTarget,
-  freezeState,
+  frozen,
   suggestedParams,
   note,
   lease,
@@ -339,7 +339,7 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject({
     assetFreezeParams: {
       assetIndex,
       freezeTarget,
-      freezeState,
+      frozen,
     },
   });
 }
@@ -356,7 +356,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject({
   receiver,
   amount,
   closeRemainderTo,
-  revocationTarget,
+  assetSender,
   note,
   assetIndex,
   suggestedParams,
@@ -377,7 +377,7 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject({
       assetIndex,
       receiver,
       amount,
-      revocationTarget,
+      assetSender,
       closeRemainderTo,
     },
   });

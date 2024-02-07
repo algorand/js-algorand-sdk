@@ -114,8 +114,8 @@ async function main() {
     sender: manager.addr,
     suggestedParams,
     assetIndex,
-    // freezeState: false would unfreeze the account's asset holding
-    freezeState: true,
+    // frozen: false would unfreeze the account's asset holding
+    frozen: true,
     // freezeTarget is the account that is being frozen or unfrozen
     freezeTarget: receiver.addr,
   });
@@ -130,8 +130,8 @@ async function main() {
     {
       sender: manager.addr,
       receiver: creator.addr,
-      // revocationTarget is the account that is being clawed back from
-      revocationTarget: receiver.addr,
+      // assetSender is the account that is being clawed back from
+      assetSender: receiver.addr,
       suggestedParams,
       assetIndex,
       amount: 1,

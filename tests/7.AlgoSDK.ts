@@ -677,7 +677,7 @@ describe('Algosdk (AKA end to end)', () => {
         sender: addr,
         freezeTarget: addr,
         assetIndex: 1,
-        freezeState: true,
+        frozen: true,
         suggestedParams: {
           minFee: 1000,
           fee: 10,
@@ -758,7 +758,7 @@ describe('Algosdk (AKA end to end)', () => {
       const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
         sender: addr,
         receiver: addr,
-        revocationTarget: addr,
+        assetSender: addr,
         amount: 1,
         assetIndex: 1,
         suggestedParams: {

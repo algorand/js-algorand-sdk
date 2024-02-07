@@ -235,7 +235,7 @@ export interface EncodedTransaction {
   faid?: number | bigint;
 
   /**
-   * freezeState
+   * frozen
    */
   afrz?: boolean;
 
@@ -245,7 +245,7 @@ export interface EncodedTransaction {
   fadd?: Uint8Array;
 
   /**
-   * assetRevocationTarget
+   * assetSender
    */
   asnd?: Uint8Array;
 

@@ -1334,7 +1334,7 @@ module.exports = function getSteps(options) {
           sender: freezer,
           freezeTarget: this.accounts[1],
           assetIndex: parseInt(this.assetTestFixture.index),
-          freezeState: false,
+          frozen: false,
           note: this.note,
           suggestedParams: this.params,
         });
@@ -1361,7 +1361,7 @@ module.exports = function getSteps(options) {
           sender: freezer,
           freezeTarget: this.accounts[1],
           assetIndex: parseInt(this.assetTestFixture.index),
-          freezeState: true,
+          frozen: true,
           note: this.note,
           suggestedParams: this.params,
         });
@@ -1386,7 +1386,7 @@ module.exports = function getSteps(options) {
         algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
           sender: this.assetTestFixture.creator,
           receiver: this.assetTestFixture.creator,
-          revocationTarget: this.accounts[1],
+          assetSender: this.accounts[1],
           amount: parseInt(amount),
           note: this.note,
           genesisHash: this.gh,

@@ -324,9 +324,9 @@ export interface AssetTransferTransactionParams {
 
   /**
    * String representation of Algorand address – if provided, and if "sender" is
-   * the asset's revocation manager, then deduct from "revocationTarget" rather than "sender"
+   * the asset's revocation manager, then deduct from "assetSender" rather than "sender"
    */
-  revocationTarget?: string | Address;
+  assetSender?: string | Address;
 
   /**
    * The Algorand address of recipient
@@ -364,7 +364,7 @@ export interface AssetFreezeTransactionParams {
   /**
    * true if freezeTarget should be frozen, false if freezeTarget should be allowed to transact
    */
-  freezeState: boolean;
+  frozen: boolean;
 }
 
 /**
