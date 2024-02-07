@@ -37,7 +37,9 @@ describe('Algosdk (AKA end to end)', () => {
       const firstValid = 12466;
       const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
+      const genesisHash = algosdk.base64ToBytes(
+        'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+      );
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = algosdk.base64ToBytes('6gAVR0Nsv5Y=');
@@ -84,7 +86,9 @@ describe('Algosdk (AKA end to end)', () => {
       const firstValid = 12466;
       const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
+      const genesisHash = algosdk.base64ToBytes(
+        'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+      );
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
@@ -142,7 +146,9 @@ describe('Algosdk (AKA end to end)', () => {
           firstValid: 12466,
           lastValid: 13466,
           genesisID: 'devnet-v33.0',
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
         },
       });
 
@@ -178,7 +184,9 @@ describe('Algosdk (AKA end to end)', () => {
           firstValid: 12466,
           lastValid: 13466,
           genesisID: 'devnet-v33.0',
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
         },
       });
 
@@ -210,7 +218,9 @@ describe('Algosdk (AKA end to end)', () => {
           firstValid: 12466,
           lastValid: 13466,
           genesisID: 'devnet-v33.0',
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
         },
       });
       const signed = algosdk.signTransaction(txn, account.sk);
@@ -244,7 +254,9 @@ describe('Algosdk (AKA end to end)', () => {
       const firstValid = 12466;
       const lastValid = 13466;
       const genesisID = 'devnet-v33.0';
-      const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
+      const genesisHash = algosdk.base64ToBytes(
+        'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+      );
       const closeRemainderTo =
         'IDUTJEUIEVSMXTU4LGTJWZ2UE2E6TIODUKU6UW3FU3UKIQQ77RLUBBBFLA';
       const note = new Uint8Array(algosdk.base64ToBytes('6gAVR0Nsv5Y='));
@@ -306,7 +318,9 @@ describe('Algosdk (AKA end to end)', () => {
           firstValid: 12466,
           lastValid: 13466,
           genesisID: 'devnet-v33.0',
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           fee: 4,
           minFee: 1000,
         },
@@ -343,7 +357,9 @@ describe('Algosdk (AKA end to end)', () => {
           firstValid: 12466,
           lastValid: 13466,
           genesisID: 'devnet-v33.0',
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           fee: 4,
           minFee: 1000,
         },
@@ -394,7 +410,9 @@ describe('Algosdk (AKA end to end)', () => {
           firstValid: 12466,
           lastValid: 13466,
           genesisID: 'devnet-v33.0',
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
         },
       });
 
@@ -473,7 +491,9 @@ describe('Algosdk (AKA end to end)', () => {
       const fee = 1000;
       const amount = 2000;
       const genesisID = 'devnet-v1.0';
-      const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E';
+      const genesisHash = algosdk.base64ToBytes(
+        'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E'
+      );
       const firstValid1 = 710399;
       const note1 = algosdk.base64ToBytes('wRKw5cJ0CMo=');
       const tx1 = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -577,7 +597,9 @@ describe('Algosdk (AKA end to end)', () => {
             fee: 10,
             firstValid: 322575,
             lastValid: 323575,
-            genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+            genesisHash: algosdk.base64ToBytes(
+              'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+            ),
           },
         }
       );
@@ -614,7 +636,9 @@ describe('Algosdk (AKA end to end)', () => {
             fee: 10,
             firstValid: 322575,
             lastValid: 323575,
-            genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+            genesisHash: algosdk.base64ToBytes(
+              'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+            ),
           },
         }
       );
@@ -642,7 +666,9 @@ describe('Algosdk (AKA end to end)', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
         },
       });
       const jsDec = algosdk.signTransaction(txn, sk.sk);
@@ -665,7 +691,9 @@ describe('Algosdk (AKA end to end)', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
         },
       });
       const jsDec = algosdk.signTransaction(txn, sk.sk);
@@ -683,7 +711,9 @@ describe('Algosdk (AKA end to end)', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323576,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
         },
       });
 
@@ -710,7 +740,9 @@ describe('Algosdk (AKA end to end)', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323576,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
         },
       });
 
@@ -736,7 +768,9 @@ describe('Algosdk (AKA end to end)', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
         },
       });
 
@@ -766,7 +800,9 @@ describe('Algosdk (AKA end to end)', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
         },
       });
 
@@ -880,7 +916,9 @@ describe('Algosdk (AKA end to end)', () => {
       const amount = 2000;
       const firstValid = 2063137;
       const genesisID = 'devnet-v1.0';
-      const genesisHash = 'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E=';
+      const genesisHash = algosdk.base64ToBytes(
+        'sC3P7e2SdbqKJK0tbiCdK9tdSpbe6XeCGKdoNzmlj0E='
+      );
       const note = algosdk.base64ToBytes('8xMCTuLQ810=');
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({

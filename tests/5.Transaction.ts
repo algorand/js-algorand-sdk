@@ -22,7 +22,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
       appCallParams: {
@@ -68,7 +70,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note,
@@ -92,7 +96,9 @@ describe('Sign', () => {
           fee: 0,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
       };
@@ -123,7 +129,9 @@ describe('Sign', () => {
         flatFee: true,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
     });
@@ -146,7 +154,9 @@ describe('Sign', () => {
         flatFee: true,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
       note: new Uint8Array([123, 12, 200]),
@@ -169,7 +179,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
       },
       note: new Uint8Array([123, 12, 200]),
     };
@@ -190,7 +202,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: '',
       },
       note: new Uint8Array([123, 12, 200]),
@@ -212,7 +226,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
       note: 'abcdefg' as any,
@@ -236,7 +252,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
       note: new Uint8Array(32),
@@ -254,7 +272,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
     });
@@ -279,7 +299,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
       lease: new Uint8Array(32),
@@ -297,7 +319,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
       lease: new Uint8Array(32),
@@ -330,7 +354,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
     });
@@ -350,7 +376,9 @@ describe('Sign', () => {
         fee: 10,
         firstValid: 51,
         lastValid: 61,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'mock-network',
       },
     });
@@ -369,7 +397,9 @@ describe('Sign', () => {
       fee: 10,
       firstValid: 51,
       lastValid: 61,
-      genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+      genesisHash: algosdk.base64ToBytes(
+        'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+      ),
       genesisID: 'mock-network',
     };
 
@@ -523,7 +553,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -554,7 +586,9 @@ describe('Sign', () => {
           flatFee: true,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -584,7 +618,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -629,7 +665,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -655,7 +693,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -683,7 +723,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -711,7 +753,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -745,7 +789,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -787,7 +833,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -821,7 +869,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -864,7 +914,9 @@ describe('Sign', () => {
           firstValid: 322575,
           lastValid: 323575,
           genesisID: 'testnet-v1.0',
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
         },
       });
       const encRep = expectedTxn.get_obj_for_encoding();
@@ -894,7 +946,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 322575,
           lastValid: 323575,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -923,7 +977,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 1,
           lastValid: 1001,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -960,7 +1016,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 1,
           lastValid: 1001,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -997,7 +1055,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 1,
           lastValid: 1001,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -1036,7 +1096,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 0,
           lastValid: 1000,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -1066,7 +1128,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 1,
           lastValid: 1001,
-          genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -1103,7 +1167,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
         },
         note: new Uint8Array([123, 12, 200]),
       });
@@ -1132,7 +1198,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -1162,7 +1230,9 @@ describe('Sign', () => {
           fee: 10,
           firstValid: 51,
           lastValid: 61,
-          genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+          genesisHash: algosdk.base64ToBytes(
+            'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+          ),
           genesisID: 'mock-network',
         },
         note: new Uint8Array([123, 12, 200]),
@@ -1196,7 +1266,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1239,7 +1311,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1282,7 +1356,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1326,7 +1402,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1371,7 +1449,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1424,7 +1504,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1498,7 +1580,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1566,7 +1650,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1634,7 +1720,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1690,7 +1778,9 @@ describe('Sign', () => {
           suggestedParams: {
             minFee: 1000,
             fee: 10,
-            genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+            genesisHash: algosdk.base64ToBytes(
+              'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+            ),
             genesisID: 'testnet-v1.0',
             firstValid: 51,
             lastValid: 61,
@@ -1744,7 +1834,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1785,7 +1877,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1828,7 +1922,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1868,7 +1964,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,
@@ -1913,7 +2011,9 @@ describe('Sign', () => {
       const suggestedParams: algosdk.SuggestedParams = {
         minFee: 1000,
         fee: 10,
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
         genesisID: 'testnet-v1.0',
         firstValid: 51,
         lastValid: 61,

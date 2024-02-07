@@ -68,7 +68,9 @@ describe('Multisig Functionality', () => {
           firstValid: 62229,
           lastValid: 63229,
           genesisID: 'devnet-v38.0',
-          genesisHash: '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0=',
+          genesisHash: algosdk.base64ToBytes(
+            '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0='
+          ),
         },
       });
 
@@ -103,7 +105,9 @@ describe('Multisig Functionality', () => {
           firstValid: 62229,
           lastValid: 63229,
           genesisID: 'devnet-v38.0',
-          genesisHash: '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0=',
+          genesisHash: algosdk.base64ToBytes(
+            '/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp0='
+          ),
         },
       });
 

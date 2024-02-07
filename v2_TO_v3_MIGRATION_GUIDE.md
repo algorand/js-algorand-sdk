@@ -164,8 +164,8 @@ The following table shows the correspondence between v2 and v3 fields in the `Tr
 | `flatFee`               | `boolean`               |                                       |                             | No longer exists                          |
 | `firstRound`            | `number`                | `firstValid`                          | `bigint`                    |                                           |
 | `lastRound`             | `number`                | `lastValid`                           | `bigint`                    |                                           |
-| `genesisID`             | `string`                | `genesisID`                           | `string`                    |                                           |
-| `genesisHash`           | `Buffer`                | `genesisHash`                         | `Uint8Array`                |                                           |
+| `genesisID`             | `string`                | `genesisID`                           | `string`                    | Field is now optional                     |
+| `genesisHash`           | `Buffer`                | `genesisHash`                         | `Uint8Array`                | Field is now optional                     |
 | `note`                  | `Uint8Array`            | `note`                                | `Uint8Array`                |                                           |
 | `reKeyTo`               | `Address`               | `rekeyTo`                             | `Address`                   |                                           |
 | `lease`                 | `Uint8Array`            | `lease`                               | `Uint8Array`                |                                           |
@@ -258,7 +258,17 @@ In v3, we've removed the need for `SuggestedParamsWithMinFee` and added the `min
 
 This allows the SDK to use the min fee information provided by the node, which has the potential to change over time or for different networks.
 
-If you manually constructed `SuggestedParams` objects in v2, you will need to add a `minFee` field to those objects in v3. We expect most users to not be affected by this, since if you use Algod to get suggested parameters, it will include the `minFee` field.
+In total, these changes were made to the `SuggestedParams` fields:
+
+| Field         | v2 Field Type | v3 Field Type      | Notes                                           |
+| ------------- | ------------- | ------------------ | ----------------------------------------------- |
+| `minFee`      | Did not exist | `number \| bigint` | Introduced new required field                   |
+| `genesisID`   | `string`      | `string`           | Field is now optional                           |
+| `genesisHash` | `string`      | `Uint8Array`       | Field is now optional, and must be a Uint8Array |
+
+If you manually constructed `SuggestedParams` objects in v2, you will need to add a `minFee` field to those objects in v3, and you will need to convert your `genesisHash` string to a `Uint8Array`. Consider using the new `base64ToBytes` function to do this.
+
+We expect most users to not be affected by this, since if you use Algod to get suggested parameters, it will include all parameters in the correct format.
 
 ### Auction Bids
 

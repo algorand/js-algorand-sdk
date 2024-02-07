@@ -1,6 +1,14 @@
 import JSONRequest from '../jsonrequest.js';
 import { SuggestedParams } from '../../../types/transactions/base.js';
+import { base64ToBytes } from '../../../encoding/binarydata.js';
 
+/**
+ * SuggestedParamsFromAlgod contains the suggested parameters for a new transaction, as returned by
+ * the algod REST API.
+ *
+ * This exists because the SuggestedParams interface is purposefully general (e.g. fee can be a
+ * number or a bigint), and compared to that the algod API returns a narrower type.
+ */
 export interface SuggestedParamsFromAlgod extends SuggestedParams {
   flatFee: boolean;
   fee: bigint;
@@ -8,7 +16,7 @@ export interface SuggestedParamsFromAlgod extends SuggestedParams {
   firstValid: bigint;
   lastValid: bigint;
   genesisID: string;
-  genesisHash: string;
+  genesisHash: Uint8Array;
 }
 
 /**
@@ -30,7 +38,7 @@ export default class SuggestedParamsRequest extends JSONRequest<
       firstValid: BigInt(body['last-round']),
       lastValid: BigInt(body['last-round']) + BigInt(1000),
       genesisID: body['genesis-id'],
-      genesisHash: body['genesis-hash'],
+      genesisHash: base64ToBytes(body['genesis-hash']),
       minFee: BigInt(body['min-fee']),
     };
   }

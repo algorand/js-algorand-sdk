@@ -155,7 +155,7 @@ export interface SuggestedParams {
   /**
    * Specifies hash genesis block of network in use
    */
-  genesisHash: string;
+  genesisHash?: Uint8Array;
 }
 
 /**

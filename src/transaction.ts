@@ -2,7 +2,6 @@
 import base32 from 'hi-base32';
 import { translateBoxReferences } from './boxStorage.js';
 import { Address } from './encoding/address.js';
-import { base64ToBytes, bytesToBase64 } from './encoding/binarydata.js';
 import * as encoding from './encoding/encoding.js';
 import * as nacl from './nacl/naclWrappers.js';
 import {
@@ -56,16 +55,12 @@ function getKeyregKey(
 
   let inputBytes: Uint8Array | undefined;
 
-  if (typeof input === 'string') {
-    inputBytes = base64ToBytes(input);
-  } else if (input instanceof Uint8Array) {
+  if (input instanceof Uint8Array) {
     inputBytes = input;
   }
 
   if (inputBytes == null || inputBytes.byteLength !== length) {
-    throw Error(
-      `${inputName} must be a ${length} byte Uint8Array or base64 string.`
-    );
+    throw Error(`${inputName} must be a ${length} byte Uint8Array`);
   }
 
   return inputBytes;
@@ -269,7 +264,7 @@ export class Transaction {
   public readonly firstValid: bigint;
   public readonly lastValid: bigint;
   public readonly genesisID?: string;
-  public readonly genesisHash: Uint8Array;
+  public readonly genesisHash?: Uint8Array;
 
   /** type-specific fields */
   public readonly payment?: PaymentTransactionFields;
@@ -308,10 +303,7 @@ export class Transaction {
       }
       this.genesisID = params.suggestedParams.genesisID;
     }
-    if (!params.suggestedParams.genesisHash) {
-      throw new Error('Genesis hash must be specified');
-    }
-    this.genesisHash = base64ToBytes(params.suggestedParams.genesisHash);
+    this.genesisHash = optionalUint8Array(params.suggestedParams.genesisHash);
     // Fee is handled at the end
 
     const fieldsPresent: TransactionType[] = [];
@@ -541,7 +533,6 @@ export class Transaction {
   get_obj_for_encoding(): EncodedTransaction {
     const forEncoding: EncodedTransaction = {
       type: this.type,
-      gh: this.genesisHash,
       lv: this.lastValid,
     };
     if (!uint8ArrayIsEmpty(this.sender.publicKey)) {
@@ -549,6 +540,9 @@ export class Transaction {
     }
     if (this.genesisID) {
       forEncoding.gen = this.genesisID;
+    }
+    if (this.genesisHash) {
+      forEncoding.gh = this.genesisHash;
     }
     if (this.fee) {
       forEncoding.fee = this.fee;
@@ -769,7 +763,7 @@ export class Transaction {
       fee: txnForEnc.fee ?? 0,
       firstValid: txnForEnc.fv ?? 0,
       lastValid: txnForEnc.lv,
-      genesisHash: bytesToBase64(txnForEnc.gh), // TODO: would like to avoid encoding/decoding here
+      genesisHash: txnForEnc.gh,
       genesisID: txnForEnc.gen,
     };
 

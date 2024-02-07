@@ -435,7 +435,9 @@ describe('signLogicSigTransaction', () => {
         firstValid: 972508,
         lastValid: 973508,
         genesisID: 'testnet-v31.0',
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
       },
       note: new Uint8Array([180, 81, 121, 57, 252, 250, 210, 113]),
     });
@@ -508,7 +510,9 @@ describe('signLogicSigTransaction', () => {
             firstValid: 972508,
             lastValid: 973508,
             genesisID: 'testnet-v31.0',
-            genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+            genesisHash: algosdk.base64ToBytes(
+              'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+            ),
           },
           note: new Uint8Array([180, 81, 121, 57, 252, 250, 210, 113]),
         });

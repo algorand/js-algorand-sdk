@@ -280,7 +280,7 @@ module.exports = function getSteps(options) {
       this.fee = parseInt(fee);
       this.fv = parseInt(fv);
       this.lv = parseInt(lv);
-      this.gh = gh;
+      this.gh = algosdk.base64ToBytes(gh);
       this.receiver = receiver;
       if (close !== 'none') {
         this.close = close;
@@ -2947,7 +2947,7 @@ module.exports = function getSteps(options) {
 
   Given(
     'suggested transaction parameters fee {int}, flat-fee {string}, first-valid {int}, last-valid {int}, genesis-hash {string}, genesis-id {string}',
-    function (fee, flatFee, firstValid, lastValid, genesisHash, genesisID) {
+    function (fee, flatFee, firstValid, lastValid, genesisHashB64, genesisID) {
       assert.ok(['true', 'false'].includes(flatFee));
 
       this.suggestedParams = {
@@ -2957,7 +2957,7 @@ module.exports = function getSteps(options) {
         firstValid,
         lastValid,
         genesisID,
-        genesisHash,
+        genesisHash: algosdk.base64ToBytes(genesisHashB64),
       };
     }
   );
@@ -3115,7 +3115,7 @@ module.exports = function getSteps(options) {
       }
       // build suggested params object
       const sp = {
-        genesisHash: genesisHashBase64,
+        genesisHash: algosdk.base64ToBytes(genesisHashBase64),
         firstValid,
         lastValid,
         fee,

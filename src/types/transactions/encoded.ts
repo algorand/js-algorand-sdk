@@ -137,7 +137,7 @@ export interface EncodedTransaction {
   /**
    * genesisHash
    */
-  gh: Uint8Array;
+  gh?: Uint8Array;
 
   /**
    * lease

@@ -9,6 +9,7 @@ import {
   makeBasicAccountTransactionSigner,
   makeMultiSigAccountTransactionSigner,
   makePaymentTxnWithSuggestedParamsFromObject,
+  base64ToBytes,
 } from '../src';
 import {
   ABIAddressType,
@@ -461,7 +462,7 @@ describe('ABI encoding', () => {
       firstValid: 1,
       lastValid: 1001,
       genesisID: 'gi',
-      genesisHash: 'gh',
+      genesisHash: new Uint8Array([1, 2]),
     };
     const foreignAcct =
       'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM';
@@ -521,7 +522,9 @@ describe('ABI encoding', () => {
 
     // Create a transaction
     const suggestedParams = {
-      genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+      genesisHash: base64ToBytes(
+        'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+      ),
       genesisID: '',
       firstValid: 0,
       lastValid: 1000,
