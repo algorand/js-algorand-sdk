@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   node: circleci/node@5.0.0
   slack: circleci/slack@4.4.2
-  browser-tools: circleci/browser-tools@1.4.3
+  browser-tools: circleci/browser-tools@1.4.6
   gh-pages: sugarshin/gh-pages@1.0.0
 
 parameters:
