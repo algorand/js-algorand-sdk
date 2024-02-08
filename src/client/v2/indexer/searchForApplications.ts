@@ -1,4 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * Returns information about indexed applications.
@@ -54,8 +55,8 @@ export default class SearchForApplications extends JSONRequest {
    * @param creator
    * @category query
    */
-  creator(creator: string) {
-    this.query.creator = creator;
+  creator(creator: string | Address) {
+    this.query.creator = creator.toString();
     return this;
   }
 

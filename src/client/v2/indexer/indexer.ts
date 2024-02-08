@@ -24,6 +24,7 @@ import {
   CustomTokenHeader,
   IndexerTokenHeader,
 } from '../../urlTokenBaseHTTPClient.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * The Indexer provides a REST API interface of API calls to support searching the Algorand Blockchain.
@@ -137,7 +138,7 @@ export class IndexerClient extends ServiceClient {
    * @param account - The address of the account.
    * @category GET
    */
-  lookupAccountTransactions(account: string) {
+  lookupAccountTransactions(account: string | Address) {
     return new LookupAccountTransactions(this.c, this.intDecoding, account);
   }
 
@@ -188,7 +189,7 @@ export class IndexerClient extends ServiceClient {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  lookupAccountByID(account: string) {
+  lookupAccountByID(account: string | Address) {
     return new LookupAccountByID(this.c, this.intDecoding, account);
   }
 
@@ -205,7 +206,7 @@ export class IndexerClient extends ServiceClient {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  lookupAccountAssets(account: string) {
+  lookupAccountAssets(account: string | Address) {
     return new LookupAccountAssets(this.c, this.intDecoding, account);
   }
 
@@ -222,7 +223,7 @@ export class IndexerClient extends ServiceClient {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  lookupAccountCreatedAssets(account: string) {
+  lookupAccountCreatedAssets(account: string | Address) {
     return new LookupAccountCreatedAssets(this.c, this.intDecoding, account);
   }
 
@@ -239,7 +240,7 @@ export class IndexerClient extends ServiceClient {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  lookupAccountAppLocalStates(account: string) {
+  lookupAccountAppLocalStates(account: string | Address) {
     return new LookupAccountAppLocalStates(this.c, this.intDecoding, account);
   }
 
@@ -256,7 +257,7 @@ export class IndexerClient extends ServiceClient {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  lookupAccountCreatedApplications(account: string) {
+  lookupAccountCreatedApplications(account: string | Address) {
     return new LookupAccountCreatedApplications(
       this.c,
       this.intDecoding,

@@ -45,9 +45,7 @@ async function main() {
   // example: TRANSACTION_PAYMENT_SUBMIT
 
   // example: ALGOD_FETCH_ACCOUNT_INFO
-  const acctInfo = await algodClient
-    .accountInformation(acct.addr.toString())
-    .do();
+  const acctInfo = await algodClient.accountInformation(acct.addr).do();
   console.log(`Account balance: ${acctInfo.amount} microAlgos`);
   // example: ALGOD_FETCH_ACCOUNT_INFO
 }

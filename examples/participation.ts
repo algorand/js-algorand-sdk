@@ -23,8 +23,8 @@ async function main() {
     'RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=='
   );
 
-  // sets up keys for 100000 rounds
-  const numRounds = BigInt(100000);
+  // sets up keys for 100,000 rounds
+  const numRounds = BigInt(100_000);
 
   // dilution default is sqrt num rounds
   const keyDilution = BigInt(Math.floor(Math.sqrt(Number(numRounds))));

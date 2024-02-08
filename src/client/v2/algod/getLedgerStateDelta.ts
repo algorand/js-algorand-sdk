@@ -9,7 +9,6 @@ export default class GetLedgerStateDelta extends JSONRequest {
     private round: number
   ) {
     super(c, intDecoding);
-    this.round = round;
     this.query = { format: 'json' };
   }
 

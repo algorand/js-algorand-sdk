@@ -13,7 +13,6 @@ export default class GetApplicationByID extends JSONRequest<
     private index: number | bigint
   ) {
     super(c, intDecoding);
-    this.index = index;
   }
 
   path() {

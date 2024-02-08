@@ -14,7 +14,6 @@ export default class StatusAfterBlock extends JSONRequest<
   ) {
     super(c, intDecoding);
     if (!Number.isInteger(round)) throw Error('round should be an integer');
-    this.round = round;
   }
 
   path() {

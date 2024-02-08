@@ -22,7 +22,6 @@ export default class LookupTransactionByID extends JSONRequest {
     private txID: string
   ) {
     super(c, intDecoding);
-    this.txID = txID;
   }
 
   /**

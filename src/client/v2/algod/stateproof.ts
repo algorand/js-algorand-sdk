@@ -10,8 +10,6 @@ export default class StateProof extends JSONRequest<SP, Record<string, any>> {
     private round: number
   ) {
     super(c, intDecoding);
-
-    this.round = round;
   }
 
   path() {

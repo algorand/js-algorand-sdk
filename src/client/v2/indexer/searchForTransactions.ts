@@ -1,5 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
 import { base64StringFunnel } from './lookupAccountTransactions.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * Returns information about indexed transactions.
@@ -279,8 +280,8 @@ export default class SearchForTransactions extends JSONRequest {
    * @param address
    * @category query
    */
-  address(address: string) {
-    this.query.address = address;
+  address(address: string | Address) {
+    this.query.address = address.toString();
     return this;
   }
 

@@ -9,8 +9,6 @@ export default class SetSyncRound extends JSONRequest {
     private round: number
   ) {
     super(c, intDecoding);
-
-    this.round = round;
   }
 
   path() {

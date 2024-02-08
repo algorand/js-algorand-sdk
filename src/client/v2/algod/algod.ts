@@ -44,6 +44,7 @@ import UnsetSyncRound from './unsetSyncRound.js';
 import GetLedgerStateDeltaForTransactionGroup from './getLedgerStateDeltaForTransactionGroup.js';
 import GetLedgerStateDelta from './getLedgerStateDelta.js';
 import GetTransactionGroupLedgerStateDeltasForRound from './getTransactionGroupLedgerStateDeltasForRound.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -153,7 +154,7 @@ export class AlgodClient extends ServiceClient {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  accountInformation(account: string) {
+  accountInformation(account: string | Address) {
     return new AccountInformation(this.c, this.intDecoding, account);
   }
 
@@ -172,7 +173,7 @@ export class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  accountAssetInformation(account: string, index: number) {
+  accountAssetInformation(account: string | Address, index: number) {
     return new AccountAssetInformation(
       this.c,
       this.intDecoding,
@@ -196,7 +197,7 @@ export class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  accountApplicationInformation(account: string, index: number) {
+  accountApplicationInformation(account: string | Address, index: number) {
     return new AccountApplicationInformation(
       this.c,
       this.intDecoding,
@@ -332,7 +333,7 @@ export class AlgodClient extends ServiceClient {
    * @param address - The address of the sender.
    * @category GET
    */
-  pendingTransactionByAddress(address: string) {
+  pendingTransactionByAddress(address: string | Address) {
     return new PendingTransactionsByAddress(this.c, address);
   }
 

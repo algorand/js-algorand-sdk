@@ -22,7 +22,6 @@ export default class LookupApplicationLogs extends JSONRequest {
     private appID: number
   ) {
     super(c, intDecoding);
-    this.appID = appID;
   }
 
   /**

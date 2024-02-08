@@ -98,7 +98,7 @@ async function main() {
   await client.sendRawTransaction(rekeyTxn.signTxn(acct1.privateKey)).do();
   await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
 
-  const acctInfo = await client.accountInformation(acct1.addr.toString()).do();
+  const acctInfo = await client.accountInformation(acct1.addr).do();
 
   console.log(
     `Account Info: ${JSON.stringify(acctInfo)} Auth Addr: ${

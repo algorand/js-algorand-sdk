@@ -1817,7 +1817,9 @@ module.exports = function getSteps(options) {
 
   When('we make any Pending Transactions By Address call', async function () {
     anyPendingTransactionsByAddressResponse = await doOrDoRaw(
-      this.v2Client.pendingTransactionByAddress()
+      this.v2Client.pendingTransactionByAddress(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
     );
   });
 
@@ -1896,7 +1898,9 @@ module.exports = function getSteps(options) {
 
   When('we make any Account Information call', async function () {
     anyAccountInformationResponse = await doOrDoRaw(
-      this.v2Client.accountInformation()
+      this.v2Client.accountInformation(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
     );
   });
 
@@ -2508,7 +2512,9 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAccountTransactions call', async function () {
     anyLookupAccountTransactionsResponse = await this.indexerClient
-      .lookupAccountTransactions()
+      .lookupAccountTransactions(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
       .do();
   });
 
@@ -2553,7 +2559,9 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAccountByID call', async function () {
     anyLookupAccountByIDResponse = await this.indexerClient
-      .lookupAccountByID()
+      .lookupAccountByID(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
       .do();
   });
 

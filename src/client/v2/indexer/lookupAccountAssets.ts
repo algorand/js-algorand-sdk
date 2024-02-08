@@ -1,8 +1,11 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import IntDecoding from '../../../types/intDecoding.js';
+import { Address } from '../../../encoding/address.js';
 
 export default class LookupAccountAssets extends JSONRequest {
+  private account: string;
+
   /**
    * Returns asset about the given account.
    *
@@ -19,10 +22,10 @@ export default class LookupAccountAssets extends JSONRequest {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
-    private account: string
+    account: string | Address
   ) {
     super(c, intDecoding);
-    this.account = account;
+    this.account = account.toString();
   }
 
   /**

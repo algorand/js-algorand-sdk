@@ -391,14 +391,7 @@ export class AtomicTransactionComposer {
     const resolvedRefIndexes: number[] = [];
     // Converting addresses to string form for easier comparison
     const foreignAccounts: string[] =
-      appAccounts == null
-        ? []
-        : appAccounts.map((addr) => {
-            if (typeof addr === 'string') {
-              return addr;
-            }
-            return addr.toString();
-          });
+      appAccounts == null ? [] : appAccounts.map((addr) => addr.toString());
     const foreignApps: bigint[] =
       appForeignApps == null ? [] : appForeignApps.map(ensureUint64);
     const foreignAssets: bigint[] =
@@ -412,12 +405,10 @@ export class AtomicTransactionComposer {
         case ABIReferenceType.account: {
           const addressType = new ABIAddressType();
           const address = addressType.decode(addressType.encode(refValue));
-          const senderString =
-            typeof sender === 'string' ? sender : sender.toString();
           resolved = populateForeignArray(
             address,
             foreignAccounts,
-            senderString
+            sender.toString()
           );
           break;
         }

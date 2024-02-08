@@ -15,7 +15,6 @@ export default class PendingTransactionInformation extends JSONRequest<
     private txid: string
   ) {
     super(c);
-    this.txid = txid;
     this.query.format = 'msgpack';
   }
 

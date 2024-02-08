@@ -22,7 +22,6 @@ export default class LookupBlock extends JSONRequest {
     private round: number
   ) {
     super(c, intDecoding);
-    this.round = round;
   }
 
   /**

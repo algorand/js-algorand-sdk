@@ -14,9 +14,6 @@ export default class GetTransactionProof extends JSONRequest<
     private txID: string
   ) {
     super(c, intDecoding);
-
-    this.round = round;
-    this.txID = txID;
   }
 
   path() {

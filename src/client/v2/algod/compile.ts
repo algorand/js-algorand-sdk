@@ -28,7 +28,6 @@ export default class Compile extends JSONRequest<
     private source: string | Uint8Array
   ) {
     super(c);
-    this.source = source;
   }
 
   // eslint-disable-next-line class-methods-use-this

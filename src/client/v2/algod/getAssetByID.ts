@@ -13,7 +13,6 @@ export default class GetAssetByID extends JSONRequest<
     private index: number | bigint
   ) {
     super(c, intDecoding);
-    this.index = index;
   }
 
   path() {

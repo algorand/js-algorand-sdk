@@ -125,7 +125,7 @@ export async function createDryrun({
   await Promise.all(appPromises);
 
   const acctPromises = [];
-  for (const acct of [...new Set(accts)]) {
+  for (const acct of new Set(accts)) {
     acctPromises.push(
       client
         .accountInformation(acct)

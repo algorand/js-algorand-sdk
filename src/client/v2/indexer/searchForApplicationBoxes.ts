@@ -39,7 +39,6 @@ export default class SearchForApplicationBoxes extends JSONRequest<
     private index: number
   ) {
     super(c, intDecoding);
-    this.index = index;
   }
 
   /**

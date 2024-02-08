@@ -143,7 +143,7 @@ async function main() {
   console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
 
   const accountAppInfo = await algodClient
-    .accountApplicationInformation(caller.addr.toString(), appId)
+    .accountApplicationInformation(caller.addr, appId)
     .do();
 
   const localState = accountAppInfo.appLocalState.keyValue[0];
