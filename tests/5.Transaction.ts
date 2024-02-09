@@ -625,13 +625,7 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      // console.log(
-      //   `${expectedTxn.stateProofType} ${expectedTxn.stateProofMessage} ${expectedTxn.stateProof} ${expectedTxn.type}`
-      // );
       const encRep = expectedTxn.get_obj_for_encoding();
-      // console.log(
-      //   `${encRep.sptype} ${encRep.spmsg} ${encRep.sp} ${encRep.type}`
-      // );
       const encTxn = algosdk.encodeObj(encRep);
       const decEncRep = algosdk.decodeObj(encTxn);
       const decTxn = algosdk.Transaction.from_obj_for_encoding(
