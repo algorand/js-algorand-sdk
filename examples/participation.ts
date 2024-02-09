@@ -24,10 +24,10 @@ async function main() {
   );
 
   // sets up keys for 100,000 rounds
-  const numRounds = BigInt(100_000);
+  const numRounds = 100_000;
 
   // dilution default is sqrt num rounds
-  const keyDilution = BigInt(Math.floor(Math.sqrt(Number(numRounds))));
+  const keyDilution = Math.floor(Math.sqrt(numRounds));
 
   // create transaction
   const onlineKeyreg =
@@ -37,7 +37,7 @@ async function main() {
       selectionKey,
       stateProofKey,
       voteFirst: params.firstValid,
-      voteLast: params.firstValid + numRounds,
+      voteLast: params.firstValid + BigInt(numRounds),
       voteKeyDilution: keyDilution,
       suggestedParams: params,
     });
