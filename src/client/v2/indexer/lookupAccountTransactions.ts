@@ -2,6 +2,7 @@ import { bytesToBase64 } from '../../../encoding/binarydata.js';
 import IntDecoding from '../../../types/intDecoding.js';
 import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string
@@ -16,6 +17,8 @@ export function base64StringFunnel(data: Uint8Array | string) {
 }
 
 export default class LookupAccountTransactions extends JSONRequest {
+  private account: string;
+
   /**
    * Returns transactions relating to the given account.
    *
@@ -31,10 +34,10 @@ export default class LookupAccountTransactions extends JSONRequest {
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
-    private account: string
+    account: string | Address
   ) {
     super(c, intDecoding);
-    this.account = account;
+    this.account = account.toString();
   }
 
   /**

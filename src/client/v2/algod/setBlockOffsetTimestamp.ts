@@ -9,8 +9,6 @@ export default class SetBlockOffsetTimestamp extends JSONRequest {
     private offset: number
   ) {
     super(c, intDecoding);
-
-    this.offset = offset;
   }
 
   path() {

@@ -30,7 +30,6 @@ export default class GetApplicationBoxByName extends JSONRequest<
     name: Uint8Array
   ) {
     super(c, intDecoding);
-    this.index = index;
     // Encode name in base64 format and append the encoding prefix.
     const encodedName = bytesToBase64(name);
     this.query.name = encodeURI(`b64:${encodedName}`);

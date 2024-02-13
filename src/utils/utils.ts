@@ -71,7 +71,7 @@ export function parseJSON(str: string, options?: JSONOptions) {
 /**
  * ArrayEqual takes two arrays and return true if equal, false otherwise
  */
-export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {
+export function arrayEqual<T>(a: ArrayLike<T>, b: ArrayLike<T>): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -136,4 +136,58 @@ export function isReactNative() {
     return true;
   }
   return false;
+}
+
+export function ensureSafeInteger(value: unknown): number {
+  if (typeof value === 'undefined') {
+    throw new Error('Value is undefined');
+  }
+  if (typeof value === 'bigint') {
+    if (
+      value > BigInt(Number.MAX_SAFE_INTEGER) ||
+      value < BigInt(Number.MIN_SAFE_INTEGER)
+    ) {
+      throw new Error(`BigInt value ${value} is not a safe integer`);
+    }
+    return Number(value);
+  }
+  if (typeof value === 'number') {
+    if (Number.isSafeInteger(value)) {
+      return value;
+    }
+    throw new Error(`Value ${value} is not a safe integer`);
+  }
+  throw new Error(`Unexpected type ${typeof value}, ${value}`);
+}
+
+export function ensureSafeUnsignedInteger(value: unknown): number {
+  const intValue = ensureSafeInteger(value);
+  if (intValue < 0) {
+    throw new Error(`Value ${intValue} is negative`);
+  }
+  return intValue;
+}
+
+export function ensureBigInt(value: unknown): bigint {
+  if (typeof value === 'undefined') {
+    throw new Error('Value is undefined');
+  }
+  if (typeof value === 'bigint') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isSafeInteger(value)) {
+      throw new Error(`Value ${value} is not a safe integer`);
+    }
+    return BigInt(value);
+  }
+  throw new Error(`Unexpected type ${typeof value}, ${value}`);
+}
+
+export function ensureUint64(value: unknown): bigint {
+  const bigIntValue = ensureBigInt(value);
+  if (bigIntValue < 0 || bigIntValue > BigInt('0xffffffffffffffff')) {
+    throw new Error(`Value ${bigIntValue} is not a uint64`);
+  }
+  return bigIntValue;
 }

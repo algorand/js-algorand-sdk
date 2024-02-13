@@ -2,20 +2,22 @@ import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import IntDecoding from '../../../types/intDecoding.js';
 import { AccountAssetResponse } from './models/types.js';
+import { Address } from '../../../encoding/address.js';
 
 export default class AccountAssetInformation extends JSONRequest<
   AccountAssetResponse,
   Record<string, any>
 > {
+  private account: string;
+
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
-    private account: string,
+    account: string | Address,
     private assetID: number
   ) {
     super(c, intDecoding);
-    this.account = account;
-    this.assetID = assetID;
+    this.account = account.toString();
   }
 
   path() {

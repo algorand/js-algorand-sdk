@@ -1,7 +1,7 @@
 /* eslint-disable no-bitwise */
 import english from './wordlists/english.js';
 import * as nacl from '../nacl/naclWrappers.js';
-import * as address from '../encoding/address.js';
+import { Address } from '../encoding/address.js';
 import Account from '../types/account.js';
 
 export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
@@ -146,8 +146,8 @@ export function seedFromMnemonic(mnemonic: string) {
 export function mnemonicToSecretKey(mn: string): Account {
   const seed = seedFromMnemonic(mn);
   const keys = nacl.keyPairFromSeed(seed);
-  const encodedPk = address.encodeAddress(keys.publicKey);
-  return { addr: encodedPk, sk: keys.secretKey };
+  const addr = new Address(keys.publicKey);
+  return { addr, sk: keys.secretKey };
 }
 
 /**

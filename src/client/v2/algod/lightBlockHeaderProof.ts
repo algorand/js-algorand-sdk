@@ -13,8 +13,6 @@ export default class LightBlockHeaderProof extends JSONRequest<
     private round: number
   ) {
     super(c, intDecoding);
-
-    this.round = round;
   }
 
   path() {

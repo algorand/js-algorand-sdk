@@ -10,10 +10,9 @@ export default class GetApplicationByID extends JSONRequest<
   constructor(
     c: HTTPClient,
     intDecoding: IntDecoding,
-    private index: number
+    private index: number | bigint
   ) {
     super(c, intDecoding);
-    this.index = index;
   }
 
   path() {

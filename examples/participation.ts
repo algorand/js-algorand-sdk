@@ -11,18 +11,23 @@ async function main() {
   // Parent addr
   const addr = 'MWAPNXBDFFD2V5KWXAHWKBO7FO4JN36VR4CIBDKDDE7WAUAGZIXM3QPJW4';
   // VRF public key
-  const selectionKey = 'LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=';
+  const selectionKey = algosdk.base64ToBytes(
+    'LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk='
+  );
   // Voting pub key
-  const voteKey = 'G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=';
+  const voteKey = algosdk.base64ToBytes(
+    'G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo='
+  );
   // State proof key
-  const stateProofKey =
-    'RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==';
+  const stateProofKey = algosdk.base64ToBytes(
+    'RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=='
+  );
 
-  // sets up keys for 100000 rounds
-  const numRounds = 1e5;
+  // sets up keys for 100,000 rounds
+  const numRounds = 100_000;
 
   // dilution default is sqrt num rounds
-  const keyDilution = numRounds ** 0.5;
+  const keyDilution = Math.floor(Math.sqrt(numRounds));
 
   // create transaction
   const onlineKeyreg =
@@ -32,7 +37,7 @@ async function main() {
       selectionKey,
       stateProofKey,
       voteFirst: params.firstValid,
-      voteLast: params.firstValid + numRounds,
+      voteLast: params.firstValid + BigInt(numRounds),
       voteKeyDilution: keyDilution,
       suggestedParams: params,
     });

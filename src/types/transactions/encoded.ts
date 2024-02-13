@@ -6,17 +6,17 @@ export interface EncodedAssetParams {
   /**
    * assetTotal
    */
-  t: number | bigint;
+  t?: number | bigint;
 
   /**
    * assetDefaultFrozen
    */
-  df: boolean;
+  df?: boolean;
 
   /**
    * assetDecimals
    */
-  dc: number;
+  dc?: number | bigint;
 
   /**
    * assetManager
@@ -63,36 +63,36 @@ export interface EncodedLocalStateSchema {
   /**
    * appLocalInts
    */
-  nui: number;
+  nui?: number | bigint;
 
   /**
    * appLocalByteSlices
    */
-  nbs: number;
+  nbs?: number | bigint;
 }
 
 export interface EncodedGlobalStateSchema {
   /**
    * appGlobalInts
    */
-  nui: number;
+  nui?: number | bigint;
 
   /**
    * appGlobalByteSlices
    */
-  nbs: number;
+  nbs?: number | bigint;
 }
 
 export interface EncodedBoxReference {
   /**
    * index of the app ID in the foreign apps array
    */
-  i: number;
+  i?: number | bigint;
 
   /**
    * box name
    */
-  n: Uint8Array;
+  n?: Uint8Array;
 }
 
 /**
@@ -102,17 +102,17 @@ export interface EncodedTransaction {
   /**
    * fee
    */
-  fee?: number;
+  fee?: number | bigint;
 
   /**
    * firstValid
    */
-  fv?: number;
+  fv?: number | bigint;
 
   /**
    * lastValid
    */
-  lv: number;
+  lv: number | bigint;
 
   /**
    * note
@@ -122,7 +122,7 @@ export interface EncodedTransaction {
   /**
    * sender
    */
-  snd: Uint8Array;
+  snd?: Uint8Array;
 
   /**
    * type
@@ -137,7 +137,7 @@ export interface EncodedTransaction {
   /**
    * genesisHash
    */
-  gh: Uint8Array;
+  gh?: Uint8Array;
 
   /**
    * lease
@@ -202,17 +202,17 @@ export interface EncodedTransaction {
   /**
    * voteFirst
    */
-  votefst?: number;
+  votefst?: number | bigint;
 
   /**
    * voteLast
    */
-  votelst?: number;
+  votelst?: number | bigint;
 
   /**
    * voteKeyDilution
    */
-  votekd?: number;
+  votekd?: number | bigint;
 
   /**
    * nonParticipation
@@ -222,20 +222,20 @@ export interface EncodedTransaction {
   /**
    * assetIndex
    */
-  caid?: number;
+  caid?: number | bigint;
 
   /**
    * assetIndex (but for asset transfers)
    */
-  xaid?: number;
+  xaid?: number | bigint;
 
   /**
    * assetIndex (but for asset freezing/unfreezing)
    */
-  faid?: number;
+  faid?: number | bigint;
 
   /**
-   * assetFrozen
+   * frozen
    */
   afrz?: boolean;
 
@@ -257,12 +257,12 @@ export interface EncodedTransaction {
   /**
    * appIndex
    */
-  apid?: number;
+  apid?: number | bigint;
 
   /**
    * appOnComplete
    */
-  apan?: number;
+  apan?: number | bigint;
 
   /**
    * See EncodedLocalStateSchema type
@@ -277,12 +277,12 @@ export interface EncodedTransaction {
   /**
    * appForeignApps
    */
-  apfa?: number[];
+  apfa?: Array<number | bigint>;
 
   /**
    * appForeignAssets
    */
-  apas?: number[];
+  apas?: Array<number | bigint>;
 
   /**
    * appApprovalProgram
@@ -307,7 +307,7 @@ export interface EncodedTransaction {
   /**
    * extraPages
    */
-  apep?: number;
+  apep?: number | bigint;
 
   /**
    * boxes

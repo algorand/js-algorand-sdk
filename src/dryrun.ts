@@ -10,7 +10,7 @@ import {
   EvalDeltaKeyValue,
   TealValue,
 } from './client/v2/algod/models/types.js';
-import { encodeAddress, getApplicationAddress } from './encoding/address.js';
+import { getApplicationAddress } from './encoding/address.js';
 import { base64ToBytes, bytesToHex } from './encoding/binarydata.js';
 import { SignedTransaction } from './transaction.js';
 import { TransactionType } from './types/transactions/index.js';
@@ -47,49 +47,49 @@ export async function createDryrun({
   const appInfos: Application[] = [];
   const acctInfos: Account[] = [];
 
-  const apps: number[] = [];
-  const assets: number[] = [];
+  const apps: bigint[] = [];
+  const assets: bigint[] = [];
   const accts: string[] = [];
 
   for (const t of txns) {
     if (t.txn.type === TransactionType.appl) {
-      accts.push(encodeAddress(t.txn.sender.publicKey));
+      accts.push(t.txn.sender.toString());
 
-      if (t.txn.appAccounts)
-        accts.push(...t.txn.appAccounts.map((a) => encodeAddress(a.publicKey)));
+      accts.push(...t.txn.applicationCall!.accounts.map((a) => a.toString()));
 
-      if (t.txn.appForeignApps) {
-        apps.push(...t.txn.appForeignApps);
-        accts.push(
-          ...t.txn.appForeignApps.map((aidx) => getApplicationAddress(aidx))
-        );
-      }
+      apps.push(...t.txn.applicationCall!.foreignApps);
+      accts.push(
+        ...t.txn
+          .applicationCall!.foreignApps.map(getApplicationAddress)
+          .map((a) => a.toString())
+      );
 
-      if (t.txn.appForeignAssets) assets.push(...t.txn.appForeignAssets);
+      assets.push(...t.txn.applicationCall!.foreignAssets);
 
       // Create application,
-      if (t.txn.appIndex === undefined || t.txn.appIndex === 0) {
+      if (t.txn.applicationCall!.appIndex === BigInt(0)) {
         appInfos.push(
           new Application({
             id: defaultAppId,
             params: new ApplicationParams({
-              creator: encodeAddress(t.txn.sender.publicKey),
-              approvalProgram: t.txn.appApprovalProgram,
-              clearStateProgram: t.txn.appClearProgram,
+              creator: t.txn.sender.toString(),
+              approvalProgram: t.txn.applicationCall!.approvalProgram,
+              clearStateProgram: t.txn.applicationCall!.clearProgram,
               localStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.appLocalInts,
-                numByteSlice: t.txn.appLocalByteSlices,
+                numUint: t.txn.applicationCall!.numLocalInts,
+                numByteSlice: t.txn.applicationCall!.numLocalByteSlices,
               }),
               globalStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.appGlobalInts,
-                numByteSlice: t.txn.appGlobalByteSlices,
+                numUint: t.txn.applicationCall!.numGlobalInts,
+                numByteSlice: t.txn.applicationCall!.numGlobalByteSlices,
               }),
             }),
           })
         );
       } else {
-        apps.push(t.txn.appIndex);
-        accts.push(getApplicationAddress(t.txn.appIndex));
+        const { appIndex } = t.txn.applicationCall!;
+        apps.push(appIndex);
+        accts.push(getApplicationAddress(appIndex).toString());
       }
     }
   }
@@ -125,7 +125,7 @@ export async function createDryrun({
   await Promise.all(appPromises);
 
   const acctPromises = [];
-  for (const acct of [...new Set(accts)]) {
+  for (const acct of new Set(accts)) {
     acctPromises.push(
       client
         .accountInformation(acct)
@@ -138,7 +138,7 @@ export async function createDryrun({
   await Promise.all(acctPromises);
 
   return new DryrunRequest({
-    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding()! })),
+    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
     accounts: acctInfos,
     apps: appInfos,
     latestTimestamp: latestTimestamp ?? 0,

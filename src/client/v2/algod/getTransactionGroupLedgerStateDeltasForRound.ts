@@ -13,7 +13,6 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
     private round: number
   ) {
     super(c, intDecoding);
-    this.round = round;
     this.query = { format: 'json' };
   }
 

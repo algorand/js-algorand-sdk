@@ -1,4 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * Returns information about indexed accounts.
@@ -186,8 +187,8 @@ export default class SearchAccounts extends JSONRequest {
    *
    * @param authAddr
    */
-  authAddr(authAddr: string) {
-    this.query['auth-addr'] = authAddr;
+  authAddr(authAddr: string | Address) {
+    this.query['auth-addr'] = authAddr.toString();
     return this;
   }
 

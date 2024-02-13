@@ -9,7 +9,6 @@ export default class GetLedgerStateDeltaForTransactionGroup extends JSONRequest 
     private id: string
   ) {
     super(c, intDecoding);
-    this.id = id;
     this.query = { format: 'json' };
   }
 

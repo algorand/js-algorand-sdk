@@ -2,6 +2,7 @@ import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import * as encoding from '../../../encoding/encoding.js';
 import { PendingTransactionsResponse } from './models/types.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * returns all transactions for a PK [addr] in the [first, last] rounds range.
@@ -10,12 +11,11 @@ export default class PendingTransactionsByAddress extends JSONRequest<
   PendingTransactionsResponse,
   Uint8Array
 > {
-  constructor(
-    c: HTTPClient,
-    private address: string
-  ) {
+  private address: string;
+
+  constructor(c: HTTPClient, address: string | Address) {
     super(c);
-    this.address = address;
+    this.address = address.toString();
     this.query.format = 'msgpack';
   }
 

@@ -45,7 +45,7 @@ export function getLocalAlgodClient() {
 }
 
 export interface SandboxAccount {
-  addr: string;
+  addr: algosdk.Address;
   privateKey: Uint8Array;
   signer: algosdk.TransactionSigner;
 }
@@ -81,8 +81,8 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
   kmdClient.releaseWalletHandle(handle);
 
   return keys.map((k) => {
-    const addr = algosdk.encodeAddress(k.private_key.slice(32));
-    const acct = { sk: k.private_key, addr } as algosdk.Account;
+    const addr = new algosdk.Address(k.private_key.slice(32));
+    const acct: algosdk.Account = { sk: k.private_key, addr };
     const signer = algosdk.makeBasicAccountTransactionSigner(acct);
 
     return {

@@ -2,6 +2,7 @@ import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import IntDecoding from '../../../types/intDecoding.js';
 import { base64StringFunnel } from './lookupAccountTransactions.js';
+import { Address } from '../../../encoding/address.js';
 
 export default class LookupAssetTransactions extends JSONRequest {
   /**
@@ -22,7 +23,6 @@ export default class LookupAssetTransactions extends JSONRequest {
     private index: number
   ) {
     super(c, intDecoding);
-    this.index = index;
   }
 
   /**
@@ -325,8 +325,8 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param address
    * @category query
    */
-  address(address: string) {
-    this.query.address = address;
+  address(address: string | Address) {
+    this.query.address = address.toString();
     return this;
   }
 

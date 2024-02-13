@@ -31,7 +31,6 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest<
     boxName: Uint8Array
   ) {
     super(c, intDecoding);
-    this.index = index;
     // Encode query in base64 format and append the encoding prefix.
     const encodedName = bytesToBase64(boxName);
     this.query.name = encodeURI(`b64:${encodedName}`);
