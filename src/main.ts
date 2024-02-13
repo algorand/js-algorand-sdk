@@ -125,6 +125,7 @@ export {
   hexToBytes,
 } from './encoding/binarydata.js';
 export { encodeUint64, decodeUint64 } from './encoding/uint64.js';
+export { parseJSON, ParseJSONOptions, stringifyJSON } from './utils/utils.js';
 export { default as generateAccount } from './account.js';
 export * as modelsv2 from './client/v2/algod/models/types.js';
 export * as indexerModels from './client/v2/indexer/models/types.js';

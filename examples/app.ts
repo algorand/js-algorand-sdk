@@ -133,7 +133,7 @@ async function main() {
   // example: APP_READ_STATE
   const appInfo = await algodClient.getApplicationByID(appId).do();
   const globalState = appInfo.params.globalState[0];
-  console.log(`Raw global state - ${JSON.stringify(globalState)}`);
+  console.log(`Raw global state - ${algosdk.stringifyJSON(globalState)}`);
 
   // decode b64 string key with Buffer
   const globalKey = algosdk.base64ToString(globalState.key);
@@ -147,7 +147,7 @@ async function main() {
     .do();
 
   const localState = accountAppInfo.appLocalState.keyValue[0];
-  console.log(`Raw local state - ${JSON.stringify(localState)}`);
+  console.log(`Raw local state - ${algosdk.stringifyJSON(localState)}`);
 
   // decode b64 string key with Buffer
   const localKey = algosdk.base64ToString(localState.key);

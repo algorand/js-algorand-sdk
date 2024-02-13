@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { Account } from './models/types.js';
 import { Address } from '../../../encoding/address.js';
 
@@ -10,12 +9,8 @@ export default class AccountInformation extends JSONRequest<
 > {
   private account: string;
 
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    account: string | Address
-  ) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
     this.account = account.toString();
   }
 

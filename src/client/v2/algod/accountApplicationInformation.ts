@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { AccountApplicationResponse } from './models/types.js';
 import { Address } from '../../../encoding/address.js';
 
@@ -12,11 +11,10 @@ export default class AccountApplicationInformation extends JSONRequest<
 
   constructor(
     c: HTTPClient,
-    intDecoding: IntDecoding,
     account: string | Address,
     private applicationID: number
   ) {
-    super(c, intDecoding);
+    super(c);
     this.account = account.toString();
   }
 

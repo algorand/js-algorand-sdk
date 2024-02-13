@@ -1,4 +1,5 @@
 import { concatArrays } from '../../../utils/utils.js';
+import IntDecoding from '../../../types/intDecoding.js';
 import { PostTransactionsResponse } from './models/types.js';
 import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
@@ -58,6 +59,7 @@ export default class SendRawTransaction extends JSONRequest<
     const res = await this.c.post(
       this.path(),
       this.txnBytesToPost,
+      { intDecoding: IntDecoding.BIGINT },
       undefined,
       txHeaders
     );

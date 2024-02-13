@@ -1,19 +1,20 @@
 import { AlgodClient } from './client/v2/algod/algod.js';
 import {
   Account,
-  AccountStateDelta,
   Application,
   ApplicationParams,
   ApplicationStateSchema,
   DryrunRequest,
   DryrunSource,
-  EvalDeltaKeyValue,
+  DryrunTxnResult,
+  DryrunState,
   TealValue,
 } from './client/v2/algod/models/types.js';
 import { getApplicationAddress } from './encoding/address.js';
 import { base64ToBytes, bytesToHex } from './encoding/binarydata.js';
 import { SignedTransaction } from './transaction.js';
 import { TransactionType } from './types/transactions/index.js';
+import { stringifyJSON } from './utils/utils.js';
 
 const defaultAppId = 1380011588;
 const defaultMaxWidth = 30;
@@ -148,79 +149,7 @@ export async function createDryrun({
   });
 }
 
-interface StackValueResponse {
-  type: number;
-  bytes: string;
-  uint: number;
-}
-
-class DryrunStackValue {
-  type: number = 0;
-  bytes: string = '';
-  uint: number = 0;
-
-  constructor(sv: StackValueResponse) {
-    this.type = sv.type;
-    this.bytes = sv.bytes;
-    this.uint = sv.uint;
-  }
-
-  toString(): string {
-    if (this.type === 1) {
-      return `0x${bytesToHex(base64ToBytes(this.bytes))}`;
-    }
-    return this.uint.toString();
-  }
-}
-
-interface DryrunTraceLineResponse {
-  error: string;
-  line: number;
-  pc: number;
-  scratch: TealValue[];
-  stack: StackValueResponse[];
-}
-
-class DryrunTraceLine {
-  error: string = '';
-  line: number = 0;
-  pc: number = 0;
-  scratch: TealValue[] = [];
-  stack: DryrunStackValue[] = [];
-
-  constructor(line: DryrunTraceLineResponse) {
-    this.error = line.error === undefined ? '' : line.error;
-    this.line = line.line;
-    this.pc = line.pc;
-    this.scratch = line.scratch;
-    this.stack = line.stack.map(
-      (sv: StackValueResponse) => new DryrunStackValue(sv)
-    );
-  }
-}
-
-class DryrunTrace {
-  trace: DryrunTraceLine[] = [];
-  constructor(t: DryrunTraceLineResponse[]) {
-    if (t == null) return;
-    this.trace = t.map((line) => new DryrunTraceLine(line));
-  }
-}
-
-interface DryrunTransactionResultResponse {
-  disassembly: string[];
-  appCallMessages: string[] | undefined;
-  localDeltas: AccountStateDelta[] | undefined;
-  globalDelta: EvalDeltaKeyValue[] | undefined;
-  cost: number | undefined;
-  logicSigMessages: string[] | undefined;
-  logicSigDisassembly: string[] | undefined;
-  logs: string[] | undefined;
-  appCallTrace: DryrunTrace | undefined;
-  logicSigTrace: DryrunTrace | undefined;
-}
-
-interface StackPrinterConfig {
+export interface StackPrinterConfig {
   maxValueWidth: number | undefined;
   topOfStackFirst: boolean | undefined;
 }
@@ -245,7 +174,7 @@ function scratchToString(
       continue;
     }
 
-    if (JSON.stringify(prevScratch[idx]) !== JSON.stringify(currScratch[idx])) {
+    if (stringifyJSON(prevScratch[idx]) !== stringifyJSON(currScratch[idx])) {
       newScratchIdx = idx;
     }
   }
@@ -262,7 +191,7 @@ function scratchToString(
 }
 
 function stackToString(
-  stack: DryrunStackValue[],
+  stack: TealValue[],
   reverse: boolean | undefined
 ): string {
   const svs = reverse ? stack.reverse() : stack;
@@ -280,167 +209,86 @@ function stackToString(
     .join(', ')}]`;
 }
 
-class DryrunTransactionResult {
-  disassembly: string[] = [];
-  appCallMessages: string[] | undefined = [];
-  localDeltas: AccountStateDelta[] | undefined = [];
-  globalDelta: EvalDeltaKeyValue[] | undefined = [];
-  cost: number | undefined = 0;
-  logicSigMessages: string[] | undefined = [];
-  logicSigDisassembly: string[] | undefined = [];
-  logs: string[] | undefined = [];
+function dryrunTrace(
+  trace: DryrunState[],
+  disassembly: string[],
+  spc: StackPrinterConfig
+): string {
+  const maxWidth = spc.maxValueWidth || defaultMaxWidth;
 
-  appCallTrace: DryrunTrace | undefined = undefined;
-  logicSigTrace: DryrunTrace | undefined = undefined;
+  // Create the array of arrays, each sub array contains N columns
+  const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
+  for (let idx = 0; idx < trace.length; idx++) {
+    const { line, error, pc, scratch, stack } = trace[idx];
 
-  required = ['disassembly'];
-  optionals = [
-    'app-call-messages',
-    'local-deltas',
-    'global-delta',
-    'cost',
-    'logic-sig-messages',
-    'logic-sig-disassembly',
-    'logs',
-  ];
+    const currScratch = scratch !== undefined ? scratch : [];
+    const prevScratch =
+      idx > 0 && trace[idx - 1].scratch !== undefined
+        ? trace[idx - 1].scratch!
+        : [];
 
-  traces = ['app-call-trace', 'logic-sig-trace'];
+    const src = !error ? disassembly[line] : `!! ${error} !!`;
 
-  constructor(dtr: DryrunTransactionResultResponse | any) {
-    // Temporary type fix, will be unnecessary in following PR
-    this.disassembly = dtr.disassembly;
-    this.appCallMessages = dtr['app-call-messages'];
-    this.localDeltas = dtr['local-deltas'];
-    this.globalDelta = dtr['global-delta'];
-    this.cost = dtr.cost;
-    this.logicSigMessages = dtr['logic-sig-messages'];
-    this.logicSigDisassembly = dtr['logic-sig-disassembly'];
-    this.logs = dtr.logs;
-    this.appCallTrace = new DryrunTrace(dtr['app-call-trace']);
-    this.logicSigTrace = new DryrunTrace(dtr['logic-sig-trace']);
+    lines.push([
+      pc.toString().padEnd(3, ' '),
+      line.toString().padEnd(3, ' '),
+      truncate(src, maxWidth),
+      truncate(scratchToString(prevScratch, currScratch), maxWidth),
+      truncate(stackToString(stack, spc.topOfStackFirst), maxWidth),
+    ]);
   }
 
-  appCallRejected(): boolean {
-    return (
-      this.appCallMessages !== undefined &&
-      this.appCallMessages.includes('REJECT')
-    );
-  }
-
-  logicSigRejected(): boolean {
-    return (
-      this.logicSigMessages !== undefined &&
-      this.logicSigMessages.includes('REJECT')
-    );
-  }
-
-  static trace(
-    drt: DryrunTrace,
-    disassembly: string[],
-    spc: StackPrinterConfig
-  ): string {
-    const maxWidth = spc.maxValueWidth || defaultMaxWidth;
-
-    // Create the array of arrays, each sub array contains N columns
-    const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
-    for (let idx = 0; idx < drt.trace.length; idx++) {
-      const { line, error, pc, scratch, stack } = drt.trace[idx];
-
-      const currScratch = scratch !== undefined ? scratch : [];
-      const prevScratch =
-        idx > 0 && drt.trace[idx - 1].scratch !== undefined
-          ? drt.trace[idx - 1].scratch
-          : [];
-
-      const src = error === '' ? disassembly[line] : `!! ${error} !!`;
-
-      lines.push([
-        pc.toString().padEnd(3, ' '),
-        line.toString().padEnd(3, ' '),
-        truncate(src, maxWidth),
-        truncate(scratchToString(prevScratch, currScratch), maxWidth),
-        truncate(stackToString(stack, spc.topOfStackFirst), maxWidth),
-      ]);
+  // Get the max length for each column
+  const maxLengths = lines.reduce((prev, curr) => {
+    const newVal = new Array(lines[0].length).fill(0);
+    for (let idx = 0; idx < prev.length; idx++) {
+      newVal[idx] = curr[idx].length > prev[idx] ? curr[idx].length : prev[idx];
     }
+    return newVal;
+  }, new Array(lines[0].length).fill(0));
 
-    // Get the max length for each column
-    const maxLengths = lines.reduce((prev, curr) => {
-      const newVal = new Array(lines[0].length).fill(0);
-      for (let idx = 0; idx < prev.length; idx++) {
-        newVal[idx] =
-          curr[idx].length > prev[idx] ? curr[idx].length : prev[idx];
-      }
-      return newVal;
-    }, new Array(lines[0].length).fill(0));
-
-    return `${lines
-      .map((line) =>
-        line
-          .map((v, idx) => v.padEnd(maxLengths[idx] + 1, ' '))
-          .join('|')
-          .trim()
-      )
-      .join('\n')}\n`;
-  }
-
-  appTrace(spc?: StackPrinterConfig): string {
-    if (this.appCallTrace === undefined || !this.disassembly) return '';
-
-    let conf = spc;
-    if (spc !== undefined) conf = spc;
-    else {
-      conf = {
-        maxValueWidth: defaultMaxWidth,
-        topOfStackFirst: false,
-      };
-    }
-
-    return DryrunTransactionResult.trace(
-      this.appCallTrace,
-      this.disassembly,
-      conf
-    );
-  }
-
-  lsigTrace(spc?: StackPrinterConfig): string {
-    if (
-      this.logicSigTrace === undefined ||
-      this.logicSigDisassembly === undefined
+  return `${lines
+    .map((line) =>
+      line
+        .map((v, idx) => v.padEnd(maxLengths[idx] + 1, ' '))
+        .join('|')
+        .trim()
     )
-      return '';
-
-    let conf: StackPrinterConfig;
-    if (spc !== undefined) conf = spc;
-    else {
-      conf = {
-        maxValueWidth: defaultMaxWidth,
-        topOfStackFirst: true,
-      };
-    }
-
-    return DryrunTransactionResult.trace(
-      this.logicSigTrace,
-      this.logicSigDisassembly,
-      conf
-    );
-  }
+    .join('\n')}\n`;
 }
 
-interface DryrunResultResponse {
-  ['error']: string;
-  ['protocol-version']: string;
-  ['txns']: DryrunTransactionResultResponse[];
+export function dryrunTxnResultAppTrace(
+  result: DryrunTxnResult,
+  spc?: StackPrinterConfig
+): string {
+  if (!result.appCallTrace || !result.disassembly) return '';
+
+  let conf = spc;
+  if (spc !== undefined) conf = spc;
+  else {
+    conf = {
+      maxValueWidth: defaultMaxWidth,
+      topOfStackFirst: false,
+    };
+  }
+
+  return dryrunTrace(result.appCallTrace, result.disassembly, conf);
 }
 
-export class DryrunResult {
-  error: string = '';
-  protocolVersion: string = '';
-  txns: DryrunTransactionResult[] = [];
-  constructor(drrResp: DryrunResultResponse) {
-    this.error = drrResp.error;
-    this.protocolVersion = drrResp['protocol-version'];
-    this.txns = drrResp.txns.map(
-      (txn: DryrunTransactionResultResponse) => new DryrunTransactionResult(txn)
-    );
+export function dryrunTxnResultLogicSigTrace(
+  result: DryrunTxnResult,
+  spc?: StackPrinterConfig
+): string {
+  if (!result.logicSigTrace || !result.logicSigDisassembly) return '';
+
+  let conf: StackPrinterConfig;
+  if (spc !== undefined) conf = spc;
+  else {
+    conf = {
+      maxValueWidth: defaultMaxWidth,
+      topOfStackFirst: true,
+    };
   }
+
+  return dryrunTrace(result.logicSigTrace, result.logicSigDisassembly, conf);
 }

@@ -1,4 +1,5 @@
 import { coerceToBytes } from '../../../encoding/binarydata.js';
+import IntDecoding from '../../../types/intDecoding.js';
 import { HTTPClient } from '../../client.js';
 import { CompileResponse } from './models/types.js';
 import JSONRequest from '../jsonrequest.js';
@@ -49,6 +50,7 @@ export default class Compile extends JSONRequest<
     const res = await this.c.post(
       this.path(),
       coerceToBytes(this.source),
+      { intDecoding: IntDecoding.BIGINT },
       this.query,
       txHeaders
     );

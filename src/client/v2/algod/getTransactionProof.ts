@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { TransactionProofResponse } from './models/types.js';
 
 export default class GetTransactionProof extends JSONRequest<
@@ -9,11 +8,10 @@ export default class GetTransactionProof extends JSONRequest<
 > {
   constructor(
     c: HTTPClient,
-    intDecoding: IntDecoding,
     private round: number,
     private txID: string
   ) {
-    super(c, intDecoding);
+    super(c);
   }
 
   path() {

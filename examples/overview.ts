@@ -38,7 +38,7 @@ async function main() {
   const { txid } = await algodClient.sendRawTransaction(signedTxn).do();
   const result = await algosdk.waitForConfirmation(algodClient, txid, 4);
   console.log(result);
-  console.log(`Transaction Information: ${JSON.stringify(result.txn)}`);
+  console.log(`Transaction Information: ${algosdk.stringifyJSON(result.txn)}`);
   console.log(
     `Decoded Note: ${new TextDecoder('utf-8').decode(result.txn.txn.note)}`
   );

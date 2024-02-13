@@ -3,6 +3,7 @@ import {
   bytesToBase64,
   coerceToBytes,
 } from '../encoding/binarydata.js';
+import IntDecoding from '../types/intDecoding.js';
 import { Transaction } from '../transaction.js';
 import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient.js';
 import ServiceClient from './v2/serviceClient.js';
@@ -21,7 +22,9 @@ export class KmdClient extends ServiceClient {
    * version returns a VersionResponse containing a list of kmd API versions supported by this running kmd instance.
    */
   async versions() {
-    const res = await this.c.get('/versions');
+    const res = await this.c.get('/versions', {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -30,7 +33,9 @@ export class KmdClient extends ServiceClient {
    * returned from this endpoint, you can initialize a wallet handle with client.InitWalletHandle
    */
   async listWallets() {
-    const res = await this.c.get('/v1/wallets');
+    const res = await this.c.get('/v1/wallets', {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -56,7 +61,9 @@ export class KmdClient extends ServiceClient {
       wallet_password: walletPassword,
       master_derivation_key: bytesToBase64(walletMDK),
     };
-    const res = await this.c.post('/v1/wallet', req);
+    const res = await this.c.post('/v1/wallet', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -76,7 +83,9 @@ export class KmdClient extends ServiceClient {
       wallet_id: walletID,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post('/v1/wallet/init', req);
+    const res = await this.c.post('/v1/wallet/init', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -89,7 +98,9 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/wallet/release', req);
+    const res = await this.c.post('/v1/wallet/release', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -104,7 +115,9 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/wallet/renew', req);
+    const res = await this.c.post('/v1/wallet/renew', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -125,7 +138,9 @@ export class KmdClient extends ServiceClient {
       wallet_password: walletPassword,
       wallet_name: newWalletName,
     };
-    const res = await this.c.post('/v1/wallet/rename', req);
+    const res = await this.c.post('/v1/wallet/rename', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -138,7 +153,9 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/wallet/info', req);
+    const res = await this.c.post('/v1/wallet/info', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -159,7 +176,9 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post('/v1/master-key/export', req);
+    const res = await this.c.post('/v1/master-key/export', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return {
       master_derivation_key: base64ToBytes(res.body.master_derivation_key),
     };
@@ -177,7 +196,9 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       private_key: bytesToBase64(secretKey),
     };
-    const res = await this.c.post('/v1/key/import', req);
+    const res = await this.c.post('/v1/key/import', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -195,7 +216,9 @@ export class KmdClient extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post('/v1/key/export', req);
+    const res = await this.c.post('/v1/key/export', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return { private_key: base64ToBytes(res.body.private_key) };
   }
 
@@ -210,7 +233,9 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       display_mnemonic: false,
     };
-    const res = await this.c.post('/v1/key', req);
+    const res = await this.c.post('/v1/key', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -231,7 +256,9 @@ export class KmdClient extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.delete('/v1/key', req);
+    const res = await this.c.delete('/v1/key', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -244,7 +271,9 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/key/list', req);
+    const res = await this.c.post('/v1/key/list', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -267,7 +296,9 @@ export class KmdClient extends ServiceClient {
       wallet_password: walletPassword,
       transaction: bytesToBase64(transaction.toByte()),
     };
-    const res = await this.c.post('/v1/transaction/sign', req);
+    const res = await this.c.post('/v1/transaction/sign', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
 
     if (res.status === 200) {
       return base64ToBytes(res.body.signed_transaction);
@@ -299,7 +330,9 @@ export class KmdClient extends ServiceClient {
       transaction: bytesToBase64(transaction.toByte()),
       public_key: bytesToBase64(pk),
     };
-    const res = await this.c.post('/v1/transaction/sign', req);
+    const res = await this.c.post('/v1/transaction/sign', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
 
     if (res.status === 200) {
       return base64ToBytes(res.body.signed_transaction);
@@ -319,7 +352,9 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/multisig/list', req);
+    const res = await this.c.post('/v1/multisig/list', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -345,7 +380,9 @@ export class KmdClient extends ServiceClient {
       threshold,
       pks,
     };
-    const res = await this.c.post('/v1/multisig/import', req);
+    const res = await this.c.post('/v1/multisig/import', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -364,7 +401,9 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       address: addr,
     };
-    const res = await this.c.post('/v1/multisig/export', req);
+    const res = await this.c.post('/v1/multisig/export', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -395,7 +434,9 @@ export class KmdClient extends ServiceClient {
       partial_multisig: partial,
       wallet_password: pw,
     };
-    const res = await this.c.post('/v1/multisig/sign', req);
+    const res = await this.c.post('/v1/multisig/sign', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 
@@ -417,7 +458,9 @@ export class KmdClient extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.delete('/v1/multisig', req);
+    const res = await this.c.delete('/v1/multisig', req, {
+      intDecoding: IntDecoding.BIGINT,
+    });
     return res.body;
   }
 }

@@ -101,7 +101,7 @@ async function main() {
   const acctInfo = await client.accountInformation(acct1.addr).do();
 
   console.log(
-    `Account Info: ${JSON.stringify(acctInfo)} Auth Addr: ${
+    `Account Info: ${algosdk.stringifyJSON(acctInfo)} Auth Addr: ${
       acctInfo['auth-addr']
     }`
   );

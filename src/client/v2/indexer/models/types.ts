@@ -3,6 +3,7 @@
  */
 
 /* eslint-disable no-use-before-define */
+import { ensureBigInt, ensureSafeInteger } from '../../../../utils/utils.js';
 import { base64ToBytes } from '../../../../encoding/binarydata.js';
 import BaseModel from '../../basemodel.js';
 
@@ -20,28 +21,28 @@ export class Account extends BaseModel {
   /**
    * (algo) total number of MicroAlgos in the account
    */
-  public amount: number | bigint;
+  public amount: bigint;
 
   /**
    * specifies the amount of MicroAlgos in the account, without the pending rewards.
    */
-  public amountWithoutPendingRewards: number | bigint;
+  public amountWithoutPendingRewards: bigint;
 
   /**
    * amount of MicroAlgos of pending rewards in this account.
    */
-  public pendingRewards: number | bigint;
+  public pendingRewards: bigint;
 
   /**
    * (ern) total rewards of MicroAlgos the account has received, including pending
    * rewards.
    */
-  public rewards: number | bigint;
+  public rewards: bigint;
 
   /**
    * The round for which this information is relevant.
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * (onl) delegation status of the account's MicroAlgos
@@ -57,35 +58,35 @@ export class Account extends BaseModel {
    * The count of all applications that have been opted in, equivalent to the count
    * of application local data (AppLocalState objects) stored in this account.
    */
-  public totalAppsOptedIn: number | bigint;
+  public totalAppsOptedIn: number;
 
   /**
    * The count of all assets that have been opted in, equivalent to the count of
    * AssetHolding objects held by this account.
    */
-  public totalAssetsOptedIn: number | bigint;
+  public totalAssetsOptedIn: number;
 
   /**
    * For app-accounts only. The total number of bytes allocated for the keys and
    * values of boxes which belong to the associated application.
    */
-  public totalBoxBytes: number | bigint;
+  public totalBoxBytes: number;
 
   /**
    * For app-accounts only. The total number of boxes which belong to the associated
    * application.
    */
-  public totalBoxes: number | bigint;
+  public totalBoxes: number;
 
   /**
    * The count of all apps (AppParams objects) created by this account.
    */
-  public totalCreatedApps: number | bigint;
+  public totalCreatedApps: number;
 
   /**
    * The count of all assets (AssetParams objects) created by this account.
    */
-  public totalCreatedAssets: number | bigint;
+  public totalCreatedAssets: number;
 
   /**
    * (appl) applications local data stored in this account.
@@ -96,7 +97,7 @@ export class Account extends BaseModel {
   /**
    * (teap) the sum of all extra application program pages for this account.
    */
-  public appsTotalExtraPages?: number | bigint;
+  public appsTotalExtraPages?: number;
 
   /**
    * (tsch) stores the sum of all of the local schemas and global schemas in this
@@ -121,7 +122,7 @@ export class Account extends BaseModel {
   /**
    * Round during which this account was most recently closed.
    */
-  public closedAtRound?: number | bigint;
+  public closedAtRound?: bigint;
 
   /**
    * (appp) parameters of applications created by this account including app global
@@ -139,7 +140,7 @@ export class Account extends BaseModel {
   /**
    * Round during which this account first appeared in a transaction.
    */
-  public createdAtRound?: number | bigint;
+  public createdAtRound?: bigint;
 
   /**
    * Whether or not this account is currently closed.
@@ -156,7 +157,7 @@ export class Account extends BaseModel {
    * (ebase) used as part of the rewards computation. Only applicable to accounts
    * which are participating.
    */
-  public rewardBase?: number | bigint;
+  public rewardBase?: bigint;
 
   /**
    * Indicates what type of signature is used by this account, must be one of:
@@ -278,30 +279,42 @@ export class Account extends BaseModel {
   }) {
     super();
     this.address = address;
-    this.amount = amount;
-    this.amountWithoutPendingRewards = amountWithoutPendingRewards;
-    this.pendingRewards = pendingRewards;
-    this.rewards = rewards;
-    this.round = round;
+    this.amount = ensureBigInt(amount);
+    this.amountWithoutPendingRewards = ensureBigInt(
+      amountWithoutPendingRewards
+    );
+    this.pendingRewards = ensureBigInt(pendingRewards);
+    this.rewards = ensureBigInt(rewards);
+    this.round = ensureBigInt(round);
     this.status = status;
-    this.totalAppsOptedIn = totalAppsOptedIn;
-    this.totalAssetsOptedIn = totalAssetsOptedIn;
-    this.totalBoxBytes = totalBoxBytes;
-    this.totalBoxes = totalBoxes;
-    this.totalCreatedApps = totalCreatedApps;
-    this.totalCreatedAssets = totalCreatedAssets;
+    this.totalAppsOptedIn = ensureSafeInteger(totalAppsOptedIn);
+    this.totalAssetsOptedIn = ensureSafeInteger(totalAssetsOptedIn);
+    this.totalBoxBytes = ensureSafeInteger(totalBoxBytes);
+    this.totalBoxes = ensureSafeInteger(totalBoxes);
+    this.totalCreatedApps = ensureSafeInteger(totalCreatedApps);
+    this.totalCreatedAssets = ensureSafeInteger(totalCreatedAssets);
     this.appsLocalState = appsLocalState;
-    this.appsTotalExtraPages = appsTotalExtraPages;
+    this.appsTotalExtraPages =
+      typeof appsTotalExtraPages === 'undefined'
+        ? undefined
+        : ensureSafeInteger(appsTotalExtraPages);
     this.appsTotalSchema = appsTotalSchema;
     this.assets = assets;
     this.authAddr = authAddr;
-    this.closedAtRound = closedAtRound;
+    this.closedAtRound =
+      typeof closedAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(closedAtRound);
     this.createdApps = createdApps;
     this.createdAssets = createdAssets;
-    this.createdAtRound = createdAtRound;
+    this.createdAtRound =
+      typeof createdAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(createdAtRound);
     this.deleted = deleted;
     this.participation = participation;
-    this.rewardBase = rewardBase;
+    this.rewardBase =
+      typeof rewardBase === 'undefined' ? undefined : ensureBigInt(rewardBase);
     this.sigType = sigType;
 
     this.attribute_map = {
@@ -446,17 +459,17 @@ export class AccountParticipation extends BaseModel {
   /**
    * (voteFst) First round for which this participation is valid.
    */
-  public voteFirstValid: number | bigint;
+  public voteFirstValid: bigint;
 
   /**
    * (voteKD) Number of subkeys in each batch of participation keys.
    */
-  public voteKeyDilution: number | bigint;
+  public voteKeyDilution: bigint;
 
   /**
    * (voteLst) Last round for which this participation is valid.
    */
-  public voteLastValid: number | bigint;
+  public voteLastValid: bigint;
 
   /**
    * (vote) root participation public key (if any) currently registered for this
@@ -499,9 +512,9 @@ export class AccountParticipation extends BaseModel {
       typeof selectionParticipationKey === 'string'
         ? base64ToBytes(selectionParticipationKey)
         : selectionParticipationKey;
-    this.voteFirstValid = voteFirstValid;
-    this.voteKeyDilution = voteKeyDilution;
-    this.voteLastValid = voteLastValid;
+    this.voteFirstValid = ensureBigInt(voteFirstValid);
+    this.voteKeyDilution = ensureBigInt(voteKeyDilution);
+    this.voteLastValid = ensureBigInt(voteLastValid);
     this.voteParticipationKey =
       typeof voteParticipationKey === 'string'
         ? base64ToBytes(voteParticipationKey)
@@ -572,7 +585,7 @@ export class AccountResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Creates a new `AccountResponse` object.
@@ -590,7 +603,7 @@ export class AccountResponse extends BaseModel {
   }) {
     super();
     this.account = account;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
 
     this.attribute_map = {
       account: 'account',
@@ -674,7 +687,7 @@ export class AccountsResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -700,7 +713,7 @@ export class AccountsResponse extends BaseModel {
   }) {
     super();
     this.accounts = accounts;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
 
     this.attribute_map = {
@@ -737,7 +750,7 @@ export class Application extends BaseModel {
   /**
    * (appidx) application index.
    */
-  public id: number | bigint;
+  public id: bigint;
 
   /**
    * (appparams) application parameters.
@@ -747,7 +760,7 @@ export class Application extends BaseModel {
   /**
    * Round when this application was created.
    */
-  public createdAtRound?: number | bigint;
+  public createdAtRound?: bigint;
 
   /**
    * Whether or not this application is currently deleted.
@@ -757,7 +770,7 @@ export class Application extends BaseModel {
   /**
    * Round when this application was deleted.
    */
-  public deletedAtRound?: number | bigint;
+  public deletedAtRound?: bigint;
 
   /**
    * Creates a new `Application` object.
@@ -781,11 +794,17 @@ export class Application extends BaseModel {
     deletedAtRound?: number | bigint;
   }) {
     super();
-    this.id = id;
+    this.id = ensureBigInt(id);
     this.params = params;
-    this.createdAtRound = createdAtRound;
+    this.createdAtRound =
+      typeof createdAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(createdAtRound);
     this.deleted = deleted;
-    this.deletedAtRound = deletedAtRound;
+    this.deletedAtRound =
+      typeof deletedAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(deletedAtRound);
 
     this.attribute_map = {
       id: 'id',
@@ -821,7 +840,7 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * The application which this local state is for.
    */
-  public id: number | bigint;
+  public id: bigint;
 
   /**
    * (hsch) schema.
@@ -831,7 +850,7 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * Round when account closed out of the application.
    */
-  public closedOutAtRound?: number | bigint;
+  public closedOutAtRound?: bigint;
 
   /**
    * Whether or not the application local state is currently deleted from its
@@ -847,7 +866,7 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * Round when the account opted into the application.
    */
-  public optedInAtRound?: number | bigint;
+  public optedInAtRound?: bigint;
 
   /**
    * Creates a new `ApplicationLocalState` object.
@@ -875,12 +894,18 @@ export class ApplicationLocalState extends BaseModel {
     optedInAtRound?: number | bigint;
   }) {
     super();
-    this.id = id;
+    this.id = ensureBigInt(id);
     this.schema = schema;
-    this.closedOutAtRound = closedOutAtRound;
+    this.closedOutAtRound =
+      typeof closedOutAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(closedOutAtRound);
     this.deleted = deleted;
     this.keyValue = keyValue;
-    this.optedInAtRound = optedInAtRound;
+    this.optedInAtRound =
+      typeof optedInAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(optedInAtRound);
 
     this.attribute_map = {
       id: 'id',
@@ -925,7 +950,7 @@ export class ApplicationLocalStatesResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -951,7 +976,7 @@ export class ApplicationLocalStatesResponse extends BaseModel {
   }) {
     super();
     this.appsLocalStates = appsLocalStates;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
 
     this.attribute_map = {
@@ -1039,12 +1064,12 @@ export class ApplicationLogsResponse extends BaseModel {
   /**
    * (appidx) application index.
    */
-  public applicationId: number | bigint;
+  public applicationId: bigint;
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   public logData?: ApplicationLogData[];
 
@@ -1074,8 +1099,8 @@ export class ApplicationLogsResponse extends BaseModel {
     nextToken?: string;
   }) {
     super();
-    this.applicationId = applicationId;
-    this.currentRound = currentRound;
+    this.applicationId = ensureBigInt(applicationId);
+    this.currentRound = ensureBigInt(currentRound);
     this.logData = logData;
     this.nextToken = nextToken;
 
@@ -1136,7 +1161,7 @@ export class ApplicationParams extends BaseModel {
   /**
    * (epp) the amount of extra program pages available to this app.
    */
-  public extraProgramPages?: number | bigint;
+  public extraProgramPages?: number;
 
   /**
    * [\gs) global schema
@@ -1191,7 +1216,10 @@ export class ApplicationParams extends BaseModel {
         ? base64ToBytes(clearStateProgram)
         : clearStateProgram;
     this.creator = creator;
-    this.extraProgramPages = extraProgramPages;
+    this.extraProgramPages =
+      typeof extraProgramPages === 'undefined'
+        ? undefined
+        : ensureSafeInteger(extraProgramPages);
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
@@ -1251,7 +1279,7 @@ export class ApplicationResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Application index and its parameters
@@ -1271,7 +1299,7 @@ export class ApplicationResponse extends BaseModel {
     application?: Application;
   }) {
     super();
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.application = application;
 
     this.attribute_map = {
@@ -1305,12 +1333,12 @@ export class ApplicationStateSchema extends BaseModel {
   /**
    * (nbs) num of byte slices.
    */
-  public numByteSlice: number | bigint;
+  public numByteSlice: number;
 
   /**
    * (nui) num of uints.
    */
-  public numUint: number | bigint;
+  public numUint: number;
 
   /**
    * Creates a new `ApplicationStateSchema` object.
@@ -1325,8 +1353,8 @@ export class ApplicationStateSchema extends BaseModel {
     numUint: number | bigint;
   }) {
     super();
-    this.numByteSlice = numByteSlice;
-    this.numUint = numUint;
+    this.numByteSlice = ensureSafeInteger(numByteSlice);
+    this.numUint = ensureSafeInteger(numUint);
 
     this.attribute_map = {
       numByteSlice: 'num-byte-slice',
@@ -1362,7 +1390,7 @@ export class ApplicationsResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -1388,7 +1416,7 @@ export class ApplicationsResponse extends BaseModel {
   }) {
     super();
     this.applications = applications;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
 
     this.attribute_map = {
@@ -1427,7 +1455,7 @@ export class Asset extends BaseModel {
   /**
    * unique asset identifier
    */
-  public index: number | bigint;
+  public index: bigint;
 
   /**
    * AssetParams specifies the parameters for an asset.
@@ -1440,7 +1468,7 @@ export class Asset extends BaseModel {
   /**
    * Round during which this asset was created.
    */
-  public createdAtRound?: number | bigint;
+  public createdAtRound?: bigint;
 
   /**
    * Whether or not this asset is currently deleted.
@@ -1450,7 +1478,7 @@ export class Asset extends BaseModel {
   /**
    * Round during which this asset was destroyed.
    */
-  public destroyedAtRound?: number | bigint;
+  public destroyedAtRound?: bigint;
 
   /**
    * Creates a new `Asset` object.
@@ -1477,11 +1505,17 @@ export class Asset extends BaseModel {
     destroyedAtRound?: number | bigint;
   }) {
     super();
-    this.index = index;
+    this.index = ensureBigInt(index);
     this.params = params;
-    this.createdAtRound = createdAtRound;
+    this.createdAtRound =
+      typeof createdAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(createdAtRound);
     this.deleted = deleted;
-    this.destroyedAtRound = destroyedAtRound;
+    this.destroyedAtRound =
+      typeof destroyedAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(destroyedAtRound);
 
     this.attribute_map = {
       index: 'index',
@@ -1519,7 +1553,7 @@ export class AssetBalancesResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -1545,7 +1579,7 @@ export class AssetBalancesResponse extends BaseModel {
   }) {
     super();
     this.balances = balances;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
 
     this.attribute_map = {
@@ -1586,12 +1620,12 @@ export class AssetHolding extends BaseModel {
   /**
    * (a) number of units held.
    */
-  public amount: number | bigint;
+  public amount: bigint;
 
   /**
    * Asset ID of the holding.
    */
-  public assetId: number | bigint;
+  public assetId: bigint;
 
   /**
    * (f) whether or not the holding is frozen.
@@ -1606,12 +1640,12 @@ export class AssetHolding extends BaseModel {
   /**
    * Round during which the account opted into this asset holding.
    */
-  public optedInAtRound?: number | bigint;
+  public optedInAtRound?: bigint;
 
   /**
    * Round during which the account opted out of this asset holding.
    */
-  public optedOutAtRound?: number | bigint;
+  public optedOutAtRound?: bigint;
 
   /**
    * Creates a new `AssetHolding` object.
@@ -1638,12 +1672,18 @@ export class AssetHolding extends BaseModel {
     optedOutAtRound?: number | bigint;
   }) {
     super();
-    this.amount = amount;
-    this.assetId = assetId;
+    this.amount = ensureBigInt(amount);
+    this.assetId = ensureBigInt(assetId);
     this.isFrozen = isFrozen;
     this.deleted = deleted;
-    this.optedInAtRound = optedInAtRound;
-    this.optedOutAtRound = optedOutAtRound;
+    this.optedInAtRound =
+      typeof optedInAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(optedInAtRound);
+    this.optedOutAtRound =
+      typeof optedOutAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(optedOutAtRound);
 
     this.attribute_map = {
       amount: 'amount',
@@ -1687,7 +1727,7 @@ export class AssetHoldingsResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -1713,7 +1753,7 @@ export class AssetHoldingsResponse extends BaseModel {
   }) {
     super();
     this.assets = assets;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
 
     this.attribute_map = {
@@ -1765,12 +1805,12 @@ export class AssetParams extends BaseModel {
    * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
    * must be between 0 and 19 (inclusive).
    */
-  public decimals: number | bigint;
+  public decimals: number;
 
   /**
    * (t) The total number of units of this asset.
    */
-  public total: number | bigint;
+  public total: bigint;
 
   /**
    * (c) Address of account used to clawback holdings of this asset. If empty,
@@ -1902,8 +1942,8 @@ export class AssetParams extends BaseModel {
   }) {
     super();
     this.creator = creator;
-    this.decimals = decimals;
-    this.total = total;
+    this.decimals = ensureSafeInteger(decimals);
+    this.total = ensureBigInt(total);
     this.clawback = clawback;
     this.defaultFrozen = defaultFrozen;
     this.freeze = freeze;
@@ -1985,7 +2025,7 @@ export class AssetResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Creates a new `AssetResponse` object.
@@ -2001,7 +2041,7 @@ export class AssetResponse extends BaseModel {
   }) {
     super();
     this.asset = asset;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
 
     this.attribute_map = {
       asset: 'asset',
@@ -2035,7 +2075,7 @@ export class AssetsResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -2061,7 +2101,7 @@ export class AssetsResponse extends BaseModel {
   }) {
     super();
     this.assets = assets;
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
 
     this.attribute_map = {
@@ -2115,7 +2155,7 @@ export class Block extends BaseModel {
   /**
    * (rnd) Current round on which this block was appended to the chain.
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * (seed) Sortition seed.
@@ -2125,7 +2165,7 @@ export class Block extends BaseModel {
   /**
    * (ts) Block creation timestamp in seconds since eposh
    */
-  public timestamp: number | bigint;
+  public timestamp: number;
 
   /**
    * (txn) TransactionsRoot authenticates the set of transactions appearing in the
@@ -2172,7 +2212,7 @@ export class Block extends BaseModel {
    * committed after this block. It is 0 when no transactions have ever been
    * committed (since TxnCounter started being supported).
    */
-  public txnCounter?: number | bigint;
+  public txnCounter?: number;
 
   /**
    * Fields relating to a protocol upgrade.
@@ -2257,9 +2297,9 @@ export class Block extends BaseModel {
       typeof previousBlockHash === 'string'
         ? base64ToBytes(previousBlockHash)
         : previousBlockHash;
-    this.round = round;
+    this.round = ensureBigInt(round);
     this.seed = typeof seed === 'string' ? base64ToBytes(seed) : seed;
-    this.timestamp = timestamp;
+    this.timestamp = ensureSafeInteger(timestamp);
     this.transactionsRoot =
       typeof transactionsRoot === 'string'
         ? base64ToBytes(transactionsRoot)
@@ -2272,7 +2312,10 @@ export class Block extends BaseModel {
     this.rewards = rewards;
     this.stateProofTracking = stateProofTracking;
     this.transactions = transactions;
-    this.txnCounter = txnCounter;
+    this.txnCounter =
+      typeof txnCounter === 'undefined'
+        ? undefined
+        : ensureSafeInteger(txnCounter);
     this.upgradeState = upgradeState;
     this.upgradeVote = upgradeVote;
 
@@ -2382,13 +2425,13 @@ export class BlockRewards extends BaseModel {
    * (rwcalr) number of leftover MicroAlgos after the distribution of rewards-rate
    * MicroAlgos for every reward unit in the next round.
    */
-  public rewardsCalculationRound: number | bigint;
+  public rewardsCalculationRound: bigint;
 
   /**
    * (earn) How many rewards, in MicroAlgos, have been distributed to each RewardUnit
    * of MicroAlgos since genesis.
    */
-  public rewardsLevel: number | bigint;
+  public rewardsLevel: bigint;
 
   /**
    * (rwd) accepts periodic injections from the fee-sink and continually
@@ -2400,13 +2443,13 @@ export class BlockRewards extends BaseModel {
    * (rate) Number of new MicroAlgos added to the participation stake from rewards at
    * the next round.
    */
-  public rewardsRate: number | bigint;
+  public rewardsRate: bigint;
 
   /**
    * (frac) Number of leftover MicroAlgos after the distribution of
    * RewardsRate/rewardUnits MicroAlgos for every reward unit in the next round.
    */
-  public rewardsResidue: number | bigint;
+  public rewardsResidue: bigint;
 
   /**
    * Creates a new `BlockRewards` object.
@@ -2439,11 +2482,11 @@ export class BlockRewards extends BaseModel {
   }) {
     super();
     this.feeSink = feeSink;
-    this.rewardsCalculationRound = rewardsCalculationRound;
-    this.rewardsLevel = rewardsLevel;
+    this.rewardsCalculationRound = ensureBigInt(rewardsCalculationRound);
+    this.rewardsLevel = ensureBigInt(rewardsLevel);
     this.rewardsPool = rewardsPool;
-    this.rewardsRate = rewardsRate;
-    this.rewardsResidue = rewardsResidue;
+    this.rewardsRate = ensureBigInt(rewardsRate);
+    this.rewardsResidue = ensureBigInt(rewardsResidue);
 
     this.attribute_map = {
       feeSink: 'fee-sink',
@@ -2509,18 +2552,18 @@ export class BlockUpgradeState extends BaseModel {
   /**
    * (nextyes) Number of blocks which approved the protocol upgrade.
    */
-  public nextProtocolApprovals?: number | bigint;
+  public nextProtocolApprovals?: number;
 
   /**
    * (nextswitch) Round on which the protocol upgrade will take effect.
    */
-  public nextProtocolSwitchOn?: number | bigint;
+  public nextProtocolSwitchOn?: bigint;
 
   /**
    * (nextbefore) Deadline round for this protocol upgrade (No votes will be consider
    * after this round).
    */
-  public nextProtocolVoteBefore?: number | bigint;
+  public nextProtocolVoteBefore?: bigint;
 
   /**
    * Creates a new `BlockUpgradeState` object.
@@ -2547,9 +2590,18 @@ export class BlockUpgradeState extends BaseModel {
     super();
     this.currentProtocol = currentProtocol;
     this.nextProtocol = nextProtocol;
-    this.nextProtocolApprovals = nextProtocolApprovals;
-    this.nextProtocolSwitchOn = nextProtocolSwitchOn;
-    this.nextProtocolVoteBefore = nextProtocolVoteBefore;
+    this.nextProtocolApprovals =
+      typeof nextProtocolApprovals === 'undefined'
+        ? undefined
+        : ensureSafeInteger(nextProtocolApprovals);
+    this.nextProtocolSwitchOn =
+      typeof nextProtocolSwitchOn === 'undefined'
+        ? undefined
+        : ensureBigInt(nextProtocolSwitchOn);
+    this.nextProtocolVoteBefore =
+      typeof nextProtocolVoteBefore === 'undefined'
+        ? undefined
+        : ensureBigInt(nextProtocolVoteBefore);
 
     this.attribute_map = {
       currentProtocol: 'current-protocol',
@@ -2590,7 +2642,7 @@ export class BlockUpgradeVote extends BaseModel {
   /**
    * (upgradedelay) Indicates the time between acceptance and execution.
    */
-  public upgradeDelay?: number | bigint;
+  public upgradeDelay?: bigint;
 
   /**
    * (upgradeprop) Indicates a proposed upgrade.
@@ -2614,7 +2666,10 @@ export class BlockUpgradeVote extends BaseModel {
   }) {
     super();
     this.upgradeApprove = upgradeApprove;
-    this.upgradeDelay = upgradeDelay;
+    this.upgradeDelay =
+      typeof upgradeDelay === 'undefined'
+        ? undefined
+        : ensureBigInt(upgradeDelay);
     this.upgradePropose = upgradePropose;
 
     this.attribute_map = {
@@ -2648,7 +2703,7 @@ export class Box extends BaseModel {
   /**
    * The round for which this information is relevant
    */
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * (value) box value, base64 encoded.
@@ -2672,7 +2727,7 @@ export class Box extends BaseModel {
   }) {
     super();
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
-    this.round = round;
+    this.round = ensureBigInt(round);
     this.value = typeof value === 'string' ? base64ToBytes(value) : value;
 
     this.attribute_map = {
@@ -2741,7 +2796,7 @@ export class BoxesResponse extends BaseModel {
   /**
    * (appidx) application index.
    */
-  public applicationId: number | bigint;
+  public applicationId: bigint;
 
   public boxes: BoxDescriptor[];
 
@@ -2768,7 +2823,7 @@ export class BoxesResponse extends BaseModel {
     nextToken?: string;
   }) {
     super();
-    this.applicationId = applicationId;
+    this.applicationId = ensureBigInt(applicationId);
     this.boxes = boxes;
     this.nextToken = nextToken;
 
@@ -2849,7 +2904,7 @@ export class EvalDelta extends BaseModel {
   /**
    * (at) delta action.
    */
-  public action: number | bigint;
+  public action: number;
 
   /**
    * (bs) bytes value.
@@ -2859,7 +2914,7 @@ export class EvalDelta extends BaseModel {
   /**
    * (ui) uint value.
    */
-  public uint?: number | bigint;
+  public uint?: bigint;
 
   /**
    * Creates a new `EvalDelta` object.
@@ -2877,9 +2932,9 @@ export class EvalDelta extends BaseModel {
     uint?: number | bigint;
   }) {
     super();
-    this.action = action;
+    this.action = ensureSafeInteger(action);
     this.bytes = bytes;
-    this.uint = uint;
+    this.uint = typeof uint === 'undefined' ? undefined : ensureBigInt(uint);
 
     this.attribute_map = {
       action: 'action',
@@ -2948,7 +3003,7 @@ export class HashFactory extends BaseModel {
   /**
    * (t)
    */
-  public hashType?: number | bigint;
+  public hashType?: number;
 
   /**
    * Creates a new `HashFactory` object.
@@ -2956,7 +3011,8 @@ export class HashFactory extends BaseModel {
    */
   constructor({ hashType }: { hashType?: number | bigint }) {
     super();
-    this.hashType = hashType;
+    this.hashType =
+      typeof hashType === 'undefined' ? undefined : ensureSafeInteger(hashType);
 
     this.attribute_map = {
       hashType: 'hash-type',
@@ -2983,7 +3039,7 @@ export class HealthCheck extends BaseModel {
 
   public message: string;
 
-  public round: number | bigint;
+  public round: bigint;
 
   /**
    * Current version.
@@ -3025,7 +3081,7 @@ export class HealthCheck extends BaseModel {
     this.dbAvailable = dbAvailable;
     this.isMigrating = isMigrating;
     this.message = message;
-    this.round = round;
+    this.round = ensureBigInt(round);
     this.version = version;
     this.data = data;
     this.errors = errors;
@@ -3080,17 +3136,17 @@ export class IndexerStateProofMessage extends BaseModel {
   /**
    * (f)
    */
-  public firstAttestedRound?: number | bigint;
+  public firstAttestedRound?: bigint;
 
   /**
    * (l)
    */
-  public latestAttestedRound?: number | bigint;
+  public latestAttestedRound?: bigint;
 
   /**
    * (P)
    */
-  public lnProvenWeight?: number | bigint;
+  public lnProvenWeight?: bigint;
 
   /**
    * (v)
@@ -3123,9 +3179,18 @@ export class IndexerStateProofMessage extends BaseModel {
       typeof blockHeadersCommitment === 'string'
         ? base64ToBytes(blockHeadersCommitment)
         : blockHeadersCommitment;
-    this.firstAttestedRound = firstAttestedRound;
-    this.latestAttestedRound = latestAttestedRound;
-    this.lnProvenWeight = lnProvenWeight;
+    this.firstAttestedRound =
+      typeof firstAttestedRound === 'undefined'
+        ? undefined
+        : ensureBigInt(firstAttestedRound);
+    this.latestAttestedRound =
+      typeof latestAttestedRound === 'undefined'
+        ? undefined
+        : ensureBigInt(latestAttestedRound);
+    this.lnProvenWeight =
+      typeof lnProvenWeight === 'undefined'
+        ? undefined
+        : ensureBigInt(lnProvenWeight);
     this.votersCommitment =
       typeof votersCommitment === 'string'
         ? base64ToBytes(votersCommitment)
@@ -3167,7 +3232,7 @@ export class MerkleArrayProof extends BaseModel {
   /**
    * (td)
    */
-  public treeDepth?: number | bigint;
+  public treeDepth?: number;
 
   /**
    * Creates a new `MerkleArrayProof` object.
@@ -3187,7 +3252,10 @@ export class MerkleArrayProof extends BaseModel {
     super();
     this.hashFactory = hashFactory;
     this.path = path;
-    this.treeDepth = treeDepth;
+    this.treeDepth =
+      typeof treeDepth === 'undefined'
+        ? undefined
+        : ensureSafeInteger(treeDepth);
 
     this.attribute_map = {
       hashFactory: 'hash-factory',
@@ -3217,7 +3285,7 @@ export class MerkleArrayProof extends BaseModel {
 export class MiniAssetHolding extends BaseModel {
   public address: string;
 
-  public amount: number | bigint;
+  public amount: bigint;
 
   public isFrozen: boolean;
 
@@ -3229,12 +3297,12 @@ export class MiniAssetHolding extends BaseModel {
   /**
    * Round during which the account opted into the asset.
    */
-  public optedInAtRound?: number | bigint;
+  public optedInAtRound?: bigint;
 
   /**
    * Round during which the account opted out of the asset.
    */
-  public optedOutAtRound?: number | bigint;
+  public optedOutAtRound?: bigint;
 
   /**
    * Creates a new `MiniAssetHolding` object.
@@ -3262,11 +3330,17 @@ export class MiniAssetHolding extends BaseModel {
   }) {
     super();
     this.address = address;
-    this.amount = amount;
+    this.amount = ensureBigInt(amount);
     this.isFrozen = isFrozen;
     this.deleted = deleted;
-    this.optedInAtRound = optedInAtRound;
-    this.optedOutAtRound = optedOutAtRound;
+    this.optedInAtRound =
+      typeof optedInAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(optedInAtRound);
+    this.optedOutAtRound =
+      typeof optedOutAtRound === 'undefined'
+        ? undefined
+        : ensureBigInt(optedOutAtRound);
 
     this.attribute_map = {
       address: 'address',
@@ -3355,7 +3429,7 @@ export class StateProofFields extends BaseModel {
   /**
    * (pr) Sequence of reveal positions.
    */
-  public positionsToReveal?: (number | bigint)[];
+  public positionsToReveal?: bigint[];
 
   /**
    * (r) Note that this is actually stored as a map[uint64] - Reveal in the actual
@@ -3366,7 +3440,7 @@ export class StateProofFields extends BaseModel {
   /**
    * (v) Salt version of the merkle signature.
    */
-  public saltVersion?: number | bigint;
+  public saltVersion?: number;
 
   /**
    * (c)
@@ -3381,7 +3455,7 @@ export class StateProofFields extends BaseModel {
   /**
    * (w)
    */
-  public signedWeight?: number | bigint;
+  public signedWeight?: bigint;
 
   /**
    * Creates a new `StateProofFields` object.
@@ -3413,13 +3487,22 @@ export class StateProofFields extends BaseModel {
   }) {
     super();
     this.partProofs = partProofs;
-    this.positionsToReveal = positionsToReveal;
+    this.positionsToReveal =
+      typeof positionsToReveal === 'undefined'
+        ? undefined
+        : positionsToReveal.map(ensureBigInt);
     this.reveals = reveals;
-    this.saltVersion = saltVersion;
+    this.saltVersion =
+      typeof saltVersion === 'undefined'
+        ? undefined
+        : ensureSafeInteger(saltVersion);
     this.sigCommit =
       typeof sigCommit === 'string' ? base64ToBytes(sigCommit) : sigCommit;
     this.sigProofs = sigProofs;
-    this.signedWeight = signedWeight;
+    this.signedWeight =
+      typeof signedWeight === 'undefined'
+        ? undefined
+        : ensureBigInt(signedWeight);
 
     this.attribute_map = {
       partProofs: 'part-proofs',
@@ -3466,7 +3549,7 @@ export class StateProofParticipant extends BaseModel {
   /**
    * (w)
    */
-  public weight?: number | bigint;
+  public weight?: bigint;
 
   /**
    * Creates a new `StateProofParticipant` object.
@@ -3482,7 +3565,8 @@ export class StateProofParticipant extends BaseModel {
   }) {
     super();
     this.verifier = verifier;
-    this.weight = weight;
+    this.weight =
+      typeof weight === 'undefined' ? undefined : ensureBigInt(weight);
 
     this.attribute_map = {
       verifier: 'verifier',
@@ -3516,7 +3600,7 @@ export class StateProofReveal extends BaseModel {
    * The position in the signature and participants arrays corresponding to this
    * entry.
    */
-  public position?: number | bigint;
+  public position?: bigint;
 
   /**
    * (s)
@@ -3541,7 +3625,8 @@ export class StateProofReveal extends BaseModel {
   }) {
     super();
     this.participant = participant;
-    this.position = position;
+    this.position =
+      typeof position === 'undefined' ? undefined : ensureBigInt(position);
     this.sigSlot = sigSlot;
 
     this.attribute_map = {
@@ -3573,7 +3658,7 @@ export class StateProofSigSlot extends BaseModel {
   /**
    * (l) The total weight of signatures in the lower-numbered slots.
    */
-  public lowerSigWeight?: number | bigint;
+  public lowerSigWeight?: bigint;
 
   public signature?: StateProofSignature;
 
@@ -3590,7 +3675,10 @@ export class StateProofSigSlot extends BaseModel {
     signature?: StateProofSignature;
   }) {
     super();
-    this.lowerSigWeight = lowerSigWeight;
+    this.lowerSigWeight =
+      typeof lowerSigWeight === 'undefined'
+        ? undefined
+        : ensureBigInt(lowerSigWeight);
     this.signature = signature;
 
     this.attribute_map = {
@@ -3616,7 +3704,7 @@ export class StateProofSigSlot extends BaseModel {
 export class StateProofSignature extends BaseModel {
   public falconSignature?: Uint8Array;
 
-  public merkleArrayIndex?: number | bigint;
+  public merkleArrayIndex?: number;
 
   public proof?: MerkleArrayProof;
 
@@ -3648,7 +3736,10 @@ export class StateProofSignature extends BaseModel {
       typeof falconSignature === 'string'
         ? base64ToBytes(falconSignature)
         : falconSignature;
-    this.merkleArrayIndex = merkleArrayIndex;
+    this.merkleArrayIndex =
+      typeof merkleArrayIndex === 'undefined'
+        ? undefined
+        : ensureSafeInteger(merkleArrayIndex);
     this.proof = proof;
     this.verifyingKey =
       typeof verifyingKey === 'string'
@@ -3683,18 +3774,18 @@ export class StateProofTracking extends BaseModel {
   /**
    * (n) Next round for which we will accept a state proof transaction.
    */
-  public nextRound?: number | bigint;
+  public nextRound?: bigint;
 
   /**
    * (t) The total number of microalgos held by the online accounts during the
    * StateProof round.
    */
-  public onlineTotalWeight?: number | bigint;
+  public onlineTotalWeight?: bigint;
 
   /**
    * State Proof Type. Note the raw object uses map with this as key.
    */
-  public type?: number | bigint;
+  public type?: number;
 
   /**
    * (v) Root of a vector commitment containing online accounts that will help sign
@@ -3723,9 +3814,14 @@ export class StateProofTracking extends BaseModel {
     votersCommitment?: string | Uint8Array;
   }) {
     super();
-    this.nextRound = nextRound;
-    this.onlineTotalWeight = onlineTotalWeight;
-    this.type = type;
+    this.nextRound =
+      typeof nextRound === 'undefined' ? undefined : ensureBigInt(nextRound);
+    this.onlineTotalWeight =
+      typeof onlineTotalWeight === 'undefined'
+        ? undefined
+        : ensureBigInt(onlineTotalWeight);
+    this.type =
+      typeof type === 'undefined' ? undefined : ensureSafeInteger(type);
     this.votersCommitment =
       typeof votersCommitment === 'string'
         ? base64ToBytes(votersCommitment)
@@ -3761,7 +3857,7 @@ export class StateProofVerifier extends BaseModel {
   /**
    * (lf) Key lifetime.
    */
-  public keyLifetime?: number | bigint;
+  public keyLifetime?: bigint;
 
   /**
    * Creates a new `StateProofVerifier` object.
@@ -3778,7 +3874,10 @@ export class StateProofVerifier extends BaseModel {
     super();
     this.commitment =
       typeof commitment === 'string' ? base64ToBytes(commitment) : commitment;
-    this.keyLifetime = keyLifetime;
+    this.keyLifetime =
+      typeof keyLifetime === 'undefined'
+        ? undefined
+        : ensureBigInt(keyLifetime);
 
     this.attribute_map = {
       commitment: 'commitment',
@@ -3807,12 +3906,12 @@ export class StateSchema extends BaseModel {
   /**
    * Maximum number of TEAL byte slices that may be stored in the key/value store.
    */
-  public numByteSlice: number | bigint;
+  public numByteSlice: number;
 
   /**
    * Maximum number of TEAL uints that may be stored in the key/value store.
    */
-  public numUint: number | bigint;
+  public numUint: number;
 
   /**
    * Creates a new `StateSchema` object.
@@ -3827,8 +3926,8 @@ export class StateSchema extends BaseModel {
     numUint: number | bigint;
   }) {
     super();
-    this.numByteSlice = numByteSlice;
-    this.numUint = numUint;
+    this.numByteSlice = ensureSafeInteger(numByteSlice);
+    this.numUint = ensureSafeInteger(numUint);
 
     this.attribute_map = {
       numByteSlice: 'num-byte-slice',
@@ -3907,12 +4006,12 @@ export class TealValue extends BaseModel {
   /**
    * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
-  public type: number | bigint;
+  public type: number;
 
   /**
    * (ui) uint value.
    */
-  public uint: number | bigint;
+  public uint: bigint;
 
   /**
    * Creates a new `TealValue` object.
@@ -3931,8 +4030,8 @@ export class TealValue extends BaseModel {
   }) {
     super();
     this.bytes = bytes;
-    this.type = type;
-    this.uint = uint;
+    this.type = ensureSafeInteger(type);
+    this.uint = ensureBigInt(uint);
 
     this.attribute_map = {
       bytes: 'bytes',
@@ -3970,17 +4069,17 @@ export class Transaction extends BaseModel {
   /**
    * (fee) Transaction fee.
    */
-  public fee: number | bigint;
+  public fee: bigint;
 
   /**
    * (fv) First valid round for this transaction.
    */
-  public firstValid: number | bigint;
+  public firstValid: bigint;
 
   /**
    * (lv) Last valid round for this transaction.
    */
-  public lastValid: number | bigint;
+  public lastValid: bigint;
 
   /**
    * (snd) Sender's address.
@@ -4027,28 +4126,28 @@ export class Transaction extends BaseModel {
   /**
    * (rc) rewards applied to close-remainder-to account.
    */
-  public closeRewards?: number | bigint;
+  public closeRewards?: bigint;
 
   /**
    * (ca) closing amount for transaction.
    */
-  public closingAmount?: number | bigint;
+  public closingAmount?: bigint;
 
   /**
    * Round when the transaction was confirmed.
    */
-  public confirmedRound?: number | bigint;
+  public confirmedRound?: bigint;
 
   /**
    * Specifies an application index (ID) if an application was created with this
    * transaction.
    */
-  public createdApplicationIndex?: number | bigint;
+  public createdApplicationIndex?: bigint;
 
   /**
    * Specifies an asset index (ID) if an asset was created with this transaction.
    */
-  public createdAssetIndex?: number | bigint;
+  public createdAssetIndex?: bigint;
 
   /**
    * (gh) Hash of genesis block.
@@ -4086,7 +4185,7 @@ export class Transaction extends BaseModel {
   /**
    * Offset into the round where this transaction was confirmed.
    */
-  public intraRoundOffset?: number | bigint;
+  public intraRoundOffset?: number;
 
   /**
    * Fields for a keyreg transaction.
@@ -4130,7 +4229,7 @@ export class Transaction extends BaseModel {
   /**
    * (rr) rewards applied to receiver account.
    */
-  public receiverRewards?: number | bigint;
+  public receiverRewards?: bigint;
 
   /**
    * (rekey) when included in a valid transaction, the accounts auth addr will be
@@ -4142,12 +4241,12 @@ export class Transaction extends BaseModel {
   /**
    * Time when the block this transaction is in was confirmed.
    */
-  public roundTime?: number | bigint;
+  public roundTime?: number;
 
   /**
    * (rs) rewards applied to sender account.
    */
-  public senderRewards?: number | bigint;
+  public senderRewards?: bigint;
 
   /**
    * Validation signature associated with some data. Only one of the signatures
@@ -4324,20 +4423,35 @@ export class Transaction extends BaseModel {
     txType?: string;
   }) {
     super();
-    this.fee = fee;
-    this.firstValid = firstValid;
-    this.lastValid = lastValid;
+    this.fee = ensureBigInt(fee);
+    this.firstValid = ensureBigInt(firstValid);
+    this.lastValid = ensureBigInt(lastValid);
     this.sender = sender;
     this.applicationTransaction = applicationTransaction;
     this.assetConfigTransaction = assetConfigTransaction;
     this.assetFreezeTransaction = assetFreezeTransaction;
     this.assetTransferTransaction = assetTransferTransaction;
     this.authAddr = authAddr;
-    this.closeRewards = closeRewards;
-    this.closingAmount = closingAmount;
-    this.confirmedRound = confirmedRound;
-    this.createdApplicationIndex = createdApplicationIndex;
-    this.createdAssetIndex = createdAssetIndex;
+    this.closeRewards =
+      typeof closeRewards === 'undefined'
+        ? undefined
+        : ensureBigInt(closeRewards);
+    this.closingAmount =
+      typeof closingAmount === 'undefined'
+        ? undefined
+        : ensureBigInt(closingAmount);
+    this.confirmedRound =
+      typeof confirmedRound === 'undefined'
+        ? undefined
+        : ensureBigInt(confirmedRound);
+    this.createdApplicationIndex =
+      typeof createdApplicationIndex === 'undefined'
+        ? undefined
+        : ensureBigInt(createdApplicationIndex);
+    this.createdAssetIndex =
+      typeof createdAssetIndex === 'undefined'
+        ? undefined
+        : ensureBigInt(createdAssetIndex);
     this.genesisHash =
       typeof genesisHash === 'string'
         ? base64ToBytes(genesisHash)
@@ -4347,17 +4461,29 @@ export class Transaction extends BaseModel {
     this.group = typeof group === 'string' ? base64ToBytes(group) : group;
     this.id = id;
     this.innerTxns = innerTxns;
-    this.intraRoundOffset = intraRoundOffset;
+    this.intraRoundOffset =
+      typeof intraRoundOffset === 'undefined'
+        ? undefined
+        : ensureSafeInteger(intraRoundOffset);
     this.keyregTransaction = keyregTransaction;
     this.lease = typeof lease === 'string' ? base64ToBytes(lease) : lease;
     this.localStateDelta = localStateDelta;
     this.logs = logs;
     this.note = typeof note === 'string' ? base64ToBytes(note) : note;
     this.paymentTransaction = paymentTransaction;
-    this.receiverRewards = receiverRewards;
+    this.receiverRewards =
+      typeof receiverRewards === 'undefined'
+        ? undefined
+        : ensureBigInt(receiverRewards);
     this.rekeyTo = rekeyTo;
-    this.roundTime = roundTime;
-    this.senderRewards = senderRewards;
+    this.roundTime =
+      typeof roundTime === 'undefined'
+        ? undefined
+        : ensureSafeInteger(roundTime);
+    this.senderRewards =
+      typeof senderRewards === 'undefined'
+        ? undefined
+        : ensureBigInt(senderRewards);
     this.signature = signature;
     this.stateProofTransaction = stateProofTransaction;
     this.txType = txType;
@@ -4513,7 +4639,7 @@ export class TransactionApplication extends BaseModel {
   /**
    * (apid) ID of the application being configured or empty if creating.
    */
-  public applicationId: number | bigint;
+  public applicationId: bigint;
 
   /**
    * (apat) List of accounts in addition to the sender that may be accessed from the
@@ -4546,20 +4672,20 @@ export class TransactionApplication extends BaseModel {
   /**
    * (epp) specifies the additional app program len requested in pages.
    */
-  public extraProgramPages?: number | bigint;
+  public extraProgramPages?: number;
 
   /**
    * (apfa) Lists the applications in addition to the application-id whose global
    * states may be accessed by this application's approval-program and
    * clear-state-program. The access is read-only.
    */
-  public foreignApps?: (number | bigint)[];
+  public foreignApps?: bigint[];
 
   /**
    * (apas) lists the assets whose parameters may be accessed by this application's
    * ApprovalProgram and ClearStateProgram. The access is read-only.
    */
-  public foreignAssets?: (number | bigint)[];
+  public foreignAssets?: bigint[];
 
   /**
    * Represents a (apls) local-state or (apgs) global-state schema. These schemas
@@ -4655,7 +4781,7 @@ export class TransactionApplication extends BaseModel {
     onCompletion?: string;
   }) {
     super();
-    this.applicationId = applicationId;
+    this.applicationId = ensureBigInt(applicationId);
     this.accounts = accounts;
     this.applicationArgs = applicationArgs;
     this.approvalProgram =
@@ -4666,9 +4792,18 @@ export class TransactionApplication extends BaseModel {
       typeof clearStateProgram === 'string'
         ? base64ToBytes(clearStateProgram)
         : clearStateProgram;
-    this.extraProgramPages = extraProgramPages;
-    this.foreignApps = foreignApps;
-    this.foreignAssets = foreignAssets;
+    this.extraProgramPages =
+      typeof extraProgramPages === 'undefined'
+        ? undefined
+        : ensureSafeInteger(extraProgramPages);
+    this.foreignApps =
+      typeof foreignApps === 'undefined'
+        ? undefined
+        : foreignApps.map(ensureBigInt);
+    this.foreignAssets =
+      typeof foreignAssets === 'undefined'
+        ? undefined
+        : foreignAssets.map(ensureBigInt);
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
     this.onCompletion = onCompletion;
@@ -4731,7 +4866,7 @@ export class TransactionAssetConfig extends BaseModel {
   /**
    * (xaid) ID of the asset being configured or empty if creating.
    */
-  public assetId?: number | bigint;
+  public assetId?: bigint;
 
   /**
    * AssetParams specifies the parameters for an asset.
@@ -4757,7 +4892,8 @@ export class TransactionAssetConfig extends BaseModel {
     params?: AssetParams;
   }) {
     super();
-    this.assetId = assetId;
+    this.assetId =
+      typeof assetId === 'undefined' ? undefined : ensureBigInt(assetId);
     this.params = params;
 
     this.attribute_map = {
@@ -4796,7 +4932,7 @@ export class TransactionAssetFreeze extends BaseModel {
   /**
    * (faid) ID of the asset being frozen or thawed.
    */
-  public assetId: number | bigint;
+  public assetId: bigint;
 
   /**
    * (afrz) The new freeze status.
@@ -4820,7 +4956,7 @@ export class TransactionAssetFreeze extends BaseModel {
   }) {
     super();
     this.address = address;
-    this.assetId = assetId;
+    this.assetId = ensureBigInt(assetId);
     this.newFreezeStatus = newFreezeStatus;
 
     this.attribute_map = {
@@ -4862,12 +4998,12 @@ export class TransactionAssetTransfer extends BaseModel {
    * (aamt) Amount of asset to transfer. A zero amount transferred to self allocates
    * that asset in the account's Assets map.
    */
-  public amount: number | bigint;
+  public amount: bigint;
 
   /**
    * (xaid) ID of the asset being transferred.
    */
-  public assetId: number | bigint;
+  public assetId: bigint;
 
   /**
    * (arcv) Recipient address of the transfer.
@@ -4877,7 +5013,7 @@ export class TransactionAssetTransfer extends BaseModel {
   /**
    * Number of assets transferred to the close-to account as part of the transaction.
    */
-  public closeAmount?: number | bigint;
+  public closeAmount?: bigint;
 
   /**
    * (aclose) Indicates that the asset should be removed from the account's Assets
@@ -4923,10 +5059,13 @@ export class TransactionAssetTransfer extends BaseModel {
     sender?: string;
   }) {
     super();
-    this.amount = amount;
-    this.assetId = assetId;
+    this.amount = ensureBigInt(amount);
+    this.assetId = ensureBigInt(assetId);
     this.receiver = receiver;
-    this.closeAmount = closeAmount;
+    this.closeAmount =
+      typeof closeAmount === 'undefined'
+        ? undefined
+        : ensureBigInt(closeAmount);
     this.closeTo = closeTo;
     this.sender = sender;
 
@@ -4988,17 +5127,17 @@ export class TransactionKeyreg extends BaseModel {
   /**
    * (votefst) First round this participation key is valid.
    */
-  public voteFirstValid?: number | bigint;
+  public voteFirstValid?: bigint;
 
   /**
    * (votekd) Number of subkeys in each batch of participation keys.
    */
-  public voteKeyDilution?: number | bigint;
+  public voteKeyDilution?: bigint;
 
   /**
    * (votelst) Last round this participation key is valid.
    */
-  public voteLastValid?: number | bigint;
+  public voteLastValid?: bigint;
 
   /**
    * (votekey) Participation public key used in key registration transactions.
@@ -5043,9 +5182,18 @@ export class TransactionKeyreg extends BaseModel {
       typeof stateProofKey === 'string'
         ? base64ToBytes(stateProofKey)
         : stateProofKey;
-    this.voteFirstValid = voteFirstValid;
-    this.voteKeyDilution = voteKeyDilution;
-    this.voteLastValid = voteLastValid;
+    this.voteFirstValid =
+      typeof voteFirstValid === 'undefined'
+        ? undefined
+        : ensureBigInt(voteFirstValid);
+    this.voteKeyDilution =
+      typeof voteKeyDilution === 'undefined'
+        ? undefined
+        : ensureBigInt(voteKeyDilution);
+    this.voteLastValid =
+      typeof voteLastValid === 'undefined'
+        ? undefined
+        : ensureBigInt(voteLastValid);
     this.voteParticipationKey =
       typeof voteParticipationKey === 'string'
         ? base64ToBytes(voteParticipationKey)
@@ -5087,7 +5235,7 @@ export class TransactionPayment extends BaseModel {
   /**
    * (amt) number of MicroAlgos intended to be transferred.
    */
-  public amount: number | bigint;
+  public amount: bigint;
 
   /**
    * (rcv) receiver's address.
@@ -5098,7 +5246,7 @@ export class TransactionPayment extends BaseModel {
    * Number of MicroAlgos that were sent to the close-remainder-to address when
    * closing the sender account.
    */
-  public closeAmount?: number | bigint;
+  public closeAmount?: bigint;
 
   /**
    * (close) when set, indicates that the sending account should be closed and all
@@ -5127,9 +5275,12 @@ export class TransactionPayment extends BaseModel {
     closeRemainderTo?: string;
   }) {
     super();
-    this.amount = amount;
+    this.amount = ensureBigInt(amount);
     this.receiver = receiver;
-    this.closeAmount = closeAmount;
+    this.closeAmount =
+      typeof closeAmount === 'undefined'
+        ? undefined
+        : ensureBigInt(closeAmount);
     this.closeRemainderTo = closeRemainderTo;
 
     this.attribute_map = {
@@ -5164,7 +5315,7 @@ export class TransactionResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   /**
    * Contains all fields common to all transactions and serves as an envelope to all
@@ -5192,7 +5343,7 @@ export class TransactionResponse extends BaseModel {
     transaction: Transaction;
   }) {
     super();
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.transaction = transaction;
 
     this.attribute_map = {
@@ -5396,12 +5547,12 @@ export class TransactionSignatureMultisig extends BaseModel {
   /**
    * (thr)
    */
-  public threshold?: number | bigint;
+  public threshold?: number;
 
   /**
    * (v)
    */
-  public version?: number | bigint;
+  public version?: number;
 
   /**
    * Creates a new `TransactionSignatureMultisig` object.
@@ -5420,8 +5571,12 @@ export class TransactionSignatureMultisig extends BaseModel {
   }) {
     super();
     this.subsignature = subsignature;
-    this.threshold = threshold;
-    this.version = version;
+    this.threshold =
+      typeof threshold === 'undefined'
+        ? undefined
+        : ensureSafeInteger(threshold);
+    this.version =
+      typeof version === 'undefined' ? undefined : ensureSafeInteger(version);
 
     this.attribute_map = {
       subsignature: 'subsignature',
@@ -5519,7 +5674,7 @@ export class TransactionStateProof extends BaseModel {
    * (sptype) Type of the state proof. Integer representing an entry defined in
    * protocol/stateproof.go
    */
-  public stateProofType?: number | bigint;
+  public stateProofType?: number;
 
   /**
    * Creates a new `TransactionStateProof` object.
@@ -5542,7 +5697,10 @@ export class TransactionStateProof extends BaseModel {
     super();
     this.message = message;
     this.stateProof = stateProof;
-    this.stateProofType = stateProofType;
+    this.stateProofType =
+      typeof stateProofType === 'undefined'
+        ? undefined
+        : ensureSafeInteger(stateProofType);
 
     this.attribute_map = {
       message: 'message',
@@ -5578,7 +5736,7 @@ export class TransactionsResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound: bigint;
 
   public transactions: Transaction[];
 
@@ -5605,7 +5763,7 @@ export class TransactionsResponse extends BaseModel {
     nextToken?: string;
   }) {
     super();
-    this.currentRound = currentRound;
+    this.currentRound = ensureBigInt(currentRound);
     this.transactions = transactions;
     this.nextToken = nextToken;
 

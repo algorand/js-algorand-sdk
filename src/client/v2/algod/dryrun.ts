@@ -1,4 +1,5 @@
 import * as encoding from '../../../encoding/encoding.js';
+import IntDecoding from '../../../types/intDecoding.js';
 import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
 import { setHeaders } from './compile.js';
@@ -27,7 +28,13 @@ export default class Dryrun extends JSONRequest<
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(this.path(), this.blob, undefined, txHeaders);
+    const res = await this.c.post(
+      this.path(),
+      this.blob,
+      { intDecoding: IntDecoding.BIGINT },
+      undefined,
+      txHeaders
+    );
     return this.prepare(res.body);
   }
 
