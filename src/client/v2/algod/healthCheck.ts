@@ -11,12 +11,12 @@ export default class HealthCheck extends JSONRequest {
   }
 
   async do(headers = {}) {
-    const res = await this.c.get(
-      this.path(),
-      { intDecoding: IntDecoding.BIGINT },
-      {},
-      headers
-    );
+    const res = await this.c.get({
+      relativePath: this.path(),
+      parseBody: true,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      requestHeaders: headers,
+    });
     if (!res.ok) {
       throw new Error(`Health response: ${res.status}`);
     }

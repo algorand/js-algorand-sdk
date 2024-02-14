@@ -49,12 +49,13 @@ export default abstract class JSONRequest<
    * @category JSONRequest
    */
   async do(headers: Record<string, any> = {}): Promise<Data> {
-    const res = await this.c.get(
-      this.path(),
-      { intDecoding: IntDecoding.BIGINT },
-      this.query,
-      headers
-    );
+    const res = await this.c.get({
+      relativePath: this.path(),
+      parseBody: true,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: headers,
+    });
     return this.prepare(res.body);
   }
 
@@ -65,13 +66,13 @@ export default abstract class JSONRequest<
    * @category JSONRequest
    */
   async doRaw(headers: Record<string, any> = {}): Promise<Uint8Array> {
-    const res = await this.c.get(
-      this.path(),
-      { intDecoding: IntDecoding.BIGINT },
-      this.query,
-      headers,
-      false
-    );
+    const res = await this.c.get({
+      relativePath: this.path(),
+      parseBody: false,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: headers,
+    });
     return res.body;
   }
 }

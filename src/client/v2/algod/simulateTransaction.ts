@@ -44,14 +44,14 @@ export default class SimulateRawTransactions extends JSONRequest<
 
   async do(headers = {}) {
     const txHeaders = setSimulateTransactionsHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      this.requestBytes,
-      { intDecoding: IntDecoding.BIGINT },
-      this.query,
-      txHeaders,
-      false
-    );
+    const res = await this.c.post({
+      relativePath: this.path(),
+      data: this.requestBytes,
+      parseBody: false,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: txHeaders,
+    });
     return this.prepare(res.body);
   }
 

@@ -42,13 +42,14 @@ export default class Disassemble extends JSONRequest<
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      coerceToBytes(this.source),
-      { intDecoding: IntDecoding.BIGINT },
-      this.query,
-      txHeaders
-    );
+    const res = await this.c.post({
+      relativePath: this.path(),
+      data: coerceToBytes(this.source),
+      parseBody: true,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: txHeaders,
+    });
     return res.body;
   }
 

@@ -224,24 +224,32 @@ export class HTTPClient {
 
   /**
    * Send a GET request.
-   * @param relativePath - The path of the request.
-   * @param jsonOptions - Options object to use to decode JSON responses. See
+   *
+   * @param options - The options to use for the request.
+   * @param options.relativePath - The path of the request.
+   * @param options.jsonOptions - Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
-   * @param query - An object containing the query parameters of the request.
-   * @param requestHeaders - An object containing additional request headers to use.
-   * @param parseBody - An optional boolean indicating whether the response body should be parsed
+   * @param options.query - An object containing the query parameters of the request.
+   * @param options.requestHeaders - An object containing additional request headers to use.
+   * @param options.parseBody - An optional boolean indicating whether the response body should be parsed
    *   or not.
    * @returns Response object.
    */
-  async get(
-    relativePath: string,
-    jsonOptions: utils.ParseJSONOptions,
-    query?: Query<any>,
-    requestHeaders: Record<string, string> = {},
-    parseBody: boolean = true
-  ): Promise<HTTPClientResponse> {
+  async get({
+    relativePath,
+    jsonOptions,
+    query,
+    requestHeaders,
+    parseBody,
+  }: {
+    relativePath: string;
+    jsonOptions: utils.ParseJSONOptions;
+    query?: Query<any>;
+    requestHeaders?: Record<string, string>;
+    parseBody: boolean;
+  }): Promise<HTTPClientResponse> {
     const format = getAcceptFormat(query);
-    const fullHeaders = { ...requestHeaders, accept: format };
+    const fullHeaders = { ...(requestHeaders ?? {}), accept: format };
 
     try {
       const res = await this.bc.get(
@@ -260,18 +268,26 @@ export class HTTPClient {
    * Send a POST request.
    * If no content-type present, adds the header "content-type: application/json"
    * and data is serialized in JSON (if not empty)
+   * @param options - The options to use for the request.
    */
-  async post(
-    relativePath: string,
-    data: any,
-    jsonOptions: utils.ParseJSONOptions,
-    query?: Query<any>,
-    requestHeaders: Record<string, string> = {},
-    parseBody: boolean = true
-  ): Promise<HTTPClientResponse> {
+  async post({
+    relativePath,
+    data,
+    jsonOptions,
+    query,
+    requestHeaders,
+    parseBody,
+  }: {
+    relativePath: string;
+    data: any;
+    jsonOptions: utils.ParseJSONOptions;
+    query?: Query<any>;
+    requestHeaders?: Record<string, string>;
+    parseBody: boolean;
+  }): Promise<HTTPClientResponse> {
     const fullHeaders = {
       'content-type': 'application/json',
-      ...tolowerCaseKeys(requestHeaders),
+      ...tolowerCaseKeys(requestHeaders ?? {}),
     };
 
     try {
@@ -297,17 +313,24 @@ export class HTTPClient {
    * Send a DELETE request.
    * If no content-type present, adds the header "content-type: application/json"
    * and data is serialized in JSON (if not empty)
+   * @param options - The options to use for the request.
    */
-  async delete(
-    relativePath: string,
-    data: any,
-    jsonOptions: utils.ParseJSONOptions,
-    requestHeaders: Record<string, string> = {},
-    parseBody: boolean = true
-  ) {
+  async delete({
+    relativePath,
+    data,
+    jsonOptions,
+    requestHeaders,
+    parseBody,
+  }: {
+    relativePath: string;
+    data: any;
+    jsonOptions: utils.ParseJSONOptions;
+    requestHeaders?: Record<string, string>;
+    parseBody: boolean;
+  }) {
     const fullHeaders = {
       'content-type': 'application/json',
-      ...tolowerCaseKeys(requestHeaders),
+      ...tolowerCaseKeys(requestHeaders ?? {}),
     };
 
     try {
