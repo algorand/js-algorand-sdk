@@ -25,7 +25,8 @@ export class KmdClient extends ServiceClient {
     const res = await this.c.get({
       relativePath: '/versions',
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+        intDecoding: IntDecoding.SAFE,
       },
       parseBody: true,
     });
@@ -41,7 +42,7 @@ export class KmdClient extends ServiceClient {
       relativePath: '/v1/wallets',
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -74,7 +75,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -101,7 +102,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -121,7 +122,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -143,7 +144,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -171,7 +172,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -191,7 +192,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -219,7 +220,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return {
@@ -244,7 +245,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -269,7 +270,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return { private_key: base64ToBytes(res.body.private_key) };
@@ -291,7 +292,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -319,7 +320,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -339,7 +340,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -369,7 +370,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
 
@@ -408,7 +409,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
 
@@ -435,7 +436,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -468,7 +469,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -494,7 +495,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -532,7 +533,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
@@ -561,7 +562,7 @@ export class KmdClient extends ServiceClient {
       data: req,
       parseBody: true,
       jsonOptions: {
-        intDecoding: IntDecoding.BIGINT,
+        intDecoding: IntDecoding.SAFE,
       },
     });
     return res.body;
