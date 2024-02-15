@@ -18,12 +18,9 @@ export class KmdClient extends ServiceClient {
     super('X-KMD-API-Token', token, baseServer, port, headers);
   }
 
-  /**
-   * version returns a VersionResponse containing a list of kmd API versions supported by this running kmd instance.
-   */
-  async versions() {
+  private async get(relativePath: string): Promise<any> {
     const res = await this.c.get({
-      relativePath: '/versions',
+      relativePath,
       jsonOptions: {
         // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
         intDecoding: IntDecoding.SAFE,
@@ -33,19 +30,45 @@ export class KmdClient extends ServiceClient {
     return res.body;
   }
 
+  private async delete(relativePath: string, data: any): Promise<any> {
+    const res = await this.c.delete({
+      relativePath,
+      data,
+      jsonOptions: {
+        // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+        intDecoding: IntDecoding.SAFE,
+      },
+      parseBody: true,
+    });
+    return res.body;
+  }
+
+  private async post(relativePath: string, data: any): Promise<any> {
+    const res = await this.c.post({
+      relativePath,
+      data,
+      parseBody: true,
+      jsonOptions: {
+        // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+        intDecoding: IntDecoding.SAFE,
+      },
+    });
+    return res.body;
+  }
+
+  /**
+   * version returns a VersionResponse containing a list of kmd API versions supported by this running kmd instance.
+   */
+  async versions() {
+    return this.get('/versions');
+  }
+
   /**
    * listWallets returns a ListWalletsResponse containing the list of wallets known to kmd. Using a wallet ID
    * returned from this endpoint, you can initialize a wallet handle with client.InitWalletHandle
    */
   async listWallets() {
-    const res = await this.c.get({
-      relativePath: '/v1/wallets',
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.get('/v1/wallets');
   }
 
   /**
@@ -70,15 +93,7 @@ export class KmdClient extends ServiceClient {
       wallet_password: walletPassword,
       master_derivation_key: bytesToBase64(walletMDK),
     };
-    const res = await this.c.post({
-      relativePath: '/v1/wallet',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/wallet', req);
   }
 
   /**
@@ -97,15 +112,7 @@ export class KmdClient extends ServiceClient {
       wallet_id: walletID,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/wallet/init',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/wallet/init', req);
   }
 
   /**
@@ -117,15 +124,7 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/wallet/release',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/wallet/release', req);
   }
 
   /**
@@ -139,15 +138,7 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/wallet/renew',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/wallet/renew', req);
   }
 
   /**
@@ -167,15 +158,7 @@ export class KmdClient extends ServiceClient {
       wallet_password: walletPassword,
       wallet_name: newWalletName,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/wallet/rename',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/wallet/rename', req);
   }
 
   /**
@@ -187,15 +170,7 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/wallet/info',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/wallet/info', req);
   }
 
   /**
@@ -215,16 +190,9 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/master-key/export',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
+    const res = await this.post('/v1/master-key/export', req);
     return {
-      master_derivation_key: base64ToBytes(res.body.master_derivation_key),
+      master_derivation_key: base64ToBytes(res.master_derivation_key),
     };
   }
 
@@ -240,15 +208,7 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       private_key: bytesToBase64(secretKey),
     };
-    const res = await this.c.post({
-      relativePath: '/v1/key/import',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/key/import', req);
   }
 
   /**
@@ -265,15 +225,8 @@ export class KmdClient extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/key/export',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return { private_key: base64ToBytes(res.body.private_key) };
+    const res = await this.post('/v1/key/export', req);
+    return { private_key: base64ToBytes(res.private_key) };
   }
 
   /**
@@ -287,15 +240,7 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       display_mnemonic: false,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/key',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/key', req);
   }
 
   /**
@@ -315,15 +260,7 @@ export class KmdClient extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.delete({
-      relativePath: '/v1/key',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.delete('/v1/key', req);
   }
 
   /**
@@ -335,15 +272,7 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/key/list',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/key/list', req);
   }
 
   /**
@@ -365,19 +294,8 @@ export class KmdClient extends ServiceClient {
       wallet_password: walletPassword,
       transaction: bytesToBase64(transaction.toByte()),
     };
-    const res = await this.c.post({
-      relativePath: '/v1/transaction/sign',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-
-    if (res.status === 200) {
-      return base64ToBytes(res.body.signed_transaction);
-    }
-    return res.body;
+    const res = await this.post('/v1/transaction/sign', req);
+    return base64ToBytes(res.signed_transaction);
   }
 
   /**
@@ -404,19 +322,8 @@ export class KmdClient extends ServiceClient {
       transaction: bytesToBase64(transaction.toByte()),
       public_key: bytesToBase64(pk),
     };
-    const res = await this.c.post({
-      relativePath: '/v1/transaction/sign',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-
-    if (res.status === 200) {
-      return base64ToBytes(res.body.signed_transaction);
-    }
-    return res.body;
+    const res = await this.post('/v1/transaction/sign', req);
+    return base64ToBytes(res.signed_transaction);
   }
 
   /**
@@ -431,15 +338,7 @@ export class KmdClient extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/multisig/list',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/multisig/list', req);
   }
 
   /**
@@ -464,15 +363,7 @@ export class KmdClient extends ServiceClient {
       threshold,
       pks,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/multisig/import',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/multisig/import', req);
   }
 
   /**
@@ -490,15 +381,7 @@ export class KmdClient extends ServiceClient {
       wallet_handle_token: walletHandle,
       address: addr,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/multisig/export',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/multisig/export', req);
   }
 
   /**
@@ -528,15 +411,7 @@ export class KmdClient extends ServiceClient {
       partial_multisig: partial,
       wallet_password: pw,
     };
-    const res = await this.c.post({
-      relativePath: '/v1/multisig/sign',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.post('/v1/multisig/sign', req);
   }
 
   /**
@@ -557,14 +432,6 @@ export class KmdClient extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.delete({
-      relativePath: '/v1/multisig',
-      data: req,
-      parseBody: true,
-      jsonOptions: {
-        intDecoding: IntDecoding.SAFE,
-      },
-    });
-    return res.body;
+    return this.delete('/v1/multisig', req);
   }
 }
