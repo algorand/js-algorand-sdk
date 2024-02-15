@@ -286,13 +286,14 @@ Generally speaking, the fields will be `bigint` based on the following criteria:
 - If the field represents a round/block number, it will be `bigint`
 - If the field represents an asset or application ID, it will be `bigint`
 - If the field represents a timestamp measured in nanoseconds, it will be `bigint`
+- If the field can be any value in the uint64 range, it will be `bigint`
 - Other fields which are guaranteed to be small will be `number`
 
 Indexer responses are not yet typed, and all numeric fields are returned as `bigint`.
 
 ### JSON Operations
 
-In order to facilitate `bigint` as a first-class type in this SDK, additional JSON utilities have been added in v3. These are the `parseJSON` and `stringifyJSON` functions.
+In order to facilitate `bigint` as a first-class type in this SDK, additional JSON conversion utilities have been added in v3. These are the `parseJSON` and `stringifyJSON` functions.
 
 `parseJSON` can be used to parse a JSON string into a JavaScript object, with support for parsing numeric fields as `bigint`s, depending on the provided configuration.
 
