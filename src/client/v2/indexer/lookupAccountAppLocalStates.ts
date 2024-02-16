@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { Address } from '../../../encoding/address.js';
 
 export default class LookupAccountAppLocalStates extends JSONRequest {
@@ -19,12 +18,8 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    account: string | Address
-  ) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
     this.account = account.toString();
   }
 

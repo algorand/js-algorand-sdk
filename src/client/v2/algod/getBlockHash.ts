@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { BlockHashResponse } from './models/types.js';
 
 export default class GetBlockHash extends JSONRequest<
@@ -9,8 +8,8 @@ export default class GetBlockHash extends JSONRequest<
 > {
   round: number | bigint;
 
-  constructor(c: HTTPClient, intDecoding: IntDecoding, roundNumber: number) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, roundNumber: number) {
+    super(c);
     this.round = roundNumber;
   }
 

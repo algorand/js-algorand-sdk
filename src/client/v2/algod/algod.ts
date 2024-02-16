@@ -155,7 +155,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   accountInformation(account: string | Address) {
-    return new AccountInformation(this.c, this.intDecoding, account);
+    return new AccountInformation(this.c, account);
   }
 
   /**
@@ -174,12 +174,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   accountAssetInformation(account: string | Address, index: number) {
-    return new AccountAssetInformation(
-      this.c,
-      this.intDecoding,
-      account,
-      index
-    );
+    return new AccountAssetInformation(this.c, account, index);
   }
 
   /**
@@ -198,12 +193,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   accountApplicationInformation(account: string | Address, index: number) {
-    return new AccountApplicationInformation(
-      this.c,
-      this.intDecoding,
-      account,
-      index
-    );
+    return new AccountApplicationInformation(this.c, account, index);
   }
 
   /**
@@ -237,7 +227,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getBlockHash(roundNumber: number) {
-    return new GetBlockHash(this.c, this.intDecoding, roundNumber);
+    return new GetBlockHash(this.c, roundNumber);
   }
 
   /**
@@ -254,7 +244,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getBlockTxids(roundNumber: number) {
-    return new GetBlockTxids(this.c, this.intDecoding, roundNumber);
+    return new GetBlockTxids(this.c, roundNumber);
   }
 
   /**
@@ -349,7 +339,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   status() {
-    return new Status(this.c, this.intDecoding);
+    return new Status(this.c);
   }
 
   /**
@@ -366,7 +356,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   statusAfterBlock(round: number) {
-    return new StatusAfterBlock(this.c, this.intDecoding, round);
+    return new StatusAfterBlock(this.c, round);
   }
 
   /**
@@ -407,7 +397,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   supply() {
-    return new Supply(this.c, this.intDecoding);
+    return new Supply(this.c);
   }
 
   /**
@@ -478,7 +468,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getAssetByID(index: number | bigint) {
-    return new GetAssetByID(this.c, this.intDecoding, index);
+    return new GetAssetByID(this.c, index);
   }
 
   /**
@@ -496,7 +486,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getApplicationByID(index: number | bigint) {
-    return new GetApplicationByID(this.c, this.intDecoding, index);
+    return new GetApplicationByID(this.c, index);
   }
 
   /**
@@ -515,12 +505,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getApplicationBoxByName(index: number, boxName: Uint8Array) {
-    return new GetApplicationBoxByName(
-      this.c,
-      this.intDecoding,
-      index,
-      boxName
-    );
+    return new GetApplicationBoxByName(this.c, index, boxName);
   }
 
   /**
@@ -538,7 +523,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getApplicationBoxes(index: number) {
-    return new GetApplicationBoxes(this.c, this.intDecoding, index);
+    return new GetApplicationBoxes(this.c, index);
   }
 
   /**
@@ -553,7 +538,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   genesis() {
-    return new Genesis(this.c, this.intDecoding);
+    return new Genesis(this.c);
   }
 
   /**
@@ -572,7 +557,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getTransactionProof(round: number, txID: string) {
-    return new GetTransactionProof(this.c, this.intDecoding, round, txID);
+    return new GetTransactionProof(this.c, round, txID);
   }
 
   /**
@@ -588,7 +573,7 @@ export class AlgodClient extends ServiceClient {
    * @param round
    */
   getLightBlockHeaderProof(round: number) {
-    return new LightBlockHeaderProof(this.c, this.intDecoding, round);
+    return new LightBlockHeaderProof(this.c, round);
   }
 
   /**
@@ -604,7 +589,7 @@ export class AlgodClient extends ServiceClient {
    * @param round
    */
   getStateProof(round: number) {
-    return new StateProof(this.c, this.intDecoding, round);
+    return new StateProof(this.c, round);
   }
 
   /**
@@ -694,7 +679,7 @@ export class AlgodClient extends ServiceClient {
    * @category POST
    */
   setBlockOffsetTimestamp(offset: number) {
-    return new SetBlockOffsetTimestamp(this.c, this.intDecoding, offset);
+    return new SetBlockOffsetTimestamp(this.c, offset);
   }
 
   /**
@@ -709,7 +694,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getBlockOffsetTimestamp() {
-    return new GetBlockOffsetTimestamp(this.c, this.intDecoding);
+    return new GetBlockOffsetTimestamp(this.c);
   }
 
   /**
@@ -726,7 +711,7 @@ export class AlgodClient extends ServiceClient {
    * @category POST
    */
   setSyncRound(round: number) {
-    return new SetSyncRound(this.c, this.intDecoding, round);
+    return new SetSyncRound(this.c, round);
   }
 
   /**
@@ -741,7 +726,7 @@ export class AlgodClient extends ServiceClient {
    * @category DELETE
    */
   unsetSyncRound() {
-    return new UnsetSyncRound(this.c, this.intDecoding);
+    return new UnsetSyncRound(this.c);
   }
 
   /**
@@ -756,7 +741,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getSyncRound() {
-    return new GetSyncRound(this.c, this.intDecoding);
+    return new GetSyncRound(this.c);
   }
 
   /**
@@ -771,7 +756,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   ready() {
-    return new Ready(this.c, this.intDecoding);
+    return new Ready(this.c);
   }
 
   /**
@@ -788,11 +773,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getLedgerStateDeltaForTransactionGroup(id: string) {
-    return new GetLedgerStateDeltaForTransactionGroup(
-      this.c,
-      this.intDecoding,
-      id
-    );
+    return new GetLedgerStateDeltaForTransactionGroup(this.c, id);
   }
 
   /**
@@ -809,7 +790,7 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getLedgerStateDelta(round: number) {
-    return new GetLedgerStateDelta(this.c, this.intDecoding, round);
+    return new GetLedgerStateDelta(this.c, round);
   }
 
   /**
@@ -826,10 +807,6 @@ export class AlgodClient extends ServiceClient {
    * @category GET
    */
   getTransactionGroupLedgerStateDeltasForRound(round: number) {
-    return new GetTransactionGroupLedgerStateDeltasForRound(
-      this.c,
-      this.intDecoding,
-      round
-    );
+    return new GetTransactionGroupLedgerStateDeltasForRound(this.c, round);
   }
 }

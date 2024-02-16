@@ -82,7 +82,7 @@ async function main() {
     .notePrefix(new TextEncoder().encode('Hello'))
     .do();
   console.log(
-    `Transactions with note prefix "Hello" ${JSON.stringify(
+    `Transactions with note prefix "Hello" ${algosdk.stringifyJSON(
       txnsWithNotePrefix,
       undefined,
       2

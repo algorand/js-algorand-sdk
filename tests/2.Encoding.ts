@@ -359,12 +359,12 @@ describe('encoding', () => {
     });
   });
 
-  describe('JSON parse BigInt', () => {
+  describe('JSON BigInt', () => {
     it('should parse null', () => {
       const input = 'null';
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.SAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
@@ -377,6 +377,13 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
+          `Error when intDecoding = ${intDecoding}`
+        );
       }
     });
 
@@ -384,17 +391,26 @@ describe('encoding', () => {
       const inputs = ['17', '9007199254740991'];
       for (const input of inputs) {
         for (const intDecoding of [
-          algosdk.IntDecoding.DEFAULT,
+          algosdk.IntDecoding.UNSAFE,
           algosdk.IntDecoding.SAFE,
           algosdk.IntDecoding.MIXED,
           algosdk.IntDecoding.BIGINT,
         ]) {
           const actual = utils.parseJSON(input, { intDecoding });
           const expected =
-            intDecoding === 'bigint' ? BigInt(input) : Number(input);
+            intDecoding === algosdk.IntDecoding.BIGINT
+              ? BigInt(input)
+              : Number(input);
           assert.deepStrictEqual(
             actual,
             expected,
+            `Error when intDecoding = ${intDecoding}`
+          );
+
+          const roundtrip = utils.stringifyJSON(actual);
+          assert.deepStrictEqual(
+            roundtrip,
+            input,
             `Error when intDecoding = ${intDecoding}`
           );
         }
@@ -406,7 +422,7 @@ describe('encoding', () => {
         '"IRK7XSCO7LPIBQKIUJXTQ5I7XBP3362ACPME5SOUUIJXN77T44RG4FZSLI"';
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.SAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
@@ -423,6 +439,13 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
+          `Error when intDecoding = ${intDecoding}`
+        );
       }
     });
 
@@ -430,7 +453,7 @@ describe('encoding', () => {
       const input = '{}';
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.SAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
@@ -443,6 +466,13 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
+          `Error when intDecoding = ${intDecoding}`
+        );
       }
     });
 
@@ -450,7 +480,7 @@ describe('encoding', () => {
       const input = '{"a":1,"b":"value","c":[1,2,3],"d":null,"e":{},"f":true}';
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.SAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
@@ -458,7 +488,7 @@ describe('encoding', () => {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
-        if (intDecoding === 'bigint') {
+        if (intDecoding === algosdk.IntDecoding.BIGINT) {
           expected = {
             a: 1n,
             b: 'value',
@@ -483,6 +513,13 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
+          `Error when intDecoding = ${intDecoding}`
+        );
       }
     });
 
@@ -495,21 +532,21 @@ describe('encoding', () => {
       );
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
       ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
-        if (intDecoding === 'bigint') {
+        if (intDecoding === algosdk.IntDecoding.BIGINT) {
           expected = {
             a: 0n,
             b: 9007199254740991n,
             c: 9007199254740992n,
             d: 9223372036854775807n,
           };
-        } else if (intDecoding === 'mixed') {
+        } else if (intDecoding === algosdk.IntDecoding.MIXED) {
           expected = {
             a: 0,
             b: 9007199254740991,
@@ -530,6 +567,15 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        if (intDecoding !== algosdk.IntDecoding.UNSAFE) {
+          const roundtrip = utils.stringifyJSON(actual);
+          assert.deepStrictEqual(
+            roundtrip,
+            input,
+            `Error when intDecoding = ${intDecoding}`
+          );
+        }
       }
     });
 
@@ -537,7 +583,7 @@ describe('encoding', () => {
       const input = '[]';
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.SAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
@@ -550,6 +596,13 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
+          `Error when intDecoding = ${intDecoding}`
+        );
       }
     });
 
@@ -557,7 +610,7 @@ describe('encoding', () => {
       const input = '["test",2,null,[7],{"a":9.5},true]';
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.SAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
@@ -576,6 +629,13 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        const roundtrip = utils.stringifyJSON(actual);
+        assert.deepStrictEqual(
+          roundtrip,
+          input,
+          `Error when intDecoding = ${intDecoding}`
+        );
       }
     });
 
@@ -587,21 +647,21 @@ describe('encoding', () => {
       );
 
       for (const intDecoding of [
-        algosdk.IntDecoding.DEFAULT,
+        algosdk.IntDecoding.UNSAFE,
         algosdk.IntDecoding.MIXED,
         algosdk.IntDecoding.BIGINT,
       ]) {
         const actual = utils.parseJSON(input, { intDecoding });
 
         let expected;
-        if (intDecoding === 'bigint') {
+        if (intDecoding === algosdk.IntDecoding.BIGINT) {
           expected = [
             0n,
             9007199254740991n,
             9007199254740992n,
             9223372036854775807n,
           ];
-        } else if (intDecoding === 'mixed') {
+        } else if (intDecoding === algosdk.IntDecoding.MIXED) {
           expected = [
             0,
             9007199254740991,
@@ -622,7 +682,34 @@ describe('encoding', () => {
           expected,
           `Error when intDecoding = ${intDecoding}`
         );
+
+        if (intDecoding !== algosdk.IntDecoding.UNSAFE) {
+          const roundtrip = utils.stringifyJSON(actual);
+          assert.deepStrictEqual(
+            roundtrip,
+            input,
+            `Error when intDecoding = ${intDecoding}`
+          );
+        }
       }
+    });
+
+    it('should stringify with spacing', () => {
+      const input = { a: 1, b: 'value', c: [1, 2, 3], d: null, e: {}, f: true };
+      const actual = utils.stringifyJSON(input, undefined, 2);
+      const expected = `{
+  "a": 1,
+  "b": "value",
+  "c": [
+    1,
+    2,
+    3
+  ],
+  "d": null,
+  "e": {},
+  "f": true
+}`;
+      assert.strictEqual(actual, expected);
     });
   });
 

@@ -1,12 +1,11 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
-import IntDecoding from '../../../types/intDecoding.js';
 
 export default class GetBlockTxids extends JSONRequest {
   round: number;
 
-  constructor(c: HTTPClient, intDecoding: IntDecoding, roundNumber: number) {
-    super(c, intDecoding);
+  constructor(c: HTTPClient, roundNumber: number) {
+    super(c);
     if (!Number.isInteger(roundNumber))
       throw Error('roundNumber should be an integer');
     this.round = roundNumber;

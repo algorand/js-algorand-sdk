@@ -1,4 +1,5 @@
 import { concatArrays } from '../../../utils/utils.js';
+import IntDecoding from '../../../types/intDecoding.js';
 import { PostTransactionsResponse } from './models/types.js';
 import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
@@ -55,12 +56,13 @@ export default class SendRawTransaction extends JSONRequest<
 
   async do(headers = {}) {
     const txHeaders = setSendTransactionHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      this.txnBytesToPost,
-      undefined,
-      txHeaders
-    );
+    const res = await this.c.post({
+      relativePath: this.path(),
+      data: this.txnBytesToPost,
+      parseBody: true,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      requestHeaders: txHeaders,
+    });
     return this.prepare(res.body);
   }
 

@@ -14,18 +14,13 @@ export default abstract class JSONRequest<
 > {
   c: HTTPClient;
   query: Record<string, any>;
-  intDecoding: IntDecoding;
 
   /**
    * @param client - HTTPClient object.
-   * @param intDecoding - The method to use
-   *   for decoding integers from this request's response. See the setIntDecoding method for more
-   *   details.
    */
-  constructor(client: HTTPClient, intDecoding?: IntDecoding) {
+  constructor(client: HTTPClient) {
     this.c = client;
     this.query = {};
-    this.intDecoding = intDecoding || IntDecoding.DEFAULT;
   }
 
   /**
@@ -54,11 +49,13 @@ export default abstract class JSONRequest<
    * @category JSONRequest
    */
   async do(headers: Record<string, any> = {}): Promise<Data> {
-    const jsonOptions: Record<string, any> = {};
-    if (this.intDecoding !== 'default') {
-      jsonOptions.intDecoding = this.intDecoding;
-    }
-    const res = await this.c.get(this.path(), this.query, headers, jsonOptions);
+    const res = await this.c.get({
+      relativePath: this.path(),
+      parseBody: true,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: headers,
+    });
     return this.prepare(res.body);
   }
 
@@ -69,35 +66,13 @@ export default abstract class JSONRequest<
    * @category JSONRequest
    */
   async doRaw(headers: Record<string, any> = {}): Promise<Uint8Array> {
-    const res = await this.c.get(this.path(), this.query, headers, {}, false);
+    const res = await this.c.get({
+      relativePath: this.path(),
+      parseBody: false,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: headers,
+    });
     return res.body;
-  }
-
-  /**
-   * Configure how integers in this request's JSON response will be decoded.
-   *
-   * The options are:
-   * * "default": Integers will be decoded according to JSON.parse, meaning they will all be
-   *   Numbers and any values greater than Number.MAX_SAFE_INTEGER will lose precision.
-   * * "safe": All integers will be decoded as Numbers, but if any values are greater than
-   *   Number.MAX_SAFE_INTEGER an error will be thrown.
-   * * "mixed": Integers will be decoded as Numbers if they are less than or equal to
-   *   Number.MAX_SAFE_INTEGER, otherwise they will be decoded as BigInts.
-   * * "bigint": All integers will be decoded as BigInts.
-   *
-   * @param method - The method to use when parsing the
-   *   response for this request. Must be one of "default", "safe", "mixed", or "bigint".
-   * @category JSONRequest
-   */
-  setIntDecoding(method: IntDecoding) {
-    if (
-      method !== 'default' &&
-      method !== 'safe' &&
-      method !== 'mixed' &&
-      method !== 'bigint'
-    )
-      throw new Error(`Invalid method for int decoding: ${method}`);
-    this.intDecoding = method;
-    return this;
   }
 }

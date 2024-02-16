@@ -1,5 +1,4 @@
 import { bytesToBase64 } from '../../../encoding/binarydata.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
 import { Box } from './models/types.js';
@@ -26,11 +25,10 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest<
    */
   constructor(
     c: HTTPClient,
-    intDecoding: IntDecoding,
     private index: number,
     boxName: Uint8Array
   ) {
-    super(c, intDecoding);
+    super(c);
     // Encode query in base64 format and append the encoding prefix.
     const encodedName = bytesToBase64(boxName);
     this.query.name = encodeURI(`b64:${encodedName}`);

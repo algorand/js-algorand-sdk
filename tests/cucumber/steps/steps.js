@@ -991,7 +991,7 @@ module.exports = function getSteps(options) {
       this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const parsedIssuance = parseInt(issuance);
+      const parsedIssuance = BigInt(issuance);
       const decimals = 0;
       const defaultFrozen = false;
       const assetName = this.assetTestFixture.name;
@@ -1517,8 +1517,12 @@ module.exports = function getSteps(options) {
       // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
         assert.strictEqual(
-          JSON.stringify(JSON.parse(expectedMockResponse)),
-          JSON.stringify(this.actualMockResponse)
+          algosdk.stringifyJSON(
+            algosdk.parseJSON(expectedMockResponse, {
+              intDecoding: algosdk.IntDecoding.MIXED,
+            })
+          ),
+          algosdk.stringifyJSON(this.actualMockResponse)
         );
       } else {
         assert.deepStrictEqual(
@@ -1849,10 +1853,7 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Node Status response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(
-        lastRound.toString(),
-        anyNodeStatusResponse.lastRound.toString()
-      );
+      assert.strictEqual(BigInt(lastRound), anyNodeStatusResponse.lastRound);
     }
   );
 
@@ -1866,17 +1867,14 @@ module.exports = function getSteps(options) {
     'the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}',
     (totalMoney, onlineMoney, round) => {
       assert.strictEqual(
-        totalMoney.toString(),
-        anyLedgerSupplyResponse.totalMoney.toString()
+        BigInt(totalMoney),
+        anyLedgerSupplyResponse.totalMoney
       );
       assert.strictEqual(
-        onlineMoney.toString(),
-        anyLedgerSupplyResponse.onlineMoney.toString()
+        BigInt(onlineMoney),
+        anyLedgerSupplyResponse.onlineMoney
       );
-      assert.strictEqual(
-        round.toString(),
-        anyLedgerSupplyResponse.currentRound.toString()
-      );
+      assert.strictEqual(BigInt(round), anyLedgerSupplyResponse.currentRound);
     }
   );
 
@@ -1887,10 +1885,7 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Status After Block response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(
-        lastRound.toString(),
-        anyNodeStatusResponse.lastRound.toString()
-      );
+      assert.strictEqual(BigInt(lastRound), anyNodeStatusResponse.lastRound);
     }
   );
 
@@ -2393,7 +2388,6 @@ module.exports = function getSteps(options) {
   When('we make any LookupAssetBalances call', async function () {
     anyLookupAssetBalancesResponse = await this.indexerClient
       .lookupAssetBalances()
-      .setIntDecoding('mixed')
       .do();
   });
 
@@ -2401,12 +2395,12 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}',
     (round, length, idx, address, amount, frozenStateAsString) => {
       assert.strictEqual(
-        round,
-        anyLookupAssetBalancesResponse['current-round']
+        anyLookupAssetBalancesResponse['current-round'],
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anyLookupAssetBalancesResponse.balances.length
+        anyLookupAssetBalancesResponse.balances.length,
+        length
       );
       if (length === 0) {
         return;
@@ -2416,12 +2410,12 @@ module.exports = function getSteps(options) {
         frozenState = true;
       }
       assert.strictEqual(
-        amount,
-        anyLookupAssetBalancesResponse.balances[idx].amount
+        anyLookupAssetBalancesResponse.balances[idx].amount,
+        BigInt(amount)
       );
       assert.strictEqual(
-        frozenState,
-        anyLookupAssetBalancesResponse.balances[idx]['is-frozen']
+        anyLookupAssetBalancesResponse.balances[idx]['is-frozen'],
+        frozenState
       );
     }
   );
@@ -2483,7 +2477,6 @@ module.exports = function getSteps(options) {
   When('we make any LookupAssetTransactions call', async function () {
     anyLookupAssetTransactionsResponse = await this.indexerClient
       .lookupAssetTransactions()
-      .setIntDecoding('mixed')
       .do();
   });
 
@@ -2491,19 +2484,19 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
-        anyLookupAssetTransactionsResponse['current-round']
+        anyLookupAssetTransactionsResponse['current-round'],
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anyLookupAssetTransactionsResponse.transactions.length
+        anyLookupAssetTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        sender,
-        anyLookupAssetTransactionsResponse.transactions[idx].sender
+        anyLookupAssetTransactionsResponse.transactions[idx].sender,
+        sender
       );
     }
   );
@@ -2577,12 +2570,11 @@ module.exports = function getSteps(options) {
   When('we make any LookupAssetByID call', async function () {
     anyLookupAssetByIDResponse = await this.indexerClient
       .lookupAssetByID()
-      .setIntDecoding('mixed')
       .do();
   });
 
   Then('the parsed LookupAssetByID response should have index {int}', (idx) => {
-    assert.strictEqual(idx, anyLookupAssetByIDResponse.asset.index);
+    assert.strictEqual(anyLookupAssetByIDResponse.asset.index, BigInt(idx));
   });
 
   let anySearchAccountsResponse;
@@ -2726,7 +2718,15 @@ module.exports = function getSteps(options) {
   let dryrunResponse;
 
   When('we make any Dryrun call', async function () {
-    const dr = new algosdk.modelsv2.DryrunRequest({});
+    const dr = new algosdk.modelsv2.DryrunRequest({
+      accounts: [],
+      apps: [],
+      latestTimestamp: 7,
+      protocolVersion: 'future',
+      round: 100,
+      sources: [],
+      txns: [],
+    });
     dryrunResponse = await this.v2Client.dryrun(dr).do();
   });
 
@@ -2773,6 +2773,7 @@ module.exports = function getSteps(options) {
             fieldName: 'lsig',
             source: new TextDecoder().decode(data),
             txnIndex: 0,
+            appIndex: 0,
           }),
         ];
         break;
@@ -2781,6 +2782,11 @@ module.exports = function getSteps(options) {
     }
 
     const dr = new algosdk.modelsv2.DryrunRequest({
+      accounts: [],
+      apps: [],
+      latestTimestamp: 0,
+      protocolVersion: '',
+      round: 0,
       txns,
       sources,
     });
@@ -4390,17 +4396,18 @@ module.exports = function getSteps(options) {
     'a dryrun response file {string} and a transaction at index {string}',
     async function (drrFile, txId) {
       const drContents = await loadResourceAsJson(drrFile);
-      const drr = new algosdk.DryrunResult(drContents);
+      const drr =
+        algosdk.modelsv2.DryrunResponse.from_obj_for_encoding(drContents);
       this.txtrace = drr.txns[parseInt(txId)];
     }
   );
 
   Then('calling app trace produces {string}', async function (expected) {
-    const traceString = this.txtrace.appTrace();
+    const traceString = algosdk.dryrunTxnResultAppTrace(this.txtrace);
     const expectedString = new TextDecoder().decode(
       await loadResource(expected)
     );
-    assert.deepStrictEqual(traceString, expectedString);
+    assert.strictEqual(traceString, expectedString);
   });
 
   When(
@@ -4642,7 +4649,7 @@ module.exports = function getSteps(options) {
         .compile(tealSrc)
         .sourcemap(true)
         .do();
-      this.rawSourceMap = JSON.stringify(compiledResponse.sourcemap);
+      this.rawSourceMap = algosdk.stringifyJSON(compiledResponse.sourcemap);
     }
   );
 

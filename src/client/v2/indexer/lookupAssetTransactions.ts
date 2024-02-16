@@ -1,6 +1,5 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { base64StringFunnel } from './lookupAccountTransactions.js';
 import { Address } from '../../../encoding/address.js';
 
@@ -19,10 +18,9 @@ export default class LookupAssetTransactions extends JSONRequest {
    */
   constructor(
     c: HTTPClient,
-    intDecoding: IntDecoding,
     private index: number
   ) {
-    super(c, intDecoding);
+    super(c);
   }
 
   /**

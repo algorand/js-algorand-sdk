@@ -1052,7 +1052,7 @@ describe('Algosdk (AKA end to end)', () => {
 
     it('should be properly serialized to JSON', () => {
       const forEncoding = req.get_obj_for_encoding();
-      const actual = JSON.stringify(forEncoding, null, 2);
+      const actual = algosdk.stringifyJSON(forEncoding, undefined, 2);
 
       const expected = `{
   "accounts": [
@@ -1110,8 +1110,12 @@ describe('Algosdk (AKA end to end)', () => {
   ]
 }`;
       // Cannot directly compare JSON strings because order of keys is not guaranteed
-      const actualDecoded = JSON.parse(actual);
-      const expectedDecoded = JSON.parse(expected);
+      const actualDecoded = algosdk.parseJSON(actual, {
+        intDecoding: algosdk.IntDecoding.BIGINT,
+      });
+      const expectedDecoded = algosdk.parseJSON(expected, {
+        intDecoding: algosdk.IntDecoding.BIGINT,
+      });
       assert.deepStrictEqual(actualDecoded, expectedDecoded);
     });
 

@@ -1,4 +1,5 @@
 import * as encoding from '../../../encoding/encoding.js';
+import IntDecoding from '../../../types/intDecoding.js';
 import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
 import { SimulateRequest, SimulateResponse } from './models/types.js';
@@ -43,13 +44,14 @@ export default class SimulateRawTransactions extends JSONRequest<
 
   async do(headers = {}) {
     const txHeaders = setSimulateTransactionsHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      this.requestBytes,
-      this.query,
-      txHeaders,
-      false
-    );
+    const res = await this.c.post({
+      relativePath: this.path(),
+      data: this.requestBytes,
+      parseBody: false,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: txHeaders,
+    });
     return this.prepare(res.body);
   }
 

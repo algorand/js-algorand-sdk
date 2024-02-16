@@ -33,7 +33,7 @@ import {
   OnApplicationComplete,
   SuggestedParams,
 } from './types/transactions/base.js';
-import { arrayEqual, ensureUint64 } from './utils/utils.js';
+import { arrayEqual, stringifyJSON, ensureUint64 } from './utils/utils.js';
 import { waitForConfirmation } from './wait.js';
 
 // First 4 bytes of SHA-512/256 hash of "return"
@@ -799,7 +799,7 @@ export class AtomicTransactionComposer {
         const logs = pendingInfo.logs || [];
         if (logs.length === 0) {
           throw new Error(
-            `App call transaction did not log a return value ${JSON.stringify(
+            `App call transaction did not log a return value ${stringifyJSON(
               pendingInfo
             )}`
           );
@@ -810,7 +810,7 @@ export class AtomicTransactionComposer {
           !arrayEqual(lastLog.slice(0, 4), RETURN_PREFIX)
         ) {
           throw new Error(
-            `App call transaction did not log a ABI return value ${JSON.stringify(
+            `App call transaction did not log a ABI return value ${stringifyJSON(
               pendingInfo
             )}`
           );

@@ -1,4 +1,5 @@
 import { coerceToBytes } from '../../../encoding/binarydata.js';
+import IntDecoding from '../../../types/intDecoding.js';
 import { HTTPClient } from '../../client.js';
 import { DisassembleResponse } from './models/types.js';
 import JSONRequest from '../jsonrequest.js';
@@ -41,12 +42,14 @@ export default class Disassemble extends JSONRequest<
    */
   async do(headers = {}) {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      coerceToBytes(this.source),
-      this.query,
-      txHeaders
-    );
+    const res = await this.c.post({
+      relativePath: this.path(),
+      data: coerceToBytes(this.source),
+      parseBody: true,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: txHeaders,
+    });
     return res.body;
   }
 

@@ -273,3 +273,42 @@ We expect most users to not be affected by this, since if you use Algod to get s
 ### Auction Bids
 
 Auction bids have been removed from the library in v3, as they were only relevant to the launch of MainNet.
+
+### Algod and Indexer Clients
+
+In v2, the `Algodv2` and `Indexer` clients, as well as each individual request class, had a `setIntDecoding` method which could be used to configure how integers in the response were parsed into either a JavaScript `number` or `bigint`. These methods have been removed in v3.
+
+Instead, Algod responses are now fully typed, and individual fields are typed as either `number` or `bigint`. The types defined in the `modelsv2` namespace have been updated to reflect this. In v2, these classes used `number | bigint` for all numeric fields, but in v3, they will use either `number` or `bigint` depending on the field.
+
+Generally speaking, the fields will be `bigint` based on the following criteria:
+
+- If the field represents an amount of microAlgos or ASA units, it will be `bigint`
+- If the field represents a round/block number, it will be `bigint`
+- If the field represents an asset or application ID, it will be `bigint`
+- If the field represents a timestamp measured in nanoseconds, it will be `bigint`
+- If the field can be any value in the uint64 range, it will be `bigint`
+- Other fields which are guaranteed to be small will be `number`
+
+Indexer responses are not yet typed, and all numeric fields are returned as `bigint`.
+
+### JSON Operations
+
+In order to facilitate `bigint` as a first-class type in this SDK, additional JSON conversion utilities have been added in v3. These are the `parseJSON` and `stringifyJSON` functions.
+
+`parseJSON` can be used to parse a JSON string into a JavaScript object, with support for parsing numeric fields as `bigint`s, depending on the provided configuration.
+
+`stringifyJSON` can be used to convert a JavaScript object containing `bigint`s into a JSON string, something `JSON.stringify` cannot do.
+
+If your v2 code uses `JSON.parse` or `JSON.stringify` on types which can now contain `bigint`s in v3, such as `Transaction` representations or REST API responses, consider using these new functions instead.
+
+### IntDecoding
+
+The `IntDecoding.DEFAULT` option has been renamed to `IntDecoding.UNSAFE` in v3. It behaves identically to the v2 `IntDecoding.DEFAULT` option, but the name has been changed to better reflect the fact that other options should be preferred.
+
+### Dryrun Utilities
+
+Due to the fully-typed Algod responses in v3, some of the redundant dryrun types have been removed.
+
+Specifically, the `DryrunResult` class and its dependent types have been removed in favor of the Algod response model, `modelsv2.DryrunResponse`.
+
+The `DryrunTransactionResult` class, which made up the elements of the v2 `DryrunResult.txns` array, used to have methods `appTrace` and `lsigTrace`. These have been replaced by the new `dryrunTxnResultAppTrace` and `dryrunTxnResultLogicSigTrace` functions, which accept a `DryrunTxnResult`. These new functions should produce identical results to the old ones.
