@@ -1,7 +1,11 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
+import { TransactionResponse } from './models/types.js';
 
-export default class LookupTransactionByID extends JSONRequest {
+export default class LookupTransactionByID extends JSONRequest<
+  TransactionResponse,
+  Record<string, any>
+> {
   /**
    * Returns information about the given transaction.
    *
@@ -27,5 +31,10 @@ export default class LookupTransactionByID extends JSONRequest {
    */
   path() {
     return `/v2/transactions/${this.txID}`;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): TransactionResponse {
+    return TransactionResponse.from_obj_for_encoding(body);
   }
 }

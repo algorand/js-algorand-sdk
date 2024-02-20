@@ -1,5 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
 import { Address } from '../../../encoding/address.js';
+import { AccountsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed accounts.
@@ -12,7 +13,10 @@ import { Address } from '../../../encoding/address.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accounts)
  * @category GET
  */
-export default class SearchAccounts extends JSONRequest {
+export default class SearchAccounts extends JSONRequest<
+  AccountsResponse,
+  Record<string, any>
+> {
   /**
    * @returns `/v2/accounts`
    */
@@ -266,5 +270,10 @@ export default class SearchAccounts extends JSONRequest {
   exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): AccountsResponse {
+    return AccountsResponse.from_obj_for_encoding(body);
   }
 }
