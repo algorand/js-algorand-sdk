@@ -4493,10 +4493,10 @@ module.exports = function getSteps(options) {
   Then(
     'according to {string}, the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
     async function (fromClient, boxName, boxValue, errString) {
-      try {
-        const boxKey = splitAndProcessAppArgs(boxName)[0];
+      const boxKey = splitAndProcessAppArgs(boxName)[0];
 
-        let resp = null;
+      let resp = null;
+      try {
         if (fromClient === 'algod') {
           resp = await this.v2Client
             .getApplicationBoxByName(this.currentApplicationIndex, boxKey)
@@ -4511,22 +4511,22 @@ module.exports = function getSteps(options) {
         } else {
           assert.fail(`expecting algod or indexer, got ${fromClient}`);
         }
-
-        const actualName = resp.name;
-        const actualValue = resp.value;
-        assert.deepStrictEqual(boxKey, actualName);
-        assert.deepStrictEqual(algosdk.base64ToBytes(boxValue), actualValue);
       } catch (err) {
         if (errString !== '') {
-          assert.deepStrictEqual(
-            true,
+          assert.ok(
             err.message.includes(errString),
             `expected ${errString} got ${err.message}`
           );
-        } else {
-          throw err;
+          return;
         }
+        throw err;
       }
+      assert.ok(!errString, "expected error, didn't get one");
+
+      const actualName = resp.name;
+      const actualValue = resp.value;
+      assert.deepStrictEqual(boxKey, actualName);
+      assert.deepStrictEqual(algosdk.base64ToBytes(boxValue), actualValue);
     }
   );
 
