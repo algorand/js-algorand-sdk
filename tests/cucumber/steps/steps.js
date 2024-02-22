@@ -1489,9 +1489,11 @@ module.exports = function getSteps(options) {
           }
         } else if (client === 'indexer') {
           // endpoints are ignored by mock server, see setupMockServerForResponses
-          this.actualMockResponse = await this.indexerClient
-            .makeHealthCheck()
-            .do();
+          const response = await this.indexerClient.makeHealthCheck().doRaw();
+          const responseString = new TextDecoder().decode(response);
+          this.actualMockResponse = algosdk.parseJSON(responseString, {
+            intDecoding: algosdk.IntDecoding.BIGINT,
+          });
         } else {
           throw Error(`did not recognize desired client "${client}"`);
         }
@@ -1983,24 +1985,25 @@ module.exports = function getSteps(options) {
       if (excludeCloseToAsString === 'true') {
         excludeCloseTo = true;
       }
-      await this.indexerClient
-        .lookupAssetTransactions(assetIndex)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .address(address)
-        .addressRole(addressRole)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAssetTransactions(assetIndex)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .address(address)
+          .addressRole(addressRole)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .minRound(minRound)
+          .maxRound(maxRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+          .excludeCloseTo(excludeCloseTo)
+      );
     }
   );
 
@@ -2073,22 +2076,23 @@ module.exports = function getSteps(options) {
       currencyLesser,
       assetIndex
     ) {
-      await this.indexerClient
-        .lookupAccountTransactions(account)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountTransactions(account)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .assetID(assetIndex)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+      );
     }
   );
 
@@ -2139,35 +2143,39 @@ module.exports = function getSteps(options) {
   When(
     'we make a Lookup Block call against round {int}',
     async function (round) {
-      await this.indexerClient.lookupBlock(round).do();
+      await doOrDoRaw(this.indexerClient.lookupBlock(round));
     }
   );
 
   When(
     'we make a Lookup Block call against round {int} and header {string}',
     async function (int, string) {
-      await this.indexerClient.lookupBlock(int).headerOnly(string).do();
+      await doOrDoRaw(this.indexerClient.lookupBlock(int).headerOnly(string));
     }
   );
 
   When(
     'we make a Lookup Account by ID call against account {string} with round {int}',
     async function (account, round) {
-      await this.indexerClient.lookupAccountByID(account).round(round).do();
+      await doOrDoRaw(
+        this.indexerClient.lookupAccountByID(account).round(round)
+      );
     }
   );
 
   When(
     'we make a Lookup Account by ID call against account {string} with exclude {string}',
     async function (account, exclude) {
-      await this.indexerClient.lookupAccountByID(account).exclude(exclude).do();
+      await doOrDoRaw(
+        this.indexerClient.lookupAccountByID(account).exclude(exclude)
+      );
     }
   );
 
   When(
     'we make a Lookup Asset by ID call against asset index {int}',
     async function (assetIndex) {
-      await this.indexerClient.lookupAssetByID(assetIndex).do();
+      await doOrDoRaw(this.indexerClient.lookupAssetByID(assetIndex));
     }
   );
 
@@ -2195,29 +2203,31 @@ module.exports = function getSteps(options) {
   When(
     'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
     async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
-      await this.indexerClient
-        .lookupApplicationLogs(appID)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .nextToken(nextToken)
-        .sender(sender)
-        .txid(txID)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupApplicationLogs(appID)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .nextToken(nextToken)
+          .sender(sender)
+          .txid(txID)
+      );
     }
   );
 
   When(
     'we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and round {int}',
     async function (assetIndex, limit, currencyGreater, currencyLesser, round) {
-      await this.indexerClient
-        .searchAccounts()
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .round(round)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchAccounts()
+          .assetID(assetIndex)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .round(round)
+      );
     }
   );
 
@@ -2246,14 +2256,16 @@ module.exports = function getSteps(options) {
   When(
     'we make a Search Accounts call with exclude {string}',
     async function (exclude) {
-      await this.indexerClient.searchAccounts().exclude(exclude).do();
+      await doOrDoRaw(this.indexerClient.searchAccounts().exclude(exclude));
     }
   );
 
   When(
     'we make a SearchForApplications call with creator {string}',
     async function (creator) {
-      await this.indexerClient.searchForApplications().creator(creator).do();
+      await doOrDoRaw(
+        this.indexerClient.searchForApplications().creator(creator)
+      );
     }
   );
 
@@ -2281,25 +2293,26 @@ module.exports = function getSteps(options) {
       if (excludeCloseToAsString === 'true') {
         excludeCloseTo = true;
       }
-      await this.indexerClient
-        .searchForTransactions()
-        .address(account)
-        .addressRole(addressRole)
-        .assetID(assetIndex)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchForTransactions()
+          .address(account)
+          .addressRole(addressRole)
+          .assetID(assetIndex)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+          .excludeCloseTo(excludeCloseTo)
+      );
     }
   );
 
@@ -2358,28 +2371,29 @@ module.exports = function getSteps(options) {
   When(
     'we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}',
     async function (limit, creator, name, unit, index) {
-      await this.indexerClient
-        .searchForAssets()
-        .limit(limit)
-        .creator(creator)
-        .name(name)
-        .unit(unit)
-        .index(index)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchForAssets()
+          .limit(limit)
+          .creator(creator)
+          .name(name)
+          .unit(unit)
+          .index(index)
+      );
     }
   );
 
   When(
     'we make a SearchForApplications call with applicationID {int}',
     async function (index) {
-      await this.indexerClient.searchForApplications().index(index).do();
+      await doOrDoRaw(this.indexerClient.searchForApplications().index(index));
     }
   );
 
   When(
     'we make a LookupApplications call with applicationID {int}',
     async function (index) {
-      await this.indexerClient.lookupApplications(index).do();
+      await doOrDoRaw(this.indexerClient.lookupApplications(index));
     }
   );
 
@@ -2414,7 +2428,7 @@ module.exports = function getSteps(options) {
         BigInt(amount)
       );
       assert.strictEqual(
-        anyLookupAssetBalancesResponse.balances[idx]['is-frozen'],
+        anyLookupAssetBalancesResponse.balances[idx].isFrozen,
         frozenState
       );
     }
@@ -2423,52 +2437,56 @@ module.exports = function getSteps(options) {
   When(
     'we make a LookupAccountAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountAssets(account)
-        .assetId(assetID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountAssets(account)
+          .assetId(assetID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountCreatedAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountCreatedAssets(account)
-        .assetID(assetID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountCreatedAssets(account)
+          .assetID(assetID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountAppLocalStates call with accountID {string} applicationID {int} includeAll {string} limit {int} next {string}',
     async function (account, applicationID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountAppLocalStates(account)
-        .applicationID(applicationID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountAppLocalStates(account)
+          .applicationID(applicationID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountCreatedApplications call with accountID {string} applicationID {int} includeAll {string} limit {int} next {string}',
     async function (account, applicationID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountCreatedApplications(account)
-        .applicationID(applicationID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountCreatedApplications(account)
+          .applicationID(applicationID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
@@ -2541,7 +2559,10 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed LookupBlock response should have previous block hash {string}',
     (prevHash) => {
-      assert.strictEqual(anyLookupBlockResponse.previousBlockHash, prevHash);
+      assert.strictEqual(
+        algosdk.bytesToBase64(anyLookupBlockResponse.previousBlockHash),
+        prevHash
+      );
     }
   );
 
