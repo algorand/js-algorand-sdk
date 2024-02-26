@@ -59,7 +59,7 @@ export async function indexerWaitForRound(
 
   for (;;) {
     // eslint-disable-next-line no-await-in-loop
-    const status = await this.indexerV2client.makeHealthCheck().do();
+    const status = await client.makeHealthCheck().do();
     indexerRound = status.round;
 
     if (indexerRound >= round) {
