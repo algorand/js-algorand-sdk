@@ -4621,6 +4621,7 @@ module.exports = function getSteps(options) {
     'I wait for indexer to catch up to the round where my most recent transaction was confirmed.',
     async function () {
       const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const maxAttempts = 30;
 
       const roundToWaitFor = this.lastTxnConfirmedRound;
       let indexerRound = 0;
@@ -4640,7 +4641,7 @@ module.exports = function getSteps(options) {
         await sleep(1000); // Sleep 1 second and check again
         attempts += 1;
 
-        if (attempts > 30) {
+        if (attempts > maxAttempts) {
           // Failsafe to prevent infinite loop
           throw new Error(
             `Timeout waiting for indexer to catch up to round ${roundToWaitFor}. It is currently on ${indexerRound}`
