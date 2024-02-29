@@ -48,7 +48,7 @@ async function main() {
   // example: ASSET_INFO
 
   // ensure indexer is caught up
-  await indexerWaitForRound(indexerClient, result['confirmed-round'], 30);
+  await indexerWaitForRound(indexerClient, result.confirmedRound!, 30);
 
   // example: INDEXER_LOOKUP_ASSET
   const indexerAssetInfo = await indexerClient.lookupAssetByID(assetIndex).do();

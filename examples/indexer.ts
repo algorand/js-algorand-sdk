@@ -73,7 +73,6 @@ async function main() {
   });
 
   await client.sendRawTransaction(txn.signTxn(sender.privateKey)).do();
-  await algosdk.waitForConfirmation(client, txn.txID(), 3);
   const result = await algosdk.waitForConfirmation(
     client,
     txn.txID().toString(),
@@ -81,7 +80,7 @@ async function main() {
   );
 
   // ensure indexer is caught up
-  await indexerWaitForRound(indexerClient, result['confirmed-round'], 30);
+  await indexerWaitForRound(indexerClient, result.confirmedRound!, 30);
 
   // example: INDEXER_PREFIX_SEARCH
   const txnsWithNotePrefix = await indexerClient
