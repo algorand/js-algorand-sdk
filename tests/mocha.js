@@ -28,10 +28,14 @@ async function testRunner() {
       // Change entry and output for webpack config
       const webpackTestConfig = Object.assign(webpackConfig);
 
+      webpackTestConfig.mode = 'development';
       webpackTestConfig.entry = testFiles;
       webpackTestConfig.output = {
         filename: path.basename(bundleLocation),
         path: path.dirname(bundleLocation),
+      };
+      webpackTestConfig.optimization = {
+        minimize: false,
       };
 
       webpack(webpackTestConfig, (err, stats) => {

@@ -1,25 +1,31 @@
-import { Buffer } from 'buffer';
-import * as nacl from './nacl/naclWrappers';
-import * as address from './encoding/address';
-import * as encoding from './encoding/encoding';
-import { verifyMultisig } from './multisig';
-import * as utils from './utils/utils';
-import * as txnBuilder from './transaction';
-import { isValidAddress } from './encoding/address';
+import * as nacl from './nacl/naclWrappers.js';
+import { Address, isValidAddress } from './encoding/address.js';
+import * as encoding from './encoding/encoding.js';
+import {
+  MultisigMetadata,
+  verifyMultisig,
+  addressFromMultisigPreImg,
+  pksFromAddresses,
+} from './multisig.js';
+import * as utils from './utils/utils.js';
+import { Transaction } from './transaction.js';
 import {
   EncodedLogicSig,
   EncodedLogicSigAccount,
   EncodedMultisig,
   EncodedSignedTransaction,
-} from './types/transactions/encoded';
-import { MultisigMetadata } from './types/multisig';
+} from './types/transactions/encoded.js';
 
 interface LogicSigStorageStructure {
   logic: Uint8Array;
-  args: Uint8Array[];
+  args?: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
 }
+
+// base64regex is the regex to test for base64 strings
+const base64regex =
+  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 /** sanityCheckProgram performs heuristic program validation:
  * check if passed in bytes are Algorand address or is B64 encoded, rather than Teal bytes
@@ -39,12 +45,12 @@ export function sanityCheckProgram(program: Uint8Array) {
   );
 
   if (isAsciiPrintable) {
-    const programStr = Buffer.from(program).toString();
+    const programStr = new TextDecoder().decode(program);
 
     if (isValidAddress(programStr))
       throw new Error('requesting program bytes, get Algorand address');
 
-    if (Buffer.from(programStr, 'base64').toString('base64') === programStr)
+    if (base64regex.test(programStr))
       throw new Error('program should not be b64 encoded');
 
     throw new Error(
@@ -59,23 +65,18 @@ export function sanityCheckProgram(program: Uint8Array) {
  LogicSig cannot sign transactions in all cases.  Instead, use LogicSigAccount as a safe, general purpose signing mechanism.  Since LogicSig does not track the provided signature's public key, LogicSig cannot sign transactions when delegated to a non-multisig account _and_ the sender is not the delegating account.
  */
 export class LogicSig implements LogicSigStorageStructure {
-  tag = Buffer.from('Program');
+  tag = new TextEncoder().encode('Program');
 
   logic: Uint8Array;
-  args: Uint8Array[];
+  args?: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
 
-  constructor(
-    program: Uint8Array,
-    programArgs?: Array<Uint8Array | Buffer> | null
-  ) {
+  constructor(program: Uint8Array, programArgs?: Array<Uint8Array> | null) {
     if (
       programArgs &&
       (!Array.isArray(programArgs) ||
-        !programArgs.every(
-          (arg) => arg.constructor === Uint8Array || Buffer.isBuffer(arg)
-        ))
+        !programArgs.every((arg) => arg.constructor === Uint8Array))
     ) {
       throw new TypeError('Invalid arguments');
     }
@@ -142,17 +143,17 @@ export class LogicSig implements LogicSigStorageStructure {
       return nacl.verify(toBeSigned, this.sig, publicKey);
     }
 
-    return verifyMultisig(toBeSigned, this.msig, publicKey);
+    return verifyMultisig(toBeSigned, this.msig!, publicKey);
   }
 
   /**
    * Compute hash of the logic sig program (that is the same as escrow account address) as string address
    * @returns String representation of the address
    */
-  address() {
+  address(): Address {
     const toBeSigned = utils.concatArrays(this.tag, this.logic);
     const hash = nacl.genericHash(toBeSigned);
-    return address.encodeAddress(new Uint8Array(hash));
+    return new Address(Uint8Array.from(hash));
   }
 
   /**
@@ -164,9 +165,7 @@ export class LogicSig implements LogicSigStorageStructure {
     if (msig == null) {
       this.sig = this.signProgram(secretKey);
     } else {
-      const subsigs = msig.addrs.map((addr) => ({
-        pk: address.decodeAddress(addr).publicKey,
-      }));
+      const subsigs = pksFromAddresses(msig.addrs).map((pk) => ({ pk }));
 
       this.msig = {
         v: msig.version,
@@ -243,7 +242,7 @@ export class LogicSigAccount {
    *   this LogicSig.
    * @param args - An optional array of arguments for the program.
    */
-  constructor(program: Uint8Array, args?: Array<Uint8Array | Buffer> | null) {
+  constructor(program: Uint8Array, args?: Array<Uint8Array> | null) {
     this.lsig = new LogicSig(program, args);
     this.sigkey = undefined;
   }
@@ -300,7 +299,7 @@ export class LogicSigAccount {
    */
   verify() {
     const addr = this.address();
-    return this.lsig.verify(address.decodeAddress(addr).publicKey);
+    return this.lsig.verify(addr.publicKey);
   }
 
   /**
@@ -312,7 +311,7 @@ export class LogicSigAccount {
    * If the LogicSig is not delegated to another account, this will return an
    *  escrow address that is the hash of the LogicSig's program code.
    */
-  address() {
+  address(): Address {
     if (this.lsig.sig && this.lsig.msig) {
       throw new Error(
         'LogicSig has too many signatures. At most one of sig or msig may be present'
@@ -323,7 +322,7 @@ export class LogicSigAccount {
       if (!this.sigkey) {
         throw new Error('Signing key for delegated account is missing');
       }
-      return address.encodeAddress(this.sigkey);
+      return new Address(this.sigkey);
     }
 
     if (this.lsig.msig) {
@@ -332,7 +331,7 @@ export class LogicSigAccount {
         threshold: this.lsig.msig.thr,
         pks: this.lsig.msig.subsig.map((subsig) => subsig.pk),
       };
-      return address.encodeAddress(address.fromMultisigPreImg(msigMetadata));
+      return addressFromMultisigPreImg(msigMetadata);
     }
 
     return this.lsig.address();
@@ -379,11 +378,11 @@ export class LogicSigAccount {
 }
 
 function signLogicSigTransactionWithAddress(
-  txn: txnBuilder.Transaction,
+  txn: Transaction,
   lsig: LogicSig,
-  lsigAddress: Uint8Array
+  lsigAddress: Address
 ) {
-  if (!lsig.verify(lsigAddress)) {
+  if (!lsig.verify(lsigAddress.publicKey)) {
     throw new Error(
       'Logic signature verification failed. Ensure the program and signature are valid.'
     );
@@ -394,12 +393,12 @@ function signLogicSigTransactionWithAddress(
     txn: txn.get_obj_for_encoding(),
   };
 
-  if (!nacl.bytesEqual(lsigAddress, txn.from.publicKey)) {
-    signedTxn.sgnr = Buffer.from(lsigAddress);
+  if (!nacl.bytesEqual(lsigAddress.publicKey, txn.sender.publicKey)) {
+    signedTxn.sgnr = lsigAddress.publicKey;
   }
 
   return {
-    txID: txn.txID().toString(),
+    txID: txn.txID(),
     blob: encoding.encode(signedTxn),
   };
 }
@@ -414,15 +413,15 @@ function signLogicSigTransactionWithAddress(
  * @returns Object containing txID and blob representing signed transaction.
  */
 export function signLogicSigTransactionObject(
-  txn: txnBuilder.Transaction,
+  txn: Transaction,
   lsigObject: LogicSig | LogicSigAccount
 ) {
   let lsig: LogicSig;
-  let lsigAddress: Uint8Array;
+  let lsigAddress: Address;
 
   if (lsigObject instanceof LogicSigAccount) {
     lsig = lsigObject.lsig;
-    lsigAddress = address.decodeAddress(lsigObject.address()).publicKey;
+    lsigAddress = lsigObject.address();
   } else {
     lsig = lsigObject;
 
@@ -431,16 +430,16 @@ export function signLogicSigTransactionObject(
       // the address of that account from only its signature, so assume the
       // delegating account is the sender. If that's not the case, the signing
       // will fail.
-      lsigAddress = txn.from.publicKey;
+      lsigAddress = new Address(txn.sender.publicKey);
     } else if (lsig.msig) {
       const msigMetadata = {
         version: lsig.msig.v,
         threshold: lsig.msig.thr,
         pks: lsig.msig.subsig.map((subsig) => subsig.pk),
       };
-      lsigAddress = address.fromMultisigPreImg(msigMetadata);
+      lsigAddress = addressFromMultisigPreImg(msigMetadata);
     } else {
-      lsigAddress = address.decodeAddress(lsig.address()).publicKey;
+      lsigAddress = lsig.address();
     }
   }
 
@@ -458,11 +457,10 @@ export function signLogicSigTransactionObject(
  * @throws error on failure
  */
 export function signLogicSigTransaction(
-  txn: txnBuilder.TransactionLike,
+  txn: Transaction,
   lsigObject: LogicSig | LogicSigAccount
 ) {
-  const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
-  return signLogicSigTransactionObject(algoTxn, lsigObject);
+  return signLogicSigTransactionObject(txn, lsigObject);
 }
 
 /**
@@ -473,61 +471,59 @@ export function logicSigFromByte(encoded: Uint8Array) {
   return LogicSig.fromByte(encoded);
 }
 
-const SIGN_PROGRAM_DATA_PREFIX = Buffer.from('ProgData');
+const SIGN_PROGRAM_DATA_PREFIX = new TextEncoder().encode('ProgData');
 
 /**
  * tealSign creates a signature compatible with ed25519verify opcode from program hash
- * @param sk - uint8array with secret key
- * @param data - buffer with data to sign
+ * @param sk - Uint8Array with secret key
+ * @param data - Uint8Array with data to sign
  * @param programHash - string representation of teal program hash (= contract address for LogicSigs)
  */
 export function tealSign(
   sk: Uint8Array,
-  data: Uint8Array | Buffer,
-  programHash: string
+  data: Uint8Array,
+  programHash: string | Address
 ) {
-  const parts = utils.concatArrays(
-    address.decodeAddress(programHash).publicKey,
-    data
-  );
-  const toBeSigned = Buffer.from(
-    utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
-  );
+  const programAddr =
+    typeof programHash === 'string'
+      ? Address.fromString(programHash)
+      : programHash;
+  const parts = utils.concatArrays(programAddr.publicKey, data);
+  const toBeSigned = utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts);
   return nacl.sign(toBeSigned, sk);
 }
 
 /**
  * verifyTealSign verifies a signature as would the ed25519verify opcode
- * @param data - buffer with original signed data
+ * @param data - Uint8Array with original signed data
  * @param programHash - string representation of teal program hash (= contract address for LogicSigs)
  * @param sig - uint8array with the signature to verify (produced by tealSign/tealSignFromProgram)
  * @param pk - uint8array with public key to verify against
  */
 export function verifyTealSign(
-  data: Uint8Array | Buffer,
-  programHash: string,
+  data: Uint8Array,
+  programHash: string | Address,
   sig: Uint8Array,
   pk: Uint8Array
 ) {
-  const parts = utils.concatArrays(
-    address.decodeAddress(programHash).publicKey,
-    data
-  );
-  const toBeSigned = Buffer.from(
-    utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts)
-  );
+  const programAddr =
+    typeof programHash === 'string'
+      ? Address.fromString(programHash)
+      : programHash;
+  const parts = utils.concatArrays(programAddr.publicKey, data);
+  const toBeSigned = utils.concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts);
   return nacl.verify(toBeSigned, sig, pk);
 }
 
 /**
  * tealSignFromProgram creates a signature compatible with ed25519verify opcode from raw program bytes
  * @param sk - uint8array with secret key
- * @param data - buffer with data to sign
- * @param program - buffer with teal program
+ * @param data - Uint8Array with data to sign
+ * @param program - Uint8Array with teal program
  */
 export function tealSignFromProgram(
   sk: Uint8Array,
-  data: Uint8Array | Buffer,
+  data: Uint8Array,
   program: Uint8Array
 ) {
   const lsig = new LogicSig(program);

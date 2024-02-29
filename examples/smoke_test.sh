@@ -11,7 +11,7 @@ for file in *; do
         # Check if the filename is not "utils.ts"
         if [[ $file != "utils.ts" ]]; then
             # Call the file using `ts-node`
-            ../node_modules/.bin/ts-node "$file"
+            ../node_modules/.bin/tsx "$file"
             # Check if the test failed
             if [ $? -ne 0 ]; then
                 echo "Test failed, stopping script"

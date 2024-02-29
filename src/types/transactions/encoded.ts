@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 /**
  * Interfaces for the encoded transaction object. Every property is labelled with its associated Transaction type property
  */
@@ -8,37 +6,37 @@ export interface EncodedAssetParams {
   /**
    * assetTotal
    */
-  t: number | bigint;
+  t?: number | bigint;
 
   /**
    * assetDefaultFrozen
    */
-  df: boolean;
+  df?: boolean;
 
   /**
    * assetDecimals
    */
-  dc: number;
+  dc?: number | bigint;
 
   /**
    * assetManager
    */
-  m?: Buffer;
+  m?: Uint8Array;
 
   /**
    * assetReserve
    */
-  r?: Buffer;
+  r?: Uint8Array;
 
   /**
    * assetFreeze
    */
-  f?: Buffer;
+  f?: Uint8Array;
 
   /**
    * assetClawback
    */
-  c?: Buffer;
+  c?: Uint8Array;
 
   /**
    * assetName
@@ -58,43 +56,43 @@ export interface EncodedAssetParams {
   /**
    * assetMetadataHash
    */
-  am?: Buffer;
+  am?: Uint8Array;
 }
 
 export interface EncodedLocalStateSchema {
   /**
    * appLocalInts
    */
-  nui: number;
+  nui?: number | bigint;
 
   /**
    * appLocalByteSlices
    */
-  nbs: number;
+  nbs?: number | bigint;
 }
 
 export interface EncodedGlobalStateSchema {
   /**
    * appGlobalInts
    */
-  nui: number;
+  nui?: number | bigint;
 
   /**
    * appGlobalByteSlices
    */
-  nbs: number;
+  nbs?: number | bigint;
 }
 
 export interface EncodedBoxReference {
   /**
    * index of the app ID in the foreign apps array
    */
-  i: number;
+  i?: number | bigint;
 
   /**
    * box name
    */
-  n: Uint8Array;
+  n?: Uint8Array;
 }
 
 /**
@@ -104,27 +102,27 @@ export interface EncodedTransaction {
   /**
    * fee
    */
-  fee?: number;
+  fee?: number | bigint;
 
   /**
-   * firstRound
+   * firstValid
    */
-  fv?: number;
+  fv?: number | bigint;
 
   /**
-   * lastRound
+   * lastValid
    */
-  lv: number;
+  lv: number | bigint;
 
   /**
    * note
    */
-  note?: Buffer;
+  note?: Uint8Array;
 
   /**
-   * from
+   * sender
    */
-  snd: Buffer;
+  snd?: Uint8Array;
 
   /**
    * type
@@ -134,22 +132,22 @@ export interface EncodedTransaction {
   /**
    * genesisID
    */
-  gen: string;
+  gen?: string;
 
   /**
    * genesisHash
    */
-  gh: Buffer;
+  gh?: Uint8Array;
 
   /**
    * lease
    */
-  lx?: Buffer;
+  lx?: Uint8Array;
 
   /**
    * group
    */
-  grp?: Buffer;
+  grp?: Uint8Array;
 
   /**
    * amount
@@ -164,57 +162,57 @@ export interface EncodedTransaction {
   /**
    * closeRemainderTo
    */
-  close?: Buffer;
+  close?: Uint8Array;
 
   /**
    * closeRemainderTo (but for asset transfers)
    */
-  aclose?: Buffer;
+  aclose?: Uint8Array;
 
   /**
-   * reKeyTo
+   * rekeyTo
    */
-  rekey?: Buffer;
+  rekey?: Uint8Array;
 
   /**
-   * to
+   * receiver
    */
-  rcv?: Buffer;
+  rcv?: Uint8Array;
 
   /**
-   * to (but for asset transfers)
+   * receiver (but for asset transfers)
    */
-  arcv?: Buffer;
+  arcv?: Uint8Array;
 
   /**
    * voteKey
    */
-  votekey?: Buffer;
+  votekey?: Uint8Array;
 
   /**
    * selectionKey
    */
-  selkey?: Buffer;
+  selkey?: Uint8Array;
 
   /**
    * stateProofKey
    */
-  sprfkey?: Buffer;
+  sprfkey?: Uint8Array;
 
   /**
    * voteFirst
    */
-  votefst?: number;
+  votefst?: number | bigint;
 
   /**
    * voteLast
    */
-  votelst?: number;
+  votelst?: number | bigint;
 
   /**
    * voteKeyDilution
    */
-  votekd?: number;
+  votekd?: number | bigint;
 
   /**
    * nonParticipation
@@ -224,32 +222,32 @@ export interface EncodedTransaction {
   /**
    * assetIndex
    */
-  caid?: number;
+  caid?: number | bigint;
 
   /**
    * assetIndex (but for asset transfers)
    */
-  xaid?: number;
+  xaid?: number | bigint;
 
   /**
    * assetIndex (but for asset freezing/unfreezing)
    */
-  faid?: number;
+  faid?: number | bigint;
 
   /**
-   * freezeState
+   * frozen
    */
   afrz?: boolean;
 
   /**
    * freezeAccount
    */
-  fadd?: Buffer;
+  fadd?: Uint8Array;
 
   /**
-   * assetRevocationTarget
+   * assetSender
    */
-  asnd?: Buffer;
+  asnd?: Uint8Array;
 
   /**
    * See EncodedAssetParams type
@@ -259,12 +257,12 @@ export interface EncodedTransaction {
   /**
    * appIndex
    */
-  apid?: number;
+  apid?: number | bigint;
 
   /**
    * appOnComplete
    */
-  apan?: number;
+  apan?: number | bigint;
 
   /**
    * See EncodedLocalStateSchema type
@@ -279,37 +277,37 @@ export interface EncodedTransaction {
   /**
    * appForeignApps
    */
-  apfa?: number[];
+  apfa?: Array<number | bigint>;
 
   /**
    * appForeignAssets
    */
-  apas?: number[];
+  apas?: Array<number | bigint>;
 
   /**
    * appApprovalProgram
    */
-  apap?: Buffer;
+  apap?: Uint8Array;
 
   /**
    * appClearProgram
    */
-  apsu?: Buffer;
+  apsu?: Uint8Array;
 
   /**
    * appArgs
    */
-  apaa?: Buffer[];
+  apaa?: Uint8Array[];
 
   /**
    * appAccounts
    */
-  apat?: Buffer[];
+  apat?: Uint8Array[];
 
   /**
    * extraPages
    */
-  apep?: number;
+  apep?: number | bigint;
 
   /**
    * boxes
@@ -324,12 +322,12 @@ export interface EncodedTransaction {
   /**
    * stateProof
    */
-  sp?: Buffer;
+  sp?: Uint8Array;
 
   /**
    * stateProofMessage
    */
-  spmsg?: Buffer;
+  spmsg?: Uint8Array;
 }
 
 export interface EncodedSubsig {
@@ -384,7 +382,7 @@ export interface EncodedSignedTransaction {
   /**
    * Transaction signature
    */
-  sig?: Buffer;
+  sig?: Uint8Array;
 
   /**
    * The transaction that was signed
@@ -402,7 +400,7 @@ export interface EncodedSignedTransaction {
   lsig?: EncodedLogicSig;
 
   /**
-   * The signer, if signing with a different key than the Transaction type `from` property indicates
+   * The signer, if signing with a different key than the Transaction type `sender` property indicates
    */
-  sgnr?: Buffer;
+  sgnr?: Uint8Array;
 }

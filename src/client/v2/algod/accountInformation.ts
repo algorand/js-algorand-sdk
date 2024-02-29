@@ -1,15 +1,17 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
+import { Account } from './models/types.js';
+import { Address } from '../../../encoding/address.js';
 
-export default class AccountInformation extends JSONRequest {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
-    this.account = account;
+export default class AccountInformation extends JSONRequest<
+  Account,
+  Record<string, any>
+> {
+  private account: string;
+
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
+    this.account = account.toString();
   }
 
   path() {
@@ -33,5 +35,10 @@ export default class AccountInformation extends JSONRequest {
   exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): Account {
+    return Account.from_obj_for_encoding(body);
   }
 }

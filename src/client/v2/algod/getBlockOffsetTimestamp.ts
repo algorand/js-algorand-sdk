@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { GetBlockTimeStampOffsetResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { GetBlockTimeStampOffsetResponse } from './models/types.js';
 
 export default class GetBlockOffsetTimestamp extends JSONRequest<
   GetBlockTimeStampOffsetResponse,

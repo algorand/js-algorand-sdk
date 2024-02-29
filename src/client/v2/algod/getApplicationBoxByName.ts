@@ -1,8 +1,7 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { Box } from './models/types';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import { HTTPClient } from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
+import { Box } from './models/types.js';
 
 /**
  * Given an application ID and the box name (key), return the value stored in the box.
@@ -25,14 +24,12 @@ export default class GetApplicationBoxByName extends JSONRequest<
 > {
   constructor(
     c: HTTPClient,
-    intDecoding: IntDecoding,
     private index: number,
     name: Uint8Array
   ) {
-    super(c, intDecoding);
-    this.index = index;
+    super(c);
     // Encode name in base64 format and append the encoding prefix.
-    const encodedName = Buffer.from(name).toString('base64');
+    const encodedName = bytesToBase64(name);
     this.query.name = encodeURI(`b64:${encodedName}`);
   }
 

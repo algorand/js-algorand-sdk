@@ -1,4 +1,4 @@
-import JSONRequest from '../jsonrequest';
+import JSONRequest from '../jsonrequest.js';
 
 /**
  * Returns the health object for the service.

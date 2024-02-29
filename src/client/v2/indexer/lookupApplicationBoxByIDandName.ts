@@ -1,8 +1,7 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { Box } from './models/types';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import { HTTPClient } from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
+import { Box } from './models/types.js';
 
 export default class LookupApplicationBoxByIDandName extends JSONRequest<
   Box,
@@ -26,14 +25,12 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest<
    */
   constructor(
     c: HTTPClient,
-    intDecoding: IntDecoding,
     private index: number,
     boxName: Uint8Array
   ) {
-    super(c, intDecoding);
-    this.index = index;
+    super(c);
     // Encode query in base64 format and append the encoding prefix.
-    const encodedName = Buffer.from(boxName).toString('base64');
+    const encodedName = bytesToBase64(boxName);
     this.query.name = encodeURI(`b64:${encodedName}`);
   }
 

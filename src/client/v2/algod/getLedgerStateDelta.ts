@@ -1,11 +1,12 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
 
 export default class GetLedgerStateDelta extends JSONRequest {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: bigint) {
-    super(c, intDecoding);
-    this.round = round;
+  constructor(
+    c: HTTPClient,
+    private round: number
+  ) {
+    super(c);
     this.query = { format: 'json' };
   }
 

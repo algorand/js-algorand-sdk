@@ -13,10 +13,9 @@
     // | string
     // | (T1, ..., Tn)
 */
-import { Buffer } from 'buffer';
-import { encodeAddress, decodeAddress } from '../encoding/address';
-import { bigIntToBytes, bytesToBigInt } from '../encoding/bigint';
-import { concatArrays } from '../utils/utils';
+import { encodeAddress, decodeAddress } from '../encoding/address.js';
+import { bigIntToBytes, bytesToBigInt } from '../encoding/bigint.js';
+import { concatArrays } from '../utils/utils.js';
 
 export const MAX_LEN = 2 ** 16 - 1;
 export const ADDR_BYTE_SIZE = 32;
@@ -62,7 +61,7 @@ export abstract class ABIType {
     if (str.endsWith(']')) {
       const stringMatches = str.match(staticArrayRegexp);
       // Match the string itself, array element type, then array length
-      if (stringMatches.length !== 3) {
+      if (!stringMatches || stringMatches.length !== 3) {
         throw new Error(`malformed static array string: ${str}`);
       }
       // Parse static array using regex
@@ -77,8 +76,8 @@ export abstract class ABIType {
     }
     if (str.startsWith('uint')) {
       // Checks if the parsed number contains only digits, no whitespaces
-      const digitsOnly = (string) =>
-        [...string].every((c) => '0123456789'.includes(c));
+      const digitsOnly = (s: string) =>
+        [...s].every((c) => '0123456789'.includes(c));
       const typeSizeStr = str.slice(4, str.length);
       if (!digitsOnly(typeSizeStr)) {
         throw new Error(`malformed uint string: ${typeSizeStr}`);
@@ -94,7 +93,7 @@ export abstract class ABIType {
     }
     if (str.startsWith('ufixed')) {
       const stringMatches = str.match(ufixedRegexp);
-      if (stringMatches.length !== 3) {
+      if (!stringMatches || stringMatches.length !== 3) {
         throw new Error(`malformed ufixed type: ${str}`);
       }
       const ufixedSize = parseInt(stringMatches[1], 10);
@@ -380,7 +379,12 @@ export class ABIStringType extends ABIType {
     if (typeof value !== 'string' && !(value instanceof Uint8Array)) {
       throw new Error(`Cannot encode value as string: ${value}`);
     }
-    const encodedBytes = Buffer.from(value);
+    let encodedBytes: Uint8Array;
+    if (typeof value === 'string') {
+      encodedBytes = new TextEncoder().encode(value);
+    } else {
+      encodedBytes = value;
+    }
     const encodedLength = bigIntToBytes(
       encodedBytes.length,
       LENGTH_ENCODE_BYTE_SIZE
@@ -399,8 +403,12 @@ export class ABIStringType extends ABIType {
         `byte string is too short to be decoded. Actual length is ${byteString.length}, but expected at least ${LENGTH_ENCODE_BYTE_SIZE}`
       );
     }
-    const buf = Buffer.from(byteString);
-    const byteLength = buf.readUIntBE(0, LENGTH_ENCODE_BYTE_SIZE);
+    const view = new DataView(
+      byteString.buffer,
+      byteString.byteOffset,
+      LENGTH_ENCODE_BYTE_SIZE
+    );
+    const byteLength = view.getUint16(0);
     const byteValue = byteString.slice(
       LENGTH_ENCODE_BYTE_SIZE,
       byteString.length
@@ -410,7 +418,7 @@ export class ABIStringType extends ABIType {
         `string length bytes do not match the actual length of string. Expected ${byteLength}, got ${byteValue.length}`
       );
     }
-    return Buffer.from(byteValue).toString('utf-8');
+    return new TextDecoder('utf-8').decode(byteValue);
   }
 }
 
@@ -517,8 +525,8 @@ export class ABIArrayDynamicType extends ABIType {
   }
 
   decode(byteString: Uint8Array): ABIValue[] {
-    const buf = Buffer.from(byteString);
-    const byteLength = buf.readUIntBE(0, LENGTH_ENCODE_BYTE_SIZE);
+    const view = new DataView(byteString.buffer, 0, LENGTH_ENCODE_BYTE_SIZE);
+    const byteLength = view.getUint16(0);
     const convertedTuple = this.toABITupleType(byteLength);
     return convertedTuple.decode(
       byteString.slice(LENGTH_ENCODE_BYTE_SIZE, byteString.length)
@@ -657,10 +665,10 @@ export class ABITupleType extends ABIType {
   decode(byteString: Uint8Array): ABIValue[] {
     const tupleTypes = this.childTypes;
     const dynamicSegments: Segment[] = [];
-    const valuePartition: Uint8Array[] = [];
+    const valuePartition: Array<Uint8Array | null> = [];
     let i = 0;
     let iterIndex = 0;
-    const buf = Buffer.from(byteString);
+    const view = new DataView(byteString.buffer);
 
     while (i < tupleTypes.length) {
       const tupleType = tupleTypes[i];
@@ -671,7 +679,9 @@ export class ABITupleType extends ABIType {
         ) {
           throw new Error('dynamic type in tuple is too short to be decoded');
         }
-        const dynamicIndex = buf.readUIntBE(iterIndex, LENGTH_ENCODE_BYTE_SIZE);
+        // Since LENGTH_ENCODE_BYTE_SIZE is 2 and indices are at most 2 bytes,
+        // we can use getUint16 using the iterIndex offset.
+        const dynamicIndex = view.getUint16(iterIndex);
         if (dynamicSegments.length > 0) {
           dynamicSegments[dynamicSegments.length - 1].right = dynamicIndex;
           // Check that right side of segment is greater than the left side
@@ -761,7 +771,7 @@ export class ABITupleType extends ABIType {
     // Decode each tuple element
     const returnValues: ABIValue[] = [];
     for (let j = 0; j < tupleTypes.length; j++) {
-      const valueTi = tupleTypes[j].decode(valuePartition[j]);
+      const valueTi = tupleTypes[j].decode(valuePartition[j]!);
       returnValues.push(valueTi);
     }
     return returnValues;

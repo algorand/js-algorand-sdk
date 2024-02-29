@@ -1,8 +1,10 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
+import { Address } from '../../../encoding/address.js';
 
 export default class LookupAccountAppLocalStates extends JSONRequest {
+  private account: string | Address;
+
   /**
    * Returns application local state about the given account.
    *
@@ -16,13 +18,9 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
-    this.account = account;
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
+    this.account = account.toString();
   }
 
   /**

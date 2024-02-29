@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import {
   ABIAddressType,
   abiCheckTransactionType,
@@ -10,32 +9,35 @@ import {
   abiTypeIsTransaction,
   ABIUintType,
   ABIValue,
-} from './abi';
-import Algodv2 from './client/v2/algod/algod';
+} from './abi/index.js';
+import { AlgodClient } from './client/v2/algod/algod.js';
 import {
-  SimulateResponse,
   SimulateRequest,
   SimulateRequestTransactionGroup,
-} from './client/v2/algod/models/types';
-import { EncodedSignedTransaction } from './types';
-import { assignGroupID } from './group';
-import { makeApplicationCallTxnFromObject } from './makeTxn';
+  PendingTransactionResponse,
+  SimulateResponse,
+} from './client/v2/algod/models/types.js';
+import * as encoding from './encoding/encoding.js';
+import { Address } from './encoding/address.js';
+import { assignGroupID } from './group.js';
+import { makeApplicationCallTxnFromObject } from './makeTxn.js';
 import {
   isTransactionWithSigner,
   TransactionSigner,
   TransactionWithSigner,
-} from './signer';
-import { decodeSignedTransaction, Transaction } from './transaction';
+} from './signer.js';
+import { decodeSignedTransaction, Transaction } from './transaction.js';
+import { EncodedSignedTransaction } from './types/transactions/index.js';
 import {
   BoxReference,
   OnApplicationComplete,
   SuggestedParams,
-} from './types/transactions/base';
-import { waitForConfirmation } from './wait';
-import * as encoding from './encoding/encoding';
+} from './types/transactions/base.js';
+import { arrayEqual, stringifyJSON, ensureUint64 } from './utils/utils.js';
+import { waitForConfirmation } from './wait.js';
 
 // First 4 bytes of SHA-512/256 hash of "return"
-const RETURN_PREFIX = Buffer.from([21, 31, 124, 117]);
+const RETURN_PREFIX = new Uint8Array([21, 31, 124, 117]);
 
 // The maximum number of arguments for an application call transaction
 const MAX_APP_ARGS = 16;
@@ -63,7 +65,7 @@ export interface ABIResult {
   /** If the SDK was unable to decode a return value, the error will be here. */
   decodeError?: Error;
   /** The pending transaction information from the method transaction */
-  txInfo?: Record<string, any>;
+  txInfo?: PendingTransactionResponse;
 }
 
 export enum AtomicTransactionComposerStatus {
@@ -220,13 +222,13 @@ export class AtomicTransactionComposer {
     signer,
   }: {
     /** The ID of the smart contract to call. Set this to 0 to indicate an application creation call. */
-    appID: number;
+    appID: number | bigint;
     /** The method to call on the smart contract */
     method: ABIMethod;
     /** The arguments to include in the method call. If omitted, no arguments will be passed to the method. */
     methodArgs?: ABIArgument[];
     /** The address of the sender of this application call */
-    sender: string;
+    sender: string | Address;
     /** Transactions params to use for this application call */
     suggestedParams: SuggestedParams;
     /** The OnComplete action to take for this application call. If omitted, OnApplicationComplete.NoOpOC will be used. */
@@ -246,11 +248,11 @@ export class AtomicTransactionComposer {
     /** The number of extra pages to allocate for the application's programs. Only set this if this is an application creation call. If omitted, defaults to 0. */
     extraPages?: number;
     /** Array of Address strings that represent external accounts supplied to this application. If accounts are provided here, the accounts specified in the method args will appear after these. */
-    appAccounts?: string[];
+    appAccounts?: Array<string | Address>;
     /** Array of App ID numbers that represent external apps supplied to this application. If apps are provided here, the apps specified in the method args will appear after these. */
-    appForeignApps?: number[];
+    appForeignApps?: Array<number | bigint>;
     /** Array of Asset ID numbers that represent external assets supplied to this application. If assets are provided here, the assets specified in the method args will appear after these. */
-    appForeignAssets?: number[];
+    appForeignAssets?: Array<number | bigint>;
     /** The box references for this application call */
     boxes?: BoxReference[];
     /** The note value for this application call */
@@ -258,7 +260,7 @@ export class AtomicTransactionComposer {
     /** The lease value for this application call */
     lease?: Uint8Array;
     /** If provided, the address that the sender will be rekeyed to at the conclusion of this application call */
-    rekeyTo?: string;
+    rekeyTo?: string | Address;
     /** A transaction signer that can authorize this application call from sender */
     signer: TransactionSigner;
   }): void {
@@ -277,7 +279,7 @@ export class AtomicTransactionComposer {
       );
     }
 
-    if (appID === 0) {
+    if (BigInt(appID) === BigInt(0)) {
       if (
         approvalProgram == null ||
         clearProgram == null ||
@@ -387,12 +389,13 @@ export class AtomicTransactionComposer {
     }
 
     const resolvedRefIndexes: number[] = [];
+    // Converting addresses to string form for easier comparison
     const foreignAccounts: string[] =
-      appAccounts == null ? [] : appAccounts.slice();
-    const foreignApps: number[] =
-      appForeignApps == null ? [] : appForeignApps.slice();
-    const foreignAssets: number[] =
-      appForeignAssets == null ? [] : appForeignAssets.slice();
+      appAccounts == null ? [] : appAccounts.map((addr) => addr.toString());
+    const foreignApps: bigint[] =
+      appForeignApps == null ? [] : appForeignApps.map(ensureUint64);
+    const foreignAssets: bigint[] =
+      appForeignAssets == null ? [] : appForeignAssets.map(ensureUint64);
     for (let i = 0; i < refArgTypes.length; i++) {
       const refType = refArgTypes[i];
       const refValue = refArgValues[i];
@@ -402,7 +405,11 @@ export class AtomicTransactionComposer {
         case ABIReferenceType.account: {
           const addressType = new ABIAddressType();
           const address = addressType.decode(addressType.encode(refValue));
-          resolved = populateForeignArray(address, foreignAccounts, sender);
+          resolved = populateForeignArray(
+            address,
+            foreignAccounts,
+            sender.toString()
+          );
           break;
         }
         case ABIReferenceType.application: {
@@ -413,7 +420,11 @@ export class AtomicTransactionComposer {
               `Expected safe integer for application value, got ${refAppID}`
             );
           }
-          resolved = populateForeignArray(Number(refAppID), foreignApps, appID);
+          resolved = populateForeignArray(
+            refAppID,
+            foreignApps,
+            ensureUint64(appID)
+          );
           break;
         }
         case ABIReferenceType.asset: {
@@ -424,7 +435,7 @@ export class AtomicTransactionComposer {
               `Expected safe integer for asset value, got ${refAssetID}`
             );
           }
-          resolved = populateForeignArray(Number(refAssetID), foreignAssets);
+          resolved = populateForeignArray(refAssetID, foreignAssets);
           break;
         }
         default:
@@ -435,7 +446,7 @@ export class AtomicTransactionComposer {
     }
 
     for (let i = 0; i < resolvedRefIndexes.length; i++) {
-      const basicArgIndex = refArgIndexToBasicArgIndex.get(i);
+      const basicArgIndex = refArgIndexToBasicArgIndex.get(i)!;
       basicArgValues[basicArgIndex] = resolvedRefIndexes[i];
     }
 
@@ -457,7 +468,7 @@ export class AtomicTransactionComposer {
 
     const appCall = {
       txn: makeApplicationCallTxnFromObject({
-        from: sender,
+        sender,
         appIndex: appID,
         appArgs: appArgsEncoded,
         accounts: foreignAccounts,
@@ -533,7 +544,7 @@ export class AtomicTransactionComposer {
         indexesPerSigner.set(signer, []);
       }
 
-      indexesPerSigner.get(signer).push(i);
+      indexesPerSigner.get(signer)!.push(i);
     }
 
     const orderedSigners = Array.from(indexesPerSigner);
@@ -559,7 +570,11 @@ export class AtomicTransactionComposer {
       }
     }
 
-    if (!signedTxns.every((sig) => sig != null)) {
+    function fullyPopulated(a: Array<Uint8Array | null>): a is Uint8Array[] {
+      return a.every((v) => v != null);
+    }
+
+    if (!fullyPopulated(signedTxns)) {
       throw new Error(`Missing signatures. Got ${signedTxns}`);
     }
 
@@ -593,7 +608,7 @@ export class AtomicTransactionComposer {
    *
    * @returns A promise that, upon success, resolves to a list of TxIDs of the submitted transactions.
    */
-  async submit(client: Algodv2): Promise<string[]> {
+  async submit(client: AlgodClient): Promise<string[]> {
     if (this.status > AtomicTransactionComposerStatus.SUBMITTED) {
       throw new Error('Transaction group cannot be resubmitted');
     }
@@ -624,7 +639,7 @@ export class AtomicTransactionComposer {
    *   in this group (ABIResult[]) and the SimulateResponse object.
    */
   async simulate(
-    client: Algodv2,
+    client: AlgodClient,
     request?: SimulateRequest
   ): Promise<{
     methodResults: ABIResult[];
@@ -671,7 +686,7 @@ export class AtomicTransactionComposer {
         AtomicTransactionComposer.parseMethodResponse(
           method,
           methodResult,
-          pendingInfo.get_obj_for_encoding()
+          pendingInfo
         )
       );
     }
@@ -697,7 +712,7 @@ export class AtomicTransactionComposer {
    *   one element for each method call transaction in this group.
    */
   async execute(
-    client: Algodv2,
+    client: AlgodClient,
     waitRounds: number
   ): Promise<{
     confirmedRound: number;
@@ -725,7 +740,7 @@ export class AtomicTransactionComposer {
     );
     this.status = AtomicTransactionComposerStatus.COMMITTED;
 
-    const confirmedRound: number = confirmedTxnInfo['confirmed-round'];
+    const confirmedRound = Number(confirmedTxnInfo.confirmedRound);
 
     const methodResults: ABIResult[] = [];
 
@@ -751,7 +766,7 @@ export class AtomicTransactionComposer {
           pendingInfo
         );
       } catch (err) {
-        methodResult.decodeError = err;
+        methodResult.decodeError = err as Error;
       }
 
       methodResults.push(methodResult);
@@ -775,23 +790,30 @@ export class AtomicTransactionComposer {
   static parseMethodResponse(
     method: ABIMethod,
     methodResult: ABIResult,
-    pendingInfo: Record<string, any>
+    pendingInfo: PendingTransactionResponse
   ): ABIResult {
     const returnedResult: ABIResult = methodResult;
     try {
       returnedResult.txInfo = pendingInfo;
       if (method.returns.type !== 'void') {
-        const logs: string[] = pendingInfo.logs || [];
+        const logs = pendingInfo.logs || [];
         if (logs.length === 0) {
-          throw new Error('App call transaction did not log a return value');
+          throw new Error(
+            `App call transaction did not log a return value ${stringifyJSON(
+              pendingInfo
+            )}`
+          );
         }
-
-        const lastLog = Buffer.from(logs[logs.length - 1], 'base64');
+        const lastLog = logs[logs.length - 1];
         if (
           lastLog.byteLength < 4 ||
-          !lastLog.slice(0, 4).equals(RETURN_PREFIX)
+          !arrayEqual(lastLog.slice(0, 4), RETURN_PREFIX)
         ) {
-          throw new Error('App call transaction did not log a return value');
+          throw new Error(
+            `App call transaction did not log a ABI return value ${stringifyJSON(
+              pendingInfo
+            )}`
+          );
         }
 
         returnedResult.rawReturnValue = new Uint8Array(lastLog.slice(4));
@@ -800,7 +822,7 @@ export class AtomicTransactionComposer {
         );
       }
     } catch (err) {
-      returnedResult.decodeError = err;
+      returnedResult.decodeError = err as Error;
     }
 
     return returnedResult;

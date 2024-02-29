@@ -1,11 +1,13 @@
-import { genericHash } from '../nacl/naclWrappers';
-import { ABIType, ABITupleType } from './abi_type';
-import { ABITransactionType, abiTypeIsTransaction } from './transaction';
-import { ABIReferenceType, abiTypeIsReference } from './reference';
+import { genericHash } from '../nacl/naclWrappers.js';
+import { ABIType, ABITupleType } from './abi_type.js';
+import { ABITransactionType, abiTypeIsTransaction } from './transaction.js';
+import { ABIReferenceType, abiTypeIsReference } from './reference.js';
 
-function parseMethodSignature(
-  signature: string
-): { name: string; args: string[]; returns: string } {
+function parseMethodSignature(signature: string): {
+  name: string;
+  args: string[];
+  returns: string;
+} {
   const argsStart = signature.indexOf('(');
   if (argsStart === -1) {
     throw new Error(`Invalid method signature: ${signature}`);
