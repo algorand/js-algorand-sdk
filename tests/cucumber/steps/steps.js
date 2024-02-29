@@ -4614,7 +4614,7 @@ module.exports = function getSteps(options) {
       const maxAttempts = 30;
 
       const roundToWaitFor = this.lastTxnConfirmedRound;
-      let indexerRound = 0;
+      let indexerRound = BigInt(0);
       let attempts = 0;
 
       for (;;) {
