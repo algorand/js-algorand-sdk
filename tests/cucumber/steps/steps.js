@@ -3452,6 +3452,7 @@ module.exports = function getSteps(options) {
       1
     );
     assert.ok(info.confirmedRound > 0);
+    this.lastTxnConfirmedRound = info.confirmedRound;
   });
 
   Given('I reset the array of application IDs to remember.', async function () {
@@ -4591,13 +4592,37 @@ module.exports = function getSteps(options) {
   );
 
   Then(
-    'I sleep for {int} milliseconds for indexer to digest things down.',
-    async (milliseconds) => {
-      const sleep = (ms) =>
-        new Promise((r) => {
-          setTimeout(r, ms);
-        });
-      await sleep(milliseconds);
+    'I wait for indexer to catch up to the round where my most recent transaction was confirmed.',
+    async function () {
+      // eslint-disable-next-line no-promise-executor-return
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const maxAttempts = 30;
+
+      const roundToWaitFor = this.lastTxnConfirmedRound;
+      let indexerRound = 0;
+      let attempts = 0;
+
+      for (;;) {
+        // eslint-disable-next-line no-await-in-loop
+        const status = await this.indexerV2client.makeHealthCheck().do();
+        indexerRound = status.round;
+
+        if (indexerRound >= roundToWaitFor) {
+          // Success
+          break;
+        }
+
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000); // Sleep 1 second and check again
+        attempts += 1;
+
+        if (attempts > maxAttempts) {
+          // Failsafe to prevent infinite loop
+          throw new Error(
+            `Timeout waiting for indexer to catch up to round ${roundToWaitFor}. It is currently on ${indexerRound}`
+          );
+        }
+      }
     }
   );
 

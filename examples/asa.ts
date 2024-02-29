@@ -7,10 +7,12 @@ import {
   getLocalAlgodClient,
   getLocalAccounts,
   getLocalIndexerClient,
+  indexerWaitForRound,
 } from './utils';
 
 async function main() {
   const algodClient = getLocalAlgodClient();
+  const indexerClient = getLocalIndexerClient();
   const accounts = await getLocalAccounts();
   const creator = accounts[0];
 
@@ -45,11 +47,11 @@ async function main() {
   console.log(`Asset Params: ${algosdk.stringifyJSON(assetInfo.params)}`);
   // example: ASSET_INFO
 
-  await new Promise((f) => setTimeout(f, 45000)); // sleep to ensure indexer is caught up
+  // ensure indexer is caught up
+  await indexerWaitForRound(indexerClient, result['confirmed-round'], 30);
 
   // example: INDEXER_LOOKUP_ASSET
-  const indexer = getLocalIndexerClient();
-  const indexerAssetInfo = await indexer.lookupAssetByID(assetIndex).do();
+  const indexerAssetInfo = await indexerClient.lookupAssetByID(assetIndex).do();
   console.log('Indexer Asset Info:', indexerAssetInfo);
   // example: INDEXER_LOOKUP_ASSET
 

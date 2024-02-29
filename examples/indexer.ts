@@ -6,6 +6,7 @@ import {
   getLocalIndexerClient,
   getLocalAccounts,
   getLocalAlgodClient,
+  indexerWaitForRound,
 } from './utils';
 import algosdk from '../src';
 
@@ -73,8 +74,14 @@ async function main() {
 
   await client.sendRawTransaction(txn.signTxn(sender.privateKey)).do();
   await algosdk.waitForConfirmation(client, txn.txID(), 3);
+  const result = await algosdk.waitForConfirmation(
+    client,
+    txn.txID().toString(),
+    3
+  );
 
-  await new Promise((f) => setTimeout(f, 1000)); // sleep to ensure indexer is caught up
+  // ensure indexer is caught up
+  await indexerWaitForRound(indexerClient, result['confirmed-round'], 30);
 
   // example: INDEXER_PREFIX_SEARCH
   const txnsWithNotePrefix = await indexerClient
