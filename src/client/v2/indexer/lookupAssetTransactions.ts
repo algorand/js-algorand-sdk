@@ -2,8 +2,12 @@ import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import { base64StringFunnel } from './lookupAccountTransactions.js';
 import { Address } from '../../../encoding/address.js';
+import { TransactionsResponse } from './models/types.js';
 
-export default class LookupAssetTransactions extends JSONRequest {
+export default class LookupAssetTransactions extends JSONRequest<
+  TransactionsResponse,
+  Record<string, any>
+> {
   /**
    * Returns transactions relating to the given asset.
    *
@@ -212,11 +216,12 @@ export default class LookupAssetTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param before - rfc3339 string
+   * @param before - rfc3339 string or Date object
    * @category query
    */
-  beforeTime(before: string) {
-    this.query['before-time'] = before;
+  beforeTime(before: string | Date) {
+    this.query['before-time'] =
+      before instanceof Date ? before.toISOString() : before;
     return this;
   }
 
@@ -233,11 +238,12 @@ export default class LookupAssetTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param after - rfc3339 string
+   * @param after - rfc3339 string or Date object
    * @category query
    */
-  afterTime(after: string) {
-    this.query['after-time'] = after;
+  afterTime(after: string | Date) {
+    this.query['after-time'] =
+      after instanceof Date ? after.toISOString() : after;
     return this;
   }
 
@@ -394,5 +400,10 @@ export default class LookupAssetTransactions extends JSONRequest {
   rekeyTo(rekeyTo: boolean) {
     this.query['rekey-to'] = rekeyTo;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): TransactionsResponse {
+    return TransactionsResponse.from_obj_for_encoding(body);
   }
 }

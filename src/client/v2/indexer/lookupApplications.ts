@@ -1,7 +1,11 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
+import { ApplicationResponse } from './models/types.js';
 
-export default class LookupApplications extends JSONRequest {
+export default class LookupApplications extends JSONRequest<
+  ApplicationResponse,
+  Record<string, any>
+> {
   /**
    * Returns information about the passed application.
    *
@@ -56,5 +60,10 @@ export default class LookupApplications extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): ApplicationResponse {
+    return ApplicationResponse.from_obj_for_encoding(body);
   }
 }

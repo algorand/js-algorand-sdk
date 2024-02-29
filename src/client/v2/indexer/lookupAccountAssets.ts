@@ -1,8 +1,12 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import { Address } from '../../../encoding/address.js';
+import { AssetsResponse } from './models/types.js';
 
-export default class LookupAccountAssets extends JSONRequest {
+export default class LookupAccountAssets extends JSONRequest<
+  AssetsResponse,
+  Record<string, any>
+> {
   private account: string;
 
   /**
@@ -135,5 +139,10 @@ export default class LookupAccountAssets extends JSONRequest {
   assetId(index: number) {
     this.query['asset-id'] = index;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): AssetsResponse {
+    return AssetsResponse.from_obj_for_encoding(body);
   }
 }
