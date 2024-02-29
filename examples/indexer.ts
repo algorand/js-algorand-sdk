@@ -73,11 +73,7 @@ async function main() {
   });
 
   await client.sendRawTransaction(txn.signTxn(sender.privateKey)).do();
-  const result = await algosdk.waitForConfirmation(
-    client,
-    txn.txID().toString(),
-    3
-  );
+  const result = await algosdk.waitForConfirmation(client, txn.txID(), 3);
 
   // ensure indexer is caught up
   await indexerWaitForRound(indexerClient, result.confirmedRound!, 30);
