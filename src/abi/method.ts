@@ -61,6 +61,8 @@ export interface ABIMethodParams {
   desc?: string;
   args: ABIMethodArgParams[];
   returns: ABIMethodReturnParams;
+  /** Optional, is it a read-only method (according to [ARC-22](https://arc.algorand.foundation/ARCs/arc-0022)) */
+  readonly?: boolean;
 }
 
 export type ABIArgumentType = ABIType | ABITransactionType | ABIReferenceType;
