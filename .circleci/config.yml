@@ -17,8 +17,7 @@ parameters:
 workflows:
   circleci_build_and_test:
     jobs:
-      - ESLint
-      - prettier
+      - biome
       - compile_test
       - build_and_test:
           name: build_and_test_<< matrix.browser >>
@@ -28,8 +27,7 @@ workflows:
               browser: ['node', 'chrome', 'firefox']
       - generate_docs:
           requires:
-            - ESLint
-            - prettier
+            - biome
             - compile_test
             - build_and_test
           filters:
@@ -38,21 +36,13 @@ workflows:
                 - master
 
 jobs:
-  ESLint:
+  biome:
     docker:
       - image: << pipeline.parameters.ubuntu_docker >>
     steps:
       - checkout
       - install_dependencies
-      - run: npm run lint
-
-  prettier:
-    docker:
-      - image: << pipeline.parameters.ubuntu_docker >>
-    steps:
-      - checkout
-      - install_dependencies
-      - run: npx prettier --check .
+      - run: npm run validate:ci
 
   compile_test:
     docker:
