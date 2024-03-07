@@ -55,7 +55,7 @@ export default class Compile extends JSONRequest<
       query: this.query,
       requestHeaders: txHeaders,
     });
-    return res.body;
+    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this

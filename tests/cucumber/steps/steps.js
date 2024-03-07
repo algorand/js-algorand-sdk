@@ -1477,64 +1477,344 @@ module.exports = function getSteps(options) {
   When(
     'we make any {string} call to {string}.',
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async function (client, _endpoint) {
-      try {
-        if (client === 'algod') {
-          // endpoints are ignored by mock server, see setupMockServerForResponses
-          if (responseFormat === 'msgp') {
-            const response = await this.v2Client.block(0).do();
-            this.actualMockResponse = response.get_obj_for_encoding(true);
-          } else {
+    async function (client, endpoint) {
+      if (client === 'algod') {
+        switch (endpoint) {
+          case 'GetStatus':
+            this.actualMockResponse = await this.v2Client.status().do();
+            break;
+          case 'GetBlock':
+            this.actualMockResponse = await this.v2Client.block(10).do();
+            break;
+          case 'WaitForBlock':
+            this.actualMockResponse = await this.v2Client
+              .statusAfterBlock(10)
+              .do();
+            break;
+          case 'TealCompile':
+            this.actualMockResponse = await this.v2Client
+              .compile(new Uint8Array())
+              .do();
+            break;
+          case 'RawTransaction':
+            this.actualMockResponse = await this.v2Client
+              .sendRawTransaction(new Uint8Array())
+              .do();
+            break;
+          case 'GetSupply':
+            this.actualMockResponse = await this.v2Client.supply().do();
+            break;
+          case 'TransactionParams': {
+            const response = await this.v2Client.getTransactionParams().do();
+            this.actualMockResponse =
+              new algosdk.modelsv2.TransactionParametersResponse({
+                consensusVersion: response.consensusVersion,
+                fee: response.fee,
+                genesisHash: response.genesisHash,
+                genesisId: response.genesisID,
+                lastRound: response.firstValid,
+                minFee: response.minFee,
+              });
+            break;
+          }
+          case 'AccountInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountInformation(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'GetApplicationByID':
+            this.actualMockResponse = await this.v2Client
+              .getApplicationByID(10)
+              .do();
+            break;
+          case 'GetAssetByID':
+            this.actualMockResponse = await this.v2Client.getAssetByID(10).do();
+            break;
+          case 'PendingTransactionInformation':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionInformation('transaction')
+              .do();
+            break;
+          case 'GetPendingTransactions':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionsInformation()
+              .do();
+            break;
+          case 'GetPendingTransactionsByAddress':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionByAddress(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'DryRun':
+            this.actualMockResponse = await this.v2Client
+              .dryrun(
+                new algosdk.modelsv2.DryrunRequest({
+                  accounts: [],
+                  apps: [],
+                  latestTimestamp: 0,
+                  protocolVersion: '',
+                  round: 0,
+                  sources: [],
+                  txns: [],
+                })
+              )
+              .do();
+            break;
+          case 'GetTransactionProof':
+          // fallthrough
+          case 'Proof':
+            this.actualMockResponse = await this.v2Client
+              .getTransactionProof(10, 'asdf')
+              .do();
+            break;
+          case 'GetGenesis':
             this.actualMockResponse = await this.v2Client.genesis().do();
+            break;
+          case 'AccountApplicationInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountApplicationInformation(algosdk.Address.zeroAddress(), 10)
+              .do();
+            break;
+          case 'AccountAssetInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountAssetInformation(algosdk.Address.zeroAddress(), 10)
+              .do();
+            break;
+          case 'GetLightBlockHeaderProof':
+            this.actualMockResponse = await this.v2Client
+              .getLightBlockHeaderProof(123)
+              .do();
+            break;
+          case 'GetStateProof':
+            this.actualMockResponse = await this.v2Client
+              .getStateProof(123)
+              .do();
+            break;
+          case 'GetBlockHash':
+            this.actualMockResponse = await this.v2Client
+              .getBlockHash(123)
+              .do();
+            break;
+          case 'GetSyncRound':
+            this.actualMockResponse = await this.v2Client.getSyncRound().do();
+            break;
+          case 'GetBlockTimeStampOffset':
+            this.actualMockResponse = await this.v2Client
+              .getBlockOffsetTimestamp()
+              .do();
+            break;
+          case 'GetLedgerStateDelta':
+            this.actualMockResponse = await this.v2Client
+              .getLedgerStateDelta(123)
+              .do();
+            break;
+          case 'GetTransactionGroupLedgerStateDeltaForRound':
+            this.actualMockResponse = await this.v2Client
+              .getTransactionGroupLedgerStateDeltasForRound(123)
+              .do();
+            break;
+          case 'GetLedgerStateDeltaForTransactionGroup':
+            this.actualMockResponse = await this.v2Client
+              .getLedgerStateDeltaForTransactionGroup('someID')
+              .do();
+            break;
+          case 'GetBlockTxids':
+            this.actualMockResponse = await this.v2Client
+              .getBlockTxids(123)
+              .do();
+            break;
+          case 'any': {
+            // This is an error case
+            let caughtError = false;
+            try {
+              await this.v2Client.status().do();
+            } catch (err) {
+              assert.strictEqual(this.expectedMockResponseCode, 500);
+              assert.ok(
+                err.toString().includes('Received status 500'),
+                `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
+              );
+
+              assert.ok(err.response.body);
+              this.actualMockResponse = err.response.body;
+              caughtError = true;
+            }
+            if (!caughtError) {
+              throw new Error('Expected error response, got none.');
+            }
+            break;
           }
-        } else if (client === 'indexer') {
-          // endpoints are ignored by mock server, see setupMockServerForResponses
-          const response = await this.indexerClient.makeHealthCheck().doRaw();
-          const responseString = new TextDecoder().decode(response);
-          this.actualMockResponse = algosdk.parseJSON(responseString, {
-            intDecoding: algosdk.IntDecoding.BIGINT,
-          });
-        } else {
-          throw Error(`did not recognize desired client "${client}"`);
+          default:
+            throw new Error(`Unrecognized algod endpoint: ${endpoint}`);
         }
-      } catch (err) {
-        if (this.expectedMockResponseCode === 200) {
-          throw err;
-        }
-        if (this.expectedMockResponseCode === 500) {
-          if (!err.toString().includes('Received status 500')) {
-            throw Error(
-              `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
-            );
+        // if (responseFormat === 'msgp') {
+        //   const response = await this.v2Client.block(0).do();
+        //   this.actualMockResponse = response.get_obj_for_encoding(true);
+        // } else {
+        //   this.actualMockResponse = await this.v2Client.genesis().do();
+        // }
+      } else if (client === 'indexer') {
+        switch (endpoint) {
+          case 'lookupAccountByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountByID(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'searchForAccounts':
+            this.actualMockResponse = await this.indexerClient
+              .searchAccounts()
+              .do();
+            break;
+          case 'lookupApplicationByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupApplications(10)
+              .do();
+            break;
+          case 'searchForApplications':
+            this.actualMockResponse = await this.indexerClient
+              .searchForApplications()
+              .do();
+            break;
+          case 'lookupAssetBalances':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetBalances(10)
+              .do();
+            break;
+          case 'lookupAssetByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetByID(10)
+              .do();
+            break;
+          case 'searchForAssets':
+            this.actualMockResponse = await this.indexerClient
+              .searchForAssets()
+              .do();
+            break;
+          case 'lookupAccountTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountTransactions(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAssetTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetTransactions(10)
+              .do();
+            break;
+          case 'searchForTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .searchForTransactions()
+              .do();
+            break;
+          case 'lookupBlock':
+            this.actualMockResponse = await this.indexerClient
+              .lookupBlock(10)
+              .do();
+            break;
+          case 'lookupTransaction':
+            this.actualMockResponse = await this.indexerClient
+              .lookupTransactionByID('')
+              .do();
+            break;
+          case 'lookupAccountAppLocalStates':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountAppLocalStates(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountCreatedApplications':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountCreatedApplications(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountAssets':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountAssets(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountCreatedAssets':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountCreatedAssets(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupApplicationLogsByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupApplicationLogs(10)
+              .do();
+            break;
+          case 'any': {
+            // This is an error case
+            let caughtError = false;
+            try {
+              await this.indexerClient.searchAccounts().do();
+            } catch (err) {
+              assert.strictEqual(this.expectedMockResponseCode, 500);
+              assert.ok(
+                err.toString().includes('Received status 500'),
+                `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
+              );
+
+              assert.ok(err.response.body);
+              this.actualMockResponse = err.response.body;
+              caughtError = true;
+            }
+            if (!caughtError) {
+              throw new Error('Expected error response, got none.');
+            }
+            break;
           }
+          default:
+            throw new Error(`Unrecognized indexer endpoint: ${endpoint}`);
         }
+        // const response = await this.indexerClient.makeHealthCheck().doRaw();
+        // const responseString = new TextDecoder().decode(response);
+        // this.actualMockResponse = algosdk.parseJSON(responseString, {
+        //   intDecoding: algosdk.IntDecoding.BIGINT,
+        // });
+      } else {
+        throw Error(`did not recognize desired client "${client}"`);
       }
     }
   );
 
   Then('the parsed response should equal the mock response.', function () {
+    let actualResponseObject;
     if (this.expectedMockResponseCode === 200) {
-      // assert.deepStrictEqual considers a Buffer and Uint8Array with the same contents as unequal.
-      // These types are fairly interchangable in different parts of the SDK, so we need to normalize
-      // them before comparing, which is why we chain encoding/decoding below.
       if (responseFormat === 'json') {
-        assert.strictEqual(
-          algosdk.stringifyJSON(
-            algosdk.parseJSON(expectedMockResponse, {
-              intDecoding: algosdk.IntDecoding.MIXED,
-            })
-          ),
-          algosdk.stringifyJSON(this.actualMockResponse)
+        actualResponseObject = this.actualMockResponse.get_obj_for_encoding(
+          false,
+          true
         );
       } else {
-        assert.deepStrictEqual(
-          algosdk.decodeObj(
-            new Uint8Array(algosdk.encodeObj(this.actualMockResponse))
-          ),
-          algosdk.decodeObj(expectedMockResponse)
+        actualResponseObject = expectedMockResponse.get_obj_for_encoding(
+          true,
+          true
         );
       }
+    } else {
+      actualResponseObject = this.actualMockResponse;
     }
+
+    // We chain encoding/decoding below to normalize the objects for comparison. This helps deal
+    // with type differences such as bigint vs number and Uint8Array vs Buffer.
+
+    let parsedExpectedMockResponse;
+    if (responseFormat === 'json') {
+      actualResponseObject = algosdk.parseJSON(
+        algosdk.stringifyJSON(actualResponseObject),
+        {
+          intDecoding: algosdk.IntDecoding.MIXED,
+        }
+      );
+      parsedExpectedMockResponse = algosdk.parseJSON(expectedMockResponse, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
+    } else {
+      actualResponseObject = algosdk.decodeObj(
+        algosdk.encodeObj(actualResponseObject)
+      );
+      parsedExpectedMockResponse = algosdk.decodeObj(expectedMockResponse);
+    }
+
+    assert.deepStrictEqual(actualResponseObject, parsedExpectedMockResponse);
   });
 
   Then('expect error string to contain {string}', (expectedErrorString) => {
