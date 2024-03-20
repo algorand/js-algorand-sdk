@@ -2,6 +2,7 @@
   "name": "algosdk",
   "version": "2.7.0",
   "description": "The official JavaScript SDK for Algorand",
+  "type": "commonjs",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "browser": {
@@ -9,6 +10,26 @@
     "crypto": false
   },
   "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./dist/types": {
+      "types": "./dist/types/types/index.d.ts",
+      "import": "./dist/esm/types/index.js",
+      "require": "./dist/cjs/types/index.js"
+    },
+    "./dist/types/*": {
+      "types": "./dist/types/*.d.ts",
+      "import": "./dist/esm/*.js",
+      "require": "./dist/cjs/*.js"
+    },
+    "./src/*": "./src/*.ts",
+    "./index.d.ts": "./dist/types/index.d.ts",
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist/",
     "src/"
@@ -39,6 +60,7 @@
     "assert": "^2.0.0",
     "chromedriver": "^122.0.3",
     "concurrently": "^6.2.0",
+    "cpy-cli": "^5.0.0",
     "cucumber": "^5.1.0",
     "es-abstract": "^1.18.3",
     "eslint": "^7.21.0",
@@ -57,6 +79,7 @@
     "source-map-loader": "^2.0.2",
     "ts-loader": "^9.3.1",
     "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.8",
     "typedoc": "^0.23.8",
     "typedoc-plugin-missing-exports": "^0.23.0",
     "typedoc-plugin-rename-defaults": "^0.6.4",
@@ -68,7 +91,10 @@
     "test": "node -r ts-node/register tests/mocha.js",
     "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
-    "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",
+    "build": "concurrently \"npm run build:web\" \"npm run build:esm\" \"npm run build:cjs\"",
+    "build:web": "webpack --config webpack.config.js",
+    "build:esm": "tsc -p tsconfig-esm.json && tsc-alias -p tsconfig-esm.json && cpy package.esm.json dist/esm --rename=package.json",
+    "build:cjs": "tsc -p tsconfig-cjs.json",
     "docs": "typedoc --options typedoc.config.json",
     "docs:dev": "typedoc --options typedoc.config.json --watch --preserveWatchOutput",
     "lint": "eslint .",

@@ -4,5 +4,9 @@
     "outDir": "./dist/esm",
     "declaration": true,
     "declarationDir": "./dist/types"
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
   }
 }
