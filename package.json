@@ -21,6 +21,16 @@
       "import": "./dist/esm/types/index.js",
       "require": "./dist/cjs/types/index.js"
     },
+    "./dist/types/abi": {
+      "types": "./dist/types/abi/index.d.ts",
+      "import": "./dist/esm/abi/index.js",
+      "require": "./dist/cjs/abi/index.js"
+    },
+    "./dist/types/types/transactions": {
+      "types": "./dist/types/types/transactions/index.d.ts",
+      "import": "./dist/esm/types/transactions/index.js",
+      "require": "./dist/cjs/types/transactions/index.js"
+    },
     "./dist/types/*": {
       "types": "./dist/types/*.d.ts",
       "import": "./dist/esm/*.js",
