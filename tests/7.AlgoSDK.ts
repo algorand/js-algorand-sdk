@@ -537,8 +537,12 @@ describe('Algosdk (AKA end to end)', () => {
         'gaN0eG6Ko2FtdM0H0KNmZWXNA+iiZnbOAArXc6NnZW6rZGV2bmV0LXYxLjCiZ2jEILAtz+3tknW6iiStLW4gnSvbXUqW3ul3ghinaDc5pY9Bomx2zgAK21ukbm90ZcQIdBlHI6BdrIijcmN2xCCj8AKs8kPYlx63ppj1w5410qkMRGZ9FYofNYPXxGpNLKNzbmTEIKPwAqzyQ9iXHremmPXDnjXSqQxEZn0Vih81g9fEak0spHR5cGWjcGF5';
 
       // goal clerk send dumps unsigned transaction as signed with empty signature in order to save tx type
-      let stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
-      let stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
+      let stx1 = algosdk.encodeMsgpack(
+        new algosdk.SignedTransaction({ txn: tx1 })
+      );
+      let stx2 = algosdk.encodeMsgpack(
+        new algosdk.SignedTransaction({ txn: tx2 })
+      );
       assert.deepStrictEqual(stx1, algosdk.base64ToBytes(goldenTx1));
       assert.deepStrictEqual(stx2, algosdk.base64ToBytes(goldenTx2));
 
@@ -549,8 +553,8 @@ describe('Algosdk (AKA end to end)', () => {
       const gid = algosdk.computeGroupID([tx1, tx2]);
       tx1.group = gid;
       tx2.group = gid;
-      stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
-      stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
+      stx1 = algosdk.encodeMsgpack(new algosdk.SignedTransaction({ txn: tx1 }));
+      stx2 = algosdk.encodeMsgpack(new algosdk.SignedTransaction({ txn: tx2 }));
       const concat = utils.concatArrays(stx1, stx2);
       assert.deepStrictEqual(concat, algosdk.base64ToBytes(goldenTxg));
 
@@ -1029,29 +1033,36 @@ describe('Algosdk (AKA end to end)', () => {
       id: 1380011588,
       params,
     });
-    // make a raw txn
-    const txn = {
-      apsu: 'AiABASI=',
-      fee: 1000,
-      fv: 18242,
-      gh: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
-      lv: 19242,
-      note: 'tjpNge78JD8=',
-      snd: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-      type: 'appl',
-    } as any; // Temporary type fix, will be unnecessary in following PR
+    // make a txn
+    const txn = algosdk.makeApplicationCallTxnFromObject({
+      sender: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
+      appIndex: 0,
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+      clearProgram: algosdk.base64ToBytes('AiABASI='),
+      note: algosdk.base64ToBytes('tjpNge78JD8='),
+      suggestedParams: {
+        minFee: 1000,
+        flatFee: true,
+        fee: 1000,
+        firstValid: 18242,
+        lastValid: 19242,
+        genesisHash: algosdk.base64ToBytes(
+          'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU='
+        ),
+      },
+    });
     const req = new algosdk.modelsv2.DryrunRequest({
       accounts: [acc],
       apps: [app],
       round: 18241,
       protocolVersion: 'future',
       latestTimestamp: 1592537757,
-      txns: [{ txn }],
+      txns: [new algosdk.SignedTransaction({ txn })],
       sources: [],
     });
 
     it('should be properly serialized to JSON', () => {
-      const forEncoding = req.get_obj_for_encoding();
+      const forEncoding = req.jsonPrepare();
       const actual = algosdk.stringifyJSON(forEncoding, undefined, 2);
 
       const expected = `{
@@ -1120,10 +1131,9 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should be properly serialized to msgpack', () => {
-      const forEncoding = req.get_obj_for_encoding(true, true)!;
-      const actual = algosdk.encodeObj(forEncoding);
+      const actual = algosdk.encodeMsgpack(req);
       const expected = algosdk.base64ToBytes(
-        'hqhhY2NvdW50c5GJp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWkYXBwc5GComlkzlJBTkSmcGFyYW1zhbBhcHByb3ZhbC1wcm9ncmFtxAUCIAEBIrNjbGVhci1zdGF0ZS1wcm9ncmFtxAUCIAEBIqdjcmVhdG9y2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNs2dsb2JhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWybG9jYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsGxhdGVzdC10aW1lc3RhbXDOXuwynbBwcm90b2NvbC12ZXJzaW9upmZ1dHVyZaVyb3VuZM1HQaR0eG5zkYGjdHhuiKRhcHN1qEFpQUJBU0k9o2ZlZc0D6KJmds1HQqJnaNksWklrUHM4cFREeGJSSnNGQjF5Sjdndm5wRHUwUTg1RlJrbDJOQ2tFQVFMVT2ibHbNSyqkbm90Zax0anBOZ2U3OEpEOD2jc25k2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNpHR5cGWkYXBwbA=='
+        'h6hhY2NvdW50c5GNp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWzdG90YWwtYXBwcy1vcHRlZC1pbgC1dG90YWwtYXNzZXRzLW9wdGVkLWluALJ0b3RhbC1jcmVhdGVkLWFwcHMAtHRvdGFsLWNyZWF0ZWQtYXNzZXRzAKRhcHBzkYKiaWTOUkFORKZwYXJhbXOFsGFwcHJvdmFsLXByb2dyYW3EBQIgAQEis2NsZWFyLXN0YXRlLXByb2dyYW3EBQIgAQEip2NyZWF0b3LZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02zZ2xvYmFsLXN0YXRlLXNjaGVtYYKubnVtLWJ5dGUtc2xpY2UFqG51bS11aW50BbJsb2NhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWwbGF0ZXN0LXRpbWVzdGFtcM5e7DKdsHByb3RvY29sLXZlcnNpb26mZnV0dXJlpXJvdW5kzUdBp3NvdXJjZXOQpHR4bnORgaN0eG6IpGFwc3XEBQIgAQEio2ZlZc0D6KJmds1HQqJnaMQgZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLWibHbNSyqkbm90ZcQItjpNge78JD+jc25kxCCgHpJvvVfCb8YVZPLrfhbiBZSRAtxybBurkfPuq8sTSqR0eXBlpGFwcGw='
       );
       assert.deepStrictEqual(actual, expected);
     });

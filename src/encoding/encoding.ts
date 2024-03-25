@@ -10,7 +10,13 @@
  *  5. Binary blob should be used for binary data and string for strings
  *  */
 
-import * as msgpack from 'algo-msgpack-with-bigint';
+import {
+  encode as msgpackEncode,
+  EncoderOptions,
+  decode as msgpackDecode,
+  DecoderOptions,
+  IntMode,
+} from 'algorand-msgpack';
 
 // Errors
 export const ERROR_CONTAINS_EMPTY_STRING =
@@ -39,10 +45,10 @@ function containsEmpty(obj: Record<string | number | symbol, any>) {
  * @param obj - a dictionary to be encoded. May or may not contain empty or 0 values.
  * @returns msgpack representation of the object
  */
-export function rawEncode(obj: Record<string | number | symbol, any>) {
+export function rawEncode(obj: unknown) {
   // enable the canonical option
-  const options = { sortKeys: true };
-  return msgpack.encode(obj, options);
+  const options: EncoderOptions = { sortKeys: true };
+  return msgpackEncode(obj, options);
 }
 
 /**
@@ -63,5 +69,61 @@ export function encode(obj: Record<string | number | symbol, any>) {
 }
 
 export function decode(buffer: ArrayLike<number>) {
-  return msgpack.decode(buffer);
+  // TODO: consider different int mode
+  const options: DecoderOptions = { intMode: IntMode.MIXED };
+  return msgpackDecode(buffer, options);
+}
+
+export function decodeAsMap(encoded: ArrayLike<number>) {
+  // TODO: consider different int mode
+  const options: DecoderOptions = { intMode: IntMode.MIXED, useMap: true };
+  return msgpackDecode(encoded, options);
+}
+
+export type MsgpackEncodingData =
+  | null
+  | undefined
+  | string
+  | number
+  | bigint
+  | boolean
+  | Uint8Array
+  | MsgpackEncodingData[]
+  | Map<string | number | bigint | Uint8Array, MsgpackEncodingData>;
+
+export type JSONEncodingData =
+  | null
+  | undefined
+  | string
+  | number
+  | bigint
+  | boolean
+  | JSONEncodingData[]
+  | { [key: string]: JSONEncodingData };
+
+export interface MsgpackEncodable {
+  msgpackPrepare(): MsgpackEncodingData;
+}
+
+export interface MsgpackEncodableClass<T extends MsgpackEncodable> {
+  fromDecodedMsgpack(data: unknown): T;
+}
+
+export interface JSONEncodable {
+  jsonPrepare(): JSONEncodingData;
+}
+
+export interface JSONEncodableClass<T extends JSONEncodable> {
+  fromDecodedJSON(data: unknown): T;
+}
+
+export function decodeMsgpack<T extends MsgpackEncodable>(
+  encoded: ArrayLike<number>,
+  c: MsgpackEncodableClass<T>
+): T {
+  return c.fromDecodedMsgpack(decodeAsMap(encoded));
+}
+
+export function encodeMsgpack(e: MsgpackEncodable): Uint8Array {
+  return rawEncode(e.msgpackPrepare());
 }

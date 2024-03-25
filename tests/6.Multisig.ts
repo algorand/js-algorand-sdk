@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import algosdk from '../src/index';
-import { MULTISIG_SIGNATURE_LENGTH_ERROR_MSG } from '../src/multisig';
+import { MULTISIG_SIGNATURE_LENGTH_ERROR_MSG } from '../src/multisigSigning';
 
 const sampleAccount1 = algosdk.mnemonicToSecretKey(
   'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch'

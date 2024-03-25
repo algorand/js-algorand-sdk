@@ -1,3 +1,9 @@
+import {
+  JSONEncodingData,
+  MsgpackEncodingData,
+} from '../../encoding/encoding.js';
+import { base64ToBytes, bytesToBase64 } from '../../encoding/binarydata.js';
+
 /**
  * Interfaces for the encoded transaction object. Every property is labelled with its associated Transaction type property
  */
@@ -342,6 +348,55 @@ export interface EncodedSubsig {
   s?: Uint8Array;
 }
 
+export function encodedSubsigFromDecodedMsgpack(data: unknown): EncodedSubsig {
+  if (!(data instanceof Map)) {
+    throw new Error(`Invalid decoded EncodedSubsig: ${data}`);
+  }
+  const subsig: EncodedSubsig = {
+    pk: data.get('pk'),
+  };
+  if (data.get('s')) {
+    subsig.s = data.get('s');
+  }
+  return subsig;
+}
+
+export function encodedSubsigMsgpackPrepare(
+  subsig: EncodedSubsig
+): MsgpackEncodingData {
+  const data = new Map<string, MsgpackEncodingData>([['pk', subsig.pk]]);
+  if (subsig.s) {
+    data.set('s', subsig.s);
+  }
+  return data;
+}
+
+export function encodedSubsigFromDecodedJSON(data: unknown): EncodedSubsig {
+  if (data === null || typeof data !== 'object') {
+    throw new Error(`Invalid decoded EncodedSubsig: ${data}`);
+  }
+  const obj = data as Record<string, any>;
+  const subsig: EncodedSubsig = {
+    pk: base64ToBytes(obj.pk),
+  };
+  if (obj.s) {
+    subsig.s = base64ToBytes(obj.s);
+  }
+  return subsig;
+}
+
+export function encodedSubsigJSONPrepare(
+  subsig: EncodedSubsig
+): JSONEncodingData {
+  const prepared: Record<string, string> = {
+    pk: bytesToBase64(subsig.pk),
+  };
+  if (subsig.s) {
+    prepared.s = bytesToBase64(subsig.s);
+  }
+  return prepared;
+}
+
 /**
  * A rough structure for the encoded multi signature transaction object.
  * Every property is labelled with its associated `MultisigMetadata` type property
@@ -361,6 +416,51 @@ export interface EncodedMultisig {
    * Subset of signatures. A threshold of `thr` signors is required.
    */
   subsig: EncodedSubsig[];
+}
+
+export function encodedMultiSigFromDecodedMsgpack(
+  data: unknown
+): EncodedMultisig {
+  if (!(data instanceof Map)) {
+    throw new Error(`Invalid decoded EncodedMultiSig: ${data}`);
+  }
+  return {
+    v: data.get('v'),
+    thr: data.get('thr'),
+    subsig: data.get('subsig').map(encodedSubsigFromDecodedMsgpack),
+  };
+}
+
+export function encodedMultiSigMsgpackPrepare(
+  msig: EncodedMultisig
+): MsgpackEncodingData {
+  return new Map<string, MsgpackEncodingData>([
+    ['v', msig.v],
+    ['thr', msig.thr],
+    ['subsig', msig.subsig.map(encodedSubsigMsgpackPrepare)],
+  ]);
+}
+
+export function encodedMultiSigFromDecodedJSON(data: unknown): EncodedMultisig {
+  if (data === null || typeof data !== 'object') {
+    throw new Error(`Invalid decoded EncodedSubsig: ${data}`);
+  }
+  const obj = data as Record<string, any>;
+  return {
+    v: obj.v,
+    thr: obj.thr,
+    subsig: obj.subsig.map(encodedSubsigFromDecodedJSON),
+  };
+}
+
+export function encodedMultiSigJSONPrepare(
+  msig: EncodedMultisig
+): JSONEncodingData {
+  return {
+    v: msig.v,
+    thr: msig.thr,
+    subsig: msig.subsig.map(encodedSubsigJSONPrepare),
+  };
 }
 
 export interface EncodedLogicSig {

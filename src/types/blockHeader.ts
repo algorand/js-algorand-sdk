@@ -1,3 +1,5 @@
+import { MsgpackEncodingData } from '../encoding/encoding';
+
 /**
  * Represents the metadata and state of a block.
  *
@@ -78,4 +80,49 @@ export default interface BlockHeader {
    * StateProofTracking map of type to tracking data
    */
   spt: Map<number, Uint8Array>;
+}
+
+export function blockHeaderFromDecodedMsgpack(data: unknown): BlockHeader {
+  if (!(data instanceof Map)) {
+    throw new Error(`Invalid decoded BlockHeader: ${data}`);
+  }
+  return {
+    fees: data.get('fees'),
+    frac: data.get('frac'),
+    gen: data.get('gen'),
+    gh: data.get('gh'),
+    prev: data.get('prev'),
+    proto: data.get('proto'),
+    rate: data.get('rate'),
+    rnd: data.get('rnd'),
+    rwcalr: data.get('rwcalr'),
+    rwd: data.get('rwd'),
+    seed: data.get('seed'),
+    ts: data.get('ts'),
+    txn: data.get('txn'),
+    txn256: data.get('txn256'),
+    spt: data.get('spt'),
+  };
+}
+
+export function blockHeaderMsgpackPrepare(
+  header: BlockHeader
+): MsgpackEncodingData {
+  return new Map<string, MsgpackEncodingData>([
+    ['fees', header.fees],
+    ['frac', header.frac],
+    ['gen', header.gen],
+    ['gh', header.gh],
+    ['prev', header.prev],
+    ['proto', header.proto],
+    ['rate', header.rate],
+    ['rnd', header.rnd],
+    ['rwcalr', header.rwcalr],
+    ['rwd', header.rwd],
+    ['seed', header.seed],
+    ['ts', header.ts],
+    ['txn', header.txn],
+    ['txn256', header.txn256],
+    ['spt', header.spt],
+  ]);
 }

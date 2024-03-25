@@ -104,14 +104,14 @@ describe('Sign', () => {
       };
       const zeroFee = new algosdk.Transaction(params);
       assert.strictEqual(zeroFee.fee, minFee);
-      const encZeroFee = zeroFee.get_obj_for_encoding();
-      assert.strictEqual(encZeroFee.fee, minFee);
+      assert.strictEqual(zeroFee.msgpackPrepare().get('fee'), minFee);
+      assert.strictEqual(zeroFee.jsonPrepare().fee, minFee);
 
       params.suggestedParams.fee = minFee; // since this is fee per byte, it will be far greater than minFee
       const excessFee = new algosdk.Transaction(params);
       assert.ok(excessFee.fee > minFee);
-      const encExcessFee = excessFee.get_obj_for_encoding();
-      assert.strictEqual(encExcessFee.fee, excessFee.fee);
+      assert.strictEqual(excessFee.msgpackPrepare().get('fee'), excessFee.fee);
+      assert.strictEqual(excessFee.jsonPrepare().fee, excessFee.fee);
     }
   });
 
@@ -136,8 +136,9 @@ describe('Sign', () => {
       },
     });
     assert.strictEqual(txn.fee, 0n);
-    const encTxn = txn.get_obj_for_encoding();
-    assert.strictEqual(encTxn.fee, undefined); // Should be omitted from encoding
+    // Should be omitted from encodings
+    assert.ok(!txn.msgpackPrepare().has('fee'));
+    assert.strictEqual(txn.jsonPrepare().fee, undefined);
   });
 
   it('should accept lower than min fee', () => {
@@ -162,8 +163,8 @@ describe('Sign', () => {
       note: new Uint8Array([123, 12, 200]),
     });
     assert.strictEqual(txn.fee, 10n);
-    const txnEnc = txn.get_obj_for_encoding();
-    assert.strictEqual(txnEnc.fee, 10n);
+    assert.strictEqual(txn.msgpackPrepare().get('fee'), 10n);
+    assert.strictEqual(txn.jsonPrepare().fee, 10n);
   });
 
   it('should not complain on a missing genesisID', () => {
