@@ -20,9 +20,11 @@ export default class PendingTransactionInformation extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array): PendingTransactionResponse {
-    return PendingTransactionResponse.from_obj_for_encoding(
-      encoding.decode(body) as Record<string, any>
-    );
+    // PendingTransactionResponse.fromMsgpack(body)
+    return encoding.decodeMsgpack(body, PendingTransactionResponse);
+    // return PendingTransactionResponse.fromDecodedMsgpack(
+    //   encoding.decodeAsMap(body)
+    // );
   }
 
   path() {

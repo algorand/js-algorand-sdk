@@ -109,6 +109,14 @@ export {
 } from './client/urlTokenBaseHTTPClient.js';
 export { waitForConfirmation } from './wait.js';
 export {
+  MsgpackEncodable,
+  MsgpackEncodingData,
+  JSONEncodable,
+  JSONEncodingData,
+  encodeMsgpack,
+  decodeMsgpack,
+} from './encoding/encoding.js';
+export {
   Address,
   isValidAddress,
   encodeAddress,
@@ -144,10 +152,17 @@ export {
 } from './convert.js';
 export { computeGroupID, assignGroupID } from './group.js';
 export {
-  LogicSig,
-  LogicSigAccount,
+  SignedTransaction,
+  decodeSignedTransaction,
+  encodeUnsignedSimulateTransaction,
+} from './signedTransaction.js';
+export {
   signLogicSigTransaction,
   signLogicSigTransactionObject,
+} from './signing.js';
+export {
+  LogicSig,
+  LogicSigAccount,
   logicSigFromByte,
   tealSign,
   tealSignFromProgram,
@@ -155,14 +170,16 @@ export {
 } from './logicsig.js';
 export {
   MultisigMetadata,
+  verifyMultisig,
+  multisigAddress,
+} from './multisig.js';
+export {
   signMultisigTransaction,
   mergeMultisigTransactions,
   appendSignMultisigTransaction,
   createMultisigTransaction,
   appendSignRawMultisigSignature,
-  verifyMultisig,
-  multisigAddress,
-} from './multisig.js';
+} from './multisigSigning.js';
 export {
   ProgramSourceMap,
   SourceLocation,

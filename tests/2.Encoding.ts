@@ -94,11 +94,11 @@ describe('encoding', () => {
         algosdk.encodeObj(beforeLarge as any)
       );
       assert.strictEqual(beforeLarge, afterLarge);
-      const beforeTooLarge = BigInt('18446744073709551616'); // larger than even fits into a uint64. we do not want to work with these too-large numbers
-      const afterTooLarge = algosdk.decodeObj(
-        algosdk.encodeObj(beforeTooLarge as any)
+      const tooLarge = BigInt('18446744073709551616'); // larger than even fits into a uint64. we do not want to work with these too-large numbers
+      assert.throws(
+        () => algosdk.encodeObj(tooLarge as any),
+        /Bigint is too large for uint64: 18446744073709551616$/
       );
-      assert.notStrictEqual(beforeTooLarge, afterTooLarge);
     });
 
     it('should match our go code', () => {
