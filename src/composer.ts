@@ -26,7 +26,8 @@ import {
   TransactionSigner,
   TransactionWithSigner,
 } from './signer.js';
-import { decodeSignedTransaction, Transaction } from './transaction.js';
+import { Transaction } from './transaction.js';
+import { decodeSignedTransaction } from './signedTransaction.js';
 import { EncodedSignedTransaction } from './types/transactions/index.js';
 import {
   BoxReference,

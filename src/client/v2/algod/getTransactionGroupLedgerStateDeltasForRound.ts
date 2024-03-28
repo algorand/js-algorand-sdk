@@ -23,7 +23,7 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
   prepare(
     body: Record<string, any>
   ): TransactionGroupLedgerStateDeltasForRoundResponse {
-    return TransactionGroupLedgerStateDeltasForRoundResponse.from_obj_for_encoding(
+    return TransactionGroupLedgerStateDeltasForRoundResponse.fromDecodedJSON(
       body
     );
   }

@@ -42,6 +42,6 @@ export default class GetApplicationBoxByName extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Box {
-    return Box.from_obj_for_encoding(body);
+    return Box.fromDecodedJSON(body);
   }
 }

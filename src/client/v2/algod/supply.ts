@@ -12,6 +12,6 @@ export default class Supply extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): SupplyResponse {
-    return SupplyResponse.from_obj_for_encoding(body);
+    return SupplyResponse.fromDecodedJSON(body);
   }
 }

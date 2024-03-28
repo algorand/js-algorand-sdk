@@ -470,40 +470,61 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): Account {
-  //    /* eslint-disable dot-notation */
-  //    return new Account({
-  //      address: data['address'] ?? "",
-  //      amount: data['amount'] ?? 0,
-  //      amountWithoutPendingRewards: data['amount-without-pending-rewards'] ?? 0,
-  //      minBalance: data['min-balance'] ?? 0,
-  //      pendingRewards: data['pending-rewards'] ?? 0,
-  //      rewards: data['rewards'] ?? 0,
-  //      round: data['round'] ?? 0,
-  //      status: data['status'] ?? "",
-  //      totalAppsOptedIn: data['total-apps-opted-in'] ?? 0,
-  //      totalAssetsOptedIn: data['total-assets-opted-in'] ?? 0,
-  //      totalBoxBytes: data['total-box-bytes'] ?? 0,
-  //      totalBoxes: data['total-boxes'] ?? 0,
-  //      totalCreatedApps: data['total-created-apps'] ?? 0,
-  //      totalCreatedAssets: data['total-created-assets'] ?? 0,
-  //      appsLocalState: typeof data['apps-local-state'] !== 'undefined' ? data['apps-local-state'].map(ApplicationLocalState.fromDecodedMsgpack) : undefined,
-  //      appsTotalExtraPages: data['apps-total-extra-pages'],
-  //      appsTotalSchema: typeof data['apps-total-schema'] !== 'undefined' ? ApplicationStateSchema.fromDecodedMsgpack(data['apps-total-schema']) : undefined,
-  //      assets: typeof data['assets'] !== 'undefined' ? data['assets'].map(AssetHolding.fromDecodedMsgpack) : undefined,
-  //      authAddr: data['auth-addr'],
-  //      closedAtRound: data['closed-at-round'],
-  //      createdApps: typeof data['created-apps'] !== 'undefined' ? data['created-apps'].map(Application.fromDecodedMsgpack) : undefined,
-  //      createdAssets: typeof data['created-assets'] !== 'undefined' ? data['created-assets'].map(Asset.fromDecodedMsgpack) : undefined,
-  //      createdAtRound: data['created-at-round'],
-  //      deleted: data['deleted'],
-  //      participation: typeof data['participation'] !== 'undefined' ? AccountParticipation.fromDecodedMsgpack(data['participation']) : undefined,
-  //      rewardBase: data['reward-base'],
-  //      sigType: data['sig-type'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): Account {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded Account: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new Account({
+      address: data['address'] ?? '',
+      amount: data['amount'] ?? 0,
+      amountWithoutPendingRewards: data['amount-without-pending-rewards'] ?? 0,
+      minBalance: data['min-balance'] ?? 0,
+      pendingRewards: data['pending-rewards'] ?? 0,
+      rewards: data['rewards'] ?? 0,
+      round: data['round'] ?? 0,
+      status: data['status'] ?? '',
+      totalAppsOptedIn: data['total-apps-opted-in'] ?? 0,
+      totalAssetsOptedIn: data['total-assets-opted-in'] ?? 0,
+      totalBoxBytes: data['total-box-bytes'] ?? 0,
+      totalBoxes: data['total-boxes'] ?? 0,
+      totalCreatedApps: data['total-created-apps'] ?? 0,
+      totalCreatedAssets: data['total-created-assets'] ?? 0,
+      appsLocalState:
+        typeof data['apps-local-state'] !== 'undefined'
+          ? data['apps-local-state'].map(ApplicationLocalState.fromDecodedJSON)
+          : undefined,
+      appsTotalExtraPages: data['apps-total-extra-pages'],
+      appsTotalSchema:
+        typeof data['apps-total-schema'] !== 'undefined'
+          ? ApplicationStateSchema.fromDecodedJSON(data['apps-total-schema'])
+          : undefined,
+      assets:
+        typeof data['assets'] !== 'undefined'
+          ? data['assets'].map(AssetHolding.fromDecodedJSON)
+          : undefined,
+      authAddr: data['auth-addr'],
+      closedAtRound: data['closed-at-round'],
+      createdApps:
+        typeof data['created-apps'] !== 'undefined'
+          ? data['created-apps'].map(Application.fromDecodedJSON)
+          : undefined,
+      createdAssets:
+        typeof data['created-assets'] !== 'undefined'
+          ? data['created-assets'].map(Asset.fromDecodedJSON)
+          : undefined,
+      createdAtRound: data['created-at-round'],
+      deleted: data['deleted'],
+      participation:
+        typeof data['participation'] !== 'undefined'
+          ? AccountParticipation.fromDecodedJSON(data['participation'])
+          : undefined,
+      rewardBase: data['reward-base'],
+      sigType: data['sig-type'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): Account {
     if (!(data instanceof Map)) {
@@ -675,19 +696,23 @@ export class AccountParticipation implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AccountParticipation {
-  //    /* eslint-disable dot-notation */
-  //    return new AccountParticipation({
-  //      selectionParticipationKey: data['selection-participation-key'] ?? new Uint8Array(),
-  //      voteFirstValid: data['vote-first-valid'] ?? 0,
-  //      voteKeyDilution: data['vote-key-dilution'] ?? 0,
-  //      voteLastValid: data['vote-last-valid'] ?? 0,
-  //      voteParticipationKey: data['vote-participation-key'] ?? new Uint8Array(),
-  //      stateProofKey: data['state-proof-key'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AccountParticipation {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AccountParticipation: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AccountParticipation({
+      selectionParticipationKey:
+        data['selection-participation-key'] ?? new Uint8Array(),
+      voteFirstValid: data['vote-first-valid'] ?? 0,
+      voteKeyDilution: data['vote-key-dilution'] ?? 0,
+      voteLastValid: data['vote-last-valid'] ?? 0,
+      voteParticipationKey: data['vote-participation-key'] ?? new Uint8Array(),
+      stateProofKey: data['state-proof-key'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AccountParticipation {
     if (!(data instanceof Map)) {
@@ -759,15 +784,18 @@ export class AccountResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AccountResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new AccountResponse({
-  //      account: Account.fromDecodedMsgpack(data['account'] ?? {}),
-  //      currentRound: data['current-round'] ?? 0,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AccountResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AccountResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AccountResponse({
+      account: Account.fromDecodedJSON(data['account'] ?? {}),
+      currentRound: data['current-round'] ?? 0,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AccountResponse {
     if (!(data instanceof Map)) {
@@ -826,15 +854,18 @@ export class AccountStateDelta implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AccountStateDelta {
-  //    /* eslint-disable dot-notation */
-  //    return new AccountStateDelta({
-  //      address: data['address'] ?? "",
-  //      delta: (data['delta'] ?? []).map(EvalDeltaKeyValue.fromDecodedMsgpack),
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AccountStateDelta {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AccountStateDelta: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AccountStateDelta({
+      address: data['address'] ?? '',
+      delta: (data['delta'] ?? []).map(EvalDeltaKeyValue.fromDecodedJSON),
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AccountStateDelta {
     if (!(data instanceof Map)) {
@@ -912,16 +943,19 @@ export class AccountsResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AccountsResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new AccountsResponse({
-  //      accounts: (data['accounts'] ?? []).map(Account.fromDecodedMsgpack),
-  //      currentRound: data['current-round'] ?? 0,
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AccountsResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AccountsResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AccountsResponse({
+      accounts: (data['accounts'] ?? []).map(Account.fromDecodedJSON),
+      currentRound: data['current-round'] ?? 0,
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AccountsResponse {
     if (!(data instanceof Map)) {
@@ -1035,18 +1069,21 @@ export class Application implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): Application {
-  //    /* eslint-disable dot-notation */
-  //    return new Application({
-  //      id: data['id'] ?? 0,
-  //      params: ApplicationParams.fromDecodedMsgpack(data['params'] ?? {}),
-  //      createdAtRound: data['created-at-round'],
-  //      deleted: data['deleted'],
-  //      deletedAtRound: data['deleted-at-round'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): Application {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded Application: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new Application({
+      id: data['id'] ?? 0,
+      params: ApplicationParams.fromDecodedJSON(data['params'] ?? {}),
+      createdAtRound: data['created-at-round'],
+      deleted: data['deleted'],
+      deletedAtRound: data['deleted-at-round'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): Application {
     if (!(data instanceof Map)) {
@@ -1182,19 +1219,25 @@ export class ApplicationLocalState implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationLocalState {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationLocalState({
-  //      id: data['id'] ?? 0,
-  //      schema: ApplicationStateSchema.fromDecodedMsgpack(data['schema'] ?? {}),
-  //      closedOutAtRound: data['closed-out-at-round'],
-  //      deleted: data['deleted'],
-  //      keyValue: typeof data['key-value'] !== 'undefined' ? data['key-value'].map(TealKeyValue.fromDecodedMsgpack) : undefined,
-  //      optedInAtRound: data['opted-in-at-round'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationLocalState {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ApplicationLocalState: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationLocalState({
+      id: data['id'] ?? 0,
+      schema: ApplicationStateSchema.fromDecodedJSON(data['schema'] ?? {}),
+      closedOutAtRound: data['closed-out-at-round'],
+      deleted: data['deleted'],
+      keyValue:
+        typeof data['key-value'] !== 'undefined'
+          ? data['key-value'].map(TealKeyValue.fromDecodedJSON)
+          : undefined,
+      optedInAtRound: data['opted-in-at-round'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationLocalState {
     if (!(data instanceof Map)) {
@@ -1284,16 +1327,23 @@ export class ApplicationLocalStatesResponse
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationLocalStatesResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationLocalStatesResponse({
-  //      appsLocalStates: (data['apps-local-states'] ?? []).map(ApplicationLocalState.fromDecodedMsgpack),
-  //      currentRound: data['current-round'] ?? 0,
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationLocalStatesResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(
+        `Invalid decoded ApplicationLocalStatesResponse: ${encoded}`
+      );
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationLocalStatesResponse({
+      appsLocalStates: (data['apps-local-states'] ?? []).map(
+        ApplicationLocalState.fromDecodedJSON
+      ),
+      currentRound: data['current-round'] ?? 0,
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationLocalStatesResponse {
     if (!(data instanceof Map)) {
@@ -1352,15 +1402,18 @@ export class ApplicationLogData implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationLogData {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationLogData({
-  //      logs: data['logs'] ?? [],
-  //      txid: data['txid'] ?? "",
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationLogData {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ApplicationLogData: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationLogData({
+      logs: data['logs'] ?? [],
+      txid: data['txid'] ?? '',
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationLogData {
     if (!(data instanceof Map)) {
@@ -1456,17 +1509,23 @@ export class ApplicationLogsResponse
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationLogsResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationLogsResponse({
-  //      applicationId: data['application-id'] ?? 0,
-  //      currentRound: data['current-round'] ?? 0,
-  //      logData: typeof data['log-data'] !== 'undefined' ? data['log-data'].map(ApplicationLogData.fromDecodedMsgpack) : undefined,
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationLogsResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ApplicationLogsResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationLogsResponse({
+      applicationId: data['application-id'] ?? 0,
+      currentRound: data['current-round'] ?? 0,
+      logData:
+        typeof data['log-data'] !== 'undefined'
+          ? data['log-data'].map(ApplicationLogData.fromDecodedJSON)
+          : undefined,
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationLogsResponse {
     if (!(data instanceof Map)) {
@@ -1622,20 +1681,32 @@ export class ApplicationParams implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationParams {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationParams({
-  //      approvalProgram: data['approval-program'] ?? new Uint8Array(),
-  //      clearStateProgram: data['clear-state-program'] ?? new Uint8Array(),
-  //      creator: data['creator'],
-  //      extraProgramPages: data['extra-program-pages'],
-  //      globalState: typeof data['global-state'] !== 'undefined' ? data['global-state'].map(TealKeyValue.fromDecodedMsgpack) : undefined,
-  //      globalStateSchema: typeof data['global-state-schema'] !== 'undefined' ? ApplicationStateSchema.fromDecodedMsgpack(data['global-state-schema']) : undefined,
-  //      localStateSchema: typeof data['local-state-schema'] !== 'undefined' ? ApplicationStateSchema.fromDecodedMsgpack(data['local-state-schema']) : undefined,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationParams {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ApplicationParams: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationParams({
+      approvalProgram: data['approval-program'] ?? new Uint8Array(),
+      clearStateProgram: data['clear-state-program'] ?? new Uint8Array(),
+      creator: data['creator'],
+      extraProgramPages: data['extra-program-pages'],
+      globalState:
+        typeof data['global-state'] !== 'undefined'
+          ? data['global-state'].map(TealKeyValue.fromDecodedJSON)
+          : undefined,
+      globalStateSchema:
+        typeof data['global-state-schema'] !== 'undefined'
+          ? ApplicationStateSchema.fromDecodedJSON(data['global-state-schema'])
+          : undefined,
+      localStateSchema:
+        typeof data['local-state-schema'] !== 'undefined'
+          ? ApplicationStateSchema.fromDecodedJSON(data['local-state-schema'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationParams {
     if (!(data instanceof Map)) {
@@ -1719,15 +1790,21 @@ export class ApplicationResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationResponse({
-  //      currentRound: data['current-round'] ?? 0,
-  //      application: typeof data['application'] !== 'undefined' ? Application.fromDecodedMsgpack(data['application']) : undefined,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ApplicationResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationResponse({
+      currentRound: data['current-round'] ?? 0,
+      application:
+        typeof data['application'] !== 'undefined'
+          ? Application.fromDecodedJSON(data['application'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationResponse {
     if (!(data instanceof Map)) {
@@ -1792,15 +1869,18 @@ export class ApplicationStateSchema implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationStateSchema {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationStateSchema({
-  //      numByteSlice: data['num-byte-slice'] ?? 0,
-  //      numUint: data['num-uint'] ?? 0,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationStateSchema {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ApplicationStateSchema: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationStateSchema({
+      numByteSlice: data['num-byte-slice'] ?? 0,
+      numUint: data['num-uint'] ?? 0,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationStateSchema {
     if (!(data instanceof Map)) {
@@ -1876,16 +1956,21 @@ export class ApplicationsResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ApplicationsResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new ApplicationsResponse({
-  //      applications: (data['applications'] ?? []).map(Application.fromDecodedMsgpack),
-  //      currentRound: data['current-round'] ?? 0,
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ApplicationsResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ApplicationsResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ApplicationsResponse({
+      applications: (data['applications'] ?? []).map(
+        Application.fromDecodedJSON
+      ),
+      currentRound: data['current-round'] ?? 0,
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ApplicationsResponse {
     if (!(data instanceof Map)) {
@@ -2007,18 +2092,21 @@ export class Asset implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): Asset {
-  //    /* eslint-disable dot-notation */
-  //    return new Asset({
-  //      index: data['index'] ?? 0,
-  //      params: AssetParams.fromDecodedMsgpack(data['params'] ?? {}),
-  //      createdAtRound: data['created-at-round'],
-  //      deleted: data['deleted'],
-  //      destroyedAtRound: data['destroyed-at-round'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): Asset {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded Asset: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new Asset({
+      index: data['index'] ?? 0,
+      params: AssetParams.fromDecodedJSON(data['params'] ?? {}),
+      createdAtRound: data['created-at-round'],
+      deleted: data['deleted'],
+      destroyedAtRound: data['destroyed-at-round'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): Asset {
     if (!(data instanceof Map)) {
@@ -2097,16 +2185,19 @@ export class AssetBalancesResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AssetBalancesResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new AssetBalancesResponse({
-  //      balances: (data['balances'] ?? []).map(MiniAssetHolding.fromDecodedMsgpack),
-  //      currentRound: data['current-round'] ?? 0,
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AssetBalancesResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AssetBalancesResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AssetBalancesResponse({
+      balances: (data['balances'] ?? []).map(MiniAssetHolding.fromDecodedJSON),
+      currentRound: data['current-round'] ?? 0,
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AssetBalancesResponse {
     if (!(data instanceof Map)) {
@@ -2235,19 +2326,22 @@ export class AssetHolding implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AssetHolding {
-  //    /* eslint-disable dot-notation */
-  //    return new AssetHolding({
-  //      amount: data['amount'] ?? 0,
-  //      assetId: data['asset-id'] ?? 0,
-  //      isFrozen: data['is-frozen'] ?? false,
-  //      deleted: data['deleted'],
-  //      optedInAtRound: data['opted-in-at-round'],
-  //      optedOutAtRound: data['opted-out-at-round'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AssetHolding {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AssetHolding: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AssetHolding({
+      amount: data['amount'] ?? 0,
+      assetId: data['asset-id'] ?? 0,
+      isFrozen: data['is-frozen'] ?? false,
+      deleted: data['deleted'],
+      optedInAtRound: data['opted-in-at-round'],
+      optedOutAtRound: data['opted-out-at-round'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AssetHolding {
     if (!(data instanceof Map)) {
@@ -2327,16 +2421,19 @@ export class AssetHoldingsResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AssetHoldingsResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new AssetHoldingsResponse({
-  //      assets: (data['assets'] ?? []).map(AssetHolding.fromDecodedMsgpack),
-  //      currentRound: data['current-round'] ?? 0,
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AssetHoldingsResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AssetHoldingsResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AssetHoldingsResponse({
+      assets: (data['assets'] ?? []).map(AssetHolding.fromDecodedJSON),
+      currentRound: data['current-round'] ?? 0,
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AssetHoldingsResponse {
     if (!(data instanceof Map)) {
@@ -2622,28 +2719,31 @@ export class AssetParams implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AssetParams {
-  //    /* eslint-disable dot-notation */
-  //    return new AssetParams({
-  //      creator: data['creator'] ?? "",
-  //      decimals: data['decimals'] ?? 0,
-  //      total: data['total'] ?? 0,
-  //      clawback: data['clawback'],
-  //      defaultFrozen: data['default-frozen'],
-  //      freeze: data['freeze'],
-  //      manager: data['manager'],
-  //      metadataHash: data['metadata-hash'],
-  //      name: data['name'],
-  //      nameB64: data['name-b64'],
-  //      reserve: data['reserve'],
-  //      unitName: data['unit-name'],
-  //      unitNameB64: data['unit-name-b64'],
-  //      url: data['url'],
-  //      urlB64: data['url-b64'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AssetParams {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AssetParams: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AssetParams({
+      creator: data['creator'] ?? '',
+      decimals: data['decimals'] ?? 0,
+      total: data['total'] ?? 0,
+      clawback: data['clawback'],
+      defaultFrozen: data['default-frozen'],
+      freeze: data['freeze'],
+      manager: data['manager'],
+      metadataHash: data['metadata-hash'],
+      name: data['name'],
+      nameB64: data['name-b64'],
+      reserve: data['reserve'],
+      unitName: data['unit-name'],
+      unitNameB64: data['unit-name-b64'],
+      url: data['url'],
+      urlB64: data['url-b64'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AssetParams {
     if (!(data instanceof Map)) {
@@ -2718,15 +2818,18 @@ export class AssetResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AssetResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new AssetResponse({
-  //      asset: Asset.fromDecodedMsgpack(data['asset'] ?? {}),
-  //      currentRound: data['current-round'] ?? 0,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AssetResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AssetResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AssetResponse({
+      asset: Asset.fromDecodedJSON(data['asset'] ?? {}),
+      currentRound: data['current-round'] ?? 0,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AssetResponse {
     if (!(data instanceof Map)) {
@@ -2802,16 +2905,19 @@ export class AssetsResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): AssetsResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new AssetsResponse({
-  //      assets: (data['assets'] ?? []).map(Asset.fromDecodedMsgpack),
-  //      currentRound: data['current-round'] ?? 0,
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): AssetsResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded AssetsResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new AssetsResponse({
+      assets: (data['assets'] ?? []).map(Asset.fromDecodedJSON),
+      currentRound: data['current-round'] ?? 0,
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): AssetsResponse {
     if (!(data instanceof Map)) {
@@ -3099,28 +3205,50 @@ export class Block implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): Block {
-  //    /* eslint-disable dot-notation */
-  //    return new Block({
-  //      genesisHash: data['genesis-hash'] ?? new Uint8Array(),
-  //      genesisId: data['genesis-id'] ?? "",
-  //      previousBlockHash: data['previous-block-hash'] ?? new Uint8Array(),
-  //      round: data['round'] ?? 0,
-  //      seed: data['seed'] ?? new Uint8Array(),
-  //      timestamp: data['timestamp'] ?? 0,
-  //      transactionsRoot: data['transactions-root'] ?? new Uint8Array(),
-  //      transactionsRootSha256: data['transactions-root-sha256'] ?? new Uint8Array(),
-  //      participationUpdates: typeof data['participation-updates'] !== 'undefined' ? ParticipationUpdates.fromDecodedMsgpack(data['participation-updates']) : undefined,
-  //      rewards: typeof data['rewards'] !== 'undefined' ? BlockRewards.fromDecodedMsgpack(data['rewards']) : undefined,
-  //      stateProofTracking: typeof data['state-proof-tracking'] !== 'undefined' ? data['state-proof-tracking'].map(StateProofTracking.fromDecodedMsgpack) : undefined,
-  //      transactions: typeof data['transactions'] !== 'undefined' ? data['transactions'].map(Transaction.fromDecodedMsgpack) : undefined,
-  //      txnCounter: data['txn-counter'],
-  //      upgradeState: typeof data['upgrade-state'] !== 'undefined' ? BlockUpgradeState.fromDecodedMsgpack(data['upgrade-state']) : undefined,
-  //      upgradeVote: typeof data['upgrade-vote'] !== 'undefined' ? BlockUpgradeVote.fromDecodedMsgpack(data['upgrade-vote']) : undefined,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): Block {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded Block: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new Block({
+      genesisHash: data['genesis-hash'] ?? new Uint8Array(),
+      genesisId: data['genesis-id'] ?? '',
+      previousBlockHash: data['previous-block-hash'] ?? new Uint8Array(),
+      round: data['round'] ?? 0,
+      seed: data['seed'] ?? new Uint8Array(),
+      timestamp: data['timestamp'] ?? 0,
+      transactionsRoot: data['transactions-root'] ?? new Uint8Array(),
+      transactionsRootSha256:
+        data['transactions-root-sha256'] ?? new Uint8Array(),
+      participationUpdates:
+        typeof data['participation-updates'] !== 'undefined'
+          ? ParticipationUpdates.fromDecodedJSON(data['participation-updates'])
+          : undefined,
+      rewards:
+        typeof data['rewards'] !== 'undefined'
+          ? BlockRewards.fromDecodedJSON(data['rewards'])
+          : undefined,
+      stateProofTracking:
+        typeof data['state-proof-tracking'] !== 'undefined'
+          ? data['state-proof-tracking'].map(StateProofTracking.fromDecodedJSON)
+          : undefined,
+      transactions:
+        typeof data['transactions'] !== 'undefined'
+          ? data['transactions'].map(Transaction.fromDecodedJSON)
+          : undefined,
+      txnCounter: data['txn-counter'],
+      upgradeState:
+        typeof data['upgrade-state'] !== 'undefined'
+          ? BlockUpgradeState.fromDecodedJSON(data['upgrade-state'])
+          : undefined,
+      upgradeVote:
+        typeof data['upgrade-vote'] !== 'undefined'
+          ? BlockUpgradeVote.fromDecodedJSON(data['upgrade-vote'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): Block {
     if (!(data instanceof Map)) {
@@ -3272,19 +3400,22 @@ export class BlockRewards implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): BlockRewards {
-  //    /* eslint-disable dot-notation */
-  //    return new BlockRewards({
-  //      feeSink: data['fee-sink'] ?? "",
-  //      rewardsCalculationRound: data['rewards-calculation-round'] ?? 0,
-  //      rewardsLevel: data['rewards-level'] ?? 0,
-  //      rewardsPool: data['rewards-pool'] ?? "",
-  //      rewardsRate: data['rewards-rate'] ?? 0,
-  //      rewardsResidue: data['rewards-residue'] ?? 0,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): BlockRewards {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded BlockRewards: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new BlockRewards({
+      feeSink: data['fee-sink'] ?? '',
+      rewardsCalculationRound: data['rewards-calculation-round'] ?? 0,
+      rewardsLevel: data['rewards-level'] ?? 0,
+      rewardsPool: data['rewards-pool'] ?? '',
+      rewardsRate: data['rewards-rate'] ?? 0,
+      rewardsResidue: data['rewards-residue'] ?? 0,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): BlockRewards {
     if (!(data instanceof Map)) {
@@ -3410,18 +3541,21 @@ export class BlockUpgradeState implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): BlockUpgradeState {
-  //    /* eslint-disable dot-notation */
-  //    return new BlockUpgradeState({
-  //      currentProtocol: data['current-protocol'] ?? "",
-  //      nextProtocol: data['next-protocol'],
-  //      nextProtocolApprovals: data['next-protocol-approvals'],
-  //      nextProtocolSwitchOn: data['next-protocol-switch-on'],
-  //      nextProtocolVoteBefore: data['next-protocol-vote-before'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): BlockUpgradeState {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded BlockUpgradeState: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new BlockUpgradeState({
+      currentProtocol: data['current-protocol'] ?? '',
+      nextProtocol: data['next-protocol'],
+      nextProtocolApprovals: data['next-protocol-approvals'],
+      nextProtocolSwitchOn: data['next-protocol-switch-on'],
+      nextProtocolVoteBefore: data['next-protocol-vote-before'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): BlockUpgradeState {
     if (!(data instanceof Map)) {
@@ -3511,16 +3645,19 @@ export class BlockUpgradeVote implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): BlockUpgradeVote {
-  //    /* eslint-disable dot-notation */
-  //    return new BlockUpgradeVote({
-  //      upgradeApprove: data['upgrade-approve'],
-  //      upgradeDelay: data['upgrade-delay'],
-  //      upgradePropose: data['upgrade-propose'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): BlockUpgradeVote {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded BlockUpgradeVote: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new BlockUpgradeVote({
+      upgradeApprove: data['upgrade-approve'],
+      upgradeDelay: data['upgrade-delay'],
+      upgradePropose: data['upgrade-propose'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): BlockUpgradeVote {
     if (!(data instanceof Map)) {
@@ -3594,16 +3731,19 @@ export class Box implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): Box {
-  //    /* eslint-disable dot-notation */
-  //    return new Box({
-  //      name: data['name'] ?? new Uint8Array(),
-  //      round: data['round'] ?? 0,
-  //      value: data['value'] ?? new Uint8Array(),
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): Box {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded Box: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new Box({
+      name: data['name'] ?? new Uint8Array(),
+      round: data['round'] ?? 0,
+      value: data['value'] ?? new Uint8Array(),
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): Box {
     if (!(data instanceof Map)) {
@@ -3649,14 +3789,17 @@ export class BoxDescriptor implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): BoxDescriptor {
-  //    /* eslint-disable dot-notation */
-  //    return new BoxDescriptor({
-  //      name: data['name'] ?? new Uint8Array(),
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): BoxDescriptor {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded BoxDescriptor: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new BoxDescriptor({
+      name: data['name'] ?? new Uint8Array(),
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): BoxDescriptor {
     if (!(data instanceof Map)) {
@@ -3731,16 +3874,19 @@ export class BoxesResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): BoxesResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new BoxesResponse({
-  //      applicationId: data['application-id'] ?? 0,
-  //      boxes: (data['boxes'] ?? []).map(BoxDescriptor.fromDecodedMsgpack),
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): BoxesResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded BoxesResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new BoxesResponse({
+      applicationId: data['application-id'] ?? 0,
+      boxes: (data['boxes'] ?? []).map(BoxDescriptor.fromDecodedJSON),
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): BoxesResponse {
     if (!(data instanceof Map)) {
@@ -3801,15 +3947,18 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ErrorResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new ErrorResponse({
-  //      message: data['message'] ?? "",
-  //      data: data['data'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ErrorResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ErrorResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ErrorResponse({
+      message: data['message'] ?? '',
+      data: data['data'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ErrorResponse {
     if (!(data instanceof Map)) {
@@ -3890,16 +4039,19 @@ export class EvalDelta implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): EvalDelta {
-  //    /* eslint-disable dot-notation */
-  //    return new EvalDelta({
-  //      action: data['action'] ?? 0,
-  //      bytes: data['bytes'],
-  //      uint: data['uint'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): EvalDelta {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded EvalDelta: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new EvalDelta({
+      action: data['action'] ?? 0,
+      bytes: data['bytes'],
+      uint: data['uint'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): EvalDelta {
     if (!(data instanceof Map)) {
@@ -3953,15 +4105,18 @@ export class EvalDeltaKeyValue implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): EvalDeltaKeyValue {
-  //    /* eslint-disable dot-notation */
-  //    return new EvalDeltaKeyValue({
-  //      key: data['key'] ?? "",
-  //      value: EvalDelta.fromDecodedMsgpack(data['value'] ?? {}),
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): EvalDeltaKeyValue {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded EvalDeltaKeyValue: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new EvalDeltaKeyValue({
+      key: data['key'] ?? '',
+      value: EvalDelta.fromDecodedJSON(data['value'] ?? {}),
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): EvalDeltaKeyValue {
     if (!(data instanceof Map)) {
@@ -4009,14 +4164,17 @@ export class HashFactory implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): HashFactory {
-  //    /* eslint-disable dot-notation */
-  //    return new HashFactory({
-  //      hashType: data['hash-type'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): HashFactory {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded HashFactory: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new HashFactory({
+      hashType: data['hash-type'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): HashFactory {
     if (!(data instanceof Map)) {
@@ -4122,20 +4280,23 @@ export class HealthCheck implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): HealthCheck {
-  //    /* eslint-disable dot-notation */
-  //    return new HealthCheck({
-  //      dbAvailable: data['db-available'] ?? false,
-  //      isMigrating: data['is-migrating'] ?? false,
-  //      message: data['message'] ?? "",
-  //      round: data['round'] ?? 0,
-  //      version: data['version'] ?? "",
-  //      data: data['data'],
-  //      errors: data['errors'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): HealthCheck {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded HealthCheck: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new HealthCheck({
+      dbAvailable: data['db-available'] ?? false,
+      isMigrating: data['is-migrating'] ?? false,
+      message: data['message'] ?? '',
+      round: data['round'] ?? 0,
+      version: data['version'] ?? '',
+      data: data['data'],
+      errors: data['errors'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): HealthCheck {
     if (!(data instanceof Map)) {
@@ -4270,18 +4431,21 @@ export class IndexerStateProofMessage
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): IndexerStateProofMessage {
-  //    /* eslint-disable dot-notation */
-  //    return new IndexerStateProofMessage({
-  //      blockHeadersCommitment: data['block-headers-commitment'],
-  //      firstAttestedRound: data['first-attested-round'],
-  //      latestAttestedRound: data['latest-attested-round'],
-  //      lnProvenWeight: data['ln-proven-weight'],
-  //      votersCommitment: data['voters-commitment'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): IndexerStateProofMessage {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded IndexerStateProofMessage: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new IndexerStateProofMessage({
+      blockHeadersCommitment: data['block-headers-commitment'],
+      firstAttestedRound: data['first-attested-round'],
+      latestAttestedRound: data['latest-attested-round'],
+      lnProvenWeight: data['ln-proven-weight'],
+      votersCommitment: data['voters-commitment'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): IndexerStateProofMessage {
     if (!(data instanceof Map)) {
@@ -4365,16 +4529,22 @@ export class MerkleArrayProof implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): MerkleArrayProof {
-  //    /* eslint-disable dot-notation */
-  //    return new MerkleArrayProof({
-  //      hashFactory: typeof data['hash-factory'] !== 'undefined' ? HashFactory.fromDecodedMsgpack(data['hash-factory']) : undefined,
-  //      path: data['path'],
-  //      treeDepth: data['tree-depth'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): MerkleArrayProof {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded MerkleArrayProof: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new MerkleArrayProof({
+      hashFactory:
+        typeof data['hash-factory'] !== 'undefined'
+          ? HashFactory.fromDecodedJSON(data['hash-factory'])
+          : undefined,
+      path: data['path'],
+      treeDepth: data['tree-depth'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): MerkleArrayProof {
     if (!(data instanceof Map)) {
@@ -4493,19 +4663,22 @@ export class MiniAssetHolding implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): MiniAssetHolding {
-  //    /* eslint-disable dot-notation */
-  //    return new MiniAssetHolding({
-  //      address: data['address'] ?? "",
-  //      amount: data['amount'] ?? 0,
-  //      isFrozen: data['is-frozen'] ?? false,
-  //      deleted: data['deleted'],
-  //      optedInAtRound: data['opted-in-at-round'],
-  //      optedOutAtRound: data['opted-out-at-round'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): MiniAssetHolding {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded MiniAssetHolding: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new MiniAssetHolding({
+      address: data['address'] ?? '',
+      amount: data['amount'] ?? 0,
+      isFrozen: data['is-frozen'] ?? false,
+      deleted: data['deleted'],
+      optedInAtRound: data['opted-in-at-round'],
+      optedOutAtRound: data['opted-out-at-round'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): MiniAssetHolding {
     if (!(data instanceof Map)) {
@@ -4574,14 +4747,17 @@ export class ParticipationUpdates implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): ParticipationUpdates {
-  //    /* eslint-disable dot-notation */
-  //    return new ParticipationUpdates({
-  //      expiredParticipationAccounts: data['expired-participation-accounts'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): ParticipationUpdates {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded ParticipationUpdates: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new ParticipationUpdates({
+      expiredParticipationAccounts: data['expired-participation-accounts'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): ParticipationUpdates {
     if (!(data instanceof Map)) {
@@ -4741,20 +4917,32 @@ export class StateProofFields implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateProofFields {
-  //    /* eslint-disable dot-notation */
-  //    return new StateProofFields({
-  //      partProofs: typeof data['part-proofs'] !== 'undefined' ? MerkleArrayProof.fromDecodedMsgpack(data['part-proofs']) : undefined,
-  //      positionsToReveal: data['positions-to-reveal'],
-  //      reveals: typeof data['reveals'] !== 'undefined' ? data['reveals'].map(StateProofReveal.fromDecodedMsgpack) : undefined,
-  //      saltVersion: data['salt-version'],
-  //      sigCommit: data['sig-commit'],
-  //      sigProofs: typeof data['sig-proofs'] !== 'undefined' ? MerkleArrayProof.fromDecodedMsgpack(data['sig-proofs']) : undefined,
-  //      signedWeight: data['signed-weight'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateProofFields {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateProofFields: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateProofFields({
+      partProofs:
+        typeof data['part-proofs'] !== 'undefined'
+          ? MerkleArrayProof.fromDecodedJSON(data['part-proofs'])
+          : undefined,
+      positionsToReveal: data['positions-to-reveal'],
+      reveals:
+        typeof data['reveals'] !== 'undefined'
+          ? data['reveals'].map(StateProofReveal.fromDecodedJSON)
+          : undefined,
+      saltVersion: data['salt-version'],
+      sigCommit: data['sig-commit'],
+      sigProofs:
+        typeof data['sig-proofs'] !== 'undefined'
+          ? MerkleArrayProof.fromDecodedJSON(data['sig-proofs'])
+          : undefined,
+      signedWeight: data['signed-weight'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateProofFields {
     if (!(data instanceof Map)) {
@@ -4835,15 +5023,21 @@ export class StateProofParticipant implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateProofParticipant {
-  //    /* eslint-disable dot-notation */
-  //    return new StateProofParticipant({
-  //      verifier: typeof data['verifier'] !== 'undefined' ? StateProofVerifier.fromDecodedMsgpack(data['verifier']) : undefined,
-  //      weight: data['weight'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateProofParticipant {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateProofParticipant: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateProofParticipant({
+      verifier:
+        typeof data['verifier'] !== 'undefined'
+          ? StateProofVerifier.fromDecodedJSON(data['verifier'])
+          : undefined,
+      weight: data['weight'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateProofParticipant {
     if (!(data instanceof Map)) {
@@ -4930,16 +5124,25 @@ export class StateProofReveal implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateProofReveal {
-  //    /* eslint-disable dot-notation */
-  //    return new StateProofReveal({
-  //      participant: typeof data['participant'] !== 'undefined' ? StateProofParticipant.fromDecodedMsgpack(data['participant']) : undefined,
-  //      position: data['position'],
-  //      sigSlot: typeof data['sig-slot'] !== 'undefined' ? StateProofSigSlot.fromDecodedMsgpack(data['sig-slot']) : undefined,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateProofReveal {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateProofReveal: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateProofReveal({
+      participant:
+        typeof data['participant'] !== 'undefined'
+          ? StateProofParticipant.fromDecodedJSON(data['participant'])
+          : undefined,
+      position: data['position'],
+      sigSlot:
+        typeof data['sig-slot'] !== 'undefined'
+          ? StateProofSigSlot.fromDecodedJSON(data['sig-slot'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateProofReveal {
     if (!(data instanceof Map)) {
@@ -5012,15 +5215,21 @@ export class StateProofSigSlot implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateProofSigSlot {
-  //    /* eslint-disable dot-notation */
-  //    return new StateProofSigSlot({
-  //      lowerSigWeight: data['lower-sig-weight'],
-  //      signature: typeof data['signature'] !== 'undefined' ? StateProofSignature.fromDecodedMsgpack(data['signature']) : undefined,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateProofSigSlot {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateProofSigSlot: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateProofSigSlot({
+      lowerSigWeight: data['lower-sig-weight'],
+      signature:
+        typeof data['signature'] !== 'undefined'
+          ? StateProofSignature.fromDecodedJSON(data['signature'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateProofSigSlot {
     if (!(data instanceof Map)) {
@@ -5119,17 +5328,23 @@ export class StateProofSignature implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateProofSignature {
-  //    /* eslint-disable dot-notation */
-  //    return new StateProofSignature({
-  //      falconSignature: data['falcon-signature'],
-  //      merkleArrayIndex: data['merkle-array-index'],
-  //      proof: typeof data['proof'] !== 'undefined' ? MerkleArrayProof.fromDecodedMsgpack(data['proof']) : undefined,
-  //      verifyingKey: data['verifying-key'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateProofSignature {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateProofSignature: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateProofSignature({
+      falconSignature: data['falcon-signature'],
+      merkleArrayIndex: data['merkle-array-index'],
+      proof:
+        typeof data['proof'] !== 'undefined'
+          ? MerkleArrayProof.fromDecodedJSON(data['proof'])
+          : undefined,
+      verifyingKey: data['verifying-key'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateProofSignature {
     if (!(data instanceof Map)) {
@@ -5242,17 +5457,20 @@ export class StateProofTracking implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateProofTracking {
-  //    /* eslint-disable dot-notation */
-  //    return new StateProofTracking({
-  //      nextRound: data['next-round'],
-  //      onlineTotalWeight: data['online-total-weight'],
-  //      type: data['type'],
-  //      votersCommitment: data['voters-commitment'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateProofTracking {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateProofTracking: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateProofTracking({
+      nextRound: data['next-round'],
+      onlineTotalWeight: data['online-total-weight'],
+      type: data['type'],
+      votersCommitment: data['voters-commitment'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateProofTracking {
     if (!(data instanceof Map)) {
@@ -5324,15 +5542,18 @@ export class StateProofVerifier implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateProofVerifier {
-  //    /* eslint-disable dot-notation */
-  //    return new StateProofVerifier({
-  //      commitment: data['commitment'],
-  //      keyLifetime: data['key-lifetime'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateProofVerifier {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateProofVerifier: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateProofVerifier({
+      commitment: data['commitment'],
+      keyLifetime: data['key-lifetime'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateProofVerifier {
     if (!(data instanceof Map)) {
@@ -5397,15 +5618,18 @@ export class StateSchema implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): StateSchema {
-  //    /* eslint-disable dot-notation */
-  //    return new StateSchema({
-  //      numByteSlice: data['num-byte-slice'] ?? 0,
-  //      numUint: data['num-uint'] ?? 0,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): StateSchema {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded StateSchema: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new StateSchema({
+      numByteSlice: data['num-byte-slice'] ?? 0,
+      numUint: data['num-uint'] ?? 0,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): StateSchema {
     if (!(data instanceof Map)) {
@@ -5458,15 +5682,18 @@ export class TealKeyValue implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TealKeyValue {
-  //    /* eslint-disable dot-notation */
-  //    return new TealKeyValue({
-  //      key: data['key'] ?? "",
-  //      value: TealValue.fromDecodedMsgpack(data['value'] ?? {}),
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TealKeyValue {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TealKeyValue: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TealKeyValue({
+      key: data['key'] ?? '',
+      value: TealValue.fromDecodedJSON(data['value'] ?? {}),
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TealKeyValue {
     if (!(data instanceof Map)) {
@@ -5539,16 +5766,19 @@ export class TealValue implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TealValue {
-  //    /* eslint-disable dot-notation */
-  //    return new TealValue({
-  //      bytes: data['bytes'] ?? "",
-  //      type: data['type'] ?? 0,
-  //      uint: data['uint'] ?? 0,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TealValue {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TealValue: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TealValue({
+      bytes: data['bytes'] ?? '',
+      type: data['type'] ?? 0,
+      uint: data['uint'] ?? 0,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TealValue {
     if (!(data instanceof Map)) {
@@ -6227,47 +6457,93 @@ export class Transaction implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): Transaction {
-  //    /* eslint-disable dot-notation */
-  //    return new Transaction({
-  //      fee: data['fee'] ?? 0,
-  //      firstValid: data['first-valid'] ?? 0,
-  //      lastValid: data['last-valid'] ?? 0,
-  //      sender: data['sender'] ?? "",
-  //      applicationTransaction: typeof data['application-transaction'] !== 'undefined' ? TransactionApplication.fromDecodedMsgpack(data['application-transaction']) : undefined,
-  //      assetConfigTransaction: typeof data['asset-config-transaction'] !== 'undefined' ? TransactionAssetConfig.fromDecodedMsgpack(data['asset-config-transaction']) : undefined,
-  //      assetFreezeTransaction: typeof data['asset-freeze-transaction'] !== 'undefined' ? TransactionAssetFreeze.fromDecodedMsgpack(data['asset-freeze-transaction']) : undefined,
-  //      assetTransferTransaction: typeof data['asset-transfer-transaction'] !== 'undefined' ? TransactionAssetTransfer.fromDecodedMsgpack(data['asset-transfer-transaction']) : undefined,
-  //      authAddr: data['auth-addr'],
-  //      closeRewards: data['close-rewards'],
-  //      closingAmount: data['closing-amount'],
-  //      confirmedRound: data['confirmed-round'],
-  //      createdApplicationIndex: data['created-application-index'],
-  //      createdAssetIndex: data['created-asset-index'],
-  //      genesisHash: data['genesis-hash'],
-  //      genesisId: data['genesis-id'],
-  //      globalStateDelta: typeof data['global-state-delta'] !== 'undefined' ? data['global-state-delta'].map(EvalDeltaKeyValue.fromDecodedMsgpack) : undefined,
-  //      group: data['group'],
-  //      id: data['id'],
-  //      innerTxns: typeof data['inner-txns'] !== 'undefined' ? data['inner-txns'].map(Transaction.fromDecodedMsgpack) : undefined,
-  //      intraRoundOffset: data['intra-round-offset'],
-  //      keyregTransaction: typeof data['keyreg-transaction'] !== 'undefined' ? TransactionKeyreg.fromDecodedMsgpack(data['keyreg-transaction']) : undefined,
-  //      lease: data['lease'],
-  //      localStateDelta: typeof data['local-state-delta'] !== 'undefined' ? data['local-state-delta'].map(AccountStateDelta.fromDecodedMsgpack) : undefined,
-  //      logs: data['logs'],
-  //      note: data['note'],
-  //      paymentTransaction: typeof data['payment-transaction'] !== 'undefined' ? TransactionPayment.fromDecodedMsgpack(data['payment-transaction']) : undefined,
-  //      receiverRewards: data['receiver-rewards'],
-  //      rekeyTo: data['rekey-to'],
-  //      roundTime: data['round-time'],
-  //      senderRewards: data['sender-rewards'],
-  //      signature: typeof data['signature'] !== 'undefined' ? TransactionSignature.fromDecodedMsgpack(data['signature']) : undefined,
-  //      stateProofTransaction: typeof data['state-proof-transaction'] !== 'undefined' ? TransactionStateProof.fromDecodedMsgpack(data['state-proof-transaction']) : undefined,
-  //      txType: data['tx-type'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): Transaction {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded Transaction: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new Transaction({
+      fee: data['fee'] ?? 0,
+      firstValid: data['first-valid'] ?? 0,
+      lastValid: data['last-valid'] ?? 0,
+      sender: data['sender'] ?? '',
+      applicationTransaction:
+        typeof data['application-transaction'] !== 'undefined'
+          ? TransactionApplication.fromDecodedJSON(
+              data['application-transaction']
+            )
+          : undefined,
+      assetConfigTransaction:
+        typeof data['asset-config-transaction'] !== 'undefined'
+          ? TransactionAssetConfig.fromDecodedJSON(
+              data['asset-config-transaction']
+            )
+          : undefined,
+      assetFreezeTransaction:
+        typeof data['asset-freeze-transaction'] !== 'undefined'
+          ? TransactionAssetFreeze.fromDecodedJSON(
+              data['asset-freeze-transaction']
+            )
+          : undefined,
+      assetTransferTransaction:
+        typeof data['asset-transfer-transaction'] !== 'undefined'
+          ? TransactionAssetTransfer.fromDecodedJSON(
+              data['asset-transfer-transaction']
+            )
+          : undefined,
+      authAddr: data['auth-addr'],
+      closeRewards: data['close-rewards'],
+      closingAmount: data['closing-amount'],
+      confirmedRound: data['confirmed-round'],
+      createdApplicationIndex: data['created-application-index'],
+      createdAssetIndex: data['created-asset-index'],
+      genesisHash: data['genesis-hash'],
+      genesisId: data['genesis-id'],
+      globalStateDelta:
+        typeof data['global-state-delta'] !== 'undefined'
+          ? data['global-state-delta'].map(EvalDeltaKeyValue.fromDecodedJSON)
+          : undefined,
+      group: data['group'],
+      id: data['id'],
+      innerTxns:
+        typeof data['inner-txns'] !== 'undefined'
+          ? data['inner-txns'].map(Transaction.fromDecodedJSON)
+          : undefined,
+      intraRoundOffset: data['intra-round-offset'],
+      keyregTransaction:
+        typeof data['keyreg-transaction'] !== 'undefined'
+          ? TransactionKeyreg.fromDecodedJSON(data['keyreg-transaction'])
+          : undefined,
+      lease: data['lease'],
+      localStateDelta:
+        typeof data['local-state-delta'] !== 'undefined'
+          ? data['local-state-delta'].map(AccountStateDelta.fromDecodedJSON)
+          : undefined,
+      logs: data['logs'],
+      note: data['note'],
+      paymentTransaction:
+        typeof data['payment-transaction'] !== 'undefined'
+          ? TransactionPayment.fromDecodedJSON(data['payment-transaction'])
+          : undefined,
+      receiverRewards: data['receiver-rewards'],
+      rekeyTo: data['rekey-to'],
+      roundTime: data['round-time'],
+      senderRewards: data['sender-rewards'],
+      signature:
+        typeof data['signature'] !== 'undefined'
+          ? TransactionSignature.fromDecodedJSON(data['signature'])
+          : undefined,
+      stateProofTransaction:
+        typeof data['state-proof-transaction'] !== 'undefined'
+          ? TransactionStateProof.fromDecodedJSON(
+              data['state-proof-transaction']
+            )
+          : undefined,
+      txType: data['tx-type'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): Transaction {
     if (!(data instanceof Map)) {
@@ -6616,24 +6892,33 @@ export class TransactionApplication implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionApplication {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionApplication({
-  //      applicationId: data['application-id'] ?? 0,
-  //      accounts: data['accounts'],
-  //      applicationArgs: data['application-args'],
-  //      approvalProgram: data['approval-program'],
-  //      clearStateProgram: data['clear-state-program'],
-  //      extraProgramPages: data['extra-program-pages'],
-  //      foreignApps: data['foreign-apps'],
-  //      foreignAssets: data['foreign-assets'],
-  //      globalStateSchema: typeof data['global-state-schema'] !== 'undefined' ? StateSchema.fromDecodedMsgpack(data['global-state-schema']) : undefined,
-  //      localStateSchema: typeof data['local-state-schema'] !== 'undefined' ? StateSchema.fromDecodedMsgpack(data['local-state-schema']) : undefined,
-  //      onCompletion: data['on-completion'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionApplication {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionApplication: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionApplication({
+      applicationId: data['application-id'] ?? 0,
+      accounts: data['accounts'],
+      applicationArgs: data['application-args'],
+      approvalProgram: data['approval-program'],
+      clearStateProgram: data['clear-state-program'],
+      extraProgramPages: data['extra-program-pages'],
+      foreignApps: data['foreign-apps'],
+      foreignAssets: data['foreign-assets'],
+      globalStateSchema:
+        typeof data['global-state-schema'] !== 'undefined'
+          ? StateSchema.fromDecodedJSON(data['global-state-schema'])
+          : undefined,
+      localStateSchema:
+        typeof data['local-state-schema'] !== 'undefined'
+          ? StateSchema.fromDecodedJSON(data['local-state-schema'])
+          : undefined,
+      onCompletion: data['on-completion'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionApplication {
     if (!(data instanceof Map)) {
@@ -6728,15 +7013,21 @@ export class TransactionAssetConfig implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionAssetConfig {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionAssetConfig({
-  //      assetId: data['asset-id'],
-  //      params: typeof data['params'] !== 'undefined' ? AssetParams.fromDecodedMsgpack(data['params']) : undefined,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionAssetConfig {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionAssetConfig: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionAssetConfig({
+      assetId: data['asset-id'],
+      params:
+        typeof data['params'] !== 'undefined'
+          ? AssetParams.fromDecodedJSON(data['params'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionAssetConfig {
     if (!(data instanceof Map)) {
@@ -6814,16 +7105,19 @@ export class TransactionAssetFreeze implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionAssetFreeze {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionAssetFreeze({
-  //      address: data['address'] ?? "",
-  //      assetId: data['asset-id'] ?? 0,
-  //      newFreezeStatus: data['new-freeze-status'] ?? false,
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionAssetFreeze {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionAssetFreeze: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionAssetFreeze({
+      address: data['address'] ?? '',
+      assetId: data['asset-id'] ?? 0,
+      newFreezeStatus: data['new-freeze-status'] ?? false,
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionAssetFreeze {
     if (!(data instanceof Map)) {
@@ -6959,19 +7253,22 @@ export class TransactionAssetTransfer
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionAssetTransfer {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionAssetTransfer({
-  //      amount: data['amount'] ?? 0,
-  //      assetId: data['asset-id'] ?? 0,
-  //      receiver: data['receiver'] ?? "",
-  //      closeAmount: data['close-amount'],
-  //      closeTo: data['close-to'],
-  //      sender: data['sender'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionAssetTransfer {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionAssetTransfer: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionAssetTransfer({
+      amount: data['amount'] ?? 0,
+      assetId: data['asset-id'] ?? 0,
+      receiver: data['receiver'] ?? '',
+      closeAmount: data['close-amount'],
+      closeTo: data['close-to'],
+      sender: data['sender'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionAssetTransfer {
     if (!(data instanceof Map)) {
@@ -7143,20 +7440,23 @@ export class TransactionKeyreg implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionKeyreg {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionKeyreg({
-  //      nonParticipation: data['non-participation'],
-  //      selectionParticipationKey: data['selection-participation-key'],
-  //      stateProofKey: data['state-proof-key'],
-  //      voteFirstValid: data['vote-first-valid'],
-  //      voteKeyDilution: data['vote-key-dilution'],
-  //      voteLastValid: data['vote-last-valid'],
-  //      voteParticipationKey: data['vote-participation-key'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionKeyreg {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionKeyreg: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionKeyreg({
+      nonParticipation: data['non-participation'],
+      selectionParticipationKey: data['selection-participation-key'],
+      stateProofKey: data['state-proof-key'],
+      voteFirstValid: data['vote-first-valid'],
+      voteKeyDilution: data['vote-key-dilution'],
+      voteLastValid: data['vote-last-valid'],
+      voteParticipationKey: data['vote-participation-key'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionKeyreg {
     if (!(data instanceof Map)) {
@@ -7262,17 +7562,20 @@ export class TransactionPayment implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionPayment {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionPayment({
-  //      amount: data['amount'] ?? 0,
-  //      receiver: data['receiver'] ?? "",
-  //      closeAmount: data['close-amount'],
-  //      closeRemainderTo: data['close-remainder-to'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionPayment {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionPayment: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionPayment({
+      amount: data['amount'] ?? 0,
+      receiver: data['receiver'] ?? '',
+      closeAmount: data['close-amount'],
+      closeRemainderTo: data['close-remainder-to'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionPayment {
     if (!(data instanceof Map)) {
@@ -7344,15 +7647,18 @@ export class TransactionResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionResponse({
-  //      currentRound: data['current-round'] ?? 0,
-  //      transaction: Transaction.fromDecodedMsgpack(data['transaction'] ?? {}),
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionResponse({
+      currentRound: data['current-round'] ?? 0,
+      transaction: Transaction.fromDecodedJSON(data['transaction'] ?? {}),
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionResponse {
     if (!(data instanceof Map)) {
@@ -7447,16 +7753,25 @@ export class TransactionSignature implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionSignature {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionSignature({
-  //      logicsig: typeof data['logicsig'] !== 'undefined' ? TransactionSignatureLogicsig.fromDecodedMsgpack(data['logicsig']) : undefined,
-  //      multisig: typeof data['multisig'] !== 'undefined' ? TransactionSignatureMultisig.fromDecodedMsgpack(data['multisig']) : undefined,
-  //      sig: data['sig'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionSignature {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionSignature: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionSignature({
+      logicsig:
+        typeof data['logicsig'] !== 'undefined'
+          ? TransactionSignatureLogicsig.fromDecodedJSON(data['logicsig'])
+          : undefined,
+      multisig:
+        typeof data['multisig'] !== 'undefined'
+          ? TransactionSignatureMultisig.fromDecodedJSON(data['multisig'])
+          : undefined,
+      sig: data['sig'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionSignature {
     if (!(data instanceof Map)) {
@@ -7572,17 +7887,27 @@ export class TransactionSignatureLogicsig
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionSignatureLogicsig {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionSignatureLogicsig({
-  //      logic: data['logic'] ?? new Uint8Array(),
-  //      args: data['args'],
-  //      multisigSignature: typeof data['multisig-signature'] !== 'undefined' ? TransactionSignatureMultisig.fromDecodedMsgpack(data['multisig-signature']) : undefined,
-  //      signature: data['signature'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionSignatureLogicsig {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(
+        `Invalid decoded TransactionSignatureLogicsig: ${encoded}`
+      );
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionSignatureLogicsig({
+      logic: data['logic'] ?? new Uint8Array(),
+      args: data['args'],
+      multisigSignature:
+        typeof data['multisig-signature'] !== 'undefined'
+          ? TransactionSignatureMultisig.fromDecodedJSON(
+              data['multisig-signature']
+            )
+          : undefined,
+      signature: data['signature'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionSignatureLogicsig {
     if (!(data instanceof Map)) {
@@ -7684,16 +8009,26 @@ export class TransactionSignatureMultisig
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionSignatureMultisig {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionSignatureMultisig({
-  //      subsignature: typeof data['subsignature'] !== 'undefined' ? data['subsignature'].map(TransactionSignatureMultisigSubsignature.fromDecodedMsgpack) : undefined,
-  //      threshold: data['threshold'],
-  //      version: data['version'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionSignatureMultisig {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(
+        `Invalid decoded TransactionSignatureMultisig: ${encoded}`
+      );
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionSignatureMultisig({
+      subsignature:
+        typeof data['subsignature'] !== 'undefined'
+          ? data['subsignature'].map(
+              TransactionSignatureMultisigSubsignature.fromDecodedJSON
+            )
+          : undefined,
+      threshold: data['threshold'],
+      version: data['version'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionSignatureMultisig {
     if (!(data instanceof Map)) {
@@ -7769,15 +8104,22 @@ export class TransactionSignatureMultisigSubsignature
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionSignatureMultisigSubsignature {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionSignatureMultisigSubsignature({
-  //      publicKey: data['public-key'],
-  //      signature: data['signature'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(
+    encoded: unknown
+  ): TransactionSignatureMultisigSubsignature {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(
+        `Invalid decoded TransactionSignatureMultisigSubsignature: ${encoded}`
+      );
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionSignatureMultisigSubsignature({
+      publicKey: data['public-key'],
+      signature: data['signature'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(
     data: unknown
@@ -7874,16 +8216,25 @@ export class TransactionStateProof implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionStateProof {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionStateProof({
-  //      message: typeof data['message'] !== 'undefined' ? IndexerStateProofMessage.fromDecodedMsgpack(data['message']) : undefined,
-  //      stateProof: typeof data['state-proof'] !== 'undefined' ? StateProofFields.fromDecodedMsgpack(data['state-proof']) : undefined,
-  //      stateProofType: data['state-proof-type'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionStateProof {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionStateProof: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionStateProof({
+      message:
+        typeof data['message'] !== 'undefined'
+          ? IndexerStateProofMessage.fromDecodedJSON(data['message'])
+          : undefined,
+      stateProof:
+        typeof data['state-proof'] !== 'undefined'
+          ? StateProofFields.fromDecodedJSON(data['state-proof'])
+          : undefined,
+      stateProofType: data['state-proof-type'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionStateProof {
     if (!(data instanceof Map)) {
@@ -7966,16 +8317,21 @@ export class TransactionsResponse implements MsgpackEncodable, JSONEncodable {
     return obj;
   }
 
-  //  // eslint-disable-next-line camelcase
-  //  static from_obj_for_encoding(data: Record<string, any>): TransactionsResponse {
-  //    /* eslint-disable dot-notation */
-  //    return new TransactionsResponse({
-  //      currentRound: data['current-round'] ?? 0,
-  //      transactions: (data['transactions'] ?? []).map(Transaction.fromDecodedMsgpack),
-  //      nextToken: data['next-token'],
-  //    });
-  //    /* eslint-enable dot-notation */
-  //  }
+  static fromDecodedJSON(encoded: unknown): TransactionsResponse {
+    if (encoded === null || typeof encoded !== 'object') {
+      throw new Error(`Invalid decoded TransactionsResponse: ${encoded}`);
+    }
+    const data = encoded as Record<string, any>;
+    /* eslint-disable dot-notation */
+    return new TransactionsResponse({
+      currentRound: data['current-round'] ?? 0,
+      transactions: (data['transactions'] ?? []).map(
+        Transaction.fromDecodedJSON
+      ),
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
 
   static fromDecodedMsgpack(data: unknown): TransactionsResponse {
     if (!(data instanceof Map)) {

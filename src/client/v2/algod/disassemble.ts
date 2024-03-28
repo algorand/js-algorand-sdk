@@ -55,6 +55,6 @@ export default class Disassemble extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): DisassembleResponse {
-    return DisassembleResponse.from_obj_for_encoding(body);
+    return DisassembleResponse.fromDecodedJSON(body);
   }
 }

@@ -19,6 +19,6 @@ export default class GetAssetByID extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Asset {
-    return Asset.from_obj_for_encoding(body);
+    return Asset.fromDecodedJSON(body);
   }
 }

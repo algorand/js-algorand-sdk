@@ -1483,7 +1483,7 @@ module.exports = function getSteps(options) {
           // endpoints are ignored by mock server, see setupMockServerForResponses
           if (responseFormat === 'msgp') {
             const response = await this.v2Client.block(0).do();
-            this.actualMockResponse = response.get_obj_for_encoding(true);
+            this.actualMockResponse = response.msgpackPrepare();
           } else {
             this.actualMockResponse = await this.v2Client.genesis().do();
           }
@@ -1769,10 +1769,9 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Pending Transaction Information response should have sender {string}',
     (sender) => {
-      const actualSender = algosdk.encodeAddress(
-        anyPendingTransactionInfoResponse.txn.txn.snd
-      );
-      assert.strictEqual(sender, actualSender);
+      const actualSender =
+        anyPendingTransactionInfoResponse.txn.txn.sender.toString();
+      assert.strictEqual(actualSender, sender);
     }
   );
 
@@ -1793,10 +1792,10 @@ module.exports = function getSteps(options) {
       );
       if (len !== 0) {
         assert.strictEqual(
-          sender,
-          algosdk.encodeAddress(
-            anyPendingTransactionsInfoResponse.topTransactions[idx].txn.snd
-          )
+          anyPendingTransactionsInfoResponse.topTransactions[
+            idx
+          ].txn.sender.toString(),
+          sender
         );
       }
     }
@@ -1837,9 +1836,10 @@ module.exports = function getSteps(options) {
       if (len === 0) {
         return;
       }
-      let actualSender =
-        anyPendingTransactionsByAddressResponse.topTransactions[idx].txn.snd;
-      actualSender = algosdk.encodeAddress(actualSender);
+      const actualSender =
+        anyPendingTransactionsByAddressResponse.topTransactions[
+          idx
+        ].txn.sender.toString();
       assert.strictEqual(sender, actualSender);
     }
   );
@@ -3253,11 +3253,11 @@ module.exports = function getSteps(options) {
 
   Then('the decoded transaction should equal the original', function () {
     const decoded = algosdk.decodeSignedTransaction(this.stx);
-    // comparing the output of get_obj_for_encoding instead because the Transaction class instance
+    // comparing the output of msgpackPrepare instead because the Transaction class instance
     // may have some nonconsequential differences in internal representation
     assert.deepStrictEqual(
-      decoded.txn.get_obj_for_encoding(),
-      this.txn.get_obj_for_encoding()
+      decoded.txn.msgpackPrepare(),
+      this.txn.msgpackPrepare()
     );
   });
 
@@ -4342,7 +4342,7 @@ module.exports = function getSteps(options) {
     function (index, pathString, expectedResult) {
       let actualResult =
         this.composerExecuteResponse.methodResults[index].txInfo;
-      actualResult = glom(actualResult.get_obj_for_encoding(), pathString);
+      actualResult = glom(actualResult.jsonPrepare(), pathString);
 
       assert.strictEqual(expectedResult, actualResult.toString());
     }
@@ -4397,8 +4397,7 @@ module.exports = function getSteps(options) {
     'a dryrun response file {string} and a transaction at index {string}',
     async function (drrFile, txId) {
       const drContents = await loadResourceAsJson(drrFile);
-      const drr =
-        algosdk.modelsv2.DryrunResponse.from_obj_for_encoding(drContents);
+      const drr = algosdk.modelsv2.DryrunResponse.fromDecodedJSON(drContents);
       this.txtrace = drr.txns[parseInt(txId)];
     }
   );
