@@ -27,8 +27,7 @@ import {
   TransactionWithSigner,
 } from './signer.js';
 import { Transaction } from './transaction.js';
-import { decodeSignedTransaction } from './signedTransaction.js';
-import { EncodedSignedTransaction } from './types/transactions/index.js';
+import { SignedTransaction } from './signedTransaction.js';
 import {
   BoxReference,
   OnApplicationComplete,
@@ -152,15 +151,16 @@ export class AtomicTransactionComposer {
   clone(): AtomicTransactionComposer {
     const theClone = new AtomicTransactionComposer();
 
-    theClone.transactions = this.transactions.map(({ txn, signer }) => ({
-      // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
-      txn: Transaction.from_obj_for_encoding({
-        ...txn.get_obj_for_encoding(),
-        // erase the group ID
-        grp: undefined,
-      }),
-      signer,
-    }));
+    theClone.transactions = this.transactions.map(({ txn, signer }) => {
+      const txnMap = txn.msgpackPrepare();
+      // erase the group ID
+      txnMap.delete('grp');
+      return {
+        // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
+        txn: Transaction.fromDecodedMsgpack(txnMap),
+        signer,
+      };
+    });
     theClone.methodCalls = new Map(this.methodCalls);
 
     return theClone;
@@ -581,7 +581,7 @@ export class AtomicTransactionComposer {
 
     const txIDs = signedTxns.map((stxn, index) => {
       try {
-        return decodeSignedTransaction(stxn).txn.txID();
+        return encoding.decodeMsgpack(stxn, SignedTransaction).txn.txID();
       } catch (err) {
         throw new Error(
           `Cannot decode signed transaction at index ${index}. ${err}`
@@ -653,8 +653,8 @@ export class AtomicTransactionComposer {
     }
 
     const stxns = await this.gatherSignatures();
-    const txnObjects: EncodedSignedTransaction[] = stxns.map(
-      (stxn) => encoding.decode(stxn) as EncodedSignedTransaction
+    const txnObjects: SignedTransaction[] = stxns.map((stxn) =>
+      encoding.decodeMsgpack(stxn, SignedTransaction)
     );
 
     const currentRequest: SimulateRequest =

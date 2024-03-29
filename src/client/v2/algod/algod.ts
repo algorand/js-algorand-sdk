@@ -37,7 +37,7 @@ import SetBlockOffsetTimestamp from './setBlockOffsetTimestamp.js';
 import GetBlockOffsetTimestamp from './getBlockOffsetTimestamp.js';
 import Disassemble from './disassemble.js';
 import SimulateRawTransactions from './simulateTransaction.js';
-import { EncodedSignedTransaction } from '../../../types/transactions/index.js';
+import { SignedTransaction } from '../../../signedTransaction.js';
 import * as encoding from '../../../encoding/encoding.js';
 import Ready from './ready.js';
 import UnsetSyncRound from './unsetSyncRound.js';
@@ -614,13 +614,13 @@ export class AlgodClient extends ServiceClient {
    * @category POST
    */
   simulateRawTransactions(stxOrStxs: Uint8Array | Uint8Array[]) {
-    const txnObjects: EncodedSignedTransaction[] = [];
+    const txnObjects: SignedTransaction[] = [];
     if (Array.isArray(stxOrStxs)) {
       for (const stxn of stxOrStxs) {
-        txnObjects.push(encoding.decode(stxn) as EncodedSignedTransaction);
+        txnObjects.push(encoding.decodeMsgpack(stxn, SignedTransaction));
       }
     } else {
-      txnObjects.push(encoding.decode(stxOrStxs) as EncodedSignedTransaction);
+      txnObjects.push(encoding.decodeMsgpack(stxOrStxs, SignedTransaction));
     }
     const request = new modelsv2.SimulateRequest({
       txnGroups: [

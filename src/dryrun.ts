@@ -12,7 +12,7 @@ import {
 } from './client/v2/algod/models/types.js';
 import { getApplicationAddress } from './encoding/address.js';
 import { base64ToBytes, bytesToHex } from './encoding/binarydata.js';
-import { SignedTransaction } from './transaction.js';
+import { SignedTransaction } from './signedTransaction.js';
 import { TransactionType } from './types/transactions/index.js';
 import { stringifyJSON } from './utils/utils.js';
 
@@ -139,7 +139,7 @@ export async function createDryrun({
   await Promise.all(acctPromises);
 
   return new DryrunRequest({
-    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
+    txns: txns.slice(),
     accounts: acctInfos,
     apps: appInfos,
     latestTimestamp: latestTimestamp ?? 0,
