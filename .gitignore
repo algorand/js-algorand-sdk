@@ -23,7 +23,9 @@ tests/cucumber/browser/build
 tests/browser/bundle.*
 
 # Builds
-dist/
+dist/**
+!dist/esm/
+!dist/esm/package.json
 docs/
 built/
 
