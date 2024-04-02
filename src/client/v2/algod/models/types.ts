@@ -2658,7 +2658,10 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
     /* eslint-disable dot-notation */
     return new BlockResponse({
       block: blockHeaderFromDecodedJSON(data['block']),
-      cert: data['cert'],
+      cert:
+        typeof data['cert'] !== 'undefined'
+          ? UntypedValue.fromDecodedJSON(data['cert'])
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -2669,7 +2672,10 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
     }
     return new BlockResponse({
       block: blockHeaderFromDecodedMsgpack(data.get('block')),
-      cert: data.get('cert'),
+      cert:
+        typeof data.get('cert') !== 'undefined'
+          ? UntypedValue.fromDecodedMsgpack(data.get('cert'))
+          : undefined,
     });
   }
 }
@@ -3173,7 +3179,10 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
     return new CompileResponse({
       hash: data['hash'] ?? '',
       result: data['result'] ?? '',
-      sourcemap: data['sourcemap'],
+      sourcemap:
+        typeof data['sourcemap'] !== 'undefined'
+          ? UntypedValue.fromDecodedJSON(data['sourcemap'])
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3185,7 +3194,10 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
     return new CompileResponse({
       hash: data.get('hash') ?? '',
       result: data.get('result') ?? '',
-      sourcemap: data.get('sourcemap'),
+      sourcemap:
+        typeof data.get('sourcemap') !== 'undefined'
+          ? UntypedValue.fromDecodedMsgpack(data.get('sourcemap'))
+          : undefined,
     });
   }
 }
@@ -3981,7 +3993,10 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     /* eslint-disable dot-notation */
     return new ErrorResponse({
       message: data['message'] ?? '',
-      data: data['data'],
+      data:
+        typeof data['data'] !== 'undefined'
+          ? UntypedValue.fromDecodedJSON(data['data'])
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3992,7 +4007,10 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     }
     return new ErrorResponse({
       message: data.get('message') ?? '',
-      data: data.get('data'),
+      data:
+        typeof data.get('data') !== 'undefined'
+          ? UntypedValue.fromDecodedMsgpack(data.get('data'))
+          : undefined,
     });
   }
 }
@@ -4403,7 +4421,7 @@ export class LedgerStateDeltaForTransactionGroup
     const data = encoded as Record<string, any>;
     /* eslint-disable dot-notation */
     return new LedgerStateDeltaForTransactionGroup({
-      delta: data['Delta'] ?? {},
+      delta: UntypedValue.fromDecodedJSON(data['Delta'] ?? {}),
       ids: data['Ids'] ?? [],
     });
     /* eslint-enable dot-notation */
@@ -4416,7 +4434,7 @@ export class LedgerStateDeltaForTransactionGroup
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new LedgerStateDeltaForTransactionGroup({
-      delta: data.get('Delta') ?? {},
+      delta: UntypedValue.fromDecodedMsgpack(data.get('Delta') ?? {}),
       ids: data.get('Ids') ?? [],
     });
   }

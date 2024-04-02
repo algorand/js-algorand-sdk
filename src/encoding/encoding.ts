@@ -17,6 +17,7 @@ import {
   DecoderOptions,
   IntMode,
 } from 'algorand-msgpack';
+import { bytesToBase64 } from './binarydata.js';
 
 // Errors
 export const ERROR_CONTAINS_EMPTY_STRING =
@@ -126,4 +127,56 @@ export function decodeMsgpack<T extends MsgpackEncodable>(
 
 export function encodeMsgpack(e: MsgpackEncodable): Uint8Array {
   return rawEncode(e.msgpackPrepare());
+}
+
+export function msgpackEncodingDataToJSONEncodingData(
+  e: MsgpackEncodingData
+): JSONEncodingData {
+  if (e === null || e === undefined) {
+    return e;
+  }
+  if (e instanceof Uint8Array) {
+    return bytesToBase64(e);
+  }
+  if (Array.isArray(e)) {
+    return e.map(msgpackEncodingDataToJSONEncodingData);
+  }
+  if (e instanceof Map) {
+    const obj: { [key: string]: JSONEncodingData } = {};
+    for (const [k, v] of e) {
+      if (typeof k !== 'string') {
+        throw new Error(`JSON map key must be a string: ${k}`);
+      }
+      obj[k] = msgpackEncodingDataToJSONEncodingData(v);
+    }
+    return obj;
+  }
+  return e;
+}
+
+export function jsonEncodingDataToMsgpackEncodingData(
+  e: JSONEncodingData
+): MsgpackEncodingData {
+  if (e === null || e === undefined) {
+    return e;
+  }
+  if (
+    typeof e === 'string' || // Note, this will not convert base64 to Uint8Array
+    typeof e === 'number' ||
+    typeof e === 'bigint' ||
+    typeof e === 'boolean'
+  ) {
+    return e;
+  }
+  if (Array.isArray(e)) {
+    return e.map(jsonEncodingDataToMsgpackEncodingData);
+  }
+  if (typeof e === 'object') {
+    const obj = new Map<string, MsgpackEncodingData>();
+    for (const [key, value] of Object.entries(e)) {
+      obj.set(key, jsonEncodingDataToMsgpackEncodingData(value));
+    }
+    return obj;
+  }
+  throw new Error(`Invalid JSON encoding data: ${e}`);
 }

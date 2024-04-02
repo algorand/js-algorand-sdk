@@ -3,6 +3,8 @@ import {
   MsgpackEncodingData,
   JSONEncodable,
   JSONEncodingData,
+  msgpackEncodingDataToJSONEncodingData,
+  jsonEncodingDataToMsgpackEncodingData,
 } from '../../encoding/encoding.js';
 
 export class UntypedValue implements MsgpackEncodable, JSONEncodable {
@@ -17,8 +19,7 @@ export class UntypedValue implements MsgpackEncodable, JSONEncodable {
   }
 
   public jsonPrepare(): JSONEncodingData {
-    // TODO
-    return this.data;
+    return msgpackEncodingDataToJSONEncodingData(this.data);
   }
 
   public static fromDecodedMsgpack(data: MsgpackEncodingData): UntypedValue {
@@ -26,7 +27,6 @@ export class UntypedValue implements MsgpackEncodable, JSONEncodable {
   }
 
   public static fromDecodedJSON(data: JSONEncodingData): UntypedValue {
-    // TODO
-    return new UntypedValue(data);
+    return new UntypedValue(jsonEncodingDataToMsgpackEncodingData(data));
   }
 }

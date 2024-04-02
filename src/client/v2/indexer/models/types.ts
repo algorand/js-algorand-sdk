@@ -3950,7 +3950,10 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     /* eslint-disable dot-notation */
     return new ErrorResponse({
       message: data['message'] ?? '',
-      data: data['data'],
+      data:
+        typeof data['data'] !== 'undefined'
+          ? UntypedValue.fromDecodedJSON(data['data'])
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3961,7 +3964,10 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     }
     return new ErrorResponse({
       message: data.get('message') ?? '',
-      data: data.get('data'),
+      data:
+        typeof data.get('data') !== 'undefined'
+          ? UntypedValue.fromDecodedMsgpack(data.get('data'))
+          : undefined,
     });
   }
 }
@@ -4287,7 +4293,10 @@ export class HealthCheck implements MsgpackEncodable, JSONEncodable {
       message: data['message'] ?? '',
       round: data['round'] ?? 0,
       version: data['version'] ?? '',
-      data: data['data'],
+      data:
+        typeof data['data'] !== 'undefined'
+          ? UntypedValue.fromDecodedJSON(data['data'])
+          : undefined,
       errors: data['errors'],
     });
     /* eslint-enable dot-notation */
@@ -4303,7 +4312,10 @@ export class HealthCheck implements MsgpackEncodable, JSONEncodable {
       message: data.get('message') ?? '',
       round: data.get('round') ?? 0,
       version: data.get('version') ?? '',
-      data: data.get('data'),
+      data:
+        typeof data.get('data') !== 'undefined'
+          ? UntypedValue.fromDecodedMsgpack(data.get('data'))
+          : undefined,
       errors: data.get('errors'),
     });
   }
