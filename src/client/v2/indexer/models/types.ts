@@ -14,6 +14,7 @@ import {
   base64ToBytes,
   bytesToBase64,
 } from '../../../../encoding/binarydata.js';
+import { UntypedValue } from '../../untypedmodel.js';
 // import BaseModel from '../../basemodel.js';
 
 /**
@@ -3906,20 +3907,14 @@ export class BoxesResponse implements MsgpackEncodable, JSONEncodable {
 export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
   public message: string;
 
-  public data?: Map<string, MsgpackEncodingData>;
+  public data?: UntypedValue;
 
   /**
    * Creates a new `ErrorResponse` object.
    * @param message -
    * @param data -
    */
-  constructor({
-    message,
-    data,
-  }: {
-    message: string;
-    data?: Map<string, MsgpackEncodingData>;
-  }) {
+  constructor({ message, data }: { message: string; data?: UntypedValue }) {
     this.message = message;
     this.data = data;
   }
@@ -3929,7 +3924,7 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
       ['message', this.message],
     ]);
     if (this.data) {
-      data.set('data', this.data);
+      data.set('data', this.data.msgpackPrepare());
     }
     return data;
   }
@@ -3940,7 +3935,7 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     /* eslint-disable dot-notation */
     obj['message'] = this.message;
     if (this.data) {
-      obj['data'] = this.data;
+      obj['data'] = this.data.jsonPrepare();
     }
     /* eslint-enable dot-notation */
 
@@ -4203,7 +4198,7 @@ export class HealthCheck implements MsgpackEncodable, JSONEncodable {
    */
   public version: string;
 
-  public data?: Map<string, MsgpackEncodingData>;
+  public data?: UntypedValue;
 
   public errors?: string[];
 
@@ -4231,7 +4226,7 @@ export class HealthCheck implements MsgpackEncodable, JSONEncodable {
     message: string;
     round: number | bigint;
     version: string;
-    data?: Map<string, MsgpackEncodingData>;
+    data?: UntypedValue;
     errors?: string[];
   }) {
     this.dbAvailable = dbAvailable;
@@ -4252,7 +4247,7 @@ export class HealthCheck implements MsgpackEncodable, JSONEncodable {
       ['version', this.version],
     ]);
     if (this.data) {
-      data.set('data', this.data);
+      data.set('data', this.data.msgpackPrepare());
     }
     if (this.errors && this.errors.length) {
       data.set('errors', this.errors);
@@ -4270,7 +4265,7 @@ export class HealthCheck implements MsgpackEncodable, JSONEncodable {
     obj['round'] = this.round;
     obj['version'] = this.version;
     if (this.data) {
-      obj['data'] = this.data;
+      obj['data'] = this.data.jsonPrepare();
     }
     if (this.errors && this.errors.length) {
       obj['errors'] = this.errors;

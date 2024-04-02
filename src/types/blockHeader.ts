@@ -1,4 +1,4 @@
-import { MsgpackEncodingData } from '../encoding/encoding';
+import { JSONEncodingData, MsgpackEncodingData } from '../encoding/encoding';
 
 /**
  * Represents the metadata and state of a block.
@@ -125,4 +125,48 @@ export function blockHeaderMsgpackPrepare(
     ['txn256', header.txn256],
     ['spt', header.spt],
   ]);
+}
+
+export function blockHeaderFromDecodedJSON(data: unknown): BlockHeader {
+  if (data === null || typeof data !== 'object') {
+    throw new Error(`Invalid decoded EncodedSubsig: ${data}`);
+  }
+  const obj = data as Record<string, any>;
+  return {
+    fees: obj.fees,
+    frac: obj.frac,
+    gen: obj.gen,
+    gh: obj.gh,
+    prev: obj.prev,
+    proto: obj.proto,
+    rate: obj.rate,
+    rnd: obj.rnd,
+    rwcalr: obj.rwcalr,
+    rwd: obj.rwd,
+    seed: obj.seed,
+    ts: obj.ts,
+    txn: obj.txn,
+    txn256: obj.txn256,
+    spt: obj.spt,
+  };
+}
+
+export function blockHeaderJSONPrepare(header: BlockHeader): JSONEncodingData {
+  return {
+    fees: header.fees,
+    frac: header.frac,
+    gen: header.gen,
+    gh: header.gh,
+    prev: header.prev,
+    proto: header.proto,
+    rate: header.rate,
+    rnd: header.rnd,
+    rwcalr: header.rwcalr,
+    rwd: header.rwd,
+    seed: header.seed,
+    ts: header.ts,
+    txn: header.txn,
+    txn256: header.txn256,
+    spt: header.spt as unknown, // TODO
+  } as Record<string, JSONEncodingData>;
 }

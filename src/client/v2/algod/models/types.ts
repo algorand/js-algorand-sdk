@@ -17,8 +17,11 @@ import {
 import BlockHeader, {
   blockHeaderMsgpackPrepare,
   blockHeaderFromDecodedMsgpack,
+  blockHeaderJSONPrepare,
+  blockHeaderFromDecodedJSON,
 } from '../../../../types/blockHeader.js';
 import { SignedTransaction } from '../../../../signedTransaction.js';
+import { UntypedValue } from '../../untypedmodel.js';
 // import BaseModel from '../../basemodel.js';
 
 /**
@@ -141,23 +144,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
   public createdAssets?: Asset[];
 
   /**
-   * Whether or not the account can receive block incentives if its balance is in
-   * range at proposal time.
-   */
-  public incentiveEligible?: boolean;
-
-  /**
-   * The round in which this account last went online, or explicitly renewed their
-   * online status.
-   */
-  public lastHeartbeat?: number;
-
-  /**
-   * The round in which this account last proposed the block.
-   */
-  public lastProposed?: number;
-
-  /**
    * AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    */
@@ -227,11 +213,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
    * Note: the raw account uses `map[int] -> AppParams` for this type.
    * @param createdAssets - (apar) parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
-   * @param incentiveEligible - Whether or not the account can receive block incentives if its balance is in
-   * range at proposal time.
-   * @param lastHeartbeat - The round in which this account last went online, or explicitly renewed their
-   * online status.
-   * @param lastProposed - The round in which this account last proposed the block.
    * @param participation - AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    * @param rewardBase - (ebase) used as part of the rewards computation. Only applicable to accounts
@@ -264,9 +245,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     authAddr,
     createdApps,
     createdAssets,
-    incentiveEligible,
-    lastHeartbeat,
-    lastProposed,
     participation,
     rewardBase,
     sigType,
@@ -292,9 +270,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     authAddr?: string;
     createdApps?: Application[];
     createdAssets?: Asset[];
-    incentiveEligible?: boolean;
-    lastHeartbeat?: number | bigint;
-    lastProposed?: number | bigint;
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
@@ -325,15 +300,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     this.authAddr = authAddr;
     this.createdApps = createdApps;
     this.createdAssets = createdAssets;
-    this.incentiveEligible = incentiveEligible;
-    this.lastHeartbeat =
-      typeof lastHeartbeat === 'undefined'
-        ? undefined
-        : ensureSafeInteger(lastHeartbeat);
-    this.lastProposed =
-      typeof lastProposed === 'undefined'
-        ? undefined
-        : ensureSafeInteger(lastProposed);
     this.participation = participation;
     this.rewardBase =
       typeof rewardBase === 'undefined' ? undefined : ensureBigInt(rewardBase);
@@ -396,15 +362,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
         this.createdAssets.map((v) => v.msgpackPrepare())
       );
     }
-    if (this.incentiveEligible) {
-      data.set('incentive-eligible', this.incentiveEligible);
-    }
-    if (this.lastHeartbeat) {
-      data.set('last-heartbeat', this.lastHeartbeat);
-    }
-    if (this.lastProposed) {
-      data.set('last-proposed', this.lastProposed);
-    }
     if (this.participation) {
       data.set('participation', this.participation.msgpackPrepare());
     }
@@ -459,15 +416,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     }
     if (this.createdAssets && this.createdAssets.length) {
       obj['created-assets'] = this.createdAssets.map((v) => v.jsonPrepare());
-    }
-    if (this.incentiveEligible) {
-      obj['incentive-eligible'] = this.incentiveEligible;
-    }
-    if (this.lastHeartbeat) {
-      obj['last-heartbeat'] = this.lastHeartbeat;
-    }
-    if (this.lastProposed) {
-      obj['last-proposed'] = this.lastProposed;
     }
     if (this.participation) {
       obj['participation'] = this.participation.jsonPrepare();
@@ -530,9 +478,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
         typeof data['created-assets'] !== 'undefined'
           ? data['created-assets'].map(Asset.fromDecodedJSON)
           : undefined,
-      incentiveEligible: data['incentive-eligible'],
-      lastHeartbeat: data['last-heartbeat'],
-      lastProposed: data['last-proposed'],
       participation:
         typeof data['participation'] !== 'undefined'
           ? AccountParticipation.fromDecodedJSON(data['participation'])
@@ -589,9 +534,6 @@ export class Account implements MsgpackEncodable, JSONEncodable {
         typeof data.get('created-assets') !== 'undefined'
           ? data.get('created-assets').map(Asset.fromDecodedMsgpack)
           : undefined,
-      incentiveEligible: data.get('incentive-eligible'),
-      lastHeartbeat: data.get('last-heartbeat'),
-      lastProposed: data.get('last-proposed'),
       participation:
         typeof data.get('participation') !== 'undefined'
           ? AccountParticipation.fromDecodedMsgpack(data.get('participation'))
@@ -2672,7 +2614,7 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
    * Optional certificate object. This is only included when the format is set to
    * message pack.
    */
-  public cert?: Map<string, MsgpackEncodingData>;
+  public cert?: UntypedValue;
 
   /**
    * Creates a new `BlockResponse` object.
@@ -2680,13 +2622,7 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
    * @param cert - Optional certificate object. This is only included when the format is set to
    * message pack.
    */
-  constructor({
-    block,
-    cert,
-  }: {
-    block: BlockHeader;
-    cert?: Map<string, MsgpackEncodingData>;
-  }) {
+  constructor({ block, cert }: { block: BlockHeader; cert?: UntypedValue }) {
     this.block = block;
     this.cert = cert;
   }
@@ -2696,7 +2632,7 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
       ['block', blockHeaderMsgpackPrepare(this.block)],
     ]);
     if (this.cert) {
-      data.set('cert', this.cert);
+      data.set('cert', this.cert.msgpackPrepare());
     }
     return data;
   }
@@ -2705,9 +2641,9 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
     const obj: Record<string, JSONEncodingData> = {};
 
     /* eslint-disable dot-notation */
-    obj['block'] = this.block;
+    obj['block'] = blockHeaderJSONPrepare(this.block);
     if (this.cert) {
-      obj['cert'] = this.cert;
+      obj['cert'] = this.cert.jsonPrepare();
     }
     /* eslint-enable dot-notation */
 
@@ -2721,7 +2657,7 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
     const data = encoded as Record<string, any>;
     /* eslint-disable dot-notation */
     return new BlockResponse({
-      block: data['block'] as BlockHeader,
+      block: blockHeaderFromDecodedJSON(data['block']),
       cert: data['cert'],
     });
     /* eslint-enable dot-notation */
@@ -3181,7 +3117,7 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
   /**
    * JSON of the source map
    */
-  public sourcemap?: Map<string, MsgpackEncodingData>;
+  public sourcemap?: UntypedValue;
 
   /**
    * Creates a new `CompileResponse` object.
@@ -3196,7 +3132,7 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
   }: {
     hash: string;
     result: string;
-    sourcemap?: Map<string, MsgpackEncodingData>;
+    sourcemap?: UntypedValue;
   }) {
     this.hash = hash;
     this.result = result;
@@ -3209,7 +3145,7 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
       ['result', this.result],
     ]);
     if (this.sourcemap) {
-      data.set('sourcemap', this.sourcemap);
+      data.set('sourcemap', this.sourcemap.msgpackPrepare());
     }
     return data;
   }
@@ -3221,7 +3157,7 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
     obj['hash'] = this.hash;
     obj['result'] = this.result;
     if (this.sourcemap) {
-      obj['sourcemap'] = this.sourcemap;
+      obj['sourcemap'] = this.sourcemap.jsonPrepare();
     }
     /* eslint-enable dot-notation */
 
@@ -4002,20 +3938,14 @@ export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
 export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
   public message: string;
 
-  public data?: Map<string, MsgpackEncodingData>;
+  public data?: UntypedValue;
 
   /**
    * Creates a new `ErrorResponse` object.
    * @param message -
    * @param data -
    */
-  constructor({
-    message,
-    data,
-  }: {
-    message: string;
-    data?: Map<string, MsgpackEncodingData>;
-  }) {
+  constructor({ message, data }: { message: string; data?: UntypedValue }) {
     this.message = message;
     this.data = data;
   }
@@ -4025,7 +3955,7 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
       ['message', this.message],
     ]);
     if (this.data) {
-      data.set('data', this.data);
+      data.set('data', this.data.msgpackPrepare());
     }
     return data;
   }
@@ -4036,7 +3966,7 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     /* eslint-disable dot-notation */
     obj['message'] = this.message;
     if (this.data) {
-      obj['data'] = this.data;
+      obj['data'] = this.data.jsonPrepare();
     }
     /* eslint-enable dot-notation */
 
@@ -4429,7 +4359,7 @@ export class LedgerStateDeltaForTransactionGroup
   /**
    * Ledger StateDelta object
    */
-  public delta: Map<string, MsgpackEncodingData>;
+  public delta: UntypedValue;
 
   public ids: string[];
 
@@ -4438,20 +4368,14 @@ export class LedgerStateDeltaForTransactionGroup
    * @param delta - Ledger StateDelta object
    * @param ids -
    */
-  constructor({
-    delta,
-    ids,
-  }: {
-    delta: Map<string, MsgpackEncodingData>;
-    ids: string[];
-  }) {
+  constructor({ delta, ids }: { delta: UntypedValue; ids: string[] }) {
     this.delta = delta;
     this.ids = ids;
   }
 
   msgpackPrepare(): Map<string, MsgpackEncodingData> {
     const data = new Map<string, MsgpackEncodingData>([
-      ['Delta', this.delta],
+      ['Delta', this.delta.msgpackPrepare()],
       ['Ids', this.ids],
     ]);
     return data;
@@ -4461,7 +4385,7 @@ export class LedgerStateDeltaForTransactionGroup
     const obj: Record<string, JSONEncodingData> = {};
 
     /* eslint-disable dot-notation */
-    obj['Delta'] = this.delta;
+    obj['Delta'] = this.delta.jsonPrepare();
     obj['Ids'] = this.ids;
     /* eslint-enable dot-notation */
 
