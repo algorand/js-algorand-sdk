@@ -2751,22 +2751,22 @@ module.exports = function getSteps(options) {
       suggestedParams: sp,
     });
     let txns;
-    let sources;
+    let sources = [];
 
     switch (kind) {
       case 'compiled':
         txns = [
-          {
+          new algosdk.SignedTransaction({
             lsig: new algosdk.LogicSig(data),
             txn: algoTxn,
-          },
+          }),
         ];
         break;
       case 'source':
         txns = [
-          {
+          new algosdk.SignedTransaction({
             txn: algoTxn,
-          },
+          }),
         ];
         sources = [
           new algosdk.modelsv2.DryrunSource({
@@ -4364,13 +4364,12 @@ module.exports = function getSteps(options) {
           } else {
             actualResults = actualResults.innerTxns[itxnIndex];
           }
-
-          const thisGroupID = actualResults.txn.txn.group;
-          if (j === 0) {
-            groupID = thisGroupID;
-          } else {
-            assert.strictEqual(groupID, thisGroupID);
-          }
+        }
+        const thisGroupID = actualResults.txn.txn.group;
+        if (i === 0) {
+          groupID = thisGroupID;
+        } else {
+          assert.deepStrictEqual(groupID, thisGroupID);
         }
       }
     }
