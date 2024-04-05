@@ -1,7 +1,13 @@
 import * as nacl from './nacl/naclWrappers.js';
 import { Address, isValidAddress } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
-import { bytesToBase64, base64ToBytes } from './encoding/binarydata.js';
+import {
+  NamedMapSchema,
+  ArraySchema,
+  ByteArraySchema,
+  FixedLengthByteArraySchema,
+} from './encoding/schema/index.js';
+import { base64ToBytes } from './encoding/binarydata.js';
 import {
   MultisigMetadata,
   verifyMultisig,
@@ -13,8 +19,8 @@ import {
   EncodedMultisig,
   encodedMultiSigMsgpackPrepare,
   encodedMultiSigFromDecodedMsgpack,
-  encodedMultiSigJSONPrepare,
   encodedMultiSigFromDecodedJSON,
+  ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/encoded.js';
 
 interface LogicSigStorageStructure {
@@ -71,8 +77,36 @@ export class LogicSig
   implements
     LogicSigStorageStructure,
     encoding.MsgpackEncodable,
-    encoding.JSONEncodable
+    encoding.JSONEncodable,
+    encoding.Encodable
 {
+  static encodingSchema = new NamedMapSchema([
+    {
+      key: 'l',
+      valueSchema: new ByteArraySchema(),
+      required: true,
+      omitEmpty: true,
+    },
+    {
+      key: 'arg',
+      valueSchema: new ArraySchema(new ByteArraySchema()),
+      required: true,
+      omitEmpty: true,
+    },
+    {
+      key: 'sig',
+      valueSchema: new FixedLengthByteArraySchema(64),
+      required: false,
+      omitEmpty: true,
+    },
+    {
+      key: 'msig',
+      valueSchema: ENCODED_MULTISIG_SCHEMA,
+      required: false,
+      omitEmpty: true,
+    },
+  ]);
+
   logic: Uint8Array;
   args?: Uint8Array[];
   sig?: Uint8Array;
@@ -99,6 +133,38 @@ export class LogicSig
     this.msig = undefined;
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): encoding.Schema {
+    return LogicSig.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, encoding.MsgpackEncodingData>([
+      ['l', this.logic],
+    ]);
+    if (this.args && this.args.length) {
+      data.set('arg', this.args);
+    }
+    if (this.sig) {
+      data.set('sig', this.sig);
+    } else if (this.msig) {
+      data.set('msig', encodedMultiSigMsgpackPrepare(this.msig));
+    }
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): LogicSig {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig: ${data}`);
+    }
+    const lsig = new LogicSig(data.get('l'), data.get('arg'));
+    lsig.sig = data.get('sig');
+    if (data.get('msig')) {
+      lsig.msig = encodedMultiSigFromDecodedMsgpack(data.get('msig'));
+    }
+    return lsig;
+  }
+
   msgpackPrepare(): encoding.MsgpackEncodingData {
     const data = new Map<string, encoding.MsgpackEncodingData>([
       ['l', this.logic],
@@ -115,18 +181,9 @@ export class LogicSig
   }
 
   jsonPrepare(): encoding.JSONEncodingData {
-    const obj: Record<string, encoding.JSONEncodingData> = {
-      l: bytesToBase64(this.logic),
-    };
-    if (this.args && this.args.length) {
-      obj.arg = this.args.map(bytesToBase64);
-    }
-    if (this.sig) {
-      obj.sig = bytesToBase64(this.sig);
-    } else if (this.msig) {
-      obj.msig = encodedMultiSigJSONPrepare(this.msig);
-    }
-    return obj;
+    return encoding.msgpackEncodingDataToJSONEncodingData(
+      this.msgpackPrepare()
+    );
   }
 
   static fromDecodedJSON(encoded: unknown): LogicSig {
@@ -271,8 +328,26 @@ export class LogicSig
  * Represents an account that can sign with a LogicSig program.
  */
 export class LogicSigAccount
-  implements encoding.MsgpackEncodable, encoding.JSONEncodable
+  implements
+    encoding.MsgpackEncodable,
+    encoding.JSONEncodable,
+    encoding.Encodable
 {
+  static encodingSchema = new NamedMapSchema([
+    {
+      key: 'lsig',
+      valueSchema: LogicSig.encodingSchema,
+      required: true,
+      omitEmpty: true,
+    },
+    {
+      key: 'sigkey',
+      valueSchema: new FixedLengthByteArraySchema(32),
+      required: false,
+      omitEmpty: true,
+    },
+  ]);
+
   lsig: LogicSig;
   sigkey?: Uint8Array;
 
@@ -290,6 +365,21 @@ export class LogicSigAccount
     this.sigkey = undefined;
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): encoding.Schema {
+    return LogicSigAccount.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['lsig', this.lsig.toEncodingData()],
+    ]);
+    if (this.sigkey) {
+      data.set('sigkey', this.sigkey);
+    }
+    return data;
+  }
+
   msgpackPrepare(): encoding.MsgpackEncodingData {
     const data = new Map<string, encoding.MsgpackEncodingData>([
       ['lsig', this.lsig.msgpackPrepare()],
@@ -301,13 +391,9 @@ export class LogicSigAccount
   }
 
   jsonPrepare(): encoding.JSONEncodingData {
-    const obj: Record<string, encoding.JSONEncodingData> = {
-      lsig: this.lsig.jsonPrepare(),
-    };
-    if (this.sigkey) {
-      obj.sigkey = bytesToBase64(this.sigkey);
-    }
-    return obj;
+    return encoding.msgpackEncodingDataToJSONEncodingData(
+      this.msgpackPrepare()
+    );
   }
 
   static fromDecodedJSON(encoded: unknown) {
@@ -332,6 +418,18 @@ export class LogicSigAccount
     const lsigAccount = new LogicSigAccount(lsig.logic, lsig.args);
     lsigAccount.lsig = lsig; // Restore other properties of the lsig
     lsigAccount.sigkey = data.get('sigkey');
+    return lsigAccount;
+  }
+
+  static fromEncodingData(data: unknown): LogicSigAccount {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    const value = data as Map<string, unknown>;
+    const lsig = LogicSig.fromEncodingData(value.get('lsig'));
+    const lsigAccount = new LogicSigAccount(lsig.logic, lsig.args);
+    lsigAccount.lsig = lsig; // Restore other properties of the lsig
+    lsigAccount.sigkey = value.get('sigkey') as Uint8Array;
     return lsigAccount;
   }
 

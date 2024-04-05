@@ -5,6 +5,16 @@ import {
 } from './boxStorage.js';
 import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
+import {
+  AddressSchema,
+  Uint64Schema,
+  ByteArraySchema,
+  FixedLengthByteArraySchema,
+  StringSchema,
+  ArraySchema,
+  NamedMapSchema,
+  BooleanSchema,
+} from './encoding/schema/index.js';
 import { bytesToBase64, base64ToBytes } from './encoding/binarydata.js';
 import * as nacl from './nacl/naclWrappers.js';
 import {
@@ -245,6 +255,123 @@ export interface StateProofTransactionFields {
 export class Transaction
   implements encoding.MsgpackEncodable, encoding.JSONEncodable
 {
+  static encodingSchema = new NamedMapSchema(
+    [
+      // Common
+      { key: 'type', valueSchema: new StringSchema(), required: true },
+      { key: 'snd', valueSchema: new AddressSchema(), required: true },
+      { key: 'lv', valueSchema: new Uint64Schema(), required: true },
+      { key: 'gen', valueSchema: new StringSchema() },
+      { key: 'gh', valueSchema: new FixedLengthByteArraySchema(32) },
+      { key: 'fee', valueSchema: new Uint64Schema(), required: true },
+      { key: 'fv', valueSchema: new Uint64Schema(), required: true },
+      { key: 'note', valueSchema: new ByteArraySchema() },
+      { key: 'lx', valueSchema: new FixedLengthByteArraySchema(32) },
+      { key: 'rekey', valueSchema: new AddressSchema() },
+      { key: 'grp', valueSchema: new FixedLengthByteArraySchema(32) },
+      // Payment
+      { key: 'amt', valueSchema: new Uint64Schema(), required: true },
+      { key: 'rcv', valueSchema: new AddressSchema(), required: true },
+      { key: 'close', valueSchema: new AddressSchema() },
+      // Keyreg
+      { key: 'votekey', valueSchema: new FixedLengthByteArraySchema(32) },
+      { key: 'selkey', valueSchema: new FixedLengthByteArraySchema(32) },
+      { key: 'sprfkey', valueSchema: new FixedLengthByteArraySchema(64) },
+      { key: 'votefst', valueSchema: new Uint64Schema() },
+      { key: 'votelst', valueSchema: new Uint64Schema() },
+      { key: 'votekd', valueSchema: new Uint64Schema() },
+      { key: 'nonpart', valueSchema: new BooleanSchema(), required: true },
+      // AssetConfig
+      { key: 'caid', valueSchema: new Uint64Schema() },
+      {
+        key: 'apar',
+        valueSchema: new NamedMapSchema(
+          [
+            { key: 't', valueSchema: new Uint64Schema() },
+            { key: 'dc', valueSchema: new Uint64Schema() },
+            { key: 'df', valueSchema: new BooleanSchema() },
+            { key: 'm', valueSchema: new AddressSchema() },
+            { key: 'r', valueSchema: new AddressSchema() },
+            { key: 'f', valueSchema: new AddressSchema() },
+            { key: 'c', valueSchema: new AddressSchema() },
+            { key: 'un', valueSchema: new StringSchema() },
+            { key: 'an', valueSchema: new StringSchema() },
+            { key: 'au', valueSchema: new StringSchema() },
+            { key: 'am', valueSchema: new FixedLengthByteArraySchema(32) },
+          ].map((entry) => ({ ...entry, omitEmpty: true, required: false }))
+        ),
+        required: false,
+      },
+      // AssetTransfer
+      { key: 'xaid', valueSchema: new Uint64Schema(), required: true },
+      { key: 'aamt', valueSchema: new Uint64Schema(), required: true },
+      { key: 'arcv', valueSchema: new AddressSchema(), required: true },
+      { key: 'aclose', valueSchema: new AddressSchema() },
+      { key: 'asnd', valueSchema: new AddressSchema() },
+      // AssetFreeze
+      { key: 'faid', valueSchema: new Uint64Schema(), required: true },
+      { key: 'afrz', valueSchema: new BooleanSchema(), required: true },
+      { key: 'fadd', valueSchema: new AddressSchema(), required: true },
+      // Application
+      { key: 'apid', valueSchema: new Uint64Schema(), required: true },
+      { key: 'apan', valueSchema: new Uint64Schema(), required: true },
+      {
+        key: 'apaa',
+        valueSchema: new ArraySchema(new ByteArraySchema()),
+        required: true,
+      },
+      {
+        key: 'apat',
+        valueSchema: new ArraySchema(new AddressSchema()),
+        required: true,
+      },
+      {
+        key: 'apas',
+        valueSchema: new ArraySchema(new Uint64Schema()),
+        required: true,
+      },
+      {
+        key: 'apfa',
+        valueSchema: new ArraySchema(new Uint64Schema()),
+        required: true,
+      },
+      {
+        key: 'apbx',
+        valueSchema: new ArraySchema(
+          new NamedMapSchema([
+            {
+              key: 'i',
+              valueSchema: new Uint64Schema(),
+              omitEmpty: true,
+              required: true,
+            },
+            {
+              key: 'n',
+              valueSchema: new ByteArraySchema(),
+              omitEmpty: true,
+              required: true,
+            },
+          ])
+        ),
+      },
+      { key: 'apap', valueSchema: new ByteArraySchema() },
+      { key: 'apsu', valueSchema: new ByteArraySchema() },
+      { key: 'nui', valueSchema: new Uint64Schema(), required: true },
+      { key: 'nbs', valueSchema: new Uint64Schema(), required: true },
+      { key: 'ngi', valueSchema: new Uint64Schema(), required: true },
+      { key: 'nbs', valueSchema: new Uint64Schema(), required: true },
+      { key: 'ep', valueSchema: new Uint64Schema(), required: true },
+      // StateProof
+      { key: 'spft', valueSchema: new Uint64Schema(), required: true },
+      { key: 'sp', valueSchema: new ByteArraySchema(), required: true },
+      { key: 'spm', valueSchema: new ByteArraySchema(), required: true },
+    ].map((entry) => ({
+      ...entry,
+      omitEmpty: true,
+      required: entry.required ?? false,
+    }))
+  );
+
   /** common */
   public readonly type: TransactionType;
   public readonly sender: Address;

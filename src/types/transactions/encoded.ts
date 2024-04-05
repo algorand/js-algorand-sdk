@@ -2,6 +2,11 @@ import {
   JSONEncodingData,
   MsgpackEncodingData,
 } from '../../encoding/encoding.js';
+import {
+  NamedMapSchema,
+  FixedLengthByteArraySchema,
+  Uint64Schema,
+} from '../../encoding/schema/index.js';
 import { base64ToBytes, bytesToBase64 } from '../../encoding/binarydata.js';
 
 /**
@@ -348,6 +353,21 @@ export interface EncodedSubsig {
   s?: Uint8Array;
 }
 
+export const ENCODED_SUBSIG_SCHEMA = new NamedMapSchema([
+  {
+    key: 'pk',
+    valueSchema: new FixedLengthByteArraySchema(32),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 's',
+    valueSchema: new FixedLengthByteArraySchema(64),
+    required: false,
+    omitEmpty: true,
+  },
+]);
+
 export function encodedSubsigFromDecodedMsgpack(data: unknown): EncodedSubsig {
   if (!(data instanceof Map)) {
     throw new Error(`Invalid decoded EncodedSubsig: ${data}`);
@@ -417,6 +437,27 @@ export interface EncodedMultisig {
    */
   subsig: EncodedSubsig[];
 }
+
+export const ENCODED_MULTISIG_SCHEMA = new NamedMapSchema([
+  {
+    key: 'v',
+    valueSchema: new Uint64Schema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'thr',
+    valueSchema: new Uint64Schema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'subsig',
+    valueSchema: ENCODED_SUBSIG_SCHEMA,
+    required: true,
+    omitEmpty: true,
+  },
+]);
 
 export function encodedMultiSigFromDecodedMsgpack(
   data: unknown

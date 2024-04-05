@@ -5,16 +5,16 @@ import {
   JSONEncodingData,
   encodeMsgpack,
   decodeMsgpack,
+  msgpackEncodingDataToJSONEncodingData,
 } from './encoding/encoding.js';
 import { Address } from './encoding/address.js';
-import { base64ToBytes, bytesToBase64 } from './encoding/binarydata.js';
+import { base64ToBytes } from './encoding/binarydata.js';
 import { Transaction } from './transaction.js';
 import { LogicSig } from './logicsig.js';
 import {
   EncodedMultisig,
   encodedMultiSigMsgpackPrepare,
   encodedMultiSigFromDecodedMsgpack,
-  encodedMultiSigJSONPrepare,
   encodedMultiSigFromDecodedJSON,
 } from './types/transactions/index.js';
 
@@ -111,22 +111,7 @@ export class SignedTransaction implements MsgpackEncodable, JSONEncodable {
   }
 
   public jsonPrepare(): JSONEncodingData {
-    const data: { [key: string]: JSONEncodingData } = {
-      txn: this.txn.jsonPrepare(),
-    };
-    if (this.sig) {
-      data.sig = bytesToBase64(this.sig);
-    }
-    if (this.msig) {
-      data.msig = encodedMultiSigJSONPrepare(this.msig);
-    }
-    if (this.lsig) {
-      data.lsig = this.lsig.jsonPrepare();
-    }
-    if (this.sgnr) {
-      data.sgnr = this.sgnr.toString();
-    }
-    return data;
+    return msgpackEncodingDataToJSONEncodingData(this.msgpackPrepare());
   }
 
   public static fromDecodedJSON(data: unknown): SignedTransaction {

@@ -180,3 +180,45 @@ export function jsonEncodingDataToMsgpackEncodingData(
   }
   throw new Error(`Invalid JSON encoding data: ${e}`);
 }
+
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-useless-constructor,no-empty-function */
+
+export abstract class Schema {
+  public abstract defaultValue(): unknown;
+
+  public abstract isDefaultValue(data: unknown): boolean;
+
+  public abstract prepareMsgpack(data: unknown): MsgpackEncodingData;
+
+  public abstract fromPreparedMsgpack(encoded: MsgpackEncodingData): unknown;
+
+  public abstract prepareJSON(data: unknown): JSONEncodingData;
+
+  public abstract fromPreparedJSON(encoded: JSONEncodingData): unknown;
+}
+
+export interface Encodable {
+  toEncodingData(): unknown;
+  getEncodingSchema(): Schema;
+}
+
+export interface EncodableClass<T extends Encodable> {
+  fromEncodingData(data: unknown): T;
+  encodingSchema: Schema;
+}
+
+export function decodeMsgpack2<T extends Encodable>(
+  encoded: ArrayLike<number>,
+  c: EncodableClass<T>
+): T {
+  return c.fromEncodingData(
+    c.encodingSchema.fromPreparedMsgpack(
+      decodeAsMap(encoded) as MsgpackEncodingData
+    )
+  );
+}
+
+export function encodeMsgpack2(e: Encodable): Uint8Array {
+  return rawEncode(e.getEncodingSchema().prepareMsgpack(e.toEncodingData()));
+}
