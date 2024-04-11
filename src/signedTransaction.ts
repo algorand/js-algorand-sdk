@@ -1,24 +1,57 @@
 import {
-  MsgpackEncodable,
-  MsgpackEncodingData,
-  JSONEncodable,
-  JSONEncodingData,
-  encodeMsgpack,
-  decodeMsgpack,
-  msgpackEncodingDataToJSONEncodingData,
+  Encodable,
+  encodeMsgpack2 as encodeMsgpack,
+  decodeMsgpack2 as decodeMsgpack,
 } from './encoding/encoding.js';
 import { Address } from './encoding/address.js';
-import { base64ToBytes } from './encoding/binarydata.js';
 import { Transaction } from './transaction.js';
 import { LogicSig } from './logicsig.js';
 import {
   EncodedMultisig,
   encodedMultiSigMsgpackPrepare,
   encodedMultiSigFromDecodedMsgpack,
-  encodedMultiSigFromDecodedJSON,
+  ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/index.js';
+import {
+  AddressSchema,
+  FixedLengthByteArraySchema,
+  NamedMapSchema,
+} from './encoding/schema/index.js';
 
-export class SignedTransaction implements MsgpackEncodable, JSONEncodable {
+export class SignedTransaction implements Encodable {
+  static encodingSchema = new NamedMapSchema([
+    {
+      key: 'txn',
+      valueSchema: Transaction.encodingSchema,
+      required: true,
+      omitEmpty: true,
+    },
+    {
+      key: 'sig',
+      valueSchema: new FixedLengthByteArraySchema(64),
+      required: false,
+      omitEmpty: true,
+    },
+    {
+      key: 'msig',
+      valueSchema: ENCODED_MULTISIG_SCHEMA,
+      required: false,
+      omitEmpty: true,
+    },
+    {
+      key: 'lsig',
+      valueSchema: LogicSig.encodingSchema,
+      required: false,
+      omitEmpty: true,
+    },
+    {
+      key: 'sgnr',
+      valueSchema: new AddressSchema(),
+      required: false,
+      omitEmpty: true,
+    },
+  ]);
+
   /**
    * The transaction that was signed
    */
@@ -74,10 +107,13 @@ export class SignedTransaction implements MsgpackEncodable, JSONEncodable {
     }
   }
 
-  public msgpackPrepare(): MsgpackEncodingData {
-    const data: Map<string, MsgpackEncodingData> = new Map([
-      ['txn', this.txn.msgpackPrepare()],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema() {
+    return SignedTransaction.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['txn', this.txn.toEncodingData()]]);
     if (this.sig) {
       data.set('sig', this.sig);
     }
@@ -85,46 +121,28 @@ export class SignedTransaction implements MsgpackEncodable, JSONEncodable {
       data.set('msig', encodedMultiSigMsgpackPrepare(this.msig));
     }
     if (this.lsig) {
-      data.set('lsig', this.lsig.msgpackPrepare());
+      data.set('lsig', this.lsig.toEncodingData());
     }
     if (this.sgnr) {
-      data.set('sgnr', this.sgnr.publicKey);
+      data.set('sgnr', this.sgnr);
     }
     return data;
   }
 
-  public static fromDecodedMsgpack(data: unknown): SignedTransaction {
+  public static fromEncodingData(data: unknown): SignedTransaction {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded SignedTransaction: ${data}`);
     }
     return new SignedTransaction({
-      txn: Transaction.fromDecodedMsgpack(data.get('txn')),
+      txn: Transaction.fromEncodingData(data.get('txn')),
       sig: data.get('sig'),
       msig: data.get('msig')
         ? encodedMultiSigFromDecodedMsgpack(data.get('msig'))
         : undefined,
       lsig: data.get('lsig')
-        ? LogicSig.fromDecodedMsgpack(data.get('lsig'))
+        ? LogicSig.fromEncodingData(data.get('lsig'))
         : undefined,
-      sgnr: data.get('sgnr') ? new Address(data.get('sgnr')) : undefined,
-    });
-  }
-
-  public jsonPrepare(): JSONEncodingData {
-    return msgpackEncodingDataToJSONEncodingData(this.msgpackPrepare());
-  }
-
-  public static fromDecodedJSON(data: unknown): SignedTransaction {
-    if (data === null || typeof data !== 'object') {
-      throw new Error(`Invalid decoded SignedTransaction: ${data}`);
-    }
-    const obj = data as Record<string, any>;
-    return new SignedTransaction({
-      txn: Transaction.fromDecodedJSON(obj.txn),
-      sig: obj.sig ? base64ToBytes(obj.sig) : undefined,
-      msig: obj.msig ? encodedMultiSigFromDecodedJSON(obj.msig) : undefined,
-      lsig: obj.lsig ? LogicSig.fromDecodedJSON(obj.lsig) : undefined,
-      sgnr: obj.sgnr ? Address.fromString(obj.sgnr) : undefined,
+      sgnr: data.get('sgnr'),
     });
   }
 }

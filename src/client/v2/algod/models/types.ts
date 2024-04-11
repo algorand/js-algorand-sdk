@@ -4,21 +4,21 @@
 
 /* eslint-disable no-use-before-define */
 import { ensureBigInt, ensureSafeInteger } from '../../../../utils/utils.js';
+import { Encodable, Schema } from '../../../../encoding/encoding.js';
 import {
-  MsgpackEncodable,
-  MsgpackEncodingData,
-  JSONEncodable,
-  JSONEncodingData,
-} from '../../../../encoding/encoding.js';
-import {
-  base64ToBytes,
-  bytesToBase64,
-} from '../../../../encoding/binarydata.js';
+  NamedMapSchema,
+  ArraySchema,
+  AddressSchema,
+  Uint64Schema,
+  StringSchema,
+  BooleanSchema,
+  ByteArraySchema,
+} from '../../../../encoding/schema/index.js';
+import { base64ToBytes } from '../../../../encoding/binarydata.js';
 import BlockHeader, {
   blockHeaderMsgpackPrepare,
   blockHeaderFromDecodedMsgpack,
-  blockHeaderJSONPrepare,
-  blockHeaderFromDecodedJSON,
+  BLOCK_HEADER_SCHEMA,
 } from '../../../../types/blockHeader.js';
 import { SignedTransaction } from '../../../../signedTransaction.js';
 import { UntypedValue } from '../../untypedmodel.js';
@@ -29,7 +29,162 @@ import { UntypedValue } from '../../untypedmodel.js';
  * Definition:
  * data/basics/userBalance.go : AccountData
  */
-export class Account implements MsgpackEncodable, JSONEncodable {
+export class Account implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'address',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'amount',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'amount-without-pending-rewards',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'min-balance',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'pending-rewards',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'rewards',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'status',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-apps-opted-in',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-assets-opted-in',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-created-apps',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-created-assets',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'apps-local-state',
+          valueSchema: new ArraySchema(ApplicationLocalState.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'apps-total-extra-pages',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'apps-total-schema',
+          valueSchema: ApplicationStateSchema.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'assets',
+          valueSchema: new ArraySchema(AssetHolding.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'auth-addr',
+          valueSchema: new AddressSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'created-apps',
+          valueSchema: new ArraySchema(Application.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'created-assets',
+          valueSchema: new ArraySchema(Asset.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'participation',
+          valueSchema: AccountParticipation.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'reward-base',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'sig-type',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-box-bytes',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-boxes',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * the account public key
    */
@@ -314,8 +469,13 @@ export class Account implements MsgpackEncodable, JSONEncodable {
         : ensureSafeInteger(totalBoxes);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Account.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['address', this.address],
       ['amount', this.amount],
       ['amount-without-pending-rewards', this.amountWithoutPendingRewards],
@@ -332,19 +492,19 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     if (this.appsLocalState && this.appsLocalState.length) {
       data.set(
         'apps-local-state',
-        this.appsLocalState.map((v) => v.msgpackPrepare())
+        this.appsLocalState.map((v) => v.toEncodingData())
       );
     }
     if (this.appsTotalExtraPages) {
       data.set('apps-total-extra-pages', this.appsTotalExtraPages);
     }
     if (this.appsTotalSchema) {
-      data.set('apps-total-schema', this.appsTotalSchema.msgpackPrepare());
+      data.set('apps-total-schema', this.appsTotalSchema.toEncodingData());
     }
     if (this.assets && this.assets.length) {
       data.set(
         'assets',
-        this.assets.map((v) => v.msgpackPrepare())
+        this.assets.map((v) => v.toEncodingData())
       );
     }
     if (this.authAddr) {
@@ -353,17 +513,17 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     if (this.createdApps && this.createdApps.length) {
       data.set(
         'created-apps',
-        this.createdApps.map((v) => v.msgpackPrepare())
+        this.createdApps.map((v) => v.toEncodingData())
       );
     }
     if (this.createdAssets && this.createdAssets.length) {
       data.set(
         'created-assets',
-        this.createdAssets.map((v) => v.msgpackPrepare())
+        this.createdAssets.map((v) => v.toEncodingData())
       );
     }
     if (this.participation) {
-      data.set('participation', this.participation.msgpackPrepare());
+      data.set('participation', this.participation.toEncodingData());
     }
     if (this.rewardBase) {
       data.set('reward-base', this.rewardBase);
@@ -380,117 +540,7 @@ export class Account implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['address'] = this.address;
-    obj['amount'] = this.amount;
-    obj['amount-without-pending-rewards'] = this.amountWithoutPendingRewards;
-    obj['min-balance'] = this.minBalance;
-    obj['pending-rewards'] = this.pendingRewards;
-    obj['rewards'] = this.rewards;
-    obj['round'] = this.round;
-    obj['status'] = this.status;
-    obj['total-apps-opted-in'] = this.totalAppsOptedIn;
-    obj['total-assets-opted-in'] = this.totalAssetsOptedIn;
-    obj['total-created-apps'] = this.totalCreatedApps;
-    obj['total-created-assets'] = this.totalCreatedAssets;
-    if (this.appsLocalState && this.appsLocalState.length) {
-      obj['apps-local-state'] = this.appsLocalState.map((v) => v.jsonPrepare());
-    }
-    if (this.appsTotalExtraPages) {
-      obj['apps-total-extra-pages'] = this.appsTotalExtraPages;
-    }
-    if (this.appsTotalSchema) {
-      obj['apps-total-schema'] = this.appsTotalSchema.jsonPrepare();
-    }
-    if (this.assets && this.assets.length) {
-      obj['assets'] = this.assets.map((v) => v.jsonPrepare());
-    }
-    if (this.authAddr) {
-      obj['auth-addr'] = this.authAddr;
-    }
-    if (this.createdApps && this.createdApps.length) {
-      obj['created-apps'] = this.createdApps.map((v) => v.jsonPrepare());
-    }
-    if (this.createdAssets && this.createdAssets.length) {
-      obj['created-assets'] = this.createdAssets.map((v) => v.jsonPrepare());
-    }
-    if (this.participation) {
-      obj['participation'] = this.participation.jsonPrepare();
-    }
-    if (this.rewardBase) {
-      obj['reward-base'] = this.rewardBase;
-    }
-    if (this.sigType) {
-      obj['sig-type'] = this.sigType;
-    }
-    if (this.totalBoxBytes) {
-      obj['total-box-bytes'] = this.totalBoxBytes;
-    }
-    if (this.totalBoxes) {
-      obj['total-boxes'] = this.totalBoxes;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): Account {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded Account: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new Account({
-      address: data['address'] ?? '',
-      amount: data['amount'] ?? 0,
-      amountWithoutPendingRewards: data['amount-without-pending-rewards'] ?? 0,
-      minBalance: data['min-balance'] ?? 0,
-      pendingRewards: data['pending-rewards'] ?? 0,
-      rewards: data['rewards'] ?? 0,
-      round: data['round'] ?? 0,
-      status: data['status'] ?? '',
-      totalAppsOptedIn: data['total-apps-opted-in'] ?? 0,
-      totalAssetsOptedIn: data['total-assets-opted-in'] ?? 0,
-      totalCreatedApps: data['total-created-apps'] ?? 0,
-      totalCreatedAssets: data['total-created-assets'] ?? 0,
-      appsLocalState:
-        typeof data['apps-local-state'] !== 'undefined'
-          ? data['apps-local-state'].map(ApplicationLocalState.fromDecodedJSON)
-          : undefined,
-      appsTotalExtraPages: data['apps-total-extra-pages'],
-      appsTotalSchema:
-        typeof data['apps-total-schema'] !== 'undefined'
-          ? ApplicationStateSchema.fromDecodedJSON(data['apps-total-schema'])
-          : undefined,
-      assets:
-        typeof data['assets'] !== 'undefined'
-          ? data['assets'].map(AssetHolding.fromDecodedJSON)
-          : undefined,
-      authAddr: data['auth-addr'],
-      createdApps:
-        typeof data['created-apps'] !== 'undefined'
-          ? data['created-apps'].map(Application.fromDecodedJSON)
-          : undefined,
-      createdAssets:
-        typeof data['created-assets'] !== 'undefined'
-          ? data['created-assets'].map(Asset.fromDecodedJSON)
-          : undefined,
-      participation:
-        typeof data['participation'] !== 'undefined'
-          ? AccountParticipation.fromDecodedJSON(data['participation'])
-          : undefined,
-      rewardBase: data['reward-base'],
-      sigType: data['sig-type'],
-      totalBoxBytes: data['total-box-bytes'],
-      totalBoxes: data['total-boxes'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): Account {
+  static fromEncodingData(data: unknown): Account {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -512,31 +562,31 @@ export class Account implements MsgpackEncodable, JSONEncodable {
         typeof data.get('apps-local-state') !== 'undefined'
           ? data
               .get('apps-local-state')
-              .map(ApplicationLocalState.fromDecodedMsgpack)
+              .map(ApplicationLocalState.fromEncodingData)
           : undefined,
       appsTotalExtraPages: data.get('apps-total-extra-pages'),
       appsTotalSchema:
         typeof data.get('apps-total-schema') !== 'undefined'
-          ? ApplicationStateSchema.fromDecodedMsgpack(
+          ? ApplicationStateSchema.fromEncodingData(
               data.get('apps-total-schema')
             )
           : undefined,
       assets:
         typeof data.get('assets') !== 'undefined'
-          ? data.get('assets').map(AssetHolding.fromDecodedMsgpack)
+          ? data.get('assets').map(AssetHolding.fromEncodingData)
           : undefined,
       authAddr: data.get('auth-addr'),
       createdApps:
         typeof data.get('created-apps') !== 'undefined'
-          ? data.get('created-apps').map(Application.fromDecodedMsgpack)
+          ? data.get('created-apps').map(Application.fromEncodingData)
           : undefined,
       createdAssets:
         typeof data.get('created-assets') !== 'undefined'
-          ? data.get('created-assets').map(Asset.fromDecodedMsgpack)
+          ? data.get('created-assets').map(Asset.fromEncodingData)
           : undefined,
       participation:
         typeof data.get('participation') !== 'undefined'
-          ? AccountParticipation.fromDecodedMsgpack(data.get('participation'))
+          ? AccountParticipation.fromEncodingData(data.get('participation'))
           : undefined,
       rewardBase: data.get('reward-base'),
       sigType: data.get('sig-type'),
@@ -552,9 +602,36 @@ export class Account implements MsgpackEncodable, JSONEncodable {
  * application ID. Global state will only be returned if the provided address is
  * the application's creator.
  */
-export class AccountApplicationResponse
-  implements MsgpackEncodable, JSONEncodable
-{
+export class AccountApplicationResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-local-state',
+          valueSchema: ApplicationLocalState.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'created-app',
+          valueSchema: ApplicationParams.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The round for which this information is relevant.
    */
@@ -596,54 +673,23 @@ export class AccountApplicationResponse
     this.createdApp = createdApp;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['round', this.round]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountApplicationResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['round', this.round]]);
     if (this.appLocalState) {
-      data.set('app-local-state', this.appLocalState.msgpackPrepare());
+      data.set('app-local-state', this.appLocalState.toEncodingData());
     }
     if (this.createdApp) {
-      data.set('created-app', this.createdApp.msgpackPrepare());
+      data.set('created-app', this.createdApp.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['round'] = this.round;
-    if (this.appLocalState) {
-      obj['app-local-state'] = this.appLocalState.jsonPrepare();
-    }
-    if (this.createdApp) {
-      obj['created-app'] = this.createdApp.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AccountApplicationResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AccountApplicationResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AccountApplicationResponse({
-      round: data['round'] ?? 0,
-      appLocalState:
-        typeof data['app-local-state'] !== 'undefined'
-          ? ApplicationLocalState.fromDecodedJSON(data['app-local-state'])
-          : undefined,
-      createdApp:
-        typeof data['created-app'] !== 'undefined'
-          ? ApplicationParams.fromDecodedJSON(data['created-app'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AccountApplicationResponse {
+  static fromEncodingData(data: unknown): AccountApplicationResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -651,13 +697,100 @@ export class AccountApplicationResponse
       round: data.get('round') ?? 0,
       appLocalState:
         typeof data.get('app-local-state') !== 'undefined'
-          ? ApplicationLocalState.fromDecodedMsgpack(
-              data.get('app-local-state')
-            )
+          ? ApplicationLocalState.fromEncodingData(data.get('app-local-state'))
           : undefined,
       createdApp:
         typeof data.get('created-app') !== 'undefined'
-          ? ApplicationParams.fromDecodedMsgpack(data.get('created-app'))
+          ? ApplicationParams.fromEncodingData(data.get('created-app'))
+          : undefined,
+    });
+  }
+}
+
+/**
+ * AccountAssetHolding describes the account's asset holding and asset parameters
+ * (if either exist) for a specific asset ID.
+ */
+export class AccountAssetHolding implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'asset-holding',
+          valueSchema: AssetHolding.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-params',
+          valueSchema: AssetParams.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   */
+  public assetHolding: AssetHolding;
+
+  /**
+   * (apar) parameters of the asset held by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  public assetParams?: AssetParams;
+
+  /**
+   * Creates a new `AccountAssetHolding` object.
+   * @param assetHolding - (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   * @param assetParams - (apar) parameters of the asset held by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  constructor({
+    assetHolding,
+    assetParams,
+  }: {
+    assetHolding: AssetHolding;
+    assetParams?: AssetParams;
+  }) {
+    this.assetHolding = assetHolding;
+    this.assetParams = assetParams;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountAssetHolding.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['asset-holding', this.assetHolding.toEncodingData()],
+    ]);
+    if (this.assetParams) {
+      data.set('asset-params', this.assetParams.toEncodingData());
+    }
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): AccountAssetHolding {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new AccountAssetHolding({
+      assetHolding: AssetHolding.fromEncodingData(
+        data.get('asset-holding') ?? {}
+      ),
+      assetParams:
+        typeof data.get('asset-params') !== 'undefined'
+          ? AssetParams.fromEncodingData(data.get('asset-params'))
           : undefined,
     });
   }
@@ -668,7 +801,36 @@ export class AccountApplicationResponse
  * (if either exist) for a specific asset ID. Asset parameters will only be
  * returned if the provided address is the asset's creator.
  */
-export class AccountAssetResponse implements MsgpackEncodable, JSONEncodable {
+export class AccountAssetResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-holding',
+          valueSchema: AssetHolding.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'created-asset',
+          valueSchema: AssetParams.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The round for which this information is relevant.
    */
@@ -708,54 +870,23 @@ export class AccountAssetResponse implements MsgpackEncodable, JSONEncodable {
     this.createdAsset = createdAsset;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['round', this.round]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountAssetResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['round', this.round]]);
     if (this.assetHolding) {
-      data.set('asset-holding', this.assetHolding.msgpackPrepare());
+      data.set('asset-holding', this.assetHolding.toEncodingData());
     }
     if (this.createdAsset) {
-      data.set('created-asset', this.createdAsset.msgpackPrepare());
+      data.set('created-asset', this.createdAsset.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['round'] = this.round;
-    if (this.assetHolding) {
-      obj['asset-holding'] = this.assetHolding.jsonPrepare();
-    }
-    if (this.createdAsset) {
-      obj['created-asset'] = this.createdAsset.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AccountAssetResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AccountAssetResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AccountAssetResponse({
-      round: data['round'] ?? 0,
-      assetHolding:
-        typeof data['asset-holding'] !== 'undefined'
-          ? AssetHolding.fromDecodedJSON(data['asset-holding'])
-          : undefined,
-      createdAsset:
-        typeof data['created-asset'] !== 'undefined'
-          ? AssetParams.fromDecodedJSON(data['created-asset'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AccountAssetResponse {
+  static fromEncodingData(data: unknown): AccountAssetResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -763,12 +894,113 @@ export class AccountAssetResponse implements MsgpackEncodable, JSONEncodable {
       round: data.get('round') ?? 0,
       assetHolding:
         typeof data.get('asset-holding') !== 'undefined'
-          ? AssetHolding.fromDecodedMsgpack(data.get('asset-holding'))
+          ? AssetHolding.fromEncodingData(data.get('asset-holding'))
           : undefined,
       createdAsset:
         typeof data.get('created-asset') !== 'undefined'
-          ? AssetParams.fromDecodedMsgpack(data.get('created-asset'))
+          ? AssetParams.fromEncodingData(data.get('created-asset'))
           : undefined,
+    });
+  }
+}
+
+/**
+ * AccountAssetsInformationResponse contains a list of assets held by an account.
+ */
+export class AccountAssetsInformationResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-holdings',
+          valueSchema: new ArraySchema(AccountAssetHolding.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * The round for which this information is relevant.
+   */
+  public round: number;
+
+  public assetHoldings?: AccountAssetHolding[];
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `AccountAssetsInformationResponse` object.
+   * @param round - The round for which this information is relevant.
+   * @param assetHoldings -
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  constructor({
+    round,
+    assetHoldings,
+    nextToken,
+  }: {
+    round: number | bigint;
+    assetHoldings?: AccountAssetHolding[];
+    nextToken?: string;
+  }) {
+    this.round = ensureSafeInteger(round);
+    this.assetHoldings = assetHoldings;
+    this.nextToken = nextToken;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountAssetsInformationResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['round', this.round]]);
+    if (this.assetHoldings && this.assetHoldings.length) {
+      data.set(
+        'asset-holdings',
+        this.assetHoldings.map((v) => v.toEncodingData())
+      );
+    }
+    if (this.nextToken) {
+      data.set('next-token', this.nextToken);
+    }
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): AccountAssetsInformationResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new AccountAssetsInformationResponse({
+      round: data.get('round') ?? 0,
+      assetHoldings:
+        typeof data.get('asset-holdings') !== 'undefined'
+          ? data.get('asset-holdings').map(AccountAssetHolding.fromEncodingData)
+          : undefined,
+      nextToken: data.get('next-token'),
     });
   }
 }
@@ -777,7 +1009,54 @@ export class AccountAssetResponse implements MsgpackEncodable, JSONEncodable {
  * AccountParticipation describes the parameters used by this account in consensus
  * protocol.
  */
-export class AccountParticipation implements MsgpackEncodable, JSONEncodable {
+export class AccountParticipation implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'selection-participation-key',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-first-valid',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-key-dilution',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-last-valid',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-participation-key',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'state-proof-key',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (sel) Selection public key (if any) currently registered for this round.
    */
@@ -851,8 +1130,13 @@ export class AccountParticipation implements MsgpackEncodable, JSONEncodable {
         : stateProofKey;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountParticipation.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['selection-participation-key', this.selectionParticipationKey],
       ['vote-first-valid', this.voteFirstValid],
       ['vote-key-dilution', this.voteKeyDilution],
@@ -865,44 +1149,7 @@ export class AccountParticipation implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['selection-participation-key'] = bytesToBase64(
-      this.selectionParticipationKey
-    );
-    obj['vote-first-valid'] = this.voteFirstValid;
-    obj['vote-key-dilution'] = this.voteKeyDilution;
-    obj['vote-last-valid'] = this.voteLastValid;
-    obj['vote-participation-key'] = bytesToBase64(this.voteParticipationKey);
-    if (this.stateProofKey) {
-      obj['state-proof-key'] = bytesToBase64(this.stateProofKey);
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AccountParticipation {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AccountParticipation: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AccountParticipation({
-      selectionParticipationKey:
-        data['selection-participation-key'] ?? new Uint8Array(),
-      voteFirstValid: data['vote-first-valid'] ?? 0,
-      voteKeyDilution: data['vote-key-dilution'] ?? 0,
-      voteLastValid: data['vote-last-valid'] ?? 0,
-      voteParticipationKey: data['vote-participation-key'] ?? new Uint8Array(),
-      stateProofKey: data['state-proof-key'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AccountParticipation {
+  static fromEncodingData(data: unknown): AccountParticipation {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -922,7 +1169,30 @@ export class AccountParticipation implements MsgpackEncodable, JSONEncodable {
 /**
  * Application state delta.
  */
-export class AccountStateDelta implements MsgpackEncodable, JSONEncodable {
+export class AccountStateDelta implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'address',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'delta',
+          valueSchema: new ArraySchema(EvalDeltaKeyValue.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public address: string;
 
   /**
@@ -946,47 +1216,26 @@ export class AccountStateDelta implements MsgpackEncodable, JSONEncodable {
     this.delta = delta;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountStateDelta.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['address', this.address],
-      ['delta', this.delta.map((v) => v.msgpackPrepare())],
+      ['delta', this.delta.map((v) => v.toEncodingData())],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['address'] = this.address;
-    obj['delta'] = this.delta.map((v) => v.jsonPrepare());
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AccountStateDelta {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AccountStateDelta: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AccountStateDelta({
-      address: data['address'] ?? '',
-      delta: (data['delta'] ?? []).map(EvalDeltaKeyValue.fromDecodedJSON),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AccountStateDelta {
+  static fromEncodingData(data: unknown): AccountStateDelta {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AccountStateDelta({
       address: data.get('address') ?? '',
-      delta: (data.get('delta') ?? []).map(
-        EvalDeltaKeyValue.fromDecodedMsgpack
-      ),
+      delta: (data.get('delta') ?? []).map(EvalDeltaKeyValue.fromEncodingData),
     });
   }
 }
@@ -994,7 +1243,30 @@ export class AccountStateDelta implements MsgpackEncodable, JSONEncodable {
 /**
  * Application index and its parameters
  */
-export class Application implements MsgpackEncodable, JSONEncodable {
+export class Application implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'id',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'params',
+          valueSchema: ApplicationParams.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (appidx) application index.
    */
@@ -1021,45 +1293,26 @@ export class Application implements MsgpackEncodable, JSONEncodable {
     this.params = params;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Application.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['id', this.id],
-      ['params', this.params.msgpackPrepare()],
+      ['params', this.params.toEncodingData()],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['id'] = this.id;
-    obj['params'] = this.params.jsonPrepare();
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): Application {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded Application: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new Application({
-      id: data['id'] ?? 0,
-      params: ApplicationParams.fromDecodedJSON(data['params'] ?? {}),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): Application {
+  static fromEncodingData(data: unknown): Application {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new Application({
       id: data.get('id') ?? 0,
-      params: ApplicationParams.fromDecodedMsgpack(data.get('params') ?? {}),
+      params: ApplicationParams.fromEncodingData(data.get('params') ?? {}),
     });
   }
 }
@@ -1068,9 +1321,42 @@ export class Application implements MsgpackEncodable, JSONEncodable {
  * An application's initial global/local/box states that were accessed during
  * simulation.
  */
-export class ApplicationInitialStates
-  implements MsgpackEncodable, JSONEncodable
-{
+export class ApplicationInitialStates implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'id',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-boxes',
+          valueSchema: ApplicationKVStorage.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-globals',
+          valueSchema: ApplicationKVStorage.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-locals',
+          valueSchema: new ArraySchema(ApplicationKVStorage.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Application index.
    */
@@ -1115,67 +1401,29 @@ export class ApplicationInitialStates
     this.appLocals = appLocals;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['id', this.id]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationInitialStates.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['id', this.id]]);
     if (this.appBoxes) {
-      data.set('app-boxes', this.appBoxes.msgpackPrepare());
+      data.set('app-boxes', this.appBoxes.toEncodingData());
     }
     if (this.appGlobals) {
-      data.set('app-globals', this.appGlobals.msgpackPrepare());
+      data.set('app-globals', this.appGlobals.toEncodingData());
     }
     if (this.appLocals && this.appLocals.length) {
       data.set(
         'app-locals',
-        this.appLocals.map((v) => v.msgpackPrepare())
+        this.appLocals.map((v) => v.toEncodingData())
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['id'] = this.id;
-    if (this.appBoxes) {
-      obj['app-boxes'] = this.appBoxes.jsonPrepare();
-    }
-    if (this.appGlobals) {
-      obj['app-globals'] = this.appGlobals.jsonPrepare();
-    }
-    if (this.appLocals && this.appLocals.length) {
-      obj['app-locals'] = this.appLocals.map((v) => v.jsonPrepare());
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ApplicationInitialStates {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ApplicationInitialStates: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ApplicationInitialStates({
-      id: data['id'] ?? 0,
-      appBoxes:
-        typeof data['app-boxes'] !== 'undefined'
-          ? ApplicationKVStorage.fromDecodedJSON(data['app-boxes'])
-          : undefined,
-      appGlobals:
-        typeof data['app-globals'] !== 'undefined'
-          ? ApplicationKVStorage.fromDecodedJSON(data['app-globals'])
-          : undefined,
-      appLocals:
-        typeof data['app-locals'] !== 'undefined'
-          ? data['app-locals'].map(ApplicationKVStorage.fromDecodedJSON)
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ApplicationInitialStates {
+  static fromEncodingData(data: unknown): ApplicationInitialStates {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -1183,15 +1431,15 @@ export class ApplicationInitialStates
       id: data.get('id') ?? 0,
       appBoxes:
         typeof data.get('app-boxes') !== 'undefined'
-          ? ApplicationKVStorage.fromDecodedMsgpack(data.get('app-boxes'))
+          ? ApplicationKVStorage.fromEncodingData(data.get('app-boxes'))
           : undefined,
       appGlobals:
         typeof data.get('app-globals') !== 'undefined'
-          ? ApplicationKVStorage.fromDecodedMsgpack(data.get('app-globals'))
+          ? ApplicationKVStorage.fromEncodingData(data.get('app-globals'))
           : undefined,
       appLocals:
         typeof data.get('app-locals') !== 'undefined'
-          ? data.get('app-locals').map(ApplicationKVStorage.fromDecodedMsgpack)
+          ? data.get('app-locals').map(ApplicationKVStorage.fromEncodingData)
           : undefined,
     });
   }
@@ -1200,7 +1448,30 @@ export class ApplicationInitialStates
 /**
  * An application's global/local/box state.
  */
-export class ApplicationKVStorage implements MsgpackEncodable, JSONEncodable {
+export class ApplicationKVStorage implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'kvs',
+          valueSchema: new ArraySchema(AvmKeyValue.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'account',
+          valueSchema: new AddressSchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Key-Value pairs representing application states.
    */
@@ -1221,9 +1492,14 @@ export class ApplicationKVStorage implements MsgpackEncodable, JSONEncodable {
     this.account = account;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['kvs', this.kvs.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationKVStorage.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['kvs', this.kvs.map((v) => v.toEncodingData())],
     ]);
     if (this.account) {
       data.set('account', this.account);
@@ -1231,38 +1507,12 @@ export class ApplicationKVStorage implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['kvs'] = this.kvs.map((v) => v.jsonPrepare());
-    if (this.account) {
-      obj['account'] = this.account;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ApplicationKVStorage {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ApplicationKVStorage: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ApplicationKVStorage({
-      kvs: (data['kvs'] ?? []).map(AvmKeyValue.fromDecodedJSON),
-      account: data['account'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ApplicationKVStorage {
+  static fromEncodingData(data: unknown): ApplicationKVStorage {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new ApplicationKVStorage({
-      kvs: (data.get('kvs') ?? []).map(AvmKeyValue.fromDecodedMsgpack),
+      kvs: (data.get('kvs') ?? []).map(AvmKeyValue.fromEncodingData),
       account: data.get('account'),
     });
   }
@@ -1271,9 +1521,30 @@ export class ApplicationKVStorage implements MsgpackEncodable, JSONEncodable {
 /**
  * References an account's local state for an application.
  */
-export class ApplicationLocalReference
-  implements MsgpackEncodable, JSONEncodable
-{
+export class ApplicationLocalReference implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'account',
+          valueSchema: new AddressSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'app',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Address of the account with the local state.
    */
@@ -1294,39 +1565,20 @@ export class ApplicationLocalReference
     this.app = ensureBigInt(app);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationLocalReference.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['account', this.account],
       ['app', this.app],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['account'] = this.account;
-    obj['app'] = this.app;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ApplicationLocalReference {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ApplicationLocalReference: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ApplicationLocalReference({
-      account: data['account'] ?? '',
-      app: data['app'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ApplicationLocalReference {
+  static fromEncodingData(data: unknown): ApplicationLocalReference {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -1340,7 +1592,36 @@ export class ApplicationLocalReference
 /**
  * Stores local state associated with an application.
  */
-export class ApplicationLocalState implements MsgpackEncodable, JSONEncodable {
+export class ApplicationLocalState implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'id',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'schema',
+          valueSchema: ApplicationStateSchema.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'key-value',
+          valueSchema: new ArraySchema(TealKeyValue.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The application which this local state is for.
    */
@@ -1376,63 +1657,35 @@ export class ApplicationLocalState implements MsgpackEncodable, JSONEncodable {
     this.keyValue = keyValue;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationLocalState.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['id', this.id],
-      ['schema', this.schema.msgpackPrepare()],
+      ['schema', this.schema.toEncodingData()],
     ]);
     if (this.keyValue && this.keyValue.length) {
       data.set(
         'key-value',
-        this.keyValue.map((v) => v.msgpackPrepare())
+        this.keyValue.map((v) => v.toEncodingData())
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['id'] = this.id;
-    obj['schema'] = this.schema.jsonPrepare();
-    if (this.keyValue && this.keyValue.length) {
-      obj['key-value'] = this.keyValue.map((v) => v.jsonPrepare());
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ApplicationLocalState {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ApplicationLocalState: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ApplicationLocalState({
-      id: data['id'] ?? 0,
-      schema: ApplicationStateSchema.fromDecodedJSON(data['schema'] ?? {}),
-      keyValue:
-        typeof data['key-value'] !== 'undefined'
-          ? data['key-value'].map(TealKeyValue.fromDecodedJSON)
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ApplicationLocalState {
+  static fromEncodingData(data: unknown): ApplicationLocalState {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new ApplicationLocalState({
       id: data.get('id') ?? 0,
-      schema: ApplicationStateSchema.fromDecodedMsgpack(
-        data.get('schema') ?? {}
-      ),
+      schema: ApplicationStateSchema.fromEncodingData(data.get('schema') ?? {}),
       keyValue:
         typeof data.get('key-value') !== 'undefined'
-          ? data.get('key-value').map(TealKeyValue.fromDecodedMsgpack)
+          ? data.get('key-value').map(TealKeyValue.fromEncodingData)
           : undefined,
     });
   }
@@ -1441,7 +1694,60 @@ export class ApplicationLocalState implements MsgpackEncodable, JSONEncodable {
 /**
  * Stores the global information associated with an application.
  */
-export class ApplicationParams implements MsgpackEncodable, JSONEncodable {
+export class ApplicationParams implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'approval-program',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'clear-state-program',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'creator',
+          valueSchema: new AddressSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'extra-program-pages',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'global-state',
+          valueSchema: new ArraySchema(TealKeyValue.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'global-state-schema',
+          valueSchema: ApplicationStateSchema.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'local-state-schema',
+          valueSchema: ApplicationStateSchema.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (approv) approval program.
    */
@@ -1524,8 +1830,13 @@ export class ApplicationParams implements MsgpackEncodable, JSONEncodable {
     this.localStateSchema = localStateSchema;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationParams.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['approval-program', this.approvalProgram],
       ['clear-state-program', this.clearStateProgram],
       ['creator', this.creator],
@@ -1536,70 +1847,19 @@ export class ApplicationParams implements MsgpackEncodable, JSONEncodable {
     if (this.globalState && this.globalState.length) {
       data.set(
         'global-state',
-        this.globalState.map((v) => v.msgpackPrepare())
+        this.globalState.map((v) => v.toEncodingData())
       );
     }
     if (this.globalStateSchema) {
-      data.set('global-state-schema', this.globalStateSchema.msgpackPrepare());
+      data.set('global-state-schema', this.globalStateSchema.toEncodingData());
     }
     if (this.localStateSchema) {
-      data.set('local-state-schema', this.localStateSchema.msgpackPrepare());
+      data.set('local-state-schema', this.localStateSchema.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['approval-program'] = bytesToBase64(this.approvalProgram);
-    obj['clear-state-program'] = bytesToBase64(this.clearStateProgram);
-    obj['creator'] = this.creator;
-    if (this.extraProgramPages) {
-      obj['extra-program-pages'] = this.extraProgramPages;
-    }
-    if (this.globalState && this.globalState.length) {
-      obj['global-state'] = this.globalState.map((v) => v.jsonPrepare());
-    }
-    if (this.globalStateSchema) {
-      obj['global-state-schema'] = this.globalStateSchema.jsonPrepare();
-    }
-    if (this.localStateSchema) {
-      obj['local-state-schema'] = this.localStateSchema.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ApplicationParams {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ApplicationParams: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ApplicationParams({
-      approvalProgram: data['approval-program'] ?? new Uint8Array(),
-      clearStateProgram: data['clear-state-program'] ?? new Uint8Array(),
-      creator: data['creator'] ?? '',
-      extraProgramPages: data['extra-program-pages'],
-      globalState:
-        typeof data['global-state'] !== 'undefined'
-          ? data['global-state'].map(TealKeyValue.fromDecodedJSON)
-          : undefined,
-      globalStateSchema:
-        typeof data['global-state-schema'] !== 'undefined'
-          ? ApplicationStateSchema.fromDecodedJSON(data['global-state-schema'])
-          : undefined,
-      localStateSchema:
-        typeof data['local-state-schema'] !== 'undefined'
-          ? ApplicationStateSchema.fromDecodedJSON(data['local-state-schema'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ApplicationParams {
+  static fromEncodingData(data: unknown): ApplicationParams {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -1610,17 +1870,17 @@ export class ApplicationParams implements MsgpackEncodable, JSONEncodable {
       extraProgramPages: data.get('extra-program-pages'),
       globalState:
         typeof data.get('global-state') !== 'undefined'
-          ? data.get('global-state').map(TealKeyValue.fromDecodedMsgpack)
+          ? data.get('global-state').map(TealKeyValue.fromEncodingData)
           : undefined,
       globalStateSchema:
         typeof data.get('global-state-schema') !== 'undefined'
-          ? ApplicationStateSchema.fromDecodedMsgpack(
+          ? ApplicationStateSchema.fromEncodingData(
               data.get('global-state-schema')
             )
           : undefined,
       localStateSchema:
         typeof data.get('local-state-schema') !== 'undefined'
-          ? ApplicationStateSchema.fromDecodedMsgpack(
+          ? ApplicationStateSchema.fromEncodingData(
               data.get('local-state-schema')
             )
           : undefined,
@@ -1631,9 +1891,48 @@ export class ApplicationParams implements MsgpackEncodable, JSONEncodable {
 /**
  * An operation against an application's global/local/box state.
  */
-export class ApplicationStateOperation
-  implements MsgpackEncodable, JSONEncodable
-{
+export class ApplicationStateOperation implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'app-state-type',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'key',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'operation',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'account',
+          valueSchema: new AddressSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'new-value',
+          valueSchema: AvmValue.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Type of application state. Value `g` is **global state**, `l` is **local
    * state**, `b` is **boxes**.
@@ -1691,8 +1990,13 @@ export class ApplicationStateOperation
     this.newValue = newValue;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationStateOperation.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['app-state-type', this.appStateType],
       ['key', this.key],
       ['operation', this.operation],
@@ -1701,49 +2005,12 @@ export class ApplicationStateOperation
       data.set('account', this.account);
     }
     if (this.newValue) {
-      data.set('new-value', this.newValue.msgpackPrepare());
+      data.set('new-value', this.newValue.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['app-state-type'] = this.appStateType;
-    obj['key'] = bytesToBase64(this.key);
-    obj['operation'] = this.operation;
-    if (this.account) {
-      obj['account'] = this.account;
-    }
-    if (this.newValue) {
-      obj['new-value'] = this.newValue.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ApplicationStateOperation {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ApplicationStateOperation: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ApplicationStateOperation({
-      appStateType: data['app-state-type'] ?? '',
-      key: data['key'] ?? new Uint8Array(),
-      operation: data['operation'] ?? '',
-      account: data['account'],
-      newValue:
-        typeof data['new-value'] !== 'undefined'
-          ? AvmValue.fromDecodedJSON(data['new-value'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ApplicationStateOperation {
+  static fromEncodingData(data: unknown): ApplicationStateOperation {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -1754,7 +2021,7 @@ export class ApplicationStateOperation
       account: data.get('account'),
       newValue:
         typeof data.get('new-value') !== 'undefined'
-          ? AvmValue.fromDecodedMsgpack(data.get('new-value'))
+          ? AvmValue.fromEncodingData(data.get('new-value'))
           : undefined,
     });
   }
@@ -1763,7 +2030,30 @@ export class ApplicationStateOperation
 /**
  * Specifies maximums on the number of each type that may be stored.
  */
-export class ApplicationStateSchema implements MsgpackEncodable, JSONEncodable {
+export class ApplicationStateSchema implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'num-byte-slice',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'num-uint',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (nbs) num of byte slices.
    */
@@ -1790,39 +2080,20 @@ export class ApplicationStateSchema implements MsgpackEncodable, JSONEncodable {
     this.numUint = ensureSafeInteger(numUint);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationStateSchema.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['num-byte-slice', this.numByteSlice],
       ['num-uint', this.numUint],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['num-byte-slice'] = this.numByteSlice;
-    obj['num-uint'] = this.numUint;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ApplicationStateSchema {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ApplicationStateSchema: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ApplicationStateSchema({
-      numByteSlice: data['num-byte-slice'] ?? 0,
-      numUint: data['num-uint'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ApplicationStateSchema {
+  static fromEncodingData(data: unknown): ApplicationStateSchema {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -1836,7 +2107,30 @@ export class ApplicationStateSchema implements MsgpackEncodable, JSONEncodable {
 /**
  * Specifies both the unique identifier and the parameters for an asset
  */
-export class Asset implements MsgpackEncodable, JSONEncodable {
+export class Asset implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'index',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'params',
+          valueSchema: AssetParams.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * unique asset identifier
    */
@@ -1869,45 +2163,26 @@ export class Asset implements MsgpackEncodable, JSONEncodable {
     this.params = params;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Asset.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['index', this.index],
-      ['params', this.params.msgpackPrepare()],
+      ['params', this.params.toEncodingData()],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['index'] = this.index;
-    obj['params'] = this.params.jsonPrepare();
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): Asset {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded Asset: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new Asset({
-      index: data['index'] ?? 0,
-      params: AssetParams.fromDecodedJSON(data['params'] ?? {}),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): Asset {
+  static fromEncodingData(data: unknown): Asset {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new Asset({
       index: data.get('index') ?? 0,
-      params: AssetParams.fromDecodedMsgpack(data.get('params') ?? {}),
+      params: AssetParams.fromEncodingData(data.get('params') ?? {}),
     });
   }
 }
@@ -1917,7 +2192,36 @@ export class Asset implements MsgpackEncodable, JSONEncodable {
  * Definition:
  * data/basics/userBalance.go : AssetHolding
  */
-export class AssetHolding implements MsgpackEncodable, JSONEncodable {
+export class AssetHolding implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'amount',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-id',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'is-frozen',
+          valueSchema: new BooleanSchema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (a) number of units held.
    */
@@ -1953,8 +2257,13 @@ export class AssetHolding implements MsgpackEncodable, JSONEncodable {
     this.isFrozen = isFrozen;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetHolding.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['amount', this.amount],
       ['asset-id', this.assetId],
       ['is-frozen', this.isFrozen],
@@ -1962,33 +2271,7 @@ export class AssetHolding implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['amount'] = this.amount;
-    obj['asset-id'] = this.assetId;
-    obj['is-frozen'] = this.isFrozen;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AssetHolding {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AssetHolding: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AssetHolding({
-      amount: data['amount'] ?? 0,
-      assetId: data['asset-id'] ?? 0,
-      isFrozen: data['is-frozen'] ?? false,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AssetHolding {
+  static fromEncodingData(data: unknown): AssetHolding {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2003,7 +2286,30 @@ export class AssetHolding implements MsgpackEncodable, JSONEncodable {
 /**
  * References an asset held by an account.
  */
-export class AssetHoldingReference implements MsgpackEncodable, JSONEncodable {
+export class AssetHoldingReference implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'account',
+          valueSchema: new AddressSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Address of the account holding the asset.
    */
@@ -2024,39 +2330,20 @@ export class AssetHoldingReference implements MsgpackEncodable, JSONEncodable {
     this.asset = ensureBigInt(asset);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetHoldingReference.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['account', this.account],
       ['asset', this.asset],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['account'] = this.account;
-    obj['asset'] = this.asset;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AssetHoldingReference {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AssetHoldingReference: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AssetHoldingReference({
-      account: data['account'] ?? '',
-      asset: data['asset'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AssetHoldingReference {
+  static fromEncodingData(data: unknown): AssetHoldingReference {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2073,7 +2360,108 @@ export class AssetHoldingReference implements MsgpackEncodable, JSONEncodable {
  * Definition:
  * data/transactions/asset.go : AssetParams
  */
-export class AssetParams implements MsgpackEncodable, JSONEncodable {
+export class AssetParams implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'creator',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'decimals',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'total',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'clawback',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'default-frozen',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'freeze',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'manager',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'metadata-hash',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'name',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'name-b64',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'reserve',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'unit-name',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'unit-name-b64',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'url',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'url-b64',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The address that created this asset. This is the address where the parameters
    * for this asset can be found, and also the address where unwanted asset units can
@@ -2246,8 +2634,13 @@ export class AssetParams implements MsgpackEncodable, JSONEncodable {
     this.urlB64 = typeof urlB64 === 'string' ? base64ToBytes(urlB64) : urlB64;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetParams.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['creator', this.creator],
       ['decimals', this.decimals],
       ['total', this.total],
@@ -2291,81 +2684,7 @@ export class AssetParams implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['creator'] = this.creator;
-    obj['decimals'] = this.decimals;
-    obj['total'] = this.total;
-    if (this.clawback) {
-      obj['clawback'] = this.clawback;
-    }
-    if (this.defaultFrozen) {
-      obj['default-frozen'] = this.defaultFrozen;
-    }
-    if (this.freeze) {
-      obj['freeze'] = this.freeze;
-    }
-    if (this.manager) {
-      obj['manager'] = this.manager;
-    }
-    if (this.metadataHash) {
-      obj['metadata-hash'] = bytesToBase64(this.metadataHash);
-    }
-    if (this.name) {
-      obj['name'] = this.name;
-    }
-    if (this.nameB64) {
-      obj['name-b64'] = bytesToBase64(this.nameB64);
-    }
-    if (this.reserve) {
-      obj['reserve'] = this.reserve;
-    }
-    if (this.unitName) {
-      obj['unit-name'] = this.unitName;
-    }
-    if (this.unitNameB64) {
-      obj['unit-name-b64'] = bytesToBase64(this.unitNameB64);
-    }
-    if (this.url) {
-      obj['url'] = this.url;
-    }
-    if (this.urlB64) {
-      obj['url-b64'] = bytesToBase64(this.urlB64);
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AssetParams {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AssetParams: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AssetParams({
-      creator: data['creator'] ?? '',
-      decimals: data['decimals'] ?? 0,
-      total: data['total'] ?? 0,
-      clawback: data['clawback'],
-      defaultFrozen: data['default-frozen'],
-      freeze: data['freeze'],
-      manager: data['manager'],
-      metadataHash: data['metadata-hash'],
-      name: data['name'],
-      nameB64: data['name-b64'],
-      reserve: data['reserve'],
-      unitName: data['unit-name'],
-      unitNameB64: data['unit-name-b64'],
-      url: data['url'],
-      urlB64: data['url-b64'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AssetParams {
+  static fromEncodingData(data: unknown): AssetParams {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2392,7 +2711,30 @@ export class AssetParams implements MsgpackEncodable, JSONEncodable {
 /**
  * Represents an AVM key-value pair in an application store.
  */
-export class AvmKeyValue implements MsgpackEncodable, JSONEncodable {
+export class AvmKeyValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'key',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'value',
+          valueSchema: AvmValue.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public key: Uint8Array;
 
   /**
@@ -2410,45 +2752,26 @@ export class AvmKeyValue implements MsgpackEncodable, JSONEncodable {
     this.value = value;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AvmKeyValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['key', this.key],
-      ['value', this.value.msgpackPrepare()],
+      ['value', this.value.toEncodingData()],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['key'] = bytesToBase64(this.key);
-    obj['value'] = this.value.jsonPrepare();
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AvmKeyValue {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AvmKeyValue: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AvmKeyValue({
-      key: data['key'] ?? new Uint8Array(),
-      value: AvmValue.fromDecodedJSON(data['value'] ?? {}),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AvmKeyValue {
+  static fromEncodingData(data: unknown): AvmKeyValue {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AvmKeyValue({
       key: data.get('key') ?? new Uint8Array(),
-      value: AvmValue.fromDecodedMsgpack(data.get('value') ?? {}),
+      value: AvmValue.fromEncodingData(data.get('value') ?? {}),
     });
   }
 }
@@ -2456,7 +2779,36 @@ export class AvmKeyValue implements MsgpackEncodable, JSONEncodable {
 /**
  * Represents an AVM value.
  */
-export class AvmValue implements MsgpackEncodable, JSONEncodable {
+export class AvmValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'type',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'bytes',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'uint',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * value type. Value `1` refers to **bytes**, value `2` refers to **uint64**
    */
@@ -2492,8 +2844,13 @@ export class AvmValue implements MsgpackEncodable, JSONEncodable {
     this.uint = typeof uint === 'undefined' ? undefined : ensureBigInt(uint);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['type', this.type]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AvmValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['type', this.type]]);
     if (this.bytes) {
       data.set('bytes', this.bytes);
     }
@@ -2503,37 +2860,7 @@ export class AvmValue implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['type'] = this.type;
-    if (this.bytes) {
-      obj['bytes'] = bytesToBase64(this.bytes);
-    }
-    if (this.uint) {
-      obj['uint'] = this.uint;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): AvmValue {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded AvmValue: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new AvmValue({
-      type: data['type'] ?? 0,
-      bytes: data['bytes'],
-      uint: data['uint'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): AvmValue {
+  static fromEncodingData(data: unknown): AvmValue {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2548,7 +2875,22 @@ export class AvmValue implements MsgpackEncodable, JSONEncodable {
 /**
  * Hash of a block header.
  */
-export class BlockHashResponse implements MsgpackEncodable, JSONEncodable {
+export class BlockHashResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'blockHash',
+        valueSchema: new StringSchema(),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Block header hash.
    */
@@ -2562,36 +2904,17 @@ export class BlockHashResponse implements MsgpackEncodable, JSONEncodable {
     this.blockhash = blockhash;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['blockHash', this.blockhash],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockHashResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['blockHash', this.blockhash]]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['blockHash'] = this.blockhash;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): BlockHashResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded BlockHashResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new BlockHashResponse({
-      blockhash: data['blockHash'] ?? '',
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): BlockHashResponse {
+  static fromEncodingData(data: unknown): BlockHashResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2604,7 +2927,30 @@ export class BlockHashResponse implements MsgpackEncodable, JSONEncodable {
 /**
  * Encoded block object.
  */
-export class BlockResponse implements MsgpackEncodable, JSONEncodable {
+export class BlockResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'block',
+          valueSchema: BLOCK_HEADER_SCHEMA,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'cert',
+          valueSchema: UntypedValue.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Block header data.
    */
@@ -2627,46 +2973,22 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
     this.cert = cert;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['block', blockHeaderMsgpackPrepare(this.block)],
     ]);
     if (this.cert) {
-      data.set('cert', this.cert.msgpackPrepare());
+      data.set('cert', this.cert.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['block'] = blockHeaderJSONPrepare(this.block);
-    if (this.cert) {
-      obj['cert'] = this.cert.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): BlockResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded BlockResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new BlockResponse({
-      block: blockHeaderFromDecodedJSON(data['block']),
-      cert:
-        typeof data['cert'] !== 'undefined'
-          ? UntypedValue.fromDecodedJSON(data['cert'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): BlockResponse {
+  static fromEncodingData(data: unknown): BlockResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2674,7 +2996,7 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
       block: blockHeaderFromDecodedMsgpack(data.get('block')),
       cert:
         typeof data.get('cert') !== 'undefined'
-          ? UntypedValue.fromDecodedMsgpack(data.get('cert'))
+          ? UntypedValue.fromEncodingData(data.get('cert'))
           : undefined,
     });
   }
@@ -2683,7 +3005,22 @@ export class BlockResponse implements MsgpackEncodable, JSONEncodable {
 /**
  * Top level transaction IDs in a block.
  */
-export class BlockTxidsResponse implements MsgpackEncodable, JSONEncodable {
+export class BlockTxidsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'blockTxids',
+        valueSchema: new ArraySchema(new StringSchema()),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Block transaction IDs.
    */
@@ -2697,36 +3034,17 @@ export class BlockTxidsResponse implements MsgpackEncodable, JSONEncodable {
     this.blocktxids = blocktxids;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['blockTxids', this.blocktxids],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockTxidsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['blockTxids', this.blocktxids]]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['blockTxids'] = this.blocktxids;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): BlockTxidsResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded BlockTxidsResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new BlockTxidsResponse({
-      blocktxids: data['blockTxids'] ?? [],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): BlockTxidsResponse {
+  static fromEncodingData(data: unknown): BlockTxidsResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2739,7 +3057,36 @@ export class BlockTxidsResponse implements MsgpackEncodable, JSONEncodable {
 /**
  * Box name and its content.
  */
-export class Box implements MsgpackEncodable, JSONEncodable {
+export class Box implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'name',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'value',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (name) box name, base64 encoded
    */
@@ -2775,8 +3122,13 @@ export class Box implements MsgpackEncodable, JSONEncodable {
     this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Box.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['name', this.name],
       ['round', this.round],
       ['value', this.value],
@@ -2784,33 +3136,7 @@ export class Box implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['name'] = bytesToBase64(this.name);
-    obj['round'] = this.round;
-    obj['value'] = bytesToBase64(this.value);
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): Box {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded Box: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new Box({
-      name: data['name'] ?? new Uint8Array(),
-      round: data['round'] ?? 0,
-      value: data['value'] ?? new Uint8Array(),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): Box {
+  static fromEncodingData(data: unknown): Box {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2825,7 +3151,22 @@ export class Box implements MsgpackEncodable, JSONEncodable {
 /**
  * Box descriptor describes a Box.
  */
-export class BoxDescriptor implements MsgpackEncodable, JSONEncodable {
+export class BoxDescriptor implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'name',
+        valueSchema: new ByteArraySchema(),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Base64 encoded box name
    */
@@ -2839,34 +3180,17 @@ export class BoxDescriptor implements MsgpackEncodable, JSONEncodable {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['name', this.name]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BoxDescriptor.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['name', this.name]]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['name'] = bytesToBase64(this.name);
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): BoxDescriptor {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded BoxDescriptor: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new BoxDescriptor({
-      name: data['name'] ?? new Uint8Array(),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): BoxDescriptor {
+  static fromEncodingData(data: unknown): BoxDescriptor {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2879,7 +3203,30 @@ export class BoxDescriptor implements MsgpackEncodable, JSONEncodable {
 /**
  * References a box of an application.
  */
-export class BoxReference implements MsgpackEncodable, JSONEncodable {
+export class BoxReference implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'app',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'name',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Application ID which this box belongs to
    */
@@ -2906,39 +3253,20 @@ export class BoxReference implements MsgpackEncodable, JSONEncodable {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BoxReference.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['app', this.app],
       ['name', this.name],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['app'] = this.app;
-    obj['name'] = bytesToBase64(this.name);
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): BoxReference {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded BoxReference: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new BoxReference({
-      app: data['app'] ?? 0,
-      name: data['name'] ?? new Uint8Array(),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): BoxReference {
+  static fromEncodingData(data: unknown): BoxReference {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -2952,7 +3280,22 @@ export class BoxReference implements MsgpackEncodable, JSONEncodable {
 /**
  * Box names of an application
  */
-export class BoxesResponse implements MsgpackEncodable, JSONEncodable {
+export class BoxesResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'boxes',
+        valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   public boxes: BoxDescriptor[];
 
   /**
@@ -2963,46 +3306,76 @@ export class BoxesResponse implements MsgpackEncodable, JSONEncodable {
     this.boxes = boxes;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['boxes', this.boxes.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BoxesResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['boxes', this.boxes.map((v) => v.toEncodingData())],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['boxes'] = this.boxes.map((v) => v.jsonPrepare());
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): BoxesResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded BoxesResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new BoxesResponse({
-      boxes: (data['boxes'] ?? []).map(BoxDescriptor.fromDecodedJSON),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): BoxesResponse {
+  static fromEncodingData(data: unknown): BoxesResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new BoxesResponse({
-      boxes: (data.get('boxes') ?? []).map(BoxDescriptor.fromDecodedMsgpack),
+      boxes: (data.get('boxes') ?? []).map(BoxDescriptor.fromEncodingData),
     });
   }
 }
 
-export class BuildVersion implements MsgpackEncodable, JSONEncodable {
+export class BuildVersion implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'branch',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'build_number',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'channel',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'commit_hash',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'major',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'minor',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public branch: string;
 
   public buildNumber: number;
@@ -3047,8 +3420,13 @@ export class BuildVersion implements MsgpackEncodable, JSONEncodable {
     this.minor = ensureSafeInteger(minor);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BuildVersion.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['branch', this.branch],
       ['build_number', this.buildNumber],
       ['channel', this.channel],
@@ -3059,39 +3437,7 @@ export class BuildVersion implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['branch'] = this.branch;
-    obj['build_number'] = this.buildNumber;
-    obj['channel'] = this.channel;
-    obj['commit_hash'] = this.commitHash;
-    obj['major'] = this.major;
-    obj['minor'] = this.minor;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): BuildVersion {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded BuildVersion: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new BuildVersion({
-      branch: data['branch'] ?? '',
-      buildNumber: data['build_number'] ?? 0,
-      channel: data['channel'] ?? '',
-      commitHash: data['commit_hash'] ?? '',
-      major: data['major'] ?? 0,
-      minor: data['minor'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): BuildVersion {
+  static fromEncodingData(data: unknown): BuildVersion {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -3109,7 +3455,36 @@ export class BuildVersion implements MsgpackEncodable, JSONEncodable {
 /**
  * Teal compile Result
  */
-export class CompileResponse implements MsgpackEncodable, JSONEncodable {
+export class CompileResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'hash',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'result',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'sourcemap',
+          valueSchema: UntypedValue.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * base32 SHA512_256 of program bytes (Address style)
    */
@@ -3145,49 +3520,23 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
     this.sourcemap = sourcemap;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return CompileResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['hash', this.hash],
       ['result', this.result],
     ]);
     if (this.sourcemap) {
-      data.set('sourcemap', this.sourcemap.msgpackPrepare());
+      data.set('sourcemap', this.sourcemap.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['hash'] = this.hash;
-    obj['result'] = this.result;
-    if (this.sourcemap) {
-      obj['sourcemap'] = this.sourcemap.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): CompileResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded CompileResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new CompileResponse({
-      hash: data['hash'] ?? '',
-      result: data['result'] ?? '',
-      sourcemap:
-        typeof data['sourcemap'] !== 'undefined'
-          ? UntypedValue.fromDecodedJSON(data['sourcemap'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): CompileResponse {
+  static fromEncodingData(data: unknown): CompileResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -3196,7 +3545,7 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
       result: data.get('result') ?? '',
       sourcemap:
         typeof data.get('sourcemap') !== 'undefined'
-          ? UntypedValue.fromDecodedMsgpack(data.get('sourcemap'))
+          ? UntypedValue.fromEncodingData(data.get('sourcemap'))
           : undefined,
     });
   }
@@ -3205,7 +3554,22 @@ export class CompileResponse implements MsgpackEncodable, JSONEncodable {
 /**
  * Teal disassembly Result
  */
-export class DisassembleResponse implements MsgpackEncodable, JSONEncodable {
+export class DisassembleResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'result',
+        valueSchema: new StringSchema(),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * disassembled Teal code
    */
@@ -3219,36 +3583,17 @@ export class DisassembleResponse implements MsgpackEncodable, JSONEncodable {
     this.result = result;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['result', this.result],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return DisassembleResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['result', this.result]]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['result'] = this.result;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): DisassembleResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded DisassembleResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new DisassembleResponse({
-      result: data['result'] ?? '',
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): DisassembleResponse {
+  static fromEncodingData(data: unknown): DisassembleResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -3262,7 +3607,60 @@ export class DisassembleResponse implements MsgpackEncodable, JSONEncodable {
  * Request data type for dryrun endpoint. Given the Transactions and simulated
  * ledger state upload, run TEAL scripts and return debugging information.
  */
-export class DryrunRequest implements MsgpackEncodable, JSONEncodable {
+export class DryrunRequest implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'accounts',
+          valueSchema: new ArraySchema(Account.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'apps',
+          valueSchema: new ArraySchema(Application.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'latest-timestamp',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'protocol-version',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'sources',
+          valueSchema: new ArraySchema(DryrunSource.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'txns',
+          valueSchema: new ArraySchema(SignedTransaction.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public accounts: Account[];
 
   public apps: Application[];
@@ -3328,65 +3726,36 @@ export class DryrunRequest implements MsgpackEncodable, JSONEncodable {
     this.txns = txns;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['accounts', this.accounts.map((v) => v.msgpackPrepare())],
-      ['apps', this.apps.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return DryrunRequest.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['accounts', this.accounts.map((v) => v.toEncodingData())],
+      ['apps', this.apps.map((v) => v.toEncodingData())],
       ['latest-timestamp', this.latestTimestamp],
       ['protocol-version', this.protocolVersion],
       ['round', this.round],
-      ['sources', this.sources.map((v) => v.msgpackPrepare())],
-      ['txns', this.txns.map((v) => v.msgpackPrepare())],
+      ['sources', this.sources.map((v) => v.toEncodingData())],
+      ['txns', this.txns.map((v) => v.toEncodingData())],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['accounts'] = this.accounts.map((v) => v.jsonPrepare());
-    obj['apps'] = this.apps.map((v) => v.jsonPrepare());
-    obj['latest-timestamp'] = this.latestTimestamp;
-    obj['protocol-version'] = this.protocolVersion;
-    obj['round'] = this.round;
-    obj['sources'] = this.sources.map((v) => v.jsonPrepare());
-    obj['txns'] = this.txns.map((v) => v.jsonPrepare());
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): DryrunRequest {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded DryrunRequest: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new DryrunRequest({
-      accounts: (data['accounts'] ?? []).map(Account.fromDecodedJSON),
-      apps: (data['apps'] ?? []).map(Application.fromDecodedJSON),
-      latestTimestamp: data['latest-timestamp'] ?? 0,
-      protocolVersion: data['protocol-version'] ?? '',
-      round: data['round'] ?? 0,
-      sources: (data['sources'] ?? []).map(DryrunSource.fromDecodedJSON),
-      txns: (data['txns'] ?? []).map(SignedTransaction.fromDecodedJSON),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): DryrunRequest {
+  static fromEncodingData(data: unknown): DryrunRequest {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new DryrunRequest({
-      accounts: (data.get('accounts') ?? []).map(Account.fromDecodedMsgpack),
-      apps: (data.get('apps') ?? []).map(Application.fromDecodedMsgpack),
+      accounts: (data.get('accounts') ?? []).map(Account.fromEncodingData),
+      apps: (data.get('apps') ?? []).map(Application.fromEncodingData),
       latestTimestamp: data.get('latest-timestamp') ?? 0,
       protocolVersion: data.get('protocol-version') ?? '',
       round: data.get('round') ?? 0,
-      sources: (data.get('sources') ?? []).map(DryrunSource.fromDecodedMsgpack),
-      txns: (data.get('txns') ?? []).map(SignedTransaction.fromDecodedMsgpack),
+      sources: (data.get('sources') ?? []).map(DryrunSource.fromEncodingData),
+      txns: (data.get('txns') ?? []).map(SignedTransaction.fromEncodingData),
     });
   }
 }
@@ -3394,7 +3763,36 @@ export class DryrunRequest implements MsgpackEncodable, JSONEncodable {
 /**
  * DryrunResponse contains per-txn debug information from a dryrun.
  */
-export class DryrunResponse implements MsgpackEncodable, JSONEncodable {
+export class DryrunResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'error',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'protocol-version',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'txns',
+          valueSchema: new ArraySchema(DryrunTxnResult.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public error: string;
 
   /**
@@ -3424,49 +3822,28 @@ export class DryrunResponse implements MsgpackEncodable, JSONEncodable {
     this.txns = txns;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return DryrunResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['error', this.error],
       ['protocol-version', this.protocolVersion],
-      ['txns', this.txns.map((v) => v.msgpackPrepare())],
+      ['txns', this.txns.map((v) => v.toEncodingData())],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['error'] = this.error;
-    obj['protocol-version'] = this.protocolVersion;
-    obj['txns'] = this.txns.map((v) => v.jsonPrepare());
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): DryrunResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded DryrunResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new DryrunResponse({
-      error: data['error'] ?? '',
-      protocolVersion: data['protocol-version'] ?? '',
-      txns: (data['txns'] ?? []).map(DryrunTxnResult.fromDecodedJSON),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): DryrunResponse {
+  static fromEncodingData(data: unknown): DryrunResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new DryrunResponse({
       error: data.get('error') ?? '',
       protocolVersion: data.get('protocol-version') ?? '',
-      txns: (data.get('txns') ?? []).map(DryrunTxnResult.fromDecodedMsgpack),
+      txns: (data.get('txns') ?? []).map(DryrunTxnResult.fromEncodingData),
     });
   }
 }
@@ -3475,7 +3852,42 @@ export class DryrunResponse implements MsgpackEncodable, JSONEncodable {
  * DryrunSource is TEAL source text that gets uploaded, compiled, and inserted into
  * transactions or application state.
  */
-export class DryrunSource implements MsgpackEncodable, JSONEncodable {
+export class DryrunSource implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'app-index',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'field-name',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'source',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'txn-index',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public appIndex: bigint;
 
   /**
@@ -3515,8 +3927,13 @@ export class DryrunSource implements MsgpackEncodable, JSONEncodable {
     this.txnIndex = ensureSafeInteger(txnIndex);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return DryrunSource.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['app-index', this.appIndex],
       ['field-name', this.fieldName],
       ['source', this.source],
@@ -3525,35 +3942,7 @@ export class DryrunSource implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['app-index'] = this.appIndex;
-    obj['field-name'] = this.fieldName;
-    obj['source'] = this.source;
-    obj['txn-index'] = this.txnIndex;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): DryrunSource {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded DryrunSource: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new DryrunSource({
-      appIndex: data['app-index'] ?? 0,
-      fieldName: data['field-name'] ?? '',
-      source: data['source'] ?? '',
-      txnIndex: data['txn-index'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): DryrunSource {
+  static fromEncodingData(data: unknown): DryrunSource {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -3569,7 +3958,48 @@ export class DryrunSource implements MsgpackEncodable, JSONEncodable {
 /**
  * Stores the TEAL eval step data
  */
-export class DryrunState implements MsgpackEncodable, JSONEncodable {
+export class DryrunState implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'line',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'pc',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'stack',
+          valueSchema: new ArraySchema(TealValue.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'error',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'scratch',
+          valueSchema: new ArraySchema(TealValue.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Line number
    */
@@ -3617,11 +4047,16 @@ export class DryrunState implements MsgpackEncodable, JSONEncodable {
     this.scratch = scratch;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return DryrunState.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['line', this.line],
       ['pc', this.pc],
-      ['stack', this.stack.map((v) => v.msgpackPrepare())],
+      ['stack', this.stack.map((v) => v.toEncodingData())],
     ]);
     if (this.error) {
       data.set('error', this.error);
@@ -3629,61 +4064,24 @@ export class DryrunState implements MsgpackEncodable, JSONEncodable {
     if (this.scratch && this.scratch.length) {
       data.set(
         'scratch',
-        this.scratch.map((v) => v.msgpackPrepare())
+        this.scratch.map((v) => v.toEncodingData())
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['line'] = this.line;
-    obj['pc'] = this.pc;
-    obj['stack'] = this.stack.map((v) => v.jsonPrepare());
-    if (this.error) {
-      obj['error'] = this.error;
-    }
-    if (this.scratch && this.scratch.length) {
-      obj['scratch'] = this.scratch.map((v) => v.jsonPrepare());
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): DryrunState {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded DryrunState: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new DryrunState({
-      line: data['line'] ?? 0,
-      pc: data['pc'] ?? 0,
-      stack: (data['stack'] ?? []).map(TealValue.fromDecodedJSON),
-      error: data['error'],
-      scratch:
-        typeof data['scratch'] !== 'undefined'
-          ? data['scratch'].map(TealValue.fromDecodedJSON)
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): DryrunState {
+  static fromEncodingData(data: unknown): DryrunState {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new DryrunState({
       line: data.get('line') ?? 0,
       pc: data.get('pc') ?? 0,
-      stack: (data.get('stack') ?? []).map(TealValue.fromDecodedMsgpack),
+      stack: (data.get('stack') ?? []).map(TealValue.fromEncodingData),
       error: data.get('error'),
       scratch:
         typeof data.get('scratch') !== 'undefined'
-          ? data.get('scratch').map(TealValue.fromDecodedMsgpack)
+          ? data.get('scratch').map(TealValue.fromEncodingData)
           : undefined,
     });
   }
@@ -3693,7 +4091,84 @@ export class DryrunState implements MsgpackEncodable, JSONEncodable {
  * DryrunTxnResult contains any LogicSig or ApplicationCall program debug
  * information and state updates from a dryrun.
  */
-export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
+export class DryrunTxnResult implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'disassembly',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-call-messages',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-call-trace',
+          valueSchema: new ArraySchema(DryrunState.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'budget-added',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'budget-consumed',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'global-delta',
+          valueSchema: new ArraySchema(EvalDeltaKeyValue.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'local-deltas',
+          valueSchema: new ArraySchema(AccountStateDelta.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logic-sig-disassembly',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logic-sig-messages',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logic-sig-trace',
+          valueSchema: new ArraySchema(DryrunState.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logs',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Disassembled program line by line.
    */
@@ -3789,17 +4264,20 @@ export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
     this.logs = logs;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['disassembly', this.disassembly],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return DryrunTxnResult.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['disassembly', this.disassembly]]);
     if (this.appCallMessages && this.appCallMessages.length) {
       data.set('app-call-messages', this.appCallMessages);
     }
     if (this.appCallTrace && this.appCallTrace.length) {
       data.set(
         'app-call-trace',
-        this.appCallTrace.map((v) => v.msgpackPrepare())
+        this.appCallTrace.map((v) => v.toEncodingData())
       );
     }
     if (this.budgetAdded) {
@@ -3811,13 +4289,13 @@ export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
     if (this.globalDelta && this.globalDelta.length) {
       data.set(
         'global-delta',
-        this.globalDelta.map((v) => v.msgpackPrepare())
+        this.globalDelta.map((v) => v.toEncodingData())
       );
     }
     if (this.localDeltas && this.localDeltas.length) {
       data.set(
         'local-deltas',
-        this.localDeltas.map((v) => v.msgpackPrepare())
+        this.localDeltas.map((v) => v.toEncodingData())
       );
     }
     if (this.logicSigDisassembly && this.logicSigDisassembly.length) {
@@ -3829,7 +4307,7 @@ export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
     if (this.logicSigTrace && this.logicSigTrace.length) {
       data.set(
         'logic-sig-trace',
-        this.logicSigTrace.map((v) => v.msgpackPrepare())
+        this.logicSigTrace.map((v) => v.toEncodingData())
       );
     }
     if (this.logs && this.logs.length) {
@@ -3838,81 +4316,7 @@ export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['disassembly'] = this.disassembly;
-    if (this.appCallMessages && this.appCallMessages.length) {
-      obj['app-call-messages'] = this.appCallMessages;
-    }
-    if (this.appCallTrace && this.appCallTrace.length) {
-      obj['app-call-trace'] = this.appCallTrace.map((v) => v.jsonPrepare());
-    }
-    if (this.budgetAdded) {
-      obj['budget-added'] = this.budgetAdded;
-    }
-    if (this.budgetConsumed) {
-      obj['budget-consumed'] = this.budgetConsumed;
-    }
-    if (this.globalDelta && this.globalDelta.length) {
-      obj['global-delta'] = this.globalDelta.map((v) => v.jsonPrepare());
-    }
-    if (this.localDeltas && this.localDeltas.length) {
-      obj['local-deltas'] = this.localDeltas.map((v) => v.jsonPrepare());
-    }
-    if (this.logicSigDisassembly && this.logicSigDisassembly.length) {
-      obj['logic-sig-disassembly'] = this.logicSigDisassembly;
-    }
-    if (this.logicSigMessages && this.logicSigMessages.length) {
-      obj['logic-sig-messages'] = this.logicSigMessages;
-    }
-    if (this.logicSigTrace && this.logicSigTrace.length) {
-      obj['logic-sig-trace'] = this.logicSigTrace.map((v) => v.jsonPrepare());
-    }
-    if (this.logs && this.logs.length) {
-      obj['logs'] = this.logs.map(bytesToBase64);
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): DryrunTxnResult {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded DryrunTxnResult: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new DryrunTxnResult({
-      disassembly: data['disassembly'] ?? [],
-      appCallMessages: data['app-call-messages'],
-      appCallTrace:
-        typeof data['app-call-trace'] !== 'undefined'
-          ? data['app-call-trace'].map(DryrunState.fromDecodedJSON)
-          : undefined,
-      budgetAdded: data['budget-added'],
-      budgetConsumed: data['budget-consumed'],
-      globalDelta:
-        typeof data['global-delta'] !== 'undefined'
-          ? data['global-delta'].map(EvalDeltaKeyValue.fromDecodedJSON)
-          : undefined,
-      localDeltas:
-        typeof data['local-deltas'] !== 'undefined'
-          ? data['local-deltas'].map(AccountStateDelta.fromDecodedJSON)
-          : undefined,
-      logicSigDisassembly: data['logic-sig-disassembly'],
-      logicSigMessages: data['logic-sig-messages'],
-      logicSigTrace:
-        typeof data['logic-sig-trace'] !== 'undefined'
-          ? data['logic-sig-trace'].map(DryrunState.fromDecodedJSON)
-          : undefined,
-      logs: data['logs'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): DryrunTxnResult {
+  static fromEncodingData(data: unknown): DryrunTxnResult {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -3921,23 +4325,23 @@ export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
       appCallMessages: data.get('app-call-messages'),
       appCallTrace:
         typeof data.get('app-call-trace') !== 'undefined'
-          ? data.get('app-call-trace').map(DryrunState.fromDecodedMsgpack)
+          ? data.get('app-call-trace').map(DryrunState.fromEncodingData)
           : undefined,
       budgetAdded: data.get('budget-added'),
       budgetConsumed: data.get('budget-consumed'),
       globalDelta:
         typeof data.get('global-delta') !== 'undefined'
-          ? data.get('global-delta').map(EvalDeltaKeyValue.fromDecodedMsgpack)
+          ? data.get('global-delta').map(EvalDeltaKeyValue.fromEncodingData)
           : undefined,
       localDeltas:
         typeof data.get('local-deltas') !== 'undefined'
-          ? data.get('local-deltas').map(AccountStateDelta.fromDecodedMsgpack)
+          ? data.get('local-deltas').map(AccountStateDelta.fromEncodingData)
           : undefined,
       logicSigDisassembly: data.get('logic-sig-disassembly'),
       logicSigMessages: data.get('logic-sig-messages'),
       logicSigTrace:
         typeof data.get('logic-sig-trace') !== 'undefined'
-          ? data.get('logic-sig-trace').map(DryrunState.fromDecodedMsgpack)
+          ? data.get('logic-sig-trace').map(DryrunState.fromEncodingData)
           : undefined,
       logs: data.get('logs'),
     });
@@ -3947,7 +4351,30 @@ export class DryrunTxnResult implements MsgpackEncodable, JSONEncodable {
 /**
  * An error response with optional data field.
  */
-export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
+export class ErrorResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'message',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'data',
+          valueSchema: UntypedValue.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public message: string;
 
   public data?: UntypedValue;
@@ -3962,46 +4389,20 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
     this.data = data;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['message', this.message],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ErrorResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['message', this.message]]);
     if (this.data) {
-      data.set('data', this.data.msgpackPrepare());
+      data.set('data', this.data.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['message'] = this.message;
-    if (this.data) {
-      obj['data'] = this.data.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ErrorResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ErrorResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ErrorResponse({
-      message: data['message'] ?? '',
-      data:
-        typeof data['data'] !== 'undefined'
-          ? UntypedValue.fromDecodedJSON(data['data'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ErrorResponse {
+  static fromEncodingData(data: unknown): ErrorResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -4009,7 +4410,7 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
       message: data.get('message') ?? '',
       data:
         typeof data.get('data') !== 'undefined'
-          ? UntypedValue.fromDecodedMsgpack(data.get('data'))
+          ? UntypedValue.fromEncodingData(data.get('data'))
           : undefined,
     });
   }
@@ -4018,7 +4419,36 @@ export class ErrorResponse implements MsgpackEncodable, JSONEncodable {
 /**
  * Represents a TEAL value delta.
  */
-export class EvalDelta implements MsgpackEncodable, JSONEncodable {
+export class EvalDelta implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'action',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'bytes',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'uint',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (at) delta action.
    */
@@ -4054,10 +4484,13 @@ export class EvalDelta implements MsgpackEncodable, JSONEncodable {
     this.uint = typeof uint === 'undefined' ? undefined : ensureBigInt(uint);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['action', this.action],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return EvalDelta.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['action', this.action]]);
     if (this.bytes) {
       data.set('bytes', this.bytes);
     }
@@ -4067,37 +4500,7 @@ export class EvalDelta implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['action'] = this.action;
-    if (this.bytes) {
-      obj['bytes'] = this.bytes;
-    }
-    if (this.uint) {
-      obj['uint'] = this.uint;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): EvalDelta {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded EvalDelta: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new EvalDelta({
-      action: data['action'] ?? 0,
-      bytes: data['bytes'],
-      uint: data['uint'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): EvalDelta {
+  static fromEncodingData(data: unknown): EvalDelta {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -4112,7 +4515,30 @@ export class EvalDelta implements MsgpackEncodable, JSONEncodable {
 /**
  * Key-value pairs for StateDelta.
  */
-export class EvalDeltaKeyValue implements MsgpackEncodable, JSONEncodable {
+export class EvalDeltaKeyValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'key',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'value',
+          valueSchema: EvalDelta.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public key: string;
 
   /**
@@ -4130,45 +4556,26 @@ export class EvalDeltaKeyValue implements MsgpackEncodable, JSONEncodable {
     this.value = value;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return EvalDeltaKeyValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['key', this.key],
-      ['value', this.value.msgpackPrepare()],
+      ['value', this.value.toEncodingData()],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['key'] = this.key;
-    obj['value'] = this.value.jsonPrepare();
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): EvalDeltaKeyValue {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded EvalDeltaKeyValue: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new EvalDeltaKeyValue({
-      key: data['key'] ?? '',
-      value: EvalDelta.fromDecodedJSON(data['value'] ?? {}),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): EvalDeltaKeyValue {
+  static fromEncodingData(data: unknown): EvalDeltaKeyValue {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new EvalDeltaKeyValue({
       key: data.get('key') ?? '',
-      value: EvalDelta.fromDecodedMsgpack(data.get('value') ?? {}),
+      value: EvalDelta.fromEncodingData(data.get('value') ?? {}),
     });
   }
 }
@@ -4176,9 +4583,22 @@ export class EvalDeltaKeyValue implements MsgpackEncodable, JSONEncodable {
 /**
  * Response containing the timestamp offset in seconds
  */
-export class GetBlockTimeStampOffsetResponse
-  implements MsgpackEncodable, JSONEncodable
-{
+export class GetBlockTimeStampOffsetResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'offset',
+        valueSchema: new Uint64Schema(),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Timestamp offset in seconds.
    */
@@ -4192,38 +4612,17 @@ export class GetBlockTimeStampOffsetResponse
     this.offset = ensureSafeInteger(offset);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['offset', this.offset],
-    ]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return GetBlockTimeStampOffsetResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['offset', this.offset]]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['offset'] = this.offset;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): GetBlockTimeStampOffsetResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded GetBlockTimeStampOffsetResponse: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new GetBlockTimeStampOffsetResponse({
-      offset: data['offset'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): GetBlockTimeStampOffsetResponse {
+  static fromEncodingData(data: unknown): GetBlockTimeStampOffsetResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -4236,7 +4635,22 @@ export class GetBlockTimeStampOffsetResponse
 /**
  * Response containing the ledger's minimum sync round
  */
-export class GetSyncRoundResponse implements MsgpackEncodable, JSONEncodable {
+export class GetSyncRoundResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'round',
+        valueSchema: new Uint64Schema(),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The minimum sync round for the ledger.
    */
@@ -4250,34 +4664,17 @@ export class GetSyncRoundResponse implements MsgpackEncodable, JSONEncodable {
     this.round = ensureBigInt(round);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['round', this.round]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return GetSyncRoundResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['round', this.round]]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['round'] = this.round;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): GetSyncRoundResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded GetSyncRoundResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new GetSyncRoundResponse({
-      round: data['round'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): GetSyncRoundResponse {
+  static fromEncodingData(data: unknown): GetSyncRoundResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -4291,7 +4688,30 @@ export class GetSyncRoundResponse implements MsgpackEncodable, JSONEncodable {
  * A single Delta containing the key, the previous value and the current value for
  * a single round.
  */
-export class KvDelta implements MsgpackEncodable, JSONEncodable {
+export class KvDelta implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'key',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'value',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The key, base64 encoded.
    */
@@ -4318,8 +4738,13 @@ export class KvDelta implements MsgpackEncodable, JSONEncodable {
     this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return KvDelta.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([]);
     if (this.key) {
       data.set('key', this.key);
     }
@@ -4329,35 +4754,7 @@ export class KvDelta implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    if (this.key) {
-      obj['key'] = bytesToBase64(this.key);
-    }
-    if (this.value) {
-      obj['value'] = bytesToBase64(this.value);
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): KvDelta {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded KvDelta: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new KvDelta({
-      key: data['key'],
-      value: data['value'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): KvDelta {
+  static fromEncodingData(data: unknown): KvDelta {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -4371,9 +4768,30 @@ export class KvDelta implements MsgpackEncodable, JSONEncodable {
 /**
  * Contains a ledger delta for a single transaction group
  */
-export class LedgerStateDeltaForTransactionGroup
-  implements MsgpackEncodable, JSONEncodable
-{
+export class LedgerStateDeltaForTransactionGroup implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'Delta',
+          valueSchema: UntypedValue.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'Ids',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Ledger StateDelta object
    */
@@ -4391,50 +4809,25 @@ export class LedgerStateDeltaForTransactionGroup
     this.ids = ids;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['Delta', this.delta.msgpackPrepare()],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return LedgerStateDeltaForTransactionGroup.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['Delta', this.delta.toEncodingData()],
       ['Ids', this.ids],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['Delta'] = this.delta.jsonPrepare();
-    obj['Ids'] = this.ids;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(
-    encoded: unknown
-  ): LedgerStateDeltaForTransactionGroup {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded LedgerStateDeltaForTransactionGroup: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new LedgerStateDeltaForTransactionGroup({
-      delta: UntypedValue.fromDecodedJSON(data['Delta'] ?? {}),
-      ids: data['Ids'] ?? [],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(
-    data: unknown
-  ): LedgerStateDeltaForTransactionGroup {
+  static fromEncodingData(data: unknown): LedgerStateDeltaForTransactionGroup {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new LedgerStateDeltaForTransactionGroup({
-      delta: UntypedValue.fromDecodedMsgpack(data.get('Delta') ?? {}),
+      delta: UntypedValue.fromEncodingData(data.get('Delta') ?? {}),
       ids: data.get('Ids') ?? [],
     });
   }
@@ -4443,7 +4836,36 @@ export class LedgerStateDeltaForTransactionGroup
 /**
  * Proof of membership and position of a light block header.
  */
-export class LightBlockHeaderProof implements MsgpackEncodable, JSONEncodable {
+export class LightBlockHeaderProof implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'index',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'proof',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'treedepth',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The index of the light block header in the vector commitment tree
    */
@@ -4481,8 +4903,13 @@ export class LightBlockHeaderProof implements MsgpackEncodable, JSONEncodable {
     this.treedepth = ensureSafeInteger(treedepth);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return LightBlockHeaderProof.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['index', this.index],
       ['proof', this.proof],
       ['treedepth', this.treedepth],
@@ -4490,33 +4917,7 @@ export class LightBlockHeaderProof implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['index'] = this.index;
-    obj['proof'] = bytesToBase64(this.proof);
-    obj['treedepth'] = this.treedepth;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): LightBlockHeaderProof {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded LightBlockHeaderProof: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new LightBlockHeaderProof({
-      index: data['index'] ?? 0,
-      proof: data['proof'] ?? new Uint8Array(),
-      treedepth: data['treedepth'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): LightBlockHeaderProof {
+  static fromEncodingData(data: unknown): LightBlockHeaderProof {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -4531,7 +4932,174 @@ export class LightBlockHeaderProof implements MsgpackEncodable, JSONEncodable {
 /**
  *
  */
-export class NodeStatusResponse implements MsgpackEncodable, JSONEncodable {
+export class NodeStatusResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'catchup-time',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-version',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'next-version',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'next-version-round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'next-version-supported',
+          valueSchema: new BooleanSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'stopped-at-unsupported-round',
+          valueSchema: new BooleanSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'time-since-last-round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-acquired-blocks',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-processed-accounts',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-processed-kvs',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-total-accounts',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-total-blocks',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-total-kvs',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-verified-accounts',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'catchpoint-verified-kvs',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-catchpoint',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-delay',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-next-protocol-vote-before',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-no-votes',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-node-vote',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-vote-rounds',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-votes',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-votes-required',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-yes-votes',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * CatchupTime in nanoseconds
    */
@@ -4835,8 +5403,13 @@ export class NodeStatusResponse implements MsgpackEncodable, JSONEncodable {
         : ensureSafeInteger(upgradeYesVotes);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return NodeStatusResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['catchup-time', this.catchupTime],
       ['last-round', this.lastRound],
       ['last-version', this.lastVersion],
@@ -4909,116 +5482,7 @@ export class NodeStatusResponse implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['catchup-time'] = this.catchupTime;
-    obj['last-round'] = this.lastRound;
-    obj['last-version'] = this.lastVersion;
-    obj['next-version'] = this.nextVersion;
-    obj['next-version-round'] = this.nextVersionRound;
-    obj['next-version-supported'] = this.nextVersionSupported;
-    obj['stopped-at-unsupported-round'] = this.stoppedAtUnsupportedRound;
-    obj['time-since-last-round'] = this.timeSinceLastRound;
-    if (this.catchpoint) {
-      obj['catchpoint'] = this.catchpoint;
-    }
-    if (this.catchpointAcquiredBlocks) {
-      obj['catchpoint-acquired-blocks'] = this.catchpointAcquiredBlocks;
-    }
-    if (this.catchpointProcessedAccounts) {
-      obj['catchpoint-processed-accounts'] = this.catchpointProcessedAccounts;
-    }
-    if (this.catchpointProcessedKvs) {
-      obj['catchpoint-processed-kvs'] = this.catchpointProcessedKvs;
-    }
-    if (this.catchpointTotalAccounts) {
-      obj['catchpoint-total-accounts'] = this.catchpointTotalAccounts;
-    }
-    if (this.catchpointTotalBlocks) {
-      obj['catchpoint-total-blocks'] = this.catchpointTotalBlocks;
-    }
-    if (this.catchpointTotalKvs) {
-      obj['catchpoint-total-kvs'] = this.catchpointTotalKvs;
-    }
-    if (this.catchpointVerifiedAccounts) {
-      obj['catchpoint-verified-accounts'] = this.catchpointVerifiedAccounts;
-    }
-    if (this.catchpointVerifiedKvs) {
-      obj['catchpoint-verified-kvs'] = this.catchpointVerifiedKvs;
-    }
-    if (this.lastCatchpoint) {
-      obj['last-catchpoint'] = this.lastCatchpoint;
-    }
-    if (this.upgradeDelay) {
-      obj['upgrade-delay'] = this.upgradeDelay;
-    }
-    if (this.upgradeNextProtocolVoteBefore) {
-      obj['upgrade-next-protocol-vote-before'] =
-        this.upgradeNextProtocolVoteBefore;
-    }
-    if (this.upgradeNoVotes) {
-      obj['upgrade-no-votes'] = this.upgradeNoVotes;
-    }
-    if (this.upgradeNodeVote) {
-      obj['upgrade-node-vote'] = this.upgradeNodeVote;
-    }
-    if (this.upgradeVoteRounds) {
-      obj['upgrade-vote-rounds'] = this.upgradeVoteRounds;
-    }
-    if (this.upgradeVotes) {
-      obj['upgrade-votes'] = this.upgradeVotes;
-    }
-    if (this.upgradeVotesRequired) {
-      obj['upgrade-votes-required'] = this.upgradeVotesRequired;
-    }
-    if (this.upgradeYesVotes) {
-      obj['upgrade-yes-votes'] = this.upgradeYesVotes;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): NodeStatusResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded NodeStatusResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new NodeStatusResponse({
-      catchupTime: data['catchup-time'] ?? 0,
-      lastRound: data['last-round'] ?? 0,
-      lastVersion: data['last-version'] ?? '',
-      nextVersion: data['next-version'] ?? '',
-      nextVersionRound: data['next-version-round'] ?? 0,
-      nextVersionSupported: data['next-version-supported'] ?? false,
-      stoppedAtUnsupportedRound: data['stopped-at-unsupported-round'] ?? false,
-      timeSinceLastRound: data['time-since-last-round'] ?? 0,
-      catchpoint: data['catchpoint'],
-      catchpointAcquiredBlocks: data['catchpoint-acquired-blocks'],
-      catchpointProcessedAccounts: data['catchpoint-processed-accounts'],
-      catchpointProcessedKvs: data['catchpoint-processed-kvs'],
-      catchpointTotalAccounts: data['catchpoint-total-accounts'],
-      catchpointTotalBlocks: data['catchpoint-total-blocks'],
-      catchpointTotalKvs: data['catchpoint-total-kvs'],
-      catchpointVerifiedAccounts: data['catchpoint-verified-accounts'],
-      catchpointVerifiedKvs: data['catchpoint-verified-kvs'],
-      lastCatchpoint: data['last-catchpoint'],
-      upgradeDelay: data['upgrade-delay'],
-      upgradeNextProtocolVoteBefore: data['upgrade-next-protocol-vote-before'],
-      upgradeNoVotes: data['upgrade-no-votes'],
-      upgradeNodeVote: data['upgrade-node-vote'],
-      upgradeVoteRounds: data['upgrade-vote-rounds'],
-      upgradeVotes: data['upgrade-votes'],
-      upgradeVotesRequired: data['upgrade-votes-required'],
-      upgradeYesVotes: data['upgrade-yes-votes'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): NodeStatusResponse {
+  static fromEncodingData(data: unknown): NodeStatusResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -5060,9 +5524,104 @@ export class NodeStatusResponse implements MsgpackEncodable, JSONEncodable {
  * Details about a pending transaction. If the transaction was recently confirmed,
  * includes confirmation details like the round and reward details.
  */
-export class PendingTransactionResponse
-  implements MsgpackEncodable, JSONEncodable
-{
+export class PendingTransactionResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'pool-error',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'txn',
+          valueSchema: SignedTransaction.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'application-index',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-closing-amount',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-index',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'close-rewards',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'closing-amount',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'confirmed-round',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'global-state-delta',
+          valueSchema: new ArraySchema(EvalDeltaKeyValue.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'inner-txns',
+          valueSchema: new ArraySchema(
+            PendingTransactionResponse.encodingSchema
+          ),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'local-state-delta',
+          valueSchema: new ArraySchema(AccountStateDelta.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logs',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'receiver-rewards',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'sender-rewards',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Indicates that the transaction was kicked out of this node's transaction pool
    * (and specifies why that happened). An empty string indicates the transaction
@@ -5229,10 +5788,15 @@ export class PendingTransactionResponse
         : ensureBigInt(senderRewards);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return PendingTransactionResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['pool-error', this.poolError],
-      ['txn', this.txn.msgpackPrepare()],
+      ['txn', this.txn.toEncodingData()],
     ]);
     if (this.applicationIndex) {
       data.set('application-index', this.applicationIndex);
@@ -5255,19 +5819,19 @@ export class PendingTransactionResponse
     if (this.globalStateDelta && this.globalStateDelta.length) {
       data.set(
         'global-state-delta',
-        this.globalStateDelta.map((v) => v.msgpackPrepare())
+        this.globalStateDelta.map((v) => v.toEncodingData())
       );
     }
     if (this.innerTxns && this.innerTxns.length) {
       data.set(
         'inner-txns',
-        this.innerTxns.map((v) => v.msgpackPrepare())
+        this.innerTxns.map((v) => v.toEncodingData())
       );
     }
     if (this.localStateDelta && this.localStateDelta.length) {
       data.set(
         'local-state-delta',
-        this.localStateDelta.map((v) => v.msgpackPrepare())
+        this.localStateDelta.map((v) => v.toEncodingData())
       );
     }
     if (this.logs && this.logs.length) {
@@ -5282,98 +5846,13 @@ export class PendingTransactionResponse
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['pool-error'] = this.poolError;
-    obj['txn'] = this.txn.jsonPrepare();
-    if (this.applicationIndex) {
-      obj['application-index'] = this.applicationIndex;
-    }
-    if (this.assetClosingAmount) {
-      obj['asset-closing-amount'] = this.assetClosingAmount;
-    }
-    if (this.assetIndex) {
-      obj['asset-index'] = this.assetIndex;
-    }
-    if (this.closeRewards) {
-      obj['close-rewards'] = this.closeRewards;
-    }
-    if (this.closingAmount) {
-      obj['closing-amount'] = this.closingAmount;
-    }
-    if (this.confirmedRound) {
-      obj['confirmed-round'] = this.confirmedRound;
-    }
-    if (this.globalStateDelta && this.globalStateDelta.length) {
-      obj['global-state-delta'] = this.globalStateDelta.map((v) =>
-        v.jsonPrepare()
-      );
-    }
-    if (this.innerTxns && this.innerTxns.length) {
-      obj['inner-txns'] = this.innerTxns.map((v) => v.jsonPrepare());
-    }
-    if (this.localStateDelta && this.localStateDelta.length) {
-      obj['local-state-delta'] = this.localStateDelta.map((v) =>
-        v.jsonPrepare()
-      );
-    }
-    if (this.logs && this.logs.length) {
-      obj['logs'] = this.logs.map(bytesToBase64);
-    }
-    if (this.receiverRewards) {
-      obj['receiver-rewards'] = this.receiverRewards;
-    }
-    if (this.senderRewards) {
-      obj['sender-rewards'] = this.senderRewards;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): PendingTransactionResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded PendingTransactionResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new PendingTransactionResponse({
-      poolError: data['pool-error'] ?? '',
-      txn: SignedTransaction.fromDecodedJSON(data['txn'] ?? {}),
-      applicationIndex: data['application-index'],
-      assetClosingAmount: data['asset-closing-amount'],
-      assetIndex: data['asset-index'],
-      closeRewards: data['close-rewards'],
-      closingAmount: data['closing-amount'],
-      confirmedRound: data['confirmed-round'],
-      globalStateDelta:
-        typeof data['global-state-delta'] !== 'undefined'
-          ? data['global-state-delta'].map(EvalDeltaKeyValue.fromDecodedJSON)
-          : undefined,
-      innerTxns:
-        typeof data['inner-txns'] !== 'undefined'
-          ? data['inner-txns'].map(PendingTransactionResponse.fromDecodedJSON)
-          : undefined,
-      localStateDelta:
-        typeof data['local-state-delta'] !== 'undefined'
-          ? data['local-state-delta'].map(AccountStateDelta.fromDecodedJSON)
-          : undefined,
-      logs: data['logs'],
-      receiverRewards: data['receiver-rewards'],
-      senderRewards: data['sender-rewards'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): PendingTransactionResponse {
+  static fromEncodingData(data: unknown): PendingTransactionResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new PendingTransactionResponse({
       poolError: data.get('pool-error') ?? '',
-      txn: SignedTransaction.fromDecodedMsgpack(data.get('txn') ?? {}),
+      txn: SignedTransaction.fromEncodingData(data.get('txn') ?? {}),
       applicationIndex: data.get('application-index'),
       assetClosingAmount: data.get('asset-closing-amount'),
       assetIndex: data.get('asset-index'),
@@ -5384,19 +5863,19 @@ export class PendingTransactionResponse
         typeof data.get('global-state-delta') !== 'undefined'
           ? data
               .get('global-state-delta')
-              .map(EvalDeltaKeyValue.fromDecodedMsgpack)
+              .map(EvalDeltaKeyValue.fromEncodingData)
           : undefined,
       innerTxns:
         typeof data.get('inner-txns') !== 'undefined'
           ? data
               .get('inner-txns')
-              .map(PendingTransactionResponse.fromDecodedMsgpack)
+              .map(PendingTransactionResponse.fromEncodingData)
           : undefined,
       localStateDelta:
         typeof data.get('local-state-delta') !== 'undefined'
           ? data
               .get('local-state-delta')
-              .map(AccountStateDelta.fromDecodedMsgpack)
+              .map(AccountStateDelta.fromEncodingData)
           : undefined,
       logs: data.get('logs'),
       receiverRewards: data.get('receiver-rewards'),
@@ -5410,9 +5889,30 @@ export class PendingTransactionResponse
  * pool. You can compute whether or not the list is truncated if the number of
  * elements in the **top-transactions** array is fewer than **total-transactions**.
  */
-export class PendingTransactionsResponse
-  implements MsgpackEncodable, JSONEncodable
-{
+export class PendingTransactionsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'top-transactions',
+          valueSchema: new ArraySchema(SignedTransaction.encodingSchema),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-transactions',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * An array of signed transaction objects.
    */
@@ -5439,49 +5939,26 @@ export class PendingTransactionsResponse
     this.totalTransactions = ensureSafeInteger(totalTransactions);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['top-transactions', this.topTransactions.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return PendingTransactionsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['top-transactions', this.topTransactions.map((v) => v.toEncodingData())],
       ['total-transactions', this.totalTransactions],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['top-transactions'] = this.topTransactions.map((v) => v.jsonPrepare());
-    obj['total-transactions'] = this.totalTransactions;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): PendingTransactionsResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded PendingTransactionsResponse: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new PendingTransactionsResponse({
-      topTransactions: (data['top-transactions'] ?? []).map(
-        SignedTransaction.fromDecodedJSON
-      ),
-      totalTransactions: data['total-transactions'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): PendingTransactionsResponse {
+  static fromEncodingData(data: unknown): PendingTransactionsResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new PendingTransactionsResponse({
       topTransactions: (data.get('top-transactions') ?? []).map(
-        SignedTransaction.fromDecodedMsgpack
+        SignedTransaction.fromEncodingData
       ),
       totalTransactions: data.get('total-transactions') ?? 0,
     });
@@ -5491,9 +5968,22 @@ export class PendingTransactionsResponse
 /**
  * Transaction ID of the submission.
  */
-export class PostTransactionsResponse
-  implements MsgpackEncodable, JSONEncodable
-{
+export class PostTransactionsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'txId',
+        valueSchema: new StringSchema(),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * encoding of the transaction hash.
    */
@@ -5507,34 +5997,17 @@ export class PostTransactionsResponse
     this.txid = txid;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['txId', this.txid]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return PostTransactionsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['txId', this.txid]]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['txId'] = this.txid;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): PostTransactionsResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded PostTransactionsResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new PostTransactionsResponse({
-      txid: data['txId'] ?? '',
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): PostTransactionsResponse {
+  static fromEncodingData(data: unknown): PostTransactionsResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -5547,7 +6020,30 @@ export class PostTransactionsResponse
 /**
  * A write operation into a scratch slot.
  */
-export class ScratchChange implements MsgpackEncodable, JSONEncodable {
+export class ScratchChange implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'new-value',
+          valueSchema: AvmValue.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'slot',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Represents an AVM value.
    */
@@ -5574,44 +6070,25 @@ export class ScratchChange implements MsgpackEncodable, JSONEncodable {
     this.slot = ensureSafeInteger(slot);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['new-value', this.newValue.msgpackPrepare()],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ScratchChange.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['new-value', this.newValue.toEncodingData()],
       ['slot', this.slot],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['new-value'] = this.newValue.jsonPrepare();
-    obj['slot'] = this.slot;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): ScratchChange {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded ScratchChange: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new ScratchChange({
-      newValue: AvmValue.fromDecodedJSON(data['new-value'] ?? {}),
-      slot: data['slot'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): ScratchChange {
+  static fromEncodingData(data: unknown): ScratchChange {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new ScratchChange({
-      newValue: AvmValue.fromDecodedMsgpack(data.get('new-value') ?? {}),
+      newValue: AvmValue.fromEncodingData(data.get('new-value') ?? {}),
       slot: data.get('slot') ?? 0,
     });
   }
@@ -5620,7 +6097,22 @@ export class ScratchChange implements MsgpackEncodable, JSONEncodable {
 /**
  * Initial states of resources that were accessed during simulation.
  */
-export class SimulateInitialStates implements MsgpackEncodable, JSONEncodable {
+export class SimulateInitialStates implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'app-initial-states',
+        valueSchema: new ArraySchema(ApplicationInitialStates.encodingSchema),
+        required: false,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The initial states of accessed application before simulation. The order of this
    * array is arbitrary.
@@ -5640,49 +6132,23 @@ export class SimulateInitialStates implements MsgpackEncodable, JSONEncodable {
     this.appInitialStates = appInitialStates;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateInitialStates.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([]);
     if (this.appInitialStates && this.appInitialStates.length) {
       data.set(
         'app-initial-states',
-        this.appInitialStates.map((v) => v.msgpackPrepare())
+        this.appInitialStates.map((v) => v.toEncodingData())
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    if (this.appInitialStates && this.appInitialStates.length) {
-      obj['app-initial-states'] = this.appInitialStates.map((v) =>
-        v.jsonPrepare()
-      );
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateInitialStates {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SimulateInitialStates: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateInitialStates({
-      appInitialStates:
-        typeof data['app-initial-states'] !== 'undefined'
-          ? data['app-initial-states'].map(
-              ApplicationInitialStates.fromDecodedJSON
-            )
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateInitialStates {
+  static fromEncodingData(data: unknown): SimulateInitialStates {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -5691,7 +6157,7 @@ export class SimulateInitialStates implements MsgpackEncodable, JSONEncodable {
         typeof data.get('app-initial-states') !== 'undefined'
           ? data
               .get('app-initial-states')
-              .map(ApplicationInitialStates.fromDecodedMsgpack)
+              .map(ApplicationInitialStates.fromEncodingData)
           : undefined,
     });
   }
@@ -5700,7 +6166,62 @@ export class SimulateInitialStates implements MsgpackEncodable, JSONEncodable {
 /**
  * Request type for simulation endpoint.
  */
-export class SimulateRequest implements MsgpackEncodable, JSONEncodable {
+export class SimulateRequest implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'txn-groups',
+          valueSchema: new ArraySchema(
+            SimulateRequestTransactionGroup.encodingSchema
+          ),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'allow-empty-signatures',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'allow-more-logging',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'allow-unnamed-resources',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'exec-trace-config',
+          valueSchema: SimulateTraceConfig.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'extra-opcode-budget',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The transaction groups to simulate.
    */
@@ -5783,9 +6304,14 @@ export class SimulateRequest implements MsgpackEncodable, JSONEncodable {
     this.round = typeof round === 'undefined' ? undefined : ensureBigInt(round);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['txn-groups', this.txnGroups.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateRequest.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['txn-groups', this.txnGroups.map((v) => v.toEncodingData())],
     ]);
     if (this.allowEmptySignatures) {
       data.set('allow-empty-signatures', this.allowEmptySignatures);
@@ -5797,7 +6323,7 @@ export class SimulateRequest implements MsgpackEncodable, JSONEncodable {
       data.set('allow-unnamed-resources', this.allowUnnamedResources);
     }
     if (this.execTraceConfig) {
-      data.set('exec-trace-config', this.execTraceConfig.msgpackPrepare());
+      data.set('exec-trace-config', this.execTraceConfig.toEncodingData());
     }
     if (this.extraOpcodeBudget) {
       data.set('extra-opcode-budget', this.extraOpcodeBudget);
@@ -5808,73 +6334,20 @@ export class SimulateRequest implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['txn-groups'] = this.txnGroups.map((v) => v.jsonPrepare());
-    if (this.allowEmptySignatures) {
-      obj['allow-empty-signatures'] = this.allowEmptySignatures;
-    }
-    if (this.allowMoreLogging) {
-      obj['allow-more-logging'] = this.allowMoreLogging;
-    }
-    if (this.allowUnnamedResources) {
-      obj['allow-unnamed-resources'] = this.allowUnnamedResources;
-    }
-    if (this.execTraceConfig) {
-      obj['exec-trace-config'] = this.execTraceConfig.jsonPrepare();
-    }
-    if (this.extraOpcodeBudget) {
-      obj['extra-opcode-budget'] = this.extraOpcodeBudget;
-    }
-    if (this.round) {
-      obj['round'] = this.round;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateRequest {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SimulateRequest: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateRequest({
-      txnGroups: (data['txn-groups'] ?? []).map(
-        SimulateRequestTransactionGroup.fromDecodedJSON
-      ),
-      allowEmptySignatures: data['allow-empty-signatures'],
-      allowMoreLogging: data['allow-more-logging'],
-      allowUnnamedResources: data['allow-unnamed-resources'],
-      execTraceConfig:
-        typeof data['exec-trace-config'] !== 'undefined'
-          ? SimulateTraceConfig.fromDecodedJSON(data['exec-trace-config'])
-          : undefined,
-      extraOpcodeBudget: data['extra-opcode-budget'],
-      round: data['round'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateRequest {
+  static fromEncodingData(data: unknown): SimulateRequest {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new SimulateRequest({
       txnGroups: (data.get('txn-groups') ?? []).map(
-        SimulateRequestTransactionGroup.fromDecodedMsgpack
+        SimulateRequestTransactionGroup.fromEncodingData
       ),
       allowEmptySignatures: data.get('allow-empty-signatures'),
       allowMoreLogging: data.get('allow-more-logging'),
       allowUnnamedResources: data.get('allow-unnamed-resources'),
       execTraceConfig:
         typeof data.get('exec-trace-config') !== 'undefined'
-          ? SimulateTraceConfig.fromDecodedMsgpack(
-              data.get('exec-trace-config')
-            )
+          ? SimulateTraceConfig.fromEncodingData(data.get('exec-trace-config'))
           : undefined,
       extraOpcodeBudget: data.get('extra-opcode-budget'),
       round: data.get('round'),
@@ -5885,9 +6358,22 @@ export class SimulateRequest implements MsgpackEncodable, JSONEncodable {
 /**
  * A transaction group to simulate.
  */
-export class SimulateRequestTransactionGroup
-  implements MsgpackEncodable, JSONEncodable
-{
+export class SimulateRequestTransactionGroup implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'txns',
+        valueSchema: new ArraySchema(SignedTransaction.encodingSchema),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * An atomic transaction group.
    */
@@ -5901,43 +6387,24 @@ export class SimulateRequestTransactionGroup
     this.txns = txns;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['txns', this.txns.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateRequestTransactionGroup.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['txns', this.txns.map((v) => v.toEncodingData())],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['txns'] = this.txns.map((v) => v.jsonPrepare());
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateRequestTransactionGroup {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded SimulateRequestTransactionGroup: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateRequestTransactionGroup({
-      txns: (data['txns'] ?? []).map(SignedTransaction.fromDecodedJSON),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateRequestTransactionGroup {
+  static fromEncodingData(data: unknown): SimulateRequestTransactionGroup {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new SimulateRequestTransactionGroup({
-      txns: (data.get('txns') ?? []).map(SignedTransaction.fromDecodedMsgpack),
+      txns: (data.get('txns') ?? []).map(SignedTransaction.fromEncodingData),
     });
   }
 }
@@ -5945,7 +6412,56 @@ export class SimulateRequestTransactionGroup
 /**
  * Result of a transaction group simulation.
  */
-export class SimulateResponse implements MsgpackEncodable, JSONEncodable {
+export class SimulateResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'last-round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'txn-groups',
+          valueSchema: new ArraySchema(
+            SimulateTransactionGroupResult.encodingSchema
+          ),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'version',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'eval-overrides',
+          valueSchema: SimulationEvalOverrides.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'exec-trace-config',
+          valueSchema: SimulateTraceConfig.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'initial-states',
+          valueSchema: SimulateInitialStates.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -6014,98 +6530,50 @@ export class SimulateResponse implements MsgpackEncodable, JSONEncodable {
     this.initialStates = initialStates;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['last-round', this.lastRound],
-      ['txn-groups', this.txnGroups.map((v) => v.msgpackPrepare())],
+      ['txn-groups', this.txnGroups.map((v) => v.toEncodingData())],
       ['version', this.version],
     ]);
     if (this.evalOverrides) {
-      data.set('eval-overrides', this.evalOverrides.msgpackPrepare());
+      data.set('eval-overrides', this.evalOverrides.toEncodingData());
     }
     if (this.execTraceConfig) {
-      data.set('exec-trace-config', this.execTraceConfig.msgpackPrepare());
+      data.set('exec-trace-config', this.execTraceConfig.toEncodingData());
     }
     if (this.initialStates) {
-      data.set('initial-states', this.initialStates.msgpackPrepare());
+      data.set('initial-states', this.initialStates.toEncodingData());
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['last-round'] = this.lastRound;
-    obj['txn-groups'] = this.txnGroups.map((v) => v.jsonPrepare());
-    obj['version'] = this.version;
-    if (this.evalOverrides) {
-      obj['eval-overrides'] = this.evalOverrides.jsonPrepare();
-    }
-    if (this.execTraceConfig) {
-      obj['exec-trace-config'] = this.execTraceConfig.jsonPrepare();
-    }
-    if (this.initialStates) {
-      obj['initial-states'] = this.initialStates.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SimulateResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateResponse({
-      lastRound: data['last-round'] ?? 0,
-      txnGroups: (data['txn-groups'] ?? []).map(
-        SimulateTransactionGroupResult.fromDecodedJSON
-      ),
-      version: data['version'] ?? 0,
-      evalOverrides:
-        typeof data['eval-overrides'] !== 'undefined'
-          ? SimulationEvalOverrides.fromDecodedJSON(data['eval-overrides'])
-          : undefined,
-      execTraceConfig:
-        typeof data['exec-trace-config'] !== 'undefined'
-          ? SimulateTraceConfig.fromDecodedJSON(data['exec-trace-config'])
-          : undefined,
-      initialStates:
-        typeof data['initial-states'] !== 'undefined'
-          ? SimulateInitialStates.fromDecodedJSON(data['initial-states'])
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateResponse {
+  static fromEncodingData(data: unknown): SimulateResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new SimulateResponse({
       lastRound: data.get('last-round') ?? 0,
       txnGroups: (data.get('txn-groups') ?? []).map(
-        SimulateTransactionGroupResult.fromDecodedMsgpack
+        SimulateTransactionGroupResult.fromEncodingData
       ),
       version: data.get('version') ?? 0,
       evalOverrides:
         typeof data.get('eval-overrides') !== 'undefined'
-          ? SimulationEvalOverrides.fromDecodedMsgpack(
-              data.get('eval-overrides')
-            )
+          ? SimulationEvalOverrides.fromEncodingData(data.get('eval-overrides'))
           : undefined,
       execTraceConfig:
         typeof data.get('exec-trace-config') !== 'undefined'
-          ? SimulateTraceConfig.fromDecodedMsgpack(
-              data.get('exec-trace-config')
-            )
+          ? SimulateTraceConfig.fromEncodingData(data.get('exec-trace-config'))
           : undefined,
       initialStates:
         typeof data.get('initial-states') !== 'undefined'
-          ? SimulateInitialStates.fromDecodedMsgpack(data.get('initial-states'))
+          ? SimulateInitialStates.fromEncodingData(data.get('initial-states'))
           : undefined,
     });
   }
@@ -6114,7 +6582,42 @@ export class SimulateResponse implements MsgpackEncodable, JSONEncodable {
 /**
  * An object that configures simulation execution trace.
  */
-export class SimulateTraceConfig implements MsgpackEncodable, JSONEncodable {
+export class SimulateTraceConfig implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'enable',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'scratch-change',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'stack-change',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'state-change',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * A boolean option for opting in execution trace features simulation endpoint.
    */
@@ -6165,8 +6668,13 @@ export class SimulateTraceConfig implements MsgpackEncodable, JSONEncodable {
     this.stateChange = stateChange;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateTraceConfig.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([]);
     if (this.enable) {
       data.set('enable', this.enable);
     }
@@ -6182,43 +6690,7 @@ export class SimulateTraceConfig implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    if (this.enable) {
-      obj['enable'] = this.enable;
-    }
-    if (this.scratchChange) {
-      obj['scratch-change'] = this.scratchChange;
-    }
-    if (this.stackChange) {
-      obj['stack-change'] = this.stackChange;
-    }
-    if (this.stateChange) {
-      obj['state-change'] = this.stateChange;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateTraceConfig {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SimulateTraceConfig: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateTraceConfig({
-      enable: data['enable'],
-      scratchChange: data['scratch-change'],
-      stackChange: data['stack-change'],
-      stateChange: data['state-change'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateTraceConfig {
+  static fromEncodingData(data: unknown): SimulateTraceConfig {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -6234,9 +6706,56 @@ export class SimulateTraceConfig implements MsgpackEncodable, JSONEncodable {
 /**
  * Simulation result for an atomic transaction group
  */
-export class SimulateTransactionGroupResult
-  implements MsgpackEncodable, JSONEncodable
-{
+export class SimulateTransactionGroupResult implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'txn-results',
+          valueSchema: new ArraySchema(
+            SimulateTransactionResult.encodingSchema
+          ),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-budget-added',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-budget-consumed',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'failed-at',
+          valueSchema: new ArraySchema(new Uint64Schema()),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'failure-message',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'unnamed-resources-accessed',
+          valueSchema: SimulateUnnamedResourcesAccessed.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Simulation result for individual transactions
    */
@@ -6332,9 +6851,14 @@ export class SimulateTransactionGroupResult
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['txn-results', this.txnResults.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateTransactionGroupResult.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['txn-results', this.txnResults.map((v) => v.toEncodingData())],
     ]);
     if (this.appBudgetAdded) {
       data.set('app-budget-added', this.appBudgetAdded);
@@ -6351,71 +6875,19 @@ export class SimulateTransactionGroupResult
     if (this.unnamedResourcesAccessed) {
       data.set(
         'unnamed-resources-accessed',
-        this.unnamedResourcesAccessed.msgpackPrepare()
+        this.unnamedResourcesAccessed.toEncodingData()
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['txn-results'] = this.txnResults.map((v) => v.jsonPrepare());
-    if (this.appBudgetAdded) {
-      obj['app-budget-added'] = this.appBudgetAdded;
-    }
-    if (this.appBudgetConsumed) {
-      obj['app-budget-consumed'] = this.appBudgetConsumed;
-    }
-    if (this.failedAt && this.failedAt.length) {
-      obj['failed-at'] = this.failedAt;
-    }
-    if (this.failureMessage) {
-      obj['failure-message'] = this.failureMessage;
-    }
-    if (this.unnamedResourcesAccessed) {
-      obj['unnamed-resources-accessed'] =
-        this.unnamedResourcesAccessed.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateTransactionGroupResult {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded SimulateTransactionGroupResult: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateTransactionGroupResult({
-      txnResults: (data['txn-results'] ?? []).map(
-        SimulateTransactionResult.fromDecodedJSON
-      ),
-      appBudgetAdded: data['app-budget-added'],
-      appBudgetConsumed: data['app-budget-consumed'],
-      failedAt: data['failed-at'],
-      failureMessage: data['failure-message'],
-      unnamedResourcesAccessed:
-        typeof data['unnamed-resources-accessed'] !== 'undefined'
-          ? SimulateUnnamedResourcesAccessed.fromDecodedJSON(
-              data['unnamed-resources-accessed']
-            )
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateTransactionGroupResult {
+  static fromEncodingData(data: unknown): SimulateTransactionGroupResult {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new SimulateTransactionGroupResult({
       txnResults: (data.get('txn-results') ?? []).map(
-        SimulateTransactionResult.fromDecodedMsgpack
+        SimulateTransactionResult.fromEncodingData
       ),
       appBudgetAdded: data.get('app-budget-added'),
       appBudgetConsumed: data.get('app-budget-consumed'),
@@ -6423,7 +6895,7 @@ export class SimulateTransactionGroupResult
       failureMessage: data.get('failure-message'),
       unnamedResourcesAccessed:
         typeof data.get('unnamed-resources-accessed') !== 'undefined'
-          ? SimulateUnnamedResourcesAccessed.fromDecodedMsgpack(
+          ? SimulateUnnamedResourcesAccessed.fromEncodingData(
               data.get('unnamed-resources-accessed')
             )
           : undefined,
@@ -6434,9 +6906,48 @@ export class SimulateTransactionGroupResult
 /**
  * Simulation result for an individual transaction
  */
-export class SimulateTransactionResult
-  implements MsgpackEncodable, JSONEncodable
-{
+export class SimulateTransactionResult implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'txn-result',
+          valueSchema: PendingTransactionResponse.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-budget-consumed',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'exec-trace',
+          valueSchema: SimulationTransactionExecTrace.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logic-sig-budget-consumed',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'unnamed-resources-accessed',
+          valueSchema: SimulateUnnamedResourcesAccessed.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Details about a pending transaction. If the transaction was recently confirmed,
    * includes confirmation details like the round and reward details.
@@ -6518,15 +7029,20 @@ export class SimulateTransactionResult
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['txn-result', this.txnResult.msgpackPrepare()],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateTransactionResult.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['txn-result', this.txnResult.toEncodingData()],
     ]);
     if (this.appBudgetConsumed) {
       data.set('app-budget-consumed', this.appBudgetConsumed);
     }
     if (this.execTrace) {
-      data.set('exec-trace', this.execTrace.msgpackPrepare());
+      data.set('exec-trace', this.execTrace.toEncodingData());
     }
     if (this.logicSigBudgetConsumed) {
       data.set('logic-sig-budget-consumed', this.logicSigBudgetConsumed);
@@ -6534,80 +7050,31 @@ export class SimulateTransactionResult
     if (this.unnamedResourcesAccessed) {
       data.set(
         'unnamed-resources-accessed',
-        this.unnamedResourcesAccessed.msgpackPrepare()
+        this.unnamedResourcesAccessed.toEncodingData()
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['txn-result'] = this.txnResult.jsonPrepare();
-    if (this.appBudgetConsumed) {
-      obj['app-budget-consumed'] = this.appBudgetConsumed;
-    }
-    if (this.execTrace) {
-      obj['exec-trace'] = this.execTrace.jsonPrepare();
-    }
-    if (this.logicSigBudgetConsumed) {
-      obj['logic-sig-budget-consumed'] = this.logicSigBudgetConsumed;
-    }
-    if (this.unnamedResourcesAccessed) {
-      obj['unnamed-resources-accessed'] =
-        this.unnamedResourcesAccessed.jsonPrepare();
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateTransactionResult {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SimulateTransactionResult: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateTransactionResult({
-      txnResult: PendingTransactionResponse.fromDecodedJSON(
-        data['txn-result'] ?? {}
-      ),
-      appBudgetConsumed: data['app-budget-consumed'],
-      execTrace:
-        typeof data['exec-trace'] !== 'undefined'
-          ? SimulationTransactionExecTrace.fromDecodedJSON(data['exec-trace'])
-          : undefined,
-      logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
-      unnamedResourcesAccessed:
-        typeof data['unnamed-resources-accessed'] !== 'undefined'
-          ? SimulateUnnamedResourcesAccessed.fromDecodedJSON(
-              data['unnamed-resources-accessed']
-            )
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateTransactionResult {
+  static fromEncodingData(data: unknown): SimulateTransactionResult {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new SimulateTransactionResult({
-      txnResult: PendingTransactionResponse.fromDecodedMsgpack(
+      txnResult: PendingTransactionResponse.fromEncodingData(
         data.get('txn-result') ?? {}
       ),
       appBudgetConsumed: data.get('app-budget-consumed'),
       execTrace:
         typeof data.get('exec-trace') !== 'undefined'
-          ? SimulationTransactionExecTrace.fromDecodedMsgpack(
+          ? SimulationTransactionExecTrace.fromEncodingData(
               data.get('exec-trace')
             )
           : undefined,
       logicSigBudgetConsumed: data.get('logic-sig-budget-consumed'),
       unnamedResourcesAccessed:
         typeof data.get('unnamed-resources-accessed') !== 'undefined'
-          ? SimulateUnnamedResourcesAccessed.fromDecodedMsgpack(
+          ? SimulateUnnamedResourcesAccessed.fromEncodingData(
               data.get('unnamed-resources-accessed')
             )
           : undefined,
@@ -6626,9 +7093,62 @@ export class SimulateTransactionResult
  * transaction of the group; otherwise, resources must be placed in the same
  * transaction which accessed them.
  */
-export class SimulateUnnamedResourcesAccessed
-  implements MsgpackEncodable, JSONEncodable
-{
+export class SimulateUnnamedResourcesAccessed implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'accounts',
+          valueSchema: new AddressSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'app-locals',
+          valueSchema: new ArraySchema(
+            ApplicationLocalReference.encodingSchema
+          ),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'apps',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-holdings',
+          valueSchema: new ArraySchema(AssetHoldingReference.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'assets',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'boxes',
+          valueSchema: new ArraySchema(BoxReference.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'extra-box-refs',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The unnamed accounts that were referenced. The order of this array is arbitrary.
    */
@@ -6715,15 +7235,20 @@ export class SimulateUnnamedResourcesAccessed
         : ensureSafeInteger(extraBoxRefs);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulateUnnamedResourcesAccessed.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([]);
     if (this.accounts && this.accounts.length) {
       data.set('accounts', this.accounts);
     }
     if (this.appLocals && this.appLocals.length) {
       data.set(
         'app-locals',
-        this.appLocals.map((v) => v.msgpackPrepare())
+        this.appLocals.map((v) => v.toEncodingData())
       );
     }
     if (this.apps && this.apps.length) {
@@ -6732,7 +7257,7 @@ export class SimulateUnnamedResourcesAccessed
     if (this.assetHoldings && this.assetHoldings.length) {
       data.set(
         'asset-holdings',
-        this.assetHoldings.map((v) => v.msgpackPrepare())
+        this.assetHoldings.map((v) => v.toEncodingData())
       );
     }
     if (this.assets && this.assets.length) {
@@ -6741,7 +7266,7 @@ export class SimulateUnnamedResourcesAccessed
     if (this.boxes && this.boxes.length) {
       data.set(
         'boxes',
-        this.boxes.map((v) => v.msgpackPrepare())
+        this.boxes.map((v) => v.toEncodingData())
       );
     }
     if (this.extraBoxRefs) {
@@ -6750,66 +7275,7 @@ export class SimulateUnnamedResourcesAccessed
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    if (this.accounts && this.accounts.length) {
-      obj['accounts'] = this.accounts;
-    }
-    if (this.appLocals && this.appLocals.length) {
-      obj['app-locals'] = this.appLocals.map((v) => v.jsonPrepare());
-    }
-    if (this.apps && this.apps.length) {
-      obj['apps'] = this.apps;
-    }
-    if (this.assetHoldings && this.assetHoldings.length) {
-      obj['asset-holdings'] = this.assetHoldings.map((v) => v.jsonPrepare());
-    }
-    if (this.assets && this.assets.length) {
-      obj['assets'] = this.assets;
-    }
-    if (this.boxes && this.boxes.length) {
-      obj['boxes'] = this.boxes.map((v) => v.jsonPrepare());
-    }
-    if (this.extraBoxRefs) {
-      obj['extra-box-refs'] = this.extraBoxRefs;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulateUnnamedResourcesAccessed {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded SimulateUnnamedResourcesAccessed: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulateUnnamedResourcesAccessed({
-      accounts: data['accounts'],
-      appLocals:
-        typeof data['app-locals'] !== 'undefined'
-          ? data['app-locals'].map(ApplicationLocalReference.fromDecodedJSON)
-          : undefined,
-      apps: data['apps'],
-      assetHoldings:
-        typeof data['asset-holdings'] !== 'undefined'
-          ? data['asset-holdings'].map(AssetHoldingReference.fromDecodedJSON)
-          : undefined,
-      assets: data['assets'],
-      boxes:
-        typeof data['boxes'] !== 'undefined'
-          ? data['boxes'].map(BoxReference.fromDecodedJSON)
-          : undefined,
-      extraBoxRefs: data['extra-box-refs'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulateUnnamedResourcesAccessed {
+  static fromEncodingData(data: unknown): SimulateUnnamedResourcesAccessed {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -6819,19 +7285,19 @@ export class SimulateUnnamedResourcesAccessed
         typeof data.get('app-locals') !== 'undefined'
           ? data
               .get('app-locals')
-              .map(ApplicationLocalReference.fromDecodedMsgpack)
+              .map(ApplicationLocalReference.fromEncodingData)
           : undefined,
       apps: data.get('apps'),
       assetHoldings:
         typeof data.get('asset-holdings') !== 'undefined'
           ? data
               .get('asset-holdings')
-              .map(AssetHoldingReference.fromDecodedMsgpack)
+              .map(AssetHoldingReference.fromEncodingData)
           : undefined,
       assets: data.get('assets'),
       boxes:
         typeof data.get('boxes') !== 'undefined'
-          ? data.get('boxes').map(BoxReference.fromDecodedMsgpack)
+          ? data.get('boxes').map(BoxReference.fromEncodingData)
           : undefined,
       extraBoxRefs: data.get('extra-box-refs'),
     });
@@ -6843,9 +7309,48 @@ export class SimulateUnnamedResourcesAccessed
  * parameters is present, then evaluation parameters may differ from standard
  * evaluation in certain ways.
  */
-export class SimulationEvalOverrides
-  implements MsgpackEncodable, JSONEncodable
-{
+export class SimulationEvalOverrides implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'allow-empty-signatures',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'allow-unnamed-resources',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'extra-opcode-budget',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'max-log-calls',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'max-log-size',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * If true, transactions without signatures are allowed and simulated as if they
    * were properly signed.
@@ -6910,8 +7415,13 @@ export class SimulationEvalOverrides
         : ensureSafeInteger(maxLogSize);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulationEvalOverrides.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([]);
     if (this.allowEmptySignatures) {
       data.set('allow-empty-signatures', this.allowEmptySignatures);
     }
@@ -6930,47 +7440,7 @@ export class SimulationEvalOverrides
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    if (this.allowEmptySignatures) {
-      obj['allow-empty-signatures'] = this.allowEmptySignatures;
-    }
-    if (this.allowUnnamedResources) {
-      obj['allow-unnamed-resources'] = this.allowUnnamedResources;
-    }
-    if (this.extraOpcodeBudget) {
-      obj['extra-opcode-budget'] = this.extraOpcodeBudget;
-    }
-    if (this.maxLogCalls) {
-      obj['max-log-calls'] = this.maxLogCalls;
-    }
-    if (this.maxLogSize) {
-      obj['max-log-size'] = this.maxLogSize;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulationEvalOverrides {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SimulationEvalOverrides: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulationEvalOverrides({
-      allowEmptySignatures: data['allow-empty-signatures'],
-      allowUnnamedResources: data['allow-unnamed-resources'],
-      extraOpcodeBudget: data['extra-opcode-budget'],
-      maxLogCalls: data['max-log-calls'],
-      maxLogSize: data['max-log-size'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulationEvalOverrides {
+  static fromEncodingData(data: unknown): SimulationEvalOverrides {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -6987,9 +7457,56 @@ export class SimulationEvalOverrides
 /**
  * The set of trace information and effect from evaluating a single opcode.
  */
-export class SimulationOpcodeTraceUnit
-  implements MsgpackEncodable, JSONEncodable
-{
+export class SimulationOpcodeTraceUnit implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'pc',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'scratch-changes',
+          valueSchema: new ArraySchema(ScratchChange.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'spawned-inners',
+          valueSchema: new ArraySchema(new Uint64Schema()),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'stack-additions',
+          valueSchema: new ArraySchema(AvmValue.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'stack-pop-count',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'state-changes',
+          valueSchema: new ArraySchema(
+            ApplicationStateOperation.encodingSchema
+          ),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The program counter of the current opcode being evaluated.
    */
@@ -7058,12 +7575,17 @@ export class SimulationOpcodeTraceUnit
     this.stateChanges = stateChanges;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([['pc', this.pc]]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulationOpcodeTraceUnit.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['pc', this.pc]]);
     if (this.scratchChanges && this.scratchChanges.length) {
       data.set(
         'scratch-changes',
-        this.scratchChanges.map((v) => v.msgpackPrepare())
+        this.scratchChanges.map((v) => v.toEncodingData())
       );
     }
     if (this.spawnedInners && this.spawnedInners.length) {
@@ -7072,7 +7594,7 @@ export class SimulationOpcodeTraceUnit
     if (this.stackAdditions && this.stackAdditions.length) {
       data.set(
         'stack-additions',
-        this.stackAdditions.map((v) => v.msgpackPrepare())
+        this.stackAdditions.map((v) => v.toEncodingData())
       );
     }
     if (this.stackPopCount) {
@@ -7081,64 +7603,13 @@ export class SimulationOpcodeTraceUnit
     if (this.stateChanges && this.stateChanges.length) {
       data.set(
         'state-changes',
-        this.stateChanges.map((v) => v.msgpackPrepare())
+        this.stateChanges.map((v) => v.toEncodingData())
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['pc'] = this.pc;
-    if (this.scratchChanges && this.scratchChanges.length) {
-      obj['scratch-changes'] = this.scratchChanges.map((v) => v.jsonPrepare());
-    }
-    if (this.spawnedInners && this.spawnedInners.length) {
-      obj['spawned-inners'] = this.spawnedInners;
-    }
-    if (this.stackAdditions && this.stackAdditions.length) {
-      obj['stack-additions'] = this.stackAdditions.map((v) => v.jsonPrepare());
-    }
-    if (this.stackPopCount) {
-      obj['stack-pop-count'] = this.stackPopCount;
-    }
-    if (this.stateChanges && this.stateChanges.length) {
-      obj['state-changes'] = this.stateChanges.map((v) => v.jsonPrepare());
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulationOpcodeTraceUnit {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SimulationOpcodeTraceUnit: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulationOpcodeTraceUnit({
-      pc: data['pc'] ?? 0,
-      scratchChanges:
-        typeof data['scratch-changes'] !== 'undefined'
-          ? data['scratch-changes'].map(ScratchChange.fromDecodedJSON)
-          : undefined,
-      spawnedInners: data['spawned-inners'],
-      stackAdditions:
-        typeof data['stack-additions'] !== 'undefined'
-          ? data['stack-additions'].map(AvmValue.fromDecodedJSON)
-          : undefined,
-      stackPopCount: data['stack-pop-count'],
-      stateChanges:
-        typeof data['state-changes'] !== 'undefined'
-          ? data['state-changes'].map(ApplicationStateOperation.fromDecodedJSON)
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulationOpcodeTraceUnit {
+  static fromEncodingData(data: unknown): SimulationOpcodeTraceUnit {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -7146,19 +7617,19 @@ export class SimulationOpcodeTraceUnit
       pc: data.get('pc') ?? 0,
       scratchChanges:
         typeof data.get('scratch-changes') !== 'undefined'
-          ? data.get('scratch-changes').map(ScratchChange.fromDecodedMsgpack)
+          ? data.get('scratch-changes').map(ScratchChange.fromEncodingData)
           : undefined,
       spawnedInners: data.get('spawned-inners'),
       stackAdditions:
         typeof data.get('stack-additions') !== 'undefined'
-          ? data.get('stack-additions').map(AvmValue.fromDecodedMsgpack)
+          ? data.get('stack-additions').map(AvmValue.fromEncodingData)
           : undefined,
       stackPopCount: data.get('stack-pop-count'),
       stateChanges:
         typeof data.get('state-changes') !== 'undefined'
           ? data
               .get('state-changes')
-              .map(ApplicationStateOperation.fromDecodedMsgpack)
+              .map(ApplicationStateOperation.fromEncodingData)
           : undefined,
     });
   }
@@ -7168,9 +7639,80 @@ export class SimulationOpcodeTraceUnit
  * The execution trace of calling an app or a logic sig, containing the inner app
  * call trace in a recursive way.
  */
-export class SimulationTransactionExecTrace
-  implements MsgpackEncodable, JSONEncodable
-{
+export class SimulationTransactionExecTrace implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'approval-program-hash',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'approval-program-trace',
+          valueSchema: new ArraySchema(
+            SimulationOpcodeTraceUnit.encodingSchema
+          ),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'clear-state-program-hash',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'clear-state-program-trace',
+          valueSchema: new ArraySchema(
+            SimulationOpcodeTraceUnit.encodingSchema
+          ),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'clear-state-rollback',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'clear-state-rollback-error',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'inner-trace',
+          valueSchema: new ArraySchema(
+            SimulationTransactionExecTrace.encodingSchema
+          ),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logic-sig-hash',
+          valueSchema: new ByteArraySchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'logic-sig-trace',
+          valueSchema: new ArraySchema(
+            SimulationOpcodeTraceUnit.encodingSchema
+          ),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * SHA512_256 hash digest of the approval program executed in transaction.
    */
@@ -7277,15 +7819,20 @@ export class SimulationTransactionExecTrace
     this.logicSigTrace = logicSigTrace;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([]);
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SimulationTransactionExecTrace.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([]);
     if (this.approvalProgramHash) {
       data.set('approval-program-hash', this.approvalProgramHash);
     }
     if (this.approvalProgramTrace && this.approvalProgramTrace.length) {
       data.set(
         'approval-program-trace',
-        this.approvalProgramTrace.map((v) => v.msgpackPrepare())
+        this.approvalProgramTrace.map((v) => v.toEncodingData())
       );
     }
     if (this.clearStateProgramHash) {
@@ -7294,7 +7841,7 @@ export class SimulationTransactionExecTrace
     if (this.clearStateProgramTrace && this.clearStateProgramTrace.length) {
       data.set(
         'clear-state-program-trace',
-        this.clearStateProgramTrace.map((v) => v.msgpackPrepare())
+        this.clearStateProgramTrace.map((v) => v.toEncodingData())
       );
     }
     if (this.clearStateRollback) {
@@ -7306,7 +7853,7 @@ export class SimulationTransactionExecTrace
     if (this.innerTrace && this.innerTrace.length) {
       data.set(
         'inner-trace',
-        this.innerTrace.map((v) => v.msgpackPrepare())
+        this.innerTrace.map((v) => v.toEncodingData())
       );
     }
     if (this.logicSigHash) {
@@ -7315,97 +7862,13 @@ export class SimulationTransactionExecTrace
     if (this.logicSigTrace && this.logicSigTrace.length) {
       data.set(
         'logic-sig-trace',
-        this.logicSigTrace.map((v) => v.msgpackPrepare())
+        this.logicSigTrace.map((v) => v.toEncodingData())
       );
     }
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    if (this.approvalProgramHash) {
-      obj['approval-program-hash'] = bytesToBase64(this.approvalProgramHash);
-    }
-    if (this.approvalProgramTrace && this.approvalProgramTrace.length) {
-      obj['approval-program-trace'] = this.approvalProgramTrace.map((v) =>
-        v.jsonPrepare()
-      );
-    }
-    if (this.clearStateProgramHash) {
-      obj['clear-state-program-hash'] = bytesToBase64(
-        this.clearStateProgramHash
-      );
-    }
-    if (this.clearStateProgramTrace && this.clearStateProgramTrace.length) {
-      obj['clear-state-program-trace'] = this.clearStateProgramTrace.map((v) =>
-        v.jsonPrepare()
-      );
-    }
-    if (this.clearStateRollback) {
-      obj['clear-state-rollback'] = this.clearStateRollback;
-    }
-    if (this.clearStateRollbackError) {
-      obj['clear-state-rollback-error'] = this.clearStateRollbackError;
-    }
-    if (this.innerTrace && this.innerTrace.length) {
-      obj['inner-trace'] = this.innerTrace.map((v) => v.jsonPrepare());
-    }
-    if (this.logicSigHash) {
-      obj['logic-sig-hash'] = bytesToBase64(this.logicSigHash);
-    }
-    if (this.logicSigTrace && this.logicSigTrace.length) {
-      obj['logic-sig-trace'] = this.logicSigTrace.map((v) => v.jsonPrepare());
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SimulationTransactionExecTrace {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded SimulationTransactionExecTrace: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SimulationTransactionExecTrace({
-      approvalProgramHash: data['approval-program-hash'],
-      approvalProgramTrace:
-        typeof data['approval-program-trace'] !== 'undefined'
-          ? data['approval-program-trace'].map(
-              SimulationOpcodeTraceUnit.fromDecodedJSON
-            )
-          : undefined,
-      clearStateProgramHash: data['clear-state-program-hash'],
-      clearStateProgramTrace:
-        typeof data['clear-state-program-trace'] !== 'undefined'
-          ? data['clear-state-program-trace'].map(
-              SimulationOpcodeTraceUnit.fromDecodedJSON
-            )
-          : undefined,
-      clearStateRollback: data['clear-state-rollback'],
-      clearStateRollbackError: data['clear-state-rollback-error'],
-      innerTrace:
-        typeof data['inner-trace'] !== 'undefined'
-          ? data['inner-trace'].map(
-              SimulationTransactionExecTrace.fromDecodedJSON
-            )
-          : undefined,
-      logicSigHash: data['logic-sig-hash'],
-      logicSigTrace:
-        typeof data['logic-sig-trace'] !== 'undefined'
-          ? data['logic-sig-trace'].map(
-              SimulationOpcodeTraceUnit.fromDecodedJSON
-            )
-          : undefined,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SimulationTransactionExecTrace {
+  static fromEncodingData(data: unknown): SimulationTransactionExecTrace {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -7415,14 +7878,14 @@ export class SimulationTransactionExecTrace
         typeof data.get('approval-program-trace') !== 'undefined'
           ? data
               .get('approval-program-trace')
-              .map(SimulationOpcodeTraceUnit.fromDecodedMsgpack)
+              .map(SimulationOpcodeTraceUnit.fromEncodingData)
           : undefined,
       clearStateProgramHash: data.get('clear-state-program-hash'),
       clearStateProgramTrace:
         typeof data.get('clear-state-program-trace') !== 'undefined'
           ? data
               .get('clear-state-program-trace')
-              .map(SimulationOpcodeTraceUnit.fromDecodedMsgpack)
+              .map(SimulationOpcodeTraceUnit.fromEncodingData)
           : undefined,
       clearStateRollback: data.get('clear-state-rollback'),
       clearStateRollbackError: data.get('clear-state-rollback-error'),
@@ -7430,14 +7893,14 @@ export class SimulationTransactionExecTrace
         typeof data.get('inner-trace') !== 'undefined'
           ? data
               .get('inner-trace')
-              .map(SimulationTransactionExecTrace.fromDecodedMsgpack)
+              .map(SimulationTransactionExecTrace.fromEncodingData)
           : undefined,
       logicSigHash: data.get('logic-sig-hash'),
       logicSigTrace:
         typeof data.get('logic-sig-trace') !== 'undefined'
           ? data
               .get('logic-sig-trace')
-              .map(SimulationOpcodeTraceUnit.fromDecodedMsgpack)
+              .map(SimulationOpcodeTraceUnit.fromEncodingData)
           : undefined,
     });
   }
@@ -7446,7 +7909,30 @@ export class SimulationTransactionExecTrace
 /**
  * Represents a state proof and its corresponding message
  */
-export class StateProof implements MsgpackEncodable, JSONEncodable {
+export class StateProof implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'Message',
+          valueSchema: StateProofMessage.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'StateProof',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Represents the message that the state proofs are attesting to.
    */
@@ -7474,44 +7960,25 @@ export class StateProof implements MsgpackEncodable, JSONEncodable {
       typeof stateproof === 'string' ? base64ToBytes(stateproof) : stateproof;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['Message', this.message.msgpackPrepare()],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProof.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['Message', this.message.toEncodingData()],
       ['StateProof', this.stateproof],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['Message'] = this.message.jsonPrepare();
-    obj['StateProof'] = bytesToBase64(this.stateproof);
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): StateProof {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded StateProof: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new StateProof({
-      message: StateProofMessage.fromDecodedJSON(data['Message'] ?? {}),
-      stateproof: data['StateProof'] ?? new Uint8Array(),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): StateProof {
+  static fromEncodingData(data: unknown): StateProof {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new StateProof({
-      message: StateProofMessage.fromDecodedMsgpack(data.get('Message') ?? {}),
+      message: StateProofMessage.fromEncodingData(data.get('Message') ?? {}),
       stateproof: data.get('StateProof') ?? new Uint8Array(),
     });
   }
@@ -7520,7 +7987,48 @@ export class StateProof implements MsgpackEncodable, JSONEncodable {
 /**
  * Represents the message that the state proofs are attesting to.
  */
-export class StateProofMessage implements MsgpackEncodable, JSONEncodable {
+export class StateProofMessage implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'BlockHeadersCommitment',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'FirstAttestedRound',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'LastAttestedRound',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'LnProvenWeight',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'VotersCommitment',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The vector commitment root on all light block headers within a state proof
    * interval.
@@ -7584,8 +8092,13 @@ export class StateProofMessage implements MsgpackEncodable, JSONEncodable {
         : voterscommitment;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofMessage.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['BlockHeadersCommitment', this.blockheaderscommitment],
       ['FirstAttestedRound', this.firstattestedround],
       ['LastAttestedRound', this.lastattestedround],
@@ -7595,38 +8108,7 @@ export class StateProofMessage implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['BlockHeadersCommitment'] = bytesToBase64(this.blockheaderscommitment);
-    obj['FirstAttestedRound'] = this.firstattestedround;
-    obj['LastAttestedRound'] = this.lastattestedround;
-    obj['LnProvenWeight'] = this.lnprovenweight;
-    obj['VotersCommitment'] = bytesToBase64(this.voterscommitment);
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): StateProofMessage {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded StateProofMessage: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new StateProofMessage({
-      blockheaderscommitment:
-        data['BlockHeadersCommitment'] ?? new Uint8Array(),
-      firstattestedround: data['FirstAttestedRound'] ?? 0,
-      lastattestedround: data['LastAttestedRound'] ?? 0,
-      lnprovenweight: data['LnProvenWeight'] ?? 0,
-      voterscommitment: data['VotersCommitment'] ?? new Uint8Array(),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): StateProofMessage {
+  static fromEncodingData(data: unknown): StateProofMessage {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -7644,7 +8126,36 @@ export class StateProofMessage implements MsgpackEncodable, JSONEncodable {
 /**
  * Supply represents the current supply of MicroAlgos in the system.
  */
-export class SupplyResponse implements MsgpackEncodable, JSONEncodable {
+export class SupplyResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'current_round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'online-money',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'total-money',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Round
    */
@@ -7680,8 +8191,13 @@ export class SupplyResponse implements MsgpackEncodable, JSONEncodable {
     this.totalMoney = ensureBigInt(totalMoney);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return SupplyResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['current_round', this.currentRound],
       ['online-money', this.onlineMoney],
       ['total-money', this.totalMoney],
@@ -7689,33 +8205,7 @@ export class SupplyResponse implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['current_round'] = this.currentRound;
-    obj['online-money'] = this.onlineMoney;
-    obj['total-money'] = this.totalMoney;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): SupplyResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded SupplyResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new SupplyResponse({
-      currentRound: data['current_round'] ?? 0,
-      onlineMoney: data['online-money'] ?? 0,
-      totalMoney: data['total-money'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): SupplyResponse {
+  static fromEncodingData(data: unknown): SupplyResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -7730,7 +8220,30 @@ export class SupplyResponse implements MsgpackEncodable, JSONEncodable {
 /**
  * Represents a key-value pair in an application store.
  */
-export class TealKeyValue implements MsgpackEncodable, JSONEncodable {
+export class TealKeyValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'key',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'value',
+          valueSchema: TealValue.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public key: string;
 
   /**
@@ -7748,45 +8261,26 @@ export class TealKeyValue implements MsgpackEncodable, JSONEncodable {
     this.value = value;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TealKeyValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['key', this.key],
-      ['value', this.value.msgpackPrepare()],
+      ['value', this.value.toEncodingData()],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['key'] = this.key;
-    obj['value'] = this.value.jsonPrepare();
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): TealKeyValue {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded TealKeyValue: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new TealKeyValue({
-      key: data['key'] ?? '',
-      value: TealValue.fromDecodedJSON(data['value'] ?? {}),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): TealKeyValue {
+  static fromEncodingData(data: unknown): TealKeyValue {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new TealKeyValue({
       key: data.get('key') ?? '',
-      value: TealValue.fromDecodedMsgpack(data.get('value') ?? {}),
+      value: TealValue.fromEncodingData(data.get('value') ?? {}),
     });
   }
 }
@@ -7794,7 +8288,36 @@ export class TealKeyValue implements MsgpackEncodable, JSONEncodable {
 /**
  * Represents a TEAL value.
  */
-export class TealValue implements MsgpackEncodable, JSONEncodable {
+export class TealValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'bytes',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'type',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'uint',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (tb) bytes value.
    */
@@ -7830,8 +8353,13 @@ export class TealValue implements MsgpackEncodable, JSONEncodable {
     this.uint = ensureBigInt(uint);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TealValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['bytes', this.bytes],
       ['type', this.type],
       ['uint', this.uint],
@@ -7839,33 +8367,7 @@ export class TealValue implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['bytes'] = this.bytes;
-    obj['type'] = this.type;
-    obj['uint'] = this.uint;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): TealValue {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded TealValue: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new TealValue({
-      bytes: data['bytes'] ?? '',
-      type: data['type'] ?? 0,
-      uint: data['uint'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): TealValue {
+  static fromEncodingData(data: unknown): TealValue {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -7882,8 +8384,25 @@ export class TealValue implements MsgpackEncodable, JSONEncodable {
  * associated Ids, in a single round.
  */
 export class TransactionGroupLedgerStateDeltasForRoundResponse
-  implements MsgpackEncodable, JSONEncodable
+  implements Encodable
 {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'Deltas',
+        valueSchema: new ArraySchema(
+          LedgerStateDeltaForTransactionGroup.encodingSchema
+        ),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   public deltas: LedgerStateDeltaForTransactionGroup[];
 
   /**
@@ -7894,42 +8413,19 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse
     this.deltas = deltas;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['Deltas', this.deltas.map((v) => v.msgpackPrepare())],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionGroupLedgerStateDeltasForRoundResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['Deltas', this.deltas.map((v) => v.toEncodingData())],
     ]);
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['Deltas'] = this.deltas.map((v) => v.jsonPrepare());
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(
-    encoded: unknown
-  ): TransactionGroupLedgerStateDeltasForRoundResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded TransactionGroupLedgerStateDeltasForRoundResponse: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new TransactionGroupLedgerStateDeltasForRoundResponse({
-      deltas: (data['Deltas'] ?? []).map(
-        LedgerStateDeltaForTransactionGroup.fromDecodedJSON
-      ),
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(
+  static fromEncodingData(
     data: unknown
   ): TransactionGroupLedgerStateDeltasForRoundResponse {
     if (!(data instanceof Map)) {
@@ -7937,7 +8433,7 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse
     }
     return new TransactionGroupLedgerStateDeltasForRoundResponse({
       deltas: (data.get('Deltas') ?? []).map(
-        LedgerStateDeltaForTransactionGroup.fromDecodedMsgpack
+        LedgerStateDeltaForTransactionGroup.fromEncodingData
       ),
     });
   }
@@ -7947,9 +8443,54 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse
  * TransactionParams contains the parameters that help a client construct a new
  * transaction.
  */
-export class TransactionParametersResponse
-  implements MsgpackEncodable, JSONEncodable
-{
+export class TransactionParametersResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'consensus-version',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'fee',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'genesis-hash',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'genesis-id',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'min-fee',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * ConsensusVersion indicates the consensus protocol version
    * as of LastRound.
@@ -8025,8 +8566,13 @@ export class TransactionParametersResponse
     this.minFee = ensureBigInt(minFee);
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionParametersResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['consensus-version', this.consensusVersion],
       ['fee', this.fee],
       ['genesis-hash', this.genesisHash],
@@ -8037,41 +8583,7 @@ export class TransactionParametersResponse
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['consensus-version'] = this.consensusVersion;
-    obj['fee'] = this.fee;
-    obj['genesis-hash'] = bytesToBase64(this.genesisHash);
-    obj['genesis-id'] = this.genesisId;
-    obj['last-round'] = this.lastRound;
-    obj['min-fee'] = this.minFee;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): TransactionParametersResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(
-        `Invalid decoded TransactionParametersResponse: ${encoded}`
-      );
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new TransactionParametersResponse({
-      consensusVersion: data['consensus-version'] ?? '',
-      fee: data['fee'] ?? 0,
-      genesisHash: data['genesis-hash'] ?? new Uint8Array(),
-      genesisId: data['genesis-id'] ?? '',
-      lastRound: data['last-round'] ?? 0,
-      minFee: data['min-fee'] ?? 0,
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): TransactionParametersResponse {
+  static fromEncodingData(data: unknown): TransactionParametersResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -8089,9 +8601,48 @@ export class TransactionParametersResponse
 /**
  * Proof of transaction in a block.
  */
-export class TransactionProofResponse
-  implements MsgpackEncodable, JSONEncodable
-{
+export class TransactionProofResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'idx',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'proof',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'stibhash',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'treedepth',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'hashtype',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Index of the transaction in the block's payset.
    */
@@ -8152,8 +8703,13 @@ export class TransactionProofResponse
     this.hashtype = hashtype;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionProofResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['idx', this.idx],
       ['proof', this.proof],
       ['stibhash', this.stibhash],
@@ -8165,39 +8721,7 @@ export class TransactionProofResponse
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['idx'] = this.idx;
-    obj['proof'] = bytesToBase64(this.proof);
-    obj['stibhash'] = bytesToBase64(this.stibhash);
-    obj['treedepth'] = this.treedepth;
-    if (this.hashtype) {
-      obj['hashtype'] = this.hashtype;
-    }
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): TransactionProofResponse {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded TransactionProofResponse: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new TransactionProofResponse({
-      idx: data['idx'] ?? 0,
-      proof: data['proof'] ?? new Uint8Array(),
-      stibhash: data['stibhash'] ?? new Uint8Array(),
-      treedepth: data['treedepth'] ?? 0,
-      hashtype: data['hashtype'],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): TransactionProofResponse {
+  static fromEncodingData(data: unknown): TransactionProofResponse {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -8214,7 +8738,42 @@ export class TransactionProofResponse
 /**
  * algod version information.
  */
-export class Version implements MsgpackEncodable, JSONEncodable {
+export class Version implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'build',
+          valueSchema: BuildVersion.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'genesis_hash_b64',
+          valueSchema: new ByteArraySchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'genesis_id',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'versions',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public build: BuildVersion;
 
   public genesisHashB64: Uint8Array;
@@ -8250,9 +8809,14 @@ export class Version implements MsgpackEncodable, JSONEncodable {
     this.versions = versions;
   }
 
-  msgpackPrepare(): Map<string, MsgpackEncodingData> {
-    const data = new Map<string, MsgpackEncodingData>([
-      ['build', this.build.msgpackPrepare()],
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Version.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['build', this.build.toEncodingData()],
       ['genesis_hash_b64', this.genesisHashB64],
       ['genesis_id', this.genesisId],
       ['versions', this.versions],
@@ -8260,40 +8824,12 @@ export class Version implements MsgpackEncodable, JSONEncodable {
     return data;
   }
 
-  jsonPrepare(): Record<string, JSONEncodingData> {
-    const obj: Record<string, JSONEncodingData> = {};
-
-    /* eslint-disable dot-notation */
-    obj['build'] = this.build.jsonPrepare();
-    obj['genesis_hash_b64'] = bytesToBase64(this.genesisHashB64);
-    obj['genesis_id'] = this.genesisId;
-    obj['versions'] = this.versions;
-    /* eslint-enable dot-notation */
-
-    return obj;
-  }
-
-  static fromDecodedJSON(encoded: unknown): Version {
-    if (encoded === null || typeof encoded !== 'object') {
-      throw new Error(`Invalid decoded Version: ${encoded}`);
-    }
-    const data = encoded as Record<string, any>;
-    /* eslint-disable dot-notation */
-    return new Version({
-      build: BuildVersion.fromDecodedJSON(data['build'] ?? {}),
-      genesisHashB64: data['genesis_hash_b64'] ?? new Uint8Array(),
-      genesisId: data['genesis_id'] ?? '',
-      versions: data['versions'] ?? [],
-    });
-    /* eslint-enable dot-notation */
-  }
-
-  static fromDecodedMsgpack(data: unknown): Version {
+  static fromEncodingData(data: unknown): Version {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new Version({
-      build: BuildVersion.fromDecodedMsgpack(data.get('build') ?? {}),
+      build: BuildVersion.fromEncodingData(data.get('build') ?? {}),
       genesisHashB64: data.get('genesis_hash_b64') ?? new Uint8Array(),
       genesisId: data.get('genesis_id') ?? '',
       versions: data.get('versions') ?? [],

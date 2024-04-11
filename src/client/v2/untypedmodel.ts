@@ -1,32 +1,25 @@
-import {
-  MsgpackEncodable,
-  MsgpackEncodingData,
-  JSONEncodable,
-  JSONEncodingData,
-  msgpackEncodingDataToJSONEncodingData,
-  jsonEncodingDataToMsgpackEncodingData,
-} from '../../encoding/encoding.js';
+import { Encodable, MsgpackEncodingData } from '../../encoding/encoding.js';
+import { UntypedSchema } from '../../encoding/schema/index.js';
 
-export class UntypedValue implements MsgpackEncodable, JSONEncodable {
+export class UntypedValue implements Encodable {
+  static encodingSchema = new UntypedSchema();
+
   public readonly data: MsgpackEncodingData;
 
   constructor(data: MsgpackEncodingData) {
     this.data = data;
   }
 
-  public msgpackPrepare(): MsgpackEncodingData {
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): UntypedSchema {
+    return UntypedValue.encodingSchema;
+  }
+
+  public toEncodingData(): MsgpackEncodingData {
     return this.data;
   }
 
-  public jsonPrepare(): JSONEncodingData {
-    return msgpackEncodingDataToJSONEncodingData(this.data);
-  }
-
-  public static fromDecodedMsgpack(data: MsgpackEncodingData): UntypedValue {
-    return new UntypedValue(data);
-  }
-
-  public static fromDecodedJSON(data: JSONEncodingData): UntypedValue {
-    return new UntypedValue(jsonEncodingDataToMsgpackEncodingData(data));
+  public static fromEncodingData(data: unknown): UntypedValue {
+    return new UntypedValue(data as MsgpackEncodingData);
   }
 }

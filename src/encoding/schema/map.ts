@@ -53,11 +53,18 @@ export class NamedMapSchema extends Schema {
     const map = new Map<string, MsgpackEncodingData>();
     for (const entry of this.entries) {
       if (data.has(entry.key)) {
-        // TODO: option to omit empty values
+        if (
+          entry.omitEmpty &&
+          entry.valueSchema.isDefaultValue(data.get(entry.key))
+        ) {
+          continue;
+        }
         map.set(
           entry.key,
           entry.valueSchema.prepareMsgpack(data.get(entry.key))
         );
+      } else if (entry.required) {
+        throw new Error(`Missing required key: ${entry.key}`);
       }
     }
     return map;
@@ -66,13 +73,21 @@ export class NamedMapSchema extends Schema {
   public fromPreparedMsgpack(
     encoded: MsgpackEncodingData
   ): Map<string, unknown> {
+    if (!(encoded instanceof Map)) {
+      throw new Error('NamedMapSchema data must be a Map');
+    }
     const map = new Map<string, unknown>();
     for (const entry of this.entries) {
-      if (encoded instanceof Map && encoded.has(entry.key)) {
+      if (encoded.has(entry.key)) {
         map.set(
           entry.key,
           entry.valueSchema.fromPreparedMsgpack(encoded.get(entry.key))
         );
+      } else if (entry.required) {
+        if (entry.omitEmpty) {
+          map.set(entry.key, entry.valueSchema.defaultValue());
+        }
+        throw new Error(`Missing required key: ${entry.key}`);
       }
     }
     return map;
@@ -85,21 +100,36 @@ export class NamedMapSchema extends Schema {
     const obj: { [key: string]: JSONEncodingData } = {};
     for (const entry of this.entries) {
       if (data.has(entry.key)) {
-        // TODO: option to omit empty values
+        if (
+          entry.omitEmpty &&
+          entry.valueSchema.isDefaultValue(data.get(entry.key))
+        ) {
+          continue;
+        }
         obj[entry.key] = entry.valueSchema.prepareJSON(data.get(entry.key));
+      } else if (entry.required) {
+        throw new Error(`Missing required key: ${entry.key}`);
       }
     }
     return obj;
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): Map<string, unknown> {
+    if (!(encoded instanceof Map)) {
+      throw new Error('NamedMapSchema data must be a Map');
+    }
     const map = new Map<string, unknown>();
     for (const entry of this.entries) {
-      if (encoded instanceof Map && encoded.has(entry.key)) {
+      if (encoded.has(entry.key)) {
         map.set(
           entry.key,
           entry.valueSchema.fromPreparedJSON(encoded.get(entry.key))
         );
+      } else if (entry.required) {
+        if (entry.omitEmpty) {
+          map.set(entry.key, entry.valueSchema.defaultValue());
+        }
+        throw new Error(`Missing required key: ${entry.key}`);
       }
     }
     return map;

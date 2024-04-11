@@ -1,8 +1,5 @@
 import base32 from 'hi-base32';
-import {
-  jsonPrepareBoxReferences,
-  msgpackPrepareBoxReferences,
-} from './boxStorage.js';
+import { msgpackPrepareBoxReferences } from './boxStorage.js';
 import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
@@ -15,7 +12,6 @@ import {
   NamedMapSchema,
   BooleanSchema,
 } from './encoding/schema/index.js';
-import { bytesToBase64, base64ToBytes } from './encoding/binarydata.js';
 import * as nacl from './nacl/naclWrappers.js';
 import {
   SuggestedParams,
@@ -252,9 +248,7 @@ export interface StateProofTransactionFields {
 /**
  * Transaction enables construction of Algorand transactions
  * */
-export class Transaction
-  implements encoding.MsgpackEncodable, encoding.JSONEncodable
-{
+export class Transaction implements encoding.Encodable {
   static encodingSchema = new NamedMapSchema(
     [
       // Common
@@ -652,8 +646,13 @@ export class Transaction
     }
   }
 
-  msgpackPrepare(): Map<string, encoding.MsgpackEncodingData> {
-    const data = new Map<string, encoding.MsgpackEncodingData>([
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): encoding.Schema {
+    return Transaction.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
       ['type', this.type],
       ['lv', this.lastValid],
     ]);
@@ -881,429 +880,7 @@ export class Transaction
     throw new Error(`Unexpected transaction type: ${this.type}`);
   }
 
-  jsonPrepare(): Record<string, encoding.JSONEncodingData> {
-    const forEncoding: Record<string, encoding.JSONEncodingData> = {
-      type: this.type,
-      lv: this.lastValid,
-    };
-    if (!uint8ArrayIsEmpty(this.sender.publicKey)) {
-      forEncoding.snd = this.sender.toString();
-    }
-    if (this.genesisID) {
-      forEncoding.gen = this.genesisID;
-    }
-    if (this.genesisHash) {
-      forEncoding.gh = bytesToBase64(this.genesisHash);
-    }
-    if (this.fee) {
-      forEncoding.fee = this.fee;
-    }
-    if (this.firstValid) {
-      forEncoding.fv = this.firstValid;
-    }
-    if (this.note.length) {
-      forEncoding.note = bytesToBase64(this.note);
-    }
-    if (this.lease) {
-      forEncoding.lx = bytesToBase64(this.lease);
-    }
-    if (this.rekeyTo) {
-      forEncoding.rekey = this.rekeyTo.toString();
-    }
-    if (this.group.length) {
-      forEncoding.grp = bytesToBase64(this.group);
-    }
-
-    if (this.payment) {
-      if (this.payment.amount) {
-        forEncoding.amt = this.payment.amount;
-      }
-      if (!uint8ArrayIsEmpty(this.payment.receiver.publicKey)) {
-        forEncoding.rcv = this.payment.receiver.toString();
-      }
-      if (this.payment.closeRemainderTo) {
-        forEncoding.close = this.payment.closeRemainderTo.toString();
-      }
-      return forEncoding;
-    }
-
-    if (this.keyreg) {
-      if (this.keyreg.voteKey) {
-        forEncoding.votekey = bytesToBase64(this.keyreg.voteKey);
-      }
-      if (this.keyreg.selectionKey) {
-        forEncoding.selkey = bytesToBase64(this.keyreg.selectionKey);
-      }
-      if (this.keyreg.stateProofKey) {
-        forEncoding.sprfkey = bytesToBase64(this.keyreg.stateProofKey);
-      }
-      if (this.keyreg.voteFirst) {
-        forEncoding.votefst = this.keyreg.voteFirst;
-      }
-      if (this.keyreg.voteLast) {
-        forEncoding.votelst = this.keyreg.voteLast;
-      }
-      if (this.keyreg.voteKeyDilution) {
-        forEncoding.votekd = this.keyreg.voteKeyDilution;
-      }
-      if (this.keyreg.nonParticipation) {
-        forEncoding.nonpart = this.keyreg.nonParticipation;
-      }
-      return forEncoding;
-    }
-
-    if (this.assetConfig) {
-      if (this.assetConfig.assetIndex) {
-        forEncoding.caid = this.assetConfig.assetIndex;
-      }
-      const assetParams: Record<string, encoding.JSONEncodingData> = {};
-      if (this.assetConfig.total) {
-        assetParams.t = this.assetConfig.total;
-      }
-      if (this.assetConfig.decimals) {
-        assetParams.dc = this.assetConfig.decimals;
-      }
-      if (this.assetConfig.defaultFrozen) {
-        assetParams.df = this.assetConfig.defaultFrozen;
-      }
-      if (this.assetConfig.manager) {
-        assetParams.m = this.assetConfig.manager.toString();
-      }
-      if (this.assetConfig.reserve) {
-        assetParams.r = this.assetConfig.reserve.toString();
-      }
-      if (this.assetConfig.freeze) {
-        assetParams.f = this.assetConfig.freeze.toString();
-      }
-      if (this.assetConfig.clawback) {
-        assetParams.c = this.assetConfig.clawback.toString();
-      }
-      if (this.assetConfig.unitName) {
-        assetParams.un = this.assetConfig.unitName;
-      }
-      if (this.assetConfig.assetName) {
-        assetParams.an = this.assetConfig.assetName;
-      }
-      if (this.assetConfig.assetURL) {
-        assetParams.au = this.assetConfig.assetURL;
-      }
-      if (this.assetConfig.assetMetadataHash) {
-        assetParams.am = bytesToBase64(this.assetConfig.assetMetadataHash);
-      }
-      if (Object.keys(assetParams).length) {
-        forEncoding.apar = assetParams;
-      }
-      return forEncoding;
-    }
-
-    if (this.assetTransfer) {
-      if (this.assetTransfer.assetIndex) {
-        forEncoding.xaid = this.assetTransfer.assetIndex;
-      }
-      if (this.assetTransfer.amount) {
-        forEncoding.aamt = this.assetTransfer.amount;
-      }
-      if (!uint8ArrayIsEmpty(this.assetTransfer.receiver.publicKey)) {
-        forEncoding.arcv = this.assetTransfer.receiver.toString();
-      }
-      if (this.assetTransfer.closeRemainderTo) {
-        forEncoding.aclose = this.assetTransfer.closeRemainderTo.toString();
-      }
-      if (this.assetTransfer.assetSender) {
-        forEncoding.asnd = this.assetTransfer.assetSender.toString();
-      }
-      return forEncoding;
-    }
-
-    if (this.assetFreeze) {
-      if (this.assetFreeze.assetIndex) {
-        forEncoding.faid = this.assetFreeze.assetIndex;
-      }
-      if (this.assetFreeze.frozen) {
-        forEncoding.afrz = this.assetFreeze.frozen;
-      }
-      if (!uint8ArrayIsEmpty(this.assetFreeze.freezeAccount.publicKey)) {
-        forEncoding.fadd = this.assetFreeze.freezeAccount.toString();
-      }
-      return forEncoding;
-    }
-
-    if (this.applicationCall) {
-      if (this.applicationCall.appIndex) {
-        forEncoding.apid = this.applicationCall.appIndex;
-      }
-      if (this.applicationCall.onComplete) {
-        forEncoding.apan = this.applicationCall.onComplete;
-      }
-      if (this.applicationCall.appArgs.length) {
-        forEncoding.apaa = this.applicationCall.appArgs.map(bytesToBase64);
-      }
-      if (this.applicationCall.accounts.length) {
-        forEncoding.apat = this.applicationCall.accounts.map((decodedAddress) =>
-          decodedAddress.toString()
-        );
-      }
-      if (this.applicationCall.foreignAssets.length) {
-        forEncoding.apas = this.applicationCall.foreignAssets.slice();
-      }
-      if (this.applicationCall.foreignApps.length) {
-        forEncoding.apfa = this.applicationCall.foreignApps.slice();
-      }
-      if (this.applicationCall.boxes.length) {
-        forEncoding.apbx = jsonPrepareBoxReferences(
-          this.applicationCall.boxes,
-          this.applicationCall.foreignApps,
-          this.applicationCall.appIndex
-        );
-      }
-      if (this.applicationCall.approvalProgram.length) {
-        forEncoding.apap = bytesToBase64(this.applicationCall.approvalProgram);
-      }
-      if (this.applicationCall.clearProgram.length) {
-        forEncoding.apsu = bytesToBase64(this.applicationCall.clearProgram);
-      }
-      if (
-        this.applicationCall.numLocalInts ||
-        this.applicationCall.numLocalByteSlices
-      ) {
-        const localSchema: Record<string, number> = {};
-        if (this.applicationCall.numLocalInts) {
-          localSchema.nui = this.applicationCall.numLocalInts;
-        }
-        if (this.applicationCall.numLocalByteSlices) {
-          localSchema.nbs = this.applicationCall.numLocalByteSlices;
-        }
-        forEncoding.apls = localSchema;
-      }
-      if (
-        this.applicationCall.numGlobalInts ||
-        this.applicationCall.numGlobalByteSlices
-      ) {
-        const globalSchema: Record<string, number> = {};
-        if (this.applicationCall.numGlobalInts) {
-          globalSchema.nui = this.applicationCall.numGlobalInts;
-        }
-        if (this.applicationCall.numGlobalByteSlices) {
-          globalSchema.nbs = this.applicationCall.numGlobalByteSlices;
-        }
-        forEncoding.apgs = globalSchema;
-      }
-      if (this.applicationCall.extraPages) {
-        forEncoding.apep = this.applicationCall.extraPages;
-      }
-      return forEncoding;
-    }
-
-    if (this.stateProof) {
-      if (this.stateProof.stateProofType) {
-        forEncoding.sptype = this.stateProof.stateProofType;
-      }
-      forEncoding.spmsg = this.stateProof.stateProofMessage as any; // TODO
-      forEncoding.sp = this.stateProof.stateProof as any; // TODO
-      return forEncoding;
-    }
-
-    throw new Error(`Unexpected transaction type: ${this.type}`);
-  }
-
-  static fromDecodedJSON(data: unknown): Transaction {
-    if (data === null || typeof data !== 'object') {
-      throw new Error(`Invalid decoded Transaction: ${data}`);
-    }
-    const txnForEnc = data as Record<string, any>;
-    const suggestedParams: SuggestedParams = {
-      minFee: BigInt(0),
-      flatFee: true,
-      fee: txnForEnc.fee ?? 0,
-      firstValid: txnForEnc.fv ?? 0,
-      lastValid: txnForEnc.lv,
-      genesisHash: txnForEnc.gh ? base64ToBytes(txnForEnc.gh) : undefined,
-      genesisID: txnForEnc.gen,
-    };
-
-    if (!isTransactionType(txnForEnc.type)) {
-      throw new Error(`Unrecognized transaction type: ${txnForEnc.type}`);
-    }
-
-    const params: TransactionParams = {
-      type: txnForEnc.type,
-      sender: txnForEnc.snd
-        ? Address.fromString(txnForEnc.snd)
-        : Address.zeroAddress(),
-      suggestedParams,
-    };
-
-    if (txnForEnc.note) {
-      params.note = base64ToBytes(txnForEnc.note);
-    }
-
-    if (txnForEnc.lx) {
-      params.lease = base64ToBytes(txnForEnc.lx);
-    }
-
-    if (txnForEnc.rekey) {
-      params.rekeyTo = Address.fromString(txnForEnc.rekey);
-    }
-
-    if (params.type === TransactionType.pay) {
-      const paymentParams: PaymentTransactionParams = {
-        amount: txnForEnc.amt ?? 0,
-        receiver: txnForEnc.rcv
-          ? Address.fromString(txnForEnc.rcv)
-          : Address.zeroAddress(),
-      };
-      if (txnForEnc.close) {
-        paymentParams.closeRemainderTo = Address.fromString(txnForEnc.close);
-      }
-      params.paymentParams = paymentParams;
-    } else if (params.type === TransactionType.keyreg) {
-      const keyregParams: KeyRegistrationTransactionParams = {
-        voteKey: txnForEnc.votekey
-          ? base64ToBytes(txnForEnc.votekey)
-          : undefined,
-        selectionKey: txnForEnc.selkey
-          ? base64ToBytes(txnForEnc.selkey)
-          : undefined,
-        stateProofKey: txnForEnc.sprfkey
-          ? base64ToBytes(txnForEnc.sprfkey)
-          : undefined,
-        voteFirst: txnForEnc.votefst,
-        voteLast: txnForEnc.votelst,
-        voteKeyDilution: txnForEnc.votekd,
-        nonParticipation: txnForEnc.nonpart,
-      };
-      params.keyregParams = keyregParams;
-    } else if (params.type === TransactionType.acfg) {
-      const assetConfigParams: AssetConfigurationTransactionParams = {
-        assetIndex: txnForEnc.caid,
-      };
-      if (txnForEnc.apar) {
-        assetConfigParams.total = txnForEnc.apar.t;
-        assetConfigParams.decimals = txnForEnc.apar.dc;
-        assetConfigParams.defaultFrozen = txnForEnc.apar.df;
-        assetConfigParams.unitName = txnForEnc.apar.un;
-        assetConfigParams.assetName = txnForEnc.apar.an;
-        assetConfigParams.assetURL = txnForEnc.apar.au;
-        if (txnForEnc.apar.am) {
-          assetConfigParams.assetMetadataHash = base64ToBytes(
-            txnForEnc.apar.am
-          );
-        }
-        if (txnForEnc.apar.m) {
-          assetConfigParams.manager = Address.fromString(txnForEnc.apar.m);
-        }
-        if (txnForEnc.apar.r) {
-          assetConfigParams.reserve = Address.fromString(txnForEnc.apar.r);
-        }
-        if (txnForEnc.apar.f) {
-          assetConfigParams.freeze = Address.fromString(txnForEnc.apar.f);
-        }
-        if (txnForEnc.apar.c) {
-          assetConfigParams.clawback = Address.fromString(txnForEnc.apar.c);
-        }
-      }
-      params.assetConfigParams = assetConfigParams;
-    } else if (params.type === TransactionType.axfer) {
-      const assetTransferParams: AssetTransferTransactionParams = {
-        assetIndex: txnForEnc.xaid ?? 0,
-        amount: txnForEnc.aamt ?? 0,
-        receiver: txnForEnc.arcv
-          ? Address.fromString(txnForEnc.arcv)
-          : Address.zeroAddress(),
-      };
-      if (txnForEnc.aclose) {
-        assetTransferParams.closeRemainderTo = Address.fromString(
-          txnForEnc.aclose
-        );
-      }
-      if (txnForEnc.asnd) {
-        assetTransferParams.assetSender = Address.fromString(txnForEnc.asnd);
-      }
-      params.assetTransferParams = assetTransferParams;
-    } else if (params.type === TransactionType.afrz) {
-      const assetFreezeParams: AssetFreezeTransactionParams = {
-        assetIndex: txnForEnc.faid ?? 0,
-        freezeTarget: txnForEnc.fadd
-          ? Address.fromString(txnForEnc.fadd)
-          : Address.zeroAddress(),
-        frozen: txnForEnc.afrz ?? false,
-      };
-      params.assetFreezeParams = assetFreezeParams;
-    } else if (params.type === TransactionType.appl) {
-      const appCallParams: ApplicationCallTransactionParams = {
-        appIndex: txnForEnc.apid ?? 0,
-        onComplete: utils.ensureSafeUnsignedInteger(txnForEnc.apan ?? 0),
-        appArgs: (txnForEnc.apaa ?? []).map(base64ToBytes),
-        accounts: (txnForEnc.apat ?? []).map(Address.fromString),
-        foreignAssets: txnForEnc.apas,
-        foreignApps: txnForEnc.apfa,
-        numLocalInts: txnForEnc.apls?.nui,
-        numLocalByteSlices: txnForEnc.apls?.nbs,
-        numGlobalInts: txnForEnc.apgs?.nui,
-        numGlobalByteSlices: txnForEnc.apgs?.nbs,
-        extraPages: txnForEnc.apep,
-      };
-      if (txnForEnc.apap) {
-        appCallParams.approvalProgram = base64ToBytes(txnForEnc.apap);
-      }
-      if (txnForEnc.apsu) {
-        appCallParams.clearProgram = base64ToBytes(txnForEnc.apsu);
-      }
-      if (txnForEnc.apbx) {
-        appCallParams.boxes = txnForEnc.apbx.map((box: Record<string, any>) => {
-          const index = utils.ensureSafeUnsignedInteger(box.i ?? 0);
-          const name = box.n ? base64ToBytes(box.n) : new Uint8Array();
-          if (index === 0) {
-            // We return 0 for the app ID so that it's guaranteed translateBoxReferences will
-            // translate the app index back to 0. If we instead returned the called app ID,
-            // translateBoxReferences would translate the app index to a nonzero value if the called
-            // app is also in the foreign app array.
-            return {
-              appIndex: 0,
-              name,
-            };
-          }
-          if (
-            !appCallParams.foreignApps ||
-            index > appCallParams.foreignApps.length
-          ) {
-            throw new Error(
-              `Cannot find foreign app index ${index} in ${appCallParams.foreignApps}`
-            );
-          }
-          return {
-            appIndex: appCallParams.foreignApps[index - 1],
-            name,
-          };
-        });
-      }
-      params.appCallParams = appCallParams;
-    } else if (params.type === TransactionType.stpf) {
-      const stateProofParams: StateProofTransactionParams = {
-        stateProofType: txnForEnc.sptype,
-        stateProof: txnForEnc.sp,
-        stateProofMessage: txnForEnc.spmsg,
-      };
-      params.stateProofParams = stateProofParams;
-    } else {
-      const exhaustiveCheck: never = params.type;
-      throw new Error(`Unexpected transaction type: ${exhaustiveCheck}`);
-    }
-
-    const txn = new Transaction(params);
-
-    if (txnForEnc.grp) {
-      const group = base64ToBytes(txnForEnc.grp);
-      if (group.byteLength !== ALGORAND_TRANSACTION_GROUP_LENGTH) {
-        throw new Error(`Invalid group length: ${group.byteLength}`);
-      }
-      txn.group = group;
-    }
-
-    return txn;
-  }
-
-  static fromDecodedMsgpack(data: unknown) {
+  static fromEncodingData(data: unknown): Transaction {
     if (!(data instanceof Map)) {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
@@ -1498,7 +1075,7 @@ export class Transaction
   }
 
   toByte() {
-    return encoding.encodeMsgpack(this);
+    return encoding.encodeMsgpack2(this);
   }
 
   // returns the raw signature
@@ -1524,16 +1101,38 @@ export class Transaction
     if (!nacl.isValidSignatureLength(signature.length)) {
       throw new Error('Invalid signature length');
     }
-    const sTxn = new Map<string, encoding.MsgpackEncodingData>([
+    const sTxn = new Map<string, unknown>([
       ['sig', signature],
-      ['txn', this.msgpackPrepare()],
+      ['txn', this.toEncodingData()],
     ]);
     const signerAddrObj = ensureAddress(signerAddr);
     // add AuthAddr if signing with a different key than From indicates
     if (!this.sender.equals(signerAddrObj)) {
-      sTxn.set('sgnr', signerAddrObj.publicKey);
+      sTxn.set('sgnr', signerAddrObj);
     }
-    return encoding.rawEncode(sTxn);
+
+    const stxnSchema = new NamedMapSchema([
+      {
+        key: 'txn',
+        valueSchema: Transaction.encodingSchema,
+        required: true,
+        omitEmpty: true,
+      },
+      {
+        key: 'sig',
+        valueSchema: new FixedLengthByteArraySchema(64),
+        required: true,
+        omitEmpty: true,
+      },
+      {
+        key: 'sgnr',
+        valueSchema: new AddressSchema(),
+        required: false,
+        omitEmpty: true,
+      },
+    ]);
+
+    return encoding.rawEncode(stxnSchema.prepareMsgpack(sTxn));
   }
 
   rawTxID(): Uint8Array {
@@ -1556,7 +1155,7 @@ export class Transaction
 export function encodeUnsignedTransaction(
   transactionObject: Transaction
 ): Uint8Array {
-  return encoding.encodeMsgpack(transactionObject);
+  return encoding.encodeMsgpack2(transactionObject);
 }
 
 /**
@@ -1566,5 +1165,5 @@ export function encodeUnsignedTransaction(
 export function decodeUnsignedTransaction(
   transactionBuffer: ArrayLike<number>
 ): Transaction {
-  return encoding.decodeMsgpack(transactionBuffer, Transaction);
+  return encoding.decodeMsgpack2(transactionBuffer, Transaction);
 }

@@ -1,4 +1,10 @@
-import { JSONEncodingData, MsgpackEncodingData } from '../encoding/encoding';
+import { JSONEncodingData, MsgpackEncodingData } from '../encoding/encoding.js';
+import {
+  NamedMapSchema,
+  StringSchema,
+  Uint64Schema,
+  UntypedSchema,
+} from '../encoding/schema/index.js';
 
 /**
  * Represents the metadata and state of a block.
@@ -81,6 +87,99 @@ export default interface BlockHeader {
    */
   spt: Map<number, Uint8Array>;
 }
+
+export const BLOCK_HEADER_SCHEMA = new NamedMapSchema([
+  {
+    key: 'fees',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  }, // TODO: address schema
+  {
+    key: 'frac',
+    valueSchema: new Uint64Schema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'gen',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'gh',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  }, // TODO: bytes schema
+  {
+    key: 'prev',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  }, // TODO: bytes schema
+  {
+    key: 'proto',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'rate',
+    valueSchema: new Uint64Schema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'rnd',
+    valueSchema: new Uint64Schema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'rwcalr',
+    valueSchema: new Uint64Schema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'rwd',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  }, // TODO: address schema
+  {
+    key: 'seed',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  }, // TODO: bytes schema
+  {
+    key: 'ts',
+    valueSchema: new Uint64Schema(),
+    required: true,
+    omitEmpty: true,
+  },
+  {
+    key: 'txn',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  }, // TODO: bytes schema
+  {
+    key: 'txn256',
+    valueSchema: new StringSchema(),
+    required: true,
+    omitEmpty: true,
+  }, // TODO: bytes schema
+  {
+    key: 'spt',
+    valueSchema: new UntypedSchema(), // TODO: fix
+    required: true,
+    omitEmpty: true,
+  },
+]);
 
 export function blockHeaderFromDecodedMsgpack(data: unknown): BlockHeader {
   if (!(data instanceof Map)) {
