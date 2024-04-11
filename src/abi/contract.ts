@@ -1,4 +1,5 @@
 import { ABIMethod, ABIMethodParams, getMethodByName } from './method';
+import { ARC28Event } from './event';
 
 export interface ABIContractNetworkInfo {
   appID: number;
@@ -20,6 +21,8 @@ export class ABIContract {
   public readonly description?: string;
   public readonly networks: ABIContractNetworks;
   public readonly methods: ABIMethod[];
+  /** [ARC-28](https://arc.algorand.foundation/ARCs/arc-0028) events that MAY be emitted by this contract */
+  public readonly events?: ARC28Event[];
 
   constructor(params: ABIContractParams) {
     if (

@@ -2,6 +2,7 @@ import { genericHash } from '../nacl/naclWrappers';
 import { ABIType, ABITupleType } from './abi_type';
 import { ABITransactionType, abiTypeIsTransaction } from './transaction';
 import { ABIReferenceType, abiTypeIsReference } from './reference';
+import { ARC28Event } from './event';
 
 function parseMethodSignature(
   signature: string
@@ -61,6 +62,10 @@ export interface ABIMethodParams {
   desc?: string;
   args: ABIMethodArgParams[];
   returns: ABIMethodReturnParams;
+  /** Optional, is it a read-only method (according to [ARC-22](https://arc.algorand.foundation/ARCs/arc-0022)) */
+  readonly?: boolean;
+  /** [ARC-28](https://arc.algorand.foundation/ARCs/arc-0028) events that MAY be emitted by this method */
+  events?: ARC28Event[];
 }
 
 export type ABIArgumentType = ABIType | ABITransactionType | ABIReferenceType;
