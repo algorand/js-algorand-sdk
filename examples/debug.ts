@@ -43,7 +43,7 @@ async function main() {
     txns: signedTxns,
   });
 
-  console.log('Dryrun:', dryrunRequest.msgpackPrepare());
+  console.log('Dryrun:', dryrunRequest);
   // example: DEBUG_DRYRUN_DUMP
 
   // example: DEBUG_DRYRUN_SUBMIT

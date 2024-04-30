@@ -17,7 +17,7 @@ export class AddressSchema extends Schema {
     if (data instanceof Address) {
       return data.publicKey;
     }
-    throw new Error('Invalid address');
+    throw new Error(`Invalid address: (${typeof data}) ${data}`);
   }
 
   public fromPreparedMsgpack(encoded: MsgpackEncodingData): Address {

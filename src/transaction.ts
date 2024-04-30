@@ -1,5 +1,5 @@
 import base32 from 'hi-base32';
-import { msgpackPrepareBoxReferences } from './boxStorage.js';
+import { boxReferencesToEncodingData } from './boxStorage.js';
 import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
@@ -264,8 +264,8 @@ export class Transaction implements encoding.Encodable {
       { key: 'rekey', valueSchema: new AddressSchema() },
       { key: 'grp', valueSchema: new FixedLengthByteArraySchema(32) },
       // Payment
-      { key: 'amt', valueSchema: new Uint64Schema(), required: true },
-      { key: 'rcv', valueSchema: new AddressSchema(), required: true },
+      { key: 'amt', valueSchema: new Uint64Schema() },
+      { key: 'rcv', valueSchema: new AddressSchema() },
       { key: 'close', valueSchema: new AddressSchema() },
       // Keyreg
       { key: 'votekey', valueSchema: new FixedLengthByteArraySchema(32) },
@@ -274,7 +274,7 @@ export class Transaction implements encoding.Encodable {
       { key: 'votefst', valueSchema: new Uint64Schema() },
       { key: 'votelst', valueSchema: new Uint64Schema() },
       { key: 'votekd', valueSchema: new Uint64Schema() },
-      { key: 'nonpart', valueSchema: new BooleanSchema(), required: true },
+      { key: 'nonpart', valueSchema: new BooleanSchema() },
       // AssetConfig
       { key: 'caid', valueSchema: new Uint64Schema() },
       {
@@ -297,37 +297,33 @@ export class Transaction implements encoding.Encodable {
         required: false,
       },
       // AssetTransfer
-      { key: 'xaid', valueSchema: new Uint64Schema(), required: true },
-      { key: 'aamt', valueSchema: new Uint64Schema(), required: true },
-      { key: 'arcv', valueSchema: new AddressSchema(), required: true },
+      { key: 'xaid', valueSchema: new Uint64Schema() },
+      { key: 'aamt', valueSchema: new Uint64Schema() },
+      { key: 'arcv', valueSchema: new AddressSchema() },
       { key: 'aclose', valueSchema: new AddressSchema() },
       { key: 'asnd', valueSchema: new AddressSchema() },
       // AssetFreeze
-      { key: 'faid', valueSchema: new Uint64Schema(), required: true },
-      { key: 'afrz', valueSchema: new BooleanSchema(), required: true },
-      { key: 'fadd', valueSchema: new AddressSchema(), required: true },
+      { key: 'faid', valueSchema: new Uint64Schema() },
+      { key: 'afrz', valueSchema: new BooleanSchema() },
+      { key: 'fadd', valueSchema: new AddressSchema() },
       // Application
-      { key: 'apid', valueSchema: new Uint64Schema(), required: true },
-      { key: 'apan', valueSchema: new Uint64Schema(), required: true },
+      { key: 'apid', valueSchema: new Uint64Schema() },
+      { key: 'apan', valueSchema: new Uint64Schema() },
       {
         key: 'apaa',
         valueSchema: new ArraySchema(new ByteArraySchema()),
-        required: true,
       },
       {
         key: 'apat',
         valueSchema: new ArraySchema(new AddressSchema()),
-        required: true,
       },
       {
         key: 'apas',
         valueSchema: new ArraySchema(new Uint64Schema()),
-        required: true,
       },
       {
         key: 'apfa',
         valueSchema: new ArraySchema(new Uint64Schema()),
-        required: true,
       },
       {
         key: 'apbx',
@@ -350,15 +346,45 @@ export class Transaction implements encoding.Encodable {
       },
       { key: 'apap', valueSchema: new ByteArraySchema() },
       { key: 'apsu', valueSchema: new ByteArraySchema() },
-      { key: 'nui', valueSchema: new Uint64Schema(), required: true },
-      { key: 'nbs', valueSchema: new Uint64Schema(), required: true },
-      { key: 'ngi', valueSchema: new Uint64Schema(), required: true },
-      { key: 'nbs', valueSchema: new Uint64Schema(), required: true },
-      { key: 'ep', valueSchema: new Uint64Schema(), required: true },
+      {
+        key: 'apls',
+        valueSchema: new NamedMapSchema([
+          {
+            key: 'nui',
+            valueSchema: new Uint64Schema(),
+            omitEmpty: true,
+            required: true,
+          },
+          {
+            key: 'nbs',
+            valueSchema: new Uint64Schema(),
+            omitEmpty: true,
+            required: true,
+          },
+        ]),
+      },
+      {
+        key: 'apgs',
+        valueSchema: new NamedMapSchema([
+          {
+            key: 'nui',
+            valueSchema: new Uint64Schema(),
+            omitEmpty: true,
+            required: true,
+          },
+          {
+            key: 'nbs',
+            valueSchema: new Uint64Schema(),
+            omitEmpty: true,
+            required: true,
+          },
+        ]),
+      },
+      { key: 'apep', valueSchema: new Uint64Schema() },
       // StateProof
-      { key: 'spft', valueSchema: new Uint64Schema(), required: true },
-      { key: 'sp', valueSchema: new ByteArraySchema(), required: true },
-      { key: 'spm', valueSchema: new ByteArraySchema(), required: true },
+      { key: 'spft', valueSchema: new Uint64Schema() },
+      { key: 'sp', valueSchema: new ByteArraySchema() },
+      { key: 'spmsg', valueSchema: new ByteArraySchema() },
     ].map((entry) => ({
       ...entry,
       omitEmpty: true,
@@ -374,7 +400,7 @@ export class Transaction implements encoding.Encodable {
   public readonly rekeyTo?: Address;
 
   /** group */
-  public group: Uint8Array;
+  public group?: Uint8Array;
 
   /** suggested params */
   public fee: bigint;
@@ -409,7 +435,7 @@ export class Transaction implements encoding.Encodable {
     this.rekeyTo = optionalAddress(params.rekeyTo);
 
     // Group
-    this.group = new Uint8Array();
+    this.group = undefined;
 
     // Suggested params fields
     this.firstValid = utils.ensureUint64(params.suggestedParams.firstValid);
@@ -654,193 +680,93 @@ export class Transaction implements encoding.Encodable {
   toEncodingData(): Map<string, unknown> {
     const data = new Map<string, unknown>([
       ['type', this.type],
+      ['fv', this.firstValid],
       ['lv', this.lastValid],
+      ['snd', this.sender],
+      ['gen', this.genesisID],
+      ['gh', this.genesisHash],
+      ['fee', this.fee],
+      ['note', this.note],
+      ['lx', this.lease],
+      ['rekey', this.rekeyTo],
+      ['grp', this.group],
     ]);
-    if (!uint8ArrayIsEmpty(this.sender.publicKey)) {
-      data.set('snd', this.sender.publicKey);
-    }
-    if (this.genesisID) {
-      data.set('gen', this.genesisID);
-    }
-    if (this.genesisHash) {
-      data.set('gh', this.genesisHash);
-    }
-    if (this.fee) {
-      data.set('fee', this.fee);
-    }
-    if (this.firstValid) {
-      data.set('fv', this.firstValid);
-    }
-    if (this.note.length) {
-      data.set('note', this.note);
-    }
-    if (this.lease) {
-      data.set('lx', this.lease);
-    }
-    if (this.rekeyTo) {
-      data.set('rekey', this.rekeyTo.publicKey);
-    }
-    if (this.group.length) {
-      data.set('grp', this.group);
-    }
 
     if (this.payment) {
-      if (this.payment.amount) {
-        data.set('amt', this.payment.amount);
-      }
-      if (!uint8ArrayIsEmpty(this.payment.receiver.publicKey)) {
-        data.set('rcv', this.payment.receiver.publicKey);
-      }
-      if (this.payment.closeRemainderTo) {
-        data.set('close', this.payment.closeRemainderTo.publicKey);
-      }
+      data.set('amt', this.payment.amount);
+      data.set('rcv', this.payment.receiver);
+      data.set('close', this.payment.closeRemainderTo);
       return data;
     }
 
     if (this.keyreg) {
-      if (this.keyreg.voteKey) {
-        data.set('votekey', this.keyreg.voteKey);
-      }
-      if (this.keyreg.selectionKey) {
-        data.set('selkey', this.keyreg.selectionKey);
-      }
-      if (this.keyreg.stateProofKey) {
-        data.set('sprfkey', this.keyreg.stateProofKey);
-      }
-      if (this.keyreg.voteFirst) {
-        data.set('votefst', this.keyreg.voteFirst);
-      }
-      if (this.keyreg.voteLast) {
-        data.set('votelst', this.keyreg.voteLast);
-      }
-      if (this.keyreg.voteKeyDilution) {
-        data.set('votekd', this.keyreg.voteKeyDilution);
-      }
-      if (this.keyreg.nonParticipation) {
-        data.set('nonpart', this.keyreg.nonParticipation);
-      }
+      data.set('votekey', this.keyreg.voteKey);
+      data.set('selkey', this.keyreg.selectionKey);
+      data.set('sprfkey', this.keyreg.stateProofKey);
+      data.set('votefst', this.keyreg.voteFirst);
+      data.set('votelst', this.keyreg.voteLast);
+      data.set('votekd', this.keyreg.voteKeyDilution);
+      data.set('nonpart', this.keyreg.nonParticipation);
       return data;
     }
 
     if (this.assetConfig) {
-      if (this.assetConfig.assetIndex) {
-        data.set('caid', this.assetConfig.assetIndex);
-      }
-      const assetParams = new Map<string, encoding.MsgpackEncodingData>();
-      if (this.assetConfig.total) {
-        assetParams.set('t', this.assetConfig.total);
-      }
-      if (this.assetConfig.decimals) {
-        assetParams.set('dc', this.assetConfig.decimals);
-      }
-      if (this.assetConfig.defaultFrozen) {
-        assetParams.set('df', this.assetConfig.defaultFrozen);
-      }
-      if (this.assetConfig.manager) {
-        assetParams.set('m', this.assetConfig.manager.publicKey);
-      }
-      if (this.assetConfig.reserve) {
-        assetParams.set('r', this.assetConfig.reserve.publicKey);
-      }
-      if (this.assetConfig.freeze) {
-        assetParams.set('f', this.assetConfig.freeze.publicKey);
-      }
-      if (this.assetConfig.clawback) {
-        assetParams.set('c', this.assetConfig.clawback.publicKey);
-      }
-      if (this.assetConfig.unitName) {
-        assetParams.set('un', this.assetConfig.unitName);
-      }
-      if (this.assetConfig.assetName) {
-        assetParams.set('an', this.assetConfig.assetName);
-      }
-      if (this.assetConfig.assetURL) {
-        assetParams.set('au', this.assetConfig.assetURL);
-      }
-      if (this.assetConfig.assetMetadataHash) {
-        assetParams.set('am', this.assetConfig.assetMetadataHash);
-      }
-      if (assetParams.size) {
-        data.set('apar', assetParams);
-      }
+      data.set('caid', this.assetConfig.assetIndex);
+      const assetParams = new Map<string, unknown>([
+        ['t', this.assetConfig.total],
+        ['dc', this.assetConfig.decimals],
+        ['df', this.assetConfig.defaultFrozen],
+        ['m', this.assetConfig.manager],
+        ['r', this.assetConfig.reserve],
+        ['f', this.assetConfig.freeze],
+        ['c', this.assetConfig.clawback],
+        ['un', this.assetConfig.unitName],
+        ['an', this.assetConfig.assetName],
+        ['au', this.assetConfig.assetURL],
+        ['am', this.assetConfig.assetMetadataHash],
+      ]);
+      data.set('apar', assetParams);
       return data;
     }
 
     if (this.assetTransfer) {
-      if (this.assetTransfer.assetIndex) {
-        data.set('xaid', this.assetTransfer.assetIndex);
-      }
-      if (this.assetTransfer.amount) {
-        data.set('aamt', this.assetTransfer.amount);
-      }
-      if (!uint8ArrayIsEmpty(this.assetTransfer.receiver.publicKey)) {
-        data.set('arcv', this.assetTransfer.receiver.publicKey);
-      }
-      if (this.assetTransfer.closeRemainderTo) {
-        data.set('aclose', this.assetTransfer.closeRemainderTo.publicKey);
-      }
-      if (this.assetTransfer.assetSender) {
-        data.set('asnd', this.assetTransfer.assetSender.publicKey);
-      }
+      data.set('xaid', this.assetTransfer.assetIndex);
+      data.set('aamt', this.assetTransfer.amount);
+      data.set('arcv', this.assetTransfer.receiver);
+      data.set('aclose', this.assetTransfer.closeRemainderTo);
+      data.set('asnd', this.assetTransfer.assetSender);
       return data;
     }
 
     if (this.assetFreeze) {
-      if (this.assetFreeze.assetIndex) {
-        data.set('faid', this.assetFreeze.assetIndex);
-      }
-      if (this.assetFreeze.frozen) {
-        data.set('afrz', this.assetFreeze.frozen);
-      }
-      if (!uint8ArrayIsEmpty(this.assetFreeze.freezeAccount.publicKey)) {
-        data.set('fadd', this.assetFreeze.freezeAccount.publicKey);
-      }
+      data.set('faid', this.assetFreeze.assetIndex);
+      data.set('afrz', this.assetFreeze.frozen);
+      data.set('fadd', this.assetFreeze.freezeAccount);
       return data;
     }
 
     if (this.applicationCall) {
-      if (this.applicationCall.appIndex) {
-        data.set('apid', this.applicationCall.appIndex);
-      }
-      if (this.applicationCall.onComplete) {
-        data.set('apan', this.applicationCall.onComplete);
-      }
-      if (this.applicationCall.appArgs.length) {
-        data.set('apaa', this.applicationCall.appArgs.slice());
-      }
-      if (this.applicationCall.accounts.length) {
-        data.set(
-          'apat',
-          this.applicationCall.accounts.map((addr) => addr.publicKey)
-        );
-      }
-      if (this.applicationCall.foreignAssets.length) {
-        data.set('apas', this.applicationCall.foreignAssets.slice());
-      }
-      if (this.applicationCall.foreignApps.length) {
-        data.set('apfa', this.applicationCall.foreignApps.slice());
-      }
-      if (this.applicationCall.boxes.length) {
-        data.set(
-          'apbx',
-          msgpackPrepareBoxReferences(
-            this.applicationCall.boxes,
-            this.applicationCall.foreignApps,
-            this.applicationCall.appIndex
-          )
-        );
-      }
-      if (this.applicationCall.approvalProgram.length) {
-        data.set('apap', this.applicationCall.approvalProgram);
-      }
-      if (this.applicationCall.clearProgram.length) {
-        data.set('apsu', this.applicationCall.clearProgram);
-      }
+      data.set('apid', this.applicationCall.appIndex);
+      data.set('apan', this.applicationCall.onComplete);
+      data.set('apaa', this.applicationCall.appArgs);
+      data.set('apat', this.applicationCall.accounts);
+      data.set('apas', this.applicationCall.foreignAssets);
+      data.set('apfa', this.applicationCall.foreignApps);
+      data.set(
+        'apbx',
+        boxReferencesToEncodingData(
+          this.applicationCall.boxes,
+          this.applicationCall.foreignApps,
+          this.applicationCall.appIndex
+        )
+      );
+      data.set('apap', this.applicationCall.approvalProgram);
+      data.set('apsu', this.applicationCall.clearProgram);
       if (
         this.applicationCall.numLocalInts ||
         this.applicationCall.numLocalByteSlices
       ) {
-        const localSchema: Map<string, number> = new Map();
+        const localSchema = new Map<string, number>();
         if (this.applicationCall.numLocalInts) {
           localSchema.set('nui', this.applicationCall.numLocalInts);
         }
@@ -853,7 +779,7 @@ export class Transaction implements encoding.Encodable {
         this.applicationCall.numGlobalInts ||
         this.applicationCall.numGlobalByteSlices
       ) {
-        const globalSchema: Map<string, number> = new Map();
+        const globalSchema = new Map<string, number>();
         if (this.applicationCall.numGlobalInts) {
           globalSchema.set('nui', this.applicationCall.numGlobalInts);
         }
@@ -862,16 +788,12 @@ export class Transaction implements encoding.Encodable {
         }
         data.set('apgs', globalSchema);
       }
-      if (this.applicationCall.extraPages) {
-        data.set('apep', this.applicationCall.extraPages);
-      }
+      data.set('apep', this.applicationCall.extraPages);
       return data;
     }
 
     if (this.stateProof) {
-      if (this.stateProof.stateProofType) {
-        data.set('sptype', this.stateProof.stateProofType);
-      }
+      data.set('sptype', this.stateProof.stateProofType);
       data.set('spmsg', this.stateProof.stateProofMessage);
       data.set('sp', this.stateProof.stateProof);
       return data;
@@ -901,27 +823,23 @@ export class Transaction implements encoding.Encodable {
 
     const params: TransactionParams = {
       type: txnType,
-      sender: data.get('snd')
-        ? new Address(data.get('snd'))
-        : Address.zeroAddress(),
+      sender: data.get('snd') ?? Address.zeroAddress(),
       note: data.get('note'),
       lease: data.get('lx'),
       suggestedParams,
     };
 
     if (data.get('rekey')) {
-      params.rekeyTo = new Address(data.get('rekey'));
+      params.rekeyTo = data.get('rekey');
     }
 
     if (params.type === TransactionType.pay) {
       const paymentParams: PaymentTransactionParams = {
         amount: data.get('amt') ?? 0,
-        receiver: data.get('rcv')
-          ? new Address(data.get('rcv'))
-          : Address.zeroAddress(),
+        receiver: data.get('rcv') ?? Address.zeroAddress(),
       };
       if (data.get('close')) {
-        paymentParams.closeRemainderTo = new Address(data.get('close'));
+        paymentParams.closeRemainderTo = data.get('close');
       }
       params.paymentParams = paymentParams;
     } else if (params.type === TransactionType.keyreg) {
@@ -949,16 +867,16 @@ export class Transaction implements encoding.Encodable {
         assetConfigParams.assetURL = assetParams.get('au');
         assetConfigParams.assetMetadataHash = assetParams.get('am');
         if (assetParams.get('m')) {
-          assetConfigParams.manager = new Address(assetParams.get('m'));
+          assetConfigParams.manager = assetParams.get('m');
         }
         if (assetParams.get('r')) {
-          assetConfigParams.reserve = new Address(assetParams.get('r'));
+          assetConfigParams.reserve = assetParams.get('r');
         }
         if (assetParams.get('f')) {
-          assetConfigParams.freeze = new Address(assetParams.get('f'));
+          assetConfigParams.freeze = assetParams.get('f');
         }
         if (assetParams.get('c')) {
-          assetConfigParams.clawback = new Address(assetParams.get('c'));
+          assetConfigParams.clawback = assetParams.get('c');
         }
       }
       params.assetConfigParams = assetConfigParams;
@@ -966,23 +884,19 @@ export class Transaction implements encoding.Encodable {
       const assetTransferParams: AssetTransferTransactionParams = {
         assetIndex: data.get('xaid') ?? 0,
         amount: data.get('aamt') ?? 0,
-        receiver: data.get('arcv')
-          ? new Address(data.get('arcv'))
-          : Address.zeroAddress(),
+        receiver: data.get('arcv') ?? Address.zeroAddress(),
       };
       if (data.get('aclose')) {
-        assetTransferParams.closeRemainderTo = new Address(data.get('aclose'));
+        assetTransferParams.closeRemainderTo = data.get('aclose');
       }
       if (data.get('asnd')) {
-        assetTransferParams.assetSender = new Address(data.get('asnd'));
+        assetTransferParams.assetSender = data.get('asnd');
       }
       params.assetTransferParams = assetTransferParams;
     } else if (params.type === TransactionType.afrz) {
       const assetFreezeParams: AssetFreezeTransactionParams = {
         assetIndex: data.get('faid') ?? 0,
-        freezeTarget: data.get('fadd')
-          ? new Address(data.get('fadd'))
-          : Address.zeroAddress(),
+        freezeTarget: data.get('fadd') ?? Address.zeroAddress(),
         frozen: data.get('afrz') ?? false,
       };
       params.assetFreezeParams = assetFreezeParams;
@@ -991,9 +905,7 @@ export class Transaction implements encoding.Encodable {
         appIndex: data.get('apid') ?? 0,
         onComplete: utils.ensureSafeUnsignedInteger(data.get('apan') ?? 0),
         appArgs: data.get('apaa'),
-        accounts: (data.get('apat') ?? []).map(
-          (pk: Uint8Array) => new Address(pk)
-        ),
+        accounts: data.get('apat'),
         foreignAssets: data.get('apas'),
         foreignApps: data.get('apfa'),
         approvalProgram: data.get('apap'),
@@ -1075,7 +987,7 @@ export class Transaction implements encoding.Encodable {
   }
 
   toByte() {
-    return encoding.encodeMsgpack2(this);
+    return encoding.encodeMsgpack(this);
   }
 
   // returns the raw signature
@@ -1155,7 +1067,7 @@ export class Transaction implements encoding.Encodable {
 export function encodeUnsignedTransaction(
   transactionObject: Transaction
 ): Uint8Array {
-  return encoding.encodeMsgpack2(transactionObject);
+  return encoding.encodeMsgpack(transactionObject);
 }
 
 /**
@@ -1165,5 +1077,5 @@ export function encodeUnsignedTransaction(
 export function decodeUnsignedTransaction(
   transactionBuffer: ArrayLike<number>
 ): Transaction {
-  return encoding.decodeMsgpack2(transactionBuffer, Transaction);
+  return encoding.decodeMsgpack(transactionBuffer, Transaction);
 }

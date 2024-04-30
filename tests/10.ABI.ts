@@ -456,13 +456,16 @@ describe('ABI encoding', () => {
     const method = ABIMethod.fromSignature('add(application)uint8');
     const account = generateAccount();
     const sender = 'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
+    const genesisHash = new Uint8Array(32);
+    genesisHash[0] = 1;
+    genesisHash[1] = 2;
     const sp = {
       minFee: 1000,
       fee: 1000,
       firstValid: 1,
       lastValid: 1001,
       genesisID: 'gi',
-      genesisHash: new Uint8Array([1, 2]),
+      genesisHash,
     };
     const foreignAcct =
       'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM';

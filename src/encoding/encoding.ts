@@ -18,6 +18,8 @@ import {
   IntMode,
 } from 'algorand-msgpack';
 import { bytesToBase64 } from './binarydata.js';
+import IntDecoding from '../types/intDecoding.js';
+import { stringifyJSON, parseJSON } from '../utils/utils.js';
 
 // Errors
 export const ERROR_CONTAINS_EMPTY_STRING =
@@ -102,33 +104,6 @@ export type JSONEncodingData =
   | JSONEncodingData[]
   | { [key: string]: JSONEncodingData };
 
-export interface MsgpackEncodable {
-  msgpackPrepare(): MsgpackEncodingData;
-}
-
-export interface MsgpackEncodableClass<T extends MsgpackEncodable> {
-  fromDecodedMsgpack(data: unknown): T;
-}
-
-export interface JSONEncodable {
-  jsonPrepare(): JSONEncodingData;
-}
-
-export interface JSONEncodableClass<T extends JSONEncodable> {
-  fromDecodedJSON(data: unknown): T;
-}
-
-export function decodeMsgpack<T extends MsgpackEncodable>(
-  encoded: ArrayLike<number>,
-  c: MsgpackEncodableClass<T>
-): T {
-  return c.fromDecodedMsgpack(decodeAsMap(encoded));
-}
-
-export function encodeMsgpack(e: MsgpackEncodable): Uint8Array {
-  return rawEncode(e.msgpackPrepare());
-}
-
 export function msgpackEncodingDataToJSONEncodingData(
   e: MsgpackEncodingData
 ): JSONEncodingData {
@@ -208,7 +183,7 @@ export interface EncodableClass<T extends Encodable> {
   encodingSchema: Schema;
 }
 
-export function decodeMsgpack2<T extends Encodable>(
+export function decodeMsgpack<T extends Encodable>(
   encoded: ArrayLike<number>,
   c: EncodableClass<T>
 ): T {
@@ -219,6 +194,23 @@ export function decodeMsgpack2<T extends Encodable>(
   );
 }
 
-export function encodeMsgpack2(e: Encodable): Uint8Array {
+export function encodeMsgpack(e: Encodable): Uint8Array {
   return rawEncode(e.getEncodingSchema().prepareMsgpack(e.toEncodingData()));
+}
+
+export function decodeJSON<T extends Encodable>(
+  encoded: string,
+  c: EncodableClass<T>
+): T {
+  const decoded: JSONEncodingData = parseJSON(encoded, {
+    intDecoding: IntDecoding.MIXED,
+  });
+  return c.fromEncodingData(
+    c.encodingSchema.fromPreparedJSON(decoded) as JSONEncodingData
+  );
+}
+
+export function encodeJSON(e: Encodable): string {
+  const prepared = e.getEncodingSchema().prepareJSON(e.toEncodingData());
+  return stringifyJSON(prepared);
 }

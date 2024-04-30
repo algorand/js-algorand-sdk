@@ -53,16 +53,14 @@ export class NamedMapSchema extends Schema {
     const map = new Map<string, MsgpackEncodingData>();
     for (const entry of this.entries) {
       if (data.has(entry.key)) {
-        if (
-          entry.omitEmpty &&
-          entry.valueSchema.isDefaultValue(data.get(entry.key))
-        ) {
+        const value = data.get(entry.key);
+        if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
           continue;
         }
-        map.set(
-          entry.key,
-          entry.valueSchema.prepareMsgpack(data.get(entry.key))
-        );
+        if (!entry.required && value === undefined) {
+          continue;
+        }
+        map.set(entry.key, entry.valueSchema.prepareMsgpack(value));
       } else if (entry.required) {
         throw new Error(`Missing required key: ${entry.key}`);
       }
@@ -86,8 +84,9 @@ export class NamedMapSchema extends Schema {
       } else if (entry.required) {
         if (entry.omitEmpty) {
           map.set(entry.key, entry.valueSchema.defaultValue());
+        } else {
+          throw new Error(`Missing required key: ${entry.key}`);
         }
-        throw new Error(`Missing required key: ${entry.key}`);
       }
     }
     return map;
@@ -100,13 +99,14 @@ export class NamedMapSchema extends Schema {
     const obj: { [key: string]: JSONEncodingData } = {};
     for (const entry of this.entries) {
       if (data.has(entry.key)) {
-        if (
-          entry.omitEmpty &&
-          entry.valueSchema.isDefaultValue(data.get(entry.key))
-        ) {
+        const value = data.get(entry.key);
+        if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
           continue;
         }
-        obj[entry.key] = entry.valueSchema.prepareJSON(data.get(entry.key));
+        if (!entry.required && value === undefined) {
+          continue;
+        }
+        obj[entry.key] = entry.valueSchema.prepareJSON(value);
       } else if (entry.required) {
         throw new Error(`Missing required key: ${entry.key}`);
       }

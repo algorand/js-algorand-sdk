@@ -152,12 +152,12 @@ export class AtomicTransactionComposer {
     const theClone = new AtomicTransactionComposer();
 
     theClone.transactions = this.transactions.map(({ txn, signer }) => {
-      const txnMap = txn.msgpackPrepare();
+      const txnMap = txn.toEncodingData();
       // erase the group ID
       txnMap.delete('grp');
       return {
         // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
-        txn: Transaction.fromDecodedMsgpack(txnMap),
+        txn: Transaction.fromEncodingData(txnMap),
         signer,
       };
     });

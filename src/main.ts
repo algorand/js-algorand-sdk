@@ -109,10 +109,10 @@ export {
 } from './client/urlTokenBaseHTTPClient.js';
 export { waitForConfirmation } from './wait.js';
 export {
-  MsgpackEncodable,
   MsgpackEncodingData,
-  JSONEncodable,
   JSONEncodingData,
+  Encodable,
+  EncodableClass,
   encodeMsgpack,
   decodeMsgpack,
 } from './encoding/encoding.js';

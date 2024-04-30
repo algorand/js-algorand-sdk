@@ -31,7 +31,7 @@ describe('LogicSig', () => {
       const pk = programHash.publicKey;
       let lsig = new algosdk.LogicSig(program);
       assert.strictEqual(lsig.logic, program);
-      assert.strictEqual(lsig.args, undefined);
+      assert.deepStrictEqual(lsig.args, []);
       assert.strictEqual(lsig.sig, undefined);
       assert.strictEqual(lsig.msig, undefined);
       assert.deepStrictEqual(lsig.address(), programHash);
@@ -89,7 +89,7 @@ describe('LogicSigAccount', () => {
 
       const lsigAccount = new algosdk.LogicSigAccount(program);
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
-      assert.strictEqual(lsigAccount.lsig.args, undefined);
+      assert.deepStrictEqual(lsigAccount.lsig.args, []);
       assert.strictEqual(lsigAccount.lsig.sig, undefined);
       assert.strictEqual(lsigAccount.lsig.msig, undefined);
       assert.strictEqual(lsigAccount.sigkey, undefined);

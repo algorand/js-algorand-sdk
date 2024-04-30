@@ -107,14 +107,12 @@ describe('Sign', () => {
       };
       const zeroFee = new algosdk.Transaction(params);
       assert.strictEqual(zeroFee.fee, minFee);
-      assert.strictEqual(zeroFee.msgpackPrepare().get('fee'), minFee);
-      assert.strictEqual(zeroFee.jsonPrepare().fee, minFee);
+      assert.strictEqual(zeroFee.toEncodingData().get('fee'), minFee);
 
       params.suggestedParams.fee = minFee; // since this is fee per byte, it will be far greater than minFee
       const excessFee = new algosdk.Transaction(params);
       assert.ok(excessFee.fee > minFee);
-      assert.strictEqual(excessFee.msgpackPrepare().get('fee'), excessFee.fee);
-      assert.strictEqual(excessFee.jsonPrepare().fee, excessFee.fee);
+      assert.strictEqual(excessFee.toEncodingData().get('fee'), excessFee.fee);
     }
   });
 
@@ -140,8 +138,10 @@ describe('Sign', () => {
     });
     assert.strictEqual(txn.fee, 0n);
     // Should be omitted from encodings
-    assert.ok(!txn.msgpackPrepare().has('fee'));
-    assert.strictEqual(txn.jsonPrepare().fee, undefined);
+    const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+      txn.toEncodingData()
+    );
+    assert.ok(encRep instanceof Map && !encRep.has('fee'));
   });
 
   it('should accept lower than min fee', () => {
@@ -166,8 +166,7 @@ describe('Sign', () => {
       note: new Uint8Array([123, 12, 200]),
     });
     assert.strictEqual(txn.fee, 10n);
-    assert.strictEqual(txn.msgpackPrepare().get('fee'), 10n);
-    assert.strictEqual(txn.jsonPrepare().fee, 10n);
+    assert.strictEqual(txn.toEncodingData().get('fee'), 10n);
   });
 
   it('should not complain on a missing genesisID', () => {
@@ -568,8 +567,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -599,8 +598,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -629,8 +628,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -668,8 +667,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -694,8 +693,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -722,8 +721,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -750,8 +749,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -784,8 +783,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -826,8 +825,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -860,8 +859,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -901,8 +900,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -933,8 +932,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -958,8 +957,10 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      const encRep = txn.msgpackPrepare();
-      assert.ok(!encRep.has('rcv'));
+      const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        txn.toEncodingData()
+      );
+      assert.ok(encRep instanceof Map && !encRep.has('rcv'));
 
       const encTxn = algosdk.encodeMsgpack(txn);
       const golden = algosdk.base64ToBytes(
@@ -970,7 +971,9 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, txn);
 
-      const reencRep = decTxn.msgpackPrepare();
+      const reencRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -995,8 +998,10 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      const encRep = txn.msgpackPrepare();
-      assert.ok(!encRep.has('arcv'));
+      const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        txn.toEncodingData()
+      );
+      assert.ok(encRep instanceof Map && !encRep.has('arcv'));
 
       const encTxn = algosdk.encodeMsgpack(txn);
       const golden = algosdk.base64ToBytes(
@@ -1007,7 +1012,9 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, txn);
 
-      const reencRep = decTxn.msgpackPrepare();
+      const reencRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -1032,8 +1039,10 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      const encRep = txn.msgpackPrepare();
-      assert.ok(!encRep.has('fadd'));
+      const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        txn.toEncodingData()
+      );
+      assert.ok(encRep instanceof Map && !encRep.has('fadd'));
 
       const encTxn = algosdk.encodeObj(encRep);
       const golden = algosdk.base64ToBytes(
@@ -1044,7 +1053,9 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, txn);
 
-      const reencRep = decTxn.msgpackPrepare();
+      const reencRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -1071,14 +1082,18 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      const encRep = expectedTxn.msgpackPrepare();
-      assert.ok(!encRep.has('fv'));
+      const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        expectedTxn.toEncodingData()
+      );
+      assert.ok(encRep instanceof Map && !encRep.has('fv'));
 
       const encTxn = algosdk.encodeMsgpack(expectedTxn);
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const reencRep = decTxn.msgpackPrepare();
+      const reencRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -1103,8 +1118,10 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      const encRep = txn.msgpackPrepare();
-      assert.ok(!encRep.has('snd'));
+      const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        txn.toEncodingData()
+      );
+      assert.ok(encRep instanceof Map && !encRep.has('snd'));
 
       const encTxn = algosdk.encodeMsgpack(txn);
       const golden = algosdk.base64ToBytes(
@@ -1115,7 +1132,9 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, txn);
 
-      const reencRep = decTxn.msgpackPrepare();
+      const reencRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -1139,14 +1158,18 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      const encRep = expectedTxn.msgpackPrepare();
-      assert.ok(!encRep.has('gen'));
+      const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        expectedTxn.toEncodingData()
+      );
+      assert.ok(encRep instanceof Map && !encRep.has('gen'));
 
       const encTxn = algosdk.encodeMsgpack(expectedTxn);
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const reencRep = decTxn.msgpackPrepare();
+      const reencRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -1171,14 +1194,18 @@ describe('Sign', () => {
         },
         note: new Uint8Array([123, 12, 200]),
       });
-      const encRep = expectedTxn.msgpackPrepare();
-      assert.ok(!encRep.has('amt'));
+      const encRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        expectedTxn.toEncodingData()
+      );
+      assert.ok(encRep instanceof Map && !encRep.has('amt'));
 
       const encTxn = algosdk.encodeMsgpack(expectedTxn);
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const reencRep = decTxn.msgpackPrepare();
+      const reencRep = algosdk.Transaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
       assert.deepStrictEqual(reencRep, encRep);
     });
 
@@ -1209,8 +1236,8 @@ describe('Sign', () => {
       const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
       assert.deepStrictEqual(decTxn, expectedTxn);
 
-      const encRep = expectedTxn.msgpackPrepare();
-      const reencRep = decTxn.msgpackPrepare();
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
       assert.deepStrictEqual(reencRep, encRep);
     });
   });

@@ -42,7 +42,7 @@ async function main() {
       suggestedParams: params,
     });
 
-  console.log(onlineKeyreg.msgpackPrepare());
+  console.log(onlineKeyreg);
   // example: TRANSACTION_KEYREG_ONLINE_CREATE
 
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
@@ -55,7 +55,7 @@ async function main() {
       suggestedParams,
       nonParticipation: true,
     });
-  console.log(offlineKeyReg.msgpackPrepare());
+  console.log(offlineKeyReg);
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
 }
 

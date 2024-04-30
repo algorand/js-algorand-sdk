@@ -559,8 +559,8 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(concat, algosdk.base64ToBytes(goldenTxg));
 
       // check assignGroupID
-      tx1.group = new Uint8Array();
-      tx2.group = new Uint8Array();
+      tx1.group = undefined;
+      tx2.group = undefined;
 
       const input = [tx1, tx2];
       const result = algosdk.assignGroupID(input);
@@ -828,15 +828,15 @@ describe('Algosdk (AKA end to end)', () => {
     it('should return valid logic sig object', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
       let lsig = new algosdk.LogicSig(program);
-      assert.equal(lsig.logic, program);
-      assert.equal(lsig.args, undefined);
-      assert.equal(lsig.sig, undefined);
-      assert.equal(lsig.msig, undefined);
+      assert.strictEqual(lsig.logic, program);
+      assert.deepStrictEqual(lsig.args, []);
+      assert.strictEqual(lsig.sig, undefined);
+      assert.strictEqual(lsig.msig, undefined);
 
       const args = [Uint8Array.from([1, 2, 3]), Uint8Array.from([4, 5, 6])];
       lsig = new algosdk.LogicSig(program, args);
-      assert.equal(lsig.logic, program);
-      assert.deepEqual(lsig.args, args);
+      assert.strictEqual(lsig.logic, program);
+      assert.deepStrictEqual(lsig.args, args);
     });
   });
   describe('Single logic sig', () => {

@@ -6,8 +6,10 @@ import {
   NamedMapSchema,
   FixedLengthByteArraySchema,
   Uint64Schema,
+  ArraySchema,
 } from '../../encoding/schema/index.js';
 import { base64ToBytes, bytesToBase64 } from '../../encoding/binarydata.js';
+import { ensureSafeUnsignedInteger } from '../../utils/utils.js';
 
 /**
  * Interfaces for the encoded transaction object. Every property is labelled with its associated Transaction type property
@@ -453,7 +455,7 @@ export const ENCODED_MULTISIG_SCHEMA = new NamedMapSchema([
   },
   {
     key: 'subsig',
-    valueSchema: ENCODED_SUBSIG_SCHEMA,
+    valueSchema: new ArraySchema(ENCODED_SUBSIG_SCHEMA),
     required: true,
     omitEmpty: true,
   },
@@ -466,8 +468,8 @@ export function encodedMultiSigFromDecodedMsgpack(
     throw new Error(`Invalid decoded EncodedMultiSig: ${data}`);
   }
   return {
-    v: data.get('v'),
-    thr: data.get('thr'),
+    v: ensureSafeUnsignedInteger(data.get('v')),
+    thr: ensureSafeUnsignedInteger(data.get('thr')),
     subsig: data.get('subsig').map(encodedSubsigFromDecodedMsgpack),
   };
 }

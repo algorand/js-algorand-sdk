@@ -1,7 +1,7 @@
 import {
   Encodable,
-  encodeMsgpack2 as encodeMsgpack,
-  decodeMsgpack2 as decodeMsgpack,
+  encodeMsgpack,
+  decodeMsgpack,
 } from './encoding/encoding.js';
 import { Address } from './encoding/address.js';
 import { Transaction } from './transaction.js';
