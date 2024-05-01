@@ -19,6 +19,6 @@ export default class LightBlockHeaderProof extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): LBHP {
-    return LBHP.fromDecodedJSON(body);
+    return LBHP.fromEncodingData(LBHP.encodingSchema.fromPreparedJSON(body));
   }
 }

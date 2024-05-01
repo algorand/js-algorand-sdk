@@ -29,7 +29,7 @@ export class AddressSchema extends Schema {
     if (data instanceof Address) {
       return data.toString();
     }
-    throw new Error('Invalid address');
+    throw new Error(`Invalid address: (${typeof data}) ${data}`);
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): Address {

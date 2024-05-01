@@ -15,6 +15,8 @@ export default class Versions extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Version {
-    return Version.fromDecodedJSON(body);
+    return Version.fromEncodingData(
+      Version.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

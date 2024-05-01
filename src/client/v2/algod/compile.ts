@@ -60,6 +60,8 @@ export default class Compile extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): CompileResponse {
-    return CompileResponse.fromDecodedJSON(body);
+    return CompileResponse.fromEncodingData(
+      CompileResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

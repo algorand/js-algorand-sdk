@@ -12,6 +12,8 @@ export default class GetBlockOffsetTimestamp extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): GetBlockTimeStampOffsetResponse {
-    return GetBlockTimeStampOffsetResponse.fromDecodedJSON(body);
+    return GetBlockTimeStampOffsetResponse.fromEncodingData(
+      GetBlockTimeStampOffsetResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

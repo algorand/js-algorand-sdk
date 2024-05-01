@@ -12,6 +12,8 @@ export default class Status extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): NodeStatusResponse {
-    return NodeStatusResponse.fromDecodedJSON(body);
+    return NodeStatusResponse.fromEncodingData(
+      NodeStatusResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

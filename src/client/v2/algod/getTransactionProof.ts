@@ -42,6 +42,8 @@ export default class GetTransactionProof extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): TransactionProofResponse {
-    return TransactionProofResponse.fromDecodedJSON(body);
+    return TransactionProofResponse.fromEncodingData(
+      TransactionProofResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

@@ -24,6 +24,8 @@ export default class AccountAssetInformation extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): AccountAssetResponse {
-    return AccountAssetResponse.fromDecodedJSON(body);
+    return AccountAssetResponse.fromEncodingData(
+      AccountAssetResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

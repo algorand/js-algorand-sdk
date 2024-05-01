@@ -701,6 +701,7 @@ describe('Algosdk (AKA end to end)', () => {
         },
       });
       const jsDec = algosdk.signTransaction(txn, sk.sk);
+      // TODO: figure out why fee is different
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
     it('should return a blob that matches the go code for asset freeze', () => {
@@ -1062,7 +1063,10 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should be properly serialized to JSON', () => {
-      const forEncoding = req.jsonPrepare();
+      const forEncoding =
+        algosdk.modelsv2.DryrunRequest.encodingSchema.prepareJSON(
+          req.toEncodingData()
+        );
       const actual = algosdk.stringifyJSON(forEncoding, undefined, 2);
 
       const expected = `{

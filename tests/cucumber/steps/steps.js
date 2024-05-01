@@ -4396,7 +4396,11 @@ module.exports = function getSteps(options) {
     'a dryrun response file {string} and a transaction at index {string}',
     async function (drrFile, txId) {
       const drContents = await loadResourceAsJson(drrFile);
-      const drr = algosdk.modelsv2.DryrunResponse.fromDecodedJSON(drContents);
+      const drr = algosdk.modelsv2.DryrunResponse.fromEncodingData(
+        algosdk.modelsv2.DryrunResponse.encodingSchema.fromPreparedJSON(
+          drContents
+        )
+      );
       this.txtrace = drr.txns[parseInt(txId)];
     }
   );

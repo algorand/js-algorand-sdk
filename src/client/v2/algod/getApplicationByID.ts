@@ -19,6 +19,8 @@ export default class GetApplicationByID extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Application {
-    return Application.fromDecodedJSON(body);
+    return Application.fromEncodingData(
+      Application.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

@@ -210,7 +210,7 @@ export function decodeJSON<T extends Encodable>(
   );
 }
 
-export function encodeJSON(e: Encodable): string {
+export function encodeJSON(e: Encodable, space?: string | number): string {
   const prepared = e.getEncodingSchema().prepareJSON(e.toEncodingData());
-  return stringifyJSON(prepared);
+  return stringifyJSON(prepared, undefined, space);
 }

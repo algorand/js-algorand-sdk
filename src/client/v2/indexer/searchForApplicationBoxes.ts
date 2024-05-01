@@ -97,6 +97,8 @@ export default class SearchForApplicationBoxes extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): BoxesResponse {
-    return BoxesResponse.fromDecodedJSON(body);
+    return BoxesResponse.fromEncodingData(
+      BoxesResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

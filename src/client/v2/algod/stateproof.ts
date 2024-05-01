@@ -16,6 +16,6 @@ export default class StateProof extends JSONRequest<SP, Record<string, any>> {
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): SP {
-    return SP.fromDecodedJSON(body);
+    return SP.fromEncodingData(SP.encodingSchema.fromPreparedJSON(body));
   }
 }
