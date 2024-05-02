@@ -4346,7 +4346,7 @@ module.exports = function getSteps(options) {
       actualResult = glom(
         actualResult
           .getEncodingSchema()
-          .jsonPrepare(actualResult.toEncodingData()),
+          .prepareJSON(actualResult.toEncodingData()),
         pathString
       );
 
