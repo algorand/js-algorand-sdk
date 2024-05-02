@@ -15,27 +15,27 @@ export class StringSchema extends Schema {
     if (typeof data === 'string') {
       return data;
     }
-    throw new Error('Invalid string');
+    throw new Error(`Invalid string: (${typeof data}) ${data}`);
   }
 
   public fromPreparedMsgpack(encoded: MsgpackEncodingData): string {
     if (typeof encoded === 'string') {
       return encoded;
     }
-    throw new Error('Invalid string');
+    throw new Error(`Invalid string: (${typeof encoded}) ${encoded}`);
   }
 
   public prepareJSON(data: unknown): JSONEncodingData {
     if (typeof data === 'string') {
       return data;
     }
-    throw new Error('Invalid string');
+    throw new Error(`Invalid string: (${typeof data}) ${data}`);
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): string {
     if (typeof encoded === 'string') {
       return encoded;
     }
-    throw new Error('Invalid string');
+    throw new Error(`Invalid string: (${typeof encoded}) ${encoded}`);
   }
 }

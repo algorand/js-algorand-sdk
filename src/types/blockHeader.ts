@@ -3,6 +3,8 @@ import {
   NamedMapSchema,
   StringSchema,
   Uint64Schema,
+  AddressSchema,
+  FixedLengthByteArraySchema,
   UntypedSchema,
 } from '../encoding/schema/index.js';
 
@@ -91,10 +93,10 @@ export default interface BlockHeader {
 export const BLOCK_HEADER_SCHEMA = new NamedMapSchema([
   {
     key: 'fees',
-    valueSchema: new StringSchema(),
+    valueSchema: new AddressSchema(),
     required: true,
     omitEmpty: true,
-  }, // TODO: address schema
+  },
   {
     key: 'frac',
     valueSchema: new Uint64Schema(),
@@ -109,16 +111,16 @@ export const BLOCK_HEADER_SCHEMA = new NamedMapSchema([
   },
   {
     key: 'gh',
-    valueSchema: new StringSchema(),
+    valueSchema: new FixedLengthByteArraySchema(32),
     required: true,
     omitEmpty: true,
-  }, // TODO: bytes schema
+  },
   {
     key: 'prev',
-    valueSchema: new StringSchema(),
+    valueSchema: new FixedLengthByteArraySchema(32),
     required: true,
     omitEmpty: true,
-  }, // TODO: bytes schema
+  },
   {
     key: 'proto',
     valueSchema: new StringSchema(),
@@ -145,16 +147,16 @@ export const BLOCK_HEADER_SCHEMA = new NamedMapSchema([
   },
   {
     key: 'rwd',
-    valueSchema: new StringSchema(),
+    valueSchema: new AddressSchema(),
     required: true,
     omitEmpty: true,
-  }, // TODO: address schema
+  },
   {
     key: 'seed',
-    valueSchema: new StringSchema(),
+    valueSchema: new FixedLengthByteArraySchema(32),
     required: true,
     omitEmpty: true,
-  }, // TODO: bytes schema
+  },
   {
     key: 'ts',
     valueSchema: new Uint64Schema(),
@@ -163,16 +165,16 @@ export const BLOCK_HEADER_SCHEMA = new NamedMapSchema([
   },
   {
     key: 'txn',
-    valueSchema: new StringSchema(),
+    valueSchema: new FixedLengthByteArraySchema(32),
     required: true,
     omitEmpty: true,
-  }, // TODO: bytes schema
+  },
   {
     key: 'txn256',
-    valueSchema: new StringSchema(),
+    valueSchema: new FixedLengthByteArraySchema(32),
     required: true,
     omitEmpty: true,
-  }, // TODO: bytes schema
+  },
   {
     key: 'spt',
     valueSchema: new UntypedSchema(), // TODO: fix

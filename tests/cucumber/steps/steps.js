@@ -1915,8 +1915,9 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Get Block response should have rewards pool {string}',
     (rewardsPoolAddress) => {
+      assert.ok(anyBlockResponse.block.rwd instanceof algosdk.Address);
       const rewardsPoolB64String = algosdk.bytesToBase64(
-        anyBlockResponse.block.rwd
+        anyBlockResponse.block.rwd.publicKey
       );
       assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
     }
@@ -3253,11 +3254,11 @@ module.exports = function getSteps(options) {
 
   Then('the decoded transaction should equal the original', function () {
     const decoded = algosdk.decodeSignedTransaction(this.stx);
-    // comparing the output of msgpackPrepare instead because the Transaction class instance
+    // comparing the output of toEncodingData instead because the Transaction class instance
     // may have some nonconsequential differences in internal representation
     assert.deepStrictEqual(
-      decoded.txn.msgpackPrepare(),
-      this.txn.msgpackPrepare()
+      decoded.txn.toEncodingData(),
+      this.txn.toEncodingData()
     );
   });
 

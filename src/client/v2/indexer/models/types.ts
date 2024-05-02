@@ -8,13 +8,13 @@ import { Encodable, Schema } from '../../../../encoding/encoding.js';
 import {
   NamedMapSchema,
   ArraySchema,
-  AddressSchema,
   Uint64Schema,
   StringSchema,
   BooleanSchema,
   ByteArraySchema,
 } from '../../../../encoding/schema/index.js';
 import { base64ToBytes } from '../../../../encoding/binarydata.js';
+import { Address } from '../../../../encoding/address.js';
 import { UntypedValue } from '../../untypedmodel.js';
 // import BaseModel from '../../basemodel.js';
 
@@ -34,163 +34,157 @@ export class Account implements Encodable {
           key: 'address',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'amount',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'amount-without-pending-rewards',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
-        },
-        {
-          key: 'min-balance',
-          valueSchema: new Uint64Schema(),
-          required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'pending-rewards',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'rewards',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'status',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'total-apps-opted-in',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'total-assets-opted-in',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'total-box-bytes',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'total-boxes',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'total-created-apps',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'total-created-assets',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'apps-local-state',
           valueSchema: new ArraySchema(ApplicationLocalState.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'apps-total-extra-pages',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'apps-total-schema',
           valueSchema: ApplicationStateSchema.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'assets',
           valueSchema: new ArraySchema(AssetHolding.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'auth-addr',
-          valueSchema: new AddressSchema(),
+          valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'closed-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'created-apps',
           valueSchema: new ArraySchema(Application.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'created-assets',
           valueSchema: new ArraySchema(Asset.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'created-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'deleted',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'participation',
           valueSchema: AccountParticipation.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'reward-base',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'sig-type',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -211,12 +205,6 @@ export class Account implements Encodable {
    * specifies the amount of MicroAlgos in the account, without the pending rewards.
    */
   public amountWithoutPendingRewards: bigint;
-
-  /**
-   * MicroAlgo balance required by the account.
-   * The requirement grows based on asset and application usage.
-   */
-  public minBalance: number;
 
   /**
    * amount of MicroAlgos of pending rewards in this account.
@@ -307,7 +295,7 @@ export class Account implements Encodable {
    * address of the current account is used. This field can be updated in any
    * transaction by setting the RekeyTo field.
    */
-  public authAddr?: string;
+  public authAddr?: Address;
 
   /**
    * Round during which this account was most recently closed.
@@ -363,8 +351,6 @@ export class Account implements Encodable {
    * @param address - the account public key
    * @param amount - (algo) total number of MicroAlgos in the account
    * @param amountWithoutPendingRewards - specifies the amount of MicroAlgos in the account, without the pending rewards.
-   * @param minBalance - MicroAlgo balance required by the account.
-   * The requirement grows based on asset and application usage.
    * @param pendingRewards - amount of MicroAlgos of pending rewards in this account.
    * @param rewards - (ern) total rewards of MicroAlgos the account has received, including pending
    * rewards.
@@ -418,7 +404,6 @@ export class Account implements Encodable {
     address,
     amount,
     amountWithoutPendingRewards,
-    minBalance,
     pendingRewards,
     rewards,
     round,
@@ -446,7 +431,6 @@ export class Account implements Encodable {
     address: string;
     amount: number | bigint;
     amountWithoutPendingRewards: number | bigint;
-    minBalance: number | bigint;
     pendingRewards: number | bigint;
     rewards: number | bigint;
     round: number | bigint;
@@ -461,7 +445,7 @@ export class Account implements Encodable {
     appsTotalExtraPages?: number | bigint;
     appsTotalSchema?: ApplicationStateSchema;
     assets?: AssetHolding[];
-    authAddr?: string;
+    authAddr?: Address | string;
     closedAtRound?: number | bigint;
     createdApps?: Application[];
     createdAssets?: Asset[];
@@ -476,7 +460,6 @@ export class Account implements Encodable {
     this.amountWithoutPendingRewards = ensureBigInt(
       amountWithoutPendingRewards
     );
-    this.minBalance = ensureSafeInteger(minBalance);
     this.pendingRewards = ensureBigInt(pendingRewards);
     this.rewards = ensureBigInt(rewards);
     this.round = ensureBigInt(round);
@@ -494,7 +477,8 @@ export class Account implements Encodable {
         : ensureSafeInteger(appsTotalExtraPages);
     this.appsTotalSchema = appsTotalSchema;
     this.assets = assets;
-    this.authAddr = authAddr;
+    this.authAddr =
+      typeof authAddr === 'string' ? Address.fromString(authAddr) : authAddr;
     this.closedAtRound =
       typeof closedAtRound === 'undefined'
         ? undefined
@@ -522,7 +506,6 @@ export class Account implements Encodable {
       ['address', this.address],
       ['amount', this.amount],
       ['amount-without-pending-rewards', this.amountWithoutPendingRewards],
-      ['min-balance', this.minBalance],
       ['pending-rewards', this.pendingRewards],
       ['rewards', this.rewards],
       ['round', this.round],
@@ -553,7 +536,7 @@ export class Account implements Encodable {
       );
     }
     if (this.authAddr) {
-      data.set('auth-addr', this.authAddr);
+      data.set('auth-addr', this.authAddr.toString());
     }
     if (this.closedAtRound) {
       data.set('closed-at-round', this.closedAtRound);
@@ -597,7 +580,6 @@ export class Account implements Encodable {
       amount: data.get('amount') ?? 0,
       amountWithoutPendingRewards:
         data.get('amount-without-pending-rewards') ?? 0,
-      minBalance: data.get('min-balance') ?? 0,
       pendingRewards: data.get('pending-rewards') ?? 0,
       rewards: data.get('rewards') ?? 0,
       round: data.get('round') ?? 0,
@@ -662,37 +644,37 @@ export class AccountParticipation implements Encodable {
           key: 'selection-participation-key',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'vote-first-valid',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'vote-key-dilution',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'vote-last-valid',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'vote-participation-key',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'state-proof-key',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -822,13 +804,13 @@ export class AccountResponse implements Encodable {
           key: 'account',
           valueSchema: Account.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -903,13 +885,13 @@ export class AccountStateDelta implements Encodable {
           key: 'address',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'delta',
           valueSchema: new ArraySchema(EvalDeltaKeyValue.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -977,19 +959,19 @@ export class AccountsResponse implements Encodable {
           key: 'accounts',
           valueSchema: new ArraySchema(Account.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -1072,31 +1054,31 @@ export class Application implements Encodable {
           key: 'id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'params',
           valueSchema: ApplicationParams.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'created-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'deleted',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'deleted-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -1212,37 +1194,37 @@ export class ApplicationLocalState implements Encodable {
           key: 'id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'schema',
           valueSchema: ApplicationStateSchema.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'closed-out-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'deleted',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'key-value',
           valueSchema: new ArraySchema(TealKeyValue.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'opted-in-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -1379,19 +1361,19 @@ export class ApplicationLocalStatesResponse implements Encodable {
           key: 'apps-local-states',
           valueSchema: new ArraySchema(ApplicationLocalState.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -1477,15 +1459,15 @@ export class ApplicationLogData implements Encodable {
       (this.encodingSchemaValue as NamedMapSchema).entries.push(
         {
           key: 'logs',
-          valueSchema: new ByteArraySchema(),
+          valueSchema: new ArraySchema(new ByteArraySchema()),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'txid',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -1550,25 +1532,25 @@ export class ApplicationLogsResponse implements Encodable {
           key: 'application-id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'log-data',
           valueSchema: new ArraySchema(ApplicationLogData.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -1670,43 +1652,43 @@ export class ApplicationParams implements Encodable {
           key: 'approval-program',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'clear-state-program',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'creator',
-          valueSchema: new AddressSchema(),
+          valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'extra-program-pages',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'global-state',
           valueSchema: new ArraySchema(TealKeyValue.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'global-state-schema',
           valueSchema: ApplicationStateSchema.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'local-state-schema',
           valueSchema: ApplicationStateSchema.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -1727,7 +1709,7 @@ export class ApplicationParams implements Encodable {
    * The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
    */
-  public creator?: string;
+  public creator?: Address;
 
   /**
    * (epp) the amount of extra program pages available to this app.
@@ -1771,7 +1753,7 @@ export class ApplicationParams implements Encodable {
   }: {
     approvalProgram: string | Uint8Array;
     clearStateProgram: string | Uint8Array;
-    creator?: string;
+    creator?: Address | string;
     extraProgramPages?: number | bigint;
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
@@ -1785,7 +1767,8 @@ export class ApplicationParams implements Encodable {
       typeof clearStateProgram === 'string'
         ? base64ToBytes(clearStateProgram)
         : clearStateProgram;
-    this.creator = creator;
+    this.creator =
+      typeof creator === 'string' ? Address.fromString(creator) : creator;
     this.extraProgramPages =
       typeof extraProgramPages === 'undefined'
         ? undefined
@@ -1806,7 +1789,7 @@ export class ApplicationParams implements Encodable {
       ['clear-state-program', this.clearStateProgram],
     ]);
     if (this.creator) {
-      data.set('creator', this.creator);
+      data.set('creator', this.creator.toString());
     }
     if (this.extraProgramPages) {
       data.set('extra-program-pages', this.extraProgramPages);
@@ -1869,13 +1852,13 @@ export class ApplicationResponse implements Encodable {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'application',
           valueSchema: Application.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -1951,13 +1934,13 @@ export class ApplicationStateSchema implements Encodable {
           key: 'num-byte-slice',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'num-uint',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -2028,19 +2011,19 @@ export class ApplicationsResponse implements Encodable {
           key: 'applications',
           valueSchema: new ArraySchema(Application.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -2125,31 +2108,31 @@ export class Asset implements Encodable {
           key: 'index',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'params',
           valueSchema: AssetParams.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'created-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'deleted',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'destroyed-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -2271,19 +2254,19 @@ export class AssetBalancesResponse implements Encodable {
           key: 'balances',
           valueSchema: new ArraySchema(MiniAssetHolding.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -2370,37 +2353,37 @@ export class AssetHolding implements Encodable {
           key: 'amount',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'asset-id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'is-frozen',
           valueSchema: new BooleanSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'deleted',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'opted-in-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'opted-out-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -2527,19 +2510,19 @@ export class AssetHoldingsResponse implements Encodable {
           key: 'assets',
           valueSchema: new ArraySchema(AssetHolding.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -2625,91 +2608,91 @@ export class AssetParams implements Encodable {
           key: 'creator',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'decimals',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'total',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'clawback',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'default-frozen',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'freeze',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'manager',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'metadata-hash',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'name',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'name-b64',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'reserve',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'unit-name',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'unit-name-b64',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'url',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'url-b64',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -2976,13 +2959,13 @@ export class AssetResponse implements Encodable {
           key: 'asset',
           valueSchema: Asset.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -3053,19 +3036,19 @@ export class AssetsResponse implements Encodable {
           key: 'assets',
           valueSchema: new ArraySchema(Asset.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -3150,91 +3133,91 @@ export class Block implements Encodable {
           key: 'genesis-hash',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'genesis-id',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'previous-block-hash',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'seed',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'timestamp',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'transactions-root',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'transactions-root-sha256',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'participation-updates',
           valueSchema: ParticipationUpdates.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'rewards',
           valueSchema: BlockRewards.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'state-proof-tracking',
           valueSchema: new ArraySchema(StateProofTracking.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'transactions',
           valueSchema: new ArraySchema(Transaction.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'txn-counter',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'upgrade-state',
           valueSchema: BlockUpgradeState.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'upgrade-vote',
           valueSchema: BlockUpgradeVote.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -3533,37 +3516,37 @@ export class BlockRewards implements Encodable {
           key: 'fee-sink',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'rewards-calculation-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'rewards-level',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'rewards-pool',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'rewards-rate',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'rewards-residue',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -3688,31 +3671,31 @@ export class BlockUpgradeState implements Encodable {
           key: 'current-protocol',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-protocol',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'next-protocol-approvals',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'next-protocol-switch-on',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'next-protocol-vote-before',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -3835,19 +3818,19 @@ export class BlockUpgradeVote implements Encodable {
           key: 'upgrade-approve',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'upgrade-delay',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'upgrade-propose',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -3937,19 +3920,19 @@ export class Box implements Encodable {
           key: 'name',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'value',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -4030,7 +4013,7 @@ export class BoxDescriptor implements Encodable {
         key: 'name',
         valueSchema: new ByteArraySchema(),
         required: true,
-        omitEmpty: true,
+        omitEmpty: !true,
       });
     }
     return this.encodingSchemaValue;
@@ -4083,19 +4066,19 @@ export class BoxesResponse implements Encodable {
           key: 'application-id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'boxes',
           valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -4178,13 +4161,13 @@ export class ErrorResponse implements Encodable {
           key: 'message',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'data',
           valueSchema: UntypedValue.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -4246,19 +4229,19 @@ export class EvalDelta implements Encodable {
           key: 'action',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'bytes',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'uint',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -4342,13 +4325,13 @@ export class EvalDeltaKeyValue implements Encodable {
           key: 'key',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'value',
           valueSchema: EvalDelta.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -4406,7 +4389,7 @@ export class HashFactory implements Encodable {
         key: 'hash-type',
         valueSchema: new Uint64Schema(),
         required: false,
-        omitEmpty: true,
+        omitEmpty: !false,
       });
     }
     return this.encodingSchemaValue;
@@ -4463,43 +4446,43 @@ export class HealthCheck implements Encodable {
           key: 'db-available',
           valueSchema: new BooleanSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'is-migrating',
           valueSchema: new BooleanSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'message',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'version',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'data',
           valueSchema: UntypedValue.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'errors',
           valueSchema: new ArraySchema(new StringSchema()),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -4611,31 +4594,31 @@ export class IndexerStateProofMessage implements Encodable {
           key: 'block-headers-commitment',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'first-attested-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'latest-attested-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'ln-proven-weight',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'voters-commitment',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -4760,19 +4743,19 @@ export class MerkleArrayProof implements Encodable {
           key: 'hash-factory',
           valueSchema: HashFactory.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'path',
-          valueSchema: new ByteArraySchema(),
+          valueSchema: new ArraySchema(new ByteArraySchema()),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'tree-depth',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -4862,37 +4845,37 @@ export class MiniAssetHolding implements Encodable {
           key: 'address',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'amount',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'is-frozen',
           valueSchema: new BooleanSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'deleted',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'opted-in-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'opted-out-at-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5009,7 +4992,7 @@ export class ParticipationUpdates implements Encodable {
         key: 'expired-participation-accounts',
         valueSchema: new ArraySchema(new StringSchema()),
         required: false,
-        omitEmpty: true,
+        omitEmpty: !false,
       });
     }
     return this.encodingSchemaValue;
@@ -5079,43 +5062,43 @@ export class StateProofFields implements Encodable {
           key: 'part-proofs',
           valueSchema: MerkleArrayProof.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'positions-to-reveal',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'reveals',
           valueSchema: new ArraySchema(StateProofReveal.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'salt-version',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'sig-commit',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'sig-proofs',
           valueSchema: MerkleArrayProof.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'signed-weight',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5275,13 +5258,13 @@ export class StateProofParticipant implements Encodable {
           key: 'verifier',
           valueSchema: StateProofVerifier.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'weight',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5356,19 +5339,19 @@ export class StateProofReveal implements Encodable {
           key: 'participant',
           valueSchema: StateProofParticipant.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'position',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'sig-slot',
           valueSchema: StateProofSigSlot.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5461,13 +5444,13 @@ export class StateProofSigSlot implements Encodable {
           key: 'lower-sig-weight',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'signature',
           valueSchema: StateProofSignature.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5541,25 +5524,25 @@ export class StateProofSignature implements Encodable {
           key: 'falcon-signature',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'merkle-array-index',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'proof',
           valueSchema: MerkleArrayProof.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'verifying-key',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5659,25 +5642,25 @@ export class StateProofTracking implements Encodable {
           key: 'next-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'online-total-weight',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'type',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'voters-commitment',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5786,13 +5769,13 @@ export class StateProofVerifier implements Encodable {
           key: 'commitment',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'key-lifetime',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -5873,13 +5856,13 @@ export class StateSchema implements Encodable {
           key: 'num-byte-slice',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'num-uint',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -5950,13 +5933,13 @@ export class TealKeyValue implements Encodable {
           key: 'key',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'value',
           valueSchema: TealValue.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -6018,19 +6001,19 @@ export class TealValue implements Encodable {
           key: 'bytes',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'type',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'uint',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -6116,205 +6099,205 @@ export class Transaction implements Encodable {
           key: 'fee',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'first-valid',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'last-valid',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'sender',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'application-transaction',
           valueSchema: TransactionApplication.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'asset-config-transaction',
           valueSchema: TransactionAssetConfig.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'asset-freeze-transaction',
           valueSchema: TransactionAssetFreeze.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'asset-transfer-transaction',
           valueSchema: TransactionAssetTransfer.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'auth-addr',
-          valueSchema: new AddressSchema(),
+          valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'close-rewards',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'closing-amount',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'confirmed-round',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'created-application-index',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'created-asset-index',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'genesis-hash',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'genesis-id',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'global-state-delta',
           valueSchema: new ArraySchema(EvalDeltaKeyValue.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'group',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'id',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'inner-txns',
           valueSchema: new ArraySchema(Transaction.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'intra-round-offset',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'keyreg-transaction',
           valueSchema: TransactionKeyreg.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'lease',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'local-state-delta',
           valueSchema: new ArraySchema(AccountStateDelta.encodingSchema),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'logs',
-          valueSchema: new ByteArraySchema(),
+          valueSchema: new ArraySchema(new ByteArraySchema()),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'note',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'payment-transaction',
           valueSchema: TransactionPayment.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'receiver-rewards',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'rekey-to',
-          valueSchema: new AddressSchema(),
+          valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'round-time',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'sender-rewards',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'signature',
           valueSchema: TransactionSignature.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'state-proof-transaction',
           valueSchema: TransactionStateProof.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'tx-type',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -6376,7 +6359,7 @@ export class Transaction implements Encodable {
    * not equal the sender. The backend can use this to ensure that auth addr is equal
    * to the accounts auth addr.
    */
-  public authAddr?: string;
+  public authAddr?: Address;
 
   /**
    * (rc) rewards applied to close-remainder-to account.
@@ -6491,7 +6474,7 @@ export class Transaction implements Encodable {
    * updated with this value and future signatures must be signed with the key
    * represented by this address.
    */
-  public rekeyTo?: string;
+  public rekeyTo?: Address;
 
   /**
    * Time when the block this transaction is in was confirmed.
@@ -6650,7 +6633,7 @@ export class Transaction implements Encodable {
     assetConfigTransaction?: TransactionAssetConfig;
     assetFreezeTransaction?: TransactionAssetFreeze;
     assetTransferTransaction?: TransactionAssetTransfer;
-    authAddr?: string;
+    authAddr?: Address | string;
     closeRewards?: number | bigint;
     closingAmount?: number | bigint;
     confirmedRound?: number | bigint;
@@ -6670,7 +6653,7 @@ export class Transaction implements Encodable {
     note?: string | Uint8Array;
     paymentTransaction?: TransactionPayment;
     receiverRewards?: number | bigint;
-    rekeyTo?: string;
+    rekeyTo?: Address | string;
     roundTime?: number | bigint;
     senderRewards?: number | bigint;
     signature?: TransactionSignature;
@@ -6685,7 +6668,8 @@ export class Transaction implements Encodable {
     this.assetConfigTransaction = assetConfigTransaction;
     this.assetFreezeTransaction = assetFreezeTransaction;
     this.assetTransferTransaction = assetTransferTransaction;
-    this.authAddr = authAddr;
+    this.authAddr =
+      typeof authAddr === 'string' ? Address.fromString(authAddr) : authAddr;
     this.closeRewards =
       typeof closeRewards === 'undefined'
         ? undefined
@@ -6729,7 +6713,8 @@ export class Transaction implements Encodable {
       typeof receiverRewards === 'undefined'
         ? undefined
         : ensureBigInt(receiverRewards);
-    this.rekeyTo = rekeyTo;
+    this.rekeyTo =
+      typeof rekeyTo === 'string' ? Address.fromString(rekeyTo) : rekeyTo;
     this.roundTime =
       typeof roundTime === 'undefined'
         ? undefined
@@ -6780,7 +6765,7 @@ export class Transaction implements Encodable {
       );
     }
     if (this.authAddr) {
-      data.set('auth-addr', this.authAddr);
+      data.set('auth-addr', this.authAddr.toString());
     }
     if (this.closeRewards) {
       data.set('close-rewards', this.closeRewards);
@@ -6849,7 +6834,7 @@ export class Transaction implements Encodable {
       data.set('receiver-rewards', this.receiverRewards);
     }
     if (this.rekeyTo) {
-      data.set('rekey-to', this.rekeyTo);
+      data.set('rekey-to', this.rekeyTo.toString());
     }
     if (this.roundTime) {
       data.set('round-time', this.roundTime);
@@ -6978,67 +6963,67 @@ export class TransactionApplication implements Encodable {
           key: 'application-id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'accounts',
-          valueSchema: new AddressSchema(),
+          valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'application-args',
-          valueSchema: new ByteArraySchema(),
+          valueSchema: new ArraySchema(new ByteArraySchema()),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'approval-program',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'clear-state-program',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'extra-program-pages',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'foreign-apps',
           valueSchema: new ArraySchema(new Uint64Schema()),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'foreign-assets',
           valueSchema: new ArraySchema(new Uint64Schema()),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'global-state-schema',
           valueSchema: StateSchema.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'local-state-schema',
           valueSchema: StateSchema.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'on-completion',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -7054,7 +7039,7 @@ export class TransactionApplication implements Encodable {
    * (apat) List of accounts in addition to the sender that may be accessed from the
    * application's approval-program and clear-state-program.
    */
-  public accounts?: string[];
+  public accounts?: Address[];
 
   /**
    * (apaa) transaction specific arguments accessed from the application's
@@ -7178,7 +7163,7 @@ export class TransactionApplication implements Encodable {
     onCompletion,
   }: {
     applicationId: number | bigint;
-    accounts?: string[];
+    accounts?: (Address | string)[];
     applicationArgs?: Uint8Array[];
     approvalProgram?: string | Uint8Array;
     clearStateProgram?: string | Uint8Array;
@@ -7190,7 +7175,12 @@ export class TransactionApplication implements Encodable {
     onCompletion?: string;
   }) {
     this.applicationId = ensureBigInt(applicationId);
-    this.accounts = accounts;
+    this.accounts =
+      typeof accounts !== 'undefined'
+        ? accounts.map((addr) =>
+            typeof addr === 'string' ? Address.fromString(addr) : addr
+          )
+        : undefined;
     this.applicationArgs = applicationArgs;
     this.approvalProgram =
       typeof approvalProgram === 'string'
@@ -7227,7 +7217,10 @@ export class TransactionApplication implements Encodable {
       ['application-id', this.applicationId],
     ]);
     if (this.accounts && this.accounts.length) {
-      data.set('accounts', this.accounts);
+      data.set(
+        'accounts',
+        this.accounts.map((addr) => addr.toString())
+      );
     }
     if (this.applicationArgs && this.applicationArgs.length) {
       data.set('application-args', this.applicationArgs);
@@ -7303,13 +7296,13 @@ export class TransactionAssetConfig implements Encodable {
           key: 'asset-id',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'params',
           valueSchema: AssetParams.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -7395,19 +7388,19 @@ export class TransactionAssetFreeze implements Encodable {
           key: 'address',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'asset-id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'new-freeze-status',
           valueSchema: new BooleanSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -7491,37 +7484,37 @@ export class TransactionAssetTransfer implements Encodable {
           key: 'amount',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'asset-id',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'receiver',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'close-amount',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'close-to',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'sender',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -7657,43 +7650,43 @@ export class TransactionKeyreg implements Encodable {
           key: 'non-participation',
           valueSchema: new BooleanSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'selection-participation-key',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'state-proof-key',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'vote-first-valid',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'vote-key-dilution',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'vote-last-valid',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'vote-participation-key',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -7854,25 +7847,25 @@ export class TransactionPayment implements Encodable {
           key: 'amount',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'receiver',
           valueSchema: new StringSchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'close-amount',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'close-remainder-to',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -7976,13 +7969,13 @@ export class TransactionResponse implements Encodable {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'transaction',
           valueSchema: Transaction.encodingSchema,
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         }
       );
     }
@@ -8062,19 +8055,19 @@ export class TransactionSignature implements Encodable {
           key: 'logicsig',
           valueSchema: TransactionSignatureLogicsig.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'multisig',
           valueSchema: TransactionSignatureMultisig.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'sig',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -8177,25 +8170,25 @@ export class TransactionSignatureLogicsig implements Encodable {
           key: 'logic',
           valueSchema: new ByteArraySchema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'args',
-          valueSchema: new ByteArraySchema(),
+          valueSchema: new ArraySchema(new ByteArraySchema()),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'multisig-signature',
           valueSchema: TransactionSignatureMultisig.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'signature',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -8308,19 +8301,19 @@ export class TransactionSignatureMultisig implements Encodable {
             TransactionSignatureMultisigSubsignature.encodingSchema
           ),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'threshold',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'version',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -8416,13 +8409,13 @@ export class TransactionSignatureMultisigSubsignature implements Encodable {
           key: 'public-key',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'signature',
           valueSchema: new ByteArraySchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -8502,19 +8495,19 @@ export class TransactionStateProof implements Encodable {
           key: 'message',
           valueSchema: IndexerStateProofMessage.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'state-proof',
           valueSchema: StateProofFields.encodingSchema,
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         },
         {
           key: 'state-proof-type',
           valueSchema: new Uint64Schema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }
@@ -8616,19 +8609,19 @@ export class TransactionsResponse implements Encodable {
           key: 'current-round',
           valueSchema: new Uint64Schema(),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'transactions',
           valueSchema: new ArraySchema(Transaction.encodingSchema),
           required: true,
-          omitEmpty: true,
+          omitEmpty: !true,
         },
         {
           key: 'next-token',
           valueSchema: new StringSchema(),
           required: false,
-          omitEmpty: true,
+          omitEmpty: !false,
         }
       );
     }

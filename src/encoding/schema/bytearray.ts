@@ -16,28 +16,28 @@ export class ByteArraySchema extends Schema {
     if (data instanceof Uint8Array) {
       return data;
     }
-    throw new Error('Invalid byte array');
+    throw new Error(`Invalid byte array: (${typeof data}) ${data}`);
   }
 
   public fromPreparedMsgpack(encoded: MsgpackEncodingData): Uint8Array {
     if (encoded instanceof Uint8Array) {
       return encoded;
     }
-    throw new Error('Invalid byte array');
+    throw new Error(`Invalid byte array: (${typeof encoded}) ${encoded}`);
   }
 
   public prepareJSON(data: unknown): JSONEncodingData {
     if (data instanceof Uint8Array) {
       return bytesToBase64(data);
     }
-    throw new Error('Invalid byte array');
+    throw new Error(`Invalid byte array: (${typeof data}) ${data}`);
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): Uint8Array {
     if (typeof encoded === 'string') {
       return base64ToBytes(encoded);
     }
-    throw new Error('Invalid base64 byte array');
+    throw new Error(`Invalid byte array: (${typeof encoded}) ${encoded}`);
   }
 }
 

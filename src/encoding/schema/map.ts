@@ -33,13 +33,10 @@ export class NamedMapSchema extends Schema {
   public isDefaultValue(data: unknown): boolean {
     if (!(data instanceof Map)) return false;
     for (const entry of this.entries) {
-      if (data.has(entry.key)) {
+      if (data.has(entry.key) && data.get(entry.key) !== undefined) {
         if (!entry.valueSchema.isDefaultValue(data.get(entry.key))) {
           return false;
         }
-      } else if (entry.required) {
-        // TODO: think about this case more
-        return false;
       }
     }
     // TODO: examine if there are any extra keys?
@@ -48,7 +45,9 @@ export class NamedMapSchema extends Schema {
 
   public prepareMsgpack(data: unknown): MsgpackEncodingData {
     if (!(data instanceof Map)) {
-      throw new Error('NamedMapSchema data must be a Map');
+      throw new Error(
+        `NamedMapSchema data must be a Map. Got (${typeof data}) ${data}`
+      );
     }
     const map = new Map<string, MsgpackEncodingData>();
     for (const entry of this.entries) {
@@ -115,15 +114,19 @@ export class NamedMapSchema extends Schema {
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): Map<string, unknown> {
-    if (!(encoded instanceof Map)) {
-      throw new Error('NamedMapSchema data must be a Map');
+    if (
+      encoded == null ||
+      typeof encoded !== 'object' ||
+      Array.isArray(encoded)
+    ) {
+      throw new Error('NamedMapSchema data must be an object');
     }
     const map = new Map<string, unknown>();
     for (const entry of this.entries) {
-      if (encoded.has(entry.key)) {
+      if (Object.prototype.hasOwnProperty.call(encoded, entry.key)) {
         map.set(
           entry.key,
-          entry.valueSchema.fromPreparedJSON(encoded.get(entry.key))
+          entry.valueSchema.fromPreparedJSON(encoded[entry.key])
         );
       } else if (entry.required) {
         if (entry.omitEmpty) {

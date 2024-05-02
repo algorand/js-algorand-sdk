@@ -125,7 +125,9 @@ async function testRunner() {
   } else {
     console.log('Testing in Node');
 
-    const mocha = new Mocha();
+    const mocha = new Mocha({
+      timeout: process.env.MOCHA_TIMEOUT,
+    });
     testFiles.forEach((file) => mocha.addFile(file));
 
     mocha.run((failures) => {

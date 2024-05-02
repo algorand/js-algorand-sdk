@@ -294,7 +294,6 @@ export class Transaction implements encoding.Encodable {
             { key: 'am', valueSchema: new FixedLengthByteArraySchema(32) },
           ].map((entry) => ({ ...entry, omitEmpty: true, required: false }))
         ),
-        required: false,
       },
       // AssetTransfer
       { key: 'xaid', valueSchema: new Uint64Schema() },
@@ -762,32 +761,20 @@ export class Transaction implements encoding.Encodable {
       );
       data.set('apap', this.applicationCall.approvalProgram);
       data.set('apsu', this.applicationCall.clearProgram);
-      if (
-        this.applicationCall.numLocalInts ||
-        this.applicationCall.numLocalByteSlices
-      ) {
-        const localSchema = new Map<string, number>();
-        if (this.applicationCall.numLocalInts) {
-          localSchema.set('nui', this.applicationCall.numLocalInts);
-        }
-        if (this.applicationCall.numLocalByteSlices) {
-          localSchema.set('nbs', this.applicationCall.numLocalByteSlices);
-        }
-        data.set('apls', localSchema);
-      }
-      if (
-        this.applicationCall.numGlobalInts ||
-        this.applicationCall.numGlobalByteSlices
-      ) {
-        const globalSchema = new Map<string, number>();
-        if (this.applicationCall.numGlobalInts) {
-          globalSchema.set('nui', this.applicationCall.numGlobalInts);
-        }
-        if (this.applicationCall.numGlobalByteSlices) {
-          globalSchema.set('nbs', this.applicationCall.numGlobalByteSlices);
-        }
-        data.set('apgs', globalSchema);
-      }
+      data.set(
+        'apls',
+        new Map<string, number>([
+          ['nui', this.applicationCall.numLocalInts],
+          ['nbs', this.applicationCall.numLocalByteSlices],
+        ])
+      );
+      data.set(
+        'apgs',
+        new Map<string, number>([
+          ['nui', this.applicationCall.numGlobalInts],
+          ['nbs', this.applicationCall.numGlobalByteSlices],
+        ])
+      );
       data.set('apep', this.applicationCall.extraPages);
       return data;
     }
