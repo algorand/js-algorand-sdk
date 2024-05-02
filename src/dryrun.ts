@@ -119,7 +119,7 @@ export async function createDryrun({
         .do()
         .then((appInfo) => {
           appInfos.push(appInfo);
-          accts.push(appInfo.params.creator);
+          accts.push(appInfo.params.creator.toString());
         })
     );
   }
