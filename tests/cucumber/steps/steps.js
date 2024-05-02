@@ -4343,7 +4343,12 @@ module.exports = function getSteps(options) {
     function (index, pathString, expectedResult) {
       let actualResult =
         this.composerExecuteResponse.methodResults[index].txInfo;
-      actualResult = glom(actualResult.jsonPrepare(), pathString);
+      actualResult = glom(
+        actualResult
+          .getEncodingSchema()
+          .jsonPrepare(actualResult.toEncodingData()),
+        pathString
+      );
 
       assert.strictEqual(expectedResult, actualResult.toString());
     }
@@ -5057,7 +5062,9 @@ module.exports = function getSteps(options) {
           assert.ok(initialAppState.appLocals);
           assert.strictEqual(initialAppState.appLocals.length, 1);
           assert.ok(initialAppState.appLocals[0].account);
-          algosdk.decodeAddress(initialAppState.appLocals[0].account);
+          assert.ok(
+            initialAppState.appLocals[0].account instanceof algosdk.Address
+          );
           assert.ok(initialAppState.appLocals[0].kvs);
           kvs = initialAppState.appLocals[0].kvs;
           break;
@@ -5150,7 +5157,7 @@ module.exports = function getSteps(options) {
       } else if (stateType === 'local') {
         assert.strictEqual(stateChange.appStateType, 'l');
         assert.ok(stateChange.account);
-        algosdk.decodeAddress(stateChange.account);
+        assert.ok(stateChange.account instanceof algosdk.Address);
       } else if (stateType === 'box') {
         assert.strictEqual(stateChange.appStateType, 'b');
         assert.ok(!stateChange.account);
