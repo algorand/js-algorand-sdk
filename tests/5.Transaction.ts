@@ -1,10 +1,7 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import algosdk from '../src/index.js';
-import {
-  jsonPrepareBoxReferences,
-  msgpackPrepareBoxReferences,
-} from '../src/boxStorage.js';
+import { boxReferencesToEncodingData } from '../src/boxStorage.js';
 
 describe('Sign', () => {
   it('should not modify input arrays', () => {
@@ -2037,18 +2034,18 @@ describe('Sign', () => {
 
     it('should be able to translate box references to encoded references', () => {
       const testCases: Array<
-        [
-          algosdk.BoxReference[],
-          number[],
-          number,
-          algosdk.EncodedBoxReference[],
-        ]
+        [algosdk.BoxReference[], number[], number, Array<Map<string, unknown>>]
       > = [
         [
           [{ appIndex: 100, name: Uint8Array.from([0, 1, 2, 3]) }],
           [100],
           9999,
-          [{ i: 1, n: Uint8Array.from([0, 1, 2, 3]) }],
+          [
+            new Map<string, unknown>([
+              ['i', 1],
+              ['n', Uint8Array.from([0, 1, 2, 3])],
+            ]),
+          ],
         ],
         [[], [], 9999, []],
         [
@@ -2059,15 +2056,26 @@ describe('Sign', () => {
           [100],
           9999,
           [
-            { n: Uint8Array.from([0, 1, 2, 3]) },
-            { n: Uint8Array.from([4, 5, 6, 7]) },
+            new Map<string, unknown>([
+              ['i', 0],
+              ['n', Uint8Array.from([0, 1, 2, 3])],
+            ]),
+            new Map<string, unknown>([
+              ['i', 0],
+              ['n', Uint8Array.from([4, 5, 6, 7])],
+            ]),
           ],
         ],
         [
           [{ appIndex: 100, name: Uint8Array.from([0, 1, 2, 3]) }],
           [100],
           100,
-          [{ i: 1, n: Uint8Array.from([0, 1, 2, 3]) }],
+          [
+            new Map<string, unknown>([
+              ['i', 1],
+              ['n', Uint8Array.from([0, 1, 2, 3])],
+            ]),
+          ],
         ],
         [
           [
@@ -2077,37 +2085,36 @@ describe('Sign', () => {
           [100, 7777, 8888, 9999],
           9999,
           [
-            { i: 2, n: Uint8Array.from([0, 1, 2, 3]) },
-            { i: 3, n: Uint8Array.from([4, 5, 6, 7]) },
+            new Map<string, unknown>([
+              ['i', 2],
+              ['n', Uint8Array.from([0, 1, 2, 3])],
+            ]),
+            new Map<string, unknown>([
+              ['i', 3],
+              ['n', Uint8Array.from([4, 5, 6, 7])],
+            ]),
           ],
         ],
-        [[{ appIndex: 0, name: Uint8Array.from([]) }], [], 1, [{}]],
+        [
+          [{ appIndex: 0, name: Uint8Array.from([]) }],
+          [],
+          1,
+          [
+            new Map<string, unknown>([
+              ['i', 0],
+              ['n', Uint8Array.from([])],
+            ]),
+          ],
+        ],
       ];
       for (const testCase of testCases) {
         const expected = testCase[3];
-
-        const expectedJson = expected.map((e) => {
-          if (e.n) {
-            // Base64 encode the name, if present
-            return { ...e, n: algosdk.bytesToBase64(e.n) };
-          }
-          return e;
-        });
-        const actualJson = jsonPrepareBoxReferences(
+        const actual = boxReferencesToEncodingData(
           testCase[0],
           testCase[1],
           testCase[2]
         );
-        assert.deepStrictEqual(actualJson, expectedJson);
-
-        // Convert the expected EncodedBoxReferences to maps
-        const expectedMsgpack = expected.map((e) => new Map(Object.entries(e)));
-        const actualMsgpack = msgpackPrepareBoxReferences(
-          testCase[0],
-          testCase[1],
-          testCase[2]
-        );
-        assert.deepStrictEqual(actualMsgpack, expectedMsgpack);
+        assert.deepStrictEqual(actual, expected);
       }
     });
   });
