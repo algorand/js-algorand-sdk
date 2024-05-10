@@ -8,8 +8,8 @@ import { Transaction } from './transaction.js';
 import { LogicSig } from './logicsig.js';
 import {
   EncodedMultisig,
-  encodedMultiSigMsgpackPrepare,
-  encodedMultiSigFromDecodedMsgpack,
+  encodedMultiSigToEncodingData,
+  encodedMultiSigFromEncodingData,
   ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/index.js';
 import {
@@ -118,7 +118,7 @@ export class SignedTransaction implements Encodable {
       data.set('sig', this.sig);
     }
     if (this.msig) {
-      data.set('msig', encodedMultiSigMsgpackPrepare(this.msig));
+      data.set('msig', encodedMultiSigToEncodingData(this.msig));
     }
     if (this.lsig) {
       data.set('lsig', this.lsig.toEncodingData());
@@ -137,7 +137,7 @@ export class SignedTransaction implements Encodable {
       txn: Transaction.fromEncodingData(data.get('txn')),
       sig: data.get('sig'),
       msig: data.get('msig')
-        ? encodedMultiSigFromDecodedMsgpack(data.get('msig'))
+        ? encodedMultiSigFromEncodingData(data.get('msig'))
         : undefined,
       lsig: data.get('lsig')
         ? LogicSig.fromEncodingData(data.get('lsig'))

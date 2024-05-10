@@ -328,9 +328,10 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Sign it directly to get a signature
       const signedWithSk = txn.signTxn(signer.sk);
-      const decoded = algosdk.decodeObj(
-        signedWithSk
-      ) as algosdk.EncodedSignedTransaction;
+      const decoded = algosdk.decodeMsgpack(
+        signedWithSk,
+        algosdk.SignedTransaction
+      );
       const signature = decoded.sig!;
 
       // Attach the signature to the transaction indirectly, and compare
@@ -338,9 +339,10 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(signedWithSk, signedWithSignature);
 
       // Check that signer was set
-      const decodedWithSigner = algosdk.decodeObj(
-        signedWithSignature
-      ) as algosdk.EncodedSignedTransaction;
+      const decodedWithSigner = algosdk.decodeMsgpack(
+        signedWithSignature,
+        algosdk.SignedTransaction
+      );
       assert.deepStrictEqual(decodedWithSigner.sgnr, signer.addr.publicKey);
     });
 
@@ -367,9 +369,10 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Sign it directly to get a signature
       const signedWithSk = txn.signTxn(signer.sk);
-      const decoded = algosdk.decodeObj(
-        signedWithSk
-      ) as algosdk.EncodedSignedTransaction;
+      const decoded = algosdk.decodeMsgpack(
+        signedWithSk,
+        algosdk.SignedTransaction
+      );
       const signature = decoded.sig!.slice(0, -1); // without the last byte
 
       // Check that the signature is not attached

@@ -16,17 +16,10 @@ import {
 import * as utils from './utils/utils.js';
 import {
   EncodedMultisig,
-  encodedMultiSigMsgpackPrepare,
-  encodedMultiSigFromDecodedMsgpack,
+  encodedMultiSigToEncodingData,
+  encodedMultiSigFromEncodingData,
   ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/encoded.js';
-
-interface LogicSigStorageStructure {
-  logic: Uint8Array;
-  args?: Uint8Array[];
-  sig?: Uint8Array;
-  msig?: EncodedMultisig;
-}
 
 // base64regex is the regex to test for base64 strings
 const base64regex =
@@ -71,7 +64,7 @@ const programTag = new TextEncoder().encode('Program');
 
  LogicSig cannot sign transactions in all cases.  Instead, use LogicSigAccount as a safe, general purpose signing mechanism.  Since LogicSig does not track the provided signature's public key, LogicSig cannot sign transactions when delegated to a non-multisig account _and_ the sender is not the delegating account.
  */
-export class LogicSig implements LogicSigStorageStructure, encoding.Encodable {
+export class LogicSig implements encoding.Encodable {
   static encodingSchema = new NamedMapSchema([
     {
       key: 'l',
@@ -131,14 +124,14 @@ export class LogicSig implements LogicSigStorageStructure, encoding.Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, encoding.MsgpackEncodingData>([
+    const data = new Map<string, unknown>([
       ['l', this.logic],
       ['arg', this.args],
     ]);
     if (this.sig) {
       data.set('sig', this.sig);
     } else if (this.msig) {
-      data.set('msig', encodedMultiSigMsgpackPrepare(this.msig));
+      data.set('msig', encodedMultiSigToEncodingData(this.msig));
     }
     return data;
   }
@@ -150,7 +143,7 @@ export class LogicSig implements LogicSigStorageStructure, encoding.Encodable {
     const lsig = new LogicSig(data.get('l'), data.get('arg'));
     lsig.sig = data.get('sig');
     if (data.get('msig')) {
-      lsig.msig = encodedMultiSigFromDecodedMsgpack(data.get('msig'));
+      lsig.msig = encodedMultiSigFromEncodingData(data.get('msig'));
     }
     return lsig;
   }

@@ -3,10 +3,7 @@ import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import { Transaction } from './transaction.js';
 import * as utils from './utils/utils.js';
-import {
-  EncodedMultisig,
-  EncodedSignedTransaction,
-} from './types/transactions/encoded.js';
+import { EncodedMultisig } from './types/transactions/encoded.js';
 import { SignedTransaction } from './signedTransaction.js';
 import {
   MultisigMetadata,
@@ -106,7 +103,7 @@ function createMultisigTransactionWithSignature(
     addrs: pks.map((pk) => new Address(pk)),
   });
   // note: this is not signed yet, but will be shortly
-  const signedTxn = encoding.decode(encodedMsig) as EncodedSignedTransaction;
+  const signedTxn = encoding.decodeMsgpack(encodedMsig, SignedTransaction);
 
   let keyExist = false;
   // append the multisig signature to the corresponding public key in the multisig blob
@@ -120,21 +117,7 @@ function createMultisigTransactionWithSignature(
     throw new Error(MULTISIG_KEY_NOT_EXIST_ERROR_MSG);
   }
 
-  // if the address of this multisig is different from the transaction sender,
-  // we need to add the auth-addr field
-  const msigAddr = addressFromMultisigPreImg({
-    version,
-    threshold,
-    pks,
-  });
-  const senderAddr = signedTxn.txn.snd
-    ? new Address(signedTxn.txn.snd)
-    : Address.zeroAddress();
-  if (!senderAddr.equals(msigAddr)) {
-    signedTxn.sgnr = msigAddr.publicKey;
-  }
-
-  return new Uint8Array(encoding.encode(signedTxn));
+  return encoding.encodeMsgpack(signedTxn);
 }
 
 /**
