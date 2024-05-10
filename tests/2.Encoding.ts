@@ -1,11 +1,23 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import algosdk from '../src/index.js';
-import BaseModel, {
-  // eslint-disable-next-line camelcase
-  _get_obj_for_encoding,
-} from '../src/client/v2/basemodel.js';
 import * as utils from '../src/utils/utils.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  JSONEncodingData,
+} from '../src/encoding/encoding.js';
+import {
+  BooleanSchema,
+  StringSchema,
+  Uint64Schema,
+  AddressSchema,
+  ByteArraySchema,
+  FixedLengthByteArraySchema,
+  ArraySchema,
+  NamedMapSchema,
+  UntypedSchema,
+} from '../src/encoding/schema/index.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =
   'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
@@ -787,380 +799,370 @@ describe('encoding', () => {
       }
     });
   });
-  describe('_get_obj_for_encoding', () => {
-    interface TestCase {
-      input: any;
-      notBinaryNotOmitEmpty: any;
-      binaryNotOmitEmpty: any;
-      notBinaryOmitEmpty: any;
-      binaryOmitEmpty: any;
-    }
+  describe('Schema', () => {
+    describe('General', () => {
+      interface SchemaTestCase {
+        name: string;
+        schema: Schema;
+        values: unknown[];
+        preparedMsgpackValues: MsgpackEncodingData[];
+        // The expected output from calling `fromPreparedMsgpack`. If not provided, `values` will be used.
+        expectedValuesFromPreparedMsgpack?: unknown[];
+        preparedJsonValues: JSONEncodingData[];
+        // The expected output from calling `fromPreparedJSON`. If not provided, `values` will be used.
+        expectedValuesFromPreparedJson?: unknown[];
+      }
 
-    const testcases: TestCase[] = [
-      {
-        input: undefined,
-        notBinaryNotOmitEmpty: undefined,
-        binaryNotOmitEmpty: undefined,
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: null,
-        notBinaryNotOmitEmpty: null,
-        binaryNotOmitEmpty: null,
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: 1,
-        notBinaryNotOmitEmpty: 1,
-        binaryNotOmitEmpty: 1,
-        notBinaryOmitEmpty: 1,
-        binaryOmitEmpty: 1,
-      },
-      {
-        input: 1n,
-        notBinaryNotOmitEmpty: 1n,
-        binaryNotOmitEmpty: 1n,
-        notBinaryOmitEmpty: 1n,
-        binaryOmitEmpty: 1n,
-      },
-      {
-        input: 0,
-        notBinaryNotOmitEmpty: 0,
-        binaryNotOmitEmpty: 0,
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: 0n,
-        notBinaryNotOmitEmpty: 0n,
-        binaryNotOmitEmpty: 0n,
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: true,
-        notBinaryNotOmitEmpty: true,
-        binaryNotOmitEmpty: true,
-        notBinaryOmitEmpty: true,
-        binaryOmitEmpty: true,
-      },
-      {
-        input: false,
-        notBinaryNotOmitEmpty: false,
-        binaryNotOmitEmpty: false,
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: 'abc',
-        notBinaryNotOmitEmpty: 'abc',
-        binaryNotOmitEmpty: 'abc',
-        notBinaryOmitEmpty: 'abc',
-        binaryOmitEmpty: 'abc',
-      },
-      {
-        input: '',
-        notBinaryNotOmitEmpty: '',
-        binaryNotOmitEmpty: '',
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: Uint8Array.from([1, 2, 3]),
-        notBinaryNotOmitEmpty: 'AQID',
-        binaryNotOmitEmpty: Uint8Array.from([1, 2, 3]),
-        notBinaryOmitEmpty: 'AQID',
-        binaryOmitEmpty: Uint8Array.from([1, 2, 3]),
-      },
-      {
-        input: Uint8Array.from([]),
-        notBinaryNotOmitEmpty: '',
-        binaryNotOmitEmpty: Uint8Array.from([]),
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: [99],
-        notBinaryNotOmitEmpty: [99],
-        binaryNotOmitEmpty: [99],
-        notBinaryOmitEmpty: [99],
-        binaryOmitEmpty: [99],
-      },
-      {
-        input: [],
-        notBinaryNotOmitEmpty: [],
-        binaryNotOmitEmpty: [],
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: [0],
-        notBinaryNotOmitEmpty: [0],
-        binaryNotOmitEmpty: [0],
-        notBinaryOmitEmpty: [0],
-        binaryOmitEmpty: [0],
-      },
-      {
-        input: [Uint8Array.from([1, 2, 3])],
-        notBinaryNotOmitEmpty: ['AQID'],
-        binaryNotOmitEmpty: [Uint8Array.from([1, 2, 3])],
-        notBinaryOmitEmpty: ['AQID'],
-        binaryOmitEmpty: [Uint8Array.from([1, 2, 3])],
-      },
-      {
-        input: [Uint8Array.from([])],
-        notBinaryNotOmitEmpty: [''],
-        binaryNotOmitEmpty: [Uint8Array.from([])],
-        notBinaryOmitEmpty: [''],
-        binaryOmitEmpty: [Uint8Array.from([])],
-      },
-      {
-        input: { a: 1 },
-        notBinaryNotOmitEmpty: { a: 1 },
-        binaryNotOmitEmpty: { a: 1 },
-        notBinaryOmitEmpty: { a: 1 },
-        binaryOmitEmpty: { a: 1 },
-      },
-      {
-        input: {},
-        notBinaryNotOmitEmpty: {},
-        binaryNotOmitEmpty: {},
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: { a: 1, b: 0 },
-        notBinaryNotOmitEmpty: { a: 1, b: 0 },
-        binaryNotOmitEmpty: { a: 1, b: 0 },
-        notBinaryOmitEmpty: { a: 1 },
-        binaryOmitEmpty: { a: 1 },
-      },
-      {
-        input: { a: { b: 1 } },
-        notBinaryNotOmitEmpty: { a: { b: 1 } },
-        binaryNotOmitEmpty: { a: { b: 1 } },
-        notBinaryOmitEmpty: { a: { b: 1 } },
-        binaryOmitEmpty: { a: { b: 1 } },
-      },
-      {
-        input: { a: {} },
-        notBinaryNotOmitEmpty: { a: {} },
-        binaryNotOmitEmpty: { a: {} },
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: { a: { b: 0 } },
-        notBinaryNotOmitEmpty: { a: { b: 0 } },
-        binaryNotOmitEmpty: { a: { b: 0 } },
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: { a: { b: 0, c: 1 } },
-        notBinaryNotOmitEmpty: { a: { b: 0, c: 1 } },
-        binaryNotOmitEmpty: { a: { b: 0, c: 1 } },
-        notBinaryOmitEmpty: { a: { c: 1 } },
-        binaryOmitEmpty: { a: { c: 1 } },
-      },
-      {
-        input: { a: { b: Uint8Array.from([1, 2, 3]) } },
-        notBinaryNotOmitEmpty: { a: { b: 'AQID' } },
-        binaryNotOmitEmpty: { a: { b: Uint8Array.from([1, 2, 3]) } },
-        notBinaryOmitEmpty: { a: { b: 'AQID' } },
-        binaryOmitEmpty: { a: { b: Uint8Array.from([1, 2, 3]) } },
-      },
-      {
-        input: { a: { b: Uint8Array.from([]) } },
-        notBinaryNotOmitEmpty: { a: { b: '' } },
-        binaryNotOmitEmpty: { a: { b: Uint8Array.from([]) } },
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: [{}],
-        notBinaryNotOmitEmpty: [{}],
-        binaryNotOmitEmpty: [{}],
-        notBinaryOmitEmpty: [{}],
-        binaryOmitEmpty: [{}],
-      },
-      {
-        input: [{ a: 0 }],
-        notBinaryNotOmitEmpty: [{ a: 0 }],
-        binaryNotOmitEmpty: [{ a: 0 }],
-        notBinaryOmitEmpty: [{}],
-        binaryOmitEmpty: [{}],
-      },
-      {
-        input: [[{ a: 0 }]],
-        notBinaryNotOmitEmpty: [[{ a: 0 }]],
-        binaryNotOmitEmpty: [[{ a: 0 }]],
-        notBinaryOmitEmpty: [[{}]],
-        binaryOmitEmpty: [[{}]],
-      },
-      {
-        input: [[]],
-        notBinaryNotOmitEmpty: [[]],
-        binaryNotOmitEmpty: [[]],
-        notBinaryOmitEmpty: [[]],
-        binaryOmitEmpty: [[]],
-      },
-      {
-        input: [null],
-        notBinaryNotOmitEmpty: [null],
-        binaryNotOmitEmpty: [null],
-        notBinaryOmitEmpty: [null],
-        binaryOmitEmpty: [null],
-      },
-    ];
+      const testcases: SchemaTestCase[] = [
+        {
+          name: 'BooleanSchema',
+          schema: new BooleanSchema(),
+          values: [true, false],
+          preparedMsgpackValues: [true, false],
+          preparedJsonValues: [true, false],
+        },
+        {
+          name: 'StringSchema',
+          schema: new StringSchema(),
+          values: ['', 'abc'],
+          preparedMsgpackValues: ['', 'abc'],
+          preparedJsonValues: ['', 'abc'],
+        },
+        {
+          name: 'Uint64Schema',
+          schema: new Uint64Schema(),
+          values: [0, 1, 255, 256, 0xffffffffffffffffn],
+          preparedMsgpackValues: [0n, 1n, 255n, 256n, 0xffffffffffffffffn],
+          // fromPreparedMsgpack will convert numbers to bigints
+          expectedValuesFromPreparedMsgpack: [
+            0n,
+            1n,
+            255n,
+            256n,
+            0xffffffffffffffffn,
+          ],
+          preparedJsonValues: [0n, 1n, 255n, 256n, 0xffffffffffffffffn],
+          // Roundtrip will convert numbers to bigints
+          expectedValuesFromPreparedJson: [
+            0n,
+            1n,
+            255n,
+            256n,
+            0xffffffffffffffffn,
+          ],
+        },
+        {
+          name: 'AddressSchema',
+          schema: new AddressSchema(),
+          values: [
+            algosdk.Address.zeroAddress(),
+            algosdk.Address.fromString(
+              'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+            ),
+          ],
+          preparedMsgpackValues: [
+            new Uint8Array(32),
+            Uint8Array.from([
+              99, 180, 127, 102, 156, 252, 55, 227, 39, 198, 169, 232, 163, 16,
+              36, 130, 26, 223, 230, 213, 0, 153, 108, 192, 200, 197, 28, 77,
+              196, 50, 141, 112,
+            ]),
+          ],
+          preparedJsonValues: [
+            'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ',
+            'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI',
+          ],
+        },
+        {
+          name: 'ByteArraySchema',
+          schema: new ByteArraySchema(),
+          values: [Uint8Array.from([]), Uint8Array.from([1, 2, 3])],
+          preparedMsgpackValues: [
+            Uint8Array.from([]),
+            Uint8Array.from([1, 2, 3]),
+          ],
+          preparedJsonValues: ['', 'AQID'],
+        },
+        {
+          name: 'FixedLengthByteArraySchema',
+          schema: new FixedLengthByteArraySchema(5),
+          values: [new Uint8Array(5), Uint8Array.from([1, 2, 3, 4, 5])],
+          preparedMsgpackValues: [
+            new Uint8Array(5),
+            Uint8Array.from([1, 2, 3, 4, 5]),
+          ],
+          preparedJsonValues: ['AAAAAAA=', 'AQIDBAU='],
+        },
+        {
+          name: 'UntypedSchema',
+          schema: new UntypedSchema(),
+          values: [undefined, null, 0, 'abc', new Map()],
+          preparedMsgpackValues: [undefined, null, 0, 'abc', new Map()],
+          preparedJsonValues: [undefined, null, 0, 'abc', {}],
+        },
+        {
+          name: 'UntypedSchema, binary data', // Special case for Uint8Array
+          schema: new UntypedSchema(),
+          values: [new Uint8Array(), Uint8Array.from([1, 2, 3])],
+          preparedMsgpackValues: [new Uint8Array(), Uint8Array.from([1, 2, 3])],
+          preparedJsonValues: ['', 'AQID'],
+          // Roundtrip will convert Uint8Array to base64 strings
+          expectedValuesFromPreparedJson: ['', 'AQID'],
+        },
+      ];
 
-    for (let i = 0; i < testcases.length; i++) {
-      const tc = testcases[i];
-      it(`should correctly encode case ${i}: '${tc.input}'`, () => {
-        const actualNotBinaryNotOmitEmpty = _get_obj_for_encoding(
-          tc.input,
-          false,
-          false
-        );
-        assert.deepStrictEqual(
-          actualNotBinaryNotOmitEmpty,
-          tc.notBinaryNotOmitEmpty
-        );
+      const primitiveTestcases = testcases.slice();
 
-        const actualBinaryNotOmitEmpty = _get_obj_for_encoding(
-          tc.input,
-          true,
-          false
-        );
-        assert.deepStrictEqual(actualBinaryNotOmitEmpty, tc.binaryNotOmitEmpty);
-
-        const actualNotBinaryOmitEmpty = _get_obj_for_encoding(
-          tc.input,
-          false,
-          true
-        );
-        assert.deepStrictEqual(actualNotBinaryOmitEmpty, tc.notBinaryOmitEmpty);
-
-        const actualBinaryOmitEmpty = _get_obj_for_encoding(
-          tc.input,
-          true,
-          true
-        );
-        assert.deepStrictEqual(actualBinaryOmitEmpty, tc.binaryOmitEmpty);
-      });
-    }
-  });
-  describe('BaseModel', () => {
-    class ExampleModel extends BaseModel {
-      constructor(
-        public a: number,
-        public b: string,
-        public c: Uint8Array
-      ) {
-        super();
-
-        this.attribute_map = {
-          a: 'a',
-          b: 'b',
-          c: 'c',
+      // Add ArraySchema test cases
+      for (const testcase of primitiveTestcases) {
+        const arrayTestcase: SchemaTestCase = {
+          name: `ArraySchema containing ${testcase.name}`,
+          schema: new ArraySchema(testcase.schema),
+          values: [[], ...testcase.values.map((v) => [v]), testcase.values],
+          preparedMsgpackValues: [
+            [],
+            ...testcase.preparedMsgpackValues.map((v) => [v]),
+            testcase.preparedMsgpackValues,
+          ],
+          expectedValuesFromPreparedMsgpack:
+            testcase.expectedValuesFromPreparedMsgpack,
+          preparedJsonValues: [
+            [],
+            ...testcase.preparedJsonValues.map((v) => [v]),
+            testcase.preparedJsonValues,
+          ],
         };
+
+        if (testcase.expectedValuesFromPreparedMsgpack) {
+          arrayTestcase.expectedValuesFromPreparedMsgpack = [
+            [],
+            ...testcase.expectedValuesFromPreparedMsgpack.map((v) => [v]),
+            testcase.expectedValuesFromPreparedMsgpack,
+          ];
+        }
+
+        if (testcase.expectedValuesFromPreparedJson) {
+          arrayTestcase.expectedValuesFromPreparedJson = [
+            [],
+            ...testcase.expectedValuesFromPreparedJson.map((v) => [v]),
+            testcase.expectedValuesFromPreparedJson,
+          ];
+        }
+
+        testcases.push(arrayTestcase);
       }
 
-      toString(): string {
-        return `ExampleModel(a=${this.a}, b=${this.b}, c=${this.c})`;
+      const primitiveAndArrayTestcases = testcases.slice();
+
+      // Add NamedMapSchema test cases
+      for (const testcase of primitiveAndArrayTestcases) {
+        const mapTestcase: SchemaTestCase = {
+          name: `NamedMapSchema containing ${testcase.name}`,
+          schema: new NamedMapSchema([
+            {
+              key: 'key',
+              valueSchema: testcase.schema,
+              // Testing with required=true and omitEmpty=false for simplicity
+              required: true,
+              omitEmpty: false,
+            },
+          ]),
+          values: testcase.values.map((v) => new Map([['key', v]])),
+          preparedMsgpackValues: testcase.preparedMsgpackValues.map(
+            (v) => new Map([['key', v]])
+          ),
+          preparedJsonValues: testcase.preparedJsonValues.map((v) => ({
+            key: v,
+          })),
+        };
+
+        if (testcase.expectedValuesFromPreparedMsgpack) {
+          mapTestcase.expectedValuesFromPreparedMsgpack =
+            testcase.expectedValuesFromPreparedMsgpack.map(
+              (v) => new Map([['key', v]])
+            );
+        }
+
+        if (testcase.expectedValuesFromPreparedJson) {
+          mapTestcase.expectedValuesFromPreparedJson =
+            testcase.expectedValuesFromPreparedJson.map(
+              (v) => new Map([['key', v]])
+            );
+        }
+
+        testcases.push(mapTestcase);
       }
-    }
 
-    class EmptyModel extends BaseModel {
-      constructor() {
-        super();
+      for (const testcase of testcases) {
+        it(`should correctly prepare values for encoding and decoding with schema ${testcase.name}`, () => {
+          for (let i = 0; i < testcase.values.length; i++) {
+            const value = testcase.values[i];
+            const preparedMsgpackValue = testcase.preparedMsgpackValues[i];
+            const preparedJsonValue = testcase.preparedJsonValues[i];
 
-        this.attribute_map = {};
+            const actualMsgpack = testcase.schema.prepareMsgpack(value);
+            assert.deepStrictEqual(actualMsgpack, preparedMsgpackValue);
+
+            const roundtripMsgpackValue =
+              testcase.schema.fromPreparedMsgpack(actualMsgpack);
+            const roundtripMsgpackExpectedValue =
+              testcase.expectedValuesFromPreparedMsgpack
+                ? testcase.expectedValuesFromPreparedMsgpack[i]
+                : value;
+            assert.deepStrictEqual(
+              roundtripMsgpackValue,
+              roundtripMsgpackExpectedValue
+            );
+
+            const actualJson = testcase.schema.prepareJSON(value);
+            assert.deepStrictEqual(actualJson, preparedJsonValue);
+
+            const roundtripJsonValue =
+              testcase.schema.fromPreparedJSON(actualJson);
+            const roundtripJsonExpectedValue =
+              testcase.expectedValuesFromPreparedJson
+                ? testcase.expectedValuesFromPreparedJson[i]
+                : value;
+            assert.deepStrictEqual(
+              roundtripJsonValue,
+              roundtripJsonExpectedValue
+            );
+          }
+        });
       }
+    });
+    describe('NamedMapSchema', () => {
+      it('correctly handles omitEmpty', () => {
+        const testValues: Array<{
+          schema: Schema;
+          emptyValue: unknown;
+          nonemptyValue: unknown;
+        }> = [
+          {
+            schema: new BooleanSchema(),
+            emptyValue: false,
+            nonemptyValue: true,
+          },
+          {
+            schema: new Uint64Schema(),
+            emptyValue: 0n,
+            nonemptyValue: 1n,
+          },
+          {
+            schema: new StringSchema(),
+            emptyValue: '',
+            nonemptyValue: 'abc',
+          },
+          {
+            schema: new AddressSchema(),
+            emptyValue: algosdk.Address.zeroAddress(),
+            nonemptyValue: algosdk.Address.fromString(
+              'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+            ),
+          },
+          {
+            schema: new ByteArraySchema(),
+            emptyValue: Uint8Array.from([]),
+            nonemptyValue: Uint8Array.from([1, 2, 3]),
+          },
+          {
+            schema: new FixedLengthByteArraySchema(5),
+            emptyValue: new Uint8Array(5),
+            nonemptyValue: Uint8Array.from([1, 2, 3, 4, 5]),
+          },
+          {
+            schema: new UntypedSchema(),
+            emptyValue: undefined,
+            nonemptyValue: 0,
+          },
+          {
+            schema: new ArraySchema(new BooleanSchema()),
+            emptyValue: [],
+            nonemptyValue: [false],
+          },
+          {
+            schema: new NamedMapSchema([
+              {
+                key: 'key',
+                valueSchema: new BooleanSchema(),
+                omitEmpty: false,
+                required: false,
+              },
+            ]),
+            emptyValue: new Map(),
+            nonemptyValue: new Map([['key', false]]),
+          },
+          {
+            schema: new NamedMapSchema([
+              {
+                key: 'key',
+                valueSchema: new BooleanSchema(),
+                omitEmpty: true,
+                required: true,
+              },
+            ]),
+            emptyValue: new Map([['key', false]]),
+            nonemptyValue: new Map([['key', true]]),
+          },
+        ];
 
-      // eslint-disable-next-line class-methods-use-this
-      toString(): string {
-        return 'EmptyModel()';
-      }
-    }
-
-    interface TestCase {
-      input: BaseModel;
-      notBinaryNotOmitEmpty: any;
-      binaryNotOmitEmpty: any;
-      notBinaryOmitEmpty: any;
-      binaryOmitEmpty: any;
-    }
-
-    const testcases: TestCase[] = [
-      {
-        input: new ExampleModel(99, 'x', Uint8Array.from([1, 2, 3])),
-        notBinaryNotOmitEmpty: { a: 99, b: 'x', c: 'AQID' },
-        binaryNotOmitEmpty: { a: 99, b: 'x', c: Uint8Array.from([1, 2, 3]) },
-        notBinaryOmitEmpty: { a: 99, b: 'x', c: 'AQID' },
-        binaryOmitEmpty: { a: 99, b: 'x', c: Uint8Array.from([1, 2, 3]) },
-      },
-      {
-        input: new ExampleModel(99, '', Uint8Array.from([1, 2, 3])),
-        notBinaryNotOmitEmpty: { a: 99, b: '', c: 'AQID' },
-        binaryNotOmitEmpty: { a: 99, b: '', c: Uint8Array.from([1, 2, 3]) },
-        notBinaryOmitEmpty: { a: 99, c: 'AQID' },
-        binaryOmitEmpty: { a: 99, c: Uint8Array.from([1, 2, 3]) },
-      },
-      {
-        input: new ExampleModel(99, '', Uint8Array.from([])),
-        notBinaryNotOmitEmpty: { a: 99, b: '', c: '' },
-        binaryNotOmitEmpty: { a: 99, b: '', c: Uint8Array.from([]) },
-        notBinaryOmitEmpty: { a: 99 },
-        binaryOmitEmpty: { a: 99 },
-      },
-      {
-        input: new ExampleModel(0, '', Uint8Array.from([])),
-        notBinaryNotOmitEmpty: { a: 0, b: '', c: '' },
-        binaryNotOmitEmpty: { a: 0, b: '', c: Uint8Array.from([]) },
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-      {
-        input: new EmptyModel(),
-        notBinaryNotOmitEmpty: {},
-        binaryNotOmitEmpty: {},
-        notBinaryOmitEmpty: undefined,
-        binaryOmitEmpty: undefined,
-      },
-    ];
-
-    for (let i = 0; i < testcases.length; i++) {
-      const tc = testcases[i];
-      it(`should correctly encode case ${i}: '${tc.input}'`, () => {
-        const model = tc.input;
-
-        const actualNotBinaryNotOmitEmpty = model.get_obj_for_encoding(
-          false,
-          false
+        const schema = new NamedMapSchema(
+          testValues.map((testValue, index) => ({
+            key: index.toString(),
+            valueSchema: testValue.schema,
+            required: true,
+            omitEmpty: true,
+          }))
         );
-        assert.deepStrictEqual(
-          actualNotBinaryNotOmitEmpty,
-          tc.notBinaryNotOmitEmpty
+
+        const allEmptyValues = new Map(
+          testValues.map((testValue, index) => [
+            index.toString(),
+            testValue.emptyValue,
+          ])
         );
 
-        const actualBinaryNotOmitEmpty = model.get_obj_for_encoding(
-          true,
-          false
-        );
-        assert.deepStrictEqual(actualBinaryNotOmitEmpty, tc.binaryNotOmitEmpty);
+        let prepareMsgpackResult = schema.prepareMsgpack(allEmptyValues);
+        // All empty values should be omitted
+        assert.deepStrictEqual(prepareMsgpackResult, new Map());
+        let fromPreparedMsgpackResult =
+          schema.fromPreparedMsgpack(prepareMsgpackResult);
+        // Omitted values should be restored with their default/empty values
+        assert.deepStrictEqual(fromPreparedMsgpackResult, allEmptyValues);
 
-        const actualNotBinaryOmitEmpty = model.get_obj_for_encoding(
-          false,
-          true
-        );
-        assert.deepStrictEqual(actualNotBinaryOmitEmpty, tc.notBinaryOmitEmpty);
+        let prepareJsonResult = schema.prepareJSON(allEmptyValues);
+        // All empty values should be omitted
+        assert.deepStrictEqual(prepareJsonResult, {});
+        let fromPreparedJsonResult = schema.fromPreparedJSON(prepareJsonResult);
+        // Omitted values should be restored with their default/empty values
+        assert.deepStrictEqual(fromPreparedJsonResult, allEmptyValues);
 
-        const actualBinaryOmitEmpty = model.get_obj_for_encoding(true, true);
-        assert.deepStrictEqual(actualBinaryOmitEmpty, tc.binaryOmitEmpty);
+        const allNonemptyValues = new Map(
+          testValues.map((testValue, index) => [
+            index.toString(),
+            testValue.nonemptyValue,
+          ])
+        );
+
+        prepareMsgpackResult = schema.prepareMsgpack(allNonemptyValues);
+        assert.ok(prepareMsgpackResult instanceof Map);
+        // All values are present
+        assert.strictEqual(prepareMsgpackResult.size, testValues.length);
+        fromPreparedMsgpackResult =
+          schema.fromPreparedMsgpack(prepareMsgpackResult);
+        // Values are restored properly
+        assert.deepStrictEqual(fromPreparedMsgpackResult, allNonemptyValues);
+
+        prepareJsonResult = schema.prepareJSON(allNonemptyValues);
+        // All values are present
+        assert.strictEqual(
+          Object.keys(prepareJsonResult as object).length,
+          testValues.length
+        );
+        fromPreparedJsonResult = schema.fromPreparedJSON(prepareJsonResult);
+        // Omitted values should be restored with their default/empty values
+        assert.deepStrictEqual(fromPreparedJsonResult, allNonemptyValues);
       });
-    }
+    });
   });
 });

@@ -22,7 +22,6 @@ import BlockHeader, {
 import { SignedTransaction } from '../../../../signedTransaction.js';
 import { Address } from '../../../../encoding/address.js';
 import { UntypedValue } from '../../untypedmodel.js';
-// import BaseModel from '../../basemodel.js';
 
 /**
  * Account information at a given round.
@@ -147,6 +146,24 @@ export class Account implements Encodable {
         {
           key: 'created-assets',
           valueSchema: new ArraySchema(Asset.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'incentive-eligible',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-heartbeat',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-proposed',
+          valueSchema: new Uint64Schema(),
           required: false,
           omitEmpty: true,
         },
@@ -299,6 +316,23 @@ export class Account implements Encodable {
   public createdAssets?: Asset[];
 
   /**
+   * Whether or not the account can receive block incentives if its balance is in
+   * range at proposal time.
+   */
+  public incentiveEligible?: boolean;
+
+  /**
+   * The round in which this account last went online, or explicitly renewed their
+   * online status.
+   */
+  public lastHeartbeat?: number;
+
+  /**
+   * The round in which this account last proposed the block.
+   */
+  public lastProposed?: number;
+
+  /**
    * AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    */
@@ -368,6 +402,11 @@ export class Account implements Encodable {
    * Note: the raw account uses `map[int] -> AppParams` for this type.
    * @param createdAssets - (apar) parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
+   * @param incentiveEligible - Whether or not the account can receive block incentives if its balance is in
+   * range at proposal time.
+   * @param lastHeartbeat - The round in which this account last went online, or explicitly renewed their
+   * online status.
+   * @param lastProposed - The round in which this account last proposed the block.
    * @param participation - AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    * @param rewardBase - (ebase) used as part of the rewards computation. Only applicable to accounts
@@ -400,6 +439,9 @@ export class Account implements Encodable {
     authAddr,
     createdApps,
     createdAssets,
+    incentiveEligible,
+    lastHeartbeat,
+    lastProposed,
     participation,
     rewardBase,
     sigType,
@@ -425,6 +467,9 @@ export class Account implements Encodable {
     authAddr?: Address | string;
     createdApps?: Application[];
     createdAssets?: Asset[];
+    incentiveEligible?: boolean;
+    lastHeartbeat?: number | bigint;
+    lastProposed?: number | bigint;
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
@@ -456,6 +501,15 @@ export class Account implements Encodable {
       typeof authAddr === 'string' ? Address.fromString(authAddr) : authAddr;
     this.createdApps = createdApps;
     this.createdAssets = createdAssets;
+    this.incentiveEligible = incentiveEligible;
+    this.lastHeartbeat =
+      typeof lastHeartbeat === 'undefined'
+        ? undefined
+        : ensureSafeInteger(lastHeartbeat);
+    this.lastProposed =
+      typeof lastProposed === 'undefined'
+        ? undefined
+        : ensureSafeInteger(lastProposed);
     this.participation = participation;
     this.rewardBase =
       typeof rewardBase === 'undefined' ? undefined : ensureBigInt(rewardBase);
@@ -523,6 +577,15 @@ export class Account implements Encodable {
         this.createdAssets.map((v) => v.toEncodingData())
       );
     }
+    if (this.incentiveEligible) {
+      data.set('incentive-eligible', this.incentiveEligible);
+    }
+    if (this.lastHeartbeat) {
+      data.set('last-heartbeat', this.lastHeartbeat);
+    }
+    if (this.lastProposed) {
+      data.set('last-proposed', this.lastProposed);
+    }
     if (this.participation) {
       data.set('participation', this.participation.toEncodingData());
     }
@@ -584,6 +647,9 @@ export class Account implements Encodable {
         typeof data.get('created-assets') !== 'undefined'
           ? data.get('created-assets').map(Asset.fromEncodingData)
           : undefined,
+      incentiveEligible: data.get('incentive-eligible'),
+      lastHeartbeat: data.get('last-heartbeat'),
+      lastProposed: data.get('last-proposed'),
       participation:
         typeof data.get('participation') !== 'undefined'
           ? AccountParticipation.fromEncodingData(data.get('participation'))
@@ -708,6 +774,95 @@ export class AccountApplicationResponse implements Encodable {
 }
 
 /**
+ * AccountAssetHolding describes the account's asset holding and asset parameters
+ * (if either exist) for a specific asset ID.
+ */
+export class AccountAssetHolding implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'asset-holding',
+          valueSchema: AssetHolding.encodingSchema,
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-params',
+          valueSchema: AssetParams.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   */
+  public assetHolding: AssetHolding;
+
+  /**
+   * (apar) parameters of the asset held by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  public assetParams?: AssetParams;
+
+  /**
+   * Creates a new `AccountAssetHolding` object.
+   * @param assetHolding - (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   * @param assetParams - (apar) parameters of the asset held by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  constructor({
+    assetHolding,
+    assetParams,
+  }: {
+    assetHolding: AssetHolding;
+    assetParams?: AssetParams;
+  }) {
+    this.assetHolding = assetHolding;
+    this.assetParams = assetParams;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountAssetHolding.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['asset-holding', this.assetHolding.toEncodingData()],
+    ]);
+    if (this.assetParams) {
+      data.set('asset-params', this.assetParams.toEncodingData());
+    }
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): AccountAssetHolding {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new AccountAssetHolding({
+      assetHolding: AssetHolding.fromEncodingData(
+        data.get('asset-holding') ?? {}
+      ),
+      assetParams:
+        typeof data.get('asset-params') !== 'undefined'
+          ? AssetParams.fromEncodingData(data.get('asset-params'))
+          : undefined,
+    });
+  }
+}
+
+/**
  * AccountAssetResponse describes the account's asset holding and asset parameters
  * (if either exist) for a specific asset ID. Asset parameters will only be
  * returned if the provided address is the asset's creator.
@@ -811,6 +966,107 @@ export class AccountAssetResponse implements Encodable {
         typeof data.get('created-asset') !== 'undefined'
           ? AssetParams.fromEncodingData(data.get('created-asset'))
           : undefined,
+    });
+  }
+}
+
+/**
+ * AccountAssetsInformationResponse contains a list of assets held by an account.
+ */
+export class AccountAssetsInformationResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'round',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-holdings',
+          valueSchema: new ArraySchema(AccountAssetHolding.encodingSchema),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * The round for which this information is relevant.
+   */
+  public round: number;
+
+  public assetHoldings?: AccountAssetHolding[];
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `AccountAssetsInformationResponse` object.
+   * @param round - The round for which this information is relevant.
+   * @param assetHoldings -
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  constructor({
+    round,
+    assetHoldings,
+    nextToken,
+  }: {
+    round: number | bigint;
+    assetHoldings?: AccountAssetHolding[];
+    nextToken?: string;
+  }) {
+    this.round = ensureSafeInteger(round);
+    this.assetHoldings = assetHoldings;
+    this.nextToken = nextToken;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountAssetsInformationResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([['round', this.round]]);
+    if (this.assetHoldings && this.assetHoldings.length) {
+      data.set(
+        'asset-holdings',
+        this.assetHoldings.map((v) => v.toEncodingData())
+      );
+    }
+    if (this.nextToken) {
+      data.set('next-token', this.nextToken);
+    }
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): AccountAssetsInformationResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new AccountAssetsInformationResponse({
+      round: data.get('round'),
+      assetHoldings:
+        typeof data.get('asset-holdings') !== 'undefined'
+          ? data.get('asset-holdings').map(AccountAssetHolding.fromEncodingData)
+          : undefined,
+      nextToken: data.get('next-token'),
     });
   }
 }
@@ -1044,6 +1300,101 @@ export class AccountStateDelta implements Encodable {
     return new AccountStateDelta({
       address: data.get('address'),
       delta: (data.get('delta') ?? []).map(EvalDeltaKeyValue.fromEncodingData),
+    });
+  }
+}
+
+/**
+ * The logged messages from an app call along with the app ID and outer transaction
+ * ID. Logs appear in the same order that they were emitted.
+ */
+export class AppCallLogs implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'application-index',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'logs',
+          valueSchema: new ArraySchema(new ByteArraySchema()),
+          required: true,
+          omitEmpty: true,
+        },
+        {
+          key: 'txId',
+          valueSchema: new StringSchema(),
+          required: true,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * The application from which the logs were generated
+   */
+  public applicationIndex: number;
+
+  /**
+   * An array of logs
+   */
+  public logs: Uint8Array[];
+
+  /**
+   * The transaction ID of the outer app call that lead to these logs
+   */
+  public txid: string;
+
+  /**
+   * Creates a new `AppCallLogs` object.
+   * @param applicationIndex - The application from which the logs were generated
+   * @param logs - An array of logs
+   * @param txid - The transaction ID of the outer app call that lead to these logs
+   */
+  constructor({
+    applicationIndex,
+    logs,
+    txid,
+  }: {
+    applicationIndex: number | bigint;
+    logs: Uint8Array[];
+    txid: string;
+  }) {
+    this.applicationIndex = ensureSafeInteger(applicationIndex);
+    this.logs = logs;
+    this.txid = txid;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AppCallLogs.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['application-index', this.applicationIndex],
+      ['logs', this.logs],
+      ['txId', this.txid],
+    ]);
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): AppCallLogs {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new AppCallLogs({
+      applicationIndex: data.get('application-index'),
+      logs: data.get('logs'),
+      txid: data.get('txId'),
     });
   }
 }
@@ -2751,6 +3102,63 @@ export class BlockHashResponse implements Encodable {
     }
     return new BlockHashResponse({
       blockhash: data.get('blockHash'),
+    });
+  }
+}
+
+/**
+ * All logs emitted in the given round. Each app call, whether top-level or inner,
+ * that contains logs results in a separate AppCallLogs object. Therefore there may
+ * be multiple AppCallLogs with the same application ID and outer transaction ID in
+ * the event of multiple inner app calls to the same app. App calls with no logs
+ * are not included in the response. AppCallLogs are returned in the same order
+ * that their corresponding app call appeared in the block (pre-order traversal of
+ * inner app calls)
+ */
+export class BlockLogsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'logs',
+        valueSchema: new ArraySchema(AppCallLogs.encodingSchema),
+        required: true,
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public logs: AppCallLogs[];
+
+  /**
+   * Creates a new `BlockLogsResponse` object.
+   * @param logs -
+   */
+  constructor({ logs }: { logs: AppCallLogs[] }) {
+    this.logs = logs;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockLogsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['logs', this.logs.map((v) => v.toEncodingData())],
+    ]);
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): BlockLogsResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new BlockLogsResponse({
+      logs: (data.get('logs') ?? []).map(AppCallLogs.fromEncodingData),
     });
   }
 }

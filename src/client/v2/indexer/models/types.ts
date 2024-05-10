@@ -16,7 +16,6 @@ import {
 import { base64ToBytes } from '../../../../encoding/binarydata.js';
 import { Address } from '../../../../encoding/address.js';
 import { UntypedValue } from '../../untypedmodel.js';
-// import BaseModel from '../../basemodel.js';
 
 /**
  * Account information at a given round.

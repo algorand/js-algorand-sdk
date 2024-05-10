@@ -34,7 +34,10 @@ export class NamedMapSchema extends Schema {
     if (!(data instanceof Map)) return false;
     for (const entry of this.entries) {
       if (data.has(entry.key) && data.get(entry.key) !== undefined) {
-        if (!entry.valueSchema.isDefaultValue(data.get(entry.key))) {
+        if (
+          !entry.required ||
+          !entry.valueSchema.isDefaultValue(data.get(entry.key))
+        ) {
           return false;
         }
       }
@@ -131,8 +134,9 @@ export class NamedMapSchema extends Schema {
       } else if (entry.required) {
         if (entry.omitEmpty) {
           map.set(entry.key, entry.valueSchema.defaultValue());
+        } else {
+          throw new Error(`Missing required key: ${entry.key}`);
         }
-        throw new Error(`Missing required key: ${entry.key}`);
       }
     }
     return map;
