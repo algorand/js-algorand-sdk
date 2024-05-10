@@ -343,7 +343,7 @@ describe('Algosdk (AKA end to end)', () => {
         signedWithSignature,
         algosdk.SignedTransaction
       );
-      assert.deepStrictEqual(decodedWithSigner.sgnr, signer.addr.publicKey);
+      assert.deepStrictEqual(decodedWithSigner.sgnr, signer.addr);
     });
 
     it('should not attach signature with incorrect length', () => {
@@ -704,7 +704,6 @@ describe('Algosdk (AKA end to end)', () => {
         },
       });
       const jsDec = algosdk.signTransaction(txn, sk.sk);
-      // TODO: figure out why fee is different
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
     it('should return a blob that matches the go code for asset freeze', () => {
@@ -1083,11 +1082,7 @@ describe('Algosdk (AKA end to end)', () => {
       "reward-base": 456,
       "rewards": 2280000000000,
       "round": 18241,
-      "status": "Online",
-      "total-apps-opted-in": 0,
-      "total-assets-opted-in": 0,
-      "total-created-apps": 0,
-      "total-created-assets": 0
+      "status": "Online"
     }
   ],
   "apps": [
@@ -1111,7 +1106,6 @@ describe('Algosdk (AKA end to end)', () => {
   "latest-timestamp": 1592537757,
   "protocol-version": "future",
   "round": 18241,
-  "sources": [],
   "txns": [
     {
       "txn": {
@@ -1140,7 +1134,7 @@ describe('Algosdk (AKA end to end)', () => {
     it('should be properly serialized to msgpack', () => {
       const actual = algosdk.encodeMsgpack(req);
       const expected = algosdk.base64ToBytes(
-        'h6hhY2NvdW50c5GNp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWzdG90YWwtYXBwcy1vcHRlZC1pbgC1dG90YWwtYXNzZXRzLW9wdGVkLWluALJ0b3RhbC1jcmVhdGVkLWFwcHMAtHRvdGFsLWNyZWF0ZWQtYXNzZXRzAKRhcHBzkYKiaWTOUkFORKZwYXJhbXOFsGFwcHJvdmFsLXByb2dyYW3EBQIgAQEis2NsZWFyLXN0YXRlLXByb2dyYW3EBQIgAQEip2NyZWF0b3LZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02zZ2xvYmFsLXN0YXRlLXNjaGVtYYKubnVtLWJ5dGUtc2xpY2UFqG51bS11aW50BbJsb2NhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWwbGF0ZXN0LXRpbWVzdGFtcM5e7DKdsHByb3RvY29sLXZlcnNpb26mZnV0dXJlpXJvdW5kzUdBp3NvdXJjZXOQpHR4bnORgaN0eG6IpGFwc3XEBQIgAQEio2ZlZc0D6KJmds1HQqJnaMQgZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLWibHbNSyqkbm90ZcQItjpNge78JD+jc25kxCCgHpJvvVfCb8YVZPLrfhbiBZSRAtxybBurkfPuq8sTSqR0eXBlpGFwcGw='
+        'hqhhY2NvdW50c5GJp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWkYXBwc5GComlkzlJBTkSmcGFyYW1zhbBhcHByb3ZhbC1wcm9ncmFtxAUCIAEBIrNjbGVhci1zdGF0ZS1wcm9ncmFtxAUCIAEBIqdjcmVhdG9y2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNs2dsb2JhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWybG9jYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsGxhdGVzdC10aW1lc3RhbXDOXuwynbBwcm90b2NvbC12ZXJzaW9upmZ1dHVyZaVyb3VuZM1HQaR0eG5zkYGjdHhuiKRhcHN1xAUCIAEBIqNmZWXNA+iiZnbNR0KiZ2jEIGSJD7PKUw8W0SbBQdcie4L56Q7tEPORUZJdjQpBAEC1omx2zUsqpG5vdGXECLY6TYHu/CQ/o3NuZMQgoB6Sb71Xwm/GFWTy634W4gWUkQLccmwbq5Hz7qvLE0qkdHlwZaRhcHBs'
       );
       assert.deepStrictEqual(actual, expected);
     });

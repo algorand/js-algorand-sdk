@@ -281,18 +281,22 @@ export class Transaction implements encoding.Encodable {
         key: 'apar',
         valueSchema: new NamedMapSchema(
           [
-            { key: 't', valueSchema: new Uint64Schema() },
-            { key: 'dc', valueSchema: new Uint64Schema() },
-            { key: 'df', valueSchema: new BooleanSchema() },
-            { key: 'm', valueSchema: new AddressSchema() },
-            { key: 'r', valueSchema: new AddressSchema() },
-            { key: 'f', valueSchema: new AddressSchema() },
-            { key: 'c', valueSchema: new AddressSchema() },
-            { key: 'un', valueSchema: new StringSchema() },
-            { key: 'an', valueSchema: new StringSchema() },
-            { key: 'au', valueSchema: new StringSchema() },
-            { key: 'am', valueSchema: new FixedLengthByteArraySchema(32) },
-          ].map((entry) => ({ ...entry, omitEmpty: true, required: false }))
+            { key: 't', valueSchema: new Uint64Schema(), required: true },
+            { key: 'dc', valueSchema: new Uint64Schema(), required: true },
+            { key: 'df', valueSchema: new BooleanSchema(), required: true },
+            { key: 'm', valueSchema: new AddressSchema(), required: false },
+            { key: 'r', valueSchema: new AddressSchema(), required: false },
+            { key: 'f', valueSchema: new AddressSchema(), required: false },
+            { key: 'c', valueSchema: new AddressSchema(), required: false },
+            { key: 'un', valueSchema: new StringSchema(), required: false },
+            { key: 'an', valueSchema: new StringSchema(), required: false },
+            { key: 'au', valueSchema: new StringSchema(), required: false },
+            {
+              key: 'am',
+              valueSchema: new FixedLengthByteArraySchema(32),
+              required: false,
+            },
+          ].map((entry) => ({ ...entry, omitEmpty: true }))
         ),
       },
       // AssetTransfer
@@ -563,9 +567,9 @@ export class Transaction implements encoding.Encodable {
         reserve: optionalAddress(params.assetConfigParams.reserve),
         freeze: optionalAddress(params.assetConfigParams.freeze),
         clawback: optionalAddress(params.assetConfigParams.clawback),
-        unitName: params.assetConfigParams.unitName ?? '',
-        assetName: params.assetConfigParams.assetName ?? '',
-        assetURL: params.assetConfigParams.assetURL ?? '',
+        unitName: params.assetConfigParams.unitName,
+        assetName: params.assetConfigParams.assetName,
+        assetURL: params.assetConfigParams.assetURL,
         assetMetadataHash: optionalFixedLengthByteArray(
           params.assetConfigParams.assetMetadataHash,
           ASSET_METADATA_HASH_LENGTH,
