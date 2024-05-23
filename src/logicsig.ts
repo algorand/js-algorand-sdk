@@ -127,10 +127,9 @@ export class LogicSig implements encoding.Encodable {
     const data = new Map<string, unknown>([
       ['l', this.logic],
       ['arg', this.args],
+      ['sig', this.sig],
     ]);
-    if (this.sig) {
-      data.set('sig', this.sig);
-    } else if (this.msig) {
+    if (this.msig) {
       data.set('msig', encodedMultiSigToEncodingData(this.msig));
     }
     return data;
@@ -298,13 +297,10 @@ export class LogicSigAccount implements encoding.Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['lsig', this.lsig.toEncodingData()],
+      ['sigkey', this.sigkey],
     ]);
-    if (this.sigkey) {
-      data.set('sigkey', this.sigkey);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): LogicSigAccount {

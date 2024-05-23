@@ -113,18 +113,16 @@ export class SignedTransaction implements Encodable {
   }
 
   public toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['txn', this.txn.toEncodingData()]]);
-    if (this.sig) {
-      data.set('sig', this.sig);
-    }
+    const data = new Map<string, unknown>([
+      ['txn', this.txn.toEncodingData()],
+      ['sig', this.sig],
+      ['sgnr', this.sgnr],
+    ]);
     if (this.msig) {
       data.set('msig', encodedMultiSigToEncodingData(this.msig));
     }
     if (this.lsig) {
       data.set('lsig', this.lsig.toEncodingData());
-    }
-    if (this.sgnr) {
-      data.set('sgnr', this.sgnr);
     }
     return data;
   }

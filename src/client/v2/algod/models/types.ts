@@ -530,7 +530,7 @@ export class Account implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['address', this.address],
       ['amount', this.amount],
       ['amount-without-pending-rewards', this.amountWithoutPendingRewards],
@@ -543,65 +543,57 @@ export class Account implements Encodable {
       ['total-assets-opted-in', this.totalAssetsOptedIn],
       ['total-created-apps', this.totalCreatedApps],
       ['total-created-assets', this.totalCreatedAssets],
-    ]);
-    if (this.appsLocalState && this.appsLocalState.length) {
-      data.set(
+      [
         'apps-local-state',
-        this.appsLocalState.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.appsTotalExtraPages) {
-      data.set('apps-total-extra-pages', this.appsTotalExtraPages);
-    }
-    if (this.appsTotalSchema) {
-      data.set('apps-total-schema', this.appsTotalSchema.toEncodingData());
-    }
-    if (this.assets && this.assets.length) {
-      data.set(
+        typeof this.appsLocalState !== 'undefined'
+          ? this.appsLocalState.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['apps-total-extra-pages', this.appsTotalExtraPages],
+      [
+        'apps-total-schema',
+        typeof this.appsTotalSchema !== 'undefined'
+          ? this.appsTotalSchema.toEncodingData()
+          : undefined,
+      ],
+      [
         'assets',
-        this.assets.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.authAddr) {
-      data.set('auth-addr', this.authAddr.toString());
-    }
-    if (this.createdApps && this.createdApps.length) {
-      data.set(
+        typeof this.assets !== 'undefined'
+          ? this.assets.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'auth-addr',
+        typeof this.authAddr !== 'undefined'
+          ? this.authAddr.toString()
+          : undefined,
+      ],
+      [
         'created-apps',
-        this.createdApps.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.createdAssets && this.createdAssets.length) {
-      data.set(
+        typeof this.createdApps !== 'undefined'
+          ? this.createdApps.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
         'created-assets',
-        this.createdAssets.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.incentiveEligible) {
-      data.set('incentive-eligible', this.incentiveEligible);
-    }
-    if (this.lastHeartbeat) {
-      data.set('last-heartbeat', this.lastHeartbeat);
-    }
-    if (this.lastProposed) {
-      data.set('last-proposed', this.lastProposed);
-    }
-    if (this.participation) {
-      data.set('participation', this.participation.toEncodingData());
-    }
-    if (this.rewardBase) {
-      data.set('reward-base', this.rewardBase);
-    }
-    if (this.sigType) {
-      data.set('sig-type', this.sigType);
-    }
-    if (this.totalBoxBytes) {
-      data.set('total-box-bytes', this.totalBoxBytes);
-    }
-    if (this.totalBoxes) {
-      data.set('total-boxes', this.totalBoxes);
-    }
-    return data;
+        typeof this.createdAssets !== 'undefined'
+          ? this.createdAssets.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['incentive-eligible', this.incentiveEligible],
+      ['last-heartbeat', this.lastHeartbeat],
+      ['last-proposed', this.lastProposed],
+      [
+        'participation',
+        typeof this.participation !== 'undefined'
+          ? this.participation.toEncodingData()
+          : undefined,
+      ],
+      ['reward-base', this.rewardBase],
+      ['sig-type', this.sigType],
+      ['total-box-bytes', this.totalBoxBytes],
+      ['total-boxes', this.totalBoxes],
+    ]);
   }
 
   static fromEncodingData(data: unknown): Account {
@@ -745,14 +737,21 @@ export class AccountApplicationResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['round', this.round]]);
-    if (this.appLocalState) {
-      data.set('app-local-state', this.appLocalState.toEncodingData());
-    }
-    if (this.createdApp) {
-      data.set('created-app', this.createdApp.toEncodingData());
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['round', this.round],
+      [
+        'app-local-state',
+        typeof this.appLocalState !== 'undefined'
+          ? this.appLocalState.toEncodingData()
+          : undefined,
+      ],
+      [
+        'created-app',
+        typeof this.createdApp !== 'undefined'
+          ? this.createdApp.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): AccountApplicationResponse {
@@ -837,13 +836,15 @@ export class AccountAssetHolding implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['asset-holding', this.assetHolding.toEncodingData()],
+      [
+        'asset-params',
+        typeof this.assetParams !== 'undefined'
+          ? this.assetParams.toEncodingData()
+          : undefined,
+      ],
     ]);
-    if (this.assetParams) {
-      data.set('asset-params', this.assetParams.toEncodingData());
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AccountAssetHolding {
@@ -942,14 +943,21 @@ export class AccountAssetResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['round', this.round]]);
-    if (this.assetHolding) {
-      data.set('asset-holding', this.assetHolding.toEncodingData());
-    }
-    if (this.createdAsset) {
-      data.set('created-asset', this.createdAsset.toEncodingData());
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['round', this.round],
+      [
+        'asset-holding',
+        typeof this.assetHolding !== 'undefined'
+          ? this.assetHolding.toEncodingData()
+          : undefined,
+      ],
+      [
+        'created-asset',
+        typeof this.createdAsset !== 'undefined'
+          ? this.createdAsset.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): AccountAssetResponse {
@@ -1043,17 +1051,16 @@ export class AccountAssetsInformationResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['round', this.round]]);
-    if (this.assetHoldings && this.assetHoldings.length) {
-      data.set(
+    return new Map<string, unknown>([
+      ['round', this.round],
+      [
         'asset-holdings',
-        this.assetHoldings.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
+        typeof this.assetHoldings !== 'undefined'
+          ? this.assetHoldings.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['next-token', this.nextToken],
+    ]);
   }
 
   static fromEncodingData(data: unknown): AccountAssetsInformationResponse {
@@ -1202,17 +1209,14 @@ export class AccountParticipation implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['selection-participation-key', this.selectionParticipationKey],
       ['vote-first-valid', this.voteFirstValid],
       ['vote-key-dilution', this.voteKeyDilution],
       ['vote-last-valid', this.voteLastValid],
       ['vote-participation-key', this.voteParticipationKey],
+      ['state-proof-key', this.stateProofKey],
     ]);
-    if (this.stateProofKey) {
-      data.set('state-proof-key', this.stateProofKey);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AccountParticipation {
@@ -1286,11 +1290,10 @@ export class AccountStateDelta implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['address', this.address],
       ['delta', this.delta.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AccountStateDelta {
@@ -1379,12 +1382,11 @@ export class AppCallLogs implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['application-index', this.applicationIndex],
       ['logs', this.logs],
       ['txId', this.txid],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AppCallLogs {
@@ -1458,11 +1460,10 @@ export class Application implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['id', this.id],
       ['params', this.params.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): Application {
@@ -1566,20 +1567,27 @@ export class ApplicationInitialStates implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['id', this.id]]);
-    if (this.appBoxes) {
-      data.set('app-boxes', this.appBoxes.toEncodingData());
-    }
-    if (this.appGlobals) {
-      data.set('app-globals', this.appGlobals.toEncodingData());
-    }
-    if (this.appLocals && this.appLocals.length) {
-      data.set(
+    return new Map<string, unknown>([
+      ['id', this.id],
+      [
+        'app-boxes',
+        typeof this.appBoxes !== 'undefined'
+          ? this.appBoxes.toEncodingData()
+          : undefined,
+      ],
+      [
+        'app-globals',
+        typeof this.appGlobals !== 'undefined'
+          ? this.appGlobals.toEncodingData()
+          : undefined,
+      ],
+      [
         'app-locals',
-        this.appLocals.map((v) => v.toEncodingData())
-      );
-    }
-    return data;
+        typeof this.appLocals !== 'undefined'
+          ? this.appLocals.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ApplicationInitialStates {
@@ -1664,13 +1672,15 @@ export class ApplicationKVStorage implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['kvs', this.kvs.map((v) => v.toEncodingData())],
+      [
+        'account',
+        typeof this.account !== 'undefined'
+          ? this.account.toString()
+          : undefined,
+      ],
     ]);
-    if (this.account) {
-      data.set('account', this.account.toString());
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationKVStorage {
@@ -1744,11 +1754,10 @@ export class ApplicationLocalReference implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['account', this.account.toString()],
       ['app', this.app],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationLocalReference {
@@ -1836,17 +1845,16 @@ export class ApplicationLocalState implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['id', this.id],
       ['schema', this.schema.toEncodingData()],
-    ]);
-    if (this.keyValue && this.keyValue.length) {
-      data.set(
+      [
         'key-value',
-        this.keyValue.map((v) => v.toEncodingData())
-      );
-    }
-    return data;
+        typeof this.keyValue !== 'undefined'
+          ? this.keyValue.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ApplicationLocalState {
@@ -2010,27 +2018,30 @@ export class ApplicationParams implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['approval-program', this.approvalProgram],
       ['clear-state-program', this.clearStateProgram],
       ['creator', this.creator.toString()],
-    ]);
-    if (this.extraProgramPages) {
-      data.set('extra-program-pages', this.extraProgramPages);
-    }
-    if (this.globalState && this.globalState.length) {
-      data.set(
+      ['extra-program-pages', this.extraProgramPages],
+      [
         'global-state',
-        this.globalState.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.globalStateSchema) {
-      data.set('global-state-schema', this.globalStateSchema.toEncodingData());
-    }
-    if (this.localStateSchema) {
-      data.set('local-state-schema', this.localStateSchema.toEncodingData());
-    }
-    return data;
+        typeof this.globalState !== 'undefined'
+          ? this.globalState.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'global-state-schema',
+        typeof this.globalStateSchema !== 'undefined'
+          ? this.globalStateSchema.toEncodingData()
+          : undefined,
+      ],
+      [
+        'local-state-schema',
+        typeof this.localStateSchema !== 'undefined'
+          ? this.localStateSchema.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ApplicationParams {
@@ -2171,18 +2182,23 @@ export class ApplicationStateOperation implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['app-state-type', this.appStateType],
       ['key', this.key],
       ['operation', this.operation],
+      [
+        'account',
+        typeof this.account !== 'undefined'
+          ? this.account.toString()
+          : undefined,
+      ],
+      [
+        'new-value',
+        typeof this.newValue !== 'undefined'
+          ? this.newValue.toEncodingData()
+          : undefined,
+      ],
     ]);
-    if (this.account) {
-      data.set('account', this.account.toString());
-    }
-    if (this.newValue) {
-      data.set('new-value', this.newValue.toEncodingData());
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationStateOperation {
@@ -2261,11 +2277,10 @@ export class ApplicationStateSchema implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['num-byte-slice', this.numByteSlice],
       ['num-uint', this.numUint],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationStateSchema {
@@ -2344,11 +2359,10 @@ export class Asset implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['index', this.index],
       ['params', this.params.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): Asset {
@@ -2438,12 +2452,11 @@ export class AssetHolding implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['amount', this.amount],
       ['asset-id', this.assetId],
       ['is-frozen', this.isFrozen],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetHolding {
@@ -2518,11 +2531,10 @@ export class AssetHoldingReference implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['account', this.account.toString()],
       ['asset', this.asset],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetHoldingReference {
@@ -2822,48 +2834,23 @@ export class AssetParams implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['creator', this.creator],
       ['decimals', this.decimals],
       ['total', this.total],
+      ['clawback', this.clawback],
+      ['default-frozen', this.defaultFrozen],
+      ['freeze', this.freeze],
+      ['manager', this.manager],
+      ['metadata-hash', this.metadataHash],
+      ['name', this.name],
+      ['name-b64', this.nameB64],
+      ['reserve', this.reserve],
+      ['unit-name', this.unitName],
+      ['unit-name-b64', this.unitNameB64],
+      ['url', this.url],
+      ['url-b64', this.urlB64],
     ]);
-    if (this.clawback) {
-      data.set('clawback', this.clawback);
-    }
-    if (this.defaultFrozen) {
-      data.set('default-frozen', this.defaultFrozen);
-    }
-    if (this.freeze) {
-      data.set('freeze', this.freeze);
-    }
-    if (this.manager) {
-      data.set('manager', this.manager);
-    }
-    if (this.metadataHash) {
-      data.set('metadata-hash', this.metadataHash);
-    }
-    if (this.name) {
-      data.set('name', this.name);
-    }
-    if (this.nameB64) {
-      data.set('name-b64', this.nameB64);
-    }
-    if (this.reserve) {
-      data.set('reserve', this.reserve);
-    }
-    if (this.unitName) {
-      data.set('unit-name', this.unitName);
-    }
-    if (this.unitNameB64) {
-      data.set('unit-name-b64', this.unitNameB64);
-    }
-    if (this.url) {
-      data.set('url', this.url);
-    }
-    if (this.urlB64) {
-      data.set('url-b64', this.urlB64);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetParams {
@@ -2940,11 +2927,10 @@ export class AvmKeyValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['key', this.key],
       ['value', this.value.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AvmKeyValue {
@@ -3032,14 +3018,11 @@ export class AvmValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['type', this.type]]);
-    if (this.bytes) {
-      data.set('bytes', this.bytes);
-    }
-    if (this.uint) {
-      data.set('uint', this.uint);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['type', this.type],
+      ['bytes', this.bytes],
+      ['uint', this.uint],
+    ]);
   }
 
   static fromEncodingData(data: unknown): AvmValue {
@@ -3092,8 +3075,7 @@ export class BlockHashResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['blockHash', this.blockhash]]);
-    return data;
+    return new Map<string, unknown>([['blockHash', this.blockhash]]);
   }
 
   static fromEncodingData(data: unknown): BlockHashResponse {
@@ -3147,10 +3129,9 @@ export class BlockLogsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['logs', this.logs.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): BlockLogsResponse {
@@ -3218,13 +3199,15 @@ export class BlockResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['block', blockHeaderToEncodingData(this.block)],
+      [
+        'cert',
+        typeof this.cert !== 'undefined'
+          ? this.cert.toEncodingData()
+          : undefined,
+      ],
     ]);
-    if (this.cert) {
-      data.set('cert', this.cert.toEncodingData());
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): BlockResponse {
@@ -3279,8 +3262,7 @@ export class BlockTxidsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['blockTxids', this.blocktxids]]);
-    return data;
+    return new Map<string, unknown>([['blockTxids', this.blocktxids]]);
   }
 
   static fromEncodingData(data: unknown): BlockTxidsResponse {
@@ -3367,12 +3349,11 @@ export class Box implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['name', this.name],
       ['round', this.round],
       ['value', this.value],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): Box {
@@ -3425,8 +3406,7 @@ export class BoxDescriptor implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['name', this.name]]);
-    return data;
+    return new Map<string, unknown>([['name', this.name]]);
   }
 
   static fromEncodingData(data: unknown): BoxDescriptor {
@@ -3498,11 +3478,10 @@ export class BoxReference implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['app', this.app],
       ['name', this.name],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): BoxReference {
@@ -3551,10 +3530,9 @@ export class BoxesResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['boxes', this.boxes.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): BoxesResponse {
@@ -3665,7 +3643,7 @@ export class BuildVersion implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['branch', this.branch],
       ['build_number', this.buildNumber],
       ['channel', this.channel],
@@ -3673,7 +3651,6 @@ export class BuildVersion implements Encodable {
       ['major', this.major],
       ['minor', this.minor],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): BuildVersion {
@@ -3765,14 +3742,16 @@ export class CompileResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['hash', this.hash],
       ['result', this.result],
+      [
+        'sourcemap',
+        typeof this.sourcemap !== 'undefined'
+          ? this.sourcemap.toEncodingData()
+          : undefined,
+      ],
     ]);
-    if (this.sourcemap) {
-      data.set('sourcemap', this.sourcemap.toEncodingData());
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): CompileResponse {
@@ -3828,8 +3807,7 @@ export class DisassembleResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['result', this.result]]);
-    return data;
+    return new Map<string, unknown>([['result', this.result]]);
   }
 
   static fromEncodingData(data: unknown): DisassembleResponse {
@@ -3971,7 +3949,7 @@ export class DryrunRequest implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['accounts', this.accounts.map((v) => v.toEncodingData())],
       ['apps', this.apps.map((v) => v.toEncodingData())],
       ['latest-timestamp', this.latestTimestamp],
@@ -3980,7 +3958,6 @@ export class DryrunRequest implements Encodable {
       ['sources', this.sources.map((v) => v.toEncodingData())],
       ['txns', this.txns.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): DryrunRequest {
@@ -4067,12 +4044,11 @@ export class DryrunResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['error', this.error],
       ['protocol-version', this.protocolVersion],
       ['txns', this.txns.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): DryrunResponse {
@@ -4172,13 +4148,12 @@ export class DryrunSource implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['app-index', this.appIndex],
       ['field-name', this.fieldName],
       ['source', this.source],
       ['txn-index', this.txnIndex],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): DryrunSource {
@@ -4292,21 +4267,18 @@ export class DryrunState implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['line', this.line],
       ['pc', this.pc],
       ['stack', this.stack.map((v) => v.toEncodingData())],
-    ]);
-    if (this.error) {
-      data.set('error', this.error);
-    }
-    if (this.scratch && this.scratch.length) {
-      data.set(
+      ['error', this.error],
+      [
         'scratch',
-        this.scratch.map((v) => v.toEncodingData())
-      );
-    }
-    return data;
+        typeof this.scratch !== 'undefined'
+          ? this.scratch.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): DryrunState {
@@ -4509,50 +4481,39 @@ export class DryrunTxnResult implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['disassembly', this.disassembly]]);
-    if (this.appCallMessages && this.appCallMessages.length) {
-      data.set('app-call-messages', this.appCallMessages);
-    }
-    if (this.appCallTrace && this.appCallTrace.length) {
-      data.set(
+    return new Map<string, unknown>([
+      ['disassembly', this.disassembly],
+      ['app-call-messages', this.appCallMessages],
+      [
         'app-call-trace',
-        this.appCallTrace.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.budgetAdded) {
-      data.set('budget-added', this.budgetAdded);
-    }
-    if (this.budgetConsumed) {
-      data.set('budget-consumed', this.budgetConsumed);
-    }
-    if (this.globalDelta && this.globalDelta.length) {
-      data.set(
+        typeof this.appCallTrace !== 'undefined'
+          ? this.appCallTrace.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['budget-added', this.budgetAdded],
+      ['budget-consumed', this.budgetConsumed],
+      [
         'global-delta',
-        this.globalDelta.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.localDeltas && this.localDeltas.length) {
-      data.set(
+        typeof this.globalDelta !== 'undefined'
+          ? this.globalDelta.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
         'local-deltas',
-        this.localDeltas.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.logicSigDisassembly && this.logicSigDisassembly.length) {
-      data.set('logic-sig-disassembly', this.logicSigDisassembly);
-    }
-    if (this.logicSigMessages && this.logicSigMessages.length) {
-      data.set('logic-sig-messages', this.logicSigMessages);
-    }
-    if (this.logicSigTrace && this.logicSigTrace.length) {
-      data.set(
+        typeof this.localDeltas !== 'undefined'
+          ? this.localDeltas.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['logic-sig-disassembly', this.logicSigDisassembly],
+      ['logic-sig-messages', this.logicSigMessages],
+      [
         'logic-sig-trace',
-        this.logicSigTrace.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.logs && this.logs.length) {
-      data.set('logs', this.logs);
-    }
-    return data;
+        typeof this.logicSigTrace !== 'undefined'
+          ? this.logicSigTrace.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['logs', this.logs],
+    ]);
   }
 
   static fromEncodingData(data: unknown): DryrunTxnResult {
@@ -4634,11 +4595,15 @@ export class ErrorResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['message', this.message]]);
-    if (this.data) {
-      data.set('data', this.data.toEncodingData());
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['message', this.message],
+      [
+        'data',
+        typeof this.data !== 'undefined'
+          ? this.data.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ErrorResponse {
@@ -4729,14 +4694,11 @@ export class EvalDelta implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['action', this.action]]);
-    if (this.bytes) {
-      data.set('bytes', this.bytes);
-    }
-    if (this.uint) {
-      data.set('uint', this.uint);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['action', this.action],
+      ['bytes', this.bytes],
+      ['uint', this.uint],
+    ]);
   }
 
   static fromEncodingData(data: unknown): EvalDelta {
@@ -4801,11 +4763,10 @@ export class EvalDeltaKeyValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['key', this.key],
       ['value', this.value.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): EvalDeltaKeyValue {
@@ -4857,8 +4818,7 @@ export class GetBlockTimeStampOffsetResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['offset', this.offset]]);
-    return data;
+    return new Map<string, unknown>([['offset', this.offset]]);
   }
 
   static fromEncodingData(data: unknown): GetBlockTimeStampOffsetResponse {
@@ -4909,8 +4869,7 @@ export class GetSyncRoundResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['round', this.round]]);
-    return data;
+    return new Map<string, unknown>([['round', this.round]]);
   }
 
   static fromEncodingData(data: unknown): GetSyncRoundResponse {
@@ -4983,14 +4942,10 @@ export class KvDelta implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.key) {
-      data.set('key', this.key);
-    }
-    if (this.value) {
-      data.set('value', this.value);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['key', this.key],
+      ['value', this.value],
+    ]);
   }
 
   static fromEncodingData(data: unknown): KvDelta {
@@ -5054,11 +5009,10 @@ export class LedgerStateDeltaForTransactionGroup implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['Delta', this.delta.toEncodingData()],
       ['Ids', this.ids],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): LedgerStateDeltaForTransactionGroup {
@@ -5148,12 +5102,11 @@ export class LightBlockHeaderProof implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['index', this.index],
       ['proof', this.proof],
       ['treedepth', this.treedepth],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): LightBlockHeaderProof {
@@ -5648,7 +5601,7 @@ export class NodeStatusResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['catchup-time', this.catchupTime],
       ['last-round', this.lastRound],
       ['last-version', this.lastVersion],
@@ -5657,68 +5610,25 @@ export class NodeStatusResponse implements Encodable {
       ['next-version-supported', this.nextVersionSupported],
       ['stopped-at-unsupported-round', this.stoppedAtUnsupportedRound],
       ['time-since-last-round', this.timeSinceLastRound],
+      ['catchpoint', this.catchpoint],
+      ['catchpoint-acquired-blocks', this.catchpointAcquiredBlocks],
+      ['catchpoint-processed-accounts', this.catchpointProcessedAccounts],
+      ['catchpoint-processed-kvs', this.catchpointProcessedKvs],
+      ['catchpoint-total-accounts', this.catchpointTotalAccounts],
+      ['catchpoint-total-blocks', this.catchpointTotalBlocks],
+      ['catchpoint-total-kvs', this.catchpointTotalKvs],
+      ['catchpoint-verified-accounts', this.catchpointVerifiedAccounts],
+      ['catchpoint-verified-kvs', this.catchpointVerifiedKvs],
+      ['last-catchpoint', this.lastCatchpoint],
+      ['upgrade-delay', this.upgradeDelay],
+      ['upgrade-next-protocol-vote-before', this.upgradeNextProtocolVoteBefore],
+      ['upgrade-no-votes', this.upgradeNoVotes],
+      ['upgrade-node-vote', this.upgradeNodeVote],
+      ['upgrade-vote-rounds', this.upgradeVoteRounds],
+      ['upgrade-votes', this.upgradeVotes],
+      ['upgrade-votes-required', this.upgradeVotesRequired],
+      ['upgrade-yes-votes', this.upgradeYesVotes],
     ]);
-    if (this.catchpoint) {
-      data.set('catchpoint', this.catchpoint);
-    }
-    if (this.catchpointAcquiredBlocks) {
-      data.set('catchpoint-acquired-blocks', this.catchpointAcquiredBlocks);
-    }
-    if (this.catchpointProcessedAccounts) {
-      data.set(
-        'catchpoint-processed-accounts',
-        this.catchpointProcessedAccounts
-      );
-    }
-    if (this.catchpointProcessedKvs) {
-      data.set('catchpoint-processed-kvs', this.catchpointProcessedKvs);
-    }
-    if (this.catchpointTotalAccounts) {
-      data.set('catchpoint-total-accounts', this.catchpointTotalAccounts);
-    }
-    if (this.catchpointTotalBlocks) {
-      data.set('catchpoint-total-blocks', this.catchpointTotalBlocks);
-    }
-    if (this.catchpointTotalKvs) {
-      data.set('catchpoint-total-kvs', this.catchpointTotalKvs);
-    }
-    if (this.catchpointVerifiedAccounts) {
-      data.set('catchpoint-verified-accounts', this.catchpointVerifiedAccounts);
-    }
-    if (this.catchpointVerifiedKvs) {
-      data.set('catchpoint-verified-kvs', this.catchpointVerifiedKvs);
-    }
-    if (this.lastCatchpoint) {
-      data.set('last-catchpoint', this.lastCatchpoint);
-    }
-    if (this.upgradeDelay) {
-      data.set('upgrade-delay', this.upgradeDelay);
-    }
-    if (this.upgradeNextProtocolVoteBefore) {
-      data.set(
-        'upgrade-next-protocol-vote-before',
-        this.upgradeNextProtocolVoteBefore
-      );
-    }
-    if (this.upgradeNoVotes) {
-      data.set('upgrade-no-votes', this.upgradeNoVotes);
-    }
-    if (this.upgradeNodeVote) {
-      data.set('upgrade-node-vote', this.upgradeNodeVote);
-    }
-    if (this.upgradeVoteRounds) {
-      data.set('upgrade-vote-rounds', this.upgradeVoteRounds);
-    }
-    if (this.upgradeVotes) {
-      data.set('upgrade-votes', this.upgradeVotes);
-    }
-    if (this.upgradeVotesRequired) {
-      data.set('upgrade-votes-required', this.upgradeVotesRequired);
-    }
-    if (this.upgradeYesVotes) {
-      data.set('upgrade-yes-votes', this.upgradeYesVotes);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): NodeStatusResponse {
@@ -6032,56 +5942,37 @@ export class PendingTransactionResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['pool-error', this.poolError],
       ['txn', this.txn.toEncodingData()],
-    ]);
-    if (this.applicationIndex) {
-      data.set('application-index', this.applicationIndex);
-    }
-    if (this.assetClosingAmount) {
-      data.set('asset-closing-amount', this.assetClosingAmount);
-    }
-    if (this.assetIndex) {
-      data.set('asset-index', this.assetIndex);
-    }
-    if (this.closeRewards) {
-      data.set('close-rewards', this.closeRewards);
-    }
-    if (this.closingAmount) {
-      data.set('closing-amount', this.closingAmount);
-    }
-    if (this.confirmedRound) {
-      data.set('confirmed-round', this.confirmedRound);
-    }
-    if (this.globalStateDelta && this.globalStateDelta.length) {
-      data.set(
+      ['application-index', this.applicationIndex],
+      ['asset-closing-amount', this.assetClosingAmount],
+      ['asset-index', this.assetIndex],
+      ['close-rewards', this.closeRewards],
+      ['closing-amount', this.closingAmount],
+      ['confirmed-round', this.confirmedRound],
+      [
         'global-state-delta',
-        this.globalStateDelta.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.innerTxns && this.innerTxns.length) {
-      data.set(
+        typeof this.globalStateDelta !== 'undefined'
+          ? this.globalStateDelta.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
         'inner-txns',
-        this.innerTxns.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.localStateDelta && this.localStateDelta.length) {
-      data.set(
+        typeof this.innerTxns !== 'undefined'
+          ? this.innerTxns.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
         'local-state-delta',
-        this.localStateDelta.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.logs && this.logs.length) {
-      data.set('logs', this.logs);
-    }
-    if (this.receiverRewards) {
-      data.set('receiver-rewards', this.receiverRewards);
-    }
-    if (this.senderRewards) {
-      data.set('sender-rewards', this.senderRewards);
-    }
-    return data;
+        typeof this.localStateDelta !== 'undefined'
+          ? this.localStateDelta.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['logs', this.logs],
+      ['receiver-rewards', this.receiverRewards],
+      ['sender-rewards', this.senderRewards],
+    ]);
   }
 
   static fromEncodingData(data: unknown): PendingTransactionResponse {
@@ -6183,11 +6074,10 @@ export class PendingTransactionsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['top-transactions', this.topTransactions.map((v) => v.toEncodingData())],
       ['total-transactions', this.totalTransactions],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): PendingTransactionsResponse {
@@ -6241,8 +6131,7 @@ export class PostTransactionsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['txId', this.txid]]);
-    return data;
+    return new Map<string, unknown>([['txId', this.txid]]);
   }
 
   static fromEncodingData(data: unknown): PostTransactionsResponse {
@@ -6314,11 +6203,10 @@ export class ScratchChange implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['new-value', this.newValue.toEncodingData()],
       ['slot', this.slot],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): ScratchChange {
@@ -6376,14 +6264,14 @@ export class SimulateInitialStates implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.appInitialStates && this.appInitialStates.length) {
-      data.set(
+    return new Map<string, unknown>([
+      [
         'app-initial-states',
-        this.appInitialStates.map((v) => v.toEncodingData())
-      );
-    }
-    return data;
+        typeof this.appInitialStates !== 'undefined'
+          ? this.appInitialStates.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulateInitialStates {
@@ -6548,28 +6436,20 @@ export class SimulateRequest implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['txn-groups', this.txnGroups.map((v) => v.toEncodingData())],
+      ['allow-empty-signatures', this.allowEmptySignatures],
+      ['allow-more-logging', this.allowMoreLogging],
+      ['allow-unnamed-resources', this.allowUnnamedResources],
+      [
+        'exec-trace-config',
+        typeof this.execTraceConfig !== 'undefined'
+          ? this.execTraceConfig.toEncodingData()
+          : undefined,
+      ],
+      ['extra-opcode-budget', this.extraOpcodeBudget],
+      ['round', this.round],
     ]);
-    if (this.allowEmptySignatures) {
-      data.set('allow-empty-signatures', this.allowEmptySignatures);
-    }
-    if (this.allowMoreLogging) {
-      data.set('allow-more-logging', this.allowMoreLogging);
-    }
-    if (this.allowUnnamedResources) {
-      data.set('allow-unnamed-resources', this.allowUnnamedResources);
-    }
-    if (this.execTraceConfig) {
-      data.set('exec-trace-config', this.execTraceConfig.toEncodingData());
-    }
-    if (this.extraOpcodeBudget) {
-      data.set('extra-opcode-budget', this.extraOpcodeBudget);
-    }
-    if (this.round) {
-      data.set('round', this.round);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): SimulateRequest {
@@ -6631,10 +6511,9 @@ export class SimulateRequestTransactionGroup implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['txns', this.txns.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): SimulateRequestTransactionGroup {
@@ -6774,21 +6653,29 @@ export class SimulateResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['last-round', this.lastRound],
       ['txn-groups', this.txnGroups.map((v) => v.toEncodingData())],
       ['version', this.version],
+      [
+        'eval-overrides',
+        typeof this.evalOverrides !== 'undefined'
+          ? this.evalOverrides.toEncodingData()
+          : undefined,
+      ],
+      [
+        'exec-trace-config',
+        typeof this.execTraceConfig !== 'undefined'
+          ? this.execTraceConfig.toEncodingData()
+          : undefined,
+      ],
+      [
+        'initial-states',
+        typeof this.initialStates !== 'undefined'
+          ? this.initialStates.toEncodingData()
+          : undefined,
+      ],
     ]);
-    if (this.evalOverrides) {
-      data.set('eval-overrides', this.evalOverrides.toEncodingData());
-    }
-    if (this.execTraceConfig) {
-      data.set('exec-trace-config', this.execTraceConfig.toEncodingData());
-    }
-    if (this.initialStates) {
-      data.set('initial-states', this.initialStates.toEncodingData());
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): SimulateResponse {
@@ -6912,20 +6799,12 @@ export class SimulateTraceConfig implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.enable) {
-      data.set('enable', this.enable);
-    }
-    if (this.scratchChange) {
-      data.set('scratch-change', this.scratchChange);
-    }
-    if (this.stackChange) {
-      data.set('stack-change', this.stackChange);
-    }
-    if (this.stateChange) {
-      data.set('state-change', this.stateChange);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['enable', this.enable],
+      ['scratch-change', this.scratchChange],
+      ['stack-change', this.stackChange],
+      ['state-change', this.stateChange],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulateTraceConfig {
@@ -7095,28 +6974,19 @@ export class SimulateTransactionGroupResult implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['txn-results', this.txnResults.map((v) => v.toEncodingData())],
-    ]);
-    if (this.appBudgetAdded) {
-      data.set('app-budget-added', this.appBudgetAdded);
-    }
-    if (this.appBudgetConsumed) {
-      data.set('app-budget-consumed', this.appBudgetConsumed);
-    }
-    if (this.failedAt && this.failedAt.length) {
-      data.set('failed-at', this.failedAt);
-    }
-    if (this.failureMessage) {
-      data.set('failure-message', this.failureMessage);
-    }
-    if (this.unnamedResourcesAccessed) {
-      data.set(
+      ['app-budget-added', this.appBudgetAdded],
+      ['app-budget-consumed', this.appBudgetConsumed],
+      ['failed-at', this.failedAt],
+      ['failure-message', this.failureMessage],
+      [
         'unnamed-resources-accessed',
-        this.unnamedResourcesAccessed.toEncodingData()
-      );
-    }
-    return data;
+        typeof this.unnamedResourcesAccessed !== 'undefined'
+          ? this.unnamedResourcesAccessed.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulateTransactionGroupResult {
@@ -7273,25 +7143,23 @@ export class SimulateTransactionResult implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['txn-result', this.txnResult.toEncodingData()],
-    ]);
-    if (this.appBudgetConsumed) {
-      data.set('app-budget-consumed', this.appBudgetConsumed);
-    }
-    if (this.execTrace) {
-      data.set('exec-trace', this.execTrace.toEncodingData());
-    }
-    if (this.logicSigBudgetConsumed) {
-      data.set('logic-sig-budget-consumed', this.logicSigBudgetConsumed);
-    }
-    if (this.unnamedResourcesAccessed) {
-      data.set(
+      ['app-budget-consumed', this.appBudgetConsumed],
+      [
+        'exec-trace',
+        typeof this.execTrace !== 'undefined'
+          ? this.execTrace.toEncodingData()
+          : undefined,
+      ],
+      ['logic-sig-budget-consumed', this.logicSigBudgetConsumed],
+      [
         'unnamed-resources-accessed',
-        this.unnamedResourcesAccessed.toEncodingData()
-      );
-    }
-    return data;
+        typeof this.unnamedResourcesAccessed !== 'undefined'
+          ? this.unnamedResourcesAccessed.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulateTransactionResult {
@@ -7340,7 +7208,7 @@ export class SimulateUnnamedResourcesAccessed implements Encodable {
       (this.encodingSchemaValue as NamedMapSchema).entries.push(
         {
           key: 'accounts',
-          valueSchema: new StringSchema(),
+          valueSchema: new ArraySchema(new StringSchema()),
           required: false,
           omitEmpty: true,
         },
@@ -7354,7 +7222,7 @@ export class SimulateUnnamedResourcesAccessed implements Encodable {
         },
         {
           key: 'apps',
-          valueSchema: new Uint64Schema(),
+          valueSchema: new ArraySchema(new Uint64Schema()),
           required: false,
           omitEmpty: true,
         },
@@ -7366,7 +7234,7 @@ export class SimulateUnnamedResourcesAccessed implements Encodable {
         },
         {
           key: 'assets',
-          valueSchema: new Uint64Schema(),
+          valueSchema: new ArraySchema(new Uint64Schema()),
           required: false,
           omitEmpty: true,
         },
@@ -7484,41 +7352,35 @@ export class SimulateUnnamedResourcesAccessed implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.accounts && this.accounts.length) {
-      data.set(
+    return new Map<string, unknown>([
+      [
         'accounts',
-        this.accounts.map((addr) => addr.toString())
-      );
-    }
-    if (this.appLocals && this.appLocals.length) {
-      data.set(
+        typeof this.accounts !== 'undefined'
+          ? this.accounts.map((addr) => addr.toString())
+          : undefined,
+      ],
+      [
         'app-locals',
-        this.appLocals.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.apps && this.apps.length) {
-      data.set('apps', this.apps);
-    }
-    if (this.assetHoldings && this.assetHoldings.length) {
-      data.set(
+        typeof this.appLocals !== 'undefined'
+          ? this.appLocals.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['apps', this.apps],
+      [
         'asset-holdings',
-        this.assetHoldings.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.assets && this.assets.length) {
-      data.set('assets', this.assets);
-    }
-    if (this.boxes && this.boxes.length) {
-      data.set(
+        typeof this.assetHoldings !== 'undefined'
+          ? this.assetHoldings.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['assets', this.assets],
+      [
         'boxes',
-        this.boxes.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.extraBoxRefs) {
-      data.set('extra-box-refs', this.extraBoxRefs);
-    }
-    return data;
+        typeof this.boxes !== 'undefined'
+          ? this.boxes.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['extra-box-refs', this.extraBoxRefs],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulateUnnamedResourcesAccessed {
@@ -7667,23 +7529,13 @@ export class SimulationEvalOverrides implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.allowEmptySignatures) {
-      data.set('allow-empty-signatures', this.allowEmptySignatures);
-    }
-    if (this.allowUnnamedResources) {
-      data.set('allow-unnamed-resources', this.allowUnnamedResources);
-    }
-    if (this.extraOpcodeBudget) {
-      data.set('extra-opcode-budget', this.extraOpcodeBudget);
-    }
-    if (this.maxLogCalls) {
-      data.set('max-log-calls', this.maxLogCalls);
-    }
-    if (this.maxLogSize) {
-      data.set('max-log-size', this.maxLogSize);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['allow-empty-signatures', this.allowEmptySignatures],
+      ['allow-unnamed-resources', this.allowUnnamedResources],
+      ['extra-opcode-budget', this.extraOpcodeBudget],
+      ['max-log-calls', this.maxLogCalls],
+      ['max-log-size', this.maxLogSize],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulationEvalOverrides {
@@ -7827,32 +7679,29 @@ export class SimulationOpcodeTraceUnit implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['pc', this.pc]]);
-    if (this.scratchChanges && this.scratchChanges.length) {
-      data.set(
+    return new Map<string, unknown>([
+      ['pc', this.pc],
+      [
         'scratch-changes',
-        this.scratchChanges.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.spawnedInners && this.spawnedInners.length) {
-      data.set('spawned-inners', this.spawnedInners);
-    }
-    if (this.stackAdditions && this.stackAdditions.length) {
-      data.set(
+        typeof this.scratchChanges !== 'undefined'
+          ? this.scratchChanges.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['spawned-inners', this.spawnedInners],
+      [
         'stack-additions',
-        this.stackAdditions.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.stackPopCount) {
-      data.set('stack-pop-count', this.stackPopCount);
-    }
-    if (this.stateChanges && this.stateChanges.length) {
-      data.set(
+        typeof this.stackAdditions !== 'undefined'
+          ? this.stackAdditions.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['stack-pop-count', this.stackPopCount],
+      [
         'state-changes',
-        this.stateChanges.map((v) => v.toEncodingData())
-      );
-    }
-    return data;
+        typeof this.stateChanges !== 'undefined'
+          ? this.stateChanges.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulationOpcodeTraceUnit {
@@ -8071,47 +7920,37 @@ export class SimulationTransactionExecTrace implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.approvalProgramHash) {
-      data.set('approval-program-hash', this.approvalProgramHash);
-    }
-    if (this.approvalProgramTrace && this.approvalProgramTrace.length) {
-      data.set(
+    return new Map<string, unknown>([
+      ['approval-program-hash', this.approvalProgramHash],
+      [
         'approval-program-trace',
-        this.approvalProgramTrace.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.clearStateProgramHash) {
-      data.set('clear-state-program-hash', this.clearStateProgramHash);
-    }
-    if (this.clearStateProgramTrace && this.clearStateProgramTrace.length) {
-      data.set(
+        typeof this.approvalProgramTrace !== 'undefined'
+          ? this.approvalProgramTrace.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['clear-state-program-hash', this.clearStateProgramHash],
+      [
         'clear-state-program-trace',
-        this.clearStateProgramTrace.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.clearStateRollback) {
-      data.set('clear-state-rollback', this.clearStateRollback);
-    }
-    if (this.clearStateRollbackError) {
-      data.set('clear-state-rollback-error', this.clearStateRollbackError);
-    }
-    if (this.innerTrace && this.innerTrace.length) {
-      data.set(
+        typeof this.clearStateProgramTrace !== 'undefined'
+          ? this.clearStateProgramTrace.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['clear-state-rollback', this.clearStateRollback],
+      ['clear-state-rollback-error', this.clearStateRollbackError],
+      [
         'inner-trace',
-        this.innerTrace.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.logicSigHash) {
-      data.set('logic-sig-hash', this.logicSigHash);
-    }
-    if (this.logicSigTrace && this.logicSigTrace.length) {
-      data.set(
+        typeof this.innerTrace !== 'undefined'
+          ? this.innerTrace.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['logic-sig-hash', this.logicSigHash],
+      [
         'logic-sig-trace',
-        this.logicSigTrace.map((v) => v.toEncodingData())
-      );
-    }
-    return data;
+        typeof this.logicSigTrace !== 'undefined'
+          ? this.logicSigTrace.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): SimulationTransactionExecTrace {
@@ -8212,11 +8051,10 @@ export class StateProof implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['Message', this.message.toEncodingData()],
       ['StateProof', this.stateproof],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): StateProof {
@@ -8344,14 +8182,13 @@ export class StateProofMessage implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['BlockHeadersCommitment', this.blockheaderscommitment],
       ['FirstAttestedRound', this.firstattestedround],
       ['LastAttestedRound', this.lastattestedround],
       ['LnProvenWeight', this.lnprovenweight],
       ['VotersCommitment', this.voterscommitment],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): StateProofMessage {
@@ -8442,12 +8279,11 @@ export class SupplyResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['current_round', this.currentRound],
       ['online-money', this.onlineMoney],
       ['total-money', this.totalMoney],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): SupplyResponse {
@@ -8512,11 +8348,10 @@ export class TealKeyValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['key', this.key],
       ['value', this.value.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): TealKeyValue {
@@ -8604,12 +8439,11 @@ export class TealValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['bytes', this.bytes],
       ['type', this.type],
       ['uint', this.uint],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): TealValue {
@@ -8664,10 +8498,9 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['Deltas', this.deltas.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(
@@ -8817,7 +8650,7 @@ export class TransactionParametersResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['consensus-version', this.consensusVersion],
       ['fee', this.fee],
       ['genesis-hash', this.genesisHash],
@@ -8825,7 +8658,6 @@ export class TransactionParametersResponse implements Encodable {
       ['last-round', this.lastRound],
       ['min-fee', this.minFee],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): TransactionParametersResponse {
@@ -8954,16 +8786,13 @@ export class TransactionProofResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['idx', this.idx],
       ['proof', this.proof],
       ['stibhash', this.stibhash],
       ['treedepth', this.treedepth],
+      ['hashtype', this.hashtype],
     ]);
-    if (this.hashtype) {
-      data.set('hashtype', this.hashtype);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): TransactionProofResponse {
@@ -9060,13 +8889,12 @@ export class Version implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['build', this.build.toEncodingData()],
       ['genesis_hash_b64', this.genesisHashB64],
       ['genesis_id', this.genesisId],
       ['versions', this.versions],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): Version {

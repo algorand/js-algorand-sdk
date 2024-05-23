@@ -48,6 +48,12 @@ export class Account implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'min-balance',
+          valueSchema: new Uint64Schema(),
+          required: true,
+          omitEmpty: true,
+        },
+        {
           key: 'pending-rewards',
           valueSchema: new Uint64Schema(),
           required: true,
@@ -168,6 +174,24 @@ export class Account implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'incentive-eligible',
+          valueSchema: new BooleanSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-heartbeat',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'last-proposed',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
           key: 'participation',
           valueSchema: AccountParticipation.encodingSchema,
           required: false,
@@ -196,7 +220,7 @@ export class Account implements Encodable {
   public address: string;
 
   /**
-   * (algo) total number of MicroAlgos in the account
+   * total number of MicroAlgos in the account
    */
   public amount: bigint;
 
@@ -206,13 +230,18 @@ export class Account implements Encodable {
   public amountWithoutPendingRewards: bigint;
 
   /**
+   * MicroAlgo balance required by the account.
+   * The requirement grows based on asset and application usage.
+   */
+  public minBalance: number;
+
+  /**
    * amount of MicroAlgos of pending rewards in this account.
    */
   public pendingRewards: bigint;
 
   /**
-   * (ern) total rewards of MicroAlgos the account has received, including pending
-   * rewards.
+   * total rewards of MicroAlgos the account has received, including pending rewards.
    */
   public rewards: bigint;
 
@@ -222,7 +251,7 @@ export class Account implements Encodable {
   public round: bigint;
 
   /**
-   * (onl) delegation status of the account's MicroAlgos
+   * voting status of the account's MicroAlgos
    * * Offline - indicates that the associated account is delegated.
    * * Online - indicates that the associated account used as part of the delegation
    * pool.
@@ -266,33 +295,32 @@ export class Account implements Encodable {
   public totalCreatedAssets: number;
 
   /**
-   * (appl) applications local data stored in this account.
+   * application local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
    */
   public appsLocalState?: ApplicationLocalState[];
 
   /**
-   * (teap) the sum of all extra application program pages for this account.
+   * the sum of all extra application program pages for this account.
    */
   public appsTotalExtraPages?: number;
 
   /**
-   * (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
+   * the sum of all of the local schemas and global schemas in this account.
    * Note: the raw account uses `StateSchema` for this type.
    */
   public appsTotalSchema?: ApplicationStateSchema;
 
   /**
-   * (asset) assets held by this account.
+   * assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
    */
   public assets?: AssetHolding[];
 
   /**
-   * (spend) the address against which signing should be checked. If empty, the
-   * address of the current account is used. This field can be updated in any
-   * transaction by setting the RekeyTo field.
+   * The address against which signing should be checked. If empty, the address of
+   * the current account is used. This field can be updated in any transaction by
+   * setting the RekeyTo field.
    */
   public authAddr?: Address;
 
@@ -302,14 +330,13 @@ export class Account implements Encodable {
   public closedAtRound?: bigint;
 
   /**
-   * (appp) parameters of applications created by this account including app global
-   * data.
+   * parameters of applications created by this account including app global data.
    * Note: the raw account uses `map[int] -> AppParams` for this type.
    */
   public createdApps?: Application[];
 
   /**
-   * (apar) parameters of assets created by this account.
+   * parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
    */
   public createdAssets?: Asset[];
@@ -325,19 +352,36 @@ export class Account implements Encodable {
   public deleted?: boolean;
 
   /**
+   * can the account receive block incentives if its balance is in range at proposal
+   * time.
+   */
+  public incentiveEligible?: boolean;
+
+  /**
+   * The round in which this account last went online, or explicitly renewed their
+   * online status.
+   */
+  public lastHeartbeat?: number;
+
+  /**
+   * The round in which this account last proposed the block.
+   */
+  public lastProposed?: number;
+
+  /**
    * AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    */
   public participation?: AccountParticipation;
 
   /**
-   * (ebase) used as part of the rewards computation. Only applicable to accounts
-   * which are participating.
+   * used as part of the rewards computation. Only applicable to accounts which are
+   * participating.
    */
   public rewardBase?: bigint;
 
   /**
-   * Indicates what type of signature is used by this account, must be one of:
+   * the type of signature used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
@@ -348,13 +392,14 @@ export class Account implements Encodable {
   /**
    * Creates a new `Account` object.
    * @param address - the account public key
-   * @param amount - (algo) total number of MicroAlgos in the account
+   * @param amount - total number of MicroAlgos in the account
    * @param amountWithoutPendingRewards - specifies the amount of MicroAlgos in the account, without the pending rewards.
+   * @param minBalance - MicroAlgo balance required by the account.
+   * The requirement grows based on asset and application usage.
    * @param pendingRewards - amount of MicroAlgos of pending rewards in this account.
-   * @param rewards - (ern) total rewards of MicroAlgos the account has received, including pending
-   * rewards.
+   * @param rewards - total rewards of MicroAlgos the account has received, including pending rewards.
    * @param round - The round for which this information is relevant.
-   * @param status - (onl) delegation status of the account's MicroAlgos
+   * @param status - voting status of the account's MicroAlgos
    * * Offline - indicates that the associated account is delegated.
    * * Online - indicates that the associated account used as part of the delegation
    * pool.
@@ -370,30 +415,33 @@ export class Account implements Encodable {
    * application.
    * @param totalCreatedApps - The count of all apps (AppParams objects) created by this account.
    * @param totalCreatedAssets - The count of all assets (AssetParams objects) created by this account.
-   * @param appsLocalState - (appl) applications local data stored in this account.
+   * @param appsLocalState - application local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
-   * @param appsTotalExtraPages - (teap) the sum of all extra application program pages for this account.
-   * @param appsTotalSchema - (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
+   * @param appsTotalExtraPages - the sum of all extra application program pages for this account.
+   * @param appsTotalSchema - the sum of all of the local schemas and global schemas in this account.
    * Note: the raw account uses `StateSchema` for this type.
-   * @param assets - (asset) assets held by this account.
+   * @param assets - assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
-   * @param authAddr - (spend) the address against which signing should be checked. If empty, the
-   * address of the current account is used. This field can be updated in any
-   * transaction by setting the RekeyTo field.
+   * @param authAddr - The address against which signing should be checked. If empty, the address of
+   * the current account is used. This field can be updated in any transaction by
+   * setting the RekeyTo field.
    * @param closedAtRound - Round during which this account was most recently closed.
-   * @param createdApps - (appp) parameters of applications created by this account including app global
-   * data.
+   * @param createdApps - parameters of applications created by this account including app global data.
    * Note: the raw account uses `map[int] -> AppParams` for this type.
-   * @param createdAssets - (apar) parameters of assets created by this account.
+   * @param createdAssets - parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
    * @param createdAtRound - Round during which this account first appeared in a transaction.
    * @param deleted - Whether or not this account is currently closed.
+   * @param incentiveEligible - can the account receive block incentives if its balance is in range at proposal
+   * time.
+   * @param lastHeartbeat - The round in which this account last went online, or explicitly renewed their
+   * online status.
+   * @param lastProposed - The round in which this account last proposed the block.
    * @param participation - AccountParticipation describes the parameters used by this account in consensus
    * protocol.
-   * @param rewardBase - (ebase) used as part of the rewards computation. Only applicable to accounts
-   * which are participating.
-   * @param sigType - Indicates what type of signature is used by this account, must be one of:
+   * @param rewardBase - used as part of the rewards computation. Only applicable to accounts which are
+   * participating.
+   * @param sigType - the type of signature used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
@@ -403,6 +451,7 @@ export class Account implements Encodable {
     address,
     amount,
     amountWithoutPendingRewards,
+    minBalance,
     pendingRewards,
     rewards,
     round,
@@ -423,6 +472,9 @@ export class Account implements Encodable {
     createdAssets,
     createdAtRound,
     deleted,
+    incentiveEligible,
+    lastHeartbeat,
+    lastProposed,
     participation,
     rewardBase,
     sigType,
@@ -430,6 +482,7 @@ export class Account implements Encodable {
     address: string;
     amount: number | bigint;
     amountWithoutPendingRewards: number | bigint;
+    minBalance: number | bigint;
     pendingRewards: number | bigint;
     rewards: number | bigint;
     round: number | bigint;
@@ -450,6 +503,9 @@ export class Account implements Encodable {
     createdAssets?: Asset[];
     createdAtRound?: number | bigint;
     deleted?: boolean;
+    incentiveEligible?: boolean;
+    lastHeartbeat?: number | bigint;
+    lastProposed?: number | bigint;
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
@@ -459,6 +515,7 @@ export class Account implements Encodable {
     this.amountWithoutPendingRewards = ensureBigInt(
       amountWithoutPendingRewards
     );
+    this.minBalance = ensureSafeInteger(minBalance);
     this.pendingRewards = ensureBigInt(pendingRewards);
     this.rewards = ensureBigInt(rewards);
     this.round = ensureBigInt(round);
@@ -489,6 +546,15 @@ export class Account implements Encodable {
         ? undefined
         : ensureBigInt(createdAtRound);
     this.deleted = deleted;
+    this.incentiveEligible = incentiveEligible;
+    this.lastHeartbeat =
+      typeof lastHeartbeat === 'undefined'
+        ? undefined
+        : ensureSafeInteger(lastHeartbeat);
+    this.lastProposed =
+      typeof lastProposed === 'undefined'
+        ? undefined
+        : ensureSafeInteger(lastProposed);
     this.participation = participation;
     this.rewardBase =
       typeof rewardBase === 'undefined' ? undefined : ensureBigInt(rewardBase);
@@ -501,10 +567,11 @@ export class Account implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['address', this.address],
       ['amount', this.amount],
       ['amount-without-pending-rewards', this.amountWithoutPendingRewards],
+      ['min-balance', this.minBalance],
       ['pending-rewards', this.pendingRewards],
       ['rewards', this.rewards],
       ['round', this.round],
@@ -515,59 +582,58 @@ export class Account implements Encodable {
       ['total-boxes', this.totalBoxes],
       ['total-created-apps', this.totalCreatedApps],
       ['total-created-assets', this.totalCreatedAssets],
-    ]);
-    if (this.appsLocalState && this.appsLocalState.length) {
-      data.set(
+      [
         'apps-local-state',
-        this.appsLocalState.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.appsTotalExtraPages) {
-      data.set('apps-total-extra-pages', this.appsTotalExtraPages);
-    }
-    if (this.appsTotalSchema) {
-      data.set('apps-total-schema', this.appsTotalSchema.toEncodingData());
-    }
-    if (this.assets && this.assets.length) {
-      data.set(
+        typeof this.appsLocalState !== 'undefined'
+          ? this.appsLocalState.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['apps-total-extra-pages', this.appsTotalExtraPages],
+      [
+        'apps-total-schema',
+        typeof this.appsTotalSchema !== 'undefined'
+          ? this.appsTotalSchema.toEncodingData()
+          : undefined,
+      ],
+      [
         'assets',
-        this.assets.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.authAddr) {
-      data.set('auth-addr', this.authAddr.toString());
-    }
-    if (this.closedAtRound) {
-      data.set('closed-at-round', this.closedAtRound);
-    }
-    if (this.createdApps && this.createdApps.length) {
-      data.set(
+        typeof this.assets !== 'undefined'
+          ? this.assets.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'auth-addr',
+        typeof this.authAddr !== 'undefined'
+          ? this.authAddr.toString()
+          : undefined,
+      ],
+      ['closed-at-round', this.closedAtRound],
+      [
         'created-apps',
-        this.createdApps.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.createdAssets && this.createdAssets.length) {
-      data.set(
+        typeof this.createdApps !== 'undefined'
+          ? this.createdApps.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
         'created-assets',
-        this.createdAssets.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.createdAtRound) {
-      data.set('created-at-round', this.createdAtRound);
-    }
-    if (this.deleted) {
-      data.set('deleted', this.deleted);
-    }
-    if (this.participation) {
-      data.set('participation', this.participation.toEncodingData());
-    }
-    if (this.rewardBase) {
-      data.set('reward-base', this.rewardBase);
-    }
-    if (this.sigType) {
-      data.set('sig-type', this.sigType);
-    }
-    return data;
+        typeof this.createdAssets !== 'undefined'
+          ? this.createdAssets.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['created-at-round', this.createdAtRound],
+      ['deleted', this.deleted],
+      ['incentive-eligible', this.incentiveEligible],
+      ['last-heartbeat', this.lastHeartbeat],
+      ['last-proposed', this.lastProposed],
+      [
+        'participation',
+        typeof this.participation !== 'undefined'
+          ? this.participation.toEncodingData()
+          : undefined,
+      ],
+      ['reward-base', this.rewardBase],
+      ['sig-type', this.sigType],
+    ]);
   }
 
   static fromEncodingData(data: unknown): Account {
@@ -578,6 +644,7 @@ export class Account implements Encodable {
       address: data.get('address'),
       amount: data.get('amount'),
       amountWithoutPendingRewards: data.get('amount-without-pending-rewards'),
+      minBalance: data.get('min-balance'),
       pendingRewards: data.get('pending-rewards'),
       rewards: data.get('rewards'),
       round: data.get('round'),
@@ -617,6 +684,9 @@ export class Account implements Encodable {
           : undefined,
       createdAtRound: data.get('created-at-round'),
       deleted: data.get('deleted'),
+      incentiveEligible: data.get('incentive-eligible'),
+      lastHeartbeat: data.get('last-heartbeat'),
+      lastProposed: data.get('last-proposed'),
       participation:
         typeof data.get('participation') !== 'undefined'
           ? AccountParticipation.fromEncodingData(data.get('participation'))
@@ -680,45 +750,43 @@ export class AccountParticipation implements Encodable {
   }
 
   /**
-   * (sel) Selection public key (if any) currently registered for this round.
+   * Selection public key (if any) currently registered for this round.
    */
   public selectionParticipationKey: Uint8Array;
 
   /**
-   * (voteFst) First round for which this participation is valid.
+   * First round for which this participation is valid.
    */
   public voteFirstValid: bigint;
 
   /**
-   * (voteKD) Number of subkeys in each batch of participation keys.
+   * Number of subkeys in each batch of participation keys.
    */
   public voteKeyDilution: bigint;
 
   /**
-   * (voteLst) Last round for which this participation is valid.
+   * Last round for which this participation is valid.
    */
   public voteLastValid: bigint;
 
   /**
-   * (vote) root participation public key (if any) currently registered for this
-   * round.
+   * root participation public key (if any) currently registered for this round.
    */
   public voteParticipationKey: Uint8Array;
 
   /**
-   * (stprf) Root of the state proof key (if any)
+   * Root of the state proof key (if any)
    */
   public stateProofKey?: Uint8Array;
 
   /**
    * Creates a new `AccountParticipation` object.
-   * @param selectionParticipationKey - (sel) Selection public key (if any) currently registered for this round.
-   * @param voteFirstValid - (voteFst) First round for which this participation is valid.
-   * @param voteKeyDilution - (voteKD) Number of subkeys in each batch of participation keys.
-   * @param voteLastValid - (voteLst) Last round for which this participation is valid.
-   * @param voteParticipationKey - (vote) root participation public key (if any) currently registered for this
-   * round.
-   * @param stateProofKey - (stprf) Root of the state proof key (if any)
+   * @param selectionParticipationKey - Selection public key (if any) currently registered for this round.
+   * @param voteFirstValid - First round for which this participation is valid.
+   * @param voteKeyDilution - Number of subkeys in each batch of participation keys.
+   * @param voteLastValid - Last round for which this participation is valid.
+   * @param voteParticipationKey - root participation public key (if any) currently registered for this round.
+   * @param stateProofKey - Root of the state proof key (if any)
    */
   constructor({
     selectionParticipationKey,
@@ -758,17 +826,14 @@ export class AccountParticipation implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['selection-participation-key', this.selectionParticipationKey],
       ['vote-first-valid', this.voteFirstValid],
       ['vote-key-dilution', this.voteKeyDilution],
       ['vote-last-valid', this.voteLastValid],
       ['vote-participation-key', this.voteParticipationKey],
+      ['state-proof-key', this.stateProofKey],
     ]);
-    if (this.stateProofKey) {
-      data.set('state-proof-key', this.stateProofKey);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AccountParticipation {
@@ -849,11 +914,10 @@ export class AccountResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['account', this.account.toEncodingData()],
       ['current-round', this.currentRound],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AccountResponse {
@@ -923,11 +987,10 @@ export class AccountStateDelta implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['address', this.address],
       ['delta', this.delta.map((v) => v.toEncodingData())],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AccountStateDelta {
@@ -1014,14 +1077,11 @@ export class AccountsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['accounts', this.accounts.map((v) => v.toEncodingData())],
       ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AccountsResponse {
@@ -1082,12 +1142,12 @@ export class Application implements Encodable {
   }
 
   /**
-   * (appidx) application index.
+   * application index.
    */
   public id: bigint;
 
   /**
-   * (appparams) application parameters.
+   * application parameters.
    */
   public params: ApplicationParams;
 
@@ -1108,8 +1168,8 @@ export class Application implements Encodable {
 
   /**
    * Creates a new `Application` object.
-   * @param id - (appidx) application index.
-   * @param params - (appparams) application parameters.
+   * @param id - application index.
+   * @param params - application parameters.
    * @param createdAtRound - Round when this application was created.
    * @param deleted - Whether or not this application is currently deleted.
    * @param deletedAtRound - Round when this application was deleted.
@@ -1146,20 +1206,13 @@ export class Application implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['id', this.id],
       ['params', this.params.toEncodingData()],
+      ['created-at-round', this.createdAtRound],
+      ['deleted', this.deleted],
+      ['deleted-at-round', this.deletedAtRound],
     ]);
-    if (this.createdAtRound) {
-      data.set('created-at-round', this.createdAtRound);
-    }
-    if (this.deleted) {
-      data.set('deleted', this.deleted);
-    }
-    if (this.deletedAtRound) {
-      data.set('deleted-at-round', this.deletedAtRound);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): Application {
@@ -1233,7 +1286,7 @@ export class ApplicationLocalState implements Encodable {
   public id: bigint;
 
   /**
-   * (hsch) schema.
+   * schema.
    */
   public schema: ApplicationStateSchema;
 
@@ -1249,7 +1302,7 @@ export class ApplicationLocalState implements Encodable {
   public deleted?: boolean;
 
   /**
-   * (tkv) storage.
+   * storage.
    */
   public keyValue?: TealKeyValue[];
 
@@ -1261,11 +1314,11 @@ export class ApplicationLocalState implements Encodable {
   /**
    * Creates a new `ApplicationLocalState` object.
    * @param id - The application which this local state is for.
-   * @param schema - (hsch) schema.
+   * @param schema - schema.
    * @param closedOutAtRound - Round when account closed out of the application.
    * @param deleted - Whether or not the application local state is currently deleted from its
    * account.
-   * @param keyValue - (tkv) storage.
+   * @param keyValue - storage.
    * @param optedInAtRound - Round when the account opted into the application.
    */
   constructor({
@@ -1303,26 +1356,19 @@ export class ApplicationLocalState implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['id', this.id],
       ['schema', this.schema.toEncodingData()],
-    ]);
-    if (this.closedOutAtRound) {
-      data.set('closed-out-at-round', this.closedOutAtRound);
-    }
-    if (this.deleted) {
-      data.set('deleted', this.deleted);
-    }
-    if (this.keyValue && this.keyValue.length) {
-      data.set(
+      ['closed-out-at-round', this.closedOutAtRound],
+      ['deleted', this.deleted],
+      [
         'key-value',
-        this.keyValue.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.optedInAtRound) {
-      data.set('opted-in-at-round', this.optedInAtRound);
-    }
-    return data;
+        typeof this.keyValue !== 'undefined'
+          ? this.keyValue.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['opted-in-at-round', this.optedInAtRound],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ApplicationLocalState {
@@ -1416,17 +1462,14 @@ export class ApplicationLocalStatesResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       [
         'apps-local-states',
         this.appsLocalStates.map((v) => v.toEncodingData()),
       ],
       ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationLocalStatesResponse {
@@ -1471,7 +1514,7 @@ export class ApplicationLogData implements Encodable {
   }
 
   /**
-   * (lg) Logs for the application being executed by the transaction.
+   * Logs for the application being executed by the transaction.
    */
   public logs: Uint8Array[];
 
@@ -1482,7 +1525,7 @@ export class ApplicationLogData implements Encodable {
 
   /**
    * Creates a new `ApplicationLogData` object.
-   * @param logs - (lg) Logs for the application being executed by the transaction.
+   * @param logs - Logs for the application being executed by the transaction.
    * @param txid - Transaction ID
    */
   constructor({ logs, txid }: { logs: Uint8Array[]; txid: string }) {
@@ -1496,11 +1539,10 @@ export class ApplicationLogData implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['logs', this.logs],
       ['txid', this.txid],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationLogData {
@@ -1602,20 +1644,17 @@ export class ApplicationLogsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['application-id', this.applicationId],
       ['current-round', this.currentRound],
-    ]);
-    if (this.logData && this.logData.length) {
-      data.set(
+      [
         'log-data',
-        this.logData.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
+        typeof this.logData !== 'undefined'
+          ? this.logData.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['next-token', this.nextToken],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ApplicationLogsResponse {
@@ -1692,12 +1731,12 @@ export class ApplicationParams implements Encodable {
   }
 
   /**
-   * (approv) approval program.
+   * approval program.
    */
   public approvalProgram: Uint8Array;
 
   /**
-   * (clearp) approval program.
+   * clear state program.
    */
   public clearStateProgram: Uint8Array;
 
@@ -1708,35 +1747,35 @@ export class ApplicationParams implements Encodable {
   public creator?: Address;
 
   /**
-   * (epp) the amount of extra program pages available to this app.
+   * the number of extra program pages available to this app.
    */
   public extraProgramPages?: number;
 
   /**
-   * [\gs) global schema
+   * global state
    */
   public globalState?: TealKeyValue[];
 
   /**
-   * [\gsch) global schema
+   * global schema
    */
   public globalStateSchema?: ApplicationStateSchema;
 
   /**
-   * [\lsch) local schema
+   * local schema
    */
   public localStateSchema?: ApplicationStateSchema;
 
   /**
    * Creates a new `ApplicationParams` object.
-   * @param approvalProgram - (approv) approval program.
-   * @param clearStateProgram - (clearp) approval program.
+   * @param approvalProgram - approval program.
+   * @param clearStateProgram - clear state program.
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
-   * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
-   * @param globalState - [\gs) global schema
-   * @param globalStateSchema - [\gsch) global schema
-   * @param localStateSchema - [\lsch) local schema
+   * @param extraProgramPages - the number of extra program pages available to this app.
+   * @param globalState - global state
+   * @param globalStateSchema - global schema
+   * @param localStateSchema - local schema
    */
   constructor({
     approvalProgram,
@@ -1780,29 +1819,35 @@ export class ApplicationParams implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['approval-program', this.approvalProgram],
       ['clear-state-program', this.clearStateProgram],
-    ]);
-    if (this.creator) {
-      data.set('creator', this.creator.toString());
-    }
-    if (this.extraProgramPages) {
-      data.set('extra-program-pages', this.extraProgramPages);
-    }
-    if (this.globalState && this.globalState.length) {
-      data.set(
+      [
+        'creator',
+        typeof this.creator !== 'undefined'
+          ? this.creator.toString()
+          : undefined,
+      ],
+      ['extra-program-pages', this.extraProgramPages],
+      [
         'global-state',
-        this.globalState.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.globalStateSchema) {
-      data.set('global-state-schema', this.globalStateSchema.toEncodingData());
-    }
-    if (this.localStateSchema) {
-      data.set('local-state-schema', this.localStateSchema.toEncodingData());
-    }
-    return data;
+        typeof this.globalState !== 'undefined'
+          ? this.globalState.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'global-state-schema',
+        typeof this.globalStateSchema !== 'undefined'
+          ? this.globalStateSchema.toEncodingData()
+          : undefined,
+      ],
+      [
+        'local-state-schema',
+        typeof this.localStateSchema !== 'undefined'
+          ? this.localStateSchema.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ApplicationParams {
@@ -1893,13 +1938,15 @@ export class ApplicationResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['current-round', this.currentRound],
+      [
+        'application',
+        typeof this.application !== 'undefined'
+          ? this.application.toEncodingData()
+          : undefined,
+      ],
     ]);
-    if (this.application) {
-      data.set('application', this.application.toEncodingData());
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationResponse {
@@ -1944,19 +1991,19 @@ export class ApplicationStateSchema implements Encodable {
   }
 
   /**
-   * (nbs) num of byte slices.
+   * number of byte slices.
    */
   public numByteSlice: number;
 
   /**
-   * (nui) num of uints.
+   * number of uints.
    */
   public numUint: number;
 
   /**
    * Creates a new `ApplicationStateSchema` object.
-   * @param numByteSlice - (nbs) num of byte slices.
-   * @param numUint - (nui) num of uints.
+   * @param numByteSlice - number of byte slices.
+   * @param numUint - number of uints.
    */
   constructor({
     numByteSlice,
@@ -1975,11 +2022,10 @@ export class ApplicationStateSchema implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['num-byte-slice', this.numByteSlice],
       ['num-uint', this.numUint],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationStateSchema {
@@ -2066,14 +2112,11 @@ export class ApplicationsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['applications', this.applications.map((v) => v.toEncodingData())],
       ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): ApplicationsResponse {
@@ -2206,20 +2249,13 @@ export class Asset implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['index', this.index],
       ['params', this.params.toEncodingData()],
+      ['created-at-round', this.createdAtRound],
+      ['deleted', this.deleted],
+      ['destroyed-at-round', this.destroyedAtRound],
     ]);
-    if (this.createdAtRound) {
-      data.set('created-at-round', this.createdAtRound);
-    }
-    if (this.deleted) {
-      data.set('deleted', this.deleted);
-    }
-    if (this.destroyedAtRound) {
-      data.set('destroyed-at-round', this.destroyedAtRound);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): Asset {
@@ -2309,14 +2345,11 @@ export class AssetBalancesResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['balances', this.balances.map((v) => v.toEncodingData())],
       ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetBalancesResponse {
@@ -2387,7 +2420,7 @@ export class AssetHolding implements Encodable {
   }
 
   /**
-   * (a) number of units held.
+   * number of units held.
    */
   public amount: bigint;
 
@@ -2397,7 +2430,7 @@ export class AssetHolding implements Encodable {
   public assetId: bigint;
 
   /**
-   * (f) whether or not the holding is frozen.
+   * whether or not the holding is frozen.
    */
   public isFrozen: boolean;
 
@@ -2418,9 +2451,9 @@ export class AssetHolding implements Encodable {
 
   /**
    * Creates a new `AssetHolding` object.
-   * @param amount - (a) number of units held.
+   * @param amount - number of units held.
    * @param assetId - Asset ID of the holding.
-   * @param isFrozen - (f) whether or not the holding is frozen.
+   * @param isFrozen - whether or not the holding is frozen.
    * @param deleted - Whether or not the asset holding is currently deleted from its account.
    * @param optedInAtRound - Round during which the account opted into this asset holding.
    * @param optedOutAtRound - Round during which the account opted out of this asset holding.
@@ -2460,21 +2493,14 @@ export class AssetHolding implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['amount', this.amount],
       ['asset-id', this.assetId],
       ['is-frozen', this.isFrozen],
+      ['deleted', this.deleted],
+      ['opted-in-at-round', this.optedInAtRound],
+      ['opted-out-at-round', this.optedOutAtRound],
     ]);
-    if (this.deleted) {
-      data.set('deleted', this.deleted);
-    }
-    if (this.optedInAtRound) {
-      data.set('opted-in-at-round', this.optedInAtRound);
-    }
-    if (this.optedOutAtRound) {
-      data.set('opted-out-at-round', this.optedOutAtRound);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetHolding {
@@ -2565,14 +2591,11 @@ export class AssetHoldingsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['assets', this.assets.map((v) => v.toEncodingData())],
       ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetHoldingsResponse {
@@ -2703,49 +2726,49 @@ export class AssetParams implements Encodable {
   public creator: string;
 
   /**
-   * (dc) The number of digits to use after the decimal point when displaying this
-   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
-   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
-   * must be between 0 and 19 (inclusive).
+   * The number of digits to use after the decimal point when displaying this asset.
+   * If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths.
+   * If 2, the base unit of the asset is in hundredths, and so on. This value must be
+   * between 0 and 19 (inclusive).
    */
   public decimals: number;
 
   /**
-   * (t) The total number of units of this asset.
+   * The total number of units of this asset.
    */
   public total: bigint;
 
   /**
-   * (c) Address of account used to clawback holdings of this asset. If empty,
-   * clawback is not permitted.
+   * Address of account used to clawback holdings of this asset. If empty, clawback
+   * is not permitted.
    */
   public clawback?: string;
 
   /**
-   * (df) Whether holdings of this asset are frozen by default.
+   * Whether holdings of this asset are frozen by default.
    */
   public defaultFrozen?: boolean;
 
   /**
-   * (f) Address of account used to freeze holdings of this asset. If empty, freezing
-   * is not permitted.
+   * Address of account used to freeze holdings of this asset. If empty, freezing is
+   * not permitted.
    */
   public freeze?: string;
 
   /**
-   * (m) Address of account used to manage the keys of this asset and to destroy it.
+   * Address of account used to manage the keys of this asset and to destroy it.
    */
   public manager?: string;
 
   /**
-   * (am) A commitment to some unspecified asset metadata. The format of this
-   * metadata is up to the application.
+   * A commitment to some unspecified asset metadata. The format of this metadata is
+   * up to the application.
    */
   public metadataHash?: Uint8Array;
 
   /**
-   * (an) Name of this asset, as supplied by the creator. Included only when the
-   * asset name is composed of printable utf-8 characters.
+   * Name of this asset, as supplied by the creator. Included only when the asset
+   * name is composed of printable utf-8 characters.
    */
   public name?: string;
 
@@ -2755,13 +2778,13 @@ export class AssetParams implements Encodable {
   public nameB64?: Uint8Array;
 
   /**
-   * (r) Address of account holding reserve (non-minted) units of this asset.
+   * Address of account holding reserve (non-minted) units of this asset.
    */
   public reserve?: string;
 
   /**
-   * (un) Name of a unit of this asset, as supplied by the creator. Included only
-   * when the name of a unit of this asset is composed of printable utf-8 characters.
+   * Name of a unit of this asset, as supplied by the creator. Included only when the
+   * name of a unit of this asset is composed of printable utf-8 characters.
    */
   public unitName?: string;
 
@@ -2771,8 +2794,8 @@ export class AssetParams implements Encodable {
   public unitNameB64?: Uint8Array;
 
   /**
-   * (au) URL where more information about the asset can be retrieved. Included only
-   * when the URL is composed of printable utf-8 characters.
+   * URL where more information about the asset can be retrieved. Included only when
+   * the URL is composed of printable utf-8 characters.
    */
   public url?: string;
 
@@ -2786,28 +2809,28 @@ export class AssetParams implements Encodable {
    * @param creator - The address that created this asset. This is the address where the parameters
    * for this asset can be found, and also the address where unwanted asset units can
    * be sent in the worst case.
-   * @param decimals - (dc) The number of digits to use after the decimal point when displaying this
-   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
-   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
-   * must be between 0 and 19 (inclusive).
-   * @param total - (t) The total number of units of this asset.
-   * @param clawback - (c) Address of account used to clawback holdings of this asset. If empty,
-   * clawback is not permitted.
-   * @param defaultFrozen - (df) Whether holdings of this asset are frozen by default.
-   * @param freeze - (f) Address of account used to freeze holdings of this asset. If empty, freezing
+   * @param decimals - The number of digits to use after the decimal point when displaying this asset.
+   * If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths.
+   * If 2, the base unit of the asset is in hundredths, and so on. This value must be
+   * between 0 and 19 (inclusive).
+   * @param total - The total number of units of this asset.
+   * @param clawback - Address of account used to clawback holdings of this asset. If empty, clawback
    * is not permitted.
-   * @param manager - (m) Address of account used to manage the keys of this asset and to destroy it.
-   * @param metadataHash - (am) A commitment to some unspecified asset metadata. The format of this
-   * metadata is up to the application.
-   * @param name - (an) Name of this asset, as supplied by the creator. Included only when the
-   * asset name is composed of printable utf-8 characters.
+   * @param defaultFrozen - Whether holdings of this asset are frozen by default.
+   * @param freeze - Address of account used to freeze holdings of this asset. If empty, freezing is
+   * not permitted.
+   * @param manager - Address of account used to manage the keys of this asset and to destroy it.
+   * @param metadataHash - A commitment to some unspecified asset metadata. The format of this metadata is
+   * up to the application.
+   * @param name - Name of this asset, as supplied by the creator. Included only when the asset
+   * name is composed of printable utf-8 characters.
    * @param nameB64 - Base64 encoded name of this asset, as supplied by the creator.
-   * @param reserve - (r) Address of account holding reserve (non-minted) units of this asset.
-   * @param unitName - (un) Name of a unit of this asset, as supplied by the creator. Included only
-   * when the name of a unit of this asset is composed of printable utf-8 characters.
+   * @param reserve - Address of account holding reserve (non-minted) units of this asset.
+   * @param unitName - Name of a unit of this asset, as supplied by the creator. Included only when the
+   * name of a unit of this asset is composed of printable utf-8 characters.
    * @param unitNameB64 - Base64 encoded name of a unit of this asset, as supplied by the creator.
-   * @param url - (au) URL where more information about the asset can be retrieved. Included only
-   * when the URL is composed of printable utf-8 characters.
+   * @param url - URL where more information about the asset can be retrieved. Included only when
+   * the URL is composed of printable utf-8 characters.
    * @param urlB64 - Base64 encoded URL where more information about the asset can be retrieved.
    */
   constructor({
@@ -2873,48 +2896,23 @@ export class AssetParams implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['creator', this.creator],
       ['decimals', this.decimals],
       ['total', this.total],
+      ['clawback', this.clawback],
+      ['default-frozen', this.defaultFrozen],
+      ['freeze', this.freeze],
+      ['manager', this.manager],
+      ['metadata-hash', this.metadataHash],
+      ['name', this.name],
+      ['name-b64', this.nameB64],
+      ['reserve', this.reserve],
+      ['unit-name', this.unitName],
+      ['unit-name-b64', this.unitNameB64],
+      ['url', this.url],
+      ['url-b64', this.urlB64],
     ]);
-    if (this.clawback) {
-      data.set('clawback', this.clawback);
-    }
-    if (this.defaultFrozen) {
-      data.set('default-frozen', this.defaultFrozen);
-    }
-    if (this.freeze) {
-      data.set('freeze', this.freeze);
-    }
-    if (this.manager) {
-      data.set('manager', this.manager);
-    }
-    if (this.metadataHash) {
-      data.set('metadata-hash', this.metadataHash);
-    }
-    if (this.name) {
-      data.set('name', this.name);
-    }
-    if (this.nameB64) {
-      data.set('name-b64', this.nameB64);
-    }
-    if (this.reserve) {
-      data.set('reserve', this.reserve);
-    }
-    if (this.unitName) {
-      data.set('unit-name', this.unitName);
-    }
-    if (this.unitNameB64) {
-      data.set('unit-name-b64', this.unitNameB64);
-    }
-    if (this.url) {
-      data.set('url', this.url);
-    }
-    if (this.urlB64) {
-      data.set('url-b64', this.urlB64);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetParams {
@@ -3000,11 +2998,10 @@ export class AssetResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['asset', this.asset.toEncodingData()],
       ['current-round', this.currentRound],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetResponse {
@@ -3091,14 +3088,11 @@ export class AssetsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['assets', this.assets.map((v) => v.toEncodingData())],
       ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): AssetsResponse {
@@ -3174,8 +3168,32 @@ export class Block implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'bonus',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'fees-collected',
+          valueSchema: new Uint64Schema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
           key: 'participation-updates',
           valueSchema: ParticipationUpdates.encodingSchema,
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'proposer',
+          valueSchema: new StringSchema(),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'proposer-payout',
+          valueSchema: new Uint64Schema(),
           required: false,
           omitEmpty: true,
         },
@@ -3269,9 +3287,29 @@ export class Block implements Encodable {
   public transactionsRootSha256: Uint8Array;
 
   /**
+   * the potential bonus payout for this block.
+   */
+  public bonus?: number;
+
+  /**
+   * the sum of all fees paid by transactions in this block.
+   */
+  public feesCollected?: number;
+
+  /**
    * Participation account data that needs to be checked/acted on by the network.
    */
   public participationUpdates?: ParticipationUpdates;
+
+  /**
+   * the proposer of this block.
+   */
+  public proposer?: Address;
+
+  /**
+   * the actual amount transferred to the proposer from the fee sink.
+   */
+  public proposerPayout?: number;
 
   /**
    * Fields relating to rewards,
@@ -3325,7 +3363,11 @@ export class Block implements Encodable {
    * vector commitment instead of a merkle tree, and SHA256 hash function instead of
    * the default SHA512_256. This commitment can be used on environments where only
    * the SHA256 function exists.
+   * @param bonus - the potential bonus payout for this block.
+   * @param feesCollected - the sum of all fees paid by transactions in this block.
    * @param participationUpdates - Participation account data that needs to be checked/acted on by the network.
+   * @param proposer - the proposer of this block.
+   * @param proposerPayout - the actual amount transferred to the proposer from the fee sink.
    * @param rewards - Fields relating to rewards,
    * @param stateProofTracking - Tracks the status of state proofs.
    * @param transactions - (txns) list of transactions corresponding to a given round.
@@ -3346,7 +3388,11 @@ export class Block implements Encodable {
     timestamp,
     transactionsRoot,
     transactionsRootSha256,
+    bonus,
+    feesCollected,
     participationUpdates,
+    proposer,
+    proposerPayout,
     rewards,
     stateProofTracking,
     transactions,
@@ -3362,7 +3408,11 @@ export class Block implements Encodable {
     timestamp: number | bigint;
     transactionsRoot: string | Uint8Array;
     transactionsRootSha256: string | Uint8Array;
+    bonus?: number | bigint;
+    feesCollected?: number | bigint;
     participationUpdates?: ParticipationUpdates;
+    proposer?: Address | string;
+    proposerPayout?: number | bigint;
     rewards?: BlockRewards;
     stateProofTracking?: StateProofTracking[];
     transactions?: Transaction[];
@@ -3390,7 +3440,19 @@ export class Block implements Encodable {
       typeof transactionsRootSha256 === 'string'
         ? base64ToBytes(transactionsRootSha256)
         : transactionsRootSha256;
+    this.bonus =
+      typeof bonus === 'undefined' ? undefined : ensureSafeInteger(bonus);
+    this.feesCollected =
+      typeof feesCollected === 'undefined'
+        ? undefined
+        : ensureSafeInteger(feesCollected);
     this.participationUpdates = participationUpdates;
+    this.proposer =
+      typeof proposer === 'string' ? Address.fromString(proposer) : proposer;
+    this.proposerPayout =
+      typeof proposerPayout === 'undefined'
+        ? undefined
+        : ensureSafeInteger(proposerPayout);
     this.rewards = rewards;
     this.stateProofTracking = stateProofTracking;
     this.transactions = transactions;
@@ -3408,7 +3470,7 @@ export class Block implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['genesis-hash', this.genesisHash],
       ['genesis-id', this.genesisId],
       ['previous-block-hash', this.previousBlockHash],
@@ -3417,38 +3479,53 @@ export class Block implements Encodable {
       ['timestamp', this.timestamp],
       ['transactions-root', this.transactionsRoot],
       ['transactions-root-sha256', this.transactionsRootSha256],
-    ]);
-    if (this.participationUpdates) {
-      data.set(
+      ['bonus', this.bonus],
+      ['fees-collected', this.feesCollected],
+      [
         'participation-updates',
-        this.participationUpdates.toEncodingData()
-      );
-    }
-    if (this.rewards) {
-      data.set('rewards', this.rewards.toEncodingData());
-    }
-    if (this.stateProofTracking && this.stateProofTracking.length) {
-      data.set(
+        typeof this.participationUpdates !== 'undefined'
+          ? this.participationUpdates.toEncodingData()
+          : undefined,
+      ],
+      [
+        'proposer',
+        typeof this.proposer !== 'undefined'
+          ? this.proposer.toString()
+          : undefined,
+      ],
+      ['proposer-payout', this.proposerPayout],
+      [
+        'rewards',
+        typeof this.rewards !== 'undefined'
+          ? this.rewards.toEncodingData()
+          : undefined,
+      ],
+      [
         'state-proof-tracking',
-        this.stateProofTracking.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.transactions && this.transactions.length) {
-      data.set(
+        typeof this.stateProofTracking !== 'undefined'
+          ? this.stateProofTracking.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
         'transactions',
-        this.transactions.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.txnCounter) {
-      data.set('txn-counter', this.txnCounter);
-    }
-    if (this.upgradeState) {
-      data.set('upgrade-state', this.upgradeState.toEncodingData());
-    }
-    if (this.upgradeVote) {
-      data.set('upgrade-vote', this.upgradeVote.toEncodingData());
-    }
-    return data;
+        typeof this.transactions !== 'undefined'
+          ? this.transactions.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['txn-counter', this.txnCounter],
+      [
+        'upgrade-state',
+        typeof this.upgradeState !== 'undefined'
+          ? this.upgradeState.toEncodingData()
+          : undefined,
+      ],
+      [
+        'upgrade-vote',
+        typeof this.upgradeVote !== 'undefined'
+          ? this.upgradeVote.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): Block {
@@ -3464,12 +3541,16 @@ export class Block implements Encodable {
       timestamp: data.get('timestamp'),
       transactionsRoot: data.get('transactions-root'),
       transactionsRootSha256: data.get('transactions-root-sha256'),
+      bonus: data.get('bonus'),
+      feesCollected: data.get('fees-collected'),
       participationUpdates:
         typeof data.get('participation-updates') !== 'undefined'
           ? ParticipationUpdates.fromEncodingData(
               data.get('participation-updates')
             )
           : undefined,
+      proposer: data.get('proposer'),
+      proposerPayout: data.get('proposer-payout'),
       rewards:
         typeof data.get('rewards') !== 'undefined'
           ? BlockRewards.fromEncodingData(data.get('rewards'))
@@ -3626,7 +3707,7 @@ export class BlockRewards implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['fee-sink', this.feeSink],
       ['rewards-calculation-round', this.rewardsCalculationRound],
       ['rewards-level', this.rewardsLevel],
@@ -3634,7 +3715,6 @@ export class BlockRewards implements Encodable {
       ['rewards-rate', this.rewardsRate],
       ['rewards-residue', this.rewardsResidue],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): BlockRewards {
@@ -3767,22 +3847,13 @@ export class BlockUpgradeState implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['current-protocol', this.currentProtocol],
+      ['next-protocol', this.nextProtocol],
+      ['next-protocol-approvals', this.nextProtocolApprovals],
+      ['next-protocol-switch-on', this.nextProtocolSwitchOn],
+      ['next-protocol-vote-before', this.nextProtocolVoteBefore],
     ]);
-    if (this.nextProtocol) {
-      data.set('next-protocol', this.nextProtocol);
-    }
-    if (this.nextProtocolApprovals) {
-      data.set('next-protocol-approvals', this.nextProtocolApprovals);
-    }
-    if (this.nextProtocolSwitchOn) {
-      data.set('next-protocol-switch-on', this.nextProtocolSwitchOn);
-    }
-    if (this.nextProtocolVoteBefore) {
-      data.set('next-protocol-vote-before', this.nextProtocolVoteBefore);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): BlockUpgradeState {
@@ -3876,17 +3947,11 @@ export class BlockUpgradeVote implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.upgradeApprove) {
-      data.set('upgrade-approve', this.upgradeApprove);
-    }
-    if (this.upgradeDelay) {
-      data.set('upgrade-delay', this.upgradeDelay);
-    }
-    if (this.upgradePropose) {
-      data.set('upgrade-propose', this.upgradePropose);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['upgrade-approve', this.upgradeApprove],
+      ['upgrade-delay', this.upgradeDelay],
+      ['upgrade-propose', this.upgradePropose],
+    ]);
   }
 
   static fromEncodingData(data: unknown): BlockUpgradeVote {
@@ -3975,12 +4040,11 @@ export class Box implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['name', this.name],
       ['round', this.round],
       ['value', this.value],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): Box {
@@ -4033,8 +4097,7 @@ export class BoxDescriptor implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['name', this.name]]);
-    return data;
+    return new Map<string, unknown>([['name', this.name]]);
   }
 
   static fromEncodingData(data: unknown): BoxDescriptor {
@@ -4120,14 +4183,11 @@ export class BoxesResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['application-id', this.applicationId],
       ['boxes', this.boxes.map((v) => v.toEncodingData())],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): BoxesResponse {
@@ -4189,11 +4249,15 @@ export class ErrorResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['message', this.message]]);
-    if (this.data) {
-      data.set('data', this.data.toEncodingData());
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['message', this.message],
+      [
+        'data',
+        typeof this.data !== 'undefined'
+          ? this.data.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ErrorResponse {
@@ -4284,14 +4348,11 @@ export class EvalDelta implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['action', this.action]]);
-    if (this.bytes) {
-      data.set('bytes', this.bytes);
-    }
-    if (this.uint) {
-      data.set('uint', this.uint);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['action', this.action],
+      ['bytes', this.bytes],
+      ['uint', this.uint],
+    ]);
   }
 
   static fromEncodingData(data: unknown): EvalDelta {
@@ -4356,11 +4417,10 @@ export class EvalDeltaKeyValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['key', this.key],
       ['value', this.value.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): EvalDeltaKeyValue {
@@ -4410,11 +4470,7 @@ export class HashFactory implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.hashType) {
-      data.set('hash-type', this.hashType);
-    }
-    return data;
+    return new Map<string, unknown>([['hash-type', this.hashType]]);
   }
 
   static fromEncodingData(data: unknown): HashFactory {
@@ -4543,20 +4599,20 @@ export class HealthCheck implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['db-available', this.dbAvailable],
       ['is-migrating', this.isMigrating],
       ['message', this.message],
       ['round', this.round],
       ['version', this.version],
+      [
+        'data',
+        typeof this.data !== 'undefined'
+          ? this.data.toEncodingData()
+          : undefined,
+      ],
+      ['errors', this.errors],
     ]);
-    if (this.data) {
-      data.set('data', this.data.toEncodingData());
-    }
-    if (this.errors && this.errors.length) {
-      data.set('errors', this.errors);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): HealthCheck {
@@ -4694,23 +4750,13 @@ export class IndexerStateProofMessage implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.blockHeadersCommitment) {
-      data.set('block-headers-commitment', this.blockHeadersCommitment);
-    }
-    if (this.firstAttestedRound) {
-      data.set('first-attested-round', this.firstAttestedRound);
-    }
-    if (this.latestAttestedRound) {
-      data.set('latest-attested-round', this.latestAttestedRound);
-    }
-    if (this.lnProvenWeight) {
-      data.set('ln-proven-weight', this.lnProvenWeight);
-    }
-    if (this.votersCommitment) {
-      data.set('voters-commitment', this.votersCommitment);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['block-headers-commitment', this.blockHeadersCommitment],
+      ['first-attested-round', this.firstAttestedRound],
+      ['latest-attested-round', this.latestAttestedRound],
+      ['ln-proven-weight', this.lnProvenWeight],
+      ['voters-commitment', this.votersCommitment],
+    ]);
   }
 
   static fromEncodingData(data: unknown): IndexerStateProofMessage {
@@ -4798,17 +4844,16 @@ export class MerkleArrayProof implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.hashFactory) {
-      data.set('hash-factory', this.hashFactory.toEncodingData());
-    }
-    if (this.path && this.path.length) {
-      data.set('path', this.path);
-    }
-    if (this.treeDepth) {
-      data.set('tree-depth', this.treeDepth);
-    }
-    return data;
+    return new Map<string, unknown>([
+      [
+        'hash-factory',
+        typeof this.hashFactory !== 'undefined'
+          ? this.hashFactory.toEncodingData()
+          : undefined,
+      ],
+      ['path', this.path],
+      ['tree-depth', this.treeDepth],
+    ]);
   }
 
   static fromEncodingData(data: unknown): MerkleArrayProof {
@@ -4942,21 +4987,14 @@ export class MiniAssetHolding implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['address', this.address],
       ['amount', this.amount],
       ['is-frozen', this.isFrozen],
+      ['deleted', this.deleted],
+      ['opted-in-at-round', this.optedInAtRound],
+      ['opted-out-at-round', this.optedOutAtRound],
     ]);
-    if (this.deleted) {
-      data.set('deleted', this.deleted);
-    }
-    if (this.optedInAtRound) {
-      data.set('opted-in-at-round', this.optedInAtRound);
-    }
-    if (this.optedOutAtRound) {
-      data.set('opted-out-at-round', this.optedOutAtRound);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): MiniAssetHolding {
@@ -4983,15 +5021,28 @@ export class ParticipationUpdates implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
-        key: 'expired-participation-accounts',
-        valueSchema: new ArraySchema(new StringSchema()),
-        required: false,
-        omitEmpty: true,
-      });
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'absent-participation-accounts',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: false,
+          omitEmpty: true,
+        },
+        {
+          key: 'expired-participation-accounts',
+          valueSchema: new ArraySchema(new StringSchema()),
+          required: false,
+          omitEmpty: true,
+        }
+      );
     }
     return this.encodingSchemaValue;
   }
+
+  /**
+   * (partupabs) a list of online accounts that need to be suspended.
+   */
+  public absentParticipationAccounts?: string[];
 
   /**
    * (partupdrmv) a list of online accounts that needs to be converted to offline
@@ -5001,14 +5052,18 @@ export class ParticipationUpdates implements Encodable {
 
   /**
    * Creates a new `ParticipationUpdates` object.
+   * @param absentParticipationAccounts - (partupabs) a list of online accounts that need to be suspended.
    * @param expiredParticipationAccounts - (partupdrmv) a list of online accounts that needs to be converted to offline
    * since their participation key expired.
    */
   constructor({
+    absentParticipationAccounts,
     expiredParticipationAccounts,
   }: {
+    absentParticipationAccounts?: string[];
     expiredParticipationAccounts?: string[];
   }) {
+    this.absentParticipationAccounts = absentParticipationAccounts;
     this.expiredParticipationAccounts = expiredParticipationAccounts;
   }
 
@@ -5018,17 +5073,10 @@ export class ParticipationUpdates implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (
-      this.expiredParticipationAccounts &&
-      this.expiredParticipationAccounts.length
-    ) {
-      data.set(
-        'expired-participation-accounts',
-        this.expiredParticipationAccounts
-      );
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['absent-participation-accounts', this.absentParticipationAccounts],
+      ['expired-participation-accounts', this.expiredParticipationAccounts],
+    ]);
   }
 
   static fromEncodingData(data: unknown): ParticipationUpdates {
@@ -5036,6 +5084,7 @@ export class ParticipationUpdates implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new ParticipationUpdates({
+      absentParticipationAccounts: data.get('absent-participation-accounts'),
       expiredParticipationAccounts: data.get('expired-participation-accounts'),
     });
   }
@@ -5061,7 +5110,7 @@ export class StateProofFields implements Encodable {
         },
         {
           key: 'positions-to-reveal',
-          valueSchema: new Uint64Schema(),
+          valueSchema: new ArraySchema(new Uint64Schema()),
           required: false,
           omitEmpty: true,
         },
@@ -5189,32 +5238,30 @@ export class StateProofFields implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.partProofs) {
-      data.set('part-proofs', this.partProofs.toEncodingData());
-    }
-    if (this.positionsToReveal && this.positionsToReveal.length) {
-      data.set('positions-to-reveal', this.positionsToReveal);
-    }
-    if (this.reveals && this.reveals.length) {
-      data.set(
+    return new Map<string, unknown>([
+      [
+        'part-proofs',
+        typeof this.partProofs !== 'undefined'
+          ? this.partProofs.toEncodingData()
+          : undefined,
+      ],
+      ['positions-to-reveal', this.positionsToReveal],
+      [
         'reveals',
-        this.reveals.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.saltVersion) {
-      data.set('salt-version', this.saltVersion);
-    }
-    if (this.sigCommit) {
-      data.set('sig-commit', this.sigCommit);
-    }
-    if (this.sigProofs) {
-      data.set('sig-proofs', this.sigProofs.toEncodingData());
-    }
-    if (this.signedWeight) {
-      data.set('signed-weight', this.signedWeight);
-    }
-    return data;
+        typeof this.reveals !== 'undefined'
+          ? this.reveals.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['salt-version', this.saltVersion],
+      ['sig-commit', this.sigCommit],
+      [
+        'sig-proofs',
+        typeof this.sigProofs !== 'undefined'
+          ? this.sigProofs.toEncodingData()
+          : undefined,
+      ],
+      ['signed-weight', this.signedWeight],
+    ]);
   }
 
   static fromEncodingData(data: unknown): StateProofFields {
@@ -5299,14 +5346,15 @@ export class StateProofParticipant implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.verifier) {
-      data.set('verifier', this.verifier.toEncodingData());
-    }
-    if (this.weight) {
-      data.set('weight', this.weight);
-    }
-    return data;
+    return new Map<string, unknown>([
+      [
+        'verifier',
+        typeof this.verifier !== 'undefined'
+          ? this.verifier.toEncodingData()
+          : undefined,
+      ],
+      ['weight', this.weight],
+    ]);
   }
 
   static fromEncodingData(data: unknown): StateProofParticipant {
@@ -5397,17 +5445,21 @@ export class StateProofReveal implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.participant) {
-      data.set('participant', this.participant.toEncodingData());
-    }
-    if (this.position) {
-      data.set('position', this.position);
-    }
-    if (this.sigSlot) {
-      data.set('sig-slot', this.sigSlot.toEncodingData());
-    }
-    return data;
+    return new Map<string, unknown>([
+      [
+        'participant',
+        typeof this.participant !== 'undefined'
+          ? this.participant.toEncodingData()
+          : undefined,
+      ],
+      ['position', this.position],
+      [
+        'sig-slot',
+        typeof this.sigSlot !== 'undefined'
+          ? this.sigSlot.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): StateProofReveal {
@@ -5484,14 +5536,15 @@ export class StateProofSigSlot implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.lowerSigWeight) {
-      data.set('lower-sig-weight', this.lowerSigWeight);
-    }
-    if (this.signature) {
-      data.set('signature', this.signature.toEncodingData());
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['lower-sig-weight', this.lowerSigWeight],
+      [
+        'signature',
+        typeof this.signature !== 'undefined'
+          ? this.signature.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): StateProofSigSlot {
@@ -5594,20 +5647,17 @@ export class StateProofSignature implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.falconSignature) {
-      data.set('falcon-signature', this.falconSignature);
-    }
-    if (this.merkleArrayIndex) {
-      data.set('merkle-array-index', this.merkleArrayIndex);
-    }
-    if (this.proof) {
-      data.set('proof', this.proof.toEncodingData());
-    }
-    if (this.verifyingKey) {
-      data.set('verifying-key', this.verifyingKey);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['falcon-signature', this.falconSignature],
+      ['merkle-array-index', this.merkleArrayIndex],
+      [
+        'proof',
+        typeof this.proof !== 'undefined'
+          ? this.proof.toEncodingData()
+          : undefined,
+      ],
+      ['verifying-key', this.verifyingKey],
+    ]);
   }
 
   static fromEncodingData(data: unknown): StateProofSignature {
@@ -5724,20 +5774,12 @@ export class StateProofTracking implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.nextRound) {
-      data.set('next-round', this.nextRound);
-    }
-    if (this.onlineTotalWeight) {
-      data.set('online-total-weight', this.onlineTotalWeight);
-    }
-    if (this.type) {
-      data.set('type', this.type);
-    }
-    if (this.votersCommitment) {
-      data.set('voters-commitment', this.votersCommitment);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['next-round', this.nextRound],
+      ['online-total-weight', this.onlineTotalWeight],
+      ['type', this.type],
+      ['voters-commitment', this.votersCommitment],
+    ]);
   }
 
   static fromEncodingData(data: unknown): StateProofTracking {
@@ -5813,14 +5855,10 @@ export class StateProofVerifier implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.commitment) {
-      data.set('commitment', this.commitment);
-    }
-    if (this.keyLifetime) {
-      data.set('key-lifetime', this.keyLifetime);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['commitment', this.commitment],
+      ['key-lifetime', this.keyLifetime],
+    ]);
   }
 
   static fromEncodingData(data: unknown): StateProofVerifier {
@@ -5896,11 +5934,10 @@ export class StateSchema implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['num-byte-slice', this.numByteSlice],
       ['num-uint', this.numUint],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): StateSchema {
@@ -5964,11 +6001,10 @@ export class TealKeyValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['key', this.key],
       ['value', this.value.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): TealKeyValue {
@@ -6016,25 +6052,25 @@ export class TealValue implements Encodable {
   }
 
   /**
-   * (tb) bytes value.
+   * bytes value.
    */
   public bytes: string;
 
   /**
-   * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
+   * type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
   public type: number;
 
   /**
-   * (ui) uint value.
+   * uint value.
    */
   public uint: bigint;
 
   /**
    * Creates a new `TealValue` object.
-   * @param bytes - (tb) bytes value.
-   * @param type - (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
-   * @param uint - (ui) uint value.
+   * @param bytes - bytes value.
+   * @param type - type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
+   * @param uint - uint value.
    */
   constructor({
     bytes,
@@ -6056,12 +6092,11 @@ export class TealValue implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['bytes', this.bytes],
       ['type', this.type],
       ['uint', this.uint],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): TealValue {
@@ -6729,127 +6764,107 @@ export class Transaction implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['fee', this.fee],
       ['first-valid', this.firstValid],
       ['last-valid', this.lastValid],
       ['sender', this.sender],
-    ]);
-    if (this.applicationTransaction) {
-      data.set(
+      [
         'application-transaction',
-        this.applicationTransaction.toEncodingData()
-      );
-    }
-    if (this.assetConfigTransaction) {
-      data.set(
+        typeof this.applicationTransaction !== 'undefined'
+          ? this.applicationTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
         'asset-config-transaction',
-        this.assetConfigTransaction.toEncodingData()
-      );
-    }
-    if (this.assetFreezeTransaction) {
-      data.set(
+        typeof this.assetConfigTransaction !== 'undefined'
+          ? this.assetConfigTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
         'asset-freeze-transaction',
-        this.assetFreezeTransaction.toEncodingData()
-      );
-    }
-    if (this.assetTransferTransaction) {
-      data.set(
+        typeof this.assetFreezeTransaction !== 'undefined'
+          ? this.assetFreezeTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
         'asset-transfer-transaction',
-        this.assetTransferTransaction.toEncodingData()
-      );
-    }
-    if (this.authAddr) {
-      data.set('auth-addr', this.authAddr.toString());
-    }
-    if (this.closeRewards) {
-      data.set('close-rewards', this.closeRewards);
-    }
-    if (this.closingAmount) {
-      data.set('closing-amount', this.closingAmount);
-    }
-    if (this.confirmedRound) {
-      data.set('confirmed-round', this.confirmedRound);
-    }
-    if (this.createdApplicationIndex) {
-      data.set('created-application-index', this.createdApplicationIndex);
-    }
-    if (this.createdAssetIndex) {
-      data.set('created-asset-index', this.createdAssetIndex);
-    }
-    if (this.genesisHash) {
-      data.set('genesis-hash', this.genesisHash);
-    }
-    if (this.genesisId) {
-      data.set('genesis-id', this.genesisId);
-    }
-    if (this.globalStateDelta && this.globalStateDelta.length) {
-      data.set(
+        typeof this.assetTransferTransaction !== 'undefined'
+          ? this.assetTransferTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
+        'auth-addr',
+        typeof this.authAddr !== 'undefined'
+          ? this.authAddr.toString()
+          : undefined,
+      ],
+      ['close-rewards', this.closeRewards],
+      ['closing-amount', this.closingAmount],
+      ['confirmed-round', this.confirmedRound],
+      ['created-application-index', this.createdApplicationIndex],
+      ['created-asset-index', this.createdAssetIndex],
+      ['genesis-hash', this.genesisHash],
+      ['genesis-id', this.genesisId],
+      [
         'global-state-delta',
-        this.globalStateDelta.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.group) {
-      data.set('group', this.group);
-    }
-    if (this.id) {
-      data.set('id', this.id);
-    }
-    if (this.innerTxns && this.innerTxns.length) {
-      data.set(
+        typeof this.globalStateDelta !== 'undefined'
+          ? this.globalStateDelta.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['group', this.group],
+      ['id', this.id],
+      [
         'inner-txns',
-        this.innerTxns.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.intraRoundOffset) {
-      data.set('intra-round-offset', this.intraRoundOffset);
-    }
-    if (this.keyregTransaction) {
-      data.set('keyreg-transaction', this.keyregTransaction.toEncodingData());
-    }
-    if (this.lease) {
-      data.set('lease', this.lease);
-    }
-    if (this.localStateDelta && this.localStateDelta.length) {
-      data.set(
+        typeof this.innerTxns !== 'undefined'
+          ? this.innerTxns.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['intra-round-offset', this.intraRoundOffset],
+      [
+        'keyreg-transaction',
+        typeof this.keyregTransaction !== 'undefined'
+          ? this.keyregTransaction.toEncodingData()
+          : undefined,
+      ],
+      ['lease', this.lease],
+      [
         'local-state-delta',
-        this.localStateDelta.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.logs && this.logs.length) {
-      data.set('logs', this.logs);
-    }
-    if (this.note) {
-      data.set('note', this.note);
-    }
-    if (this.paymentTransaction) {
-      data.set('payment-transaction', this.paymentTransaction.toEncodingData());
-    }
-    if (this.receiverRewards) {
-      data.set('receiver-rewards', this.receiverRewards);
-    }
-    if (this.rekeyTo) {
-      data.set('rekey-to', this.rekeyTo.toString());
-    }
-    if (this.roundTime) {
-      data.set('round-time', this.roundTime);
-    }
-    if (this.senderRewards) {
-      data.set('sender-rewards', this.senderRewards);
-    }
-    if (this.signature) {
-      data.set('signature', this.signature.toEncodingData());
-    }
-    if (this.stateProofTransaction) {
-      data.set(
+        typeof this.localStateDelta !== 'undefined'
+          ? this.localStateDelta.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['logs', this.logs],
+      ['note', this.note],
+      [
+        'payment-transaction',
+        typeof this.paymentTransaction !== 'undefined'
+          ? this.paymentTransaction.toEncodingData()
+          : undefined,
+      ],
+      ['receiver-rewards', this.receiverRewards],
+      [
+        'rekey-to',
+        typeof this.rekeyTo !== 'undefined'
+          ? this.rekeyTo.toString()
+          : undefined,
+      ],
+      ['round-time', this.roundTime],
+      ['sender-rewards', this.senderRewards],
+      [
+        'signature',
+        typeof this.signature !== 'undefined'
+          ? this.signature.toEncodingData()
+          : undefined,
+      ],
+      [
         'state-proof-transaction',
-        this.stateProofTransaction.toEncodingData()
-      );
-    }
-    if (this.txType) {
-      data.set('tx-type', this.txType);
-    }
-    return data;
+        typeof this.stateProofTransaction !== 'undefined'
+          ? this.stateProofTransaction.toEncodingData()
+          : undefined,
+      ],
+      ['tx-type', this.txType],
+    ]);
   }
 
   static fromEncodingData(data: unknown): Transaction {
@@ -6962,7 +6977,7 @@ export class TransactionApplication implements Encodable {
         },
         {
           key: 'accounts',
-          valueSchema: new StringSchema(),
+          valueSchema: new ArraySchema(new StringSchema()),
           required: false,
           omitEmpty: true,
         },
@@ -7208,43 +7223,34 @@ export class TransactionApplication implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['application-id', this.applicationId],
-    ]);
-    if (this.accounts && this.accounts.length) {
-      data.set(
+      [
         'accounts',
-        this.accounts.map((addr) => addr.toString())
-      );
-    }
-    if (this.applicationArgs && this.applicationArgs.length) {
-      data.set('application-args', this.applicationArgs);
-    }
-    if (this.approvalProgram) {
-      data.set('approval-program', this.approvalProgram);
-    }
-    if (this.clearStateProgram) {
-      data.set('clear-state-program', this.clearStateProgram);
-    }
-    if (this.extraProgramPages) {
-      data.set('extra-program-pages', this.extraProgramPages);
-    }
-    if (this.foreignApps && this.foreignApps.length) {
-      data.set('foreign-apps', this.foreignApps);
-    }
-    if (this.foreignAssets && this.foreignAssets.length) {
-      data.set('foreign-assets', this.foreignAssets);
-    }
-    if (this.globalStateSchema) {
-      data.set('global-state-schema', this.globalStateSchema.toEncodingData());
-    }
-    if (this.localStateSchema) {
-      data.set('local-state-schema', this.localStateSchema.toEncodingData());
-    }
-    if (this.onCompletion) {
-      data.set('on-completion', this.onCompletion);
-    }
-    return data;
+        typeof this.accounts !== 'undefined'
+          ? this.accounts.map((addr) => addr.toString())
+          : undefined,
+      ],
+      ['application-args', this.applicationArgs],
+      ['approval-program', this.approvalProgram],
+      ['clear-state-program', this.clearStateProgram],
+      ['extra-program-pages', this.extraProgramPages],
+      ['foreign-apps', this.foreignApps],
+      ['foreign-assets', this.foreignAssets],
+      [
+        'global-state-schema',
+        typeof this.globalStateSchema !== 'undefined'
+          ? this.globalStateSchema.toEncodingData()
+          : undefined,
+      ],
+      [
+        'local-state-schema',
+        typeof this.localStateSchema !== 'undefined'
+          ? this.localStateSchema.toEncodingData()
+          : undefined,
+      ],
+      ['on-completion', this.onCompletion],
+    ]);
   }
 
   static fromEncodingData(data: unknown): TransactionApplication {
@@ -7343,14 +7349,15 @@ export class TransactionAssetConfig implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.assetId) {
-      data.set('asset-id', this.assetId);
-    }
-    if (this.params) {
-      data.set('params', this.params.toEncodingData());
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['asset-id', this.assetId],
+      [
+        'params',
+        typeof this.params !== 'undefined'
+          ? this.params.toEncodingData()
+          : undefined,
+      ],
+    ]);
   }
 
   static fromEncodingData(data: unknown): TransactionAssetConfig {
@@ -7443,12 +7450,11 @@ export class TransactionAssetFreeze implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['address', this.address],
       ['asset-id', this.assetId],
       ['new-freeze-status', this.newFreezeStatus],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): TransactionAssetFreeze {
@@ -7597,21 +7603,14 @@ export class TransactionAssetTransfer implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['amount', this.amount],
       ['asset-id', this.assetId],
       ['receiver', this.receiver],
+      ['close-amount', this.closeAmount],
+      ['close-to', this.closeTo],
+      ['sender', this.sender],
     ]);
-    if (this.closeAmount) {
-      data.set('close-amount', this.closeAmount);
-    }
-    if (this.closeTo) {
-      data.set('close-to', this.closeTo);
-    }
-    if (this.sender) {
-      data.set('sender', this.sender);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): TransactionAssetTransfer {
@@ -7785,29 +7784,15 @@ export class TransactionKeyreg implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.nonParticipation) {
-      data.set('non-participation', this.nonParticipation);
-    }
-    if (this.selectionParticipationKey) {
-      data.set('selection-participation-key', this.selectionParticipationKey);
-    }
-    if (this.stateProofKey) {
-      data.set('state-proof-key', this.stateProofKey);
-    }
-    if (this.voteFirstValid) {
-      data.set('vote-first-valid', this.voteFirstValid);
-    }
-    if (this.voteKeyDilution) {
-      data.set('vote-key-dilution', this.voteKeyDilution);
-    }
-    if (this.voteLastValid) {
-      data.set('vote-last-valid', this.voteLastValid);
-    }
-    if (this.voteParticipationKey) {
-      data.set('vote-participation-key', this.voteParticipationKey);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['non-participation', this.nonParticipation],
+      ['selection-participation-key', this.selectionParticipationKey],
+      ['state-proof-key', this.stateProofKey],
+      ['vote-first-valid', this.voteFirstValid],
+      ['vote-key-dilution', this.voteKeyDilution],
+      ['vote-last-valid', this.voteLastValid],
+      ['vote-participation-key', this.voteParticipationKey],
+    ]);
   }
 
   static fromEncodingData(data: unknown): TransactionKeyreg {
@@ -7924,17 +7909,12 @@ export class TransactionPayment implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['amount', this.amount],
       ['receiver', this.receiver],
+      ['close-amount', this.closeAmount],
+      ['close-remainder-to', this.closeRemainderTo],
     ]);
-    if (this.closeAmount) {
-      data.set('close-amount', this.closeAmount);
-    }
-    if (this.closeRemainderTo) {
-      data.set('close-remainder-to', this.closeRemainderTo);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): TransactionPayment {
@@ -8017,11 +7997,10 @@ export class TransactionResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['current-round', this.currentRound],
       ['transaction', this.transaction.toEncodingData()],
     ]);
-    return data;
   }
 
   static fromEncodingData(data: unknown): TransactionResponse {
@@ -8118,17 +8097,21 @@ export class TransactionSignature implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.logicsig) {
-      data.set('logicsig', this.logicsig.toEncodingData());
-    }
-    if (this.multisig) {
-      data.set('multisig', this.multisig.toEncodingData());
-    }
-    if (this.sig) {
-      data.set('sig', this.sig);
-    }
-    return data;
+    return new Map<string, unknown>([
+      [
+        'logicsig',
+        typeof this.logicsig !== 'undefined'
+          ? this.logicsig.toEncodingData()
+          : undefined,
+      ],
+      [
+        'multisig',
+        typeof this.multisig !== 'undefined'
+          ? this.multisig.toEncodingData()
+          : undefined,
+      ],
+      ['sig', this.sig],
+    ]);
   }
 
   static fromEncodingData(data: unknown): TransactionSignature {
@@ -8247,17 +8230,17 @@ export class TransactionSignatureLogicsig implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([['logic', this.logic]]);
-    if (this.args && this.args.length) {
-      data.set('args', this.args);
-    }
-    if (this.multisigSignature) {
-      data.set('multisig-signature', this.multisigSignature.toEncodingData());
-    }
-    if (this.signature) {
-      data.set('signature', this.signature);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['logic', this.logic],
+      ['args', this.args],
+      [
+        'multisig-signature',
+        typeof this.multisigSignature !== 'undefined'
+          ? this.multisigSignature.toEncodingData()
+          : undefined,
+      ],
+      ['signature', this.signature],
+    ]);
   }
 
   static fromEncodingData(data: unknown): TransactionSignatureLogicsig {
@@ -8360,20 +8343,16 @@ export class TransactionSignatureMultisig implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.subsignature && this.subsignature.length) {
-      data.set(
+    return new Map<string, unknown>([
+      [
         'subsignature',
-        this.subsignature.map((v) => v.toEncodingData())
-      );
-    }
-    if (this.threshold) {
-      data.set('threshold', this.threshold);
-    }
-    if (this.version) {
-      data.set('version', this.version);
-    }
-    return data;
+        typeof this.subsignature !== 'undefined'
+          ? this.subsignature.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['threshold', this.threshold],
+      ['version', this.version],
+    ]);
   }
 
   static fromEncodingData(data: unknown): TransactionSignatureMultisig {
@@ -8451,14 +8430,10 @@ export class TransactionSignatureMultisigSubsignature implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.publicKey) {
-      data.set('public-key', this.publicKey);
-    }
-    if (this.signature) {
-      data.set('signature', this.signature);
-    }
-    return data;
+    return new Map<string, unknown>([
+      ['public-key', this.publicKey],
+      ['signature', this.signature],
+    ]);
   }
 
   static fromEncodingData(
@@ -8559,17 +8534,21 @@ export class TransactionStateProof implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([]);
-    if (this.message) {
-      data.set('message', this.message.toEncodingData());
-    }
-    if (this.stateProof) {
-      data.set('state-proof', this.stateProof.toEncodingData());
-    }
-    if (this.stateProofType) {
-      data.set('state-proof-type', this.stateProofType);
-    }
-    return data;
+    return new Map<string, unknown>([
+      [
+        'message',
+        typeof this.message !== 'undefined'
+          ? this.message.toEncodingData()
+          : undefined,
+      ],
+      [
+        'state-proof',
+        typeof this.stateProof !== 'undefined'
+          ? this.stateProof.toEncodingData()
+          : undefined,
+      ],
+      ['state-proof-type', this.stateProofType],
+    ]);
   }
 
   static fromEncodingData(data: unknown): TransactionStateProof {
@@ -8663,14 +8642,11 @@ export class TransactionsResponse implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['current-round', this.currentRound],
       ['transactions', this.transactions.map((v) => v.toEncodingData())],
+      ['next-token', this.nextToken],
     ]);
-    if (this.nextToken) {
-      data.set('next-token', this.nextToken);
-    }
-    return data;
   }
 
   static fromEncodingData(data: unknown): TransactionsResponse {
