@@ -1,3 +1,4 @@
+/** [ARC-28](https://arc.algorand.foundation/ARCs/arc-0028) event description */
 export interface ARC28Event {
   /** The name of the event */
   name: string;
