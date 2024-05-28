@@ -659,7 +659,7 @@ export class Account implements Encodable {
         typeof data.get('apps-local-state') !== 'undefined'
           ? data
               .get('apps-local-state')
-              .map(ApplicationLocalState.fromEncodingData)
+              .map((v: unknown) => ApplicationLocalState.fromEncodingData(v))
           : undefined,
       appsTotalExtraPages: data.get('apps-total-extra-pages'),
       appsTotalSchema:
@@ -670,17 +670,23 @@ export class Account implements Encodable {
           : undefined,
       assets:
         typeof data.get('assets') !== 'undefined'
-          ? data.get('assets').map(AssetHolding.fromEncodingData)
+          ? data
+              .get('assets')
+              .map((v: unknown) => AssetHolding.fromEncodingData(v))
           : undefined,
       authAddr: data.get('auth-addr'),
       closedAtRound: data.get('closed-at-round'),
       createdApps:
         typeof data.get('created-apps') !== 'undefined'
-          ? data.get('created-apps').map(Application.fromEncodingData)
+          ? data
+              .get('created-apps')
+              .map((v: unknown) => Application.fromEncodingData(v))
           : undefined,
       createdAssets:
         typeof data.get('created-assets') !== 'undefined'
-          ? data.get('created-assets').map(Asset.fromEncodingData)
+          ? data
+              .get('created-assets')
+              .map((v: unknown) => Asset.fromEncodingData(v))
           : undefined,
       createdAtRound: data.get('created-at-round'),
       deleted: data.get('deleted'),
@@ -925,7 +931,7 @@ export class AccountResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AccountResponse({
-      account: Account.fromEncodingData(data.get('account') ?? {}),
+      account: Account.fromEncodingData(data.get('account') ?? new Map()),
       currentRound: data.get('current-round'),
     });
   }
@@ -999,7 +1005,9 @@ export class AccountStateDelta implements Encodable {
     }
     return new AccountStateDelta({
       address: data.get('address'),
-      delta: (data.get('delta') ?? []).map(EvalDeltaKeyValue.fromEncodingData),
+      delta: (data.get('delta') ?? []).map((v: unknown) =>
+        EvalDeltaKeyValue.fromEncodingData(v)
+      ),
     });
   }
 }
@@ -1089,7 +1097,9 @@ export class AccountsResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AccountsResponse({
-      accounts: (data.get('accounts') ?? []).map(Account.fromEncodingData),
+      accounts: (data.get('accounts') ?? []).map((v: unknown) =>
+        Account.fromEncodingData(v)
+      ),
       currentRound: data.get('current-round'),
       nextToken: data.get('next-token'),
     });
@@ -1221,7 +1231,9 @@ export class Application implements Encodable {
     }
     return new Application({
       id: data.get('id'),
-      params: ApplicationParams.fromEncodingData(data.get('params') ?? {}),
+      params: ApplicationParams.fromEncodingData(
+        data.get('params') ?? new Map()
+      ),
       createdAtRound: data.get('created-at-round'),
       deleted: data.get('deleted'),
       deletedAtRound: data.get('deleted-at-round'),
@@ -1377,12 +1389,16 @@ export class ApplicationLocalState implements Encodable {
     }
     return new ApplicationLocalState({
       id: data.get('id'),
-      schema: ApplicationStateSchema.fromEncodingData(data.get('schema') ?? {}),
+      schema: ApplicationStateSchema.fromEncodingData(
+        data.get('schema') ?? new Map()
+      ),
       closedOutAtRound: data.get('closed-out-at-round'),
       deleted: data.get('deleted'),
       keyValue:
         typeof data.get('key-value') !== 'undefined'
-          ? data.get('key-value').map(TealKeyValue.fromEncodingData)
+          ? data
+              .get('key-value')
+              .map((v: unknown) => TealKeyValue.fromEncodingData(v))
           : undefined,
       optedInAtRound: data.get('opted-in-at-round'),
     });
@@ -1477,8 +1493,8 @@ export class ApplicationLocalStatesResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new ApplicationLocalStatesResponse({
-      appsLocalStates: (data.get('apps-local-states') ?? []).map(
-        ApplicationLocalState.fromEncodingData
+      appsLocalStates: (data.get('apps-local-states') ?? []).map((v: unknown) =>
+        ApplicationLocalState.fromEncodingData(v)
       ),
       currentRound: data.get('current-round'),
       nextToken: data.get('next-token'),
@@ -1666,7 +1682,9 @@ export class ApplicationLogsResponse implements Encodable {
       currentRound: data.get('current-round'),
       logData:
         typeof data.get('log-data') !== 'undefined'
-          ? data.get('log-data').map(ApplicationLogData.fromEncodingData)
+          ? data
+              .get('log-data')
+              .map((v: unknown) => ApplicationLogData.fromEncodingData(v))
           : undefined,
       nextToken: data.get('next-token'),
     });
@@ -1861,7 +1879,9 @@ export class ApplicationParams implements Encodable {
       extraProgramPages: data.get('extra-program-pages'),
       globalState:
         typeof data.get('global-state') !== 'undefined'
-          ? data.get('global-state').map(TealKeyValue.fromEncodingData)
+          ? data
+              .get('global-state')
+              .map((v: unknown) => TealKeyValue.fromEncodingData(v))
           : undefined,
       globalStateSchema:
         typeof data.get('global-state-schema') !== 'undefined'
@@ -2124,8 +2144,8 @@ export class ApplicationsResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new ApplicationsResponse({
-      applications: (data.get('applications') ?? []).map(
-        Application.fromEncodingData
+      applications: (data.get('applications') ?? []).map((v: unknown) =>
+        Application.fromEncodingData(v)
       ),
       currentRound: data.get('current-round'),
       nextToken: data.get('next-token'),
@@ -2264,7 +2284,7 @@ export class Asset implements Encodable {
     }
     return new Asset({
       index: data.get('index'),
-      params: AssetParams.fromEncodingData(data.get('params') ?? {}),
+      params: AssetParams.fromEncodingData(data.get('params') ?? new Map()),
       createdAtRound: data.get('created-at-round'),
       deleted: data.get('deleted'),
       destroyedAtRound: data.get('destroyed-at-round'),
@@ -2357,8 +2377,8 @@ export class AssetBalancesResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AssetBalancesResponse({
-      balances: (data.get('balances') ?? []).map(
-        MiniAssetHolding.fromEncodingData
+      balances: (data.get('balances') ?? []).map((v: unknown) =>
+        MiniAssetHolding.fromEncodingData(v)
       ),
       currentRound: data.get('current-round'),
       nextToken: data.get('next-token'),
@@ -2603,7 +2623,9 @@ export class AssetHoldingsResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AssetHoldingsResponse({
-      assets: (data.get('assets') ?? []).map(AssetHolding.fromEncodingData),
+      assets: (data.get('assets') ?? []).map((v: unknown) =>
+        AssetHolding.fromEncodingData(v)
+      ),
       currentRound: data.get('current-round'),
       nextToken: data.get('next-token'),
     });
@@ -3009,7 +3031,7 @@ export class AssetResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AssetResponse({
-      asset: Asset.fromEncodingData(data.get('asset') ?? {}),
+      asset: Asset.fromEncodingData(data.get('asset') ?? new Map()),
       currentRound: data.get('current-round'),
     });
   }
@@ -3100,7 +3122,9 @@ export class AssetsResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new AssetsResponse({
-      assets: (data.get('assets') ?? []).map(Asset.fromEncodingData),
+      assets: (data.get('assets') ?? []).map((v: unknown) =>
+        Asset.fromEncodingData(v)
+      ),
       currentRound: data.get('current-round'),
       nextToken: data.get('next-token'),
     });
@@ -3559,11 +3583,13 @@ export class Block implements Encodable {
         typeof data.get('state-proof-tracking') !== 'undefined'
           ? data
               .get('state-proof-tracking')
-              .map(StateProofTracking.fromEncodingData)
+              .map((v: unknown) => StateProofTracking.fromEncodingData(v))
           : undefined,
       transactions:
         typeof data.get('transactions') !== 'undefined'
-          ? data.get('transactions').map(Transaction.fromEncodingData)
+          ? data
+              .get('transactions')
+              .map((v: unknown) => Transaction.fromEncodingData(v))
           : undefined,
       txnCounter: data.get('txn-counter'),
       upgradeState:
@@ -4196,7 +4222,9 @@ export class BoxesResponse implements Encodable {
     }
     return new BoxesResponse({
       applicationId: data.get('application-id'),
-      boxes: (data.get('boxes') ?? []).map(BoxDescriptor.fromEncodingData),
+      boxes: (data.get('boxes') ?? []).map((v: unknown) =>
+        BoxDescriptor.fromEncodingData(v)
+      ),
       nextToken: data.get('next-token'),
     });
   }
@@ -4429,7 +4457,7 @@ export class EvalDeltaKeyValue implements Encodable {
     }
     return new EvalDeltaKeyValue({
       key: data.get('key'),
-      value: EvalDelta.fromEncodingData(data.get('value') ?? {}),
+      value: EvalDelta.fromEncodingData(data.get('value') ?? new Map()),
     });
   }
 }
@@ -5276,7 +5304,9 @@ export class StateProofFields implements Encodable {
       positionsToReveal: data.get('positions-to-reveal'),
       reveals:
         typeof data.get('reveals') !== 'undefined'
-          ? data.get('reveals').map(StateProofReveal.fromEncodingData)
+          ? data
+              .get('reveals')
+              .map((v: unknown) => StateProofReveal.fromEncodingData(v))
           : undefined,
       saltVersion: data.get('salt-version'),
       sigCommit: data.get('sig-commit'),
@@ -6013,7 +6043,7 @@ export class TealKeyValue implements Encodable {
     }
     return new TealKeyValue({
       key: data.get('key'),
-      value: TealValue.fromEncodingData(data.get('value') ?? {}),
+      value: TealValue.fromEncodingData(data.get('value') ?? new Map()),
     });
   }
 }
@@ -6912,13 +6942,15 @@ export class Transaction implements Encodable {
         typeof data.get('global-state-delta') !== 'undefined'
           ? data
               .get('global-state-delta')
-              .map(EvalDeltaKeyValue.fromEncodingData)
+              .map((v: unknown) => EvalDeltaKeyValue.fromEncodingData(v))
           : undefined,
       group: data.get('group'),
       id: data.get('id'),
       innerTxns:
         typeof data.get('inner-txns') !== 'undefined'
-          ? data.get('inner-txns').map(Transaction.fromEncodingData)
+          ? data
+              .get('inner-txns')
+              .map((v: unknown) => Transaction.fromEncodingData(v))
           : undefined,
       intraRoundOffset: data.get('intra-round-offset'),
       keyregTransaction:
@@ -6930,7 +6962,7 @@ export class Transaction implements Encodable {
         typeof data.get('local-state-delta') !== 'undefined'
           ? data
               .get('local-state-delta')
-              .map(AccountStateDelta.fromEncodingData)
+              .map((v: unknown) => AccountStateDelta.fromEncodingData(v))
           : undefined,
       logs: data.get('logs'),
       note: data.get('note'),
@@ -7228,7 +7260,7 @@ export class TransactionApplication implements Encodable {
       [
         'accounts',
         typeof this.accounts !== 'undefined'
-          ? this.accounts.map((addr) => addr.toString())
+          ? this.accounts.map((v) => v.toString())
           : undefined,
       ],
       ['application-args', this.applicationArgs],
@@ -8009,7 +8041,9 @@ export class TransactionResponse implements Encodable {
     }
     return new TransactionResponse({
       currentRound: data.get('current-round'),
-      transaction: Transaction.fromEncodingData(data.get('transaction') ?? {}),
+      transaction: Transaction.fromEncodingData(
+        data.get('transaction') ?? new Map()
+      ),
     });
   }
 }
@@ -8364,7 +8398,9 @@ export class TransactionSignatureMultisig implements Encodable {
         typeof data.get('subsignature') !== 'undefined'
           ? data
               .get('subsignature')
-              .map(TransactionSignatureMultisigSubsignature.fromEncodingData)
+              .map((v: unknown) =>
+                TransactionSignatureMultisigSubsignature.fromEncodingData(v)
+              )
           : undefined,
       threshold: data.get('threshold'),
       version: data.get('version'),
@@ -8655,8 +8691,8 @@ export class TransactionsResponse implements Encodable {
     }
     return new TransactionsResponse({
       currentRound: data.get('current-round'),
-      transactions: (data.get('transactions') ?? []).map(
-        Transaction.fromEncodingData
+      transactions: (data.get('transactions') ?? []).map((v: unknown) =>
+        Transaction.fromEncodingData(v)
       ),
       nextToken: data.get('next-token'),
     });
