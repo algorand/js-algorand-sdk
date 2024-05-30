@@ -17,6 +17,7 @@ import {
   ArraySchema,
   NamedMapSchema,
   UntypedSchema,
+  OptionalSchema,
 } from '../src/encoding/schema/index.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =
@@ -909,6 +910,13 @@ describe('encoding', () => {
           // Roundtrip will convert Uint8Array to base64 strings
           expectedValuesFromPreparedJson: ['', 'AQID'],
         },
+        {
+          name: 'OptionalSchema of BooleanSchema',
+          schema: new OptionalSchema(new BooleanSchema()),
+          values: [undefined, true, false],
+          preparedMsgpackValues: [undefined, true, false],
+          preparedJsonValues: [null, true, false],
+        },
       ];
 
       const primitiveTestcases = testcases.slice();
@@ -962,8 +970,7 @@ describe('encoding', () => {
             {
               key: 'key',
               valueSchema: testcase.schema,
-              // Testing with required=true and omitEmpty=false for simplicity
-              required: true,
+              // Testing with omitEmpty=false for simplicity
               omitEmpty: false,
             },
           ]),
@@ -1036,6 +1043,7 @@ describe('encoding', () => {
         const testValues: Array<{
           schema: Schema;
           emptyValue: unknown;
+          emptyValueRestored?: unknown;
           nonemptyValue: unknown;
         }> = [
           {
@@ -1085,26 +1093,57 @@ describe('encoding', () => {
               {
                 key: 'key',
                 valueSchema: new BooleanSchema(),
-                omitEmpty: false,
-                required: false,
-              },
-            ]),
-            emptyValue: new Map(),
-            nonemptyValue: new Map([['key', false]]),
-          },
-          {
-            schema: new NamedMapSchema([
-              {
-                key: 'key',
-                valueSchema: new BooleanSchema(),
                 omitEmpty: true,
-                required: true,
               },
             ]),
             emptyValue: new Map([['key', false]]),
             nonemptyValue: new Map([['key', true]]),
           },
+          {
+            schema: new NamedMapSchema([
+              {
+                key: 'key',
+                valueSchema: new OptionalSchema(new BooleanSchema()),
+                omitEmpty: true,
+              },
+            ]),
+            emptyValue: new Map([['key', undefined]]),
+            nonemptyValue: new Map([['key', true]]),
+          },
+          {
+            schema: new NamedMapSchema([
+              {
+                key: 'key',
+                valueSchema: new OptionalSchema(new BooleanSchema()),
+                omitEmpty: true,
+              },
+            ]),
+            // Same case as previous, expect testing that 'false' is also an empty value for the key
+            emptyValue: new Map([['key', false]]),
+            // false gets restored as undefined
+            emptyValueRestored: new Map([['key', undefined]]),
+            nonemptyValue: new Map([['key', true]]),
+          },
         ];
+
+        for (const testValue of testValues.slice()) {
+          testValues.push(
+            {
+              schema: new OptionalSchema(testValue.schema),
+              emptyValue: undefined,
+              nonemptyValue: testValue.nonemptyValue,
+            },
+            {
+              schema: new OptionalSchema(testValue.schema),
+              // Same case as previous, expect testing that the regular empty value is also an empty
+              // value for the optional schema
+              emptyValue: testValue.emptyValue,
+              // The empty value gets restored as undefined
+              emptyValueRestored: undefined,
+              nonemptyValue: testValue.nonemptyValue,
+            }
+          );
+        }
 
         const schema = new NamedMapSchema(
           testValues.map((testValue, index) => ({
@@ -1121,6 +1160,18 @@ describe('encoding', () => {
             testValue.emptyValue,
           ])
         );
+        const allEmptyValuesRestored = new Map(
+          testValues.map((testValue, index) => [
+            index.toString(),
+            // Cannot just check if emptyValueRestored is not undefined, since undefined is a valid value
+            Object.prototype.hasOwnProperty.call(
+              testValue,
+              'emptyValueRestored'
+            )
+              ? testValue.emptyValueRestored
+              : testValue.emptyValue,
+          ])
+        );
 
         let prepareMsgpackResult = schema.prepareMsgpack(allEmptyValues);
         // All empty values should be omitted
@@ -1128,14 +1179,17 @@ describe('encoding', () => {
         let fromPreparedMsgpackResult =
           schema.fromPreparedMsgpack(prepareMsgpackResult);
         // Omitted values should be restored with their default/empty values
-        assert.deepStrictEqual(fromPreparedMsgpackResult, allEmptyValues);
+        assert.deepStrictEqual(
+          fromPreparedMsgpackResult,
+          allEmptyValuesRestored
+        );
 
         let prepareJsonResult = schema.prepareJSON(allEmptyValues);
         // All empty values should be omitted
         assert.deepStrictEqual(prepareJsonResult, {});
         let fromPreparedJsonResult = schema.fromPreparedJSON(prepareJsonResult);
         // Omitted values should be restored with their default/empty values
-        assert.deepStrictEqual(fromPreparedJsonResult, allEmptyValues);
+        assert.deepStrictEqual(fromPreparedJsonResult, allEmptyValuesRestored);
 
         const allNonemptyValues = new Map(
           testValues.map((testValue, index) => [
@@ -1162,6 +1216,149 @@ describe('encoding', () => {
         fromPreparedJsonResult = schema.fromPreparedJSON(prepareJsonResult);
         // Omitted values should be restored with their default/empty values
         assert.deepStrictEqual(fromPreparedJsonResult, allNonemptyValues);
+      });
+
+      it('ignores unknown keys', () => {
+        const schema = new NamedMapSchema([
+          {
+            key: 'a',
+            omitEmpty: true,
+            valueSchema: new StringSchema(),
+          },
+          {
+            key: 'b',
+            omitEmpty: true,
+            valueSchema: new StringSchema(),
+          },
+        ]);
+
+        assert.deepStrictEqual(
+          schema.prepareMsgpack(
+            new Map([
+              ['a', ''],
+              ['b', ''],
+              ['c', ''],
+            ])
+          ),
+          new Map()
+        );
+        assert.deepStrictEqual(
+          schema.prepareJSON(
+            new Map([
+              ['a', ''],
+              ['b', ''],
+              ['c', ''],
+            ])
+          ),
+          {}
+        );
+
+        assert.deepStrictEqual(
+          schema.prepareMsgpack(
+            new Map([
+              ['a', '1'],
+              ['b', '2'],
+              ['c', '3'],
+            ])
+          ),
+          new Map([
+            ['a', '1'],
+            ['b', '2'],
+          ])
+        );
+        assert.deepStrictEqual(
+          schema.prepareJSON(
+            new Map([
+              ['a', '1'],
+              ['b', '2'],
+              ['c', '3'],
+            ])
+          ),
+          {
+            a: '1',
+            b: '2',
+          }
+        );
+
+        const mapSchemaOfMap = new NamedMapSchema([
+          {
+            key: 'map',
+            omitEmpty: true,
+            valueSchema: schema,
+          },
+        ]);
+
+        assert.deepStrictEqual(
+          mapSchemaOfMap.prepareMsgpack(
+            new Map([
+              [
+                'map',
+                new Map([
+                  ['a', ''],
+                  ['b', ''],
+                  ['c', ''],
+                ]),
+              ],
+            ])
+          ),
+          new Map()
+        );
+        assert.deepStrictEqual(
+          mapSchemaOfMap.prepareJSON(
+            new Map([
+              [
+                'map',
+                new Map([
+                  ['a', ''],
+                  ['b', ''],
+                  ['c', ''],
+                ]),
+              ],
+            ])
+          ),
+          {}
+        );
+
+        assert.deepStrictEqual(
+          mapSchemaOfMap.prepareMsgpack(
+            new Map([
+              [
+                'map',
+                new Map([
+                  ['a', '1'],
+                  ['b', '2'],
+                  ['c', '3'],
+                ]),
+              ],
+            ])
+          ),
+          new Map([
+            [
+              'map',
+              new Map([
+                ['a', '1'],
+                ['b', '2'],
+              ]),
+            ],
+          ])
+        );
+        assert.deepStrictEqual(
+          mapSchemaOfMap.prepareJSON(
+            new Map([
+              [
+                'map',
+                new Map([
+                  ['a', '1'],
+                  ['b', '2'],
+                  ['c', '3'],
+                ]),
+              ],
+            ])
+          ),
+          {
+            map: { a: '1', b: '2' },
+          }
+        );
       });
     });
   });

@@ -6,6 +6,8 @@ import {
   ArraySchema,
   ByteArraySchema,
   FixedLengthByteArraySchema,
+  OptionalSchema,
+  allOmitEmpty,
 } from './encoding/schema/index.js';
 import {
   MultisigMetadata,
@@ -65,32 +67,26 @@ const programTag = new TextEncoder().encode('Program');
  LogicSig cannot sign transactions in all cases.  Instead, use LogicSigAccount as a safe, general purpose signing mechanism.  Since LogicSig does not track the provided signature's public key, LogicSig cannot sign transactions when delegated to a non-multisig account _and_ the sender is not the delegating account.
  */
 export class LogicSig implements encoding.Encodable {
-  static encodingSchema = new NamedMapSchema([
-    {
-      key: 'l',
-      valueSchema: new ByteArraySchema(),
-      required: true,
-      omitEmpty: true,
-    },
-    {
-      key: 'arg',
-      valueSchema: new ArraySchema(new ByteArraySchema()),
-      required: true,
-      omitEmpty: true,
-    },
-    {
-      key: 'sig',
-      valueSchema: new FixedLengthByteArraySchema(64),
-      required: false,
-      omitEmpty: true,
-    },
-    {
-      key: 'msig',
-      valueSchema: ENCODED_MULTISIG_SCHEMA,
-      required: false,
-      omitEmpty: true,
-    },
-  ]);
+  static encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'l',
+        valueSchema: new ByteArraySchema(),
+      },
+      {
+        key: 'arg',
+        valueSchema: new ArraySchema(new ByteArraySchema()),
+      },
+      {
+        key: 'sig',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(64)),
+      },
+      {
+        key: 'msig',
+        valueSchema: new OptionalSchema(ENCODED_MULTISIG_SCHEMA),
+      },
+    ])
+  );
 
   logic: Uint8Array;
   args: Uint8Array[];
@@ -259,20 +255,18 @@ export class LogicSig implements encoding.Encodable {
  * Represents an account that can sign with a LogicSig program.
  */
 export class LogicSigAccount implements encoding.Encodable {
-  static encodingSchema = new NamedMapSchema([
-    {
-      key: 'lsig',
-      valueSchema: LogicSig.encodingSchema,
-      required: true,
-      omitEmpty: true,
-    },
-    {
-      key: 'sigkey',
-      valueSchema: new FixedLengthByteArraySchema(32),
-      required: false,
-      omitEmpty: true,
-    },
-  ]);
+  static encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'lsig',
+        valueSchema: LogicSig.encodingSchema,
+      },
+      {
+        key: 'sigkey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+    ])
+  );
 
   lsig: LogicSig;
   sigkey?: Uint8Array;

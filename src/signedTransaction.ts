@@ -15,42 +15,36 @@ import {
 import {
   AddressSchema,
   FixedLengthByteArraySchema,
+  OptionalSchema,
   NamedMapSchema,
+  allOmitEmpty,
 } from './encoding/schema/index.js';
 
 export class SignedTransaction implements Encodable {
-  static encodingSchema = new NamedMapSchema([
-    {
-      key: 'txn',
-      valueSchema: Transaction.encodingSchema,
-      required: true,
-      omitEmpty: true,
-    },
-    {
-      key: 'sig',
-      valueSchema: new FixedLengthByteArraySchema(64),
-      required: false,
-      omitEmpty: true,
-    },
-    {
-      key: 'msig',
-      valueSchema: ENCODED_MULTISIG_SCHEMA,
-      required: false,
-      omitEmpty: true,
-    },
-    {
-      key: 'lsig',
-      valueSchema: LogicSig.encodingSchema,
-      required: false,
-      omitEmpty: true,
-    },
-    {
-      key: 'sgnr',
-      valueSchema: new AddressSchema(),
-      required: false,
-      omitEmpty: true,
-    },
-  ]);
+  static encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'txn',
+        valueSchema: Transaction.encodingSchema,
+      },
+      {
+        key: 'sig',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(64)),
+      },
+      {
+        key: 'msig',
+        valueSchema: new OptionalSchema(ENCODED_MULTISIG_SCHEMA),
+      },
+      {
+        key: 'lsig',
+        valueSchema: new OptionalSchema(LogicSig.encodingSchema),
+      },
+      {
+        key: 'sgnr',
+        valueSchema: new OptionalSchema(new AddressSchema()),
+      },
+    ])
+  );
 
   /**
    * The transaction that was signed
@@ -113,18 +107,16 @@ export class SignedTransaction implements Encodable {
   }
 
   public toEncodingData(): Map<string, unknown> {
-    const data = new Map<string, unknown>([
+    return new Map<string, unknown>([
       ['txn', this.txn.toEncodingData()],
       ['sig', this.sig],
+      [
+        'msig',
+        this.msig ? encodedMultiSigToEncodingData(this.msig) : undefined,
+      ],
+      ['lsig', this.lsig ? this.lsig.toEncodingData() : undefined],
       ['sgnr', this.sgnr],
     ]);
-    if (this.msig) {
-      data.set('msig', encodedMultiSigToEncodingData(this.msig));
-    }
-    if (this.lsig) {
-      data.set('lsig', this.lsig.toEncodingData());
-    }
-    return data;
   }
 
   public static fromEncodingData(data: unknown): SignedTransaction {

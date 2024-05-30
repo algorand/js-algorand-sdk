@@ -3,6 +3,8 @@ import {
   FixedLengthByteArraySchema,
   Uint64Schema,
   ArraySchema,
+  OptionalSchema,
+  allOmitEmpty,
 } from '../../encoding/schema/index.js';
 import { ensureSafeUnsignedInteger } from '../../utils/utils.js';
 
@@ -18,20 +20,18 @@ export interface EncodedSubsig {
   s?: Uint8Array;
 }
 
-export const ENCODED_SUBSIG_SCHEMA = new NamedMapSchema([
-  {
-    key: 'pk',
-    valueSchema: new FixedLengthByteArraySchema(32),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 's',
-    valueSchema: new FixedLengthByteArraySchema(64),
-    required: false,
-    omitEmpty: true,
-  },
-]);
+export const ENCODED_SUBSIG_SCHEMA = new NamedMapSchema(
+  allOmitEmpty([
+    {
+      key: 'pk',
+      valueSchema: new FixedLengthByteArraySchema(32),
+    },
+    {
+      key: 's',
+      valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(64)),
+    },
+  ])
+);
 
 export function encodedSubsigFromEncodingData(data: unknown): EncodedSubsig {
   if (!(data instanceof Map)) {
@@ -77,26 +77,22 @@ export interface EncodedMultisig {
   subsig: EncodedSubsig[];
 }
 
-export const ENCODED_MULTISIG_SCHEMA = new NamedMapSchema([
-  {
-    key: 'v',
-    valueSchema: new Uint64Schema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'thr',
-    valueSchema: new Uint64Schema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'subsig',
-    valueSchema: new ArraySchema(ENCODED_SUBSIG_SCHEMA),
-    required: true,
-    omitEmpty: true,
-  },
-]);
+export const ENCODED_MULTISIG_SCHEMA = new NamedMapSchema(
+  allOmitEmpty([
+    {
+      key: 'v',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'thr',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'subsig',
+      valueSchema: new ArraySchema(ENCODED_SUBSIG_SCHEMA),
+    },
+  ])
+);
 
 export function encodedMultiSigFromEncodingData(
   data: unknown

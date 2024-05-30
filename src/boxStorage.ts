@@ -28,8 +28,8 @@ function boxReferenceToEncodingData(
 }
 
 /**
- * translateBoxReferences translates an array of BoxReferences with app IDs
- * into an array of EncodedBoxReferences with foreign indices.
+ * boxReferencesToEncodingData translates an array of BoxReferences into an array of encoding data
+ * maps.
  */
 export function boxReferencesToEncodingData(
   references: ReadonlyArray<BoxReference>,

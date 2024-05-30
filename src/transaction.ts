@@ -11,6 +11,8 @@ import {
   ArraySchema,
   NamedMapSchema,
   BooleanSchema,
+  OptionalSchema,
+  allOmitEmpty,
 } from './encoding/schema/index.js';
 import * as nacl from './nacl/naclWrappers.js';
 import {
@@ -250,149 +252,189 @@ export interface StateProofTransactionFields {
  * */
 export class Transaction implements encoding.Encodable {
   static encodingSchema = new NamedMapSchema(
-    [
+    allOmitEmpty([
       // Common
-      { key: 'type', valueSchema: new StringSchema(), required: true },
-      { key: 'snd', valueSchema: new AddressSchema(), required: true },
-      { key: 'lv', valueSchema: new Uint64Schema(), required: true },
-      { key: 'gen', valueSchema: new StringSchema() },
-      { key: 'gh', valueSchema: new FixedLengthByteArraySchema(32) },
-      { key: 'fee', valueSchema: new Uint64Schema(), required: true },
-      { key: 'fv', valueSchema: new Uint64Schema(), required: true },
+      { key: 'type', valueSchema: new StringSchema() },
+      { key: 'snd', valueSchema: new AddressSchema() },
+      { key: 'lv', valueSchema: new Uint64Schema() },
+      { key: 'gen', valueSchema: new OptionalSchema(new StringSchema()) },
+      {
+        key: 'gh',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      { key: 'fee', valueSchema: new Uint64Schema() },
+      { key: 'fv', valueSchema: new Uint64Schema() },
       { key: 'note', valueSchema: new ByteArraySchema() },
-      { key: 'lx', valueSchema: new FixedLengthByteArraySchema(32) },
-      { key: 'rekey', valueSchema: new AddressSchema() },
-      { key: 'grp', valueSchema: new FixedLengthByteArraySchema(32) },
+      {
+        key: 'lx',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      { key: 'rekey', valueSchema: new OptionalSchema(new AddressSchema()) },
+      {
+        key: 'grp',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      // We mark all top-level type-specific fields optional because they will not be present when
+      // the transaction is not that type.
       // Payment
-      { key: 'amt', valueSchema: new Uint64Schema() },
-      { key: 'rcv', valueSchema: new AddressSchema() },
-      { key: 'close', valueSchema: new AddressSchema() },
+      { key: 'amt', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'rcv', valueSchema: new OptionalSchema(new AddressSchema()) },
+      { key: 'close', valueSchema: new OptionalSchema(new AddressSchema()) },
       // Keyreg
-      { key: 'votekey', valueSchema: new FixedLengthByteArraySchema(32) },
-      { key: 'selkey', valueSchema: new FixedLengthByteArraySchema(32) },
-      { key: 'sprfkey', valueSchema: new FixedLengthByteArraySchema(64) },
-      { key: 'votefst', valueSchema: new Uint64Schema() },
-      { key: 'votelst', valueSchema: new Uint64Schema() },
-      { key: 'votekd', valueSchema: new Uint64Schema() },
-      { key: 'nonpart', valueSchema: new BooleanSchema() },
+      {
+        key: 'votekey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      {
+        key: 'selkey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      {
+        key: 'sprfkey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(64)),
+      },
+      { key: 'votefst', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'votelst', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'votekd', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'nonpart', valueSchema: new OptionalSchema(new BooleanSchema()) },
       // AssetConfig
-      { key: 'caid', valueSchema: new Uint64Schema() },
+      { key: 'caid', valueSchema: new OptionalSchema(new Uint64Schema()) },
       {
         key: 'apar',
-        valueSchema: new NamedMapSchema(
-          [
-            { key: 't', valueSchema: new Uint64Schema(), required: true },
-            { key: 'dc', valueSchema: new Uint64Schema(), required: true },
-            { key: 'df', valueSchema: new BooleanSchema(), required: true },
-            { key: 'm', valueSchema: new AddressSchema(), required: false },
-            { key: 'r', valueSchema: new AddressSchema(), required: false },
-            { key: 'f', valueSchema: new AddressSchema(), required: false },
-            { key: 'c', valueSchema: new AddressSchema(), required: false },
-            { key: 'un', valueSchema: new StringSchema(), required: false },
-            { key: 'an', valueSchema: new StringSchema(), required: false },
-            { key: 'au', valueSchema: new StringSchema(), required: false },
-            {
-              key: 'am',
-              valueSchema: new FixedLengthByteArraySchema(32),
-              required: false,
-            },
-          ].map((entry) => ({ ...entry, omitEmpty: true }))
+        valueSchema: new OptionalSchema(
+          new NamedMapSchema(
+            allOmitEmpty([
+              { key: 't', valueSchema: new Uint64Schema() },
+              { key: 'dc', valueSchema: new Uint64Schema() },
+              { key: 'df', valueSchema: new BooleanSchema() },
+              {
+                key: 'm',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'r',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'f',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'c',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'un',
+                valueSchema: new OptionalSchema(new StringSchema()),
+              },
+              {
+                key: 'an',
+                valueSchema: new OptionalSchema(new StringSchema()),
+              },
+              {
+                key: 'au',
+                valueSchema: new OptionalSchema(new StringSchema()),
+              },
+              {
+                key: 'am',
+                valueSchema: new OptionalSchema(
+                  new FixedLengthByteArraySchema(32)
+                ),
+              },
+            ])
+          )
         ),
       },
       // AssetTransfer
-      { key: 'xaid', valueSchema: new Uint64Schema() },
-      { key: 'aamt', valueSchema: new Uint64Schema() },
-      { key: 'arcv', valueSchema: new AddressSchema() },
-      { key: 'aclose', valueSchema: new AddressSchema() },
-      { key: 'asnd', valueSchema: new AddressSchema() },
+      { key: 'xaid', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'aamt', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'arcv', valueSchema: new OptionalSchema(new AddressSchema()) },
+      { key: 'aclose', valueSchema: new OptionalSchema(new AddressSchema()) },
+      { key: 'asnd', valueSchema: new OptionalSchema(new AddressSchema()) },
       // AssetFreeze
-      { key: 'faid', valueSchema: new Uint64Schema() },
-      { key: 'afrz', valueSchema: new BooleanSchema() },
-      { key: 'fadd', valueSchema: new AddressSchema() },
+      { key: 'faid', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'afrz', valueSchema: new OptionalSchema(new BooleanSchema()) },
+      { key: 'fadd', valueSchema: new OptionalSchema(new AddressSchema()) },
       // Application
-      { key: 'apid', valueSchema: new Uint64Schema() },
-      { key: 'apan', valueSchema: new Uint64Schema() },
+      { key: 'apid', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'apan', valueSchema: new OptionalSchema(new Uint64Schema()) },
       {
         key: 'apaa',
-        valueSchema: new ArraySchema(new ByteArraySchema()),
+        valueSchema: new OptionalSchema(new ArraySchema(new ByteArraySchema())),
       },
       {
         key: 'apat',
-        valueSchema: new ArraySchema(new AddressSchema()),
+        valueSchema: new OptionalSchema(new ArraySchema(new AddressSchema())),
       },
       {
         key: 'apas',
-        valueSchema: new ArraySchema(new Uint64Schema()),
+        valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
       },
       {
         key: 'apfa',
-        valueSchema: new ArraySchema(new Uint64Schema()),
+        valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
       },
       {
         key: 'apbx',
-        valueSchema: new ArraySchema(
-          new NamedMapSchema([
-            {
-              key: 'i',
-              valueSchema: new Uint64Schema(),
-              omitEmpty: true,
-              required: true,
-            },
-            {
-              key: 'n',
-              valueSchema: new ByteArraySchema(),
-              omitEmpty: true,
-              required: true,
-            },
-          ])
+        valueSchema: new OptionalSchema(
+          new ArraySchema(
+            new NamedMapSchema(
+              allOmitEmpty([
+                {
+                  key: 'i',
+                  valueSchema: new Uint64Schema(),
+                },
+                {
+                  key: 'n',
+                  valueSchema: new ByteArraySchema(),
+                },
+              ])
+            )
+          )
         ),
       },
-      { key: 'apap', valueSchema: new ByteArraySchema() },
-      { key: 'apsu', valueSchema: new ByteArraySchema() },
+      { key: 'apap', valueSchema: new OptionalSchema(new ByteArraySchema()) },
+      { key: 'apsu', valueSchema: new OptionalSchema(new ByteArraySchema()) },
       {
         key: 'apls',
-        valueSchema: new NamedMapSchema([
-          {
-            key: 'nui',
-            valueSchema: new Uint64Schema(),
-            omitEmpty: true,
-            required: true,
-          },
-          {
-            key: 'nbs',
-            valueSchema: new Uint64Schema(),
-            omitEmpty: true,
-            required: true,
-          },
-        ]),
+        valueSchema: new OptionalSchema(
+          new NamedMapSchema(
+            allOmitEmpty([
+              {
+                key: 'nui',
+                valueSchema: new Uint64Schema(),
+              },
+              {
+                key: 'nbs',
+                valueSchema: new Uint64Schema(),
+              },
+            ])
+          )
+        ),
       },
       {
         key: 'apgs',
-        valueSchema: new NamedMapSchema([
-          {
-            key: 'nui',
-            valueSchema: new Uint64Schema(),
-            omitEmpty: true,
-            required: true,
-          },
-          {
-            key: 'nbs',
-            valueSchema: new Uint64Schema(),
-            omitEmpty: true,
-            required: true,
-          },
-        ]),
+        valueSchema: new OptionalSchema(
+          new NamedMapSchema(
+            allOmitEmpty([
+              {
+                key: 'nui',
+                valueSchema: new Uint64Schema(),
+              },
+              {
+                key: 'nbs',
+                valueSchema: new Uint64Schema(),
+              },
+            ])
+          )
+        ),
       },
-      { key: 'apep', valueSchema: new Uint64Schema() },
+      { key: 'apep', valueSchema: new OptionalSchema(new Uint64Schema()) },
       // StateProof
-      { key: 'spft', valueSchema: new Uint64Schema() },
-      { key: 'sp', valueSchema: new ByteArraySchema() },
-      { key: 'spmsg', valueSchema: new ByteArraySchema() },
-    ].map((entry) => ({
-      ...entry,
-      omitEmpty: true,
-      required: entry.required ?? false,
-    }))
+      { key: 'spft', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'sp', valueSchema: new OptionalSchema(new ByteArraySchema()) },
+      { key: 'spmsg', valueSchema: new OptionalSchema(new ByteArraySchema()) },
+    ])
   );
 
   /** common */
@@ -1014,26 +1056,23 @@ export class Transaction implements encoding.Encodable {
       sTxn.set('sgnr', signerAddrObj);
     }
 
-    const stxnSchema = new NamedMapSchema([
-      {
-        key: 'txn',
-        valueSchema: Transaction.encodingSchema,
-        required: true,
-        omitEmpty: true,
-      },
-      {
-        key: 'sig',
-        valueSchema: new FixedLengthByteArraySchema(64),
-        required: true,
-        omitEmpty: true,
-      },
-      {
-        key: 'sgnr',
-        valueSchema: new AddressSchema(),
-        required: false,
-        omitEmpty: true,
-      },
-    ]);
+    // This is a hack to avoid a circular reference with the SignedTransaction class
+    const stxnSchema = new NamedMapSchema(
+      allOmitEmpty([
+        {
+          key: 'txn',
+          valueSchema: Transaction.encodingSchema,
+        },
+        {
+          key: 'sig',
+          valueSchema: new FixedLengthByteArraySchema(64),
+        },
+        {
+          key: 'sgnr',
+          valueSchema: new OptionalSchema(new AddressSchema()),
+        },
+      ])
+    );
 
     return encoding.rawEncode(stxnSchema.prepareMsgpack(sTxn));
   }

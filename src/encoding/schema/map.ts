@@ -5,7 +5,6 @@ import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
 export interface NamedMapEntry {
   key: string;
   valueSchema: Schema;
-  required: boolean;
   omitEmpty: boolean;
 }
 
@@ -23,9 +22,7 @@ export class NamedMapSchema extends Schema {
   public defaultValue(): Map<string, unknown> {
     const map = new Map<string, unknown>();
     for (const entry of this.entries) {
-      if (entry.required) {
-        map.set(entry.key, entry.valueSchema.defaultValue());
-      }
+      map.set(entry.key, entry.valueSchema.defaultValue());
     }
     return map;
   }
@@ -33,16 +30,10 @@ export class NamedMapSchema extends Schema {
   public isDefaultValue(data: unknown): boolean {
     if (!(data instanceof Map)) return false;
     for (const entry of this.entries) {
-      if (data.has(entry.key) && data.get(entry.key) !== undefined) {
-        if (
-          !entry.required ||
-          !entry.valueSchema.isDefaultValue(data.get(entry.key))
-        ) {
-          return false;
-        }
+      if (!entry.valueSchema.isDefaultValue(data.get(entry.key))) {
+        return false;
       }
     }
-    // TODO: examine if there are any extra keys?
     return true;
   }
 
@@ -54,18 +45,11 @@ export class NamedMapSchema extends Schema {
     }
     const map = new Map<string, MsgpackEncodingData>();
     for (const entry of this.entries) {
-      if (data.has(entry.key)) {
-        const value = data.get(entry.key);
-        if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
-          continue;
-        }
-        if (!entry.required && value === undefined) {
-          continue;
-        }
-        map.set(entry.key, entry.valueSchema.prepareMsgpack(value));
-      } else if (entry.required) {
-        throw new Error(`Missing required key: ${entry.key}`);
+      const value = data.get(entry.key);
+      if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
+        continue;
       }
+      map.set(entry.key, entry.valueSchema.prepareMsgpack(value));
     }
     return map;
   }
@@ -83,12 +67,10 @@ export class NamedMapSchema extends Schema {
           entry.key,
           entry.valueSchema.fromPreparedMsgpack(encoded.get(entry.key))
         );
-      } else if (entry.required) {
-        if (entry.omitEmpty) {
-          map.set(entry.key, entry.valueSchema.defaultValue());
-        } else {
-          throw new Error(`Missing required key: ${entry.key}`);
-        }
+      } else if (entry.omitEmpty) {
+        map.set(entry.key, entry.valueSchema.defaultValue());
+      } else {
+        throw new Error(`Missing key: ${entry.key}`);
       }
     }
     return map;
@@ -100,18 +82,11 @@ export class NamedMapSchema extends Schema {
     }
     const obj: { [key: string]: JSONEncodingData } = {};
     for (const entry of this.entries) {
-      if (data.has(entry.key)) {
-        const value = data.get(entry.key);
-        if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
-          continue;
-        }
-        if (!entry.required && value === undefined) {
-          continue;
-        }
-        obj[entry.key] = entry.valueSchema.prepareJSON(value);
-      } else if (entry.required) {
-        throw new Error(`Missing required key: ${entry.key}`);
+      const value = data.get(entry.key);
+      if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
+        continue;
       }
+      obj[entry.key] = entry.valueSchema.prepareJSON(value);
     }
     return obj;
   }
@@ -131,12 +106,10 @@ export class NamedMapSchema extends Schema {
           entry.key,
           entry.valueSchema.fromPreparedJSON(encoded[entry.key])
         );
-      } else if (entry.required) {
-        if (entry.omitEmpty) {
-          map.set(entry.key, entry.valueSchema.defaultValue());
-        } else {
-          throw new Error(`Missing required key: ${entry.key}`);
-        }
+      } else if (entry.omitEmpty) {
+        map.set(entry.key, entry.valueSchema.defaultValue());
+      } else {
+        throw new Error(`Missing key: ${entry.key}`);
       }
     }
     return map;

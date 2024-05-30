@@ -5,6 +5,7 @@ import {
   AddressSchema,
   FixedLengthByteArraySchema,
   UntypedSchema,
+  allOmitEmpty,
 } from '../encoding/schema/index.js';
 
 /**
@@ -89,98 +90,70 @@ export default interface BlockHeader {
   spt: Map<number, Uint8Array>;
 }
 
-export const BLOCK_HEADER_SCHEMA = new NamedMapSchema([
-  {
-    key: 'fees',
-    valueSchema: new AddressSchema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'frac',
-    valueSchema: new Uint64Schema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'gen',
-    valueSchema: new StringSchema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'gh',
-    valueSchema: new FixedLengthByteArraySchema(32),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'prev',
-    valueSchema: new FixedLengthByteArraySchema(32),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'proto',
-    valueSchema: new StringSchema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'rate',
-    valueSchema: new Uint64Schema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'rnd',
-    valueSchema: new Uint64Schema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'rwcalr',
-    valueSchema: new Uint64Schema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'rwd',
-    valueSchema: new AddressSchema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'seed',
-    valueSchema: new FixedLengthByteArraySchema(32),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'ts',
-    valueSchema: new Uint64Schema(),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'txn',
-    valueSchema: new FixedLengthByteArraySchema(32),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'txn256',
-    valueSchema: new FixedLengthByteArraySchema(32),
-    required: true,
-    omitEmpty: true,
-  },
-  {
-    key: 'spt',
-    valueSchema: new UntypedSchema(), // TODO: fix
-    required: true,
-    omitEmpty: true,
-  },
-]);
+export const BLOCK_HEADER_SCHEMA = new NamedMapSchema(
+  allOmitEmpty([
+    {
+      key: 'fees',
+      valueSchema: new AddressSchema(),
+    },
+    {
+      key: 'frac',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'gen',
+      valueSchema: new StringSchema(),
+    },
+    {
+      key: 'gh',
+      valueSchema: new FixedLengthByteArraySchema(32),
+    },
+    {
+      key: 'prev',
+      valueSchema: new FixedLengthByteArraySchema(32),
+    },
+    {
+      key: 'proto',
+      valueSchema: new StringSchema(),
+    },
+    {
+      key: 'rate',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'rnd',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'rwcalr',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'rwd',
+      valueSchema: new AddressSchema(),
+    },
+    {
+      key: 'seed',
+      valueSchema: new FixedLengthByteArraySchema(32),
+    },
+    {
+      key: 'ts',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'txn',
+      valueSchema: new FixedLengthByteArraySchema(32),
+    },
+    {
+      key: 'txn256',
+      valueSchema: new FixedLengthByteArraySchema(32),
+    },
+    {
+      key: 'spt',
+      valueSchema: new UntypedSchema(), // TODO: fix
+    },
+  ])
+);
 
 export function blockHeaderFromEncodingData(data: unknown): BlockHeader {
   if (!(data instanceof Map)) {
