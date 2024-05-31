@@ -128,6 +128,23 @@ export class Account extends BaseModel {
   public createdAssets?: Asset[];
 
   /**
+   * Whether or not the account can receive block incentives if its balance is in
+   * range at proposal time.
+   */
+  public incentiveEligible?: boolean;
+
+  /**
+   * The round in which this account last went online, or explicitly renewed their
+   * online status.
+   */
+  public lastHeartbeat?: number | bigint;
+
+  /**
+   * The round in which this account last proposed the block.
+   */
+  public lastProposed?: number | bigint;
+
+  /**
    * AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    */
@@ -197,6 +214,11 @@ export class Account extends BaseModel {
    * Note: the raw account uses `map[int] -> AppParams` for this type.
    * @param createdAssets - (apar) parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
+   * @param incentiveEligible - Whether or not the account can receive block incentives if its balance is in
+   * range at proposal time.
+   * @param lastHeartbeat - The round in which this account last went online, or explicitly renewed their
+   * online status.
+   * @param lastProposed - The round in which this account last proposed the block.
    * @param participation - AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    * @param rewardBase - (ebase) used as part of the rewards computation. Only applicable to accounts
@@ -229,6 +251,9 @@ export class Account extends BaseModel {
     authAddr,
     createdApps,
     createdAssets,
+    incentiveEligible,
+    lastHeartbeat,
+    lastProposed,
     participation,
     rewardBase,
     sigType,
@@ -254,6 +279,9 @@ export class Account extends BaseModel {
     authAddr?: string;
     createdApps?: Application[];
     createdAssets?: Asset[];
+    incentiveEligible?: boolean;
+    lastHeartbeat?: number | bigint;
+    lastProposed?: number | bigint;
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
@@ -280,6 +308,9 @@ export class Account extends BaseModel {
     this.authAddr = authAddr;
     this.createdApps = createdApps;
     this.createdAssets = createdAssets;
+    this.incentiveEligible = incentiveEligible;
+    this.lastHeartbeat = lastHeartbeat;
+    this.lastProposed = lastProposed;
     this.participation = participation;
     this.rewardBase = rewardBase;
     this.sigType = sigType;
@@ -306,6 +337,9 @@ export class Account extends BaseModel {
       authAddr: 'auth-addr',
       createdApps: 'created-apps',
       createdAssets: 'created-assets',
+      incentiveEligible: 'incentive-eligible',
+      lastHeartbeat: 'last-heartbeat',
+      lastProposed: 'last-proposed',
       participation: 'participation',
       rewardBase: 'reward-base',
       sigType: 'sig-type',
@@ -394,6 +428,9 @@ export class Account extends BaseModel {
         typeof data['created-assets'] !== 'undefined'
           ? data['created-assets'].map(Asset.from_obj_for_encoding)
           : undefined,
+      incentiveEligible: data['incentive-eligible'],
+      lastHeartbeat: data['last-heartbeat'],
+      lastProposed: data['last-proposed'],
       participation:
         typeof data['participation'] !== 'undefined'
           ? AccountParticipation.from_obj_for_encoding(data['participation'])
@@ -485,6 +522,65 @@ export class AccountApplicationResponse extends BaseModel {
 }
 
 /**
+ * AccountAssetHolding describes the account's asset holding and asset parameters
+ * (if either exist) for a specific asset ID.
+ */
+export class AccountAssetHolding extends BaseModel {
+  /**
+   * (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   */
+  public assetHolding: AssetHolding;
+
+  /**
+   * (apar) parameters of the asset held by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  public assetParams?: AssetParams;
+
+  /**
+   * Creates a new `AccountAssetHolding` object.
+   * @param assetHolding - (asset) Details about the asset held by this account.
+   * The raw account uses `AssetHolding` for this type.
+   * @param assetParams - (apar) parameters of the asset held by this account.
+   * The raw account uses `AssetParams` for this type.
+   */
+  constructor({
+    assetHolding,
+    assetParams,
+  }: {
+    assetHolding: AssetHolding;
+    assetParams?: AssetParams;
+  }) {
+    super();
+    this.assetHolding = assetHolding;
+    this.assetParams = assetParams;
+
+    this.attribute_map = {
+      assetHolding: 'asset-holding',
+      assetParams: 'asset-params',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AccountAssetHolding {
+    /* eslint-disable dot-notation */
+    if (typeof data['asset-holding'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'asset-holding': ${data}`
+      );
+    return new AccountAssetHolding({
+      assetHolding: AssetHolding.from_obj_for_encoding(data['asset-holding']),
+      assetParams:
+        typeof data['asset-params'] !== 'undefined'
+          ? AssetParams.from_obj_for_encoding(data['asset-params'])
+          : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * AccountAssetResponse describes the account's asset holding and asset parameters
  * (if either exist) for a specific asset ID. Asset parameters will only be
  * returned if the provided address is the asset's creator.
@@ -553,6 +649,72 @@ export class AccountAssetResponse extends BaseModel {
         typeof data['created-asset'] !== 'undefined'
           ? AssetParams.from_obj_for_encoding(data['created-asset'])
           : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * AccountAssetsInformationResponse contains a list of assets held by an account.
+ */
+export class AccountAssetsInformationResponse extends BaseModel {
+  /**
+   * The round for which this information is relevant.
+   */
+  public round: number | bigint;
+
+  public assetHoldings?: AccountAssetHolding[];
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `AccountAssetsInformationResponse` object.
+   * @param round - The round for which this information is relevant.
+   * @param assetHoldings -
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  constructor({
+    round,
+    assetHoldings,
+    nextToken,
+  }: {
+    round: number | bigint;
+    assetHoldings?: AccountAssetHolding[];
+    nextToken?: string;
+  }) {
+    super();
+    this.round = round;
+    this.assetHoldings = assetHoldings;
+    this.nextToken = nextToken;
+
+    this.attribute_map = {
+      round: 'round',
+      assetHoldings: 'asset-holdings',
+      nextToken: 'next-token',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): AccountAssetsInformationResponse {
+    /* eslint-disable dot-notation */
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
+    return new AccountAssetsInformationResponse({
+      round: data['round'],
+      assetHoldings:
+        typeof data['asset-holdings'] !== 'undefined'
+          ? data['asset-holdings'].map(
+              AccountAssetHolding.from_obj_for_encoding
+            )
+          : undefined,
+      nextToken: data['next-token'],
     });
     /* eslint-enable dot-notation */
   }
@@ -728,6 +890,75 @@ export class AccountStateDelta extends BaseModel {
     return new AccountStateDelta({
       address: data['address'],
       delta: data['delta'].map(EvalDeltaKeyValue.from_obj_for_encoding),
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * The logged messages from an app call along with the app ID and outer transaction
+ * ID. Logs appear in the same order that they were emitted.
+ */
+export class AppCallLogs extends BaseModel {
+  /**
+   * The application from which the logs were generated
+   */
+  public applicationIndex: number | bigint;
+
+  /**
+   * An array of logs
+   */
+  public logs: Uint8Array[];
+
+  /**
+   * The transaction ID of the outer app call that lead to these logs
+   */
+  public txid: string;
+
+  /**
+   * Creates a new `AppCallLogs` object.
+   * @param applicationIndex - The application from which the logs were generated
+   * @param logs - An array of logs
+   * @param txid - The transaction ID of the outer app call that lead to these logs
+   */
+  constructor({
+    applicationIndex,
+    logs,
+    txid,
+  }: {
+    applicationIndex: number | bigint;
+    logs: Uint8Array[];
+    txid: string;
+  }) {
+    super();
+    this.applicationIndex = applicationIndex;
+    this.logs = logs;
+    this.txid = txid;
+
+    this.attribute_map = {
+      applicationIndex: 'application-index',
+      logs: 'logs',
+      txid: 'txId',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): AppCallLogs {
+    /* eslint-disable dot-notation */
+    if (typeof data['application-index'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'application-index': ${data}`
+      );
+    if (!Array.isArray(data['logs']))
+      throw new Error(
+        `Response is missing required array field 'logs': ${data}`
+      );
+    if (typeof data['txId'] === 'undefined')
+      throw new Error(`Response is missing required field 'txId': ${data}`);
+    return new AppCallLogs({
+      applicationIndex: data['application-index'],
+      logs: data['logs'],
+      txid: data['txId'],
     });
     /* eslint-enable dot-notation */
   }
@@ -1862,6 +2093,45 @@ export class BlockHashResponse extends BaseModel {
       );
     return new BlockHashResponse({
       blockhash: data['blockHash'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * All logs emitted in the given round. Each app call, whether top-level or inner,
+ * that contains logs results in a separate AppCallLogs object. Therefore there may
+ * be multiple AppCallLogs with the same application ID and outer transaction ID in
+ * the event of multiple inner app calls to the same app. App calls with no logs
+ * are not included in the response. AppCallLogs are returned in the same order
+ * that their corresponding app call appeared in the block (pre-order traversal of
+ * inner app calls)
+ */
+export class BlockLogsResponse extends BaseModel {
+  public logs: AppCallLogs[];
+
+  /**
+   * Creates a new `BlockLogsResponse` object.
+   * @param logs -
+   */
+  constructor({ logs }: { logs: AppCallLogs[] }) {
+    super();
+    this.logs = logs;
+
+    this.attribute_map = {
+      logs: 'logs',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockLogsResponse {
+    /* eslint-disable dot-notation */
+    if (!Array.isArray(data['logs']))
+      throw new Error(
+        `Response is missing required array field 'logs': ${data}`
+      );
+    return new BlockLogsResponse({
+      logs: data['logs'].map(AppCallLogs.from_obj_for_encoding),
     });
     /* eslint-enable dot-notation */
   }
