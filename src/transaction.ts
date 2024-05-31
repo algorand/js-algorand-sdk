@@ -890,7 +890,7 @@ export class Transaction implements encoding.Encodable {
       const assetConfigParams: AssetConfigurationTransactionParams = {
         assetIndex: data.get('caid'),
       };
-      if (data.has('apar')) {
+      if (data.get('apar')) {
         const assetParams = data.get('apar') as Map<string, any>;
         assetConfigParams.total = assetParams.get('t');
         assetConfigParams.decimals = assetParams.get('dc');
