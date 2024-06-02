@@ -61,7 +61,7 @@ Documentation for this SDK is available here: https://algorand.github.io/js-algo
 
 Running examples requires access to a running node. Follow the instructions in Algorand's [developer resources](https://developer.algorand.org/docs/run-a-node/setup/install/) to install a node on your computer.
 
-**As portions of the codebase are written in TypeScript, example files cannot be run directly using `node`**. Please refer to the instructions described in the [examples/README.md](examples/README.md) file for more information regarding running the examples.
+**As portions of the codebase are written in TypeScript, example files cannot be run directly using `node`**. Please take a look at the instructions described in the [examples/README.md](examples/README.md) file for more information about running the examples.
 
 ## SDK Development
 
