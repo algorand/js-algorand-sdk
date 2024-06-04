@@ -137,6 +137,28 @@ describe('encoding', () => {
       assert.deepStrictEqual(actual, expected);
     });
   });
+  describe('Transaction', () => {
+    it('should be able to encode & decode', () => {
+      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: '7RQYTPAKBR6R7KR3AN36IW2CSMXTYDO2IIV6USDC24GQXDEC75DVHKZC54',
+        amount: 17,
+        receiver: 'VE7563YROD74TOKPJCBNM6CPRLGYPKPS6WOUC5GC675YONMCH7MLGALOFM',
+        suggestedParams: {
+          fee: 0,
+          firstValid: 111,
+          lastValid: 222,
+          minFee: 1000,
+          genesisID: 'testing',
+          genesisHash: algosdk.base64ToBytes(
+            'O4JSEmM8Qn+5phJf2fQPhsLo0PuIpBvHOqCDNCvwmzI='
+          ),
+        },
+      });
+      const encoded = algosdk.encodeMsgpack(txn); // Uint8Array of msgpack-encoded transaction
+      const decoded = algosdk.decodeMsgpack(encoded, algosdk.Transaction); // Decoded Transaction instance
+      assert.deepStrictEqual(txn, decoded);
+    });
+  });
   it('should be able to encode and decode', () => {
     const temp = { a: 3, b: 500 };
     const enc = algosdk.encodeObj(temp);

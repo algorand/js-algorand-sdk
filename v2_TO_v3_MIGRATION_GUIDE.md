@@ -291,6 +291,8 @@ Generally speaking, the fields will be `bigint` based on the following criteria:
 
 Indexer responses are not yet typed, and all numeric fields are returned as `bigint`.
 
+Additionally, Algod and Indexer request and response models used to be subclasses of a `BaseModel` type. This type has been removed in v3, and instead all models adhere to the `Encodable` interface. More information about encoding changes can be found in the [Encoding and Decoding](#encoding-and-decoding) section.
+
 ### JSON Operations
 
 In order to facilitate `bigint` as a first-class type in this SDK, additional JSON conversion utilities have been added in v3. These are the `parseJSON` and `stringifyJSON` functions.
@@ -312,3 +314,27 @@ Due to the fully-typed Algod responses in v3, some of the redundant dryrun types
 Specifically, the `DryrunResult` class and its dependent types have been removed in favor of the Algod response model, `modelsv2.DryrunResponse`.
 
 The `DryrunTransactionResult` class, which made up the elements of the v2 `DryrunResult.txns` array, used to have methods `appTrace` and `lsigTrace`. These have been replaced by the new `dryrunTxnResultAppTrace` and `dryrunTxnResultLogicSigTrace` functions, which accept a `DryrunTxnResult`. These new functions should produce identical results to the old ones.
+
+### Encoding and Decoding
+
+In v2 of the SDK, the `Transaction`, `LogicSig`, `BaseModel` and other classes had `get_obj_for_encoding` methods and `from_obj_for_encoding` static methods. These were used during the process of encoding or decoding objects from msgpack or JSON. These ad-hoc methods have been removed in v3, and in their place a new `Encoding` interface has been introduced, along with functions `encodeMsgpack`, `decodeMsgpack`, `encodeJSON`, and `decodeJSON`.
+
+These changes were made to streamline, standardize, and greatly increase the capabilities of the encoding and decoding process. In v2, where `get_obj_for_encoding` and `from_obj_for_encoding` were used, these new functions may be used instead. An example is below.
+
+```typescript
+// Encoding a transaction to msgpack, then decoding it back
+
+// v2
+const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({...});
+const encoded = algosdk.encodeObj(txn.get_obj_for_encoding());
+const decoded = algosdk.Transaction.from_obj_for_encoding(
+  algosdk.decodeObj(encoded) as algosdk.EncodedTransaction
+);
+assert.deepStrictEqual(txn, decoded);
+
+// v3
+const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({...});
+const encoded = algosdk.encodeMsgpack(txn); // Uint8Array of msgpack-encoded transaction
+const decoded = algosdk.decodeMsgpack(encoded, algosdk.Transaction); // Decoded Transaction instance
+assert.deepStrictEqual(txn, decoded);
+```
