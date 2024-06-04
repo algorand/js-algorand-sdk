@@ -159,30 +159,89 @@ export function jsonEncodingDataToMsgpackEncodingData(
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-useless-constructor,no-empty-function */
 
+/**
+ * A Schema is used to prepare objects for encoding and decoding from msgpack and JSON.
+ *
+ * Schemas represent a specific type.
+ */
 export abstract class Schema {
+  /**
+   * Get the default value for this type.
+   */
   public abstract defaultValue(): unknown;
 
+  /**
+   * Checks if the value is the default value for this type.
+   * @param data - The value to check
+   * @returns True if the value is the default value, false otherwise
+   */
   public abstract isDefaultValue(data: unknown): boolean;
 
+  /**
+   * Prepares the encoding data for encoding to msgpack.
+   * @param data - Encoding data to be prepared.
+   * @returns A value ready to be msgpack encoded.
+   */
   public abstract prepareMsgpack(data: unknown): MsgpackEncodingData;
 
+  /**
+   * Restores the encoding data from a msgpack encoding object.
+   * @param encoded - The msgpack encoding object to restore.
+   * @returns The original encoding data.
+   */
   public abstract fromPreparedMsgpack(encoded: MsgpackEncodingData): unknown;
 
+  /**
+   * Prepares the encoding data for encoding to JSON.
+   * @param data - The JSON encoding data to be prepared.
+   * @returns A value ready to be JSON encoded.
+   */
   public abstract prepareJSON(data: unknown): JSONEncodingData;
 
+  /**
+   * Restores the encoding data from a JSON encoding object.
+   * @param encoded - The JSON encoding object to restore.
+   * @returns The original encoding data.
+   */
   public abstract fromPreparedJSON(encoded: JSONEncodingData): unknown;
 }
 
+/**
+ * An interface for objects that can be encoded and decoded to/from msgpack and JSON.
+ */
 export interface Encodable {
+  /**
+   * Extract the encoding data for this object. This data, after being prepared by the encoding
+   * Schema, can be encoded to msgpack or JSON.
+   */
   toEncodingData(): unknown;
+  /**
+   * Get the encoding Schema for this object, used to prepare the encoding data for msgpack and JSON.
+   */
   getEncodingSchema(): Schema;
 }
 
+/**
+ * A type that represents the class of an Encodable object.
+ */
 export interface EncodableClass<T extends Encodable> {
+  /**
+   * Create a new instance of this class from the given encoding data.
+   * @param data - The encoding data to create the object from
+   */
   fromEncodingData(data: unknown): T;
+  /**
+   * The encoding Schema for this class, used to prepare encoding data from msgpack and JSON.
+   */
   encodingSchema: Schema;
 }
 
+/**
+ * Decode a msgpack byte array to an Encodable object.
+ * @param encoded - The msgpack bytes to decode
+ * @param c - The class of the object to decode. This class must match the object that was encoded.
+ * @returns An instance of the class with the decoded data
+ */
 export function decodeMsgpack<T extends Encodable>(
   encoded: ArrayLike<number>,
   c: EncodableClass<T>
@@ -194,10 +253,21 @@ export function decodeMsgpack<T extends Encodable>(
   );
 }
 
+/**
+ * Encode an Encodable object to a msgpack byte array.
+ * @param e - The object to encode
+ * @returns A msgpack byte array encoding of the object
+ */
 export function encodeMsgpack(e: Encodable): Uint8Array {
   return rawEncode(e.getEncodingSchema().prepareMsgpack(e.toEncodingData()));
 }
 
+/**
+ * Decode a JSON string to an Encodable object.
+ * @param encoded - The JSON string to decode
+ * @param c - The class of the object to decode. This class must match the object that was encoded.
+ * @returns An instance of the class with the decoded data
+ */
 export function decodeJSON<T extends Encodable>(
   encoded: string,
   c: EncodableClass<T>
@@ -210,6 +280,12 @@ export function decodeJSON<T extends Encodable>(
   );
 }
 
+/**
+ * Encode an Encodable object to a JSON string.
+ * @param e - The object to encode
+ * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+ * @returns A JSON string encoding of the object
+ */
 export function encodeJSON(e: Encodable, space?: string | number): string {
   const prepared = e.getEncodingSchema().prepareJSON(e.toEncodingData());
   return stringifyJSON(prepared, undefined, space);
