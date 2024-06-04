@@ -18,12 +18,125 @@ import {
   NamedMapSchema,
   UntypedSchema,
   OptionalSchema,
+  allOmitEmpty,
 } from '../src/encoding/schema/index.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =
   'The object contains empty or 0 values. First empty or 0 value encountered during encoding: ';
 
 describe('encoding', () => {
+  class ExampleEncodable implements algosdk.Encodable {
+    static encodingSchema = new NamedMapSchema(
+      allOmitEmpty([
+        { key: 'a', valueSchema: new Uint64Schema() },
+        { key: 'b', valueSchema: new StringSchema() },
+        { key: 'c', valueSchema: new ByteArraySchema() },
+      ])
+    );
+
+    // eslint-disable-next-line no-useless-constructor
+    constructor(
+      public a: number | bigint,
+      public b: string,
+      public c: Uint8Array
+      // eslint-disable-next-line no-empty-function
+    ) {}
+
+    // eslint-disable-next-line class-methods-use-this
+    getEncodingSchema(): Schema {
+      return ExampleEncodable.encodingSchema;
+    }
+
+    toEncodingData(): Map<string, unknown> {
+      return new Map<string, unknown>([
+        ['a', this.a],
+        ['b', this.b],
+        ['c', this.c],
+      ]);
+    }
+
+    static fromEncodingData(data: unknown): ExampleEncodable {
+      if (!(data instanceof Map)) {
+        throw new Error(`Invalid decoded SignedTransaction: ${data}`);
+      }
+      return new ExampleEncodable(data.get('a'), data.get('b'), data.get('c'));
+    }
+  }
+  describe('msgpack', () => {
+    it('should encode properly', () => {
+      const input = new ExampleEncodable(
+        123,
+        'test',
+        Uint8Array.from([255, 255, 0])
+      );
+      const actual = algosdk.encodeMsgpack(input);
+      const expected = Uint8Array.from([
+        131, 161, 97, 123, 161, 98, 164, 116, 101, 115, 116, 161, 99, 196, 3,
+        255, 255, 0,
+      ]);
+      assert.deepStrictEqual(actual, expected);
+    });
+    it('should encode properly with default values', () => {
+      const input = new ExampleEncodable(0, '', Uint8Array.from([]));
+      const actual = algosdk.encodeMsgpack(input);
+      const expected = Uint8Array.from([128]);
+      assert.deepStrictEqual(actual, expected);
+    });
+    it('should decode properly', () => {
+      const input = Uint8Array.from([
+        131, 161, 97, 123, 161, 98, 164, 116, 101, 115, 116, 161, 99, 196, 3,
+        255, 255, 0,
+      ]);
+      const actual = algosdk.decodeMsgpack(input, ExampleEncodable);
+      const expected = new ExampleEncodable(
+        BigInt(123),
+        'test',
+        Uint8Array.from([255, 255, 0])
+      );
+      assert.deepStrictEqual(actual, expected);
+    });
+    it('should decode properly with default values', () => {
+      const input = Uint8Array.from([128]);
+      const actual = algosdk.decodeMsgpack(input, ExampleEncodable);
+      const expected = new ExampleEncodable(BigInt(0), '', Uint8Array.from([]));
+      assert.deepStrictEqual(actual, expected);
+    });
+  });
+  describe('JSON', () => {
+    it('should encode properly', () => {
+      const input = new ExampleEncodable(
+        123,
+        'test',
+        Uint8Array.from([255, 255, 0])
+      );
+      const actual = algosdk.encodeJSON(input);
+      const expected = { a: 123, b: 'test', c: '//8A' };
+      // Compare parsed JSON because field order and whitespace may be different
+      assert.deepStrictEqual(JSON.parse(actual), expected);
+    });
+    it('should encode properly with default values', () => {
+      const input = new ExampleEncodable(0, '', Uint8Array.from([]));
+      const actual = algosdk.encodeJSON(input);
+      const expected = '{}';
+      assert.deepStrictEqual(actual, expected);
+    });
+    it('should decode properly', () => {
+      const input = `{ "a": 123, "b": "test", "c": "//8A" }`;
+      const actual = algosdk.decodeJSON(input, ExampleEncodable);
+      const expected = new ExampleEncodable(
+        BigInt(123),
+        'test',
+        Uint8Array.from([255, 255, 0])
+      );
+      assert.deepStrictEqual(actual, expected);
+    });
+    it('should decode properly with default values', () => {
+      const input = '{}';
+      const actual = algosdk.decodeJSON(input, ExampleEncodable);
+      const expected = new ExampleEncodable(BigInt(0), '', Uint8Array.from([]));
+      assert.deepStrictEqual(actual, expected);
+    });
+  });
   it('should be able to encode and decode', () => {
     const temp = { a: 3, b: 500 };
     const enc = algosdk.encodeObj(temp);

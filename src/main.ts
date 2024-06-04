@@ -115,6 +115,8 @@ export {
   EncodableClass,
   encodeMsgpack,
   decodeMsgpack,
+  encodeJSON,
+  decodeJSON,
 } from './encoding/encoding.js';
 export {
   Address,
