@@ -42,7 +42,7 @@ async function main() {
       suggestedParams: params,
     });
 
-  console.log(onlineKeyreg.get_obj_for_encoding());
+  console.log(onlineKeyreg);
   // example: TRANSACTION_KEYREG_ONLINE_CREATE
 
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
@@ -55,7 +55,7 @@ async function main() {
       suggestedParams,
       nonParticipation: true,
     });
-  console.log(offlineKeyReg.get_obj_for_encoding());
+  console.log(offlineKeyReg);
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
 }
 

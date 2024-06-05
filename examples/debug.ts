@@ -43,7 +43,7 @@ async function main() {
     txns: signedTxns,
   });
 
-  console.log('Dryrun:', dryrunRequest.get_obj_for_encoding());
+  console.log('Dryrun:', dryrunRequest);
   // example: DEBUG_DRYRUN_DUMP
 
   // example: DEBUG_DRYRUN_SUBMIT

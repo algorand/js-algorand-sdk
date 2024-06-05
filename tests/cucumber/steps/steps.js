@@ -1483,7 +1483,7 @@ module.exports = function getSteps(options) {
           // endpoints are ignored by mock server, see setupMockServerForResponses
           if (responseFormat === 'msgp') {
             const response = await this.v2Client.block(0).do();
-            this.actualMockResponse = response.get_obj_for_encoding(true);
+            this.actualMockResponse = response.msgpackPrepare();
           } else {
             this.actualMockResponse = await this.v2Client.genesis().do();
           }
@@ -1769,10 +1769,9 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Pending Transaction Information response should have sender {string}',
     (sender) => {
-      const actualSender = algosdk.encodeAddress(
-        anyPendingTransactionInfoResponse.txn.txn.snd
-      );
-      assert.strictEqual(sender, actualSender);
+      const actualSender =
+        anyPendingTransactionInfoResponse.txn.txn.sender.toString();
+      assert.strictEqual(actualSender, sender);
     }
   );
 
@@ -1793,10 +1792,10 @@ module.exports = function getSteps(options) {
       );
       if (len !== 0) {
         assert.strictEqual(
-          sender,
-          algosdk.encodeAddress(
-            anyPendingTransactionsInfoResponse.topTransactions[idx].txn.snd
-          )
+          anyPendingTransactionsInfoResponse.topTransactions[
+            idx
+          ].txn.sender.toString(),
+          sender
         );
       }
     }
@@ -1837,9 +1836,10 @@ module.exports = function getSteps(options) {
       if (len === 0) {
         return;
       }
-      let actualSender =
-        anyPendingTransactionsByAddressResponse.topTransactions[idx].txn.snd;
-      actualSender = algosdk.encodeAddress(actualSender);
+      const actualSender =
+        anyPendingTransactionsByAddressResponse.topTransactions[
+          idx
+        ].txn.sender.toString();
       assert.strictEqual(sender, actualSender);
     }
   );
@@ -1915,8 +1915,9 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Get Block response should have rewards pool {string}',
     (rewardsPoolAddress) => {
+      assert.ok(anyBlockResponse.block.rwd instanceof algosdk.Address);
       const rewardsPoolB64String = algosdk.bytesToBase64(
-        anyBlockResponse.block.rwd
+        anyBlockResponse.block.rwd.publicKey
       );
       assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
     }
@@ -2751,22 +2752,22 @@ module.exports = function getSteps(options) {
       suggestedParams: sp,
     });
     let txns;
-    let sources;
+    let sources = [];
 
     switch (kind) {
       case 'compiled':
         txns = [
-          {
+          new algosdk.SignedTransaction({
             lsig: new algosdk.LogicSig(data),
             txn: algoTxn,
-          },
+          }),
         ];
         break;
       case 'source':
         txns = [
-          {
+          new algosdk.SignedTransaction({
             txn: algoTxn,
-          },
+          }),
         ];
         sources = [
           new algosdk.modelsv2.DryrunSource({
@@ -3253,11 +3254,11 @@ module.exports = function getSteps(options) {
 
   Then('the decoded transaction should equal the original', function () {
     const decoded = algosdk.decodeSignedTransaction(this.stx);
-    // comparing the output of get_obj_for_encoding instead because the Transaction class instance
+    // comparing the output of toEncodingData instead because the Transaction class instance
     // may have some nonconsequential differences in internal representation
     assert.deepStrictEqual(
-      decoded.txn.get_obj_for_encoding(),
-      this.txn.get_obj_for_encoding()
+      decoded.txn.toEncodingData(),
+      this.txn.toEncodingData()
     );
   });
 
@@ -4342,7 +4343,12 @@ module.exports = function getSteps(options) {
     function (index, pathString, expectedResult) {
       let actualResult =
         this.composerExecuteResponse.methodResults[index].txInfo;
-      actualResult = glom(actualResult.get_obj_for_encoding(), pathString);
+      actualResult = glom(
+        actualResult
+          .getEncodingSchema()
+          .prepareJSON(actualResult.toEncodingData()),
+        pathString
+      );
 
       assert.strictEqual(expectedResult, actualResult.toString());
     }
@@ -4364,13 +4370,12 @@ module.exports = function getSteps(options) {
           } else {
             actualResults = actualResults.innerTxns[itxnIndex];
           }
-
-          const thisGroupID = actualResults.txn.txn.group;
-          if (j === 0) {
-            groupID = thisGroupID;
-          } else {
-            assert.strictEqual(groupID, thisGroupID);
-          }
+        }
+        const thisGroupID = actualResults.txn.txn.group;
+        if (i === 0) {
+          groupID = thisGroupID;
+        } else {
+          assert.deepStrictEqual(groupID, thisGroupID);
         }
       }
     }
@@ -4397,8 +4402,11 @@ module.exports = function getSteps(options) {
     'a dryrun response file {string} and a transaction at index {string}',
     async function (drrFile, txId) {
       const drContents = await loadResourceAsJson(drrFile);
-      const drr =
-        algosdk.modelsv2.DryrunResponse.from_obj_for_encoding(drContents);
+      const drr = algosdk.modelsv2.DryrunResponse.fromEncodingData(
+        algosdk.modelsv2.DryrunResponse.encodingSchema.fromPreparedJSON(
+          drContents
+        )
+      );
       this.txtrace = drr.txns[parseInt(txId)];
     }
   );
@@ -5054,7 +5062,9 @@ module.exports = function getSteps(options) {
           assert.ok(initialAppState.appLocals);
           assert.strictEqual(initialAppState.appLocals.length, 1);
           assert.ok(initialAppState.appLocals[0].account);
-          algosdk.decodeAddress(initialAppState.appLocals[0].account);
+          assert.ok(
+            initialAppState.appLocals[0].account instanceof algosdk.Address
+          );
           assert.ok(initialAppState.appLocals[0].kvs);
           kvs = initialAppState.appLocals[0].kvs;
           break;
@@ -5147,7 +5157,7 @@ module.exports = function getSteps(options) {
       } else if (stateType === 'local') {
         assert.strictEqual(stateChange.appStateType, 'l');
         assert.ok(stateChange.account);
-        algosdk.decodeAddress(stateChange.account);
+        assert.ok(stateChange.account instanceof algosdk.Address);
       } else if (stateType === 'box') {
         assert.strictEqual(stateChange.appStateType, 'b');
         assert.ok(!stateChange.account);

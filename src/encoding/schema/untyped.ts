@@ -1,0 +1,39 @@
+import {
+  Schema,
+  MsgpackEncodingData,
+  JSONEncodingData,
+  msgpackEncodingDataToJSONEncodingData,
+  jsonEncodingDataToMsgpackEncodingData,
+} from '../encoding.js';
+
+/* eslint-disable class-methods-use-this */
+
+export class UntypedSchema extends Schema {
+  public defaultValue(): undefined {
+    return undefined;
+  }
+
+  public isDefaultValue(data: unknown): boolean {
+    return data === undefined;
+  }
+
+  public prepareMsgpack(data: unknown): MsgpackEncodingData {
+    // Value is already MsgpackEncodingData, since it is returned as such from
+    // fromPreparedMsgpack and fromPreparedJSON
+    return data as MsgpackEncodingData;
+  }
+
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData
+  ): MsgpackEncodingData {
+    return encoded;
+  }
+
+  public prepareJSON(data: unknown): JSONEncodingData {
+    return msgpackEncodingDataToJSONEncodingData(data as MsgpackEncodingData);
+  }
+
+  public fromPreparedJSON(encoded: JSONEncodingData): MsgpackEncodingData {
+    return jsonEncodingDataToMsgpackEncodingData(encoded);
+  }
+}

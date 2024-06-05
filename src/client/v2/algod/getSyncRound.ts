@@ -12,6 +12,8 @@ export default class GetSyncRound extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): GetSyncRoundResponse {
-    return GetSyncRoundResponse.from_obj_for_encoding(body);
+    return GetSyncRoundResponse.fromEncodingData(
+      GetSyncRoundResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }
