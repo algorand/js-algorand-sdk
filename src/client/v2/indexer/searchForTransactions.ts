@@ -441,6 +441,8 @@ export default class SearchForTransactions extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): TransactionsResponse {
-    return TransactionsResponse.from_obj_for_encoding(body);
+    return TransactionsResponse.fromEncodingData(
+      TransactionsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

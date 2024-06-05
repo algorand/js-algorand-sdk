@@ -44,6 +44,6 @@ export default class LookupBlock extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): Block {
-    return Block.from_obj_for_encoding(body);
+    return Block.fromEncodingData(Block.encodingSchema.fromPreparedJSON(body));
   }
 }

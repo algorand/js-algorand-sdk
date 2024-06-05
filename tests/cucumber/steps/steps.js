@@ -1776,41 +1776,31 @@ module.exports = function getSteps(options) {
   );
 
   Then('the parsed response should equal the mock response.', function () {
-    let actualResponseObject;
+    let encodedResponseObject;
     if (this.expectedMockResponseCode === 200) {
       if (responseFormat === 'json') {
-        actualResponseObject = this.actualMockResponse.get_obj_for_encoding(
-          false,
-          true
-        );
+        encodedResponseObject = algosdk.encodeJSON(this.actualMockResponse);
       } else {
-        actualResponseObject = expectedMockResponse.get_obj_for_encoding(
-          true,
-          true
-        );
+        encodedResponseObject = algosdk.encodeMsgpack(this.actualMockResponse);
       }
     } else {
-      actualResponseObject = this.actualMockResponse;
+      encodedResponseObject = algosdk.stringifyJSON(this.actualMockResponse);
     }
 
     // We chain encoding/decoding below to normalize the objects for comparison. This helps deal
     // with type differences such as bigint vs number and Uint8Array vs Buffer.
 
+    let actualResponseObject;
     let parsedExpectedMockResponse;
     if (responseFormat === 'json') {
-      actualResponseObject = algosdk.parseJSON(
-        algosdk.stringifyJSON(actualResponseObject),
-        {
-          intDecoding: algosdk.IntDecoding.MIXED,
-        }
-      );
+      actualResponseObject = algosdk.parseJSON(encodedResponseObject, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
       parsedExpectedMockResponse = algosdk.parseJSON(expectedMockResponse, {
         intDecoding: algosdk.IntDecoding.MIXED,
       });
     } else {
-      actualResponseObject = algosdk.decodeObj(
-        algosdk.encodeObj(actualResponseObject)
-      );
+      actualResponseObject = algosdk.decodeObj(encodedResponseObject);
       parsedExpectedMockResponse = algosdk.decodeObj(expectedMockResponse);
     }
 

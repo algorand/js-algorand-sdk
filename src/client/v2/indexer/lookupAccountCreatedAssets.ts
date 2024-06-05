@@ -144,6 +144,8 @@ export default class LookupAccountCreatedAssets extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): AssetsResponse {
-    return AssetsResponse.from_obj_for_encoding(body);
+    return AssetsResponse.fromEncodingData(
+      AssetsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

@@ -64,6 +64,8 @@ export default class LookupApplications extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): ApplicationResponse {
-    return ApplicationResponse.from_obj_for_encoding(body);
+    return ApplicationResponse.fromEncodingData(
+      ApplicationResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

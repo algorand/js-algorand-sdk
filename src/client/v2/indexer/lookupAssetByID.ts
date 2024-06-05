@@ -63,6 +63,8 @@ export default class LookupAssetByID extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): AssetResponse {
-    return AssetResponse.from_obj_for_encoding(body);
+    return AssetResponse.fromEncodingData(
+      AssetResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

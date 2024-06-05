@@ -27,6 +27,8 @@ export default class MakeHealthCheck extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): HealthCheck {
-    return HealthCheck.from_obj_for_encoding(body);
+    return HealthCheck.fromEncodingData(
+      HealthCheck.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

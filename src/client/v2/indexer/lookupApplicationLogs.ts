@@ -161,6 +161,8 @@ export default class LookupApplicationLogs extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): ApplicationLogsResponse {
-    return ApplicationLogsResponse.from_obj_for_encoding(body);
+    return ApplicationLogsResponse.fromEncodingData(
+      ApplicationLogsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

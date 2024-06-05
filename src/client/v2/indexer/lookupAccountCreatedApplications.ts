@@ -143,6 +143,8 @@ export default class LookupAccountCreatedApplications extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): ApplicationsResponse {
-    return ApplicationsResponse.from_obj_for_encoding(body);
+    return ApplicationsResponse.fromEncodingData(
+      ApplicationsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

@@ -111,6 +111,8 @@ export default class LookupAccountByID extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): AccountResponse {
-    return AccountResponse.from_obj_for_encoding(body);
+    return AccountResponse.fromEncodingData(
+      AccountResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

@@ -274,6 +274,8 @@ export default class SearchAccounts extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): AccountsResponse {
-    return AccountsResponse.from_obj_for_encoding(body);
+    return AccountsResponse.fromEncodingData(
+      AccountsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

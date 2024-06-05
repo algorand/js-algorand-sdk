@@ -142,6 +142,8 @@ export default class LookupAccountAppLocalStates extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): ApplicationLocalStatesResponse {
-    return ApplicationLocalStatesResponse.from_obj_for_encoding(body);
+    return ApplicationLocalStatesResponse.fromEncodingData(
+      ApplicationLocalStatesResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

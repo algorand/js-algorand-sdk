@@ -35,6 +35,8 @@ export default class LookupTransactionByID extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): TransactionResponse {
-    return TransactionResponse.from_obj_for_encoding(body);
+    return TransactionResponse.fromEncodingData(
+      TransactionResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }
