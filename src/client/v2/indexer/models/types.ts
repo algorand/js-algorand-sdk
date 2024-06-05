@@ -18,7 +18,7 @@ export class Account extends BaseModel {
   public address: string;
 
   /**
-   * (algo) total number of MicroAlgos in the account
+   * total number of MicroAlgos in the account
    */
   public amount: number | bigint;
 
@@ -28,13 +28,18 @@ export class Account extends BaseModel {
   public amountWithoutPendingRewards: number | bigint;
 
   /**
+   * MicroAlgo balance required by the account.
+   * The requirement grows based on asset and application usage.
+   */
+  public minBalance: number | bigint;
+
+  /**
    * amount of MicroAlgos of pending rewards in this account.
    */
   public pendingRewards: number | bigint;
 
   /**
-   * (ern) total rewards of MicroAlgos the account has received, including pending
-   * rewards.
+   * total rewards of MicroAlgos the account has received, including pending rewards.
    */
   public rewards: number | bigint;
 
@@ -44,7 +49,7 @@ export class Account extends BaseModel {
   public round: number | bigint;
 
   /**
-   * (onl) delegation status of the account's MicroAlgos
+   * voting status of the account's MicroAlgos
    * * Offline - indicates that the associated account is delegated.
    * * Online - indicates that the associated account used as part of the delegation
    * pool.
@@ -88,33 +93,32 @@ export class Account extends BaseModel {
   public totalCreatedAssets: number | bigint;
 
   /**
-   * (appl) applications local data stored in this account.
+   * application local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
    */
   public appsLocalState?: ApplicationLocalState[];
 
   /**
-   * (teap) the sum of all extra application program pages for this account.
+   * the sum of all extra application program pages for this account.
    */
   public appsTotalExtraPages?: number | bigint;
 
   /**
-   * (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
+   * the sum of all of the local schemas and global schemas in this account.
    * Note: the raw account uses `StateSchema` for this type.
    */
   public appsTotalSchema?: ApplicationStateSchema;
 
   /**
-   * (asset) assets held by this account.
+   * assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
    */
   public assets?: AssetHolding[];
 
   /**
-   * (spend) the address against which signing should be checked. If empty, the
-   * address of the current account is used. This field can be updated in any
-   * transaction by setting the RekeyTo field.
+   * The address against which signing should be checked. If empty, the address of
+   * the current account is used. This field can be updated in any transaction by
+   * setting the RekeyTo field.
    */
   public authAddr?: string;
 
@@ -124,14 +128,13 @@ export class Account extends BaseModel {
   public closedAtRound?: number | bigint;
 
   /**
-   * (appp) parameters of applications created by this account including app global
-   * data.
+   * parameters of applications created by this account including app global data.
    * Note: the raw account uses `map[int] -> AppParams` for this type.
    */
   public createdApps?: Application[];
 
   /**
-   * (apar) parameters of assets created by this account.
+   * parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
    */
   public createdAssets?: Asset[];
@@ -147,19 +150,36 @@ export class Account extends BaseModel {
   public deleted?: boolean;
 
   /**
+   * can the account receive block incentives if its balance is in range at proposal
+   * time.
+   */
+  public incentiveEligible?: boolean;
+
+  /**
+   * The round in which this account last went online, or explicitly renewed their
+   * online status.
+   */
+  public lastHeartbeat?: number | bigint;
+
+  /**
+   * The round in which this account last proposed the block.
+   */
+  public lastProposed?: number | bigint;
+
+  /**
    * AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    */
   public participation?: AccountParticipation;
 
   /**
-   * (ebase) used as part of the rewards computation. Only applicable to accounts
-   * which are participating.
+   * used as part of the rewards computation. Only applicable to accounts which are
+   * participating.
    */
   public rewardBase?: number | bigint;
 
   /**
-   * Indicates what type of signature is used by this account, must be one of:
+   * the type of signature used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
@@ -170,13 +190,14 @@ export class Account extends BaseModel {
   /**
    * Creates a new `Account` object.
    * @param address - the account public key
-   * @param amount - (algo) total number of MicroAlgos in the account
+   * @param amount - total number of MicroAlgos in the account
    * @param amountWithoutPendingRewards - specifies the amount of MicroAlgos in the account, without the pending rewards.
+   * @param minBalance - MicroAlgo balance required by the account.
+   * The requirement grows based on asset and application usage.
    * @param pendingRewards - amount of MicroAlgos of pending rewards in this account.
-   * @param rewards - (ern) total rewards of MicroAlgos the account has received, including pending
-   * rewards.
+   * @param rewards - total rewards of MicroAlgos the account has received, including pending rewards.
    * @param round - The round for which this information is relevant.
-   * @param status - (onl) delegation status of the account's MicroAlgos
+   * @param status - voting status of the account's MicroAlgos
    * * Offline - indicates that the associated account is delegated.
    * * Online - indicates that the associated account used as part of the delegation
    * pool.
@@ -192,30 +213,33 @@ export class Account extends BaseModel {
    * application.
    * @param totalCreatedApps - The count of all apps (AppParams objects) created by this account.
    * @param totalCreatedAssets - The count of all assets (AssetParams objects) created by this account.
-   * @param appsLocalState - (appl) applications local data stored in this account.
+   * @param appsLocalState - application local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
-   * @param appsTotalExtraPages - (teap) the sum of all extra application program pages for this account.
-   * @param appsTotalSchema - (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
+   * @param appsTotalExtraPages - the sum of all extra application program pages for this account.
+   * @param appsTotalSchema - the sum of all of the local schemas and global schemas in this account.
    * Note: the raw account uses `StateSchema` for this type.
-   * @param assets - (asset) assets held by this account.
+   * @param assets - assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
-   * @param authAddr - (spend) the address against which signing should be checked. If empty, the
-   * address of the current account is used. This field can be updated in any
-   * transaction by setting the RekeyTo field.
+   * @param authAddr - The address against which signing should be checked. If empty, the address of
+   * the current account is used. This field can be updated in any transaction by
+   * setting the RekeyTo field.
    * @param closedAtRound - Round during which this account was most recently closed.
-   * @param createdApps - (appp) parameters of applications created by this account including app global
-   * data.
+   * @param createdApps - parameters of applications created by this account including app global data.
    * Note: the raw account uses `map[int] -> AppParams` for this type.
-   * @param createdAssets - (apar) parameters of assets created by this account.
+   * @param createdAssets - parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
    * @param createdAtRound - Round during which this account first appeared in a transaction.
    * @param deleted - Whether or not this account is currently closed.
+   * @param incentiveEligible - can the account receive block incentives if its balance is in range at proposal
+   * time.
+   * @param lastHeartbeat - The round in which this account last went online, or explicitly renewed their
+   * online status.
+   * @param lastProposed - The round in which this account last proposed the block.
    * @param participation - AccountParticipation describes the parameters used by this account in consensus
    * protocol.
-   * @param rewardBase - (ebase) used as part of the rewards computation. Only applicable to accounts
-   * which are participating.
-   * @param sigType - Indicates what type of signature is used by this account, must be one of:
+   * @param rewardBase - used as part of the rewards computation. Only applicable to accounts which are
+   * participating.
+   * @param sigType - the type of signature used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
@@ -225,6 +249,7 @@ export class Account extends BaseModel {
     address,
     amount,
     amountWithoutPendingRewards,
+    minBalance,
     pendingRewards,
     rewards,
     round,
@@ -245,6 +270,9 @@ export class Account extends BaseModel {
     createdAssets,
     createdAtRound,
     deleted,
+    incentiveEligible,
+    lastHeartbeat,
+    lastProposed,
     participation,
     rewardBase,
     sigType,
@@ -252,6 +280,7 @@ export class Account extends BaseModel {
     address: string;
     amount: number | bigint;
     amountWithoutPendingRewards: number | bigint;
+    minBalance: number | bigint;
     pendingRewards: number | bigint;
     rewards: number | bigint;
     round: number | bigint;
@@ -272,6 +301,9 @@ export class Account extends BaseModel {
     createdAssets?: Asset[];
     createdAtRound?: number | bigint;
     deleted?: boolean;
+    incentiveEligible?: boolean;
+    lastHeartbeat?: number | bigint;
+    lastProposed?: number | bigint;
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
@@ -280,6 +312,7 @@ export class Account extends BaseModel {
     this.address = address;
     this.amount = amount;
     this.amountWithoutPendingRewards = amountWithoutPendingRewards;
+    this.minBalance = minBalance;
     this.pendingRewards = pendingRewards;
     this.rewards = rewards;
     this.round = round;
@@ -300,6 +333,9 @@ export class Account extends BaseModel {
     this.createdAssets = createdAssets;
     this.createdAtRound = createdAtRound;
     this.deleted = deleted;
+    this.incentiveEligible = incentiveEligible;
+    this.lastHeartbeat = lastHeartbeat;
+    this.lastProposed = lastProposed;
     this.participation = participation;
     this.rewardBase = rewardBase;
     this.sigType = sigType;
@@ -308,6 +344,7 @@ export class Account extends BaseModel {
       address: 'address',
       amount: 'amount',
       amountWithoutPendingRewards: 'amount-without-pending-rewards',
+      minBalance: 'min-balance',
       pendingRewards: 'pending-rewards',
       rewards: 'rewards',
       round: 'round',
@@ -328,6 +365,9 @@ export class Account extends BaseModel {
       createdAssets: 'created-assets',
       createdAtRound: 'created-at-round',
       deleted: 'deleted',
+      incentiveEligible: 'incentive-eligible',
+      lastHeartbeat: 'last-heartbeat',
+      lastProposed: 'last-proposed',
       participation: 'participation',
       rewardBase: 'reward-base',
       sigType: 'sig-type',
@@ -344,6 +384,10 @@ export class Account extends BaseModel {
     if (typeof data['amount-without-pending-rewards'] === 'undefined')
       throw new Error(
         `Response is missing required field 'amount-without-pending-rewards': ${data}`
+      );
+    if (typeof data['min-balance'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'min-balance': ${data}`
       );
     if (typeof data['pending-rewards'] === 'undefined')
       throw new Error(
@@ -383,6 +427,7 @@ export class Account extends BaseModel {
       address: data['address'],
       amount: data['amount'],
       amountWithoutPendingRewards: data['amount-without-pending-rewards'],
+      minBalance: data['min-balance'],
       pendingRewards: data['pending-rewards'],
       rewards: data['rewards'],
       round: data['round'],
@@ -422,6 +467,9 @@ export class Account extends BaseModel {
           : undefined,
       createdAtRound: data['created-at-round'],
       deleted: data['deleted'],
+      incentiveEligible: data['incentive-eligible'],
+      lastHeartbeat: data['last-heartbeat'],
+      lastProposed: data['last-proposed'],
       participation:
         typeof data['participation'] !== 'undefined'
           ? AccountParticipation.from_obj_for_encoding(data['participation'])
@@ -439,45 +487,43 @@ export class Account extends BaseModel {
  */
 export class AccountParticipation extends BaseModel {
   /**
-   * (sel) Selection public key (if any) currently registered for this round.
+   * Selection public key (if any) currently registered for this round.
    */
   public selectionParticipationKey: Uint8Array;
 
   /**
-   * (voteFst) First round for which this participation is valid.
+   * First round for which this participation is valid.
    */
   public voteFirstValid: number | bigint;
 
   /**
-   * (voteKD) Number of subkeys in each batch of participation keys.
+   * Number of subkeys in each batch of participation keys.
    */
   public voteKeyDilution: number | bigint;
 
   /**
-   * (voteLst) Last round for which this participation is valid.
+   * Last round for which this participation is valid.
    */
   public voteLastValid: number | bigint;
 
   /**
-   * (vote) root participation public key (if any) currently registered for this
-   * round.
+   * root participation public key (if any) currently registered for this round.
    */
   public voteParticipationKey: Uint8Array;
 
   /**
-   * (stprf) Root of the state proof key (if any)
+   * Root of the state proof key (if any)
    */
   public stateProofKey?: Uint8Array;
 
   /**
    * Creates a new `AccountParticipation` object.
-   * @param selectionParticipationKey - (sel) Selection public key (if any) currently registered for this round.
-   * @param voteFirstValid - (voteFst) First round for which this participation is valid.
-   * @param voteKeyDilution - (voteKD) Number of subkeys in each batch of participation keys.
-   * @param voteLastValid - (voteLst) Last round for which this participation is valid.
-   * @param voteParticipationKey - (vote) root participation public key (if any) currently registered for this
-   * round.
-   * @param stateProofKey - (stprf) Root of the state proof key (if any)
+   * @param selectionParticipationKey - Selection public key (if any) currently registered for this round.
+   * @param voteFirstValid - First round for which this participation is valid.
+   * @param voteKeyDilution - Number of subkeys in each batch of participation keys.
+   * @param voteLastValid - Last round for which this participation is valid.
+   * @param voteParticipationKey - root participation public key (if any) currently registered for this round.
+   * @param stateProofKey - Root of the state proof key (if any)
    */
   constructor({
     selectionParticipationKey,
@@ -735,12 +781,12 @@ export class AccountsResponse extends BaseModel {
  */
 export class Application extends BaseModel {
   /**
-   * (appidx) application index.
+   * application index.
    */
   public id: number | bigint;
 
   /**
-   * (appparams) application parameters.
+   * application parameters.
    */
   public params: ApplicationParams;
 
@@ -761,8 +807,8 @@ export class Application extends BaseModel {
 
   /**
    * Creates a new `Application` object.
-   * @param id - (appidx) application index.
-   * @param params - (appparams) application parameters.
+   * @param id - application index.
+   * @param params - application parameters.
    * @param createdAtRound - Round when this application was created.
    * @param deleted - Whether or not this application is currently deleted.
    * @param deletedAtRound - Round when this application was deleted.
@@ -824,7 +870,7 @@ export class ApplicationLocalState extends BaseModel {
   public id: number | bigint;
 
   /**
-   * (hsch) schema.
+   * schema.
    */
   public schema: ApplicationStateSchema;
 
@@ -840,7 +886,7 @@ export class ApplicationLocalState extends BaseModel {
   public deleted?: boolean;
 
   /**
-   * (tkv) storage.
+   * storage.
    */
   public keyValue?: TealKeyValue[];
 
@@ -852,11 +898,11 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * Creates a new `ApplicationLocalState` object.
    * @param id - The application which this local state is for.
-   * @param schema - (hsch) schema.
+   * @param schema - schema.
    * @param closedOutAtRound - Round when account closed out of the application.
    * @param deleted - Whether or not the application local state is currently deleted from its
    * account.
-   * @param keyValue - (tkv) storage.
+   * @param keyValue - storage.
    * @param optedInAtRound - Round when the account opted into the application.
    */
   constructor({
@@ -990,7 +1036,7 @@ export class ApplicationLocalStatesResponse extends BaseModel {
  */
 export class ApplicationLogData extends BaseModel {
   /**
-   * (lg) Logs for the application being executed by the transaction.
+   * Logs for the application being executed by the transaction.
    */
   public logs: Uint8Array[];
 
@@ -1001,7 +1047,7 @@ export class ApplicationLogData extends BaseModel {
 
   /**
    * Creates a new `ApplicationLogData` object.
-   * @param logs - (lg) Logs for the application being executed by the transaction.
+   * @param logs - Logs for the application being executed by the transaction.
    * @param txid - Transaction ID
    */
   constructor({ logs, txid }: { logs: Uint8Array[]; txid: string }) {
@@ -1118,12 +1164,12 @@ export class ApplicationLogsResponse extends BaseModel {
  */
 export class ApplicationParams extends BaseModel {
   /**
-   * (approv) approval program.
+   * approval program.
    */
   public approvalProgram: Uint8Array;
 
   /**
-   * (clearp) approval program.
+   * clear state program.
    */
   public clearStateProgram: Uint8Array;
 
@@ -1134,35 +1180,35 @@ export class ApplicationParams extends BaseModel {
   public creator?: string;
 
   /**
-   * (epp) the amount of extra program pages available to this app.
+   * the number of extra program pages available to this app.
    */
   public extraProgramPages?: number | bigint;
 
   /**
-   * [\gs) global schema
+   * global state
    */
   public globalState?: TealKeyValue[];
 
   /**
-   * [\gsch) global schema
+   * global schema
    */
   public globalStateSchema?: ApplicationStateSchema;
 
   /**
-   * [\lsch) local schema
+   * local schema
    */
   public localStateSchema?: ApplicationStateSchema;
 
   /**
    * Creates a new `ApplicationParams` object.
-   * @param approvalProgram - (approv) approval program.
-   * @param clearStateProgram - (clearp) approval program.
+   * @param approvalProgram - approval program.
+   * @param clearStateProgram - clear state program.
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
-   * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
-   * @param globalState - [\gs) global schema
-   * @param globalStateSchema - [\gsch) global schema
-   * @param localStateSchema - [\lsch) local schema
+   * @param extraProgramPages - the number of extra program pages available to this app.
+   * @param globalState - global state
+   * @param globalStateSchema - global schema
+   * @param localStateSchema - local schema
    */
   constructor({
     approvalProgram,
@@ -1303,19 +1349,19 @@ export class ApplicationResponse extends BaseModel {
  */
 export class ApplicationStateSchema extends BaseModel {
   /**
-   * (nbs) num of byte slices.
+   * number of byte slices.
    */
   public numByteSlice: number | bigint;
 
   /**
-   * (nui) num of uints.
+   * number of uints.
    */
   public numUint: number | bigint;
 
   /**
    * Creates a new `ApplicationStateSchema` object.
-   * @param numByteSlice - (nbs) num of byte slices.
-   * @param numUint - (nui) num of uints.
+   * @param numByteSlice - number of byte slices.
+   * @param numUint - number of uints.
    */
   constructor({
     numByteSlice,
@@ -1584,7 +1630,7 @@ export class AssetBalancesResponse extends BaseModel {
  */
 export class AssetHolding extends BaseModel {
   /**
-   * (a) number of units held.
+   * number of units held.
    */
   public amount: number | bigint;
 
@@ -1594,7 +1640,7 @@ export class AssetHolding extends BaseModel {
   public assetId: number | bigint;
 
   /**
-   * (f) whether or not the holding is frozen.
+   * whether or not the holding is frozen.
    */
   public isFrozen: boolean;
 
@@ -1615,9 +1661,9 @@ export class AssetHolding extends BaseModel {
 
   /**
    * Creates a new `AssetHolding` object.
-   * @param amount - (a) number of units held.
+   * @param amount - number of units held.
    * @param assetId - Asset ID of the holding.
-   * @param isFrozen - (f) whether or not the holding is frozen.
+   * @param isFrozen - whether or not the holding is frozen.
    * @param deleted - Whether or not the asset holding is currently deleted from its account.
    * @param optedInAtRound - Round during which the account opted into this asset holding.
    * @param optedOutAtRound - Round during which the account opted out of this asset holding.
@@ -1760,49 +1806,49 @@ export class AssetParams extends BaseModel {
   public creator: string;
 
   /**
-   * (dc) The number of digits to use after the decimal point when displaying this
-   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
-   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
-   * must be between 0 and 19 (inclusive).
+   * The number of digits to use after the decimal point when displaying this asset.
+   * If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths.
+   * If 2, the base unit of the asset is in hundredths, and so on. This value must be
+   * between 0 and 19 (inclusive).
    */
   public decimals: number | bigint;
 
   /**
-   * (t) The total number of units of this asset.
+   * The total number of units of this asset.
    */
   public total: number | bigint;
 
   /**
-   * (c) Address of account used to clawback holdings of this asset. If empty,
-   * clawback is not permitted.
+   * Address of account used to clawback holdings of this asset. If empty, clawback
+   * is not permitted.
    */
   public clawback?: string;
 
   /**
-   * (df) Whether holdings of this asset are frozen by default.
+   * Whether holdings of this asset are frozen by default.
    */
   public defaultFrozen?: boolean;
 
   /**
-   * (f) Address of account used to freeze holdings of this asset. If empty, freezing
-   * is not permitted.
+   * Address of account used to freeze holdings of this asset. If empty, freezing is
+   * not permitted.
    */
   public freeze?: string;
 
   /**
-   * (m) Address of account used to manage the keys of this asset and to destroy it.
+   * Address of account used to manage the keys of this asset and to destroy it.
    */
   public manager?: string;
 
   /**
-   * (am) A commitment to some unspecified asset metadata. The format of this
-   * metadata is up to the application.
+   * A commitment to some unspecified asset metadata. The format of this metadata is
+   * up to the application.
    */
   public metadataHash?: Uint8Array;
 
   /**
-   * (an) Name of this asset, as supplied by the creator. Included only when the
-   * asset name is composed of printable utf-8 characters.
+   * Name of this asset, as supplied by the creator. Included only when the asset
+   * name is composed of printable utf-8 characters.
    */
   public name?: string;
 
@@ -1812,13 +1858,13 @@ export class AssetParams extends BaseModel {
   public nameB64?: Uint8Array;
 
   /**
-   * (r) Address of account holding reserve (non-minted) units of this asset.
+   * Address of account holding reserve (non-minted) units of this asset.
    */
   public reserve?: string;
 
   /**
-   * (un) Name of a unit of this asset, as supplied by the creator. Included only
-   * when the name of a unit of this asset is composed of printable utf-8 characters.
+   * Name of a unit of this asset, as supplied by the creator. Included only when the
+   * name of a unit of this asset is composed of printable utf-8 characters.
    */
   public unitName?: string;
 
@@ -1828,8 +1874,8 @@ export class AssetParams extends BaseModel {
   public unitNameB64?: Uint8Array;
 
   /**
-   * (au) URL where more information about the asset can be retrieved. Included only
-   * when the URL is composed of printable utf-8 characters.
+   * URL where more information about the asset can be retrieved. Included only when
+   * the URL is composed of printable utf-8 characters.
    */
   public url?: string;
 
@@ -1843,28 +1889,28 @@ export class AssetParams extends BaseModel {
    * @param creator - The address that created this asset. This is the address where the parameters
    * for this asset can be found, and also the address where unwanted asset units can
    * be sent in the worst case.
-   * @param decimals - (dc) The number of digits to use after the decimal point when displaying this
-   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
-   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
-   * must be between 0 and 19 (inclusive).
-   * @param total - (t) The total number of units of this asset.
-   * @param clawback - (c) Address of account used to clawback holdings of this asset. If empty,
-   * clawback is not permitted.
-   * @param defaultFrozen - (df) Whether holdings of this asset are frozen by default.
-   * @param freeze - (f) Address of account used to freeze holdings of this asset. If empty, freezing
+   * @param decimals - The number of digits to use after the decimal point when displaying this asset.
+   * If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths.
+   * If 2, the base unit of the asset is in hundredths, and so on. This value must be
+   * between 0 and 19 (inclusive).
+   * @param total - The total number of units of this asset.
+   * @param clawback - Address of account used to clawback holdings of this asset. If empty, clawback
    * is not permitted.
-   * @param manager - (m) Address of account used to manage the keys of this asset and to destroy it.
-   * @param metadataHash - (am) A commitment to some unspecified asset metadata. The format of this
-   * metadata is up to the application.
-   * @param name - (an) Name of this asset, as supplied by the creator. Included only when the
-   * asset name is composed of printable utf-8 characters.
+   * @param defaultFrozen - Whether holdings of this asset are frozen by default.
+   * @param freeze - Address of account used to freeze holdings of this asset. If empty, freezing is
+   * not permitted.
+   * @param manager - Address of account used to manage the keys of this asset and to destroy it.
+   * @param metadataHash - A commitment to some unspecified asset metadata. The format of this metadata is
+   * up to the application.
+   * @param name - Name of this asset, as supplied by the creator. Included only when the asset
+   * name is composed of printable utf-8 characters.
    * @param nameB64 - Base64 encoded name of this asset, as supplied by the creator.
-   * @param reserve - (r) Address of account holding reserve (non-minted) units of this asset.
-   * @param unitName - (un) Name of a unit of this asset, as supplied by the creator. Included only
-   * when the name of a unit of this asset is composed of printable utf-8 characters.
+   * @param reserve - Address of account holding reserve (non-minted) units of this asset.
+   * @param unitName - Name of a unit of this asset, as supplied by the creator. Included only when the
+   * name of a unit of this asset is composed of printable utf-8 characters.
    * @param unitNameB64 - Base64 encoded name of a unit of this asset, as supplied by the creator.
-   * @param url - (au) URL where more information about the asset can be retrieved. Included only
-   * when the URL is composed of printable utf-8 characters.
+   * @param url - URL where more information about the asset can be retrieved. Included only when
+   * the URL is composed of printable utf-8 characters.
    * @param urlB64 - Base64 encoded URL where more information about the asset can be retrieved.
    */
   constructor({
@@ -2151,9 +2197,29 @@ export class Block extends BaseModel {
   public transactionsRootSha256: Uint8Array;
 
   /**
+   * the potential bonus payout for this block.
+   */
+  public bonus?: number | bigint;
+
+  /**
+   * the sum of all fees paid by transactions in this block.
+   */
+  public feesCollected?: number | bigint;
+
+  /**
    * Participation account data that needs to be checked/acted on by the network.
    */
   public participationUpdates?: ParticipationUpdates;
+
+  /**
+   * the proposer of this block.
+   */
+  public proposer?: string;
+
+  /**
+   * the actual amount transferred to the proposer from the fee sink.
+   */
+  public proposerPayout?: number | bigint;
 
   /**
    * Fields relating to rewards,
@@ -2207,7 +2273,11 @@ export class Block extends BaseModel {
    * vector commitment instead of a merkle tree, and SHA256 hash function instead of
    * the default SHA512_256. This commitment can be used on environments where only
    * the SHA256 function exists.
+   * @param bonus - the potential bonus payout for this block.
+   * @param feesCollected - the sum of all fees paid by transactions in this block.
    * @param participationUpdates - Participation account data that needs to be checked/acted on by the network.
+   * @param proposer - the proposer of this block.
+   * @param proposerPayout - the actual amount transferred to the proposer from the fee sink.
    * @param rewards - Fields relating to rewards,
    * @param stateProofTracking - Tracks the status of state proofs.
    * @param transactions - (txns) list of transactions corresponding to a given round.
@@ -2228,7 +2298,11 @@ export class Block extends BaseModel {
     timestamp,
     transactionsRoot,
     transactionsRootSha256,
+    bonus,
+    feesCollected,
     participationUpdates,
+    proposer,
+    proposerPayout,
     rewards,
     stateProofTracking,
     transactions,
@@ -2244,7 +2318,11 @@ export class Block extends BaseModel {
     timestamp: number | bigint;
     transactionsRoot: string | Uint8Array;
     transactionsRootSha256: string | Uint8Array;
+    bonus?: number | bigint;
+    feesCollected?: number | bigint;
     participationUpdates?: ParticipationUpdates;
+    proposer?: string;
+    proposerPayout?: number | bigint;
     rewards?: BlockRewards;
     stateProofTracking?: StateProofTracking[];
     transactions?: Transaction[];
@@ -2276,7 +2354,11 @@ export class Block extends BaseModel {
       typeof transactionsRootSha256 === 'string'
         ? new Uint8Array(Buffer.from(transactionsRootSha256, 'base64'))
         : transactionsRootSha256;
+    this.bonus = bonus;
+    this.feesCollected = feesCollected;
     this.participationUpdates = participationUpdates;
+    this.proposer = proposer;
+    this.proposerPayout = proposerPayout;
     this.rewards = rewards;
     this.stateProofTracking = stateProofTracking;
     this.transactions = transactions;
@@ -2293,7 +2375,11 @@ export class Block extends BaseModel {
       timestamp: 'timestamp',
       transactionsRoot: 'transactions-root',
       transactionsRootSha256: 'transactions-root-sha256',
+      bonus: 'bonus',
+      feesCollected: 'fees-collected',
       participationUpdates: 'participation-updates',
+      proposer: 'proposer',
+      proposerPayout: 'proposer-payout',
       rewards: 'rewards',
       stateProofTracking: 'state-proof-tracking',
       transactions: 'transactions',
@@ -2343,12 +2429,16 @@ export class Block extends BaseModel {
       timestamp: data['timestamp'],
       transactionsRoot: data['transactions-root'],
       transactionsRootSha256: data['transactions-root-sha256'],
+      bonus: data['bonus'],
+      feesCollected: data['fees-collected'],
       participationUpdates:
         typeof data['participation-updates'] !== 'undefined'
           ? ParticipationUpdates.from_obj_for_encoding(
               data['participation-updates']
             )
           : undefined,
+      proposer: data['proposer'],
+      proposerPayout: data['proposer-payout'],
       rewards:
         typeof data['rewards'] !== 'undefined'
           ? BlockRewards.from_obj_for_encoding(data['rewards'])
@@ -2654,6 +2744,11 @@ export class Box extends BaseModel {
   public name: Uint8Array;
 
   /**
+   * The round for which this information is relevant
+   */
+  public round: number | bigint;
+
+  /**
    * (value) box value, base64 encoded.
    */
   public value: Uint8Array;
@@ -2661,13 +2756,16 @@ export class Box extends BaseModel {
   /**
    * Creates a new `Box` object.
    * @param name - (name) box name, base64 encoded
+   * @param round - The round for which this information is relevant
    * @param value - (value) box value, base64 encoded.
    */
   constructor({
     name,
+    round,
     value,
   }: {
     name: string | Uint8Array;
+    round: number | bigint;
     value: string | Uint8Array;
   }) {
     super();
@@ -2675,6 +2773,7 @@ export class Box extends BaseModel {
       typeof name === 'string'
         ? new Uint8Array(Buffer.from(name, 'base64'))
         : name;
+    this.round = round;
     this.value =
       typeof value === 'string'
         ? new Uint8Array(Buffer.from(value, 'base64'))
@@ -2682,6 +2781,7 @@ export class Box extends BaseModel {
 
     this.attribute_map = {
       name: 'name',
+      round: 'round',
       value: 'value',
     };
   }
@@ -2691,10 +2791,13 @@ export class Box extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['name'] === 'undefined')
       throw new Error(`Response is missing required field 'name': ${data}`);
+    if (typeof data['round'] === 'undefined')
+      throw new Error(`Response is missing required field 'round': ${data}`);
     if (typeof data['value'] === 'undefined')
       throw new Error(`Response is missing required field 'value': ${data}`);
     return new Box({
       name: data['name'],
+      round: data['round'],
       value: data['value'],
     });
     /* eslint-enable dot-notation */
@@ -3310,6 +3413,11 @@ export class MiniAssetHolding extends BaseModel {
  */
 export class ParticipationUpdates extends BaseModel {
   /**
+   * (partupabs) a list of online accounts that need to be suspended.
+   */
+  public absentParticipationAccounts?: string[];
+
+  /**
    * (partupdrmv) a list of online accounts that needs to be converted to offline
    * since their participation key expired.
    */
@@ -3317,18 +3425,23 @@ export class ParticipationUpdates extends BaseModel {
 
   /**
    * Creates a new `ParticipationUpdates` object.
+   * @param absentParticipationAccounts - (partupabs) a list of online accounts that need to be suspended.
    * @param expiredParticipationAccounts - (partupdrmv) a list of online accounts that needs to be converted to offline
    * since their participation key expired.
    */
   constructor({
+    absentParticipationAccounts,
     expiredParticipationAccounts,
   }: {
+    absentParticipationAccounts?: string[];
     expiredParticipationAccounts?: string[];
   }) {
     super();
+    this.absentParticipationAccounts = absentParticipationAccounts;
     this.expiredParticipationAccounts = expiredParticipationAccounts;
 
     this.attribute_map = {
+      absentParticipationAccounts: 'absent-participation-accounts',
       expiredParticipationAccounts: 'expired-participation-accounts',
     };
   }
@@ -3339,6 +3452,7 @@ export class ParticipationUpdates extends BaseModel {
   ): ParticipationUpdates {
     /* eslint-disable dot-notation */
     return new ParticipationUpdates({
+      absentParticipationAccounts: data['absent-participation-accounts'],
       expiredParticipationAccounts: data['expired-participation-accounts'],
     });
     /* eslint-enable dot-notation */
@@ -3908,25 +4022,25 @@ export class TealKeyValue extends BaseModel {
  */
 export class TealValue extends BaseModel {
   /**
-   * (tb) bytes value.
+   * bytes value.
    */
   public bytes: string;
 
   /**
-   * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
+   * type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
   public type: number | bigint;
 
   /**
-   * (ui) uint value.
+   * uint value.
    */
   public uint: number | bigint;
 
   /**
    * Creates a new `TealValue` object.
-   * @param bytes - (tb) bytes value.
-   * @param type - (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
-   * @param uint - (ui) uint value.
+   * @param bytes - bytes value.
+   * @param type - type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
+   * @param uint - uint value.
    */
   constructor({
     bytes,
@@ -4892,7 +5006,7 @@ export class TransactionAssetTransfer extends BaseModel {
   public receiver: string;
 
   /**
-   * Number of assets transfered to the close-to account as part of the transaction.
+   * Number of assets transferred to the close-to account as part of the transaction.
    */
   public closeAmount?: number | bigint;
 
@@ -4916,7 +5030,7 @@ export class TransactionAssetTransfer extends BaseModel {
    * that asset in the account's Assets map.
    * @param assetId - (xaid) ID of the asset being transferred.
    * @param receiver - (arcv) Recipient address of the transfer.
-   * @param closeAmount - Number of assets transfered to the close-to account as part of the transaction.
+   * @param closeAmount - Number of assets transferred to the close-to account as part of the transaction.
    * @param closeTo - (aclose) Indicates that the asset should be removed from the account's Assets
    * map, and specifies where the remaining asset holdings should be transferred.
    * It's always valid to transfer remaining asset holdings to the creator account.

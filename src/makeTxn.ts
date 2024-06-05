@@ -135,7 +135,7 @@ export function makeKeyRegistrationTxnWithSuggestedParams(
   voteKeyDilution: undefined,
   suggestedParams: MustHaveSuggestedParams<KeyRegistrationTxn>['suggestedParams'],
   rekeyTo?: KeyRegistrationTxn['reKeyTo'],
-  nonParticipation?: true,
+  nonParticipation?: boolean,
   stateProofKey?: undefined
 ): txnBuilder.Transaction;
 export function makeKeyRegistrationTxnWithSuggestedParams(
