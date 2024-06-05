@@ -53,7 +53,6 @@ async function main() {
     algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
       sender: addr,
       suggestedParams,
-      nonParticipation: true,
     });
   console.log(offlineKeyReg);
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
