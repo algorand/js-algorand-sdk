@@ -2,26 +2,26 @@ import * as nacl from './nacl/naclWrappers.js';
 import { Address, isValidAddress } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
+  NamedMapSchema,
+  ArraySchema,
+  ByteArraySchema,
+  FixedLengthByteArraySchema,
+  OptionalSchema,
+  allOmitEmpty,
+} from './encoding/schema/index.js';
+import {
   MultisigMetadata,
   verifyMultisig,
   addressFromMultisigPreImg,
   pksFromAddresses,
 } from './multisig.js';
 import * as utils from './utils/utils.js';
-import { Transaction } from './transaction.js';
 import {
-  EncodedLogicSig,
-  EncodedLogicSigAccount,
   EncodedMultisig,
-  EncodedSignedTransaction,
+  encodedMultiSigToEncodingData,
+  encodedMultiSigFromEncodingData,
+  ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/encoded.js';
-
-interface LogicSigStorageStructure {
-  logic: Uint8Array;
-  args?: Uint8Array[];
-  sig?: Uint8Array;
-  msig?: EncodedMultisig;
-}
 
 // base64regex is the regex to test for base64 strings
 const base64regex =
@@ -59,16 +59,37 @@ export function sanityCheckProgram(program: Uint8Array) {
   }
 }
 
+const programTag = new TextEncoder().encode('Program');
+
 /**
  LogicSig implementation
 
  LogicSig cannot sign transactions in all cases.  Instead, use LogicSigAccount as a safe, general purpose signing mechanism.  Since LogicSig does not track the provided signature's public key, LogicSig cannot sign transactions when delegated to a non-multisig account _and_ the sender is not the delegating account.
  */
-export class LogicSig implements LogicSigStorageStructure {
-  tag = new TextEncoder().encode('Program');
+export class LogicSig implements encoding.Encodable {
+  static encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'l',
+        valueSchema: new ByteArraySchema(),
+      },
+      {
+        key: 'arg',
+        valueSchema: new ArraySchema(new ByteArraySchema()),
+      },
+      {
+        key: 'sig',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(64)),
+      },
+      {
+        key: 'msig',
+        valueSchema: new OptionalSchema(ENCODED_MULTISIG_SCHEMA),
+      },
+    ])
+  );
 
   logic: Uint8Array;
-  args?: Uint8Array[];
+  args: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
 
@@ -81,7 +102,7 @@ export class LogicSig implements LogicSigStorageStructure {
       throw new TypeError('Invalid arguments');
     }
 
-    let args: Uint8Array[] | undefined;
+    let args: Uint8Array[] = [];
     if (programArgs != null)
       args = programArgs.map((arg) => new Uint8Array(arg));
 
@@ -93,27 +114,32 @@ export class LogicSig implements LogicSigStorageStructure {
     this.msig = undefined;
   }
 
-  // eslint-disable-next-line camelcase
-  get_obj_for_encoding() {
-    const obj: EncodedLogicSig = {
-      l: this.logic,
-    };
-    if (this.args) {
-      obj.arg = this.args;
-    }
-    if (this.sig) {
-      obj.sig = this.sig;
-    } else if (this.msig) {
-      obj.msig = this.msig;
-    }
-    return obj;
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): encoding.Schema {
+    return LogicSig.encodingSchema;
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(encoded: EncodedLogicSig) {
-    const lsig = new LogicSig(encoded.l, encoded.arg);
-    lsig.sig = encoded.sig;
-    lsig.msig = encoded.msig;
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['l', this.logic],
+      ['arg', this.args],
+      ['sig', this.sig],
+    ]);
+    if (this.msig) {
+      data.set('msig', encodedMultiSigToEncodingData(this.msig));
+    }
+    return data;
+  }
+
+  static fromEncodingData(data: unknown): LogicSig {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig: ${data}`);
+    }
+    const lsig = new LogicSig(data.get('l'), data.get('arg'));
+    lsig.sig = data.get('sig');
+    if (data.get('msig')) {
+      lsig.msig = encodedMultiSigFromEncodingData(data.get('msig'));
+    }
     return lsig;
   }
 
@@ -132,7 +158,7 @@ export class LogicSig implements LogicSigStorageStructure {
       return false;
     }
 
-    const toBeSigned = utils.concatArrays(this.tag, this.logic);
+    const toBeSigned = utils.concatArrays(programTag, this.logic);
 
     if (!this.sig && !this.msig) {
       const hash = nacl.genericHash(toBeSigned);
@@ -151,7 +177,7 @@ export class LogicSig implements LogicSigStorageStructure {
    * @returns String representation of the address
    */
   address(): Address {
-    const toBeSigned = utils.concatArrays(this.tag, this.logic);
+    const toBeSigned = utils.concatArrays(programTag, this.logic);
     const hash = nacl.genericHash(toBeSigned);
     return new Address(Uint8Array.from(hash));
   }
@@ -191,7 +217,7 @@ export class LogicSig implements LogicSigStorageStructure {
   }
 
   signProgram(secretKey: Uint8Array) {
-    const toBeSigned = utils.concatArrays(this.tag, this.logic);
+    const toBeSigned = utils.concatArrays(programTag, this.logic);
     const sig = nacl.sign(toBeSigned, secretKey);
     return sig;
   }
@@ -216,20 +242,32 @@ export class LogicSig implements LogicSigStorageStructure {
     return [sig, index];
   }
 
-  toByte() {
-    return encoding.encode(this.get_obj_for_encoding());
+  toByte(): Uint8Array {
+    return encoding.encodeMsgpack(this);
   }
 
-  static fromByte(encoded: ArrayLike<any>) {
-    const decodedObj = encoding.decode(encoded) as EncodedLogicSig;
-    return LogicSig.from_obj_for_encoding(decodedObj);
+  static fromByte(encoded: ArrayLike<any>): LogicSig {
+    return encoding.decodeMsgpack(encoded, LogicSig);
   }
 }
 
 /**
  * Represents an account that can sign with a LogicSig program.
  */
-export class LogicSigAccount {
+export class LogicSigAccount implements encoding.Encodable {
+  static encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'lsig',
+        valueSchema: LogicSig.encodingSchema,
+      },
+      {
+        key: 'sigkey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+    ])
+  );
+
   lsig: LogicSig;
   sigkey?: Uint8Array;
 
@@ -247,39 +285,43 @@ export class LogicSigAccount {
     this.sigkey = undefined;
   }
 
-  // eslint-disable-next-line camelcase
-  get_obj_for_encoding() {
-    const obj: EncodedLogicSigAccount = {
-      lsig: this.lsig.get_obj_for_encoding(),
-    };
-    if (this.sigkey) {
-      obj.sigkey = this.sigkey;
-    }
-    return obj;
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): encoding.Schema {
+    return LogicSigAccount.encodingSchema;
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(encoded: EncodedLogicSigAccount) {
-    const lsigAccount = new LogicSigAccount(encoded.lsig.l, encoded.lsig.arg);
-    lsigAccount.lsig = LogicSig.from_obj_for_encoding(encoded.lsig);
-    lsigAccount.sigkey = encoded.sigkey;
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['lsig', this.lsig.toEncodingData()],
+      ['sigkey', this.sigkey],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): LogicSigAccount {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    const value = data as Map<string, unknown>;
+    const lsig = LogicSig.fromEncodingData(value.get('lsig'));
+    const lsigAccount = new LogicSigAccount(lsig.logic, lsig.args);
+    lsigAccount.lsig = lsig; // Restore other properties of the lsig
+    lsigAccount.sigkey = value.get('sigkey') as Uint8Array;
     return lsigAccount;
   }
 
   /**
    * Encode this object into msgpack.
    */
-  toByte() {
-    return encoding.encode(this.get_obj_for_encoding());
+  toByte(): Uint8Array {
+    return encoding.encodeMsgpack(this);
   }
 
   /**
    * Decode a msgpack object into a LogicSigAccount.
    * @param encoded - The encoded LogicSigAccount.
    */
-  static fromByte(encoded: ArrayLike<any>) {
-    const decodedObj = encoding.decode(encoded) as EncodedLogicSigAccount;
-    return LogicSigAccount.from_obj_for_encoding(decodedObj);
+  static fromByte(encoded: ArrayLike<any>): LogicSigAccount {
+    return encoding.decodeMsgpack(encoded, LogicSigAccount);
   }
 
   /**
@@ -377,98 +419,12 @@ export class LogicSigAccount {
   }
 }
 
-function signLogicSigTransactionWithAddress(
-  txn: Transaction,
-  lsig: LogicSig,
-  lsigAddress: Address
-) {
-  if (!lsig.verify(lsigAddress.publicKey)) {
-    throw new Error(
-      'Logic signature verification failed. Ensure the program and signature are valid.'
-    );
-  }
-
-  const signedTxn: EncodedSignedTransaction = {
-    lsig: lsig.get_obj_for_encoding(),
-    txn: txn.get_obj_for_encoding(),
-  };
-
-  if (!nacl.bytesEqual(lsigAddress.publicKey, txn.sender.publicKey)) {
-    signedTxn.sgnr = lsigAddress.publicKey;
-  }
-
-  return {
-    txID: txn.txID(),
-    blob: encoding.encode(signedTxn),
-  };
-}
-
-/**
- * signLogicSigTransactionObject takes a transaction and a LogicSig object and
- * returns a signed transaction.
- *
- * @param txn - The transaction to sign.
- * @param lsigObject - The LogicSig object that will sign the transaction.
- *
- * @returns Object containing txID and blob representing signed transaction.
- */
-export function signLogicSigTransactionObject(
-  txn: Transaction,
-  lsigObject: LogicSig | LogicSigAccount
-) {
-  let lsig: LogicSig;
-  let lsigAddress: Address;
-
-  if (lsigObject instanceof LogicSigAccount) {
-    lsig = lsigObject.lsig;
-    lsigAddress = lsigObject.address();
-  } else {
-    lsig = lsigObject;
-
-    if (lsig.sig) {
-      // For a LogicSig with a non-multisig delegating account, we cannot derive
-      // the address of that account from only its signature, so assume the
-      // delegating account is the sender. If that's not the case, the signing
-      // will fail.
-      lsigAddress = new Address(txn.sender.publicKey);
-    } else if (lsig.msig) {
-      const msigMetadata = {
-        version: lsig.msig.v,
-        threshold: lsig.msig.thr,
-        pks: lsig.msig.subsig.map((subsig) => subsig.pk),
-      };
-      lsigAddress = addressFromMultisigPreImg(msigMetadata);
-    } else {
-      lsigAddress = lsig.address();
-    }
-  }
-
-  return signLogicSigTransactionWithAddress(txn, lsig, lsigAddress);
-}
-
-/**
- * signLogicSigTransaction takes a transaction and a LogicSig object and returns
- * a signed transaction.
- *
- * @param txn - The transaction to sign.
- * @param lsigObject - The LogicSig object that will sign the transaction.
- *
- * @returns Object containing txID and blob representing signed transaction.
- * @throws error on failure
- */
-export function signLogicSigTransaction(
-  txn: Transaction,
-  lsigObject: LogicSig | LogicSigAccount
-) {
-  return signLogicSigTransactionObject(txn, lsigObject);
-}
-
 /**
  * logicSigFromByte accepts encoded logic sig bytes and attempts to call logicsig.fromByte on it,
  * returning the result
  */
-export function logicSigFromByte(encoded: Uint8Array) {
-  return LogicSig.fromByte(encoded);
+export function logicSigFromByte(encoded: Uint8Array): LogicSig {
+  return encoding.decodeMsgpack(encoded, LogicSig);
 }
 
 const SIGN_PROGRAM_DATA_PREFIX = new TextEncoder().encode('ProgData');

@@ -1,11 +1,10 @@
-import { EncodedBoxReference } from './types/transactions/index.js';
 import { BoxReference } from './types/transactions/base.js';
 
-function translateBoxReference(
+function boxReferenceToEncodingData(
   reference: BoxReference,
   foreignApps: bigint[],
   appIndex: bigint
-): EncodedBoxReference {
+): Map<string, unknown> {
   const referenceId = BigInt(reference.appIndex);
   const referenceName = reference.name;
   const isOwnReference = referenceId === BigInt(0) || referenceId === appIndex;
@@ -22,28 +21,24 @@ function translateBoxReference(
     throw new Error(`Box ref with appId ${referenceId} not in foreign-apps`);
   }
 
-  const encodedReference: EncodedBoxReference = {};
-  if (index !== 0) {
-    encodedReference.i = index;
-  }
-  if (referenceName.length) {
-    encodedReference.n = referenceName;
-  }
-  return encodedReference;
+  return new Map<string, number | Uint8Array>([
+    ['i', index],
+    ['n', referenceName],
+  ]);
 }
 
 /**
- * translateBoxReferences translates an array of BoxReferences with app IDs
- * into an array of EncodedBoxReferences with foreign indices.
+ * boxReferencesToEncodingData translates an array of BoxReferences into an array of encoding data
+ * maps.
  */
-export function translateBoxReferences(
+export function boxReferencesToEncodingData(
   references: ReadonlyArray<BoxReference>,
   foreignApps: ReadonlyArray<number | bigint>,
   appIndex: number | bigint
-): EncodedBoxReference[] {
+): Array<Map<string, unknown>> {
   const appIndexBigInt = BigInt(appIndex);
   const foreignAppsBigInt = foreignApps.map(BigInt);
   return references.map((bx) =>
-    translateBoxReference(bx, foreignAppsBigInt, appIndexBigInt)
+    boxReferenceToEncodingData(bx, foreignAppsBigInt, appIndexBigInt)
   );
 }

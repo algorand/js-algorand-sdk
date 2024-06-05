@@ -32,9 +32,7 @@ export default class SimulateRawTransactions extends JSONRequest<
   constructor(c: HTTPClient, request: SimulateRequest) {
     super(c);
     this.query.format = 'msgpack';
-    this.requestBytes = encoding.rawEncode(
-      request.get_obj_for_encoding(true, true)!
-    );
+    this.requestBytes = encoding.encodeMsgpack(request);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -57,7 +55,6 @@ export default class SimulateRawTransactions extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array): SimulateResponse {
-    const decoded = encoding.decode(body) as Record<string, any>;
-    return SimulateResponse.from_obj_for_encoding(decoded);
+    return encoding.decodeMsgpack(body, SimulateResponse);
   }
 }

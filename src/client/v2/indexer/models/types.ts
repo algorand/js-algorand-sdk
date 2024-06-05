@@ -4,22 +4,184 @@
 
 /* eslint-disable no-use-before-define */
 import { ensureBigInt, ensureSafeInteger } from '../../../../utils/utils.js';
+import { Encodable, Schema } from '../../../../encoding/encoding.js';
+import {
+  NamedMapSchema,
+  ArraySchema,
+  Uint64Schema,
+  StringSchema,
+  BooleanSchema,
+  ByteArraySchema,
+  OptionalSchema,
+} from '../../../../encoding/schema/index.js';
 import { base64ToBytes } from '../../../../encoding/binarydata.js';
-import BaseModel from '../../basemodel.js';
+import { Address } from '../../../../encoding/address.js';
+import { UntypedValue } from '../../untypedmodel.js';
 
 /**
  * Account information at a given round.
  * Definition:
  * data/basics/userBalance.go : AccountData
  */
-export class Account extends BaseModel {
+export class Account implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'amount', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'amount-without-pending-rewards',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'min-balance',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'pending-rewards',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        { key: 'rewards', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'status', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'total-apps-opted-in',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'total-assets-opted-in',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'total-box-bytes',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'total-boxes',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'total-created-apps',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'total-created-assets',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'apps-local-state',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(ApplicationLocalState.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'apps-total-extra-pages',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'apps-total-schema',
+          valueSchema: new OptionalSchema(
+            ApplicationStateSchema.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'assets',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(AssetHolding.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'auth-addr',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'closed-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'created-apps',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(Application.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'created-assets',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(Asset.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'created-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'deleted',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'incentive-eligible',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'last-heartbeat',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'last-proposed',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'participation',
+          valueSchema: new OptionalSchema(AccountParticipation.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'reward-base',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'sig-type',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * the account public key
    */
   public address: string;
 
   /**
-   * (algo) total number of MicroAlgos in the account
+   * total number of MicroAlgos in the account
    */
   public amount: bigint;
 
@@ -40,8 +202,7 @@ export class Account extends BaseModel {
   public pendingRewards: bigint;
 
   /**
-   * (ern) total rewards of MicroAlgos the account has received, including pending
-   * rewards.
+   * total rewards of MicroAlgos the account has received, including pending rewards.
    */
   public rewards: bigint;
 
@@ -51,7 +212,7 @@ export class Account extends BaseModel {
   public round: bigint;
 
   /**
-   * (onl) delegation status of the account's MicroAlgos
+   * voting status of the account's MicroAlgos
    * * Offline - indicates that the associated account is delegated.
    * * Online - indicates that the associated account used as part of the delegation
    * pool.
@@ -95,35 +256,34 @@ export class Account extends BaseModel {
   public totalCreatedAssets: number;
 
   /**
-   * (appl) applications local data stored in this account.
+   * application local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
    */
   public appsLocalState?: ApplicationLocalState[];
 
   /**
-   * (teap) the sum of all extra application program pages for this account.
+   * the sum of all extra application program pages for this account.
    */
   public appsTotalExtraPages?: number;
 
   /**
-   * (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
+   * the sum of all of the local schemas and global schemas in this account.
    * Note: the raw account uses `StateSchema` for this type.
    */
   public appsTotalSchema?: ApplicationStateSchema;
 
   /**
-   * (asset) assets held by this account.
+   * assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
    */
   public assets?: AssetHolding[];
 
   /**
-   * (spend) the address against which signing should be checked. If empty, the
-   * address of the current account is used. This field can be updated in any
-   * transaction by setting the RekeyTo field.
+   * The address against which signing should be checked. If empty, the address of
+   * the current account is used. This field can be updated in any transaction by
+   * setting the RekeyTo field.
    */
-  public authAddr?: string;
+  public authAddr?: Address;
 
   /**
    * Round during which this account was most recently closed.
@@ -131,14 +291,13 @@ export class Account extends BaseModel {
   public closedAtRound?: bigint;
 
   /**
-   * (appp) parameters of applications created by this account including app global
-   * data.
+   * parameters of applications created by this account including app global data.
    * Note: the raw account uses `map[int] -> AppParams` for this type.
    */
   public createdApps?: Application[];
 
   /**
-   * (apar) parameters of assets created by this account.
+   * parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
    */
   public createdAssets?: Asset[];
@@ -154,19 +313,36 @@ export class Account extends BaseModel {
   public deleted?: boolean;
 
   /**
+   * can the account receive block incentives if its balance is in range at proposal
+   * time.
+   */
+  public incentiveEligible?: boolean;
+
+  /**
+   * The round in which this account last went online, or explicitly renewed their
+   * online status.
+   */
+  public lastHeartbeat?: number;
+
+  /**
+   * The round in which this account last proposed the block.
+   */
+  public lastProposed?: number;
+
+  /**
    * AccountParticipation describes the parameters used by this account in consensus
    * protocol.
    */
   public participation?: AccountParticipation;
 
   /**
-   * (ebase) used as part of the rewards computation. Only applicable to accounts
-   * which are participating.
+   * used as part of the rewards computation. Only applicable to accounts which are
+   * participating.
    */
   public rewardBase?: bigint;
 
   /**
-   * Indicates what type of signature is used by this account, must be one of:
+   * the type of signature used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
@@ -177,15 +353,14 @@ export class Account extends BaseModel {
   /**
    * Creates a new `Account` object.
    * @param address - the account public key
-   * @param amount - (algo) total number of MicroAlgos in the account
+   * @param amount - total number of MicroAlgos in the account
    * @param amountWithoutPendingRewards - specifies the amount of MicroAlgos in the account, without the pending rewards.
    * @param minBalance - MicroAlgo balance required by the account.
    * The requirement grows based on asset and application usage.
    * @param pendingRewards - amount of MicroAlgos of pending rewards in this account.
-   * @param rewards - (ern) total rewards of MicroAlgos the account has received, including pending
-   * rewards.
+   * @param rewards - total rewards of MicroAlgos the account has received, including pending rewards.
    * @param round - The round for which this information is relevant.
-   * @param status - (onl) delegation status of the account's MicroAlgos
+   * @param status - voting status of the account's MicroAlgos
    * * Offline - indicates that the associated account is delegated.
    * * Online - indicates that the associated account used as part of the delegation
    * pool.
@@ -201,30 +376,33 @@ export class Account extends BaseModel {
    * application.
    * @param totalCreatedApps - The count of all apps (AppParams objects) created by this account.
    * @param totalCreatedAssets - The count of all assets (AssetParams objects) created by this account.
-   * @param appsLocalState - (appl) applications local data stored in this account.
+   * @param appsLocalState - application local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
-   * @param appsTotalExtraPages - (teap) the sum of all extra application program pages for this account.
-   * @param appsTotalSchema - (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
+   * @param appsTotalExtraPages - the sum of all extra application program pages for this account.
+   * @param appsTotalSchema - the sum of all of the local schemas and global schemas in this account.
    * Note: the raw account uses `StateSchema` for this type.
-   * @param assets - (asset) assets held by this account.
+   * @param assets - assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
-   * @param authAddr - (spend) the address against which signing should be checked. If empty, the
-   * address of the current account is used. This field can be updated in any
-   * transaction by setting the RekeyTo field.
+   * @param authAddr - The address against which signing should be checked. If empty, the address of
+   * the current account is used. This field can be updated in any transaction by
+   * setting the RekeyTo field.
    * @param closedAtRound - Round during which this account was most recently closed.
-   * @param createdApps - (appp) parameters of applications created by this account including app global
-   * data.
+   * @param createdApps - parameters of applications created by this account including app global data.
    * Note: the raw account uses `map[int] -> AppParams` for this type.
-   * @param createdAssets - (apar) parameters of assets created by this account.
+   * @param createdAssets - parameters of assets created by this account.
    * Note: the raw account uses `map[int] -> Asset` for this type.
    * @param createdAtRound - Round during which this account first appeared in a transaction.
    * @param deleted - Whether or not this account is currently closed.
+   * @param incentiveEligible - can the account receive block incentives if its balance is in range at proposal
+   * time.
+   * @param lastHeartbeat - The round in which this account last went online, or explicitly renewed their
+   * online status.
+   * @param lastProposed - The round in which this account last proposed the block.
    * @param participation - AccountParticipation describes the parameters used by this account in consensus
    * protocol.
-   * @param rewardBase - (ebase) used as part of the rewards computation. Only applicable to accounts
-   * which are participating.
-   * @param sigType - Indicates what type of signature is used by this account, must be one of:
+   * @param rewardBase - used as part of the rewards computation. Only applicable to accounts which are
+   * participating.
+   * @param sigType - the type of signature used by this account, must be one of:
    * * sig
    * * msig
    * * lsig
@@ -255,6 +433,9 @@ export class Account extends BaseModel {
     createdAssets,
     createdAtRound,
     deleted,
+    incentiveEligible,
+    lastHeartbeat,
+    lastProposed,
     participation,
     rewardBase,
     sigType,
@@ -277,17 +458,19 @@ export class Account extends BaseModel {
     appsTotalExtraPages?: number | bigint;
     appsTotalSchema?: ApplicationStateSchema;
     assets?: AssetHolding[];
-    authAddr?: string;
+    authAddr?: Address | string;
     closedAtRound?: number | bigint;
     createdApps?: Application[];
     createdAssets?: Asset[];
     createdAtRound?: number | bigint;
     deleted?: boolean;
+    incentiveEligible?: boolean;
+    lastHeartbeat?: number | bigint;
+    lastProposed?: number | bigint;
     participation?: AccountParticipation;
     rewardBase?: number | bigint;
     sigType?: string;
   }) {
-    super();
     this.address = address;
     this.amount = ensureBigInt(amount);
     this.amountWithoutPendingRewards = ensureBigInt(
@@ -311,7 +494,8 @@ export class Account extends BaseModel {
         : ensureSafeInteger(appsTotalExtraPages);
     this.appsTotalSchema = appsTotalSchema;
     this.assets = assets;
-    this.authAddr = authAddr;
+    this.authAddr =
+      typeof authAddr === 'string' ? Address.fromString(authAddr) : authAddr;
     this.closedAtRound =
       typeof closedAtRound === 'undefined'
         ? undefined
@@ -323,97 +507,160 @@ export class Account extends BaseModel {
         ? undefined
         : ensureBigInt(createdAtRound);
     this.deleted = deleted;
+    this.incentiveEligible = incentiveEligible;
+    this.lastHeartbeat =
+      typeof lastHeartbeat === 'undefined'
+        ? undefined
+        : ensureSafeInteger(lastHeartbeat);
+    this.lastProposed =
+      typeof lastProposed === 'undefined'
+        ? undefined
+        : ensureSafeInteger(lastProposed);
     this.participation = participation;
     this.rewardBase =
       typeof rewardBase === 'undefined' ? undefined : ensureBigInt(rewardBase);
     this.sigType = sigType;
-
-    this.attribute_map = {
-      address: 'address',
-      amount: 'amount',
-      amountWithoutPendingRewards: 'amount-without-pending-rewards',
-      minBalance: 'min-balance',
-      pendingRewards: 'pending-rewards',
-      rewards: 'rewards',
-      round: 'round',
-      status: 'status',
-      totalAppsOptedIn: 'total-apps-opted-in',
-      totalAssetsOptedIn: 'total-assets-opted-in',
-      totalBoxBytes: 'total-box-bytes',
-      totalBoxes: 'total-boxes',
-      totalCreatedApps: 'total-created-apps',
-      totalCreatedAssets: 'total-created-assets',
-      appsLocalState: 'apps-local-state',
-      appsTotalExtraPages: 'apps-total-extra-pages',
-      appsTotalSchema: 'apps-total-schema',
-      assets: 'assets',
-      authAddr: 'auth-addr',
-      closedAtRound: 'closed-at-round',
-      createdApps: 'created-apps',
-      createdAssets: 'created-assets',
-      createdAtRound: 'created-at-round',
-      deleted: 'deleted',
-      participation: 'participation',
-      rewardBase: 'reward-base',
-      sigType: 'sig-type',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): Account {
-    /* eslint-disable dot-notation */
-    return new Account({
-      address: data['address'] ?? '',
-      amount: data['amount'] ?? 0,
-      amountWithoutPendingRewards: data['amount-without-pending-rewards'] ?? 0,
-      minBalance: data['min-balance'] ?? 0,
-      pendingRewards: data['pending-rewards'] ?? 0,
-      rewards: data['rewards'] ?? 0,
-      round: data['round'] ?? 0,
-      status: data['status'] ?? '',
-      totalAppsOptedIn: data['total-apps-opted-in'] ?? 0,
-      totalAssetsOptedIn: data['total-assets-opted-in'] ?? 0,
-      totalBoxBytes: data['total-box-bytes'] ?? 0,
-      totalBoxes: data['total-boxes'] ?? 0,
-      totalCreatedApps: data['total-created-apps'] ?? 0,
-      totalCreatedAssets: data['total-created-assets'] ?? 0,
-      appsLocalState:
-        typeof data['apps-local-state'] !== 'undefined'
-          ? data['apps-local-state'].map(
-              ApplicationLocalState.from_obj_for_encoding
-            )
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Account.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['address', this.address],
+      ['amount', this.amount],
+      ['amount-without-pending-rewards', this.amountWithoutPendingRewards],
+      ['min-balance', this.minBalance],
+      ['pending-rewards', this.pendingRewards],
+      ['rewards', this.rewards],
+      ['round', this.round],
+      ['status', this.status],
+      ['total-apps-opted-in', this.totalAppsOptedIn],
+      ['total-assets-opted-in', this.totalAssetsOptedIn],
+      ['total-box-bytes', this.totalBoxBytes],
+      ['total-boxes', this.totalBoxes],
+      ['total-created-apps', this.totalCreatedApps],
+      ['total-created-assets', this.totalCreatedAssets],
+      [
+        'apps-local-state',
+        typeof this.appsLocalState !== 'undefined'
+          ? this.appsLocalState.map((v) => v.toEncodingData())
           : undefined,
-      appsTotalExtraPages: data['apps-total-extra-pages'],
+      ],
+      ['apps-total-extra-pages', this.appsTotalExtraPages],
+      [
+        'apps-total-schema',
+        typeof this.appsTotalSchema !== 'undefined'
+          ? this.appsTotalSchema.toEncodingData()
+          : undefined,
+      ],
+      [
+        'assets',
+        typeof this.assets !== 'undefined'
+          ? this.assets.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'auth-addr',
+        typeof this.authAddr !== 'undefined'
+          ? this.authAddr.toString()
+          : undefined,
+      ],
+      ['closed-at-round', this.closedAtRound],
+      [
+        'created-apps',
+        typeof this.createdApps !== 'undefined'
+          ? this.createdApps.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'created-assets',
+        typeof this.createdAssets !== 'undefined'
+          ? this.createdAssets.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['created-at-round', this.createdAtRound],
+      ['deleted', this.deleted],
+      ['incentive-eligible', this.incentiveEligible],
+      ['last-heartbeat', this.lastHeartbeat],
+      ['last-proposed', this.lastProposed],
+      [
+        'participation',
+        typeof this.participation !== 'undefined'
+          ? this.participation.toEncodingData()
+          : undefined,
+      ],
+      ['reward-base', this.rewardBase],
+      ['sig-type', this.sigType],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): Account {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new Account({
+      address: data.get('address'),
+      amount: data.get('amount'),
+      amountWithoutPendingRewards: data.get('amount-without-pending-rewards'),
+      minBalance: data.get('min-balance'),
+      pendingRewards: data.get('pending-rewards'),
+      rewards: data.get('rewards'),
+      round: data.get('round'),
+      status: data.get('status'),
+      totalAppsOptedIn: data.get('total-apps-opted-in'),
+      totalAssetsOptedIn: data.get('total-assets-opted-in'),
+      totalBoxBytes: data.get('total-box-bytes'),
+      totalBoxes: data.get('total-boxes'),
+      totalCreatedApps: data.get('total-created-apps'),
+      totalCreatedAssets: data.get('total-created-assets'),
+      appsLocalState:
+        typeof data.get('apps-local-state') !== 'undefined'
+          ? data
+              .get('apps-local-state')
+              .map((v: unknown) => ApplicationLocalState.fromEncodingData(v))
+          : undefined,
+      appsTotalExtraPages: data.get('apps-total-extra-pages'),
       appsTotalSchema:
-        typeof data['apps-total-schema'] !== 'undefined'
-          ? ApplicationStateSchema.from_obj_for_encoding(
-              data['apps-total-schema']
+        typeof data.get('apps-total-schema') !== 'undefined'
+          ? ApplicationStateSchema.fromEncodingData(
+              data.get('apps-total-schema')
             )
           : undefined,
       assets:
-        typeof data['assets'] !== 'undefined'
-          ? data['assets'].map(AssetHolding.from_obj_for_encoding)
+        typeof data.get('assets') !== 'undefined'
+          ? data
+              .get('assets')
+              .map((v: unknown) => AssetHolding.fromEncodingData(v))
           : undefined,
-      authAddr: data['auth-addr'],
-      closedAtRound: data['closed-at-round'],
+      authAddr: data.get('auth-addr'),
+      closedAtRound: data.get('closed-at-round'),
       createdApps:
-        typeof data['created-apps'] !== 'undefined'
-          ? data['created-apps'].map(Application.from_obj_for_encoding)
+        typeof data.get('created-apps') !== 'undefined'
+          ? data
+              .get('created-apps')
+              .map((v: unknown) => Application.fromEncodingData(v))
           : undefined,
       createdAssets:
-        typeof data['created-assets'] !== 'undefined'
-          ? data['created-assets'].map(Asset.from_obj_for_encoding)
+        typeof data.get('created-assets') !== 'undefined'
+          ? data
+              .get('created-assets')
+              .map((v: unknown) => Asset.fromEncodingData(v))
           : undefined,
-      createdAtRound: data['created-at-round'],
-      deleted: data['deleted'],
+      createdAtRound: data.get('created-at-round'),
+      deleted: data.get('deleted'),
+      incentiveEligible: data.get('incentive-eligible'),
+      lastHeartbeat: data.get('last-heartbeat'),
+      lastProposed: data.get('last-proposed'),
       participation:
-        typeof data['participation'] !== 'undefined'
-          ? AccountParticipation.from_obj_for_encoding(data['participation'])
+        typeof data.get('participation') !== 'undefined'
+          ? AccountParticipation.fromEncodingData(data.get('participation'))
           : undefined,
-      rewardBase: data['reward-base'],
-      sigType: data['sig-type'],
+      rewardBase: data.get('reward-base'),
+      sigType: data.get('sig-type'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -421,47 +668,86 @@ export class Account extends BaseModel {
  * AccountParticipation describes the parameters used by this account in consensus
  * protocol.
  */
-export class AccountParticipation extends BaseModel {
+export class AccountParticipation implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'selection-participation-key',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-first-valid',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-key-dilution',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-last-valid',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-participation-key',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'state-proof-key',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
-   * (sel) Selection public key (if any) currently registered for this round.
+   * Selection public key (if any) currently registered for this round.
    */
   public selectionParticipationKey: Uint8Array;
 
   /**
-   * (voteFst) First round for which this participation is valid.
+   * First round for which this participation is valid.
    */
   public voteFirstValid: bigint;
 
   /**
-   * (voteKD) Number of subkeys in each batch of participation keys.
+   * Number of subkeys in each batch of participation keys.
    */
   public voteKeyDilution: bigint;
 
   /**
-   * (voteLst) Last round for which this participation is valid.
+   * Last round for which this participation is valid.
    */
   public voteLastValid: bigint;
 
   /**
-   * (vote) root participation public key (if any) currently registered for this
-   * round.
+   * root participation public key (if any) currently registered for this round.
    */
   public voteParticipationKey: Uint8Array;
 
   /**
-   * (stprf) Root of the state proof key (if any)
+   * Root of the state proof key (if any)
    */
   public stateProofKey?: Uint8Array;
 
   /**
    * Creates a new `AccountParticipation` object.
-   * @param selectionParticipationKey - (sel) Selection public key (if any) currently registered for this round.
-   * @param voteFirstValid - (voteFst) First round for which this participation is valid.
-   * @param voteKeyDilution - (voteKD) Number of subkeys in each batch of participation keys.
-   * @param voteLastValid - (voteLst) Last round for which this participation is valid.
-   * @param voteParticipationKey - (vote) root participation public key (if any) currently registered for this
-   * round.
-   * @param stateProofKey - (stprf) Root of the state proof key (if any)
+   * @param selectionParticipationKey - Selection public key (if any) currently registered for this round.
+   * @param voteFirstValid - First round for which this participation is valid.
+   * @param voteKeyDilution - Number of subkeys in each batch of participation keys.
+   * @param voteLastValid - Last round for which this participation is valid.
+   * @param voteParticipationKey - root participation public key (if any) currently registered for this round.
+   * @param stateProofKey - Root of the state proof key (if any)
    */
   constructor({
     selectionParticipationKey,
@@ -478,7 +764,6 @@ export class AccountParticipation extends BaseModel {
     voteParticipationKey: string | Uint8Array;
     stateProofKey?: string | Uint8Array;
   }) {
-    super();
     this.selectionParticipationKey =
       typeof selectionParticipationKey === 'string'
         ? base64ToBytes(selectionParticipationKey)
@@ -494,39 +779,64 @@ export class AccountParticipation extends BaseModel {
       typeof stateProofKey === 'string'
         ? base64ToBytes(stateProofKey)
         : stateProofKey;
-
-    this.attribute_map = {
-      selectionParticipationKey: 'selection-participation-key',
-      voteFirstValid: 'vote-first-valid',
-      voteKeyDilution: 'vote-key-dilution',
-      voteLastValid: 'vote-last-valid',
-      voteParticipationKey: 'vote-participation-key',
-      stateProofKey: 'state-proof-key',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): AccountParticipation {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountParticipation.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['selection-participation-key', this.selectionParticipationKey],
+      ['vote-first-valid', this.voteFirstValid],
+      ['vote-key-dilution', this.voteKeyDilution],
+      ['vote-last-valid', this.voteLastValid],
+      ['vote-participation-key', this.voteParticipationKey],
+      ['state-proof-key', this.stateProofKey],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AccountParticipation {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AccountParticipation({
-      selectionParticipationKey:
-        data['selection-participation-key'] ?? new Uint8Array(),
-      voteFirstValid: data['vote-first-valid'] ?? 0,
-      voteKeyDilution: data['vote-key-dilution'] ?? 0,
-      voteLastValid: data['vote-last-valid'] ?? 0,
-      voteParticipationKey: data['vote-participation-key'] ?? new Uint8Array(),
-      stateProofKey: data['state-proof-key'],
+      selectionParticipationKey: data.get('selection-participation-key'),
+      voteFirstValid: data.get('vote-first-valid'),
+      voteKeyDilution: data.get('vote-key-dilution'),
+      voteLastValid: data.get('vote-last-valid'),
+      voteParticipationKey: data.get('vote-participation-key'),
+      stateProofKey: data.get('state-proof-key'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class AccountResponse extends BaseModel {
+export class AccountResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'account',
+          valueSchema: Account.encodingSchema,
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Account information at a given round.
    * Definition:
@@ -553,31 +863,54 @@ export class AccountResponse extends BaseModel {
     account: Account;
     currentRound: number | bigint;
   }) {
-    super();
     this.account = account;
     this.currentRound = ensureBigInt(currentRound);
-
-    this.attribute_map = {
-      account: 'account',
-      currentRound: 'current-round',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): AccountResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['account', this.account.toEncodingData()],
+      ['current-round', this.currentRound],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AccountResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AccountResponse({
-      account: Account.from_obj_for_encoding(data['account'] ?? {}),
-      currentRound: data['current-round'] ?? 0,
+      account: Account.fromEncodingData(data.get('account') ?? new Map()),
+      currentRound: data.get('current-round'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Application state delta.
  */
-export class AccountStateDelta extends BaseModel {
+export class AccountStateDelta implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'delta',
+          valueSchema: new ArraySchema(EvalDeltaKeyValue.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public address: string;
 
   /**
@@ -597,31 +930,65 @@ export class AccountStateDelta extends BaseModel {
     address: string;
     delta: EvalDeltaKeyValue[];
   }) {
-    super();
     this.address = address;
     this.delta = delta;
-
-    this.attribute_map = {
-      address: 'address',
-      delta: 'delta',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): AccountStateDelta {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountStateDelta.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['address', this.address],
+      ['delta', this.delta.map((v) => v.toEncodingData())],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AccountStateDelta {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AccountStateDelta({
-      address: data['address'] ?? '',
-      delta: (data['delta'] ?? []).map(EvalDeltaKeyValue.from_obj_for_encoding),
+      address: data.get('address'),
+      delta: (data.get('delta') ?? []).map((v: unknown) =>
+        EvalDeltaKeyValue.fromEncodingData(v)
+      ),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class AccountsResponse extends BaseModel {
+export class AccountsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'accounts',
+          valueSchema: new ArraySchema(Account.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public accounts: Account[];
 
   /**
@@ -651,41 +1018,81 @@ export class AccountsResponse extends BaseModel {
     currentRound: number | bigint;
     nextToken?: string;
   }) {
-    super();
     this.accounts = accounts;
     this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      accounts: 'accounts',
-      currentRound: 'current-round',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): AccountsResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['accounts', this.accounts.map((v) => v.toEncodingData())],
+      ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AccountsResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AccountsResponse({
-      accounts: (data['accounts'] ?? []).map(Account.from_obj_for_encoding),
-      currentRound: data['current-round'] ?? 0,
-      nextToken: data['next-token'],
+      accounts: (data.get('accounts') ?? []).map((v: unknown) =>
+        Account.fromEncodingData(v)
+      ),
+      currentRound: data.get('current-round'),
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Application index and its parameters
  */
-export class Application extends BaseModel {
+export class Application implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'id', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'params',
+          valueSchema: ApplicationParams.encodingSchema,
+          omitEmpty: true,
+        },
+        {
+          key: 'created-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'deleted',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'deleted-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
-   * (appidx) application index.
+   * application index.
    */
   public id: bigint;
 
   /**
-   * (appparams) application parameters.
+   * application parameters.
    */
   public params: ApplicationParams;
 
@@ -706,8 +1113,8 @@ export class Application extends BaseModel {
 
   /**
    * Creates a new `Application` object.
-   * @param id - (appidx) application index.
-   * @param params - (appparams) application parameters.
+   * @param id - application index.
+   * @param params - application parameters.
    * @param createdAtRound - Round when this application was created.
    * @param deleted - Whether or not this application is currently deleted.
    * @param deletedAtRound - Round when this application was deleted.
@@ -725,7 +1132,6 @@ export class Application extends BaseModel {
     deleted?: boolean;
     deletedAtRound?: number | bigint;
   }) {
-    super();
     this.id = ensureBigInt(id);
     this.params = params;
     this.createdAtRound =
@@ -737,41 +1143,89 @@ export class Application extends BaseModel {
       typeof deletedAtRound === 'undefined'
         ? undefined
         : ensureBigInt(deletedAtRound);
-
-    this.attribute_map = {
-      id: 'id',
-      params: 'params',
-      createdAtRound: 'created-at-round',
-      deleted: 'deleted',
-      deletedAtRound: 'deleted-at-round',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): Application {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Application.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['id', this.id],
+      ['params', this.params.toEncodingData()],
+      ['created-at-round', this.createdAtRound],
+      ['deleted', this.deleted],
+      ['deleted-at-round', this.deletedAtRound],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): Application {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new Application({
-      id: data['id'] ?? 0,
-      params: ApplicationParams.from_obj_for_encoding(data['params'] ?? {}),
-      createdAtRound: data['created-at-round'],
-      deleted: data['deleted'],
-      deletedAtRound: data['deleted-at-round'],
+      id: data.get('id'),
+      params: ApplicationParams.fromEncodingData(
+        data.get('params') ?? new Map()
+      ),
+      createdAtRound: data.get('created-at-round'),
+      deleted: data.get('deleted'),
+      deletedAtRound: data.get('deleted-at-round'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Stores local state associated with an application.
  */
-export class ApplicationLocalState extends BaseModel {
+export class ApplicationLocalState implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'id', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'schema',
+          valueSchema: ApplicationStateSchema.encodingSchema,
+          omitEmpty: true,
+        },
+        {
+          key: 'closed-out-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'deleted',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'key-value',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(TealKeyValue.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'opted-in-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The application which this local state is for.
    */
   public id: bigint;
 
   /**
-   * (hsch) schema.
+   * schema.
    */
   public schema: ApplicationStateSchema;
 
@@ -787,7 +1241,7 @@ export class ApplicationLocalState extends BaseModel {
   public deleted?: boolean;
 
   /**
-   * (tkv) storage.
+   * storage.
    */
   public keyValue?: TealKeyValue[];
 
@@ -799,11 +1253,11 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * Creates a new `ApplicationLocalState` object.
    * @param id - The application which this local state is for.
-   * @param schema - (hsch) schema.
+   * @param schema - schema.
    * @param closedOutAtRound - Round when account closed out of the application.
    * @param deleted - Whether or not the application local state is currently deleted from its
    * account.
-   * @param keyValue - (tkv) storage.
+   * @param keyValue - storage.
    * @param optedInAtRound - Round when the account opted into the application.
    */
   constructor({
@@ -821,7 +1275,6 @@ export class ApplicationLocalState extends BaseModel {
     keyValue?: TealKeyValue[];
     optedInAtRound?: number | bigint;
   }) {
-    super();
     this.id = ensureBigInt(id);
     this.schema = schema;
     this.closedOutAtRound =
@@ -834,43 +1287,81 @@ export class ApplicationLocalState extends BaseModel {
       typeof optedInAtRound === 'undefined'
         ? undefined
         : ensureBigInt(optedInAtRound);
-
-    this.attribute_map = {
-      id: 'id',
-      schema: 'schema',
-      closedOutAtRound: 'closed-out-at-round',
-      deleted: 'deleted',
-      keyValue: 'key-value',
-      optedInAtRound: 'opted-in-at-round',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): ApplicationLocalState {
-    /* eslint-disable dot-notation */
-    return new ApplicationLocalState({
-      id: data['id'] ?? 0,
-      schema: ApplicationStateSchema.from_obj_for_encoding(
-        data['schema'] ?? {}
-      ),
-      closedOutAtRound: data['closed-out-at-round'],
-      deleted: data['deleted'],
-      keyValue:
-        typeof data['key-value'] !== 'undefined'
-          ? data['key-value'].map(TealKeyValue.from_obj_for_encoding)
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationLocalState.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['id', this.id],
+      ['schema', this.schema.toEncodingData()],
+      ['closed-out-at-round', this.closedOutAtRound],
+      ['deleted', this.deleted],
+      [
+        'key-value',
+        typeof this.keyValue !== 'undefined'
+          ? this.keyValue.map((v) => v.toEncodingData())
           : undefined,
-      optedInAtRound: data['opted-in-at-round'],
+      ],
+      ['opted-in-at-round', this.optedInAtRound],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationLocalState {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new ApplicationLocalState({
+      id: data.get('id'),
+      schema: ApplicationStateSchema.fromEncodingData(
+        data.get('schema') ?? new Map()
+      ),
+      closedOutAtRound: data.get('closed-out-at-round'),
+      deleted: data.get('deleted'),
+      keyValue:
+        typeof data.get('key-value') !== 'undefined'
+          ? data
+              .get('key-value')
+              .map((v: unknown) => TealKeyValue.fromEncodingData(v))
+          : undefined,
+      optedInAtRound: data.get('opted-in-at-round'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class ApplicationLocalStatesResponse extends BaseModel {
+export class ApplicationLocalStatesResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'apps-local-states',
+          valueSchema: new ArraySchema(ApplicationLocalState.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public appsLocalStates: ApplicationLocalState[];
 
   /**
@@ -900,40 +1391,64 @@ export class ApplicationLocalStatesResponse extends BaseModel {
     currentRound: number | bigint;
     nextToken?: string;
   }) {
-    super();
     this.appsLocalStates = appsLocalStates;
     this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      appsLocalStates: 'apps-local-states',
-      currentRound: 'current-round',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): ApplicationLocalStatesResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationLocalStatesResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'apps-local-states',
+        this.appsLocalStates.map((v) => v.toEncodingData()),
+      ],
+      ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationLocalStatesResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ApplicationLocalStatesResponse({
-      appsLocalStates: (data['apps-local-states'] ?? []).map(
-        ApplicationLocalState.from_obj_for_encoding
+      appsLocalStates: (data.get('apps-local-states') ?? []).map((v: unknown) =>
+        ApplicationLocalState.fromEncodingData(v)
       ),
-      currentRound: data['current-round'] ?? 0,
-      nextToken: data['next-token'],
+      currentRound: data.get('current-round'),
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Stores the global information associated with an application.
  */
-export class ApplicationLogData extends BaseModel {
+export class ApplicationLogData implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'logs',
+          valueSchema: new ArraySchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        { key: 'txid', valueSchema: new StringSchema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
-   * (lg) Logs for the application being executed by the transaction.
+   * Logs for the application being executed by the transaction.
    */
   public logs: Uint8Array[];
 
@@ -944,35 +1459,74 @@ export class ApplicationLogData extends BaseModel {
 
   /**
    * Creates a new `ApplicationLogData` object.
-   * @param logs - (lg) Logs for the application being executed by the transaction.
+   * @param logs - Logs for the application being executed by the transaction.
    * @param txid - Transaction ID
    */
   constructor({ logs, txid }: { logs: Uint8Array[]; txid: string }) {
-    super();
     this.logs = logs;
     this.txid = txid;
-
-    this.attribute_map = {
-      logs: 'logs',
-      txid: 'txid',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): ApplicationLogData {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationLogData.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['logs', this.logs],
+      ['txid', this.txid],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationLogData {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ApplicationLogData({
-      logs: data['logs'] ?? [],
-      txid: data['txid'] ?? '',
+      logs: data.get('logs'),
+      txid: data.get('txid'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class ApplicationLogsResponse extends BaseModel {
+export class ApplicationLogsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'application-id',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'log-data',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(ApplicationLogData.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (appidx) application index.
    */
@@ -1010,49 +1564,112 @@ export class ApplicationLogsResponse extends BaseModel {
     logData?: ApplicationLogData[];
     nextToken?: string;
   }) {
-    super();
     this.applicationId = ensureBigInt(applicationId);
     this.currentRound = ensureBigInt(currentRound);
     this.logData = logData;
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      applicationId: 'application-id',
-      currentRound: 'current-round',
-      logData: 'log-data',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): ApplicationLogsResponse {
-    /* eslint-disable dot-notation */
-    return new ApplicationLogsResponse({
-      applicationId: data['application-id'] ?? 0,
-      currentRound: data['current-round'] ?? 0,
-      logData:
-        typeof data['log-data'] !== 'undefined'
-          ? data['log-data'].map(ApplicationLogData.from_obj_for_encoding)
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationLogsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['application-id', this.applicationId],
+      ['current-round', this.currentRound],
+      [
+        'log-data',
+        typeof this.logData !== 'undefined'
+          ? this.logData.map((v) => v.toEncodingData())
           : undefined,
-      nextToken: data['next-token'],
+      ],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationLogsResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new ApplicationLogsResponse({
+      applicationId: data.get('application-id'),
+      currentRound: data.get('current-round'),
+      logData:
+        typeof data.get('log-data') !== 'undefined'
+          ? data
+              .get('log-data')
+              .map((v: unknown) => ApplicationLogData.fromEncodingData(v))
+          : undefined,
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Stores the global information associated with an application.
  */
-export class ApplicationParams extends BaseModel {
+export class ApplicationParams implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'approval-program',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'clear-state-program',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'creator',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'extra-program-pages',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'global-state',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(TealKeyValue.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'global-state-schema',
+          valueSchema: new OptionalSchema(
+            ApplicationStateSchema.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'local-state-schema',
+          valueSchema: new OptionalSchema(
+            ApplicationStateSchema.encodingSchema
+          ),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
-   * (approv) approval program.
+   * approval program.
    */
   public approvalProgram: Uint8Array;
 
   /**
-   * (clearp) approval program.
+   * clear state program.
    */
   public clearStateProgram: Uint8Array;
 
@@ -1060,38 +1677,38 @@ export class ApplicationParams extends BaseModel {
    * The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
    */
-  public creator?: string;
+  public creator?: Address;
 
   /**
-   * (epp) the amount of extra program pages available to this app.
+   * the number of extra program pages available to this app.
    */
   public extraProgramPages?: number;
 
   /**
-   * [\gs) global schema
+   * global state
    */
   public globalState?: TealKeyValue[];
 
   /**
-   * [\gsch) global schema
+   * global schema
    */
   public globalStateSchema?: ApplicationStateSchema;
 
   /**
-   * [\lsch) local schema
+   * local schema
    */
   public localStateSchema?: ApplicationStateSchema;
 
   /**
    * Creates a new `ApplicationParams` object.
-   * @param approvalProgram - (approv) approval program.
-   * @param clearStateProgram - (clearp) approval program.
+   * @param approvalProgram - approval program.
+   * @param clearStateProgram - clear state program.
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
-   * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
-   * @param globalState - [\gs) global schema
-   * @param globalStateSchema - [\gsch) global schema
-   * @param localStateSchema - [\lsch) local schema
+   * @param extraProgramPages - the number of extra program pages available to this app.
+   * @param globalState - global state
+   * @param globalStateSchema - global schema
+   * @param localStateSchema - local schema
    */
   constructor({
     approvalProgram,
@@ -1104,13 +1721,12 @@ export class ApplicationParams extends BaseModel {
   }: {
     approvalProgram: string | Uint8Array;
     clearStateProgram: string | Uint8Array;
-    creator?: string;
+    creator?: Address | string;
     extraProgramPages?: number | bigint;
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
   }) {
-    super();
     this.approvalProgram =
       typeof approvalProgram === 'string'
         ? base64ToBytes(approvalProgram)
@@ -1119,7 +1735,8 @@ export class ApplicationParams extends BaseModel {
       typeof clearStateProgram === 'string'
         ? base64ToBytes(clearStateProgram)
         : clearStateProgram;
-    this.creator = creator;
+    this.creator =
+      typeof creator === 'string' ? Address.fromString(creator) : creator;
     this.extraProgramPages =
       typeof extraProgramPages === 'undefined'
         ? undefined
@@ -1127,51 +1744,101 @@ export class ApplicationParams extends BaseModel {
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
-
-    this.attribute_map = {
-      approvalProgram: 'approval-program',
-      clearStateProgram: 'clear-state-program',
-      creator: 'creator',
-      extraProgramPages: 'extra-program-pages',
-      globalState: 'global-state',
-      globalStateSchema: 'global-state-schema',
-      localStateSchema: 'local-state-schema',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): ApplicationParams {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationParams.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['approval-program', this.approvalProgram],
+      ['clear-state-program', this.clearStateProgram],
+      [
+        'creator',
+        typeof this.creator !== 'undefined'
+          ? this.creator.toString()
+          : undefined,
+      ],
+      ['extra-program-pages', this.extraProgramPages],
+      [
+        'global-state',
+        typeof this.globalState !== 'undefined'
+          ? this.globalState.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'global-state-schema',
+        typeof this.globalStateSchema !== 'undefined'
+          ? this.globalStateSchema.toEncodingData()
+          : undefined,
+      ],
+      [
+        'local-state-schema',
+        typeof this.localStateSchema !== 'undefined'
+          ? this.localStateSchema.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationParams {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ApplicationParams({
-      approvalProgram: data['approval-program'] ?? new Uint8Array(),
-      clearStateProgram: data['clear-state-program'] ?? new Uint8Array(),
-      creator: data['creator'],
-      extraProgramPages: data['extra-program-pages'],
+      approvalProgram: data.get('approval-program'),
+      clearStateProgram: data.get('clear-state-program'),
+      creator: data.get('creator'),
+      extraProgramPages: data.get('extra-program-pages'),
       globalState:
-        typeof data['global-state'] !== 'undefined'
-          ? data['global-state'].map(TealKeyValue.from_obj_for_encoding)
+        typeof data.get('global-state') !== 'undefined'
+          ? data
+              .get('global-state')
+              .map((v: unknown) => TealKeyValue.fromEncodingData(v))
           : undefined,
       globalStateSchema:
-        typeof data['global-state-schema'] !== 'undefined'
-          ? ApplicationStateSchema.from_obj_for_encoding(
-              data['global-state-schema']
+        typeof data.get('global-state-schema') !== 'undefined'
+          ? ApplicationStateSchema.fromEncodingData(
+              data.get('global-state-schema')
             )
           : undefined,
       localStateSchema:
-        typeof data['local-state-schema'] !== 'undefined'
-          ? ApplicationStateSchema.from_obj_for_encoding(
-              data['local-state-schema']
+        typeof data.get('local-state-schema') !== 'undefined'
+          ? ApplicationStateSchema.fromEncodingData(
+              data.get('local-state-schema')
             )
           : undefined,
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class ApplicationResponse extends BaseModel {
+export class ApplicationResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'application',
+          valueSchema: new OptionalSchema(Application.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Round at which the results were computed.
    */
@@ -1194,48 +1861,76 @@ export class ApplicationResponse extends BaseModel {
     currentRound: number | bigint;
     application?: Application;
   }) {
-    super();
     this.currentRound = ensureBigInt(currentRound);
     this.application = application;
-
-    this.attribute_map = {
-      currentRound: 'current-round',
-      application: 'application',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): ApplicationResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['current-round', this.currentRound],
+      [
+        'application',
+        typeof this.application !== 'undefined'
+          ? this.application.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ApplicationResponse({
-      currentRound: data['current-round'] ?? 0,
+      currentRound: data.get('current-round'),
       application:
-        typeof data['application'] !== 'undefined'
-          ? Application.from_obj_for_encoding(data['application'])
+        typeof data.get('application') !== 'undefined'
+          ? Application.fromEncodingData(data.get('application'))
           : undefined,
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Specifies maximums on the number of each type that may be stored.
  */
-export class ApplicationStateSchema extends BaseModel {
+export class ApplicationStateSchema implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'num-byte-slice',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        { key: 'num-uint', valueSchema: new Uint64Schema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
-   * (nbs) num of byte slices.
+   * number of byte slices.
    */
   public numByteSlice: number;
 
   /**
-   * (nui) num of uints.
+   * number of uints.
    */
   public numUint: number;
 
   /**
    * Creates a new `ApplicationStateSchema` object.
-   * @param numByteSlice - (nbs) num of byte slices.
-   * @param numUint - (nui) num of uints.
+   * @param numByteSlice - number of byte slices.
+   * @param numUint - number of uints.
    */
   constructor({
     numByteSlice,
@@ -1244,33 +1939,63 @@ export class ApplicationStateSchema extends BaseModel {
     numByteSlice: number | bigint;
     numUint: number | bigint;
   }) {
-    super();
     this.numByteSlice = ensureSafeInteger(numByteSlice);
     this.numUint = ensureSafeInteger(numUint);
-
-    this.attribute_map = {
-      numByteSlice: 'num-byte-slice',
-      numUint: 'num-uint',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): ApplicationStateSchema {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationStateSchema.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['num-byte-slice', this.numByteSlice],
+      ['num-uint', this.numUint],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationStateSchema {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ApplicationStateSchema({
-      numByteSlice: data['num-byte-slice'] ?? 0,
-      numUint: data['num-uint'] ?? 0,
+      numByteSlice: data.get('num-byte-slice'),
+      numUint: data.get('num-uint'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class ApplicationsResponse extends BaseModel {
+export class ApplicationsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'applications',
+          valueSchema: new ArraySchema(Application.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public applications: Application[];
 
   /**
@@ -1300,38 +2025,74 @@ export class ApplicationsResponse extends BaseModel {
     currentRound: number | bigint;
     nextToken?: string;
   }) {
-    super();
     this.applications = applications;
     this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      applications: 'applications',
-      currentRound: 'current-round',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): ApplicationsResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ApplicationsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['applications', this.applications.map((v) => v.toEncodingData())],
+      ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ApplicationsResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ApplicationsResponse({
-      applications: (data['applications'] ?? []).map(
-        Application.from_obj_for_encoding
+      applications: (data.get('applications') ?? []).map((v: unknown) =>
+        Application.fromEncodingData(v)
       ),
-      currentRound: data['current-round'] ?? 0,
-      nextToken: data['next-token'],
+      currentRound: data.get('current-round'),
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Specifies both the unique identifier and the parameters for an asset
  */
-export class Asset extends BaseModel {
+export class Asset implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'index', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'params',
+          valueSchema: AssetParams.encodingSchema,
+          omitEmpty: true,
+        },
+        {
+          key: 'created-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'deleted',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'destroyed-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * unique asset identifier
    */
@@ -1384,7 +2145,6 @@ export class Asset extends BaseModel {
     deleted?: boolean;
     destroyedAtRound?: number | bigint;
   }) {
-    super();
     this.index = ensureBigInt(index);
     this.params = params;
     this.createdAtRound =
@@ -1396,34 +2156,67 @@ export class Asset extends BaseModel {
       typeof destroyedAtRound === 'undefined'
         ? undefined
         : ensureBigInt(destroyedAtRound);
-
-    this.attribute_map = {
-      index: 'index',
-      params: 'params',
-      createdAtRound: 'created-at-round',
-      deleted: 'deleted',
-      destroyedAtRound: 'destroyed-at-round',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): Asset {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Asset.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['index', this.index],
+      ['params', this.params.toEncodingData()],
+      ['created-at-round', this.createdAtRound],
+      ['deleted', this.deleted],
+      ['destroyed-at-round', this.destroyedAtRound],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): Asset {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new Asset({
-      index: data['index'] ?? 0,
-      params: AssetParams.from_obj_for_encoding(data['params'] ?? {}),
-      createdAtRound: data['created-at-round'],
-      deleted: data['deleted'],
-      destroyedAtRound: data['destroyed-at-round'],
+      index: data.get('index'),
+      params: AssetParams.fromEncodingData(data.get('params') ?? new Map()),
+      createdAtRound: data.get('created-at-round'),
+      deleted: data.get('deleted'),
+      destroyedAtRound: data.get('destroyed-at-round'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class AssetBalancesResponse extends BaseModel {
+export class AssetBalancesResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'balances',
+          valueSchema: new ArraySchema(MiniAssetHolding.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public balances: MiniAssetHolding[];
 
   /**
@@ -1453,31 +2246,35 @@ export class AssetBalancesResponse extends BaseModel {
     currentRound: number | bigint;
     nextToken?: string;
   }) {
-    super();
     this.balances = balances;
     this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      balances: 'balances',
-      currentRound: 'current-round',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): AssetBalancesResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetBalancesResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['balances', this.balances.map((v) => v.toEncodingData())],
+      ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AssetBalancesResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AssetBalancesResponse({
-      balances: (data['balances'] ?? []).map(
-        MiniAssetHolding.from_obj_for_encoding
+      balances: (data.get('balances') ?? []).map((v: unknown) =>
+        MiniAssetHolding.fromEncodingData(v)
       ),
-      currentRound: data['current-round'] ?? 0,
-      nextToken: data['next-token'],
+      currentRound: data.get('current-round'),
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -1486,9 +2283,38 @@ export class AssetBalancesResponse extends BaseModel {
  * Definition:
  * data/basics/userBalance.go : AssetHolding
  */
-export class AssetHolding extends BaseModel {
+export class AssetHolding implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'amount', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'asset-id', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'is-frozen', valueSchema: new BooleanSchema(), omitEmpty: true },
+        {
+          key: 'deleted',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'opted-in-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'opted-out-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
-   * (a) number of units held.
+   * number of units held.
    */
   public amount: bigint;
 
@@ -1498,7 +2324,7 @@ export class AssetHolding extends BaseModel {
   public assetId: bigint;
 
   /**
-   * (f) whether or not the holding is frozen.
+   * whether or not the holding is frozen.
    */
   public isFrozen: boolean;
 
@@ -1519,9 +2345,9 @@ export class AssetHolding extends BaseModel {
 
   /**
    * Creates a new `AssetHolding` object.
-   * @param amount - (a) number of units held.
+   * @param amount - number of units held.
    * @param assetId - Asset ID of the holding.
-   * @param isFrozen - (f) whether or not the holding is frozen.
+   * @param isFrozen - whether or not the holding is frozen.
    * @param deleted - Whether or not the asset holding is currently deleted from its account.
    * @param optedInAtRound - Round during which the account opted into this asset holding.
    * @param optedOutAtRound - Round during which the account opted out of this asset holding.
@@ -1541,7 +2367,6 @@ export class AssetHolding extends BaseModel {
     optedInAtRound?: number | bigint;
     optedOutAtRound?: number | bigint;
   }) {
-    super();
     this.amount = ensureBigInt(amount);
     this.assetId = ensureBigInt(assetId);
     this.isFrozen = isFrozen;
@@ -1554,36 +2379,69 @@ export class AssetHolding extends BaseModel {
       typeof optedOutAtRound === 'undefined'
         ? undefined
         : ensureBigInt(optedOutAtRound);
-
-    this.attribute_map = {
-      amount: 'amount',
-      assetId: 'asset-id',
-      isFrozen: 'is-frozen',
-      deleted: 'deleted',
-      optedInAtRound: 'opted-in-at-round',
-      optedOutAtRound: 'opted-out-at-round',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): AssetHolding {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetHolding.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['amount', this.amount],
+      ['asset-id', this.assetId],
+      ['is-frozen', this.isFrozen],
+      ['deleted', this.deleted],
+      ['opted-in-at-round', this.optedInAtRound],
+      ['opted-out-at-round', this.optedOutAtRound],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AssetHolding {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AssetHolding({
-      amount: data['amount'] ?? 0,
-      assetId: data['asset-id'] ?? 0,
-      isFrozen: data['is-frozen'] ?? false,
-      deleted: data['deleted'],
-      optedInAtRound: data['opted-in-at-round'],
-      optedOutAtRound: data['opted-out-at-round'],
+      amount: data.get('amount'),
+      assetId: data.get('asset-id'),
+      isFrozen: data.get('is-frozen'),
+      deleted: data.get('deleted'),
+      optedInAtRound: data.get('opted-in-at-round'),
+      optedOutAtRound: data.get('opted-out-at-round'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class AssetHoldingsResponse extends BaseModel {
+export class AssetHoldingsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'assets',
+          valueSchema: new ArraySchema(AssetHolding.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public assets: AssetHolding[];
 
   /**
@@ -1613,29 +2471,35 @@ export class AssetHoldingsResponse extends BaseModel {
     currentRound: number | bigint;
     nextToken?: string;
   }) {
-    super();
     this.assets = assets;
     this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      assets: 'assets',
-      currentRound: 'current-round',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): AssetHoldingsResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetHoldingsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['assets', this.assets.map((v) => v.toEncodingData())],
+      ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AssetHoldingsResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AssetHoldingsResponse({
-      assets: (data['assets'] ?? []).map(AssetHolding.from_obj_for_encoding),
-      currentRound: data['current-round'] ?? 0,
-      nextToken: data['next-token'],
+      assets: (data.get('assets') ?? []).map((v: unknown) =>
+        AssetHolding.fromEncodingData(v)
+      ),
+      currentRound: data.get('current-round'),
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -1645,7 +2509,81 @@ export class AssetHoldingsResponse extends BaseModel {
  * Definition:
  * data/transactions/asset.go : AssetParams
  */
-export class AssetParams extends BaseModel {
+export class AssetParams implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'creator', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'decimals', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'total', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'clawback',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'default-frozen',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'freeze',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'manager',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'metadata-hash',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'name',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'name-b64',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'reserve',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'unit-name',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'unit-name-b64',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'url',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'url-b64',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * The address that created this asset. This is the address where the parameters
    * for this asset can be found, and also the address where unwanted asset units can
@@ -1654,49 +2592,49 @@ export class AssetParams extends BaseModel {
   public creator: string;
 
   /**
-   * (dc) The number of digits to use after the decimal point when displaying this
-   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
-   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
-   * must be between 0 and 19 (inclusive).
+   * The number of digits to use after the decimal point when displaying this asset.
+   * If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths.
+   * If 2, the base unit of the asset is in hundredths, and so on. This value must be
+   * between 0 and 19 (inclusive).
    */
   public decimals: number;
 
   /**
-   * (t) The total number of units of this asset.
+   * The total number of units of this asset.
    */
   public total: bigint;
 
   /**
-   * (c) Address of account used to clawback holdings of this asset. If empty,
-   * clawback is not permitted.
+   * Address of account used to clawback holdings of this asset. If empty, clawback
+   * is not permitted.
    */
   public clawback?: string;
 
   /**
-   * (df) Whether holdings of this asset are frozen by default.
+   * Whether holdings of this asset are frozen by default.
    */
   public defaultFrozen?: boolean;
 
   /**
-   * (f) Address of account used to freeze holdings of this asset. If empty, freezing
-   * is not permitted.
+   * Address of account used to freeze holdings of this asset. If empty, freezing is
+   * not permitted.
    */
   public freeze?: string;
 
   /**
-   * (m) Address of account used to manage the keys of this asset and to destroy it.
+   * Address of account used to manage the keys of this asset and to destroy it.
    */
   public manager?: string;
 
   /**
-   * (am) A commitment to some unspecified asset metadata. The format of this
-   * metadata is up to the application.
+   * A commitment to some unspecified asset metadata. The format of this metadata is
+   * up to the application.
    */
   public metadataHash?: Uint8Array;
 
   /**
-   * (an) Name of this asset, as supplied by the creator. Included only when the
-   * asset name is composed of printable utf-8 characters.
+   * Name of this asset, as supplied by the creator. Included only when the asset
+   * name is composed of printable utf-8 characters.
    */
   public name?: string;
 
@@ -1706,13 +2644,13 @@ export class AssetParams extends BaseModel {
   public nameB64?: Uint8Array;
 
   /**
-   * (r) Address of account holding reserve (non-minted) units of this asset.
+   * Address of account holding reserve (non-minted) units of this asset.
    */
   public reserve?: string;
 
   /**
-   * (un) Name of a unit of this asset, as supplied by the creator. Included only
-   * when the name of a unit of this asset is composed of printable utf-8 characters.
+   * Name of a unit of this asset, as supplied by the creator. Included only when the
+   * name of a unit of this asset is composed of printable utf-8 characters.
    */
   public unitName?: string;
 
@@ -1722,8 +2660,8 @@ export class AssetParams extends BaseModel {
   public unitNameB64?: Uint8Array;
 
   /**
-   * (au) URL where more information about the asset can be retrieved. Included only
-   * when the URL is composed of printable utf-8 characters.
+   * URL where more information about the asset can be retrieved. Included only when
+   * the URL is composed of printable utf-8 characters.
    */
   public url?: string;
 
@@ -1737,28 +2675,28 @@ export class AssetParams extends BaseModel {
    * @param creator - The address that created this asset. This is the address where the parameters
    * for this asset can be found, and also the address where unwanted asset units can
    * be sent in the worst case.
-   * @param decimals - (dc) The number of digits to use after the decimal point when displaying this
-   * asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in
-   * tenths. If 2, the base unit of the asset is in hundredths, and so on. This value
-   * must be between 0 and 19 (inclusive).
-   * @param total - (t) The total number of units of this asset.
-   * @param clawback - (c) Address of account used to clawback holdings of this asset. If empty,
-   * clawback is not permitted.
-   * @param defaultFrozen - (df) Whether holdings of this asset are frozen by default.
-   * @param freeze - (f) Address of account used to freeze holdings of this asset. If empty, freezing
+   * @param decimals - The number of digits to use after the decimal point when displaying this asset.
+   * If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths.
+   * If 2, the base unit of the asset is in hundredths, and so on. This value must be
+   * between 0 and 19 (inclusive).
+   * @param total - The total number of units of this asset.
+   * @param clawback - Address of account used to clawback holdings of this asset. If empty, clawback
    * is not permitted.
-   * @param manager - (m) Address of account used to manage the keys of this asset and to destroy it.
-   * @param metadataHash - (am) A commitment to some unspecified asset metadata. The format of this
-   * metadata is up to the application.
-   * @param name - (an) Name of this asset, as supplied by the creator. Included only when the
-   * asset name is composed of printable utf-8 characters.
+   * @param defaultFrozen - Whether holdings of this asset are frozen by default.
+   * @param freeze - Address of account used to freeze holdings of this asset. If empty, freezing is
+   * not permitted.
+   * @param manager - Address of account used to manage the keys of this asset and to destroy it.
+   * @param metadataHash - A commitment to some unspecified asset metadata. The format of this metadata is
+   * up to the application.
+   * @param name - Name of this asset, as supplied by the creator. Included only when the asset
+   * name is composed of printable utf-8 characters.
    * @param nameB64 - Base64 encoded name of this asset, as supplied by the creator.
-   * @param reserve - (r) Address of account holding reserve (non-minted) units of this asset.
-   * @param unitName - (un) Name of a unit of this asset, as supplied by the creator. Included only
-   * when the name of a unit of this asset is composed of printable utf-8 characters.
+   * @param reserve - Address of account holding reserve (non-minted) units of this asset.
+   * @param unitName - Name of a unit of this asset, as supplied by the creator. Included only when the
+   * name of a unit of this asset is composed of printable utf-8 characters.
    * @param unitNameB64 - Base64 encoded name of a unit of this asset, as supplied by the creator.
-   * @param url - (au) URL where more information about the asset can be retrieved. Included only
-   * when the URL is composed of printable utf-8 characters.
+   * @param url - URL where more information about the asset can be retrieved. Included only when
+   * the URL is composed of printable utf-8 characters.
    * @param urlB64 - Base64 encoded URL where more information about the asset can be retrieved.
    */
   constructor({
@@ -1794,7 +2732,6 @@ export class AssetParams extends BaseModel {
     url?: string;
     urlB64?: string | Uint8Array;
   }) {
-    super();
     this.creator = creator;
     this.decimals = ensureSafeInteger(decimals);
     this.total = ensureBigInt(total);
@@ -1817,54 +2754,78 @@ export class AssetParams extends BaseModel {
         : unitNameB64;
     this.url = url;
     this.urlB64 = typeof urlB64 === 'string' ? base64ToBytes(urlB64) : urlB64;
-
-    this.attribute_map = {
-      creator: 'creator',
-      decimals: 'decimals',
-      total: 'total',
-      clawback: 'clawback',
-      defaultFrozen: 'default-frozen',
-      freeze: 'freeze',
-      manager: 'manager',
-      metadataHash: 'metadata-hash',
-      name: 'name',
-      nameB64: 'name-b64',
-      reserve: 'reserve',
-      unitName: 'unit-name',
-      unitNameB64: 'unit-name-b64',
-      url: 'url',
-      urlB64: 'url-b64',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): AssetParams {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetParams.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['creator', this.creator],
+      ['decimals', this.decimals],
+      ['total', this.total],
+      ['clawback', this.clawback],
+      ['default-frozen', this.defaultFrozen],
+      ['freeze', this.freeze],
+      ['manager', this.manager],
+      ['metadata-hash', this.metadataHash],
+      ['name', this.name],
+      ['name-b64', this.nameB64],
+      ['reserve', this.reserve],
+      ['unit-name', this.unitName],
+      ['unit-name-b64', this.unitNameB64],
+      ['url', this.url],
+      ['url-b64', this.urlB64],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AssetParams {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AssetParams({
-      creator: data['creator'] ?? '',
-      decimals: data['decimals'] ?? 0,
-      total: data['total'] ?? 0,
-      clawback: data['clawback'],
-      defaultFrozen: data['default-frozen'],
-      freeze: data['freeze'],
-      manager: data['manager'],
-      metadataHash: data['metadata-hash'],
-      name: data['name'],
-      nameB64: data['name-b64'],
-      reserve: data['reserve'],
-      unitName: data['unit-name'],
-      unitNameB64: data['unit-name-b64'],
-      url: data['url'],
-      urlB64: data['url-b64'],
+      creator: data.get('creator'),
+      decimals: data.get('decimals'),
+      total: data.get('total'),
+      clawback: data.get('clawback'),
+      defaultFrozen: data.get('default-frozen'),
+      freeze: data.get('freeze'),
+      manager: data.get('manager'),
+      metadataHash: data.get('metadata-hash'),
+      name: data.get('name'),
+      nameB64: data.get('name-b64'),
+      reserve: data.get('reserve'),
+      unitName: data.get('unit-name'),
+      unitNameB64: data.get('unit-name-b64'),
+      url: data.get('url'),
+      urlB64: data.get('url-b64'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class AssetResponse extends BaseModel {
+export class AssetResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'asset', valueSchema: Asset.encodingSchema, omitEmpty: true },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Specifies both the unique identifier and the parameters for an asset
    */
@@ -1887,31 +2848,63 @@ export class AssetResponse extends BaseModel {
     asset: Asset;
     currentRound: number | bigint;
   }) {
-    super();
     this.asset = asset;
     this.currentRound = ensureBigInt(currentRound);
-
-    this.attribute_map = {
-      asset: 'asset',
-      currentRound: 'current-round',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): AssetResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['asset', this.asset.toEncodingData()],
+      ['current-round', this.currentRound],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AssetResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AssetResponse({
-      asset: Asset.from_obj_for_encoding(data['asset'] ?? {}),
-      currentRound: data['current-round'] ?? 0,
+      asset: Asset.fromEncodingData(data.get('asset') ?? new Map()),
+      currentRound: data.get('current-round'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class AssetsResponse extends BaseModel {
+export class AssetsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'assets',
+          valueSchema: new ArraySchema(Asset.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public assets: Asset[];
 
   /**
@@ -1941,27 +2934,35 @@ export class AssetsResponse extends BaseModel {
     currentRound: number | bigint;
     nextToken?: string;
   }) {
-    super();
     this.assets = assets;
     this.currentRound = ensureBigInt(currentRound);
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      assets: 'assets',
-      currentRound: 'current-round',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): AssetsResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AssetsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['assets', this.assets.map((v) => v.toEncodingData())],
+      ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AssetsResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new AssetsResponse({
-      assets: (data['assets'] ?? []).map(Asset.from_obj_for_encoding),
-      currentRound: data['current-round'] ?? 0,
-      nextToken: data['next-token'],
+      assets: (data.get('assets') ?? []).map((v: unknown) =>
+        Asset.fromEncodingData(v)
+      ),
+      currentRound: data.get('current-round'),
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -1970,7 +2971,101 @@ export class AssetsResponse extends BaseModel {
  * Definition:
  * data/bookkeeping/block.go : Block
  */
-export class Block extends BaseModel {
+export class Block implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'genesis-hash',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        { key: 'genesis-id', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'previous-block-hash',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'seed', valueSchema: new ByteArraySchema(), omitEmpty: true },
+        { key: 'timestamp', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'transactions-root',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'transactions-root-sha256',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'bonus',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'fees-collected',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'participation-updates',
+          valueSchema: new OptionalSchema(ParticipationUpdates.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'proposer',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'proposer-payout',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'rewards',
+          valueSchema: new OptionalSchema(BlockRewards.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'state-proof-tracking',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(StateProofTracking.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'transactions',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(Transaction.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'txn-counter',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-state',
+          valueSchema: new OptionalSchema(BlockUpgradeState.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-vote',
+          valueSchema: new OptionalSchema(BlockUpgradeVote.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (gh) hash to which this block belongs.
    */
@@ -2020,9 +3115,29 @@ export class Block extends BaseModel {
   public transactionsRootSha256: Uint8Array;
 
   /**
+   * the potential bonus payout for this block.
+   */
+  public bonus?: number;
+
+  /**
+   * the sum of all fees paid by transactions in this block.
+   */
+  public feesCollected?: number;
+
+  /**
    * Participation account data that needs to be checked/acted on by the network.
    */
   public participationUpdates?: ParticipationUpdates;
+
+  /**
+   * the proposer of this block.
+   */
+  public proposer?: Address;
+
+  /**
+   * the actual amount transferred to the proposer from the fee sink.
+   */
+  public proposerPayout?: number;
 
   /**
    * Fields relating to rewards,
@@ -2076,7 +3191,11 @@ export class Block extends BaseModel {
    * vector commitment instead of a merkle tree, and SHA256 hash function instead of
    * the default SHA512_256. This commitment can be used on environments where only
    * the SHA256 function exists.
+   * @param bonus - the potential bonus payout for this block.
+   * @param feesCollected - the sum of all fees paid by transactions in this block.
    * @param participationUpdates - Participation account data that needs to be checked/acted on by the network.
+   * @param proposer - the proposer of this block.
+   * @param proposerPayout - the actual amount transferred to the proposer from the fee sink.
    * @param rewards - Fields relating to rewards,
    * @param stateProofTracking - Tracks the status of state proofs.
    * @param transactions - (txns) list of transactions corresponding to a given round.
@@ -2097,7 +3216,11 @@ export class Block extends BaseModel {
     timestamp,
     transactionsRoot,
     transactionsRootSha256,
+    bonus,
+    feesCollected,
     participationUpdates,
+    proposer,
+    proposerPayout,
     rewards,
     stateProofTracking,
     transactions,
@@ -2113,7 +3236,11 @@ export class Block extends BaseModel {
     timestamp: number | bigint;
     transactionsRoot: string | Uint8Array;
     transactionsRootSha256: string | Uint8Array;
+    bonus?: number | bigint;
+    feesCollected?: number | bigint;
     participationUpdates?: ParticipationUpdates;
+    proposer?: Address | string;
+    proposerPayout?: number | bigint;
     rewards?: BlockRewards;
     stateProofTracking?: StateProofTracking[];
     transactions?: Transaction[];
@@ -2121,7 +3248,6 @@ export class Block extends BaseModel {
     upgradeState?: BlockUpgradeState;
     upgradeVote?: BlockUpgradeVote;
   }) {
-    super();
     this.genesisHash =
       typeof genesisHash === 'string'
         ? base64ToBytes(genesisHash)
@@ -2142,7 +3268,19 @@ export class Block extends BaseModel {
       typeof transactionsRootSha256 === 'string'
         ? base64ToBytes(transactionsRootSha256)
         : transactionsRootSha256;
+    this.bonus =
+      typeof bonus === 'undefined' ? undefined : ensureSafeInteger(bonus);
+    this.feesCollected =
+      typeof feesCollected === 'undefined'
+        ? undefined
+        : ensureSafeInteger(feesCollected);
     this.participationUpdates = participationUpdates;
+    this.proposer =
+      typeof proposer === 'string' ? Address.fromString(proposer) : proposer;
+    this.proposerPayout =
+      typeof proposerPayout === 'undefined'
+        ? undefined
+        : ensureSafeInteger(proposerPayout);
     this.rewards = rewards;
     this.stateProofTracking = stateProofTracking;
     this.transactions = transactions;
@@ -2152,77 +3290,165 @@ export class Block extends BaseModel {
         : ensureSafeInteger(txnCounter);
     this.upgradeState = upgradeState;
     this.upgradeVote = upgradeVote;
-
-    this.attribute_map = {
-      genesisHash: 'genesis-hash',
-      genesisId: 'genesis-id',
-      previousBlockHash: 'previous-block-hash',
-      round: 'round',
-      seed: 'seed',
-      timestamp: 'timestamp',
-      transactionsRoot: 'transactions-root',
-      transactionsRootSha256: 'transactions-root-sha256',
-      participationUpdates: 'participation-updates',
-      rewards: 'rewards',
-      stateProofTracking: 'state-proof-tracking',
-      transactions: 'transactions',
-      txnCounter: 'txn-counter',
-      upgradeState: 'upgrade-state',
-      upgradeVote: 'upgrade-vote',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): Block {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Block.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['genesis-hash', this.genesisHash],
+      ['genesis-id', this.genesisId],
+      ['previous-block-hash', this.previousBlockHash],
+      ['round', this.round],
+      ['seed', this.seed],
+      ['timestamp', this.timestamp],
+      ['transactions-root', this.transactionsRoot],
+      ['transactions-root-sha256', this.transactionsRootSha256],
+      ['bonus', this.bonus],
+      ['fees-collected', this.feesCollected],
+      [
+        'participation-updates',
+        typeof this.participationUpdates !== 'undefined'
+          ? this.participationUpdates.toEncodingData()
+          : undefined,
+      ],
+      [
+        'proposer',
+        typeof this.proposer !== 'undefined'
+          ? this.proposer.toString()
+          : undefined,
+      ],
+      ['proposer-payout', this.proposerPayout],
+      [
+        'rewards',
+        typeof this.rewards !== 'undefined'
+          ? this.rewards.toEncodingData()
+          : undefined,
+      ],
+      [
+        'state-proof-tracking',
+        typeof this.stateProofTracking !== 'undefined'
+          ? this.stateProofTracking.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
+        'transactions',
+        typeof this.transactions !== 'undefined'
+          ? this.transactions.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['txn-counter', this.txnCounter],
+      [
+        'upgrade-state',
+        typeof this.upgradeState !== 'undefined'
+          ? this.upgradeState.toEncodingData()
+          : undefined,
+      ],
+      [
+        'upgrade-vote',
+        typeof this.upgradeVote !== 'undefined'
+          ? this.upgradeVote.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): Block {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new Block({
-      genesisHash: data['genesis-hash'] ?? new Uint8Array(),
-      genesisId: data['genesis-id'] ?? '',
-      previousBlockHash: data['previous-block-hash'] ?? new Uint8Array(),
-      round: data['round'] ?? 0,
-      seed: data['seed'] ?? new Uint8Array(),
-      timestamp: data['timestamp'] ?? 0,
-      transactionsRoot: data['transactions-root'] ?? new Uint8Array(),
-      transactionsRootSha256:
-        data['transactions-root-sha256'] ?? new Uint8Array(),
+      genesisHash: data.get('genesis-hash'),
+      genesisId: data.get('genesis-id'),
+      previousBlockHash: data.get('previous-block-hash'),
+      round: data.get('round'),
+      seed: data.get('seed'),
+      timestamp: data.get('timestamp'),
+      transactionsRoot: data.get('transactions-root'),
+      transactionsRootSha256: data.get('transactions-root-sha256'),
+      bonus: data.get('bonus'),
+      feesCollected: data.get('fees-collected'),
       participationUpdates:
-        typeof data['participation-updates'] !== 'undefined'
-          ? ParticipationUpdates.from_obj_for_encoding(
-              data['participation-updates']
+        typeof data.get('participation-updates') !== 'undefined'
+          ? ParticipationUpdates.fromEncodingData(
+              data.get('participation-updates')
             )
           : undefined,
+      proposer: data.get('proposer'),
+      proposerPayout: data.get('proposer-payout'),
       rewards:
-        typeof data['rewards'] !== 'undefined'
-          ? BlockRewards.from_obj_for_encoding(data['rewards'])
+        typeof data.get('rewards') !== 'undefined'
+          ? BlockRewards.fromEncodingData(data.get('rewards'))
           : undefined,
       stateProofTracking:
-        typeof data['state-proof-tracking'] !== 'undefined'
-          ? data['state-proof-tracking'].map(
-              StateProofTracking.from_obj_for_encoding
-            )
+        typeof data.get('state-proof-tracking') !== 'undefined'
+          ? data
+              .get('state-proof-tracking')
+              .map((v: unknown) => StateProofTracking.fromEncodingData(v))
           : undefined,
       transactions:
-        typeof data['transactions'] !== 'undefined'
-          ? data['transactions'].map(Transaction.from_obj_for_encoding)
+        typeof data.get('transactions') !== 'undefined'
+          ? data
+              .get('transactions')
+              .map((v: unknown) => Transaction.fromEncodingData(v))
           : undefined,
-      txnCounter: data['txn-counter'],
+      txnCounter: data.get('txn-counter'),
       upgradeState:
-        typeof data['upgrade-state'] !== 'undefined'
-          ? BlockUpgradeState.from_obj_for_encoding(data['upgrade-state'])
+        typeof data.get('upgrade-state') !== 'undefined'
+          ? BlockUpgradeState.fromEncodingData(data.get('upgrade-state'))
           : undefined,
       upgradeVote:
-        typeof data['upgrade-vote'] !== 'undefined'
-          ? BlockUpgradeVote.from_obj_for_encoding(data['upgrade-vote'])
+        typeof data.get('upgrade-vote') !== 'undefined'
+          ? BlockUpgradeVote.fromEncodingData(data.get('upgrade-vote'))
           : undefined,
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Fields relating to rewards,
  */
-export class BlockRewards extends BaseModel {
+export class BlockRewards implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'fee-sink', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'rewards-calculation-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'rewards-level',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'rewards-pool',
+          valueSchema: new StringSchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'rewards-rate',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'rewards-residue',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (fees) accepts transaction fees, it can only spend to the incentive pool.
    */
@@ -2287,43 +3513,85 @@ export class BlockRewards extends BaseModel {
     rewardsRate: number | bigint;
     rewardsResidue: number | bigint;
   }) {
-    super();
     this.feeSink = feeSink;
     this.rewardsCalculationRound = ensureBigInt(rewardsCalculationRound);
     this.rewardsLevel = ensureBigInt(rewardsLevel);
     this.rewardsPool = rewardsPool;
     this.rewardsRate = ensureBigInt(rewardsRate);
     this.rewardsResidue = ensureBigInt(rewardsResidue);
-
-    this.attribute_map = {
-      feeSink: 'fee-sink',
-      rewardsCalculationRound: 'rewards-calculation-round',
-      rewardsLevel: 'rewards-level',
-      rewardsPool: 'rewards-pool',
-      rewardsRate: 'rewards-rate',
-      rewardsResidue: 'rewards-residue',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): BlockRewards {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockRewards.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['fee-sink', this.feeSink],
+      ['rewards-calculation-round', this.rewardsCalculationRound],
+      ['rewards-level', this.rewardsLevel],
+      ['rewards-pool', this.rewardsPool],
+      ['rewards-rate', this.rewardsRate],
+      ['rewards-residue', this.rewardsResidue],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): BlockRewards {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new BlockRewards({
-      feeSink: data['fee-sink'] ?? '',
-      rewardsCalculationRound: data['rewards-calculation-round'] ?? 0,
-      rewardsLevel: data['rewards-level'] ?? 0,
-      rewardsPool: data['rewards-pool'] ?? '',
-      rewardsRate: data['rewards-rate'] ?? 0,
-      rewardsResidue: data['rewards-residue'] ?? 0,
+      feeSink: data.get('fee-sink'),
+      rewardsCalculationRound: data.get('rewards-calculation-round'),
+      rewardsLevel: data.get('rewards-level'),
+      rewardsPool: data.get('rewards-pool'),
+      rewardsRate: data.get('rewards-rate'),
+      rewardsResidue: data.get('rewards-residue'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Fields relating to a protocol upgrade.
  */
-export class BlockUpgradeState extends BaseModel {
+export class BlockUpgradeState implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'current-protocol',
+          valueSchema: new StringSchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-protocol',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-protocol-approvals',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-protocol-switch-on',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-protocol-vote-before',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (proto) The current protocol version.
    */
@@ -2372,7 +3640,6 @@ export class BlockUpgradeState extends BaseModel {
     nextProtocolSwitchOn?: number | bigint;
     nextProtocolVoteBefore?: number | bigint;
   }) {
-    super();
     this.currentProtocol = currentProtocol;
     this.nextProtocol = nextProtocol;
     this.nextProtocolApprovals =
@@ -2387,34 +3654,67 @@ export class BlockUpgradeState extends BaseModel {
       typeof nextProtocolVoteBefore === 'undefined'
         ? undefined
         : ensureBigInt(nextProtocolVoteBefore);
-
-    this.attribute_map = {
-      currentProtocol: 'current-protocol',
-      nextProtocol: 'next-protocol',
-      nextProtocolApprovals: 'next-protocol-approvals',
-      nextProtocolSwitchOn: 'next-protocol-switch-on',
-      nextProtocolVoteBefore: 'next-protocol-vote-before',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): BlockUpgradeState {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockUpgradeState.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['current-protocol', this.currentProtocol],
+      ['next-protocol', this.nextProtocol],
+      ['next-protocol-approvals', this.nextProtocolApprovals],
+      ['next-protocol-switch-on', this.nextProtocolSwitchOn],
+      ['next-protocol-vote-before', this.nextProtocolVoteBefore],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): BlockUpgradeState {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new BlockUpgradeState({
-      currentProtocol: data['current-protocol'] ?? '',
-      nextProtocol: data['next-protocol'],
-      nextProtocolApprovals: data['next-protocol-approvals'],
-      nextProtocolSwitchOn: data['next-protocol-switch-on'],
-      nextProtocolVoteBefore: data['next-protocol-vote-before'],
+      currentProtocol: data.get('current-protocol'),
+      nextProtocol: data.get('next-protocol'),
+      nextProtocolApprovals: data.get('next-protocol-approvals'),
+      nextProtocolSwitchOn: data.get('next-protocol-switch-on'),
+      nextProtocolVoteBefore: data.get('next-protocol-vote-before'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Fields relating to voting for a protocol upgrade.
  */
-export class BlockUpgradeVote extends BaseModel {
+export class BlockUpgradeVote implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'upgrade-approve',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-delay',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'upgrade-propose',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (upgradeyes) Indicates a yes vote for the current proposal.
    */
@@ -2445,37 +3745,57 @@ export class BlockUpgradeVote extends BaseModel {
     upgradeDelay?: number | bigint;
     upgradePropose?: string;
   }) {
-    super();
     this.upgradeApprove = upgradeApprove;
     this.upgradeDelay =
       typeof upgradeDelay === 'undefined'
         ? undefined
         : ensureBigInt(upgradeDelay);
     this.upgradePropose = upgradePropose;
-
-    this.attribute_map = {
-      upgradeApprove: 'upgrade-approve',
-      upgradeDelay: 'upgrade-delay',
-      upgradePropose: 'upgrade-propose',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): BlockUpgradeVote {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockUpgradeVote.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['upgrade-approve', this.upgradeApprove],
+      ['upgrade-delay', this.upgradeDelay],
+      ['upgrade-propose', this.upgradePropose],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): BlockUpgradeVote {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new BlockUpgradeVote({
-      upgradeApprove: data['upgrade-approve'],
-      upgradeDelay: data['upgrade-delay'],
-      upgradePropose: data['upgrade-propose'],
+      upgradeApprove: data.get('upgrade-approve'),
+      upgradeDelay: data.get('upgrade-delay'),
+      upgradePropose: data.get('upgrade-propose'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Box name and its content.
  */
-export class Box extends BaseModel {
+export class Box implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
+        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'value', valueSchema: new ByteArraySchema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (name) box name, base64 encoded
    */
@@ -2506,34 +3826,54 @@ export class Box extends BaseModel {
     round: number | bigint;
     value: string | Uint8Array;
   }) {
-    super();
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
     this.round = ensureBigInt(round);
     this.value = typeof value === 'string' ? base64ToBytes(value) : value;
-
-    this.attribute_map = {
-      name: 'name',
-      round: 'round',
-      value: 'value',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): Box {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Box.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['name', this.name],
+      ['round', this.round],
+      ['value', this.value],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): Box {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new Box({
-      name: data['name'] ?? new Uint8Array(),
-      round: data['round'] ?? 0,
-      value: data['value'] ?? new Uint8Array(),
+      name: data.get('name'),
+      round: data.get('round'),
+      value: data.get('value'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Box descriptor describes an app box without a value.
  */
-export class BoxDescriptor extends BaseModel {
+export class BoxDescriptor implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'name',
+        valueSchema: new ByteArraySchema(),
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Base64 encoded box name
    */
@@ -2544,28 +3884,58 @@ export class BoxDescriptor extends BaseModel {
    * @param name - Base64 encoded box name
    */
   constructor({ name }: { name: string | Uint8Array }) {
-    super();
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
-
-    this.attribute_map = {
-      name: 'name',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): BoxDescriptor {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BoxDescriptor.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([['name', this.name]]);
+  }
+
+  static fromEncodingData(data: unknown): BoxDescriptor {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new BoxDescriptor({
-      name: data['name'] ?? new Uint8Array(),
+      name: data.get('name'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Box names of an application
  */
-export class BoxesResponse extends BaseModel {
+export class BoxesResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'application-id',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'boxes',
+          valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (appidx) application index.
    */
@@ -2595,75 +3965,130 @@ export class BoxesResponse extends BaseModel {
     boxes: BoxDescriptor[];
     nextToken?: string;
   }) {
-    super();
     this.applicationId = ensureBigInt(applicationId);
     this.boxes = boxes;
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      applicationId: 'application-id',
-      boxes: 'boxes',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): BoxesResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BoxesResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['application-id', this.applicationId],
+      ['boxes', this.boxes.map((v) => v.toEncodingData())],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): BoxesResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new BoxesResponse({
-      applicationId: data['application-id'] ?? 0,
-      boxes: (data['boxes'] ?? []).map(BoxDescriptor.from_obj_for_encoding),
-      nextToken: data['next-token'],
+      applicationId: data.get('application-id'),
+      boxes: (data.get('boxes') ?? []).map((v: unknown) =>
+        BoxDescriptor.fromEncodingData(v)
+      ),
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Response for errors
  */
-export class ErrorResponse extends BaseModel {
+export class ErrorResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'message', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'data',
+          valueSchema: new OptionalSchema(UntypedValue.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public message: string;
 
-  public data?: Record<string, any>;
+  public data?: UntypedValue;
 
   /**
    * Creates a new `ErrorResponse` object.
    * @param message -
    * @param data -
    */
-  constructor({
-    message,
-    data,
-  }: {
-    message: string;
-    data?: Record<string, any>;
-  }) {
-    super();
+  constructor({ message, data }: { message: string; data?: UntypedValue }) {
     this.message = message;
     this.data = data;
-
-    this.attribute_map = {
-      message: 'message',
-      data: 'data',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): ErrorResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ErrorResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['message', this.message],
+      [
+        'data',
+        typeof this.data !== 'undefined'
+          ? this.data.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ErrorResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ErrorResponse({
-      message: data['message'] ?? '',
-      data: data['data'],
+      message: data.get('message'),
+      data:
+        typeof data.get('data') !== 'undefined'
+          ? UntypedValue.fromEncodingData(data.get('data'))
+          : undefined,
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Represents a TEAL value delta.
  */
-export class EvalDelta extends BaseModel {
+export class EvalDelta implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'action', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'bytes',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'uint',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (at) delta action.
    */
@@ -2694,34 +4119,53 @@ export class EvalDelta extends BaseModel {
     bytes?: string;
     uint?: number | bigint;
   }) {
-    super();
     this.action = ensureSafeInteger(action);
     this.bytes = bytes;
     this.uint = typeof uint === 'undefined' ? undefined : ensureBigInt(uint);
-
-    this.attribute_map = {
-      action: 'action',
-      bytes: 'bytes',
-      uint: 'uint',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): EvalDelta {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return EvalDelta.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['action', this.action],
+      ['bytes', this.bytes],
+      ['uint', this.uint],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): EvalDelta {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new EvalDelta({
-      action: data['action'] ?? 0,
-      bytes: data['bytes'],
-      uint: data['uint'],
+      action: data.get('action'),
+      bytes: data.get('bytes'),
+      uint: data.get('uint'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Key-value pairs for StateDelta.
  */
-export class EvalDeltaKeyValue extends BaseModel {
+export class EvalDeltaKeyValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'key', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'value', valueSchema: EvalDelta.encodingSchema, omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public key: string;
 
   /**
@@ -2735,28 +4179,48 @@ export class EvalDeltaKeyValue extends BaseModel {
    * @param value - Represents a TEAL value delta.
    */
   constructor({ key, value }: { key: string; value: EvalDelta }) {
-    super();
     this.key = key;
     this.value = value;
-
-    this.attribute_map = {
-      key: 'key',
-      value: 'value',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): EvalDeltaKeyValue {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return EvalDeltaKeyValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['key', this.key],
+      ['value', this.value.toEncodingData()],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): EvalDeltaKeyValue {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new EvalDeltaKeyValue({
-      key: data['key'] ?? '',
-      value: EvalDelta.from_obj_for_encoding(data['value'] ?? {}),
+      key: data.get('key'),
+      value: EvalDelta.fromEncodingData(data.get('value') ?? new Map()),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class HashFactory extends BaseModel {
+export class HashFactory implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+        key: 'hash-type',
+        valueSchema: new OptionalSchema(new Uint64Schema()),
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (t)
    */
@@ -2767,29 +4231,67 @@ export class HashFactory extends BaseModel {
    * @param hashType - (t)
    */
   constructor({ hashType }: { hashType?: number | bigint }) {
-    super();
     this.hashType =
       typeof hashType === 'undefined' ? undefined : ensureSafeInteger(hashType);
-
-    this.attribute_map = {
-      hashType: 'hash-type',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): HashFactory {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return HashFactory.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([['hash-type', this.hashType]]);
+  }
+
+  static fromEncodingData(data: unknown): HashFactory {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new HashFactory({
-      hashType: data['hash-type'],
+      hashType: data.get('hash-type'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * A health check response.
  */
-export class HealthCheck extends BaseModel {
+export class HealthCheck implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'db-available',
+          valueSchema: new BooleanSchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'is-migrating',
+          valueSchema: new BooleanSchema(),
+          omitEmpty: true,
+        },
+        { key: 'message', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'version', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'data',
+          valueSchema: new OptionalSchema(UntypedValue.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'errors',
+          valueSchema: new OptionalSchema(new ArraySchema(new StringSchema())),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public dbAvailable: boolean;
 
   public isMigrating: boolean;
@@ -2803,7 +4305,7 @@ export class HealthCheck extends BaseModel {
    */
   public version: string;
 
-  public data?: Record<string, any>;
+  public data?: UntypedValue;
 
   public errors?: string[];
 
@@ -2831,10 +4333,9 @@ export class HealthCheck extends BaseModel {
     message: string;
     round: number | bigint;
     version: string;
-    data?: Record<string, any>;
+    data?: UntypedValue;
     errors?: string[];
   }) {
-    super();
     this.dbAvailable = dbAvailable;
     this.isMigrating = isMigrating;
     this.message = message;
@@ -2842,35 +4343,86 @@ export class HealthCheck extends BaseModel {
     this.version = version;
     this.data = data;
     this.errors = errors;
-
-    this.attribute_map = {
-      dbAvailable: 'db-available',
-      isMigrating: 'is-migrating',
-      message: 'message',
-      round: 'round',
-      version: 'version',
-      data: 'data',
-      errors: 'errors',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): HealthCheck {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return HealthCheck.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['db-available', this.dbAvailable],
+      ['is-migrating', this.isMigrating],
+      ['message', this.message],
+      ['round', this.round],
+      ['version', this.version],
+      [
+        'data',
+        typeof this.data !== 'undefined'
+          ? this.data.toEncodingData()
+          : undefined,
+      ],
+      ['errors', this.errors],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): HealthCheck {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new HealthCheck({
-      dbAvailable: data['db-available'] ?? false,
-      isMigrating: data['is-migrating'] ?? false,
-      message: data['message'] ?? '',
-      round: data['round'] ?? 0,
-      version: data['version'] ?? '',
-      data: data['data'],
-      errors: data['errors'],
+      dbAvailable: data.get('db-available'),
+      isMigrating: data.get('is-migrating'),
+      message: data.get('message'),
+      round: data.get('round'),
+      version: data.get('version'),
+      data:
+        typeof data.get('data') !== 'undefined'
+          ? UntypedValue.fromEncodingData(data.get('data'))
+          : undefined,
+      errors: data.get('errors'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class IndexerStateProofMessage extends BaseModel {
+export class IndexerStateProofMessage implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'block-headers-commitment',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'first-attested-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'latest-attested-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'ln-proven-weight',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'voters-commitment',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (b)
    */
@@ -2917,7 +4469,6 @@ export class IndexerStateProofMessage extends BaseModel {
     lnProvenWeight?: number | bigint;
     votersCommitment?: string | Uint8Array;
   }) {
-    super();
     this.blockHeadersCommitment =
       typeof blockHeadersCommitment === 'string'
         ? base64ToBytes(blockHeadersCommitment)
@@ -2938,33 +4489,66 @@ export class IndexerStateProofMessage extends BaseModel {
       typeof votersCommitment === 'string'
         ? base64ToBytes(votersCommitment)
         : votersCommitment;
-
-    this.attribute_map = {
-      blockHeadersCommitment: 'block-headers-commitment',
-      firstAttestedRound: 'first-attested-round',
-      latestAttestedRound: 'latest-attested-round',
-      lnProvenWeight: 'ln-proven-weight',
-      votersCommitment: 'voters-commitment',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): IndexerStateProofMessage {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return IndexerStateProofMessage.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['block-headers-commitment', this.blockHeadersCommitment],
+      ['first-attested-round', this.firstAttestedRound],
+      ['latest-attested-round', this.latestAttestedRound],
+      ['ln-proven-weight', this.lnProvenWeight],
+      ['voters-commitment', this.votersCommitment],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): IndexerStateProofMessage {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new IndexerStateProofMessage({
-      blockHeadersCommitment: data['block-headers-commitment'],
-      firstAttestedRound: data['first-attested-round'],
-      latestAttestedRound: data['latest-attested-round'],
-      lnProvenWeight: data['ln-proven-weight'],
-      votersCommitment: data['voters-commitment'],
+      blockHeadersCommitment: data.get('block-headers-commitment'),
+      firstAttestedRound: data.get('first-attested-round'),
+      latestAttestedRound: data.get('latest-attested-round'),
+      lnProvenWeight: data.get('ln-proven-weight'),
+      votersCommitment: data.get('voters-commitment'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class MerkleArrayProof extends BaseModel {
+export class MerkleArrayProof implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'hash-factory',
+          valueSchema: new OptionalSchema(HashFactory.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'path',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(new ByteArraySchema())
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'tree-depth',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public hashFactory?: HashFactory;
 
   /**
@@ -2992,40 +4576,80 @@ export class MerkleArrayProof extends BaseModel {
     path?: Uint8Array[];
     treeDepth?: number | bigint;
   }) {
-    super();
     this.hashFactory = hashFactory;
     this.path = path;
     this.treeDepth =
       typeof treeDepth === 'undefined'
         ? undefined
         : ensureSafeInteger(treeDepth);
-
-    this.attribute_map = {
-      hashFactory: 'hash-factory',
-      path: 'path',
-      treeDepth: 'tree-depth',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): MerkleArrayProof {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return MerkleArrayProof.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'hash-factory',
+        typeof this.hashFactory !== 'undefined'
+          ? this.hashFactory.toEncodingData()
+          : undefined,
+      ],
+      ['path', this.path],
+      ['tree-depth', this.treeDepth],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): MerkleArrayProof {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new MerkleArrayProof({
       hashFactory:
-        typeof data['hash-factory'] !== 'undefined'
-          ? HashFactory.from_obj_for_encoding(data['hash-factory'])
+        typeof data.get('hash-factory') !== 'undefined'
+          ? HashFactory.fromEncodingData(data.get('hash-factory'))
           : undefined,
-      path: data['path'],
-      treeDepth: data['tree-depth'],
+      path: data.get('path'),
+      treeDepth: data.get('tree-depth'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * A simplified version of AssetHolding
  */
-export class MiniAssetHolding extends BaseModel {
+export class MiniAssetHolding implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'amount', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'is-frozen', valueSchema: new BooleanSchema(), omitEmpty: true },
+        {
+          key: 'deleted',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'opted-in-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'opted-out-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public address: string;
 
   public amount: bigint;
@@ -3071,7 +4695,6 @@ export class MiniAssetHolding extends BaseModel {
     optedInAtRound?: number | bigint;
     optedOutAtRound?: number | bigint;
   }) {
-    super();
     this.address = address;
     this.amount = ensureBigInt(amount);
     this.isFrozen = isFrozen;
@@ -3084,36 +4707,69 @@ export class MiniAssetHolding extends BaseModel {
       typeof optedOutAtRound === 'undefined'
         ? undefined
         : ensureBigInt(optedOutAtRound);
-
-    this.attribute_map = {
-      address: 'address',
-      amount: 'amount',
-      isFrozen: 'is-frozen',
-      deleted: 'deleted',
-      optedInAtRound: 'opted-in-at-round',
-      optedOutAtRound: 'opted-out-at-round',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): MiniAssetHolding {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return MiniAssetHolding.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['address', this.address],
+      ['amount', this.amount],
+      ['is-frozen', this.isFrozen],
+      ['deleted', this.deleted],
+      ['opted-in-at-round', this.optedInAtRound],
+      ['opted-out-at-round', this.optedOutAtRound],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): MiniAssetHolding {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new MiniAssetHolding({
-      address: data['address'] ?? '',
-      amount: data['amount'] ?? 0,
-      isFrozen: data['is-frozen'] ?? false,
-      deleted: data['deleted'],
-      optedInAtRound: data['opted-in-at-round'],
-      optedOutAtRound: data['opted-out-at-round'],
+      address: data.get('address'),
+      amount: data.get('amount'),
+      isFrozen: data.get('is-frozen'),
+      deleted: data.get('deleted'),
+      optedInAtRound: data.get('opted-in-at-round'),
+      optedOutAtRound: data.get('opted-out-at-round'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Participation account data that needs to be checked/acted on by the network.
  */
-export class ParticipationUpdates extends BaseModel {
+export class ParticipationUpdates implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'absent-participation-accounts',
+          valueSchema: new OptionalSchema(new ArraySchema(new StringSchema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'expired-participation-accounts',
+          valueSchema: new OptionalSchema(new ArraySchema(new StringSchema())),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (partupabs) a list of online accounts that need to be suspended.
+   */
+  public absentParticipationAccounts?: string[];
+
   /**
    * (partupdrmv) a list of online accounts that needs to be converted to offline
    * since their participation key expired.
@@ -3122,31 +4778,41 @@ export class ParticipationUpdates extends BaseModel {
 
   /**
    * Creates a new `ParticipationUpdates` object.
+   * @param absentParticipationAccounts - (partupabs) a list of online accounts that need to be suspended.
    * @param expiredParticipationAccounts - (partupdrmv) a list of online accounts that needs to be converted to offline
    * since their participation key expired.
    */
   constructor({
+    absentParticipationAccounts,
     expiredParticipationAccounts,
   }: {
+    absentParticipationAccounts?: string[];
     expiredParticipationAccounts?: string[];
   }) {
-    super();
+    this.absentParticipationAccounts = absentParticipationAccounts;
     this.expiredParticipationAccounts = expiredParticipationAccounts;
-
-    this.attribute_map = {
-      expiredParticipationAccounts: 'expired-participation-accounts',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): ParticipationUpdates {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ParticipationUpdates.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['absent-participation-accounts', this.absentParticipationAccounts],
+      ['expired-participation-accounts', this.expiredParticipationAccounts],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ParticipationUpdates {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new ParticipationUpdates({
-      expiredParticipationAccounts: data['expired-participation-accounts'],
+      absentParticipationAccounts: data.get('absent-participation-accounts'),
+      expiredParticipationAccounts: data.get('expired-participation-accounts'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -3155,7 +4821,55 @@ export class ParticipationUpdates extends BaseModel {
  * Definition:
  * crypto/stateproof/structs.go : StateProof
  */
-export class StateProofFields extends BaseModel {
+export class StateProofFields implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'part-proofs',
+          valueSchema: new OptionalSchema(MerkleArrayProof.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'positions-to-reveal',
+          valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'reveals',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(StateProofReveal.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'salt-version',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'sig-commit',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'sig-proofs',
+          valueSchema: new OptionalSchema(MerkleArrayProof.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'signed-weight',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (P)
    */
@@ -3220,7 +4934,6 @@ export class StateProofFields extends BaseModel {
     sigProofs?: MerkleArrayProof;
     signedWeight?: number | bigint;
   }) {
-    super();
     this.partProofs = partProofs;
     this.positionsToReveal =
       typeof positionsToReveal === 'undefined'
@@ -3238,44 +4951,89 @@ export class StateProofFields extends BaseModel {
       typeof signedWeight === 'undefined'
         ? undefined
         : ensureBigInt(signedWeight);
-
-    this.attribute_map = {
-      partProofs: 'part-proofs',
-      positionsToReveal: 'positions-to-reveal',
-      reveals: 'reveals',
-      saltVersion: 'salt-version',
-      sigCommit: 'sig-commit',
-      sigProofs: 'sig-proofs',
-      signedWeight: 'signed-weight',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): StateProofFields {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofFields.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'part-proofs',
+        typeof this.partProofs !== 'undefined'
+          ? this.partProofs.toEncodingData()
+          : undefined,
+      ],
+      ['positions-to-reveal', this.positionsToReveal],
+      [
+        'reveals',
+        typeof this.reveals !== 'undefined'
+          ? this.reveals.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['salt-version', this.saltVersion],
+      ['sig-commit', this.sigCommit],
+      [
+        'sig-proofs',
+        typeof this.sigProofs !== 'undefined'
+          ? this.sigProofs.toEncodingData()
+          : undefined,
+      ],
+      ['signed-weight', this.signedWeight],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateProofFields {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new StateProofFields({
       partProofs:
-        typeof data['part-proofs'] !== 'undefined'
-          ? MerkleArrayProof.from_obj_for_encoding(data['part-proofs'])
+        typeof data.get('part-proofs') !== 'undefined'
+          ? MerkleArrayProof.fromEncodingData(data.get('part-proofs'))
           : undefined,
-      positionsToReveal: data['positions-to-reveal'],
+      positionsToReveal: data.get('positions-to-reveal'),
       reveals:
-        typeof data['reveals'] !== 'undefined'
-          ? data['reveals'].map(StateProofReveal.from_obj_for_encoding)
+        typeof data.get('reveals') !== 'undefined'
+          ? data
+              .get('reveals')
+              .map((v: unknown) => StateProofReveal.fromEncodingData(v))
           : undefined,
-      saltVersion: data['salt-version'],
-      sigCommit: data['sig-commit'],
+      saltVersion: data.get('salt-version'),
+      sigCommit: data.get('sig-commit'),
       sigProofs:
-        typeof data['sig-proofs'] !== 'undefined'
-          ? MerkleArrayProof.from_obj_for_encoding(data['sig-proofs'])
+        typeof data.get('sig-proofs') !== 'undefined'
+          ? MerkleArrayProof.fromEncodingData(data.get('sig-proofs'))
           : undefined,
-      signedWeight: data['signed-weight'],
+      signedWeight: data.get('signed-weight'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class StateProofParticipant extends BaseModel {
+export class StateProofParticipant implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'verifier',
+          valueSchema: new OptionalSchema(StateProofVerifier.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'weight',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (p)
    */
@@ -3298,34 +5056,69 @@ export class StateProofParticipant extends BaseModel {
     verifier?: StateProofVerifier;
     weight?: number | bigint;
   }) {
-    super();
     this.verifier = verifier;
     this.weight =
       typeof weight === 'undefined' ? undefined : ensureBigInt(weight);
-
-    this.attribute_map = {
-      verifier: 'verifier',
-      weight: 'weight',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): StateProofParticipant {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofParticipant.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'verifier',
+        typeof this.verifier !== 'undefined'
+          ? this.verifier.toEncodingData()
+          : undefined,
+      ],
+      ['weight', this.weight],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateProofParticipant {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new StateProofParticipant({
       verifier:
-        typeof data['verifier'] !== 'undefined'
-          ? StateProofVerifier.from_obj_for_encoding(data['verifier'])
+        typeof data.get('verifier') !== 'undefined'
+          ? StateProofVerifier.fromEncodingData(data.get('verifier'))
           : undefined,
-      weight: data['weight'],
+      weight: data.get('weight'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class StateProofReveal extends BaseModel {
+export class StateProofReveal implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'participant',
+          valueSchema: new OptionalSchema(StateProofParticipant.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'position',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'sig-slot',
+          valueSchema: new OptionalSchema(StateProofSigSlot.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (p)
    */
@@ -3358,38 +5151,75 @@ export class StateProofReveal extends BaseModel {
     position?: number | bigint;
     sigSlot?: StateProofSigSlot;
   }) {
-    super();
     this.participant = participant;
     this.position =
       typeof position === 'undefined' ? undefined : ensureBigInt(position);
     this.sigSlot = sigSlot;
-
-    this.attribute_map = {
-      participant: 'participant',
-      position: 'position',
-      sigSlot: 'sig-slot',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): StateProofReveal {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofReveal.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'participant',
+        typeof this.participant !== 'undefined'
+          ? this.participant.toEncodingData()
+          : undefined,
+      ],
+      ['position', this.position],
+      [
+        'sig-slot',
+        typeof this.sigSlot !== 'undefined'
+          ? this.sigSlot.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateProofReveal {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new StateProofReveal({
       participant:
-        typeof data['participant'] !== 'undefined'
-          ? StateProofParticipant.from_obj_for_encoding(data['participant'])
+        typeof data.get('participant') !== 'undefined'
+          ? StateProofParticipant.fromEncodingData(data.get('participant'))
           : undefined,
-      position: data['position'],
+      position: data.get('position'),
       sigSlot:
-        typeof data['sig-slot'] !== 'undefined'
-          ? StateProofSigSlot.from_obj_for_encoding(data['sig-slot'])
+        typeof data.get('sig-slot') !== 'undefined'
+          ? StateProofSigSlot.fromEncodingData(data.get('sig-slot'))
           : undefined,
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class StateProofSigSlot extends BaseModel {
+export class StateProofSigSlot implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'lower-sig-weight',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'signature',
+          valueSchema: new OptionalSchema(StateProofSignature.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (l) The total weight of signatures in the lower-numbered slots.
    */
@@ -3409,34 +5239,76 @@ export class StateProofSigSlot extends BaseModel {
     lowerSigWeight?: number | bigint;
     signature?: StateProofSignature;
   }) {
-    super();
     this.lowerSigWeight =
       typeof lowerSigWeight === 'undefined'
         ? undefined
         : ensureBigInt(lowerSigWeight);
     this.signature = signature;
-
-    this.attribute_map = {
-      lowerSigWeight: 'lower-sig-weight',
-      signature: 'signature',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): StateProofSigSlot {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofSigSlot.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['lower-sig-weight', this.lowerSigWeight],
+      [
+        'signature',
+        typeof this.signature !== 'undefined'
+          ? this.signature.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateProofSigSlot {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new StateProofSigSlot({
-      lowerSigWeight: data['lower-sig-weight'],
+      lowerSigWeight: data.get('lower-sig-weight'),
       signature:
-        typeof data['signature'] !== 'undefined'
-          ? StateProofSignature.from_obj_for_encoding(data['signature'])
+        typeof data.get('signature') !== 'undefined'
+          ? StateProofSignature.fromEncodingData(data.get('signature'))
           : undefined,
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class StateProofSignature extends BaseModel {
+export class StateProofSignature implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'falcon-signature',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'merkle-array-index',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'proof',
+          valueSchema: new OptionalSchema(MerkleArrayProof.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'verifying-key',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public falconSignature?: Uint8Array;
 
   public merkleArrayIndex?: number;
@@ -3466,7 +5338,6 @@ export class StateProofSignature extends BaseModel {
     proof?: MerkleArrayProof;
     verifyingKey?: string | Uint8Array;
   }) {
-    super();
     this.falconSignature =
       typeof falconSignature === 'string'
         ? base64ToBytes(falconSignature)
@@ -3480,32 +5351,75 @@ export class StateProofSignature extends BaseModel {
       typeof verifyingKey === 'string'
         ? base64ToBytes(verifyingKey)
         : verifyingKey;
-
-    this.attribute_map = {
-      falconSignature: 'falcon-signature',
-      merkleArrayIndex: 'merkle-array-index',
-      proof: 'proof',
-      verifyingKey: 'verifying-key',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): StateProofSignature {
-    /* eslint-disable dot-notation */
-    return new StateProofSignature({
-      falconSignature: data['falcon-signature'],
-      merkleArrayIndex: data['merkle-array-index'],
-      proof:
-        typeof data['proof'] !== 'undefined'
-          ? MerkleArrayProof.from_obj_for_encoding(data['proof'])
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofSignature.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['falcon-signature', this.falconSignature],
+      ['merkle-array-index', this.merkleArrayIndex],
+      [
+        'proof',
+        typeof this.proof !== 'undefined'
+          ? this.proof.toEncodingData()
           : undefined,
-      verifyingKey: data['verifying-key'],
+      ],
+      ['verifying-key', this.verifyingKey],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateProofSignature {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    return new StateProofSignature({
+      falconSignature: data.get('falcon-signature'),
+      merkleArrayIndex: data.get('merkle-array-index'),
+      proof:
+        typeof data.get('proof') !== 'undefined'
+          ? MerkleArrayProof.fromEncodingData(data.get('proof'))
+          : undefined,
+      verifyingKey: data.get('verifying-key'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class StateProofTracking extends BaseModel {
+export class StateProofTracking implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'next-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'online-total-weight',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'type',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'voters-commitment',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (n) Next round for which we will accept a state proof transaction.
    */
@@ -3548,7 +5462,6 @@ export class StateProofTracking extends BaseModel {
     type?: number | bigint;
     votersCommitment?: string | Uint8Array;
   }) {
-    super();
     this.nextRound =
       typeof nextRound === 'undefined' ? undefined : ensureBigInt(nextRound);
     this.onlineTotalWeight =
@@ -3561,29 +5474,57 @@ export class StateProofTracking extends BaseModel {
       typeof votersCommitment === 'string'
         ? base64ToBytes(votersCommitment)
         : votersCommitment;
-
-    this.attribute_map = {
-      nextRound: 'next-round',
-      onlineTotalWeight: 'online-total-weight',
-      type: 'type',
-      votersCommitment: 'voters-commitment',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): StateProofTracking {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofTracking.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['next-round', this.nextRound],
+      ['online-total-weight', this.onlineTotalWeight],
+      ['type', this.type],
+      ['voters-commitment', this.votersCommitment],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateProofTracking {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new StateProofTracking({
-      nextRound: data['next-round'],
-      onlineTotalWeight: data['online-total-weight'],
-      type: data['type'],
-      votersCommitment: data['voters-commitment'],
+      nextRound: data.get('next-round'),
+      onlineTotalWeight: data.get('online-total-weight'),
+      type: data.get('type'),
+      votersCommitment: data.get('voters-commitment'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class StateProofVerifier extends BaseModel {
+export class StateProofVerifier implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'commitment',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'key-lifetime',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (cmt) Represents the root of the vector commitment tree.
    */
@@ -3606,28 +5547,34 @@ export class StateProofVerifier extends BaseModel {
     commitment?: string | Uint8Array;
     keyLifetime?: number | bigint;
   }) {
-    super();
     this.commitment =
       typeof commitment === 'string' ? base64ToBytes(commitment) : commitment;
     this.keyLifetime =
       typeof keyLifetime === 'undefined'
         ? undefined
         : ensureBigInt(keyLifetime);
-
-    this.attribute_map = {
-      commitment: 'commitment',
-      keyLifetime: 'key-lifetime',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): StateProofVerifier {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateProofVerifier.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['commitment', this.commitment],
+      ['key-lifetime', this.keyLifetime],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateProofVerifier {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new StateProofVerifier({
-      commitment: data['commitment'],
-      keyLifetime: data['key-lifetime'],
+      commitment: data.get('commitment'),
+      keyLifetime: data.get('key-lifetime'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -3637,7 +5584,24 @@ export class StateProofVerifier extends BaseModel {
  * application. The more space used, the larger minimum balance must be maintained
  * in the account holding the data.
  */
-export class StateSchema extends BaseModel {
+export class StateSchema implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'num-byte-slice',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        { key: 'num-uint', valueSchema: new Uint64Schema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Maximum number of TEAL byte slices that may be stored in the key/value store.
    */
@@ -3660,31 +5624,50 @@ export class StateSchema extends BaseModel {
     numByteSlice: number | bigint;
     numUint: number | bigint;
   }) {
-    super();
     this.numByteSlice = ensureSafeInteger(numByteSlice);
     this.numUint = ensureSafeInteger(numUint);
-
-    this.attribute_map = {
-      numByteSlice: 'num-byte-slice',
-      numUint: 'num-uint',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): StateSchema {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return StateSchema.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['num-byte-slice', this.numByteSlice],
+      ['num-uint', this.numUint],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): StateSchema {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new StateSchema({
-      numByteSlice: data['num-byte-slice'] ?? 0,
-      numUint: data['num-uint'] ?? 0,
+      numByteSlice: data.get('num-byte-slice'),
+      numUint: data.get('num-uint'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Represents a key-value pair in an application store.
  */
-export class TealKeyValue extends BaseModel {
+export class TealKeyValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'key', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'value', valueSchema: TealValue.encodingSchema, omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   public key: string;
 
   /**
@@ -3698,51 +5681,71 @@ export class TealKeyValue extends BaseModel {
    * @param value - Represents a TEAL value.
    */
   constructor({ key, value }: { key: string; value: TealValue }) {
-    super();
     this.key = key;
     this.value = value;
-
-    this.attribute_map = {
-      key: 'key',
-      value: 'value',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): TealKeyValue {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TealKeyValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['key', this.key],
+      ['value', this.value.toEncodingData()],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TealKeyValue {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TealKeyValue({
-      key: data['key'] ?? '',
-      value: TealValue.from_obj_for_encoding(data['value'] ?? {}),
+      key: data.get('key'),
+      value: TealValue.fromEncodingData(data.get('value') ?? new Map()),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  * Represents a TEAL value.
  */
-export class TealValue extends BaseModel {
+export class TealValue implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'bytes', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'type', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'uint', valueSchema: new Uint64Schema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
-   * (tb) bytes value.
+   * bytes value.
    */
   public bytes: string;
 
   /**
-   * (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
+   * type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
    */
   public type: number;
 
   /**
-   * (ui) uint value.
+   * uint value.
    */
   public uint: bigint;
 
   /**
    * Creates a new `TealValue` object.
-   * @param bytes - (tb) bytes value.
-   * @param type - (tt) value type. Value `1` refers to **bytes**, value `2` refers to **uint**
-   * @param uint - (ui) uint value.
+   * @param bytes - bytes value.
+   * @param type - type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
+   * @param uint - uint value.
    */
   constructor({
     bytes,
@@ -3753,27 +5756,33 @@ export class TealValue extends BaseModel {
     type: number | bigint;
     uint: number | bigint;
   }) {
-    super();
     this.bytes = bytes;
     this.type = ensureSafeInteger(type);
     this.uint = ensureBigInt(uint);
-
-    this.attribute_map = {
-      bytes: 'bytes',
-      type: 'type',
-      uint: 'uint',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): TealValue {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TealValue.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['bytes', this.bytes],
+      ['type', this.type],
+      ['uint', this.uint],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TealValue {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TealValue({
-      bytes: data['bytes'] ?? '',
-      type: data['type'] ?? 0,
-      uint: data['uint'] ?? 0,
+      bytes: data.get('bytes'),
+      type: data.get('type'),
+      uint: data.get('uint'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -3784,7 +5793,192 @@ export class TealValue extends BaseModel {
  * data/transactions/signedtxn.go : SignedTxn
  * data/transactions/transaction.go : Transaction
  */
-export class Transaction extends BaseModel {
+export class Transaction implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'fee', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'first-valid',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        { key: 'last-valid', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'sender', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'application-transaction',
+          valueSchema: new OptionalSchema(
+            TransactionApplication.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-config-transaction',
+          valueSchema: new OptionalSchema(
+            TransactionAssetConfig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-freeze-transaction',
+          valueSchema: new OptionalSchema(
+            TransactionAssetFreeze.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-transfer-transaction',
+          valueSchema: new OptionalSchema(
+            TransactionAssetTransfer.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'auth-addr',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'close-rewards',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'closing-amount',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'confirmed-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'created-application-index',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'created-asset-index',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'genesis-hash',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'genesis-id',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'global-state-delta',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(EvalDeltaKeyValue.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'group',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'id',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'inner-txns',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(Transaction.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'intra-round-offset',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'keyreg-transaction',
+          valueSchema: new OptionalSchema(TransactionKeyreg.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'lease',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'local-state-delta',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(AccountStateDelta.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'logs',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(new ByteArraySchema())
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'note',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'payment-transaction',
+          valueSchema: new OptionalSchema(TransactionPayment.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'receiver-rewards',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'rekey-to',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'round-time',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'sender-rewards',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'signature',
+          valueSchema: new OptionalSchema(TransactionSignature.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'state-proof-transaction',
+          valueSchema: new OptionalSchema(TransactionStateProof.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'tx-type',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (fee) Transaction fee.
    */
@@ -3840,7 +6034,7 @@ export class Transaction extends BaseModel {
    * not equal the sender. The backend can use this to ensure that auth addr is equal
    * to the accounts auth addr.
    */
-  public authAddr?: string;
+  public authAddr?: Address;
 
   /**
    * (rc) rewards applied to close-remainder-to account.
@@ -3955,7 +6149,7 @@ export class Transaction extends BaseModel {
    * updated with this value and future signatures must be signed with the key
    * represented by this address.
    */
-  public rekeyTo?: string;
+  public rekeyTo?: Address;
 
   /**
    * Time when the block this transaction is in was confirmed.
@@ -4114,7 +6308,7 @@ export class Transaction extends BaseModel {
     assetConfigTransaction?: TransactionAssetConfig;
     assetFreezeTransaction?: TransactionAssetFreeze;
     assetTransferTransaction?: TransactionAssetTransfer;
-    authAddr?: string;
+    authAddr?: Address | string;
     closeRewards?: number | bigint;
     closingAmount?: number | bigint;
     confirmedRound?: number | bigint;
@@ -4134,14 +6328,13 @@ export class Transaction extends BaseModel {
     note?: string | Uint8Array;
     paymentTransaction?: TransactionPayment;
     receiverRewards?: number | bigint;
-    rekeyTo?: string;
+    rekeyTo?: Address | string;
     roundTime?: number | bigint;
     senderRewards?: number | bigint;
     signature?: TransactionSignature;
     stateProofTransaction?: TransactionStateProof;
     txType?: string;
   }) {
-    super();
     this.fee = ensureBigInt(fee);
     this.firstValid = ensureBigInt(firstValid);
     this.lastValid = ensureBigInt(lastValid);
@@ -4150,7 +6343,8 @@ export class Transaction extends BaseModel {
     this.assetConfigTransaction = assetConfigTransaction;
     this.assetFreezeTransaction = assetFreezeTransaction;
     this.assetTransferTransaction = assetTransferTransaction;
-    this.authAddr = authAddr;
+    this.authAddr =
+      typeof authAddr === 'string' ? Address.fromString(authAddr) : authAddr;
     this.closeRewards =
       typeof closeRewards === 'undefined'
         ? undefined
@@ -4194,7 +6388,8 @@ export class Transaction extends BaseModel {
       typeof receiverRewards === 'undefined'
         ? undefined
         : ensureBigInt(receiverRewards);
-    this.rekeyTo = rekeyTo;
+    this.rekeyTo =
+      typeof rekeyTo === 'string' ? Address.fromString(rekeyTo) : rekeyTo;
     this.roundTime =
       typeof roundTime === 'undefined'
         ? undefined
@@ -4206,134 +6401,206 @@ export class Transaction extends BaseModel {
     this.signature = signature;
     this.stateProofTransaction = stateProofTransaction;
     this.txType = txType;
-
-    this.attribute_map = {
-      fee: 'fee',
-      firstValid: 'first-valid',
-      lastValid: 'last-valid',
-      sender: 'sender',
-      applicationTransaction: 'application-transaction',
-      assetConfigTransaction: 'asset-config-transaction',
-      assetFreezeTransaction: 'asset-freeze-transaction',
-      assetTransferTransaction: 'asset-transfer-transaction',
-      authAddr: 'auth-addr',
-      closeRewards: 'close-rewards',
-      closingAmount: 'closing-amount',
-      confirmedRound: 'confirmed-round',
-      createdApplicationIndex: 'created-application-index',
-      createdAssetIndex: 'created-asset-index',
-      genesisHash: 'genesis-hash',
-      genesisId: 'genesis-id',
-      globalStateDelta: 'global-state-delta',
-      group: 'group',
-      id: 'id',
-      innerTxns: 'inner-txns',
-      intraRoundOffset: 'intra-round-offset',
-      keyregTransaction: 'keyreg-transaction',
-      lease: 'lease',
-      localStateDelta: 'local-state-delta',
-      logs: 'logs',
-      note: 'note',
-      paymentTransaction: 'payment-transaction',
-      receiverRewards: 'receiver-rewards',
-      rekeyTo: 'rekey-to',
-      roundTime: 'round-time',
-      senderRewards: 'sender-rewards',
-      signature: 'signature',
-      stateProofTransaction: 'state-proof-transaction',
-      txType: 'tx-type',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): Transaction {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Transaction.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['fee', this.fee],
+      ['first-valid', this.firstValid],
+      ['last-valid', this.lastValid],
+      ['sender', this.sender],
+      [
+        'application-transaction',
+        typeof this.applicationTransaction !== 'undefined'
+          ? this.applicationTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
+        'asset-config-transaction',
+        typeof this.assetConfigTransaction !== 'undefined'
+          ? this.assetConfigTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
+        'asset-freeze-transaction',
+        typeof this.assetFreezeTransaction !== 'undefined'
+          ? this.assetFreezeTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
+        'asset-transfer-transaction',
+        typeof this.assetTransferTransaction !== 'undefined'
+          ? this.assetTransferTransaction.toEncodingData()
+          : undefined,
+      ],
+      [
+        'auth-addr',
+        typeof this.authAddr !== 'undefined'
+          ? this.authAddr.toString()
+          : undefined,
+      ],
+      ['close-rewards', this.closeRewards],
+      ['closing-amount', this.closingAmount],
+      ['confirmed-round', this.confirmedRound],
+      ['created-application-index', this.createdApplicationIndex],
+      ['created-asset-index', this.createdAssetIndex],
+      ['genesis-hash', this.genesisHash],
+      ['genesis-id', this.genesisId],
+      [
+        'global-state-delta',
+        typeof this.globalStateDelta !== 'undefined'
+          ? this.globalStateDelta.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['group', this.group],
+      ['id', this.id],
+      [
+        'inner-txns',
+        typeof this.innerTxns !== 'undefined'
+          ? this.innerTxns.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['intra-round-offset', this.intraRoundOffset],
+      [
+        'keyreg-transaction',
+        typeof this.keyregTransaction !== 'undefined'
+          ? this.keyregTransaction.toEncodingData()
+          : undefined,
+      ],
+      ['lease', this.lease],
+      [
+        'local-state-delta',
+        typeof this.localStateDelta !== 'undefined'
+          ? this.localStateDelta.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['logs', this.logs],
+      ['note', this.note],
+      [
+        'payment-transaction',
+        typeof this.paymentTransaction !== 'undefined'
+          ? this.paymentTransaction.toEncodingData()
+          : undefined,
+      ],
+      ['receiver-rewards', this.receiverRewards],
+      [
+        'rekey-to',
+        typeof this.rekeyTo !== 'undefined'
+          ? this.rekeyTo.toString()
+          : undefined,
+      ],
+      ['round-time', this.roundTime],
+      ['sender-rewards', this.senderRewards],
+      [
+        'signature',
+        typeof this.signature !== 'undefined'
+          ? this.signature.toEncodingData()
+          : undefined,
+      ],
+      [
+        'state-proof-transaction',
+        typeof this.stateProofTransaction !== 'undefined'
+          ? this.stateProofTransaction.toEncodingData()
+          : undefined,
+      ],
+      ['tx-type', this.txType],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): Transaction {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new Transaction({
-      fee: data['fee'] ?? 0,
-      firstValid: data['first-valid'] ?? 0,
-      lastValid: data['last-valid'] ?? 0,
-      sender: data['sender'] ?? '',
+      fee: data.get('fee'),
+      firstValid: data.get('first-valid'),
+      lastValid: data.get('last-valid'),
+      sender: data.get('sender'),
       applicationTransaction:
-        typeof data['application-transaction'] !== 'undefined'
-          ? TransactionApplication.from_obj_for_encoding(
-              data['application-transaction']
+        typeof data.get('application-transaction') !== 'undefined'
+          ? TransactionApplication.fromEncodingData(
+              data.get('application-transaction')
             )
           : undefined,
       assetConfigTransaction:
-        typeof data['asset-config-transaction'] !== 'undefined'
-          ? TransactionAssetConfig.from_obj_for_encoding(
-              data['asset-config-transaction']
+        typeof data.get('asset-config-transaction') !== 'undefined'
+          ? TransactionAssetConfig.fromEncodingData(
+              data.get('asset-config-transaction')
             )
           : undefined,
       assetFreezeTransaction:
-        typeof data['asset-freeze-transaction'] !== 'undefined'
-          ? TransactionAssetFreeze.from_obj_for_encoding(
-              data['asset-freeze-transaction']
+        typeof data.get('asset-freeze-transaction') !== 'undefined'
+          ? TransactionAssetFreeze.fromEncodingData(
+              data.get('asset-freeze-transaction')
             )
           : undefined,
       assetTransferTransaction:
-        typeof data['asset-transfer-transaction'] !== 'undefined'
-          ? TransactionAssetTransfer.from_obj_for_encoding(
-              data['asset-transfer-transaction']
+        typeof data.get('asset-transfer-transaction') !== 'undefined'
+          ? TransactionAssetTransfer.fromEncodingData(
+              data.get('asset-transfer-transaction')
             )
           : undefined,
-      authAddr: data['auth-addr'],
-      closeRewards: data['close-rewards'],
-      closingAmount: data['closing-amount'],
-      confirmedRound: data['confirmed-round'],
-      createdApplicationIndex: data['created-application-index'],
-      createdAssetIndex: data['created-asset-index'],
-      genesisHash: data['genesis-hash'],
-      genesisId: data['genesis-id'],
+      authAddr: data.get('auth-addr'),
+      closeRewards: data.get('close-rewards'),
+      closingAmount: data.get('closing-amount'),
+      confirmedRound: data.get('confirmed-round'),
+      createdApplicationIndex: data.get('created-application-index'),
+      createdAssetIndex: data.get('created-asset-index'),
+      genesisHash: data.get('genesis-hash'),
+      genesisId: data.get('genesis-id'),
       globalStateDelta:
-        typeof data['global-state-delta'] !== 'undefined'
-          ? data['global-state-delta'].map(
-              EvalDeltaKeyValue.from_obj_for_encoding
-            )
+        typeof data.get('global-state-delta') !== 'undefined'
+          ? data
+              .get('global-state-delta')
+              .map((v: unknown) => EvalDeltaKeyValue.fromEncodingData(v))
           : undefined,
-      group: data['group'],
-      id: data['id'],
+      group: data.get('group'),
+      id: data.get('id'),
       innerTxns:
-        typeof data['inner-txns'] !== 'undefined'
-          ? data['inner-txns'].map(Transaction.from_obj_for_encoding)
+        typeof data.get('inner-txns') !== 'undefined'
+          ? data
+              .get('inner-txns')
+              .map((v: unknown) => Transaction.fromEncodingData(v))
           : undefined,
-      intraRoundOffset: data['intra-round-offset'],
+      intraRoundOffset: data.get('intra-round-offset'),
       keyregTransaction:
-        typeof data['keyreg-transaction'] !== 'undefined'
-          ? TransactionKeyreg.from_obj_for_encoding(data['keyreg-transaction'])
+        typeof data.get('keyreg-transaction') !== 'undefined'
+          ? TransactionKeyreg.fromEncodingData(data.get('keyreg-transaction'))
           : undefined,
-      lease: data['lease'],
+      lease: data.get('lease'),
       localStateDelta:
-        typeof data['local-state-delta'] !== 'undefined'
-          ? data['local-state-delta'].map(
-              AccountStateDelta.from_obj_for_encoding
-            )
+        typeof data.get('local-state-delta') !== 'undefined'
+          ? data
+              .get('local-state-delta')
+              .map((v: unknown) => AccountStateDelta.fromEncodingData(v))
           : undefined,
-      logs: data['logs'],
-      note: data['note'],
+      logs: data.get('logs'),
+      note: data.get('note'),
       paymentTransaction:
-        typeof data['payment-transaction'] !== 'undefined'
-          ? TransactionPayment.from_obj_for_encoding(
-              data['payment-transaction']
-            )
+        typeof data.get('payment-transaction') !== 'undefined'
+          ? TransactionPayment.fromEncodingData(data.get('payment-transaction'))
           : undefined,
-      receiverRewards: data['receiver-rewards'],
-      rekeyTo: data['rekey-to'],
-      roundTime: data['round-time'],
-      senderRewards: data['sender-rewards'],
+      receiverRewards: data.get('receiver-rewards'),
+      rekeyTo: data.get('rekey-to'),
+      roundTime: data.get('round-time'),
+      senderRewards: data.get('sender-rewards'),
       signature:
-        typeof data['signature'] !== 'undefined'
-          ? TransactionSignature.from_obj_for_encoding(data['signature'])
+        typeof data.get('signature') !== 'undefined'
+          ? TransactionSignature.fromEncodingData(data.get('signature'))
           : undefined,
       stateProofTransaction:
-        typeof data['state-proof-transaction'] !== 'undefined'
-          ? TransactionStateProof.from_obj_for_encoding(
-              data['state-proof-transaction']
+        typeof data.get('state-proof-transaction') !== 'undefined'
+          ? TransactionStateProof.fromEncodingData(
+              data.get('state-proof-transaction')
             )
           : undefined,
-      txType: data['tx-type'],
+      txType: data.get('tx-type'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -4342,7 +6609,75 @@ export class Transaction extends BaseModel {
  * Definition:
  * data/transactions/application.go : ApplicationCallTxnFields
  */
-export class TransactionApplication extends BaseModel {
+export class TransactionApplication implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'application-id',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'accounts',
+          valueSchema: new OptionalSchema(new ArraySchema(new StringSchema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'application-args',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(new ByteArraySchema())
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'approval-program',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'clear-state-program',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'extra-program-pages',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'foreign-apps',
+          valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'foreign-assets',
+          valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'global-state-schema',
+          valueSchema: new OptionalSchema(StateSchema.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'local-state-schema',
+          valueSchema: new OptionalSchema(StateSchema.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'on-completion',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (apid) ID of the application being configured or empty if creating.
    */
@@ -4352,7 +6687,7 @@ export class TransactionApplication extends BaseModel {
    * (apat) List of accounts in addition to the sender that may be accessed from the
    * application's approval-program and clear-state-program.
    */
-  public accounts?: string[];
+  public accounts?: Address[];
 
   /**
    * (apaa) transaction specific arguments accessed from the application's
@@ -4476,7 +6811,7 @@ export class TransactionApplication extends BaseModel {
     onCompletion,
   }: {
     applicationId: number | bigint;
-    accounts?: string[];
+    accounts?: (Address | string)[];
     applicationArgs?: Uint8Array[];
     approvalProgram?: string | Uint8Array;
     clearStateProgram?: string | Uint8Array;
@@ -4487,9 +6822,13 @@ export class TransactionApplication extends BaseModel {
     localStateSchema?: StateSchema;
     onCompletion?: string;
   }) {
-    super();
     this.applicationId = ensureBigInt(applicationId);
-    this.accounts = accounts;
+    this.accounts =
+      typeof accounts !== 'undefined'
+        ? accounts.map((addr) =>
+            typeof addr === 'string' ? Address.fromString(addr) : addr
+          )
+        : undefined;
     this.applicationArgs = applicationArgs;
     this.approvalProgram =
       typeof approvalProgram === 'string'
@@ -4514,47 +6853,67 @@ export class TransactionApplication extends BaseModel {
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
     this.onCompletion = onCompletion;
-
-    this.attribute_map = {
-      applicationId: 'application-id',
-      accounts: 'accounts',
-      applicationArgs: 'application-args',
-      approvalProgram: 'approval-program',
-      clearStateProgram: 'clear-state-program',
-      extraProgramPages: 'extra-program-pages',
-      foreignApps: 'foreign-apps',
-      foreignAssets: 'foreign-assets',
-      globalStateSchema: 'global-state-schema',
-      localStateSchema: 'local-state-schema',
-      onCompletion: 'on-completion',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionApplication {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionApplication.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['application-id', this.applicationId],
+      [
+        'accounts',
+        typeof this.accounts !== 'undefined'
+          ? this.accounts.map((v) => v.toString())
+          : undefined,
+      ],
+      ['application-args', this.applicationArgs],
+      ['approval-program', this.approvalProgram],
+      ['clear-state-program', this.clearStateProgram],
+      ['extra-program-pages', this.extraProgramPages],
+      ['foreign-apps', this.foreignApps],
+      ['foreign-assets', this.foreignAssets],
+      [
+        'global-state-schema',
+        typeof this.globalStateSchema !== 'undefined'
+          ? this.globalStateSchema.toEncodingData()
+          : undefined,
+      ],
+      [
+        'local-state-schema',
+        typeof this.localStateSchema !== 'undefined'
+          ? this.localStateSchema.toEncodingData()
+          : undefined,
+      ],
+      ['on-completion', this.onCompletion],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionApplication {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionApplication({
-      applicationId: data['application-id'] ?? 0,
-      accounts: data['accounts'],
-      applicationArgs: data['application-args'],
-      approvalProgram: data['approval-program'],
-      clearStateProgram: data['clear-state-program'],
-      extraProgramPages: data['extra-program-pages'],
-      foreignApps: data['foreign-apps'],
-      foreignAssets: data['foreign-assets'],
+      applicationId: data.get('application-id'),
+      accounts: data.get('accounts'),
+      applicationArgs: data.get('application-args'),
+      approvalProgram: data.get('approval-program'),
+      clearStateProgram: data.get('clear-state-program'),
+      extraProgramPages: data.get('extra-program-pages'),
+      foreignApps: data.get('foreign-apps'),
+      foreignAssets: data.get('foreign-assets'),
       globalStateSchema:
-        typeof data['global-state-schema'] !== 'undefined'
-          ? StateSchema.from_obj_for_encoding(data['global-state-schema'])
+        typeof data.get('global-state-schema') !== 'undefined'
+          ? StateSchema.fromEncodingData(data.get('global-state-schema'))
           : undefined,
       localStateSchema:
-        typeof data['local-state-schema'] !== 'undefined'
-          ? StateSchema.from_obj_for_encoding(data['local-state-schema'])
+        typeof data.get('local-state-schema') !== 'undefined'
+          ? StateSchema.fromEncodingData(data.get('local-state-schema'))
           : undefined,
-      onCompletion: data['on-completion'],
+      onCompletion: data.get('on-completion'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -4565,7 +6924,28 @@ export class TransactionApplication extends BaseModel {
  * Definition:
  * data/transactions/asset.go : AssetConfigTxnFields
  */
-export class TransactionAssetConfig extends BaseModel {
+export class TransactionAssetConfig implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'asset-id',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'params',
+          valueSchema: new OptionalSchema(AssetParams.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (xaid) ID of the asset being configured or empty if creating.
    */
@@ -4594,30 +6974,39 @@ export class TransactionAssetConfig extends BaseModel {
     assetId?: number | bigint;
     params?: AssetParams;
   }) {
-    super();
     this.assetId =
       typeof assetId === 'undefined' ? undefined : ensureBigInt(assetId);
     this.params = params;
-
-    this.attribute_map = {
-      assetId: 'asset-id',
-      params: 'params',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionAssetConfig {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionAssetConfig.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['asset-id', this.assetId],
+      [
+        'params',
+        typeof this.params !== 'undefined'
+          ? this.params.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionAssetConfig {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionAssetConfig({
-      assetId: data['asset-id'],
+      assetId: data.get('asset-id'),
       params:
-        typeof data['params'] !== 'undefined'
-          ? AssetParams.from_obj_for_encoding(data['params'])
+        typeof data.get('params') !== 'undefined'
+          ? AssetParams.fromEncodingData(data.get('params'))
           : undefined,
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -4626,7 +7015,25 @@ export class TransactionAssetConfig extends BaseModel {
  * Definition:
  * data/transactions/asset.go : AssetFreezeTxnFields
  */
-export class TransactionAssetFreeze extends BaseModel {
+export class TransactionAssetFreeze implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'asset-id', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'new-freeze-status',
+          valueSchema: new BooleanSchema(),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (fadd) Address of the account whose asset is being frozen or thawed.
    */
@@ -4657,29 +7064,33 @@ export class TransactionAssetFreeze extends BaseModel {
     assetId: number | bigint;
     newFreezeStatus: boolean;
   }) {
-    super();
     this.address = address;
     this.assetId = ensureBigInt(assetId);
     this.newFreezeStatus = newFreezeStatus;
-
-    this.attribute_map = {
-      address: 'address',
-      assetId: 'asset-id',
-      newFreezeStatus: 'new-freeze-status',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionAssetFreeze {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionAssetFreeze.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['address', this.address],
+      ['asset-id', this.assetId],
+      ['new-freeze-status', this.newFreezeStatus],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionAssetFreeze {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionAssetFreeze({
-      address: data['address'] ?? '',
-      assetId: data['asset-id'] ?? 0,
-      newFreezeStatus: data['new-freeze-status'] ?? false,
+      address: data.get('address'),
+      assetId: data.get('asset-id'),
+      newFreezeStatus: data.get('new-freeze-status'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -4688,7 +7099,36 @@ export class TransactionAssetFreeze extends BaseModel {
  * Definition:
  * data/transactions/asset.go : AssetTransferTxnFields
  */
-export class TransactionAssetTransfer extends BaseModel {
+export class TransactionAssetTransfer implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'amount', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'asset-id', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'receiver', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'close-amount',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'close-to',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'sender',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (aamt) Amount of asset to transfer. A zero amount transferred to self allocates
    * that asset in the account's Assets map.
@@ -4753,7 +7193,6 @@ export class TransactionAssetTransfer extends BaseModel {
     closeTo?: string;
     sender?: string;
   }) {
-    super();
     this.amount = ensureBigInt(amount);
     this.assetId = ensureBigInt(assetId);
     this.receiver = receiver;
@@ -4763,31 +7202,36 @@ export class TransactionAssetTransfer extends BaseModel {
         : ensureBigInt(closeAmount);
     this.closeTo = closeTo;
     this.sender = sender;
-
-    this.attribute_map = {
-      amount: 'amount',
-      assetId: 'asset-id',
-      receiver: 'receiver',
-      closeAmount: 'close-amount',
-      closeTo: 'close-to',
-      sender: 'sender',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionAssetTransfer {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionAssetTransfer.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['amount', this.amount],
+      ['asset-id', this.assetId],
+      ['receiver', this.receiver],
+      ['close-amount', this.closeAmount],
+      ['close-to', this.closeTo],
+      ['sender', this.sender],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionAssetTransfer {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionAssetTransfer({
-      amount: data['amount'] ?? 0,
-      assetId: data['asset-id'] ?? 0,
-      receiver: data['receiver'] ?? '',
-      closeAmount: data['close-amount'],
-      closeTo: data['close-to'],
-      sender: data['sender'],
+      amount: data.get('amount'),
+      assetId: data.get('asset-id'),
+      receiver: data.get('receiver'),
+      closeAmount: data.get('close-amount'),
+      closeTo: data.get('close-to'),
+      sender: data.get('sender'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -4796,7 +7240,53 @@ export class TransactionAssetTransfer extends BaseModel {
  * Definition:
  * data/transactions/keyreg.go : KeyregTxnFields
  */
-export class TransactionKeyreg extends BaseModel {
+export class TransactionKeyreg implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'non-participation',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'selection-participation-key',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'state-proof-key',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-first-valid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-key-dilution',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-last-valid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'vote-participation-key',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (nonpart) Mark the account as participating or non-participating.
    */
@@ -4861,7 +7351,6 @@ export class TransactionKeyreg extends BaseModel {
     voteLastValid?: number | bigint;
     voteParticipationKey?: string | Uint8Array;
   }) {
-    super();
     this.nonParticipation = nonParticipation;
     this.selectionParticipationKey =
       typeof selectionParticipationKey === 'string'
@@ -4887,31 +7376,38 @@ export class TransactionKeyreg extends BaseModel {
       typeof voteParticipationKey === 'string'
         ? base64ToBytes(voteParticipationKey)
         : voteParticipationKey;
-
-    this.attribute_map = {
-      nonParticipation: 'non-participation',
-      selectionParticipationKey: 'selection-participation-key',
-      stateProofKey: 'state-proof-key',
-      voteFirstValid: 'vote-first-valid',
-      voteKeyDilution: 'vote-key-dilution',
-      voteLastValid: 'vote-last-valid',
-      voteParticipationKey: 'vote-participation-key',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): TransactionKeyreg {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionKeyreg.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['non-participation', this.nonParticipation],
+      ['selection-participation-key', this.selectionParticipationKey],
+      ['state-proof-key', this.stateProofKey],
+      ['vote-first-valid', this.voteFirstValid],
+      ['vote-key-dilution', this.voteKeyDilution],
+      ['vote-last-valid', this.voteLastValid],
+      ['vote-participation-key', this.voteParticipationKey],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionKeyreg {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionKeyreg({
-      nonParticipation: data['non-participation'],
-      selectionParticipationKey: data['selection-participation-key'],
-      stateProofKey: data['state-proof-key'],
-      voteFirstValid: data['vote-first-valid'],
-      voteKeyDilution: data['vote-key-dilution'],
-      voteLastValid: data['vote-last-valid'],
-      voteParticipationKey: data['vote-participation-key'],
+      nonParticipation: data.get('non-participation'),
+      selectionParticipationKey: data.get('selection-participation-key'),
+      stateProofKey: data.get('state-proof-key'),
+      voteFirstValid: data.get('vote-first-valid'),
+      voteKeyDilution: data.get('vote-key-dilution'),
+      voteLastValid: data.get('vote-last-valid'),
+      voteParticipationKey: data.get('vote-participation-key'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -4920,7 +7416,30 @@ export class TransactionKeyreg extends BaseModel {
  * Definition:
  * data/transactions/payment.go : PaymentTxnFields
  */
-export class TransactionPayment extends BaseModel {
+export class TransactionPayment implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'amount', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'receiver', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'close-amount',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'close-remainder-to',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (amt) number of MicroAlgos intended to be transferred.
    */
@@ -4963,7 +7482,6 @@ export class TransactionPayment extends BaseModel {
     closeAmount?: number | bigint;
     closeRemainderTo?: string;
   }) {
-    super();
     this.amount = ensureBigInt(amount);
     this.receiver = receiver;
     this.closeAmount =
@@ -4971,32 +7489,60 @@ export class TransactionPayment extends BaseModel {
         ? undefined
         : ensureBigInt(closeAmount);
     this.closeRemainderTo = closeRemainderTo;
-
-    this.attribute_map = {
-      amount: 'amount',
-      receiver: 'receiver',
-      closeAmount: 'close-amount',
-      closeRemainderTo: 'close-remainder-to',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): TransactionPayment {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionPayment.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['amount', this.amount],
+      ['receiver', this.receiver],
+      ['close-amount', this.closeAmount],
+      ['close-remainder-to', this.closeRemainderTo],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionPayment {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionPayment({
-      amount: data['amount'] ?? 0,
-      receiver: data['receiver'] ?? '',
-      closeAmount: data['close-amount'],
-      closeRemainderTo: data['close-remainder-to'],
+      amount: data.get('amount'),
+      receiver: data.get('receiver'),
+      closeAmount: data.get('close-amount'),
+      closeRemainderTo: data.get('close-remainder-to'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class TransactionResponse extends BaseModel {
+export class TransactionResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'transaction',
+          valueSchema: Transaction.encodingSchema,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Round at which the results were computed.
    */
@@ -5027,24 +7573,32 @@ export class TransactionResponse extends BaseModel {
     currentRound: number | bigint;
     transaction: Transaction;
   }) {
-    super();
     this.currentRound = ensureBigInt(currentRound);
     this.transaction = transaction;
-
-    this.attribute_map = {
-      currentRound: 'current-round',
-      transaction: 'transaction',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): TransactionResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['current-round', this.currentRound],
+      ['transaction', this.transaction.toEncodingData()],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionResponse({
-      currentRound: data['current-round'] ?? 0,
-      transaction: Transaction.from_obj_for_encoding(data['transaction'] ?? {}),
+      currentRound: data.get('current-round'),
+      transaction: Transaction.fromEncodingData(
+        data.get('transaction') ?? new Map()
+      ),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -5052,7 +7606,37 @@ export class TransactionResponse extends BaseModel {
  * Validation signature associated with some data. Only one of the signatures
  * should be provided.
  */
-export class TransactionSignature extends BaseModel {
+export class TransactionSignature implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'logicsig',
+          valueSchema: new OptionalSchema(
+            TransactionSignatureLogicsig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'multisig',
+          valueSchema: new OptionalSchema(
+            TransactionSignatureMultisig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'sig',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (lsig) Programatic transaction signature.
    * Definition:
@@ -5091,35 +7675,49 @@ export class TransactionSignature extends BaseModel {
     multisig?: TransactionSignatureMultisig;
     sig?: string | Uint8Array;
   }) {
-    super();
     this.logicsig = logicsig;
     this.multisig = multisig;
     this.sig = typeof sig === 'string' ? base64ToBytes(sig) : sig;
-
-    this.attribute_map = {
-      logicsig: 'logicsig',
-      multisig: 'multisig',
-      sig: 'sig',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionSignature {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionSignature.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'logicsig',
+        typeof this.logicsig !== 'undefined'
+          ? this.logicsig.toEncodingData()
+          : undefined,
+      ],
+      [
+        'multisig',
+        typeof this.multisig !== 'undefined'
+          ? this.multisig.toEncodingData()
+          : undefined,
+      ],
+      ['sig', this.sig],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionSignature {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionSignature({
       logicsig:
-        typeof data['logicsig'] !== 'undefined'
-          ? TransactionSignatureLogicsig.from_obj_for_encoding(data['logicsig'])
+        typeof data.get('logicsig') !== 'undefined'
+          ? TransactionSignatureLogicsig.fromEncodingData(data.get('logicsig'))
           : undefined,
       multisig:
-        typeof data['multisig'] !== 'undefined'
-          ? TransactionSignatureMultisig.from_obj_for_encoding(data['multisig'])
+        typeof data.get('multisig') !== 'undefined'
+          ? TransactionSignatureMultisig.fromEncodingData(data.get('multisig'))
           : undefined,
-      sig: data['sig'],
+      sig: data.get('sig'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -5128,7 +7726,38 @@ export class TransactionSignature extends BaseModel {
  * Definition:
  * data/transactions/logicsig.go
  */
-export class TransactionSignatureLogicsig extends BaseModel {
+export class TransactionSignatureLogicsig implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        { key: 'logic', valueSchema: new ByteArraySchema(), omitEmpty: true },
+        {
+          key: 'args',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(new ByteArraySchema())
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'multisig-signature',
+          valueSchema: new OptionalSchema(
+            TransactionSignatureMultisig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'signature',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (l) Program signed by a signature or multi signature, or hashed to be the
    * address of ana ccount. Base64 encoded TEAL program.
@@ -5173,38 +7802,47 @@ export class TransactionSignatureLogicsig extends BaseModel {
     multisigSignature?: TransactionSignatureMultisig;
     signature?: string | Uint8Array;
   }) {
-    super();
     this.logic = typeof logic === 'string' ? base64ToBytes(logic) : logic;
     this.args = args;
     this.multisigSignature = multisigSignature;
     this.signature =
       typeof signature === 'string' ? base64ToBytes(signature) : signature;
-
-    this.attribute_map = {
-      logic: 'logic',
-      args: 'args',
-      multisigSignature: 'multisig-signature',
-      signature: 'signature',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionSignatureLogicsig {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionSignatureLogicsig.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['logic', this.logic],
+      ['args', this.args],
+      [
+        'multisig-signature',
+        typeof this.multisigSignature !== 'undefined'
+          ? this.multisigSignature.toEncodingData()
+          : undefined,
+      ],
+      ['signature', this.signature],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionSignatureLogicsig {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionSignatureLogicsig({
-      logic: data['logic'] ?? new Uint8Array(),
-      args: data['args'],
+      logic: data.get('logic'),
+      args: data.get('args'),
       multisigSignature:
-        typeof data['multisig-signature'] !== 'undefined'
-          ? TransactionSignatureMultisig.from_obj_for_encoding(
-              data['multisig-signature']
+        typeof data.get('multisig-signature') !== 'undefined'
+          ? TransactionSignatureMultisig.fromEncodingData(
+              data.get('multisig-signature')
             )
           : undefined,
-      signature: data['signature'],
+      signature: data.get('signature'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -5213,7 +7851,37 @@ export class TransactionSignatureLogicsig extends BaseModel {
  * Definition:
  * crypto/multisig.go : MultisigSig
  */
-export class TransactionSignatureMultisig extends BaseModel {
+export class TransactionSignatureMultisig implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'subsignature',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(
+              TransactionSignatureMultisigSubsignature.encodingSchema
+            )
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'threshold',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'version',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (subsig) holds pairs of public key and signatures.
    */
@@ -5244,7 +7912,6 @@ export class TransactionSignatureMultisig extends BaseModel {
     threshold?: number | bigint;
     version?: number | bigint;
   }) {
-    super();
     this.subsignature = subsignature;
     this.threshold =
       typeof threshold === 'undefined'
@@ -5252,34 +7919,67 @@ export class TransactionSignatureMultisig extends BaseModel {
         : ensureSafeInteger(threshold);
     this.version =
       typeof version === 'undefined' ? undefined : ensureSafeInteger(version);
-
-    this.attribute_map = {
-      subsignature: 'subsignature',
-      threshold: 'threshold',
-      version: 'version',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionSignatureMultisig {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionSignatureMultisig.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'subsignature',
+        typeof this.subsignature !== 'undefined'
+          ? this.subsignature.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['threshold', this.threshold],
+      ['version', this.version],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionSignatureMultisig {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionSignatureMultisig({
       subsignature:
-        typeof data['subsignature'] !== 'undefined'
-          ? data['subsignature'].map(
-              TransactionSignatureMultisigSubsignature.from_obj_for_encoding
-            )
+        typeof data.get('subsignature') !== 'undefined'
+          ? data
+              .get('subsignature')
+              .map((v: unknown) =>
+                TransactionSignatureMultisigSubsignature.fromEncodingData(v)
+              )
           : undefined,
-      threshold: data['threshold'],
-      version: data['version'],
+      threshold: data.get('threshold'),
+      version: data.get('version'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
-export class TransactionSignatureMultisigSubsignature extends BaseModel {
+export class TransactionSignatureMultisigSubsignature implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'public-key',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'signature',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (pk)
    */
@@ -5302,28 +8002,34 @@ export class TransactionSignatureMultisigSubsignature extends BaseModel {
     publicKey?: string | Uint8Array;
     signature?: string | Uint8Array;
   }) {
-    super();
     this.publicKey =
       typeof publicKey === 'string' ? base64ToBytes(publicKey) : publicKey;
     this.signature =
       typeof signature === 'string' ? base64ToBytes(signature) : signature;
-
-    this.attribute_map = {
-      publicKey: 'public-key',
-      signature: 'signature',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionSignatureMultisigSubsignature.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['public-key', this.publicKey],
+      ['signature', this.signature],
+    ]);
+  }
+
+  static fromEncodingData(
+    data: unknown
   ): TransactionSignatureMultisigSubsignature {
-    /* eslint-disable dot-notation */
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionSignatureMultisigSubsignature({
-      publicKey: data['public-key'],
-      signature: data['signature'],
+      publicKey: data.get('public-key'),
+      signature: data.get('signature'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
@@ -5332,7 +8038,35 @@ export class TransactionSignatureMultisigSubsignature extends BaseModel {
  * Definition:
  * data/transactions/stateproof.go : StateProofTxnFields
  */
-export class TransactionStateProof extends BaseModel {
+export class TransactionStateProof implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'message',
+          valueSchema: new OptionalSchema(
+            IndexerStateProofMessage.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'state-proof',
+          valueSchema: new OptionalSchema(StateProofFields.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'state-proof-type',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * (spmsg)
    */
@@ -5369,45 +8103,85 @@ export class TransactionStateProof extends BaseModel {
     stateProof?: StateProofFields;
     stateProofType?: number | bigint;
   }) {
-    super();
     this.message = message;
     this.stateProof = stateProof;
     this.stateProofType =
       typeof stateProofType === 'undefined'
         ? undefined
         : ensureSafeInteger(stateProofType);
-
-    this.attribute_map = {
-      message: 'message',
-      stateProof: 'state-proof',
-      stateProofType: 'state-proof-type',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionStateProof {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionStateProof.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'message',
+        typeof this.message !== 'undefined'
+          ? this.message.toEncodingData()
+          : undefined,
+      ],
+      [
+        'state-proof',
+        typeof this.stateProof !== 'undefined'
+          ? this.stateProof.toEncodingData()
+          : undefined,
+      ],
+      ['state-proof-type', this.stateProofType],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionStateProof {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionStateProof({
       message:
-        typeof data['message'] !== 'undefined'
-          ? IndexerStateProofMessage.from_obj_for_encoding(data['message'])
+        typeof data.get('message') !== 'undefined'
+          ? IndexerStateProofMessage.fromEncodingData(data.get('message'))
           : undefined,
       stateProof:
-        typeof data['state-proof'] !== 'undefined'
-          ? StateProofFields.from_obj_for_encoding(data['state-proof'])
+        typeof data.get('state-proof') !== 'undefined'
+          ? StateProofFields.fromEncodingData(data.get('state-proof'))
           : undefined,
-      stateProofType: data['state-proof-type'],
+      stateProofType: data.get('state-proof-type'),
     });
-    /* eslint-enable dot-notation */
   }
 }
 
 /**
  *
  */
-export class TransactionsResponse extends BaseModel {
+export class TransactionsResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'transactions',
+          valueSchema: new ArraySchema(Transaction.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
   /**
    * Round at which the results were computed.
    */
@@ -5437,30 +8211,34 @@ export class TransactionsResponse extends BaseModel {
     transactions: Transaction[];
     nextToken?: string;
   }) {
-    super();
     this.currentRound = ensureBigInt(currentRound);
     this.transactions = transactions;
     this.nextToken = nextToken;
-
-    this.attribute_map = {
-      currentRound: 'current-round',
-      transactions: 'transactions',
-      nextToken: 'next-token',
-    };
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(
-    data: Record<string, any>
-  ): TransactionsResponse {
-    /* eslint-disable dot-notation */
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionsResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['current-round', this.currentRound],
+      ['transactions', this.transactions.map((v) => v.toEncodingData())],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionsResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
     return new TransactionsResponse({
-      currentRound: data['current-round'] ?? 0,
-      transactions: (data['transactions'] ?? []).map(
-        Transaction.from_obj_for_encoding
+      currentRound: data.get('current-round'),
+      transactions: (data.get('transactions') ?? []).map((v: unknown) =>
+        Transaction.fromEncodingData(v)
       ),
-      nextToken: data['next-token'],
+      nextToken: data.get('next-token'),
     });
-    /* eslint-enable dot-notation */
   }
 }

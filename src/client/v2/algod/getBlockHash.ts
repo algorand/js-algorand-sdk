@@ -19,6 +19,8 @@ export default class GetBlockHash extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): BlockHashResponse {
-    return BlockHashResponse.from_obj_for_encoding(body);
+    return BlockHashResponse.fromEncodingData(
+      BlockHashResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

@@ -24,6 +24,8 @@ export default class AccountApplicationInformation extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): AccountApplicationResponse {
-    return AccountApplicationResponse.from_obj_for_encoding(body);
+    return AccountApplicationResponse.fromEncodingData(
+      AccountApplicationResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

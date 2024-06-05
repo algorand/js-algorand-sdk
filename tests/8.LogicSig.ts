@@ -31,7 +31,7 @@ describe('LogicSig', () => {
       const pk = programHash.publicKey;
       let lsig = new algosdk.LogicSig(program);
       assert.strictEqual(lsig.logic, program);
-      assert.strictEqual(lsig.args, undefined);
+      assert.deepStrictEqual(lsig.args, []);
       assert.strictEqual(lsig.sig, undefined);
       assert.strictEqual(lsig.msig, undefined);
       assert.deepStrictEqual(lsig.address(), programHash);
@@ -89,7 +89,7 @@ describe('LogicSigAccount', () => {
 
       const lsigAccount = new algosdk.LogicSigAccount(program);
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
-      assert.strictEqual(lsigAccount.lsig.args, undefined);
+      assert.deepStrictEqual(lsigAccount.lsig.args, []);
       assert.strictEqual(lsigAccount.lsig.sig, undefined);
       assert.strictEqual(lsigAccount.lsig.msig, undefined);
       assert.strictEqual(lsigAccount.sigkey, undefined);
@@ -206,24 +206,18 @@ describe('LogicSigAccount', () => {
 
   describe('appendToMultisig', () => {
     it('should properly append a signature', () => {
-      const msig1of3Encoded = new Uint8Array(
-        algosdk.base64ToBytes(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
-        )
+      const msig1of3Encoded = algosdk.base64ToBytes(
+        'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msig1of3Encoded);
 
       lsigAccount.appendToMultisig(sampleAccount2.sk);
 
-      const expectedSig1 = new Uint8Array(
-        algosdk.base64ToBytes(
-          'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
-        )
+      const expectedSig1 = algosdk.base64ToBytes(
+        'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
       );
-      const expectedSig2 = new Uint8Array(
-        algosdk.base64ToBytes(
-          'ZLxV2+2RokHUKrZg9+FKuZmaUrOxcVjO/D9P58siQRStqT1ehAUCChemaYMDIk6Go4tqNsVUviBQ/9PuqLMECQ=='
-        )
+      const expectedSig2 = algosdk.base64ToBytes(
+        'ZLxV2+2RokHUKrZg9+FKuZmaUrOxcVjO/D9P58siQRStqT1ehAUCChemaYMDIk6Go4tqNsVUviBQ/9PuqLMECQ=='
       );
       const expectedMsig: algosdk.EncodedMultisig = {
         v: sampleMultisigParams.version,
@@ -377,10 +371,8 @@ describe('LogicSigAccount', () => {
     });
 
     it('should be correct for single sig', () => {
-      const sigEncoded = new Uint8Array(
-        algosdk.base64ToBytes(
-          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA=='
-        )
+      const sigEncoded = algosdk.base64ToBytes(
+        'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA=='
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(sigEncoded);
 
@@ -394,10 +386,8 @@ describe('LogicSigAccount', () => {
     });
 
     it('should be correct for multisig', () => {
-      const msigEncoded = new Uint8Array(
-        algosdk.base64ToBytes(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
-        )
+      const msigEncoded = algosdk.base64ToBytes(
+        'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
 

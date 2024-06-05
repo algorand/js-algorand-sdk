@@ -328,9 +328,10 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Sign it directly to get a signature
       const signedWithSk = txn.signTxn(signer.sk);
-      const decoded = algosdk.decodeObj(
-        signedWithSk
-      ) as algosdk.EncodedSignedTransaction;
+      const decoded = algosdk.decodeMsgpack(
+        signedWithSk,
+        algosdk.SignedTransaction
+      );
       const signature = decoded.sig!;
 
       // Attach the signature to the transaction indirectly, and compare
@@ -338,10 +339,11 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(signedWithSk, signedWithSignature);
 
       // Check that signer was set
-      const decodedWithSigner = algosdk.decodeObj(
-        signedWithSignature
-      ) as algosdk.EncodedSignedTransaction;
-      assert.deepStrictEqual(decodedWithSigner.sgnr, signer.addr.publicKey);
+      const decodedWithSigner = algosdk.decodeMsgpack(
+        signedWithSignature,
+        algosdk.SignedTransaction
+      );
+      assert.deepStrictEqual(decodedWithSigner.sgnr, signer.addr);
     });
 
     it('should not attach signature with incorrect length', () => {
@@ -367,9 +369,10 @@ describe('Algosdk (AKA end to end)', () => {
 
       // Sign it directly to get a signature
       const signedWithSk = txn.signTxn(signer.sk);
-      const decoded = algosdk.decodeObj(
-        signedWithSk
-      ) as algosdk.EncodedSignedTransaction;
+      const decoded = algosdk.decodeMsgpack(
+        signedWithSk,
+        algosdk.SignedTransaction
+      );
       const signature = decoded.sig!.slice(0, -1); // without the last byte
 
       // Check that the signature is not attached
@@ -537,8 +540,12 @@ describe('Algosdk (AKA end to end)', () => {
         'gaN0eG6Ko2FtdM0H0KNmZWXNA+iiZnbOAArXc6NnZW6rZGV2bmV0LXYxLjCiZ2jEILAtz+3tknW6iiStLW4gnSvbXUqW3ul3ghinaDc5pY9Bomx2zgAK21ukbm90ZcQIdBlHI6BdrIijcmN2xCCj8AKs8kPYlx63ppj1w5410qkMRGZ9FYofNYPXxGpNLKNzbmTEIKPwAqzyQ9iXHremmPXDnjXSqQxEZn0Vih81g9fEak0spHR5cGWjcGF5';
 
       // goal clerk send dumps unsigned transaction as signed with empty signature in order to save tx type
-      let stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
-      let stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
+      let stx1 = algosdk.encodeMsgpack(
+        new algosdk.SignedTransaction({ txn: tx1 })
+      );
+      let stx2 = algosdk.encodeMsgpack(
+        new algosdk.SignedTransaction({ txn: tx2 })
+      );
       assert.deepStrictEqual(stx1, algosdk.base64ToBytes(goldenTx1));
       assert.deepStrictEqual(stx2, algosdk.base64ToBytes(goldenTx2));
 
@@ -549,14 +556,14 @@ describe('Algosdk (AKA end to end)', () => {
       const gid = algosdk.computeGroupID([tx1, tx2]);
       tx1.group = gid;
       tx2.group = gid;
-      stx1 = algosdk.encodeObj({ txn: tx1.get_obj_for_encoding() });
-      stx2 = algosdk.encodeObj({ txn: tx2.get_obj_for_encoding() });
+      stx1 = algosdk.encodeMsgpack(new algosdk.SignedTransaction({ txn: tx1 }));
+      stx2 = algosdk.encodeMsgpack(new algosdk.SignedTransaction({ txn: tx2 }));
       const concat = utils.concatArrays(stx1, stx2);
       assert.deepStrictEqual(concat, algosdk.base64ToBytes(goldenTxg));
 
       // check assignGroupID
-      tx1.group = new Uint8Array();
-      tx2.group = new Uint8Array();
+      tx1.group = undefined;
+      tx2.group = undefined;
 
       const input = [tx1, tx2];
       const result = algosdk.assignGroupID(input);
@@ -824,15 +831,15 @@ describe('Algosdk (AKA end to end)', () => {
     it('should return valid logic sig object', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
       let lsig = new algosdk.LogicSig(program);
-      assert.equal(lsig.logic, program);
-      assert.equal(lsig.args, undefined);
-      assert.equal(lsig.sig, undefined);
-      assert.equal(lsig.msig, undefined);
+      assert.strictEqual(lsig.logic, program);
+      assert.deepStrictEqual(lsig.args, []);
+      assert.strictEqual(lsig.sig, undefined);
+      assert.strictEqual(lsig.msig, undefined);
 
       const args = [Uint8Array.from([1, 2, 3]), Uint8Array.from([4, 5, 6])];
       lsig = new algosdk.LogicSig(program, args);
-      assert.equal(lsig.logic, program);
-      assert.deepEqual(lsig.args, args);
+      assert.strictEqual(lsig.logic, program);
+      assert.deepStrictEqual(lsig.args, args);
     });
   });
   describe('Single logic sig', () => {
@@ -1029,29 +1036,39 @@ describe('Algosdk (AKA end to end)', () => {
       id: 1380011588,
       params,
     });
-    // make a raw txn
-    const txn = {
-      apsu: 'AiABASI=',
-      fee: 1000,
-      fv: 18242,
-      gh: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
-      lv: 19242,
-      note: 'tjpNge78JD8=',
-      snd: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-      type: 'appl',
-    } as any; // Temporary type fix, will be unnecessary in following PR
+    // make a txn
+    const txn = algosdk.makeApplicationCallTxnFromObject({
+      sender: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
+      appIndex: 0,
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+      clearProgram: algosdk.base64ToBytes('AiABASI='),
+      note: algosdk.base64ToBytes('tjpNge78JD8='),
+      suggestedParams: {
+        minFee: 1000,
+        flatFee: true,
+        fee: 1000,
+        firstValid: 18242,
+        lastValid: 19242,
+        genesisHash: algosdk.base64ToBytes(
+          'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU='
+        ),
+      },
+    });
     const req = new algosdk.modelsv2.DryrunRequest({
       accounts: [acc],
       apps: [app],
       round: 18241,
       protocolVersion: 'future',
       latestTimestamp: 1592537757,
-      txns: [{ txn }],
+      txns: [new algosdk.SignedTransaction({ txn })],
       sources: [],
     });
 
     it('should be properly serialized to JSON', () => {
-      const forEncoding = req.get_obj_for_encoding();
+      const forEncoding =
+        algosdk.modelsv2.DryrunRequest.encodingSchema.prepareJSON(
+          req.toEncodingData()
+        );
       const actual = algosdk.stringifyJSON(forEncoding, undefined, 2);
 
       const expected = `{
@@ -1065,11 +1082,7 @@ describe('Algosdk (AKA end to end)', () => {
       "reward-base": 456,
       "rewards": 2280000000000,
       "round": 18241,
-      "status": "Online",
-      "total-apps-opted-in": 0,
-      "total-assets-opted-in": 0,
-      "total-created-apps": 0,
-      "total-created-assets": 0
+      "status": "Online"
     }
   ],
   "apps": [
@@ -1093,7 +1106,6 @@ describe('Algosdk (AKA end to end)', () => {
   "latest-timestamp": 1592537757,
   "protocol-version": "future",
   "round": 18241,
-  "sources": [],
   "txns": [
     {
       "txn": {
@@ -1120,10 +1132,9 @@ describe('Algosdk (AKA end to end)', () => {
     });
 
     it('should be properly serialized to msgpack', () => {
-      const forEncoding = req.get_obj_for_encoding(true, true)!;
-      const actual = algosdk.encodeObj(forEncoding);
+      const actual = algosdk.encodeMsgpack(req);
       const expected = algosdk.base64ToBytes(
-        'hqhhY2NvdW50c5GJp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWkYXBwc5GComlkzlJBTkSmcGFyYW1zhbBhcHByb3ZhbC1wcm9ncmFtxAUCIAEBIrNjbGVhci1zdGF0ZS1wcm9ncmFtxAUCIAEBIqdjcmVhdG9y2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNs2dsb2JhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWybG9jYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsGxhdGVzdC10aW1lc3RhbXDOXuwynbBwcm90b2NvbC12ZXJzaW9upmZ1dHVyZaVyb3VuZM1HQaR0eG5zkYGjdHhuiKRhcHN1qEFpQUJBU0k9o2ZlZc0D6KJmds1HQqJnaNksWklrUHM4cFREeGJSSnNGQjF5Sjdndm5wRHUwUTg1RlJrbDJOQ2tFQVFMVT2ibHbNSyqkbm90Zax0anBOZ2U3OEpEOD2jc25k2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNpHR5cGWkYXBwbA=='
+        'hqhhY2NvdW50c5GJp2FkZHJlc3PZOlVBUEpFMzU1SzdCRzdSUVZNVFpPVzdRVzRJQ1pKRUlDM1JaR1lHNUxTSFo2NUs2TENORlBKRFNSN02mYW1vdW50zwARxYwSd5AAvmFtb3VudC13aXRob3V0LXBlbmRpbmctcmV3YXJkc88AEcN5N+CAAKttaW4tYmFsYW5jZc4AAYagr3BlbmRpbmctcmV3YXJkc88AAAIS2pcQAKtyZXdhcmQtYmFzZc0ByKdyZXdhcmRzzwAAAhLalxAApXJvdW5kzUdBpnN0YXR1c6ZPbmxpbmWkYXBwc5GComlkzlJBTkSmcGFyYW1zhbBhcHByb3ZhbC1wcm9ncmFtxAUCIAEBIrNjbGVhci1zdGF0ZS1wcm9ncmFtxAUCIAEBIqdjcmVhdG9y2TpVQVBKRTM1NUs3Qkc3UlFWTVRaT1c3UVc0SUNaSkVJQzNSWkdZRzVMU0haNjVLNkxDTkZQSkRTUjdNs2dsb2JhbC1zdGF0ZS1zY2hlbWGCrm51bS1ieXRlLXNsaWNlBahudW0tdWludAWybG9jYWwtc3RhdGUtc2NoZW1hgq5udW0tYnl0ZS1zbGljZQWobnVtLXVpbnQFsGxhdGVzdC10aW1lc3RhbXDOXuwynbBwcm90b2NvbC12ZXJzaW9upmZ1dHVyZaVyb3VuZM1HQaR0eG5zkYGjdHhuiKRhcHN1xAUCIAEBIqNmZWXNA+iiZnbNR0KiZ2jEIGSJD7PKUw8W0SbBQdcie4L56Q7tEPORUZJdjQpBAEC1omx2zUsqpG5vdGXECLY6TYHu/CQ/o3NuZMQgoB6Sb71Xwm/GFWTy634W4gWUkQLccmwbq5Hz7qvLE0qkdHlwZaRhcHBs'
       );
       assert.deepStrictEqual(actual, expected);
     });
