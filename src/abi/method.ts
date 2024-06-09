@@ -59,6 +59,7 @@ export interface ABIMethodReturnParams {
 export interface ABIMethodParams {
   name: string;
   desc?: string;
+  readonly?: boolean;
   args: ABIMethodArgParams[];
   returns: ABIMethodReturnParams;
 }
