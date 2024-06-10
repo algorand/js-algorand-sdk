@@ -82,7 +82,8 @@ export class ABIMethod {
   }>;
 
   public readonly returns: { type: ABIReturnType; description?: string };
-  public readonly events: ARC28Event[];
+  public readonly events?: ARC28Event[];
+  public readonly readonly?: boolean;
 
   constructor(params: ABIMethodParams) {
     if (
@@ -118,7 +119,8 @@ export class ABIMethod {
       description: params.returns.desc,
     };
 
-    this.events = params.events || [];
+    this.events = params.events;
+    this.readonly = params.readonly;
   }
 
   getSignature(): string {
@@ -156,6 +158,7 @@ export class ABIMethod {
         desc: this.returns.description,
       },
       events: this.events,
+      readonly: this.readonly,
     };
   }
 

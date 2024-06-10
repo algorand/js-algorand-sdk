@@ -23,7 +23,7 @@ export class ABIContract {
   public readonly networks: ABIContractNetworks;
   public readonly methods: ABIMethod[];
   /** [ARC-28](https://arc.algorand.foundation/ARCs/arc-0028) events that MAY be emitted by this contract */
-  public readonly events: ARC28Event[];
+  public readonly events?: ARC28Event[];
 
   constructor(params: ABIContractParams) {
     if (
@@ -38,7 +38,7 @@ export class ABIContract {
     this.description = params.desc;
     this.networks = params.networks ? { ...params.networks } : {};
     this.methods = params.methods.map((method) => new ABIMethod(method));
-    this.events = params.events || [];
+    this.events = params.events;
   }
 
   toJSON(): ABIContractParams {
