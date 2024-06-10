@@ -122,9 +122,11 @@ export class AtomicTransactionComposer {
   /** The maximum size of an atomic transaction group. */
   static MAX_GROUP_SIZE: number = 16;
 
+  /** A map of tranasction indexes to the respective ABI method being called. Used for properly decoding return values. */
+  methodCalls: Map<number, ABIMethod> = new Map();
+
   private status = AtomicTransactionComposerStatus.BUILDING;
   private transactions: TransactionWithSigner[] = [];
-  private methodCalls: Map<number, ABIMethod> = new Map();
   private signedTxns: Uint8Array[] = [];
   private txIDs: string[] = [];
 
