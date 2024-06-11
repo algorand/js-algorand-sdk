@@ -233,7 +233,7 @@ export interface EncodableClass<T extends Encodable> {
   /**
    * The encoding Schema for this class, used to prepare encoding data from msgpack and JSON.
    */
-  encodingSchema: Schema;
+  readonly encodingSchema: Schema;
 }
 
 /**

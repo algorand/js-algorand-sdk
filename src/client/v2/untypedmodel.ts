@@ -2,7 +2,7 @@ import { Encodable, MsgpackEncodingData } from '../../encoding/encoding.js';
 import { UntypedSchema } from '../../encoding/schema/index.js';
 
 export class UntypedValue implements Encodable {
-  static encodingSchema = new UntypedSchema();
+  static readonly encodingSchema = new UntypedSchema();
 
   public readonly data: MsgpackEncodingData;
 

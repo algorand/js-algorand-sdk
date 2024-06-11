@@ -26,7 +26,7 @@ const ERROR_CONTAINS_EMPTY_STRING =
 
 describe('encoding', () => {
   class ExampleEncodable implements algosdk.Encodable {
-    static encodingSchema = new NamedMapSchema(
+    static readonly encodingSchema = new NamedMapSchema(
       allOmitEmpty([
         { key: 'a', valueSchema: new Uint64Schema() },
         { key: 'b', valueSchema: new StringSchema() },

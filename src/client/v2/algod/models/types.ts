@@ -15,11 +15,7 @@ import {
   OptionalSchema,
 } from '../../../../encoding/schema/index.js';
 import { base64ToBytes } from '../../../../encoding/binarydata.js';
-import BlockHeader, {
-  blockHeaderFromEncodingData,
-  blockHeaderToEncodingData,
-  BLOCK_HEADER_SCHEMA,
-} from '../../../../types/blockHeader.js';
+import { Block } from '../../../../types/blockHeader.js';
 import { SignedTransaction } from '../../../../signedTransaction.js';
 import { Address } from '../../../../encoding/address.js';
 import { UntypedValue } from '../../untypedmodel.js';
@@ -2972,7 +2968,7 @@ export class BlockResponse implements Encodable {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
       (this.encodingSchemaValue as NamedMapSchema).entries.push(
-        { key: 'block', valueSchema: BLOCK_HEADER_SCHEMA, omitEmpty: true },
+        { key: 'block', valueSchema: Block.encodingSchema, omitEmpty: true },
         {
           key: 'cert',
           valueSchema: new OptionalSchema(UntypedValue.encodingSchema),
@@ -2986,7 +2982,7 @@ export class BlockResponse implements Encodable {
   /**
    * Block header data.
    */
-  public block: BlockHeader;
+  public block: Block;
 
   /**
    * Optional certificate object. This is only included when the format is set to
@@ -3000,7 +2996,7 @@ export class BlockResponse implements Encodable {
    * @param cert - Optional certificate object. This is only included when the format is set to
    * message pack.
    */
-  constructor({ block, cert }: { block: BlockHeader; cert?: UntypedValue }) {
+  constructor({ block, cert }: { block: Block; cert?: UntypedValue }) {
     this.block = block;
     this.cert = cert;
   }
@@ -3012,7 +3008,7 @@ export class BlockResponse implements Encodable {
 
   toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
-      ['block', blockHeaderToEncodingData(this.block)],
+      ['block', this.block.toEncodingData()],
       [
         'cert',
         typeof this.cert !== 'undefined'
@@ -3027,7 +3023,7 @@ export class BlockResponse implements Encodable {
       throw new Error(`Invalid decoded logic sig account: ${data}`);
     }
     return new BlockResponse({
-      block: blockHeaderFromEncodingData(data.get('block') ?? new Map()),
+      block: Block.fromEncodingData(data.get('block') ?? new Map()),
       cert:
         typeof data.get('cert') !== 'undefined'
           ? UntypedValue.fromEncodingData(data.get('cert'))
