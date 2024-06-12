@@ -31,7 +31,7 @@ export class Account implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'amount', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
@@ -632,7 +632,7 @@ export class AccountApplicationResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'app-local-state',
@@ -741,7 +741,7 @@ export class AccountAssetHolding implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'asset-holding',
           valueSchema: AssetHolding.encodingSchema,
@@ -831,7 +831,7 @@ export class AccountAssetResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'asset-holding',
@@ -937,7 +937,7 @@ export class AccountAssetsInformationResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'asset-holdings',
@@ -1035,7 +1035,7 @@ export class AccountParticipation implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'selection-participation-key',
           valueSchema: new ByteArraySchema(),
@@ -1184,7 +1184,7 @@ export class AccountStateDelta implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
         {
           key: 'delta',
@@ -1254,7 +1254,7 @@ export class AppCallLogs implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'application-index',
           valueSchema: new Uint64Schema(),
@@ -1340,7 +1340,7 @@ export class Application implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'id', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'params',
@@ -1413,7 +1413,7 @@ export class ApplicationInitialStates implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'id', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'app-boxes',
@@ -1543,7 +1543,7 @@ export class ApplicationKVStorage implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'kvs',
           valueSchema: new ArraySchema(AvmKeyValue.encodingSchema),
@@ -1625,7 +1625,7 @@ export class ApplicationLocalReference implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'account', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'app', valueSchema: new Uint64Schema(), omitEmpty: true }
       );
@@ -1692,7 +1692,7 @@ export class ApplicationLocalState implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'id', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'schema',
@@ -1792,7 +1792,7 @@ export class ApplicationParams implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'approval-program',
           valueSchema: new ByteArraySchema(),
@@ -1990,7 +1990,7 @@ export class ApplicationStateOperation implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'app-state-type',
           valueSchema: new StringSchema(),
@@ -2122,7 +2122,7 @@ export class ApplicationStateSchema implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'num-byte-slice',
           valueSchema: new Uint64Schema(),
@@ -2192,7 +2192,7 @@ export class Asset implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'index', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'params',
@@ -2270,7 +2270,7 @@ export class AssetHolding implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'amount', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'asset-id', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'is-frozen', valueSchema: new BooleanSchema(), omitEmpty: true }
@@ -2348,7 +2348,7 @@ export class AssetHoldingReference implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'account', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'asset', valueSchema: new Uint64Schema(), omitEmpty: true }
       );
@@ -2418,7 +2418,7 @@ export class AssetParams implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'creator', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'decimals', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'total', valueSchema: new Uint64Schema(), omitEmpty: true },
@@ -2717,7 +2717,7 @@ export class AvmKeyValue implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'key', valueSchema: new ByteArraySchema(), omitEmpty: true },
         { key: 'value', valueSchema: AvmValue.encodingSchema, omitEmpty: true }
       );
@@ -2774,7 +2774,7 @@ export class AvmValue implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'type', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'bytes',
@@ -2860,7 +2860,7 @@ export class BlockHashResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'blockHash',
         valueSchema: new StringSchema(),
         omitEmpty: true,
@@ -2916,7 +2916,7 @@ export class BlockLogsResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'logs',
         valueSchema: new ArraySchema(AppCallLogs.encodingSchema),
         omitEmpty: true,
@@ -2967,7 +2967,7 @@ export class BlockResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'block', valueSchema: Block.encodingSchema, omitEmpty: true },
         {
           key: 'cert',
@@ -3041,7 +3041,7 @@ export class BlockTxidsResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'blockTxids',
         valueSchema: new ArraySchema(new StringSchema()),
         omitEmpty: true,
@@ -3091,7 +3091,7 @@ export class Box implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
         { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'value', valueSchema: new ByteArraySchema(), omitEmpty: true }
@@ -3169,7 +3169,7 @@ export class BoxDescriptor implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'name',
         valueSchema: new ByteArraySchema(),
         omitEmpty: true,
@@ -3219,7 +3219,7 @@ export class BoxReference implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'app', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true }
       );
@@ -3285,7 +3285,7 @@ export class BoxesResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'boxes',
         valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
         omitEmpty: true,
@@ -3333,7 +3333,7 @@ export class BuildVersion implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'branch', valueSchema: new StringSchema(), omitEmpty: true },
         {
           key: 'build_number',
@@ -3437,7 +3437,7 @@ export class CompileResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'hash', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'result', valueSchema: new StringSchema(), omitEmpty: true },
         {
@@ -3527,7 +3527,7 @@ export class DisassembleResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'result',
         valueSchema: new StringSchema(),
         omitEmpty: true,
@@ -3578,7 +3578,7 @@ export class DryrunRequest implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'accounts',
           valueSchema: new ArraySchema(Account.encodingSchema),
@@ -3730,7 +3730,7 @@ export class DryrunResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'error', valueSchema: new StringSchema(), omitEmpty: true },
         {
           key: 'protocol-version',
@@ -3813,7 +3813,7 @@ export class DryrunSource implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'app-index', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'field-name', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'source', valueSchema: new StringSchema(), omitEmpty: true },
@@ -3898,7 +3898,7 @@ export class DryrunState implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'line', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'pc', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
@@ -4021,7 +4021,7 @@ export class DryrunTxnResult implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'disassembly',
           valueSchema: new ArraySchema(new StringSchema()),
@@ -4277,7 +4277,7 @@ export class ErrorResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'message', valueSchema: new StringSchema(), omitEmpty: true },
         {
           key: 'data',
@@ -4343,7 +4343,7 @@ export class EvalDelta implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'action', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'bytes',
@@ -4429,7 +4429,7 @@ export class EvalDeltaKeyValue implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'key', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'value', valueSchema: EvalDelta.encodingSchema, omitEmpty: true }
       );
@@ -4486,7 +4486,7 @@ export class GetBlockTimeStampOffsetResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'offset',
         valueSchema: new Uint64Schema(),
         omitEmpty: true,
@@ -4536,7 +4536,7 @@ export class GetSyncRoundResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'round',
         valueSchema: new Uint64Schema(),
         omitEmpty: true,
@@ -4587,7 +4587,7 @@ export class KvDelta implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'key',
           valueSchema: new OptionalSchema(new ByteArraySchema()),
@@ -4661,7 +4661,7 @@ export class LedgerStateDeltaForTransactionGroup implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'Delta',
           valueSchema: UntypedValue.encodingSchema,
@@ -4726,7 +4726,7 @@ export class LightBlockHeaderProof implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'index', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'proof', valueSchema: new ByteArraySchema(), omitEmpty: true },
         { key: 'treedepth', valueSchema: new Uint64Schema(), omitEmpty: true }
@@ -4806,7 +4806,7 @@ export class NodeStatusResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'catchup-time',
           valueSchema: new Uint64Schema(),
@@ -5324,7 +5324,7 @@ export class PendingTransactionResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'pool-error', valueSchema: new StringSchema(), omitEmpty: true },
         {
           key: 'txn',
@@ -5660,7 +5660,7 @@ export class PendingTransactionsResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'top-transactions',
           valueSchema: new ArraySchema(SignedTransaction.encodingSchema),
@@ -5736,7 +5736,7 @@ export class PostTransactionsResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'txId',
         valueSchema: new StringSchema(),
         omitEmpty: true,
@@ -5786,7 +5786,7 @@ export class ScratchChange implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'new-value',
           valueSchema: AvmValue.encodingSchema,
@@ -5856,7 +5856,7 @@ export class SimulateInitialStates implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'app-initial-states',
         valueSchema: new OptionalSchema(
           new ArraySchema(ApplicationInitialStates.encodingSchema)
@@ -5926,7 +5926,7 @@ export class SimulateRequest implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'txn-groups',
           valueSchema: new ArraySchema(
@@ -6103,7 +6103,7 @@ export class SimulateRequestTransactionGroup implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'txns',
         valueSchema: new ArraySchema(SignedTransaction.encodingSchema),
         omitEmpty: true,
@@ -6157,7 +6157,7 @@ export class SimulateResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'last-round', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'txn-groups',
@@ -6323,7 +6323,7 @@ export class SimulateTraceConfig implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'enable',
           valueSchema: new OptionalSchema(new BooleanSchema()),
@@ -6435,7 +6435,7 @@ export class SimulateTransactionGroupResult implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'txn-results',
           valueSchema: new ArraySchema(
@@ -6622,7 +6622,7 @@ export class SimulateTransactionResult implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'txn-result',
           valueSchema: PendingTransactionResponse.encodingSchema,
@@ -6806,7 +6806,7 @@ export class SimulateUnnamedResourcesAccessed implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'accounts',
           valueSchema: new OptionalSchema(new ArraySchema(new StringSchema())),
@@ -7025,7 +7025,7 @@ export class SimulationEvalOverrides implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'allow-empty-signatures',
           valueSchema: new OptionalSchema(new BooleanSchema()),
@@ -7158,7 +7158,7 @@ export class SimulationOpcodeTraceUnit implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'pc', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'scratch-changes',
@@ -7337,7 +7337,7 @@ export class SimulationTransactionExecTrace implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'approval-program-hash',
           valueSchema: new OptionalSchema(new ByteArraySchema()),
@@ -7596,7 +7596,7 @@ export class StateProof implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'Message',
           valueSchema: StateProofMessage.encodingSchema,
@@ -7673,7 +7673,7 @@ export class StateProofMessage implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'BlockHeadersCommitment',
           valueSchema: new ByteArraySchema(),
@@ -7805,7 +7805,7 @@ export class SupplyResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'current_round',
           valueSchema: new Uint64Schema(),
@@ -7891,7 +7891,7 @@ export class TealKeyValue implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'key', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'value', valueSchema: TealValue.encodingSchema, omitEmpty: true }
       );
@@ -7948,7 +7948,7 @@ export class TealValue implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'bytes', valueSchema: new StringSchema(), omitEmpty: true },
         { key: 'type', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'uint', valueSchema: new Uint64Schema(), omitEmpty: true }
@@ -8029,7 +8029,7 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push({
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'Deltas',
         valueSchema: new ArraySchema(
           LedgerStateDeltaForTransactionGroup.encodingSchema
@@ -8085,7 +8085,7 @@ export class TransactionParametersResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'consensus-version',
           valueSchema: new StringSchema(),
@@ -8220,7 +8220,7 @@ export class TransactionProofResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'idx', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'proof', valueSchema: new ByteArraySchema(), omitEmpty: true },
         {
@@ -8337,7 +8337,7 @@ export class Version implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).entries.push(
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'build',
           valueSchema: BuildVersion.encodingSchema,

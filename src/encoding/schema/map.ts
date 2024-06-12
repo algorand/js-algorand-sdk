@@ -3,10 +3,30 @@ import { ensureUint64 } from '../../utils/utils.js';
 
 /* eslint-disable class-methods-use-this */
 
+/**
+ * Describes a key-value entry in a NamedMapSchema.
+ */
 export interface NamedMapEntry {
+  /**
+   * Key of the entry. Must be unique for this map.
+   */
   key: string;
+  /**
+   * The Schema for the entry's value.
+   */
   valueSchema: Schema;
+  /**
+   * If true, the entry will be omitted from the encoding if the value is the default value.
+   */
   omitEmpty: boolean;
+  /**
+   * If true, valueSchema must be a NamedMapSchema and key must be the empty string. The fields of
+   * valueSchema will be embedded directly in the parent map.
+   *
+   * omitEmpty is ignored for embedded entries. Instead, the individual omitEmpty values of the
+   * embedded fields are used.
+   */
+  embedded?: boolean;
 }
 
 export function allOmitEmpty(
@@ -19,13 +39,68 @@ export function allOmitEmpty(
  * Schema for a map/struct with a fixed set of string fields.
  */
 export class NamedMapSchema extends Schema {
-  constructor(public readonly entries: NamedMapEntry[]) {
+  private readonly entries: NamedMapEntry[];
+
+  constructor(entries: NamedMapEntry[]) {
     super();
+    this.entries = entries;
+    this.checkEntries();
+  }
+
+  /**
+   * Adds new entries to the map schema. WARNING: this is a mutable operation, and you should be very
+   * careful when using it. Any error that happens here is non-recoverable and will corrupt the
+   * NamedMapSchema object;
+   * @param entries - The entries to add.
+   */
+  public pushEntries(...entries: NamedMapEntry[]) {
+    this.entries.push(...entries);
+    this.checkEntries();
+  }
+
+  private checkEntries() {
+    for (const entry of this.entries) {
+      if (entry.embedded) {
+        if (entry.key !== '') {
+          throw new Error('Embedded entries must have an empty key');
+        }
+        if (!(entry.valueSchema instanceof NamedMapSchema)) {
+          throw new Error(
+            'Embedded entry valueSchema must be a NamedMapSchema'
+          );
+        }
+      }
+    }
+
+    const keys = new Set<string>();
+    for (const entry of this.getEntries()) {
+      if (keys.has(entry.key)) {
+        throw new Error(`Duplicate key: ${entry.key}`);
+      }
+      keys.add(entry.key);
+    }
+  }
+
+  /**
+   * Returns all top-level entries, properly accounting for fields from embedded entries.
+   * @returns An array of all top-level entries for this map.
+   */
+  public getEntries(): NamedMapEntry[] {
+    const entries: NamedMapEntry[] = [];
+    for (const entry of this.entries) {
+      if (entry.embedded) {
+        const embeddedMapSchema = entry.valueSchema as NamedMapSchema;
+        entries.push(...embeddedMapSchema.getEntries());
+      } else {
+        entries.push(entry);
+      }
+    }
+    return entries;
   }
 
   public defaultValue(): Map<string, unknown> {
     const map = new Map<string, unknown>();
-    for (const entry of this.entries) {
+    for (const entry of this.getEntries()) {
       map.set(entry.key, entry.valueSchema.defaultValue());
     }
     return map;
@@ -33,7 +108,7 @@ export class NamedMapSchema extends Schema {
 
   public isDefaultValue(data: unknown): boolean {
     if (!(data instanceof Map)) return false;
-    for (const entry of this.entries) {
+    for (const entry of this.getEntries()) {
       if (!entry.valueSchema.isDefaultValue(data.get(entry.key))) {
         return false;
       }
@@ -48,7 +123,7 @@ export class NamedMapSchema extends Schema {
       );
     }
     const map = new Map<string, MsgpackEncodingData>();
-    for (const entry of this.entries) {
+    for (const entry of this.getEntries()) {
       const value = data.get(entry.key);
       if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
         continue;
@@ -65,7 +140,7 @@ export class NamedMapSchema extends Schema {
       throw new Error('NamedMapSchema data must be a Map');
     }
     const map = new Map<string, unknown>();
-    for (const entry of this.entries) {
+    for (const entry of this.getEntries()) {
       if (encoded.has(entry.key)) {
         map.set(
           entry.key,
@@ -85,7 +160,7 @@ export class NamedMapSchema extends Schema {
       throw new Error('NamedMapSchema data must be a Map');
     }
     const obj: { [key: string]: JSONEncodingData } = {};
-    for (const entry of this.entries) {
+    for (const entry of this.getEntries()) {
       const value = data.get(entry.key);
       if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
         continue;
@@ -104,7 +179,7 @@ export class NamedMapSchema extends Schema {
       throw new Error('NamedMapSchema data must be an object');
     }
     const map = new Map<string, unknown>();
-    for (const entry of this.entries) {
+    for (const entry of this.getEntries()) {
       if (Object.prototype.hasOwnProperty.call(encoded, entry.key)) {
         map.set(
           entry.key,

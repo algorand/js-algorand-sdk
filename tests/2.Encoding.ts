@@ -16,6 +16,7 @@ import {
   FixedLengthByteArraySchema,
   ArraySchema,
   NamedMapSchema,
+  NamedMapEntry,
   UntypedSchema,
   OptionalSchema,
   allOmitEmpty,
@@ -1493,6 +1494,191 @@ describe('encoding', () => {
           {
             map: { a: '1', b: '2' },
           }
+        );
+      });
+
+      it('correctly embeds other maps', () => {
+        const bSchema = new NamedMapSchema([
+          {
+            key: 'b',
+            omitEmpty: true,
+            valueSchema: new Uint64Schema(),
+          },
+        ]);
+
+        const abSchema = new NamedMapSchema([
+          {
+            key: 'a',
+            omitEmpty: true,
+            valueSchema: new StringSchema(),
+          },
+          {
+            key: '',
+            omitEmpty: true,
+            valueSchema: bSchema,
+            embedded: true,
+          },
+        ]);
+
+        const emptySchema = new NamedMapSchema([]);
+
+        const abcdSchema = new NamedMapSchema([
+          {
+            key: '',
+            omitEmpty: true,
+            valueSchema: abSchema,
+            embedded: true,
+          },
+          {
+            key: 'c',
+            omitEmpty: true,
+            valueSchema: new BooleanSchema(),
+          },
+          {
+            key: 'd',
+            omitEmpty: true,
+            valueSchema: new ArraySchema(new StringSchema()),
+          },
+          {
+            key: '',
+            omitEmpty: true,
+            valueSchema: emptySchema,
+            embedded: true,
+          },
+        ]);
+
+        const actualEntries = abcdSchema.getEntries();
+        const expectedEntries: NamedMapEntry[] = [
+          { key: 'a', omitEmpty: true, valueSchema: new StringSchema() },
+          { key: 'b', omitEmpty: true, valueSchema: new Uint64Schema() },
+          { key: 'c', omitEmpty: true, valueSchema: new BooleanSchema() },
+          {
+            key: 'd',
+            omitEmpty: true,
+            valueSchema: new ArraySchema(new StringSchema()),
+          },
+        ];
+        assert.deepStrictEqual(actualEntries, expectedEntries);
+
+        const acutalDefaultValue = abcdSchema.defaultValue();
+        const expectedDefaultValue = new Map<string, unknown>([
+          ['a', ''],
+          ['b', BigInt(0)],
+          ['c', false],
+          ['d', []],
+        ]);
+        assert.deepStrictEqual(acutalDefaultValue, expectedDefaultValue);
+      });
+
+      it('correctly pushes new entries', () => {
+        const schema = new NamedMapSchema([
+          {
+            key: 'a',
+            omitEmpty: true,
+            valueSchema: new StringSchema(),
+          },
+        ]);
+
+        schema.pushEntries({
+          key: 'b',
+          omitEmpty: true,
+          valueSchema: new Uint64Schema(),
+        });
+
+        const actualEntries = schema.getEntries();
+        const expectedEntries: NamedMapEntry[] = [
+          { key: 'a', omitEmpty: true, valueSchema: new StringSchema() },
+          { key: 'b', omitEmpty: true, valueSchema: new Uint64Schema() },
+        ];
+        assert.deepStrictEqual(actualEntries, expectedEntries);
+
+        assert.throws(
+          () =>
+            schema.pushEntries({
+              key: 'a',
+              omitEmpty: true,
+              valueSchema: new StringSchema(),
+            }),
+          new Error('Duplicate key: a')
+        );
+      });
+
+      it('errors on invalid constructor args', () => {
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+            ]),
+          new Error('Duplicate key: a')
+        );
+
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: '',
+                omitEmpty: true,
+                valueSchema: new NamedMapSchema([
+                  {
+                    key: 'a',
+                    omitEmpty: true,
+                    valueSchema: new StringSchema(),
+                  },
+                ]),
+                embedded: true,
+              },
+            ]),
+          new Error('Duplicate key: a')
+        );
+
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: 'x',
+                omitEmpty: true,
+                valueSchema: new NamedMapSchema([]),
+                embedded: true,
+              },
+            ]),
+          new Error('Embedded entries must have an empty key')
+        );
+
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: '',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+                embedded: true,
+              },
+            ]),
+          new Error('Embedded entry valueSchema must be a NamedMapSchema')
         );
       });
     });
