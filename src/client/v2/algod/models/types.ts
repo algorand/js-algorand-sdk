@@ -15,7 +15,7 @@ import {
   OptionalSchema,
 } from '../../../../encoding/schema/index.js';
 import { base64ToBytes } from '../../../../encoding/binarydata.js';
-import { Block } from '../../../../types/blockHeader.js';
+import { Block } from '../../../../types/block.js';
 import { SignedTransaction } from '../../../../signedTransaction.js';
 import { Address } from '../../../../encoding/address.js';
 import { UntypedValue } from '../../untypedmodel.js';

@@ -195,6 +195,19 @@ export class NamedMapSchema extends Schema {
   }
 }
 
+export function combineMaps<K, V>(...maps: Array<Map<K, V>>): Map<K, V> {
+  const combined = new Map<K, V>();
+  for (const map of maps) {
+    for (const [key, value] of map) {
+      if (combined.has(key)) {
+        throw new Error(`Duplicate key: ${key}`);
+      }
+      combined.set(key, value);
+    }
+  }
+  return combined;
+}
+
 /**
  * Schema for a map with a variable number of uint64 keys.
  */

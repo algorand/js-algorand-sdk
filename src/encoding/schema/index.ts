@@ -10,6 +10,7 @@ export {
   NamedMapSchema,
   NamedMapEntry,
   allOmitEmpty,
+  combineMaps,
   Uint64MapSchema,
 } from './map.js';
 export { OptionalSchema } from './optional.js';
