@@ -17,6 +17,7 @@ import {
   ArraySchema,
   NamedMapSchema,
   NamedMapEntry,
+  Uint64MapSchema,
   UntypedSchema,
   OptionalSchema,
   allOmitEmpty,
@@ -1053,6 +1054,37 @@ describe('encoding', () => {
           preparedMsgpackValues: [undefined, true, false],
           preparedJsonValues: [null, true, false],
         },
+        {
+          name: 'Uint64MapSchema of BooleanSchema',
+          schema: new Uint64MapSchema(new BooleanSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [0n, true],
+              [1n, false],
+              [2n, true],
+              [BigInt('18446744073709551615'), true],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [0n, true],
+              [1n, false],
+              [2n, true],
+              [BigInt('18446744073709551615'), true],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              0: true,
+              1: false,
+              2: true,
+              '18446744073709551615': true,
+            },
+          ],
+        },
       ];
 
       const primitiveTestcases = testcases.slice();
@@ -1259,6 +1291,16 @@ describe('encoding', () => {
             // false gets restored as undefined
             emptyValueRestored: new Map([['key', undefined]]),
             nonemptyValue: new Map([['key', true]]),
+          },
+          {
+            schema: new Uint64MapSchema(new BooleanSchema()),
+            emptyValue: new Map(),
+            nonemptyValue: new Map([
+              [0n, true],
+              [1n, false],
+              [2n, true],
+              [BigInt('18446744073709551615'), true],
+            ]),
           },
         ];
 
