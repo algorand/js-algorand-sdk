@@ -2,6 +2,7 @@ import { genericHash } from '../nacl/naclWrappers';
 import { ABIType, ABITupleType } from './abi_type';
 import { ABITransactionType, abiTypeIsTransaction } from './transaction';
 import { ABIReferenceType, abiTypeIsReference } from './reference';
+import { ARC28Event } from './event';
 
 function parseMethodSignature(
   signature: string
@@ -61,6 +62,10 @@ export interface ABIMethodParams {
   desc?: string;
   args: ABIMethodArgParams[];
   returns: ABIMethodReturnParams;
+  /** Optional, is it a read-only method (according to [ARC-22](https://arc.algorand.foundation/ARCs/arc-0022)) */
+  readonly?: boolean;
+  /** [ARC-28](https://arc.algorand.foundation/ARCs/arc-0028) events that MAY be emitted by this method */
+  events?: ARC28Event[];
 }
 
 export type ABIArgumentType = ABIType | ABITransactionType | ABIReferenceType;
@@ -77,6 +82,8 @@ export class ABIMethod {
   }>;
 
   public readonly returns: { type: ABIReturnType; description?: string };
+  public readonly events?: ARC28Event[];
+  public readonly readonly?: boolean;
 
   constructor(params: ABIMethodParams) {
     if (
@@ -111,6 +118,9 @@ export class ABIMethod {
           : ABIType.from(params.returns.type),
       description: params.returns.desc,
     };
+
+    this.events = params.events;
+    this.readonly = params.readonly;
   }
 
   getSignature(): string {
@@ -147,6 +157,8 @@ export class ABIMethod {
         type: this.returns.type.toString(),
         desc: this.returns.description,
       },
+      events: this.events,
+      readonly: this.readonly,
     };
   }
 
