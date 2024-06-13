@@ -1,3 +1,25 @@
+# v2.8.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v2.8.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- Fix: Update chromedriver deps, make install conditional in CI, and fix indexer sync error in cucumber tests by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/859
+- fix: allow either boolean value for nonParticipation offline keyregs by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/866
+
+### Enhancements
+
+- API: Regenerate algod and indexer models by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/845
+- Spec: Regenerate code from specification file f633b019 by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/870
+
+## New Contributors
+
+- @gmalouf made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/870
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.7.0...v2.8.0
+
 # v2.7.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.7.0 -->
