@@ -2,17 +2,20 @@ import { Encodable, Schema } from '../encoding/encoding.js';
 import {
   NamedMapSchema,
   Uint64MapSchema,
+  StringMapSchema,
   ArraySchema,
   StringSchema,
+  BooleanSchema,
   Uint64Schema,
   AddressSchema,
   ByteArraySchema,
   FixedLengthByteArraySchema,
-  UntypedSchema,
   allOmitEmpty,
   combineMaps,
+  convertMap,
 } from '../encoding/schema/index.js';
 import { Address } from '../encoding/address.js';
+import { SignedTransaction } from '../signedTransaction.js';
 
 /**
  * StateProofTrackingData tracks the status of state proofs.
@@ -705,7 +708,13 @@ export class BlockHeader implements Encodable {
       ['bi', this.bonus],
       ['pp', this.proposerPayout],
       ['tc', this.txnCounter],
-      ['spt', this.stateproofTracking],
+      [
+        'spt',
+        convertMap(this.stateproofTracking, (key, value) => [
+          key,
+          value.toEncodingData(),
+        ]),
+      ],
     ]);
     return combineMaps(
       data,
@@ -737,12 +746,449 @@ export class BlockHeader implements Encodable {
       upgradeState: UpgradeState.fromEncodingData(data),
       upgradeVote: UpgradeVote.fromEncodingData(data),
       txnCounter: data.get('tc'),
-      stateproofTracking: new Map(
-        Array.from(
-          (data.get('spt') as Map<bigint, StateProofTrackingData>).entries()
-        ).map(([k, v]) => [Number(k), v])
+      stateproofTracking: convertMap(
+        data.get('spt') as Map<bigint, unknown>,
+        (key, value) => [
+          Number(key),
+          StateProofTrackingData.fromEncodingData(value),
+        ]
       ),
       participationUpdates: ParticipationUpdates.fromEncodingData(data),
+    });
+  }
+}
+
+export class ValueDelta implements Encodable {
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'at', // action
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'bs', // bytes
+        valueSchema: new StringSchema(),
+      },
+      {
+        key: 'ui', // uint
+        valueSchema: new Uint64Schema(),
+      },
+    ])
+  );
+
+  public action: number;
+  public bytes: string;
+  public uint: bigint;
+
+  public constructor(params: { action: number; bytes: string; uint: bigint }) {
+    this.action = params.action;
+    this.bytes = params.bytes;
+    this.uint = params.uint;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return ValueDelta.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['at', this.action],
+      ['bs', this.bytes],
+      ['ui', this.uint],
+    ]);
+  }
+
+  public static fromEncodingData(data: unknown): ValueDelta {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded ValueDelta: ${data}`);
+    }
+    return new ValueDelta({
+      action: Number(data.get('at')),
+      bytes: data.get('bs'),
+      uint: data.get('ui'),
+    });
+  }
+}
+
+export class EvalDelta implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  public static get encodingSchema(): Schema {
+    // This is declared like this in order to break the circular dependency of
+    // SignedTxnWithAD -> ApplyData -> EvalDelta -> SignedTxnWithAD
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        ...allOmitEmpty([
+          {
+            key: 'gd', // globalDelta
+            valueSchema: new StringMapSchema(ValueDelta.encodingSchema),
+          },
+          {
+            key: 'ld', // localDeltas
+            valueSchema: new Uint64MapSchema(
+              new StringMapSchema(ValueDelta.encodingSchema)
+            ),
+          },
+          {
+            key: 'sa', // sharedAccts
+            valueSchema: new ArraySchema(new AddressSchema()),
+          },
+          {
+            key: 'lg', // logs
+            valueSchema: new ArraySchema(new StringSchema()),
+          },
+          {
+            key: 'itx', // innerTxns
+            // eslint-disable-next-line no-use-before-define
+            valueSchema: new ArraySchema(SignedTxnWithAD.encodingSchema),
+          },
+        ])
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public globalDelta: Map<string, ValueDelta>;
+
+  /**
+   * When decoding EvalDeltas, the integer key represents an offset into
+   * [txn.Sender, txn.Accounts[0], txn.Accounts[1], ...]
+   */
+  public localDeltas: Map<number, Map<string, ValueDelta>>;
+
+  /**
+   * If a program modifies the local of an account that is not the Sender, or
+   * in txn.Accounts, it must be recorded here, so that the key in LocalDeltas
+   * can refer to it.
+   */
+  public sharedAccts: Address[];
+
+  public logs: string[];
+
+  // eslint-disable-next-line no-use-before-define
+  public innerTxns: SignedTxnWithAD[];
+
+  public constructor(params: {
+    globalDelta: Map<string, ValueDelta>;
+    localDeltas: Map<number, Map<string, ValueDelta>>;
+    sharedAccts: Address[];
+    logs: string[];
+    // eslint-disable-next-line no-use-before-define
+    innerTxns: SignedTxnWithAD[];
+  }) {
+    this.globalDelta = params.globalDelta;
+    this.localDeltas = params.localDeltas;
+    this.sharedAccts = params.sharedAccts;
+    this.logs = params.logs;
+    this.innerTxns = params.innerTxns;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return EvalDelta.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'gd',
+        convertMap(this.globalDelta, (key, value) => [
+          key,
+          value.toEncodingData(),
+        ]),
+      ],
+      [
+        'ld',
+        convertMap(this.localDeltas, (key, value) => [
+          key,
+          convertMap(value, (k, v) => [k, v.toEncodingData()]),
+        ]),
+      ],
+      ['sa', this.sharedAccts],
+      ['lg', this.logs],
+      ['itx', this.innerTxns.map((t) => t.toEncodingData())],
+    ]);
+  }
+
+  public static fromEncodingData(data: unknown): EvalDelta {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded EvalDelta: ${data}`);
+    }
+    return new EvalDelta({
+      globalDelta: convertMap(
+        data.get('gd') as Map<string, unknown>,
+        (key, value) => [key, ValueDelta.fromEncodingData(value)]
+      ),
+      localDeltas: convertMap(
+        data.get('ld') as Map<bigint, Map<string, unknown>>,
+        (key, value) => [
+          Number(key),
+          convertMap(value, (k, v) => [k, ValueDelta.fromEncodingData(v)]),
+        ]
+      ),
+      sharedAccts: data.get('sa'),
+      logs: data.get('lg'),
+      // eslint-disable-next-line no-use-before-define
+      innerTxns: data.get('itx').map(SignedTxnWithAD.fromEncodingData),
+    });
+  }
+}
+
+export class ApplyData implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  public static get encodingSchema(): Schema {
+    // This is declared like this in order to break the circular dependency of
+    // SignedTxnWithAD -> ApplyData -> EvalDelta -> SignedTxnWithAD
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        ...allOmitEmpty([
+          {
+            key: 'ca', // closingAmount
+            valueSchema: new Uint64Schema(),
+          },
+          {
+            key: 'aca', // assetClosingAmount
+            valueSchema: new Uint64Schema(),
+          },
+          {
+            key: 'rs', // senderRewards
+            valueSchema: new Uint64Schema(),
+          },
+          {
+            key: 'rr', // receiverRewards
+            valueSchema: new Uint64Schema(),
+          },
+          {
+            key: 'rc', // closeRewards
+            valueSchema: new Uint64Schema(),
+          },
+          {
+            key: 'dt', // evalDelta
+            valueSchema: EvalDelta.encodingSchema,
+          },
+          {
+            key: 'caid', // configAsset
+            valueSchema: new Uint64Schema(),
+          },
+          {
+            key: 'apid', // applicationID
+            valueSchema: new Uint64Schema(),
+          },
+        ])
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * Closing amount for transaction.
+   */
+  public closingAmount: bigint;
+
+  /**
+   * Closing amount for asset transaction.
+   */
+  public assetClosingAmount: bigint;
+
+  /**
+   * Rewards applied to the Sender.
+   */
+  public senderRewards: bigint;
+
+  /**
+   * Rewards applied to the Receiver.
+   */
+  public receiverRewards: bigint;
+
+  /**
+   * Rewards applied to the CloseRemainderTo account.
+   */
+  public closeRewards: bigint;
+
+  public evalDelta: EvalDelta;
+
+  public configAsset: bigint;
+  public applicationID: bigint;
+
+  public constructor(params: {
+    closingAmount: bigint;
+    assetClosingAmount: bigint;
+    senderRewards: bigint;
+    receiverRewards: bigint;
+    closeRewards: bigint;
+    evalDelta: EvalDelta;
+    configAsset: bigint;
+    applicationID: bigint;
+  }) {
+    this.closingAmount = params.closingAmount;
+    this.assetClosingAmount = params.assetClosingAmount;
+    this.senderRewards = params.senderRewards;
+    this.receiverRewards = params.receiverRewards;
+    this.closeRewards = params.closeRewards;
+    this.evalDelta = params.evalDelta;
+    this.configAsset = params.configAsset;
+    this.applicationID = params.applicationID;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return ApplyData.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['ca', this.closingAmount],
+      ['aca', this.assetClosingAmount],
+      ['rs', this.senderRewards],
+      ['rr', this.receiverRewards],
+      ['rc', this.closeRewards],
+      ['dt', this.evalDelta.toEncodingData()],
+      ['caid', this.configAsset],
+      ['apid', this.applicationID],
+    ]);
+  }
+
+  public static fromEncodingData(data: unknown): ApplyData {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded ApplyData: ${data}`);
+    }
+    return new ApplyData({
+      closingAmount: data.get('ca'),
+      assetClosingAmount: data.get('aca'),
+      senderRewards: data.get('rs'),
+      receiverRewards: data.get('rr'),
+      closeRewards: data.get('rc'),
+      evalDelta: EvalDelta.fromEncodingData(data.get('dt')),
+      configAsset: data.get('caid'),
+      applicationID: data.get('apid'),
+    });
+  }
+}
+
+export class SignedTxnWithAD implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  public static get encodingSchema(): Schema {
+    // This is declared like this in order to break the circular dependency of
+    // SignedTxnWithAD -> ApplyData -> EvalDelta -> SignedTxnWithAD
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        ...allOmitEmpty([
+          {
+            key: '',
+            valueSchema: SignedTransaction.encodingSchema,
+            embedded: true,
+          },
+          {
+            key: '',
+            valueSchema: ApplyData.encodingSchema,
+            embedded: true,
+          },
+        ])
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public signedTxn: SignedTransaction;
+
+  public applyData: ApplyData;
+
+  public constructor(params: {
+    signedTxn: SignedTransaction;
+    applyData: ApplyData;
+  }) {
+    this.signedTxn = params.signedTxn;
+    this.applyData = params.applyData;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return SignedTxnWithAD.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    return combineMaps(
+      this.signedTxn.toEncodingData(),
+      this.applyData.toEncodingData()
+    );
+  }
+
+  public static fromEncodingData(data: unknown): SignedTxnWithAD {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded SignedTxnWithAD: ${data}`);
+    }
+    return new SignedTxnWithAD({
+      signedTxn: SignedTransaction.fromEncodingData(data),
+      applyData: ApplyData.fromEncodingData(data),
+    });
+  }
+}
+
+/**
+ * SignedTxnInBlock is how a signed transaction is encoded in a block.
+ */
+export class SignedTxnInBlock implements Encodable {
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: '',
+        valueSchema: SignedTxnWithAD.encodingSchema,
+        embedded: true,
+      },
+      {
+        key: 'hgi', // hasGenesisID
+        valueSchema: new BooleanSchema(),
+      },
+      {
+        key: 'hgh', // hasGenesisHash
+        valueSchema: new BooleanSchema(),
+      },
+    ])
+  );
+
+  public signedTxn: SignedTxnWithAD;
+
+  public hasGenesisID: boolean;
+
+  public hasGenesisHash: boolean;
+
+  public constructor(params: {
+    signedTxn: SignedTxnWithAD;
+    hasGenesisID: boolean;
+    hasGenesisHash: boolean;
+  }) {
+    this.signedTxn = params.signedTxn;
+    this.hasGenesisID = params.hasGenesisID;
+    this.hasGenesisHash = params.hasGenesisHash;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return SignedTxnInBlock.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['hgi', this.hasGenesisID],
+      ['hgh', this.hasGenesisHash],
+    ]);
+    return combineMaps(data, this.signedTxn.toEncodingData());
+  }
+
+  public static fromEncodingData(data: unknown): SignedTxnInBlock {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded SignedTxnInBlock: ${data}`);
+    }
+    return new SignedTxnInBlock({
+      signedTxn: SignedTxnWithAD.fromEncodingData(data),
+      hasGenesisID: data.get('hgi'),
+      hasGenesisHash: data.get('hgh'),
     });
   }
 }
@@ -760,16 +1206,19 @@ export class Block implements Encodable {
       },
       {
         key: 'txns', // payset
-        valueSchema: new UntypedSchema(), // TODO: fix
+        valueSchema: new ArraySchema(SignedTxnInBlock.encodingSchema),
       },
     ])
   );
 
   public header: BlockHeader;
 
-  public payset: unknown; // TODO: fix
+  public payset: SignedTxnInBlock[];
 
-  public constructor(params: { header: BlockHeader; payset: unknown }) {
+  public constructor(params: {
+    header: BlockHeader;
+    payset: SignedTxnInBlock[];
+  }) {
     this.header = params.header;
     this.payset = params.payset;
   }
@@ -781,7 +1230,7 @@ export class Block implements Encodable {
 
   public toEncodingData(): Map<string, unknown> {
     const data = new Map<string, unknown>([
-      ['txns', this.payset], // TODO: fix
+      ['txns', this.payset.map((p) => p.toEncodingData())],
     ]);
     return combineMaps(data, this.header.toEncodingData());
   }
@@ -792,7 +1241,7 @@ export class Block implements Encodable {
     }
     return new Block({
       header: BlockHeader.fromEncodingData(data),
-      payset: data.get('txn'), // TODO: fix
+      payset: data.get('txns').map(SignedTxnInBlock.fromEncodingData),
     });
   }
 }

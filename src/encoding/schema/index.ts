@@ -11,7 +11,9 @@ export {
   NamedMapEntry,
   allOmitEmpty,
   combineMaps,
+  convertMap,
   Uint64MapSchema,
+  StringMapSchema,
 } from './map.js';
 export { OptionalSchema } from './optional.js';
 
