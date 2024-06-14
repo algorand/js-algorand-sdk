@@ -1725,4 +1725,235 @@ describe('encoding', () => {
       });
     });
   });
+  describe('BlockResponse', () => {
+    it('should decode block response correctly', () => {
+      const encodedBlockResponse = algosdk.base64ToBytes(
+        'gqVibG9ja94AEqJiac4AmJaAomZjzQPopGZlZXPEIAfay0ttntFBsXV2vUWa5kIdSG2j1O8iR8QJo5a4LqIho2dlbqd0ZXN0LXYxomdoxCBAkI9g4Zidj7KmD7u3TupPRyxIUOsvsCzO1IlIiDKoqKRwcmV2xCDwEylSD3iD5mcCkowyEagukv+yiXVP06RyaMykuKPaqaVwcm90b6ZmdXR1cmWjcHJwxCB/k/5DqCp+P1WW/80hkucvP2neluTb4OL7yjQQnAxn6aNybmRepnJ3Y2Fscs4AB6Ego3J3ZMQg//////////////////////////////////////////+kc2VlZMQgADr2hmA6p7J28mz5Xje3TrogRklc+wKrrknYFoSPXIqjc3B0gQCBoW7NAgCidGPNA+6idHPOZmyEZaN0eG7EILLaFZI8ZSO3lpCwDTjv6JdxgLRqnLkOCthaTJyfoaSipnR4bjI1NsQgyA7uIgAR0IxH57DVsL4snrEy5FdvuTtWPvyPiJfzZGSkdHhuc5GEomNhzwAAJGE4t9aGo2hnacOjc2lnxEAT74Xeryh/ZJtRxGqcKf8UueJmWXmHH9NuQYTIrJqzKI1kKsFHn7smLAwoa0hDSUeUGI5kvWZvM28ggFiOxykMo3R4boelY2xvc2XEIAEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo2ZlZc0D6KJmdlyibHbNBESjcmN2xCABAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKNzbmTEIH+T/kOoKn4/VZb/zSGS5y8/ad6W5Nvg4vvKNBCcDGfppHR5cGWjcGF5pGNlcnSEpHByb3CDo2RpZ8Qgl8J9zpVrkwvOVTZlN3p6b0iKuUpWii4Z0ga04n/XeFGmZW5jZGlnxCCG+emw6b9UVPNwpFN+l3F4SDOSkIKxkgpWSiBi0O62q6VvcHJvcMQgf5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+mjcm5kXqRzdGVwAqR2b3RlkYOkY3JlZIGicGbEUIcs4SBw5LBFVDrqyGzHbeuh/PsY5Fr/1oZ+DoPl+N8aAs2ZiEsuPoE/+6oNsiX6YJNFVSBQKaRQBWdPDndXc9w3jq6WR6cEEoi4rCAyyv8Io3NpZ4ahcMQgmOdtSatJuUOlf8qRypCU3uEm3AewgEq+xVOIhtmWUZejcDFzxEAbCsynu50W2/vt6HPCCTAf37rvW1RHk1Y8EnLvBrFIzxi6nZRPeoYdgr4D8yIEKB4Gc7BMFrQbzd1HGKxLKS8GonAyxCCaal9Yfd6VseKV5WCb5lFEeYo3J0X1uOxEspMS8z9uaKNwMnPEQGmZZYbLBiwlzCbu7pdhDl9jSsyWCKW5aM5u0jeSVJGdYzC5SwpVGXlasYN8yj0Z5DKqwweY0ATwg02PCK1xkw2icHPEQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAChc8RAD7PBhIk/Yl40TpUojfBQj79CHOXwpmAToXgmRWG2rkDvmIh4sUjAaXVHdFla1uBMqgLrOk1rEo12QUthenYrB6NzbmTEIH+T/kOoKn4/VZb/zSGS5y8/ad6W5Nvg4vvKNBCcDGfp'
+      );
+      const blockResponse = algosdk.decodeMsgpack(
+        encodedBlockResponse,
+        algosdk.modelsv2.BlockResponse
+      );
+      const expectedBlockResponse = new algosdk.modelsv2.BlockResponse({
+        block: new algosdk.Block({
+          header: new algosdk.BlockHeader({
+            round: BigInt(94),
+            branch: algosdk.base64ToBytes(
+              '8BMpUg94g+ZnApKMMhGoLpL/sol1T9OkcmjMpLij2qk='
+            ),
+            seed: algosdk.base64ToBytes(
+              'ADr2hmA6p7J28mz5Xje3TrogRklc+wKrrknYFoSPXIo='
+            ),
+            txnCommitments: new algosdk.TxnCommitments({
+              nativeSha512_256Commitment: algosdk.base64ToBytes(
+                'stoVkjxlI7eWkLANOO/ol3GAtGqcuQ4K2FpMnJ+hpKI='
+              ),
+              sha256Commitment: algosdk.base64ToBytes(
+                'yA7uIgAR0IxH57DVsL4snrEy5FdvuTtWPvyPiJfzZGQ='
+              ),
+            }),
+            timestamp: BigInt(1718387813),
+            genesisID: 'test-v1',
+            genesisHash: algosdk.base64ToBytes(
+              'QJCPYOGYnY+ypg+7t07qT0csSFDrL7AsztSJSIgyqKg='
+            ),
+            proposer: new algosdk.Address(
+              algosdk.base64ToBytes(
+                'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+              )
+            ),
+            feesCollected: BigInt(1000),
+            bonus: BigInt(10000000),
+            proposerPayout: BigInt(0),
+            rewardState: new algosdk.RewardState({
+              feeSink: new algosdk.Address(
+                algosdk.base64ToBytes(
+                  'B9rLS22e0UGxdXa9RZrmQh1IbaPU7yJHxAmjlrguoiE='
+                )
+              ),
+              rewardsPool: new algosdk.Address(
+                algosdk.base64ToBytes(
+                  '//////////////////////////////////////////8='
+                )
+              ),
+              rewardsLevel: BigInt(0),
+              rewardsRate: BigInt(0),
+              rewardsResidue: BigInt(0),
+              rewardsRecalculationRound: BigInt(500000),
+            }),
+            upgradeState: new algosdk.UpgradeState({
+              currentProtocol: 'future',
+              nextProtocol: '',
+              nextProtocolApprovals: BigInt(0),
+              nextProtocolVoteBefore: BigInt(0),
+              nextProtocolSwitchOn: BigInt(0),
+            }),
+            upgradeVote: new algosdk.UpgradeVote({
+              upgradePropose: '',
+              upgradeDelay: BigInt(0),
+              upgradeApprove: false,
+            }),
+            txnCounter: BigInt(1006),
+            stateproofTracking: new Map<number, algosdk.StateProofTrackingData>(
+              [
+                [
+                  0,
+                  new algosdk.StateProofTrackingData({
+                    stateProofVotersCommitment: new Uint8Array(),
+                    stateProofOnlineTotalWeight: BigInt(0),
+                    stateProofNextRound: BigInt(512),
+                  }),
+                ],
+              ]
+            ),
+            participationUpdates: new algosdk.ParticipationUpdates({
+              expiredParticipationAccounts: [],
+              absentParticipationAccounts: [],
+            }),
+          }),
+          payset: [
+            new algosdk.SignedTxnInBlock({
+              hasGenesisID: true,
+              hasGenesisHash: false,
+              signedTxn: new algosdk.SignedTxnWithAD({
+                signedTxn: new algosdk.SignedTransaction({
+                  txn: new algosdk.Transaction({
+                    sender: new algosdk.Address(
+                      algosdk.base64ToBytes(
+                        'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                      )
+                    ),
+                    type: algosdk.TransactionType.pay,
+                    suggestedParams: {
+                      flatFee: true,
+                      fee: BigInt(1000),
+                      firstValid: BigInt(92),
+                      lastValid: BigInt(1092),
+                      minFee: BigInt(1000),
+                    },
+                    paymentParams: {
+                      amount: 0,
+                      receiver: new algosdk.Address(
+                        algosdk.base64ToBytes(
+                          'AQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        )
+                      ),
+                      closeRemainderTo: new algosdk.Address(
+                        algosdk.base64ToBytes(
+                          'AQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        )
+                      ),
+                    },
+                  }),
+                  sig: algosdk.base64ToBytes(
+                    'E++F3q8of2SbUcRqnCn/FLniZll5hx/TbkGEyKyasyiNZCrBR5+7JiwMKGtIQ0lHlBiOZL1mbzNvIIBYjscpDA=='
+                  ),
+                }),
+                applyData: new algosdk.ApplyData({
+                  closingAmount: BigInt('39999981999750'),
+                }),
+              }),
+            }),
+          ],
+        }),
+        cert: new algosdk.UntypedValue(
+          new Map<string, algosdk.MsgpackEncodingData>([
+            [
+              'prop',
+              new Map<string, Uint8Array>([
+                [
+                  'dig',
+                  algosdk.base64ToBytes(
+                    'l8J9zpVrkwvOVTZlN3p6b0iKuUpWii4Z0ga04n/XeFE='
+                  ),
+                ],
+                [
+                  'encdig',
+                  algosdk.base64ToBytes(
+                    'hvnpsOm/VFTzcKRTfpdxeEgzkpCCsZIKVkogYtDutqs='
+                  ),
+                ],
+                [
+                  'oprop',
+                  algosdk.base64ToBytes(
+                    'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                  ),
+                ],
+              ]),
+            ],
+            ['rnd', 94],
+            ['step', 2],
+            [
+              'vote',
+              [
+                new Map<string, algosdk.MsgpackEncodingData>([
+                  [
+                    'cred',
+                    new Map([
+                      [
+                        'pf',
+                        algosdk.base64ToBytes(
+                          'hyzhIHDksEVUOurIbMdt66H8+xjkWv/Whn4Og+X43xoCzZmISy4+gT/7qg2yJfpgk0VVIFAppFAFZ08Od1dz3DeOrpZHpwQSiLisIDLK/wg='
+                        ),
+                      ],
+                    ]),
+                  ],
+                  [
+                    'sig',
+                    new Map([
+                      [
+                        'p1s',
+                        algosdk.base64ToBytes(
+                          'GwrMp7udFtv77ehzwgkwH9+671tUR5NWPBJy7waxSM8Yup2UT3qGHYK+A/MiBCgeBnOwTBa0G83dRxisSykvBg=='
+                        ),
+                      ],
+                      [
+                        'p2',
+                        algosdk.base64ToBytes(
+                          'mmpfWH3elbHileVgm+ZRRHmKNydF9bjsRLKTEvM/bmg='
+                        ),
+                      ],
+                      [
+                        'p2s',
+                        algosdk.base64ToBytes(
+                          'aZllhssGLCXMJu7ul2EOX2NKzJYIpblozm7SN5JUkZ1jMLlLClUZeVqxg3zKPRnkMqrDB5jQBPCDTY8IrXGTDQ=='
+                        ),
+                      ],
+                      [
+                        'p',
+                        algosdk.base64ToBytes(
+                          'mOdtSatJuUOlf8qRypCU3uEm3AewgEq+xVOIhtmWUZc='
+                        ),
+                      ],
+                      [
+                        'ps',
+                        algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=='
+                        ),
+                      ],
+                      [
+                        's',
+                        algosdk.base64ToBytes(
+                          'D7PBhIk/Yl40TpUojfBQj79CHOXwpmAToXgmRWG2rkDvmIh4sUjAaXVHdFla1uBMqgLrOk1rEo12QUthenYrBw=='
+                        ),
+                      ],
+                    ]),
+                  ],
+                  [
+                    'snd',
+                    algosdk.base64ToBytes(
+                      'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                    ),
+                  ],
+                ]),
+              ],
+            ],
+          ])
+        ),
+      });
+      assert.deepStrictEqual(blockResponse, expectedBlockResponse);
+      const reencoded = algosdk.encodeMsgpack(blockResponse);
+      assert.deepStrictEqual(reencoded, encodedBlockResponse);
+    });
+  });
 });

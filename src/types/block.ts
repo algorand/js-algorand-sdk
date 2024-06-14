@@ -10,6 +10,7 @@ import {
   AddressSchema,
   ByteArraySchema,
   FixedLengthByteArraySchema,
+  OptionalSchema,
   allOmitEmpty,
   combineMaps,
   convertMap,
@@ -374,7 +375,7 @@ export class UpgradeVote implements Encodable {
       },
       {
         key: 'upgradeyes', // upgradeApprove
-        valueSchema: new Uint64Schema(),
+        valueSchema: new BooleanSchema(),
       },
     ])
   );
@@ -736,8 +737,8 @@ export class BlockHeader implements Encodable {
       seed: data.get('seed'),
       txnCommitments: TxnCommitments.fromEncodingData(data),
       timestamp: data.get('ts'),
-      genesisHash: data.get('gen'),
-      genesisID: data.get('gh'),
+      genesisID: data.get('gen'),
+      genesisHash: data.get('gh'),
       proposer: data.get('prp'),
       feesCollected: data.get('fc'),
       bonus: data.get('bi'),
@@ -823,26 +824,36 @@ export class EvalDelta implements Encodable {
         ...allOmitEmpty([
           {
             key: 'gd', // globalDelta
-            valueSchema: new StringMapSchema(ValueDelta.encodingSchema),
-          },
-          {
-            key: 'ld', // localDeltas
-            valueSchema: new Uint64MapSchema(
+            valueSchema: new OptionalSchema(
               new StringMapSchema(ValueDelta.encodingSchema)
             ),
           },
           {
+            key: 'ld', // localDeltas
+            valueSchema: new OptionalSchema(
+              new Uint64MapSchema(
+                new StringMapSchema(ValueDelta.encodingSchema)
+              )
+            ),
+          },
+          {
             key: 'sa', // sharedAccts
-            valueSchema: new ArraySchema(new AddressSchema()),
+            valueSchema: new OptionalSchema(
+              new ArraySchema(new AddressSchema())
+            ),
           },
           {
             key: 'lg', // logs
-            valueSchema: new ArraySchema(new StringSchema()),
+            valueSchema: new OptionalSchema(
+              new ArraySchema(new StringSchema())
+            ),
           },
           {
             key: 'itx', // innerTxns
-            // eslint-disable-next-line no-use-before-define
-            valueSchema: new ArraySchema(SignedTxnWithAD.encodingSchema),
+            valueSchema: new OptionalSchema(
+              // eslint-disable-next-line no-use-before-define
+              new ArraySchema(SignedTxnWithAD.encodingSchema)
+            ),
           },
         ])
       );
@@ -871,18 +882,19 @@ export class EvalDelta implements Encodable {
   public innerTxns: SignedTxnWithAD[];
 
   public constructor(params: {
-    globalDelta: Map<string, ValueDelta>;
-    localDeltas: Map<number, Map<string, ValueDelta>>;
-    sharedAccts: Address[];
-    logs: string[];
+    globalDelta?: Map<string, ValueDelta>;
+    localDeltas?: Map<number, Map<string, ValueDelta>>;
+    sharedAccts?: Address[];
+    logs?: string[];
     // eslint-disable-next-line no-use-before-define
-    innerTxns: SignedTxnWithAD[];
+    innerTxns?: SignedTxnWithAD[];
   }) {
-    this.globalDelta = params.globalDelta;
-    this.localDeltas = params.localDeltas;
-    this.sharedAccts = params.sharedAccts;
-    this.logs = params.logs;
-    this.innerTxns = params.innerTxns;
+    this.globalDelta = params.globalDelta ?? new Map<string, ValueDelta>();
+    this.localDeltas =
+      params.localDeltas ?? new Map<number, Map<string, ValueDelta>>();
+    this.sharedAccts = params.sharedAccts ?? [];
+    this.logs = params.logs ?? [];
+    this.innerTxns = params.innerTxns ?? [];
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -917,21 +929,25 @@ export class EvalDelta implements Encodable {
       throw new Error(`Invalid decoded EvalDelta: ${data}`);
     }
     return new EvalDelta({
-      globalDelta: convertMap(
-        data.get('gd') as Map<string, unknown>,
-        (key, value) => [key, ValueDelta.fromEncodingData(value)]
-      ),
-      localDeltas: convertMap(
-        data.get('ld') as Map<bigint, Map<string, unknown>>,
-        (key, value) => [
-          Number(key),
-          convertMap(value, (k, v) => [k, ValueDelta.fromEncodingData(v)]),
-        ]
-      ),
+      globalDelta: data.get('gd')
+        ? convertMap(data.get('gd') as Map<string, unknown>, (key, value) => [
+            key,
+            ValueDelta.fromEncodingData(value),
+          ])
+        : undefined,
+      localDeltas: data.get('ld')
+        ? convertMap(
+            data.get('ld') as Map<bigint, Map<string, unknown>>,
+            (key, value) => [
+              Number(key),
+              convertMap(value, (k, v) => [k, ValueDelta.fromEncodingData(v)]),
+            ]
+          )
+        : undefined,
       sharedAccts: data.get('sa'),
       logs: data.get('lg'),
       // eslint-disable-next-line no-use-before-define
-      innerTxns: data.get('itx').map(SignedTxnWithAD.fromEncodingData),
+      innerTxns: (data.get('itx') ?? []).map(SignedTxnWithAD.fromEncodingData),
     });
   }
 }
@@ -948,35 +964,35 @@ export class ApplyData implements Encodable {
         ...allOmitEmpty([
           {
             key: 'ca', // closingAmount
-            valueSchema: new Uint64Schema(),
+            valueSchema: new OptionalSchema(new Uint64Schema()),
           },
           {
             key: 'aca', // assetClosingAmount
-            valueSchema: new Uint64Schema(),
+            valueSchema: new OptionalSchema(new Uint64Schema()),
           },
           {
             key: 'rs', // senderRewards
-            valueSchema: new Uint64Schema(),
+            valueSchema: new OptionalSchema(new Uint64Schema()),
           },
           {
             key: 'rr', // receiverRewards
-            valueSchema: new Uint64Schema(),
+            valueSchema: new OptionalSchema(new Uint64Schema()),
           },
           {
             key: 'rc', // closeRewards
-            valueSchema: new Uint64Schema(),
+            valueSchema: new OptionalSchema(new Uint64Schema()),
           },
           {
             key: 'dt', // evalDelta
-            valueSchema: EvalDelta.encodingSchema,
+            valueSchema: new OptionalSchema(EvalDelta.encodingSchema),
           },
           {
             key: 'caid', // configAsset
-            valueSchema: new Uint64Schema(),
+            valueSchema: new OptionalSchema(new Uint64Schema()),
           },
           {
             key: 'apid', // applicationID
-            valueSchema: new Uint64Schema(),
+            valueSchema: new OptionalSchema(new Uint64Schema()),
           },
         ])
       );
@@ -987,42 +1003,42 @@ export class ApplyData implements Encodable {
   /**
    * Closing amount for transaction.
    */
-  public closingAmount: bigint;
+  public closingAmount?: bigint;
 
   /**
    * Closing amount for asset transaction.
    */
-  public assetClosingAmount: bigint;
+  public assetClosingAmount?: bigint;
 
   /**
    * Rewards applied to the Sender.
    */
-  public senderRewards: bigint;
+  public senderRewards?: bigint;
 
   /**
    * Rewards applied to the Receiver.
    */
-  public receiverRewards: bigint;
+  public receiverRewards?: bigint;
 
   /**
    * Rewards applied to the CloseRemainderTo account.
    */
-  public closeRewards: bigint;
+  public closeRewards?: bigint;
 
-  public evalDelta: EvalDelta;
+  public evalDelta?: EvalDelta;
 
-  public configAsset: bigint;
-  public applicationID: bigint;
+  public configAsset?: bigint;
+  public applicationID?: bigint;
 
   public constructor(params: {
-    closingAmount: bigint;
-    assetClosingAmount: bigint;
-    senderRewards: bigint;
-    receiverRewards: bigint;
-    closeRewards: bigint;
-    evalDelta: EvalDelta;
-    configAsset: bigint;
-    applicationID: bigint;
+    closingAmount?: bigint;
+    assetClosingAmount?: bigint;
+    senderRewards?: bigint;
+    receiverRewards?: bigint;
+    closeRewards?: bigint;
+    evalDelta?: EvalDelta;
+    configAsset?: bigint;
+    applicationID?: bigint;
   }) {
     this.closingAmount = params.closingAmount;
     this.assetClosingAmount = params.assetClosingAmount;
@@ -1046,7 +1062,7 @@ export class ApplyData implements Encodable {
       ['rs', this.senderRewards],
       ['rr', this.receiverRewards],
       ['rc', this.closeRewards],
-      ['dt', this.evalDelta.toEncodingData()],
+      ['dt', this.evalDelta ? this.evalDelta.toEncodingData() : undefined],
       ['caid', this.configAsset],
       ['apid', this.applicationID],
     ]);
@@ -1062,7 +1078,9 @@ export class ApplyData implements Encodable {
       senderRewards: data.get('rs'),
       receiverRewards: data.get('rr'),
       closeRewards: data.get('rc'),
-      evalDelta: EvalDelta.fromEncodingData(data.get('dt')),
+      evalDelta: data.get('dt')
+        ? EvalDelta.fromEncodingData(data.get('dt'))
+        : undefined,
       configAsset: data.get('caid'),
       applicationID: data.get('apid'),
     });
