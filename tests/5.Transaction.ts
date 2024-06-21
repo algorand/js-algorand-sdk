@@ -606,7 +606,7 @@ describe('Sign', () => {
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         stateProofParams: {
           stateProofType: 0,
-          stateProof: new Uint8Array([1, 1, 1, 1]),
+          stateProof: new Uint8Array([1, 1, 1, 1]), // TODO: update this test
           stateProofMessage: new Uint8Array([0, 0, 0, 0]),
         },
         suggestedParams: {
