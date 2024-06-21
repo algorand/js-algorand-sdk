@@ -1027,7 +1027,14 @@ export class ApplyData implements Encodable {
 
   public evalDelta?: EvalDelta;
 
+  /**
+   * If an ASA is being created, this is its newly created ID. Else 0.
+   */
   public configAsset?: bigint;
+
+  /**
+   * If an application is being created, this is its newly created ID. Else 0.
+   */
   public applicationID?: bigint;
 
   public constructor(params: {

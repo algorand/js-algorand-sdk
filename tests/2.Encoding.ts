@@ -1955,5 +1955,111 @@ describe('encoding', () => {
       const reencoded = algosdk.encodeMsgpack(blockResponse);
       assert.deepStrictEqual(reencoded, encodedBlockResponse);
     });
+    it('should decode ApplyData correctly', () => {
+      const encodedApplyData = algosdk.base64ToBytes(
+        'iKNhY2HP//////////+kYXBpZM0iuKJjYc8AACRhOLfWhqRjYWlkzR5homR0haJnZIKqZ2xvYmFsS2V5MYKiYXQBomJzo2FiY6pnbG9iYWxLZXkygqJhdAKidWkyo2l0eJGComR0gaJsZ5KkbG9nM6Rsb2c0o3R4boakYXBpZM0eYaNmZWXNA+iiZnZcomx2zQREo3NuZMQgf5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+mkdHlwZaRhcHBsomxkggCBqWxvY2FsS2V5MYKiYXQBomJzo2RlZgKBqWxvY2FsS2V5MoKiYXQConVpM6JsZ5KkbG9nMaRsb2cyonNhksQgCbEzlTT2uNiZwobypXnCOg5IqgxtO92MuwR8vJwv3ePEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAonJjEaJycgSicnN7'
+      );
+      const applyData = algosdk.decodeMsgpack(
+        encodedApplyData,
+        algosdk.ApplyData
+      );
+      const expectedApplyData = new algosdk.ApplyData({
+        closingAmount: BigInt('39999981999750'),
+        assetClosingAmount: BigInt('0xffffffffffffffff'),
+        senderRewards: BigInt(123),
+        receiverRewards: BigInt(4),
+        closeRewards: BigInt(17),
+        configAsset: BigInt(7777),
+        applicationID: BigInt(8888),
+        evalDelta: new algosdk.EvalDelta({
+          globalDelta: new Map<string, algosdk.ValueDelta>([
+            [
+              'globalKey1',
+              new algosdk.ValueDelta({
+                action: 1,
+                uint: BigInt(0),
+                bytes: 'abc',
+              }),
+            ],
+            [
+              'globalKey2',
+              new algosdk.ValueDelta({
+                action: 2,
+                uint: BigInt(50),
+                bytes: '',
+              }),
+            ],
+          ]),
+          localDeltas: new Map<number, Map<string, algosdk.ValueDelta>>([
+            [
+              0,
+              new Map<string, algosdk.ValueDelta>([
+                [
+                  'localKey1',
+                  new algosdk.ValueDelta({
+                    action: 1,
+                    uint: BigInt(0),
+                    bytes: 'def',
+                  }),
+                ],
+              ]),
+            ],
+            [
+              2,
+              new Map<string, algosdk.ValueDelta>([
+                [
+                  'localKey2',
+                  new algosdk.ValueDelta({
+                    action: 2,
+                    uint: BigInt(51),
+                    bytes: '',
+                  }),
+                ],
+              ]),
+            ],
+          ]),
+          sharedAccts: [
+            algosdk.Address.fromString(
+              'BGYTHFJU624NRGOCQ3ZKK6OCHIHERKQMNU553DF3AR6LZHBP3XR5JLNCUI'
+            ),
+            algosdk.Address.zeroAddress(),
+          ],
+          logs: ['log1', 'log2'],
+          innerTxns: [
+            new algosdk.SignedTxnWithAD({
+              signedTxn: new algosdk.SignedTransaction({
+                txn: new algosdk.Transaction({
+                  sender: new algosdk.Address(
+                    algosdk.base64ToBytes(
+                      'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                    )
+                  ),
+                  type: algosdk.TransactionType.appl,
+                  suggestedParams: {
+                    flatFee: true,
+                    fee: BigInt(1000),
+                    firstValid: BigInt(92),
+                    lastValid: BigInt(1092),
+                    minFee: BigInt(1000),
+                  },
+                  appCallParams: {
+                    appIndex: BigInt(7777),
+                    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+                  },
+                }),
+              }),
+              applyData: new algosdk.ApplyData({
+                evalDelta: new algosdk.EvalDelta({
+                  logs: ['log3', 'log4'],
+                }),
+              }),
+            }),
+          ],
+        }),
+      });
+      assert.deepStrictEqual(applyData, expectedApplyData);
+      const reencoded = algosdk.encodeMsgpack(applyData);
+      assert.deepStrictEqual(reencoded, encodedApplyData);
+    });
   });
 });
