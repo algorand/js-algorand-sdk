@@ -1,7 +1,8 @@
 /* eslint-env mocha */
 import assert from 'assert';
-import * as utils from '../src/utils/utils';
-import * as nacl from '../src/nacl/naclWrappers';
+import * as utils from '../src/utils/utils.js';
+import * as nacl from '../src/nacl/naclWrappers.js';
+import { combineMaps, convertMap } from '../src/encoding/schema/index.js';
 
 describe('utils', () => {
   describe('concatArrays', () => {
@@ -420,5 +421,145 @@ describe('nacl wrapper', () => {
   it('should validate signature length', () => {
     assert.strictEqual(nacl.isValidSignatureLength(6), false);
     assert.strictEqual(nacl.isValidSignatureLength(64), true);
+  });
+});
+
+describe('encoding utils', () => {
+  describe('combineMaps', () => {
+    it('should work on no inputs', () => {
+      const actual = combineMaps();
+      const expected = new Map();
+      assert.deepStrictEqual(actual, expected);
+    });
+
+    it('should work on one input', () => {
+      const a = new Map([
+        ['a', 1],
+        ['b', 2],
+      ]);
+
+      const actual = combineMaps(a);
+      const expected = new Map([
+        ['a', 1],
+        ['b', 2],
+      ]);
+      assert.deepStrictEqual(actual, expected);
+
+      assert.notEqual(actual, a);
+    });
+
+    it('should combine two maps', () => {
+      const a = new Map([
+        ['a', 1],
+        ['b', 2],
+      ]);
+      const b = new Map([
+        ['c', 3],
+        ['d', 4],
+      ]);
+
+      const actual = combineMaps(a, b);
+      const expected = new Map([
+        ['a', 1],
+        ['b', 2],
+        ['c', 3],
+        ['d', 4],
+      ]);
+      assert.deepStrictEqual(actual, expected);
+
+      assert.notEqual(actual, a);
+      assert.notEqual(actual, b);
+    });
+
+    it('should combine three maps', () => {
+      const a = new Map([
+        ['a', 1],
+        ['b', 2],
+      ]);
+      const b = new Map([
+        ['c', 3],
+        ['d', 4],
+      ]);
+      const c = new Map([
+        ['e', 5],
+        ['f', 6],
+      ]);
+
+      const actual = combineMaps(a, b, c);
+      const expected = new Map([
+        ['a', 1],
+        ['b', 2],
+        ['c', 3],
+        ['d', 4],
+        ['e', 5],
+        ['f', 6],
+      ]);
+      assert.deepStrictEqual(actual, expected);
+
+      assert.notEqual(actual, a);
+      assert.notEqual(actual, b);
+    });
+
+    it('should error on duplicate keys', () => {
+      const a = new Map([
+        ['a', 1],
+        ['b', 2],
+      ]);
+      const b = new Map([
+        ['c', 3],
+        ['d', 4],
+        ['a', 5],
+      ]);
+
+      assert.throws(() => combineMaps(a, b), new Error('Duplicate key: a'));
+    });
+  });
+
+  describe('convertMap', () => {
+    it('should produce correct results', () => {
+      const map = new Map([
+        ['a', 1],
+        ['b', 2],
+        ['c', 3],
+      ]);
+
+      const func = (key: string, value: number): [number, string] => [
+        value + 1,
+        key.toUpperCase(),
+      ];
+
+      const actual = convertMap(map, func);
+      const expected = new Map([
+        [2, 'A'],
+        [3, 'B'],
+        [4, 'C'],
+      ]);
+      assert.deepStrictEqual(actual, expected);
+
+      assert.notEqual(actual, map);
+    });
+
+    it('should produce correct results even under a key collision', () => {
+      const map = new Map([
+        [2, 'a'],
+        [3, 'b'],
+        [4, 'c'],
+      ]);
+
+      const func = (key: number, value: string): [number, string] => [
+        Math.floor(key / 2),
+        value,
+      ];
+
+      const actual = convertMap(map, func);
+      const expected = new Map([
+        // The 'a' value also gets mapped to the 1 key, but it is overwritten
+        [1, 'b'],
+        [2, 'c'],
+      ]);
+      assert.deepStrictEqual(actual, expected);
+
+      assert.notEqual(actual, map);
+    });
   });
 });

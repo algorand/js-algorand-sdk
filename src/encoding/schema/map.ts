@@ -29,6 +29,11 @@ export interface NamedMapEntry {
   embedded?: boolean;
 }
 
+/**
+ * Applies the omitEmpty flag to all entries in the array.
+ * @param entries - The entries to apply the flag to.
+ * @returns A new array with the omitEmpty flag applied to all entries.
+ */
 export function allOmitEmpty(
   entries: Array<Omit<NamedMapEntry, 'omitEmpty'>>
 ): NamedMapEntry[] {
@@ -36,7 +41,7 @@ export function allOmitEmpty(
 }
 
 /**
- * Schema for a map/struct with a fixed set of string fields.
+ * Schema for a map/struct with a fixed set of known string fields.
  */
 export class NamedMapSchema extends Schema {
   private readonly entries: NamedMapEntry[];
@@ -195,6 +200,11 @@ export class NamedMapSchema extends Schema {
   }
 }
 
+/**
+ * Combines multiple maps into a single map. Throws an error if any of the maps have duplicate keys.
+ * @param maps - The maps to combine.
+ * @returns A new map with all the entries from the input maps.
+ */
 export function combineMaps<K, V>(...maps: Array<Map<K, V>>): Map<K, V> {
   const combined = new Map<K, V>();
   for (const map of maps) {
@@ -208,6 +218,12 @@ export function combineMaps<K, V>(...maps: Array<Map<K, V>>): Map<K, V> {
   return combined;
 }
 
+/**
+ * Converts a map to a new map with different keys and values.
+ * @param map - The map to convert.
+ * @param func - The function to convert each entry.
+ * @returns A new map with the converted entries.
+ */
 export function convertMap<K1, V1, K2, V2>(
   map: Map<K1, V1>,
   func: (k: K1, v: V1) => [K2, V2]
@@ -313,7 +329,7 @@ export class Uint64MapSchema extends Schema {
 }
 
 /**
- * Schema for a map with a variable number of uint64 keys.
+ * Schema for a map with a variable number of string keys.
  */
 export class StringMapSchema extends Schema {
   constructor(public readonly valueSchema: Schema) {
