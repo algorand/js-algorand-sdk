@@ -220,6 +220,150 @@ export class Participant implements Encodable {
   }
 }
 
+export class FalconVerifier implements Encodable {
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      { key: 'k', valueSchema: new FixedLengthByteArraySchema(0x701) }, // publicKey
+    ])
+  );
+
+  public publicKey: Uint8Array;
+
+  public constructor(params: { publicKey: Uint8Array }) {
+    this.publicKey = params.publicKey;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return FalconVerifier.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([['k', this.publicKey]]);
+  }
+
+  public static fromEncodingData(data: unknown): FalconVerifier {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded FalconVerifier: ${data}`);
+    }
+    return new FalconVerifier({
+      publicKey: data.get('k'),
+    });
+  }
+}
+
+/**
+ * FalconSignatureStruct represents a signature in the merkle signature scheme using falcon signatures
+ * as an underlying crypto scheme. It consists of an ephemeral public key, a signature, a merkle
+ * verification path and an index. The merkle signature considered valid only if the Signature is
+ * verified under the ephemeral public key and the Merkle verification path verifies that the
+ * ephemeral public key is located at the given index of the tree (for the root given in the
+ * long-term public key). More details can be found on Algorand's spec
+ */
+export class FalconSignatureStruct implements Encodable {
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      { key: 'sig', valueSchema: new ByteArraySchema() }, // signature
+      { key: 'idx', valueSchema: new Uint64Schema() }, // index
+      { key: 'prf', valueSchema: MerkleArrayProof.encodingSchema }, // proof
+      { key: 'vkey', valueSchema: FalconVerifier.encodingSchema }, // verifyingKey
+    ])
+  );
+
+  public signature: Uint8Array;
+  public vectorCommitmentIndex: bigint;
+  public proof: MerkleArrayProof;
+  public verifyingKey: FalconVerifier;
+
+  public constructor(params: {
+    signature: Uint8Array;
+    index: bigint;
+    proof: MerkleArrayProof;
+    verifyingKey: FalconVerifier;
+  }) {
+    this.signature = params.signature;
+    this.vectorCommitmentIndex = params.index;
+    this.proof = params.proof;
+    this.verifyingKey = params.verifyingKey;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return FalconSignatureStruct.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['sig', this.signature],
+      ['idx', this.vectorCommitmentIndex],
+      ['prf', this.proof.toEncodingData()],
+      ['vkey', this.verifyingKey.toEncodingData()],
+    ]);
+  }
+
+  public static fromEncodingData(data: unknown): FalconSignatureStruct {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded FalconSignatureStruct: ${data}`);
+    }
+    return new FalconSignatureStruct({
+      signature: data.get('sig'),
+      index: data.get('idx'),
+      proof: MerkleArrayProof.fromEncodingData(data.get('prf')),
+      verifyingKey: FalconVerifier.fromEncodingData(data.get('vkey')),
+    });
+  }
+}
+
+/**
+ * A SigslotCommit is a single slot in the sigs array that forms the state proof.
+ */
+export class SigslotCommit implements Encodable {
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      { key: 's', valueSchema: FalconSignatureStruct.encodingSchema }, // sigslot
+      { key: 'l', valueSchema: new Uint64Schema() }, // l
+    ])
+  );
+
+  /**
+   * Sig is a signature by the participant on the expected message.
+   */
+  public sig: FalconSignatureStruct;
+
+  /**
+   * L is the total weight of signatures in lower-numbered slots. This is initialized once the builder
+   * has collected a sufficient number of signatures.
+   */
+  public l: bigint;
+
+  public constructor(params: { sig: FalconSignatureStruct; l: bigint }) {
+    this.sig = params.sig;
+    this.l = params.l;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public getEncodingSchema(): Schema {
+    return SigslotCommit.encodingSchema;
+  }
+
+  public toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['s', this.sig.toEncodingData()],
+      ['l', this.l],
+    ]);
+  }
+
+  public static fromEncodingData(data: unknown): SigslotCommit {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded SigslotCommit: ${data}`);
+    }
+    return new SigslotCommit({
+      sig: FalconSignatureStruct.fromEncodingData(data.get('s')),
+      l: data.get('l'),
+    });
+  }
+}
+
 /**
  * Reveal is a single array position revealed as part of a state proof. It reveals an element of the
  * signature array and the corresponding element of the participants array.
@@ -227,20 +371,20 @@ export class Participant implements Encodable {
 export class Reveal implements Encodable {
   public static readonly encodingSchema = new NamedMapSchema(
     allOmitEmpty([
-      { key: 's', valueSchema: new Uint64Schema() }, // sigslotCommit
+      { key: 's', valueSchema: SigslotCommit.encodingSchema }, // sigslotCommit
       { key: 'p', valueSchema: Participant.encodingSchema }, // participant
     ])
   );
 
-  public sigslotCommit: bigint;
+  public sigslot: SigslotCommit;
 
   public participant: Participant;
 
   public constructor(params: {
-    sigslotCommit: bigint;
+    sigslot: SigslotCommit;
     participant: Participant;
   }) {
-    this.sigslotCommit = params.sigslotCommit;
+    this.sigslot = params.sigslot;
     this.participant = params.participant;
   }
 
@@ -251,7 +395,7 @@ export class Reveal implements Encodable {
 
   public toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
-      ['s', this.sigslotCommit],
+      ['s', this.sigslot.toEncodingData()],
       ['p', this.participant.toEncodingData()],
     ]);
   }
@@ -261,7 +405,7 @@ export class Reveal implements Encodable {
       throw new Error(`Invalid decoded Reveal: ${data}`);
     }
     return new Reveal({
-      sigslotCommit: data.get('s'),
+      sigslot: SigslotCommit.fromEncodingData(data.get('s')),
       participant: Participant.fromEncodingData(data.get('p')),
     });
   }
