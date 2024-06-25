@@ -17,7 +17,7 @@ export class HashFactory implements Encodable {
     ])
   );
 
-  public hashType: number; // `codec:"t"`
+  public hashType: number;
 
   public constructor(params: { hashType: number }) {
     this.hashType = params.hashType;
