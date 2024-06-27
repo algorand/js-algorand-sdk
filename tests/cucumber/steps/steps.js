@@ -1787,6 +1787,7 @@ module.exports = function getSteps(options) {
     for (const [key, value] of Object.entries(prunedObject)) {
       if (
         value === undefined ||
+        value === null ||
         value === 0 ||
         value === '' ||
         value === false ||
@@ -1817,10 +1818,28 @@ module.exports = function getSteps(options) {
   }
 
   Then('the parsed response should equal the mock response.', function () {
+    let expectedJsonNeedsPruning = true;
+
     let encodedResponseObject;
     if (this.expectedMockResponseCode === 200) {
       if (responseFormat === 'json') {
-        encodedResponseObject = algosdk.encodeJSON(this.actualMockResponse);
+        if (typeof this.actualMockResponse.toEncodingData === 'function') {
+          if (
+            this.actualMockResponse instanceof
+            algosdk.modelsv2.TransactionGroupLedgerStateDeltasForRoundResponse
+          ) {
+            // TransactionGroupLedgerStateDeltasForRoundResponse has an UntypedResponse inside of it,
+            // so the expected JSON response should not be pruned.
+            expectedJsonNeedsPruning = false;
+          }
+          encodedResponseObject = algosdk.encodeJSON(this.actualMockResponse);
+        } else {
+          // Handles non-typed responses such as "GetLedgerStateDelta"
+          encodedResponseObject = algosdk.stringifyJSON(
+            this.actualMockResponse
+          );
+          expectedJsonNeedsPruning = false;
+        }
       } else {
         encodedResponseObject = algosdk.encodeMsgpack(this.actualMockResponse);
       }
@@ -1837,12 +1856,15 @@ module.exports = function getSteps(options) {
       actualResponseObject = algosdk.parseJSON(encodedResponseObject, {
         intDecoding: algosdk.IntDecoding.MIXED,
       });
-      // Prune default values from the actual response object to match the expected response object.
-      parsedExpectedMockResponse = pruneDefaultValuesFromObject(
-        algosdk.parseJSON(expectedMockResponse, {
-          intDecoding: algosdk.IntDecoding.MIXED,
-        })
-      );
+      parsedExpectedMockResponse = algosdk.parseJSON(expectedMockResponse, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
+      if (expectedJsonNeedsPruning) {
+        // Prune default values from the actual response object to match the expected response object.
+        parsedExpectedMockResponse = pruneDefaultValuesFromObject(
+          parsedExpectedMockResponse
+        );
+      }
     } else {
       actualResponseObject = algosdk.decodeObj(encodedResponseObject);
       parsedExpectedMockResponse = algosdk.decodeObj(expectedMockResponse);
@@ -5607,7 +5629,7 @@ module.exports = function getSteps(options) {
   When(
     'we make a GetBlockTxids call against block number {int}',
     async function (round) {
-      await this.v2Client.getBlockTxids(round).do();
+      await this.v2Client.getBlockTxids(round).doRaw();
     }
   );
 

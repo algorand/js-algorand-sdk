@@ -1,10 +1,10 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import { Address } from '../../../encoding/address.js';
-import { AssetsResponse } from './models/types.js';
+import { AssetHoldingsResponse } from './models/types.js';
 
 export default class LookupAccountAssets extends JSONRequest<
-  AssetsResponse,
+  AssetHoldingsResponse,
   Record<string, any>
 > {
   private account: string;
@@ -142,9 +142,9 @@ export default class LookupAccountAssets extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): AssetsResponse {
-    return AssetsResponse.fromEncodingData(
-      AssetsResponse.encodingSchema.fromPreparedJSON(body)
+  prepare(body: Record<string, any>): AssetHoldingsResponse {
+    return AssetHoldingsResponse.fromEncodingData(
+      AssetHoldingsResponse.encodingSchema.fromPreparedJSON(body)
     );
   }
 }
