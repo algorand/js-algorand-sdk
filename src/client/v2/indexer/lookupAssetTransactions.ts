@@ -1,7 +1,7 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { base64StringFunnel } from './lookupAccountTransactions';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
+import { base64StringFunnel } from './lookupAccountTransactions.js';
+import { Address } from '../../../encoding/address.js';
 
 export default class LookupAssetTransactions extends JSONRequest {
   /**
@@ -16,9 +16,11 @@ export default class LookupAssetTransactions extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-idtransactions)
    * @param index - The asset ID to look up.
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
-    this.index = index;
+  constructor(
+    c: HTTPClient,
+    private index: number
+  ) {
+    super(c);
   }
 
   /**
@@ -321,8 +323,8 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param address
    * @category query
    */
-  address(address: string) {
-    this.query.address = address;
+  address(address: string | Address) {
+    this.query.address = address.toString();
     return this;
   }
 

@@ -1,6 +1,6 @@
 import nacl from 'tweetnacl';
 import sha512 from 'js-sha512';
-import { isReactNative } from '../utils/utils';
+import { isReactNative } from '../utils/utils.js';
 
 export function genericHash(arr: sha512.Message) {
   return sha512.sha512_256.array(arr);

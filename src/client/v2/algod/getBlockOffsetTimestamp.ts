@@ -1,5 +1,5 @@
-import JSONRequest from '../jsonrequest';
-import { GetBlockTimeStampOffsetResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { GetBlockTimeStampOffsetResponse } from './models/types.js';
 
 export default class GetBlockOffsetTimestamp extends JSONRequest<
   GetBlockTimeStampOffsetResponse,
@@ -12,6 +12,8 @@ export default class GetBlockOffsetTimestamp extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): GetBlockTimeStampOffsetResponse {
-    return GetBlockTimeStampOffsetResponse.from_obj_for_encoding(body);
+    return GetBlockTimeStampOffsetResponse.fromEncodingData(
+      GetBlockTimeStampOffsetResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

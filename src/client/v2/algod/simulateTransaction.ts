@@ -1,15 +1,17 @@
-import { Buffer } from 'buffer';
-import * as encoding from '../../../encoding/encoding';
-import HTTPClient from '../../client';
-import JSONRequest from '../jsonrequest';
-import { SimulateRequest, SimulateResponse } from './models/types';
+import * as encoding from '../../../encoding/encoding.js';
+import IntDecoding from '../../../types/intDecoding.js';
+import { HTTPClient } from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
+import { SimulateRequest, SimulateResponse } from './models/types.js';
 
 /**
  * Sets the default header (if not previously set) for simulating a raw
  * transaction.
  * @param headers - A headers object
  */
-export function setSimulateTransactionsHeaders(headers = {}) {
+export function setSimulateTransactionsHeaders(
+  headers: Record<string, any> = {}
+) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
@@ -30,7 +32,7 @@ export default class SimulateRawTransactions extends JSONRequest<
   constructor(c: HTTPClient, request: SimulateRequest) {
     super(c);
     this.query.format = 'msgpack';
-    this.requestBytes = encoding.rawEncode(request.get_obj_for_encoding(true));
+    this.requestBytes = encoding.encodeMsgpack(request);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -40,19 +42,19 @@ export default class SimulateRawTransactions extends JSONRequest<
 
   async do(headers = {}) {
     const txHeaders = setSimulateTransactionsHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      Buffer.from(this.requestBytes),
-      txHeaders,
-      this.query,
-      false
-    );
+    const res = await this.c.post({
+      relativePath: this.path(),
+      data: this.requestBytes,
+      parseBody: false,
+      jsonOptions: { intDecoding: IntDecoding.BIGINT },
+      query: this.query,
+      requestHeaders: txHeaders,
+    });
     return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Uint8Array): SimulateResponse {
-    const decoded = encoding.decode(body);
-    return SimulateResponse.from_obj_for_encoding(decoded);
+    return encoding.decodeMsgpack(body, SimulateResponse);
   }
 }

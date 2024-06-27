@@ -1,11 +1,13 @@
-import { Buffer } from 'buffer';
-import * as utils from '../utils/utils';
+import * as utils from '../utils/utils.js';
 import {
   BaseHTTPClient,
   BaseHTTPClientResponse,
   Query,
-} from './baseHTTPClient';
-import { TokenHeader, URLTokenBaseHTTPClient } from './urlTokenBaseHTTPClient';
+} from './baseHTTPClient.js';
+import {
+  TokenHeader,
+  URLTokenBaseHTTPClient,
+} from './urlTokenBaseHTTPClient.js';
 
 interface ErrorWithAdditionalInfo extends Error {
   rawResponse: string | null;
@@ -38,9 +40,12 @@ function removeFalsyOrEmpty(obj: Record<string, any>) {
  * See https://codereview.stackexchange.com/a/162418
  * Used to ensure all headers are lower-case and to work more easily with them
  */
-function tolowerCaseKeys(o: object): object {
+function tolowerCaseKeys(o: Record<string, any>): Record<string, any> {
   /* eslint-disable no-param-reassign,no-return-assign,no-sequences */
-  return Object.keys(o).reduce((c, k) => ((c[k.toLowerCase()] = o[k]), c), {});
+  return Object.keys(o).reduce(
+    (c, k) => ((c[k.toLowerCase()] = o[k]), c),
+    {} as Record<string, any>
+  );
   /* eslint-enable no-param-reassign,no-return-assign,no-sequences */
 }
 
@@ -70,7 +75,7 @@ function getAcceptFormat(
  * It takes care of setting the proper "Accept" header and of
  * decoding the JSON outputs.
  */
-export default class HTTPClient {
+export class HTTPClient {
   private bc: BaseHTTPClient;
 
   /**
@@ -107,8 +112,7 @@ export default class HTTPClient {
   }
 
   /**
-   * Parse JSON using either the built-in JSON.parse or utils.parseJSON
-   * depending on whether jsonOptions are provided or not
+   * Parse JSON using utils.parseJSON
    *
    * @param text - JSON data
    * @param status - Status of the response (used in case parseJSON fails)
@@ -118,15 +122,15 @@ export default class HTTPClient {
   public static parseJSON(
     text: string,
     status: number,
-    jsonOptions: utils.JSONOptions = {}
+    jsonOptions: utils.ParseJSONOptions
   ) {
     try {
-      if (Object.keys(jsonOptions).length === 0) {
-        return text && JSON.parse(text);
+      if (!text) {
+        return null;
       }
-      return text && utils.parseJSON(text, jsonOptions);
+      return utils.parseJSON(text, jsonOptions);
     } catch (err_) {
-      const err: ErrorWithAdditionalInfo = err_;
+      const err = err_ as ErrorWithAdditionalInfo;
       // return the raw response if the response parsing fails
       err.rawResponse = text || null;
       // return the http status code if the response parsing fails
@@ -151,10 +155,10 @@ export default class HTTPClient {
       return new Uint8Array(0); // empty Uint8Array
     }
     if (requestHeaders['content-type'] === 'application/json') {
-      return new Uint8Array(Buffer.from(JSON.stringify(data)));
+      return new TextEncoder().encode(utils.stringifyJSON(data));
     }
     if (typeof data === 'string') {
-      return new Uint8Array(Buffer.from(data));
+      return new TextEncoder().encode(data);
     }
     if (data instanceof Uint8Array) {
       return data;
@@ -173,17 +177,17 @@ export default class HTTPClient {
     res: BaseHTTPClientResponse,
     format: 'application/msgpack' | 'application/json',
     parseBody: boolean,
-    jsonOptions: utils.JSONOptions = {}
+    jsonOptions: utils.ParseJSONOptions
   ): HTTPClientResponse {
     let { body } = res;
-    let text;
+    let text: string | undefined;
 
     if (format !== 'application/msgpack') {
-      text = (body && Buffer.from(body).toString()) || '';
+      text = (body && new TextDecoder().decode(body)) || '';
     }
 
     if (parseBody && format === 'application/json') {
-      body = HTTPClient.parseJSON(text, res.status, jsonOptions);
+      body = HTTPClient.parseJSON(text!, res.status, jsonOptions);
     }
 
     return {
@@ -200,13 +204,17 @@ export default class HTTPClient {
    * by adding the status and preparing the internal response
    * @private
    */
-  private static prepareResponseError(err) {
+  private static prepareResponseError(
+    err: any,
+    jsonOptions: utils.ParseJSONOptions
+  ) {
     if (err.response) {
       // eslint-disable-next-line no-param-reassign
       err.response = HTTPClient.prepareResponse(
         err.response,
         'application/json',
-        true
+        true,
+        jsonOptions
       );
       // eslint-disable-next-line no-param-reassign
       err.status = err.response.status;
@@ -216,35 +224,43 @@ export default class HTTPClient {
 
   /**
    * Send a GET request.
-   * @param relativePath - The path of the request.
-   * @param query - An object containing the query parameters of the request.
-   * @param requestHeaders - An object containing additional request headers to use.
-   * @param jsonOptions - Options object to use to decode JSON responses. See
+   *
+   * @param options - The options to use for the request.
+   * @param options.relativePath - The path of the request.
+   * @param options.jsonOptions - Options object to use to decode JSON responses. See
    *   utils.parseJSON for the options available.
-   * @param parseBody - An optional boolean indicating whether the response body should be parsed
+   * @param options.query - An object containing the query parameters of the request.
+   * @param options.requestHeaders - An object containing additional request headers to use.
+   * @param options.parseBody - An optional boolean indicating whether the response body should be parsed
    *   or not.
    * @returns Response object.
    */
-  async get(
-    relativePath: string,
-    query?: Query<any>,
-    requestHeaders: Record<string, string> = {},
-    jsonOptions: utils.JSONOptions = {},
-    parseBody: boolean = true
-  ): Promise<HTTPClientResponse> {
+  async get({
+    relativePath,
+    jsonOptions,
+    query,
+    requestHeaders,
+    parseBody,
+  }: {
+    relativePath: string;
+    jsonOptions: utils.ParseJSONOptions;
+    query?: Query<any>;
+    requestHeaders?: Record<string, string>;
+    parseBody: boolean;
+  }): Promise<HTTPClientResponse> {
     const format = getAcceptFormat(query);
-    const fullHeaders = { ...requestHeaders, accept: format };
+    const fullHeaders = { ...(requestHeaders ?? {}), accept: format };
 
     try {
       const res = await this.bc.get(
         relativePath,
-        removeFalsyOrEmpty(query),
+        query ? removeFalsyOrEmpty(query) : undefined,
         fullHeaders
       );
 
       return HTTPClient.prepareResponse(res, format, parseBody, jsonOptions);
     } catch (err) {
-      throw HTTPClient.prepareResponseError(err);
+      throw HTTPClient.prepareResponseError(err, jsonOptions);
     }
   }
 
@@ -252,17 +268,26 @@ export default class HTTPClient {
    * Send a POST request.
    * If no content-type present, adds the header "content-type: application/json"
    * and data is serialized in JSON (if not empty)
+   * @param options - The options to use for the request.
    */
-  async post(
-    relativePath: string,
-    data: any,
-    requestHeaders: Record<string, string> = {},
-    query?: Query<any>,
-    parseBody: boolean = true
-  ): Promise<HTTPClientResponse> {
+  async post({
+    relativePath,
+    data,
+    jsonOptions,
+    query,
+    requestHeaders,
+    parseBody,
+  }: {
+    relativePath: string;
+    data: any;
+    jsonOptions: utils.ParseJSONOptions;
+    query?: Query<any>;
+    requestHeaders?: Record<string, string>;
+    parseBody: boolean;
+  }): Promise<HTTPClientResponse> {
     const fullHeaders = {
       'content-type': 'application/json',
-      ...tolowerCaseKeys(requestHeaders),
+      ...tolowerCaseKeys(requestHeaders ?? {}),
     };
 
     try {
@@ -273,9 +298,14 @@ export default class HTTPClient {
         fullHeaders
       );
 
-      return HTTPClient.prepareResponse(res, 'application/json', parseBody);
+      return HTTPClient.prepareResponse(
+        res,
+        'application/json',
+        parseBody,
+        jsonOptions
+      );
     } catch (err) {
-      throw HTTPClient.prepareResponseError(err);
+      throw HTTPClient.prepareResponseError(err, jsonOptions);
     }
   }
 
@@ -283,25 +313,44 @@ export default class HTTPClient {
    * Send a DELETE request.
    * If no content-type present, adds the header "content-type: application/json"
    * and data is serialized in JSON (if not empty)
+   * @param options - The options to use for the request.
    */
-  async delete(
-    relativePath: string,
-    data: any,
-    requestHeaders: Record<string, string> = {},
-    parseBody: boolean = true
-  ) {
+  async delete({
+    relativePath,
+    data,
+    jsonOptions,
+    requestHeaders,
+    parseBody,
+  }: {
+    relativePath: string;
+    data: any;
+    jsonOptions: utils.ParseJSONOptions;
+    requestHeaders?: Record<string, string>;
+    parseBody: boolean;
+  }) {
     const fullHeaders = {
       'content-type': 'application/json',
-      ...tolowerCaseKeys(requestHeaders),
+      ...tolowerCaseKeys(requestHeaders ?? {}),
     };
 
-    const res = await this.bc.delete(
-      relativePath,
-      HTTPClient.serializeData(data, fullHeaders),
-      undefined,
-      fullHeaders
-    );
+    try {
+      const res = await this.bc.delete(
+        relativePath,
+        typeof data !== 'undefined'
+          ? HTTPClient.serializeData(data, fullHeaders)
+          : undefined,
+        undefined,
+        fullHeaders
+      );
 
-    return HTTPClient.prepareResponse(res, 'application/json', parseBody);
+      return HTTPClient.prepareResponse(
+        res,
+        'application/json',
+        parseBody,
+        jsonOptions
+      );
+    } catch (err) {
+      throw HTTPClient.prepareResponseError(err, jsonOptions);
+    }
   }
 }

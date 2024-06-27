@@ -28,10 +28,9 @@
 @unit.responses.timestamp
 @unit.responses.txid.json
 @unit.responses.txngroupdeltas.json
-@unit.sourcemap
+@unit.sourcemapv2
 @unit.stateproof.paths
 @unit.stateproof.responses
-@unit.stateproof.responses.msgp
 @unit.sync
 @unit.tealsign
 @unit.timestamp

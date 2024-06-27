@@ -1,7 +1,7 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import { HTTPClient } from '../../client.js';
+import JSONRequest from '../jsonrequest.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string
@@ -12,10 +12,12 @@ export function base64StringFunnel(data: Uint8Array | string) {
   if (typeof data === 'string') {
     return data;
   }
-  return Buffer.from(data).toString('base64');
+  return bytesToBase64(data);
 }
 
 export default class LookupAccountTransactions extends JSONRequest {
+  private account: string;
+
   /**
    * Returns transactions relating to the given account.
    *
@@ -28,13 +30,9 @@ export default class LookupAccountTransactions extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idtransactions)
    * @param account - The address of the account.
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
-    this.account = account;
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
+    this.account = account.toString();
   }
 
   /**

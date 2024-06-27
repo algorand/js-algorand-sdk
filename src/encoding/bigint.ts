@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 /**
  * bigIntToBytes converts a BigInt to a big-endian Uint8Array for encoding.
  * @param bi - The bigint to convert.
@@ -27,9 +25,9 @@ export function bigIntToBytes(bi: bigint | number, size: number) {
  */
 export function bytesToBigInt(bytes: Uint8Array) {
   let res = BigInt(0);
-  const buf = Buffer.from(bytes);
+  const buf = new DataView(bytes.buffer, bytes.byteOffset);
   for (let i = 0; i < bytes.length; i++) {
-    res = BigInt(Number(buf.readUIntBE(i, 1))) + res * BigInt(256);
+    res = BigInt(Number(buf.getUint8(i))) + res * BigInt(256);
   }
   return res;
 }

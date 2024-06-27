@@ -1,12 +1,12 @@
-import * as nacl from './nacl/naclWrappers';
-import * as address from './encoding/address';
-import Account from './types/account';
+import * as nacl from './nacl/naclWrappers.js';
+import { Address } from './encoding/address.js';
+import Account from './types/account.js';
 
 /**
  * generateAccount returns a new Algorand address and its corresponding secret key
  */
 export default function generateAccount(): Account {
   const keys = nacl.keyPair();
-  const encodedPk = address.encodeAddress(keys.publicKey);
-  return { addr: encodedPk, sk: keys.secretKey };
+  const addr = new Address(keys.publicKey);
+  return { addr, sk: keys.secretKey };
 }

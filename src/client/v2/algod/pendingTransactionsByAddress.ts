@@ -1,23 +1,27 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import * as encoding from '../../../encoding/encoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
+import * as encoding from '../../../encoding/encoding.js';
+import { PendingTransactionsResponse } from './models/types.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * returns all transactions for a PK [addr] in the [first, last] rounds range.
  */
-export default class PendingTransactionsByAddress extends JSONRequest {
-  constructor(c: HTTPClient, private address: string) {
+export default class PendingTransactionsByAddress extends JSONRequest<
+  PendingTransactionsResponse,
+  Uint8Array
+> {
+  private address: string;
+
+  constructor(c: HTTPClient, address: string | Address) {
     super(c);
-    this.address = address;
+    this.address = address.toString();
     this.query.format = 'msgpack';
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): Record<string, any> {
-    if (body && body.byteLength > 0) {
-      return encoding.decode(body) as Record<string, any>;
-    }
-    return undefined;
+  prepare(body: Uint8Array): PendingTransactionsResponse {
+    return encoding.decodeMsgpack(body, PendingTransactionsResponse);
   }
 
   path() {

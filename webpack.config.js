@@ -15,6 +15,7 @@ module.exports = {
   resolve: {
     // Add '.ts' as resolvable extensions
     extensions: ['.ts', '.js'],
+    extensionAlias: { '.js': ['.ts', '.js'] },
   },
   module: {
     rules: [

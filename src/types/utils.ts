@@ -5,8 +5,8 @@
 export type Expand<T> = T extends (...args: infer A) => infer R
   ? (...args: Expand<A>) => Expand<R>
   : T extends infer O
-  ? { [K in keyof O]: O[K] }
-  : never;
+    ? { [K in keyof O]: O[K] }
+    : never;
 
 /**
  * Same as TypeScript's Pick, but will distribute the Pick over unions
@@ -59,5 +59,5 @@ export type RenameProperties<
   T,
   R extends {
     [K in keyof R]: K extends keyof T ? PropertyKey : 'Error: key not in T';
-  }
+  },
 > = { [P in keyof T as P extends keyof R ? R[P] : P]: T[P] };

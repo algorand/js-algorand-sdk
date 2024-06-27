@@ -1,7 +1,6 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { BoxesResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
+import { BoxesResponse } from './models/types.js';
 
 /**
  * Given an application ID, return all the box names associated with the app.
@@ -21,9 +20,11 @@ export default class GetApplicationBoxes extends JSONRequest<
   BoxesResponse,
   Record<string, any>
 > {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
-    this.index = index;
+  constructor(
+    c: HTTPClient,
+    private index: number
+  ) {
+    super(c);
     this.query.max = 0;
   }
 
@@ -56,6 +57,8 @@ export default class GetApplicationBoxes extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): BoxesResponse {
-    return BoxesResponse.from_obj_for_encoding(body);
+    return BoxesResponse.fromEncodingData(
+      BoxesResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

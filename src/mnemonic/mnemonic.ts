@@ -1,19 +1,19 @@
 /* eslint-disable no-bitwise */
-import english from './wordlists/english';
-import * as nacl from '../nacl/naclWrappers';
-import * as address from '../encoding/address';
-import Account from '../types/account';
+import english from './wordlists/english.js';
+import * as nacl from '../nacl/naclWrappers.js';
+import { Address } from '../encoding/address.js';
+import Account from '../types/account.js';
 
 export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 export const NOT_IN_WORDS_LIST_ERROR_MSG =
   'the mnemonic contains a word that is not in the wordlist';
 
 // https://stackoverflow.com/a/51452614
-function toUint11Array(buffer8: Uint8Array | number[]) {
-  const buffer11 = [];
+function toUint11Array(buffer8: Uint8Array | number[]): number[] {
+  const buffer11: number[] = [];
   let acc = 0;
   let accBits = 0;
-  function add(octet) {
+  function add(octet: number) {
     acc |= octet << accBits;
     accBits += 8;
     if (accBits >= 11) {
@@ -33,11 +33,11 @@ function toUint11Array(buffer8: Uint8Array | number[]) {
   return buffer11;
 }
 
-function applyWords(nums: number[]) {
+function applyWords(nums: number[]): string[] {
   return nums.map((n) => english[n]);
 }
 
-function computeChecksum(seed: Uint8Array) {
+function computeChecksum(seed: Uint8Array): string {
   const hashBuffer = nacl.genericHash(seed);
   const uint11Hash = toUint11Array(hashBuffer);
   const words = applyWords(uint11Hash);
@@ -66,11 +66,11 @@ export function mnemonicFromSeed(seed: Uint8Array) {
 
 // from Uint11Array
 // https://stackoverflow.com/a/51452614
-function toUint8Array(buffer11: number[]) {
-  const buffer8 = [];
+function toUint8Array(buffer11: number[]): Uint8Array {
+  const buffer8: number[] = [];
   let acc = 0;
   let accBits = 0;
-  function add(ui11) {
+  function add(ui11: number) {
     acc |= ui11 << accBits;
     accBits += 11;
     while (accBits >= 8) {
@@ -146,8 +146,8 @@ export function seedFromMnemonic(mnemonic: string) {
 export function mnemonicToSecretKey(mn: string): Account {
   const seed = seedFromMnemonic(mn);
   const keys = nacl.keyPairFromSeed(seed);
-  const encodedPk = address.encodeAddress(keys.publicKey);
-  return { addr: encodedPk, sk: keys.secretKey };
+  const addr = new Address(keys.publicKey);
+  return { addr, sk: keys.secretKey };
 }
 
 /**

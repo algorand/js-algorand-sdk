@@ -1,7 +1,6 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { BoxesResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient } from '../../client.js';
+import { BoxesResponse } from './models/types.js';
 
 export default class SearchForApplicationBoxes extends JSONRequest<
   BoxesResponse,
@@ -33,9 +32,11 @@ export default class SearchForApplicationBoxes extends JSONRequest<
    * @oaram index - application index.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
-    this.index = index;
+  constructor(
+    c: HTTPClient,
+    private index: number
+  ) {
+    super(c);
   }
 
   /**
@@ -96,6 +97,8 @@ export default class SearchForApplicationBoxes extends JSONRequest<
 
   // eslint-disable-next-line class-methods-use-this
   prepare(body: Record<string, any>): BoxesResponse {
-    return BoxesResponse.from_obj_for_encoding(body);
+    return BoxesResponse.fromEncodingData(
+      BoxesResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

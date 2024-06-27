@@ -2,7 +2,6 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import { Buffer } from 'buffer';
 import {
   getLocalIndexerClient,
   getLocalAccounts,
@@ -66,30 +65,26 @@ async function main() {
   const sender = accounts[0];
 
   const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: sender.addr,
-    to: sender.addr,
+    sender: sender.addr,
+    receiver: sender.addr,
     amount: 1e6,
-    note: new Uint8Array(Buffer.from('Hello World!')),
+    note: new TextEncoder().encode('Hello World!'),
     suggestedParams,
   });
 
   await client.sendRawTransaction(txn.signTxn(sender.privateKey)).do();
-  const result = await algosdk.waitForConfirmation(
-    client,
-    txn.txID().toString(),
-    3
-  );
+  const result = await algosdk.waitForConfirmation(client, txn.txID(), 3);
 
   // ensure indexer is caught up
-  await indexerWaitForRound(indexerClient, result['confirmed-round'], 30);
+  await indexerWaitForRound(indexerClient, result.confirmedRound!, 30);
 
   // example: INDEXER_PREFIX_SEARCH
   const txnsWithNotePrefix = await indexerClient
     .searchForTransactions()
-    .notePrefix(Buffer.from('Hello'))
+    .notePrefix(new TextEncoder().encode('Hello'))
     .do();
   console.log(
-    `Transactions with note prefix "Hello" ${JSON.stringify(
+    `Transactions with note prefix "Hello" ${algosdk.stringifyJSON(
       txnsWithNotePrefix,
       undefined,
       2
