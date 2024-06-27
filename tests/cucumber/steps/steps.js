@@ -1775,6 +1775,40 @@ module.exports = function getSteps(options) {
     }
   );
 
+  function pruneDefaultValuesFromObject(object) {
+    const prunedObject = { ...object };
+    for (const [key, value] of Object.entries(prunedObject)) {
+      if (
+        value === undefined ||
+        value === 0 ||
+        value === '' ||
+        value === false ||
+        (Array.isArray(value) && value.length === 0) ||
+        (typeof value === 'object' && Object.keys(value).length === 0)
+      ) {
+        delete prunedObject[key];
+        continue;
+      }
+      if (Array.isArray(value)) {
+        prunedObject[key] = value.map((element) =>
+          typeof element === 'object' &&
+          !Array.isArray(element) &&
+          element !== null
+            ? pruneDefaultValuesFromObject(element)
+            : element
+        );
+        continue;
+      }
+      if (typeof value === 'object') {
+        prunedObject[key] = pruneDefaultValuesFromObject(value);
+        if (Object.keys(prunedObject[key]).length === 0) {
+          delete prunedObject[key];
+        }
+      }
+    }
+    return prunedObject;
+  }
+
   Then('the parsed response should equal the mock response.', function () {
     let encodedResponseObject;
     if (this.expectedMockResponseCode === 200) {
@@ -1796,9 +1830,12 @@ module.exports = function getSteps(options) {
       actualResponseObject = algosdk.parseJSON(encodedResponseObject, {
         intDecoding: algosdk.IntDecoding.MIXED,
       });
-      parsedExpectedMockResponse = algosdk.parseJSON(expectedMockResponse, {
-        intDecoding: algosdk.IntDecoding.MIXED,
-      });
+      // Prune default values from the actual response object to match the expected response object.
+      parsedExpectedMockResponse = pruneDefaultValuesFromObject(
+        algosdk.parseJSON(expectedMockResponse, {
+          intDecoding: algosdk.IntDecoding.MIXED,
+        })
+      );
     } else {
       actualResponseObject = algosdk.decodeObj(encodedResponseObject);
       parsedExpectedMockResponse = algosdk.decodeObj(expectedMockResponse);
@@ -4970,7 +5007,7 @@ module.exports = function getSteps(options) {
         .compile(tealSrc)
         .sourcemap(true)
         .do();
-      this.rawSourceMap = algosdk.stringifyJSON(compiledResponse.sourcemap);
+      this.rawSourceMap = algosdk.encodeJSON(compiledResponse.sourcemap);
     }
   );
 
