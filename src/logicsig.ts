@@ -67,7 +67,7 @@ const programTag = new TextEncoder().encode('Program');
  LogicSig cannot sign transactions in all cases.  Instead, use LogicSigAccount as a safe, general purpose signing mechanism.  Since LogicSig does not track the provided signature's public key, LogicSig cannot sign transactions when delegated to a non-multisig account _and_ the sender is not the delegating account.
  */
 export class LogicSig implements encoding.Encodable {
-  static encodingSchema = new NamedMapSchema(
+  static readonly encodingSchema = new NamedMapSchema(
     allOmitEmpty([
       {
         key: 'l',
@@ -255,7 +255,7 @@ export class LogicSig implements encoding.Encodable {
  * Represents an account that can sign with a LogicSig program.
  */
 export class LogicSigAccount implements encoding.Encodable {
-  static encodingSchema = new NamedMapSchema(
+  static readonly encodingSchema = new NamedMapSchema(
     allOmitEmpty([
       {
         key: 'lsig',

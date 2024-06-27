@@ -1915,9 +1915,12 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Get Block response should have rewards pool {string}',
     (rewardsPoolAddress) => {
-      assert.ok(anyBlockResponse.block.rwd instanceof algosdk.Address);
+      assert.ok(
+        anyBlockResponse.block.header.rewardState.rewardsPool instanceof
+          algosdk.Address
+      );
       const rewardsPoolB64String = algosdk.bytesToBase64(
-        anyBlockResponse.block.rwd.publicKey
+        anyBlockResponse.block.header.rewardState.rewardsPool.publicKey
       );
       assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
     }

@@ -251,7 +251,7 @@ export interface StateProofTransactionFields {
  * Transaction enables construction of Algorand transactions
  * */
 export class Transaction implements encoding.Encodable {
-  static encodingSchema = new NamedMapSchema(
+  static readonly encodingSchema = new NamedMapSchema(
     allOmitEmpty([
       // Common
       { key: 'type', valueSchema: new StringSchema() },
