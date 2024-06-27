@@ -600,14 +600,37 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
-    it('should correctly serialize and deserialize a state proof transaction from msgpack representation', () => {
+    it('should correctly serialize and deserialize a state proof transaction from msgpack representation', async () => {
+      async function loadResource(name: string): Promise<Uint8Array> {
+        const res = await fetch(
+          `http://localhost:8080/tests/resources/${name}`
+        );
+        if (!res.ok) {
+          throw new Error(`Failed to load resource (${res.status}): ${name}`);
+        }
+        return new Uint8Array(await res.arrayBuffer());
+      }
+
+      const stateProofBytes = await loadResource('stateproof.msgp');
+      const stateProof = algosdk.decodeMsgpack(
+        stateProofBytes,
+        algosdk.StateProof
+      );
+      const stateProofMessageBytes = algosdk.base64ToBytes(
+        'haFQzgAhmcOhYsQg2yjiUJZ8n0Dj9ElQ166GrxpvvoRCn0L/Z6QuAXpXDoShZs4CY10BoWzOAmNeAKF2xEB5RkiWhqppJ50rMDHrQ1tiQUskmFvyFDo3AoC+Z6RxNMzyD7QsXIm6oEFcI0We/ANEyffmfHIs8nNCbWcGdgmI'
+      );
+      const stateProofMessage = algosdk.decodeMsgpack(
+        stateProofMessageBytes,
+        algosdk.StateProofMessage
+      );
+
       const expectedTxn = new algosdk.Transaction({
         type: algosdk.TransactionType.stpf,
         sender: 'XMHLMNAVJIMAW2RHJXLXKKK4G3J3U6VONNO3BTAQYVDC3MHTGDP3J5OCRU',
         stateProofParams: {
           stateProofType: 0,
-          stateProof: new Uint8Array([1, 1, 1, 1]),
-          stateProofMessage: new Uint8Array([0, 0, 0, 0]),
+          stateProof,
+          message: stateProofMessage,
         },
         suggestedParams: {
           minFee: 1000,
