@@ -1493,12 +1493,12 @@ module.exports = function getSteps(options) {
             break;
           case 'TealCompile':
             this.actualMockResponse = await this.v2Client
-              .compile(new Uint8Array())
+              .compile(makeUint8Array())
               .do();
             break;
           case 'RawTransaction':
             this.actualMockResponse = await this.v2Client
-              .sendRawTransaction(new Uint8Array())
+              .sendRawTransaction(makeUint8Array())
               .do();
             break;
           case 'GetSupply':
@@ -1776,7 +1776,14 @@ module.exports = function getSteps(options) {
   );
 
   function pruneDefaultValuesFromObject(object) {
-    const prunedObject = { ...object };
+    if (
+      typeof object !== 'object' ||
+      object === null ||
+      Array.isArray(object)
+    ) {
+      throw new Error('pruneDefaultValuesFromObject expects an object.');
+    }
+    const prunedObject = makeObject(object);
     for (const [key, value] of Object.entries(prunedObject)) {
       if (
         value === undefined ||
