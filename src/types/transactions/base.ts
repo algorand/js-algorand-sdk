@@ -1,4 +1,5 @@
 import { Address } from '../../encoding/address.js';
+import { StateProof, StateProofMessage } from '../../stateproof.js';
 
 /**
  * Enum for application transaction types.
@@ -455,14 +456,14 @@ export interface StateProofTransactionParams {
   stateProofType?: number | bigint;
 
   /**
-   * Byte array containing the state proof.
+   * The state proof.
    */
-  stateProof?: Uint8Array;
+  stateProof?: StateProof;
 
   /**
-   * Byte array containing the state proof message.
+   * The state proof message.
    */
-  stateProofMessage?: Uint8Array;
+  message?: StateProofMessage;
 }
 
 /**

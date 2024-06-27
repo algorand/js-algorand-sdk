@@ -4,10 +4,33 @@ const Mocha = require('mocha');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
 
 const webpackConfig = require('../webpack.config');
 
 const browser = process.env.TEST_BROWSER;
+
+const resourceServerPort = 8080;
+let resourceServer;
+
+const resourcePath = path.dirname(__dirname);
+
+async function startResourceServer() {
+  const app = express();
+  app.use(express.static(resourcePath));
+  await new Promise((resolve) => {
+    resourceServer = app.listen(resourceServerPort, undefined, resolve);
+  });
+  console.log(
+    `Resource server started on port ${resourceServerPort} serving ${resourcePath}`
+  );
+}
+
+function stopResourceServer() {
+  if (resourceServer) {
+    resourceServer.close();
+  }
+}
 
 async function testRunner() {
   console.log('TEST_BROWSER is', browser);
@@ -20,8 +43,9 @@ async function testRunner() {
     )
     .map((file) => path.join(__dirname, file));
 
+  await startResourceServer();
+
   if (browser) {
-    const browserEntry = path.join(__dirname, 'browser', 'index.html');
     const bundleLocation = path.join(__dirname, 'browser', 'bundle.js');
 
     await new Promise((resolve, reject) => {
@@ -78,7 +102,9 @@ async function testRunner() {
       .forBrowser(browser)
       .build();
 
-    await driver.get(`file://${browserEntry}`);
+    await driver.get(
+      `http://localhost:${resourceServerPort}/tests/browser/index.html`
+    );
 
     const title = await driver.getTitle();
 
@@ -130,10 +156,15 @@ async function testRunner() {
     });
     testFiles.forEach((file) => mocha.addFile(file));
 
-    mocha.run((failures) => {
-      process.exitCode = failures ? 1 : 0;
+    await new Promise((resolve) => {
+      mocha.run((failures) => {
+        process.exitCode = failures ? 1 : 0;
+        resolve();
+      });
     });
   }
+
+  stopResourceServer();
 }
 
 testRunner().catch((err) => {

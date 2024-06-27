@@ -21,7 +21,7 @@ import {
 } from './encoding/schema/index.js';
 
 export class SignedTransaction implements Encodable {
-  static encodingSchema = new NamedMapSchema(
+  static readonly encodingSchema = new NamedMapSchema(
     allOmitEmpty([
       {
         key: 'txn',

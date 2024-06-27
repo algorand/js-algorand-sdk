@@ -31,6 +31,7 @@ import {
   ApplicationCallTransactionParams,
   StateProofTransactionParams,
 } from './types/transactions/base.js';
+import { StateProof, StateProofMessage } from './stateproof.js';
 import * as utils from './utils/utils.js';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
@@ -243,15 +244,15 @@ export interface ApplicationTransactionFields {
 
 export interface StateProofTransactionFields {
   readonly stateProofType: number;
-  readonly stateProof: Uint8Array;
-  readonly stateProofMessage: Uint8Array;
+  readonly stateProof?: StateProof;
+  readonly message?: StateProofMessage;
 }
 
 /**
  * Transaction enables construction of Algorand transactions
  * */
 export class Transaction implements encoding.Encodable {
-  static encodingSchema = new NamedMapSchema(
+  static readonly encodingSchema = new NamedMapSchema(
     allOmitEmpty([
       // Common
       { key: 'type', valueSchema: new StringSchema() },
@@ -431,9 +432,12 @@ export class Transaction implements encoding.Encodable {
       },
       { key: 'apep', valueSchema: new OptionalSchema(new Uint64Schema()) },
       // StateProof
-      { key: 'spft', valueSchema: new OptionalSchema(new Uint64Schema()) },
-      { key: 'sp', valueSchema: new OptionalSchema(new ByteArraySchema()) },
-      { key: 'spmsg', valueSchema: new OptionalSchema(new ByteArraySchema()) },
+      { key: 'sptype', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'sp', valueSchema: new OptionalSchema(StateProof.encodingSchema) },
+      {
+        key: 'spmsg',
+        valueSchema: new OptionalSchema(StateProofMessage.encodingSchema),
+      },
     ])
   );
 
@@ -692,12 +696,8 @@ export class Transaction implements encoding.Encodable {
         stateProofType: utils.ensureSafeUnsignedInteger(
           params.stateProofParams.stateProofType ?? 0
         ),
-        stateProof: ensureUint8Array(
-          params.stateProofParams.stateProof ?? new Uint8Array()
-        ),
-        stateProofMessage: ensureUint8Array(
-          params.stateProofParams.stateProofMessage ?? new Uint8Array()
-        ),
+        stateProof: params.stateProofParams.stateProof,
+        message: params.stateProofParams.message,
       };
     }
 
@@ -827,8 +827,18 @@ export class Transaction implements encoding.Encodable {
 
     if (this.stateProof) {
       data.set('sptype', this.stateProof.stateProofType);
-      data.set('spmsg', this.stateProof.stateProofMessage);
-      data.set('sp', this.stateProof.stateProof);
+      data.set(
+        'sp',
+        this.stateProof.stateProof
+          ? this.stateProof.stateProof.toEncodingData()
+          : undefined
+      );
+      data.set(
+        'spmsg',
+        this.stateProof.message
+          ? this.stateProof.message.toEncodingData()
+          : undefined
+      );
       return data;
     }
 
@@ -988,8 +998,12 @@ export class Transaction implements encoding.Encodable {
     } else if (params.type === TransactionType.stpf) {
       const stateProofParams: StateProofTransactionParams = {
         stateProofType: data.get('sptype'),
-        stateProof: data.get('sp'),
-        stateProofMessage: data.get('spmsg'),
+        stateProof: data.get('sp')
+          ? StateProof.fromEncodingData(data.get('sp'))
+          : undefined,
+        message: data.get('spmsg')
+          ? StateProofMessage.fromEncodingData(data.get('spmsg'))
+          : undefined,
       };
       params.stateProofParams = stateProofParams;
     } else {

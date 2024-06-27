@@ -16,6 +16,9 @@ import {
   FixedLengthByteArraySchema,
   ArraySchema,
   NamedMapSchema,
+  NamedMapEntry,
+  Uint64MapSchema,
+  StringMapSchema,
   UntypedSchema,
   OptionalSchema,
   allOmitEmpty,
@@ -26,7 +29,7 @@ const ERROR_CONTAINS_EMPTY_STRING =
 
 describe('encoding', () => {
   class ExampleEncodable implements algosdk.Encodable {
-    static encodingSchema = new NamedMapSchema(
+    static readonly encodingSchema = new NamedMapSchema(
       allOmitEmpty([
         { key: 'a', valueSchema: new Uint64Schema() },
         { key: 'b', valueSchema: new StringSchema() },
@@ -1052,6 +1055,68 @@ describe('encoding', () => {
           preparedMsgpackValues: [undefined, true, false],
           preparedJsonValues: [null, true, false],
         },
+        {
+          name: 'Uint64MapSchema of BooleanSchema',
+          schema: new Uint64MapSchema(new BooleanSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [0n, true],
+              [1n, false],
+              [2n, true],
+              [BigInt('18446744073709551615'), true],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [0n, true],
+              [1n, false],
+              [2n, true],
+              [BigInt('18446744073709551615'), true],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              0: true,
+              1: false,
+              2: true,
+              '18446744073709551615': true,
+            },
+          ],
+        },
+        {
+          name: 'StringMapSchema of BooleanSchema',
+          schema: new StringMapSchema(new BooleanSchema()),
+          values: [
+            new Map(),
+            new Map([
+              ['a', true],
+              ['b', false],
+              ['c', true],
+              ['', true],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              ['a', true],
+              ['b', false],
+              ['c', true],
+              ['', true],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              a: true,
+              b: false,
+              c: true,
+              '': true,
+            },
+          ],
+        },
       ];
 
       const primitiveTestcases = testcases.slice();
@@ -1258,6 +1323,26 @@ describe('encoding', () => {
             // false gets restored as undefined
             emptyValueRestored: new Map([['key', undefined]]),
             nonemptyValue: new Map([['key', true]]),
+          },
+          {
+            schema: new Uint64MapSchema(new BooleanSchema()),
+            emptyValue: new Map(),
+            nonemptyValue: new Map([
+              [0n, true],
+              [1n, false],
+              [2n, true],
+              [BigInt('18446744073709551615'), true],
+            ]),
+          },
+          {
+            schema: new StringMapSchema(new BooleanSchema()),
+            emptyValue: new Map(),
+            nonemptyValue: new Map([
+              ['a', true],
+              ['b', false],
+              ['c', true],
+              ['', true],
+            ]),
           },
         ];
 
@@ -1495,6 +1580,528 @@ describe('encoding', () => {
           }
         );
       });
+
+      it('correctly embeds other maps', () => {
+        const bSchema = new NamedMapSchema([
+          {
+            key: 'b',
+            omitEmpty: true,
+            valueSchema: new Uint64Schema(),
+          },
+        ]);
+
+        const abSchema = new NamedMapSchema([
+          {
+            key: 'a',
+            omitEmpty: true,
+            valueSchema: new StringSchema(),
+          },
+          {
+            key: '',
+            omitEmpty: true,
+            valueSchema: bSchema,
+            embedded: true,
+          },
+        ]);
+
+        const emptySchema = new NamedMapSchema([]);
+
+        const abcdSchema = new NamedMapSchema([
+          {
+            key: '',
+            omitEmpty: true,
+            valueSchema: abSchema,
+            embedded: true,
+          },
+          {
+            key: 'c',
+            omitEmpty: true,
+            valueSchema: new BooleanSchema(),
+          },
+          {
+            key: 'd',
+            omitEmpty: true,
+            valueSchema: new ArraySchema(new StringSchema()),
+          },
+          {
+            key: '',
+            omitEmpty: true,
+            valueSchema: emptySchema,
+            embedded: true,
+          },
+        ]);
+
+        const actualEntries = abcdSchema.getEntries();
+        const expectedEntries: NamedMapEntry[] = [
+          { key: 'a', omitEmpty: true, valueSchema: new StringSchema() },
+          { key: 'b', omitEmpty: true, valueSchema: new Uint64Schema() },
+          { key: 'c', omitEmpty: true, valueSchema: new BooleanSchema() },
+          {
+            key: 'd',
+            omitEmpty: true,
+            valueSchema: new ArraySchema(new StringSchema()),
+          },
+        ];
+        assert.deepStrictEqual(actualEntries, expectedEntries);
+
+        const acutalDefaultValue = abcdSchema.defaultValue();
+        const expectedDefaultValue = new Map<string, unknown>([
+          ['a', ''],
+          ['b', BigInt(0)],
+          ['c', false],
+          ['d', []],
+        ]);
+        assert.deepStrictEqual(acutalDefaultValue, expectedDefaultValue);
+      });
+
+      it('correctly pushes new entries', () => {
+        const schema = new NamedMapSchema([
+          {
+            key: 'a',
+            omitEmpty: true,
+            valueSchema: new StringSchema(),
+          },
+        ]);
+
+        schema.pushEntries({
+          key: 'b',
+          omitEmpty: true,
+          valueSchema: new Uint64Schema(),
+        });
+
+        const actualEntries = schema.getEntries();
+        const expectedEntries: NamedMapEntry[] = [
+          { key: 'a', omitEmpty: true, valueSchema: new StringSchema() },
+          { key: 'b', omitEmpty: true, valueSchema: new Uint64Schema() },
+        ];
+        assert.deepStrictEqual(actualEntries, expectedEntries);
+
+        assert.throws(
+          () =>
+            schema.pushEntries({
+              key: 'a',
+              omitEmpty: true,
+              valueSchema: new StringSchema(),
+            }),
+          new Error('Duplicate key: a')
+        );
+      });
+
+      it('errors on invalid constructor args', () => {
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+            ]),
+          new Error('Duplicate key: a')
+        );
+
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: '',
+                omitEmpty: true,
+                valueSchema: new NamedMapSchema([
+                  {
+                    key: 'a',
+                    omitEmpty: true,
+                    valueSchema: new StringSchema(),
+                  },
+                ]),
+                embedded: true,
+              },
+            ]),
+          new Error('Duplicate key: a')
+        );
+
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: 'x',
+                omitEmpty: true,
+                valueSchema: new NamedMapSchema([]),
+                embedded: true,
+              },
+            ]),
+          new Error('Embedded entries must have an empty key')
+        );
+
+        assert.throws(
+          () =>
+            new NamedMapSchema([
+              {
+                key: 'a',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+              },
+              {
+                key: '',
+                omitEmpty: true,
+                valueSchema: new StringSchema(),
+                embedded: true,
+              },
+            ]),
+          new Error('Embedded entry valueSchema must be a NamedMapSchema')
+        );
+      });
+    });
+  });
+  describe('BlockResponse', () => {
+    it('should decode block response correctly', () => {
+      const encodedBlockResponse = algosdk.base64ToBytes(
+        'gqVibG9ja94AEqJiac4AmJaAomZjzQPopGZlZXPEIAfay0ttntFBsXV2vUWa5kIdSG2j1O8iR8QJo5a4LqIho2dlbqd0ZXN0LXYxomdoxCBAkI9g4Zidj7KmD7u3TupPRyxIUOsvsCzO1IlIiDKoqKRwcmV2xCDwEylSD3iD5mcCkowyEagukv+yiXVP06RyaMykuKPaqaVwcm90b6ZmdXR1cmWjcHJwxCB/k/5DqCp+P1WW/80hkucvP2neluTb4OL7yjQQnAxn6aNybmRepnJ3Y2Fscs4AB6Ego3J3ZMQg//////////////////////////////////////////+kc2VlZMQgADr2hmA6p7J28mz5Xje3TrogRklc+wKrrknYFoSPXIqjc3B0gQCBoW7NAgCidGPNA+6idHPOZmyEZaN0eG7EILLaFZI8ZSO3lpCwDTjv6JdxgLRqnLkOCthaTJyfoaSipnR4bjI1NsQgyA7uIgAR0IxH57DVsL4snrEy5FdvuTtWPvyPiJfzZGSkdHhuc5GEomNhzwAAJGE4t9aGo2hnacOjc2lnxEAT74Xeryh/ZJtRxGqcKf8UueJmWXmHH9NuQYTIrJqzKI1kKsFHn7smLAwoa0hDSUeUGI5kvWZvM28ggFiOxykMo3R4boelY2xvc2XEIAEBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAo2ZlZc0D6KJmdlyibHbNBESjcmN2xCABAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKNzbmTEIH+T/kOoKn4/VZb/zSGS5y8/ad6W5Nvg4vvKNBCcDGfppHR5cGWjcGF5pGNlcnSEpHByb3CDo2RpZ8Qgl8J9zpVrkwvOVTZlN3p6b0iKuUpWii4Z0ga04n/XeFGmZW5jZGlnxCCG+emw6b9UVPNwpFN+l3F4SDOSkIKxkgpWSiBi0O62q6VvcHJvcMQgf5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+mjcm5kXqRzdGVwAqR2b3RlkYOkY3JlZIGicGbEUIcs4SBw5LBFVDrqyGzHbeuh/PsY5Fr/1oZ+DoPl+N8aAs2ZiEsuPoE/+6oNsiX6YJNFVSBQKaRQBWdPDndXc9w3jq6WR6cEEoi4rCAyyv8Io3NpZ4ahcMQgmOdtSatJuUOlf8qRypCU3uEm3AewgEq+xVOIhtmWUZejcDFzxEAbCsynu50W2/vt6HPCCTAf37rvW1RHk1Y8EnLvBrFIzxi6nZRPeoYdgr4D8yIEKB4Gc7BMFrQbzd1HGKxLKS8GonAyxCCaal9Yfd6VseKV5WCb5lFEeYo3J0X1uOxEspMS8z9uaKNwMnPEQGmZZYbLBiwlzCbu7pdhDl9jSsyWCKW5aM5u0jeSVJGdYzC5SwpVGXlasYN8yj0Z5DKqwweY0ATwg02PCK1xkw2icHPEQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAChc8RAD7PBhIk/Yl40TpUojfBQj79CHOXwpmAToXgmRWG2rkDvmIh4sUjAaXVHdFla1uBMqgLrOk1rEo12QUthenYrB6NzbmTEIH+T/kOoKn4/VZb/zSGS5y8/ad6W5Nvg4vvKNBCcDGfp'
+      );
+      const blockResponse = algosdk.decodeMsgpack(
+        encodedBlockResponse,
+        algosdk.modelsv2.BlockResponse
+      );
+      const expectedBlockResponse = new algosdk.modelsv2.BlockResponse({
+        block: new algosdk.Block({
+          header: new algosdk.BlockHeader({
+            round: BigInt(94),
+            branch: algosdk.base64ToBytes(
+              '8BMpUg94g+ZnApKMMhGoLpL/sol1T9OkcmjMpLij2qk='
+            ),
+            seed: algosdk.base64ToBytes(
+              'ADr2hmA6p7J28mz5Xje3TrogRklc+wKrrknYFoSPXIo='
+            ),
+            txnCommitments: new algosdk.TxnCommitments({
+              nativeSha512_256Commitment: algosdk.base64ToBytes(
+                'stoVkjxlI7eWkLANOO/ol3GAtGqcuQ4K2FpMnJ+hpKI='
+              ),
+              sha256Commitment: algosdk.base64ToBytes(
+                'yA7uIgAR0IxH57DVsL4snrEy5FdvuTtWPvyPiJfzZGQ='
+              ),
+            }),
+            timestamp: BigInt(1718387813),
+            genesisID: 'test-v1',
+            genesisHash: algosdk.base64ToBytes(
+              'QJCPYOGYnY+ypg+7t07qT0csSFDrL7AsztSJSIgyqKg='
+            ),
+            proposer: new algosdk.Address(
+              algosdk.base64ToBytes(
+                'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+              )
+            ),
+            feesCollected: BigInt(1000),
+            bonus: BigInt(10000000),
+            proposerPayout: BigInt(0),
+            rewardState: new algosdk.RewardState({
+              feeSink: new algosdk.Address(
+                algosdk.base64ToBytes(
+                  'B9rLS22e0UGxdXa9RZrmQh1IbaPU7yJHxAmjlrguoiE='
+                )
+              ),
+              rewardsPool: new algosdk.Address(
+                algosdk.base64ToBytes(
+                  '//////////////////////////////////////////8='
+                )
+              ),
+              rewardsLevel: BigInt(0),
+              rewardsRate: BigInt(0),
+              rewardsResidue: BigInt(0),
+              rewardsRecalculationRound: BigInt(500000),
+            }),
+            upgradeState: new algosdk.UpgradeState({
+              currentProtocol: 'future',
+              nextProtocol: '',
+              nextProtocolApprovals: BigInt(0),
+              nextProtocolVoteBefore: BigInt(0),
+              nextProtocolSwitchOn: BigInt(0),
+            }),
+            upgradeVote: new algosdk.UpgradeVote({
+              upgradePropose: '',
+              upgradeDelay: BigInt(0),
+              upgradeApprove: false,
+            }),
+            txnCounter: BigInt(1006),
+            stateproofTracking: new Map<number, algosdk.StateProofTrackingData>(
+              [
+                [
+                  0,
+                  new algosdk.StateProofTrackingData({
+                    stateProofVotersCommitment: new Uint8Array(),
+                    stateProofOnlineTotalWeight: BigInt(0),
+                    stateProofNextRound: BigInt(512),
+                  }),
+                ],
+              ]
+            ),
+            participationUpdates: new algosdk.ParticipationUpdates({
+              expiredParticipationAccounts: [],
+              absentParticipationAccounts: [],
+            }),
+          }),
+          payset: [
+            new algosdk.SignedTxnInBlock({
+              hasGenesisID: true,
+              hasGenesisHash: false,
+              signedTxn: new algosdk.SignedTxnWithAD({
+                signedTxn: new algosdk.SignedTransaction({
+                  txn: new algosdk.Transaction({
+                    sender: new algosdk.Address(
+                      algosdk.base64ToBytes(
+                        'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                      )
+                    ),
+                    type: algosdk.TransactionType.pay,
+                    suggestedParams: {
+                      flatFee: true,
+                      fee: BigInt(1000),
+                      firstValid: BigInt(92),
+                      lastValid: BigInt(1092),
+                      minFee: BigInt(1000),
+                    },
+                    paymentParams: {
+                      amount: 0,
+                      receiver: new algosdk.Address(
+                        algosdk.base64ToBytes(
+                          'AQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        )
+                      ),
+                      closeRemainderTo: new algosdk.Address(
+                        algosdk.base64ToBytes(
+                          'AQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        )
+                      ),
+                    },
+                  }),
+                  sig: algosdk.base64ToBytes(
+                    'E++F3q8of2SbUcRqnCn/FLniZll5hx/TbkGEyKyasyiNZCrBR5+7JiwMKGtIQ0lHlBiOZL1mbzNvIIBYjscpDA=='
+                  ),
+                }),
+                applyData: new algosdk.ApplyData({
+                  closingAmount: BigInt('39999981999750'),
+                }),
+              }),
+            }),
+          ],
+        }),
+        cert: new algosdk.UntypedValue(
+          new Map<string, algosdk.MsgpackEncodingData>([
+            [
+              'prop',
+              new Map<string, Uint8Array>([
+                [
+                  'dig',
+                  algosdk.base64ToBytes(
+                    'l8J9zpVrkwvOVTZlN3p6b0iKuUpWii4Z0ga04n/XeFE='
+                  ),
+                ],
+                [
+                  'encdig',
+                  algosdk.base64ToBytes(
+                    'hvnpsOm/VFTzcKRTfpdxeEgzkpCCsZIKVkogYtDutqs='
+                  ),
+                ],
+                [
+                  'oprop',
+                  algosdk.base64ToBytes(
+                    'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                  ),
+                ],
+              ]),
+            ],
+            ['rnd', 94],
+            ['step', 2],
+            [
+              'vote',
+              [
+                new Map<string, algosdk.MsgpackEncodingData>([
+                  [
+                    'cred',
+                    new Map([
+                      [
+                        'pf',
+                        algosdk.base64ToBytes(
+                          'hyzhIHDksEVUOurIbMdt66H8+xjkWv/Whn4Og+X43xoCzZmISy4+gT/7qg2yJfpgk0VVIFAppFAFZ08Od1dz3DeOrpZHpwQSiLisIDLK/wg='
+                        ),
+                      ],
+                    ]),
+                  ],
+                  [
+                    'sig',
+                    new Map([
+                      [
+                        'p1s',
+                        algosdk.base64ToBytes(
+                          'GwrMp7udFtv77ehzwgkwH9+671tUR5NWPBJy7waxSM8Yup2UT3qGHYK+A/MiBCgeBnOwTBa0G83dRxisSykvBg=='
+                        ),
+                      ],
+                      [
+                        'p2',
+                        algosdk.base64ToBytes(
+                          'mmpfWH3elbHileVgm+ZRRHmKNydF9bjsRLKTEvM/bmg='
+                        ),
+                      ],
+                      [
+                        'p2s',
+                        algosdk.base64ToBytes(
+                          'aZllhssGLCXMJu7ul2EOX2NKzJYIpblozm7SN5JUkZ1jMLlLClUZeVqxg3zKPRnkMqrDB5jQBPCDTY8IrXGTDQ=='
+                        ),
+                      ],
+                      [
+                        'p',
+                        algosdk.base64ToBytes(
+                          'mOdtSatJuUOlf8qRypCU3uEm3AewgEq+xVOIhtmWUZc='
+                        ),
+                      ],
+                      [
+                        'ps',
+                        algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=='
+                        ),
+                      ],
+                      [
+                        's',
+                        algosdk.base64ToBytes(
+                          'D7PBhIk/Yl40TpUojfBQj79CHOXwpmAToXgmRWG2rkDvmIh4sUjAaXVHdFla1uBMqgLrOk1rEo12QUthenYrBw=='
+                        ),
+                      ],
+                    ]),
+                  ],
+                  [
+                    'snd',
+                    algosdk.base64ToBytes(
+                      'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                    ),
+                  ],
+                ]),
+              ],
+            ],
+          ])
+        ),
+      });
+      assert.deepStrictEqual(blockResponse, expectedBlockResponse);
+      const reencoded = algosdk.encodeMsgpack(blockResponse);
+      assert.deepStrictEqual(reencoded, encodedBlockResponse);
+    });
+    it('should decode ApplyData correctly', () => {
+      const encodedApplyData = algosdk.base64ToBytes(
+        'iKNhY2HP//////////+kYXBpZM0iuKJjYc8AACRhOLfWhqRjYWlkzR5homR0haJnZIKqZ2xvYmFsS2V5MYKiYXQBomJzo2FiY6pnbG9iYWxLZXkygqJhdAKidWkyo2l0eJGComR0gaJsZ5KkbG9nM6Rsb2c0o3R4boakYXBpZM0eYaNmZWXNA+iiZnZcomx2zQREo3NuZMQgf5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+mkdHlwZaRhcHBsomxkggCBqWxvY2FsS2V5MYKiYXQBomJzo2RlZgKBqWxvY2FsS2V5MoKiYXQConVpM6JsZ5KkbG9nMaRsb2cyonNhksQgCbEzlTT2uNiZwobypXnCOg5IqgxtO92MuwR8vJwv3ePEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAonJjEaJycgSicnN7'
+      );
+      const applyData = algosdk.decodeMsgpack(
+        encodedApplyData,
+        algosdk.ApplyData
+      );
+      const expectedApplyData = new algosdk.ApplyData({
+        closingAmount: BigInt('39999981999750'),
+        assetClosingAmount: BigInt('0xffffffffffffffff'),
+        senderRewards: BigInt(123),
+        receiverRewards: BigInt(4),
+        closeRewards: BigInt(17),
+        configAsset: BigInt(7777),
+        applicationID: BigInt(8888),
+        evalDelta: new algosdk.EvalDelta({
+          globalDelta: new Map<string, algosdk.ValueDelta>([
+            [
+              'globalKey1',
+              new algosdk.ValueDelta({
+                action: 1,
+                uint: BigInt(0),
+                bytes: 'abc',
+              }),
+            ],
+            [
+              'globalKey2',
+              new algosdk.ValueDelta({
+                action: 2,
+                uint: BigInt(50),
+                bytes: '',
+              }),
+            ],
+          ]),
+          localDeltas: new Map<number, Map<string, algosdk.ValueDelta>>([
+            [
+              0,
+              new Map<string, algosdk.ValueDelta>([
+                [
+                  'localKey1',
+                  new algosdk.ValueDelta({
+                    action: 1,
+                    uint: BigInt(0),
+                    bytes: 'def',
+                  }),
+                ],
+              ]),
+            ],
+            [
+              2,
+              new Map<string, algosdk.ValueDelta>([
+                [
+                  'localKey2',
+                  new algosdk.ValueDelta({
+                    action: 2,
+                    uint: BigInt(51),
+                    bytes: '',
+                  }),
+                ],
+              ]),
+            ],
+          ]),
+          sharedAccts: [
+            algosdk.Address.fromString(
+              'BGYTHFJU624NRGOCQ3ZKK6OCHIHERKQMNU553DF3AR6LZHBP3XR5JLNCUI'
+            ),
+            algosdk.Address.zeroAddress(),
+          ],
+          logs: ['log1', 'log2'],
+          innerTxns: [
+            new algosdk.SignedTxnWithAD({
+              signedTxn: new algosdk.SignedTransaction({
+                txn: new algosdk.Transaction({
+                  sender: new algosdk.Address(
+                    algosdk.base64ToBytes(
+                      'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                    )
+                  ),
+                  type: algosdk.TransactionType.appl,
+                  suggestedParams: {
+                    flatFee: true,
+                    fee: BigInt(1000),
+                    firstValid: BigInt(92),
+                    lastValid: BigInt(1092),
+                    minFee: BigInt(1000),
+                  },
+                  appCallParams: {
+                    appIndex: BigInt(7777),
+                    onComplete: algosdk.OnApplicationComplete.NoOpOC,
+                  },
+                }),
+              }),
+              applyData: new algosdk.ApplyData({
+                evalDelta: new algosdk.EvalDelta({
+                  logs: ['log3', 'log4'],
+                }),
+              }),
+            }),
+          ],
+        }),
+      });
+      assert.deepStrictEqual(applyData, expectedApplyData);
+      const reencoded = algosdk.encodeMsgpack(applyData);
+      assert.deepStrictEqual(reencoded, encodedApplyData);
     });
   });
 });
