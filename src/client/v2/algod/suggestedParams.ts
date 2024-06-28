@@ -19,7 +19,7 @@ export interface SuggestedParamsFromAlgod extends SuggestedParams {
   genesisHash: Uint8Array;
 
   /**
-   * TODO description
+   * ConsensusVersion indicates the consensus protocol version as of the last round.
    */
   consensusVersion: string;
 }

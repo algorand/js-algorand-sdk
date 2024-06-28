@@ -1647,12 +1647,6 @@ module.exports = function getSteps(options) {
           default:
             throw new Error(`Unrecognized algod endpoint: ${endpoint}`);
         }
-        // if (responseFormat === 'msgp') {
-        //   const response = await this.v2Client.block(0).do();
-        //   this.actualMockResponse = response.get_obj_for_encoding(true);
-        // } else {
-        //   this.actualMockResponse = await this.v2Client.genesis().do();
-        // }
       } else if (client === 'indexer') {
         switch (endpoint) {
           case 'lookupAccountByID':
@@ -1764,11 +1758,6 @@ module.exports = function getSteps(options) {
           default:
             throw new Error(`Unrecognized indexer endpoint: ${endpoint}`);
         }
-        // const response = await this.indexerClient.makeHealthCheck().doRaw();
-        // const responseString = new TextDecoder().decode(response);
-        // this.actualMockResponse = algosdk.parseJSON(responseString, {
-        //   intDecoding: algosdk.IntDecoding.BIGINT,
-        // });
       } else {
         throw Error(`did not recognize desired client "${client}"`);
       }
@@ -1789,6 +1778,7 @@ module.exports = function getSteps(options) {
         value === undefined ||
         value === null ||
         value === 0 ||
+        value === BigInt(0) ||
         value === '' ||
         value === false ||
         (Array.isArray(value) && value.length === 0) ||
