@@ -54,7 +54,7 @@ export async function indexerWaitForRound(
   round: number | bigint,
   maxAttempts: number
 ) {
-  let indexerRound = 0;
+  let indexerRound = BigInt(0);
   let attempts = 0;
 
   for (;;) {

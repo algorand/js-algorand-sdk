@@ -1477,62 +1477,390 @@ module.exports = function getSteps(options) {
   When(
     'we make any {string} call to {string}.',
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async function (client, _endpoint) {
-      try {
-        if (client === 'algod') {
-          // endpoints are ignored by mock server, see setupMockServerForResponses
-          if (responseFormat === 'msgp') {
-            const response = await this.v2Client.block(0).do();
-            this.actualMockResponse = response.msgpackPrepare();
-          } else {
+    async function (client, endpoint) {
+      if (client === 'algod') {
+        switch (endpoint) {
+          case 'GetStatus':
+            this.actualMockResponse = await this.v2Client.status().do();
+            break;
+          case 'GetBlock':
+            this.actualMockResponse = await this.v2Client.block(10).do();
+            break;
+          case 'WaitForBlock':
+            this.actualMockResponse = await this.v2Client
+              .statusAfterBlock(10)
+              .do();
+            break;
+          case 'TealCompile':
+            this.actualMockResponse = await this.v2Client
+              .compile(makeUint8Array())
+              .do();
+            break;
+          case 'RawTransaction':
+            this.actualMockResponse = await this.v2Client
+              .sendRawTransaction(makeUint8Array())
+              .do();
+            break;
+          case 'GetSupply':
+            this.actualMockResponse = await this.v2Client.supply().do();
+            break;
+          case 'TransactionParams': {
+            const response = await this.v2Client.getTransactionParams().do();
+            this.actualMockResponse =
+              new algosdk.modelsv2.TransactionParametersResponse({
+                consensusVersion: response.consensusVersion,
+                fee: response.fee,
+                genesisHash: response.genesisHash,
+                genesisId: response.genesisID,
+                lastRound: response.firstValid,
+                minFee: response.minFee,
+              });
+            break;
+          }
+          case 'AccountInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountInformation(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'GetApplicationByID':
+            this.actualMockResponse = await this.v2Client
+              .getApplicationByID(10)
+              .do();
+            break;
+          case 'GetAssetByID':
+            this.actualMockResponse = await this.v2Client.getAssetByID(10).do();
+            break;
+          case 'PendingTransactionInformation':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionInformation('transaction')
+              .do();
+            break;
+          case 'GetPendingTransactions':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionsInformation()
+              .do();
+            break;
+          case 'GetPendingTransactionsByAddress':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionByAddress(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'DryRun':
+            this.actualMockResponse = await this.v2Client
+              .dryrun(
+                new algosdk.modelsv2.DryrunRequest({
+                  accounts: [],
+                  apps: [],
+                  latestTimestamp: 0,
+                  protocolVersion: '',
+                  round: 0,
+                  sources: [],
+                  txns: [],
+                })
+              )
+              .do();
+            break;
+          case 'GetTransactionProof':
+          // fallthrough
+          case 'Proof':
+            this.actualMockResponse = await this.v2Client
+              .getTransactionProof(10, 'asdf')
+              .do();
+            break;
+          case 'GetGenesis':
             this.actualMockResponse = await this.v2Client.genesis().do();
+            break;
+          case 'AccountApplicationInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountApplicationInformation(algosdk.Address.zeroAddress(), 10)
+              .do();
+            break;
+          case 'AccountAssetInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountAssetInformation(algosdk.Address.zeroAddress(), 10)
+              .do();
+            break;
+          case 'GetLightBlockHeaderProof':
+            this.actualMockResponse = await this.v2Client
+              .getLightBlockHeaderProof(123)
+              .do();
+            break;
+          case 'GetStateProof':
+            this.actualMockResponse = await this.v2Client
+              .getStateProof(123)
+              .do();
+            break;
+          case 'GetBlockHash':
+            this.actualMockResponse = await this.v2Client
+              .getBlockHash(123)
+              .do();
+            break;
+          case 'GetSyncRound':
+            this.actualMockResponse = await this.v2Client.getSyncRound().do();
+            break;
+          case 'GetBlockTimeStampOffset':
+            this.actualMockResponse = await this.v2Client
+              .getBlockOffsetTimestamp()
+              .do();
+            break;
+          case 'GetLedgerStateDelta':
+            this.actualMockResponse = await this.v2Client
+              .getLedgerStateDelta(123)
+              .do();
+            break;
+          case 'GetTransactionGroupLedgerStateDeltaForRound':
+            this.actualMockResponse = await this.v2Client
+              .getTransactionGroupLedgerStateDeltasForRound(123)
+              .do();
+            break;
+          case 'GetLedgerStateDeltaForTransactionGroup':
+            this.actualMockResponse = await this.v2Client
+              .getLedgerStateDeltaForTransactionGroup('someID')
+              .do();
+            break;
+          case 'GetBlockTxids':
+            this.actualMockResponse = await this.v2Client
+              .getBlockTxids(123)
+              .do();
+            break;
+          case 'any': {
+            // This is an error case
+            let caughtError = false;
+            try {
+              await this.v2Client.status().do();
+            } catch (err) {
+              assert.strictEqual(this.expectedMockResponseCode, 500);
+              assert.ok(
+                err.toString().includes('Received status 500'),
+                `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
+              );
+
+              assert.ok(err.response.body);
+              this.actualMockResponse = err.response.body;
+              caughtError = true;
+            }
+            if (!caughtError) {
+              throw new Error('Expected error response, got none.');
+            }
+            break;
           }
-        } else if (client === 'indexer') {
-          // endpoints are ignored by mock server, see setupMockServerForResponses
-          this.actualMockResponse = await this.indexerClient
-            .makeHealthCheck()
-            .do();
-        } else {
-          throw Error(`did not recognize desired client "${client}"`);
+          default:
+            throw new Error(`Unrecognized algod endpoint: ${endpoint}`);
         }
-      } catch (err) {
-        if (this.expectedMockResponseCode === 200) {
-          throw err;
-        }
-        if (this.expectedMockResponseCode === 500) {
-          if (!err.toString().includes('Received status 500')) {
-            throw Error(
-              `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
-            );
+      } else if (client === 'indexer') {
+        switch (endpoint) {
+          case 'lookupAccountByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountByID(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'searchForAccounts':
+            this.actualMockResponse = await this.indexerClient
+              .searchAccounts()
+              .do();
+            break;
+          case 'lookupApplicationByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupApplications(10)
+              .do();
+            break;
+          case 'searchForApplications':
+            this.actualMockResponse = await this.indexerClient
+              .searchForApplications()
+              .do();
+            break;
+          case 'lookupAssetBalances':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetBalances(10)
+              .do();
+            break;
+          case 'lookupAssetByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetByID(10)
+              .do();
+            break;
+          case 'searchForAssets':
+            this.actualMockResponse = await this.indexerClient
+              .searchForAssets()
+              .do();
+            break;
+          case 'lookupAccountTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountTransactions(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAssetTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetTransactions(10)
+              .do();
+            break;
+          case 'searchForTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .searchForTransactions()
+              .do();
+            break;
+          case 'lookupBlock':
+            this.actualMockResponse = await this.indexerClient
+              .lookupBlock(10)
+              .do();
+            break;
+          case 'lookupTransaction':
+            this.actualMockResponse = await this.indexerClient
+              .lookupTransactionByID('')
+              .do();
+            break;
+          case 'lookupAccountAppLocalStates':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountAppLocalStates(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountCreatedApplications':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountCreatedApplications(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountAssets':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountAssets(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountCreatedAssets':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountCreatedAssets(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupApplicationLogsByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupApplicationLogs(10)
+              .do();
+            break;
+          case 'any': {
+            // This is an error case
+            let caughtError = false;
+            try {
+              await this.indexerClient.searchAccounts().do();
+            } catch (err) {
+              assert.strictEqual(this.expectedMockResponseCode, 500);
+              assert.ok(
+                err.toString().includes('Received status 500'),
+                `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
+              );
+
+              assert.ok(err.response.body);
+              this.actualMockResponse = err.response.body;
+              caughtError = true;
+            }
+            if (!caughtError) {
+              throw new Error('Expected error response, got none.');
+            }
+            break;
           }
+          default:
+            throw new Error(`Unrecognized indexer endpoint: ${endpoint}`);
         }
+      } else {
+        throw Error(`did not recognize desired client "${client}"`);
       }
     }
   );
 
-  Then('the parsed response should equal the mock response.', function () {
-    if (this.expectedMockResponseCode === 200) {
-      // assert.deepStrictEqual considers a Buffer and Uint8Array with the same contents as unequal.
-      // These types are fairly interchangable in different parts of the SDK, so we need to normalize
-      // them before comparing, which is why we chain encoding/decoding below.
-      if (responseFormat === 'json') {
-        assert.strictEqual(
-          algosdk.stringifyJSON(
-            algosdk.parseJSON(expectedMockResponse, {
-              intDecoding: algosdk.IntDecoding.MIXED,
-            })
-          ),
-          algosdk.stringifyJSON(this.actualMockResponse)
+  function pruneDefaultValuesFromObject(object) {
+    if (
+      typeof object !== 'object' ||
+      object === null ||
+      Array.isArray(object)
+    ) {
+      throw new Error('pruneDefaultValuesFromObject expects an object.');
+    }
+    const prunedObject = makeObject(object);
+    for (const [key, value] of Object.entries(prunedObject)) {
+      if (
+        value === undefined ||
+        value === null ||
+        value === 0 ||
+        value === BigInt(0) ||
+        value === '' ||
+        value === false ||
+        (Array.isArray(value) && value.length === 0) ||
+        (typeof value === 'object' && Object.keys(value).length === 0)
+      ) {
+        delete prunedObject[key];
+        continue;
+      }
+      if (Array.isArray(value)) {
+        prunedObject[key] = value.map((element) =>
+          typeof element === 'object' &&
+          !Array.isArray(element) &&
+          element !== null
+            ? pruneDefaultValuesFromObject(element)
+            : element
         );
-      } else {
-        assert.deepStrictEqual(
-          algosdk.decodeObj(
-            new Uint8Array(algosdk.encodeObj(this.actualMockResponse))
-          ),
-          algosdk.decodeObj(expectedMockResponse)
-        );
+        continue;
+      }
+      if (typeof value === 'object') {
+        prunedObject[key] = pruneDefaultValuesFromObject(value);
+        if (Object.keys(prunedObject[key]).length === 0) {
+          delete prunedObject[key];
+        }
       }
     }
+    return prunedObject;
+  }
+
+  Then('the parsed response should equal the mock response.', function () {
+    let expectedJsonNeedsPruning = true;
+
+    let encodedResponseObject;
+    if (this.expectedMockResponseCode === 200) {
+      if (responseFormat === 'json') {
+        if (typeof this.actualMockResponse.toEncodingData === 'function') {
+          if (
+            this.actualMockResponse instanceof
+            algosdk.modelsv2.TransactionGroupLedgerStateDeltasForRoundResponse
+          ) {
+            // TransactionGroupLedgerStateDeltasForRoundResponse has an UntypedResponse inside of it,
+            // so the expected JSON response should not be pruned.
+            expectedJsonNeedsPruning = false;
+          }
+          encodedResponseObject = algosdk.encodeJSON(this.actualMockResponse);
+        } else {
+          // Handles non-typed responses such as "GetLedgerStateDelta"
+          encodedResponseObject = algosdk.stringifyJSON(
+            this.actualMockResponse
+          );
+          expectedJsonNeedsPruning = false;
+        }
+      } else {
+        encodedResponseObject = algosdk.encodeMsgpack(this.actualMockResponse);
+      }
+    } else {
+      encodedResponseObject = algosdk.stringifyJSON(this.actualMockResponse);
+    }
+
+    // We chain encoding/decoding below to normalize the objects for comparison. This helps deal
+    // with type differences such as bigint vs number and Uint8Array vs Buffer.
+
+    let actualResponseObject;
+    let parsedExpectedMockResponse;
+    if (responseFormat === 'json') {
+      actualResponseObject = algosdk.parseJSON(encodedResponseObject, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
+      parsedExpectedMockResponse = algosdk.parseJSON(expectedMockResponse, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
+      if (expectedJsonNeedsPruning) {
+        // Prune default values from the actual response object to match the expected response object.
+        parsedExpectedMockResponse = pruneDefaultValuesFromObject(
+          parsedExpectedMockResponse
+        );
+      }
+    } else {
+      actualResponseObject = algosdk.decodeObj(encodedResponseObject);
+      parsedExpectedMockResponse = algosdk.decodeObj(expectedMockResponse);
+    }
+
+    assert.deepStrictEqual(actualResponseObject, parsedExpectedMockResponse);
   });
 
   Then('expect error string to contain {string}', (expectedErrorString) => {
@@ -1987,24 +2315,25 @@ module.exports = function getSteps(options) {
       if (excludeCloseToAsString === 'true') {
         excludeCloseTo = true;
       }
-      await this.indexerClient
-        .lookupAssetTransactions(assetIndex)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .address(address)
-        .addressRole(addressRole)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAssetTransactions(assetIndex)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .address(address)
+          .addressRole(addressRole)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .minRound(minRound)
+          .maxRound(maxRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+          .excludeCloseTo(excludeCloseTo)
+      );
     }
   );
 
@@ -2077,22 +2406,23 @@ module.exports = function getSteps(options) {
       currencyLesser,
       assetIndex
     ) {
-      await this.indexerClient
-        .lookupAccountTransactions(account)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountTransactions(account)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .assetID(assetIndex)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+      );
     }
   );
 
@@ -2143,35 +2473,39 @@ module.exports = function getSteps(options) {
   When(
     'we make a Lookup Block call against round {int}',
     async function (round) {
-      await this.indexerClient.lookupBlock(round).do();
+      await doOrDoRaw(this.indexerClient.lookupBlock(round));
     }
   );
 
   When(
     'we make a Lookup Block call against round {int} and header {string}',
     async function (int, string) {
-      await this.indexerClient.lookupBlock(int).headerOnly(string).do();
+      await doOrDoRaw(this.indexerClient.lookupBlock(int).headerOnly(string));
     }
   );
 
   When(
     'we make a Lookup Account by ID call against account {string} with round {int}',
     async function (account, round) {
-      await this.indexerClient.lookupAccountByID(account).round(round).do();
+      await doOrDoRaw(
+        this.indexerClient.lookupAccountByID(account).round(round)
+      );
     }
   );
 
   When(
     'we make a Lookup Account by ID call against account {string} with exclude {string}',
     async function (account, exclude) {
-      await this.indexerClient.lookupAccountByID(account).exclude(exclude).do();
+      await doOrDoRaw(
+        this.indexerClient.lookupAccountByID(account).exclude(exclude)
+      );
     }
   );
 
   When(
     'we make a Lookup Asset by ID call against asset index {int}',
     async function (assetIndex) {
-      await this.indexerClient.lookupAssetByID(assetIndex).do();
+      await doOrDoRaw(this.indexerClient.lookupAssetByID(assetIndex));
     }
   );
 
@@ -2199,29 +2533,31 @@ module.exports = function getSteps(options) {
   When(
     'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
     async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
-      await this.indexerClient
-        .lookupApplicationLogs(appID)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .nextToken(nextToken)
-        .sender(sender)
-        .txid(txID)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupApplicationLogs(appID)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .nextToken(nextToken)
+          .sender(sender)
+          .txid(txID)
+      );
     }
   );
 
   When(
     'we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and round {int}',
     async function (assetIndex, limit, currencyGreater, currencyLesser, round) {
-      await this.indexerClient
-        .searchAccounts()
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .round(round)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchAccounts()
+          .assetID(assetIndex)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .round(round)
+      );
     }
   );
 
@@ -2250,14 +2586,16 @@ module.exports = function getSteps(options) {
   When(
     'we make a Search Accounts call with exclude {string}',
     async function (exclude) {
-      await this.indexerClient.searchAccounts().exclude(exclude).do();
+      await doOrDoRaw(this.indexerClient.searchAccounts().exclude(exclude));
     }
   );
 
   When(
     'we make a SearchForApplications call with creator {string}',
     async function (creator) {
-      await this.indexerClient.searchForApplications().creator(creator).do();
+      await doOrDoRaw(
+        this.indexerClient.searchForApplications().creator(creator)
+      );
     }
   );
 
@@ -2285,25 +2623,26 @@ module.exports = function getSteps(options) {
       if (excludeCloseToAsString === 'true') {
         excludeCloseTo = true;
       }
-      await this.indexerClient
-        .searchForTransactions()
-        .address(account)
-        .addressRole(addressRole)
-        .assetID(assetIndex)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchForTransactions()
+          .address(account)
+          .addressRole(addressRole)
+          .assetID(assetIndex)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+          .excludeCloseTo(excludeCloseTo)
+      );
     }
   );
 
@@ -2362,28 +2701,29 @@ module.exports = function getSteps(options) {
   When(
     'we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}',
     async function (limit, creator, name, unit, index) {
-      await this.indexerClient
-        .searchForAssets()
-        .limit(limit)
-        .creator(creator)
-        .name(name)
-        .unit(unit)
-        .index(index)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchForAssets()
+          .limit(limit)
+          .creator(creator)
+          .name(name)
+          .unit(unit)
+          .index(index)
+      );
     }
   );
 
   When(
     'we make a SearchForApplications call with applicationID {int}',
     async function (index) {
-      await this.indexerClient.searchForApplications().index(index).do();
+      await doOrDoRaw(this.indexerClient.searchForApplications().index(index));
     }
   );
 
   When(
     'we make a LookupApplications call with applicationID {int}',
     async function (index) {
-      await this.indexerClient.lookupApplications(index).do();
+      await doOrDoRaw(this.indexerClient.lookupApplications(index));
     }
   );
 
@@ -2399,7 +2739,7 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}',
     (round, length, idx, address, amount, frozenStateAsString) => {
       assert.strictEqual(
-        anyLookupAssetBalancesResponse['current-round'],
+        anyLookupAssetBalancesResponse.currentRound,
         BigInt(round)
       );
       assert.strictEqual(
@@ -2418,7 +2758,7 @@ module.exports = function getSteps(options) {
         BigInt(amount)
       );
       assert.strictEqual(
-        anyLookupAssetBalancesResponse.balances[idx]['is-frozen'],
+        anyLookupAssetBalancesResponse.balances[idx].isFrozen,
         frozenState
       );
     }
@@ -2427,52 +2767,56 @@ module.exports = function getSteps(options) {
   When(
     'we make a LookupAccountAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountAssets(account)
-        .assetId(assetID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountAssets(account)
+          .assetId(assetID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountCreatedAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountCreatedAssets(account)
-        .assetID(assetID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountCreatedAssets(account)
+          .assetID(assetID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountAppLocalStates call with accountID {string} applicationID {int} includeAll {string} limit {int} next {string}',
     async function (account, applicationID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountAppLocalStates(account)
-        .applicationID(applicationID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountAppLocalStates(account)
+          .applicationID(applicationID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountCreatedApplications call with accountID {string} applicationID {int} includeAll {string} limit {int} next {string}',
     async function (account, applicationID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountCreatedApplications(account)
-        .applicationID(applicationID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountCreatedApplications(account)
+          .applicationID(applicationID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
@@ -2488,7 +2832,7 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        anyLookupAssetTransactionsResponse['current-round'],
+        anyLookupAssetTransactionsResponse.currentRound,
         BigInt(round)
       );
       assert.strictEqual(
@@ -2519,12 +2863,12 @@ module.exports = function getSteps(options) {
     'the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round.toString(),
-        anyLookupAccountTransactionsResponse['current-round'].toString()
+        anyLookupAccountTransactionsResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anyLookupAccountTransactionsResponse.transactions.length
+        anyLookupAccountTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
@@ -2546,8 +2890,8 @@ module.exports = function getSteps(options) {
     'the parsed LookupBlock response should have previous block hash {string}',
     (prevHash) => {
       assert.strictEqual(
-        prevHash,
-        anyLookupBlockResponse['previous-block-hash']
+        algosdk.bytesToBase64(anyLookupBlockResponse.previousBlockHash),
+        prevHash
       );
     }
   );
@@ -2565,7 +2909,7 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed LookupAccountByID response should have address {string}',
     (address) => {
-      assert.strictEqual(address, anyLookupAccountByIDResponse.account.address);
+      assert.strictEqual(anyLookupAccountByIDResponse.account.address, address);
     }
   );
 
@@ -2590,17 +2934,14 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}',
     (round, length, idx, address) => {
-      assert.strictEqual(
-        round.toString(),
-        anySearchAccountsResponse['current-round'].toString()
-      );
-      assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
+      assert.strictEqual(anySearchAccountsResponse.currentRound, BigInt(round));
+      assert.strictEqual(anySearchAccountsResponse.accounts.length, length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        address,
-        anySearchAccountsResponse.accounts[idx].address
+        anySearchAccountsResponse.accounts[idx].address,
+        address
       );
     }
   );
@@ -2608,14 +2949,14 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have authorizing address {string}',
     (round, length, idx, authAddress) => {
-      assert.strictEqual(round, anySearchAccountsResponse['current-round']);
-      assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
+      assert.strictEqual(anySearchAccountsResponse.currentRound, BigInt(round));
+      assert.strictEqual(anySearchAccountsResponse.accounts.length, length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        authAddress,
-        anySearchAccountsResponse.accounts[idx]['auth-addr']
+        anySearchAccountsResponse.accounts[idx].authAddr,
+        authAddress
       );
     }
   );
@@ -2632,19 +2973,19 @@ module.exports = function getSteps(options) {
     'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round.toString(),
-        anySearchForTransactionsResponse['current-round'].toString()
+        anySearchForTransactionsResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anySearchForTransactionsResponse.transactions.length
+        anySearchForTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        sender,
-        anySearchForTransactionsResponse.transactions[idx].sender
+        anySearchForTransactionsResponse.transactions[idx].sender,
+        sender
       );
     }
   );
@@ -2653,19 +2994,19 @@ module.exports = function getSteps(options) {
     'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have rekey-to {string}',
     (round, length, idx, rekeyTo) => {
       assert.strictEqual(
-        round,
-        anySearchForTransactionsResponse['current-round']
+        anySearchForTransactionsResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anySearchForTransactionsResponse.transactions.length
+        anySearchForTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        rekeyTo,
-        anySearchForTransactionsResponse.transactions[idx]['rekey-to']
+        anySearchForTransactionsResponse.transactions[idx].rekeyTo,
+        rekeyTo
       );
     }
   );
@@ -2682,16 +3023,16 @@ module.exports = function getSteps(options) {
     'the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}',
     (round, length, idx, assetIndex) => {
       assert.strictEqual(
-        round.toString(),
-        anySearchForAssetsResponse['current-round'].toString()
+        anySearchForAssetsResponse.currentRound,
+        BigInt(round)
       );
-      assert.strictEqual(length, anySearchForAssetsResponse.assets.length);
+      assert.strictEqual(anySearchForAssetsResponse.assets.length, length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        assetIndex.toString(),
-        anySearchForAssetsResponse.assets[idx].index.toString()
+        anySearchForAssetsResponse.assets[idx].index,
+        BigInt(assetIndex)
       );
     }
   );
@@ -4489,10 +4830,10 @@ module.exports = function getSteps(options) {
   Then(
     'according to {string}, the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
     async function (fromClient, boxName, boxValue, errString) {
-      try {
-        const boxKey = splitAndProcessAppArgs(boxName)[0];
+      const boxKey = splitAndProcessAppArgs(boxName)[0];
 
-        let resp = null;
+      let resp = null;
+      try {
         if (fromClient === 'algod') {
           resp = await this.v2Client
             .getApplicationBoxByName(this.currentApplicationIndex, boxKey)
@@ -4507,22 +4848,22 @@ module.exports = function getSteps(options) {
         } else {
           assert.fail(`expecting algod or indexer, got ${fromClient}`);
         }
-
-        const actualName = resp.name;
-        const actualValue = resp.value;
-        assert.deepStrictEqual(boxKey, actualName);
-        assert.deepStrictEqual(algosdk.base64ToBytes(boxValue), actualValue);
       } catch (err) {
         if (errString !== '') {
-          assert.deepStrictEqual(
-            true,
+          assert.ok(
             err.message.includes(errString),
             `expected ${errString} got ${err.message}`
           );
-        } else {
-          throw err;
+          return;
         }
+        throw err;
       }
+      assert.ok(!errString, "expected error, didn't get one");
+
+      const actualName = resp.name;
+      const actualValue = resp.value;
+      assert.deepStrictEqual(boxKey, actualName);
+      assert.deepStrictEqual(algosdk.base64ToBytes(boxValue), actualValue);
     }
   );
 
@@ -4610,7 +4951,7 @@ module.exports = function getSteps(options) {
       const maxAttempts = 30;
 
       const roundToWaitFor = this.lastTxnConfirmedRound;
-      let indexerRound = 0;
+      let indexerRound = BigInt(0);
       let attempts = 0;
 
       for (;;) {
@@ -4685,7 +5026,7 @@ module.exports = function getSteps(options) {
         .compile(tealSrc)
         .sourcemap(true)
         .do();
-      this.rawSourceMap = algosdk.stringifyJSON(compiledResponse.sourcemap);
+      this.rawSourceMap = algosdk.encodeJSON(compiledResponse.sourcemap);
     }
   );
 
@@ -5278,7 +5619,7 @@ module.exports = function getSteps(options) {
   When(
     'we make a GetBlockTxids call against block number {int}',
     async function (round) {
-      await this.v2Client.getBlockTxids(round).do();
+      await this.v2Client.getBlockTxids(round).doRaw();
     }
   );
 

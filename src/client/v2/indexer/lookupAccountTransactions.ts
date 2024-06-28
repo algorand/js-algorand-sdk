@@ -2,6 +2,7 @@ import { bytesToBase64 } from '../../../encoding/binarydata.js';
 import { HTTPClient } from '../../client.js';
 import JSONRequest from '../jsonrequest.js';
 import { Address } from '../../../encoding/address.js';
+import { TransactionsResponse } from './models/types.js';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string
@@ -15,7 +16,10 @@ export function base64StringFunnel(data: Uint8Array | string) {
   return bytesToBase64(data);
 }
 
-export default class LookupAccountTransactions extends JSONRequest {
+export default class LookupAccountTransactions extends JSONRequest<
+  TransactionsResponse,
+  Record<string, any>
+> {
   private account: string;
 
   /**
@@ -245,11 +249,12 @@ export default class LookupAccountTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param before - rfc3339 string
+   * @param before - rfc3339 string or Date object
    * @category query
    */
-  beforeTime(before: string) {
-    this.query['before-time'] = before;
+  beforeTime(before: string | Date) {
+    this.query['before-time'] =
+      before instanceof Date ? before.toISOString() : before;
     return this;
   }
 
@@ -266,11 +271,12 @@ export default class LookupAccountTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param after - rfc3339 string
+   * @param after - rfc3339 string or Date object
    * @category query
    */
-  afterTime(after: string) {
-    this.query['after-time'] = after;
+  afterTime(after: string | Date) {
+    this.query['after-time'] =
+      after instanceof Date ? after.toISOString() : after;
     return this;
   }
 
@@ -387,5 +393,12 @@ export default class LookupAccountTransactions extends JSONRequest {
   rekeyTo(rekeyTo: boolean) {
     this.query['rekey-to'] = rekeyTo;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): TransactionsResponse {
+    return TransactionsResponse.fromEncodingData(
+      TransactionsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

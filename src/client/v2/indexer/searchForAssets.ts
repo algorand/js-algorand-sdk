@@ -1,5 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
 import { Address } from '../../../encoding/address.js';
+import { AssetsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed assets.
@@ -12,7 +13,10 @@ import { Address } from '../../../encoding/address.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assets)
  * @category GET
  */
-export default class SearchForAssets extends JSONRequest {
+export default class SearchForAssets extends JSONRequest<
+  AssetsResponse,
+  Record<string, any>
+> {
   /**
    * @returns `/v2/assets`
    */
@@ -172,5 +176,12 @@ export default class SearchForAssets extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): AssetsResponse {
+    return AssetsResponse.fromEncodingData(
+      AssetsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

@@ -1,8 +1,12 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
 import { Address } from '../../../encoding/address.js';
+import { ApplicationLocalStatesResponse } from './models/types.js';
 
-export default class LookupAccountAppLocalStates extends JSONRequest {
+export default class LookupAccountAppLocalStates extends JSONRequest<
+  ApplicationLocalStatesResponse,
+  Record<string, any>
+> {
   private account: string | Address;
 
   /**
@@ -134,5 +138,12 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
   applicationID(index: number) {
     this.query['application-id'] = index;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): ApplicationLocalStatesResponse {
+    return ApplicationLocalStatesResponse.fromEncodingData(
+      ApplicationLocalStatesResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

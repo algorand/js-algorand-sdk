@@ -1,7 +1,11 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
+import { Block } from './models/types.js';
 
-export default class LookupBlock extends JSONRequest {
+export default class LookupBlock extends JSONRequest<
+  Block,
+  Record<string, any>
+> {
   /**
    * Returns the block for the passed round.
    *
@@ -36,5 +40,10 @@ export default class LookupBlock extends JSONRequest {
   headerOnly(headerOnly: boolean) {
     this.query['header-only'] = headerOnly;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): Block {
+    return Block.fromEncodingData(Block.encodingSchema.fromPreparedJSON(body));
   }
 }

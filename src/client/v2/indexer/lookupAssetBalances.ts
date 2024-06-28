@@ -1,7 +1,11 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient } from '../../client.js';
+import { AssetBalancesResponse } from './models/types.js';
 
-export default class LookupAssetBalances extends JSONRequest {
+export default class LookupAssetBalances extends JSONRequest<
+  AssetBalancesResponse,
+  Record<string, any>
+> {
   /**
    * Returns the list of accounts which hold the given asset and their balance.
    *
@@ -144,5 +148,12 @@ export default class LookupAssetBalances extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): AssetBalancesResponse {
+    return AssetBalancesResponse.fromEncodingData(
+      AssetBalancesResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }
