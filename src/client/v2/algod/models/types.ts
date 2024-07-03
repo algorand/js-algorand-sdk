@@ -4285,6 +4285,12 @@ export class SimulateRequest extends BaseModel {
   public extraOpcodeBudget?: number | bigint;
 
   /**
+   * If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
+   */
+  public fixSigners?: boolean;
+
+  /**
    * If provided, specifies the round preceding the simulation. State changes through
    * this round will be used to run this simulation. Usually only the 4 most recent
    * rounds will be available (controlled by the node config value MaxAcctLookback).
@@ -4301,6 +4307,8 @@ export class SimulateRequest extends BaseModel {
    * @param allowUnnamedResources - Allows access to unnamed resources during simulation.
    * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
+   * @param fixSigners - If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
    * @param round - If provided, specifies the round preceding the simulation. State changes through
    * this round will be used to run this simulation. Usually only the 4 most recent
    * rounds will be available (controlled by the node config value MaxAcctLookback).
@@ -4313,6 +4321,7 @@ export class SimulateRequest extends BaseModel {
     allowUnnamedResources,
     execTraceConfig,
     extraOpcodeBudget,
+    fixSigners,
     round,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
@@ -4321,6 +4330,7 @@ export class SimulateRequest extends BaseModel {
     allowUnnamedResources?: boolean;
     execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
+    fixSigners?: boolean;
     round?: number | bigint;
   }) {
     super();
@@ -4330,6 +4340,7 @@ export class SimulateRequest extends BaseModel {
     this.allowUnnamedResources = allowUnnamedResources;
     this.execTraceConfig = execTraceConfig;
     this.extraOpcodeBudget = extraOpcodeBudget;
+    this.fixSigners = fixSigners;
     this.round = round;
 
     this.attribute_map = {
@@ -4339,6 +4350,7 @@ export class SimulateRequest extends BaseModel {
       allowUnnamedResources: 'allow-unnamed-resources',
       execTraceConfig: 'exec-trace-config',
       extraOpcodeBudget: 'extra-opcode-budget',
+      fixSigners: 'fix-signers',
       round: 'round',
     };
   }
@@ -4362,6 +4374,7 @@ export class SimulateRequest extends BaseModel {
           ? SimulateTraceConfig.from_obj_for_encoding(data['exec-trace-config'])
           : undefined,
       extraOpcodeBudget: data['extra-opcode-budget'],
+      fixSigners: data['fix-signers'],
       round: data['round'],
     });
     /* eslint-enable dot-notation */
@@ -4752,6 +4765,12 @@ export class SimulateTransactionResult extends BaseModel {
   public execTrace?: SimulationTransactionExecTrace;
 
   /**
+   * The account that needed to sign this transaction when no signature was provided
+   * and the provided signer was incorrect.
+   */
+  public fixedSigner?: string;
+
+  /**
    * Budget used during execution of a logic sig transaction.
    */
   public logicSigBudgetConsumed?: number | bigint;
@@ -4777,6 +4796,8 @@ export class SimulateTransactionResult extends BaseModel {
    * budged used by inner app calls spawned by this transaction.
    * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
    * call trace in a recursive way.
+   * @param fixedSigner - The account that needed to sign this transaction when no signature was provided
+   * and the provided signer was incorrect.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
    * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
@@ -4792,12 +4813,14 @@ export class SimulateTransactionResult extends BaseModel {
     txnResult,
     appBudgetConsumed,
     execTrace,
+    fixedSigner,
     logicSigBudgetConsumed,
     unnamedResourcesAccessed,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
     execTrace?: SimulationTransactionExecTrace;
+    fixedSigner?: string;
     logicSigBudgetConsumed?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
@@ -4805,6 +4828,7 @@ export class SimulateTransactionResult extends BaseModel {
     this.txnResult = txnResult;
     this.appBudgetConsumed = appBudgetConsumed;
     this.execTrace = execTrace;
+    this.fixedSigner = fixedSigner;
     this.logicSigBudgetConsumed = logicSigBudgetConsumed;
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
 
@@ -4812,6 +4836,7 @@ export class SimulateTransactionResult extends BaseModel {
       txnResult: 'txn-result',
       appBudgetConsumed: 'app-budget-consumed',
       execTrace: 'exec-trace',
+      fixedSigner: 'fixed-signer',
       logicSigBudgetConsumed: 'logic-sig-budget-consumed',
       unnamedResourcesAccessed: 'unnamed-resources-accessed',
     };
@@ -4837,6 +4862,7 @@ export class SimulateTransactionResult extends BaseModel {
               data['exec-trace']
             )
           : undefined,
+      fixedSigner: data['fixed-signer'],
       logicSigBudgetConsumed: data['logic-sig-budget-consumed'],
       unnamedResourcesAccessed:
         typeof data['unnamed-resources-accessed'] !== 'undefined'
@@ -5007,6 +5033,12 @@ export class SimulationEvalOverrides extends BaseModel {
   public extraOpcodeBudget?: number | bigint;
 
   /**
+   * If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
+   */
+  public fixSigners?: boolean;
+
+  /**
    * The maximum log calls one can make during simulation
    */
   public maxLogCalls?: number | bigint;
@@ -5022,6 +5054,8 @@ export class SimulationEvalOverrides extends BaseModel {
    * were properly signed.
    * @param allowUnnamedResources - If true, allows access to unnamed resources during simulation.
    * @param extraOpcodeBudget - The extra opcode budget added to each transaction group during simulation
+   * @param fixSigners - If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
    * @param maxLogCalls - The maximum log calls one can make during simulation
    * @param maxLogSize - The maximum byte number to log during simulation
    */
@@ -5029,12 +5063,14 @@ export class SimulationEvalOverrides extends BaseModel {
     allowEmptySignatures,
     allowUnnamedResources,
     extraOpcodeBudget,
+    fixSigners,
     maxLogCalls,
     maxLogSize,
   }: {
     allowEmptySignatures?: boolean;
     allowUnnamedResources?: boolean;
     extraOpcodeBudget?: number | bigint;
+    fixSigners?: boolean;
     maxLogCalls?: number | bigint;
     maxLogSize?: number | bigint;
   }) {
@@ -5042,6 +5078,7 @@ export class SimulationEvalOverrides extends BaseModel {
     this.allowEmptySignatures = allowEmptySignatures;
     this.allowUnnamedResources = allowUnnamedResources;
     this.extraOpcodeBudget = extraOpcodeBudget;
+    this.fixSigners = fixSigners;
     this.maxLogCalls = maxLogCalls;
     this.maxLogSize = maxLogSize;
 
@@ -5049,6 +5086,7 @@ export class SimulationEvalOverrides extends BaseModel {
       allowEmptySignatures: 'allow-empty-signatures',
       allowUnnamedResources: 'allow-unnamed-resources',
       extraOpcodeBudget: 'extra-opcode-budget',
+      fixSigners: 'fix-signers',
       maxLogCalls: 'max-log-calls',
       maxLogSize: 'max-log-size',
     };
@@ -5063,6 +5101,7 @@ export class SimulationEvalOverrides extends BaseModel {
       allowEmptySignatures: data['allow-empty-signatures'],
       allowUnnamedResources: data['allow-unnamed-resources'],
       extraOpcodeBudget: data['extra-opcode-budget'],
+      fixSigners: data['fix-signers'],
       maxLogCalls: data['max-log-calls'],
       maxLogSize: data['max-log-size'],
     });
