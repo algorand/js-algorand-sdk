@@ -244,7 +244,7 @@ That type has been removed and this behavior is no longer possible in v3. Instea
 
 #### Multisig Transaction Class
 
-The `MultisigTransaction` class have been removed, as it was unnecessary.
+The `MultisigTransaction` class has been removed, as it was unnecessary.
 
 #### Transaction Group Class
 
@@ -278,7 +278,7 @@ Auction bids have been removed from the library in v3, as they were only relevan
 
 In v2, the `Algodv2` and `Indexer` clients, as well as each individual request class, had a `setIntDecoding` method which could be used to configure how integers in the response were parsed into either a JavaScript `number` or `bigint`. These methods have been removed in v3.
 
-Instead, Algod responses are now fully typed, and individual fields are typed as either `number` or `bigint`. The types defined in the `modelsv2` namespace have been updated to reflect this. In v2, these classes used `number | bigint` for all numeric fields, but in v3, they will use either `number` or `bigint` depending on the field.
+Instead, Algod and Indexer responses are now fully typed, and individual fields are typed as either `number` or `bigint`. The types defined in the `modelsv2` and `indexerModels` namespaces have been updated to reflect this. In v2, these classes used `number | bigint` for all numeric fields, but in v3, they will use either `number` or `bigint` depending on the field.
 
 Generally speaking, the fields will be `bigint` based on the following criteria:
 
@@ -289,9 +289,7 @@ Generally speaking, the fields will be `bigint` based on the following criteria:
 - If the field can be any value in the uint64 range, it will be `bigint`
 - Other fields which are guaranteed to be small will be `number`
 
-Indexer responses are not yet typed, and all numeric fields are returned as `bigint`.
-
-Additionally, Algod and Indexer request and response models used to be subclasses of a `BaseModel` type. This type has been removed in v3, and instead all models adhere to the `Encodable` interface. More information about encoding changes can be found in the [Encoding and Decoding](#encoding-and-decoding) section.
+Additionally, Algod and Indexer request and response models used to be subclasses of a `BaseModel` type. This type has been removed in v3, and instead all models adhere to the `Encodable` interface. More information about encoding changes can be found in the [Object Encoding and Decoding](#object-encoding-and-decoding) section.
 
 ### JSON Operations
 
@@ -301,7 +299,7 @@ In order to facilitate `bigint` as a first-class type in this SDK, additional JS
 
 `stringifyJSON` can be used to convert a JavaScript object containing `bigint`s into a JSON string, something `JSON.stringify` cannot do.
 
-If your v2 code uses `JSON.parse` or `JSON.stringify` on types which can now contain `bigint`s in v3, such as `Transaction` representations or REST API responses, consider using these new functions instead.
+If your v2 code uses `JSON.parse` or `JSON.stringify` on types which can now contain `bigint`s in v3, you may receive an error such as `TypeError: Do not know how to serialize a BigInt`. Consider using these new functions instead. Or, if the types are `Encodable`, use the new `encodeJSON` and `decodeJSON` functions described in the [Object Encoding and Decoding](#object-encoding-and-decoding) section.
 
 ### IntDecoding
 
@@ -315,7 +313,7 @@ Specifically, the `DryrunResult` class and its dependent types have been removed
 
 The `DryrunTransactionResult` class, which made up the elements of the v2 `DryrunResult.txns` array, used to have methods `appTrace` and `lsigTrace`. These have been replaced by the new `dryrunTxnResultAppTrace` and `dryrunTxnResultLogicSigTrace` functions, which accept a `DryrunTxnResult`. These new functions should produce identical results to the old ones.
 
-### Encoding and Decoding
+### Object Encoding and Decoding
 
 In v2 of the SDK, the `Transaction`, `LogicSig`, `BaseModel` and other classes had `get_obj_for_encoding` methods and `from_obj_for_encoding` static methods. These were used during the process of encoding or decoding objects from msgpack or JSON. These ad-hoc methods have been removed in v3, and in their place a new `Encodable` interface has been introduced, along with functions `encodeMsgpack`, `decodeMsgpack`, `encodeJSON`, and `decodeJSON`.
 
