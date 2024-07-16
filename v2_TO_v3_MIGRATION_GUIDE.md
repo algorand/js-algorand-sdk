@@ -216,8 +216,8 @@ The following table shows the correspondence between v2 and v3 fields in the `Tr
 | `appForeignAssets`      | `number[]`              | `applicationCall.foreignAssets`       | `bigint[]`                  |                                           |
 | `boxes`                 | `BoxReference[]`        | `applicationCall.boxes`               | `TransactionBoxReference[]` |                                           |
 | `stateProofType`        | `number \| bigint`      | `stateProof.stateProofType`           | `number`                    |                                           |
-| `stateProof`            | `Uint8Array`            | `stateProof.stateProof`               | `Uint8Array`                |                                           |
-| `stateProofMessage`     | `Uint8Array`            | `stateProof.stateProofMessage`        | `Uint8Array`                |                                           |
+| `stateProof`            | `Uint8Array`            | `stateProof.stateProof`               | `StateProof`                |                                           |
+| `stateProofMessage`     | `Uint8Array`            | `stateProof.message`                  | `StateProofMessage`         |                                           |
 | `name`                  | `string`                |                                       |                             | No longer exists                          |
 | `tag`                   | `Buffer`                |                                       |                             | No longer exists                          |
 
