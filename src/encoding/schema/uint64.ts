@@ -1,4 +1,9 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+} from '../encoding.js';
 import { ensureUint64 } from '../../utils/utils.js';
 
 /* eslint-disable class-methods-use-this */
@@ -18,7 +23,11 @@ export class Uint64Schema extends Schema {
     return ensureUint64(data);
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): bigint {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
+  ): bigint {
     return ensureUint64(encoded);
   }
 

@@ -1,4 +1,9 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+} from '../encoding.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -18,7 +23,11 @@ export class StringSchema extends Schema {
     throw new Error(`Invalid string: (${typeof data}) ${data}`);
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): string {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
+  ): string {
     if (typeof encoded === 'string') {
       return encoded;
     }

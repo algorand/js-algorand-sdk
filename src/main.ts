@@ -129,8 +129,9 @@ export {
 export { bytesToBigInt, bigIntToBytes } from './encoding/bigint.js';
 export {
   base64ToBytes,
-  base64ToString,
   bytesToBase64,
+  bytesToString,
+  coerceToBytes,
   bytesToHex,
   hexToBytes,
 } from './encoding/binarydata.js';

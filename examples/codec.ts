@@ -20,7 +20,7 @@ async function main() {
 
   // example: CODEC_BASE64
   const b64Encoded = 'SGksIEknbSBkZWNvZGVkIGZyb20gYmFzZTY0';
-  const b64Decoded = algosdk.base64ToString(b64Encoded);
+  const b64Decoded = algosdk.base64ToBytes(b64Encoded);
   console.log(b64Encoded, b64Decoded);
   // example: CODEC_BASE64
 

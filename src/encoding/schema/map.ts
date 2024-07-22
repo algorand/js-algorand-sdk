@@ -1,4 +1,9 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+} from '../encoding.js';
 import { ensureUint64 } from '../../utils/utils.js';
 
 /* eslint-disable class-methods-use-this */
@@ -139,7 +144,8 @@ export class NamedMapSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
   ): Map<string, unknown> {
     if (!(encoded instanceof Map)) {
       throw new Error('NamedMapSchema data must be a Map');
@@ -149,7 +155,10 @@ export class NamedMapSchema extends Schema {
       if (encoded.has(entry.key)) {
         map.set(
           entry.key,
-          entry.valueSchema.fromPreparedMsgpack(encoded.get(entry.key))
+          entry.valueSchema.fromPreparedMsgpack(
+            encoded.get(entry.key),
+            rawStringProvider.withMapValue(entry.key)
+          )
         );
       } else if (entry.omitEmpty) {
         map.set(entry.key, entry.valueSchema.defaultValue());
@@ -270,7 +279,8 @@ export class Uint64MapSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
   ): Map<bigint, unknown> {
     if (!(encoded instanceof Map)) {
       throw new Error('Uint64MapSchema data must be a Map');
@@ -281,7 +291,13 @@ export class Uint64MapSchema extends Schema {
       if (map.has(bigintKey)) {
         throw new Error(`Duplicate key: ${bigintKey}`);
       }
-      map.set(bigintKey, this.valueSchema.fromPreparedMsgpack(value));
+      map.set(
+        bigintKey,
+        this.valueSchema.fromPreparedMsgpack(
+          value,
+          rawStringProvider.withMapValue(key)
+        )
+      );
     }
     return map;
   }
@@ -364,7 +380,8 @@ export class StringMapSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
   ): Map<string, unknown> {
     if (!(encoded instanceof Map)) {
       throw new Error('StringMapSchema data must be a Map');
@@ -377,7 +394,13 @@ export class StringMapSchema extends Schema {
       if (map.has(key)) {
         throw new Error(`Duplicate key: ${key}`);
       }
-      map.set(key, this.valueSchema.fromPreparedMsgpack(value));
+      map.set(
+        key,
+        this.valueSchema.fromPreparedMsgpack(
+          value,
+          rawStringProvider.withMapValue(key)
+        )
+      );
     }
     return map;
   }

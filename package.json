@@ -48,7 +48,7 @@
     "url": "git://github.com/algorand/js-algorand-sdk.git"
   },
   "dependencies": {
-    "algorand-msgpack": "^1.0.1",
+    "algorand-msgpack": "file:../msgpack-javascript/algorand-msgpack-1.0.1.tgz",
     "hi-base32": "^0.5.1",
     "js-sha256": "^0.9.0",
     "js-sha3": "^0.8.0",
@@ -93,6 +93,7 @@
     "webpack-cli": "^5.0.1"
   },
   "scripts": {
+    "preinstall": "cd .. && git clone https://github.com/algorand/msgpack-javascript.git && git checkout raw-string-encoding && cd msgpack-javascript && npm i && npm run build && npm pack",
     "test": "tsx tests/mocha.js",
     "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",

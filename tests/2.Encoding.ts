@@ -1,11 +1,12 @@
 /* eslint-env mocha */
 import assert from 'assert';
+import { RawBinaryString } from 'algorand-msgpack';
 import algosdk from '../src/index.js';
 import * as utils from '../src/utils/utils.js';
 import {
+  rawEncode as msgpackRawEncode,
   Schema,
-  MsgpackEncodingData,
-  JSONEncodingData,
+  MsgpackRawStringProvider,
 } from '../src/encoding/encoding.js';
 import {
   BooleanSchema,
@@ -14,6 +15,7 @@ import {
   AddressSchema,
   ByteArraySchema,
   FixedLengthByteArraySchema,
+  SpecialCaseBinaryStringSchema,
   ArraySchema,
   NamedMapSchema,
   NamedMapEntry,
@@ -897,7 +899,9 @@ describe('encoding', () => {
         ['\uFFFD\uFFFD', '/v8='], // Non UTF-8 bytes should still decode to same (invalid) output
       ];
       for (const [testCase, expectedEncoding] of testCases) {
-        const actualB64Decoding = algosdk.base64ToString(expectedEncoding);
+        const actualB64Decoding = algosdk.bytesToString(
+          algosdk.base64ToBytes(expectedEncoding)
+        );
         assert.deepStrictEqual(
           actualB64Decoding,
           testCase,
@@ -944,10 +948,10 @@ describe('encoding', () => {
         name: string;
         schema: Schema;
         values: unknown[];
-        preparedMsgpackValues: MsgpackEncodingData[];
+        preparedMsgpackValues: algosdk.MsgpackEncodingData[];
         // The expected output from calling `fromPreparedMsgpack`. If not provided, `values` will be used.
         expectedValuesFromPreparedMsgpack?: unknown[];
-        preparedJsonValues: JSONEncodingData[];
+        preparedJsonValues: algosdk.JSONEncodingData[];
         // The expected output from calling `fromPreparedJSON`. If not provided, `values` will be used.
         expectedValuesFromPreparedJson?: unknown[];
       }
@@ -965,6 +969,21 @@ describe('encoding', () => {
           schema: new StringSchema(),
           values: ['', 'abc'],
           preparedMsgpackValues: ['', 'abc'],
+          preparedJsonValues: ['', 'abc'],
+        },
+        {
+          name: 'SpecialCaseBinaryStringSchema',
+          schema: new SpecialCaseBinaryStringSchema(),
+          values: [Uint8Array.from([]), Uint8Array.from([97, 98, 99])],
+          preparedMsgpackValues: [
+            // TODO: fix cast?
+            new RawBinaryString(
+              Uint8Array.from([])
+            ) as unknown as algosdk.MsgpackEncodingData,
+            new RawBinaryString(
+              Uint8Array.from([97, 98, 99])
+            ) as unknown as algosdk.MsgpackEncodingData,
+          ],
           preparedJsonValues: ['', 'abc'],
         },
         {
@@ -1083,6 +1102,40 @@ describe('encoding', () => {
               1: false,
               2: true,
               '18446744073709551615': true,
+            },
+          ],
+        },
+        {
+          name: 'Uint64MapSchema of SpecialCaseBinaryStringSchema',
+          schema: new Uint64MapSchema(new SpecialCaseBinaryStringSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [0n, Uint8Array.from([])],
+              [1n, Uint8Array.from([97])],
+              [2n, Uint8Array.from([98])],
+              [BigInt('18446744073709551615'), Uint8Array.from([99])],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [0n, new RawBinaryString(Uint8Array.from([]))],
+              [1n, new RawBinaryString(Uint8Array.from([97]))],
+              [2n, new RawBinaryString(Uint8Array.from([98]))],
+              [
+                BigInt('18446744073709551615'),
+                new RawBinaryString(Uint8Array.from([99])),
+              ],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              0: '',
+              1: 'a',
+              2: 'b',
+              '18446744073709551615': 'c',
             },
           ],
         },
@@ -1210,8 +1263,15 @@ describe('encoding', () => {
             const actualMsgpack = testcase.schema.prepareMsgpack(value);
             assert.deepStrictEqual(actualMsgpack, preparedMsgpackValue);
 
-            const roundtripMsgpackValue =
-              testcase.schema.fromPreparedMsgpack(actualMsgpack);
+            const msgpackBytes = msgpackRawEncode(actualMsgpack);
+            const rawStringProvider = new MsgpackRawStringProvider({
+              baseObjectBytes: msgpackBytes,
+            });
+
+            const roundtripMsgpackValue = testcase.schema.fromPreparedMsgpack(
+              actualMsgpack,
+              rawStringProvider
+            );
             const roundtripMsgpackExpectedValue =
               testcase.expectedValuesFromPreparedMsgpack
                 ? testcase.expectedValuesFromPreparedMsgpack[i]
@@ -1260,6 +1320,11 @@ describe('encoding', () => {
             schema: new StringSchema(),
             emptyValue: '',
             nonemptyValue: 'abc',
+          },
+          {
+            schema: new SpecialCaseBinaryStringSchema(),
+            emptyValue: Uint8Array.from([]),
+            nonemptyValue: Uint8Array.from([97, 98, 99]),
           },
           {
             schema: new AddressSchema(),
@@ -1396,8 +1461,14 @@ describe('encoding', () => {
         let prepareMsgpackResult = schema.prepareMsgpack(allEmptyValues);
         // All empty values should be omitted
         assert.deepStrictEqual(prepareMsgpackResult, new Map());
-        let fromPreparedMsgpackResult =
-          schema.fromPreparedMsgpack(prepareMsgpackResult);
+        let msgpackBytes = msgpackRawEncode(prepareMsgpackResult);
+        let rawStringProvider = new MsgpackRawStringProvider({
+          baseObjectBytes: msgpackBytes,
+        });
+        let fromPreparedMsgpackResult = schema.fromPreparedMsgpack(
+          prepareMsgpackResult,
+          rawStringProvider
+        );
         // Omitted values should be restored with their default/empty values
         assert.deepStrictEqual(
           fromPreparedMsgpackResult,
@@ -1422,8 +1493,14 @@ describe('encoding', () => {
         assert.ok(prepareMsgpackResult instanceof Map);
         // All values are present
         assert.strictEqual(prepareMsgpackResult.size, testValues.length);
-        fromPreparedMsgpackResult =
-          schema.fromPreparedMsgpack(prepareMsgpackResult);
+        msgpackBytes = msgpackRawEncode(prepareMsgpackResult);
+        rawStringProvider = new MsgpackRawStringProvider({
+          baseObjectBytes: msgpackBytes,
+        });
+        fromPreparedMsgpackResult = schema.fromPreparedMsgpack(
+          prepareMsgpackResult,
+          rawStringProvider
+        );
         // Values are restored properly
         assert.deepStrictEqual(fromPreparedMsgpackResult, allNonemptyValues);
 
@@ -1765,6 +1842,9 @@ describe('encoding', () => {
           new Error('Embedded entry valueSchema must be a NamedMapSchema')
         );
       });
+    });
+    describe('MsgpackRawStringProvider', () => {
+      // TODO: Add tests
     });
   });
   describe('BlockResponse', () => {

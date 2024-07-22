@@ -1,6 +1,7 @@
 import {
   Schema,
   MsgpackEncodingData,
+  MsgpackRawStringProvider,
   JSONEncodingData,
   msgpackEncodingDataToJSONEncodingData,
   jsonEncodingDataToMsgpackEncodingData,
@@ -24,7 +25,9 @@ export class UntypedSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
   ): MsgpackEncodingData {
     return encoded;
   }

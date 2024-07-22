@@ -1,4 +1,9 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+} from '../encoding.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -18,7 +23,11 @@ export class BooleanSchema extends Schema {
     throw new Error('Invalid boolean');
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): boolean {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
+  ): boolean {
     if (typeof encoded === 'boolean') {
       return encoded;
     }

@@ -1,4 +1,9 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+} from '../encoding.js';
 import { base64ToBytes, bytesToBase64 } from '../binarydata.js';
 
 /* eslint-disable class-methods-use-this */
@@ -19,7 +24,11 @@ export class ByteArraySchema extends Schema {
     throw new Error(`Invalid byte array: (${typeof data}) ${data}`);
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): Uint8Array {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
+  ): Uint8Array {
     if (encoded instanceof Uint8Array) {
       return encoded;
     }
@@ -70,7 +79,11 @@ export class FixedLengthByteArraySchema extends Schema {
     throw new Error('Invalid byte array');
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): Uint8Array {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
+  ): Uint8Array {
     if (encoded instanceof Uint8Array) {
       if (encoded.byteLength === this.length) {
         return encoded;
