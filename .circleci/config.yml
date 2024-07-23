@@ -139,6 +139,16 @@ commands:
       - node/install:
           node-version: '18'
       - run:
+          name: Install algorand-msgpack from branch (temporary)
+          command: |
+            cd ..
+            git clone https://github.com/algorand/msgpack-javascript.git
+            cd msgpack-javascript
+            git checkout raw-string-encoding
+            npm i
+            npm run build
+            npm pack
+      - run:
           name: npm ci
           command: |
             set -e

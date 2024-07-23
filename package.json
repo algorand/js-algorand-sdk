@@ -93,7 +93,6 @@
     "webpack-cli": "^5.0.1"
   },
   "scripts": {
-    "preinstall": "cd .. && git clone https://github.com/algorand/msgpack-javascript.git && git checkout raw-string-encoding && cd msgpack-javascript && npm i && npm run build && npm pack",
     "test": "tsx tests/mocha.js",
     "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
