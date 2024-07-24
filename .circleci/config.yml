@@ -141,6 +141,7 @@ commands:
       - run:
           name: Install algorand-msgpack from branch (temporary)
           command: |
+            set -e
             cd ..
             git clone https://github.com/algorand/msgpack-javascript.git
             cd msgpack-javascript
@@ -148,10 +149,10 @@ commands:
             npm i
             npm run prepare
             npm pack
-            cp algorand-msgpack-1.0.1.tgz ../js-algorand-sdk/algorand-msgpack-1.0.1.tgz
       - run:
           name: npm ci
           command: |
             set -e
             npm ci
+            cp ../msgpack-javascript/algorand-msgpack-1.0.1.tgz algorand-msgpack-1.0.1.tgz
             if [ "<< parameters.browser >>" == "chrome" ]; then npm install chromedriver@latest; fi
