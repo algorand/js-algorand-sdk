@@ -22,20 +22,16 @@ RUN mkdir -p /home/js-algorand-sdk
 COPY . /home/js-algorand-sdk
 WORKDIR /home/js-algorand-sdk
 
+# Temporary hack to copy in msgpack-javascript from a branch
+RUN mkdir -p /home/msgpack-javascript
+COPY ../msgpack-javascript/algorand-msgpack-1.0.1.tgz /home/msgpack-javascript/algorand-msgpack-1.0.1.tgz
+
 ARG TEST_BROWSER
 ENV TEST_BROWSER=$TEST_BROWSER
 
 ARG CI
 ENV CI=$CI
 
-# Temporary hack to install msgpack-javascript from a branch
-RUN cd .. \
-  && git clone https://github.com/algorand/msgpack-javascript.git \
-  && cd msgpack-javascript \
-  && git checkout raw-string-encoding \
-  && npm i \
-  && npm run prepare \
-  && npm pack
 RUN npm ci
 RUN npm run prepare-browser-tests
 
