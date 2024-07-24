@@ -179,7 +179,7 @@ enum MsgpackObjectPathSegmentKind {
 
 interface MsgpackObjectPathSegment {
   kind: MsgpackObjectPathSegmentKind;
-  key: string | number | bigint | Uint8Array;
+  key: string | number | bigint | Uint8Array | RawBinaryString;
 }
 
 export class MsgpackRawStringProvider {
@@ -214,7 +214,7 @@ export class MsgpackRawStringProvider {
   }
 
   public withMapValue(
-    key: string | number | bigint | Uint8Array
+    key: string | number | bigint | Uint8Array | RawBinaryString
   ): MsgpackRawStringProvider {
     return new MsgpackRawStringProvider({
       parent: this,
@@ -246,25 +246,28 @@ export class MsgpackRawStringProvider {
     );
   }
 
-  public getRawStringKeysAtCurrentLocation(): Uint8Array[] {
+  public getRawStringKeysAndValuesAtCurrentLocation(): Map<
+    Uint8Array,
+    MsgpackEncodingData
+  > {
     const resolved = this.resolve();
     if (!(resolved instanceof Map)) {
       throw new Error(
         `Invalid type. Expected Map, got ${resolved} (${typeof resolved})`
       );
     }
-    const keys: Uint8Array[] = [];
-    for (const key of resolved.keys()) {
+    const keysAndValues = new Map<Uint8Array, MsgpackEncodingData>();
+    for (const [key, value] of resolved) {
       if (key instanceof RawBinaryString) {
         // Decoded rawBinaryValue will always be a Uint8Array
-        keys.push(key.rawBinaryValue as Uint8Array);
+        keysAndValues.set(key.rawBinaryValue as Uint8Array, value);
       } else {
         throw new Error(
           `Invalid type for map key. Expected RawBinaryString, got (${typeof key}) ${key}`
         );
       }
     }
-    return keys;
+    return keysAndValues;
   }
 
   private resolve(): MsgpackEncodingData {
@@ -295,10 +298,17 @@ export class MsgpackRawStringProvider {
       // so we must check all the values for value-equality.
       if (
         typeof this.segment.key === 'string' ||
-        this.segment.key instanceof Uint8Array
+        this.segment.key instanceof Uint8Array ||
+        this.segment.key instanceof RawBinaryString
       ) {
-        const targetBytes = coerceToBytes(this.segment.key);
-        const targetIsRawString = typeof this.segment.key === 'string';
+        const targetBytes =
+          this.segment.key instanceof RawBinaryString
+            ? // Decoded rawBinaryValue will always be a Uint8Array
+              (this.segment.key.rawBinaryValue as Uint8Array)
+            : coerceToBytes(this.segment.key);
+        const targetIsRawString =
+          typeof this.segment.key === 'string' ||
+          this.segment.key instanceof RawBinaryString;
         for (const [key, value] of parentResolved) {
           let potentialKeyBytes: Uint8Array | undefined;
           if (targetIsRawString) {

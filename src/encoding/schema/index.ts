@@ -16,6 +16,7 @@ export {
   convertMap,
   Uint64MapSchema,
   StringMapSchema,
+  SpecialCaseBinaryStringMapSchema,
 } from './map.js';
 export { OptionalSchema } from './optional.js';
 

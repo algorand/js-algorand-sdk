@@ -21,6 +21,7 @@ import {
   NamedMapEntry,
   Uint64MapSchema,
   StringMapSchema,
+  SpecialCaseBinaryStringMapSchema,
   UntypedSchema,
   OptionalSchema,
   allOmitEmpty,
@@ -1170,6 +1171,82 @@ describe('encoding', () => {
             },
           ],
         },
+        {
+          name: 'SpecialCaseBinaryStringMapSchema of BooleanSchema',
+          schema: new SpecialCaseBinaryStringMapSchema(new BooleanSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([97]), true],
+              [Uint8Array.from([98]), false],
+              [Uint8Array.from([99]), true],
+              [Uint8Array.from([]), true],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [new RawBinaryString(Uint8Array.from([97])), true],
+              [new RawBinaryString(Uint8Array.from([98])), false],
+              [new RawBinaryString(Uint8Array.from([99])), true],
+              [new RawBinaryString(Uint8Array.from([])), true],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              a: true,
+              b: false,
+              c: true,
+              '': true,
+            },
+          ],
+        },
+        {
+          name: 'SpecialCaseBinaryStringMapSchema of SpecialCaseBinaryStringSchema',
+          schema: new SpecialCaseBinaryStringMapSchema(
+            new SpecialCaseBinaryStringSchema()
+          ),
+          values: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([97]), Uint8Array.from([120])],
+              [Uint8Array.from([98]), Uint8Array.from([121])],
+              [Uint8Array.from([99]), Uint8Array.from([122])],
+              [Uint8Array.from([]), Uint8Array.from([])],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [
+                new RawBinaryString(Uint8Array.from([97])),
+                new RawBinaryString(Uint8Array.from([120])),
+              ],
+              [
+                new RawBinaryString(Uint8Array.from([98])),
+                new RawBinaryString(Uint8Array.from([121])),
+              ],
+              [
+                new RawBinaryString(Uint8Array.from([99])),
+                new RawBinaryString(Uint8Array.from([122])),
+              ],
+              [
+                new RawBinaryString(Uint8Array.from([])),
+                new RawBinaryString(Uint8Array.from([])),
+              ],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              a: 'x',
+              b: 'y',
+              c: 'z',
+              '': '',
+            },
+          ],
+        },
       ];
 
       const primitiveTestcases = testcases.slice();
@@ -1407,6 +1484,16 @@ describe('encoding', () => {
               ['b', false],
               ['c', true],
               ['', true],
+            ]),
+          },
+          {
+            schema: new SpecialCaseBinaryStringMapSchema(new BooleanSchema()),
+            emptyValue: new Map(),
+            nonemptyValue: new Map([
+              [Uint8Array.from([97]), true],
+              [Uint8Array.from([98]), false],
+              [Uint8Array.from([99]), true],
+              [Uint8Array.from([]), true],
             ]),
           },
         ];
