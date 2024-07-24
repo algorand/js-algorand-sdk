@@ -29,13 +29,13 @@ ARG CI
 ENV CI=$CI
 
 # Temporary hack to install msgpack-javascript from a branch
-RUN npm cd .. \
+RUN bash -c "npm cd .. \
   && git clone https://github.com/algorand/msgpack-javascript.git \
   && cd msgpack-javascript \
   && git checkout raw-string-encoding \
   && npm i \
   && npm run prepare \
-  && npm pack
+  && npm pack"
 RUN npm ci
 RUN npm run prepare-browser-tests
 
