@@ -132,11 +132,10 @@ async function main() {
 
   // example: APP_READ_STATE
   const appInfo = await algodClient.getApplicationByID(appId).do();
-  const globalState = appInfo.params.globalState[0];
-  console.log(`Raw global state - ${algosdk.stringifyJSON(globalState)}`);
+  const globalState = appInfo.params.globalState![0];
+  console.log(`Raw global state - ${algosdk.encodeJSON(globalState)}`);
 
-  // decode b64 string key with Buffer
-  const globalKey = algosdk.base64ToString(globalState.key);
+  const globalKey = globalState.key;
   // show global value
   const globalValue = globalState.value.bytes;
 
@@ -146,11 +145,10 @@ async function main() {
     .accountApplicationInformation(caller.addr, appId)
     .do();
 
-  const localState = accountAppInfo.appLocalState.keyValue[0];
+  const localState = accountAppInfo.appLocalState!.keyValue![0];
   console.log(`Raw local state - ${algosdk.stringifyJSON(localState)}`);
 
-  // decode b64 string key with Buffer
-  const localKey = algosdk.base64ToString(localState.key);
+  const localKey = localState.key;
   // get uint value directly
   const localValue = localState.value.uint;
 
