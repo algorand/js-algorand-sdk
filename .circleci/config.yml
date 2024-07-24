@@ -148,6 +148,7 @@ commands:
             npm i
             npm run prepare
             npm pack
+            cp algorand-msgpack-1.0.1.tgz ../js-algorand-sdk/algorand-msgpack-1.0.1.tgz
       - run:
           name: npm ci
           command: |

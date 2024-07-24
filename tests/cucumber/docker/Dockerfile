@@ -24,7 +24,7 @@ WORKDIR /home/js-algorand-sdk
 
 # Temporary hack to copy in msgpack-javascript from a branch
 RUN mkdir -p /home/msgpack-javascript
-COPY ../msgpack-javascript/algorand-msgpack-1.0.1.tgz /home/msgpack-javascript/algorand-msgpack-1.0.1.tgz
+COPY algorand-msgpack-1.0.1.tgz /home/msgpack-javascript/algorand-msgpack-1.0.1.tgz
 
 ARG TEST_BROWSER
 ENV TEST_BROWSER=$TEST_BROWSER
