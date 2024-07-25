@@ -2,7 +2,8 @@ import { Encodable, Schema } from '../encoding/encoding.js';
 import {
   NamedMapSchema,
   Uint64MapSchema,
-  StringMapSchema,
+  SpecialCaseBinaryStringMapSchema,
+  SpecialCaseBinaryStringSchema,
   ArraySchema,
   StringSchema,
   BooleanSchema,
@@ -768,7 +769,7 @@ export class ValueDelta implements Encodable {
       },
       {
         key: 'bs', // bytes
-        valueSchema: new StringSchema(),
+        valueSchema: new SpecialCaseBinaryStringSchema(),
       },
       {
         key: 'ui', // uint
@@ -778,10 +779,14 @@ export class ValueDelta implements Encodable {
   );
 
   public action: number;
-  public bytes: string;
+  public bytes: Uint8Array;
   public uint: bigint;
 
-  public constructor(params: { action: number; bytes: string; uint: bigint }) {
+  public constructor(params: {
+    action: number;
+    bytes: Uint8Array;
+    uint: bigint;
+  }) {
     this.action = params.action;
     this.bytes = params.bytes;
     this.uint = params.uint;
@@ -825,14 +830,14 @@ export class EvalDelta implements Encodable {
           {
             key: 'gd', // globalDelta
             valueSchema: new OptionalSchema(
-              new StringMapSchema(ValueDelta.encodingSchema)
+              new SpecialCaseBinaryStringMapSchema(ValueDelta.encodingSchema)
             ),
           },
           {
             key: 'ld', // localDeltas
             valueSchema: new OptionalSchema(
               new Uint64MapSchema(
-                new StringMapSchema(ValueDelta.encodingSchema)
+                new SpecialCaseBinaryStringMapSchema(ValueDelta.encodingSchema)
               )
             ),
           },
@@ -845,7 +850,7 @@ export class EvalDelta implements Encodable {
           {
             key: 'lg', // logs
             valueSchema: new OptionalSchema(
-              new ArraySchema(new StringSchema())
+              new ArraySchema(new SpecialCaseBinaryStringSchema())
             ),
           },
           {
@@ -861,13 +866,13 @@ export class EvalDelta implements Encodable {
     return this.encodingSchemaValue;
   }
 
-  public globalDelta: Map<string, ValueDelta>;
+  public globalDelta: Map<Uint8Array, ValueDelta>;
 
   /**
    * When decoding EvalDeltas, the integer key represents an offset into
    * [txn.Sender, txn.Accounts[0], txn.Accounts[1], ...]
    */
-  public localDeltas: Map<number, Map<string, ValueDelta>>;
+  public localDeltas: Map<number, Map<Uint8Array, ValueDelta>>;
 
   /**
    * If a program modifies the local of an account that is not the Sender, or
@@ -876,22 +881,22 @@ export class EvalDelta implements Encodable {
    */
   public sharedAccts: Address[];
 
-  public logs: string[];
+  public logs: Uint8Array[];
 
   // eslint-disable-next-line no-use-before-define
   public innerTxns: SignedTxnWithAD[];
 
   public constructor(params: {
-    globalDelta?: Map<string, ValueDelta>;
-    localDeltas?: Map<number, Map<string, ValueDelta>>;
+    globalDelta?: Map<Uint8Array, ValueDelta>;
+    localDeltas?: Map<number, Map<Uint8Array, ValueDelta>>;
     sharedAccts?: Address[];
-    logs?: string[];
+    logs?: Uint8Array[];
     // eslint-disable-next-line no-use-before-define
     innerTxns?: SignedTxnWithAD[];
   }) {
-    this.globalDelta = params.globalDelta ?? new Map<string, ValueDelta>();
+    this.globalDelta = params.globalDelta ?? new Map<Uint8Array, ValueDelta>();
     this.localDeltas =
-      params.localDeltas ?? new Map<number, Map<string, ValueDelta>>();
+      params.localDeltas ?? new Map<number, Map<Uint8Array, ValueDelta>>();
     this.sharedAccts = params.sharedAccts ?? [];
     this.logs = params.logs ?? [];
     this.innerTxns = params.innerTxns ?? [];
@@ -930,14 +935,14 @@ export class EvalDelta implements Encodable {
     }
     return new EvalDelta({
       globalDelta: data.get('gd')
-        ? convertMap(data.get('gd') as Map<string, unknown>, (key, value) => [
-            key,
-            ValueDelta.fromEncodingData(value),
-          ])
+        ? convertMap(
+            data.get('gd') as Map<Uint8Array, unknown>,
+            (key, value) => [key, ValueDelta.fromEncodingData(value)]
+          )
         : undefined,
       localDeltas: data.get('ld')
         ? convertMap(
-            data.get('ld') as Map<bigint, Map<string, unknown>>,
+            data.get('ld') as Map<bigint, Map<Uint8Array, unknown>>,
             (key, value) => [
               Number(key),
               convertMap(value, (k, v) => [k, ValueDelta.fromEncodingData(v)]),

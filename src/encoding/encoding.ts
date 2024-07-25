@@ -44,56 +44,115 @@ function containsEmpty(obj: Record<string | number | symbol, any>) {
 }
 
 /**
- * rawEncode encodes objects using msgpack, regardless of whether there are
+ * msgpackRawEncode encodes objects using msgpack, regardless of whether there are
  * empty or 0 value fields.
  * @param obj - a dictionary to be encoded. May or may not contain empty or 0 values.
  * @returns msgpack representation of the object
  */
-export function rawEncode(obj: unknown) {
+export function msgpackRawEncode(obj: unknown) {
   // enable the canonical option
   const options: EncoderOptions = { sortKeys: true };
   return msgpackEncode(obj, options);
 }
 
 /**
- * encode encodes objects using msgpack
- * @param obj - a dictionary to be encoded. Must not contain empty or 0 values.
- * @returns msgpack representation of the object
+ * encodeObj takes a javascript object and returns its msgpack encoding
+ * Note that the encoding sorts the fields alphabetically
+ * @param o - js object to be encoded. Must not contain empty or 0 values.
+ * @returns Uint8Array binary representation
  * @throws Error containing ERROR_CONTAINS_EMPTY_STRING if the object contains empty or zero values
+ *
+ * @deprecated Use {@link msgpackRawEncode} instead. Note that function does not
+ *   check for empty values like this one does.
  */
-export function encode(obj: Record<string | number | symbol, any>) {
+export function encodeObj(obj: Record<string | number | symbol, any>) {
   // Check for empty values
   const emptyCheck = containsEmpty(obj);
   if (emptyCheck.containsEmpty) {
     throw new Error(ERROR_CONTAINS_EMPTY_STRING + emptyCheck.firstEmptyKey);
   }
-
-  // enable the canonical option
-  return rawEncode(obj);
+  return msgpackRawEncode(obj);
 }
 
-export function decode(buffer: ArrayLike<number>) {
-  // TODO: make IntMode an argument
-  const options: DecoderOptions = { intMode: IntMode.MIXED };
-  return msgpackDecode(buffer, options);
+function intDecodingToIntMode(intDecoding: IntDecoding): IntMode {
+  switch (intDecoding) {
+    case IntDecoding.UNSAFE:
+      return IntMode.UNSAFE_NUMBER;
+    case IntDecoding.SAFE:
+      return IntMode.SAFE_NUMBER;
+    case IntDecoding.MIXED:
+      return IntMode.MIXED;
+    case IntDecoding.BIGINT:
+      return IntMode.BIGINT;
+    default:
+      throw new Error(`Invalid intDecoding: ${intDecoding}`);
+  }
 }
 
-export function decodeAsMap(encoded: ArrayLike<number>) {
-  // TODO: make IntMode an argument
-  const options: DecoderOptions = { intMode: IntMode.MIXED, useMap: true };
-  return msgpackDecode(encoded, options);
+/**
+ * Decodes msgpack bytes into a plain JavaScript object.
+ * @param buffer - The msgpack bytes to decode
+ * @param options - Options for decoding, including int decoding mode. See {@link IntDecoding} for more information.
+ * @returns The decoded object
+ */
+export function msgpackRawDecode(
+  buffer: ArrayLike<number>,
+  options?: { intDecoding: IntDecoding }
+) {
+  const decoderOptions: DecoderOptions = {
+    intMode: options?.intDecoding
+      ? intDecodingToIntMode(options?.intDecoding)
+      : IntMode.BIGINT,
+  };
+  return msgpackDecode(buffer, decoderOptions);
 }
 
-function decodeAsMapWithRawStrings(encoded: ArrayLike<number>) {
-  // TODO: make IntMode an argument
-  const options: DecoderOptions = {
-    intMode: IntMode.BIGINT,
+/**
+ * decodeObj takes a Uint8Array and returns its javascript obj
+ * @param o - Uint8Array to decode
+ * @returns object
+ *
+ * @deprecated Use {@link msgpackRawDecode} instead. Note that this function uses `IntDecoding.MIXED`
+ *   while `msgpackRawDecode` defaults to `IntDecoding.BIGINT` for int decoding, though it is
+ *   configurable.
+ */
+export function decodeObj(o: ArrayLike<number>) {
+  return msgpackRawDecode(o, { intDecoding: IntDecoding.MIXED });
+}
+
+/**
+ * Decodes msgpack bytes into a Map object. This supports decoding non-string map keys.
+ * @param encoded - The msgpack bytes to decode
+ * @param options - Options for decoding, including int decoding mode. See {@link IntDecoding} for more information.
+ * @returns The decoded Map object
+ */
+export function decodeAsMap(
+  encoded: ArrayLike<number>,
+  options?: { intDecoding: IntDecoding }
+) {
+  const decoderOptions: DecoderOptions = {
+    intMode: options?.intDecoding
+      ? intDecodingToIntMode(options?.intDecoding)
+      : IntMode.BIGINT,
+    useMap: true,
+  };
+  return msgpackDecode(encoded, decoderOptions);
+}
+
+function decodeAsMapWithRawStrings(
+  encoded: ArrayLike<number>,
+  options?: { intDecoding: IntDecoding }
+) {
+  const decoderOptions: DecoderOptions = {
+    intMode: options?.intDecoding
+      ? intDecodingToIntMode(options?.intDecoding)
+      : IntMode.BIGINT,
     useMap: true,
     rawBinaryStringKeys: true,
     rawBinaryStringValues: true,
     useRawBinaryStringClass: true,
   };
-  return msgpackDecode(encoded, options);
+  return msgpackDecode(encoded, decoderOptions);
 }
 
 export type MsgpackEncodingData =
@@ -342,6 +401,20 @@ export class MsgpackRawStringProvider {
     }
     throw new Error(`Invalid segment kind: ${this.segment.kind}`);
   }
+
+  public getPathString(): string {
+    const parentPathString = this.parent ? this.parent.getPathString() : 'root';
+    if (!this.segment) {
+      return parentPathString;
+    }
+    if (this.segment.kind === MsgpackObjectPathSegmentKind.MAP_VALUE) {
+      return `${parentPathString} -> map key "${this.segment.key}" (${typeof this.segment.key})`;
+    }
+    if (this.segment.kind === MsgpackObjectPathSegmentKind.ARRAY_ELEMENT) {
+      return `${parentPathString} -> array index ${this.segment.key} (${typeof this.segment.key})`;
+    }
+    return `${parentPathString} -> unknown segment kind ${this.segment.kind}`;
+  }
 }
 
 /**
@@ -450,7 +523,9 @@ export function decodeMsgpack<T extends Encodable>(
  * @returns A msgpack byte array encoding of the object
  */
 export function encodeMsgpack(e: Encodable): Uint8Array {
-  return rawEncode(e.getEncodingSchema().prepareMsgpack(e.toEncodingData()));
+  return msgpackRawEncode(
+    e.getEncodingSchema().prepareMsgpack(e.toEncodingData())
+  );
 }
 
 /**
@@ -464,7 +539,7 @@ export function decodeJSON<T extends Encodable>(
   c: EncodableClass<T>
 ): T {
   const decoded: JSONEncodingData = parseJSON(encoded, {
-    intDecoding: IntDecoding.MIXED,
+    intDecoding: IntDecoding.BIGINT,
   });
   return c.fromEncodingData(
     c.encodingSchema.fromPreparedJSON(decoded) as JSONEncodingData

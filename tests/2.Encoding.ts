@@ -3,11 +3,7 @@ import assert from 'assert';
 import { RawBinaryString } from 'algorand-msgpack';
 import algosdk from '../src/index.js';
 import * as utils from '../src/utils/utils.js';
-import {
-  rawEncode as msgpackRawEncode,
-  Schema,
-  MsgpackRawStringProvider,
-} from '../src/encoding/encoding.js';
+import { Schema, MsgpackRawStringProvider } from '../src/encoding/encoding.js';
 import {
   BooleanSchema,
   StringSchema,
@@ -1340,7 +1336,7 @@ describe('encoding', () => {
             const actualMsgpack = testcase.schema.prepareMsgpack(value);
             assert.deepStrictEqual(actualMsgpack, preparedMsgpackValue);
 
-            const msgpackBytes = msgpackRawEncode(actualMsgpack);
+            const msgpackBytes = algosdk.msgpackRawEncode(actualMsgpack);
             const rawStringProvider = new MsgpackRawStringProvider({
               baseObjectBytes: msgpackBytes,
             });
@@ -1548,7 +1544,7 @@ describe('encoding', () => {
         let prepareMsgpackResult = schema.prepareMsgpack(allEmptyValues);
         // All empty values should be omitted
         assert.deepStrictEqual(prepareMsgpackResult, new Map());
-        let msgpackBytes = msgpackRawEncode(prepareMsgpackResult);
+        let msgpackBytes = algosdk.msgpackRawEncode(prepareMsgpackResult);
         let rawStringProvider = new MsgpackRawStringProvider({
           baseObjectBytes: msgpackBytes,
         });
@@ -1580,7 +1576,7 @@ describe('encoding', () => {
         assert.ok(prepareMsgpackResult instanceof Map);
         // All values are present
         assert.strictEqual(prepareMsgpackResult.size, testValues.length);
-        msgpackBytes = msgpackRawEncode(prepareMsgpackResult);
+        msgpackBytes = algosdk.msgpackRawEncode(prepareMsgpackResult);
         rawStringProvider = new MsgpackRawStringProvider({
           baseObjectBytes: msgpackBytes,
         });
@@ -2090,8 +2086,8 @@ describe('encoding', () => {
                 ],
               ]),
             ],
-            ['rnd', 94],
-            ['step', 2],
+            ['rnd', BigInt(94)],
+            ['step', BigInt(2)],
             [
               'vote',
               [
@@ -2181,47 +2177,47 @@ describe('encoding', () => {
         configAsset: BigInt(7777),
         applicationID: BigInt(8888),
         evalDelta: new algosdk.EvalDelta({
-          globalDelta: new Map<string, algosdk.ValueDelta>([
+          globalDelta: new Map<Uint8Array, algosdk.ValueDelta>([
             [
-              'globalKey1',
+              algosdk.coerceToBytes('globalKey1'),
               new algosdk.ValueDelta({
                 action: 1,
                 uint: BigInt(0),
-                bytes: 'abc',
+                bytes: algosdk.coerceToBytes('abc'),
               }),
             ],
             [
-              'globalKey2',
+              algosdk.coerceToBytes('globalKey2'),
               new algosdk.ValueDelta({
                 action: 2,
                 uint: BigInt(50),
-                bytes: '',
+                bytes: new Uint8Array(),
               }),
             ],
           ]),
-          localDeltas: new Map<number, Map<string, algosdk.ValueDelta>>([
+          localDeltas: new Map<number, Map<Uint8Array, algosdk.ValueDelta>>([
             [
               0,
-              new Map<string, algosdk.ValueDelta>([
+              new Map<Uint8Array, algosdk.ValueDelta>([
                 [
-                  'localKey1',
+                  algosdk.coerceToBytes('localKey1'),
                   new algosdk.ValueDelta({
                     action: 1,
                     uint: BigInt(0),
-                    bytes: 'def',
+                    bytes: algosdk.coerceToBytes('def'),
                   }),
                 ],
               ]),
             ],
             [
               2,
-              new Map<string, algosdk.ValueDelta>([
+              new Map<Uint8Array, algosdk.ValueDelta>([
                 [
-                  'localKey2',
+                  algosdk.coerceToBytes('localKey2'),
                   new algosdk.ValueDelta({
                     action: 2,
                     uint: BigInt(51),
-                    bytes: '',
+                    bytes: new Uint8Array(),
                   }),
                 ],
               ]),
@@ -2233,7 +2229,7 @@ describe('encoding', () => {
             ),
             algosdk.Address.zeroAddress(),
           ],
-          logs: ['log1', 'log2'],
+          logs: [algosdk.coerceToBytes('log1'), algosdk.coerceToBytes('log2')],
           innerTxns: [
             new algosdk.SignedTxnWithAD({
               signedTxn: new algosdk.SignedTransaction({
@@ -2259,13 +2255,20 @@ describe('encoding', () => {
               }),
               applyData: new algosdk.ApplyData({
                 evalDelta: new algosdk.EvalDelta({
-                  logs: ['log3', 'log4'],
+                  logs: [
+                    algosdk.coerceToBytes('log3'),
+                    algosdk.coerceToBytes('log4'),
+                  ],
                 }),
               }),
             }),
           ],
         }),
       });
+      assert.deepStrictEqual(
+        algosdk.encodeJSON(applyData, 2),
+        algosdk.encodeJSON(expectedApplyData, 2)
+      );
       assert.deepStrictEqual(applyData, expectedApplyData);
       const reencoded = algosdk.encodeMsgpack(applyData);
       assert.deepStrictEqual(reencoded, encodedApplyData);

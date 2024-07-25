@@ -450,6 +450,35 @@ export class StringMapSchema extends Schema {
   }
 }
 
+function removeRawStringsFromMsgpackValues(
+  value: MsgpackEncodingData
+): MsgpackEncodingData {
+  if (value instanceof RawBinaryString) {
+    return bytesToString(value.rawBinaryValue as Uint8Array);
+  }
+  if (value instanceof Map) {
+    const newMap = new Map<
+      string | number | bigint | Uint8Array,
+      MsgpackEncodingData
+    >();
+    for (const [key, val] of value) {
+      newMap.set(
+        removeRawStringsFromMsgpackValues(key) as
+          | string
+          | number
+          | bigint
+          | Uint8Array,
+        removeRawStringsFromMsgpackValues(val)
+      );
+    }
+    return newMap;
+  }
+  if (Array.isArray(value)) {
+    return value.map(removeRawStringsFromMsgpackValues);
+  }
+  return value;
+}
+
 /**
  * Schema for a map with a variable number of binary string keys.
  *
@@ -499,7 +528,7 @@ export class SpecialCaseBinaryStringMapSchema extends Schema {
       map.set(
         key,
         this.valueSchema.fromPreparedMsgpack(
-          value,
+          removeRawStringsFromMsgpackValues(value),
           rawStringProvider.withMapValue(new RawBinaryString(key))
         )
       );
