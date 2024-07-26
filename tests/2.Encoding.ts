@@ -1927,7 +1927,160 @@ describe('encoding', () => {
       });
     });
     describe('MsgpackRawStringProvider', () => {
-      // TODO: Add tests
+      it('correctly records paths and provides raw strings', () => {
+        const baseObject = new Map<string, unknown>([
+          ['a', new Map([['a1', 'abc']])],
+          ['b', [new Map(), new Map([[BigInt(17), 'def']])]],
+        ]);
+        const baseProvider = new MsgpackRawStringProvider({
+          baseObjectBytes: algosdk.msgpackRawEncode(baseObject),
+        });
+        assert.strictEqual(baseProvider.getPathString(), 'root');
+        assert.throws(
+          () => baseProvider.getRawStringAtCurrentLocation(),
+          /Invalid type\. Expected RawBinaryString, got/
+        );
+        assert.deepStrictEqual(
+          baseProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+          new Map<unknown, unknown>([
+            [
+              Uint8Array.from([97]),
+              new Map([
+                [
+                  new RawBinaryString(Uint8Array.from([97, 49])),
+                  new RawBinaryString(Uint8Array.from([97, 98, 99])),
+                ],
+              ]),
+            ],
+            [
+              Uint8Array.from([98]),
+              [
+                new Map(),
+                new Map([
+                  [
+                    BigInt(17),
+                    new RawBinaryString(Uint8Array.from([100, 101, 102])),
+                  ],
+                ]),
+              ],
+            ],
+          ])
+        );
+
+        // Test with both string and raw string form
+        for (const firstKey of [
+          'a',
+          new RawBinaryString(Uint8Array.from([97])),
+        ]) {
+          const firstValueProvider = baseProvider.withMapValue(firstKey);
+          assert.strictEqual(
+            firstValueProvider.getPathString(),
+            `root -> map key "${firstKey}" (${typeof firstKey})`
+          );
+          assert.throws(
+            () => firstValueProvider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.deepStrictEqual(
+            firstValueProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+            new Map([
+              [
+                Uint8Array.from([97, 49]),
+                new RawBinaryString(Uint8Array.from([97, 98, 99])),
+              ],
+            ])
+          );
+
+          // Test with both string and raw string form
+          for (const firstFirstKey of [
+            'a1',
+            new RawBinaryString(Uint8Array.from([97, 49])),
+          ]) {
+            const firstFirstValueProvider =
+              firstValueProvider.withMapValue(firstFirstKey);
+            assert.strictEqual(
+              firstFirstValueProvider.getPathString(),
+              `root -> map key "${firstKey}" (${typeof firstKey}) -> map key "${firstFirstKey}" (${typeof firstFirstKey})`
+            );
+            assert.deepStrictEqual(
+              firstFirstValueProvider.getRawStringAtCurrentLocation(),
+              Uint8Array.from([97, 98, 99])
+            );
+            assert.throws(
+              () =>
+                firstFirstValueProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+              /Invalid type\. Expected Map, got/
+            );
+          }
+        }
+
+        // Test with both string and raw string form
+        for (const secondKey of [
+          'b',
+          new RawBinaryString(Uint8Array.from([98])),
+        ]) {
+          const secondValueProvider = baseProvider.withMapValue(secondKey);
+          assert.strictEqual(
+            secondValueProvider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey})`
+          );
+          assert.throws(
+            () => secondValueProvider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.throws(
+            () =>
+              secondValueProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+            /Invalid type\. Expected Map, got/
+          );
+
+          const secondIndex0Provider = secondValueProvider.withArrayElement(0);
+          assert.strictEqual(
+            secondIndex0Provider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey}) -> array index 0 (number)`
+          );
+          assert.throws(
+            () => secondIndex0Provider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.deepStrictEqual(
+            secondIndex0Provider.getRawStringKeysAndValuesAtCurrentLocation(),
+            new Map()
+          );
+
+          const secondIndex1Provider = secondValueProvider.withArrayElement(1);
+          assert.strictEqual(
+            secondIndex1Provider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey}) -> array index 1 (number)`
+          );
+          assert.throws(
+            () => secondIndex1Provider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.throws(
+            () =>
+              secondIndex1Provider.getRawStringKeysAndValuesAtCurrentLocation(),
+            /Invalid type for map key\. Expected RawBinaryString, got 17 \(bigint\)/
+          );
+
+          const secondIndex1FirstProvider = secondIndex1Provider.withMapValue(
+            BigInt(17)
+          );
+          assert.strictEqual(
+            secondIndex1FirstProvider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey}) -> array index 1 (number) -> map key "17" (bigint)`
+          );
+          assert.deepStrictEqual(
+            secondIndex1FirstProvider.getRawStringAtCurrentLocation(),
+            Uint8Array.from([100, 101, 102])
+          );
+          assert.throws(
+            () =>
+              secondIndex1FirstProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+            /Invalid type\. Expected Map, got/
+          );
+        }
+      });
     });
   });
   describe('BlockResponse', () => {
@@ -2265,13 +2418,125 @@ describe('encoding', () => {
           ],
         }),
       });
-      assert.deepStrictEqual(
-        algosdk.encodeJSON(applyData, 2),
-        algosdk.encodeJSON(expectedApplyData, 2)
-      );
       assert.deepStrictEqual(applyData, expectedApplyData);
       const reencoded = algosdk.encodeMsgpack(applyData);
       assert.deepStrictEqual(reencoded, encodedApplyData);
+    });
+    it('should decode EvalDelta with invalid UTF-8 strings correctly', () => {
+      const encodedEvalDelta = algosdk.base64ToBytes(
+        'haJnZIKkZzH+/4KiYXQBomJzpHYx/v+kZzL+/4KiYXQConVpMqNpdHiRgqJkdIGibGeSpmxvZzP+/6b+/2xvZzSjdHhuhqRhcGlkzR5ho2ZlZc0D6KJmdlyibHbNBESjc25kxCB/k/5DqCp+P1WW/80hkucvP2neluTb4OL7yjQQnAxn6aR0eXBlpGFwcGyibGSCAIGkbDH+/4KiYXQBomJzpHYy/v8CgaRsMv7/gqJhdAKidWkzomxnkqZsb2cx/v+m/v9sb2cyonNhksQgCbEzlTT2uNiZwobypXnCOg5IqgxtO92MuwR8vJwv3ePEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      );
+      const evalDelta = algosdk.decodeMsgpack(
+        encodedEvalDelta,
+        algosdk.EvalDelta
+      );
+      const invalidUtf8 = algosdk.base64ToBytes('/v8=');
+      const expectedEvalDelta = new algosdk.EvalDelta({
+        globalDelta: new Map<Uint8Array, algosdk.ValueDelta>([
+          [
+            utils.concatArrays(algosdk.coerceToBytes('g1'), invalidUtf8),
+            new algosdk.ValueDelta({
+              action: 1,
+              uint: BigInt(0),
+              bytes: utils.concatArrays(
+                algosdk.coerceToBytes('v1'),
+                invalidUtf8
+              ),
+            }),
+          ],
+          [
+            utils.concatArrays(algosdk.coerceToBytes('g2'), invalidUtf8),
+            new algosdk.ValueDelta({
+              action: 2,
+              uint: BigInt(50),
+              bytes: new Uint8Array(),
+            }),
+          ],
+        ]),
+        localDeltas: new Map<number, Map<Uint8Array, algosdk.ValueDelta>>([
+          [
+            0,
+            new Map<Uint8Array, algosdk.ValueDelta>([
+              [
+                utils.concatArrays(algosdk.coerceToBytes('l1'), invalidUtf8),
+                new algosdk.ValueDelta({
+                  action: 1,
+                  uint: BigInt(0),
+                  bytes: utils.concatArrays(
+                    algosdk.coerceToBytes('v2'),
+                    invalidUtf8
+                  ),
+                }),
+              ],
+            ]),
+          ],
+          [
+            2,
+            new Map<Uint8Array, algosdk.ValueDelta>([
+              [
+                utils.concatArrays(algosdk.coerceToBytes('l2'), invalidUtf8),
+                new algosdk.ValueDelta({
+                  action: 2,
+                  uint: BigInt(51),
+                  bytes: new Uint8Array(),
+                }),
+              ],
+            ]),
+          ],
+        ]),
+        sharedAccts: [
+          algosdk.Address.fromString(
+            'BGYTHFJU624NRGOCQ3ZKK6OCHIHERKQMNU553DF3AR6LZHBP3XR5JLNCUI'
+          ),
+          algosdk.Address.zeroAddress(),
+        ],
+        logs: [
+          utils.concatArrays(algosdk.coerceToBytes('log1'), invalidUtf8),
+          utils.concatArrays(invalidUtf8, algosdk.coerceToBytes('log2')),
+        ],
+        innerTxns: [
+          new algosdk.SignedTxnWithAD({
+            signedTxn: new algosdk.SignedTransaction({
+              txn: new algosdk.Transaction({
+                sender: new algosdk.Address(
+                  algosdk.base64ToBytes(
+                    'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                  )
+                ),
+                type: algosdk.TransactionType.appl,
+                suggestedParams: {
+                  flatFee: true,
+                  fee: BigInt(1000),
+                  firstValid: BigInt(92),
+                  lastValid: BigInt(1092),
+                  minFee: BigInt(1000),
+                },
+                appCallParams: {
+                  appIndex: BigInt(7777),
+                  onComplete: algosdk.OnApplicationComplete.NoOpOC,
+                },
+              }),
+            }),
+            applyData: new algosdk.ApplyData({
+              evalDelta: new algosdk.EvalDelta({
+                logs: [
+                  utils.concatArrays(
+                    algosdk.coerceToBytes('log3'),
+                    invalidUtf8
+                  ),
+                  utils.concatArrays(
+                    invalidUtf8,
+                    algosdk.coerceToBytes('log4')
+                  ),
+                ],
+              }),
+            }),
+          }),
+        ],
+      });
+      assert.deepStrictEqual(evalDelta, expectedEvalDelta);
+      const reencoded = algosdk.encodeMsgpack(evalDelta);
+      assert.deepStrictEqual(reencoded, encodedEvalDelta);
     });
   });
 });

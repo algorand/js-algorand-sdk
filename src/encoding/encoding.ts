@@ -247,7 +247,7 @@ export class MsgpackRawStringProvider {
 
   private readonly baseObjectBytes?: ArrayLike<number>;
 
-  private readonly segment?;
+  private readonly segment?: MsgpackObjectPathSegment;
 
   private resolvedCache: MsgpackEncodingData = null;
   private resolvedCachePresent = false;
@@ -322,7 +322,7 @@ export class MsgpackRawStringProvider {
         keysAndValues.set(key.rawBinaryValue as Uint8Array, value);
       } else {
         throw new Error(
-          `Invalid type for map key. Expected RawBinaryString, got (${typeof key}) ${key}`
+          `Invalid type for map key. Expected RawBinaryString, got ${key} (${typeof key})`
         );
       }
     }
