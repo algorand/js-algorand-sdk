@@ -17,6 +17,11 @@ export interface SuggestedParamsFromAlgod extends SuggestedParams {
   lastValid: bigint;
   genesisID: string;
   genesisHash: Uint8Array;
+
+  /**
+   * ConsensusVersion indicates the consensus protocol version as of the last round.
+   */
+  consensusVersion: string;
 }
 
 /**
@@ -40,6 +45,7 @@ export default class SuggestedParamsRequest extends JSONRequest<
       genesisID: body['genesis-id'],
       genesisHash: base64ToBytes(body['genesis-hash']),
       minFee: BigInt(body['min-fee']),
+      consensusVersion: body['consensus-version'],
     };
   }
   /* eslint-enable class-methods-use-this */

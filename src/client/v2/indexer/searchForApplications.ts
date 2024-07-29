@@ -1,5 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
 import { Address } from '../../../encoding/address.js';
+import { ApplicationsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed applications.
@@ -12,7 +13,10 @@ import { Address } from '../../../encoding/address.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applications)
  * @category GET
  */
-export default class SearchForApplications extends JSONRequest {
+export default class SearchForApplications extends JSONRequest<
+  ApplicationsResponse,
+  Record<string, any>
+> {
   /**
    * @returns `/v2/applications`
    */
@@ -131,5 +135,12 @@ export default class SearchForApplications extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(body: Record<string, any>): ApplicationsResponse {
+    return ApplicationsResponse.fromEncodingData(
+      ApplicationsResponse.encodingSchema.fromPreparedJSON(body)
+    );
   }
 }

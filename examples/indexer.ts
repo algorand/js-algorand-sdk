@@ -39,7 +39,7 @@ async function main() {
   // example: INDEXER_SEARCH_MIN_AMOUNT
 
   // example: INDEXER_PAGINATE_RESULTS
-  let nextToken = '';
+  let nextToken: string | undefined = '';
 
   // nextToken will be undefined if we reached the last page
   while (nextToken !== undefined) {
@@ -51,7 +51,7 @@ async function main() {
       .nextToken(nextToken)
       .do();
 
-    nextToken = response['next-token'];
+    nextToken = response.nextToken;
     const txns = response.transactions;
     if (txns.length > 0)
       console.log(`Transaction IDs: ${response.transactions.map((t) => t.id)}`);
