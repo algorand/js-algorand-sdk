@@ -303,6 +303,15 @@ In order to facilitate `bigint` as a first-class type in this SDK, additional JS
 
 If your v2 code uses `JSON.parse` or `JSON.stringify` on types which can now contain `bigint`s in v3, such as `Transaction` representations or REST API responses, consider using these new functions instead.
 
+### Msgpack Operations
+
+The functions `encodeObj` and `decodeObj`, used to encode and decode msgpack objects, have been deprecated in v3 in favor of new functions, `msgpackRawEncode` and `msgpackRawDecode`. These functions have clearer names and differ slightly from the old functions. Specifically:
+
+- `msgpackRawEncode` will encode an object to msgpack, but will not check for empty values and throw errors if any are found. This additional check has become unnecessary due to the new encoding and decoding system in v3.
+- `msgpackRawDecode` will decode a msgpack object, but unlike `decodeObj` which always uses `IntDecoding.MIXED` to decode integers, `msgpackRawDecode` can use any provided `IntDecoding` option. If none are provided, it will default to `IntDecoding.BIGINT`. Generally speaking, `IntDecoding.BIGINT` is preferred because it can handle all possible integer values, and the type of an integer will not change depending on the value (like it can with `IntDecoding.MIXED`), meaning code which query integer values from the decoded object will be more predictable.
+
+Though in the vast majority of cases, you will not need to use these functions directly. Instead, the `encodeMsgpack` and `decodeMsgpack` functions are preferred, which are discussed in the [Object Encoding and Decoding](#object-encoding-and-decoding) section.
+
 ### IntDecoding
 
 The `IntDecoding.DEFAULT` option has been renamed to `IntDecoding.UNSAFE` in v3. It behaves identically to the v2 `IntDecoding.DEFAULT` option, but the name has been changed to better reflect the fact that other options should be preferred.
@@ -315,7 +324,7 @@ Specifically, the `DryrunResult` class and its dependent types have been removed
 
 The `DryrunTransactionResult` class, which made up the elements of the v2 `DryrunResult.txns` array, used to have methods `appTrace` and `lsigTrace`. These have been replaced by the new `dryrunTxnResultAppTrace` and `dryrunTxnResultLogicSigTrace` functions, which accept a `DryrunTxnResult`. These new functions should produce identical results to the old ones.
 
-### Encoding and Decoding
+### Object Encoding and Decoding
 
 In v2 of the SDK, the `Transaction`, `LogicSig`, `BaseModel` and other classes had `get_obj_for_encoding` methods and `from_obj_for_encoding` static methods. These were used during the process of encoding or decoding objects from msgpack or JSON. These ad-hoc methods have been removed in v3, and in their place a new `Encodable` interface has been introduced, along with functions `encodeMsgpack`, `decodeMsgpack`, `encodeJSON`, and `decodeJSON`.
 
@@ -337,4 +346,12 @@ const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({...});
 const encoded = algosdk.encodeMsgpack(txn); // Uint8Array of msgpack-encoded transaction
 const decoded = algosdk.decodeMsgpack(encoded, algosdk.Transaction); // Decoded Transaction instance
 assert.deepStrictEqual(txn, decoded);
+```
+
+### Base64 Encoding
+
+The `base64ToString` function has been removed in v3. Instead, you may combine the `base64ToBytes` and `bytesToString` to achieve the same thing, like so:
+
+```typescript
+algosdk.bytesToString(algosdk.base64ToBytes('SGVsbG8gV29ybGQ='));
 ```

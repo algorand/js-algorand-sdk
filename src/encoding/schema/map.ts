@@ -513,7 +513,7 @@ export class SpecialCaseBinaryStringMapSchema extends Schema {
         this.valueSchema.prepareMsgpack(value)
       );
     }
-    // TODO: fix cast?
+    // Cast is needed because RawBinaryString is not part of the standard MsgpackEncodingData
     return prepared as unknown as Map<Uint8Array, MsgpackEncodingData>;
   }
 

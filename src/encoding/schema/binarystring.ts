@@ -29,7 +29,7 @@ export class SpecialCaseBinaryStringSchema extends Schema {
 
   public prepareMsgpack(data: unknown): MsgpackEncodingData {
     if (data instanceof Uint8Array) {
-      // TODO: fix cast?
+      // Cast is needed because RawBinaryString is not part of the standard MsgpackEncodingData
       return new RawBinaryString(data) as unknown as MsgpackEncodingData;
     }
     throw new Error(`Invalid byte array: (${typeof data}) ${data}`);

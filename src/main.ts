@@ -97,6 +97,7 @@ export {
   decodeObj,
   msgpackRawEncode,
   msgpackRawDecode,
+  msgpackRawDecodeAsMap,
   encodeMsgpack,
   decodeMsgpack,
   encodeJSON,

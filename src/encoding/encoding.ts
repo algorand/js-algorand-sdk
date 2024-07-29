@@ -126,7 +126,7 @@ export function decodeObj(o: ArrayLike<number>) {
  * @param options - Options for decoding, including int decoding mode. See {@link IntDecoding} for more information.
  * @returns The decoded Map object
  */
-export function decodeAsMap(
+export function msgpackRawDecodeAsMap(
   encoded: ArrayLike<number>,
   options?: { intDecoding: IntDecoding }
 ) {
@@ -139,7 +139,7 @@ export function decodeAsMap(
   return msgpackDecode(encoded, decoderOptions);
 }
 
-function decodeAsMapWithRawStrings(
+function msgpackRawDecodeAsMapWithRawStrings(
   encoded: ArrayLike<number>,
   options?: { intDecoding: IntDecoding }
 ) {
@@ -241,6 +241,9 @@ interface MsgpackObjectPathSegment {
   key: string | number | bigint | Uint8Array | RawBinaryString;
 }
 
+/**
+ * This class is used to index into an encoded msgpack object and extract raw strings.
+ */
 export class MsgpackRawStringProvider {
   // eslint-disable-next-line no-use-before-define
   private readonly parent?: MsgpackRawStringProvider;
@@ -272,6 +275,9 @@ export class MsgpackRawStringProvider {
     this.baseObjectBytes = baseObjectBytes;
   }
 
+  /**
+   * Create a new provider that resolves to the current provider's map value at the given key.
+   */
   public withMapValue(
     key: string | number | bigint | Uint8Array | RawBinaryString
   ): MsgpackRawStringProvider {
@@ -284,6 +290,9 @@ export class MsgpackRawStringProvider {
     });
   }
 
+  /**
+   * Create a new provider that resolves to the current provider's array element at the given index.
+   */
   public withArrayElement(index: number): MsgpackRawStringProvider {
     return new MsgpackRawStringProvider({
       parent: this,
@@ -294,6 +303,9 @@ export class MsgpackRawStringProvider {
     });
   }
 
+  /**
+   * Get the raw string at the current location. If the current location is not a raw string, an error is thrown.
+   */
   public getRawStringAtCurrentLocation(): Uint8Array {
     const resolved = this.resolve();
     if (resolved instanceof RawBinaryString) {
@@ -305,6 +317,9 @@ export class MsgpackRawStringProvider {
     );
   }
 
+  /**
+   * Get the raw string map keys and values at the current location. If the current location is not a map, an error is thrown.
+   */
   public getRawStringKeysAndValuesAtCurrentLocation(): Map<
     Uint8Array,
     MsgpackEncodingData
@@ -329,6 +344,9 @@ export class MsgpackRawStringProvider {
     return keysAndValues;
   }
 
+  /**
+   * Resolve the provider by extracting the value it indicates from the base msgpack object.
+   */
   private resolve(): MsgpackEncodingData {
     if (this.resolvedCachePresent) {
       return this.resolvedCache;
@@ -338,7 +356,7 @@ export class MsgpackRawStringProvider {
       parentResolved = this.parent.resolve();
     } else {
       // Need to parse baseObjectBytes
-      parentResolved = decodeAsMapWithRawStrings(
+      parentResolved = msgpackRawDecodeAsMapWithRawStrings(
         this.baseObjectBytes!
       ) as MsgpackEncodingData;
     }
@@ -402,6 +420,9 @@ export class MsgpackRawStringProvider {
     throw new Error(`Invalid segment kind: ${this.segment.kind}`);
   }
 
+  /**
+   * Get the path string of the current location indicated by the provider. Useful for debugging.
+   */
   public getPathString(): string {
     const parentPathString = this.parent ? this.parent.getPathString() : 'root';
     if (!this.segment) {
@@ -508,7 +529,7 @@ export function decodeMsgpack<T extends Encodable>(
   encoded: ArrayLike<number>,
   c: EncodableClass<T>
 ): T {
-  const decoded = decodeAsMap(encoded) as MsgpackEncodingData;
+  const decoded = msgpackRawDecodeAsMap(encoded) as MsgpackEncodingData;
   const rawStringProvider = new MsgpackRawStringProvider({
     baseObjectBytes: encoded,
   });

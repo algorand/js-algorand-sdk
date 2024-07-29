@@ -29,7 +29,7 @@ export function bytesToBase64(byteArray: Uint8Array): string {
 }
 
 /**
- * Decode a base64 string for Node.js and browser environments.
+ * Convert a byte array to a UTF-8 string. Warning: not all byte arrays are valid UTF-8.
  * @returns A decoded string
  */
 export function bytesToString(byteArray: Uint8Array): string {

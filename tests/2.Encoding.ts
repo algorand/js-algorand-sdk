@@ -973,7 +973,7 @@ describe('encoding', () => {
           schema: new SpecialCaseBinaryStringSchema(),
           values: [Uint8Array.from([]), Uint8Array.from([97, 98, 99])],
           preparedMsgpackValues: [
-            // TODO: fix cast?
+            // Cast is needed because RawBinaryString is not part of the standard MsgpackEncodingData
             new RawBinaryString(
               Uint8Array.from([])
             ) as unknown as algosdk.MsgpackEncodingData,
