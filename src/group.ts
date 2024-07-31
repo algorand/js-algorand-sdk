@@ -1,6 +1,6 @@
 import { Transaction } from './transaction.js';
 import * as nacl from './nacl/naclWrappers.js';
-import { encodeObj } from './encoding/encoding.js';
+import { msgpackRawEncode } from './encoding/encoding.js';
 import * as utils from './utils/utils.js';
 
 const ALGORAND_MAX_TX_GROUP_SIZE = 16;
@@ -8,11 +8,14 @@ const TX_GROUP_TAG = new TextEncoder().encode('TG');
 
 function txGroupPreimage(txnHashes: Uint8Array[]): Uint8Array {
   if (txnHashes.length > ALGORAND_MAX_TX_GROUP_SIZE) {
-    throw Error(
+    throw new Error(
       `${txnHashes.length} transactions grouped together but max group size is ${ALGORAND_MAX_TX_GROUP_SIZE}`
     );
   }
-  const bytes = encodeObj({
+  if (txnHashes.length === 0) {
+    throw new Error('Cannot compute group ID of zero transactions');
+  }
+  const bytes = msgpackRawEncode({
     txlist: txnHashes,
   });
   return utils.concatArrays(TX_GROUP_TAG, bytes);

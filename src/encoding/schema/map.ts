@@ -450,7 +450,14 @@ export class StringMapSchema extends Schema {
   }
 }
 
-function removeRawStringsFromMsgpackValues(
+/**
+ * Converts any RawBinaryString values to regular strings in a MsgpackEncodingData object.
+ *
+ * Note this conversion may be lossy if the binary data is not valid UTF-8.
+ *
+ * @returns A new object with RawBinaryString values converted to strings.
+ */
+function convertRawStringsInMsgpackValue(
   value: MsgpackEncodingData
 ): MsgpackEncodingData {
   if (value instanceof RawBinaryString) {
@@ -463,18 +470,18 @@ function removeRawStringsFromMsgpackValues(
     >();
     for (const [key, val] of value) {
       newMap.set(
-        removeRawStringsFromMsgpackValues(key) as
+        convertRawStringsInMsgpackValue(key) as
           | string
           | number
           | bigint
           | Uint8Array,
-        removeRawStringsFromMsgpackValues(val)
+        convertRawStringsInMsgpackValue(val)
       );
     }
     return newMap;
   }
   if (Array.isArray(value)) {
-    return value.map(removeRawStringsFromMsgpackValues);
+    return value.map(convertRawStringsInMsgpackValue);
   }
   return value;
 }
@@ -528,7 +535,7 @@ export class SpecialCaseBinaryStringMapSchema extends Schema {
       map.set(
         key,
         this.valueSchema.fromPreparedMsgpack(
-          removeRawStringsFromMsgpackValues(value),
+          convertRawStringsInMsgpackValue(value),
           rawStringProvider.withMapValue(new RawBinaryString(key))
         )
       );
