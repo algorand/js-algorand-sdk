@@ -18,13 +18,9 @@ RUN wget -q -O - https://deb.nodesource.com/setup_18.x | bash \
   && echo "npm version: $(npm --version)"
 
 # Copy SDK code into the container
-RUN mkdir -p /home/js-algorand-sdk
-COPY . /home/js-algorand-sdk
-WORKDIR /home/js-algorand-sdk
-
-# Temporary hack to copy in msgpack-javascript from a branch
-RUN mkdir -p /home/msgpack-javascript
-COPY algorand-msgpack-1.0.1.tgz /home/msgpack-javascript/algorand-msgpack-1.0.1.tgz
+RUN mkdir -p $HOME/js-algorand-sdk
+COPY . $HOME/js-algorand-sdk
+WORKDIR $HOME/js-algorand-sdk
 
 ARG TEST_BROWSER
 ENV TEST_BROWSER=$TEST_BROWSER
