@@ -443,11 +443,11 @@ export class MsgpackRawStringProvider {
  */
 export interface PrepareJSONOptions {
   /**
-   * If true, throw an error if a string is encountered that cannot be represented as a UTF-8 JSON string.
+   * If true, allows invalid UTF-8 binary strings to be converted to JSON strings.
    *
-   * Otherwise, such a string will be encoded without error but may lose information.
+   * Otherwise, an error will be thrown if encoding a binary string to a JSON cannot be done losslessly.
    */
-  strictBinaryStrings?: boolean;
+  lossyBinaryStringConversion?: boolean;
 }
 
 /**
@@ -590,11 +590,11 @@ export interface EncodeJSONOptions {
   space?: string | number;
 
   /**
-   * If true, throw an error if a string is encountered that cannot be represented as a UTF-8 JSON string.
+   * If true, allows invalid UTF-8 binary strings to be converted to JSON strings.
    *
-   * Otherwise, such a string will be encoded without error but may lose information.
+   * Otherwise, an error will be thrown if encoding a binary string to a JSON cannot be done losslessly.
    */
-  strictBinaryStrings?: boolean;
+  lossyBinaryStringConversion?: boolean;
 }
 
 /**

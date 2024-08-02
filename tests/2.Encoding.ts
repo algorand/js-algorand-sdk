@@ -1930,7 +1930,7 @@ describe('encoding', () => {
         );
       });
     });
-    describe('strictBinaryStrings', () => {
+    describe('lossyBinaryStringConversion', () => {
       const invalidUtf8String = Uint8Array.from([
         61, 180, 118, 220, 39, 166, 43, 68, 219, 116, 105, 84, 121, 46, 122,
         136, 233, 221, 15, 174, 247, 19, 50, 176, 184, 221, 66, 188, 171, 36,
@@ -1940,77 +1940,73 @@ describe('encoding', () => {
       const invalidUtf8StringEncoded = bytesToString(invalidUtf8String);
       const invalidUtf8StringDecoded = coerceToBytes(invalidUtf8StringEncoded);
 
-      it('should have lossy string conversion', () => {
+      it('should have lossy string conversion for invalid UTF-8 string', () => {
         assert.notStrictEqual(invalidUtf8String, invalidUtf8StringDecoded);
       });
 
-      it('should lossily prepare invalid UTF-8 strings by default and when disabled', () => {
-        for (const options of [{}, { strictBinaryStrings: false }]) {
-          const schema = new SpecialCaseBinaryStringSchema();
-          const prepared = schema.prepareJSON(invalidUtf8String, options);
-          assert.strictEqual(prepared, invalidUtf8StringEncoded);
-          assert.deepStrictEqual(
-            schema.fromPreparedJSON(prepared),
-            invalidUtf8StringDecoded
-          );
+      it('should lossily prepare invalid UTF-8 strings by default and when enabled', () => {
+        const options = {
+          lossyBinaryStringConversion: true,
+        };
 
-          const mapSchema = new SpecialCaseBinaryStringMapSchema(schema);
-          // testing default behavior
-          const preparedMap = mapSchema.prepareJSON(
-            new Map([[invalidUtf8String, invalidUtf8String]]),
-            {}
-          );
-          const expectedPreparedMap: Record<string, string> = {};
-          expectedPreparedMap[invalidUtf8StringEncoded] =
-            invalidUtf8StringEncoded;
-          assert.deepStrictEqual(preparedMap, expectedPreparedMap);
-          assert.deepStrictEqual(
-            mapSchema.fromPreparedJSON(preparedMap),
-            new Map([[invalidUtf8StringDecoded, invalidUtf8StringDecoded]])
-          );
-        }
-      });
-      it('should error when preparing invalid UTF-8 strings when enabled', () => {
         const schema = new SpecialCaseBinaryStringSchema();
-        assert.throws(
-          () =>
-            schema.prepareJSON(invalidUtf8String, {
-              strictBinaryStrings: true,
-            }),
-          /Invalid UTF-8 byte array encountered/
+        const prepared = schema.prepareJSON(invalidUtf8String, options);
+        assert.strictEqual(prepared, invalidUtf8StringEncoded);
+        assert.deepStrictEqual(
+          schema.fromPreparedJSON(prepared),
+          invalidUtf8StringDecoded
         );
 
         const mapSchema = new SpecialCaseBinaryStringMapSchema(schema);
-        assert.throws(
-          () =>
-            mapSchema.prepareJSON(
-              new Map([[Uint8Array.from([97]), invalidUtf8String]]),
-              {
-                strictBinaryStrings: true,
-              }
-            ),
-          /Invalid UTF-8 byte array encountered/
+        const preparedMap = mapSchema.prepareJSON(
+          new Map([[invalidUtf8String, invalidUtf8String]]),
+          options
         );
+        const expectedPreparedMap: Record<string, string> = {};
+        expectedPreparedMap[invalidUtf8StringEncoded] =
+          invalidUtf8StringEncoded;
+        assert.deepStrictEqual(preparedMap, expectedPreparedMap);
+        assert.deepStrictEqual(
+          mapSchema.fromPreparedJSON(preparedMap),
+          new Map([[invalidUtf8StringDecoded, invalidUtf8StringDecoded]])
+        );
+      });
+      it('should error when preparing invalid UTF-8 strings when disabled and by default', () => {
+        for (const options of [{}, { lossyBinaryStringConversion: false }]) {
+          const schema = new SpecialCaseBinaryStringSchema();
+          assert.throws(
+            () => schema.prepareJSON(invalidUtf8String, options),
+            /Invalid UTF-8 byte array encountered/
+          );
 
-        assert.throws(
-          () =>
-            mapSchema.prepareJSON(
-              new Map([[invalidUtf8String, Uint8Array.from([97])]]),
-              {
-                strictBinaryStrings: true,
-              }
-            ),
-          /Invalid UTF-8 byte array encountered/
-        );
+          const mapSchema = new SpecialCaseBinaryStringMapSchema(schema);
+          assert.throws(
+            () =>
+              mapSchema.prepareJSON(
+                new Map([[Uint8Array.from([97]), invalidUtf8String]]),
+                options
+              ),
+            /Invalid UTF-8 byte array encountered/
+          );
 
-        assert.throws(
-          () =>
-            mapSchema.prepareJSON(
-              new Map([[invalidUtf8String, invalidUtf8String]]),
-              { strictBinaryStrings: true }
-            ),
-          /Invalid UTF-8 byte array encountered/
-        );
+          assert.throws(
+            () =>
+              mapSchema.prepareJSON(
+                new Map([[invalidUtf8String, Uint8Array.from([97])]]),
+                options
+              ),
+            /Invalid UTF-8 byte array encountered/
+          );
+
+          assert.throws(
+            () =>
+              mapSchema.prepareJSON(
+                new Map([[invalidUtf8String, invalidUtf8String]]),
+                options
+              ),
+            /Invalid UTF-8 byte array encountered/
+          );
+        }
       });
     });
     describe('MsgpackRawStringProvider', () => {

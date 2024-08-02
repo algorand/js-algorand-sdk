@@ -570,11 +570,11 @@ export class SpecialCaseBinaryStringMapSchema extends Schema {
       // Not safe to convert to string for all binary data
       const keyStringValue = bytesToString(key);
       if (
-        options.strictBinaryStrings &&
+        !options.lossyBinaryStringConversion &&
         !arrayEqual(coerceToBytes(keyStringValue), key)
       ) {
         throw new Error(
-          `Invalid UTF-8 byte array encountered with strictBinaryStrings enabled. Base64 value: ${bytesToBase64(key)}`
+          `Invalid UTF-8 byte array encountered. Encode with lossyBinaryStringConversion enabled to bypass this check. Base64 value: ${bytesToBase64(key)}`
         );
       }
       prepared.set(
