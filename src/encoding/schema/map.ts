@@ -4,9 +4,10 @@ import {
   MsgpackEncodingData,
   MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
 } from '../encoding.js';
-import { ensureUint64 } from '../../utils/utils.js';
-import { bytesToString, coerceToBytes } from '../binarydata.js';
+import { ensureUint64, arrayEqual } from '../../utils/utils.js';
+import { bytesToString, coerceToBytes, bytesToBase64 } from '../binarydata.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -171,7 +172,10 @@ export class NamedMapSchema extends Schema {
     return map;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (!(data instanceof Map)) {
       throw new Error('NamedMapSchema data must be a Map');
     }
@@ -181,7 +185,7 @@ export class NamedMapSchema extends Schema {
       if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
         continue;
       }
-      obj[entry.key] = entry.valueSchema.prepareJSON(value);
+      obj[entry.key] = entry.valueSchema.prepareJSON(value, options);
     }
     return obj;
   }
@@ -304,7 +308,10 @@ export class Uint64MapSchema extends Schema {
     return map;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (!(data instanceof Map)) {
       throw new Error(
         `Uint64MapSchema data must be a Map. Got (${typeof data}) ${data}`
@@ -316,7 +323,7 @@ export class Uint64MapSchema extends Schema {
       if (prepared.has(bigintKey)) {
         throw new Error(`Duplicate key: ${bigintKey}`);
       }
-      prepared.set(bigintKey, this.valueSchema.prepareJSON(value));
+      prepared.set(bigintKey, this.valueSchema.prepareJSON(value, options));
     }
     // Convert map to object
     const obj: { [key: string]: JSONEncodingData } = {};
@@ -407,7 +414,10 @@ export class StringMapSchema extends Schema {
     return map;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (!(data instanceof Map)) {
       throw new Error(
         `StringMapSchema data must be a Map. Got (${typeof data}) ${data}`
@@ -421,7 +431,7 @@ export class StringMapSchema extends Schema {
       if (prepared.has(key)) {
         throw new Error(`Duplicate key: ${key}`);
       }
-      prepared.set(key, this.valueSchema.prepareJSON(value));
+      prepared.set(key, this.valueSchema.prepareJSON(value, options));
     }
     // Convert map to object
     const obj: { [key: string]: JSONEncodingData } = {};
@@ -543,7 +553,10 @@ export class SpecialCaseBinaryStringMapSchema extends Schema {
     return map;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (!(data instanceof Map)) {
       throw new Error(
         `SpecialCaseBinaryStringMapSchema data must be a Map. Got (${typeof data}) ${data}`
@@ -554,8 +567,20 @@ export class SpecialCaseBinaryStringMapSchema extends Schema {
       if (!(key instanceof Uint8Array)) {
         throw new Error(`Invalid key: ${key}`);
       }
-      // WARNING: not safe for all binary data
-      prepared.set(bytesToString(key), this.valueSchema.prepareJSON(value));
+      // Not safe to convert to string for all binary data
+      const keyStringValue = bytesToString(key);
+      if (
+        options.strictBinaryStrings &&
+        !arrayEqual(coerceToBytes(keyStringValue), key)
+      ) {
+        throw new Error(
+          `Invalid UTF-8 byte array encountered with strictBinaryStrings enabled. Base64 value: ${bytesToBase64(key)}`
+        );
+      }
+      prepared.set(
+        keyStringValue,
+        this.valueSchema.prepareJSON(value, options)
+      );
     }
     // Convert map to object
     const obj: { [key: string]: JSONEncodingData } = {};

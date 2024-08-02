@@ -4,8 +4,10 @@ import {
   MsgpackEncodingData,
   MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
 } from '../encoding.js';
-import { coerceToBytes, bytesToString } from '../binarydata.js';
+import { coerceToBytes, bytesToString, bytesToBase64 } from '../binarydata.js';
+import { arrayEqual } from '../../utils/utils.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -42,10 +44,22 @@ export class SpecialCaseBinaryStringSchema extends Schema {
     return rawStringProvider.getRawStringAtCurrentLocation();
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (data instanceof Uint8Array) {
-      // WARNING: not safe for all binary data
-      return bytesToString(data);
+      // Not safe to convert to string for all binary data
+      const stringValue = bytesToString(data);
+      if (
+        options.strictBinaryStrings &&
+        !arrayEqual(coerceToBytes(stringValue), data)
+      ) {
+        throw new Error(
+          `Invalid UTF-8 byte array encountered with strictBinaryStrings enabled. Base64 value: ${bytesToBase64(data)}`
+        );
+      }
+      return stringValue;
     }
     throw new Error(`Invalid byte array: (${typeof data}) ${data}`);
   }

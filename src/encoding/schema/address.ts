@@ -3,6 +3,7 @@ import {
   MsgpackEncodingData,
   MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
 } from '../encoding.js';
 import { Address } from '../address.js';
 
@@ -34,7 +35,11 @@ export class AddressSchema extends Schema {
     return new Address(encoded as Uint8Array);
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (data instanceof Address) {
       return data.toString();
     }

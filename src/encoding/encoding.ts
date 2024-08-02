@@ -439,6 +439,18 @@ export class MsgpackRawStringProvider {
 }
 
 /**
+ * Options for {@link Schema.prepareJSON}
+ */
+export interface PrepareJSONOptions {
+  /**
+   * If true, throw an error if a string is encountered that cannot be represented as a UTF-8 JSON string.
+   *
+   * Otherwise, such a string will be encoded without error but may lose information.
+   */
+  strictBinaryStrings?: boolean;
+}
+
+/**
  * A Schema is used to prepare objects for encoding and decoding from msgpack and JSON.
  *
  * Schemas represent a specific type.
@@ -479,7 +491,10 @@ export abstract class Schema {
    * @param data - The JSON encoding data to be prepared.
    * @returns A value ready to be JSON encoded.
    */
-  public abstract prepareJSON(data: unknown): JSONEncodingData;
+  public abstract prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData;
 
   /**
    * Restores the encoding data from a JSON encoding object.
@@ -567,13 +582,31 @@ export function decodeJSON<T extends Encodable>(
   );
 }
 
+export interface EncodeJSONOptions {
+  /**
+   * Adds indentation, white space, and line break characters to the return-value JSON text to make
+   * it easier to read.
+   */
+  space?: string | number;
+
+  /**
+   * If true, throw an error if a string is encountered that cannot be represented as a UTF-8 JSON string.
+   *
+   * Otherwise, such a string will be encoded without error but may lose information.
+   */
+  strictBinaryStrings?: boolean;
+}
+
 /**
  * Encode an Encodable object to a JSON string.
  * @param e - The object to encode
- * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+ * @param options - Optional encoding options. See {@link EncodeJSONOptions} for more information.
  * @returns A JSON string encoding of the object
  */
-export function encodeJSON(e: Encodable, space?: string | number): string {
-  const prepared = e.getEncodingSchema().prepareJSON(e.toEncodingData());
+export function encodeJSON(e: Encodable, options?: EncodeJSONOptions): string {
+  const { space, ...prepareJSONOptions } = options ?? {};
+  const prepared = e
+    .getEncodingSchema()
+    .prepareJSON(e.toEncodingData(), prepareJSONOptions);
   return stringifyJSON(prepared, undefined, space);
 }

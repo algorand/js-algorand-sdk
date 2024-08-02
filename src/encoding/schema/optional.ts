@@ -3,6 +3,7 @@ import {
   MsgpackEncodingData,
   MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
 } from '../encoding.js';
 
 /* eslint-disable class-methods-use-this */
@@ -49,12 +50,15 @@ export class OptionalSchema extends Schema {
     return this.valueSchema.fromPreparedMsgpack(encoded, rawStringProvider);
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (data === undefined) {
       // JSON representation does not have undefined, only null
       return null;
     }
-    return this.valueSchema.prepareJSON(data);
+    return this.valueSchema.prepareJSON(data, options);
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): unknown {

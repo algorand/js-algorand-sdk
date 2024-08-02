@@ -3,6 +3,7 @@ import {
   MsgpackEncodingData,
   MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
 } from '../encoding.js';
 
 /* eslint-disable class-methods-use-this */
@@ -42,9 +43,12 @@ export class ArraySchema extends Schema {
     throw new Error('ArraySchema encoded data must be an array');
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (Array.isArray(data)) {
-      return data.map((item) => this.itemSchema.prepareJSON(item));
+      return data.map((item) => this.itemSchema.prepareJSON(item, options));
     }
     throw new Error('ArraySchema data must be an array');
   }

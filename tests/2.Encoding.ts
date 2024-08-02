@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import { RawBinaryString } from 'algorand-msgpack';
-import algosdk from '../src/index.js';
+import algosdk, { bytesToString, coerceToBytes } from '../src/index.js';
 import * as utils from '../src/utils/utils.js';
 import { Schema, MsgpackRawStringProvider } from '../src/encoding/encoding.js';
 import {
@@ -1354,7 +1354,7 @@ describe('encoding', () => {
               roundtripMsgpackExpectedValue
             );
 
-            const actualJson = testcase.schema.prepareJSON(value);
+            const actualJson = testcase.schema.prepareJSON(value, {});
             assert.deepStrictEqual(actualJson, preparedJsonValue);
 
             const roundtripJsonValue =
@@ -1558,7 +1558,7 @@ describe('encoding', () => {
           allEmptyValuesRestored
         );
 
-        let prepareJsonResult = schema.prepareJSON(allEmptyValues);
+        let prepareJsonResult = schema.prepareJSON(allEmptyValues, {});
         // All empty values should be omitted
         assert.deepStrictEqual(prepareJsonResult, {});
         let fromPreparedJsonResult = schema.fromPreparedJSON(prepareJsonResult);
@@ -1587,7 +1587,7 @@ describe('encoding', () => {
         // Values are restored properly
         assert.deepStrictEqual(fromPreparedMsgpackResult, allNonemptyValues);
 
-        prepareJsonResult = schema.prepareJSON(allNonemptyValues);
+        prepareJsonResult = schema.prepareJSON(allNonemptyValues, {});
         // All values are present
         assert.strictEqual(
           Object.keys(prepareJsonResult as object).length,
@@ -1628,7 +1628,8 @@ describe('encoding', () => {
               ['a', ''],
               ['b', ''],
               ['c', ''],
-            ])
+            ]),
+            {}
           ),
           {}
         );
@@ -1652,7 +1653,8 @@ describe('encoding', () => {
               ['a', '1'],
               ['b', '2'],
               ['c', '3'],
-            ])
+            ]),
+            {}
           ),
           {
             a: '1',
@@ -1694,7 +1696,8 @@ describe('encoding', () => {
                   ['c', ''],
                 ]),
               ],
-            ])
+            ]),
+            {}
           ),
           {}
         );
@@ -1733,7 +1736,8 @@ describe('encoding', () => {
                   ['c', '3'],
                 ]),
               ],
-            ])
+            ]),
+            {}
           ),
           {
             map: { a: '1', b: '2' },
@@ -1923,6 +1927,89 @@ describe('encoding', () => {
               },
             ]),
           new Error('Embedded entry valueSchema must be a NamedMapSchema')
+        );
+      });
+    });
+    describe('strictBinaryStrings', () => {
+      const invalidUtf8String = Uint8Array.from([
+        61, 180, 118, 220, 39, 166, 43, 68, 219, 116, 105, 84, 121, 46, 122,
+        136, 233, 221, 15, 174, 247, 19, 50, 176, 184, 221, 66, 188, 171, 36,
+        135, 121,
+      ]);
+
+      const invalidUtf8StringEncoded = bytesToString(invalidUtf8String);
+      const invalidUtf8StringDecoded = coerceToBytes(invalidUtf8StringEncoded);
+
+      it('should have lossy string conversion', () => {
+        assert.notStrictEqual(invalidUtf8String, invalidUtf8StringDecoded);
+      });
+
+      it('should lossily prepare invalid UTF-8 strings by default and when disabled', () => {
+        for (const options of [{}, { strictBinaryStrings: false }]) {
+          const schema = new SpecialCaseBinaryStringSchema();
+          const prepared = schema.prepareJSON(invalidUtf8String, options);
+          assert.strictEqual(prepared, invalidUtf8StringEncoded);
+          assert.deepStrictEqual(
+            schema.fromPreparedJSON(prepared),
+            invalidUtf8StringDecoded
+          );
+
+          const mapSchema = new SpecialCaseBinaryStringMapSchema(schema);
+          // testing default behavior
+          const preparedMap = mapSchema.prepareJSON(
+            new Map([[invalidUtf8String, invalidUtf8String]]),
+            {}
+          );
+          const expectedPreparedMap: Record<string, string> = {};
+          expectedPreparedMap[invalidUtf8StringEncoded] =
+            invalidUtf8StringEncoded;
+          assert.deepStrictEqual(preparedMap, expectedPreparedMap);
+          assert.deepStrictEqual(
+            mapSchema.fromPreparedJSON(preparedMap),
+            new Map([[invalidUtf8StringDecoded, invalidUtf8StringDecoded]])
+          );
+        }
+      });
+      it('should error when preparing invalid UTF-8 strings when enabled', () => {
+        const schema = new SpecialCaseBinaryStringSchema();
+        assert.throws(
+          () =>
+            schema.prepareJSON(invalidUtf8String, {
+              strictBinaryStrings: true,
+            }),
+          /Invalid UTF-8 byte array encountered/
+        );
+
+        const mapSchema = new SpecialCaseBinaryStringMapSchema(schema);
+        assert.throws(
+          () =>
+            mapSchema.prepareJSON(
+              new Map([[Uint8Array.from([97]), invalidUtf8String]]),
+              {
+                strictBinaryStrings: true,
+              }
+            ),
+          /Invalid UTF-8 byte array encountered/
+        );
+
+        assert.throws(
+          () =>
+            mapSchema.prepareJSON(
+              new Map([[invalidUtf8String, Uint8Array.from([97])]]),
+              {
+                strictBinaryStrings: true,
+              }
+            ),
+          /Invalid UTF-8 byte array encountered/
+        );
+
+        assert.throws(
+          () =>
+            mapSchema.prepareJSON(
+              new Map([[invalidUtf8String, invalidUtf8String]]),
+              { strictBinaryStrings: true }
+            ),
+          /Invalid UTF-8 byte array encountered/
         );
       });
     });

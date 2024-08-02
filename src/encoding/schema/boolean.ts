@@ -3,6 +3,7 @@ import {
   MsgpackEncodingData,
   MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
 } from '../encoding.js';
 
 /* eslint-disable class-methods-use-this */
@@ -34,7 +35,10 @@ export class BooleanSchema extends Schema {
     throw new Error('Invalid boolean');
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown, // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (typeof data === 'boolean') {
       return data;
     }

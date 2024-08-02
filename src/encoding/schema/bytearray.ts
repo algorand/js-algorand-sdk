@@ -3,6 +3,7 @@ import {
   MsgpackEncodingData,
   MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
 } from '../encoding.js';
 import { base64ToBytes, bytesToBase64 } from '../binarydata.js';
 
@@ -35,7 +36,11 @@ export class ByteArraySchema extends Schema {
     throw new Error(`Invalid byte array: (${typeof encoded}) ${encoded}`);
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (data instanceof Uint8Array) {
       return bytesToBase64(data);
     }
