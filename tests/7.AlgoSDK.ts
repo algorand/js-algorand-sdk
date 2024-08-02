@@ -1075,7 +1075,8 @@ describe('Algosdk (AKA end to end)', () => {
     it('should be properly serialized to JSON', () => {
       const forEncoding =
         algosdk.modelsv2.DryrunRequest.encodingSchema.prepareJSON(
-          req.toEncodingData()
+          req.toEncodingData(),
+          {}
         );
       const actual = algosdk.stringifyJSON(forEncoding, undefined, 2);
 
