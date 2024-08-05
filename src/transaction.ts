@@ -1088,7 +1088,7 @@ export class Transaction implements encoding.Encodable {
       ])
     );
 
-    return encoding.rawEncode(stxnSchema.prepareMsgpack(sTxn));
+    return encoding.msgpackRawEncode(stxnSchema.prepareMsgpack(sTxn));
   }
 
   rawTxID(): Uint8Array {

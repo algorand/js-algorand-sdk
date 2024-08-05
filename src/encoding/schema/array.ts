@@ -1,4 +1,10 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+  PrepareJSONOptions,
+} from '../encoding.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -22,16 +28,27 @@ export class ArraySchema extends Schema {
     throw new Error('ArraySchema data must be an array');
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): unknown[] {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
+  ): unknown[] {
     if (Array.isArray(encoded)) {
-      return encoded.map((item) => this.itemSchema.fromPreparedMsgpack(item));
+      return encoded.map((item, index) =>
+        this.itemSchema.fromPreparedMsgpack(
+          item,
+          rawStringProvider.withArrayElement(index)
+        )
+      );
     }
     throw new Error('ArraySchema encoded data must be an array');
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (Array.isArray(data)) {
-      return data.map((item) => this.itemSchema.prepareJSON(item));
+      return data.map((item) => this.itemSchema.prepareJSON(item, options));
     }
     throw new Error('ArraySchema data must be an array');
   }

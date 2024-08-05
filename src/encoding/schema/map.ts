@@ -1,5 +1,13 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
-import { ensureUint64 } from '../../utils/utils.js';
+import { RawBinaryString } from 'algorand-msgpack';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+  PrepareJSONOptions,
+} from '../encoding.js';
+import { ensureUint64, arrayEqual } from '../../utils/utils.js';
+import { bytesToString, coerceToBytes, bytesToBase64 } from '../binarydata.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -139,7 +147,8 @@ export class NamedMapSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
   ): Map<string, unknown> {
     if (!(encoded instanceof Map)) {
       throw new Error('NamedMapSchema data must be a Map');
@@ -149,7 +158,10 @@ export class NamedMapSchema extends Schema {
       if (encoded.has(entry.key)) {
         map.set(
           entry.key,
-          entry.valueSchema.fromPreparedMsgpack(encoded.get(entry.key))
+          entry.valueSchema.fromPreparedMsgpack(
+            encoded.get(entry.key),
+            rawStringProvider.withMapValue(entry.key)
+          )
         );
       } else if (entry.omitEmpty) {
         map.set(entry.key, entry.valueSchema.defaultValue());
@@ -160,7 +172,10 @@ export class NamedMapSchema extends Schema {
     return map;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (!(data instanceof Map)) {
       throw new Error('NamedMapSchema data must be a Map');
     }
@@ -170,7 +185,7 @@ export class NamedMapSchema extends Schema {
       if (entry.omitEmpty && entry.valueSchema.isDefaultValue(value)) {
         continue;
       }
-      obj[entry.key] = entry.valueSchema.prepareJSON(value);
+      obj[entry.key] = entry.valueSchema.prepareJSON(value, options);
     }
     return obj;
   }
@@ -270,7 +285,8 @@ export class Uint64MapSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
   ): Map<bigint, unknown> {
     if (!(encoded instanceof Map)) {
       throw new Error('Uint64MapSchema data must be a Map');
@@ -281,12 +297,21 @@ export class Uint64MapSchema extends Schema {
       if (map.has(bigintKey)) {
         throw new Error(`Duplicate key: ${bigintKey}`);
       }
-      map.set(bigintKey, this.valueSchema.fromPreparedMsgpack(value));
+      map.set(
+        bigintKey,
+        this.valueSchema.fromPreparedMsgpack(
+          value,
+          rawStringProvider.withMapValue(key)
+        )
+      );
     }
     return map;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (!(data instanceof Map)) {
       throw new Error(
         `Uint64MapSchema data must be a Map. Got (${typeof data}) ${data}`
@@ -298,7 +323,7 @@ export class Uint64MapSchema extends Schema {
       if (prepared.has(bigintKey)) {
         throw new Error(`Duplicate key: ${bigintKey}`);
       }
-      prepared.set(bigintKey, this.valueSchema.prepareJSON(value));
+      prepared.set(bigintKey, this.valueSchema.prepareJSON(value, options));
     }
     // Convert map to object
     const obj: { [key: string]: JSONEncodingData } = {};
@@ -364,7 +389,8 @@ export class StringMapSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
   ): Map<string, unknown> {
     if (!(encoded instanceof Map)) {
       throw new Error('StringMapSchema data must be a Map');
@@ -377,12 +403,21 @@ export class StringMapSchema extends Schema {
       if (map.has(key)) {
         throw new Error(`Duplicate key: ${key}`);
       }
-      map.set(key, this.valueSchema.fromPreparedMsgpack(value));
+      map.set(
+        key,
+        this.valueSchema.fromPreparedMsgpack(
+          value,
+          rawStringProvider.withMapValue(key)
+        )
+      );
     }
     return map;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (!(data instanceof Map)) {
       throw new Error(
         `StringMapSchema data must be a Map. Got (${typeof data}) ${data}`
@@ -396,7 +431,7 @@ export class StringMapSchema extends Schema {
       if (prepared.has(key)) {
         throw new Error(`Duplicate key: ${key}`);
       }
-      prepared.set(key, this.valueSchema.prepareJSON(value));
+      prepared.set(key, this.valueSchema.prepareJSON(value, options));
     }
     // Convert map to object
     const obj: { [key: string]: JSONEncodingData } = {};
@@ -420,6 +455,154 @@ export class StringMapSchema extends Schema {
         throw new Error(`Duplicate key: ${key}`);
       }
       map.set(key, this.valueSchema.fromPreparedJSON(value));
+    }
+    return map;
+  }
+}
+
+/**
+ * Converts any RawBinaryString values to regular strings in a MsgpackEncodingData object.
+ *
+ * Note this conversion may be lossy if the binary data is not valid UTF-8.
+ *
+ * @returns A new object with RawBinaryString values converted to strings.
+ */
+function convertRawStringsInMsgpackValue(
+  value: MsgpackEncodingData
+): MsgpackEncodingData {
+  if (value instanceof RawBinaryString) {
+    return bytesToString(value.rawBinaryValue as Uint8Array);
+  }
+  if (value instanceof Map) {
+    const newMap = new Map<
+      string | number | bigint | Uint8Array,
+      MsgpackEncodingData
+    >();
+    for (const [key, val] of value) {
+      newMap.set(
+        convertRawStringsInMsgpackValue(key) as
+          | string
+          | number
+          | bigint
+          | Uint8Array,
+        convertRawStringsInMsgpackValue(val)
+      );
+    }
+    return newMap;
+  }
+  if (Array.isArray(value)) {
+    return value.map(convertRawStringsInMsgpackValue);
+  }
+  return value;
+}
+
+/**
+ * Schema for a map with a variable number of binary string keys.
+ *
+ * See SpecialCaseBinaryStringSchema for more information about the key type.
+ */
+export class SpecialCaseBinaryStringMapSchema extends Schema {
+  constructor(public readonly valueSchema: Schema) {
+    super();
+  }
+
+  public defaultValue(): Map<Uint8Array, unknown> {
+    return new Map();
+  }
+
+  public isDefaultValue(data: unknown): boolean {
+    return data instanceof Map && data.size === 0;
+  }
+
+  public prepareMsgpack(data: unknown): MsgpackEncodingData {
+    if (!(data instanceof Map)) {
+      throw new Error(
+        `SpecialCaseBinaryStringMapSchema data must be a Map. Got (${typeof data}) ${data}`
+      );
+    }
+    const prepared = new Map<RawBinaryString, MsgpackEncodingData>();
+    for (const [key, value] of data) {
+      if (!(key instanceof Uint8Array)) {
+        throw new Error(`Invalid key: ${key} (${typeof key})`);
+      }
+      prepared.set(
+        new RawBinaryString(key),
+        this.valueSchema.prepareMsgpack(value)
+      );
+    }
+    // Cast is needed because RawBinaryString is not part of the standard MsgpackEncodingData
+    return prepared as unknown as Map<Uint8Array, MsgpackEncodingData>;
+  }
+
+  public fromPreparedMsgpack(
+    _encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
+  ): Map<Uint8Array, unknown> {
+    const map = new Map<Uint8Array, unknown>();
+    const keysAndValues =
+      rawStringProvider.getRawStringKeysAndValuesAtCurrentLocation();
+    for (const [key, value] of keysAndValues) {
+      map.set(
+        key,
+        this.valueSchema.fromPreparedMsgpack(
+          convertRawStringsInMsgpackValue(value),
+          rawStringProvider.withMapValue(new RawBinaryString(key))
+        )
+      );
+    }
+    return map;
+  }
+
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
+    if (!(data instanceof Map)) {
+      throw new Error(
+        `SpecialCaseBinaryStringMapSchema data must be a Map. Got (${typeof data}) ${data}`
+      );
+    }
+    const prepared = new Map<string, JSONEncodingData>();
+    for (const [key, value] of data) {
+      if (!(key instanceof Uint8Array)) {
+        throw new Error(`Invalid key: ${key}`);
+      }
+      // Not safe to convert to string for all binary data
+      const keyStringValue = bytesToString(key);
+      if (
+        !options.lossyBinaryStringConversion &&
+        !arrayEqual(coerceToBytes(keyStringValue), key)
+      ) {
+        throw new Error(
+          `Invalid UTF-8 byte array encountered. Encode with lossyBinaryStringConversion enabled to bypass this check. Base64 value: ${bytesToBase64(key)}`
+        );
+      }
+      prepared.set(
+        keyStringValue,
+        this.valueSchema.prepareJSON(value, options)
+      );
+    }
+    // Convert map to object
+    const obj: { [key: string]: JSONEncodingData } = {};
+    for (const [key, value] of prepared) {
+      obj[key] = value;
+    }
+    return obj;
+  }
+
+  public fromPreparedJSON(encoded: JSONEncodingData): Map<Uint8Array, unknown> {
+    if (
+      encoded == null ||
+      typeof encoded !== 'object' ||
+      Array.isArray(encoded)
+    ) {
+      throw new Error(
+        'SpecialCaseBinaryStringMapSchema data must be an object'
+      );
+    }
+    const map = new Map<Uint8Array, unknown>();
+    for (const [key, value] of Object.entries(encoded)) {
+      map.set(coerceToBytes(key), this.valueSchema.fromPreparedJSON(value));
     }
     return map;
   }

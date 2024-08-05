@@ -132,29 +132,44 @@ async function main() {
 
   // example: APP_READ_STATE
   const appInfo = await algodClient.getApplicationByID(appId).do();
-  const globalState = appInfo.params.globalState[0];
-  console.log(`Raw global state - ${algosdk.stringifyJSON(globalState)}`);
+  if (!appInfo.params.globalState || appInfo.params.globalState.length === 0) {
+    throw new Error('Global state not present');
+  }
+  const { globalState } = appInfo.params;
+  console.log(
+    `Raw global state - ${globalState.map((kv) => algosdk.encodeJSON(kv))}`
+  );
 
-  // decode b64 string key with Buffer
-  const globalKey = algosdk.base64ToString(globalState.key);
+  const globalKey = algosdk.base64ToBytes(globalState[0].key);
   // show global value
-  const globalValue = globalState.value.bytes;
+  const globalValue = algosdk.base64ToBytes(globalState[0].value.bytes);
 
-  console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
+  console.log(
+    `Decoded global state - ${algosdk.bytesToBase64(globalKey)}: ${algosdk.bytesToBase64(globalValue)}`
+  );
 
   const accountAppInfo = await algodClient
     .accountApplicationInformation(caller.addr, appId)
     .do();
+  if (
+    !accountAppInfo.appLocalState ||
+    !accountAppInfo.appLocalState.keyValue ||
+    accountAppInfo.appLocalState.keyValue.length === 0
+  ) {
+    throw new Error('Local state values not present');
+  }
+  const localState = accountAppInfo.appLocalState.keyValue;
+  console.log(
+    `Raw local state - ${localState.map((kv) => algosdk.encodeJSON(kv))}`
+  );
 
-  const localState = accountAppInfo.appLocalState.keyValue[0];
-  console.log(`Raw local state - ${algosdk.stringifyJSON(localState)}`);
-
-  // decode b64 string key with Buffer
-  const localKey = algosdk.base64ToString(localState.key);
+  const localKey = algosdk.base64ToBytes(localState[0].key);
   // get uint value directly
-  const localValue = localState.value.uint;
+  const localValue = localState[0].value.uint;
 
-  console.log(`Decoded local state - ${localKey}: ${localValue}`);
+  console.log(
+    `Decoded local state - ${algosdk.bytesToBase64(localKey)}: ${localValue}`
+  );
   // example: APP_READ_STATE
 
   // example: APP_CLOSEOUT

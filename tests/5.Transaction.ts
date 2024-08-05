@@ -1064,7 +1064,7 @@ describe('Sign', () => {
       );
       assert.ok(encRep instanceof Map && !encRep.has('fadd'));
 
-      const encTxn = algosdk.encodeObj(encRep);
+      const encTxn = algosdk.msgpackRawEncode(encRep);
       const golden = algosdk.base64ToBytes(
         'iqRhZnJ6w6RmYWlkzScPo2ZlZc0IeqJmdgGjZ2VurG1vY2stbmV0d29ya6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbNA+mkbm90ZcQDewzIo3NuZMQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6kdHlwZaRhZnJ6'
       );

@@ -301,6 +301,15 @@ In order to facilitate `bigint` as a first-class type in this SDK, additional JS
 
 If your v2 code uses `JSON.parse` or `JSON.stringify` on types which can now contain `bigint`s in v3, you may receive an error such as `TypeError: Do not know how to serialize a BigInt`. Consider using these new functions instead. Or, if the types are `Encodable`, use the new `encodeJSON` and `decodeJSON` functions described in the [Object Encoding and Decoding](#object-encoding-and-decoding) section.
 
+### Msgpack Operations
+
+The functions `encodeObj` and `decodeObj`, used to encode and decode msgpack objects, have been deprecated in v3 in favor of new functions, `msgpackRawEncode` and `msgpackRawDecode`. These functions have clearer names and differ slightly from the old functions. Specifically:
+
+- `msgpackRawEncode` will encode an object to msgpack, but will not check for empty values and throw errors if any are found. This additional check has become unnecessary due to the new encoding and decoding system in v3.
+- `msgpackRawDecode` will decode a msgpack object, but unlike `decodeObj` which always uses `IntDecoding.MIXED` to decode integers, `msgpackRawDecode` can use any provided `IntDecoding` option. If none are provided, it will default to `IntDecoding.BIGINT`. Generally speaking, `IntDecoding.BIGINT` is preferred because it can handle all possible integer values, and the type of an integer will not change depending on the value (like it can with `IntDecoding.MIXED`), meaning code which query integer values from the decoded object will be more predictable.
+
+Though in the vast majority of cases, you will not need to use these functions directly. Instead, the `encodeMsgpack` and `decodeMsgpack` functions are preferred, which are discussed in the [Object Encoding and Decoding](#object-encoding-and-decoding) section.
+
 ### IntDecoding
 
 The `IntDecoding.DEFAULT` option has been renamed to `IntDecoding.UNSAFE` in v3. It behaves identically to the v2 `IntDecoding.DEFAULT` option, but the name has been changed to better reflect the fact that other options should be preferred.
@@ -335,4 +344,12 @@ const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({...});
 const encoded = algosdk.encodeMsgpack(txn); // Uint8Array of msgpack-encoded transaction
 const decoded = algosdk.decodeMsgpack(encoded, algosdk.Transaction); // Decoded Transaction instance
 assert.deepStrictEqual(txn, decoded);
+```
+
+### Base64 Encoding
+
+The `base64ToString` function has been removed in v3. Instead, you may combine the `base64ToBytes` and `bytesToString` to achieve the same thing, like so:
+
+```typescript
+algosdk.bytesToString(algosdk.base64ToBytes('SGVsbG8gV29ybGQ='));
 ```

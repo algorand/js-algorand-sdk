@@ -20,12 +20,20 @@ describe('Algosdk (AKA end to end)', () => {
   describe('#encoding', () => {
     it('should encode and decode', () => {
       const o = { a: [1, 2, 3, 4, 5], b: 3486, c: 'skfg' };
-      assert.deepStrictEqual(o, algosdk.decodeObj(algosdk.encodeObj(o)));
+      assert.deepStrictEqual(
+        o,
+        algosdk.msgpackRawDecode(algosdk.msgpackRawEncode(o), {
+          intDecoding: algosdk.IntDecoding.MIXED,
+        })
+      );
     });
 
     it('should encode and decode strings', () => {
       const o = 'Hi there';
-      assert.deepStrictEqual(o, algosdk.decodeObj(algosdk.encodeObj(o as any)));
+      assert.deepStrictEqual(
+        o,
+        algosdk.msgpackRawDecode(algosdk.msgpackRawEncode(o))
+      );
     });
 
     it('should not mutate unsigned transaction when going to or from encoded buffer', () => {
@@ -1067,7 +1075,8 @@ describe('Algosdk (AKA end to end)', () => {
     it('should be properly serialized to JSON', () => {
       const forEncoding =
         algosdk.modelsv2.DryrunRequest.encodingSchema.prepareJSON(
-          req.toEncodingData()
+          req.toEncodingData(),
+          {}
         );
       const actual = algosdk.stringifyJSON(forEncoding, undefined, 2);
 

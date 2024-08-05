@@ -1,12 +1,9 @@
 /* eslint-env mocha */
 import assert from 'assert';
-import algosdk from '../src/index.js';
+import { RawBinaryString } from 'algorand-msgpack';
+import algosdk, { bytesToString, coerceToBytes } from '../src/index.js';
 import * as utils from '../src/utils/utils.js';
-import {
-  Schema,
-  MsgpackEncodingData,
-  JSONEncodingData,
-} from '../src/encoding/encoding.js';
+import { Schema, MsgpackRawStringProvider } from '../src/encoding/encoding.js';
 import {
   BooleanSchema,
   StringSchema,
@@ -14,11 +11,13 @@ import {
   AddressSchema,
   ByteArraySchema,
   FixedLengthByteArraySchema,
+  SpecialCaseBinaryStringSchema,
   ArraySchema,
   NamedMapSchema,
   NamedMapEntry,
   Uint64MapSchema,
   StringMapSchema,
+  SpecialCaseBinaryStringMapSchema,
   UntypedSchema,
   OptionalSchema,
   allOmitEmpty,
@@ -897,7 +896,9 @@ describe('encoding', () => {
         ['\uFFFD\uFFFD', '/v8='], // Non UTF-8 bytes should still decode to same (invalid) output
       ];
       for (const [testCase, expectedEncoding] of testCases) {
-        const actualB64Decoding = algosdk.base64ToString(expectedEncoding);
+        const actualB64Decoding = algosdk.bytesToString(
+          algosdk.base64ToBytes(expectedEncoding)
+        );
         assert.deepStrictEqual(
           actualB64Decoding,
           testCase,
@@ -944,10 +945,10 @@ describe('encoding', () => {
         name: string;
         schema: Schema;
         values: unknown[];
-        preparedMsgpackValues: MsgpackEncodingData[];
+        preparedMsgpackValues: algosdk.MsgpackEncodingData[];
         // The expected output from calling `fromPreparedMsgpack`. If not provided, `values` will be used.
         expectedValuesFromPreparedMsgpack?: unknown[];
-        preparedJsonValues: JSONEncodingData[];
+        preparedJsonValues: algosdk.JSONEncodingData[];
         // The expected output from calling `fromPreparedJSON`. If not provided, `values` will be used.
         expectedValuesFromPreparedJson?: unknown[];
       }
@@ -965,6 +966,21 @@ describe('encoding', () => {
           schema: new StringSchema(),
           values: ['', 'abc'],
           preparedMsgpackValues: ['', 'abc'],
+          preparedJsonValues: ['', 'abc'],
+        },
+        {
+          name: 'SpecialCaseBinaryStringSchema',
+          schema: new SpecialCaseBinaryStringSchema(),
+          values: [Uint8Array.from([]), Uint8Array.from([97, 98, 99])],
+          preparedMsgpackValues: [
+            // Cast is needed because RawBinaryString is not part of the standard MsgpackEncodingData
+            new RawBinaryString(
+              Uint8Array.from([])
+            ) as unknown as algosdk.MsgpackEncodingData,
+            new RawBinaryString(
+              Uint8Array.from([97, 98, 99])
+            ) as unknown as algosdk.MsgpackEncodingData,
+          ],
           preparedJsonValues: ['', 'abc'],
         },
         {
@@ -1087,6 +1103,40 @@ describe('encoding', () => {
           ],
         },
         {
+          name: 'Uint64MapSchema of SpecialCaseBinaryStringSchema',
+          schema: new Uint64MapSchema(new SpecialCaseBinaryStringSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [0n, Uint8Array.from([])],
+              [1n, Uint8Array.from([97])],
+              [2n, Uint8Array.from([98])],
+              [BigInt('18446744073709551615'), Uint8Array.from([99])],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [0n, new RawBinaryString(Uint8Array.from([]))],
+              [1n, new RawBinaryString(Uint8Array.from([97]))],
+              [2n, new RawBinaryString(Uint8Array.from([98]))],
+              [
+                BigInt('18446744073709551615'),
+                new RawBinaryString(Uint8Array.from([99])),
+              ],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              0: '',
+              1: 'a',
+              2: 'b',
+              '18446744073709551615': 'c',
+            },
+          ],
+        },
+        {
           name: 'StringMapSchema of BooleanSchema',
           schema: new StringMapSchema(new BooleanSchema()),
           values: [
@@ -1114,6 +1164,82 @@ describe('encoding', () => {
               b: false,
               c: true,
               '': true,
+            },
+          ],
+        },
+        {
+          name: 'SpecialCaseBinaryStringMapSchema of BooleanSchema',
+          schema: new SpecialCaseBinaryStringMapSchema(new BooleanSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([97]), true],
+              [Uint8Array.from([98]), false],
+              [Uint8Array.from([99]), true],
+              [Uint8Array.from([]), true],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [new RawBinaryString(Uint8Array.from([97])), true],
+              [new RawBinaryString(Uint8Array.from([98])), false],
+              [new RawBinaryString(Uint8Array.from([99])), true],
+              [new RawBinaryString(Uint8Array.from([])), true],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              a: true,
+              b: false,
+              c: true,
+              '': true,
+            },
+          ],
+        },
+        {
+          name: 'SpecialCaseBinaryStringMapSchema of SpecialCaseBinaryStringSchema',
+          schema: new SpecialCaseBinaryStringMapSchema(
+            new SpecialCaseBinaryStringSchema()
+          ),
+          values: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([97]), Uint8Array.from([120])],
+              [Uint8Array.from([98]), Uint8Array.from([121])],
+              [Uint8Array.from([99]), Uint8Array.from([122])],
+              [Uint8Array.from([]), Uint8Array.from([])],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [
+                new RawBinaryString(Uint8Array.from([97])),
+                new RawBinaryString(Uint8Array.from([120])),
+              ],
+              [
+                new RawBinaryString(Uint8Array.from([98])),
+                new RawBinaryString(Uint8Array.from([121])),
+              ],
+              [
+                new RawBinaryString(Uint8Array.from([99])),
+                new RawBinaryString(Uint8Array.from([122])),
+              ],
+              [
+                new RawBinaryString(Uint8Array.from([])),
+                new RawBinaryString(Uint8Array.from([])),
+              ],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              a: 'x',
+              b: 'y',
+              c: 'z',
+              '': '',
             },
           ],
         },
@@ -1210,8 +1336,15 @@ describe('encoding', () => {
             const actualMsgpack = testcase.schema.prepareMsgpack(value);
             assert.deepStrictEqual(actualMsgpack, preparedMsgpackValue);
 
-            const roundtripMsgpackValue =
-              testcase.schema.fromPreparedMsgpack(actualMsgpack);
+            const msgpackBytes = algosdk.msgpackRawEncode(actualMsgpack);
+            const rawStringProvider = new MsgpackRawStringProvider({
+              baseObjectBytes: msgpackBytes,
+            });
+
+            const roundtripMsgpackValue = testcase.schema.fromPreparedMsgpack(
+              actualMsgpack,
+              rawStringProvider
+            );
             const roundtripMsgpackExpectedValue =
               testcase.expectedValuesFromPreparedMsgpack
                 ? testcase.expectedValuesFromPreparedMsgpack[i]
@@ -1221,7 +1354,7 @@ describe('encoding', () => {
               roundtripMsgpackExpectedValue
             );
 
-            const actualJson = testcase.schema.prepareJSON(value);
+            const actualJson = testcase.schema.prepareJSON(value, {});
             assert.deepStrictEqual(actualJson, preparedJsonValue);
 
             const roundtripJsonValue =
@@ -1260,6 +1393,11 @@ describe('encoding', () => {
             schema: new StringSchema(),
             emptyValue: '',
             nonemptyValue: 'abc',
+          },
+          {
+            schema: new SpecialCaseBinaryStringSchema(),
+            emptyValue: Uint8Array.from([]),
+            nonemptyValue: Uint8Array.from([97, 98, 99]),
           },
           {
             schema: new AddressSchema(),
@@ -1344,6 +1482,16 @@ describe('encoding', () => {
               ['', true],
             ]),
           },
+          {
+            schema: new SpecialCaseBinaryStringMapSchema(new BooleanSchema()),
+            emptyValue: new Map(),
+            nonemptyValue: new Map([
+              [Uint8Array.from([97]), true],
+              [Uint8Array.from([98]), false],
+              [Uint8Array.from([99]), true],
+              [Uint8Array.from([]), true],
+            ]),
+          },
         ];
 
         for (const testValue of testValues.slice()) {
@@ -1396,15 +1544,21 @@ describe('encoding', () => {
         let prepareMsgpackResult = schema.prepareMsgpack(allEmptyValues);
         // All empty values should be omitted
         assert.deepStrictEqual(prepareMsgpackResult, new Map());
-        let fromPreparedMsgpackResult =
-          schema.fromPreparedMsgpack(prepareMsgpackResult);
+        let msgpackBytes = algosdk.msgpackRawEncode(prepareMsgpackResult);
+        let rawStringProvider = new MsgpackRawStringProvider({
+          baseObjectBytes: msgpackBytes,
+        });
+        let fromPreparedMsgpackResult = schema.fromPreparedMsgpack(
+          prepareMsgpackResult,
+          rawStringProvider
+        );
         // Omitted values should be restored with their default/empty values
         assert.deepStrictEqual(
           fromPreparedMsgpackResult,
           allEmptyValuesRestored
         );
 
-        let prepareJsonResult = schema.prepareJSON(allEmptyValues);
+        let prepareJsonResult = schema.prepareJSON(allEmptyValues, {});
         // All empty values should be omitted
         assert.deepStrictEqual(prepareJsonResult, {});
         let fromPreparedJsonResult = schema.fromPreparedJSON(prepareJsonResult);
@@ -1422,12 +1576,18 @@ describe('encoding', () => {
         assert.ok(prepareMsgpackResult instanceof Map);
         // All values are present
         assert.strictEqual(prepareMsgpackResult.size, testValues.length);
-        fromPreparedMsgpackResult =
-          schema.fromPreparedMsgpack(prepareMsgpackResult);
+        msgpackBytes = algosdk.msgpackRawEncode(prepareMsgpackResult);
+        rawStringProvider = new MsgpackRawStringProvider({
+          baseObjectBytes: msgpackBytes,
+        });
+        fromPreparedMsgpackResult = schema.fromPreparedMsgpack(
+          prepareMsgpackResult,
+          rawStringProvider
+        );
         // Values are restored properly
         assert.deepStrictEqual(fromPreparedMsgpackResult, allNonemptyValues);
 
-        prepareJsonResult = schema.prepareJSON(allNonemptyValues);
+        prepareJsonResult = schema.prepareJSON(allNonemptyValues, {});
         // All values are present
         assert.strictEqual(
           Object.keys(prepareJsonResult as object).length,
@@ -1468,7 +1628,8 @@ describe('encoding', () => {
               ['a', ''],
               ['b', ''],
               ['c', ''],
-            ])
+            ]),
+            {}
           ),
           {}
         );
@@ -1492,7 +1653,8 @@ describe('encoding', () => {
               ['a', '1'],
               ['b', '2'],
               ['c', '3'],
-            ])
+            ]),
+            {}
           ),
           {
             a: '1',
@@ -1534,7 +1696,8 @@ describe('encoding', () => {
                   ['c', ''],
                 ]),
               ],
-            ])
+            ]),
+            {}
           ),
           {}
         );
@@ -1573,7 +1736,8 @@ describe('encoding', () => {
                   ['c', '3'],
                 ]),
               ],
-            ])
+            ]),
+            {}
           ),
           {
             map: { a: '1', b: '2' },
@@ -1766,6 +1930,241 @@ describe('encoding', () => {
         );
       });
     });
+    describe('lossyBinaryStringConversion', () => {
+      const invalidUtf8String = Uint8Array.from([
+        61, 180, 118, 220, 39, 166, 43, 68, 219, 116, 105, 84, 121, 46, 122,
+        136, 233, 221, 15, 174, 247, 19, 50, 176, 184, 221, 66, 188, 171, 36,
+        135, 121,
+      ]);
+
+      const invalidUtf8StringEncoded = bytesToString(invalidUtf8String);
+      const invalidUtf8StringDecoded = coerceToBytes(invalidUtf8StringEncoded);
+
+      it('should have lossy string conversion for invalid UTF-8 string', () => {
+        assert.notStrictEqual(invalidUtf8String, invalidUtf8StringDecoded);
+      });
+
+      it('should lossily prepare invalid UTF-8 strings by default and when enabled', () => {
+        const options = {
+          lossyBinaryStringConversion: true,
+        };
+
+        const schema = new SpecialCaseBinaryStringSchema();
+        const prepared = schema.prepareJSON(invalidUtf8String, options);
+        assert.strictEqual(prepared, invalidUtf8StringEncoded);
+        assert.deepStrictEqual(
+          schema.fromPreparedJSON(prepared),
+          invalidUtf8StringDecoded
+        );
+
+        const mapSchema = new SpecialCaseBinaryStringMapSchema(schema);
+        const preparedMap = mapSchema.prepareJSON(
+          new Map([[invalidUtf8String, invalidUtf8String]]),
+          options
+        );
+        const expectedPreparedMap: Record<string, string> = {};
+        expectedPreparedMap[invalidUtf8StringEncoded] =
+          invalidUtf8StringEncoded;
+        assert.deepStrictEqual(preparedMap, expectedPreparedMap);
+        assert.deepStrictEqual(
+          mapSchema.fromPreparedJSON(preparedMap),
+          new Map([[invalidUtf8StringDecoded, invalidUtf8StringDecoded]])
+        );
+      });
+      it('should error when preparing invalid UTF-8 strings when disabled and by default', () => {
+        for (const options of [{}, { lossyBinaryStringConversion: false }]) {
+          const schema = new SpecialCaseBinaryStringSchema();
+          assert.throws(
+            () => schema.prepareJSON(invalidUtf8String, options),
+            /Invalid UTF-8 byte array encountered/
+          );
+
+          const mapSchema = new SpecialCaseBinaryStringMapSchema(schema);
+          assert.throws(
+            () =>
+              mapSchema.prepareJSON(
+                new Map([[Uint8Array.from([97]), invalidUtf8String]]),
+                options
+              ),
+            /Invalid UTF-8 byte array encountered/
+          );
+
+          assert.throws(
+            () =>
+              mapSchema.prepareJSON(
+                new Map([[invalidUtf8String, Uint8Array.from([97])]]),
+                options
+              ),
+            /Invalid UTF-8 byte array encountered/
+          );
+
+          assert.throws(
+            () =>
+              mapSchema.prepareJSON(
+                new Map([[invalidUtf8String, invalidUtf8String]]),
+                options
+              ),
+            /Invalid UTF-8 byte array encountered/
+          );
+        }
+      });
+    });
+    describe('MsgpackRawStringProvider', () => {
+      it('correctly records paths and provides raw strings', () => {
+        const baseObject = new Map<string, unknown>([
+          ['a', new Map([['a1', 'abc']])],
+          ['b', [new Map(), new Map([[BigInt(17), 'def']])]],
+        ]);
+        const baseProvider = new MsgpackRawStringProvider({
+          baseObjectBytes: algosdk.msgpackRawEncode(baseObject),
+        });
+        assert.strictEqual(baseProvider.getPathString(), 'root');
+        assert.throws(
+          () => baseProvider.getRawStringAtCurrentLocation(),
+          /Invalid type\. Expected RawBinaryString, got/
+        );
+        assert.deepStrictEqual(
+          baseProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+          new Map<unknown, unknown>([
+            [
+              Uint8Array.from([97]),
+              new Map([
+                [
+                  new RawBinaryString(Uint8Array.from([97, 49])),
+                  new RawBinaryString(Uint8Array.from([97, 98, 99])),
+                ],
+              ]),
+            ],
+            [
+              Uint8Array.from([98]),
+              [
+                new Map(),
+                new Map([
+                  [
+                    BigInt(17),
+                    new RawBinaryString(Uint8Array.from([100, 101, 102])),
+                  ],
+                ]),
+              ],
+            ],
+          ])
+        );
+
+        // Test with both string and raw string form
+        for (const firstKey of [
+          'a',
+          new RawBinaryString(Uint8Array.from([97])),
+        ]) {
+          const firstValueProvider = baseProvider.withMapValue(firstKey);
+          assert.strictEqual(
+            firstValueProvider.getPathString(),
+            `root -> map key "${firstKey}" (${typeof firstKey})`
+          );
+          assert.throws(
+            () => firstValueProvider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.deepStrictEqual(
+            firstValueProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+            new Map([
+              [
+                Uint8Array.from([97, 49]),
+                new RawBinaryString(Uint8Array.from([97, 98, 99])),
+              ],
+            ])
+          );
+
+          // Test with both string and raw string form
+          for (const firstFirstKey of [
+            'a1',
+            new RawBinaryString(Uint8Array.from([97, 49])),
+          ]) {
+            const firstFirstValueProvider =
+              firstValueProvider.withMapValue(firstFirstKey);
+            assert.strictEqual(
+              firstFirstValueProvider.getPathString(),
+              `root -> map key "${firstKey}" (${typeof firstKey}) -> map key "${firstFirstKey}" (${typeof firstFirstKey})`
+            );
+            assert.deepStrictEqual(
+              firstFirstValueProvider.getRawStringAtCurrentLocation(),
+              Uint8Array.from([97, 98, 99])
+            );
+            assert.throws(
+              () =>
+                firstFirstValueProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+              /Invalid type\. Expected Map, got/
+            );
+          }
+        }
+
+        // Test with both string and raw string form
+        for (const secondKey of [
+          'b',
+          new RawBinaryString(Uint8Array.from([98])),
+        ]) {
+          const secondValueProvider = baseProvider.withMapValue(secondKey);
+          assert.strictEqual(
+            secondValueProvider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey})`
+          );
+          assert.throws(
+            () => secondValueProvider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.throws(
+            () =>
+              secondValueProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+            /Invalid type\. Expected Map, got/
+          );
+
+          const secondIndex0Provider = secondValueProvider.withArrayElement(0);
+          assert.strictEqual(
+            secondIndex0Provider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey}) -> array index 0 (number)`
+          );
+          assert.throws(
+            () => secondIndex0Provider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.deepStrictEqual(
+            secondIndex0Provider.getRawStringKeysAndValuesAtCurrentLocation(),
+            new Map()
+          );
+
+          const secondIndex1Provider = secondValueProvider.withArrayElement(1);
+          assert.strictEqual(
+            secondIndex1Provider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey}) -> array index 1 (number)`
+          );
+          assert.throws(
+            () => secondIndex1Provider.getRawStringAtCurrentLocation(),
+            /Invalid type\. Expected RawBinaryString, got/
+          );
+          assert.throws(
+            () =>
+              secondIndex1Provider.getRawStringKeysAndValuesAtCurrentLocation(),
+            /Invalid type for map key\. Expected RawBinaryString, got 17 \(bigint\)/
+          );
+
+          const secondIndex1FirstProvider = secondIndex1Provider.withMapValue(
+            BigInt(17)
+          );
+          assert.strictEqual(
+            secondIndex1FirstProvider.getPathString(),
+            `root -> map key "${secondKey}" (${typeof secondKey}) -> array index 1 (number) -> map key "17" (bigint)`
+          );
+          assert.deepStrictEqual(
+            secondIndex1FirstProvider.getRawStringAtCurrentLocation(),
+            Uint8Array.from([100, 101, 102])
+          );
+          assert.throws(
+            () =>
+              secondIndex1FirstProvider.getRawStringKeysAndValuesAtCurrentLocation(),
+            /Invalid type\. Expected Map, got/
+          );
+        }
+      });
+    });
   });
   describe('BlockResponse', () => {
     it('should decode block response correctly', () => {
@@ -1923,8 +2322,8 @@ describe('encoding', () => {
                 ],
               ]),
             ],
-            ['rnd', 94],
-            ['step', 2],
+            ['rnd', BigInt(94)],
+            ['step', BigInt(2)],
             [
               'vote',
               [
@@ -2014,47 +2413,47 @@ describe('encoding', () => {
         configAsset: BigInt(7777),
         applicationID: BigInt(8888),
         evalDelta: new algosdk.EvalDelta({
-          globalDelta: new Map<string, algosdk.ValueDelta>([
+          globalDelta: new Map<Uint8Array, algosdk.ValueDelta>([
             [
-              'globalKey1',
+              algosdk.coerceToBytes('globalKey1'),
               new algosdk.ValueDelta({
                 action: 1,
                 uint: BigInt(0),
-                bytes: 'abc',
+                bytes: algosdk.coerceToBytes('abc'),
               }),
             ],
             [
-              'globalKey2',
+              algosdk.coerceToBytes('globalKey2'),
               new algosdk.ValueDelta({
                 action: 2,
                 uint: BigInt(50),
-                bytes: '',
+                bytes: new Uint8Array(),
               }),
             ],
           ]),
-          localDeltas: new Map<number, Map<string, algosdk.ValueDelta>>([
+          localDeltas: new Map<number, Map<Uint8Array, algosdk.ValueDelta>>([
             [
               0,
-              new Map<string, algosdk.ValueDelta>([
+              new Map<Uint8Array, algosdk.ValueDelta>([
                 [
-                  'localKey1',
+                  algosdk.coerceToBytes('localKey1'),
                   new algosdk.ValueDelta({
                     action: 1,
                     uint: BigInt(0),
-                    bytes: 'def',
+                    bytes: algosdk.coerceToBytes('def'),
                   }),
                 ],
               ]),
             ],
             [
               2,
-              new Map<string, algosdk.ValueDelta>([
+              new Map<Uint8Array, algosdk.ValueDelta>([
                 [
-                  'localKey2',
+                  algosdk.coerceToBytes('localKey2'),
                   new algosdk.ValueDelta({
                     action: 2,
                     uint: BigInt(51),
-                    bytes: '',
+                    bytes: new Uint8Array(),
                   }),
                 ],
               ]),
@@ -2066,7 +2465,7 @@ describe('encoding', () => {
             ),
             algosdk.Address.zeroAddress(),
           ],
-          logs: ['log1', 'log2'],
+          logs: [algosdk.coerceToBytes('log1'), algosdk.coerceToBytes('log2')],
           innerTxns: [
             new algosdk.SignedTxnWithAD({
               signedTxn: new algosdk.SignedTransaction({
@@ -2092,7 +2491,10 @@ describe('encoding', () => {
               }),
               applyData: new algosdk.ApplyData({
                 evalDelta: new algosdk.EvalDelta({
-                  logs: ['log3', 'log4'],
+                  logs: [
+                    algosdk.coerceToBytes('log3'),
+                    algosdk.coerceToBytes('log4'),
+                  ],
                 }),
               }),
             }),
@@ -2102,6 +2504,122 @@ describe('encoding', () => {
       assert.deepStrictEqual(applyData, expectedApplyData);
       const reencoded = algosdk.encodeMsgpack(applyData);
       assert.deepStrictEqual(reencoded, encodedApplyData);
+    });
+    it('should decode EvalDelta with invalid UTF-8 strings correctly', () => {
+      const encodedEvalDelta = algosdk.base64ToBytes(
+        'haJnZIKkZzH+/4KiYXQBomJzpHYx/v+kZzL+/4KiYXQConVpMqNpdHiRgqJkdIGibGeSpmxvZzP+/6b+/2xvZzSjdHhuhqRhcGlkzR5ho2ZlZc0D6KJmdlyibHbNBESjc25kxCB/k/5DqCp+P1WW/80hkucvP2neluTb4OL7yjQQnAxn6aR0eXBlpGFwcGyibGSCAIGkbDH+/4KiYXQBomJzpHYy/v8CgaRsMv7/gqJhdAKidWkzomxnkqZsb2cx/v+m/v9sb2cyonNhksQgCbEzlTT2uNiZwobypXnCOg5IqgxtO92MuwR8vJwv3ePEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+      );
+      const evalDelta = algosdk.decodeMsgpack(
+        encodedEvalDelta,
+        algosdk.EvalDelta
+      );
+      const invalidUtf8 = algosdk.base64ToBytes('/v8=');
+      const expectedEvalDelta = new algosdk.EvalDelta({
+        globalDelta: new Map<Uint8Array, algosdk.ValueDelta>([
+          [
+            utils.concatArrays(algosdk.coerceToBytes('g1'), invalidUtf8),
+            new algosdk.ValueDelta({
+              action: 1,
+              uint: BigInt(0),
+              bytes: utils.concatArrays(
+                algosdk.coerceToBytes('v1'),
+                invalidUtf8
+              ),
+            }),
+          ],
+          [
+            utils.concatArrays(algosdk.coerceToBytes('g2'), invalidUtf8),
+            new algosdk.ValueDelta({
+              action: 2,
+              uint: BigInt(50),
+              bytes: new Uint8Array(),
+            }),
+          ],
+        ]),
+        localDeltas: new Map<number, Map<Uint8Array, algosdk.ValueDelta>>([
+          [
+            0,
+            new Map<Uint8Array, algosdk.ValueDelta>([
+              [
+                utils.concatArrays(algosdk.coerceToBytes('l1'), invalidUtf8),
+                new algosdk.ValueDelta({
+                  action: 1,
+                  uint: BigInt(0),
+                  bytes: utils.concatArrays(
+                    algosdk.coerceToBytes('v2'),
+                    invalidUtf8
+                  ),
+                }),
+              ],
+            ]),
+          ],
+          [
+            2,
+            new Map<Uint8Array, algosdk.ValueDelta>([
+              [
+                utils.concatArrays(algosdk.coerceToBytes('l2'), invalidUtf8),
+                new algosdk.ValueDelta({
+                  action: 2,
+                  uint: BigInt(51),
+                  bytes: new Uint8Array(),
+                }),
+              ],
+            ]),
+          ],
+        ]),
+        sharedAccts: [
+          algosdk.Address.fromString(
+            'BGYTHFJU624NRGOCQ3ZKK6OCHIHERKQMNU553DF3AR6LZHBP3XR5JLNCUI'
+          ),
+          algosdk.Address.zeroAddress(),
+        ],
+        logs: [
+          utils.concatArrays(algosdk.coerceToBytes('log1'), invalidUtf8),
+          utils.concatArrays(invalidUtf8, algosdk.coerceToBytes('log2')),
+        ],
+        innerTxns: [
+          new algosdk.SignedTxnWithAD({
+            signedTxn: new algosdk.SignedTransaction({
+              txn: new algosdk.Transaction({
+                sender: new algosdk.Address(
+                  algosdk.base64ToBytes(
+                    'f5P+Q6gqfj9Vlv/NIZLnLz9p3pbk2+Di+8o0EJwMZ+k='
+                  )
+                ),
+                type: algosdk.TransactionType.appl,
+                suggestedParams: {
+                  flatFee: true,
+                  fee: BigInt(1000),
+                  firstValid: BigInt(92),
+                  lastValid: BigInt(1092),
+                  minFee: BigInt(1000),
+                },
+                appCallParams: {
+                  appIndex: BigInt(7777),
+                  onComplete: algosdk.OnApplicationComplete.NoOpOC,
+                },
+              }),
+            }),
+            applyData: new algosdk.ApplyData({
+              evalDelta: new algosdk.EvalDelta({
+                logs: [
+                  utils.concatArrays(
+                    algosdk.coerceToBytes('log3'),
+                    invalidUtf8
+                  ),
+                  utils.concatArrays(
+                    invalidUtf8,
+                    algosdk.coerceToBytes('log4')
+                  ),
+                ],
+              }),
+            }),
+          }),
+        ],
+      });
+      assert.deepStrictEqual(evalDelta, expectedEvalDelta);
+      const reencoded = algosdk.encodeMsgpack(evalDelta);
+      assert.deepStrictEqual(reencoded, encodedEvalDelta);
     });
   });
 });

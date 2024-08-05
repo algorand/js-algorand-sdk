@@ -16,10 +16,11 @@ import {
   decode as msgpackDecode,
   DecoderOptions,
   IntMode,
+  RawBinaryString,
 } from 'algorand-msgpack';
-import { bytesToBase64 } from './binarydata.js';
+import { bytesToBase64, coerceToBytes } from './binarydata.js';
 import IntDecoding from '../types/intDecoding.js';
-import { stringifyJSON, parseJSON } from '../utils/utils.js';
+import { stringifyJSON, parseJSON, arrayEqual } from '../utils/utils.js';
 
 // Errors
 export const ERROR_CONTAINS_EMPTY_STRING =
@@ -43,44 +44,115 @@ function containsEmpty(obj: Record<string | number | symbol, any>) {
 }
 
 /**
- * rawEncode encodes objects using msgpack, regardless of whether there are
+ * msgpackRawEncode encodes objects using msgpack, regardless of whether there are
  * empty or 0 value fields.
  * @param obj - a dictionary to be encoded. May or may not contain empty or 0 values.
  * @returns msgpack representation of the object
  */
-export function rawEncode(obj: unknown) {
+export function msgpackRawEncode(obj: unknown) {
   // enable the canonical option
   const options: EncoderOptions = { sortKeys: true };
   return msgpackEncode(obj, options);
 }
 
 /**
- * encode encodes objects using msgpack
- * @param obj - a dictionary to be encoded. Must not contain empty or 0 values.
- * @returns msgpack representation of the object
+ * encodeObj takes a javascript object and returns its msgpack encoding
+ * Note that the encoding sorts the fields alphabetically
+ * @param o - js object to be encoded. Must not contain empty or 0 values.
+ * @returns Uint8Array binary representation
  * @throws Error containing ERROR_CONTAINS_EMPTY_STRING if the object contains empty or zero values
+ *
+ * @deprecated Use {@link msgpackRawEncode} instead. Note that function does not
+ *   check for empty values like this one does.
  */
-export function encode(obj: Record<string | number | symbol, any>) {
+export function encodeObj(obj: Record<string | number | symbol, any>) {
   // Check for empty values
   const emptyCheck = containsEmpty(obj);
   if (emptyCheck.containsEmpty) {
     throw new Error(ERROR_CONTAINS_EMPTY_STRING + emptyCheck.firstEmptyKey);
   }
-
-  // enable the canonical option
-  return rawEncode(obj);
+  return msgpackRawEncode(obj);
 }
 
-export function decode(buffer: ArrayLike<number>) {
-  // TODO: consider different int mode
-  const options: DecoderOptions = { intMode: IntMode.MIXED };
-  return msgpackDecode(buffer, options);
+function intDecodingToIntMode(intDecoding: IntDecoding): IntMode {
+  switch (intDecoding) {
+    case IntDecoding.UNSAFE:
+      return IntMode.UNSAFE_NUMBER;
+    case IntDecoding.SAFE:
+      return IntMode.SAFE_NUMBER;
+    case IntDecoding.MIXED:
+      return IntMode.MIXED;
+    case IntDecoding.BIGINT:
+      return IntMode.BIGINT;
+    default:
+      throw new Error(`Invalid intDecoding: ${intDecoding}`);
+  }
 }
 
-export function decodeAsMap(encoded: ArrayLike<number>) {
-  // TODO: consider different int mode
-  const options: DecoderOptions = { intMode: IntMode.MIXED, useMap: true };
-  return msgpackDecode(encoded, options);
+/**
+ * Decodes msgpack bytes into a plain JavaScript object.
+ * @param buffer - The msgpack bytes to decode
+ * @param options - Options for decoding, including int decoding mode. See {@link IntDecoding} for more information.
+ * @returns The decoded object
+ */
+export function msgpackRawDecode(
+  buffer: ArrayLike<number>,
+  options?: { intDecoding: IntDecoding }
+) {
+  const decoderOptions: DecoderOptions = {
+    intMode: options?.intDecoding
+      ? intDecodingToIntMode(options?.intDecoding)
+      : IntMode.BIGINT,
+  };
+  return msgpackDecode(buffer, decoderOptions);
+}
+
+/**
+ * decodeObj takes a Uint8Array and returns its javascript obj
+ * @param o - Uint8Array to decode
+ * @returns object
+ *
+ * @deprecated Use {@link msgpackRawDecode} instead. Note that this function uses `IntDecoding.MIXED`
+ *   while `msgpackRawDecode` defaults to `IntDecoding.BIGINT` for int decoding, though it is
+ *   configurable.
+ */
+export function decodeObj(o: ArrayLike<number>) {
+  return msgpackRawDecode(o, { intDecoding: IntDecoding.MIXED });
+}
+
+/**
+ * Decodes msgpack bytes into a Map object. This supports decoding non-string map keys.
+ * @param encoded - The msgpack bytes to decode
+ * @param options - Options for decoding, including int decoding mode. See {@link IntDecoding} for more information.
+ * @returns The decoded Map object
+ */
+export function msgpackRawDecodeAsMap(
+  encoded: ArrayLike<number>,
+  options?: { intDecoding: IntDecoding }
+) {
+  const decoderOptions: DecoderOptions = {
+    intMode: options?.intDecoding
+      ? intDecodingToIntMode(options?.intDecoding)
+      : IntMode.BIGINT,
+    useMap: true,
+  };
+  return msgpackDecode(encoded, decoderOptions);
+}
+
+function msgpackRawDecodeAsMapWithRawStrings(
+  encoded: ArrayLike<number>,
+  options?: { intDecoding: IntDecoding }
+) {
+  const decoderOptions: DecoderOptions = {
+    intMode: options?.intDecoding
+      ? intDecodingToIntMode(options?.intDecoding)
+      : IntMode.BIGINT,
+    useMap: true,
+    rawBinaryStringKeys: true,
+    rawBinaryStringValues: true,
+    useRawBinaryStringClass: true,
+  };
+  return msgpackDecode(encoded, decoderOptions);
 }
 
 export type MsgpackEncodingData =
@@ -159,6 +231,225 @@ export function jsonEncodingDataToMsgpackEncodingData(
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-useless-constructor,no-empty-function */
 
+enum MsgpackObjectPathSegmentKind {
+  MAP_VALUE,
+  ARRAY_ELEMENT,
+}
+
+interface MsgpackObjectPathSegment {
+  kind: MsgpackObjectPathSegmentKind;
+  key: string | number | bigint | Uint8Array | RawBinaryString;
+}
+
+/**
+ * This class is used to index into an encoded msgpack object and extract raw strings.
+ */
+export class MsgpackRawStringProvider {
+  // eslint-disable-next-line no-use-before-define
+  private readonly parent?: MsgpackRawStringProvider;
+
+  private readonly baseObjectBytes?: ArrayLike<number>;
+
+  private readonly segment?: MsgpackObjectPathSegment;
+
+  private resolvedCache: MsgpackEncodingData = null;
+  private resolvedCachePresent = false;
+
+  public constructor({
+    parent,
+    segment,
+    baseObjectBytes,
+  }:
+    | {
+        parent: MsgpackRawStringProvider;
+        segment: MsgpackObjectPathSegment;
+        baseObjectBytes?: undefined;
+      }
+    | {
+        parent?: undefined;
+        segment?: undefined;
+        baseObjectBytes: ArrayLike<number>;
+      }) {
+    this.parent = parent;
+    this.segment = segment;
+    this.baseObjectBytes = baseObjectBytes;
+  }
+
+  /**
+   * Create a new provider that resolves to the current provider's map value at the given key.
+   */
+  public withMapValue(
+    key: string | number | bigint | Uint8Array | RawBinaryString
+  ): MsgpackRawStringProvider {
+    return new MsgpackRawStringProvider({
+      parent: this,
+      segment: {
+        kind: MsgpackObjectPathSegmentKind.MAP_VALUE,
+        key,
+      },
+    });
+  }
+
+  /**
+   * Create a new provider that resolves to the current provider's array element at the given index.
+   */
+  public withArrayElement(index: number): MsgpackRawStringProvider {
+    return new MsgpackRawStringProvider({
+      parent: this,
+      segment: {
+        kind: MsgpackObjectPathSegmentKind.ARRAY_ELEMENT,
+        key: index,
+      },
+    });
+  }
+
+  /**
+   * Get the raw string at the current location. If the current location is not a raw string, an error is thrown.
+   */
+  public getRawStringAtCurrentLocation(): Uint8Array {
+    const resolved = this.resolve();
+    if (resolved instanceof RawBinaryString) {
+      // Decoded rawBinaryValue will always be a Uint8Array
+      return resolved.rawBinaryValue as Uint8Array;
+    }
+    throw new Error(
+      `Invalid type. Expected RawBinaryString, got ${resolved} (${typeof resolved})`
+    );
+  }
+
+  /**
+   * Get the raw string map keys and values at the current location. If the current location is not a map, an error is thrown.
+   */
+  public getRawStringKeysAndValuesAtCurrentLocation(): Map<
+    Uint8Array,
+    MsgpackEncodingData
+  > {
+    const resolved = this.resolve();
+    if (!(resolved instanceof Map)) {
+      throw new Error(
+        `Invalid type. Expected Map, got ${resolved} (${typeof resolved})`
+      );
+    }
+    const keysAndValues = new Map<Uint8Array, MsgpackEncodingData>();
+    for (const [key, value] of resolved) {
+      if (key instanceof RawBinaryString) {
+        // Decoded rawBinaryValue will always be a Uint8Array
+        keysAndValues.set(key.rawBinaryValue as Uint8Array, value);
+      } else {
+        throw new Error(
+          `Invalid type for map key. Expected RawBinaryString, got ${key} (${typeof key})`
+        );
+      }
+    }
+    return keysAndValues;
+  }
+
+  /**
+   * Resolve the provider by extracting the value it indicates from the base msgpack object.
+   */
+  private resolve(): MsgpackEncodingData {
+    if (this.resolvedCachePresent) {
+      return this.resolvedCache;
+    }
+    let parentResolved: MsgpackEncodingData;
+    if (this.parent) {
+      parentResolved = this.parent.resolve();
+    } else {
+      // Need to parse baseObjectBytes
+      parentResolved = msgpackRawDecodeAsMapWithRawStrings(
+        this.baseObjectBytes!
+      ) as MsgpackEncodingData;
+    }
+    if (!this.segment) {
+      this.resolvedCache = parentResolved;
+      this.resolvedCachePresent = true;
+      return parentResolved;
+    }
+    if (this.segment.kind === MsgpackObjectPathSegmentKind.MAP_VALUE) {
+      if (!(parentResolved instanceof Map)) {
+        throw new Error(
+          `Invalid type. Expected Map, got ${parentResolved} (${typeof parentResolved})`
+        );
+      }
+      // All decoded map keys will be raw strings, and Map objects compare complex values by reference,
+      // so we must check all the values for value-equality.
+      if (
+        typeof this.segment.key === 'string' ||
+        this.segment.key instanceof Uint8Array ||
+        this.segment.key instanceof RawBinaryString
+      ) {
+        const targetBytes =
+          this.segment.key instanceof RawBinaryString
+            ? // Decoded rawBinaryValue will always be a Uint8Array
+              (this.segment.key.rawBinaryValue as Uint8Array)
+            : coerceToBytes(this.segment.key);
+        const targetIsRawString =
+          typeof this.segment.key === 'string' ||
+          this.segment.key instanceof RawBinaryString;
+        for (const [key, value] of parentResolved) {
+          let potentialKeyBytes: Uint8Array | undefined;
+          if (targetIsRawString) {
+            if (key instanceof RawBinaryString) {
+              // Decoded rawBinaryValue will always be a Uint8Array
+              potentialKeyBytes = key.rawBinaryValue as Uint8Array;
+            }
+          } else if (key instanceof Uint8Array) {
+            potentialKeyBytes = key;
+          }
+          if (potentialKeyBytes && arrayEqual(targetBytes, potentialKeyBytes)) {
+            this.resolvedCache = value;
+            break;
+          }
+        }
+      } else {
+        this.resolvedCache = parentResolved.get(this.segment.key);
+      }
+      this.resolvedCachePresent = true;
+      return this.resolvedCache;
+    }
+    if (this.segment.kind === MsgpackObjectPathSegmentKind.ARRAY_ELEMENT) {
+      if (!Array.isArray(parentResolved)) {
+        throw new Error(
+          `Invalid type. Expected Array, got ${parentResolved} (${typeof parentResolved})`
+        );
+      }
+      this.resolvedCache = parentResolved[this.segment.key as number];
+      this.resolvedCachePresent = true;
+      return this.resolvedCache;
+    }
+    throw new Error(`Invalid segment kind: ${this.segment.kind}`);
+  }
+
+  /**
+   * Get the path string of the current location indicated by the provider. Useful for debugging.
+   */
+  public getPathString(): string {
+    const parentPathString = this.parent ? this.parent.getPathString() : 'root';
+    if (!this.segment) {
+      return parentPathString;
+    }
+    if (this.segment.kind === MsgpackObjectPathSegmentKind.MAP_VALUE) {
+      return `${parentPathString} -> map key "${this.segment.key}" (${typeof this.segment.key})`;
+    }
+    if (this.segment.kind === MsgpackObjectPathSegmentKind.ARRAY_ELEMENT) {
+      return `${parentPathString} -> array index ${this.segment.key} (${typeof this.segment.key})`;
+    }
+    return `${parentPathString} -> unknown segment kind ${this.segment.kind}`;
+  }
+}
+
+/**
+ * Options for {@link Schema.prepareJSON}
+ */
+export interface PrepareJSONOptions {
+  /**
+   * If true, allows invalid UTF-8 binary strings to be converted to JSON strings.
+   *
+   * Otherwise, an error will be thrown if encoding a binary string to a JSON cannot be done losslessly.
+   */
+  lossyBinaryStringConversion?: boolean;
+}
+
 /**
  * A Schema is used to prepare objects for encoding and decoding from msgpack and JSON.
  *
@@ -187,16 +478,23 @@ export abstract class Schema {
   /**
    * Restores the encoding data from a msgpack encoding object.
    * @param encoded - The msgpack encoding object to restore.
+   * @param rawStringProvider - A provider for raw strings.
    * @returns The original encoding data.
    */
-  public abstract fromPreparedMsgpack(encoded: MsgpackEncodingData): unknown;
+  public abstract fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
+  ): unknown;
 
   /**
    * Prepares the encoding data for encoding to JSON.
    * @param data - The JSON encoding data to be prepared.
    * @returns A value ready to be JSON encoded.
    */
-  public abstract prepareJSON(data: unknown): JSONEncodingData;
+  public abstract prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData;
 
   /**
    * Restores the encoding data from a JSON encoding object.
@@ -246,10 +544,12 @@ export function decodeMsgpack<T extends Encodable>(
   encoded: ArrayLike<number>,
   c: EncodableClass<T>
 ): T {
+  const decoded = msgpackRawDecodeAsMap(encoded) as MsgpackEncodingData;
+  const rawStringProvider = new MsgpackRawStringProvider({
+    baseObjectBytes: encoded,
+  });
   return c.fromEncodingData(
-    c.encodingSchema.fromPreparedMsgpack(
-      decodeAsMap(encoded) as MsgpackEncodingData
-    )
+    c.encodingSchema.fromPreparedMsgpack(decoded, rawStringProvider)
   );
 }
 
@@ -259,7 +559,9 @@ export function decodeMsgpack<T extends Encodable>(
  * @returns A msgpack byte array encoding of the object
  */
 export function encodeMsgpack(e: Encodable): Uint8Array {
-  return rawEncode(e.getEncodingSchema().prepareMsgpack(e.toEncodingData()));
+  return msgpackRawEncode(
+    e.getEncodingSchema().prepareMsgpack(e.toEncodingData())
+  );
 }
 
 /**
@@ -273,20 +575,38 @@ export function decodeJSON<T extends Encodable>(
   c: EncodableClass<T>
 ): T {
   const decoded: JSONEncodingData = parseJSON(encoded, {
-    intDecoding: IntDecoding.MIXED,
+    intDecoding: IntDecoding.BIGINT,
   });
   return c.fromEncodingData(
     c.encodingSchema.fromPreparedJSON(decoded) as JSONEncodingData
   );
 }
 
+export interface EncodeJSONOptions {
+  /**
+   * Adds indentation, white space, and line break characters to the return-value JSON text to make
+   * it easier to read.
+   */
+  space?: string | number;
+
+  /**
+   * If true, allows invalid UTF-8 binary strings to be converted to JSON strings.
+   *
+   * Otherwise, an error will be thrown if encoding a binary string to a JSON cannot be done losslessly.
+   */
+  lossyBinaryStringConversion?: boolean;
+}
+
 /**
  * Encode an Encodable object to a JSON string.
  * @param e - The object to encode
- * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+ * @param options - Optional encoding options. See {@link EncodeJSONOptions} for more information.
  * @returns A JSON string encoding of the object
  */
-export function encodeJSON(e: Encodable, space?: string | number): string {
-  const prepared = e.getEncodingSchema().prepareJSON(e.toEncodingData());
+export function encodeJSON(e: Encodable, options?: EncodeJSONOptions): string {
+  const { space, ...prepareJSONOptions } = options ?? {};
+  const prepared = e
+    .getEncodingSchema()
+    .prepareJSON(e.toEncodingData(), prepareJSONOptions);
   return stringifyJSON(prepared, undefined, space);
 }

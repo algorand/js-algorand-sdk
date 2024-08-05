@@ -16,6 +16,8 @@
     "@throws": true,
     "@returns": true,
     "@param": true,
-    "@category": true
+    "@category": true,
+    "@deprecated": true,
+    "@link": true
   }
 }

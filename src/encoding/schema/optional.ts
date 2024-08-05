@@ -1,4 +1,10 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+  PrepareJSONOptions,
+} from '../encoding.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -33,20 +39,26 @@ export class OptionalSchema extends Schema {
     return this.valueSchema.prepareMsgpack(data);
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): unknown {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
+  ): unknown {
     // JS undefined is encoded as msgpack nil, which may be decoded as JS null
     if (encoded === undefined || encoded === null) {
       return undefined;
     }
-    return this.valueSchema.fromPreparedMsgpack(encoded);
+    return this.valueSchema.fromPreparedMsgpack(encoded, rawStringProvider);
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (data === undefined) {
       // JSON representation does not have undefined, only null
       return null;
     }
-    return this.valueSchema.prepareJSON(data);
+    return this.valueSchema.prepareJSON(data, options);
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): unknown {

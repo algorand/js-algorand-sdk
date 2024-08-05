@@ -1,7 +1,9 @@
 import {
   Schema,
   MsgpackEncodingData,
+  MsgpackRawStringProvider,
   JSONEncodingData,
+  PrepareJSONOptions,
   msgpackEncodingDataToJSONEncodingData,
   jsonEncodingDataToMsgpackEncodingData,
 } from '../encoding.js';
@@ -24,12 +26,18 @@ export class UntypedSchema extends Schema {
   }
 
   public fromPreparedMsgpack(
-    encoded: MsgpackEncodingData
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
   ): MsgpackEncodingData {
     return encoded;
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options: PrepareJSONOptions
+  ): JSONEncodingData {
     return msgpackEncodingDataToJSONEncodingData(data as MsgpackEncodingData);
   }
 

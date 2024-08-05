@@ -1,6 +1,5 @@
 import * as nacl from './nacl/naclWrappers.js';
 import { Address } from './encoding/address.js';
-import * as encoding from './encoding/encoding.js';
 import { Transaction } from './transaction.js';
 import * as convert from './convert.js';
 import * as utils from './utils/utils.js';
@@ -64,25 +63,6 @@ export function verifyBytes(
   return nacl.verify(toBeVerified, signature, addrObj.publicKey);
 }
 
-/**
- * encodeObj takes a javascript object and returns its msgpack encoding
- * Note that the encoding sorts the fields alphabetically
- * @param o - js obj
- * @returns Uint8Array binary representation
- */
-export function encodeObj(o: Record<string | number | symbol, any>) {
-  return new Uint8Array(encoding.encode(o));
-}
-
-/**
- * decodeObj takes a Uint8Array and returns its javascript obj
- * @param o - Uint8Array to decode
- * @returns object
- */
-export function decodeObj(o: ArrayLike<number>) {
-  return encoding.decode(o);
-}
-
 export const ERROR_MULTISIG_BAD_SENDER = new Error(
   MULTISIG_BAD_SENDER_ERROR_MSG
 );
@@ -113,6 +93,11 @@ export {
   JSONEncodingData,
   Encodable,
   EncodableClass,
+  encodeObj,
+  decodeObj,
+  msgpackRawEncode,
+  msgpackRawDecode,
+  msgpackRawDecodeAsMap,
   encodeMsgpack,
   decodeMsgpack,
   encodeJSON,
@@ -129,8 +114,9 @@ export {
 export { bytesToBigInt, bigIntToBytes } from './encoding/bigint.js';
 export {
   base64ToBytes,
-  base64ToString,
   bytesToBase64,
+  bytesToString,
+  coerceToBytes,
   bytesToHex,
   hexToBytes,
 } from './encoding/binarydata.js';

@@ -14,18 +14,6 @@ export function base64ToBytes(base64String: string): Uint8Array {
 }
 
 /**
- * Decode a base64 string for Node.js and browser environments.
- * @returns A decoded string
- */
-export function base64ToString(base64String: string): string {
-  if (isNode()) {
-    return Buffer.from(base64String, 'base64').toString();
-  }
-  const binString = base64ToBytes(base64String);
-  return new TextDecoder().decode(binString);
-}
-
-/**
  * Convert a Uint8Array to a base64 string for Node.js and browser environments.
  * @returns A base64 string
  */
@@ -38,6 +26,14 @@ export function bytesToBase64(byteArray: Uint8Array): string {
     ''
   );
   return btoa(binString);
+}
+
+/**
+ * Convert a byte array to a UTF-8 string. Warning: not all byte arrays are valid UTF-8.
+ * @returns A decoded string
+ */
+export function bytesToString(byteArray: Uint8Array): string {
+  return new TextDecoder().decode(byteArray);
 }
 
 /**

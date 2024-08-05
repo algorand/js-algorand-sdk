@@ -1,4 +1,10 @@
-import { Schema, MsgpackEncodingData, JSONEncodingData } from '../encoding.js';
+import {
+  Schema,
+  MsgpackEncodingData,
+  MsgpackRawStringProvider,
+  JSONEncodingData,
+  PrepareJSONOptions,
+} from '../encoding.js';
 import { Address } from '../address.js';
 
 /* eslint-disable class-methods-use-this */
@@ -20,12 +26,20 @@ export class AddressSchema extends Schema {
     throw new Error(`Invalid address: (${typeof data}) ${data}`);
   }
 
-  public fromPreparedMsgpack(encoded: MsgpackEncodingData): Address {
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _rawStringProvider: MsgpackRawStringProvider
+  ): Address {
     // The Address constructor checks that the input is a Uint8Array
     return new Address(encoded as Uint8Array);
   }
 
-  public prepareJSON(data: unknown): JSONEncodingData {
+  public prepareJSON(
+    data: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _options: PrepareJSONOptions
+  ): JSONEncodingData {
     if (data instanceof Address) {
       return data.toString();
     }
