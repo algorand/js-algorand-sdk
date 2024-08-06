@@ -13,9 +13,7 @@ async function main() {
 
   // example: LSIG_COMPILE
   const smartSigSource = '#pragma version 8\nint 1\nreturn'; // approve everything
-  const result = await client
-    .compile(new TextEncoder().encode(smartSigSource))
-    .do();
+  const result = await client.compile(smartSigSource).do();
 
   // Hash is equivalent to the contract address
   console.log('Hash: ', result.hash);
@@ -28,7 +26,7 @@ async function main() {
   // example: LSIG_INIT
 
   // example: LSIG_PASS_ARGS
-  const args = [new TextEncoder().encode('This is an argument!')];
+  const args = [algosdk.coerceToBytes('This is an argument!')];
   smartSig = new algosdk.LogicSig(algosdk.base64ToBytes(b64program), args);
   // example: LSIG_PASS_ARGS
 

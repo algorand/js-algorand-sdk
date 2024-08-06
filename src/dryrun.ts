@@ -11,7 +11,7 @@ import {
   TealValue,
 } from './client/v2/algod/models/types.js';
 import { getApplicationAddress } from './encoding/address.js';
-import { base64ToBytes, bytesToHex } from './encoding/binarydata.js';
+import { bytesToHex } from './encoding/binarydata.js';
 import { SignedTransaction } from './signedTransaction.js';
 import { TransactionType } from './types/transactions/index.js';
 import { stringifyJSON } from './utils/utils.js';
@@ -183,9 +183,7 @@ function scratchToString(
 
   const newScratch = currScratch[newScratchIdx];
   if (newScratch.bytes.length > 0) {
-    return `${newScratchIdx} = 0x${bytesToHex(
-      base64ToBytes(newScratch.bytes)
-    )}`;
+    return `${newScratchIdx} = 0x${bytesToHex(newScratch.bytes)}`;
   }
   return `${newScratchIdx} = ${newScratch.uint.toString()}`;
 }
@@ -199,7 +197,7 @@ function stackToString(
     .map((sv) => {
       switch (sv.type) {
         case 1:
-          return `0x${bytesToHex(base64ToBytes(sv.bytes))}`;
+          return `0x${bytesToHex(sv.bytes)}`;
         case 2:
           return sv.uint.toString();
         default:

@@ -26,7 +26,7 @@ async function main() {
     suggestedParams,
     receiver: acct2.addr,
     amount: 10000,
-    note: new TextEncoder().encode('hello world'),
+    note: algosdk.coerceToBytes('hello world'),
   });
   // example: TRANSACTION_PAYMENT_CREATE
 

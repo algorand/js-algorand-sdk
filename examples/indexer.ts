@@ -68,7 +68,7 @@ async function main() {
     sender: sender.addr,
     receiver: sender.addr,
     amount: 1e6,
-    note: new TextEncoder().encode('Hello World!'),
+    note: algosdk.coerceToBytes('Hello World!'),
     suggestedParams,
   });
 
@@ -81,13 +81,12 @@ async function main() {
   // example: INDEXER_PREFIX_SEARCH
   const txnsWithNotePrefix = await indexerClient
     .searchForTransactions()
-    .notePrefix(new TextEncoder().encode('Hello'))
+    .notePrefix(algosdk.coerceToBytes('Hello'))
     .do();
   console.log(
-    `Transactions with note prefix "Hello" ${algosdk.stringifyJSON(
+    `Transactions with note prefix "Hello" ${algosdk.encodeJSON(
       txnsWithNotePrefix,
-      undefined,
-      2
+      { space: 2 }
     )}`
   );
   // example: INDEXER_PREFIX_SEARCH

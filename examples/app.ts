@@ -121,7 +121,7 @@ async function main() {
     sender: caller.addr,
     suggestedParams,
     appIndex: appId,
-    appArgs: [new TextEncoder().encode(now)],
+    appArgs: [algosdk.coerceToBytes(now)],
   });
 
   await algodClient
@@ -140,9 +140,9 @@ async function main() {
     `Raw global state - ${globalState.map((kv) => algosdk.encodeJSON(kv))}`
   );
 
-  const globalKey = algosdk.base64ToBytes(globalState[0].key);
+  const globalKey = globalState[0].key;
   // show global value
-  const globalValue = algosdk.base64ToBytes(globalState[0].value.bytes);
+  const globalValue = globalState[0].value.bytes;
 
   console.log(
     `Decoded global state - ${algosdk.bytesToBase64(globalKey)}: ${algosdk.bytesToBase64(globalValue)}`
@@ -163,7 +163,7 @@ async function main() {
     `Raw local state - ${localState.map((kv) => algosdk.encodeJSON(kv))}`
   );
 
-  const localKey = algosdk.base64ToBytes(localState[0].key);
+  const localKey = localState[0].key;
   // get uint value directly
   const localValue = localState[0].value.uint;
 

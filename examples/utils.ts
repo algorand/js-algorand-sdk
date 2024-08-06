@@ -6,9 +6,7 @@ export async function compileProgram(
   client: algosdk.Algodv2,
   programSource: string
 ) {
-  const compileResponse = await client
-    .compile(new TextEncoder().encode(programSource))
-    .do();
+  const compileResponse = await client.compile(programSource).do();
   const compiledBytes = algosdk.base64ToBytes(compileResponse.result);
   return compiledBytes;
 }
