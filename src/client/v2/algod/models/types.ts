@@ -5960,6 +5960,11 @@ export class SimulateRequest implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'fix-signers',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'round',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
@@ -6001,6 +6006,12 @@ export class SimulateRequest implements Encodable {
   public extraOpcodeBudget?: number;
 
   /**
+   * If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
+   */
+  public fixSigners?: boolean;
+
+  /**
    * If provided, specifies the round preceding the simulation. State changes through
    * this round will be used to run this simulation. Usually only the 4 most recent
    * rounds will be available (controlled by the node config value MaxAcctLookback).
@@ -6017,6 +6028,8 @@ export class SimulateRequest implements Encodable {
    * @param allowUnnamedResources - Allows access to unnamed resources during simulation.
    * @param execTraceConfig - An object that configures simulation execution trace.
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
+   * @param fixSigners - If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
    * @param round - If provided, specifies the round preceding the simulation. State changes through
    * this round will be used to run this simulation. Usually only the 4 most recent
    * rounds will be available (controlled by the node config value MaxAcctLookback).
@@ -6029,6 +6042,7 @@ export class SimulateRequest implements Encodable {
     allowUnnamedResources,
     execTraceConfig,
     extraOpcodeBudget,
+    fixSigners,
     round,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
@@ -6037,6 +6051,7 @@ export class SimulateRequest implements Encodable {
     allowUnnamedResources?: boolean;
     execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
+    fixSigners?: boolean;
     round?: number | bigint;
   }) {
     this.txnGroups = txnGroups;
@@ -6048,6 +6063,7 @@ export class SimulateRequest implements Encodable {
       typeof extraOpcodeBudget === 'undefined'
         ? undefined
         : ensureSafeInteger(extraOpcodeBudget);
+    this.fixSigners = fixSigners;
     this.round = typeof round === 'undefined' ? undefined : ensureBigInt(round);
   }
 
@@ -6069,6 +6085,7 @@ export class SimulateRequest implements Encodable {
           : undefined,
       ],
       ['extra-opcode-budget', this.extraOpcodeBudget],
+      ['fix-signers', this.fixSigners],
       ['round', this.round],
     ]);
   }
@@ -6089,6 +6106,7 @@ export class SimulateRequest implements Encodable {
           ? SimulateTraceConfig.fromEncodingData(data.get('exec-trace-config'))
           : undefined,
       extraOpcodeBudget: data.get('extra-opcode-budget'),
+      fixSigners: data.get('fix-signers'),
       round: data.get('round'),
     });
   }
@@ -6641,6 +6659,11 @@ export class SimulateTransactionResult implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'fixed-signer',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'logic-sig-budget-consumed',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
@@ -6676,6 +6699,12 @@ export class SimulateTransactionResult implements Encodable {
   public execTrace?: SimulationTransactionExecTrace;
 
   /**
+   * The account that needed to sign this transaction when no signature was provided
+   * and the provided signer was incorrect.
+   */
+  public fixedSigner?: Address;
+
+  /**
    * Budget used during execution of a logic sig transaction.
    */
   public logicSigBudgetConsumed?: number;
@@ -6701,6 +6730,8 @@ export class SimulateTransactionResult implements Encodable {
    * budged used by inner app calls spawned by this transaction.
    * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
    * call trace in a recursive way.
+   * @param fixedSigner - The account that needed to sign this transaction when no signature was provided
+   * and the provided signer was incorrect.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
    * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
@@ -6716,12 +6747,14 @@ export class SimulateTransactionResult implements Encodable {
     txnResult,
     appBudgetConsumed,
     execTrace,
+    fixedSigner,
     logicSigBudgetConsumed,
     unnamedResourcesAccessed,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
     execTrace?: SimulationTransactionExecTrace;
+    fixedSigner?: Address | string;
     logicSigBudgetConsumed?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
@@ -6731,6 +6764,10 @@ export class SimulateTransactionResult implements Encodable {
         ? undefined
         : ensureSafeInteger(appBudgetConsumed);
     this.execTrace = execTrace;
+    this.fixedSigner =
+      typeof fixedSigner === 'string'
+        ? Address.fromString(fixedSigner)
+        : fixedSigner;
     this.logicSigBudgetConsumed =
       typeof logicSigBudgetConsumed === 'undefined'
         ? undefined
@@ -6751,6 +6788,12 @@ export class SimulateTransactionResult implements Encodable {
         'exec-trace',
         typeof this.execTrace !== 'undefined'
           ? this.execTrace.toEncodingData()
+          : undefined,
+      ],
+      [
+        'fixed-signer',
+        typeof this.fixedSigner !== 'undefined'
+          ? this.fixedSigner.toString()
           : undefined,
       ],
       ['logic-sig-budget-consumed', this.logicSigBudgetConsumed],
@@ -6778,6 +6821,7 @@ export class SimulateTransactionResult implements Encodable {
               data.get('exec-trace')
             )
           : undefined,
+      fixedSigner: data.get('fixed-signer'),
       logicSigBudgetConsumed: data.get('logic-sig-budget-consumed'),
       unnamedResourcesAccessed:
         typeof data.get('unnamed-resources-accessed') !== 'undefined'
@@ -7042,6 +7086,11 @@ export class SimulationEvalOverrides implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'fix-signers',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'max-log-calls',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
@@ -7073,6 +7122,12 @@ export class SimulationEvalOverrides implements Encodable {
   public extraOpcodeBudget?: number;
 
   /**
+   * If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
+   */
+  public fixSigners?: boolean;
+
+  /**
    * The maximum log calls one can make during simulation
    */
   public maxLogCalls?: number;
@@ -7088,6 +7143,8 @@ export class SimulationEvalOverrides implements Encodable {
    * were properly signed.
    * @param allowUnnamedResources - If true, allows access to unnamed resources during simulation.
    * @param extraOpcodeBudget - The extra opcode budget added to each transaction group during simulation
+   * @param fixSigners - If true, signers for transactions that are missing signatures will be fixed
+   * during evaluation.
    * @param maxLogCalls - The maximum log calls one can make during simulation
    * @param maxLogSize - The maximum byte number to log during simulation
    */
@@ -7095,12 +7152,14 @@ export class SimulationEvalOverrides implements Encodable {
     allowEmptySignatures,
     allowUnnamedResources,
     extraOpcodeBudget,
+    fixSigners,
     maxLogCalls,
     maxLogSize,
   }: {
     allowEmptySignatures?: boolean;
     allowUnnamedResources?: boolean;
     extraOpcodeBudget?: number | bigint;
+    fixSigners?: boolean;
     maxLogCalls?: number | bigint;
     maxLogSize?: number | bigint;
   }) {
@@ -7110,6 +7169,7 @@ export class SimulationEvalOverrides implements Encodable {
       typeof extraOpcodeBudget === 'undefined'
         ? undefined
         : ensureSafeInteger(extraOpcodeBudget);
+    this.fixSigners = fixSigners;
     this.maxLogCalls =
       typeof maxLogCalls === 'undefined'
         ? undefined
@@ -7130,6 +7190,7 @@ export class SimulationEvalOverrides implements Encodable {
       ['allow-empty-signatures', this.allowEmptySignatures],
       ['allow-unnamed-resources', this.allowUnnamedResources],
       ['extra-opcode-budget', this.extraOpcodeBudget],
+      ['fix-signers', this.fixSigners],
       ['max-log-calls', this.maxLogCalls],
       ['max-log-size', this.maxLogSize],
     ]);
@@ -7143,6 +7204,7 @@ export class SimulationEvalOverrides implements Encodable {
       allowEmptySignatures: data.get('allow-empty-signatures'),
       allowUnnamedResources: data.get('allow-unnamed-resources'),
       extraOpcodeBudget: data.get('extra-opcode-budget'),
+      fixSigners: data.get('fix-signers'),
       maxLogCalls: data.get('max-log-calls'),
       maxLogSize: data.get('max-log-size'),
     });
