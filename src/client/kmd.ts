@@ -21,39 +21,33 @@ export class KmdClient extends ServiceClient {
   private async get(relativePath: string): Promise<any> {
     const res = await this.c.get({
       relativePath,
-      jsonOptions: {
-        // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
-        intDecoding: IntDecoding.SAFE,
-      },
-      parseBody: true,
     });
-    return res.body;
+    return res.parseBodyAsJSON({
+      // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+      intDecoding: IntDecoding.SAFE,
+    });
   }
 
   private async delete(relativePath: string, data: any): Promise<any> {
     const res = await this.c.delete({
       relativePath,
       data,
-      jsonOptions: {
-        // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
-        intDecoding: IntDecoding.SAFE,
-      },
-      parseBody: true,
     });
-    return res.body;
+    return res.parseBodyAsJSON({
+      // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+      intDecoding: IntDecoding.SAFE,
+    });
   }
 
   private async post(relativePath: string, data: any): Promise<any> {
     const res = await this.c.post({
       relativePath,
       data,
-      parseBody: true,
-      jsonOptions: {
-        // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
-        intDecoding: IntDecoding.SAFE,
-      },
     });
-    return res.body;
+    return res.parseBodyAsJSON({
+      // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+      intDecoding: IntDecoding.SAFE,
+    });
   }
 
   /**
