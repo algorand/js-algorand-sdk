@@ -9,7 +9,7 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
     private round: number
   ) {
     super(c);
-    this.query = { format: 'json' };
+    this.query = { format: 'msgpack' };
   }
 
   // eslint-disable-next-line class-methods-use-this
