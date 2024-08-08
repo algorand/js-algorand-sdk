@@ -3824,7 +3824,7 @@ module.exports = function getSteps(options) {
       numByteSlices,
       numUints,
       applicationState,
-      stateKey,
+      stateKeyB64,
       stateValue
     ) {
       const accountInfo = await this.v2Client
@@ -3863,7 +3863,7 @@ module.exports = function getSteps(options) {
       assert.ok(foundApp);
 
       // If there is no key to check, we're done.
-      if (stateKey === '') {
+      if (stateKeyB64 === '') {
         return;
       }
 
@@ -3904,11 +3904,14 @@ module.exports = function getSteps(options) {
       for (let i = 0; i < keyValues.length; i++) {
         const keyValue = keyValues[i];
         const foundKey = keyValue.key;
-        if (foundKey === stateKey) {
+        if (algosdk.bytesToBase64(foundKey) === stateKeyB64) {
           foundValueForKey = true;
           const foundValue = keyValue.value;
           if (foundValue.type === 1) {
-            assert.strictEqual(foundValue.bytes, stateValue);
+            assert.deepStrictEqual(
+              foundValue.bytes,
+              algosdk.base64ToBytes(stateValue)
+            );
           } else if (foundValue.type === 0) {
             assert.strictEqual(foundValue.uint, stateValue);
           }

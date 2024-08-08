@@ -599,7 +599,7 @@ export class Account implements Encodable {
 
   static fromEncodingData(data: unknown): Account {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded Account: ${data}`);
     }
     return new Account({
       address: data.get('address'),
@@ -799,7 +799,7 @@ export class AccountParticipation implements Encodable {
 
   static fromEncodingData(data: unknown): AccountParticipation {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AccountParticipation: ${data}`);
     }
     return new AccountParticipation({
       selectionParticipationKey: data.get('selection-participation-key'),
@@ -881,7 +881,7 @@ export class AccountResponse implements Encodable {
 
   static fromEncodingData(data: unknown): AccountResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AccountResponse: ${data}`);
     }
     return new AccountResponse({
       account: Account.fromEncodingData(data.get('account') ?? new Map()),
@@ -948,7 +948,7 @@ export class AccountStateDelta implements Encodable {
 
   static fromEncodingData(data: unknown): AccountStateDelta {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AccountStateDelta: ${data}`);
     }
     return new AccountStateDelta({
       address: data.get('address'),
@@ -1038,7 +1038,7 @@ export class AccountsResponse implements Encodable {
 
   static fromEncodingData(data: unknown): AccountsResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AccountsResponse: ${data}`);
     }
     return new AccountsResponse({
       accounts: (data.get('accounts') ?? []).map((v: unknown) =>
@@ -1162,7 +1162,7 @@ export class Application implements Encodable {
 
   static fromEncodingData(data: unknown): Application {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded Application: ${data}`);
     }
     return new Application({
       id: data.get('id'),
@@ -1312,7 +1312,7 @@ export class ApplicationLocalState implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationLocalState {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ApplicationLocalState: ${data}`);
     }
     return new ApplicationLocalState({
       id: data.get('id'),
@@ -1414,7 +1414,9 @@ export class ApplicationLocalStatesResponse implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationLocalStatesResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(
+        `Invalid decoded ApplicationLocalStatesResponse: ${data}`
+      );
     }
     return new ApplicationLocalStatesResponse({
       appsLocalStates: (data.get('apps-local-states') ?? []).map((v: unknown) =>
@@ -1481,7 +1483,7 @@ export class ApplicationLogData implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationLogData {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ApplicationLogData: ${data}`);
     }
     return new ApplicationLogData({
       logs: data.get('logs'),
@@ -1591,7 +1593,7 @@ export class ApplicationLogsResponse implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationLogsResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ApplicationLogsResponse: ${data}`);
     }
     return new ApplicationLogsResponse({
       applicationId: data.get('application-id'),
@@ -1785,7 +1787,7 @@ export class ApplicationParams implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationParams {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ApplicationParams: ${data}`);
     }
     return new ApplicationParams({
       approvalProgram: data.get('approval-program'),
@@ -1884,7 +1886,7 @@ export class ApplicationResponse implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ApplicationResponse: ${data}`);
     }
     return new ApplicationResponse({
       currentRound: data.get('current-round'),
@@ -1957,7 +1959,7 @@ export class ApplicationStateSchema implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationStateSchema {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ApplicationStateSchema: ${data}`);
     }
     return new ApplicationStateSchema({
       numByteSlice: data.get('num-byte-slice'),
@@ -2045,7 +2047,7 @@ export class ApplicationsResponse implements Encodable {
 
   static fromEncodingData(data: unknown): ApplicationsResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ApplicationsResponse: ${data}`);
     }
     return new ApplicationsResponse({
       applications: (data.get('applications') ?? []).map((v: unknown) =>
@@ -2175,7 +2177,7 @@ export class Asset implements Encodable {
 
   static fromEncodingData(data: unknown): Asset {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded Asset: ${data}`);
     }
     return new Asset({
       index: data.get('index'),
@@ -2266,7 +2268,7 @@ export class AssetBalancesResponse implements Encodable {
 
   static fromEncodingData(data: unknown): AssetBalancesResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AssetBalancesResponse: ${data}`);
     }
     return new AssetBalancesResponse({
       balances: (data.get('balances') ?? []).map((v: unknown) =>
@@ -2399,7 +2401,7 @@ export class AssetHolding implements Encodable {
 
   static fromEncodingData(data: unknown): AssetHolding {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AssetHolding: ${data}`);
     }
     return new AssetHolding({
       amount: data.get('amount'),
@@ -2491,7 +2493,7 @@ export class AssetHoldingsResponse implements Encodable {
 
   static fromEncodingData(data: unknown): AssetHoldingsResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AssetHoldingsResponse: ${data}`);
     }
     return new AssetHoldingsResponse({
       assets: (data.get('assets') ?? []).map((v: unknown) =>
@@ -2783,7 +2785,7 @@ export class AssetParams implements Encodable {
 
   static fromEncodingData(data: unknown): AssetParams {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AssetParams: ${data}`);
     }
     return new AssetParams({
       creator: data.get('creator'),
@@ -2866,7 +2868,7 @@ export class AssetResponse implements Encodable {
 
   static fromEncodingData(data: unknown): AssetResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AssetResponse: ${data}`);
     }
     return new AssetResponse({
       asset: Asset.fromEncodingData(data.get('asset') ?? new Map()),
@@ -2954,7 +2956,7 @@ export class AssetsResponse implements Encodable {
 
   static fromEncodingData(data: unknown): AssetsResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded AssetsResponse: ${data}`);
     }
     return new AssetsResponse({
       assets: (data.get('assets') ?? []).map((v: unknown) =>
@@ -3358,7 +3360,7 @@ export class Block implements Encodable {
 
   static fromEncodingData(data: unknown): Block {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded Block: ${data}`);
     }
     return new Block({
       genesisHash: data.get('genesis-hash'),
@@ -3539,7 +3541,7 @@ export class BlockRewards implements Encodable {
 
   static fromEncodingData(data: unknown): BlockRewards {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded BlockRewards: ${data}`);
     }
     return new BlockRewards({
       feeSink: data.get('fee-sink'),
@@ -3673,7 +3675,7 @@ export class BlockUpgradeState implements Encodable {
 
   static fromEncodingData(data: unknown): BlockUpgradeState {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded BlockUpgradeState: ${data}`);
     }
     return new BlockUpgradeState({
       currentProtocol: data.get('current-protocol'),
@@ -3768,7 +3770,7 @@ export class BlockUpgradeVote implements Encodable {
 
   static fromEncodingData(data: unknown): BlockUpgradeVote {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded BlockUpgradeVote: ${data}`);
     }
     return new BlockUpgradeVote({
       upgradeApprove: data.get('upgrade-approve'),
@@ -3846,7 +3848,7 @@ export class Box implements Encodable {
 
   static fromEncodingData(data: unknown): Box {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded Box: ${data}`);
     }
     return new Box({
       name: data.get('name'),
@@ -3898,7 +3900,7 @@ export class BoxDescriptor implements Encodable {
 
   static fromEncodingData(data: unknown): BoxDescriptor {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded BoxDescriptor: ${data}`);
     }
     return new BoxDescriptor({
       name: data.get('name'),
@@ -3985,7 +3987,7 @@ export class BoxesResponse implements Encodable {
 
   static fromEncodingData(data: unknown): BoxesResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded BoxesResponse: ${data}`);
     }
     return new BoxesResponse({
       applicationId: data.get('application-id'),
@@ -4051,7 +4053,7 @@ export class ErrorResponse implements Encodable {
 
   static fromEncodingData(data: unknown): ErrorResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ErrorResponse: ${data}`);
     }
     return new ErrorResponse({
       message: data.get('message'),
@@ -4139,7 +4141,7 @@ export class EvalDelta implements Encodable {
 
   static fromEncodingData(data: unknown): EvalDelta {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded EvalDelta: ${data}`);
     }
     return new EvalDelta({
       action: data.get('action'),
@@ -4197,7 +4199,7 @@ export class EvalDeltaKeyValue implements Encodable {
 
   static fromEncodingData(data: unknown): EvalDeltaKeyValue {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded EvalDeltaKeyValue: ${data}`);
     }
     return new EvalDeltaKeyValue({
       key: data.get('key'),
@@ -4246,7 +4248,7 @@ export class HashFactory implements Encodable {
 
   static fromEncodingData(data: unknown): HashFactory {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded HashFactory: ${data}`);
     }
     return new HashFactory({
       hashType: data.get('hash-type'),
@@ -4369,7 +4371,7 @@ export class HealthCheck implements Encodable {
 
   static fromEncodingData(data: unknown): HealthCheck {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded HealthCheck: ${data}`);
     }
     return new HealthCheck({
       dbAvailable: data.get('db-available'),
@@ -4508,7 +4510,7 @@ export class IndexerStateProofMessage implements Encodable {
 
   static fromEncodingData(data: unknown): IndexerStateProofMessage {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded IndexerStateProofMessage: ${data}`);
     }
     return new IndexerStateProofMessage({
       blockHeadersCommitment: data.get('block-headers-commitment'),
@@ -4604,7 +4606,7 @@ export class MerkleArrayProof implements Encodable {
 
   static fromEncodingData(data: unknown): MerkleArrayProof {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded MerkleArrayProof: ${data}`);
     }
     return new MerkleArrayProof({
       hashFactory:
@@ -4727,7 +4729,7 @@ export class MiniAssetHolding implements Encodable {
 
   static fromEncodingData(data: unknown): MiniAssetHolding {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded MiniAssetHolding: ${data}`);
     }
     return new MiniAssetHolding({
       address: data.get('address'),
@@ -4807,7 +4809,7 @@ export class ParticipationUpdates implements Encodable {
 
   static fromEncodingData(data: unknown): ParticipationUpdates {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded ParticipationUpdates: ${data}`);
     }
     return new ParticipationUpdates({
       absentParticipationAccounts: data.get('absent-participation-accounts'),
@@ -4987,7 +4989,7 @@ export class StateProofFields implements Encodable {
 
   static fromEncodingData(data: unknown): StateProofFields {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateProofFields: ${data}`);
     }
     return new StateProofFields({
       partProofs:
@@ -5080,7 +5082,7 @@ export class StateProofParticipant implements Encodable {
 
   static fromEncodingData(data: unknown): StateProofParticipant {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateProofParticipant: ${data}`);
     }
     return new StateProofParticipant({
       verifier:
@@ -5182,7 +5184,7 @@ export class StateProofReveal implements Encodable {
 
   static fromEncodingData(data: unknown): StateProofReveal {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateProofReveal: ${data}`);
     }
     return new StateProofReveal({
       participant:
@@ -5265,7 +5267,7 @@ export class StateProofSigSlot implements Encodable {
 
   static fromEncodingData(data: unknown): StateProofSigSlot {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateProofSigSlot: ${data}`);
     }
     return new StateProofSigSlot({
       lowerSigWeight: data.get('lower-sig-weight'),
@@ -5374,7 +5376,7 @@ export class StateProofSignature implements Encodable {
 
   static fromEncodingData(data: unknown): StateProofSignature {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateProofSignature: ${data}`);
     }
     return new StateProofSignature({
       falconSignature: data.get('falcon-signature'),
@@ -5492,7 +5494,7 @@ export class StateProofTracking implements Encodable {
 
   static fromEncodingData(data: unknown): StateProofTracking {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateProofTracking: ${data}`);
     }
     return new StateProofTracking({
       nextRound: data.get('next-round'),
@@ -5569,7 +5571,7 @@ export class StateProofVerifier implements Encodable {
 
   static fromEncodingData(data: unknown): StateProofVerifier {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateProofVerifier: ${data}`);
     }
     return new StateProofVerifier({
       commitment: data.get('commitment'),
@@ -5642,7 +5644,7 @@ export class StateSchema implements Encodable {
 
   static fromEncodingData(data: unknown): StateSchema {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded StateSchema: ${data}`);
     }
     return new StateSchema({
       numByteSlice: data.get('num-byte-slice'),
@@ -5661,14 +5663,14 @@ export class TealKeyValue implements Encodable {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
       (this.encodingSchemaValue as NamedMapSchema).pushEntries(
-        { key: 'key', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'key', valueSchema: new ByteArraySchema(), omitEmpty: true },
         { key: 'value', valueSchema: TealValue.encodingSchema, omitEmpty: true }
       );
     }
     return this.encodingSchemaValue;
   }
 
-  public key: string;
+  public key: Uint8Array;
 
   /**
    * Represents a TEAL value.
@@ -5680,8 +5682,8 @@ export class TealKeyValue implements Encodable {
    * @param key -
    * @param value - Represents a TEAL value.
    */
-  constructor({ key, value }: { key: string; value: TealValue }) {
-    this.key = key;
+  constructor({ key, value }: { key: string | Uint8Array; value: TealValue }) {
+    this.key = typeof key === 'string' ? base64ToBytes(key) : key;
     this.value = value;
   }
 
@@ -5699,7 +5701,7 @@ export class TealKeyValue implements Encodable {
 
   static fromEncodingData(data: unknown): TealKeyValue {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TealKeyValue: ${data}`);
     }
     return new TealKeyValue({
       key: data.get('key'),
@@ -5718,7 +5720,7 @@ export class TealValue implements Encodable {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
       (this.encodingSchemaValue as NamedMapSchema).pushEntries(
-        { key: 'bytes', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'bytes', valueSchema: new ByteArraySchema(), omitEmpty: true },
         { key: 'type', valueSchema: new Uint64Schema(), omitEmpty: true },
         { key: 'uint', valueSchema: new Uint64Schema(), omitEmpty: true }
       );
@@ -5729,7 +5731,7 @@ export class TealValue implements Encodable {
   /**
    * bytes value.
    */
-  public bytes: string;
+  public bytes: Uint8Array;
 
   /**
    * type of the value. Value `1` refers to **bytes**, value `2` refers to **uint**
@@ -5752,11 +5754,11 @@ export class TealValue implements Encodable {
     type,
     uint,
   }: {
-    bytes: string;
+    bytes: string | Uint8Array;
     type: number | bigint;
     uint: number | bigint;
   }) {
-    this.bytes = bytes;
+    this.bytes = typeof bytes === 'string' ? base64ToBytes(bytes) : bytes;
     this.type = ensureSafeInteger(type);
     this.uint = ensureBigInt(uint);
   }
@@ -5776,7 +5778,7 @@ export class TealValue implements Encodable {
 
   static fromEncodingData(data: unknown): TealValue {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TealValue: ${data}`);
     }
     return new TealValue({
       bytes: data.get('bytes'),
@@ -6514,7 +6516,7 @@ export class Transaction implements Encodable {
 
   static fromEncodingData(data: unknown): Transaction {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded Transaction: ${data}`);
     }
     return new Transaction({
       fee: data.get('fee'),
@@ -6893,7 +6895,7 @@ export class TransactionApplication implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionApplication {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionApplication: ${data}`);
     }
     return new TransactionApplication({
       applicationId: data.get('application-id'),
@@ -6998,7 +7000,7 @@ export class TransactionAssetConfig implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionAssetConfig {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionAssetConfig: ${data}`);
     }
     return new TransactionAssetConfig({
       assetId: data.get('asset-id'),
@@ -7084,7 +7086,7 @@ export class TransactionAssetFreeze implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionAssetFreeze {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionAssetFreeze: ${data}`);
     }
     return new TransactionAssetFreeze({
       address: data.get('address'),
@@ -7222,7 +7224,7 @@ export class TransactionAssetTransfer implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionAssetTransfer {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionAssetTransfer: ${data}`);
     }
     return new TransactionAssetTransfer({
       amount: data.get('amount'),
@@ -7397,7 +7399,7 @@ export class TransactionKeyreg implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionKeyreg {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionKeyreg: ${data}`);
     }
     return new TransactionKeyreg({
       nonParticipation: data.get('non-participation'),
@@ -7507,7 +7509,7 @@ export class TransactionPayment implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionPayment {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionPayment: ${data}`);
     }
     return new TransactionPayment({
       amount: data.get('amount'),
@@ -7591,7 +7593,7 @@ export class TransactionResponse implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionResponse: ${data}`);
     }
     return new TransactionResponse({
       currentRound: data.get('current-round'),
@@ -7705,7 +7707,7 @@ export class TransactionSignature implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionSignature {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionSignature: ${data}`);
     }
     return new TransactionSignature({
       logicsig:
@@ -7830,7 +7832,7 @@ export class TransactionSignatureLogicsig implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionSignatureLogicsig {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionSignatureLogicsig: ${data}`);
     }
     return new TransactionSignatureLogicsig({
       logic: data.get('logic'),
@@ -7941,7 +7943,7 @@ export class TransactionSignatureMultisig implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionSignatureMultisig {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionSignatureMultisig: ${data}`);
     }
     return new TransactionSignatureMultisig({
       subsignature:
@@ -8024,7 +8026,9 @@ export class TransactionSignatureMultisigSubsignature implements Encodable {
     data: unknown
   ): TransactionSignatureMultisigSubsignature {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(
+        `Invalid decoded TransactionSignatureMultisigSubsignature: ${data}`
+      );
     }
     return new TransactionSignatureMultisigSubsignature({
       publicKey: data.get('public-key'),
@@ -8136,7 +8140,7 @@ export class TransactionStateProof implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionStateProof {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionStateProof: ${data}`);
     }
     return new TransactionStateProof({
       message:
@@ -8231,7 +8235,7 @@ export class TransactionsResponse implements Encodable {
 
   static fromEncodingData(data: unknown): TransactionsResponse {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded logic sig account: ${data}`);
+      throw new Error(`Invalid decoded TransactionsResponse: ${data}`);
     }
     return new TransactionsResponse({
       currentRound: data.get('current-round'),

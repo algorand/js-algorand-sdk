@@ -98,7 +98,7 @@ async function main() {
 
   // example: ATC_BOX_REF
   const boxATC = new algosdk.AtomicTransactionComposer();
-  const boxKey = new TextEncoder().encode('key');
+  const boxKey = algosdk.coerceToBytes('key');
   boxATC.addMethodCall({
     appID: appIndex,
     method: boxAccessorMethod,
