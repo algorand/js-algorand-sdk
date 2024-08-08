@@ -1636,7 +1636,9 @@ module.exports = function getSteps(options) {
               );
 
               assert.ok(err.response.body);
-              this.actualMockResponse = err.response.body;
+              this.actualMockResponse = err.response.parseBodyAsJSON({
+                intDecoding: algosdk.IntDecoding.MIXED,
+              });
               caughtError = true;
             }
             if (!caughtError) {
@@ -1747,7 +1749,9 @@ module.exports = function getSteps(options) {
               );
 
               assert.ok(err.response.body);
-              this.actualMockResponse = err.response.body;
+              this.actualMockResponse = err.response.parseBodyAsJSON({
+                intDecoding: algosdk.IntDecoding.MIXED,
+              });
               caughtError = true;
             }
             if (!caughtError) {

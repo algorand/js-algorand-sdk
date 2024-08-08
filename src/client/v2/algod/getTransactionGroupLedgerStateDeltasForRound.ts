@@ -1,7 +1,7 @@
 import JSONRequest from '../jsonrequest.js';
 import { TransactionGroupLedgerStateDeltasForRoundResponse } from './models/types.js';
 import { HTTPClient, HTTPClientResponse } from '../../client.js';
-import { decodeJSON } from '../../../encoding/encoding.js';
+import { decodeMsgpack } from '../../../encoding/encoding.js';
 
 export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRequest<TransactionGroupLedgerStateDeltasForRoundResponse> {
   constructor(
@@ -21,8 +21,8 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
   prepare(
     response: HTTPClientResponse
   ): TransactionGroupLedgerStateDeltasForRoundResponse {
-    return decodeJSON(
-      response.getJSONText(),
+    return decodeMsgpack(
+      response.body,
       TransactionGroupLedgerStateDeltasForRoundResponse
     );
   }
