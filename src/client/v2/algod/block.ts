@@ -1,12 +1,12 @@
-import * as encoding from '../../../encoding/encoding.js';
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeMsgpack } from '../../../encoding/encoding.js';
 import { BlockResponse } from './models/types.js';
 
 /**
  * block gets the block info for the given round. this call may block
  */
-export default class Block extends JSONRequest<BlockResponse, Uint8Array> {
+export default class Block extends JSONRequest<BlockResponse> {
   private round: number;
 
   constructor(c: HTTPClient, roundNumber: number) {
@@ -20,7 +20,7 @@ export default class Block extends JSONRequest<BlockResponse, Uint8Array> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): BlockResponse {
-    return encoding.decodeMsgpack(body, BlockResponse);
+  prepare(response: HTTPClientResponse): BlockResponse {
+    return decodeMsgpack(response.body, BlockResponse);
   }
 }

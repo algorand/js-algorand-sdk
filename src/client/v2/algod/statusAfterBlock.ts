@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { NodeStatusResponse } from './models/types.js';
 
-export default class StatusAfterBlock extends JSONRequest<
-  NodeStatusResponse,
-  Record<string, any>
-> {
+export default class StatusAfterBlock extends JSONRequest<NodeStatusResponse> {
   constructor(
     c: HTTPClient,
     private round: number
@@ -19,9 +17,7 @@ export default class StatusAfterBlock extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): NodeStatusResponse {
-    return NodeStatusResponse.fromEncodingData(
-      NodeStatusResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): NodeStatusResponse {
+    return decodeJSON(response.getJSONText(), NodeStatusResponse);
   }
 }

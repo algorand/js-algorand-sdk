@@ -1,6 +1,5 @@
-import * as encoding from '../../../encoding/encoding.js';
-import IntDecoding from '../../../types/intDecoding.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { encodeMsgpack, decodeMsgpack } from '../../../encoding/encoding.js';
 import JSONRequest from '../jsonrequest.js';
 import { SimulateRequest, SimulateResponse } from './models/types.js';
 
@@ -23,16 +22,13 @@ export function setSimulateTransactionsHeaders(
 /**
  * Simulates signed txns.
  */
-export default class SimulateRawTransactions extends JSONRequest<
-  SimulateResponse,
-  Uint8Array
-> {
+export default class SimulateRawTransactions extends JSONRequest<SimulateResponse> {
   private requestBytes: Uint8Array;
 
   constructor(c: HTTPClient, request: SimulateRequest) {
     super(c);
     this.query.format = 'msgpack';
-    this.requestBytes = encoding.encodeMsgpack(request);
+    this.requestBytes = encodeMsgpack(request);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -40,21 +36,20 @@ export default class SimulateRawTransactions extends JSONRequest<
     return '/v2/transactions/simulate';
   }
 
-  async do(headers = {}) {
+  protected executeRequest(
+    headers: Record<string, string>
+  ): Promise<HTTPClientResponse> {
     const txHeaders = setSimulateTransactionsHeaders(headers);
-    const res = await this.c.post({
+    return this.c.post({
       relativePath: this.path(),
       data: this.requestBytes,
-      parseBody: false,
-      jsonOptions: { intDecoding: IntDecoding.BIGINT },
       query: this.query,
       requestHeaders: txHeaders,
     });
-    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Uint8Array): SimulateResponse {
-    return encoding.decodeMsgpack(body, SimulateResponse);
+  prepare(response: HTTPClientResponse): SimulateResponse {
+    return decodeMsgpack(response.body, SimulateResponse);
   }
 }

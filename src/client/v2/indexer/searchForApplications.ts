@@ -1,4 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { Address } from '../../../encoding/address.js';
 import { ApplicationsResponse } from './models/types.js';
 
@@ -13,10 +15,7 @@ import { ApplicationsResponse } from './models/types.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applications)
  * @category GET
  */
-export default class SearchForApplications extends JSONRequest<
-  ApplicationsResponse,
-  Record<string, any>
-> {
+export default class SearchForApplications extends JSONRequest<ApplicationsResponse> {
   /**
    * @returns `/v2/applications`
    */
@@ -138,9 +137,7 @@ export default class SearchForApplications extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): ApplicationsResponse {
-    return ApplicationsResponse.fromEncodingData(
-      ApplicationsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): ApplicationsResponse {
+    return decodeJSON(response.getJSONText(), ApplicationsResponse);
   }
 }

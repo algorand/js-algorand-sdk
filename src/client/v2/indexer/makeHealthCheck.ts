@@ -1,4 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { HealthCheck } from './models/types.js';
 
 /**
@@ -13,10 +15,7 @@ import { HealthCheck } from './models/types.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-health)
  * @category GET
  */
-export default class MakeHealthCheck extends JSONRequest<
-  HealthCheck,
-  Record<string, any>
-> {
+export default class MakeHealthCheck extends JSONRequest<HealthCheck> {
   /**
    * @returns `/health`
    */
@@ -26,9 +25,7 @@ export default class MakeHealthCheck extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): HealthCheck {
-    return HealthCheck.fromEncodingData(
-      HealthCheck.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): HealthCheck {
+    return decodeJSON(response.getJSONText(), HealthCheck);
   }
 }

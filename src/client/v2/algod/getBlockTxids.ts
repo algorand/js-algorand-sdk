@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { BlockTxidsResponse } from './models/types.js';
 
-export default class GetBlockTxids extends JSONRequest<
-  BlockTxidsResponse,
-  Record<string, any>
-> {
+export default class GetBlockTxids extends JSONRequest<BlockTxidsResponse> {
   round: number;
 
   constructor(c: HTTPClient, roundNumber: number) {
@@ -20,9 +18,7 @@ export default class GetBlockTxids extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): BlockTxidsResponse {
-    return BlockTxidsResponse.fromEncodingData(
-      BlockTxidsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): BlockTxidsResponse {
+    return decodeJSON(response.getJSONText(), BlockTxidsResponse);
   }
 }

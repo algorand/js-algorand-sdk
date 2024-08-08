@@ -1,4 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { base64StringFunnel } from './lookupAccountTransactions.js';
 import { Address } from '../../../encoding/address.js';
 import { TransactionsResponse } from './models/types.js';
@@ -14,10 +16,7 @@ import { TransactionsResponse } from './models/types.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2transactions)
  * @category GET
  */
-export default class SearchForTransactions extends JSONRequest<
-  TransactionsResponse,
-  Record<string, any>
-> {
+export default class SearchForTransactions extends JSONRequest<TransactionsResponse> {
   /**
    * @returns `/v2/transactions`
    */
@@ -440,9 +439,7 @@ export default class SearchForTransactions extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): TransactionsResponse {
-    return TransactionsResponse.fromEncodingData(
-      TransactionsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): TransactionsResponse {
+    return decodeJSON(response.getJSONText(), TransactionsResponse);
   }
 }

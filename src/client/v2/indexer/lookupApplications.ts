@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { ApplicationResponse } from './models/types.js';
 
-export default class LookupApplications extends JSONRequest<
-  ApplicationResponse,
-  Record<string, any>
-> {
+export default class LookupApplications extends JSONRequest<ApplicationResponse> {
   /**
    * Returns information about the passed application.
    *
@@ -63,9 +61,7 @@ export default class LookupApplications extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): ApplicationResponse {
-    return ApplicationResponse.fromEncodingData(
-      ApplicationResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): ApplicationResponse {
+    return decodeJSON(response.getJSONText(), ApplicationResponse);
   }
 }

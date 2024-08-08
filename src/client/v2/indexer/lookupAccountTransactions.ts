@@ -1,5 +1,6 @@
 import { bytesToBase64 } from '../../../encoding/binarydata.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import JSONRequest from '../jsonrequest.js';
 import { Address } from '../../../encoding/address.js';
 import { TransactionsResponse } from './models/types.js';
@@ -16,10 +17,7 @@ export function base64StringFunnel(data: Uint8Array | string) {
   return bytesToBase64(data);
 }
 
-export default class LookupAccountTransactions extends JSONRequest<
-  TransactionsResponse,
-  Record<string, any>
-> {
+export default class LookupAccountTransactions extends JSONRequest<TransactionsResponse> {
   private account: string;
 
   /**
@@ -396,9 +394,7 @@ export default class LookupAccountTransactions extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): TransactionsResponse {
-    return TransactionsResponse.fromEncodingData(
-      TransactionsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): TransactionsResponse {
+    return decodeJSON(response.getJSONText(), TransactionsResponse);
   }
 }

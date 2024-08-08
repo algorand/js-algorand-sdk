@@ -1,7 +1,7 @@
 import { concatArrays } from '../../../utils/utils.js';
-import IntDecoding from '../../../types/intDecoding.js';
 import { PostTransactionsResponse } from './models/types.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import JSONRequest from '../jsonrequest.js';
 
 /**
@@ -27,10 +27,7 @@ function isByteArray(array: any): array is Uint8Array {
 /**
  * broadcasts the passed signed txns to the network
  */
-export default class SendRawTransaction extends JSONRequest<
-  PostTransactionsResponse,
-  Record<string, any>
-> {
+export default class SendRawTransaction extends JSONRequest<PostTransactionsResponse> {
   private txnBytesToPost: Uint8Array;
 
   constructor(c: HTTPClient, stxOrStxs: Uint8Array | Uint8Array[]) {
@@ -54,22 +51,19 @@ export default class SendRawTransaction extends JSONRequest<
     return '/v2/transactions';
   }
 
-  async do(headers = {}) {
+  protected executeRequest(
+    headers: Record<string, string>
+  ): Promise<HTTPClientResponse> {
     const txHeaders = setSendTransactionHeaders(headers);
-    const res = await this.c.post({
+    return this.c.post({
       relativePath: this.path(),
       data: this.txnBytesToPost,
-      parseBody: true,
-      jsonOptions: { intDecoding: IntDecoding.BIGINT },
       requestHeaders: txHeaders,
     });
-    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): PostTransactionsResponse {
-    return PostTransactionsResponse.fromEncodingData(
-      PostTransactionsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): PostTransactionsResponse {
+    return decodeJSON(response.getJSONText(), PostTransactionsResponse);
   }
 }

@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { AssetResponse } from './models/types.js';
 
-export default class LookupAssetByID extends JSONRequest<
-  AssetResponse,
-  Record<string, any>
-> {
+export default class LookupAssetByID extends JSONRequest<AssetResponse> {
   /**
    * Returns asset information of the queried asset.
    *
@@ -62,9 +60,7 @@ export default class LookupAssetByID extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): AssetResponse {
-    return AssetResponse.fromEncodingData(
-      AssetResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): AssetResponse {
+    return decodeJSON(response.getJSONText(), AssetResponse);
   }
 }

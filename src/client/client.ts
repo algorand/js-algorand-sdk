@@ -14,12 +14,60 @@ interface ErrorWithAdditionalInfo extends Error {
   statusCode: number;
 }
 
-export interface HTTPClientResponse {
-  body: Uint8Array | any; // when content-type=JSON, body is a JSON object, otherwise it's a Uint8Array
+export class HTTPClientResponse {
+  /**
+   * The raw response bytes
+   */
+  body: Uint8Array;
+  /**
+   * If the expected response type is JSON, this is the response bytes converted to a string.
+   */
   text?: string;
+  format: 'application/msgpack' | 'application/json';
   headers: Record<string, string>;
   status: number;
   ok: boolean;
+
+  constructor(options: {
+    body: Uint8Array;
+    text?: string;
+    format: 'application/msgpack' | 'application/json';
+    headers: Record<string, string>;
+    status: number;
+    ok: boolean;
+  }) {
+    this.body = options.body;
+    this.text = options.text;
+    this.format = options.format;
+    this.headers = options.headers;
+    this.status = options.status;
+    this.ok = options.ok;
+  }
+
+  /**
+   * Returns the response body as a string, ready to be parsed as JSON.
+   */
+  getJSONText(): string {
+    if (this.text === undefined) {
+      throw new Error(
+        `Response body does not contain JSON data. Format is ${this.format}`
+      );
+    }
+    return this.text;
+  }
+
+  /**
+   * Parses the response body as JSON with the given options.
+   */
+  parseBodyAsJSON(jsonOptions: utils.ParseJSONOptions) {
+    if (this.text === undefined) {
+      throw new Error(
+        `Response body does not contain JSON data. Format is ${this.format}`
+      );
+    }
+    // eslint-disable-next-line no-use-before-define
+    return HTTPClient.parseJSON(this.text, this.status, jsonOptions);
+  }
 }
 
 /**
@@ -175,27 +223,21 @@ export class HTTPClient {
    */
   private static prepareResponse(
     res: BaseHTTPClientResponse,
-    format: 'application/msgpack' | 'application/json',
-    parseBody: boolean,
-    jsonOptions: utils.ParseJSONOptions
+    format: 'application/msgpack' | 'application/json'
   ): HTTPClientResponse {
-    let { body } = res;
+    const { body } = res;
     let text: string | undefined;
 
     if (format !== 'application/msgpack') {
       text = (body && new TextDecoder().decode(body)) || '';
     }
 
-    if (parseBody && format === 'application/json') {
-      body = HTTPClient.parseJSON(text!, res.status, jsonOptions);
-    }
-
-    return {
+    return new HTTPClientResponse({
       ...res,
-      body,
+      format,
       text,
       ok: Math.trunc(res.status / 100) === 2,
-    };
+    });
   }
 
   /**
@@ -204,17 +246,12 @@ export class HTTPClient {
    * by adding the status and preparing the internal response
    * @private
    */
-  private static prepareResponseError(
-    err: any,
-    jsonOptions: utils.ParseJSONOptions
-  ) {
+  private static prepareResponseError(err: any) {
     if (err.response) {
       // eslint-disable-next-line no-param-reassign
       err.response = HTTPClient.prepareResponse(
         err.response,
-        'application/json',
-        true,
-        jsonOptions
+        'application/json'
       );
       // eslint-disable-next-line no-param-reassign
       err.status = err.response.status;
@@ -237,16 +274,12 @@ export class HTTPClient {
    */
   async get({
     relativePath,
-    jsonOptions,
     query,
     requestHeaders,
-    parseBody,
   }: {
     relativePath: string;
-    jsonOptions: utils.ParseJSONOptions;
     query?: Query<any>;
     requestHeaders?: Record<string, string>;
-    parseBody: boolean;
   }): Promise<HTTPClientResponse> {
     const format = getAcceptFormat(query);
     const fullHeaders = { ...(requestHeaders ?? {}), accept: format };
@@ -258,9 +291,9 @@ export class HTTPClient {
         fullHeaders
       );
 
-      return HTTPClient.prepareResponse(res, format, parseBody, jsonOptions);
+      return HTTPClient.prepareResponse(res, format);
     } catch (err) {
-      throw HTTPClient.prepareResponseError(err, jsonOptions);
+      throw HTTPClient.prepareResponseError(err);
     }
   }
 
@@ -273,17 +306,13 @@ export class HTTPClient {
   async post({
     relativePath,
     data,
-    jsonOptions,
     query,
     requestHeaders,
-    parseBody,
   }: {
     relativePath: string;
     data: any;
-    jsonOptions: utils.ParseJSONOptions;
     query?: Query<any>;
     requestHeaders?: Record<string, string>;
-    parseBody: boolean;
   }): Promise<HTTPClientResponse> {
     const fullHeaders = {
       'content-type': 'application/json',
@@ -298,14 +327,9 @@ export class HTTPClient {
         fullHeaders
       );
 
-      return HTTPClient.prepareResponse(
-        res,
-        'application/json',
-        parseBody,
-        jsonOptions
-      );
+      return HTTPClient.prepareResponse(res, 'application/json');
     } catch (err) {
-      throw HTTPClient.prepareResponseError(err, jsonOptions);
+      throw HTTPClient.prepareResponseError(err);
     }
   }
 
@@ -318,15 +342,11 @@ export class HTTPClient {
   async delete({
     relativePath,
     data,
-    jsonOptions,
     requestHeaders,
-    parseBody,
   }: {
     relativePath: string;
     data: any;
-    jsonOptions: utils.ParseJSONOptions;
     requestHeaders?: Record<string, string>;
-    parseBody: boolean;
   }) {
     const fullHeaders = {
       'content-type': 'application/json',
@@ -343,14 +363,9 @@ export class HTTPClient {
         fullHeaders
       );
 
-      return HTTPClient.prepareResponse(
-        res,
-        'application/json',
-        parseBody,
-        jsonOptions
-      );
+      return HTTPClient.prepareResponse(res, 'application/json');
     } catch (err) {
-      throw HTTPClient.prepareResponseError(err, jsonOptions);
+      throw HTTPClient.prepareResponseError(err);
     }
   }
 }

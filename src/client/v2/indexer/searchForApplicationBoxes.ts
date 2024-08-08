@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { BoxesResponse } from './models/types.js';
 
-export default class SearchForApplicationBoxes extends JSONRequest<
-  BoxesResponse,
-  Record<string, any>
-> {
+export default class SearchForApplicationBoxes extends JSONRequest<BoxesResponse> {
   /**
    * Returns information about indexed application boxes.
    *
@@ -96,9 +94,7 @@ export default class SearchForApplicationBoxes extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): BoxesResponse {
-    return BoxesResponse.fromEncodingData(
-      BoxesResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): BoxesResponse {
+    return decodeJSON(response.getJSONText(), BoxesResponse);
   }
 }

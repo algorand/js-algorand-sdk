@@ -21,6 +21,7 @@ import {
   UntypedSchema,
   OptionalSchema,
   allOmitEmpty,
+  ByteArrayMapSchema,
 } from '../src/encoding/schema/index.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =
@@ -1168,6 +1169,77 @@ describe('encoding', () => {
           ],
         },
         {
+          name: 'ByteArrayMapSchema of BooleanSchema',
+          schema: new ByteArrayMapSchema(new BooleanSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([]), true],
+              [Uint8Array.from([0]), false],
+              [Uint8Array.from([1]), true],
+              [Uint8Array.from([2, 3, 4, 5]), true],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([]), true],
+              [Uint8Array.from([0]), false],
+              [Uint8Array.from([1]), true],
+              [Uint8Array.from([2, 3, 4, 5]), true],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              '': true,
+              'AA==': false,
+              'AQ==': true,
+              'AgMEBQ==': true,
+            },
+          ],
+        },
+        {
+          name: 'ByteArrayMapSchema of SpecialCaseBinaryStringSchema',
+          schema: new ByteArrayMapSchema(new SpecialCaseBinaryStringSchema()),
+          values: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([]), Uint8Array.from([])],
+              [Uint8Array.from([0]), Uint8Array.from([97])],
+              [Uint8Array.from([1]), Uint8Array.from([98])],
+              [Uint8Array.from([2, 3, 4, 5]), Uint8Array.from([99])],
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Map(),
+            new Map([
+              [Uint8Array.from([]), new RawBinaryString(Uint8Array.from([]))],
+              [
+                Uint8Array.from([0]),
+                new RawBinaryString(Uint8Array.from([97])),
+              ],
+              [
+                Uint8Array.from([1]),
+                new RawBinaryString(Uint8Array.from([98])),
+              ],
+              [
+                Uint8Array.from([2, 3, 4, 5]),
+                new RawBinaryString(Uint8Array.from([99])),
+              ],
+            ]),
+          ],
+          preparedJsonValues: [
+            {},
+            {
+              '': '',
+              'AA==': 'a',
+              'AQ==': 'b',
+              'AgMEBQ==': 'c',
+            },
+          ],
+        },
+        {
           name: 'SpecialCaseBinaryStringMapSchema of BooleanSchema',
           schema: new SpecialCaseBinaryStringMapSchema(new BooleanSchema()),
           values: [
@@ -1480,6 +1552,16 @@ describe('encoding', () => {
               ['b', false],
               ['c', true],
               ['', true],
+            ]),
+          },
+          {
+            schema: new ByteArrayMapSchema(new BooleanSchema()),
+            emptyValue: new Map(),
+            nonemptyValue: new Map([
+              [Uint8Array.from([]), true],
+              [Uint8Array.from([0]), false],
+              [Uint8Array.from([1]), true],
+              [Uint8Array.from([2, 3, 4, 5]), true],
             ]),
           },
           {
@@ -2620,6 +2702,11 @@ describe('encoding', () => {
       assert.deepStrictEqual(evalDelta, expectedEvalDelta);
       const reencoded = algosdk.encodeMsgpack(evalDelta);
       assert.deepStrictEqual(reencoded, encodedEvalDelta);
+    });
+  });
+  describe('LedgerStateDelta', () => {
+    it('should decode LedgerStateDelta correctly', () => {
+      // TODO
     });
   });
 });

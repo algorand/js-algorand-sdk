@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { LightBlockHeaderProof as LBHP } from './models/types.js';
 
-export default class LightBlockHeaderProof extends JSONRequest<
-  LBHP,
-  Record<string, any>
-> {
+export default class LightBlockHeaderProof extends JSONRequest<LBHP> {
   constructor(
     c: HTTPClient,
     private round: number
@@ -18,7 +16,7 @@ export default class LightBlockHeaderProof extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): LBHP {
-    return LBHP.fromEncodingData(LBHP.encodingSchema.fromPreparedJSON(body));
+  prepare(response: HTTPClientResponse): LBHP {
+    return decodeJSON(response.getJSONText(), LBHP);
   }
 }

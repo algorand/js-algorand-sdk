@@ -7,7 +7,12 @@ import {
   PrepareJSONOptions,
 } from '../encoding.js';
 import { ensureUint64, arrayEqual } from '../../utils/utils.js';
-import { bytesToString, coerceToBytes, bytesToBase64 } from '../binarydata.js';
+import {
+  bytesToString,
+  coerceToBytes,
+  bytesToBase64,
+  base64ToBytes,
+} from '../binarydata.js';
 
 /* eslint-disable class-methods-use-this */
 
@@ -455,6 +460,105 @@ export class StringMapSchema extends Schema {
         throw new Error(`Duplicate key: ${key}`);
       }
       map.set(key, this.valueSchema.fromPreparedJSON(value));
+    }
+    return map;
+  }
+}
+
+/**
+ * Schema for a map with a variable number of byte array keys.
+ */
+export class ByteArrayMapSchema extends Schema {
+  constructor(public readonly valueSchema: Schema) {
+    super();
+  }
+
+  public defaultValue(): Map<Uint8Array, unknown> {
+    return new Map();
+  }
+
+  public isDefaultValue(data: unknown): boolean {
+    return data instanceof Map && data.size === 0;
+  }
+
+  public prepareMsgpack(data: unknown): MsgpackEncodingData {
+    if (!(data instanceof Map)) {
+      throw new Error(
+        `ByteArrayMapSchema data must be a Map. Got (${typeof data}) ${data}`
+      );
+    }
+    const prepared = new Map<Uint8Array, MsgpackEncodingData>();
+    for (const [key, value] of data) {
+      if (!(key instanceof Uint8Array)) {
+        throw new Error(`Invalid key: ${key} (${typeof key})`);
+      }
+      prepared.set(key, this.valueSchema.prepareMsgpack(value));
+    }
+    return prepared;
+  }
+
+  public fromPreparedMsgpack(
+    encoded: MsgpackEncodingData,
+    rawStringProvider: MsgpackRawStringProvider
+  ): Map<Uint8Array, unknown> {
+    if (!(encoded instanceof Map)) {
+      throw new Error('ByteArrayMapSchema data must be a Map');
+    }
+    const map = new Map<Uint8Array, unknown>();
+    for (const [key, value] of encoded) {
+      if (!(key instanceof Uint8Array)) {
+        throw new Error(`Invalid key: ${key} (${typeof key})`);
+      }
+      map.set(
+        key,
+        this.valueSchema.fromPreparedMsgpack(
+          value,
+          rawStringProvider.withMapValue(key)
+        )
+      );
+    }
+    return map;
+  }
+
+  public prepareJSON(
+    data: unknown,
+    options: PrepareJSONOptions
+  ): JSONEncodingData {
+    if (!(data instanceof Map)) {
+      throw new Error(
+        `ByteArrayMapSchema data must be a Map. Got (${typeof data}) ${data}`
+      );
+    }
+    const prepared = new Map<string, JSONEncodingData>();
+    for (const [key, value] of data) {
+      if (!(key instanceof Uint8Array)) {
+        throw new Error(`Invalid key: ${key} (${typeof key})`);
+      }
+      const b64Encoded = bytesToBase64(key);
+      if (prepared.has(b64Encoded)) {
+        throw new Error(`Duplicate key (base64): ${b64Encoded}`);
+      }
+      prepared.set(b64Encoded, this.valueSchema.prepareJSON(value, options));
+    }
+    // Convert map to object
+    const obj: { [key: string]: JSONEncodingData } = {};
+    for (const [key, value] of prepared) {
+      obj[key] = value;
+    }
+    return obj;
+  }
+
+  public fromPreparedJSON(encoded: JSONEncodingData): Map<Uint8Array, unknown> {
+    if (
+      encoded == null ||
+      typeof encoded !== 'object' ||
+      Array.isArray(encoded)
+    ) {
+      throw new Error('ByteArrayMapSchema data must be an object');
+    }
+    const map = new Map<Uint8Array, unknown>();
+    for (const [key, value] of Object.entries(encoded)) {
+      map.set(base64ToBytes(key), this.valueSchema.fromPreparedJSON(value));
     }
     return map;
   }

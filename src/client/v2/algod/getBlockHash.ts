@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { BlockHashResponse } from './models/types.js';
 
-export default class GetBlockHash extends JSONRequest<
-  BlockHashResponse,
-  Record<string, any>
-> {
+export default class GetBlockHash extends JSONRequest<BlockHashResponse> {
   round: number | bigint;
 
   constructor(c: HTTPClient, roundNumber: number) {
@@ -18,9 +16,7 @@ export default class GetBlockHash extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): BlockHashResponse {
-    return BlockHashResponse.fromEncodingData(
-      BlockHashResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): BlockHashResponse {
+    return decodeJSON(response.getJSONText(), BlockHashResponse);
   }
 }

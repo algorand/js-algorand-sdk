@@ -1,13 +1,11 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { base64StringFunnel } from './lookupAccountTransactions.js';
 import { Address } from '../../../encoding/address.js';
 import { TransactionsResponse } from './models/types.js';
 
-export default class LookupAssetTransactions extends JSONRequest<
-  TransactionsResponse,
-  Record<string, any>
-> {
+export default class LookupAssetTransactions extends JSONRequest<TransactionsResponse> {
   /**
    * Returns transactions relating to the given asset.
    *
@@ -403,9 +401,7 @@ export default class LookupAssetTransactions extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): TransactionsResponse {
-    return TransactionsResponse.fromEncodingData(
-      TransactionsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): TransactionsResponse {
+    return decodeJSON(response.getJSONText(), TransactionsResponse);
   }
 }

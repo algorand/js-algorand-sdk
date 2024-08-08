@@ -1,15 +1,12 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
-import * as encoding from '../../../encoding/encoding.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeMsgpack } from '../../../encoding/encoding.js';
 import { PendingTransactionsResponse } from './models/types.js';
 
 /**
  * pendingTransactionsInformation returns transactions that are pending in the pool
  */
-export default class PendingTransactions extends JSONRequest<
-  PendingTransactionsResponse,
-  Uint8Array
-> {
+export default class PendingTransactions extends JSONRequest<PendingTransactionsResponse> {
   constructor(c: HTTPClient) {
     super(c);
     this.query.format = 'msgpack';
@@ -20,8 +17,8 @@ export default class PendingTransactions extends JSONRequest<
     return '/v2/transactions/pending';
   }
 
-  prepare(body: Uint8Array): PendingTransactionsResponse {
-    return encoding.decodeMsgpack(body, PendingTransactionsResponse);
+  prepare(response: HTTPClientResponse): PendingTransactionsResponse {
+    return decodeMsgpack(response.body, PendingTransactionsResponse);
   }
   /* eslint-enable class-methods-use-this */
 

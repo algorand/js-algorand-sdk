@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
 import { TransactionGroupLedgerStateDeltasForRoundResponse } from './models/types.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 
-export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRequest<
-  TransactionGroupLedgerStateDeltasForRoundResponse,
-  Record<string, any>
-> {
+export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRequest<TransactionGroupLedgerStateDeltasForRoundResponse> {
   constructor(
     c: HTTPClient,
     private round: number
@@ -21,12 +19,11 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
 
   // eslint-disable-next-line class-methods-use-this
   prepare(
-    body: Record<string, any>
+    response: HTTPClientResponse
   ): TransactionGroupLedgerStateDeltasForRoundResponse {
-    return TransactionGroupLedgerStateDeltasForRoundResponse.fromEncodingData(
-      TransactionGroupLedgerStateDeltasForRoundResponse.encodingSchema.fromPreparedJSON(
-        body
-      )
+    return decodeJSON(
+      response.getJSONText(),
+      TransactionGroupLedgerStateDeltasForRoundResponse
     );
   }
 }

@@ -1,5 +1,6 @@
 import { bytesToBase64 } from '../../../encoding/binarydata.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import JSONRequest from '../jsonrequest.js';
 import { Box } from './models/types.js';
 
@@ -18,10 +19,7 @@ import { Box } from './models/types.js';
  * @param index - The application ID to look up.
  * @category GET
  */
-export default class GetApplicationBoxByName extends JSONRequest<
-  Box,
-  Record<string, any>
-> {
+export default class GetApplicationBoxByName extends JSONRequest<Box> {
   constructor(
     c: HTTPClient,
     private index: number,
@@ -41,7 +39,7 @@ export default class GetApplicationBoxByName extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): Box {
-    return Box.fromEncodingData(Box.encodingSchema.fromPreparedJSON(body));
+  prepare(response: HTTPClientResponse): Box {
+    return decodeJSON(response.getJSONText(), Box);
   }
 }

@@ -1,8 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { StateProof as SP } from './models/types.js';
 
-export default class StateProof extends JSONRequest<SP, Record<string, any>> {
+export default class StateProof extends JSONRequest<SP> {
   constructor(
     c: HTTPClient,
     private round: number
@@ -15,7 +16,7 @@ export default class StateProof extends JSONRequest<SP, Record<string, any>> {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): SP {
-    return SP.fromEncodingData(SP.encodingSchema.fromPreparedJSON(body));
+  prepare(response: HTTPClientResponse): SP {
+    return decodeJSON(response.getJSONText(), SP);
   }
 }

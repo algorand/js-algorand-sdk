@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { AssetBalancesResponse } from './models/types.js';
 
-export default class LookupAssetBalances extends JSONRequest<
-  AssetBalancesResponse,
-  Record<string, any>
-> {
+export default class LookupAssetBalances extends JSONRequest<AssetBalancesResponse> {
   /**
    * Returns the list of accounts which hold the given asset and their balance.
    *
@@ -151,9 +149,7 @@ export default class LookupAssetBalances extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): AssetBalancesResponse {
-    return AssetBalancesResponse.fromEncodingData(
-      AssetBalancesResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): AssetBalancesResponse {
+    return decodeJSON(response.getJSONText(), AssetBalancesResponse);
   }
 }

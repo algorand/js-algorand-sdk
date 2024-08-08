@@ -1,5 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { BoxesResponse } from './models/types.js';
 
 /**
@@ -16,10 +17,7 @@ import { BoxesResponse } from './models/types.js';
  * @param index - The application ID to look up.
  * @category GET
  */
-export default class GetApplicationBoxes extends JSONRequest<
-  BoxesResponse,
-  Record<string, any>
-> {
+export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
   constructor(
     c: HTTPClient,
     private index: number
@@ -56,9 +54,7 @@ export default class GetApplicationBoxes extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): BoxesResponse {
-    return BoxesResponse.fromEncodingData(
-      BoxesResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): BoxesResponse {
+    return decodeJSON(response.getJSONText(), BoxesResponse);
   }
 }
