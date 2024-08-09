@@ -18,11 +18,11 @@ import {
   NamedMapEntry,
   Uint64MapSchema,
   StringMapSchema,
+  ByteArrayMapSchema,
   SpecialCaseBinaryStringMapSchema,
   UntypedSchema,
   OptionalSchema,
   allOmitEmpty,
-  ByteArrayMapSchema,
 } from '../src/encoding/schema/index.js';
 
 const ERROR_CONTAINS_EMPTY_STRING =

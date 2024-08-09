@@ -122,19 +122,6 @@ export class StateSchema implements Encodable {
   }
 }
 
-/*
-// AppParams stores the global information associated with an application
-type AppParams struct {
-	_struct struct{} `codec:",omitempty,omitemptyarray"`
-
-	ApprovalProgram   []byte       `codec:"approv,allocbound=config.MaxAvailableAppProgramLen"`
-	ClearStateProgram []byte       `codec:"clearp,allocbound=config.MaxAvailableAppProgramLen"`
-	GlobalState       TealKeyValue `codec:"gs"`
-	StateSchemas
-	ExtraProgramPages uint32 `codec:"epp"`
-}
-*/
-
 /**
  * AppParams stores the global information associated with an application
  */
@@ -1112,14 +1099,6 @@ export class AccountData implements Encodable {
     });
   }
 }
-
-/*
-// BalanceRecord is similar to basics.BalanceRecord but with decoupled base and voting data
-type BalanceRecord struct {
-	Addr Address
-	AccountData
-}
-  */
 
 export class BalanceRecord implements Encodable {
   public static readonly encodingSchema = new NamedMapSchema(

@@ -2,7 +2,6 @@ import JSONRequest from '../jsonrequest.js';
 import { HTTPClientResponse } from '../../client.js';
 
 export default class Ready extends JSONRequest<void> {
-  // TODO
   // eslint-disable-next-line class-methods-use-this
   path() {
     return `/ready`;

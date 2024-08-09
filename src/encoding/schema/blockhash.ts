@@ -19,6 +19,13 @@ const blockHashByteLength = 32;
  */
 const base32Length = 52;
 
+/**
+ * BlockHashSchema is a schema for block hashes.
+ *
+ * In msgapck, these types are encoded as 32-byte binary strings. In JSON, they
+ * are encoded as strings prefixed with "blk-" followed by the base32 encoding
+ * of the 32-byte block hash without any padding.
+ */
 export class BlockHashSchema extends Schema {
   public defaultValue(): Uint8Array {
     return new Uint8Array(blockHashByteLength);
