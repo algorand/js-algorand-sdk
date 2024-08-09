@@ -1815,7 +1815,19 @@ module.exports = function getSteps(options) {
   }
 
   function pruneDefaultValuesFromMap(m) {
-    if (!(m instanceof Map)) {
+    function isMap(x) {
+      // workaround for firefox
+      const other = makeMap([]);
+      return x instanceof other.constructor;
+    }
+
+    function isUint8Array(x) {
+      // workaround for firefox
+      const other = makeUint8Array();
+      return x instanceof other.constuctor;
+    }
+
+    if (!isMap(m)) {
       throw new Error('pruneDefaultValuesFromMap expects a map.');
     }
     const prunedMap = makeMap(m);
@@ -1828,8 +1840,8 @@ module.exports = function getSteps(options) {
         value === '' ||
         value === false ||
         (Array.isArray(value) && value.length === 0) ||
-        (value instanceof Map && value.size === 0) ||
-        (value instanceof Uint8Array &&
+        (isMap(value) && value.size === 0) ||
+        (isUint8Array(value) &&
           (value.byteLength === 0 || value.every((byte) => byte === 0)))
       ) {
         prunedMap.delete(key);
@@ -1839,14 +1851,12 @@ module.exports = function getSteps(options) {
         prunedMap.set(
           key,
           value.map((element) =>
-            element instanceof Map
-              ? pruneDefaultValuesFromMap(element)
-              : element
+            isMap(element) ? pruneDefaultValuesFromMap(element) : element
           )
         );
         continue;
       }
-      if (value instanceof Map) {
+      if (isMap(value)) {
         const prunedValue = pruneDefaultValuesFromMap(value);
         if (prunedValue.size === 0) {
           prunedMap.delete(key);
