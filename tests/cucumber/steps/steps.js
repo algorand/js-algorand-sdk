@@ -1824,7 +1824,7 @@ module.exports = function getSteps(options) {
     function isUint8Array(x) {
       // workaround for firefox
       const other = makeUint8Array();
-      return x instanceof other.constuctor;
+      return x instanceof other.constructor;
     }
 
     if (!isMap(m)) {
