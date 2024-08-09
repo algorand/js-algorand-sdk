@@ -11,6 +11,7 @@ import {
   AddressSchema,
   ByteArraySchema,
   FixedLengthByteArraySchema,
+  BlockHashSchema,
   SpecialCaseBinaryStringSchema,
   ArraySchema,
   NamedMapSchema,
@@ -1050,6 +1051,30 @@ describe('encoding', () => {
           preparedJsonValues: ['AAAAAAA=', 'AQIDBAU='],
         },
         {
+          name: 'BlockHashSchema',
+          schema: new BlockHashSchema(),
+          values: [
+            new Uint8Array(32),
+            Uint8Array.from([
+              236, 203, 188, 96, 194, 35, 246, 94, 227, 223, 92, 185, 6, 143,
+              198, 118, 147, 181, 197, 211, 218, 113, 81, 36, 52, 88, 237, 1,
+              109, 72, 120, 38,
+            ]),
+          ],
+          preparedMsgpackValues: [
+            new Uint8Array(32),
+            Uint8Array.from([
+              236, 203, 188, 96, 194, 35, 246, 94, 227, 223, 92, 185, 6, 143,
+              198, 118, 147, 181, 197, 211, 218, 113, 81, 36, 52, 88, 237, 1,
+              109, 72, 120, 38,
+            ]),
+          ],
+          preparedJsonValues: [
+            'blk-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+            'blk-5TF3YYGCEP3F5Y67LS4QND6GO2J3LROT3JYVCJBULDWQC3KIPATA',
+          ],
+        },
+        {
           name: 'UntypedSchema',
           schema: new UntypedSchema(),
           values: [undefined, null, 0, 'abc', new Map()],
@@ -1487,6 +1512,15 @@ describe('encoding', () => {
             schema: new FixedLengthByteArraySchema(5),
             emptyValue: new Uint8Array(5),
             nonemptyValue: Uint8Array.from([1, 2, 3, 4, 5]),
+          },
+          {
+            schema: new BlockHashSchema(),
+            emptyValue: new Uint8Array(32),
+            nonemptyValue: Uint8Array.from([
+              236, 203, 188, 96, 194, 35, 246, 94, 227, 223, 92, 185, 6, 143,
+              198, 118, 147, 181, 197, 211, 218, 113, 81, 36, 52, 88, 237, 1,
+              109, 72, 120, 38,
+            ]),
           },
           {
             schema: new UntypedSchema(),
@@ -2705,8 +2739,480 @@ describe('encoding', () => {
     });
   });
   describe('LedgerStateDelta', () => {
-    it('should decode LedgerStateDelta correctly', () => {
-      // TODO
+    it('should decode LedgerStateDelta correctly', async () => {
+      async function loadResource(name: string): Promise<Uint8Array> {
+        const res = await fetch(
+          `http://localhost:8080/tests/resources/${name}`
+        );
+        if (!res.ok) {
+          throw new Error(`Failed to load resource (${res.status}): ${name}`);
+        }
+        return new Uint8Array(await res.arrayBuffer());
+      }
+
+      const stateDeltaBytes = await loadResource(
+        'groupdelta-betanet_23963123_2.msgp'
+      );
+      const stateDelta = algosdk.decodeMsgpack(
+        stateDeltaBytes,
+        algosdk.LedgerStateDelta
+      );
+
+      const expectedStateDelta = new algosdk.LedgerStateDelta({
+        accounts: new algosdk.AccountDeltas({
+          accounts: [
+            new algosdk.BalanceRecord({
+              addr: algosdk.Address.fromString(
+                'TILB4MAJIUF56ZBE7CDOWOXDR57IXZFJUHJARQPW3JDEVKMU56HP3A6A54'
+              ),
+              accountData: new algosdk.AccountData({
+                accountBaseData: new algosdk.AccountBaseData({
+                  status: 0,
+                  microAlgos: BigInt(377962010),
+                  rewardsBase: BigInt(12595),
+                  rewardedMicroAlgos: BigInt(0),
+                  authAddr: algosdk.Address.zeroAddress(),
+                  incentiveEligible: false,
+                  totalAppSchema: new algosdk.StateSchema({
+                    numUints: 2675,
+                    numByteSlices: 2962,
+                  }),
+                  totalExtraAppPages: 740,
+                  totalAppParams: BigInt(459),
+                  totalAppLocalStates: BigInt(37),
+                  totalAssetParams: BigInt(23),
+                  totalAssets: BigInt(110),
+                  totalBoxes: BigInt(0),
+                  totalBoxBytes: BigInt(0),
+                  lastProposed: BigInt(0),
+                  lastHeartbeat: BigInt(0),
+                }),
+                votingData: new algosdk.VotingData({
+                  voteID: new Uint8Array(32),
+                  selectionID: new Uint8Array(32),
+                  stateProofID: new Uint8Array(64),
+                  voteFirstValid: BigInt(0),
+                  voteLastValid: BigInt(0),
+                  voteKeyDilution: BigInt(0),
+                }),
+              }),
+            }),
+            new algosdk.BalanceRecord({
+              addr: algosdk.Address.fromString(
+                'A7NMWS3NT3IUDMLVO26ULGXGIIOUQ3ND2TXSER6EBGRZNOBOUIQXHIBGDE'
+              ),
+              accountData: new algosdk.AccountData({
+                accountBaseData: new algosdk.AccountBaseData({
+                  status: 2,
+                  microAlgos: BigInt(1529589813809),
+                  rewardsBase: BigInt(0),
+                  rewardedMicroAlgos: BigInt(0),
+                  authAddr: algosdk.Address.zeroAddress(),
+                  incentiveEligible: false,
+                  totalAppSchema: new algosdk.StateSchema({
+                    numUints: 0,
+                    numByteSlices: 0,
+                  }),
+                  totalExtraAppPages: 0,
+                  totalAppParams: BigInt(0),
+                  totalAppLocalStates: BigInt(0),
+                  totalAssetParams: BigInt(0),
+                  totalAssets: BigInt(0),
+                  totalBoxes: BigInt(0),
+                  totalBoxBytes: BigInt(0),
+                  lastProposed: BigInt(0),
+                  lastHeartbeat: BigInt(0),
+                }),
+                votingData: new algosdk.VotingData({
+                  voteID: new Uint8Array(32),
+                  selectionID: new Uint8Array(32),
+                  stateProofID: new Uint8Array(64),
+                  voteFirstValid: BigInt(0),
+                  voteLastValid: BigInt(0),
+                  voteKeyDilution: BigInt(0),
+                }),
+              }),
+            }),
+            new algosdk.BalanceRecord({
+              addr: algosdk.Address.fromString(
+                'DSR7TNPLYXGPINSZOC76OYLXNAH6VITLH7BYO5HWLLWUOUI365LD62IHSA'
+              ),
+              accountData: new algosdk.AccountData({
+                accountBaseData: new algosdk.AccountBaseData({
+                  status: 0,
+                  microAlgos: BigInt(100000),
+                  rewardsBase: BigInt(12595),
+                  rewardedMicroAlgos: BigInt(0),
+                  authAddr: algosdk.Address.zeroAddress(),
+                  incentiveEligible: false,
+                  totalAppSchema: new algosdk.StateSchema({
+                    numUints: 0,
+                    numByteSlices: 0,
+                  }),
+                  totalExtraAppPages: 0,
+                  totalAppParams: BigInt(0),
+                  totalAppLocalStates: BigInt(0),
+                  totalAssetParams: BigInt(0),
+                  totalAssets: BigInt(0),
+                  totalBoxes: BigInt(0),
+                  totalBoxBytes: BigInt(0),
+                  lastProposed: BigInt(0),
+                  lastHeartbeat: BigInt(0),
+                }),
+                votingData: new algosdk.VotingData({
+                  voteID: new Uint8Array(32),
+                  selectionID: new Uint8Array(32),
+                  stateProofID: new Uint8Array(64),
+                  voteFirstValid: BigInt(0),
+                  voteLastValid: BigInt(0),
+                  voteKeyDilution: BigInt(0),
+                }),
+              }),
+            }),
+            new algosdk.BalanceRecord({
+              addr: algosdk.Address.fromString(
+                '5UA72YDDTT7VLRMVHDRWCUOTWMWBH5XOB4MJRYTMKDNV3GEVYY5JMT5KXM'
+              ),
+              accountData: new algosdk.AccountData({
+                accountBaseData: new algosdk.AccountBaseData({
+                  status: 0,
+                  microAlgos: BigInt(243300),
+                  rewardsBase: BigInt(12595),
+                  rewardedMicroAlgos: BigInt(0),
+                  authAddr: algosdk.Address.zeroAddress(),
+                  incentiveEligible: false,
+                  totalAppSchema: new algosdk.StateSchema({
+                    numUints: 0,
+                    numByteSlices: 0,
+                  }),
+                  totalExtraAppPages: 0,
+                  totalAppParams: BigInt(0),
+                  totalAppLocalStates: BigInt(0),
+                  totalAssetParams: BigInt(0),
+                  totalAssets: BigInt(0),
+                  totalBoxes: BigInt(1),
+                  totalBoxBytes: BigInt(331),
+                  lastProposed: BigInt(0),
+                  lastHeartbeat: BigInt(0),
+                }),
+                votingData: new algosdk.VotingData({
+                  voteID: new Uint8Array(32),
+                  selectionID: new Uint8Array(32),
+                  stateProofID: new Uint8Array(64),
+                  voteFirstValid: BigInt(0),
+                  voteLastValid: BigInt(0),
+                  voteKeyDilution: BigInt(0),
+                }),
+              }),
+            }),
+          ],
+          appResources: [
+            new algosdk.AppResourceRecord({
+              id: BigInt(1508981233),
+              address: algosdk.Address.fromString(
+                'TILB4MAJIUF56ZBE7CDOWOXDR57IXZFJUHJARQPW3JDEVKMU56HP3A6A54'
+              ),
+              params: new algosdk.AppParamsDelta({
+                deleted: false,
+                params: new algosdk.AppParams({
+                  approvalProgram: algosdk.base64ToBytes(
+                    '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'
+                  ),
+                  clearStateProgram: algosdk.base64ToBytes(
+                    'CCADAQAIJgMKTnVtU3Rha2VycwtUb3RhbFN0YWtlZAxUb3RhbFJld2FyZHMxGyMSQAABAIgAAiJDMQCABlN0YWtlZGI1AikpZDQCCWc0AiOIAEwqZDUAMQCADkFjY3J1ZWRSZXdhcmRzYjUBIzUDNAOBBwxBACI0ADQDJAs0ADQDJAtbNAE0AyQLWwkWXTUANAMiCDUDQv/WKjQAZyJDNQU1BDQENAUUEEAAEjQEFDQFEEEADygoZCIIZ0IABigoZCIJZ4k='
+                  ),
+                  globalState: new Map<Uint8Array, algosdk.TealValue>([
+                    [
+                      algosdk.coerceToBytes('Admin'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'mhYeMAlFC99kJPiG6zrjj36L5Kmh0gjB9tpGSqmU744='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('CONTRACT_NAME'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.coerceToBytes('PACT FARM'),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('ClaimedRewards'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('Duration'),
+                      new algosdk.TealValue({
+                        type: 2,
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('NextDuration'),
+                      new algosdk.TealValue({
+                        type: 2,
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('NextRewards'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('NumStakers'),
+                      new algosdk.TealValue({
+                        type: 2,
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('PendingRewards'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('RPT'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('RPT_frac'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('RewardAssetIDs'),
+                      new algosdk.TealValue({
+                        type: 1,
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('StakedAssetID'),
+                      new algosdk.TealValue({
+                        type: 2,
+                        uint: BigInt(156390370),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('TotalRewards'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('TotalStaked'),
+                      new algosdk.TealValue({
+                        type: 2,
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('UpdatedAt'),
+                      new algosdk.TealValue({
+                        type: 2,
+                        uint: BigInt(1675257832),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('Updater'),
+                      new algosdk.TealValue({
+                        type: 1,
+                        bytes: algosdk.base64ToBytes(
+                          'mhYeMAlFC99kJPiG6zrjj36L5Kmh0gjB9tpGSqmU744='
+                        ),
+                      }),
+                    ],
+                    [
+                      algosdk.coerceToBytes('VERSION'),
+                      new algosdk.TealValue({
+                        type: 2,
+                        uint: BigInt(100),
+                      }),
+                    ],
+                  ]),
+                  localStateSchema: new algosdk.StateSchema({
+                    numByteSlices: 4,
+                    numUints: 2,
+                  }),
+                  globalStateSchema: new algosdk.StateSchema({
+                    numByteSlices: 10,
+                    numUints: 7,
+                  }),
+                  extraProgramPages: 2,
+                }),
+              }),
+              state: new algosdk.AppLocalStateDelta({
+                deleted: false,
+              }),
+            }),
+          ],
+          assetResources: [],
+        }),
+        kvMods: new Map<Uint8Array, algosdk.KvValueDelta>([
+          [
+            algosdk.base64ToBytes('Yng6AAAAAFnxOfFFc2Nyb3c='),
+            new algosdk.KvValueDelta({
+              data: algosdk.base64ToBytes(
+                'CCAEAAEEBiYDC01hc3RlckFwcElEAQEBADIJMQASRDEZQADyMRhAAEU2GgCABDiIGnESRCg2GgEXwDJnsSWyEDYaAhfAMrIYgAS3NV/RshoisgGzsSSyEDIKshQishI2GgMXwDCyESKyAbNCANU2GgCABHiCLPASQABONhoAgAS3WNjREkAAKTYaAIAEm+QoGxJAAAEAsSOyEDYaARfAHLIHIrIBNhoCVwIAsgWzQgCSsSOyEDIJsgcyCmAyCngJsggisgGzQgB6sSSyEDIJshQ2GgIXshI2GgEXwDCyESKyAbOxJbIQKGSyGIAEwxQK57IaKbIaKrIaKbIaKrIaMgmyHDIIsjI2GgEXwDCyMCKyAbNCAC0xGYEFEkAAAQAyCShkYRREsSSyEDYwALIRMgmyFSKyAbOxI7IQMgmyCSKyAbMjQw=='
+              ),
+              oldData: algosdk.base64ToBytes(
+                'CCAEAAEEBiYDC01hc3RlckFwcElEAQEBADIJMQASRDEZQADyMRhAAEU2GgCABDiIGnESRCg2GgEXwDJnsSWyEDYaAhfAMrIYgAS3NV/RshoisgGzsSSyEDIKshQishI2GgMXwDCyESKyAbNCANU2GgCABHiCLPASQABONhoAgAS3WNjREkAAKTYaAIAEm+QoGxJAAAEAsSOyEDYaARfAHLIHIrIBNhoCVwIAsgWzQgCSsSOyEDIJsgcyCmAyCngJsggisgGzQgB6sSSyEDIJshQ2GgIXshI2GgEXwDCyESKyAbOxJbIQKGSyGIAEwxQK57IaKbIaKrIaKbIaKrIaMgmyHDIIsjI2GgEXwDCyMCKyAbNCAC0xGYEFEkAAAQAyCShkYRREsSSyEDYwALIRMgmyFSKyAbOxI7IQMgmyCSKyAbMjQw=='
+              ),
+            }),
+          ],
+        ]),
+        txids: new Map<Uint8Array, algosdk.IncludedTransactions>([
+          [
+            algosdk.base64ToBytes(
+              'g3NWme3GAy5uHfd8BQO06da2MjdGJ9EuuikeSD3Nuqk='
+            ),
+            new algosdk.IncludedTransactions({
+              lastValid: BigInt(23964120),
+              intra: 1,
+            }),
+          ],
+          [
+            algosdk.base64ToBytes(
+              'j6CIOjVZijXyqqTJA4xJjoA4oSmiM6Il5qsV/O3H3+Q='
+            ),
+            new algosdk.IncludedTransactions({
+              lastValid: BigInt(23964120),
+              intra: 0,
+            }),
+          ],
+        ]),
+        txleases: new algosdk.UntypedValue(undefined),
+        creatables: new Map<bigint, algosdk.ModifiedCreatable>([
+          [
+            BigInt(1508981233),
+            new algosdk.ModifiedCreatable({
+              creatableType: 1,
+              created: true,
+              creator: algosdk.Address.fromString(
+                'TILB4MAJIUF56ZBE7CDOWOXDR57IXZFJUHJARQPW3JDEVKMU56HP3A6A54'
+              ),
+              ndeltas: 0,
+            }),
+          ],
+        ]),
+        blockHeader: new algosdk.BlockHeader({
+          round: BigInt(23963123),
+          branch: algosdk.base64ToBytes(
+            'NPCkBgM/t8nRvRaaVqSeWHCyYUdxEghgQglgtERCuqE='
+          ),
+          seed: algosdk.base64ToBytes(
+            'yxhfocGJCuC+DKVcfgwo0juV9jNEUvMiU1uJl0Y1MNk='
+          ),
+          txnCommitments: new algosdk.TxnCommitments({
+            nativeSha512_256Commitment: algosdk.base64ToBytes(
+              'FIrR4OYcMHA4fhT2vEScSvbaCkETZd+BPtttEQi8DiI='
+            ),
+            sha256Commitment: algosdk.base64ToBytes(
+              'Hj1OQRa1jURkxJkRtXOKTrKSrm/MIrP5wmTnUuNq3ew='
+            ),
+          }),
+          timestamp: BigInt(1675257836),
+          genesisID: 'betanet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'mFgazF+2uRS1tMiL9dsj01hJGySEmPN28B/TjjvpVW0='
+          ),
+          proposer: algosdk.Address.zeroAddress(),
+          feesCollected: BigInt(0),
+          bonus: BigInt(0),
+          proposerPayout: BigInt(0),
+          rewardState: new algosdk.RewardState({
+            feeSink: algosdk.Address.fromString(
+              'A7NMWS3NT3IUDMLVO26ULGXGIIOUQ3ND2TXSER6EBGRZNOBOUIQXHIBGDE'
+            ),
+            rewardsPool: algosdk.Address.fromString(
+              '7777777777777777777777777777777777777777777777777774MSJUVU'
+            ),
+            rewardsLevel: BigInt(12595),
+            rewardsRate: BigInt(0),
+            rewardsResidue: BigInt(3846799357),
+            rewardsRecalculationRound: BigInt(24000000),
+          }),
+          upgradeState: new algosdk.UpgradeState({
+            currentProtocol:
+              'https://github.com/algorandfoundation/specs/tree/44fa607d6051730f5264526bf3c108d51f0eadb6',
+            nextProtocol: '',
+            nextProtocolApprovals: BigInt(0),
+            nextProtocolVoteBefore: BigInt(0),
+            nextProtocolSwitchOn: BigInt(0),
+          }),
+          upgradeVote: new algosdk.UpgradeVote({
+            upgradePropose: '',
+            upgradeDelay: BigInt(0),
+            upgradeApprove: false,
+          }),
+          txnCounter: BigInt(1508981323),
+          stateproofTracking: new Map<number, algosdk.StateProofTrackingData>([
+            [
+              0,
+              new algosdk.StateProofTrackingData({
+                stateProofVotersCommitment: new Uint8Array(),
+                stateProofOnlineTotalWeight: BigInt(0),
+                stateProofNextRound: BigInt(23963136),
+              }),
+            ],
+          ]),
+          participationUpdates: new algosdk.ParticipationUpdates({
+            expiredParticipationAccounts: [],
+            absentParticipationAccounts: [],
+          }),
+        }),
+        stateProofNext: BigInt(0),
+        prevTimestamp: BigInt(0),
+        totals: new algosdk.AccountTotals({
+          online: new algosdk.AlgoCount({
+            money: BigInt(0),
+            rewardUnits: BigInt(0),
+          }),
+          offline: new algosdk.AlgoCount({
+            money: BigInt(0),
+            rewardUnits: BigInt(0),
+          }),
+          notParticipating: new algosdk.AlgoCount({
+            money: BigInt(0),
+            rewardUnits: BigInt(0),
+          }),
+          rewardsLevel: BigInt(0),
+        }),
+      });
+
+      assert.deepStrictEqual(stateDelta, expectedStateDelta);
+
+      // Avoid comparing reencoded to stateDeltaBytes because this SDK uses omit empty for the fields,
+      // so the produced encoding will be different. Instead we decode and compare again.
+      const reencoded = algosdk.encodeMsgpack(stateDelta);
+      const roundTripDecoded = algosdk.decodeMsgpack(
+        reencoded,
+        algosdk.LedgerStateDelta
+      );
+      assert.deepStrictEqual(roundTripDecoded, expectedStateDelta);
     });
   });
 });

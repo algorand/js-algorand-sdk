@@ -2,6 +2,7 @@ import { Encodable, Schema } from '../encoding/encoding.js';
 import {
   NamedMapSchema,
   Uint64MapSchema,
+  ByteArrayMapSchema,
   SpecialCaseBinaryStringMapSchema,
   SpecialCaseBinaryStringSchema,
   ArraySchema,
@@ -11,13 +12,14 @@ import {
   ByteArraySchema,
   FixedLengthByteArraySchema,
   OptionalSchema,
+  UntypedSchema,
   allOmitEmpty,
   convertMap,
   combineMaps,
-  ByteArrayMapSchema,
 } from '../encoding/schema/index.js';
 import { Address } from '../encoding/address.js';
 import { BlockHeader } from './block.js';
+import { UntypedValue } from '../client/v2/untypedmodel.js';
 
 // TealValue contains type information and a value, representing a value in a TEAL program
 export class TealValue implements Encodable {
@@ -205,7 +207,7 @@ export class AppParams implements Encodable {
       ),
       localStateSchema: StateSchema.fromEncodingData(data.get('lsch')),
       globalStateSchema: StateSchema.fromEncodingData(data.get('gsch')),
-      extraProgramPages: data.get('epp'),
+      extraProgramPages: Number(data.get('epp')),
     });
   }
 }
@@ -267,14 +269,15 @@ export class AppLocalState implements Encodable {
  * AppLocalStateDelta tracks a changed AppLocalState, and whether it was deleted
  */
 export class AppLocalStateDelta implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'LocalState', // localState
-      valueSchema: new OptionalSchema(AppLocalState.encodingSchema),
-      omitEmpty: false,
-    },
-    { key: 'Deleted', valueSchema: new BooleanSchema(), omitEmpty: false }, // deleted
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'LocalState', // localState
+        valueSchema: new OptionalSchema(AppLocalState.encodingSchema),
+      },
+      { key: 'Deleted', valueSchema: new BooleanSchema() }, // deleted
+    ])
+  );
 
   public localState?: AppLocalState;
   public deleted: boolean;
@@ -316,14 +319,15 @@ export class AppLocalStateDelta implements Encodable {
  * AppParamsDelta tracks a changed AppParams, and whether it was deleted
  */
 export class AppParamsDelta implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Params', // params
-      valueSchema: new OptionalSchema(AppParams.encodingSchema),
-      omitEmpty: false,
-    },
-    { key: 'Deleted', valueSchema: new BooleanSchema(), omitEmpty: false }, // deleted
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Params', // params
+        valueSchema: new OptionalSchema(AppParams.encodingSchema),
+      },
+      { key: 'Deleted', valueSchema: new BooleanSchema() }, // deleted
+    ])
+  );
 
   public params?: AppParams;
   public deleted: boolean;
@@ -362,20 +366,20 @@ export class AppParamsDelta implements Encodable {
  * AppResourceRecord represents AppParams and AppLocalState in deltas
  */
 export class AppResourceRecord implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    { key: 'Aidx', valueSchema: new Uint64Schema(), omitEmpty: false }, // id
-    { key: 'Addr', valueSchema: new AddressSchema(), omitEmpty: false }, // address
-    {
-      key: 'Params', // params
-      valueSchema: AppParamsDelta.encodingSchema,
-      omitEmpty: false,
-    },
-    {
-      key: 'State', // state
-      valueSchema: AppLocalStateDelta.encodingSchema,
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      { key: 'Aidx', valueSchema: new Uint64Schema() }, // id
+      { key: 'Addr', valueSchema: new AddressSchema() }, // address
+      {
+        key: 'Params', // params
+        valueSchema: AppParamsDelta.encodingSchema,
+      },
+      {
+        key: 'State', // state
+        valueSchema: AppLocalStateDelta.encodingSchema,
+      },
+    ])
+  );
 
   public id: bigint;
   public address: Address;
@@ -467,14 +471,15 @@ export class AssetHolding implements Encodable {
  * AssetHoldingDelta records a changed AssetHolding, and whether it was deleted
  */
 export class AssetHoldingDelta implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Holding', // holding
-      valueSchema: new OptionalSchema(AssetHolding.encodingSchema),
-      omitEmpty: false,
-    },
-    { key: 'Deleted', valueSchema: new BooleanSchema(), omitEmpty: false }, // deleted
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Holding', // holding
+        valueSchema: new OptionalSchema(AssetHolding.encodingSchema),
+      },
+      { key: 'Deleted', valueSchema: new BooleanSchema() }, // deleted
+    ])
+  );
 
   public holding?: AssetHolding;
   public deleted: boolean;
@@ -667,14 +672,15 @@ export class AssetParams implements Encodable {
  * AssetParamsDelta tracks a changed AssetParams, and whether it was deleted
  */
 export class AssetParamsDelta implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Params', // params
-      valueSchema: new OptionalSchema(AssetParams.encodingSchema),
-      omitEmpty: false,
-    },
-    { key: 'Deleted', valueSchema: new BooleanSchema(), omitEmpty: false }, // deleted
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Params', // params
+        valueSchema: new OptionalSchema(AssetParams.encodingSchema),
+      },
+      { key: 'Deleted', valueSchema: new BooleanSchema() }, // deleted
+    ])
+  );
 
   public params?: AssetParams;
   public deleted: boolean;
@@ -713,20 +719,20 @@ export class AssetParamsDelta implements Encodable {
  * AssetResourceRecord represents AssetParams and AssetHolding in deltas
  */
 export class AssetResourceRecord implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    { key: 'Aidx', valueSchema: new Uint64Schema(), omitEmpty: false }, // id
-    { key: 'Addr', valueSchema: new AddressSchema(), omitEmpty: false }, // address
-    {
-      key: 'Params', // params
-      valueSchema: AssetParamsDelta.encodingSchema,
-      omitEmpty: false,
-    },
-    {
-      key: 'Holding', // holding
-      valueSchema: AssetHoldingDelta.encodingSchema,
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      { key: 'Aidx', valueSchema: new Uint64Schema() }, // id
+      { key: 'Addr', valueSchema: new AddressSchema() }, // address
+      {
+        key: 'Params', // params
+        valueSchema: AssetParamsDelta.encodingSchema,
+      },
+      {
+        key: 'Holding', // holding
+        valueSchema: AssetHoldingDelta.encodingSchema,
+      },
+    ])
+  );
 
   public id: bigint;
   public address: Address;
@@ -776,34 +782,34 @@ export class AssetResourceRecord implements Encodable {
  * VotingData holds participation information
  */
 export class VotingData implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'VoteID', // voteID
-      valueSchema: new FixedLengthByteArraySchema(32),
-      omitEmpty: false,
-    },
-    {
-      key: 'SelectionID', // selectionID
-      valueSchema: new FixedLengthByteArraySchema(32),
-      omitEmpty: false,
-    },
-    {
-      key: 'StateProofID', // stateProofID
-      valueSchema: new FixedLengthByteArraySchema(64),
-      omitEmpty: false,
-    },
-    {
-      key: 'VoteFirstValid', // voteFirstValid
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    { key: 'VoteLastValid', valueSchema: new Uint64Schema(), omitEmpty: false }, // voteLastValid
-    {
-      key: 'VoteKeyDilution', // voteKeyDilution
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'VoteID', // voteID
+        valueSchema: new FixedLengthByteArraySchema(32),
+      },
+      {
+        key: 'SelectionID', // selectionID
+        valueSchema: new FixedLengthByteArraySchema(32),
+      },
+      {
+        key: 'StateProofID', // stateProofID
+        valueSchema: new FixedLengthByteArraySchema(64),
+      },
+      {
+        key: 'VoteFirstValid', // voteFirstValid
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'VoteLastValid', // voteLastValid
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'VoteKeyDilution', // voteKeyDilution
+        valueSchema: new Uint64Schema(),
+      },
+    ])
+  );
 
   public voteID: Uint8Array;
   public selectionID: Uint8Array;
@@ -864,52 +870,53 @@ export class VotingData implements Encodable {
  * AccountBaseData contains base account info like balance, status and total number of resources
  */
 export class AccountBaseData implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    { key: 'Status', valueSchema: new Uint64Schema(), omitEmpty: false }, // status
-    { key: 'MicroAlgos', valueSchema: new Uint64Schema(), omitEmpty: false }, // microAlgos
-    { key: 'RewardsBase', valueSchema: new Uint64Schema(), omitEmpty: false }, // rewardsBase
-    {
-      key: 'RewardedMicroAlgos', // rewardedMicroAlgos
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    { key: 'AuthAddr', valueSchema: new AddressSchema(), omitEmpty: false }, // authAddr
-    {
-      key: 'IncentiveEligible', // incentiveEligible
-      valueSchema: new BooleanSchema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'TotalAppSchema', // totalAppSchema
-      valueSchema: StateSchema.encodingSchema,
-      omitEmpty: false,
-    },
-    {
-      key: 'TotalExtraAppPages', // totalExtraAppPages
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'TotalAppParams', // totalAppParams
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'TotalAppLocalStates', // totalAppLocalStates
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'TotalAssetParams', // totalAssetParams
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    { key: 'TotalAssets', valueSchema: new Uint64Schema(), omitEmpty: false }, // totalAssets
-    { key: 'TotalBoxes', valueSchema: new Uint64Schema(), omitEmpty: false }, // totalBoxes
-    { key: 'TotalBoxBytes', valueSchema: new Uint64Schema(), omitEmpty: false }, // totalBoxBytes
-    { key: 'LastProposed', valueSchema: new Uint64Schema(), omitEmpty: false }, // lastProposed
-    { key: 'LastHeartbeat', valueSchema: new Uint64Schema(), omitEmpty: false }, // lastHeartbeat
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      { key: 'Status', valueSchema: new Uint64Schema() }, // status
+      { key: 'MicroAlgos', valueSchema: new Uint64Schema() }, // microAlgos
+      { key: 'RewardsBase', valueSchema: new Uint64Schema() }, // rewardsBase
+      {
+        key: 'RewardedMicroAlgos', // rewardedMicroAlgos
+        valueSchema: new Uint64Schema(),
+      },
+      { key: 'AuthAddr', valueSchema: new AddressSchema() }, // authAddr
+      {
+        key: 'IncentiveEligible', // incentiveEligible
+        valueSchema: new BooleanSchema(),
+      },
+      {
+        key: 'TotalAppSchema', // totalAppSchema
+        valueSchema: StateSchema.encodingSchema,
+      },
+      {
+        key: 'TotalExtraAppPages', // totalExtraAppPages
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'TotalAppParams', // totalAppParams
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'TotalAppLocalStates', // totalAppLocalStates
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'TotalAssetParams', // totalAssetParams
+        valueSchema: new Uint64Schema(),
+      },
+      { key: 'TotalAssets', valueSchema: new Uint64Schema() }, // totalAssets
+      { key: 'TotalBoxes', valueSchema: new Uint64Schema() }, // totalBoxes
+      {
+        key: 'TotalBoxBytes', // totalBoxBytes
+        valueSchema: new Uint64Schema(),
+      },
+      { key: 'LastProposed', valueSchema: new Uint64Schema() }, // lastProposed
+      {
+        key: 'LastHeartbeat', // lastHeartbeat
+        valueSchema: new Uint64Schema(),
+      },
+    ])
+  );
 
   /**
    * Account status. Values are:
@@ -1057,20 +1064,20 @@ export class AccountBaseData implements Encodable {
  * AccountData provides per-account data
  */
 export class AccountData implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: '',
-      valueSchema: AccountBaseData.encodingSchema,
-      omitEmpty: false,
-      embedded: true,
-    },
-    {
-      key: '',
-      valueSchema: VotingData.encodingSchema,
-      omitEmpty: false,
-      embedded: true,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: '',
+        valueSchema: AccountBaseData.encodingSchema,
+        embedded: true,
+      },
+      {
+        key: '',
+        valueSchema: VotingData.encodingSchema,
+        embedded: true,
+      },
+    ])
+  );
 
   public accountBaseData: AccountBaseData;
   public votingData: VotingData;
@@ -1115,19 +1122,19 @@ type BalanceRecord struct {
   */
 
 export class BalanceRecord implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Addr',
-      valueSchema: new AddressSchema(),
-      omitEmpty: false,
-    },
-    {
-      key: '',
-      valueSchema: AccountData.encodingSchema,
-      omitEmpty: false,
-      embedded: true,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Addr',
+        valueSchema: new AddressSchema(),
+      },
+      {
+        key: '',
+        valueSchema: AccountData.encodingSchema,
+        embedded: true,
+      },
+    ])
+  );
 
   public addr: Address;
   public accountData: AccountData;
@@ -1161,23 +1168,26 @@ export class BalanceRecord implements Encodable {
 }
 
 export class AccountDeltas implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Accts', // accounts
-      valueSchema: new ArraySchema(BalanceRecord.encodingSchema),
-      omitEmpty: false,
-    },
-    {
-      key: 'AppResources', // appResources
-      valueSchema: new ArraySchema(AppResourceRecord.encodingSchema),
-      omitEmpty: false,
-    },
-    {
-      key: 'AssetResources', // assetResources
-      valueSchema: new ArraySchema(AssetResourceRecord.encodingSchema),
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Accts', // accounts
+        valueSchema: new ArraySchema(BalanceRecord.encodingSchema),
+      },
+      {
+        key: 'AppResources', // appResources
+        valueSchema: new OptionalSchema(
+          new ArraySchema(AppResourceRecord.encodingSchema)
+        ),
+      },
+      {
+        key: 'AssetResources', // assetResources
+        valueSchema: new OptionalSchema(
+          new ArraySchema(AssetResourceRecord.encodingSchema)
+        ),
+      },
+    ])
+  );
 
   public accounts: BalanceRecord[];
   public appResources: AppResourceRecord[];
@@ -1203,13 +1213,19 @@ export class AccountDeltas implements Encodable {
       ['Accts', this.accounts.map((account) => account.toEncodingData())],
       [
         'AppResources',
-        this.appResources.map((appResource) => appResource.toEncodingData()),
+        this.appResources.length === 0
+          ? undefined
+          : this.appResources.map((appResource) =>
+              appResource.toEncodingData()
+            ),
       ],
       [
         'AssetResources',
-        this.assetResources.map((assetResource) =>
-          assetResource.toEncodingData()
-        ),
+        this.assetResources.length === 0
+          ? undefined
+          : this.assetResources.map((assetResource) =>
+              assetResource.toEncodingData()
+            ),
       ],
     ]);
   }
@@ -1234,18 +1250,18 @@ export class AccountDeltas implements Encodable {
  * A KvValueDelta shows how the Data associated with a key in the kvstore has changed.
  */
 export class KvValueDelta implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Data',
-      valueSchema: new OptionalSchema(new ByteArraySchema()),
-      omitEmpty: false,
-    },
-    {
-      key: 'OldData',
-      valueSchema: new OptionalSchema(new ByteArraySchema()),
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Data',
+        valueSchema: new OptionalSchema(new ByteArraySchema()),
+      },
+      {
+        key: 'OldData',
+        valueSchema: new OptionalSchema(new ByteArraySchema()),
+      },
+    ])
+  );
 
   /**
    * Data stores the most recent value (undefined means deleted)
@@ -1289,18 +1305,18 @@ export class KvValueDelta implements Encodable {
  * IncludedTransactions defines the transactions included in a block, their index and last valid round.
  */
 export class IncludedTransactions implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'LastValid',
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'Intra',
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'LastValid',
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'Intra',
+        valueSchema: new Uint64Schema(),
+      },
+    ])
+  );
 
   public lastValid: bigint;
   /**
@@ -1340,28 +1356,26 @@ export class IncludedTransactions implements Encodable {
  * ModifiedCreatable represents a change to a single creatable state
  */
 export class ModifiedCreatable implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Ctype', // creatableType
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'Created', // created
-      valueSchema: new BooleanSchema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'Creator', // creator
-      valueSchema: new AddressSchema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'Ndeltas', // ndeltas
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Ctype', // creatableType
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'Created', // created
+        valueSchema: new BooleanSchema(),
+      },
+      {
+        key: 'Creator', // creator
+        valueSchema: new AddressSchema(),
+      },
+      {
+        key: 'Ndeltas', // ndeltas
+        valueSchema: new Uint64Schema(),
+      },
+    ])
+  );
 
   /**
    * Type of the creatable. The values are:
@@ -1538,50 +1552,55 @@ export class AccountTotals implements Encodable {
  * LedgerStateDelta describes the delta between a given round to the previous round
  */
 export class LedgerStateDelta implements Encodable {
-  public static readonly encodingSchema = new NamedMapSchema([
-    {
-      key: 'Accts', // accounts
-      valueSchema: AccountDeltas.encodingSchema,
-      omitEmpty: false,
-    },
-    {
-      key: 'KvMods', // kvMods
-      valueSchema: new SpecialCaseBinaryStringMapSchema(
-        KvValueDelta.encodingSchema
-      ),
-      omitEmpty: false,
-    },
-    {
-      key: 'Txids', // txids
-      valueSchema: new ByteArrayMapSchema(IncludedTransactions.encodingSchema),
-      omitEmpty: false,
-    },
-    {
-      key: 'Creatables', // creatables
-      valueSchema: new Uint64MapSchema(ModifiedCreatable.encodingSchema),
-      omitEmpty: false,
-    },
-    {
-      key: 'Hdr', // blockHeader
-      valueSchema: BlockHeader.encodingSchema,
-      omitEmpty: false,
-    },
-    {
-      key: 'StateProofNext', // stateProofNext
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'PrevTimestamp', // prevTimestamp
-      valueSchema: new Uint64Schema(),
-      omitEmpty: false,
-    },
-    {
-      key: 'Totals', // totals
-      valueSchema: AccountTotals.encodingSchema,
-      omitEmpty: false,
-    },
-  ]);
+  public static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      {
+        key: 'Accts', // accounts
+        valueSchema: AccountDeltas.encodingSchema,
+      },
+      {
+        key: 'KvMods', // kvMods
+        valueSchema: new OptionalSchema(
+          new SpecialCaseBinaryStringMapSchema(KvValueDelta.encodingSchema)
+        ),
+      },
+      {
+        key: 'Txids', // txids
+        valueSchema: new ByteArrayMapSchema(
+          IncludedTransactions.encodingSchema
+        ),
+      },
+      {
+        key: 'Txleases', // txleases
+        // Note: because txleases is currently just an UntypedSchema and we are expected to decode
+        // null values for this field, we use OptionalSchema to coerce null values to undefined so
+        // that the values can be properly omitted during encoding.
+        valueSchema: new OptionalSchema(new UntypedSchema()),
+      },
+      {
+        key: 'Creatables', // creatables
+        valueSchema: new OptionalSchema(
+          new Uint64MapSchema(ModifiedCreatable.encodingSchema)
+        ),
+      },
+      {
+        key: 'Hdr', // blockHeader
+        valueSchema: BlockHeader.encodingSchema,
+      },
+      {
+        key: 'StateProofNext', // stateProofNext
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'PrevTimestamp', // prevTimestamp
+        valueSchema: new Uint64Schema(),
+      },
+      {
+        key: 'Totals', // totals
+        valueSchema: AccountTotals.encodingSchema,
+      },
+    ])
+  );
 
   /**
    * modified new accounts
@@ -1598,11 +1617,11 @@ export class LedgerStateDelta implements Encodable {
    */
   public txids: Map<Uint8Array, IncludedTransactions>;
 
-  // TODO: support txleases once we are able to decode msgpack maps with object keys.
-  // /**
-  //  *  new txleases for the txtail mapped to expiration
-  //  */
-  // public txleases: Map<Txlease, bigint>;
+  // TODO: properly support txleases once we are able to decode msgpack maps with object keys.
+  /**
+   *  new txleases for the txtail mapped to expiration
+   */
+  public txleases: UntypedValue;
 
   /**
    * new creatables creator lookup table
@@ -1635,6 +1654,7 @@ export class LedgerStateDelta implements Encodable {
     accounts: AccountDeltas;
     kvMods: Map<Uint8Array, KvValueDelta>;
     txids: Map<Uint8Array, IncludedTransactions>;
+    txleases: UntypedValue;
     creatables: Map<bigint, ModifiedCreatable>;
     blockHeader: BlockHeader;
     stateProofNext: bigint;
@@ -1644,6 +1664,7 @@ export class LedgerStateDelta implements Encodable {
     this.accounts = params.accounts;
     this.kvMods = params.kvMods;
     this.txids = params.txids;
+    this.txleases = params.txleases;
     this.creatables = params.creatables;
     this.blockHeader = params.blockHeader;
     this.stateProofNext = params.stateProofNext;
@@ -1661,18 +1682,26 @@ export class LedgerStateDelta implements Encodable {
       ['Accts', this.accounts.toEncodingData()],
       [
         'KvMods',
-        convertMap(this.kvMods, (key, value) => [key, value.toEncodingData()]),
+        this.kvMods.size === 0
+          ? undefined
+          : convertMap(this.kvMods, (key, value) => [
+              key,
+              value.toEncodingData(),
+            ]),
       ],
       [
         'Txids',
         convertMap(this.txids, (key, value) => [key, value.toEncodingData()]),
       ],
+      ['Txleases', this.txleases.toEncodingData()],
       [
         'Creatables',
-        convertMap(this.creatables, (key, value) => [
-          key,
-          value.toEncodingData(),
-        ]),
+        this.creatables.size === 0
+          ? undefined
+          : convertMap(this.creatables, (key, value) => [
+              key,
+              value.toEncodingData(),
+            ]),
       ],
       ['Hdr', this.blockHeader.toEncodingData()],
       ['StateProofNext', this.stateProofNext],
@@ -1688,15 +1717,16 @@ export class LedgerStateDelta implements Encodable {
     return new LedgerStateDelta({
       accounts: AccountDeltas.fromEncodingData(data.get('Accts')),
       kvMods: convertMap(
-        data.get('KvMods') as Map<Uint8Array, unknown>,
+        (data.get('KvMods') ?? new Map()) as Map<Uint8Array, unknown>,
         (key, value) => [key, KvValueDelta.fromEncodingData(value)]
       ),
       txids: convertMap(
         data.get('Txids') as Map<Uint8Array, unknown>,
         (key, value) => [key, IncludedTransactions.fromEncodingData(value)]
       ),
+      txleases: UntypedValue.fromEncodingData(data.get('Txleases')),
       creatables: convertMap(
-        data.get('Creatables') as Map<bigint, unknown>,
+        (data.get('Creatables') ?? new Map()) as Map<bigint, unknown>,
         (key, value) => [key, ModifiedCreatable.fromEncodingData(value)]
       ),
       blockHeader: BlockHeader.fromEncodingData(data.get('Hdr')),

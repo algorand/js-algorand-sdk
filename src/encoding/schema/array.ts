@@ -40,7 +40,9 @@ export class ArraySchema extends Schema {
         )
       );
     }
-    throw new Error('ArraySchema encoded data must be an array');
+    throw new Error(
+      `ArraySchema encoded data must be an array: ${encoded} (${typeof encoded})`
+    );
   }
 
   public prepareJSON(
@@ -57,6 +59,8 @@ export class ArraySchema extends Schema {
     if (Array.isArray(encoded)) {
       return encoded.map((item) => this.itemSchema.fromPreparedJSON(item));
     }
-    throw new Error('ArraySchema encoded data must be an array');
+    throw new Error(
+      `ArraySchema encoded data must be an array: ${encoded} (${typeof encoded})`
+    );
   }
 }

@@ -23,11 +23,11 @@
 @unit.responses.unlimited_assets
 @unit.responses.blocksummary
 @unit.responses.minbalance
-@unit.responses.statedelta.json
+@unit.responses.statedelta
 @unit.responses.sync
 @unit.responses.timestamp
 @unit.responses.txid.json
-@unit.responses.txngroupdeltas.json
+@unit.responses.txngroupdeltas
 @unit.sourcemapv2
 @unit.stateproof.paths
 @unit.stateproof.responses

@@ -15,6 +15,7 @@ import {
   allOmitEmpty,
   combineMaps,
   convertMap,
+  BlockHashSchema,
 } from '../encoding/schema/index.js';
 import { Address } from '../encoding/address.js';
 import { SignedTransaction } from '../signedTransaction.js';
@@ -506,7 +507,7 @@ export class BlockHeader implements Encodable {
       },
       {
         key: 'prev', // branch
-        valueSchema: new ByteArraySchema(),
+        valueSchema: new BlockHashSchema(),
       },
       {
         key: 'seed', // seed

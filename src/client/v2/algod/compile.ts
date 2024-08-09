@@ -1,6 +1,6 @@
 import { coerceToBytes } from '../../../encoding/binarydata.js';
 import { HTTPClient, HTTPClientResponse } from '../../client.js';
-import { decodeMsgpack } from '../../../encoding/encoding.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { CompileResponse } from './models/types.js';
 import JSONRequest from '../jsonrequest.js';
 
@@ -52,6 +52,6 @@ export default class Compile extends JSONRequest<CompileResponse> {
 
   // eslint-disable-next-line class-methods-use-this
   prepare(response: HTTPClientResponse): CompileResponse {
-    return decodeMsgpack(response.body, CompileResponse);
+    return decodeJSON(response.getJSONText(), CompileResponse);
   }
 }
