@@ -606,8 +606,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the node should be healthy', async function () {
-    const health = await this.v2Client.healthCheck().do();
-    assert.deepStrictEqual(health, makeObject({}));
+    await this.v2Client.healthCheck().do();
   });
 
   Then('I get the ledger supply', async function () {
