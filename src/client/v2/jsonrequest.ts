@@ -52,7 +52,7 @@ export default abstract class JSONRequest<Data> {
   /**
    * Execute the request and decode the response.
    * @param headers - Additional headers to send in the request. Optional.
-   * @param customOptions - Additional options to pass to the underlying HTTPBaseClient. For
+   * @param customOptions - Additional options to pass to the underlying BaseHTTPClient. For
    *   {@link URLTokenBaseHTTPClient}, which is the default client, this will be treated as
    *   additional options to pass to the network `fetch` method.
    * @returns A promise which resolves to the parsed response object.
@@ -69,7 +69,7 @@ export default abstract class JSONRequest<Data> {
   /**
    * Execute the request, but do not process the response data in any way.
    * @param headers - Additional headers to send in the request. Optional.
-   * @param customOptions - Additional options to pass to the underlying HTTPBaseClient. For
+   * @param customOptions - Additional options to pass to the underlying BaseHTTPClient. For
    *   {@link URLTokenBaseHTTPClient}, which is the default client, this will be treated as
    *   additional options to pass to the network `fetch` method.
    * @returns A promise which resolves to the raw response data, exactly as returned by the server.
