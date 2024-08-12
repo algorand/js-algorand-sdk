@@ -37,7 +37,8 @@ export default class SimulateRawTransactions extends JSONRequest<SimulateRespons
   }
 
   protected executeRequest(
-    headers: Record<string, string>
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<HTTPClientResponse> {
     const txHeaders = setSimulateTransactionsHeaders(headers);
     return this.c.post({
@@ -45,6 +46,7 @@ export default class SimulateRawTransactions extends JSONRequest<SimulateRespons
       data: this.requestBytes,
       query: this.query,
       requestHeaders: txHeaders,
+      customOptions,
     });
   }
 

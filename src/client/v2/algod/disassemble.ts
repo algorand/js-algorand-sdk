@@ -34,7 +34,8 @@ export default class Disassemble extends JSONRequest<DisassembleResponse> {
   }
 
   protected executeRequest(
-    headers: Record<string, string>
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<HTTPClientResponse> {
     const txHeaders = setHeaders(headers);
     return this.c.post({
@@ -42,6 +43,7 @@ export default class Disassemble extends JSONRequest<DisassembleResponse> {
       data: coerceToBytes(this.source),
       query: this.query,
       requestHeaders: txHeaders,
+      customOptions,
     });
   }
 
