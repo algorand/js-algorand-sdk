@@ -1,5 +1,4 @@
-import { HTTPClient } from '../client.js';
-import IntDecoding from '../../types/intDecoding.js';
+import { HTTPClient, HTTPClientResponse } from '../client.js';
 
 /**
  * Base abstract class for JSON requests.
@@ -8,10 +7,7 @@ import IntDecoding from '../../types/intDecoding.js';
  *
  * Body: The structure of the response's body
  */
-export default abstract class JSONRequest<
-  Data = Record<string, any>,
-  Body = Data | Uint8Array,
-> {
+export default abstract class JSONRequest<Data> {
   c: HTTPClient;
   query: Record<string, any>;
 
@@ -32,31 +28,34 @@ export default abstract class JSONRequest<
   /**
    * Prepare a JSON response before returning it.
    *
-   * Use this method to change and restructure response
-   * data as needed after receiving it from the `do()` method.
-   * @param body - Response body received
+   * Use this method to unpack response ata as needed after receiving it from the `do()` method.
+   * @param response - Response body received
    * @category JSONRequest
    */
-  // eslint-disable-next-line class-methods-use-this
-  prepare(body: Body): Data {
-    return body as unknown as Data;
+  abstract prepare(response: HTTPClientResponse): Data;
+
+  /**
+   * Execute the request
+   */
+  protected executeRequest(
+    headers: Record<string, string>
+  ): Promise<HTTPClientResponse> {
+    return this.c.get({
+      relativePath: this.path(),
+      query: this.query,
+      requestHeaders: headers,
+    });
   }
 
   /**
-   * Execute the request.
+   * Execute the request and decode the response.
    * @param headers - Additional headers to send in the request. Optional.
    * @returns A promise which resolves to the parsed response data.
    * @category JSONRequest
    */
-  async do(headers: Record<string, any> = {}): Promise<Data> {
-    const res = await this.c.get({
-      relativePath: this.path(),
-      parseBody: true,
-      jsonOptions: { intDecoding: IntDecoding.BIGINT },
-      query: this.query,
-      requestHeaders: headers,
-    });
-    return this.prepare(res.body);
+  async do(headers: Record<string, string> = {}): Promise<Data> {
+    const res = await this.executeRequest(headers);
+    return this.prepare(res);
   }
 
   /**
@@ -65,14 +64,8 @@ export default abstract class JSONRequest<
    * @returns A promise which resolves to the raw response data, exactly as returned by the server.
    * @category JSONRequest
    */
-  async doRaw(headers: Record<string, any> = {}): Promise<Uint8Array> {
-    const res = await this.c.get({
-      relativePath: this.path(),
-      parseBody: false,
-      jsonOptions: { intDecoding: IntDecoding.BIGINT },
-      query: this.query,
-      requestHeaders: headers,
-    });
+  async doRaw(headers: Record<string, string> = {}): Promise<Uint8Array> {
+    const res = await this.executeRequest(headers);
     return res.body;
   }
 }

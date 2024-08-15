@@ -1,20 +1,16 @@
-import * as encoding from '../../../encoding/encoding.js';
-import IntDecoding from '../../../types/intDecoding.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON, encodeMsgpack } from '../../../encoding/encoding.js';
 import JSONRequest from '../jsonrequest.js';
 import { setHeaders } from './compile.js';
 import { DryrunResponse } from './models/types.js';
 import * as modelsv2 from './models/types.js';
 
-export default class Dryrun extends JSONRequest<
-  DryrunResponse,
-  Record<string, any>
-> {
+export default class Dryrun extends JSONRequest<DryrunResponse> {
   private blob: Uint8Array;
 
   constructor(c: HTTPClient, dr: modelsv2.DryrunRequest) {
     super(c);
-    this.blob = encoding.encodeMsgpack(dr);
+    this.blob = encodeMsgpack(dr);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -22,26 +18,19 @@ export default class Dryrun extends JSONRequest<
     return '/v2/teal/dryrun';
   }
 
-  /**
-   * Executes dryrun
-   * @param headers - A headers object
-   */
-  async do(headers = {}) {
+  protected executeRequest(
+    headers: Record<string, string>
+  ): Promise<HTTPClientResponse> {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post({
+    return this.c.post({
       relativePath: this.path(),
       data: this.blob,
-      parseBody: true,
-      jsonOptions: { intDecoding: IntDecoding.BIGINT },
       requestHeaders: txHeaders,
     });
-    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): DryrunResponse {
-    return DryrunResponse.fromEncodingData(
-      DryrunResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): DryrunResponse {
+    return decodeJSON(response.getJSONText(), DryrunResponse);
   }
 }

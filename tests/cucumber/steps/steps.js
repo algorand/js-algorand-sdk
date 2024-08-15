@@ -74,6 +74,10 @@ function makeObject(obj) {
   return { ...obj };
 }
 
+function makeMap(m) {
+  return new Map(m);
+}
+
 function parseJSON(json) {
   return JSON.parse(json);
 }
@@ -602,8 +606,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the node should be healthy', async function () {
-    const health = await this.v2Client.healthCheck().do();
-    assert.deepStrictEqual(health, makeObject({}));
+    await this.v2Client.healthCheck().do();
   });
 
   Then('I get the ledger supply', async function () {
@@ -1636,7 +1639,9 @@ module.exports = function getSteps(options) {
               );
 
               assert.ok(err.response.body);
-              this.actualMockResponse = err.response.body;
+              this.actualMockResponse = err.response.parseBodyAsJSON({
+                intDecoding: algosdk.IntDecoding.MIXED,
+              });
               caughtError = true;
             }
             if (!caughtError) {
@@ -1747,7 +1752,9 @@ module.exports = function getSteps(options) {
               );
 
               assert.ok(err.response.body);
-              this.actualMockResponse = err.response.body;
+              this.actualMockResponse = err.response.parseBodyAsJSON({
+                intDecoding: algosdk.IntDecoding.MIXED,
+              });
               caughtError = true;
             }
             if (!caughtError) {
@@ -1807,6 +1814,60 @@ module.exports = function getSteps(options) {
     return prunedObject;
   }
 
+  function pruneDefaultValuesFromMap(m) {
+    function isMap(x) {
+      // workaround for firefox
+      const other = makeMap([]);
+      return x instanceof other.constructor;
+    }
+
+    function isUint8Array(x) {
+      // workaround for firefox
+      const other = makeUint8Array();
+      return x instanceof other.constructor;
+    }
+
+    if (!isMap(m)) {
+      throw new Error('pruneDefaultValuesFromMap expects a map.');
+    }
+    const prunedMap = makeMap(m);
+    for (const [key, value] of Array.from(prunedMap.entries())) {
+      if (
+        value === undefined ||
+        value === null ||
+        value === 0 ||
+        value === BigInt(0) ||
+        value === '' ||
+        value === false ||
+        (Array.isArray(value) && value.length === 0) ||
+        (isMap(value) && value.size === 0) ||
+        (isUint8Array(value) &&
+          (value.byteLength === 0 || value.every((byte) => byte === 0)))
+      ) {
+        prunedMap.delete(key);
+        continue;
+      }
+      if (Array.isArray(value)) {
+        prunedMap.set(
+          key,
+          value.map((element) =>
+            isMap(element) ? pruneDefaultValuesFromMap(element) : element
+          )
+        );
+        continue;
+      }
+      if (isMap(value)) {
+        const prunedValue = pruneDefaultValuesFromMap(value);
+        if (prunedValue.size === 0) {
+          prunedMap.delete(key);
+        } else {
+          prunedMap.set(key, prunedValue);
+        }
+      }
+    }
+    return prunedMap;
+  }
+
   Then('the parsed response should equal the mock response.', function () {
     let expectedJsonNeedsPruning = true;
 
@@ -1814,17 +1875,9 @@ module.exports = function getSteps(options) {
     if (this.expectedMockResponseCode === 200) {
       if (responseFormat === 'json') {
         if (typeof this.actualMockResponse.toEncodingData === 'function') {
-          if (
-            this.actualMockResponse instanceof
-            algosdk.modelsv2.TransactionGroupLedgerStateDeltasForRoundResponse
-          ) {
-            // TransactionGroupLedgerStateDeltasForRoundResponse has an UntypedResponse inside of it,
-            // so the expected JSON response should not be pruned.
-            expectedJsonNeedsPruning = false;
-          }
           encodedResponseObject = algosdk.encodeJSON(this.actualMockResponse);
         } else {
-          // Handles non-typed responses such as "GetLedgerStateDelta"
+          // Handles responses which don't implement Encodable
           encodedResponseObject = algosdk.stringifyJSON(
             this.actualMockResponse
           );
@@ -1856,8 +1909,15 @@ module.exports = function getSteps(options) {
         );
       }
     } else {
-      actualResponseObject = algosdk.decodeObj(encodedResponseObject);
-      parsedExpectedMockResponse = algosdk.decodeObj(expectedMockResponse);
+      actualResponseObject = algosdk.msgpackRawDecodeAsMap(
+        encodedResponseObject
+      );
+      parsedExpectedMockResponse =
+        algosdk.msgpackRawDecodeAsMap(expectedMockResponse);
+
+      parsedExpectedMockResponse = pruneDefaultValuesFromMap(
+        parsedExpectedMockResponse
+      );
     }
 
     assert.deepStrictEqual(actualResponseObject, parsedExpectedMockResponse);

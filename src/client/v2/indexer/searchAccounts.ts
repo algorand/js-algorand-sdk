@@ -1,4 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { Address } from '../../../encoding/address.js';
 import { AccountsResponse } from './models/types.js';
 
@@ -13,10 +15,7 @@ import { AccountsResponse } from './models/types.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accounts)
  * @category GET
  */
-export default class SearchAccounts extends JSONRequest<
-  AccountsResponse,
-  Record<string, any>
-> {
+export default class SearchAccounts extends JSONRequest<AccountsResponse> {
   /**
    * @returns `/v2/accounts`
    */
@@ -273,9 +272,7 @@ export default class SearchAccounts extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): AccountsResponse {
-    return AccountsResponse.fromEncodingData(
-      AccountsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): AccountsResponse {
+    return decodeJSON(response.getJSONText(), AccountsResponse);
   }
 }

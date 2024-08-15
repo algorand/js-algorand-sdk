@@ -125,7 +125,7 @@ Every transaction type has a base `make*` function whose single parameter object
 
 These interfaces differ slightly from the v2 types. Some field names have changed in order to be more consistent with their usage in other contexts, and some types have changed as well. The table below covers all name changes and cases where types become more restrictive. Fields where the only change was a type becoming less restrictive (e.g. `string` to `string | Address`) are not covered here.
 
-| Transaction Type | v2 Parameter        | v2 Parameter Type      | v2 Parameter        | v3 Parameter Type   | Notes                                      |
+| Transaction Type | v2 Parameter        | v2 Parameter Type      | v3 Parameter        | v3 Parameter Type   | Notes                                      |
 | ---------------- | ------------------- | ---------------------- | ------------------- | ------------------- | ------------------------------------------ |
 | All              | `from`              | `string`               | `sender`            | `string \| Address` |                                            |
 | Payment          | `to`                | `string`               | `receiver`          | `string \| Address` |                                            |

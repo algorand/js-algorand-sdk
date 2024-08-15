@@ -1,6 +1,6 @@
 import { coerceToBytes } from '../../../encoding/binarydata.js';
-import IntDecoding from '../../../types/intDecoding.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { DisassembleResponse } from './models/types.js';
 import JSONRequest from '../jsonrequest.js';
 
@@ -20,10 +20,7 @@ export function setHeaders(headers: Record<string, any> = {}) {
 /**
  * Executes disassemble
  */
-export default class Disassemble extends JSONRequest<
-  DisassembleResponse,
-  Record<string, any>
-> {
+export default class Disassemble extends JSONRequest<DisassembleResponse> {
   constructor(
     c: HTTPClient,
     private source: string | Uint8Array
@@ -36,27 +33,20 @@ export default class Disassemble extends JSONRequest<
     return `/v2/teal/disassemble`;
   }
 
-  /**
-   * Executes disassemble
-   * @param headers - A headers object
-   */
-  async do(headers = {}) {
+  protected executeRequest(
+    headers: Record<string, string>
+  ): Promise<HTTPClientResponse> {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post({
+    return this.c.post({
       relativePath: this.path(),
       data: coerceToBytes(this.source),
-      parseBody: true,
-      jsonOptions: { intDecoding: IntDecoding.BIGINT },
       query: this.query,
       requestHeaders: txHeaders,
     });
-    return res.body;
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): DisassembleResponse {
-    return DisassembleResponse.fromEncodingData(
-      DisassembleResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): DisassembleResponse {
+    return decodeJSON(response.getJSONText(), DisassembleResponse);
   }
 }

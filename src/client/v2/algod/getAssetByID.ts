@@ -1,11 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { Asset } from './models/types.js';
 
-export default class GetAssetByID extends JSONRequest<
-  Asset,
-  Record<string, any>
-> {
+export default class GetAssetByID extends JSONRequest<Asset> {
   constructor(
     c: HTTPClient,
     private index: number | bigint
@@ -18,7 +16,7 @@ export default class GetAssetByID extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): Asset {
-    return Asset.fromEncodingData(Asset.encodingSchema.fromPreparedJSON(body));
+  prepare(response: HTTPClientResponse): Asset {
+    return decodeJSON(response.getJSONText(), Asset);
   }
 }

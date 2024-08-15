@@ -1,6 +1,8 @@
 import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { TransactionParametersResponse } from './models/types.js';
 import { SuggestedParams } from '../../../types/transactions/base.js';
-import { base64ToBytes } from '../../../encoding/binarydata.js';
 
 /**
  * SuggestedParamsFromAlgod contains the suggested parameters for a new transaction, as returned by
@@ -27,25 +29,26 @@ export interface SuggestedParamsFromAlgod extends SuggestedParams {
 /**
  * Returns the common needed parameters for a new transaction, in a format the transaction builder expects
  */
-export default class SuggestedParamsRequest extends JSONRequest<
-  SuggestedParamsFromAlgod,
-  Record<string, any>
-> {
+export default class SuggestedParamsRequest extends JSONRequest<SuggestedParamsFromAlgod> {
   /* eslint-disable class-methods-use-this */
   path() {
     return '/v2/transactions/params';
   }
 
-  prepare(body: Record<string, any>): SuggestedParamsFromAlgod {
+  prepare(response: HTTPClientResponse): SuggestedParamsFromAlgod {
+    const params = decodeJSON(
+      response.getJSONText(),
+      TransactionParametersResponse
+    );
     return {
       flatFee: false,
-      fee: BigInt(body.fee),
-      firstValid: BigInt(body['last-round']),
-      lastValid: BigInt(body['last-round']) + BigInt(1000),
-      genesisID: body['genesis-id'],
-      genesisHash: base64ToBytes(body['genesis-hash']),
-      minFee: BigInt(body['min-fee']),
-      consensusVersion: body['consensus-version'],
+      fee: params.fee,
+      firstValid: params.lastRound,
+      lastValid: params.lastRound + BigInt(1000),
+      genesisID: params.genesisId,
+      genesisHash: params.genesisHash,
+      minFee: params.minFee,
+      consensusVersion: params.consensusVersion,
     };
   }
   /* eslint-enable class-methods-use-this */

@@ -70,6 +70,10 @@ window.makeObject = function makeObject(obj) {
   return { ...obj };
 };
 
+window.makeMap = function makeMap(m) {
+  return new Map(m);
+};
+
 window.parseJSON = function parseJSON(json) {
   return JSON.parse(json);
 };

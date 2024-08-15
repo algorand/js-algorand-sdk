@@ -16,6 +16,7 @@ import {
 } from '../../../../encoding/schema/index.js';
 import { base64ToBytes } from '../../../../encoding/binarydata.js';
 import { Block } from '../../../../types/block.js';
+import { LedgerStateDelta } from '../../../../types/statedelta.js';
 import { SignedTransaction } from '../../../../signedTransaction.js';
 import { Address } from '../../../../encoding/address.js';
 import { UntypedValue } from '../../untypedmodel.js';
@@ -4668,7 +4669,7 @@ export class LedgerStateDeltaForTransactionGroup implements Encodable {
       (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         {
           key: 'Delta',
-          valueSchema: UntypedValue.encodingSchema,
+          valueSchema: LedgerStateDelta.encodingSchema,
           omitEmpty: true,
         },
         {
@@ -4684,7 +4685,7 @@ export class LedgerStateDeltaForTransactionGroup implements Encodable {
   /**
    * Ledger StateDelta object
    */
-  public delta: UntypedValue;
+  public delta: LedgerStateDelta;
 
   public ids: string[];
 
@@ -4693,7 +4694,7 @@ export class LedgerStateDeltaForTransactionGroup implements Encodable {
    * @param delta - Ledger StateDelta object
    * @param ids -
    */
-  constructor({ delta, ids }: { delta: UntypedValue; ids: string[] }) {
+  constructor({ delta, ids }: { delta: LedgerStateDelta; ids: string[] }) {
     this.delta = delta;
     this.ids = ids;
   }
@@ -4717,7 +4718,7 @@ export class LedgerStateDeltaForTransactionGroup implements Encodable {
       );
     }
     return new LedgerStateDeltaForTransactionGroup({
-      delta: UntypedValue.fromEncodingData(data.get('Delta') ?? new Map()),
+      delta: LedgerStateDelta.fromEncodingData(data.get('Delta') ?? new Map()),
       ids: data.get('Ids'),
     });
   }

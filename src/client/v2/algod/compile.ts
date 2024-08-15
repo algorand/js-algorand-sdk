@@ -1,6 +1,6 @@
 import { coerceToBytes } from '../../../encoding/binarydata.js';
-import IntDecoding from '../../../types/intDecoding.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { CompileResponse } from './models/types.js';
 import JSONRequest from '../jsonrequest.js';
 
@@ -20,10 +20,7 @@ export function setHeaders(headers: Record<string, any> = {}) {
 /**
  * Executes compile
  */
-export default class Compile extends JSONRequest<
-  CompileResponse,
-  Record<string, any>
-> {
+export default class Compile extends JSONRequest<CompileResponse> {
   constructor(
     c: HTTPClient,
     private source: string | Uint8Array
@@ -41,27 +38,20 @@ export default class Compile extends JSONRequest<
     return this;
   }
 
-  /**
-   * Executes compile
-   * @param headers - A headers object
-   */
-  async do(headers = {}) {
+  protected executeRequest(
+    headers: Record<string, string>
+  ): Promise<HTTPClientResponse> {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post({
+    return this.c.post({
       relativePath: this.path(),
       data: coerceToBytes(this.source),
-      parseBody: true,
-      jsonOptions: { intDecoding: IntDecoding.BIGINT },
       query: this.query,
       requestHeaders: txHeaders,
     });
-    return this.prepare(res.body);
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): CompileResponse {
-    return CompileResponse.fromEncodingData(
-      CompileResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): CompileResponse {
+    return decodeJSON(response.getJSONText(), CompileResponse);
   }
 }

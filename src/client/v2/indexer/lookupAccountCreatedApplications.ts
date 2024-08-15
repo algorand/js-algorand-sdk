@@ -1,12 +1,10 @@
 import JSONRequest from '../jsonrequest.js';
-import { HTTPClient } from '../../client.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { Address } from '../../../encoding/address.js';
 import { ApplicationsResponse } from './models/types.js';
 
-export default class LookupAccountCreatedApplications extends JSONRequest<
-  ApplicationsResponse,
-  Record<string, any>
-> {
+export default class LookupAccountCreatedApplications extends JSONRequest<ApplicationsResponse> {
   private account: string;
 
   /**
@@ -142,9 +140,7 @@ export default class LookupAccountCreatedApplications extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): ApplicationsResponse {
-    return ApplicationsResponse.fromEncodingData(
-      ApplicationsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): ApplicationsResponse {
+    return decodeJSON(response.getJSONText(), ApplicationsResponse);
   }
 }

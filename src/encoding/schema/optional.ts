@@ -18,6 +18,8 @@ import {
  * `undefined` value is indistinguishable from the given schema's default value; in this respect,
  * OptionalSchema does not affect the encoding of NamedMapSchema values, but rather allows the
  * application to restore omitted values as `undefined` instead of their default value.
+ *
+ * Upon decoding, this schema also allows null/undefined values to be acceptable as values.
  */
 export class OptionalSchema extends Schema {
   constructor(public readonly valueSchema: Schema) {

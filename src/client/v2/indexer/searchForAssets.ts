@@ -1,4 +1,6 @@
 import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
 import { Address } from '../../../encoding/address.js';
 import { AssetsResponse } from './models/types.js';
 
@@ -13,10 +15,7 @@ import { AssetsResponse } from './models/types.js';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assets)
  * @category GET
  */
-export default class SearchForAssets extends JSONRequest<
-  AssetsResponse,
-  Record<string, any>
-> {
+export default class SearchForAssets extends JSONRequest<AssetsResponse> {
   /**
    * @returns `/v2/assets`
    */
@@ -179,9 +178,7 @@ export default class SearchForAssets extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): AssetsResponse {
-    return AssetsResponse.fromEncodingData(
-      AssetsResponse.encodingSchema.fromPreparedJSON(body)
-    );
+  prepare(response: HTTPClientResponse): AssetsResponse {
+    return decodeJSON(response.getJSONText(), AssetsResponse);
   }
 }
