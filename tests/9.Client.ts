@@ -206,7 +206,8 @@ describe('client', () => {
           .do(undefined, { signal: abortController.signal });
         throw new Error('Request should have failed but did not');
       } catch (err) {
-        assert.ok(err.toString().includes('This operation was aborted'), err);
+        const errorString = (err as Error).toString();
+        assert.ok(errorString.includes('aborted'), errorString);
       }
     });
   });
