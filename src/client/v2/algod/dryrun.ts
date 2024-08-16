@@ -19,13 +19,15 @@ export default class Dryrun extends JSONRequest<DryrunResponse> {
   }
 
   protected executeRequest(
-    headers: Record<string, string>
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<HTTPClientResponse> {
     const txHeaders = setHeaders(headers);
     return this.c.post({
       relativePath: this.path(),
       data: this.blob,
       requestHeaders: txHeaders,
+      customOptions,
     });
   }
 

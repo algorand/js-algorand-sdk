@@ -14,12 +14,14 @@ export default class SetSyncRound extends JSONRequest<void> {
   }
 
   protected executeRequest(
-    headers: Record<string, string>
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<HTTPClientResponse> {
     return this.c.post({
       relativePath: this.path(),
       data: null,
       requestHeaders: headers,
+      customOptions,
     });
   }
 

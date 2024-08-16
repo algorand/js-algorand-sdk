@@ -8,12 +8,14 @@ export default class UnsetSyncRound extends JSONRequest<void> {
   }
 
   protected executeRequest(
-    headers: Record<string, string>
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<HTTPClientResponse> {
     return this.c.delete({
       relativePath: this.path(),
       data: undefined,
       requestHeaders: headers,
+      customOptions,
     });
   }
 

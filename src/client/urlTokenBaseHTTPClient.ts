@@ -42,6 +42,9 @@ export type TokenHeader =
  * Implementation of BaseHTTPClient that uses a URL and a token
  * and make the REST queries using fetch.
  * This is the default implementation of BaseHTTPClient.
+ *
+ * Additional fetch options can be configured by using the `customOptions` parameter on
+ * get/post/delete requests.
  */
 export class URLTokenBaseHTTPClient implements BaseHTTPClient {
   private readonly baseURL: URL;
@@ -154,17 +157,19 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
   async get(
     relativePath: string,
     query?: Query<string>,
-    requestHeaders: Record<string, string> = {}
+    requestHeaders?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<BaseHTTPClientResponse> {
     // Expand headers for use in fetch
     const headers = {
       ...this.tokenHeader,
       ...this.defaultHeaders,
-      ...requestHeaders,
+      ...(requestHeaders ?? {}),
     };
 
     const res = await fetch(this.getURL(relativePath, query), {
       headers,
+      ...(customOptions ?? {}),
     });
 
     return URLTokenBaseHTTPClient.formatFetchResponse(res);
@@ -174,19 +179,21 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     relativePath: string,
     data: Uint8Array,
     query?: Query<string>,
-    requestHeaders: Record<string, string> = {}
+    requestHeaders?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<BaseHTTPClientResponse> {
     // Expand headers for use in fetch
     const headers = {
       ...this.tokenHeader,
       ...this.defaultHeaders,
-      ...requestHeaders,
+      ...(requestHeaders ?? {}),
     };
 
     const res = await fetch(this.getURL(relativePath, query), {
       method: 'POST',
       body: data,
       headers,
+      ...(customOptions ?? {}),
     });
 
     return URLTokenBaseHTTPClient.formatFetchResponse(res);
@@ -196,19 +203,21 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     relativePath: string,
     data?: Uint8Array,
     query?: Query<string>,
-    requestHeaders: Record<string, string> = {}
+    requestHeaders?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<BaseHTTPClientResponse> {
     // Expand headers for use in fetch
     const headers = {
       ...this.tokenHeader,
       ...this.defaultHeaders,
-      ...requestHeaders,
+      ...(requestHeaders ?? {}),
     };
 
     const res = await fetch(this.getURL(relativePath, query), {
       method: 'DELETE',
       body: data,
       headers,
+      ...(customOptions ?? {}),
     });
 
     return URLTokenBaseHTTPClient.formatFetchResponse(res);

@@ -264,22 +264,23 @@ export class HTTPClient {
    *
    * @param options - The options to use for the request.
    * @param options.relativePath - The path of the request.
-   * @param options.jsonOptions - Options object to use to decode JSON responses. See
-   *   utils.parseJSON for the options available.
    * @param options.query - An object containing the query parameters of the request.
    * @param options.requestHeaders - An object containing additional request headers to use.
-   * @param options.parseBody - An optional boolean indicating whether the response body should be parsed
    *   or not.
+   * @param options.customOptions - An object containing additional options to pass to the
+   *   underlying BaseHTTPClient instance.
    * @returns Response object.
    */
   async get({
     relativePath,
     query,
     requestHeaders,
+    customOptions,
   }: {
     relativePath: string;
     query?: Query<any>;
     requestHeaders?: Record<string, string>;
+    customOptions?: Record<string, unknown>;
   }): Promise<HTTPClientResponse> {
     const format = getAcceptFormat(query);
     const fullHeaders = { ...(requestHeaders ?? {}), accept: format };
@@ -288,7 +289,8 @@ export class HTTPClient {
       const res = await this.bc.get(
         relativePath,
         query ? removeFalsyOrEmpty(query) : undefined,
-        fullHeaders
+        fullHeaders,
+        customOptions
       );
 
       return HTTPClient.prepareResponse(res, format);
@@ -308,11 +310,13 @@ export class HTTPClient {
     data,
     query,
     requestHeaders,
+    customOptions,
   }: {
     relativePath: string;
     data: any;
     query?: Query<any>;
     requestHeaders?: Record<string, string>;
+    customOptions?: Record<string, unknown>;
   }): Promise<HTTPClientResponse> {
     const fullHeaders = {
       'content-type': 'application/json',
@@ -324,7 +328,8 @@ export class HTTPClient {
         relativePath,
         HTTPClient.serializeData(data, fullHeaders),
         query,
-        fullHeaders
+        fullHeaders,
+        customOptions
       );
 
       return HTTPClient.prepareResponse(res, 'application/json');
@@ -343,10 +348,12 @@ export class HTTPClient {
     relativePath,
     data,
     requestHeaders,
+    customOptions,
   }: {
     relativePath: string;
     data: any;
     requestHeaders?: Record<string, string>;
+    customOptions?: Record<string, unknown>;
   }) {
     const fullHeaders = {
       'content-type': 'application/json',
@@ -360,7 +367,8 @@ export class HTTPClient {
           ? HTTPClient.serializeData(data, fullHeaders)
           : undefined,
         undefined,
-        fullHeaders
+        fullHeaders,
+        customOptions
       );
 
       return HTTPClient.prepareResponse(res, 'application/json');

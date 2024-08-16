@@ -187,4 +187,28 @@ describe('client', () => {
 
     /* eslint-disable dot-notation */
   });
+  describe('Additional fetch options', () => {
+    // eslint-disable-next-line func-names
+    it('should pass additional options to the fetch method', async function () {
+      this.timeout(3_000);
+
+      const client = new AlgodClient('', 'http://localhost:8080/neverreturn/');
+
+      const abortController = new AbortController();
+
+      setTimeout(() => {
+        abortController.abort();
+      }, 2_000);
+
+      try {
+        await client
+          .healthCheck()
+          .do(undefined, { signal: abortController.signal });
+        throw new Error('Request should have failed but did not');
+      } catch (err) {
+        const errorString = (err as Error).toString();
+        assert.ok(errorString.includes('aborted'), errorString);
+      }
+    });
+  });
 });

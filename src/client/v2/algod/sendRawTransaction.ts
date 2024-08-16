@@ -52,13 +52,15 @@ export default class SendRawTransaction extends JSONRequest<PostTransactionsResp
   }
 
   protected executeRequest(
-    headers: Record<string, string>
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<HTTPClientResponse> {
     const txHeaders = setSendTransactionHeaders(headers);
     return this.c.post({
       relativePath: this.path(),
       data: this.txnBytesToPost,
       requestHeaders: txHeaders,
+      customOptions,
     });
   }
 

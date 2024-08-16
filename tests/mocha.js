@@ -17,6 +17,12 @@ const resourcePath = path.dirname(__dirname);
 
 async function startResourceServer() {
   const app = express();
+
+  app.use('/neverreturn/*', (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.write('This request will never return');
+  });
+
   app.use(express.static(resourcePath));
   await new Promise((resolve) => {
     resourceServer = app.listen(resourceServerPort, undefined, resolve);
