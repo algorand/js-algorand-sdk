@@ -39,6 +39,8 @@ import { RenameProperties, RenameProperty, Expand } from './types/utils';
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makePaymentTxnWithSuggestedParamsFromObject}
  */
 export function makePaymentTxnWithSuggestedParams(
   from: PaymentTxn['from'],
@@ -111,6 +113,8 @@ export function makePaymentTxnWithSuggestedParamsFromObject(
  * @param nonParticipation - configure whether the address wants to stop participating. If true,
  *   voteKey, selectionKey, voteFirst, voteLast, and voteKeyDilution must be undefined.
  * @param stateProofKey - state proof key. for key deregistration, leave undefined
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeKeyRegistrationTxnWithSuggestedParamsFromObject}
  */
 export function makeKeyRegistrationTxnWithSuggestedParams(
   from: KeyRegistrationTxn['from'],
@@ -245,6 +249,8 @@ export function makeKeyRegistrationTxnWithSuggestedParamsFromObject(o: any) {
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeAssetCreateTxnWithSuggestedParamsFromObject}
  */
 export function makeAssetCreateTxnWithSuggestedParams(
   from: AssetCreateTxn['from'],
@@ -360,6 +366,8 @@ export function makeAssetCreateTxnWithSuggestedParamsFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeAssetConfigTxnWithSuggestedParamsFromObject}
  */
 export function makeAssetConfigTxnWithSuggestedParams(
   from: AssetConfigTxn['from'],
@@ -456,6 +464,8 @@ export function makeAssetConfigTxnWithSuggestedParamsFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeAssetDestroyTxnWithSuggestedParamsFromObject}
  */
 export function makeAssetDestroyTxnWithSuggestedParams(
   from: AssetDestroyTxn['from'],
@@ -514,6 +524,8 @@ export function makeAssetDestroyTxnWithSuggestedParamsFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeAssetFreezeTxnWithSuggestedParamsFromObject}
  */
 export function makeAssetFreezeTxnWithSuggestedParams(
   from: AssetFreezeTxn['from'],
@@ -592,6 +604,8 @@ export function makeAssetFreezeTxnWithSuggestedParamsFromObject(
  * genesisHash - string specifies hash genesis block of network in use
  * genesisID - string specifies genesis ID of network in use
  * @param rekeyTo - rekeyTo address, optional
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeAssetTransferTxnWithSuggestedParamsFromObject}
  */
 export function makeAssetTransferTxnWithSuggestedParams(
   from: AssetTransferTxn['from'],
@@ -682,6 +696,8 @@ export function makeAssetTransferTxnWithSuggestedParamsFromObject(
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param extraPages - integer extra pages of memory to rent on creation of application
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeApplicationCreateTxnFromObject}
  */
 export function makeApplicationCreateTxn(
   from: AppCreateTxn['from'],
@@ -813,6 +829,8 @@ export function makeApplicationCreateTxnFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeApplicationUpdateTxnFromObject}
  */
 export function makeApplicationUpdateTxn(
   from: AppUpdateTxn['from'],
@@ -917,6 +935,8 @@ export function makeApplicationUpdateTxnFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeApplicationDeleteTxnFromObject}
  */
 export function makeApplicationDeleteTxn(
   from: AppDeleteTxn['from'],
@@ -1011,6 +1031,8 @@ export function makeApplicationDeleteTxnFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeApplicationOptInTxnFromObject}
  */
 export function makeApplicationOptInTxn(
   from: AppOptInTxn['from'],
@@ -1105,6 +1127,8 @@ export function makeApplicationOptInTxnFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeApplicationCloseOutTxnFromObject}
  */
 export function makeApplicationCloseOutTxn(
   from: AppCloseOutTxn['from'],
@@ -1199,6 +1223,8 @@ export function makeApplicationCloseOutTxnFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeApplicationClearStateTxnFromObject}
  */
 export function makeApplicationClearStateTxn(
   from: AppClearStateTxn['from'],
@@ -1293,6 +1319,8 @@ export function makeApplicationClearStateTxnFromObject(
  * @param lease - Lease a transaction
  * @param rekeyTo - String representation of the Algorand address that will be used to authorize all future transactions
  * @param boxes - Array of BoxReference, app ID and name of box to be accessed
+ *
+ * @deprecated This function will be removed in v3 in favor of {@link makeApplicationNoOpTxnFromObject}
  */
 export function makeApplicationNoOpTxn(
   from: AppNoOpTxn['from'],
