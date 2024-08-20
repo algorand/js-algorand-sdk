@@ -115,7 +115,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
-          rm -rf dist node_modules
+          rm -rf node_modules
           npm ci
           npm run build
           NEW_HASH=$(cat dist/browser/algosdk.min.js | openssl dgst -sha384 -binary | openssl base64 -A)
