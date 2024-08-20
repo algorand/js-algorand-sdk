@@ -345,11 +345,3 @@ const encoded = algosdk.encodeMsgpack(txn); // Uint8Array of msgpack-encoded tra
 const decoded = algosdk.decodeMsgpack(encoded, algosdk.Transaction); // Decoded Transaction instance
 assert.deepStrictEqual(txn, decoded);
 ```
-
-### Base64 Encoding
-
-The `base64ToString` function has been removed in v3. Instead, you may combine the `base64ToBytes` and `bytesToString` to achieve the same thing, like so:
-
-```typescript
-algosdk.bytesToString(algosdk.base64ToBytes('SGVsbG8gV29ybGQ='));
-```
