@@ -1,3 +1,17 @@
+# v2.9.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v2.9.0 -->
+
+## What's Changed
+
+### Enhancements
+
+- feat: add ARC22 and ARC28 interfaces for ABI contracts and methods by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/856
+- Algod: Regenerate models to include new simulate option by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/880
+- API: Deprecate txn maker functions that will be removed in v3 by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/886
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.8.0...v2.9.0
+
 # v2.8.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.8.0 -->
