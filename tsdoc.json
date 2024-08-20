@@ -1,0 +1,23 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+  "tagDefinitions": [
+    {
+      "tagName": "@category",
+      "syntaxKind": "block"
+    },
+    {
+      "tagName": "@ignore",
+      "syntaxKind": "modifier"
+    }
+  ],
+  "supportForTags": {
+    "@remarks": true,
+    "@ignore": true,
+    "@throws": true,
+    "@returns": true,
+    "@param": true,
+    "@category": true,
+    "@deprecated": true,
+    "@link": true
+  }
+}

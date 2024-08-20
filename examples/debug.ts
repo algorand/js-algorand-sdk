@@ -43,14 +43,13 @@ async function main() {
     txns: signedTxns,
   });
 
-  console.log('Dryrun:', dryrunRequest.get_obj_for_encoding());
+  console.log('Dryrun:', dryrunRequest);
   // example: DEBUG_DRYRUN_DUMP
 
   // example: DEBUG_DRYRUN_SUBMIT
   const dryrunResponse = await algodClient.dryrun(dryrunRequest).do();
   dryrunResponse.txns.forEach((txn) => {
-    console.log('Txn:', txn.txn);
-    console.log('Txn Results:', txn.txnresults);
+    console.log('Txn:', txn);
   });
   // example: DEBUG_DRYRUN_SUBMIT
 }

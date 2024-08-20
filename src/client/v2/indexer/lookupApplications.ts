@@ -1,8 +1,9 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { ApplicationResponse } from './models/types.js';
 
-export default class LookupApplications extends JSONRequest {
+export default class LookupApplications extends JSONRequest<ApplicationResponse> {
   /**
    * Returns information about the passed application.
    *
@@ -16,9 +17,11 @@ export default class LookupApplications extends JSONRequest {
    * @param index - The ID of the application to look up.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
-    this.index = index;
+  constructor(
+    c: HTTPClient,
+    private index: number
+  ) {
+    super(c);
   }
 
   /**
@@ -55,5 +58,10 @@ export default class LookupApplications extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): ApplicationResponse {
+    return decodeJSON(response.getJSONText(), ApplicationResponse);
   }
 }

@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const nacl = require('../src/nacl/naclWrappers');
-const algosdk = require('../src/index');
-const address = require('../src/encoding/address');
+import assert from 'assert';
+import * as nacl from '../src/nacl/naclWrappers.js';
+import algosdk from '../src/index.js';
+import * as address from '../src/encoding/address.js';
 
 describe('address', () => {
   describe('#isValid', () => {
@@ -13,7 +13,7 @@ describe('address', () => {
     const correctChecksum = new Uint8Array([122, 240, 2, 74]);
     const malformedAddress1 =
       'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJ';
-    const maldformedAddress2 = 123;
+    const malformedAddress2 = 123 as any;
     const malformedAddress3 =
       'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACererZQGI113RBSRVYHV4ACJI';
     const wrongChecksumAddress =
@@ -23,7 +23,7 @@ describe('address', () => {
     it('should verify a valid Algorand address', () => {
       const decodedAddress = algosdk.decodeAddress(correctCase);
       assert.deepStrictEqual(decodedAddress.publicKey, correctPublicKey);
-      assert.deepStrictEqual(decodedAddress.checksum, correctChecksum);
+      assert.deepStrictEqual(decodedAddress.checksum(), correctChecksum);
     });
 
     it('should fail to verify a malformed Algorand address', () => {
@@ -31,30 +31,26 @@ describe('address', () => {
         () => {
           algosdk.decodeAddress(malformedAddress1);
         },
-        (err) => err.message === address.MALFORMED_ADDRESS_ERROR_MSG
+        (err: Error) =>
+          err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
       );
       assert.throws(
         () => {
-          algosdk.decodeAddress(maldformedAddress2);
+          algosdk.decodeAddress(malformedAddress2);
         },
-        (err) => err.message === address.MALFORMED_ADDRESS_ERROR_MSG
+        (err: Error) =>
+          err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
       );
       // Catch an exception possibly thrown by base32 decoding function
-      assert.throws(
-        () => {
-          algosdk.decodeAddress(malformedAddress3);
-        },
-        (err) => err.message === 'Invalid base32 characters'
-      );
+      assert.throws(() => {
+        algosdk.decodeAddress(malformedAddress3);
+      }, new Error('Invalid base32 characters'));
     });
 
     it('should fail to verify a checksum for an invalid Algorand address', () => {
-      assert.throws(
-        () => {
-          algosdk.decodeAddress(wrongChecksumAddress);
-        },
-        (err) => err.message === address.CHECKSUM_ADDRESS_ERROR_MSG
-      );
+      assert.throws(() => {
+        algosdk.decodeAddress(wrongChecksumAddress);
+      }, new Error(address.CHECKSUM_ADDRESS_ERROR_MSG));
     });
 
     // Check helper functions
@@ -72,6 +68,17 @@ describe('address', () => {
       const pk = nacl.randomBytes(32);
       const addr = algosdk.encodeAddress(pk);
       assert.ok(algosdk.isValidAddress(addr));
+    });
+
+    it('should throw an error for addresses with incorrect length', () => {
+      const pk = nacl.randomBytes(15);
+      assert.throws(
+        () => {
+          algosdk.encodeAddress(pk);
+        },
+        (err: Error) =>
+          err.message.includes(address.MALFORMED_ADDRESS_ERROR_MSG)
+      );
     });
 
     it('should be able to encode and decode an address', () => {
@@ -95,10 +102,10 @@ describe('address', () => {
         threshold: 2,
         addrs: [addr1, addr2, addr3],
       };
-      const expectAddr =
-        'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
+      const expectAddr = algosdk.Address.fromString(
+        'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM'
+      );
       const actualAddr = algosdk.multisigAddress(params);
-      assert.ok(algosdk.isValidAddress(actualAddr));
       assert.deepStrictEqual(actualAddr, expectAddr);
     });
   });
@@ -106,10 +113,20 @@ describe('address', () => {
   describe('#getApplicationAddress', () => {
     it('should produce the correct address', () => {
       const appID = 77;
-      const expected =
-        'PCYUFPA2ZTOYWTP43MX2MOX2OWAIAXUDNC2WFCXAGMRUZ3DYD6BWFDL5YM';
+      const expected = algosdk.Address.fromString(
+        'PCYUFPA2ZTOYWTP43MX2MOX2OWAIAXUDNC2WFCXAGMRUZ3DYD6BWFDL5YM'
+      );
       const actual = algosdk.getApplicationAddress(appID);
-      assert.strictEqual(actual, expected);
+      assert.deepStrictEqual(actual, expected);
+    });
+  });
+
+  describe('Zero address', () => {
+    it('should be correct', () => {
+      assert.strictEqual(
+        algosdk.ALGORAND_ZERO_ADDRESS_STRING,
+        algosdk.encodeAddress(new Uint8Array(32))
+      );
     });
   });
 });

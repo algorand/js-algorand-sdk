@@ -4,6 +4,10 @@
 
 AlgoSDK is the official JavaScript library for communicating with the Algorand network. It's designed for modern browsers and Node.js.
 
+## New Major Version 3
+
+Existing codebases using v2 of this library will be incompatible with v3. The v3 release introduces breaking changes to the API, and a migration guide is available [here](v2_TO_v3_MIGRATION_GUIDE.md).
+
 ## Installation
 
 ### [Node.js](https://nodejs.org/en/download/)

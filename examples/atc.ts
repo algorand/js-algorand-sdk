@@ -4,7 +4,6 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 import algosdk from '../src';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 
@@ -28,7 +27,7 @@ async function main() {
   const compiledClearProgram = await compileProgram(client, clearProgram);
 
   const createTxn = algosdk.makeApplicationCreateTxnFromObject({
-    from: sender.addr,
+    sender: sender.addr,
     suggestedParams,
     onComplete: algosdk.OnApplicationComplete.NoOpOC,
     approvalProgram: compiledApprovalProgram,
@@ -43,10 +42,10 @@ async function main() {
   await client.sendRawTransaction(createTxn.signTxn(sender.privateKey)).do();
   const response = await algosdk.waitForConfirmation(
     client,
-    createTxn.txID().toString(),
+    createTxn.txID(),
     3
   );
-  const appIndex = response['application-index'];
+  const appIndex = Number(response.applicationIndex);
 
   // example: ATC_CREATE
   const atc = new algosdk.AtomicTransactionComposer();
@@ -62,9 +61,9 @@ async function main() {
   // example: ATC_ADD_TRANSACTION
   // construct a transaction
   const paymentTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: sender.addr,
+    sender: sender.addr,
     suggestedParams,
-    to: sender.addr,
+    receiver: sender.addr,
     amount: 1000,
   });
 
@@ -99,7 +98,7 @@ async function main() {
 
   // example: ATC_BOX_REF
   const boxATC = new algosdk.AtomicTransactionComposer();
-  const boxKey = new Uint8Array(Buffer.from('key'));
+  const boxKey = algosdk.coerceToBytes('key');
   boxATC.addMethodCall({
     appID: appIndex,
     method: boxAccessorMethod,

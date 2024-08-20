@@ -1,16 +1,13 @@
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 import algosdk from '../src';
 
 export async function compileProgram(
   client: algosdk.Algodv2,
   programSource: string
 ) {
-  const compileResponse = await client.compile(Buffer.from(programSource)).do();
-  const compiledBytes = new Uint8Array(
-    Buffer.from(compileResponse.result, 'base64')
-  );
+  const compileResponse = await client.compile(programSource).do();
+  const compiledBytes = algosdk.base64ToBytes(compileResponse.result);
   return compiledBytes;
 }
 
@@ -46,6 +43,7 @@ export function getLocalAlgodClient() {
 }
 
 function sleep(ms: number) {
+  // eslint-disable-next-line no-promise-executor-return
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -54,7 +52,7 @@ export async function indexerWaitForRound(
   round: number | bigint,
   maxAttempts: number
 ) {
-  let indexerRound = 0;
+  let indexerRound = BigInt(0);
   let attempts = 0;
 
   for (;;) {
@@ -81,7 +79,7 @@ export async function indexerWaitForRound(
 }
 
 export interface SandboxAccount {
-  addr: string;
+  addr: algosdk.Address;
   privateKey: Uint8Array;
   signer: algosdk.TransactionSigner;
 }
@@ -105,7 +103,7 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
 
   const addresses = await kmdClient.listKeys(handle);
   // eslint-disable-next-line camelcase
-  const acctPromises: Promise<{ private_key: Buffer }>[] = [];
+  const acctPromises: Promise<{ private_key: Uint8Array }>[] = [];
 
   // eslint-disable-next-line no-restricted-syntax
   for (const addr of addresses.addresses) {
@@ -117,8 +115,8 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
   kmdClient.releaseWalletHandle(handle);
 
   return keys.map((k) => {
-    const addr = algosdk.encodeAddress(k.private_key.slice(32));
-    const acct = { sk: k.private_key, addr } as algosdk.Account;
+    const addr = new algosdk.Address(k.private_key.slice(32));
+    const acct: algosdk.Account = { sk: k.private_key, addr };
     const signer = algosdk.makeBasicAccountTransactionSigner(acct);
 
     return {
@@ -146,7 +144,7 @@ export async function deployCalculatorApp(
   const clearBin = await compileProgram(algodClient, clearProgram);
   const suggestedParams = await algodClient.getTransactionParams().do();
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     approvalProgram: approvalBin,
     clearProgram: clearBin,
     numGlobalByteSlices: 0,
@@ -163,9 +161,9 @@ export async function deployCalculatorApp(
 
   const result = await algosdk.waitForConfirmation(
     algodClient,
-    appCreateTxn.txID().toString(),
+    appCreateTxn.txID(),
     3
   );
-  const appId = result['application-index'];
+  const appId = Number(result.applicationIndex);
   return appId;
 }

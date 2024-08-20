@@ -1,8 +1,9 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { AssetBalancesResponse } from './models/types.js';
 
-export default class LookupAssetBalances extends JSONRequest {
+export default class LookupAssetBalances extends JSONRequest<AssetBalancesResponse> {
   /**
    * Returns the list of accounts which hold the given asset and their balance.
    *
@@ -15,9 +16,11 @@ export default class LookupAssetBalances extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-idbalances)
    * @param index - The asset ID to look up.
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
-    this.index = index;
+  constructor(
+    c: HTTPClient,
+    private index: number
+  ) {
+    super(c);
   }
 
   /**
@@ -143,5 +146,10 @@ export default class LookupAssetBalances extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): AssetBalancesResponse {
+    return decodeJSON(response.getJSONText(), AssetBalancesResponse);
   }
 }

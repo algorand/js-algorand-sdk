@@ -8,7 +8,8 @@ import {
   generateAccount,
   makeBasicAccountTransactionSigner,
   makeMultiSigAccountTransactionSigner,
-  makePaymentTxnWithSuggestedParams,
+  makePaymentTxnWithSuggestedParamsFromObject,
+  base64ToBytes,
 } from '../src';
 import {
   ABIAddressType,
@@ -265,20 +266,7 @@ describe('ABI encoding', () => {
       new ABIStringType(),
       'What’s new',
       new Uint8Array([
-        0,
-        12,
-        87,
-        104,
-        97,
-        116,
-        226,
-        128,
-        153,
-        115,
-        32,
-        110,
-        101,
-        119,
+        0, 12, 87, 104, 97, 116, 226, 128, 153, 115, 32, 110, 101, 119,
       ])
     ),
     newTestCase(
@@ -319,30 +307,7 @@ describe('ABI encoding', () => {
       new ABIArrayStaticType(new ABIUintType(64), 3),
       [BigInt(1), BigInt(2), 3], // Deliberately mix BigInt and int
       new Uint8Array([
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        2,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        3,
+        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3,
       ])
     ),
     newTestCase(
@@ -491,12 +456,16 @@ describe('ABI encoding', () => {
     const method = ABIMethod.fromSignature('add(application)uint8');
     const account = generateAccount();
     const sender = 'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
+    const genesisHash = new Uint8Array(32);
+    genesisHash[0] = 1;
+    genesisHash[1] = 2;
     const sp = {
+      minFee: 1000,
       fee: 1000,
-      firstRound: 1,
-      lastRound: 1001,
+      firstValid: 1,
+      lastValid: 1001,
       genesisID: 'gi',
-      genesisHash: 'gh',
+      genesisHash,
     };
     const foreignAcct =
       'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM';
@@ -527,15 +496,18 @@ describe('ABI encoding', () => {
     const txn = txns[0].txn;
 
     // Assert that foreign objects were passed in and ordering was correct.
-    assert.deepStrictEqual(txn.appForeignApps?.length, 2);
-    assert.deepStrictEqual(txn.appForeignApps[0], 1);
-    assert.deepStrictEqual(txn.appForeignApps[1], 2);
+    assert.deepStrictEqual(txn.applicationCall?.foreignApps?.length, 2);
+    assert.deepStrictEqual(txn.applicationCall?.foreignApps[0], 1n);
+    assert.deepStrictEqual(txn.applicationCall?.foreignApps[1], 2n);
 
-    assert.deepStrictEqual(txn.appForeignAssets?.length, 1);
-    assert.deepStrictEqual(txn.appForeignAssets[0], 124);
+    assert.deepStrictEqual(txn.applicationCall?.foreignAssets?.length, 1);
+    assert.deepStrictEqual(txn.applicationCall?.foreignAssets[0], 124n);
 
-    assert.deepStrictEqual(txn.appAccounts?.length, 1);
-    assert.deepStrictEqual(txn.appAccounts[0], decodeAddress(foreignAcct));
+    assert.deepStrictEqual(txn.applicationCall?.accounts?.length, 1);
+    assert.deepStrictEqual(
+      txn.applicationCall?.accounts[0],
+      decodeAddress(foreignAcct)
+    );
   });
 
   it('should accept at least one signature in the multisig', () => {
@@ -553,21 +525,22 @@ describe('ABI encoding', () => {
 
     // Create a transaction
     const suggestedParams = {
-      genesisHash: 'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=',
+      genesisHash: base64ToBytes(
+        'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+      ),
       genesisID: '',
-      firstRound: 0,
-      lastRound: 1000,
+      firstValid: 0,
+      lastValid: 1000,
       fee: 1000,
       flatFee: true,
+      minFee: 1000,
     };
-    const actualTxn = makePaymentTxnWithSuggestedParams(
-      account1.addr,
-      account2.addr,
-      1000,
-      undefined,
-      undefined,
-      suggestedParams
-    );
+    const actualTxn = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account1.addr,
+      receiver: account2.addr,
+      amount: 1000,
+      suggestedParams,
+    });
 
     // A multisig with 1 signature should be accepted
     signer([actualTxn], [0]).then((signedTxns) => {

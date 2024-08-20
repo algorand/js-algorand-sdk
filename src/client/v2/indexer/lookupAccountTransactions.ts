@@ -1,7 +1,9 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import JSONRequest from '../jsonrequest.js';
+import { Address } from '../../../encoding/address.js';
+import { TransactionsResponse } from './models/types.js';
 
 /**
  * Accept base64 string or Uint8Array and output base64 string
@@ -12,10 +14,12 @@ export function base64StringFunnel(data: Uint8Array | string) {
   if (typeof data === 'string') {
     return data;
   }
-  return Buffer.from(data).toString('base64');
+  return bytesToBase64(data);
 }
 
-export default class LookupAccountTransactions extends JSONRequest {
+export default class LookupAccountTransactions extends JSONRequest<TransactionsResponse> {
+  private account: string;
+
   /**
    * Returns transactions relating to the given account.
    *
@@ -28,13 +32,9 @@ export default class LookupAccountTransactions extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accountsaccount-idtransactions)
    * @param account - The address of the account.
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
-    this.account = account;
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
+    this.account = account.toString();
   }
 
   /**
@@ -247,11 +247,12 @@ export default class LookupAccountTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param before - rfc3339 string
+   * @param before - rfc3339 string or Date object
    * @category query
    */
-  beforeTime(before: string) {
-    this.query['before-time'] = before;
+  beforeTime(before: string | Date) {
+    this.query['before-time'] =
+      before instanceof Date ? before.toISOString() : before;
     return this;
   }
 
@@ -268,11 +269,12 @@ export default class LookupAccountTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param after - rfc3339 string
+   * @param after - rfc3339 string or Date object
    * @category query
    */
-  afterTime(after: string) {
-    this.query['after-time'] = after;
+  afterTime(after: string | Date) {
+    this.query['after-time'] =
+      after instanceof Date ? after.toISOString() : after;
     return this;
   }
 
@@ -389,5 +391,10 @@ export default class LookupAccountTransactions extends JSONRequest {
   rekeyTo(rekeyTo: boolean) {
     this.query['rekey-to'] = rekeyTo;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): TransactionsResponse {
+    return decodeJSON(response.getJSONText(), TransactionsResponse);
   }
 }

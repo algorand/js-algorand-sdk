@@ -1,1298 +1,1106 @@
-import { Buffer } from 'buffer';
 import base32 from 'hi-base32';
-import * as address from './encoding/address';
-import * as encoding from './encoding/encoding';
-import * as nacl from './nacl/naclWrappers';
-import * as utils from './utils/utils';
-import { translateBoxReferences } from './boxStorage';
+import { boxReferencesToEncodingData } from './boxStorage.js';
+import { Address } from './encoding/address.js';
+import * as encoding from './encoding/encoding.js';
 import {
+  AddressSchema,
+  Uint64Schema,
+  ByteArraySchema,
+  FixedLengthByteArraySchema,
+  StringSchema,
+  ArraySchema,
+  NamedMapSchema,
+  BooleanSchema,
+  OptionalSchema,
+  allOmitEmpty,
+} from './encoding/schema/index.js';
+import * as nacl from './nacl/naclWrappers.js';
+import {
+  SuggestedParams,
+  BoxReference,
   OnApplicationComplete,
+  isOnApplicationComplete,
   TransactionParams,
   TransactionType,
   isTransactionType,
-  BoxReference,
-} from './types/transactions/base';
-import AnyTransaction, {
-  MustHaveSuggestedParams,
-  MustHaveSuggestedParamsInline,
-  EncodedTransaction,
-  EncodedSignedTransaction,
-  EncodedMultisig,
-  EncodedLogicSig,
-} from './types/transactions';
-import { Address } from './types/address';
+  PaymentTransactionParams,
+  AssetConfigurationTransactionParams,
+  AssetTransferTransactionParams,
+  AssetFreezeTransactionParams,
+  KeyRegistrationTransactionParams,
+  ApplicationCallTransactionParams,
+  StateProofTransactionParams,
+} from './types/transactions/base.js';
+import { StateProof, StateProofMessage } from './stateproof.js';
+import * as utils from './utils/utils.js';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
-export const ALGORAND_MIN_TX_FEE = 1000; // version v5
 const ALGORAND_TRANSACTION_LEASE_LENGTH = 32;
-const ALGORAND_MAX_ASSET_DECIMALS = 19;
 const NUM_ADDL_BYTES_AFTER_SIGNING = 75; // NUM_ADDL_BYTES_AFTER_SIGNING is the number of bytes added to a txn after signing it
-const ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH = 5;
-const ALGORAND_TRANSACTION_ADDRESS_LENGTH = 32;
-const ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH = 5;
 const ASSET_METADATA_HASH_LENGTH = 32;
 const KEYREG_VOTE_KEY_LENGTH = 32;
 const KEYREG_SELECTION_KEY_LENGTH = 32;
 const KEYREG_STATE_PROOF_KEY_LENGTH = 64;
+const ALGORAND_TRANSACTION_GROUP_LENGTH = 32;
 
-type AnyTransactionWithParams = MustHaveSuggestedParams<AnyTransaction>;
-type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransaction>;
-
-/**
- * A modified version of the transaction params. Represents the internal structure that the Transaction class uses
- * to store inputted transaction objects.
- */
-// Omit allows overwriting properties
-interface TransactionStorageStructure
-  extends Omit<
-    TransactionParams,
-    | 'from'
-    | 'to'
-    | 'genesisHash'
-    | 'closeRemainderTo'
-    | 'voteKey'
-    | 'selectionKey'
-    | 'stateProofKey'
-    | 'assetManager'
-    | 'assetReserve'
-    | 'assetFreeze'
-    | 'assetClawback'
-    | 'assetRevocationTarget'
-    | 'freezeAccount'
-    | 'appAccounts'
-    | 'suggestedParams'
-    | 'reKeyTo'
-  > {
-  from: string | Address;
-  to: string | Address;
-  fee: number;
-  amount: number | bigint;
-  firstRound: number;
-  lastRound: number;
-  note?: Uint8Array;
-  genesisID: string;
-  genesisHash: string | Buffer;
-  lease?: Uint8Array;
-  closeRemainderTo?: string | Address;
-  voteKey: string | Buffer;
-  selectionKey: string | Buffer;
-  stateProofKey: string | Buffer;
-  voteFirst: number;
-  voteLast: number;
-  voteKeyDilution: number;
-  assetIndex: number;
-  assetTotal: number | bigint;
-  assetDecimals: number;
-  assetDefaultFrozen: boolean;
-  assetManager: string | Address;
-  assetReserve: string | Address;
-  assetFreeze: string | Address;
-  assetClawback: string | Address;
-  assetUnitName: string;
-  assetName: string;
-  assetURL: string;
-  assetMetadataHash?: string | Uint8Array;
-  freezeAccount: string | Address;
-  freezeState: boolean;
-  assetRevocationTarget?: string | Address;
-  appIndex: number;
-  appOnComplete: OnApplicationComplete;
-  appLocalInts: number;
-  appLocalByteSlices: number;
-  appGlobalInts: number;
-  appGlobalByteSlices: number;
-  appApprovalProgram: Uint8Array;
-  appClearProgram: Uint8Array;
-  appArgs?: Uint8Array[];
-  appAccounts?: string[] | Address[];
-  appForeignApps?: number[];
-  appForeignAssets?: number[];
-  type?: TransactionType;
-  flatFee: boolean;
-  reKeyTo?: string | Address;
-  nonParticipation?: boolean;
-  group?: Buffer;
-  extraPages?: number;
-  boxes?: BoxReference[];
-  stateProofType?: number | bigint;
-  stateProof?: Uint8Array;
-  stateProofMessage?: Uint8Array;
+function uint8ArrayIsEmpty(input: Uint8Array): boolean {
+  return input.every((value) => value === 0);
 }
 
 function getKeyregKey(
-  input: undefined | string | Uint8Array | Buffer,
+  input: undefined | string | Uint8Array,
   inputName: string,
   length: number
-): Buffer | undefined {
+): Uint8Array | undefined {
   if (input == null) {
     return undefined;
   }
 
-  let inputAsBuffer: Buffer | undefined;
+  let inputBytes: Uint8Array | undefined;
 
-  if (typeof input === 'string') {
-    inputAsBuffer = Buffer.from(input, 'base64');
-  } else if (input.constructor === Uint8Array) {
-    inputAsBuffer = Buffer.from(input);
-  } else if (Buffer.isBuffer(input)) {
-    inputAsBuffer = input;
+  if (input instanceof Uint8Array) {
+    inputBytes = input;
   }
 
-  if (inputAsBuffer == null || inputAsBuffer.byteLength !== length) {
-    throw Error(
-      `${inputName} must be a ${length} byte Uint8Array or Buffer or base64 string.`
+  if (inputBytes == null || inputBytes.byteLength !== length) {
+    throw Error(`${inputName} must be a ${length} byte Uint8Array`);
+  }
+
+  return inputBytes;
+}
+
+function ensureAddress(input: unknown): Address {
+  if (input == null) {
+    throw new Error('Address must not be null or undefined');
+  }
+  if (typeof input === 'string') {
+    return Address.fromString(input);
+  }
+  if (input instanceof Address) {
+    return input;
+  }
+  throw new Error(`Not an address: ${input}`);
+}
+
+function optionalAddress(input: unknown): Address | undefined {
+  if (input == null) {
+    return undefined;
+  }
+  let addr: Address;
+  if (input instanceof Address) {
+    addr = input;
+  } else if (typeof input === 'string') {
+    addr = Address.fromString(input);
+  } else {
+    throw new Error(`Not an address: ${input}`);
+  }
+  if (uint8ArrayIsEmpty(addr.publicKey)) {
+    // If it's the zero address, throw an error so that the user won't be surprised that this gets dropped
+    throw new Error(
+      'Invalid use of the zero address. To omit this value, pass in undefined'
     );
   }
+  return addr;
+}
 
-  return inputAsBuffer;
+function optionalUint8Array(input: unknown): Uint8Array | undefined {
+  if (typeof input === 'undefined') {
+    return undefined;
+  }
+  if (input instanceof Uint8Array) {
+    return input;
+  }
+  throw new Error(`Not a Uint8Array: ${input}`);
+}
+
+function ensureUint8Array(input: unknown): Uint8Array {
+  if (input instanceof Uint8Array) {
+    return input;
+  }
+  throw new Error(`Not a Uint8Array: ${input}`);
+}
+
+function optionalUint64(input: unknown): bigint | undefined {
+  if (typeof input === 'undefined') {
+    return undefined;
+  }
+  return utils.ensureUint64(input);
+}
+
+function ensureBoolean(input: unknown): boolean {
+  if (input === true || input === false) {
+    return input;
+  }
+  throw new Error(`Not a boolean: ${input}`);
+}
+
+function ensureArray(input: unknown): unknown[] {
+  if (Array.isArray(input)) {
+    return input.slice();
+  }
+  throw new Error(`Not an array: ${input}`);
+}
+
+function optionalFixedLengthByteArray(
+  input: unknown,
+  length: number,
+  name: string
+): Uint8Array | undefined {
+  const bytes = optionalUint8Array(input);
+  if (typeof bytes === 'undefined') {
+    return undefined;
+  }
+  if (bytes.byteLength !== length) {
+    throw new Error(
+      `${name} must be ${length} bytes long, was ${bytes.byteLength}`
+    );
+  }
+  if (uint8ArrayIsEmpty(bytes)) {
+    // if contains all 0s, omit it
+    return undefined;
+  }
+  return bytes;
+}
+
+export interface TransactionBoxReference {
+  readonly appIndex: bigint;
+  readonly name: Uint8Array;
+}
+
+function ensureBoxReference(input: unknown): TransactionBoxReference {
+  if (input != null && typeof input === 'object') {
+    const { appIndex, name } = input as BoxReference;
+    return {
+      appIndex: utils.ensureUint64(appIndex),
+      name: ensureUint8Array(name),
+    };
+  }
+  throw new Error(`Not a box reference: ${input}`);
+}
+
+const TX_TAG = new TextEncoder().encode('TX');
+
+export interface PaymentTransactionFields {
+  readonly receiver: Address;
+  readonly amount: bigint;
+  readonly closeRemainderTo?: Address;
+}
+
+export interface KeyRegistrationTransactionFields {
+  readonly voteKey?: Uint8Array;
+  readonly selectionKey?: Uint8Array;
+  readonly stateProofKey?: Uint8Array;
+  readonly voteFirst?: bigint;
+  readonly voteLast?: bigint;
+  readonly voteKeyDilution?: bigint;
+  readonly nonParticipation: boolean;
+}
+
+export interface AssetConfigTransactionFields {
+  readonly assetIndex: bigint;
+  readonly total: bigint;
+  readonly decimals: number;
+  readonly defaultFrozen: boolean;
+  readonly manager?: Address;
+  readonly reserve?: Address;
+  readonly freeze?: Address;
+  readonly clawback?: Address;
+  readonly unitName?: string;
+  readonly assetName?: string;
+  readonly assetURL?: string;
+  readonly assetMetadataHash?: Uint8Array;
+}
+
+export interface AssetTransferTransactionFields {
+  readonly assetIndex: bigint;
+  readonly amount: bigint;
+  readonly assetSender?: Address;
+  readonly receiver: Address;
+  readonly closeRemainderTo?: Address;
+}
+
+export interface AssetFreezeTransactionFields {
+  readonly assetIndex: bigint;
+  readonly freezeAccount: Address;
+  readonly frozen: boolean;
+}
+
+export interface ApplicationTransactionFields {
+  readonly appIndex: bigint;
+  readonly onComplete: OnApplicationComplete;
+  readonly numLocalInts: number;
+  readonly numLocalByteSlices: number;
+  readonly numGlobalInts: number;
+  readonly numGlobalByteSlices: number;
+  readonly extraPages: number;
+  readonly approvalProgram: Uint8Array;
+  readonly clearProgram: Uint8Array;
+  readonly appArgs: ReadonlyArray<Uint8Array>;
+  readonly accounts: ReadonlyArray<Address>;
+  readonly foreignApps: ReadonlyArray<bigint>;
+  readonly foreignAssets: ReadonlyArray<bigint>;
+  readonly boxes: ReadonlyArray<TransactionBoxReference>;
+}
+
+export interface StateProofTransactionFields {
+  readonly stateProofType: number;
+  readonly stateProof?: StateProof;
+  readonly message?: StateProofMessage;
 }
 
 /**
  * Transaction enables construction of Algorand transactions
  * */
-export class Transaction implements TransactionStorageStructure {
-  name = 'Transaction';
-  tag = Buffer.from('TX');
+export class Transaction implements encoding.Encodable {
+  static readonly encodingSchema = new NamedMapSchema(
+    allOmitEmpty([
+      // Common
+      { key: 'type', valueSchema: new StringSchema() },
+      { key: 'snd', valueSchema: new AddressSchema() },
+      { key: 'lv', valueSchema: new Uint64Schema() },
+      { key: 'gen', valueSchema: new OptionalSchema(new StringSchema()) },
+      {
+        key: 'gh',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      { key: 'fee', valueSchema: new Uint64Schema() },
+      { key: 'fv', valueSchema: new Uint64Schema() },
+      { key: 'note', valueSchema: new ByteArraySchema() },
+      {
+        key: 'lx',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      { key: 'rekey', valueSchema: new OptionalSchema(new AddressSchema()) },
+      {
+        key: 'grp',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      // We mark all top-level type-specific fields optional because they will not be present when
+      // the transaction is not that type.
+      // Payment
+      { key: 'amt', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'rcv', valueSchema: new OptionalSchema(new AddressSchema()) },
+      { key: 'close', valueSchema: new OptionalSchema(new AddressSchema()) },
+      // Keyreg
+      {
+        key: 'votekey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      {
+        key: 'selkey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(32)),
+      },
+      {
+        key: 'sprfkey',
+        valueSchema: new OptionalSchema(new FixedLengthByteArraySchema(64)),
+      },
+      { key: 'votefst', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'votelst', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'votekd', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'nonpart', valueSchema: new OptionalSchema(new BooleanSchema()) },
+      // AssetConfig
+      { key: 'caid', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      {
+        key: 'apar',
+        valueSchema: new OptionalSchema(
+          new NamedMapSchema(
+            allOmitEmpty([
+              { key: 't', valueSchema: new Uint64Schema() },
+              { key: 'dc', valueSchema: new Uint64Schema() },
+              { key: 'df', valueSchema: new BooleanSchema() },
+              {
+                key: 'm',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'r',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'f',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'c',
+                valueSchema: new OptionalSchema(new AddressSchema()),
+              },
+              {
+                key: 'un',
+                valueSchema: new OptionalSchema(new StringSchema()),
+              },
+              {
+                key: 'an',
+                valueSchema: new OptionalSchema(new StringSchema()),
+              },
+              {
+                key: 'au',
+                valueSchema: new OptionalSchema(new StringSchema()),
+              },
+              {
+                key: 'am',
+                valueSchema: new OptionalSchema(
+                  new FixedLengthByteArraySchema(32)
+                ),
+              },
+            ])
+          )
+        ),
+      },
+      // AssetTransfer
+      { key: 'xaid', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'aamt', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'arcv', valueSchema: new OptionalSchema(new AddressSchema()) },
+      { key: 'aclose', valueSchema: new OptionalSchema(new AddressSchema()) },
+      { key: 'asnd', valueSchema: new OptionalSchema(new AddressSchema()) },
+      // AssetFreeze
+      { key: 'faid', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'afrz', valueSchema: new OptionalSchema(new BooleanSchema()) },
+      { key: 'fadd', valueSchema: new OptionalSchema(new AddressSchema()) },
+      // Application
+      { key: 'apid', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'apan', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      {
+        key: 'apaa',
+        valueSchema: new OptionalSchema(new ArraySchema(new ByteArraySchema())),
+      },
+      {
+        key: 'apat',
+        valueSchema: new OptionalSchema(new ArraySchema(new AddressSchema())),
+      },
+      {
+        key: 'apas',
+        valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
+      },
+      {
+        key: 'apfa',
+        valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
+      },
+      {
+        key: 'apbx',
+        valueSchema: new OptionalSchema(
+          new ArraySchema(
+            new NamedMapSchema(
+              allOmitEmpty([
+                {
+                  key: 'i',
+                  valueSchema: new Uint64Schema(),
+                },
+                {
+                  key: 'n',
+                  valueSchema: new ByteArraySchema(),
+                },
+              ])
+            )
+          )
+        ),
+      },
+      { key: 'apap', valueSchema: new OptionalSchema(new ByteArraySchema()) },
+      { key: 'apsu', valueSchema: new OptionalSchema(new ByteArraySchema()) },
+      {
+        key: 'apls',
+        valueSchema: new OptionalSchema(
+          new NamedMapSchema(
+            allOmitEmpty([
+              {
+                key: 'nui',
+                valueSchema: new Uint64Schema(),
+              },
+              {
+                key: 'nbs',
+                valueSchema: new Uint64Schema(),
+              },
+            ])
+          )
+        ),
+      },
+      {
+        key: 'apgs',
+        valueSchema: new OptionalSchema(
+          new NamedMapSchema(
+            allOmitEmpty([
+              {
+                key: 'nui',
+                valueSchema: new Uint64Schema(),
+              },
+              {
+                key: 'nbs',
+                valueSchema: new Uint64Schema(),
+              },
+            ])
+          )
+        ),
+      },
+      { key: 'apep', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      // StateProof
+      { key: 'sptype', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'sp', valueSchema: new OptionalSchema(StateProof.encodingSchema) },
+      {
+        key: 'spmsg',
+        valueSchema: new OptionalSchema(StateProofMessage.encodingSchema),
+      },
+    ])
+  );
 
-  // Implement transaction params
-  from: Address;
-  to: Address;
-  fee: number;
-  amount: number | bigint;
-  firstRound: number;
-  lastRound: number;
-  note?: Uint8Array;
-  genesisID: string;
-  genesisHash: Buffer;
-  lease?: Uint8Array;
-  closeRemainderTo?: Address;
-  voteKey: Buffer;
-  selectionKey: Buffer;
-  stateProofKey: Buffer;
-  voteFirst: number;
-  voteLast: number;
-  voteKeyDilution: number;
-  assetIndex: number;
-  assetTotal: number | bigint;
-  assetDecimals: number;
-  assetDefaultFrozen: boolean;
-  assetManager: Address;
-  assetReserve: Address;
-  assetFreeze: Address;
-  assetClawback: Address;
-  assetUnitName: string;
-  assetName: string;
-  assetURL: string;
-  assetMetadataHash?: Uint8Array;
-  freezeAccount: Address;
-  freezeState: boolean;
-  assetRevocationTarget?: Address;
-  appIndex: number;
-  appOnComplete: OnApplicationComplete;
-  appLocalInts: number;
-  appLocalByteSlices: number;
-  appGlobalInts: number;
-  appGlobalByteSlices: number;
-  appApprovalProgram: Uint8Array;
-  appClearProgram: Uint8Array;
-  appArgs?: Uint8Array[];
-  appAccounts?: Address[];
-  appForeignApps?: number[];
-  appForeignAssets?: number[];
-  boxes?: BoxReference[];
-  type?: TransactionType;
-  flatFee: boolean;
-  reKeyTo?: Address;
-  nonParticipation?: boolean;
-  group?: Buffer;
-  extraPages?: number;
-  stateProofType?: number | bigint;
-  stateProof?: Uint8Array;
-  stateProofMessage?: Uint8Array;
+  /** common */
+  public readonly type: TransactionType;
+  public readonly sender: Address;
+  public readonly note: Uint8Array;
+  public readonly lease?: Uint8Array;
+  public readonly rekeyTo?: Address;
 
-  constructor({ ...transaction }: AnyTransaction) {
-    // Populate defaults
-    /* eslint-disable no-param-reassign */
-    const defaults: Partial<TransactionParams> = {
-      type: TransactionType.pay,
-      flatFee: false,
-      nonParticipation: false,
-    };
-    // Default type
-    if (typeof transaction.type === 'undefined') {
-      transaction.type = defaults.type;
-    }
-    // Default flatFee
-    if (
-      typeof (transaction as AnyTransactionWithParamsInline).flatFee ===
-      'undefined'
-    ) {
-      (transaction as AnyTransactionWithParamsInline).flatFee =
-        defaults.flatFee;
-    }
-    // Default nonParticipation
-    if (
-      transaction.type === TransactionType.keyreg &&
-      typeof transaction.voteKey !== 'undefined' &&
-      typeof transaction.nonParticipation === 'undefined'
-    ) {
-      transaction.nonParticipation = defaults.nonParticipation;
-    }
-    /* eslint-enable no-param-reassign */
+  /** group */
+  public group?: Uint8Array;
 
-    // Move suggested parameters from its object to inline
-    if (
-      (transaction as AnyTransactionWithParams).suggestedParams !== undefined
-    ) {
-      // Create a temporary reference to the transaction object that has params inline and also as a suggested params object
-      //   - Helpful for moving params from named object to inline
-      const reference = transaction as AnyTransactionWithParams &
-        AnyTransactionWithParamsInline;
-      reference.genesisHash = reference.suggestedParams.genesisHash;
-      reference.fee = reference.suggestedParams.fee;
-      if (reference.suggestedParams.flatFee !== undefined)
-        reference.flatFee = reference.suggestedParams.flatFee;
-      reference.firstRound = reference.suggestedParams.firstRound;
-      reference.lastRound = reference.suggestedParams.lastRound;
-      reference.genesisID = reference.suggestedParams.genesisID;
+  /** suggested params */
+  public fee: bigint;
+  public readonly firstValid: bigint;
+  public readonly lastValid: bigint;
+  public readonly genesisID?: string;
+  public readonly genesisHash?: Uint8Array;
+
+  /** type-specific fields */
+  public readonly payment?: PaymentTransactionFields;
+  public readonly keyreg?: KeyRegistrationTransactionFields;
+  public readonly assetConfig?: AssetConfigTransactionFields;
+  public readonly assetTransfer?: AssetTransferTransactionFields;
+  public readonly assetFreeze?: AssetFreezeTransactionFields;
+  public readonly applicationCall?: ApplicationTransactionFields;
+  public readonly stateProof?: StateProofTransactionFields;
+
+  constructor(params: TransactionParams) {
+    if (!isTransactionType(params.type)) {
+      throw new Error(`Invalid transaction type: ${params.type}`);
     }
 
-    // At this point all suggestedParams have been moved to be inline, so we can reassign the transaction object type
-    // to one which is more useful as we prepare properties for storing
-    const txn = transaction as TransactionStorageStructure;
-
-    txn.from = address.decodeAddress(txn.from as string);
-    if (txn.to !== undefined) txn.to = address.decodeAddress(txn.to as string);
-    if (txn.closeRemainderTo !== undefined)
-      txn.closeRemainderTo = address.decodeAddress(
-        txn.closeRemainderTo as string
-      );
-    if (txn.assetManager !== undefined)
-      txn.assetManager = address.decodeAddress(txn.assetManager as string);
-    if (txn.assetReserve !== undefined)
-      txn.assetReserve = address.decodeAddress(txn.assetReserve as string);
-    if (txn.assetFreeze !== undefined)
-      txn.assetFreeze = address.decodeAddress(txn.assetFreeze as string);
-    if (txn.assetClawback !== undefined)
-      txn.assetClawback = address.decodeAddress(txn.assetClawback as string);
-    if (txn.assetRevocationTarget !== undefined)
-      txn.assetRevocationTarget = address.decodeAddress(
-        txn.assetRevocationTarget as string
-      );
-    if (txn.freezeAccount !== undefined)
-      txn.freezeAccount = address.decodeAddress(txn.freezeAccount as string);
-    if (txn.reKeyTo !== undefined)
-      txn.reKeyTo = address.decodeAddress(txn.reKeyTo as string);
-    if (txn.genesisHash === undefined)
-      throw Error('genesis hash must be specified and in a base64 string.');
-
-    txn.genesisHash = Buffer.from(txn.genesisHash as string, 'base64');
-
-    if (
-      txn.amount !== undefined &&
-      (!(
-        Number.isSafeInteger(txn.amount) ||
-        (typeof txn.amount === 'bigint' &&
-          txn.amount <= BigInt('0xffffffffffffffff'))
-      ) ||
-        txn.amount < 0)
-    )
-      throw Error(
-        'Amount must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
-      );
-    if (!Number.isSafeInteger(txn.fee) || txn.fee < 0)
-      throw Error('fee must be a positive number and smaller than 2^53-1');
-    if (!Number.isSafeInteger(txn.firstRound) || txn.firstRound < 0)
-      throw Error('firstRound must be a positive number');
-    if (!Number.isSafeInteger(txn.lastRound) || txn.lastRound < 0)
-      throw Error('lastRound must be a positive number');
-    if (
-      txn.extraPages !== undefined &&
-      (!Number.isInteger(txn.extraPages) ||
-        txn.extraPages < 0 ||
-        txn.extraPages > 3)
-    )
-      throw Error('extraPages must be an Integer between and including 0 to 3');
-    if (
-      txn.assetTotal !== undefined &&
-      (!(
-        Number.isSafeInteger(txn.assetTotal) ||
-        (typeof txn.assetTotal === 'bigint' &&
-          txn.assetTotal <= BigInt('0xffffffffffffffff'))
-      ) ||
-        txn.assetTotal < 0)
-    )
-      throw Error(
-        'Total asset issuance must be a positive number and smaller than 2^64-1. If the number is larger than 2^53-1, use bigint.'
-      );
-    if (
-      txn.assetDecimals !== undefined &&
-      (!Number.isSafeInteger(txn.assetDecimals) ||
-        txn.assetDecimals < 0 ||
-        txn.assetDecimals > ALGORAND_MAX_ASSET_DECIMALS)
-    )
-      throw Error(
-        `assetDecimals must be a positive number and smaller than ${ALGORAND_MAX_ASSET_DECIMALS.toString()}`
-      );
-    if (
-      txn.assetIndex !== undefined &&
-      (!Number.isSafeInteger(txn.assetIndex) || txn.assetIndex < 0)
-    )
-      throw Error(
-        'Asset index must be a positive number and smaller than 2^53-1'
-      );
-    if (
-      txn.appIndex !== undefined &&
-      (!Number.isSafeInteger(txn.appIndex) || txn.appIndex < 0)
-    )
-      throw Error(
-        'Application index must be a positive number and smaller than 2^53-1'
-      );
-    if (
-      txn.appLocalInts !== undefined &&
-      (!Number.isSafeInteger(txn.appLocalInts) || txn.appLocalInts < 0)
-    )
-      throw Error(
-        'Application local ints count must be a positive number and smaller than 2^53-1'
-      );
-    if (
-      txn.appLocalByteSlices !== undefined &&
-      (!Number.isSafeInteger(txn.appLocalByteSlices) ||
-        txn.appLocalByteSlices < 0)
-    )
-      throw Error(
-        'Application local byte slices count must be a positive number and smaller than 2^53-1'
-      );
-    if (
-      txn.appGlobalInts !== undefined &&
-      (!Number.isSafeInteger(txn.appGlobalInts) || txn.appGlobalInts < 0)
-    )
-      throw Error(
-        'Application global ints count must be a positive number and smaller than 2^53-1'
-      );
-    if (
-      txn.appGlobalByteSlices !== undefined &&
-      (!Number.isSafeInteger(txn.appGlobalByteSlices) ||
-        txn.appGlobalByteSlices < 0)
-    )
-      throw Error(
-        'Application global byte slices count must be a positive number and smaller than 2^53-1'
-      );
-    if (txn.appApprovalProgram !== undefined) {
-      if (txn.appApprovalProgram.constructor !== Uint8Array)
-        throw Error('appApprovalProgram must be a Uint8Array.');
-    }
-    if (txn.appClearProgram !== undefined) {
-      if (txn.appClearProgram.constructor !== Uint8Array)
-        throw Error('appClearProgram must be a Uint8Array.');
-    }
-    if (txn.appArgs !== undefined) {
-      if (!Array.isArray(txn.appArgs))
-        throw Error('appArgs must be an Array of Uint8Array.');
-      txn.appArgs = txn.appArgs.slice();
-      txn.appArgs.forEach((arg) => {
-        if (arg.constructor !== Uint8Array)
-          throw Error('each element of AppArgs must be a Uint8Array.');
-      });
-    } else {
-      txn.appArgs = [];
-    }
-    if (txn.appAccounts !== undefined) {
-      if (!Array.isArray(txn.appAccounts))
-        throw Error('appAccounts must be an Array of addresses.');
-      txn.appAccounts = txn.appAccounts.map((addressAsString) =>
-        address.decodeAddress(addressAsString)
-      );
-    }
-    if (txn.appForeignApps !== undefined) {
-      if (!Array.isArray(txn.appForeignApps))
-        throw Error('appForeignApps must be an Array of integers.');
-      txn.appForeignApps = txn.appForeignApps.slice();
-      txn.appForeignApps.forEach((foreignAppIndex) => {
-        if (!Number.isSafeInteger(foreignAppIndex) || foreignAppIndex < 0)
-          throw Error(
-            'each foreign application index must be a positive number and smaller than 2^53-1'
-          );
-      });
-    }
-    if (txn.appForeignAssets !== undefined) {
-      if (!Array.isArray(txn.appForeignAssets))
-        throw Error('appForeignAssets must be an Array of integers.');
-      txn.appForeignAssets = txn.appForeignAssets.slice();
-      txn.appForeignAssets.forEach((foreignAssetIndex) => {
-        if (!Number.isSafeInteger(foreignAssetIndex) || foreignAssetIndex < 0)
-          throw Error(
-            'each foreign asset index must be a positive number and smaller than 2^53-1'
-          );
-      });
-    }
-    if (txn.boxes !== undefined) {
-      if (!Array.isArray(txn.boxes))
-        throw Error('boxes must be an Array of BoxReference.');
-      txn.boxes = txn.boxes.slice();
-      txn.boxes.forEach((box) => {
-        if (
-          !Number.isSafeInteger(box.appIndex) ||
-          box.name.constructor !== Uint8Array
-        )
-          throw Error(
-            'box app index must be a number and name must be an Uint8Array.'
-          );
-      });
-    }
-    if (
-      txn.assetMetadataHash !== undefined &&
-      txn.assetMetadataHash.length !== 0
-    ) {
-      if (typeof txn.assetMetadataHash === 'string') {
-        txn.assetMetadataHash = new Uint8Array(
-          Buffer.from(txn.assetMetadataHash)
-        );
-      }
-
-      if (
-        txn.assetMetadataHash.constructor !== Uint8Array ||
-        txn.assetMetadataHash.byteLength !== ASSET_METADATA_HASH_LENGTH
-      ) {
-        throw Error(
-          `assetMetadataHash must be a ${ASSET_METADATA_HASH_LENGTH} byte Uint8Array or string.`
-        );
-      }
-
-      if (txn.assetMetadataHash.every((value) => value === 0)) {
-        // if hash contains all 0s, omit it
-        txn.assetMetadataHash = undefined;
-      }
-    } else {
-      txn.assetMetadataHash = undefined;
-    }
-    if (txn.note !== undefined) {
-      if (txn.note.constructor !== Uint8Array)
-        throw Error('note must be a Uint8Array.');
-    } else {
-      txn.note = new Uint8Array(0);
-    }
-    if (txn.lease !== undefined) {
-      if (txn.lease.constructor !== Uint8Array)
-        throw Error('lease must be a Uint8Array.');
-      if (txn.lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH)
-        throw Error(
-          `lease must be of length ${ALGORAND_TRANSACTION_LEASE_LENGTH.toString()}.`
-        );
-      if (txn.lease.every((value) => value === 0)) {
-        // if lease contains all 0s, omit it
-        txn.lease = new Uint8Array(0);
-      }
-    } else {
-      txn.lease = new Uint8Array(0);
-    }
-    txn.voteKey = getKeyregKey(txn.voteKey, 'voteKey', KEYREG_VOTE_KEY_LENGTH);
-    txn.selectionKey = getKeyregKey(
-      txn.selectionKey,
-      'selectionKey',
-      KEYREG_SELECTION_KEY_LENGTH
+    // Common fields
+    this.type = params.type; // verified above
+    this.sender = ensureAddress(params.sender);
+    this.note = ensureUint8Array(params.note ?? new Uint8Array());
+    this.lease = optionalFixedLengthByteArray(
+      params.lease,
+      ALGORAND_TRANSACTION_LEASE_LENGTH,
+      'lease'
     );
-    txn.stateProofKey = getKeyregKey(
-      txn.stateProofKey,
-      'stateProofKey',
-      KEYREG_STATE_PROOF_KEY_LENGTH
-    );
-    // Checking non-participation key registration
-    if (
-      txn.nonParticipation &&
-      (txn.voteKey ||
-        txn.selectionKey ||
-        txn.voteFirst ||
-        txn.stateProofKey ||
-        txn.voteLast ||
-        txn.voteKeyDilution)
-    ) {
-      throw new Error(
-        'nonParticipation is true but participation params are present.'
-      );
-    }
-    // Checking online key registration
-    if (
-      !txn.nonParticipation &&
-      (txn.voteKey ||
-        txn.selectionKey ||
-        txn.stateProofKey ||
-        txn.voteFirst ||
-        txn.voteLast ||
-        txn.voteKeyDilution) &&
-      !(
-        txn.voteKey &&
-        txn.selectionKey &&
-        txn.voteFirst &&
-        txn.voteLast &&
-        txn.voteKeyDilution
-      )
-      // stateProofKey not included here for backwards compatibility
-    ) {
-      throw new Error(
-        'online key registration missing at least one of the following fields: ' +
-          'voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution'
-      );
-    }
-    // The last option is an offline key registration where all the fields
-    // nonParticipation, voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution
-    // are all undefined/false
+    this.rekeyTo = optionalAddress(params.rekeyTo);
 
-    // Remove unwanted properties and store transaction on instance
-    delete ((txn as unknown) as AnyTransactionWithParams).suggestedParams;
-    Object.assign(this, utils.removeUndefinedProperties(txn));
-
-    // Modify Fee
-    if (!txn.flatFee) {
-      this.fee *= this.estimateSize();
-      // If suggested fee too small and will be rejected, set to min tx fee
-      if (this.fee < ALGORAND_MIN_TX_FEE) {
-        this.fee = ALGORAND_MIN_TX_FEE;
-      }
-    }
-
-    // say we are aware of groups
+    // Group
     this.group = undefined;
 
-    // stpf fields
-    if (
-      txn.stateProofType !== undefined &&
-      (!Number.isSafeInteger(txn.stateProofType) || txn.stateProofType < 0)
-    )
-      throw Error(
-        'State Proof type must be a positive number and smaller than 2^53-1'
+    // Suggested params fields
+    this.firstValid = utils.ensureUint64(params.suggestedParams.firstValid);
+    this.lastValid = utils.ensureUint64(params.suggestedParams.lastValid);
+    if (params.suggestedParams.genesisID) {
+      if (typeof params.suggestedParams.genesisID !== 'string') {
+        throw new Error('Genesis ID must be a string if present');
+      }
+      this.genesisID = params.suggestedParams.genesisID;
+    }
+    this.genesisHash = optionalUint8Array(params.suggestedParams.genesisHash);
+    // Fee is handled at the end
+
+    const fieldsPresent: TransactionType[] = [];
+    if (params.paymentParams) fieldsPresent.push(TransactionType.pay);
+    if (params.keyregParams) fieldsPresent.push(TransactionType.keyreg);
+    if (params.assetConfigParams) fieldsPresent.push(TransactionType.acfg);
+    if (params.assetTransferParams) fieldsPresent.push(TransactionType.axfer);
+    if (params.assetFreezeParams) fieldsPresent.push(TransactionType.afrz);
+    if (params.appCallParams) fieldsPresent.push(TransactionType.appl);
+    if (params.stateProofParams) fieldsPresent.push(TransactionType.stpf);
+
+    if (fieldsPresent.length !== 1) {
+      throw new Error(
+        `Transaction has wrong number of type fields present (${fieldsPresent.length}): ${fieldsPresent}`
       );
-    if (txn.stateProofMessage !== undefined) {
-      if (txn.stateProofMessage.constructor !== Uint8Array)
-        throw Error('stateProofMessage must be a Uint8Array.');
-    } else {
-      txn.stateProofMessage = new Uint8Array(0);
     }
-    if (txn.stateProof !== undefined) {
-      if (txn.stateProof.constructor !== Uint8Array)
-        throw Error('stateProof must be a Uint8Array.');
-    } else {
-      txn.stateProof = new Uint8Array(0);
-    }
-  }
 
-  // eslint-disable-next-line camelcase
-  get_obj_for_encoding() {
-    if (this.type === 'pay') {
-      const txn: EncodedTransaction = {
-        amt: this.amount,
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        type: 'pay',
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        grp: this.group,
-      };
+    if (this.type !== fieldsPresent[0]) {
+      throw new Error(
+        `Transaction has type ${this.type} but fields present for ${fieldsPresent[0]}`
+      );
+    }
 
-      // parse close address
-      if (
-        this.closeRemainderTo !== undefined &&
-        address.encodeAddress(this.closeRemainderTo.publicKey) !==
-          address.ALGORAND_ZERO_ADDRESS_STRING
-      ) {
-        txn.close = Buffer.from(this.closeRemainderTo.publicKey);
-      }
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = Buffer.from(this.reKeyTo.publicKey);
-      }
-      // allowed zero values
-      if (this.to !== undefined) txn.rcv = Buffer.from(this.to.publicKey);
-      if (!txn.note.length) delete txn.note;
-      if (!txn.amt) delete txn.amt;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (txn.grp === undefined) delete txn.grp;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.rekey) delete txn.rekey;
-      return txn;
-    }
-    if (this.type === 'keyreg') {
-      const txn: EncodedTransaction = {
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        type: this.type,
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        grp: this.group,
-        votekey: this.voteKey,
-        selkey: this.selectionKey,
-        sprfkey: this.stateProofKey,
-        votefst: this.voteFirst,
-        votelst: this.voteLast,
-        votekd: this.voteKeyDilution,
-      };
-      // allowed zero values
-      if (!txn.note.length) delete txn.note;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (txn.grp === undefined) delete txn.grp;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = Buffer.from(this.reKeyTo.publicKey);
-      }
-      if (this.nonParticipation) {
-        txn.nonpart = true;
-      }
-      if (!txn.selkey) delete txn.selkey;
-      if (!txn.votekey) delete txn.votekey;
-      if (!txn.sprfkey) delete txn.sprfkey;
-      if (!txn.votefst) delete txn.votefst;
-      if (!txn.votelst) delete txn.votelst;
-      if (!txn.votekd) delete txn.votekd;
-      return txn;
-    }
-    if (this.type === 'acfg') {
-      // asset creation, or asset reconfigure, or asset destruction
-      const txn: EncodedTransaction = {
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        type: this.type,
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        grp: this.group,
-        caid: this.assetIndex,
-        apar: {
-          t: this.assetTotal,
-          df: this.assetDefaultFrozen,
-          dc: this.assetDecimals,
-        },
-      };
-      if (this.assetManager !== undefined)
-        txn.apar.m = Buffer.from(this.assetManager.publicKey);
-      if (this.assetReserve !== undefined)
-        txn.apar.r = Buffer.from(this.assetReserve.publicKey);
-      if (this.assetFreeze !== undefined)
-        txn.apar.f = Buffer.from(this.assetFreeze.publicKey);
-      if (this.assetClawback !== undefined)
-        txn.apar.c = Buffer.from(this.assetClawback.publicKey);
-      if (this.assetName !== undefined) txn.apar.an = this.assetName;
-      if (this.assetUnitName !== undefined) txn.apar.un = this.assetUnitName;
-      if (this.assetURL !== undefined) txn.apar.au = this.assetURL;
-      if (this.assetMetadataHash !== undefined)
-        txn.apar.am = Buffer.from(this.assetMetadataHash);
-
-      // allowed zero values
-      if (!txn.note.length) delete txn.note;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.amt) delete txn.amt;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = Buffer.from(this.reKeyTo.publicKey);
-      }
-
-      if (!txn.caid) delete txn.caid;
-      if (
-        !txn.apar.t &&
-        !txn.apar.un &&
-        !txn.apar.an &&
-        !txn.apar.df &&
-        !txn.apar.m &&
-        !txn.apar.r &&
-        !txn.apar.f &&
-        !txn.apar.c &&
-        !txn.apar.au &&
-        !txn.apar.am &&
-        !txn.apar.dc
-      ) {
-        delete txn.apar;
-      } else {
-        if (!txn.apar.t) delete txn.apar.t;
-        if (!txn.apar.dc) delete txn.apar.dc;
-        if (!txn.apar.un) delete txn.apar.un;
-        if (!txn.apar.an) delete txn.apar.an;
-        if (!txn.apar.df) delete txn.apar.df;
-        if (!txn.apar.m) delete txn.apar.m;
-        if (!txn.apar.r) delete txn.apar.r;
-        if (!txn.apar.f) delete txn.apar.f;
-        if (!txn.apar.c) delete txn.apar.c;
-        if (!txn.apar.au) delete txn.apar.au;
-        if (!txn.apar.am) delete txn.apar.am;
-      }
-      if (txn.grp === undefined) delete txn.grp;
-
-      return txn;
-    }
-    if (this.type === 'axfer') {
-      // asset transfer, acceptance, revocation, mint, or burn
-      const txn: EncodedTransaction = {
-        aamt: this.amount,
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        arcv: Buffer.from(this.to.publicKey),
-        type: this.type,
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        grp: this.group,
-        xaid: this.assetIndex,
-      };
-      if (this.closeRemainderTo !== undefined)
-        txn.aclose = Buffer.from(this.closeRemainderTo.publicKey);
-      if (this.assetRevocationTarget !== undefined)
-        txn.asnd = Buffer.from(this.assetRevocationTarget.publicKey);
-      // allowed zero values
-      if (!txn.note.length) delete txn.note;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.aamt) delete txn.aamt;
-      if (!txn.amt) delete txn.amt;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (txn.grp === undefined) delete txn.grp;
-      if (!txn.aclose) delete txn.aclose;
-      if (!txn.asnd) delete txn.asnd;
-      if (!txn.rekey) delete txn.rekey;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = Buffer.from(this.reKeyTo.publicKey);
-      }
-      return txn;
-    }
-    if (this.type === 'afrz') {
-      // asset freeze or unfreeze
-      const txn: EncodedTransaction = {
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        type: this.type,
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        grp: this.group,
-        faid: this.assetIndex,
-        afrz: this.freezeState,
-      };
-      if (this.freezeAccount !== undefined)
-        txn.fadd = Buffer.from(this.freezeAccount.publicKey);
-      // allowed zero values
-      if (!txn.note.length) delete txn.note;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.amt) delete txn.amt;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (!txn.afrz) delete txn.afrz;
-      if (txn.grp === undefined) delete txn.grp;
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = Buffer.from(this.reKeyTo.publicKey);
-      }
-      return txn;
-    }
-    if (this.type === 'appl') {
-      // application call of some kind
-      const txn: EncodedTransaction = {
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        type: this.type,
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        grp: this.group,
-        apid: this.appIndex,
-        apan: this.appOnComplete,
-        apls: {
-          nui: this.appLocalInts,
-          nbs: this.appLocalByteSlices,
-        },
-        apgs: {
-          nui: this.appGlobalInts,
-          nbs: this.appGlobalByteSlices,
-        },
-        apfa: this.appForeignApps,
-        apas: this.appForeignAssets,
-        apep: this.extraPages,
-        apbx: translateBoxReferences(
-          this.boxes,
-          this.appForeignApps,
-          this.appIndex
+    if (params.paymentParams) {
+      this.payment = {
+        receiver: ensureAddress(params.paymentParams.receiver),
+        amount: utils.ensureUint64(params.paymentParams.amount),
+        closeRemainderTo: optionalAddress(
+          params.paymentParams.closeRemainderTo
         ),
       };
-      if (this.reKeyTo !== undefined) {
-        txn.rekey = Buffer.from(this.reKeyTo.publicKey);
-      }
-      if (this.appApprovalProgram !== undefined) {
-        txn.apap = Buffer.from(this.appApprovalProgram);
-      }
-      if (this.appClearProgram !== undefined) {
-        txn.apsu = Buffer.from(this.appClearProgram);
-      }
-      if (this.appArgs !== undefined) {
-        txn.apaa = this.appArgs.map((arg) => Buffer.from(arg));
-      }
-      if (this.appAccounts !== undefined) {
-        txn.apat = this.appAccounts.map((decodedAddress) =>
-          Buffer.from(decodedAddress.publicKey)
-        );
-      }
-      // allowed zero values
-      if (!txn.note.length) delete txn.note;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.amt) delete txn.amt;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (!txn.apid) delete txn.apid;
-      if (!txn.apls.nui) delete txn.apls.nui;
-      if (!txn.apls.nbs) delete txn.apls.nbs;
-      if (!txn.apls.nui && !txn.apls.nbs) delete txn.apls;
-      if (!txn.apgs.nui) delete txn.apgs.nui;
-      if (!txn.apgs.nbs) delete txn.apgs.nbs;
-      if (!txn.apaa || !txn.apaa.length) delete txn.apaa;
-      if (!txn.apgs.nui && !txn.apgs.nbs) delete txn.apgs;
-      if (!txn.apap) delete txn.apap;
-      if (!txn.apsu) delete txn.apsu;
-      if (!txn.apan) delete txn.apan;
-      if (!txn.apfa || !txn.apfa.length) delete txn.apfa;
-      if (!txn.apas || !txn.apas.length) delete txn.apas;
-      for (const box of txn.apbx) {
-        if (!box.i) delete box.i;
-        if (!box.n || !box.n.length) delete box.n;
-      }
-      if (!txn.apbx || !txn.apbx.length) delete txn.apbx;
-      if (!txn.apat || !txn.apat.length) delete txn.apat;
-      if (!txn.apep) delete txn.apep;
-      if (txn.grp === undefined) delete txn.grp;
-      return txn;
-    }
-    if (this.type === 'stpf') {
-      // state proof txn
-      const txn: EncodedTransaction = {
-        fee: this.fee,
-        fv: this.firstRound,
-        lv: this.lastRound,
-        note: Buffer.from(this.note),
-        snd: Buffer.from(this.from.publicKey),
-        type: this.type,
-        gen: this.genesisID,
-        gh: this.genesisHash,
-        lx: Buffer.from(this.lease),
-        sptype: this.stateProofType,
-        spmsg: Buffer.from(this.stateProofMessage),
-        sp: Buffer.from(this.stateProof),
-      };
-      // allowed zero values
-      if (!txn.sptype) delete txn.sptype;
-      if (!txn.note.length) delete txn.note;
-      if (!txn.lx.length) delete txn.lx;
-      if (!txn.amt) delete txn.amt;
-      if (!txn.fee) delete txn.fee;
-      if (!txn.fv) delete txn.fv;
-      if (!txn.gen) delete txn.gen;
-      if (!txn.apid) delete txn.apid;
-      if (!txn.apaa || !txn.apaa.length) delete txn.apaa;
-      if (!txn.apap) delete txn.apap;
-      if (!txn.apsu) delete txn.apsu;
-      if (!txn.apan) delete txn.apan;
-      if (!txn.apfa || !txn.apfa.length) delete txn.apfa;
-      if (!txn.apas || !txn.apas.length) delete txn.apas;
-      if (!txn.apat || !txn.apat.length) delete txn.apat;
-      if (!txn.apep) delete txn.apep;
-      if (txn.grp === undefined) delete txn.grp;
-      return txn;
     }
 
-    return undefined;
+    if (params.keyregParams) {
+      this.keyreg = {
+        voteKey: getKeyregKey(
+          params.keyregParams.voteKey,
+          'voteKey',
+          KEYREG_VOTE_KEY_LENGTH
+        )!,
+        selectionKey: getKeyregKey(
+          params.keyregParams.selectionKey,
+          'selectionKey',
+          KEYREG_SELECTION_KEY_LENGTH
+        )!,
+        stateProofKey: getKeyregKey(
+          params.keyregParams.stateProofKey,
+          'stateProofKey',
+          KEYREG_STATE_PROOF_KEY_LENGTH
+        )!,
+        voteFirst: optionalUint64(params.keyregParams.voteFirst),
+        voteLast: optionalUint64(params.keyregParams.voteLast),
+        voteKeyDilution: optionalUint64(params.keyregParams.voteKeyDilution),
+        nonParticipation: ensureBoolean(
+          params.keyregParams.nonParticipation ?? false
+        ),
+      };
+      // Checking non-participation key registration
+      if (
+        this.keyreg.nonParticipation &&
+        (this.keyreg.voteKey ||
+          this.keyreg.selectionKey ||
+          this.keyreg.stateProofKey ||
+          typeof this.keyreg.voteFirst !== 'undefined' ||
+          typeof this.keyreg.voteLast !== 'undefined' ||
+          typeof this.keyreg.voteKeyDilution !== 'undefined')
+      ) {
+        throw new Error(
+          'nonParticipation is true but participation params are present.'
+        );
+      }
+      // Checking online key registration
+      if (
+        // If we are participating
+        !this.keyreg.nonParticipation &&
+        // And *ANY* participating fields are present
+        (this.keyreg.voteKey ||
+          this.keyreg.selectionKey ||
+          this.keyreg.stateProofKey ||
+          typeof this.keyreg.voteFirst !== 'undefined' ||
+          typeof this.keyreg.voteLast !== 'undefined' ||
+          typeof this.keyreg.voteKeyDilution !== 'undefined') &&
+        // Then *ALL* participating fields must be present (with an exception for stateProofKey,
+        // which was introduced later so for backwards compatibility we don't require it)
+        !(
+          this.keyreg.voteKey &&
+          this.keyreg.selectionKey &&
+          typeof this.keyreg.voteFirst !== 'undefined' &&
+          typeof this.keyreg.voteLast !== 'undefined' &&
+          typeof this.keyreg.voteKeyDilution !== 'undefined'
+        )
+      ) {
+        throw new Error(
+          `Online key registration missing at least one of the following fields: voteKey, selectionKey, voteFirst, voteLast, voteKeyDilution`
+        );
+      }
+      // The last option is an offline key registration where all the fields
+      // nonParticipation, voteKey, selectionKey, stateProofKey, voteFirst, voteLast, voteKeyDilution
+      // are all undefined
+    }
+
+    if (params.assetConfigParams) {
+      this.assetConfig = {
+        assetIndex: utils.ensureUint64(
+          params.assetConfigParams.assetIndex ?? 0
+        ),
+        total: utils.ensureUint64(params.assetConfigParams.total ?? 0),
+        decimals: utils.ensureSafeUnsignedInteger(
+          params.assetConfigParams.decimals ?? 0
+        ),
+        defaultFrozen: ensureBoolean(
+          params.assetConfigParams.defaultFrozen ?? false
+        ),
+        manager: optionalAddress(params.assetConfigParams.manager),
+        reserve: optionalAddress(params.assetConfigParams.reserve),
+        freeze: optionalAddress(params.assetConfigParams.freeze),
+        clawback: optionalAddress(params.assetConfigParams.clawback),
+        unitName: params.assetConfigParams.unitName,
+        assetName: params.assetConfigParams.assetName,
+        assetURL: params.assetConfigParams.assetURL,
+        assetMetadataHash: optionalFixedLengthByteArray(
+          params.assetConfigParams.assetMetadataHash,
+          ASSET_METADATA_HASH_LENGTH,
+          'assetMetadataHash'
+        ),
+      };
+    }
+
+    if (params.assetTransferParams) {
+      this.assetTransfer = {
+        assetIndex: utils.ensureUint64(params.assetTransferParams.assetIndex),
+        amount: utils.ensureUint64(params.assetTransferParams.amount),
+        assetSender: optionalAddress(params.assetTransferParams.assetSender),
+        receiver: ensureAddress(params.assetTransferParams.receiver),
+        closeRemainderTo: optionalAddress(
+          params.assetTransferParams.closeRemainderTo
+        ),
+      };
+    }
+
+    if (params.assetFreezeParams) {
+      this.assetFreeze = {
+        assetIndex: utils.ensureUint64(params.assetFreezeParams.assetIndex),
+        freezeAccount: ensureAddress(params.assetFreezeParams.freezeTarget),
+        frozen: ensureBoolean(params.assetFreezeParams.frozen),
+      };
+    }
+
+    if (params.appCallParams) {
+      const { onComplete } = params.appCallParams;
+      if (!isOnApplicationComplete(onComplete)) {
+        throw new Error(`Invalid onCompletion value: ${onComplete}`);
+      }
+      this.applicationCall = {
+        appIndex: utils.ensureUint64(params.appCallParams.appIndex),
+        onComplete,
+        numLocalInts: utils.ensureSafeUnsignedInteger(
+          params.appCallParams.numLocalInts ?? 0
+        ),
+        numLocalByteSlices: utils.ensureSafeUnsignedInteger(
+          params.appCallParams.numLocalByteSlices ?? 0
+        ),
+        numGlobalInts: utils.ensureSafeUnsignedInteger(
+          params.appCallParams.numGlobalInts ?? 0
+        ),
+        numGlobalByteSlices: utils.ensureSafeUnsignedInteger(
+          params.appCallParams.numGlobalByteSlices ?? 0
+        ),
+        extraPages: utils.ensureSafeUnsignedInteger(
+          params.appCallParams.extraPages ?? 0
+        ),
+        approvalProgram: ensureUint8Array(
+          params.appCallParams.approvalProgram ?? new Uint8Array()
+        ),
+        clearProgram: ensureUint8Array(
+          params.appCallParams.clearProgram ?? new Uint8Array()
+        ),
+        appArgs: ensureArray(params.appCallParams.appArgs ?? []).map(
+          ensureUint8Array
+        ),
+        accounts: ensureArray(params.appCallParams.accounts ?? []).map(
+          ensureAddress
+        ),
+        foreignApps: ensureArray(params.appCallParams.foreignApps ?? []).map(
+          utils.ensureUint64
+        ),
+        foreignAssets: ensureArray(
+          params.appCallParams.foreignAssets ?? []
+        ).map(utils.ensureUint64),
+        boxes: ensureArray(params.appCallParams.boxes ?? []).map(
+          ensureBoxReference
+        ),
+      };
+    }
+
+    if (params.stateProofParams) {
+      this.stateProof = {
+        stateProofType: utils.ensureSafeUnsignedInteger(
+          params.stateProofParams.stateProofType ?? 0
+        ),
+        stateProof: params.stateProofParams.stateProof,
+        message: params.stateProofParams.message,
+      };
+    }
+
+    // Determine fee
+    this.fee = utils.ensureUint64(params.suggestedParams.fee);
+
+    const feeDependsOnSize = !ensureBoolean(
+      params.suggestedParams.flatFee ?? false
+    );
+    if (feeDependsOnSize) {
+      const minFee = utils.ensureUint64(params.suggestedParams.minFee);
+      this.fee *= BigInt(this.estimateSize());
+      // If suggested fee too small and will be rejected, set to min tx fee
+      if (this.fee < minFee) {
+        this.fee = minFee;
+      }
+    }
   }
 
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(txnForEnc: EncodedTransaction): Transaction {
-    const txn = Object.create(this.prototype) as Transaction;
-    txn.name = 'Transaction';
-    txn.tag = Buffer.from('TX');
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): encoding.Schema {
+    return Transaction.encodingSchema;
+  }
 
-    txn.genesisID = txnForEnc.gen;
-    txn.genesisHash = Buffer.from(txnForEnc.gh);
-    if (!isTransactionType(txnForEnc.type)) {
-      throw new Error(`Unrecognized transaction type: ${txnForEnc.type}`);
-    }
-    txn.type = txnForEnc.type;
-    txn.fee = txnForEnc.fee;
-    txn.firstRound = txnForEnc.fv;
-    txn.lastRound = txnForEnc.lv;
-    txn.note = new Uint8Array(txnForEnc.note);
-    txn.lease = new Uint8Array(txnForEnc.lx);
-    txn.from = address.decodeAddress(
-      address.encodeAddress(new Uint8Array(txnForEnc.snd))
-    );
-    if (txnForEnc.grp !== undefined) txn.group = Buffer.from(txnForEnc.grp);
-    if (txnForEnc.rekey !== undefined)
-      txn.reKeyTo = address.decodeAddress(
-        address.encodeAddress(new Uint8Array(txnForEnc.rekey))
-      );
+  toEncodingData(): Map<string, unknown> {
+    const data = new Map<string, unknown>([
+      ['type', this.type],
+      ['fv', this.firstValid],
+      ['lv', this.lastValid],
+      ['snd', this.sender],
+      ['gen', this.genesisID],
+      ['gh', this.genesisHash],
+      ['fee', this.fee],
+      ['note', this.note],
+      ['lx', this.lease],
+      ['rekey', this.rekeyTo],
+      ['grp', this.group],
+    ]);
 
-    if (txnForEnc.type === 'pay') {
-      txn.amount = txnForEnc.amt;
-      txn.to = address.decodeAddress(
-        address.encodeAddress(new Uint8Array(txnForEnc.rcv))
-      );
-      if (txnForEnc.close !== undefined)
-        txn.closeRemainderTo = address.decodeAddress(
-          address.encodeAddress(txnForEnc.close)
-        );
-    } else if (txnForEnc.type === 'keyreg') {
-      if (txnForEnc.votekey !== undefined) {
-        txn.voteKey = Buffer.from(txnForEnc.votekey);
-      }
-      if (txnForEnc.selkey !== undefined) {
-        txn.selectionKey = Buffer.from(txnForEnc.selkey);
-      }
-      if (txnForEnc.sprfkey !== undefined) {
-        txn.stateProofKey = Buffer.from(txnForEnc.sprfkey);
-      }
-      if (txnForEnc.votekd !== undefined) {
-        txn.voteKeyDilution = txnForEnc.votekd;
-      }
-      if (txnForEnc.votefst !== undefined) {
-        txn.voteFirst = txnForEnc.votefst;
-      }
-      if (txnForEnc.votelst !== undefined) {
-        txn.voteLast = txnForEnc.votelst;
-      }
-      if (txnForEnc.nonpart !== undefined) {
-        txn.nonParticipation = txnForEnc.nonpart;
-      }
-    } else if (txnForEnc.type === 'acfg') {
-      // asset creation, or asset reconfigure, or asset destruction
-      if (txnForEnc.caid !== undefined) {
-        txn.assetIndex = txnForEnc.caid;
-      }
-      if (txnForEnc.apar !== undefined) {
-        txn.assetTotal = txnForEnc.apar.t;
-        txn.assetDefaultFrozen = txnForEnc.apar.df;
-        if (txnForEnc.apar.dc !== undefined)
-          txn.assetDecimals = txnForEnc.apar.dc;
-        if (txnForEnc.apar.m !== undefined)
-          txn.assetManager = address.decodeAddress(
-            address.encodeAddress(new Uint8Array(txnForEnc.apar.m))
-          );
-        if (txnForEnc.apar.r !== undefined)
-          txn.assetReserve = address.decodeAddress(
-            address.encodeAddress(new Uint8Array(txnForEnc.apar.r))
-          );
-        if (txnForEnc.apar.f !== undefined)
-          txn.assetFreeze = address.decodeAddress(
-            address.encodeAddress(new Uint8Array(txnForEnc.apar.f))
-          );
-        if (txnForEnc.apar.c !== undefined)
-          txn.assetClawback = address.decodeAddress(
-            address.encodeAddress(new Uint8Array(txnForEnc.apar.c))
-          );
-        if (txnForEnc.apar.un !== undefined)
-          txn.assetUnitName = txnForEnc.apar.un;
-        if (txnForEnc.apar.an !== undefined) txn.assetName = txnForEnc.apar.an;
-        if (txnForEnc.apar.au !== undefined) txn.assetURL = txnForEnc.apar.au;
-        if (txnForEnc.apar.am !== undefined)
-          txn.assetMetadataHash = txnForEnc.apar.am;
-      }
-    } else if (txnForEnc.type === 'axfer') {
-      // asset transfer, acceptance, revocation, mint, or burn
-      if (txnForEnc.xaid !== undefined) {
-        txn.assetIndex = txnForEnc.xaid;
-      }
-      if (txnForEnc.aamt !== undefined) txn.amount = txnForEnc.aamt;
-      if (txnForEnc.aclose !== undefined) {
-        txn.closeRemainderTo = address.decodeAddress(
-          address.encodeAddress(new Uint8Array(txnForEnc.aclose))
-        );
-      }
-      if (txnForEnc.asnd !== undefined) {
-        txn.assetRevocationTarget = address.decodeAddress(
-          address.encodeAddress(new Uint8Array(txnForEnc.asnd))
-        );
-      }
-      txn.to = address.decodeAddress(
-        address.encodeAddress(new Uint8Array(txnForEnc.arcv))
-      );
-    } else if (txnForEnc.type === 'afrz') {
-      if (txnForEnc.afrz !== undefined) {
-        txn.freezeState = txnForEnc.afrz;
-      }
-      if (txnForEnc.faid !== undefined) {
-        txn.assetIndex = txnForEnc.faid;
-      }
-      txn.freezeAccount = address.decodeAddress(
-        address.encodeAddress(new Uint8Array(txnForEnc.fadd))
-      );
-    } else if (txnForEnc.type === 'appl') {
-      if (txnForEnc.apid !== undefined) {
-        txn.appIndex = txnForEnc.apid;
-      }
-      if (txnForEnc.apan !== undefined) {
-        txn.appOnComplete = txnForEnc.apan;
-      }
-      if (txnForEnc.apls !== undefined) {
-        if (txnForEnc.apls.nui !== undefined)
-          txn.appLocalInts = txnForEnc.apls.nui;
-        if (txnForEnc.apls.nbs !== undefined)
-          txn.appLocalByteSlices = txnForEnc.apls.nbs;
-      }
-      if (txnForEnc.apgs !== undefined) {
-        if (txnForEnc.apgs.nui !== undefined)
-          txn.appGlobalInts = txnForEnc.apgs.nui;
-        if (txnForEnc.apgs.nbs !== undefined)
-          txn.appGlobalByteSlices = txnForEnc.apgs.nbs;
-      }
-      if (txnForEnc.apep !== undefined) {
-        txn.extraPages = txnForEnc.apep;
-      }
-      if (txnForEnc.apap !== undefined) {
-        txn.appApprovalProgram = new Uint8Array(txnForEnc.apap);
-      }
-      if (txnForEnc.apsu !== undefined) {
-        txn.appClearProgram = new Uint8Array(txnForEnc.apsu);
-      }
-      if (txnForEnc.apaa !== undefined) {
-        txn.appArgs = txnForEnc.apaa.map((arg) => new Uint8Array(arg));
-      }
-      if (txnForEnc.apat !== undefined) {
-        txn.appAccounts = txnForEnc.apat.map((addressBytes) =>
-          address.decodeAddress(
-            address.encodeAddress(new Uint8Array(addressBytes))
-          )
-        );
-      }
-      if (txnForEnc.apfa !== undefined) {
-        txn.appForeignApps = txnForEnc.apfa;
-      }
-      if (txnForEnc.apas !== undefined) {
-        txn.appForeignAssets = txnForEnc.apas;
-      }
-      if (txnForEnc.apbx !== undefined) {
-        txn.boxes = txnForEnc.apbx.map((box) => ({
-          // We return 0 for the app ID so that it's guaranteed translateBoxReferences will
-          // translate the app index back to 0. If we instead returned the called app ID,
-          // translateBoxReferences would translate the app index to a nonzero value if the called
-          // app is also in the foreign app array.
-          appIndex: box.i ? txn.appForeignApps[box.i - 1] : 0,
-          name: box.n,
-        }));
-      }
-    } else if (txnForEnc.type === 'stpf') {
-      if (txnForEnc.sptype !== undefined) {
-        txn.stateProofType = txnForEnc.sptype;
-      }
-      if (txnForEnc.sp !== undefined) {
-        txn.stateProof = txnForEnc.sp;
-      }
-      if (txnForEnc.spmsg !== undefined) {
-        txn.stateProofMessage = txnForEnc.spmsg;
-      }
+    if (this.payment) {
+      data.set('amt', this.payment.amount);
+      data.set('rcv', this.payment.receiver);
+      data.set('close', this.payment.closeRemainderTo);
+      return data;
     }
+
+    if (this.keyreg) {
+      data.set('votekey', this.keyreg.voteKey);
+      data.set('selkey', this.keyreg.selectionKey);
+      data.set('sprfkey', this.keyreg.stateProofKey);
+      data.set('votefst', this.keyreg.voteFirst);
+      data.set('votelst', this.keyreg.voteLast);
+      data.set('votekd', this.keyreg.voteKeyDilution);
+      data.set('nonpart', this.keyreg.nonParticipation);
+      return data;
+    }
+
+    if (this.assetConfig) {
+      data.set('caid', this.assetConfig.assetIndex);
+      const assetParams = new Map<string, unknown>([
+        ['t', this.assetConfig.total],
+        ['dc', this.assetConfig.decimals],
+        ['df', this.assetConfig.defaultFrozen],
+        ['m', this.assetConfig.manager],
+        ['r', this.assetConfig.reserve],
+        ['f', this.assetConfig.freeze],
+        ['c', this.assetConfig.clawback],
+        ['un', this.assetConfig.unitName],
+        ['an', this.assetConfig.assetName],
+        ['au', this.assetConfig.assetURL],
+        ['am', this.assetConfig.assetMetadataHash],
+      ]);
+      data.set('apar', assetParams);
+      return data;
+    }
+
+    if (this.assetTransfer) {
+      data.set('xaid', this.assetTransfer.assetIndex);
+      data.set('aamt', this.assetTransfer.amount);
+      data.set('arcv', this.assetTransfer.receiver);
+      data.set('aclose', this.assetTransfer.closeRemainderTo);
+      data.set('asnd', this.assetTransfer.assetSender);
+      return data;
+    }
+
+    if (this.assetFreeze) {
+      data.set('faid', this.assetFreeze.assetIndex);
+      data.set('afrz', this.assetFreeze.frozen);
+      data.set('fadd', this.assetFreeze.freezeAccount);
+      return data;
+    }
+
+    if (this.applicationCall) {
+      data.set('apid', this.applicationCall.appIndex);
+      data.set('apan', this.applicationCall.onComplete);
+      data.set('apaa', this.applicationCall.appArgs);
+      data.set('apat', this.applicationCall.accounts);
+      data.set('apas', this.applicationCall.foreignAssets);
+      data.set('apfa', this.applicationCall.foreignApps);
+      data.set(
+        'apbx',
+        boxReferencesToEncodingData(
+          this.applicationCall.boxes,
+          this.applicationCall.foreignApps,
+          this.applicationCall.appIndex
+        )
+      );
+      data.set('apap', this.applicationCall.approvalProgram);
+      data.set('apsu', this.applicationCall.clearProgram);
+      data.set(
+        'apls',
+        new Map<string, number>([
+          ['nui', this.applicationCall.numLocalInts],
+          ['nbs', this.applicationCall.numLocalByteSlices],
+        ])
+      );
+      data.set(
+        'apgs',
+        new Map<string, number>([
+          ['nui', this.applicationCall.numGlobalInts],
+          ['nbs', this.applicationCall.numGlobalByteSlices],
+        ])
+      );
+      data.set('apep', this.applicationCall.extraPages);
+      return data;
+    }
+
+    if (this.stateProof) {
+      data.set('sptype', this.stateProof.stateProofType);
+      data.set(
+        'sp',
+        this.stateProof.stateProof
+          ? this.stateProof.stateProof.toEncodingData()
+          : undefined
+      );
+      data.set(
+        'spmsg',
+        this.stateProof.message
+          ? this.stateProof.message.toEncodingData()
+          : undefined
+      );
+      return data;
+    }
+
+    throw new Error(`Unexpected transaction type: ${this.type}`);
+  }
+
+  static fromEncodingData(data: unknown): Transaction {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded logic sig account: ${data}`);
+    }
+    const suggestedParams: SuggestedParams = {
+      minFee: BigInt(0),
+      flatFee: true,
+      fee: data.get('fee') ?? 0,
+      firstValid: data.get('fv') ?? 0,
+      lastValid: data.get('lv') ?? 0,
+      genesisHash: data.get('gh'),
+      genesisID: data.get('gen'),
+    };
+
+    const txnType = data.get('type');
+    if (!isTransactionType(txnType)) {
+      throw new Error(`Unrecognized transaction type: ${txnType}`);
+    }
+
+    const params: TransactionParams = {
+      type: txnType,
+      sender: data.get('snd') ?? Address.zeroAddress(),
+      note: data.get('note'),
+      lease: data.get('lx'),
+      suggestedParams,
+    };
+
+    if (data.get('rekey')) {
+      params.rekeyTo = data.get('rekey');
+    }
+
+    if (params.type === TransactionType.pay) {
+      const paymentParams: PaymentTransactionParams = {
+        amount: data.get('amt') ?? 0,
+        receiver: data.get('rcv') ?? Address.zeroAddress(),
+      };
+      if (data.get('close')) {
+        paymentParams.closeRemainderTo = data.get('close');
+      }
+      params.paymentParams = paymentParams;
+    } else if (params.type === TransactionType.keyreg) {
+      const keyregParams: KeyRegistrationTransactionParams = {
+        voteKey: data.get('votekey'),
+        selectionKey: data.get('selkey'),
+        stateProofKey: data.get('sprfkey'),
+        voteFirst: data.get('votefst'),
+        voteLast: data.get('votelst'),
+        voteKeyDilution: data.get('votekd'),
+        nonParticipation: data.get('nonpart'),
+      };
+      params.keyregParams = keyregParams;
+    } else if (params.type === TransactionType.acfg) {
+      const assetConfigParams: AssetConfigurationTransactionParams = {
+        assetIndex: data.get('caid'),
+      };
+      if (data.get('apar')) {
+        const assetParams = data.get('apar') as Map<string, any>;
+        assetConfigParams.total = assetParams.get('t');
+        assetConfigParams.decimals = assetParams.get('dc');
+        assetConfigParams.defaultFrozen = assetParams.get('df');
+        assetConfigParams.unitName = assetParams.get('un');
+        assetConfigParams.assetName = assetParams.get('an');
+        assetConfigParams.assetURL = assetParams.get('au');
+        assetConfigParams.assetMetadataHash = assetParams.get('am');
+        if (assetParams.get('m')) {
+          assetConfigParams.manager = assetParams.get('m');
+        }
+        if (assetParams.get('r')) {
+          assetConfigParams.reserve = assetParams.get('r');
+        }
+        if (assetParams.get('f')) {
+          assetConfigParams.freeze = assetParams.get('f');
+        }
+        if (assetParams.get('c')) {
+          assetConfigParams.clawback = assetParams.get('c');
+        }
+      }
+      params.assetConfigParams = assetConfigParams;
+    } else if (params.type === TransactionType.axfer) {
+      const assetTransferParams: AssetTransferTransactionParams = {
+        assetIndex: data.get('xaid') ?? 0,
+        amount: data.get('aamt') ?? 0,
+        receiver: data.get('arcv') ?? Address.zeroAddress(),
+      };
+      if (data.get('aclose')) {
+        assetTransferParams.closeRemainderTo = data.get('aclose');
+      }
+      if (data.get('asnd')) {
+        assetTransferParams.assetSender = data.get('asnd');
+      }
+      params.assetTransferParams = assetTransferParams;
+    } else if (params.type === TransactionType.afrz) {
+      const assetFreezeParams: AssetFreezeTransactionParams = {
+        assetIndex: data.get('faid') ?? 0,
+        freezeTarget: data.get('fadd') ?? Address.zeroAddress(),
+        frozen: data.get('afrz') ?? false,
+      };
+      params.assetFreezeParams = assetFreezeParams;
+    } else if (params.type === TransactionType.appl) {
+      const appCallParams: ApplicationCallTransactionParams = {
+        appIndex: data.get('apid') ?? 0,
+        onComplete: utils.ensureSafeUnsignedInteger(data.get('apan') ?? 0),
+        appArgs: data.get('apaa'),
+        accounts: data.get('apat'),
+        foreignAssets: data.get('apas'),
+        foreignApps: data.get('apfa'),
+        approvalProgram: data.get('apap'),
+        clearProgram: data.get('apsu'),
+        extraPages: data.get('apep'),
+      };
+      const localSchema = data.get('apls') as Map<string, number> | undefined;
+      if (localSchema) {
+        appCallParams.numLocalInts = localSchema.get('nui');
+        appCallParams.numLocalByteSlices = localSchema.get('nbs');
+      }
+      const globalSchema = data.get('apgs') as Map<string, number> | undefined;
+      if (globalSchema) {
+        appCallParams.numGlobalInts = globalSchema.get('nui');
+        appCallParams.numGlobalByteSlices = globalSchema.get('nbs');
+      }
+      const boxes = data.get('apbx') as Array<Map<string, unknown>> | undefined;
+      if (boxes) {
+        appCallParams.boxes = boxes.map((box) => {
+          const index = utils.ensureSafeUnsignedInteger(box.get('i') ?? 0);
+          const name = ensureUint8Array(box.get('n') ?? new Uint8Array());
+          if (index === 0) {
+            // We return 0 for the app ID so that it's guaranteed translateBoxReferences will
+            // translate the app index back to 0. If we instead returned the called app ID,
+            // translateBoxReferences would translate the app index to a nonzero value if the called
+            // app is also in the foreign app array.
+            return {
+              appIndex: 0,
+              name,
+            };
+          }
+          if (
+            !appCallParams.foreignApps ||
+            index > appCallParams.foreignApps.length
+          ) {
+            throw new Error(
+              `Cannot find foreign app index ${index} in ${appCallParams.foreignApps}`
+            );
+          }
+          return {
+            appIndex: appCallParams.foreignApps[index - 1],
+            name,
+          };
+        });
+      }
+      params.appCallParams = appCallParams;
+    } else if (params.type === TransactionType.stpf) {
+      const stateProofParams: StateProofTransactionParams = {
+        stateProofType: data.get('sptype'),
+        stateProof: data.get('sp')
+          ? StateProof.fromEncodingData(data.get('sp'))
+          : undefined,
+        message: data.get('spmsg')
+          ? StateProofMessage.fromEncodingData(data.get('spmsg'))
+          : undefined,
+      };
+      params.stateProofParams = stateProofParams;
+    } else {
+      const exhaustiveCheck: never = params.type;
+      throw new Error(`Unexpected transaction type: ${exhaustiveCheck}`);
+    }
+
+    const txn = new Transaction(params);
+
+    if (data.get('grp')) {
+      const group = ensureUint8Array(data.get('grp'));
+      if (group.byteLength !== ALGORAND_TRANSACTION_GROUP_LENGTH) {
+        throw new Error(`Invalid group length: ${group.byteLength}`);
+      }
+      txn.group = group;
+    }
+
     return txn;
   }
 
-  estimateSize() {
+  private estimateSize() {
     return this.toByte().length + NUM_ADDL_BYTES_AFTER_SIGNING;
   }
 
   bytesToSign() {
     const encodedMsg = this.toByte();
-    return Buffer.from(utils.concatArrays(this.tag, encodedMsg));
+    return utils.concatArrays(TX_TAG, encodedMsg);
   }
 
   toByte() {
-    return encoding.encode(this.get_obj_for_encoding());
+    return encoding.encodeMsgpack(this);
   }
 
   // returns the raw signature
-  rawSignTxn(sk: Uint8Array) {
+  rawSignTxn(sk: Uint8Array): Uint8Array {
     const toBeSigned = this.bytesToSign();
     const sig = nacl.sign(toBeSigned, sk);
-    return Buffer.from(sig);
+    return sig;
   }
 
-  signTxn(sk: Uint8Array) {
-    // construct signed message
-    const sTxn: EncodedSignedTransaction = {
-      sig: this.rawSignTxn(sk),
-      txn: this.get_obj_for_encoding(),
-    };
-    // add AuthAddr if signing with a different key than From indicates
+  signTxn(sk: Uint8Array): Uint8Array {
+    // TODO: deprecate in favor of SignedTransaction class
     const keypair = nacl.keyPairFromSecretKey(sk);
-    const pubKeyFromSk = keypair.publicKey;
-    if (
-      address.encodeAddress(pubKeyFromSk) !==
-      address.encodeAddress(this.from.publicKey)
-    ) {
-      sTxn.sgnr = Buffer.from(pubKeyFromSk);
-    }
-    return new Uint8Array(encoding.encode(sTxn));
+    const signerAddr = new Address(keypair.publicKey);
+    const sig = this.rawSignTxn(sk);
+    return this.attachSignature(signerAddr, sig);
   }
 
-  attachSignature(signerAddr: string, signature: Uint8Array) {
+  attachSignature(
+    signerAddr: string | Address,
+    signature: Uint8Array
+  ): Uint8Array {
+    // TODO: deprecate in favor of SignedTransaction class
     if (!nacl.isValidSignatureLength(signature.length)) {
       throw new Error('Invalid signature length');
     }
-    const sTxn: EncodedSignedTransaction = {
-      sig: Buffer.from(signature),
-      txn: this.get_obj_for_encoding(),
-    };
+    const sTxn = new Map<string, unknown>([
+      ['sig', signature],
+      ['txn', this.toEncodingData()],
+    ]);
+    const signerAddrObj = ensureAddress(signerAddr);
     // add AuthAddr if signing with a different key than From indicates
-    if (signerAddr !== address.encodeAddress(this.from.publicKey)) {
-      const signerPublicKey = address.decodeAddress(signerAddr).publicKey;
-      sTxn.sgnr = Buffer.from(signerPublicKey);
+    if (!this.sender.equals(signerAddrObj)) {
+      sTxn.set('sgnr', signerAddrObj);
     }
-    return new Uint8Array(encoding.encode(sTxn));
+
+    // This is a hack to avoid a circular reference with the SignedTransaction class
+    const stxnSchema = new NamedMapSchema(
+      allOmitEmpty([
+        {
+          key: 'txn',
+          valueSchema: Transaction.encodingSchema,
+        },
+        {
+          key: 'sig',
+          valueSchema: new FixedLengthByteArraySchema(64),
+        },
+        {
+          key: 'sgnr',
+          valueSchema: new OptionalSchema(new AddressSchema()),
+        },
+      ])
+    );
+
+    return encoding.msgpackRawEncode(stxnSchema.prepareMsgpack(sTxn));
   }
 
-  rawTxID() {
+  rawTxID(): Uint8Array {
     const enMsg = this.toByte();
-    const gh = Buffer.from(utils.concatArrays(this.tag, enMsg));
-    return Buffer.from(nacl.genericHash(gh));
+    const gh = utils.concatArrays(TX_TAG, enMsg);
+    return Uint8Array.from(nacl.genericHash(gh));
   }
 
-  txID() {
+  txID(): string {
     const hash = this.rawTxID();
     return base32.encode(hash).slice(0, ALGORAND_TRANSACTION_LENGTH);
   }
-
-  // add a lease to a transaction not yet having
-  // supply feePerByte to increment fee accordingly
-  addLease(lease: Uint8Array, feePerByte = 0) {
-    let mutableLease: Uint8Array;
-
-    if (lease !== undefined) {
-      if (lease.constructor !== Uint8Array)
-        throw Error('lease must be a Uint8Array.');
-      if (lease.length !== ALGORAND_TRANSACTION_LEASE_LENGTH)
-        throw Error(
-          `lease must be of length ${ALGORAND_TRANSACTION_LEASE_LENGTH.toString()}.`
-        );
-
-      mutableLease = new Uint8Array(lease);
-    } else {
-      mutableLease = new Uint8Array(0);
-    }
-    this.lease = mutableLease;
-    if (feePerByte !== 0) {
-      this.fee +=
-        (ALGORAND_TRANSACTION_LEASE_LABEL_LENGTH +
-          ALGORAND_TRANSACTION_LEASE_LENGTH) *
-        feePerByte;
-    }
-  }
-
-  // add the rekey-to field to a transaction not yet having it
-  // supply feePerByte to increment fee accordingly
-  addRekey(reKeyTo: string, feePerByte = 0) {
-    if (reKeyTo !== undefined) {
-      this.reKeyTo = address.decodeAddress(reKeyTo);
-    }
-    if (feePerByte !== 0) {
-      this.fee +=
-        (ALGORAND_TRANSACTION_REKEY_LABEL_LENGTH +
-          ALGORAND_TRANSACTION_ADDRESS_LENGTH) *
-        feePerByte;
-    }
-  }
-
-  // build display dict for prettyPrint and toString
-  // eslint-disable-next-line no-underscore-dangle
-  _getDictForDisplay() {
-    const forPrinting: TransactionStorageStructure & Record<string, any> = {
-      ...this,
-    };
-    forPrinting.tag = forPrinting.tag.toString();
-    forPrinting.from = address.encodeAddress(
-      (forPrinting.from as Address).publicKey
-    );
-    if (forPrinting.to !== undefined)
-      forPrinting.to = address.encodeAddress(
-        (forPrinting.to as Address).publicKey
-      );
-    // things that need fixing:
-    if (forPrinting.freezeAccount !== undefined)
-      forPrinting.freezeAccount = address.encodeAddress(
-        (forPrinting.freezeAccount as Address).publicKey
-      );
-    if (forPrinting.closeRemainderTo !== undefined)
-      forPrinting.closeRemainderTo = address.encodeAddress(
-        (forPrinting.closeRemainderTo as Address).publicKey
-      );
-    if (forPrinting.assetManager !== undefined)
-      forPrinting.assetManager = address.encodeAddress(
-        (forPrinting.assetManager as Address).publicKey
-      );
-    if (forPrinting.assetReserve !== undefined)
-      forPrinting.assetReserve = address.encodeAddress(
-        (forPrinting.assetReserve as Address).publicKey
-      );
-    if (forPrinting.assetFreeze !== undefined)
-      forPrinting.assetFreeze = address.encodeAddress(
-        (forPrinting.assetFreeze as Address).publicKey
-      );
-    if (forPrinting.assetClawback !== undefined)
-      forPrinting.assetClawback = address.encodeAddress(
-        (forPrinting.assetClawback as Address).publicKey
-      );
-    if (forPrinting.assetRevocationTarget !== undefined)
-      forPrinting.assetRevocationTarget = address.encodeAddress(
-        (forPrinting.assetRevocationTarget as Address).publicKey
-      );
-    if (forPrinting.reKeyTo !== undefined)
-      forPrinting.reKeyTo = address.encodeAddress(
-        (forPrinting.reKeyTo as Address).publicKey
-      );
-    forPrinting.genesisHash = forPrinting.genesisHash.toString('base64');
-    return forPrinting;
-  }
-
-  // pretty print the transaction to console
-  prettyPrint() {
-    // eslint-disable-next-line no-underscore-dangle,no-console
-    console.log(this._getDictForDisplay());
-  }
-
-  // get string representation
-  toString() {
-    // eslint-disable-next-line no-underscore-dangle
-    return JSON.stringify(this._getDictForDisplay());
-  }
-}
-
-/**
- * encodeUnsignedSimulateTransaction takes a txnBuilder.Transaction object,
- * converts it into a SignedTransaction-like object, and converts it to a Buffer.
- *
- * Note: this function should only be used to simulate unsigned transactions.
- *
- * @param transactionObject - Transaction object to simulate.
- */
-export function encodeUnsignedSimulateTransaction(
-  transactionObject: Transaction
-) {
-  const objToEncode: EncodedSignedTransaction = {
-    txn: transactionObject.get_obj_for_encoding(),
-  };
-  return encoding.encode(objToEncode);
 }
 
 /**
@@ -1300,82 +1108,18 @@ export function encodeUnsignedSimulateTransaction(
  * family of transactions, and converts it to a Buffer
  * @param transactionObject - the completed Transaction object
  */
-export function encodeUnsignedTransaction(transactionObject: Transaction) {
-  const objToEncode = transactionObject.get_obj_for_encoding();
-  return encoding.encode(objToEncode);
+export function encodeUnsignedTransaction(
+  transactionObject: Transaction
+): Uint8Array {
+  return encoding.encodeMsgpack(transactionObject);
 }
 
 /**
- * decodeUnsignedTransaction takes a Buffer (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
+ * decodeUnsignedTransaction takes a Uint8Array (as if from encodeUnsignedTransaction) and converts it to a txnBuilder.Transaction object
  * @param transactionBuffer - the Uint8Array containing a transaction
  */
 export function decodeUnsignedTransaction(
   transactionBuffer: ArrayLike<number>
-) {
-  const partlyDecodedObject = encoding.decode(
-    transactionBuffer
-  ) as EncodedTransaction;
-  return Transaction.from_obj_for_encoding(partlyDecodedObject);
+): Transaction {
+  return encoding.decodeMsgpack(transactionBuffer, Transaction);
 }
-
-/**
- * Object representing a transaction with a signature
- */
-export interface SignedTransaction {
-  /**
-   * Transaction signature
-   */
-  sig?: Buffer;
-
-  /**
-   * The transaction that was signed
-   */
-  txn: Transaction;
-
-  /**
-   * Multisig structure
-   */
-  msig?: EncodedMultisig;
-
-  /**
-   * Logic signature
-   */
-  lsig?: EncodedLogicSig;
-
-  /**
-   * The signer, if signing with a different key than the Transaction type `from` property indicates
-   */
-  sgnr?: Buffer;
-}
-
-/**
- * decodeSignedTransaction takes a Buffer (from transaction.signTxn) and converts it to an object
- * containing the Transaction (txn), the signature (sig), and the auth-addr field if applicable (sgnr)
- * @param transactionBuffer - the Uint8Array containing a transaction
- * @returns containing a Transaction, the signature, and possibly an auth-addr field
- */
-export function decodeSignedTransaction(
-  transactionBuffer: Uint8Array
-): SignedTransaction {
-  const stxnDecoded = encoding.decode(
-    transactionBuffer
-  ) as EncodedSignedTransaction;
-  const stxn: SignedTransaction = {
-    ...stxnDecoded,
-    txn: Transaction.from_obj_for_encoding(stxnDecoded.txn),
-  };
-  return stxn;
-}
-
-/**
- * Either a valid transaction object or an instance of the Transaction class
- */
-export type TransactionLike = AnyTransaction | Transaction;
-
-export function instantiateTxnIfNeeded(transactionLike: TransactionLike) {
-  return transactionLike instanceof Transaction
-    ? transactionLike
-    : new Transaction(transactionLike);
-}
-
-export default Transaction;

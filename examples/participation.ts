@@ -11,47 +11,50 @@ async function main() {
   // Parent addr
   const addr = 'MWAPNXBDFFD2V5KWXAHWKBO7FO4JN36VR4CIBDKDDE7WAUAGZIXM3QPJW4';
   // VRF public key
-  const selectionKey = 'LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=';
+  const selectionKey = algosdk.base64ToBytes(
+    'LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk='
+  );
   // Voting pub key
-  const voteKey = 'G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=';
+  const voteKey = algosdk.base64ToBytes(
+    'G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo='
+  );
   // State proof key
-  const stateProofKey =
-    'RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==';
+  const stateProofKey = algosdk.base64ToBytes(
+    'RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=='
+  );
 
-  // sets up keys for 100000 rounds
-  const numRounds = 1e5;
+  // sets up keys for 100,000 rounds
+  const numRounds = 100_000;
 
   // dilution default is sqrt num rounds
-  const keyDilution = numRounds ** 0.5;
+  const keyDilution = Math.floor(Math.sqrt(numRounds));
 
   // create transaction
-  const onlineKeyreg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-    {
-      from: addr,
+  const onlineKeyreg =
+    algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+      sender: addr,
       voteKey,
       selectionKey,
       stateProofKey,
-      voteFirst: params.firstRound,
-      voteLast: params.firstRound + numRounds,
+      voteFirst: params.firstValid,
+      voteLast: params.firstValid + BigInt(numRounds),
       voteKeyDilution: keyDilution,
       suggestedParams: params,
-    }
-  );
+    });
 
-  console.log(onlineKeyreg.get_obj_for_encoding());
+  console.log(onlineKeyreg);
   // example: TRANSACTION_KEYREG_ONLINE_CREATE
 
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
   // get suggested parameters
   const suggestedParams = await algodClient.getTransactionParams().do();
   // create keyreg transaction to take this account offline
-  const offlineKeyReg = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject(
-    {
-      from: addr,
+  const offlineKeyReg =
+    algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
+      sender: addr,
       suggestedParams,
-    }
-  );
-  console.log(offlineKeyReg.get_obj_for_encoding());
+    });
+  console.log(offlineKeyReg);
   // example: TRANSACTION_KEYREG_OFFLINE_CREATE
 }
 

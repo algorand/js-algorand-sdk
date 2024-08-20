@@ -19,7 +19,7 @@ async function main() {
   const mnemonic =
     'creek phrase island true then hope employ veteran rapid hurdle above liberty tissue connect alcohol timber idle ten frog bulb embody crunch taxi abstract month';
   const recoveredAccount = algosdk.mnemonicToSecretKey(mnemonic);
-  console.log('Recovered mnemonic account: ', recoveredAccount.addr);
+  console.log('Recovered mnemonic account: ', recoveredAccount.addr.toString());
   // example: ACCOUNT_RECOVER_MNEMONIC
 
   const funder = accounts[0];
@@ -31,30 +31,30 @@ async function main() {
   signerAccounts.push(algosdk.generateAccount());
 
   // multiSigParams is used when creating the address and when signing transactions
-  const multiSigParams = {
+  const multiSigParams: algosdk.MultisigMetadata = {
     version: 1,
     threshold: 2,
     addrs: signerAccounts.map((a) => a.addr),
   };
   const multisigAddr = algosdk.multisigAddress(multiSigParams);
 
-  console.log('Created MultiSig Address: ', multisigAddr);
+  console.log('Created MultiSig Address: ', multisigAddr.toString());
   // example: MULTISIG_CREATE
 
   const fundMsigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: funder.addr,
-    to: multisigAddr,
+    sender: funder.addr,
+    receiver: multisigAddr,
     amount: 1_000_000,
     suggestedParams,
   });
 
   await client.sendRawTransaction(fundMsigTxn.signTxn(funder.privateKey)).do();
-  await algosdk.waitForConfirmation(client, fundMsigTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, fundMsigTxn.txID(), 3);
 
   // example: MULTISIG_SIGN
   const msigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: multisigAddr,
-    to: funder.addr,
+    sender: multisigAddr,
+    receiver: funder.addr,
     amount: 100,
     suggestedParams,
   });
@@ -74,13 +74,13 @@ async function main() {
   ).blob;
 
   await client.sendRawTransaction(msigWithSecondSig).do();
-  await algosdk.waitForConfirmation(client, msigTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, msigTxn.txID(), 3);
   // example: MULTISIG_SIGN
 
   // example: ACCOUNT_GENERATE
   const generatedAccount = algosdk.generateAccount();
   const passphrase = algosdk.secretKeyToMnemonic(generatedAccount.sk);
-  console.log(`My address: ${generatedAccount.addr}`);
+  console.log(`My address: ${generatedAccount.addr.toString()}`);
   console.log(`My passphrase: ${passphrase}`);
   // example: ACCOUNT_GENERATE
 
@@ -88,32 +88,36 @@ async function main() {
   // rekey the original account to the new signer via a payment transaction
   // Note any transaction type can be used to rekey an account
   const rekeyTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct1.addr,
-    to: acct1.addr,
+    sender: acct1.addr,
+    receiver: acct1.addr,
     amount: 0,
     suggestedParams,
     rekeyTo: acct2.addr, // set the rekeyTo field to the new signer
   });
 
   await client.sendRawTransaction(rekeyTxn.signTxn(acct1.privateKey)).do();
-  await algosdk.waitForConfirmation(client, rekeyTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
 
   const acctInfo = await client.accountInformation(acct1.addr).do();
 
-  console.log(`Account Info: ${acctInfo} Auth Addr: ${acctInfo['auth-addr']}`);
+  console.log(
+    `Account Info: ${algosdk.stringifyJSON(acctInfo)} Auth Addr: ${
+      acctInfo['auth-addr']
+    }`
+  );
   // example: ACCOUNT_REKEY
 
   // the transaction is from originalAccount, but signed with newSigner private key
 
   const rekeyBack = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct1.addr,
-    to: acct1.addr,
+    sender: acct1.addr,
+    receiver: acct1.addr,
     amount: 0,
     suggestedParams,
     rekeyTo: acct1.addr,
   });
   await client.sendRawTransaction(rekeyBack.signTxn(acct2.privateKey)).do();
-  await algosdk.waitForConfirmation(client, rekeyBack.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, rekeyBack.txID(), 3);
 }
 
 main();

@@ -1,14 +1,17 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import { concatArrays } from '../../../utils/utils';
+import { concatArrays } from '../../../utils/utils.js';
+import { PostTransactionsResponse } from './models/types.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import JSONRequest from '../jsonrequest.js';
 
 /**
  * Sets the default header (if not previously set) for sending a raw
  * transaction.
  * @param headers - A headers object
  */
-export function setSendTransactionHeaders(headers = {}) {
+export function setSendTransactionHeaders(
+  headers: Record<string, string> = {}
+) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
@@ -24,7 +27,7 @@ function isByteArray(array: any): array is Uint8Array {
 /**
  * broadcasts the passed signed txns to the network
  */
-export default class SendRawTransaction extends JSONRequest {
+export default class SendRawTransaction extends JSONRequest<PostTransactionsResponse> {
   private txnBytesToPost: Uint8Array;
 
   constructor(c: HTTPClient, stxOrStxs: Uint8Array | Uint8Array[]) {
@@ -48,13 +51,21 @@ export default class SendRawTransaction extends JSONRequest {
     return '/v2/transactions';
   }
 
-  async do(headers = {}) {
+  protected executeRequest(
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
+  ): Promise<HTTPClientResponse> {
     const txHeaders = setSendTransactionHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      Buffer.from(this.txnBytesToPost),
-      txHeaders
-    );
-    return res.body;
+    return this.c.post({
+      relativePath: this.path(),
+      data: this.txnBytesToPost,
+      requestHeaders: txHeaders,
+      customOptions,
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): PostTransactionsResponse {
+    return decodeJSON(response.getJSONText(), PostTransactionsResponse);
   }
 }

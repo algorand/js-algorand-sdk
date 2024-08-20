@@ -1,5 +1,4 @@
 /* eslint-env mocha */
-import { Buffer } from 'buffer';
 import assert from 'assert';
 import algosdk from '../src/index';
 
@@ -14,11 +13,11 @@ const sampleAccount3 = algosdk.mnemonicToSecretKey(
 );
 
 // Multisig Golden Params
-const sampleMultisigParams: algosdk.MultisigMetadata = {
+const sampleMultisigParams = {
   version: 1,
   threshold: 2,
   addrs: [sampleAccount1.addr, sampleAccount2.addr, sampleAccount3.addr],
-};
+} satisfies algosdk.MultisigMetadata;
 
 const sampleMultisigAddr = algosdk.multisigAddress(sampleMultisigParams);
 
@@ -26,15 +25,16 @@ describe('LogicSig', () => {
   describe('makeLogicSig', () => {
     it('should work on valid program', () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      const programHash =
-        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
-      const pk = algosdk.decodeAddress(programHash).publicKey;
+      const programHash = algosdk.Address.fromString(
+        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY'
+      );
+      const pk = programHash.publicKey;
       let lsig = new algosdk.LogicSig(program);
       assert.strictEqual(lsig.logic, program);
-      assert.strictEqual(lsig.args, undefined);
+      assert.deepStrictEqual(lsig.args, []);
       assert.strictEqual(lsig.sig, undefined);
       assert.strictEqual(lsig.msig, undefined);
-      assert.strictEqual(lsig.address(), programHash);
+      assert.deepStrictEqual(lsig.address(), programHash);
 
       let verified = lsig.verify(pk);
       assert.strictEqual(verified, true);
@@ -76,7 +76,8 @@ describe('LogicSig', () => {
       const lsig = new algosdk.LogicSig(program);
       const address = lsig.address();
 
-      assert.deepStrictEqual(address, programHash);
+      assert.strictEqual(address.toString(), programHash);
+      assert.ok(address.equals(algosdk.Address.fromString(programHash)));
     });
   });
 });
@@ -88,7 +89,7 @@ describe('LogicSigAccount', () => {
 
       const lsigAccount = new algosdk.LogicSigAccount(program);
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
-      assert.strictEqual(lsigAccount.lsig.args, undefined);
+      assert.deepStrictEqual(lsigAccount.lsig.args, []);
       assert.strictEqual(lsigAccount.lsig.sig, undefined);
       assert.strictEqual(lsigAccount.lsig.msig, undefined);
       assert.strictEqual(lsigAccount.sigkey, undefined);
@@ -96,7 +97,7 @@ describe('LogicSigAccount', () => {
       // check serialization
       const encoded = lsigAccount.toByte();
       const expectedEncoded = new Uint8Array(
-        Buffer.from('gaRsc2lngaFsxAUBIAEBIg==', 'base64')
+        algosdk.base64ToBytes('gaRsc2lngaFsxAUBIAEBIg==')
       );
       assert.deepStrictEqual(encoded, expectedEncoded);
 
@@ -117,7 +118,7 @@ describe('LogicSigAccount', () => {
       // check serialization
       const encoded = lsigAccount.toByte();
       const expectedEncoded = new Uint8Array(
-        Buffer.from('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==', 'base64')
+        algosdk.base64ToBytes('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==')
       );
       assert.deepStrictEqual(encoded, expectedEncoded);
 
@@ -135,13 +136,11 @@ describe('LogicSigAccount', () => {
       lsigAccount.sign(sampleAccount1.sk);
 
       const expectedSig = new Uint8Array(
-        Buffer.from(
-          'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag==',
-          'base64'
+        algosdk.base64ToBytes(
+          'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
         )
       );
-      const expectedSigKey = algosdk.decodeAddress(sampleAccount1.addr)
-        .publicKey;
+      const expectedSigKey = sampleAccount1.addr.publicKey;
 
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
       assert.deepStrictEqual(lsigAccount.lsig.args, args);
@@ -152,9 +151,8 @@ describe('LogicSigAccount', () => {
       // check serialization
       const encoded = lsigAccount.toByte();
       const expectedEncoded = new Uint8Array(
-        Buffer.from(
-          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA==',
-          'base64'
+        algosdk.base64ToBytes(
+          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA=='
         )
       );
       assert.deepStrictEqual(encoded, expectedEncoded);
@@ -173,16 +171,15 @@ describe('LogicSigAccount', () => {
       lsigAccount.signMultisig(sampleMultisigParams, sampleAccount1.sk);
 
       const expectedSig = new Uint8Array(
-        Buffer.from(
-          'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag==',
-          'base64'
+        algosdk.base64ToBytes(
+          'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
         )
       );
       const expectedMsig: algosdk.EncodedMultisig = {
         v: sampleMultisigParams.version,
         thr: sampleMultisigParams.threshold,
         subsig: sampleMultisigParams.addrs.map((addr) => ({
-          pk: algosdk.decodeAddress(addr).publicKey,
+          pk: addr.publicKey,
         })),
       };
       expectedMsig.subsig[0].s = expectedSig;
@@ -196,9 +193,8 @@ describe('LogicSigAccount', () => {
       // check serialization
       const encoded = lsigAccount.toByte();
       const expectedEncoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ==',
-          'base64'
+        algosdk.base64ToBytes(
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
         )
       );
       assert.deepStrictEqual(encoded, expectedEncoded);
@@ -210,33 +206,24 @@ describe('LogicSigAccount', () => {
 
   describe('appendToMultisig', () => {
     it('should properly append a signature', () => {
-      const msig1of3Encoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ==',
-          'base64'
-        )
+      const msig1of3Encoded = algosdk.base64ToBytes(
+        'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msig1of3Encoded);
 
       lsigAccount.appendToMultisig(sampleAccount2.sk);
 
-      const expectedSig1 = new Uint8Array(
-        Buffer.from(
-          'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag==',
-          'base64'
-        )
+      const expectedSig1 = algosdk.base64ToBytes(
+        'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
       );
-      const expectedSig2 = new Uint8Array(
-        Buffer.from(
-          'ZLxV2+2RokHUKrZg9+FKuZmaUrOxcVjO/D9P58siQRStqT1ehAUCChemaYMDIk6Go4tqNsVUviBQ/9PuqLMECQ==',
-          'base64'
-        )
+      const expectedSig2 = algosdk.base64ToBytes(
+        'ZLxV2+2RokHUKrZg9+FKuZmaUrOxcVjO/D9P58siQRStqT1ehAUCChemaYMDIk6Go4tqNsVUviBQ/9PuqLMECQ=='
       );
       const expectedMsig: algosdk.EncodedMultisig = {
         v: sampleMultisigParams.version,
         thr: sampleMultisigParams.threshold,
         subsig: sampleMultisigParams.addrs.map((addr) => ({
-          pk: algosdk.decodeAddress(addr).publicKey,
+          pk: addr.publicKey,
         })),
       };
       expectedMsig.subsig[0].s = expectedSig1;
@@ -249,9 +236,8 @@ describe('LogicSigAccount', () => {
       // check serialization
       const encoded = lsigAccount.toByte();
       const expectedEncoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB',
-          'base64'
+        algosdk.base64ToBytes(
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
         )
       );
       assert.deepStrictEqual(encoded, expectedEncoded);
@@ -264,7 +250,7 @@ describe('LogicSigAccount', () => {
   describe('verify', () => {
     it('should verify valid escrow', () => {
       const escrowEncoded = new Uint8Array(
-        Buffer.from('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==', 'base64')
+        algosdk.base64ToBytes('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==')
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(escrowEncoded);
 
@@ -273,9 +259,8 @@ describe('LogicSigAccount', () => {
 
     it('should verify valid single sig', () => {
       const sigEncoded = new Uint8Array(
-        Buffer.from(
-          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA==',
-          'base64'
+        algosdk.base64ToBytes(
+          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA=='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(sigEncoded);
@@ -285,9 +270,8 @@ describe('LogicSigAccount', () => {
 
     it('should fail single sig with wrong sig', () => {
       const sigEncoded = new Uint8Array(
-        Buffer.from(
-          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA==',
-          'base64'
+        algosdk.base64ToBytes(
+          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA=='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(sigEncoded);
@@ -300,9 +284,8 @@ describe('LogicSigAccount', () => {
 
     it('should verify valid multisig', () => {
       const msigEncoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB',
-          'base64'
+        algosdk.base64ToBytes(
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
@@ -312,24 +295,22 @@ describe('LogicSigAccount', () => {
 
     it('should fail multisig with wrong sig', () => {
       const msigEncoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB',
-          'base64'
+        algosdk.base64ToBytes(
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
 
       // modify signature
-      lsigAccount.lsig.msig!.subsig[0].s[0] = 0;
+      lsigAccount.lsig.msig!.subsig[0].s![0] = 0;
 
       assert.strictEqual(lsigAccount.verify(), false);
     });
 
     it('should fail multisig that does not meet threshold', () => {
       const msigBelowThresholdEncoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ==',
-          'base64'
+        algosdk.base64ToBytes(
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(
@@ -343,7 +324,7 @@ describe('LogicSigAccount', () => {
   describe('isDelegated', () => {
     it('should be correct for escrow', () => {
       const escrowEncoded = new Uint8Array(
-        Buffer.from('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==', 'base64')
+        algosdk.base64ToBytes('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==')
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(escrowEncoded);
 
@@ -352,9 +333,8 @@ describe('LogicSigAccount', () => {
 
     it('should be correct for single sig', () => {
       const sigEncoded = new Uint8Array(
-        Buffer.from(
-          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA==',
-          'base64'
+        algosdk.base64ToBytes(
+          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA=='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(sigEncoded);
@@ -364,9 +344,8 @@ describe('LogicSigAccount', () => {
 
     it('should be correct for multisig', () => {
       const msigEncoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB',
-          'base64'
+        algosdk.base64ToBytes(
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
@@ -378,50 +357,47 @@ describe('LogicSigAccount', () => {
   describe('address', () => {
     it('should be correct for escrow', () => {
       const escrowEncoded = new Uint8Array(
-        Buffer.from('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==', 'base64')
+        algosdk.base64ToBytes('gaRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIg==')
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(escrowEncoded);
 
       const addr = lsigAccount.address();
 
-      const expectedAddr =
-        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
+      const expectedAddr = algosdk.Address.fromString(
+        '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY'
+      );
 
-      assert.strictEqual(addr, expectedAddr);
+      assert.deepStrictEqual(addr, expectedAddr);
     });
 
     it('should be correct for single sig', () => {
-      const sigEncoded = new Uint8Array(
-        Buffer.from(
-          'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA==',
-          'base64'
-        )
+      const sigEncoded = algosdk.base64ToBytes(
+        'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQEkTuAXRnn8sEID2M34YVKfO6u4Q3b0TZYS/k7dfMGMVkcojDO3vI9F0G1KdsP/vN1TWRvS1YfyLvC17TmNcvQKmc2lna2V5xCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeA=='
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(sigEncoded);
 
       const addr = lsigAccount.address();
 
-      const expectedAddr =
-        'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
+      const expectedAddr = algosdk.Address.fromString(
+        'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA'
+      );
 
-      assert.strictEqual(addr, expectedAddr);
+      assert.deepStrictEqual(addr, expectedAddr);
     });
 
     it('should be correct for multisig', () => {
-      const msigEncoded = new Uint8Array(
-        Buffer.from(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB',
-          'base64'
-        )
+      const msigEncoded = algosdk.base64ToBytes(
+        'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
 
       const addr = lsigAccount.address();
 
-      const expectedAddr =
-        'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM';
+      const expectedAddr = algosdk.Address.fromString(
+        'RWJLJCMQAFZ2ATP2INM2GZTKNL6OULCCUBO5TQPXH3V2KR4AG7U5UA5JNM'
+      );
 
-      assert.strictEqual(addr, expectedAddr);
+      assert.deepStrictEqual(addr, expectedAddr);
     });
   });
 });
@@ -435,20 +411,23 @@ describe('signLogicSigTransaction', () => {
 
   function testSign(
     lsigObject: algosdk.LogicSig | algosdk.LogicSigAccount,
-    sender: string,
+    sender: string | algosdk.Address,
     expected: { txID: string; blob: Uint8Array }
   ) {
     const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: sender,
-      to: otherAddr,
+      sender,
+      receiver: otherAddr,
       amount: 5000,
       suggestedParams: {
+        minFee: 1000,
         flatFee: true,
         fee: 217000,
-        firstRound: 972508,
-        lastRound: 973508,
+        firstValid: 972508,
+        lastValid: 973508,
         genesisID: 'testnet-v31.0',
-        genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+        genesisHash: algosdk.base64ToBytes(
+          'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+        ),
       },
       note: new Uint8Array([180, 81, 121, 57, 252, 250, 210, 113]),
     });
@@ -467,9 +446,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'SV3GD4AKRRX43F3V4V7GYYB6YCQEPULGUI6GKZO6GPJDKOO75NFA',
           blob: new Uint8Array(
-            Buffer.from(
-              'gqRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraR0eXBlo3BheQ==',
-              'base64'
+            algosdk.base64ToBytes(
+              'gqRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraR0eXBlo3BheQ=='
             )
           ),
         };
@@ -481,9 +459,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'DRBC5KBOYEUCL6L6H45GQSRKCCUTPNELUHUSQO4ZWCEODJEXQBBQ',
           blob: new Uint8Array(
-            Buffer.from(
-              'g6Rsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqRzZ25yxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqR0eXBlo3BheQ==',
-              'base64'
+            algosdk.base64ToBytes(
+              'g6Rsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqRzZ25yxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqR0eXBlo3BheQ=='
             )
           ),
         };
@@ -503,9 +480,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'EZB2N2TEFR5OOL76Z46ZMRUL3ZQQOYKRFIX6WSHQ5FWESHU4LZPA',
           blob: new Uint8Array(
-            Buffer.from(
-              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQD4FPTlN+xK8ZXmf6jGKe46iUYtVLIq+bNenZS3YsBh+IQUtuSRiiRblYXTNDxmsuWxFpCmRmREd5Hzk/BLszgKjdHhuiqNhbXTNE4ijZmVlzgADT6iiZnbOAA7W3KNnZW6tdGVzdG5ldC12MzEuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbOAA7axKRub3RlxAi0UXk5/PrScaNyY3bEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKo3NuZMQgXmdPHAru7DdxiY9hx2/10koZeT4skfoIUWJj44Vz6kKkdHlwZaNwYXk=',
-              'base64'
+            algosdk.base64ToBytes(
+              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQD4FPTlN+xK8ZXmf6jGKe46iUYtVLIq+bNenZS3YsBh+IQUtuSRiiRblYXTNDxmsuWxFpCmRmREd5Hzk/BLszgKjdHhuiqNhbXTNE4ijZmVlzgADT6iiZnbOAA7W3KNnZW6tdGVzdG5ldC12MzEuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbOAA7axKRub3RlxAi0UXk5/PrScaNyY3bEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKo3NuZMQgXmdPHAru7DdxiY9hx2/10koZeT4skfoIUWJj44Vz6kKkdHlwZaNwYXk='
             )
           ),
         };
@@ -514,25 +490,28 @@ describe('signLogicSigTransaction', () => {
 
       it('should throw an error when sender is not LogicSig address', () => {
         const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-          from: otherAddr,
-          to: otherAddr,
+          sender: otherAddr,
+          receiver: otherAddr,
           amount: 5000,
           suggestedParams: {
+            minFee: 1000,
             flatFee: true,
             fee: 217000,
-            firstRound: 972508,
-            lastRound: 973508,
+            firstValid: 972508,
+            lastValid: 973508,
             genesisID: 'testnet-v31.0',
-            genesisHash: 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=',
+            genesisHash: algosdk.base64ToBytes(
+              'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI='
+            ),
           },
           note: new Uint8Array([180, 81, 121, 57, 252, 250, 210, 113]),
         });
 
         assert.throws(
           () => algosdk.signLogicSigTransaction(txn, lsig),
-          (err) =>
-            err.message ===
+          new Error(
             'Logic signature verification failed. Ensure the program and signature are valid.'
+          )
         );
       });
     });
@@ -547,9 +526,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'UGGT5EZXG2OBPGWTEINC65UXIQ6UVAAOTNKRRCRAUCZH4FWJTVQQ',
           blob: new Uint8Array(
-            Buffer.from(
-              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5',
-              'base64'
+            algosdk.base64ToBytes(
+              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5'
             )
           ),
         };
@@ -561,9 +539,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'DRBC5KBOYEUCL6L6H45GQSRKCCUTPNELUHUSQO4ZWCEODJEXQBBQ',
           blob: new Uint8Array(
-            Buffer.from(
-              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBpHNnbnLEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfpo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKpHR5cGWjcGF5',
-              'base64'
+            algosdk.base64ToBytes(
+              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBpHNnbnLEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfpo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKpHR5cGWjcGF5'
             )
           ),
         };
@@ -581,9 +558,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'SV3GD4AKRRX43F3V4V7GYYB6YCQEPULGUI6GKZO6GPJDKOO75NFA',
           blob: new Uint8Array(
-            Buffer.from(
-              'gqRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraR0eXBlo3BheQ==',
-              'base64'
+            algosdk.base64ToBytes(
+              'gqRsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraR0eXBlo3BheQ=='
             )
           ),
         };
@@ -595,9 +571,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'DRBC5KBOYEUCL6L6H45GQSRKCCUTPNELUHUSQO4ZWCEODJEXQBBQ',
           blob: new Uint8Array(
-            Buffer.from(
-              'g6Rsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqRzZ25yxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqR0eXBlo3BheQ==',
-              'base64'
+            algosdk.base64ToBytes(
+              'g6Rsc2lngqNhcmeSxAEBxAICA6FsxAUBIAEBIqRzZ25yxCD2di2sdbGZfWwslhgGgFB0kNeVES/+f7dgsnOK+cfxraN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqR0eXBlo3BheQ=='
             )
           ),
         };
@@ -617,9 +592,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'EZB2N2TEFR5OOL76Z46ZMRUL3ZQQOYKRFIX6WSHQ5FWESHU4LZPA',
           blob: new Uint8Array(
-            Buffer.from(
-              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQD4FPTlN+xK8ZXmf6jGKe46iUYtVLIq+bNenZS3YsBh+IQUtuSRiiRblYXTNDxmsuWxFpCmRmREd5Hzk/BLszgKjdHhuiqNhbXTNE4ijZmVlzgADT6iiZnbOAA7W3KNnZW6tdGVzdG5ldC12MzEuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbOAA7axKRub3RlxAi0UXk5/PrScaNyY3bEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKo3NuZMQgXmdPHAru7DdxiY9hx2/10koZeT4skfoIUWJj44Vz6kKkdHlwZaNwYXk=',
-              'base64'
+            algosdk.base64ToBytes(
+              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQD4FPTlN+xK8ZXmf6jGKe46iUYtVLIq+bNenZS3YsBh+IQUtuSRiiRblYXTNDxmsuWxFpCmRmREd5Hzk/BLszgKjdHhuiqNhbXTNE4ijZmVlzgADT6iiZnbOAA7W3KNnZW6tdGVzdG5ldC12MzEuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbOAA7axKRub3RlxAi0UXk5/PrScaNyY3bEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKo3NuZMQgXmdPHAru7DdxiY9hx2/10koZeT4skfoIUWJj44Vz6kKkdHlwZaNwYXk='
             )
           ),
         };
@@ -631,9 +605,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'DRBC5KBOYEUCL6L6H45GQSRKCCUTPNELUHUSQO4ZWCEODJEXQBBQ',
           blob: new Uint8Array(
-            Buffer.from(
-              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQD4FPTlN+xK8ZXmf6jGKe46iUYtVLIq+bNenZS3YsBh+IQUtuSRiiRblYXTNDxmsuWxFpCmRmREd5Hzk/BLszgKkc2ducsQgXmdPHAru7DdxiY9hx2/10koZeT4skfoIUWJj44Vz6kKjdHhuiqNhbXTNE4ijZmVlzgADT6iiZnbOAA7W3KNnZW6tdGVzdG5ldC12MzEuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbOAA7axKRub3RlxAi0UXk5/PrScaNyY3bEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKo3NuZMQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+YqkdHlwZaNwYXk=',
-              'base64'
+            algosdk.base64ToBytes(
+              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqNzaWfEQD4FPTlN+xK8ZXmf6jGKe46iUYtVLIq+bNenZS3YsBh+IQUtuSRiiRblYXTNDxmsuWxFpCmRmREd5Hzk/BLszgKkc2ducsQgXmdPHAru7DdxiY9hx2/10koZeT4skfoIUWJj44Vz6kKjdHhuiqNhbXTNE4ijZmVlzgADT6iiZnbOAA7W3KNnZW6tdGVzdG5ldC12MzEuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbOAA7axKRub3RlxAi0UXk5/PrScaNyY3bEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKo3NuZMQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+YqkdHlwZaNwYXk='
             )
           ),
         };
@@ -651,9 +624,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'UGGT5EZXG2OBPGWTEINC65UXIQ6UVAAOTNKRRCRAUCZH4FWJTVQQ',
           blob: new Uint8Array(
-            Buffer.from(
-              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5',
-              'base64'
+            algosdk.base64ToBytes(
+              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5'
             )
           ),
         };
@@ -665,9 +637,8 @@ describe('signLogicSigTransaction', () => {
         const expected = {
           txID: 'DRBC5KBOYEUCL6L6H45GQSRKCCUTPNELUHUSQO4ZWCEODJEXQBBQ',
           blob: new Uint8Array(
-            Buffer.from(
-              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBpHNnbnLEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfpo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKpHR5cGWjcGF5',
-              'base64'
+            algosdk.base64ToBytes(
+              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBpHNnbnLEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfpo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKpHR5cGWjcGF5'
             )
           ),
         };
@@ -675,47 +646,117 @@ describe('signLogicSigTransaction', () => {
       });
     });
   });
+});
 
-  it('should sign a raw transaction object', () => {
-    const lsig = new algosdk.LogicSig(program);
+describe('ProgramSourceMap', () => {
+  const input = {
+    version: 3,
+    sources: ['test/scripts/e2e_subs/tealprogs/sourcemap-test.teal'],
+    names: [],
+    mappings:
+      ';;;;AAGA;;AAAmB;;AAAO;AAAI;;;AAE9B;;AAAO;;AAAO;AACd;;AAAO;AAAO;AALO;AAAI;AASrB;AACA',
+  };
 
-    const from = lsig.address();
-    const to = 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM';
-    const fee = 10;
-    const amount = 847;
-    const firstRound = 51;
-    const lastRound = 61;
-    const note = new Uint8Array([123, 12, 200]);
-    const genesisHash = 'JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=';
-    const genesisID = '';
-    const rekeyTo =
-      'GAQVB24XEPYOPBQNJQAE4K3OLNYTRYD65ZKR3OEW5TDOOGL7MDKABXHHTM';
-    let closeRemainderTo;
-    const txn = {
-      from,
-      to,
-      fee,
-      amount,
-      closeRemainderTo,
-      firstRound,
-      lastRound,
-      note,
-      genesisHash,
-      genesisID,
-      reKeyTo: rekeyTo,
-    };
+  const expectedLocations = new Map<number, algosdk.SourceLocation>([
+    [4, { sourceIndex: 0, line: 3, column: 0 }],
+    [6, { sourceIndex: 0, line: 3, column: 19 }],
+    [8, { sourceIndex: 0, line: 3, column: 26 }],
+    [9, { sourceIndex: 0, line: 3, column: 30 }],
+    [12, { sourceIndex: 0, line: 5, column: 0 }],
+    [14, { sourceIndex: 0, line: 5, column: 7 }],
+    [16, { sourceIndex: 0, line: 5, column: 14 }],
+    [17, { sourceIndex: 0, line: 6, column: 0 }],
+    [19, { sourceIndex: 0, line: 6, column: 7 }],
+    [20, { sourceIndex: 0, line: 6, column: 14 }],
+    [21, { sourceIndex: 0, line: 1, column: 21 }],
+    [22, { sourceIndex: 0, line: 1, column: 25 }],
+    [23, { sourceIndex: 0, line: 10, column: 4 }],
+    [24, { sourceIndex: 0, line: 11, column: 4 }],
+  ]);
 
-    const actual = algosdk.signLogicSigTransaction(txn, lsig);
-    const expected = {
-      txID: 'D7H6THOHOCEWJYNWMKHVOR2W36KAJXSGG6DMNTHTBWONBCG4XATA',
-      blob: new Uint8Array(
-        Buffer.from(
-          'gqRsc2lngaFsxAUBIAEBIqN0eG6Ko2FtdM0DT6NmZWXNCniiZnYzomdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsdj2kbm90ZcQDewzIo3JjdsQgoImqaSLjuZj63/bNSAjd+eAh5JROOJ6j1cY4eGaJGX6lcmVrZXnEIDAhUOuXI/Dnhg1MAE4rbltxOOB+7lUduJbsxucZf2DUo3NuZMQg9nYtrHWxmX1sLJYYBoBQdJDXlREv/n+3YLJzivnH8a2kdHlwZaNwYXk=',
-          'base64'
-        )
-      ),
-    };
+  const expectedPcsForLine = new Map<number, algosdk.PcLineLocation[]>([
+    [
+      3,
+      [
+        { pc: 4, column: 0 },
+        { pc: 6, column: 19 },
+        { pc: 8, column: 26 },
+        { pc: 9, column: 30 },
+      ],
+    ],
+    [
+      5,
+      [
+        { pc: 12, column: 0 },
+        { pc: 14, column: 7 },
+        { pc: 16, column: 14 },
+      ],
+    ],
+    [
+      6,
+      [
+        { pc: 17, column: 0 },
+        { pc: 19, column: 7 },
+        { pc: 20, column: 14 },
+      ],
+    ],
+    [
+      1,
+      [
+        { pc: 21, column: 21 },
+        { pc: 22, column: 25 },
+      ],
+    ],
+    [10, [{ pc: 23, column: 4 }]],
+    [11, [{ pc: 24, column: 4 }]],
+  ]);
 
-    assert.deepStrictEqual(actual, expected);
+  it('should be able to read a ProgramSourceMap', () => {
+    const sourceMap = new algosdk.ProgramSourceMap(input);
+
+    assert.strictEqual(sourceMap.version, input.version);
+    assert.deepStrictEqual(sourceMap.sources, input.sources);
+    assert.deepStrictEqual(sourceMap.names, input.names);
+    assert.strictEqual(sourceMap.mappings, input.mappings);
+  });
+
+  describe('getLocationForPc', () => {
+    it('should return the correct location for all pcs', () => {
+      const sourceMap = new algosdk.ProgramSourceMap(input);
+      const maxPcToCheck = 30;
+
+      for (let pc = 0; pc < maxPcToCheck; pc++) {
+        const expected = expectedLocations.get(pc);
+        assert.deepStrictEqual(
+          sourceMap.getLocationForPc(pc),
+          expected,
+          `pc=${pc}`
+        );
+      }
+    });
+  });
+
+  describe('getPcs', () => {
+    it('should return the correct pcs', () => {
+      const sourceMap = new algosdk.ProgramSourceMap(input);
+      const expectedPcs = Array.from(expectedLocations.keys());
+      assert.deepStrictEqual(sourceMap.getPcs(), expectedPcs);
+    });
+  });
+
+  describe('getPcsForLine', () => {
+    it('should return the correct pcs for all lines', () => {
+      const sourceMap = new algosdk.ProgramSourceMap(input);
+      const maxLineToCheck = 15;
+
+      for (let line = 1; line <= maxLineToCheck; line++) {
+        const expected = expectedPcsForLine.get(line) || [];
+        assert.deepStrictEqual(
+          sourceMap.getPcsOnSourceLine(0, line),
+          expected,
+          `line=${line}`
+        );
+      }
+    });
   });
 });

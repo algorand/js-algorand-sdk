@@ -1,4 +1,8 @@
-import JSONRequest from '../jsonrequest';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { Address } from '../../../encoding/address.js';
+import { AccountsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed accounts.
@@ -11,7 +15,7 @@ import JSONRequest from '../jsonrequest';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accounts)
  * @category GET
  */
-export default class SearchAccounts extends JSONRequest {
+export default class SearchAccounts extends JSONRequest<AccountsResponse> {
   /**
    * @returns `/v2/accounts`
    */
@@ -186,8 +190,8 @@ export default class SearchAccounts extends JSONRequest {
    *
    * @param authAddr
    */
-  authAddr(authAddr: string) {
-    this.query['auth-addr'] = authAddr;
+  authAddr(authAddr: string | Address) {
+    this.query['auth-addr'] = authAddr.toString();
     return this;
   }
 
@@ -265,5 +269,10 @@ export default class SearchAccounts extends JSONRequest {
   exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): AccountsResponse {
+    return decodeJSON(response.getJSONText(), AccountsResponse);
   }
 }

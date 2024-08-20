@@ -1,8 +1,12 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { Address } from '../../../encoding/address.js';
+import { ApplicationLocalStatesResponse } from './models/types.js';
 
-export default class LookupAccountAppLocalStates extends JSONRequest {
+export default class LookupAccountAppLocalStates extends JSONRequest<ApplicationLocalStatesResponse> {
+  private account: string | Address;
+
   /**
    * Returns application local state about the given account.
    *
@@ -16,13 +20,9 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
-    this.account = account;
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
+    this.account = account.toString();
   }
 
   /**
@@ -136,5 +136,10 @@ export default class LookupAccountAppLocalStates extends JSONRequest {
   applicationID(index: number) {
     this.query['application-id'] = index;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): ApplicationLocalStatesResponse {
+    return decodeJSON(response.getJSONText(), ApplicationLocalStatesResponse);
   }
 }

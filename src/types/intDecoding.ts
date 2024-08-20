@@ -6,7 +6,7 @@ enum IntDecoding {
    * All integers will be decoded as Numbers, meaning any values greater than
    * Number.MAX_SAFE_INTEGER will lose precision.
    */
-  DEFAULT = 'default',
+  UNSAFE = 'unsafe',
 
   /**
    * All integers will be decoded as Numbers, but if any values are greater than

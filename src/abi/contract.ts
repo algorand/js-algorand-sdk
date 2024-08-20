@@ -1,5 +1,5 @@
-import { ABIMethod, ABIMethodParams, getMethodByName } from './method';
-import { ARC28Event } from './event';
+import { ABIMethod, ABIMethodParams, getMethodByName } from './method.js';
+import { ARC28Event } from './event.js';
 
 export interface ABIContractNetworkInfo {
   appID: number;

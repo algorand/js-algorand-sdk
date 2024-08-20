@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import algosdk from '../src';
 import { getLocalAccounts, getLocalAlgodClient } from './utils';
 
@@ -23,11 +22,11 @@ async function main() {
   // example: TRANSACTION_PAYMENT_CREATE
   const suggestedParams = await algodClient.getTransactionParams().do();
   const ptxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct.addr,
+    sender: acct.addr,
     suggestedParams,
-    to: acct2.addr,
+    receiver: acct2.addr,
     amount: 10000,
-    note: new Uint8Array(Buffer.from('hello world')),
+    note: algosdk.coerceToBytes('hello world'),
   });
   // example: TRANSACTION_PAYMENT_CREATE
 
@@ -36,11 +35,13 @@ async function main() {
   // example: TRANSACTION_PAYMENT_SIGN
 
   // example: TRANSACTION_PAYMENT_SUBMIT
-  const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
-  const result = await algosdk.waitForConfirmation(algodClient, txId, 4);
+  const { txid } = await algodClient.sendRawTransaction(signedTxn).do();
+  const result = await algosdk.waitForConfirmation(algodClient, txid, 4);
   console.log(result);
-  console.log(`Transaction Information: ${result.txn}`);
-  console.log(`Decoded Note: ${Buffer.from(result.txn.txn.note).toString()}`);
+  console.log(`Transaction Information: ${algosdk.stringifyJSON(result.txn)}`);
+  console.log(
+    `Decoded Note: ${new TextDecoder('utf-8').decode(result.txn.txn.note)}`
+  );
   // example: TRANSACTION_PAYMENT_SUBMIT
 
   // example: ALGOD_FETCH_ACCOUNT_INFO

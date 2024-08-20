@@ -4,7 +4,6 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
-import { Buffer } from 'buffer';
 import { getLocalAlgodClient, getLocalAccounts, compileProgram } from './utils';
 import algosdk from '../src';
 
@@ -27,20 +26,16 @@ async function main() {
   // example: APP_SOURCE
 
   // example: APP_COMPILE
-  const approvalCompileResp = await algodClient
-    .compile(Buffer.from(approvalProgram))
-    .do();
+  const approvalCompileResp = await algodClient.compile(approvalProgram).do();
 
-  const compiledApprovalProgram = new Uint8Array(
-    Buffer.from(approvalCompileResp.result, 'base64')
+  const compiledApprovalProgram: Uint8Array = algosdk.base64ToBytes(
+    approvalCompileResp.result
   );
 
-  const clearCompileResp = await algodClient
-    .compile(Buffer.from(clearProgram))
-    .do();
+  const clearCompileResp = await algodClient.compile(clearProgram).do();
 
-  const compiledClearProgram = new Uint8Array(
-    Buffer.from(clearCompileResp.result, 'base64')
+  const compiledClearProgram: Uint8Array = algosdk.base64ToBytes(
+    clearCompileResp.result
   );
   // example: APP_COMPILE
 
@@ -54,9 +49,9 @@ async function main() {
 
   // example: APP_CREATE
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
-    from: creator.addr,
-    approvalProgram: compiledApprovalProgram,
-    clearProgram: compiledClearProgram,
+    sender: creator.addr,
+    approvalProgram: new Uint8Array(compiledApprovalProgram),
+    clearProgram: new Uint8Array(compiledClearProgram),
     numGlobalByteSlices,
     numGlobalInts,
     numLocalByteSlices,
@@ -71,11 +66,11 @@ async function main() {
     .do();
   const result = await algosdk.waitForConfirmation(
     algodClient,
-    appCreateTxn.txID().toString(),
+    appCreateTxn.txID(),
     3
   );
   // Grab app id from confirmed transaction result
-  const appId = result['application-index'];
+  const appId = Number(result.applicationIndex);
   console.log(`Created app with index: ${appId}`);
   // example: APP_CREATE
 
@@ -83,7 +78,7 @@ async function main() {
 
   // example: APP_OPTIN
   const appOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -91,16 +86,12 @@ async function main() {
   await algodClient
     .sendRawTransaction(appOptInTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appOptInTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appOptInTxn.txID(), 3);
   // example: APP_OPTIN
 
   // example: APP_NOOP
   const appNoOpTxn = algosdk.makeApplicationNoOpTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -108,17 +99,13 @@ async function main() {
   await algodClient
     .sendRawTransaction(appNoOpTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appNoOpTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appNoOpTxn.txID(), 3);
   // example: APP_NOOP
 
   const anotherCaller = accounts[2];
 
   const anotherAppOptInTxn = algosdk.makeApplicationOptInTxnFromObject({
-    from: anotherCaller.addr,
+    sender: anotherCaller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -126,63 +113,68 @@ async function main() {
   await algodClient
     .sendRawTransaction(anotherAppOptInTxn.signTxn(anotherCaller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    anotherAppOptInTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, anotherAppOptInTxn.txID(), 3);
 
   // example: APP_CALL
   const now = new Date().toString();
   const simpleAddTxn = algosdk.makeApplicationNoOpTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     suggestedParams,
     appIndex: appId,
-    appArgs: [new Uint8Array(Buffer.from(now))],
+    appArgs: [algosdk.coerceToBytes(now)],
   });
 
   await algodClient
     .sendRawTransaction(simpleAddTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    simpleAddTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, simpleAddTxn.txID(), 3);
   // example: APP_CALL
 
   // example: APP_READ_STATE
   const appInfo = await algodClient.getApplicationByID(appId).do();
-  const globalState = appInfo.params['global-state'][0];
-  console.log(`Raw global state - ${JSON.stringify(globalState)}`);
-
-  // decode b64 string key with Buffer
-  const globalKey = Buffer.from(globalState.key, 'base64').toString();
-  // decode b64 address value with encodeAddress and Buffer
-  const globalValue = algosdk.encodeAddress(
-    Buffer.from(globalState.value.bytes, 'base64')
+  if (!appInfo.params.globalState || appInfo.params.globalState.length === 0) {
+    throw new Error('Global state not present');
+  }
+  const { globalState } = appInfo.params;
+  console.log(
+    `Raw global state - ${globalState.map((kv) => algosdk.encodeJSON(kv))}`
   );
 
-  console.log(`Decoded global state - ${globalKey}: ${globalValue}`);
+  const globalKey = globalState[0].key;
+  // show global value
+  const globalValue = globalState[0].value.bytes;
+
+  console.log(
+    `Decoded global state - ${algosdk.bytesToBase64(globalKey)}: ${algosdk.bytesToBase64(globalValue)}`
+  );
 
   const accountAppInfo = await algodClient
     .accountApplicationInformation(caller.addr, appId)
     .do();
+  if (
+    !accountAppInfo.appLocalState ||
+    !accountAppInfo.appLocalState.keyValue ||
+    accountAppInfo.appLocalState.keyValue.length === 0
+  ) {
+    throw new Error('Local state values not present');
+  }
+  const localState = accountAppInfo.appLocalState.keyValue;
+  console.log(
+    `Raw local state - ${localState.map((kv) => algosdk.encodeJSON(kv))}`
+  );
 
-  const localState = accountAppInfo['app-local-state']['key-value'][0];
-  console.log(`Raw local state - ${JSON.stringify(localState)}`);
-
-  // decode b64 string key with Buffer
-  const localKey = Buffer.from(localState.key, 'base64').toString();
+  const localKey = localState[0].key;
   // get uint value directly
-  const localValue = localState.value.uint;
+  const localValue = localState[0].value.uint;
 
-  console.log(`Decoded local state - ${localKey}: ${localValue}`);
+  console.log(
+    `Decoded local state - ${algosdk.bytesToBase64(localKey)}: ${localValue}`
+  );
   // example: APP_READ_STATE
 
   // example: APP_CLOSEOUT
   const appCloseOutTxn = algosdk.makeApplicationCloseOutTxnFromObject({
-    from: caller.addr,
+    sender: caller.addr,
     appIndex: appId,
     suggestedParams,
   });
@@ -190,11 +182,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appCloseOutTxn.signTxn(caller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appCloseOutTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appCloseOutTxn.txID(), 3);
   // example: APP_CLOSEOUT
 
   // example: APP_UPDATE
@@ -205,27 +193,23 @@ async function main() {
   const compiledNewProgram = await compileProgram(algodClient, newProgram);
 
   const appUpdateTxn = algosdk.makeApplicationUpdateTxnFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     suggestedParams,
     appIndex: appId,
     // updates must define both approval and clear programs, even if unchanged
-    approvalProgram: compiledNewProgram,
-    clearProgram: compiledClearProgram,
+    approvalProgram: new Uint8Array(compiledNewProgram),
+    clearProgram: new Uint8Array(compiledClearProgram),
   });
 
   await algodClient
     .sendRawTransaction(appUpdateTxn.signTxn(creator.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appUpdateTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appUpdateTxn.txID(), 3);
   // example: APP_UPDATE
 
   // example: APP_CLEAR
   const appClearTxn = algosdk.makeApplicationClearStateTxnFromObject({
-    from: anotherCaller.addr,
+    sender: anotherCaller.addr,
     suggestedParams,
     appIndex: appId,
   });
@@ -233,16 +217,12 @@ async function main() {
   await algodClient
     .sendRawTransaction(appClearTxn.signTxn(anotherCaller.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appClearTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appClearTxn.txID(), 3);
   // example: APP_CLEAR
 
   // example: APP_DELETE
   const appDeleteTxn = algosdk.makeApplicationDeleteTxnFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     suggestedParams,
     appIndex: appId,
   });
@@ -250,11 +230,7 @@ async function main() {
   await algodClient
     .sendRawTransaction(appDeleteTxn.signTxn(creator.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    appDeleteTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, appDeleteTxn.txID(), 3);
   // example: APP_DELETE
 }
 
