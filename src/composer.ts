@@ -716,7 +716,7 @@ export class AtomicTransactionComposer {
     client: AlgodClient,
     waitRounds: number
   ): Promise<{
-    confirmedRound: number;
+    confirmedRound: bigint;
     txIDs: string[];
     methodResults: ABIResult[];
   }> {
@@ -741,7 +741,7 @@ export class AtomicTransactionComposer {
     );
     this.status = AtomicTransactionComposerStatus.COMMITTED;
 
-    const confirmedRound = Number(confirmedTxnInfo.confirmedRound);
+    const confirmedRound = confirmedTxnInfo.confirmedRound!;
 
     const methodResults: ABIResult[] = [];
 

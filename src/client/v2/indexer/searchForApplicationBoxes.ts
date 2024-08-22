@@ -4,6 +4,8 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { BoxesResponse } from './models/types.js';
 
 export default class SearchForApplicationBoxes extends JSONRequest<BoxesResponse> {
+  private index: bigint;
+
   /**
    * Returns information about indexed application boxes.
    *
@@ -30,11 +32,9 @@ export default class SearchForApplicationBoxes extends JSONRequest<BoxesResponse
    * @oaram index - application index.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    private index: number
-  ) {
+  constructor(c: HTTPClient, index: number | bigint) {
     super(c);
+    this.index = BigInt(index);
   }
 
   /**

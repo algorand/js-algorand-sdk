@@ -130,7 +130,7 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
 export async function deployCalculatorApp(
   algodClient: algosdk.Algodv2,
   creator: SandboxAccount
-): Promise<number> {
+): Promise<bigint> {
   const approvalProgram = fs.readFileSync(
     path.join(__dirname, '/calculator/approval.teal'),
     'utf8'
@@ -164,6 +164,9 @@ export async function deployCalculatorApp(
     appCreateTxn.txID(),
     3
   );
-  const appId = Number(result.applicationIndex);
+  const appId = result.applicationIndex;
+  if (!appId) {
+    throw new Error('Application not created');
+  }
   return appId;
 }

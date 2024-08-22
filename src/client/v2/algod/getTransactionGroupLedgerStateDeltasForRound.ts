@@ -4,11 +4,11 @@ import { HTTPClient, HTTPClientResponse } from '../../client.js';
 import { decodeMsgpack } from '../../../encoding/encoding.js';
 
 export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRequest<TransactionGroupLedgerStateDeltasForRoundResponse> {
-  constructor(
-    c: HTTPClient,
-    private round: number
-  ) {
+  private round: bigint;
+
+  constructor(c: HTTPClient, round: number | bigint) {
     super(c);
+    this.round = BigInt(round);
     this.query = { format: 'msgpack' };
   }
 

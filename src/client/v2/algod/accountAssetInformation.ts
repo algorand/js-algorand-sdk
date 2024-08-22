@@ -6,14 +6,16 @@ import { Address } from '../../../encoding/address.js';
 
 export default class AccountAssetInformation extends JSONRequest<AccountAssetResponse> {
   private account: string;
+  private assetID: bigint;
 
   constructor(
     c: HTTPClient,
     account: string | Address,
-    private assetID: number
+    assetID: number | bigint
   ) {
     super(c);
     this.account = account.toString();
+    this.assetID = BigInt(assetID);
   }
 
   path() {

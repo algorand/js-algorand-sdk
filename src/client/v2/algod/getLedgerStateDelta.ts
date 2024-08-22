@@ -4,11 +4,11 @@ import { decodeMsgpack } from '../../../encoding/encoding.js';
 import { LedgerStateDelta } from '../../../types/statedelta.js';
 
 export default class GetLedgerStateDelta extends JSONRequest<LedgerStateDelta> {
-  constructor(
-    c: HTTPClient,
-    private round: number
-  ) {
+  private round: bigint;
+
+  constructor(c: HTTPClient, round: number | bigint) {
     super(c);
+    this.round = BigInt(round);
     this.query = { format: 'msgpack' };
   }
 

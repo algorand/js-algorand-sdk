@@ -4,12 +4,11 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { NodeStatusResponse } from './models/types.js';
 
 export default class StatusAfterBlock extends JSONRequest<NodeStatusResponse> {
-  constructor(
-    c: HTTPClient,
-    private round: number
-  ) {
+  private round: bigint;
+
+  constructor(c: HTTPClient, round: number | bigint) {
     super(c);
-    if (!Number.isInteger(round)) throw Error('round should be an integer');
+    this.round = BigInt(round);
   }
 
   path() {

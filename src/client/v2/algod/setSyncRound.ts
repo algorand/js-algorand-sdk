@@ -2,11 +2,11 @@ import JSONRequest from '../jsonrequest.js';
 import { HTTPClient, HTTPClientResponse } from '../../client.js';
 
 export default class SetSyncRound extends JSONRequest<void> {
-  constructor(
-    c: HTTPClient,
-    private round: number
-  ) {
+  private round: bigint;
+
+  constructor(c: HTTPClient, round: number | bigint) {
     super(c);
+    this.round = BigInt(round);
   }
 
   path() {

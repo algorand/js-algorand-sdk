@@ -7,11 +7,11 @@ import { BlockResponse } from './models/types.js';
  * block gets the block info for the given round. this call may block
  */
 export default class Block extends JSONRequest<BlockResponse> {
-  private round: number;
+  private round: bigint;
 
-  constructor(c: HTTPClient, roundNumber: number) {
+  constructor(c: HTTPClient, roundNumber: number | bigint) {
     super(c);
-    this.round = roundNumber;
+    this.round = BigInt(roundNumber);
     this.query = { format: 'msgpack' };
   }
 

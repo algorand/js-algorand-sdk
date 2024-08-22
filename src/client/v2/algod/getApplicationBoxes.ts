@@ -18,11 +18,11 @@ import { BoxesResponse } from './models/types.js';
  * @category GET
  */
 export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
-  constructor(
-    c: HTTPClient,
-    private index: number
-  ) {
+  private index: bigint;
+
+  constructor(c: HTTPClient, index: number | bigint) {
     super(c);
+    this.index = BigInt(index);
     this.query.max = 0;
   }
 

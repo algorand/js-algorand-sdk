@@ -68,8 +68,8 @@ export default class LookupAccountCreatedApplications extends JSONRequest<Applic
    * @param round
    * @category query
    */
-  round(round: number) {
-    this.query.round = round;
+  round(round: number | bigint) {
+    this.query.round = round.toString();
     return this;
   }
 
@@ -134,8 +134,8 @@ export default class LookupAccountCreatedApplications extends JSONRequest<Applic
    * @param index - the applicationID
    * @category query
    */
-  applicationID(index: number) {
-    this.query['application-id'] = index;
+  applicationID(index: number | bigint) {
+    this.query['application-id'] = index.toString();
     return this;
   }
 

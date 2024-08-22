@@ -46,8 +46,8 @@ export default class LookupAccountByID extends JSONRequest<AccountResponse> {
    * ```
    * @param round
    */
-  round(round: number) {
-    this.query.round = round;
+  round(round: number | bigint) {
+    this.query.round = round.toString();
     return this;
   }
 

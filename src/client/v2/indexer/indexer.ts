@@ -104,7 +104,7 @@ export class IndexerClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  lookupAssetBalances(index: number) {
+  lookupAssetBalances(index: number | bigint) {
     return new LookupAssetBalances(this.c, index);
   }
 
@@ -121,7 +121,7 @@ export class IndexerClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  lookupAssetTransactions(index: number) {
+  lookupAssetTransactions(index: number | bigint) {
     return new LookupAssetTransactions(this.c, index);
   }
 
@@ -155,7 +155,7 @@ export class IndexerClient extends ServiceClient {
    * @param round - The number of the round to look up.
    * @category GET
    */
-  lookupBlock(round: number) {
+  lookupBlock(round: number | bigint) {
     return new LookupBlock(this.c, round);
   }
 
@@ -274,7 +274,7 @@ export class IndexerClient extends ServiceClient {
    * @param index - The ID of the asset ot look up.
    * @category GET
    */
-  lookupAssetByID(index: number) {
+  lookupAssetByID(index: number | bigint) {
     return new LookupAssetByID(this.c, index);
   }
 
@@ -291,7 +291,7 @@ export class IndexerClient extends ServiceClient {
    * @param index - The ID of the application to look up.
    * @category GET
    */
-  lookupApplications(index: number) {
+  lookupApplications(index: number | bigint) {
     return new LookupApplications(this.c, index);
   }
 
@@ -308,7 +308,7 @@ export class IndexerClient extends ServiceClient {
    * @param appID - The ID of the application which generated the logs.
    * @category GET
    */
-  lookupApplicationLogs(appID: number) {
+  lookupApplicationLogs(appID: number | bigint) {
     return new LookupApplicationLogs(this.c, appID);
   }
 
@@ -398,7 +398,7 @@ export class IndexerClient extends ServiceClient {
    * @param appID - The ID of the application with boxes.
    * @category GET
    */
-  searchForApplicationBoxes(appID: number) {
+  searchForApplicationBoxes(appID: number | bigint) {
     return new SearchForApplicationBoxes(this.c, appID);
   }
 
@@ -418,7 +418,7 @@ export class IndexerClient extends ServiceClient {
    * @param appID - The ID of the application with boxes.
    * @category GET
    */
-  lookupApplicationBoxByIDandName(appID: number, boxName: Uint8Array) {
+  lookupApplicationBoxByIDandName(appID: number | bigint, boxName: Uint8Array) {
     return new LookupApplicationBoxByIDandName(this.c, appID, boxName);
   }
 }

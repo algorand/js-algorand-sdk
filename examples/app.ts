@@ -70,7 +70,10 @@ async function main() {
     3
   );
   // Grab app id from confirmed transaction result
-  const appId = Number(result.applicationIndex);
+  const appId = result.applicationIndex;
+  if (!appId) {
+    throw new Error('App not created');
+  }
   console.log(`Created app with index: ${appId}`);
   // example: APP_CREATE
 

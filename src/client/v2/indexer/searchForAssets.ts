@@ -119,8 +119,8 @@ export default class SearchForAssets extends JSONRequest<AssetsResponse> {
    * @param index
    * @category query
    */
-  index(index: number) {
-    this.query['asset-id'] = index;
+  index(index: number | bigint) {
+    this.query['asset-id'] = index.toString();
     return this;
   }
 

@@ -4,13 +4,11 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { BlockTxidsResponse } from './models/types.js';
 
 export default class GetBlockTxids extends JSONRequest<BlockTxidsResponse> {
-  round: number;
+  private round: bigint;
 
-  constructor(c: HTTPClient, roundNumber: number) {
+  constructor(c: HTTPClient, roundNumber: number | bigint) {
     super(c);
-    if (!Number.isInteger(roundNumber))
-      throw Error('roundNumber should be an integer');
-    this.round = roundNumber;
+    this.round = BigInt(roundNumber);
   }
 
   path() {

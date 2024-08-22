@@ -4,6 +4,8 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { Block } from './models/types.js';
 
 export default class LookupBlock extends JSONRequest<Block> {
+  private round: bigint;
+
   /**
    * Returns the block for the passed round.
    *
@@ -17,11 +19,9 @@ export default class LookupBlock extends JSONRequest<Block> {
    * @param round - The number of the round to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    private round: number
-  ) {
+  constructor(c: HTTPClient, round: number | bigint) {
     super(c);
+    this.round = BigInt(round);
   }
 
   /**

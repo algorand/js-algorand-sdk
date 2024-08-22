@@ -4,11 +4,11 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { Application } from './models/types.js';
 
 export default class GetApplicationByID extends JSONRequest<Application> {
-  constructor(
-    c: HTTPClient,
-    private index: number | bigint
-  ) {
+  private index: bigint;
+
+  constructor(c: HTTPClient, index: number | bigint) {
     super(c);
+    this.index = BigInt(index);
   }
 
   path() {

@@ -145,8 +145,8 @@ export default class LookupAccountTransactions extends JSONRequest<TransactionsR
    * @param round
    * @category query
    */
-  round(round: number) {
-    this.query.round = round;
+  round(round: number | bigint) {
+    this.query.round = round.toString();
     return this;
   }
 
@@ -166,8 +166,8 @@ export default class LookupAccountTransactions extends JSONRequest<TransactionsR
    * @param round
    * @category query
    */
-  minRound(round: number) {
-    this.query['min-round'] = round;
+  minRound(round: number | bigint) {
+    this.query['min-round'] = round.toString();
     return this;
   }
 
@@ -187,8 +187,8 @@ export default class LookupAccountTransactions extends JSONRequest<TransactionsR
    * @param round
    * @category query
    */
-  maxRound(round: number) {
-    this.query['max-round'] = round;
+  maxRound(round: number | bigint) {
+    this.query['max-round'] = round.toString();
     return this;
   }
 
@@ -208,8 +208,8 @@ export default class LookupAccountTransactions extends JSONRequest<TransactionsR
    * @param id
    * @category query
    */
-  assetID(id: number) {
-    this.query['asset-id'] = id;
+  assetID(id: number | bigint) {
+    this.query['asset-id'] = id.toString();
     return this;
   }
 
@@ -306,7 +306,7 @@ export default class LookupAccountTransactions extends JSONRequest<TransactionsR
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: number | bigint) {
     // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
@@ -340,8 +340,8 @@ export default class LookupAccountTransactions extends JSONRequest<TransactionsR
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
-    this.query['currency-less-than'] = lesser;
+  currencyLessThan(lesser: number | bigint) {
+    this.query['currency-less-than'] = lesser.toString();
     return this;
   }
 

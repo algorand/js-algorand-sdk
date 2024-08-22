@@ -2,11 +2,11 @@ import JSONRequest from '../jsonrequest.js';
 import { HTTPClient, HTTPClientResponse } from '../../client.js';
 
 export default class SetBlockOffsetTimestamp extends JSONRequest<void> {
-  constructor(
-    c: HTTPClient,
-    private offset: number
-  ) {
+  private offset: bigint;
+
+  constructor(c: HTTPClient, offset: number | bigint) {
     super(c);
+    this.offset = BigInt(offset);
   }
 
   path() {

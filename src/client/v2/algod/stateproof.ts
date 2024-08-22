@@ -4,11 +4,11 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { StateProof as SP } from './models/types.js';
 
 export default class StateProof extends JSONRequest<SP> {
-  constructor(
-    c: HTTPClient,
-    private round: number
-  ) {
+  private round: bigint;
+
+  constructor(c: HTTPClient, round: number | bigint) {
     super(c);
+    this.round = BigInt(round);
   }
 
   path() {

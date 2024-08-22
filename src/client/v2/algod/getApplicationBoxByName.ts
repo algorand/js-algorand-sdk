@@ -20,12 +20,11 @@ import { Box } from './models/types.js';
  * @category GET
  */
 export default class GetApplicationBoxByName extends JSONRequest<Box> {
-  constructor(
-    c: HTTPClient,
-    private index: number,
-    name: Uint8Array
-  ) {
+  private index: bigint;
+
+  constructor(c: HTTPClient, index: number | bigint, name: Uint8Array) {
     super(c);
+    this.index = BigInt(index);
     // Encode name in base64 format and append the encoding prefix.
     const encodedName = bytesToBase64(name);
     this.query.name = encodeURI(`b64:${encodedName}`);
