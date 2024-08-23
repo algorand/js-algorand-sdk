@@ -134,7 +134,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @category query
    */
   round(round: number | bigint) {
-    this.query.round = round.toString();
+    this.query.round = round;
     return this;
   }
 
@@ -155,7 +155,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @category query
    */
   minRound(round: number | bigint) {
-    this.query['min-round'] = round.toString();
+    this.query['min-round'] = round;
     return this;
   }
 
@@ -176,7 +176,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @category query
    */
   maxRound(round: number | bigint) {
-    this.query['max-round'] = round.toString();
+    this.query['max-round'] = round;
     return this;
   }
 
@@ -284,7 +284,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @category query
    */
   currencyLessThan(lesser: number | bigint) {
-    this.query['currency-less-than'] = lesser.toString();
+    this.query['currency-less-than'] = lesser;
     return this;
   }
 

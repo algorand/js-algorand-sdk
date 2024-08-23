@@ -40,7 +40,7 @@ export default class SearchForApplications extends JSONRequest<ApplicationsRespo
    * @category query
    */
   index(index: number | bigint) {
-    this.query['application-id'] = index.toString();
+    this.query['application-id'] = index;
     return this;
   }
 

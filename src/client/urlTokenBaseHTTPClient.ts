@@ -95,7 +95,7 @@ export class URLTokenBaseHTTPClient implements BaseHTTPClient {
     const address = new URL(fixedRelativePath, this.baseURL);
     if (query) {
       for (const [key, value] of Object.entries(query)) {
-        address.searchParams.set(key, value);
+        address.searchParams.set(key, value.toString());
       }
     }
     return address.toString();

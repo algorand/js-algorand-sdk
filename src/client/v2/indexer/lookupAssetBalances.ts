@@ -88,7 +88,7 @@ export default class LookupAssetBalances extends JSONRequest<AssetBalancesRespon
    * @category query
    */
   currencyLessThan(lesser: number | bigint) {
-    this.query['currency-less-than'] = lesser.toString();
+    this.query['currency-less-than'] = lesser;
     return this;
   }
 

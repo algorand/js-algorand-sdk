@@ -2791,7 +2791,7 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAssetBalances call', async function () {
     anyLookupAssetBalancesResponse = await this.indexerClient
-      .lookupAssetBalances()
+      .lookupAssetBalances(1)
       .do();
   });
 
@@ -2884,7 +2884,7 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAssetTransactions call', async function () {
     anyLookupAssetTransactionsResponse = await this.indexerClient
-      .lookupAssetTransactions()
+      .lookupAssetTransactions(1)
       .do();
   });
 
@@ -2943,7 +2943,7 @@ module.exports = function getSteps(options) {
   let anyLookupBlockResponse;
 
   When('we make any LookupBlock call', async function () {
-    anyLookupBlockResponse = await this.indexerClient.lookupBlock().do();
+    anyLookupBlockResponse = await this.indexerClient.lookupBlock(1).do();
   });
 
   Then(
@@ -2977,7 +2977,7 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAssetByID call', async function () {
     anyLookupAssetByIDResponse = await this.indexerClient
-      .lookupAssetByID()
+      .lookupAssetByID(1)
       .do();
   });
 

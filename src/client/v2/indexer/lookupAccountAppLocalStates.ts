@@ -69,7 +69,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest<Application
    * @category query
    */
   round(round: number | bigint) {
-    this.query.round = round.toString();
+    this.query.round = round;
     return this;
   }
 
@@ -134,7 +134,7 @@ export default class LookupAccountAppLocalStates extends JSONRequest<Application
    * @category query
    */
   applicationID(index: number | bigint) {
-    this.query['application-id'] = index.toString();
+    this.query['application-id'] = index;
     return this;
   }
 

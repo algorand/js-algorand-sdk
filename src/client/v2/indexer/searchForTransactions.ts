@@ -122,7 +122,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @category query
    */
   round(round: number | bigint) {
-    this.query.round = round.toString();
+    this.query.round = round;
     return this;
   }
 
@@ -142,7 +142,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @category query
    */
   minRound(round: number | bigint) {
-    this.query['min-round'] = round.toString();
+    this.query['min-round'] = round;
     return this;
   }
 
@@ -162,7 +162,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @category query
    */
   maxRound(round: number | bigint) {
-    this.query['max-round'] = round.toString();
+    this.query['max-round'] = round;
     return this;
   }
 
@@ -182,7 +182,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @category query
    */
   assetID(id: number | bigint) {
-    this.query['asset-id'] = id.toString();
+    this.query['asset-id'] = id;
     return this;
   }
 
@@ -371,7 +371,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @category query
    */
   applicationID(applicationID: number | bigint) {
-    this.query['application-id'] = applicationID.toString();
+    this.query['application-id'] = applicationID;
     return this;
   }
 
@@ -434,7 +434,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @category query
    */
   currencyLessThan(lesser: number | bigint) {
-    this.query['currency-less-than'] = lesser.toString();
+    this.query['currency-less-than'] = lesser;
     return this;
   }
 

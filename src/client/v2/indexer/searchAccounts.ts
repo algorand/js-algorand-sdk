@@ -85,7 +85,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @category query
    */
   currencyLessThan(lesser: number | bigint) {
-    this.query['currency-less-than'] = lesser.toString();
+    this.query['currency-less-than'] = lesser;
     return this;
   }
 
@@ -125,7 +125,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @category query
    */
   assetID(id: number | bigint) {
-    this.query['asset-id'] = id.toString();
+    this.query['asset-id'] = id;
     return this;
   }
 
@@ -172,7 +172,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @category query
    */
   round(round: number | bigint) {
-    this.query.round = round.toString();
+    this.query.round = round;
     return this;
   }
 
@@ -211,7 +211,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @category query
    */
   applicationID(applicationID: number | bigint) {
-    this.query['application-id'] = applicationID.toString();
+    this.query['application-id'] = applicationID;
     return this;
   }
 

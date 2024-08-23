@@ -69,7 +69,7 @@ export default class LookupAccountAssets extends JSONRequest<AssetHoldingsRespon
    * @category query
    */
   round(round: number | bigint) {
-    this.query.round = round.toString();
+    this.query.round = round;
     return this;
   }
 
@@ -135,7 +135,7 @@ export default class LookupAccountAssets extends JSONRequest<AssetHoldingsRespon
    * @category query
    */
   assetId(index: number | bigint) {
-    this.query['asset-id'] = index.toString();
+    this.query['asset-id'] = index;
     return this;
   }
 

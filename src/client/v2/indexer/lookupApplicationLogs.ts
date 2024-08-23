@@ -66,7 +66,7 @@ export default class LookupApplicationLogs extends JSONRequest<ApplicationLogsRe
    * @category query
    */
   minRound(round: number | bigint) {
-    this.query['min-round'] = round.toString();
+    this.query['min-round'] = round;
     return this;
   }
 
@@ -86,7 +86,7 @@ export default class LookupApplicationLogs extends JSONRequest<ApplicationLogsRe
    * @category query
    */
   maxRound(round: number | bigint) {
-    this.query['max-round'] = round.toString();
+    this.query['max-round'] = round;
     return this;
   }
 
