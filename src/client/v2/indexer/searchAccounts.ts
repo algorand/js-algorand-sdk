@@ -52,7 +52,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: number | bigint) {
     // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
@@ -84,7 +84,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: number | bigint) {
     this.query['currency-less-than'] = lesser;
     return this;
   }
@@ -124,7 +124,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @param id
    * @category query
    */
-  assetID(id: number) {
+  assetID(id: number | bigint) {
     this.query['asset-id'] = id;
     return this;
   }
@@ -171,7 +171,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -210,7 +210,7 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
    * @param applicationID
    * @category query
    */
-  applicationID(applicationID: number) {
+  applicationID(applicationID: number | bigint) {
     this.query['application-id'] = applicationID;
     return this;
   }

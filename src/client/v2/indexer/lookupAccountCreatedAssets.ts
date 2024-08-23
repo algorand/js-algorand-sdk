@@ -68,7 +68,7 @@ export default class LookupAccountCreatedAssets extends JSONRequest<AssetsRespon
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -135,7 +135,7 @@ export default class LookupAccountCreatedAssets extends JSONRequest<AssetsRespon
    * @param index - the assetID
    * @category query
    */
-  assetID(index: number) {
+  assetID(index: number | bigint) {
     this.query['asset-id'] = index;
     return this;
   }

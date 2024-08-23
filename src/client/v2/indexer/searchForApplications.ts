@@ -39,7 +39,7 @@ export default class SearchForApplications extends JSONRequest<ApplicationsRespo
    * @param index
    * @category query
    */
-  index(index: number) {
+  index(index: number | bigint) {
     this.query['application-id'] = index;
     return this;
   }

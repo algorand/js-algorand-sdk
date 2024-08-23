@@ -6,14 +6,16 @@ import { Address } from '../../../encoding/address.js';
 
 export default class AccountApplicationInformation extends JSONRequest<AccountApplicationResponse> {
   private account: string;
+  private applicationID: bigint;
 
   constructor(
     c: HTTPClient,
     account: string | Address,
-    private applicationID: number
+    applicationID: number | bigint
   ) {
     super(c);
     this.account = account.toString();
+    this.applicationID = BigInt(applicationID);
   }
 
   path() {

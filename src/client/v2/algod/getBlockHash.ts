@@ -4,11 +4,11 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { BlockHashResponse } from './models/types.js';
 
 export default class GetBlockHash extends JSONRequest<BlockHashResponse> {
-  round: number | bigint;
+  private round: bigint;
 
-  constructor(c: HTTPClient, roundNumber: number) {
+  constructor(c: HTTPClient, roundNumber: number | bigint) {
     super(c);
-    this.round = roundNumber;
+    this.round = BigInt(roundNumber);
   }
 
   path() {

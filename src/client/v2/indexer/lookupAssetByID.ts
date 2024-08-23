@@ -4,6 +4,8 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { AssetResponse } from './models/types.js';
 
 export default class LookupAssetByID extends JSONRequest<AssetResponse> {
+  private index: bigint;
+
   /**
    * Returns asset information of the queried asset.
    *
@@ -16,11 +18,9 @@ export default class LookupAssetByID extends JSONRequest<AssetResponse> {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-id)
    * @param index - The asset ID to look up.
    */
-  constructor(
-    c: HTTPClient,
-    private index: number
-  ) {
+  constructor(c: HTTPClient, index: number | bigint) {
     super(c);
+    this.index = BigInt(index);
   }
 
   /**

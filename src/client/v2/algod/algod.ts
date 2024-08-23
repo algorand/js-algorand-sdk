@@ -96,7 +96,7 @@ export class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const health = await algodClient.healthCheck().do();
+   * await algodClient.healthCheck().do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-health)
@@ -126,7 +126,7 @@ export class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+   * const { txid } = await algodClient.sendRawTransaction(signedTxns).do();
    * const result = await waitForConfirmation(algodClient, txid, 3);
    * ```
    *
@@ -173,7 +173,7 @@ export class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  accountAssetInformation(account: string | Address, index: number) {
+  accountAssetInformation(account: string | Address, index: number | bigint) {
     return new AccountAssetInformation(this.c, account, index);
   }
 
@@ -192,7 +192,10 @@ export class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  accountApplicationInformation(account: string | Address, index: number) {
+  accountApplicationInformation(
+    account: string | Address,
+    index: number | bigint
+  ) {
     return new AccountApplicationInformation(this.c, account, index);
   }
 
@@ -209,7 +212,7 @@ export class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  block(roundNumber: number) {
+  block(roundNumber: number | bigint) {
     return new Block(this.c, roundNumber);
   }
 
@@ -226,7 +229,7 @@ export class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  getBlockHash(roundNumber: number) {
+  getBlockHash(roundNumber: number | bigint) {
     return new GetBlockHash(this.c, roundNumber);
   }
 
@@ -243,7 +246,7 @@ export class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  getBlockTxids(roundNumber: number) {
+  getBlockTxids(roundNumber: number | bigint) {
     return new GetBlockTxids(this.c, roundNumber);
   }
 
@@ -355,7 +358,7 @@ export class AlgodClient extends ServiceClient {
    * @param round - The number of the round to wait for.
    * @category GET
    */
-  statusAfterBlock(round: number) {
+  statusAfterBlock(round: number | bigint) {
     return new StatusAfterBlock(this.c, round);
   }
 
@@ -504,7 +507,7 @@ export class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationBoxByName(index: number, boxName: Uint8Array) {
+  getApplicationBoxByName(index: number | bigint, boxName: Uint8Array) {
     return new GetApplicationBoxByName(this.c, index, boxName);
   }
 
@@ -522,7 +525,7 @@ export class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationBoxes(index: number) {
+  getApplicationBoxes(index: number | bigint) {
     return new GetApplicationBoxes(this.c, index);
   }
 
@@ -556,7 +559,7 @@ export class AlgodClient extends ServiceClient {
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
    */
-  getTransactionProof(round: number, txID: string) {
+  getTransactionProof(round: number | bigint, txID: string) {
     return new GetTransactionProof(this.c, round, txID);
   }
 
@@ -572,7 +575,7 @@ export class AlgodClient extends ServiceClient {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2blocksroundlightheaderproof)
    * @param round
    */
-  getLightBlockHeaderProof(round: number) {
+  getLightBlockHeaderProof(round: number | bigint) {
     return new LightBlockHeaderProof(this.c, round);
   }
 
@@ -588,7 +591,7 @@ export class AlgodClient extends ServiceClient {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2stateproofsround)
    * @param round
    */
-  getStateProof(round: number) {
+  getStateProof(round: number | bigint) {
     return new StateProof(this.c, round);
   }
 
@@ -678,7 +681,7 @@ export class AlgodClient extends ServiceClient {
    * @param offset
    * @category POST
    */
-  setBlockOffsetTimestamp(offset: number) {
+  setBlockOffsetTimestamp(offset: number | bigint) {
     return new SetBlockOffsetTimestamp(this.c, offset);
   }
 
@@ -710,7 +713,7 @@ export class AlgodClient extends ServiceClient {
    * @param round
    * @category POST
    */
-  setSyncRound(round: number) {
+  setSyncRound(round: number | bigint) {
     return new SetSyncRound(this.c, round);
   }
 
@@ -789,7 +792,7 @@ export class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getLedgerStateDelta(round: number) {
+  getLedgerStateDelta(round: number | bigint) {
     return new GetLedgerStateDelta(this.c, round);
   }
 
@@ -806,7 +809,7 @@ export class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getTransactionGroupLedgerStateDeltasForRound(round: number) {
+  getTransactionGroupLedgerStateDeltasForRound(round: number | bigint) {
     return new GetTransactionGroupLedgerStateDeltasForRound(this.c, round);
   }
 }

@@ -5,6 +5,8 @@ import JSONRequest from '../jsonrequest.js';
 import { Box } from './models/types.js';
 
 export default class LookupApplicationBoxByIDandName extends JSONRequest<Box> {
+  private index: bigint;
+
   /**
    * Returns information about indexed application boxes.
    *
@@ -21,12 +23,9 @@ export default class LookupApplicationBoxByIDandName extends JSONRequest<Box> {
    * @oaram index - application index.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    private index: number,
-    boxName: Uint8Array
-  ) {
+  constructor(c: HTTPClient, index: number | bigint, boxName: Uint8Array) {
     super(c);
+    this.index = BigInt(index);
     // Encode query in base64 format and append the encoding prefix.
     const encodedName = bytesToBase64(boxName);
     this.query.name = encodeURI(`b64:${encodedName}`);

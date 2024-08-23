@@ -4,12 +4,15 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { TransactionProofResponse } from './models/types.js';
 
 export default class GetTransactionProof extends JSONRequest<TransactionProofResponse> {
+  private round: bigint;
+
   constructor(
     c: HTTPClient,
-    private round: number,
+    round: number | bigint,
     private txID: string
   ) {
     super(c);
+    this.round = BigInt(round);
   }
 
   path() {

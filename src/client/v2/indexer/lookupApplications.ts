@@ -4,6 +4,8 @@ import { decodeJSON } from '../../../encoding/encoding.js';
 import { ApplicationResponse } from './models/types.js';
 
 export default class LookupApplications extends JSONRequest<ApplicationResponse> {
+  private index: bigint;
+
   /**
    * Returns information about the passed application.
    *
@@ -17,11 +19,9 @@ export default class LookupApplications extends JSONRequest<ApplicationResponse>
    * @param index - The ID of the application to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    private index: number
-  ) {
+  constructor(c: HTTPClient, index: number | bigint) {
     super(c);
+    this.index = BigInt(index);
   }
 
   /**

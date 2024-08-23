@@ -6,6 +6,8 @@ import { Address } from '../../../encoding/address.js';
 import { TransactionsResponse } from './models/types.js';
 
 export default class LookupAssetTransactions extends JSONRequest<TransactionsResponse> {
+  private index: bigint;
+
   /**
    * Returns transactions relating to the given asset.
    *
@@ -18,11 +20,9 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-idtransactions)
    * @param index - The asset ID to look up.
    */
-  constructor(
-    c: HTTPClient,
-    private index: number
-  ) {
+  constructor(c: HTTPClient, index: number | bigint) {
     super(c);
+    this.index = BigInt(index);
   }
 
   /**
@@ -133,7 +133,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -154,7 +154,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @param round
    * @category query
    */
-  minRound(round: number) {
+  minRound(round: number | bigint) {
     this.query['min-round'] = round;
     return this;
   }
@@ -175,7 +175,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @param round
    * @category query
    */
-  maxRound(round: number) {
+  maxRound(round: number | bigint) {
     this.query['max-round'] = round;
     return this;
   }
@@ -261,7 +261,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: number | bigint) {
     // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
@@ -283,7 +283,7 @@ export default class LookupAssetTransactions extends JSONRequest<TransactionsRes
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: number | bigint) {
     this.query['currency-less-than'] = lesser;
     return this;
   }

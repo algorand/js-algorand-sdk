@@ -121,7 +121,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -141,7 +141,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @param round
    * @category query
    */
-  minRound(round: number) {
+  minRound(round: number | bigint) {
     this.query['min-round'] = round;
     return this;
   }
@@ -161,7 +161,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @param round
    * @category query
    */
-  maxRound(round: number) {
+  maxRound(round: number | bigint) {
     this.query['max-round'] = round;
     return this;
   }
@@ -181,7 +181,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @param id
    * @category query
    */
-  assetID(id: number) {
+  assetID(id: number | bigint) {
     this.query['asset-id'] = id;
     return this;
   }
@@ -370,7 +370,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @param applicationID
    * @category query
    */
-  applicationID(applicationID: number) {
+  applicationID(applicationID: number | bigint) {
     this.query['application-id'] = applicationID;
     return this;
   }
@@ -401,7 +401,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: number | bigint) {
     // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
@@ -433,7 +433,7 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: number | bigint) {
     this.query['currency-less-than'] = lesser;
     return this;
   }

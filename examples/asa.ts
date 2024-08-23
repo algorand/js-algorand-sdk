@@ -37,7 +37,10 @@ async function main() {
   await algodClient.sendRawTransaction(signedTxn).do();
   const result = await algosdk.waitForConfirmation(algodClient, txn.txID(), 3);
 
-  const assetIndex = Number(result.assetIndex);
+  const { assetIndex } = result;
+  if (!assetIndex) {
+    throw new Error('Asset not created');
+  }
   console.log(`Asset ID created: ${assetIndex}`);
   // example: ASSET_CREATE
 

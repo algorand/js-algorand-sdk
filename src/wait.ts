@@ -22,11 +22,12 @@ export async function waitForConfirmation(
   if (typeof status === 'undefined') {
     throw new Error('Unable to get node status');
   }
-  const startRound = Number(status.lastRound) + 1;
+  const startRound = status.lastRound + BigInt(1);
+  const stopRound = startRound + BigInt(waitRounds);
   let currentRound = startRound;
 
   /* eslint-disable no-await-in-loop */
-  while (currentRound < startRound + waitRounds) {
+  while (currentRound < stopRound) {
     let poolError = false;
     try {
       const pendingInfo = await client.pendingTransactionInformation(txid).do();
@@ -52,7 +53,7 @@ export async function waitForConfirmation(
     }
 
     await client.statusAfterBlock(currentRound).do();
-    currentRound += 1;
+    currentRound += BigInt(1);
   }
   /* eslint-enable no-await-in-loop */
   throw new Error(`Transaction not confirmed after ${waitRounds} rounds`);
