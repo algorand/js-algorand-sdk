@@ -1,3 +1,21 @@
+# v3.0.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.0.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- Fix: Don't delete `dist` folder when creating release PR by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/890
+- Release PR Generation: Use prerelease tag in changelog generation by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/892
+
+### Enhancements
+
+- 3.0.0: Sync changes to develop by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/884
+- REST API: Allow bigints for client args by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/893
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.9.0...v3.0.0
+
 # v2.9.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.9.0 -->
