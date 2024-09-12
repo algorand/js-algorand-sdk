@@ -1,5 +1,9 @@
-import JSONRequest from '../jsonrequest';
-import { base64StringFunnel } from './lookupAccountTransactions';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { base64StringFunnel } from './lookupAccountTransactions.js';
+import { Address } from '../../../encoding/address.js';
+import { TransactionsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed transactions.
@@ -12,7 +16,7 @@ import { base64StringFunnel } from './lookupAccountTransactions';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2transactions)
  * @category GET
  */
-export default class SearchForTransactions extends JSONRequest {
+export default class SearchForTransactions extends JSONRequest<TransactionsResponse> {
   /**
    * @returns `/v2/transactions`
    */
@@ -117,7 +121,7 @@ export default class SearchForTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -137,7 +141,7 @@ export default class SearchForTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  minRound(round: number) {
+  minRound(round: number | bigint) {
     this.query['min-round'] = round;
     return this;
   }
@@ -157,7 +161,7 @@ export default class SearchForTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  maxRound(round: number) {
+  maxRound(round: number | bigint) {
     this.query['max-round'] = round;
     return this;
   }
@@ -177,7 +181,7 @@ export default class SearchForTransactions extends JSONRequest {
    * @param id
    * @category query
    */
-  assetID(id: number) {
+  assetID(id: number | bigint) {
     this.query['asset-id'] = id;
     return this;
   }
@@ -214,11 +218,12 @@ export default class SearchForTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param before - rfc3339 string
+   * @param before - rfc3339 string or Date object
    * @category query
    */
-  beforeTime(before: string) {
-    this.query['before-time'] = before;
+  beforeTime(before: string | Date) {
+    this.query['before-time'] =
+      before instanceof Date ? before.toISOString() : before;
     return this;
   }
 
@@ -234,11 +239,12 @@ export default class SearchForTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param after - rfc3339 string
+   * @param after - rfc3339 string or Date object
    * @category query
    */
-  afterTime(after: string) {
-    this.query['after-time'] = after;
+  afterTime(after: string | Date) {
+    this.query['after-time'] =
+      after instanceof Date ? after.toISOString() : after;
     return this;
   }
 
@@ -279,8 +285,8 @@ export default class SearchForTransactions extends JSONRequest {
    * @param address
    * @category query
    */
-  address(address: string) {
-    this.query.address = address;
+  address(address: string | Address) {
+    this.query.address = address.toString();
     return this;
   }
 
@@ -364,7 +370,7 @@ export default class SearchForTransactions extends JSONRequest {
    * @param applicationID
    * @category query
    */
-  applicationID(applicationID: number) {
+  applicationID(applicationID: number | bigint) {
     this.query['application-id'] = applicationID;
     return this;
   }
@@ -395,7 +401,7 @@ export default class SearchForTransactions extends JSONRequest {
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: number | bigint) {
     // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
@@ -427,8 +433,13 @@ export default class SearchForTransactions extends JSONRequest {
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: number | bigint) {
     this.query['currency-less-than'] = lesser;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): TransactionsResponse {
+    return decodeJSON(response.getJSONText(), TransactionsResponse);
   }
 }

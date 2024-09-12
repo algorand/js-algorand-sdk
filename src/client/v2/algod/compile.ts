@@ -1,12 +1,14 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
+import { coerceToBytes } from '../../../encoding/binarydata.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { CompileResponse } from './models/types.js';
+import JSONRequest from '../jsonrequest.js';
 
 /**
  * Sets the default header (if not previously set)
  * @param headers - A headers object
  */
-export function setHeaders(headers = {}) {
+export function setHeaders(headers: Record<string, any> = {}) {
   let hdrs = headers;
   if (Object.keys(hdrs).every((key) => key.toLowerCase() !== 'content-type')) {
     hdrs = { ...headers };
@@ -18,10 +20,12 @@ export function setHeaders(headers = {}) {
 /**
  * Executes compile
  */
-export default class Compile extends JSONRequest {
-  constructor(c: HTTPClient, private source: string | Uint8Array) {
+export default class Compile extends JSONRequest<CompileResponse> {
+  constructor(
+    c: HTTPClient,
+    private source: string | Uint8Array
+  ) {
     super(c);
-    this.source = source;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -34,18 +38,22 @@ export default class Compile extends JSONRequest {
     return this;
   }
 
-  /**
-   * Executes compile
-   * @param headers - A headers object
-   */
-  async do(headers = {}) {
+  protected executeRequest(
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
+  ): Promise<HTTPClientResponse> {
     const txHeaders = setHeaders(headers);
-    const res = await this.c.post(
-      this.path(),
-      Buffer.from(this.source),
-      txHeaders,
-      this.query
-    );
-    return res.body;
+    return this.c.post({
+      relativePath: this.path(),
+      data: coerceToBytes(this.source),
+      query: this.query,
+      requestHeaders: txHeaders,
+      customOptions,
+    });
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): CompileResponse {
+    return decodeJSON(response.getJSONText(), CompileResponse);
   }
 }

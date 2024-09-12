@@ -16,15 +16,15 @@ async function main() {
   const suggestedParams = await client.getTransactionParams().do();
 
   const alicesTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct1.addr,
-    to: acct2.addr,
+    sender: acct1.addr,
+    receiver: acct2.addr,
     amount: 1e6,
     suggestedParams,
   });
 
   const bobsTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: acct2.addr,
-    to: acct1.addr,
+    sender: acct2.addr,
+    receiver: acct1.addr,
     amount: 1e6,
     suggestedParams,
   });
@@ -47,21 +47,22 @@ async function main() {
 
   // example: ATOMIC_GROUP_SEND
   await client.sendRawTransaction(signedTxns).do();
-  await algosdk.waitForConfirmation(client, alicesTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(client, alicesTxn.txID(), 3);
   // example: ATOMIC_GROUP_SEND
 
   // example: CONST_MIN_FEE
-  const minFee = algosdk.ALGORAND_MIN_TX_FEE;
+  // This SDK does not expose a constant for the minimum fee
   // example: CONST_MIN_FEE
 
   // example: TRANSACTION_FEE_OVERRIDE
   const sp = await client.getTransactionParams().do();
-  sp.fee = 2 * minFee;
+  sp.fee = BigInt(2) * sp.minFee;
   sp.flatFee = true;
   // example: TRANSACTION_FEE_OVERRIDE
 
   // example: SP_MIN_FEE
-  // Not supported because getTransactionParams erases the information
+  const params = await client.getTransactionParams().do();
+  console.log(params.minFee);
   // example: SP_MIN_FEE
 }
 

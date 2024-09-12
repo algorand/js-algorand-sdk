@@ -1,19 +1,15 @@
-import JSONRequest from '../jsonrequest';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
 
 /**
  * healthCheck returns an empty object iff the node is running
  */
-export default class HealthCheck extends JSONRequest {
+export default class HealthCheck extends JSONRequest<void> {
   // eslint-disable-next-line class-methods-use-this
   path() {
     return '/health';
   }
 
-  async do(headers = {}) {
-    const res = await this.c.get(this.path(), {}, headers);
-    if (!res.ok) {
-      throw new Error(`Health response: ${res.status}`);
-    }
-    return {};
-  }
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  prepare(_response: HTTPClientResponse): void {}
 }

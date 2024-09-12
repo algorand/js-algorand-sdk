@@ -1,4 +1,8 @@
-import JSONRequest from '../jsonrequest';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { Address } from '../../../encoding/address.js';
+import { AssetsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed assets.
@@ -11,7 +15,7 @@ import JSONRequest from '../jsonrequest';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assets)
  * @category GET
  */
-export default class SearchForAssets extends JSONRequest {
+export default class SearchForAssets extends JSONRequest<AssetsResponse> {
   /**
    * @returns `/v2/assets`
    */
@@ -55,8 +59,8 @@ export default class SearchForAssets extends JSONRequest {
    * @param creator
    * @category query
    */
-  creator(creator: string) {
-    this.query.creator = creator;
+  creator(creator: string | Address) {
+    this.query.creator = creator.toString();
     return this;
   }
 
@@ -115,7 +119,7 @@ export default class SearchForAssets extends JSONRequest {
    * @param index
    * @category query
    */
-  index(index: number) {
+  index(index: number | bigint) {
     this.query['asset-id'] = index;
     return this;
   }
@@ -171,5 +175,10 @@ export default class SearchForAssets extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): AssetsResponse {
+    return decodeJSON(response.getJSONText(), AssetsResponse);
   }
 }

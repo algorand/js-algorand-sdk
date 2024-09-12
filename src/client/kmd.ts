@@ -1,9 +1,14 @@
-import { Buffer } from 'buffer';
-import ServiceClient from './v2/serviceClient';
-import * as txn from '../transaction';
-import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient';
+import {
+  base64ToBytes,
+  bytesToBase64,
+  coerceToBytes,
+} from '../encoding/binarydata.js';
+import IntDecoding from '../types/intDecoding.js';
+import { Transaction } from '../transaction.js';
+import { CustomTokenHeader, KMDTokenHeader } from './urlTokenBaseHTTPClient.js';
+import ServiceClient from './v2/serviceClient.js';
 
-export default class Kmd extends ServiceClient {
+export class KmdClient extends ServiceClient {
   constructor(
     token: string | KMDTokenHeader | CustomTokenHeader,
     baseServer = 'http://127.0.0.1',
@@ -13,12 +18,43 @@ export default class Kmd extends ServiceClient {
     super('X-KMD-API-Token', token, baseServer, port, headers);
   }
 
+  private async get(relativePath: string): Promise<any> {
+    const res = await this.c.get({
+      relativePath,
+    });
+    return res.parseBodyAsJSON({
+      // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+      intDecoding: IntDecoding.SAFE,
+    });
+  }
+
+  private async delete(relativePath: string, data: any): Promise<any> {
+    const res = await this.c.delete({
+      relativePath,
+      data,
+    });
+    return res.parseBodyAsJSON({
+      // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+      intDecoding: IntDecoding.SAFE,
+    });
+  }
+
+  private async post(relativePath: string, data: any): Promise<any> {
+    const res = await this.c.post({
+      relativePath,
+      data,
+    });
+    return res.parseBodyAsJSON({
+      // Using SAFE for all KMD endpoints because no integers in responses should ever be too big
+      intDecoding: IntDecoding.SAFE,
+    });
+  }
+
   /**
    * version returns a VersionResponse containing a list of kmd API versions supported by this running kmd instance.
    */
   async versions() {
-    const res = await this.c.get('/versions');
-    return res.body;
+    return this.get('/versions');
   }
 
   /**
@@ -26,8 +62,7 @@ export default class Kmd extends ServiceClient {
    * returned from this endpoint, you can initialize a wallet handle with client.InitWalletHandle
    */
   async listWallets() {
-    const res = await this.c.get('/v1/wallets');
-    return res.body;
+    return this.get('/v1/wallets');
   }
 
   /**
@@ -50,10 +85,9 @@ export default class Kmd extends ServiceClient {
       wallet_name: walletName,
       wallet_driver_name: walletDriverName,
       wallet_password: walletPassword,
-      master_derivation_key: Buffer.from(walletMDK).toString('base64'),
+      master_derivation_key: bytesToBase64(walletMDK),
     };
-    const res = await this.c.post('/v1/wallet', req);
-    return res.body;
+    return this.post('/v1/wallet', req);
   }
 
   /**
@@ -72,8 +106,7 @@ export default class Kmd extends ServiceClient {
       wallet_id: walletID,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post('/v1/wallet/init', req);
-    return res.body;
+    return this.post('/v1/wallet/init', req);
   }
 
   /**
@@ -85,8 +118,7 @@ export default class Kmd extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/wallet/release', req);
-    return res.body;
+    return this.post('/v1/wallet/release', req);
   }
 
   /**
@@ -100,8 +132,7 @@ export default class Kmd extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/wallet/renew', req);
-    return res.body;
+    return this.post('/v1/wallet/renew', req);
   }
 
   /**
@@ -121,8 +152,7 @@ export default class Kmd extends ServiceClient {
       wallet_password: walletPassword,
       wallet_name: newWalletName,
     };
-    const res = await this.c.post('/v1/wallet/rename', req);
-    return res.body;
+    return this.post('/v1/wallet/rename', req);
   }
 
   /**
@@ -134,8 +164,7 @@ export default class Kmd extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/wallet/info', req);
-    return res.body;
+    return this.post('/v1/wallet/info', req);
   }
 
   /**
@@ -155,12 +184,9 @@ export default class Kmd extends ServiceClient {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post('/v1/master-key/export', req);
+    const res = await this.post('/v1/master-key/export', req);
     return {
-      master_derivation_key: Buffer.from(
-        res.body.master_derivation_key,
-        'base64'
-      ),
+      master_derivation_key: base64ToBytes(res.master_derivation_key),
     };
   }
 
@@ -174,10 +200,9 @@ export default class Kmd extends ServiceClient {
   async importKey(walletHandle: string, secretKey: Uint8Array) {
     const req = {
       wallet_handle_token: walletHandle,
-      private_key: Buffer.from(secretKey).toString('base64'),
+      private_key: bytesToBase64(secretKey),
     };
-    const res = await this.c.post('/v1/key/import', req);
-    return res.body;
+    return this.post('/v1/key/import', req);
   }
 
   /**
@@ -194,8 +219,8 @@ export default class Kmd extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.post('/v1/key/export', req);
-    return { private_key: Buffer.from(res.body.private_key, 'base64') };
+    const res = await this.post('/v1/key/export', req);
+    return { private_key: base64ToBytes(res.private_key) };
   }
 
   /**
@@ -209,8 +234,7 @@ export default class Kmd extends ServiceClient {
       wallet_handle_token: walletHandle,
       display_mnemonic: false,
     };
-    const res = await this.c.post('/v1/key', req);
-    return res.body;
+    return this.post('/v1/key', req);
   }
 
   /**
@@ -230,8 +254,7 @@ export default class Kmd extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.delete('/v1/key', req);
-    return res.body;
+    return this.delete('/v1/key', req);
   }
 
   /**
@@ -243,8 +266,7 @@ export default class Kmd extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/key/list', req);
-    return res.body;
+    return this.post('/v1/key/list', req);
   }
 
   /**
@@ -259,21 +281,15 @@ export default class Kmd extends ServiceClient {
   async signTransaction(
     walletHandle: string,
     walletPassword: string,
-    transaction: txn.TransactionLike
+    transaction: Transaction
   ) {
-    const tx = txn.instantiateTxnIfNeeded(transaction);
-
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
-      transaction: Buffer.from(tx.toByte()).toString('base64'),
+      transaction: bytesToBase64(transaction.toByte()),
     };
-    const res = await this.c.post('/v1/transaction/sign', req);
-
-    if (res.status === 200) {
-      return Buffer.from(res.body.signed_transaction, 'base64');
-    }
-    return res.body;
+    const res = await this.post('/v1/transaction/sign', req);
+    return base64ToBytes(res.signed_transaction);
   }
 
   /**
@@ -289,23 +305,19 @@ export default class Kmd extends ServiceClient {
   async signTransactionWithSpecificPublicKey(
     walletHandle: string,
     walletPassword: string,
-    transaction: txn.TransactionLike,
+    transaction: Transaction,
     publicKey: Uint8Array | string
   ) {
-    const tx = txn.instantiateTxnIfNeeded(transaction);
+    const pk = coerceToBytes(publicKey);
 
     const req = {
       wallet_handle_token: walletHandle,
       wallet_password: walletPassword,
-      transaction: Buffer.from(tx.toByte()).toString('base64'),
-      public_key: Buffer.from(publicKey).toString('base64'),
+      transaction: bytesToBase64(transaction.toByte()),
+      public_key: bytesToBase64(pk),
     };
-    const res = await this.c.post('/v1/transaction/sign', req);
-
-    if (res.status === 200) {
-      return Buffer.from(res.body.signed_transaction, 'base64');
-    }
-    return res.body;
+    const res = await this.post('/v1/transaction/sign', req);
+    return base64ToBytes(res.signed_transaction);
   }
 
   /**
@@ -320,8 +332,7 @@ export default class Kmd extends ServiceClient {
     const req = {
       wallet_handle_token: walletHandle,
     };
-    const res = await this.c.post('/v1/multisig/list', req);
-    return res.body;
+    return this.post('/v1/multisig/list', req);
   }
 
   /**
@@ -346,8 +357,7 @@ export default class Kmd extends ServiceClient {
       threshold,
       pks,
     };
-    const res = await this.c.post('/v1/multisig/import', req);
-    return res.body;
+    return this.post('/v1/multisig/import', req);
   }
 
   /**
@@ -365,8 +375,7 @@ export default class Kmd extends ServiceClient {
       wallet_handle_token: walletHandle,
       address: addr,
     };
-    const res = await this.c.post('/v1/multisig/export', req);
-    return res.body;
+    return this.post('/v1/multisig/export', req);
   }
 
   /**
@@ -384,20 +393,19 @@ export default class Kmd extends ServiceClient {
   async signMultisigTransaction(
     walletHandle: string,
     pw: string,
-    transaction: txn.TransactionLike,
+    transaction: Transaction,
     pk: Uint8Array | string,
     partial: string
   ) {
-    const tx = txn.instantiateTxnIfNeeded(transaction);
+    const pubkey = coerceToBytes(pk);
     const req = {
       wallet_handle_token: walletHandle,
-      transaction: Buffer.from(tx.toByte()).toString('base64'),
-      public_key: Buffer.from(pk).toString('base64'),
+      transaction: bytesToBase64(transaction.toByte()),
+      public_key: bytesToBase64(pubkey),
       partial_multisig: partial,
       wallet_password: pw,
     };
-    const res = await this.c.post('/v1/multisig/sign', req);
-    return res.body;
+    return this.post('/v1/multisig/sign', req);
   }
 
   /**
@@ -418,7 +426,6 @@ export default class Kmd extends ServiceClient {
       address: addr,
       wallet_password: walletPassword,
     };
-    const res = await this.c.delete('/v1/multisig', req);
-    return res.body;
+    return this.delete('/v1/multisig', req);
   }
 }

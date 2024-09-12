@@ -81,6 +81,7 @@ jobs:
         id: build-changelog
         env:
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
+          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
           CHANGELOG=$(curl -L \
             -X POST \
@@ -88,7 +89,7 @@ jobs:
             -H "Authorization: Bearer ${{ github.token }}"\
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
-            -d '{"tag_name":"${{ env.RELEASE_VERSION }}","target_commitish":"${{ env.RELEASE_BRANCH }}","previous_tag_name":"${{ env.PREVIOUS_VERSION }}","configuration_file_path":".github/release.yml"}' \
+            -d '{"tag_name":"${{ env.RELEASE_TAG }}","target_commitish":"${{ env.RELEASE_BRANCH }}","previous_tag_name":"${{ env.PREVIOUS_VERSION }}","configuration_file_path":".github/release.yml"}' \
             | jq -r '.body')
 
           # The EOF steps are used to save multiline string in github:
@@ -115,7 +116,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
-          rm -rf dist node_modules
+          rm -rf node_modules
           npm ci
           npm run build
           NEW_HASH=$(cat dist/browser/algosdk.min.js | openssl dgst -sha384 -binary | openssl base64 -A)

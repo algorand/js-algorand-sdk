@@ -1,20 +1,30 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
 
-export default class SetSyncRound extends JSONRequest {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: number) {
-    super(c, intDecoding);
+export default class SetSyncRound extends JSONRequest<void> {
+  private round: bigint;
 
-    this.round = round;
+  constructor(c: HTTPClient, round: number | bigint) {
+    super(c);
+    this.round = BigInt(round);
   }
 
   path() {
     return `/v2/ledger/sync/${this.round}`;
   }
 
-  async do(headers = {}) {
-    const res = await this.c.post(this.path(), headers);
-    return res.body;
+  protected executeRequest(
+    headers?: Record<string, string>,
+    customOptions?: Record<string, unknown>
+  ): Promise<HTTPClientResponse> {
+    return this.c.post({
+      relativePath: this.path(),
+      data: null,
+      requestHeaders: headers,
+      customOptions,
+    });
   }
+
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  prepare(_response: HTTPClientResponse): void {}
 }

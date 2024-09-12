@@ -2,9 +2,8 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import { Buffer } from 'buffer';
 import algosdk from '../src';
-import { getLocalAlgodClient, getLocalAccounts } from './utils';
+import { getLocalAccounts, getLocalAlgodClient } from './utils';
 
 async function main() {
   const client = getLocalAlgodClient();
@@ -15,14 +14,13 @@ async function main() {
 
   // example: CODEC_ADDRESS
   const address = '4H5UNRBJ2Q6JENAXQ6HNTGKLKINP4J4VTQBEPK5F3I6RDICMZBPGNH6KD4';
-  const pk = algosdk.decodeAddress(address);
-  const addr = algosdk.encodeAddress(pk.publicKey);
+  const addr = algosdk.Address.fromString(address);
   console.log(address, addr);
   // example: CODEC_ADDRESS
 
   // example: CODEC_BASE64
   const b64Encoded = 'SGksIEknbSBkZWNvZGVkIGZyb20gYmFzZTY0';
-  const b64Decoded = Buffer.from(b64Encoded, 'base64').toString();
+  const b64Decoded = algosdk.base64ToBytes(b64Encoded);
   console.log(b64Encoded, b64Decoded);
   // example: CODEC_BASE64
 
@@ -36,26 +34,26 @@ async function main() {
 
   // example: CODEC_TRANSACTION_UNSIGNED
   const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: sender.addr,
-    to: receiver.addr,
+    sender: sender.addr,
+    receiver: receiver.addr,
     amount: 1e6,
     suggestedParams,
   });
 
   const txnBytes = algosdk.encodeUnsignedTransaction(txn);
-  const txnB64 = Buffer.from(txnBytes).toString('base64');
+  const txnB64 = algosdk.bytesToBase64(txnBytes);
   // ...
   const restoredTxn = algosdk.decodeUnsignedTransaction(
-    Buffer.from(txnB64, 'base64')
+    algosdk.base64ToBytes(txnB64)
   );
   console.log(restoredTxn);
   // example: CODEC_TRANSACTION_UNSIGNED
 
   // example: CODEC_TRANSACTION_SIGNED
   const signedTxn = txn.signTxn(sender.privateKey);
-  const signedB64Txn = Buffer.from(signedTxn).toString('base64');
+  const signedB64Txn = algosdk.bytesToBase64(signedTxn);
   const restoredSignedTxn = algosdk.decodeSignedTransaction(
-    Buffer.from(signedB64Txn, 'base64')
+    algosdk.base64ToBytes(signedB64Txn)
   );
   console.log(restoredSignedTxn);
   // example: CODEC_TRANSACTION_SIGNED
@@ -65,7 +63,7 @@ async function main() {
 
   const stringTupleData = ['hello', 'world'];
   const encodedTuple = stringTupleCodec.encode(stringTupleData);
-  console.log(Buffer.from(encodedTuple).toString('hex'));
+  console.log(algosdk.bytesToHex(encodedTuple));
 
   const decodedTuple = stringTupleCodec.decode(encodedTuple);
   console.log(decodedTuple); // ['hello', 'world']
@@ -74,7 +72,7 @@ async function main() {
 
   const uintArrayData = [1, 2, 3, 4, 5];
   const encodedArray = uintArrayCodec.encode(uintArrayData);
-  console.log(Buffer.from(encodedArray).toString('hex'));
+  console.log(algosdk.bytesToHex(encodedArray));
 
   const decodeArray = uintArrayCodec.decode(encodedArray);
   console.log(decodeArray); // [1, 2, 3, 4, 5]

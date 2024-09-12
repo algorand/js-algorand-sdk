@@ -1,32 +1,30 @@
 import JSONbigWithoutConfig from 'json-bigint';
-import IntDecoding from '../types/intDecoding';
+import IntDecoding from '../types/intDecoding.js';
 
-const JSONbig = JSONbigWithoutConfig({ useNativeBigInt: true, strict: true });
+const JSONbig = JSONbigWithoutConfig({
+  useNativeBigInt: true,
+  strict: true,
+});
 
-export interface JSONOptions {
-  intDecoding?: IntDecoding;
+export interface ParseJSONOptions {
+  intDecoding: IntDecoding;
 }
 
 /**
  * Parse JSON with additional options.
  * @param str - The JSON string to parse.
- * @param options - Options object to configure how integers in
- *   this request's JSON response will be decoded. Use the `intDecoding`
- *   property with one of the following options:
- *
- *   * "default": All integers will be decoded as Numbers, meaning any values greater than
- *     Number.MAX_SAFE_INTEGER will lose precision.
- *   * "safe": All integers will be decoded as Numbers, but if any values are greater than
- *     Number.MAX_SAFE_INTEGER an error will be thrown.
- *   * "mixed": Integers will be decoded as Numbers if they are less than or equal to
- *     Number.MAX_SAFE_INTEGER, otherwise they will be decoded as BigInts.
- *   * "bigint": All integers will be decoded as BigInts.
- *
- *   Defaults to "default" if not included.
+ * @param options - Configures how integers in this JSON string will be decoded. See the
+ *   `IntDecoding` enum for more details.
  */
-export function parseJSON(str: string, options?: JSONOptions) {
-  const intDecoding =
-    options && options.intDecoding ? options.intDecoding : IntDecoding.DEFAULT;
+export function parseJSON(str: string, { intDecoding }: ParseJSONOptions) {
+  if (
+    intDecoding !== IntDecoding.SAFE &&
+    intDecoding !== IntDecoding.UNSAFE &&
+    intDecoding !== IntDecoding.BIGINT &&
+    intDecoding !== IntDecoding.MIXED
+  ) {
+    throw new Error(`Invalid intDecoding option: ${intDecoding}`);
+  }
   return JSONbig.parse(str, (_, value) => {
     if (
       value != null &&
@@ -39,14 +37,14 @@ export function parseJSON(str: string, options?: JSONOptions) {
     }
 
     if (typeof value === 'bigint') {
-      if (intDecoding === 'safe' && value > Number.MAX_SAFE_INTEGER) {
+      if (intDecoding === IntDecoding.SAFE && value > Number.MAX_SAFE_INTEGER) {
         throw new Error(
           `Integer exceeds maximum safe integer: ${value.toString()}. Try parsing with a different intDecoding option.`
         );
       }
       if (
-        intDecoding === 'bigint' ||
-        (intDecoding === 'mixed' && value > Number.MAX_SAFE_INTEGER)
+        intDecoding === IntDecoding.BIGINT ||
+        (intDecoding === IntDecoding.MIXED && value > Number.MAX_SAFE_INTEGER)
       ) {
         return value;
       }
@@ -56,7 +54,7 @@ export function parseJSON(str: string, options?: JSONOptions) {
     }
 
     if (typeof value === 'number') {
-      if (intDecoding === 'bigint' && Number.isInteger(value)) {
+      if (intDecoding === IntDecoding.BIGINT && Number.isInteger(value)) {
         return BigInt(value);
       }
     }
@@ -66,9 +64,28 @@ export function parseJSON(str: string, options?: JSONOptions) {
 }
 
 /**
+ * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
+ *
+ * This functions differs from the built-in JSON.stringify in that it supports serializing BigInts.
+ *
+ * This function takes the same arguments as the built-in JSON.stringify function.
+ *
+ * @param value - A JavaScript value, usually an object or array, to be converted.
+ * @param replacer - A function that transforms the results.
+ * @param space - Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+ */
+export function stringifyJSON(
+  value: any,
+  replacer?: (this: any, key: string, value: any) => any,
+  space?: string | number
+): string {
+  return JSONbig.stringify(value, replacer, space);
+}
+
+/**
  * ArrayEqual takes two arrays and return true if equal, false otherwise
  */
-export function arrayEqual(a: ArrayLike<any>, b: ArrayLike<any>) {
+export function arrayEqual<T>(a: ArrayLike<T>, b: ArrayLike<T>): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -133,4 +150,58 @@ export function isReactNative() {
     return true;
   }
   return false;
+}
+
+export function ensureSafeInteger(value: unknown): number {
+  if (typeof value === 'undefined') {
+    throw new Error('Value is undefined');
+  }
+  if (typeof value === 'bigint') {
+    if (
+      value > BigInt(Number.MAX_SAFE_INTEGER) ||
+      value < BigInt(Number.MIN_SAFE_INTEGER)
+    ) {
+      throw new Error(`BigInt value ${value} is not a safe integer`);
+    }
+    return Number(value);
+  }
+  if (typeof value === 'number') {
+    if (Number.isSafeInteger(value)) {
+      return value;
+    }
+    throw new Error(`Value ${value} is not a safe integer`);
+  }
+  throw new Error(`Unexpected type ${typeof value}, ${value}`);
+}
+
+export function ensureSafeUnsignedInteger(value: unknown): number {
+  const intValue = ensureSafeInteger(value);
+  if (intValue < 0) {
+    throw new Error(`Value ${intValue} is negative`);
+  }
+  return intValue;
+}
+
+export function ensureBigInt(value: unknown): bigint {
+  if (typeof value === 'undefined') {
+    throw new Error('Value is undefined');
+  }
+  if (typeof value === 'bigint') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isSafeInteger(value)) {
+      throw new Error(`Value ${value} is not a safe integer`);
+    }
+    return BigInt(value);
+  }
+  throw new Error(`Unexpected type ${typeof value}, ${value}`);
+}
+
+export function ensureUint64(value: unknown): bigint {
+  const bigIntValue = ensureBigInt(value);
+  if (bigIntValue < 0 || bigIntValue > BigInt('0xffffffffffffffff')) {
+    throw new Error(`Value ${bigIntValue} is not a uint64`);
+  }
+  return bigIntValue;
 }

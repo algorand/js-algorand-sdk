@@ -56,7 +56,7 @@ async function main() {
 
   // example: KMD_IMPORT_ACCOUNT
   const newAccount = algosdk.generateAccount();
-  console.log('Account: ', newAccount.addr);
+  console.log('Account: ', newAccount.addr.toString());
   const importedAccount = await kmdClient.importKey(
     wallethandle,
     newAccount.sk

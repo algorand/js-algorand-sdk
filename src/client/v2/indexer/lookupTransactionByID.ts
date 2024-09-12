@@ -1,8 +1,9 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { TransactionResponse } from './models/types.js';
 
-export default class LookupTransactionByID extends JSONRequest {
+export default class LookupTransactionByID extends JSONRequest<TransactionResponse> {
   /**
    * Returns information about the given transaction.
    *
@@ -16,9 +17,11 @@ export default class LookupTransactionByID extends JSONRequest {
    * @param txID - The ID of the transaction to look up.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private txID: string) {
-    super(c, intDecoding);
-    this.txID = txID;
+  constructor(
+    c: HTTPClient,
+    private txID: string
+  ) {
+    super(c);
   }
 
   /**
@@ -26,5 +29,10 @@ export default class LookupTransactionByID extends JSONRequest {
    */
   path() {
     return `/v2/transactions/${this.txID}`;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): TransactionResponse {
+    return decodeJSON(response.getJSONText(), TransactionResponse);
   }
 }

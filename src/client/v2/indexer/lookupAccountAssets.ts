@@ -1,8 +1,12 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { Address } from '../../../encoding/address.js';
+import { AssetHoldingsResponse } from './models/types.js';
 
-export default class LookupAccountAssets extends JSONRequest {
+export default class LookupAccountAssets extends JSONRequest<AssetHoldingsResponse> {
+  private account: string;
+
   /**
    * Returns asset about the given account.
    *
@@ -16,13 +20,9 @@ export default class LookupAccountAssets extends JSONRequest {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
-    this.account = account;
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
+    this.account = account.toString();
   }
 
   /**
@@ -68,7 +68,7 @@ export default class LookupAccountAssets extends JSONRequest {
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -134,8 +134,13 @@ export default class LookupAccountAssets extends JSONRequest {
    * @param index - the assetID
    * @category query
    */
-  assetId(index: number) {
+  assetId(index: number | bigint) {
     this.query['asset-id'] = index;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): AssetHoldingsResponse {
+    return decodeJSON(response.getJSONText(), AssetHoldingsResponse);
   }
 }

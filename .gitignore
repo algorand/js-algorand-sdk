@@ -1,3 +1,8 @@
+dist/*
+!dist/esm
+dist/esm/*
+!dist/esm/package.json
+
 .DS_Store
 
 .idea/
@@ -6,6 +11,7 @@
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+!.vscode/launch.json
 
 # npm
 node_modules/
@@ -23,7 +29,6 @@ tests/cucumber/browser/build
 tests/browser/bundle.*
 
 # Builds
-dist/
 docs/
 built/
 

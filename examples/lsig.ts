@@ -2,9 +2,8 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
-import { Buffer } from 'buffer';
 import algosdk from '../src';
-import { getLocalAlgodClient, getLocalAccounts } from './utils';
+import { getLocalAccounts, getLocalAlgodClient } from './utils';
 
 async function main() {
   const client = getLocalAlgodClient();
@@ -14,7 +13,7 @@ async function main() {
 
   // example: LSIG_COMPILE
   const smartSigSource = '#pragma version 8\nint 1\nreturn'; // approve everything
-  const result = await client.compile(Buffer.from(smartSigSource)).do();
+  const result = await client.compile(smartSigSource).do();
 
   // Hash is equivalent to the contract address
   console.log('Hash: ', result.hash);
@@ -23,22 +22,17 @@ async function main() {
   // example: LSIG_COMPILE
 
   // example: LSIG_INIT
-  let smartSig = new algosdk.LogicSig(
-    new Uint8Array(Buffer.from(b64program, 'base64'))
-  );
+  let smartSig = new algosdk.LogicSig(algosdk.base64ToBytes(b64program));
   // example: LSIG_INIT
 
   // example: LSIG_PASS_ARGS
-  const args = [Buffer.from('This is an argument!')];
-  smartSig = new algosdk.LogicSig(
-    new Uint8Array(Buffer.from(b64program, 'base64')),
-    args
-  );
+  const args = [algosdk.coerceToBytes('This is an argument!')];
+  smartSig = new algosdk.LogicSig(algosdk.base64ToBytes(b64program), args);
   // example: LSIG_PASS_ARGS
 
   const fundSmartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: funder.addr,
-    to: smartSig.address(),
+    sender: funder.addr,
+    receiver: smartSig.address(),
     amount: 1e6,
     suggestedParams,
   });
@@ -46,16 +40,12 @@ async function main() {
   await client
     .sendRawTransaction(fundSmartSigTxn.signTxn(funder.privateKey))
     .do();
-  await algosdk.waitForConfirmation(
-    client,
-    fundSmartSigTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(client, fundSmartSigTxn.txID(), 3);
 
   // example: LSIG_SIGN_FULL
   const smartSigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: smartSig.address(),
-    to: funder.addr,
+    sender: smartSig.address(),
+    receiver: funder.addr,
     amount: 0.1e6,
     suggestedParams,
   });
@@ -76,8 +66,8 @@ async function main() {
   smartSig.sign(userAccount.privateKey);
 
   const delegatedTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-    from: userAccount.addr,
-    to: funder.addr,
+    sender: userAccount.addr,
+    receiver: funder.addr,
     amount: 0.1e6,
     suggestedParams,
   });

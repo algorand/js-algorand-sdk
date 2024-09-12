@@ -1,13 +1,10 @@
-import { Buffer } from 'buffer';
-import * as nacl from './nacl/naclWrappers';
-import * as address from './encoding/address';
-import * as encoding from './encoding/encoding';
-import * as txnBuilder from './transaction';
-import Bid, { BidOptions } from './bid';
-import * as convert from './convert';
-import * as utils from './utils/utils';
+import * as nacl from './nacl/naclWrappers.js';
+import { Address } from './encoding/address.js';
+import { Transaction } from './transaction.js';
+import * as convert from './convert.js';
+import * as utils from './utils/utils.js';
 
-const SIGN_BYTES_PREFIX = Buffer.from([77, 88]); // "MX"
+const SIGN_BYTES_PREFIX = Uint8Array.from([77, 88]); // "MX"
 
 // Errors
 export const MULTISIG_BAD_SENDER_ERROR_MSG =
@@ -17,10 +14,10 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * signTransaction takes an object with either payment or key registration fields and
  * a secret key and returns a signed blob.
  *
- * Payment transaction fields: from, to, amount, fee, firstRound, lastRound, genesisHash,
+ * Payment transaction fields: from, to, amount, fee, firstValid, lastValid, genesisHash,
  * note(optional), GenesisID(optional), closeRemainderTo(optional)
  *
- * Key registration fields: fee, firstRound, lastRound, voteKey, selectionKey, voteFirst,
+ * Key registration fields: fee, firstValid, lastValid, voteKey, selectionKey, voteFirst,
  * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
  *
  * If flatFee is not set and the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
@@ -28,34 +25,11 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
  * @param sk - Algorand Secret Key
  * @returns object contains the binary signed transaction and its txID
  */
-export function signTransaction(
-  txn: txnBuilder.TransactionLike,
-  sk: Uint8Array
-) {
-  if (typeof txn.from === 'undefined') {
-    // Get pk from sk if no sender specified
-    const key = nacl.keyPairFromSecretKey(sk);
-    // eslint-disable-next-line no-param-reassign
-    txn.from = address.encodeAddress(key.publicKey);
-  }
-  const algoTxn = txnBuilder.instantiateTxnIfNeeded(txn);
-
+export function signTransaction(txn: Transaction, sk: Uint8Array) {
   return {
-    txID: algoTxn.txID().toString(),
-    blob: algoTxn.signTxn(sk),
+    txID: txn.txID(),
+    blob: txn.signTxn(sk),
   };
-}
-
-/**
- * signBid takes an object with the following fields: bidder key, bid amount, max price, bid ID, auctionKey, auction ID,
- * and a secret key and returns a signed blob to be inserted into a transaction Algorand note field.
- * @param bid - Algorand Bid
- * @param sk - Algorand secret key
- * @returns Uint8Array binary signed bid
- */
-export function signBid(bid: BidOptions, sk: Uint8Array) {
-  const signedBid = new Bid(bid);
-  return signedBid.signBid(sk);
 }
 
 /**
@@ -66,7 +40,7 @@ export function signBid(bid: BidOptions, sk: Uint8Array) {
  * @returns binary signature
  */
 export function signBytes(bytes: Uint8Array, sk: Uint8Array) {
-  const toBeSigned = Buffer.from(utils.concatArrays(SIGN_BYTES_PREFIX, bytes));
+  const toBeSigned = utils.concatArrays(SIGN_BYTES_PREFIX, bytes);
   const sig = nacl.sign(toBeSigned, sk);
   return sig;
 }
@@ -82,32 +56,11 @@ export function signBytes(bytes: Uint8Array, sk: Uint8Array) {
 export function verifyBytes(
   bytes: Uint8Array,
   signature: Uint8Array,
-  addr: string
+  addr: string | Address
 ) {
-  const toBeVerified = Buffer.from(
-    utils.concatArrays(SIGN_BYTES_PREFIX, bytes)
-  );
-  const pk = address.decodeAddress(addr).publicKey;
-  return nacl.verify(toBeVerified, signature, pk);
-}
-
-/**
- * encodeObj takes a javascript object and returns its msgpack encoding
- * Note that the encoding sorts the fields alphabetically
- * @param o - js obj
- * @returns Uint8Array binary representation
- */
-export function encodeObj(o: Record<string | number | symbol, any>) {
-  return new Uint8Array(encoding.encode(o));
-}
-
-/**
- * decodeObj takes a Uint8Array and returns its javascript obj
- * @param o - Uint8Array to decode
- * @returns object
- */
-export function decodeObj(o: ArrayLike<number>) {
-  return encoding.decode(o);
+  const toBeVerified = utils.concatArrays(SIGN_BYTES_PREFIX, bytes);
+  const addrObj = typeof addr === 'string' ? Address.fromString(addr) : addr;
+  return nacl.verify(toBeVerified, signature, addrObj.publicKey);
 }
 
 export const ERROR_MULTISIG_BAD_SENDER = new Error(
@@ -117,35 +70,65 @@ export const ERROR_INVALID_MICROALGOS = new Error(
   convert.INVALID_MICROALGOS_ERROR_MSG
 );
 
-export { default as Algodv2 } from './client/v2/algod/algod';
-export { default as Kmd } from './client/kmd';
-export { default as IntDecoding } from './types/intDecoding';
-export { default as Account } from './types/account';
-export { default as Indexer } from './client/v2/indexer/indexer';
+export { AlgodClient as Algodv2 } from './client/v2/algod/algod.js';
+export { KmdClient as Kmd } from './client/kmd.js';
+export { default as IntDecoding } from './types/intDecoding.js';
+export { default as Account } from './types/account.js';
+export { IndexerClient as Indexer } from './client/v2/indexer/indexer.js';
 export {
   BaseHTTPClient,
   BaseHTTPClientResponse,
   BaseHTTPClientError,
-} from './client/baseHTTPClient';
+} from './client/baseHTTPClient.js';
 export {
   AlgodTokenHeader,
   IndexerTokenHeader,
   KMDTokenHeader,
   CustomTokenHeader,
   TokenHeader,
-} from './client/urlTokenBaseHTTPClient';
-export { waitForConfirmation } from './wait';
+} from './client/urlTokenBaseHTTPClient.js';
+export { waitForConfirmation } from './wait.js';
 export {
+  MsgpackEncodingData,
+  JSONEncodingData,
+  Encodable,
+  EncodableClass,
+  encodeObj,
+  decodeObj,
+  msgpackRawEncode,
+  msgpackRawDecode,
+  msgpackRawDecodeAsMap,
+  encodeMsgpack,
+  decodeMsgpack,
+  encodeJSON,
+  decodeJSON,
+} from './encoding/encoding.js';
+export {
+  Address,
   isValidAddress,
   encodeAddress,
   decodeAddress,
   getApplicationAddress,
-} from './encoding/address';
-export { bytesToBigInt, bigIntToBytes } from './encoding/bigint';
-export { encodeUint64, decodeUint64 } from './encoding/uint64';
-export { default as generateAccount } from './account';
-export * as modelsv2 from './client/v2/algod/models/types';
-export * as indexerModels from './client/v2/indexer/models/types';
+  ALGORAND_ZERO_ADDRESS_STRING,
+} from './encoding/address.js';
+export { bytesToBigInt, bigIntToBytes } from './encoding/bigint.js';
+export {
+  base64ToBytes,
+  bytesToBase64,
+  bytesToString,
+  coerceToBytes,
+  bytesToHex,
+  hexToBytes,
+} from './encoding/binarydata.js';
+export { encodeUint64, decodeUint64 } from './encoding/uint64.js';
+export { parseJSON, ParseJSONOptions, stringifyJSON } from './utils/utils.js';
+export { default as generateAccount } from './account.js';
+export * from './types/block.js';
+export * from './types/statedelta.js';
+export * from './stateproof.js';
+export { UntypedValue } from './client/v2/untypedmodel.js';
+export * as modelsv2 from './client/v2/algod/models/types.js';
+export * as indexerModels from './client/v2/indexer/models/types.js';
 export {
   mnemonicToMasterDerivationKey,
   masterDerivationKeyToMnemonic,
@@ -153,38 +136,52 @@ export {
   mnemonicToSecretKey,
   seedFromMnemonic,
   mnemonicFromSeed,
-} from './mnemonic/mnemonic';
+} from './mnemonic/mnemonic.js';
 export {
   microalgosToAlgos,
   algosToMicroalgos,
   INVALID_MICROALGOS_ERROR_MSG,
-} from './convert';
-export { computeGroupID, assignGroupID } from './group';
+} from './convert.js';
+export { computeGroupID, assignGroupID } from './group.js';
+export {
+  SignedTransaction,
+  decodeSignedTransaction,
+  encodeUnsignedSimulateTransaction,
+} from './signedTransaction.js';
+export {
+  signLogicSigTransaction,
+  signLogicSigTransactionObject,
+} from './signing.js';
 export {
   LogicSig,
   LogicSigAccount,
-  signLogicSigTransaction,
-  signLogicSigTransactionObject,
   logicSigFromByte,
   tealSign,
   tealSignFromProgram,
   verifyTealSign,
-} from './logicsig';
+} from './logicsig.js';
+export {
+  MultisigMetadata,
+  verifyMultisig,
+  multisigAddress,
+} from './multisig.js';
 export {
   signMultisigTransaction,
   mergeMultisigTransactions,
   appendSignMultisigTransaction,
   createMultisigTransaction,
   appendSignRawMultisigSignature,
-  verifyMultisig,
-  multisigAddress,
-} from './multisig';
-export { SourceMap } from './logic/sourcemap';
+} from './multisigSigning.js';
+export {
+  ProgramSourceMap,
+  SourceLocation,
+  PcLineLocation,
+} from './logic/sourcemap.js';
 
-export * from './dryrun';
-export * from './makeTxn';
-export * from './transaction';
-export * from './signer';
-export * from './composer';
-export * from './types';
-export * from './abi';
+export * from './dryrun.js';
+export * from './makeTxn.js';
+export * from './transaction.js';
+export * from './signer.js';
+export * from './composer.js';
+export * from './types/transactions/index.js';
+export * from './abi/index.js';

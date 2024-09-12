@@ -1,9 +1,9 @@
 /* eslint-env mocha */
 import assert from 'assert';
-import HTTPClient from '../src/client/client';
+import { HTTPClient } from '../src/client/client';
 import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';
 import IntDecoding from '../src/types/intDecoding';
-import AlgodClient from '../src/client/v2/algod/algod';
+import { AlgodClient } from '../src/client/v2/algod/algod';
 import * as utils from '../src/utils/utils';
 
 describe('client', () => {
@@ -68,29 +68,31 @@ describe('client', () => {
     it('should encode and decode values correctly', () => {
       const j = '{"total":18446744073709551615, "base":42}';
 
-      let options = {
-        // intDecoding: IntDecoding.DEFAULT,
-      };
-      let actual = HTTPClient.parseJSON(j, 200, options);
-      let expected = JSON.parse(j);
-      assert.strictEqual(actual.total, expected.total);
-      assert.strictEqual(typeof actual.total, 'number');
-
-      options = {
+      let options: utils.ParseJSONOptions = {
         intDecoding: IntDecoding.BIGINT,
       };
-      actual = HTTPClient.parseJSON(j, 200, options);
-      expected = utils.parseJSON(j, options);
-      assert.strictEqual(actual.total, expected.total);
+      let actual = HTTPClient.parseJSON(j, 200, options);
+      let expected = utils.parseJSON(j, options);
+      assert.deepStrictEqual(actual, expected);
       assert.strictEqual(typeof actual.total, 'bigint');
+      assert.strictEqual(typeof actual.base, 'bigint');
 
       options = {
         intDecoding: IntDecoding.MIXED,
       };
       actual = HTTPClient.parseJSON(j, 200, options);
       expected = utils.parseJSON(j, options);
-      assert.strictEqual(actual.total, expected.total);
+      assert.deepStrictEqual(actual, expected);
       assert.strictEqual(typeof actual.total, 'bigint');
+      assert.strictEqual(typeof actual.base, 'number');
+
+      options = {
+        intDecoding: IntDecoding.UNSAFE,
+      };
+      actual = HTTPClient.parseJSON(j, 200, options);
+      expected = utils.parseJSON(j, options);
+      assert.deepStrictEqual(actual, expected);
+      assert.strictEqual(typeof actual.total, 'number');
       assert.strictEqual(typeof actual.base, 'number');
 
       options = {
@@ -139,39 +141,74 @@ describe('client', () => {
     });
   });
   describe('AlgodClient construction', () => {
-    /* eslint-disable dot-notation */
+    function getBaseClient(client: AlgodClient): URLTokenBaseHTTPClient {
+      // eslint-disable-next-line dot-notation
+      return client.c['bc'] as URLTokenBaseHTTPClient;
+    }
+
+    function getBaseUrl(client: AlgodClient): URL {
+      // eslint-disable-next-line dot-notation
+      return getBaseClient(client)['baseURL'];
+    }
+
     const baseServer = 'http://localhost';
     it('should not assign a bogus port', () => {
       const client = new AlgodClient('', baseServer);
-      assert.strictEqual(client.c['bc']['baseURL']['port'], '');
+      assert.strictEqual(getBaseUrl(client).port, '');
     });
 
     it('should accept a port as an argument and assign it correctly', () => {
       const client = new AlgodClient('', baseServer, 123);
-      assert.strictEqual(client.c['bc']['baseURL']['port'], '123');
+      assert.strictEqual(getBaseUrl(client).port, '123');
     });
 
     it('should accept a port in the url assign it correctly', () => {
       const client = new AlgodClient('', `${baseServer}:${123}`);
-      assert.strictEqual(client.c['bc']['baseURL']['port'], '123');
+      assert.strictEqual(getBaseUrl(client).port, '123');
     });
 
     it('should override the port from the URL with the one specified in the argument', () => {
       const client = new AlgodClient('', `${baseServer}:${123}`, 456);
-      assert.strictEqual(client.c['bc']['baseURL']['port'], '456');
+      assert.strictEqual(getBaseUrl(client).port, '456');
     });
 
     it('should not provide auth request headers when the token is empty', () => {
       const client = new AlgodClient('', `${baseServer}:${123}`, 456);
       assert.deepStrictEqual(
         {
-          ...client.c['bc']['tokenHeaders'],
-          ...client.c['bc']['defaultHeaders'],
+          // eslint-disable-next-line dot-notation
+          ...getBaseClient(client)['tokenHeader'],
+          // eslint-disable-next-line dot-notation
+          ...getBaseClient(client)['defaultHeaders'],
         },
         {}
       );
     });
 
     /* eslint-disable dot-notation */
+  });
+  describe('Additional fetch options', () => {
+    // eslint-disable-next-line func-names
+    it('should pass additional options to the fetch method', async function () {
+      this.timeout(3_000);
+
+      const client = new AlgodClient('', 'http://localhost:8080/neverreturn/');
+
+      const abortController = new AbortController();
+
+      setTimeout(() => {
+        abortController.abort();
+      }, 2_000);
+
+      try {
+        await client
+          .healthCheck()
+          .do(undefined, { signal: abortController.signal });
+        throw new Error('Request should have failed but did not');
+      } catch (err) {
+        const errorString = (err as Error).toString();
+        assert.ok(errorString.includes('aborted'), errorString);
+      }
+    });
   });
 });

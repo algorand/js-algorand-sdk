@@ -1,18 +1,18 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { TransactionProofResponse } from './models/types.js';
 
-export default class GetTransactionProof extends JSONRequest {
+export default class GetTransactionProof extends JSONRequest<TransactionProofResponse> {
+  private round: bigint;
+
   constructor(
     c: HTTPClient,
-    intDecoding: IntDecoding,
-    private round: number,
+    round: number | bigint,
     private txID: string
   ) {
-    super(c, intDecoding);
-
-    this.round = round;
-    this.txID = txID;
+    super(c);
+    this.round = BigInt(round);
   }
 
   path() {
@@ -39,5 +39,10 @@ export default class GetTransactionProof extends JSONRequest {
   hashType(hashType: string) {
     this.query.hashtype = hashType;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): TransactionProofResponse {
+    return decodeJSON(response.getJSONText(), TransactionProofResponse);
   }
 }

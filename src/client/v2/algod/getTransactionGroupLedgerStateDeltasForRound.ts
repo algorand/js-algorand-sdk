@@ -1,16 +1,15 @@
-import JSONRequest from '../jsonrequest';
-import { TransactionGroupLedgerStateDeltasForRoundResponse } from './models/types';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { TransactionGroupLedgerStateDeltasForRoundResponse } from './models/types.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeMsgpack } from '../../../encoding/encoding.js';
 
-export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRequest<
-  TransactionGroupLedgerStateDeltasForRoundResponse,
-  Record<string, any>
-> {
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private round: bigint) {
-    super(c, intDecoding);
-    this.round = round;
-    this.query = { format: 'json' };
+export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRequest<TransactionGroupLedgerStateDeltasForRoundResponse> {
+  private round: bigint;
+
+  constructor(c: HTTPClient, round: number | bigint) {
+    super(c);
+    this.round = BigInt(round);
+    this.query = { format: 'msgpack' };
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -20,10 +19,11 @@ export default class GetTransactionGroupLedgerStateDeltasForRound extends JSONRe
 
   // eslint-disable-next-line class-methods-use-this
   prepare(
-    body: Record<string, any>
+    response: HTTPClientResponse
   ): TransactionGroupLedgerStateDeltasForRoundResponse {
-    return TransactionGroupLedgerStateDeltasForRoundResponse.from_obj_for_encoding(
-      body
+    return decodeMsgpack(
+      response.body,
+      TransactionGroupLedgerStateDeltasForRoundResponse
     );
   }
 }

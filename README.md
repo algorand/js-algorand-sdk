@@ -4,6 +4,10 @@
 
 AlgoSDK is the official JavaScript library for communicating with the Algorand network. It's designed for modern browsers and Node.js.
 
+## New Major Version 3
+
+Existing codebases using v2 of this library will be incompatible with v3. The v3 release introduces breaking changes to the API, and a migration guide is available [here](v2_TO_v3_MIGRATION_GUIDE.md).
+
 ## Installation
 
 ### [Node.js](https://nodejs.org/en/download/)
@@ -20,8 +24,8 @@ Include a minified browser bundle directly in your HTML like so:
 
 ```html
 <script
-  src="https://unpkg.com/algosdk@v2.9.0/dist/browser/algosdk.min.js"
-  integrity="sha384-R84o0hH3cBFIzv9uqyKcDNfDi/6jgn1MrS1/tOMDWxeh8hWfOLuRoMy0LekUm2KL"
+  src="https://unpkg.com/algosdk@v3.0.0/dist/browser/algosdk.min.js"
+  integrity="sha384-EdTN548g1VApyPivwjhxg5HpPLY6nzw58f8nbvmc89M8fO8eBor+KHzf17y1SWl3"
   crossorigin="anonymous"
 ></script>
 ```
@@ -30,8 +34,8 @@ or
 
 ```html
 <script
-  src="https://cdn.jsdelivr.net/npm/algosdk@v2.9.0/dist/browser/algosdk.min.js"
-  integrity="sha384-R84o0hH3cBFIzv9uqyKcDNfDi/6jgn1MrS1/tOMDWxeh8hWfOLuRoMy0LekUm2KL"
+  src="https://cdn.jsdelivr.net/npm/algosdk@v3.0.0/dist/browser/algosdk.min.js"
+  integrity="sha384-EdTN548g1VApyPivwjhxg5HpPLY6nzw58f8nbvmc89M8fO8eBor+KHzf17y1SWl3"
   crossorigin="anonymous"
 ></script>
 ```

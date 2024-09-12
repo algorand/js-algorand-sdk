@@ -1,47 +1,23 @@
-import { Buffer } from 'buffer';
-import AlgodClient from './client/v2/algod/algod';
+import { AlgodClient } from './client/v2/algod/algod.js';
 import {
-  AccountStateDelta,
+  Account,
   Application,
   ApplicationParams,
   ApplicationStateSchema,
   DryrunRequest,
   DryrunSource,
-  EvalDeltaKeyValue,
+  DryrunTxnResult,
+  DryrunState,
   TealValue,
-} from './client/v2/algod/models/types';
-import { SignedTransaction } from './transaction';
-import { TransactionType } from './types/transactions';
-import { encodeAddress, getApplicationAddress } from './encoding/address';
+} from './client/v2/algod/models/types.js';
+import { getApplicationAddress } from './encoding/address.js';
+import { bytesToHex } from './encoding/binarydata.js';
+import { SignedTransaction } from './signedTransaction.js';
+import { TransactionType } from './types/transactions/index.js';
+import { stringifyJSON } from './utils/utils.js';
 
 const defaultAppId = 1380011588;
 const defaultMaxWidth = 30;
-
-// When writing the DryrunRequest object as msgpack the output needs to be the byte arrays not b64 string
-interface AppParamsWithPrograms {
-  ['approval-program']: string | Uint8Array;
-  ['clear-state-program']: string | Uint8Array;
-  ['creator']: string;
-}
-
-interface AppWithAppParams {
-  ['params']: AppParamsWithPrograms;
-}
-
-function decodePrograms(ap: AppWithAppParams): AppWithAppParams {
-  // eslint-disable-next-line no-param-reassign
-  ap.params['approval-program'] = Buffer.from(
-    ap.params['approval-program'].toString(),
-    'base64'
-  );
-  // eslint-disable-next-line no-param-reassign
-  ap.params['clear-state-program'] = Buffer.from(
-    ap.params['clear-state-program'].toString(),
-    'base64'
-  );
-
-  return ap;
-}
 
 /**
  * createDryrun takes an Algod Client (from algod.AlgodV2Client) and an array of Signed Transactions
@@ -50,6 +26,8 @@ function decodePrograms(ap: AppWithAppParams): AppWithAppParams {
  * @param txns - the array of SignedTransaction to use for generating the DryrunRequest object
  * @param protocolVersion - the string representing the protocol version to use
  * @param latestTimestamp - the timestamp
+ * @param round - the round available to some TEAL scripts. Defaults to the current round on the network.
+ * @param sources - TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
  * @returns the DryrunRequest object constructed from the SignedTransactions passed
  */
 export async function createDryrun({
@@ -67,59 +45,59 @@ export async function createDryrun({
   round?: number | bigint;
   sources?: DryrunSource[];
 }): Promise<DryrunRequest> {
-  const appInfos = [];
-  const acctInfos = [];
+  const appInfos: Application[] = [];
+  const acctInfos: Account[] = [];
 
-  const apps: number[] = [];
-  const assets: number[] = [];
+  const apps: bigint[] = [];
+  const assets: bigint[] = [];
   const accts: string[] = [];
 
   for (const t of txns) {
     if (t.txn.type === TransactionType.appl) {
-      accts.push(encodeAddress(t.txn.from.publicKey));
+      accts.push(t.txn.sender.toString());
 
-      if (t.txn.appAccounts)
-        accts.push(...t.txn.appAccounts.map((a) => encodeAddress(a.publicKey)));
+      accts.push(...t.txn.applicationCall!.accounts.map((a) => a.toString()));
 
-      if (t.txn.appForeignApps) {
-        apps.push(...t.txn.appForeignApps);
-        accts.push(
-          ...t.txn.appForeignApps.map((aidx) => getApplicationAddress(aidx))
-        );
-      }
+      apps.push(...t.txn.applicationCall!.foreignApps);
+      accts.push(
+        ...t.txn
+          .applicationCall!.foreignApps.map(getApplicationAddress)
+          .map((a) => a.toString())
+      );
 
-      if (t.txn.appForeignAssets) assets.push(...t.txn.appForeignAssets);
+      assets.push(...t.txn.applicationCall!.foreignAssets);
 
       // Create application,
-      if (t.txn.appIndex === undefined || t.txn.appIndex === 0) {
+      if (t.txn.applicationCall!.appIndex === BigInt(0)) {
         appInfos.push(
           new Application({
             id: defaultAppId,
             params: new ApplicationParams({
-              creator: encodeAddress(t.txn.from.publicKey),
-              approvalProgram: t.txn.appApprovalProgram,
-              clearStateProgram: t.txn.appClearProgram,
+              creator: t.txn.sender.toString(),
+              approvalProgram: t.txn.applicationCall!.approvalProgram,
+              clearStateProgram: t.txn.applicationCall!.clearProgram,
               localStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.appLocalInts,
-                numByteSlice: t.txn.appLocalByteSlices,
+                numUint: t.txn.applicationCall!.numLocalInts,
+                numByteSlice: t.txn.applicationCall!.numLocalByteSlices,
               }),
               globalStateSchema: new ApplicationStateSchema({
-                numUint: t.txn.appGlobalInts,
-                numByteSlice: t.txn.appGlobalByteSlices,
+                numUint: t.txn.applicationCall!.numGlobalInts,
+                numByteSlice: t.txn.applicationCall!.numGlobalByteSlices,
               }),
             }),
           })
         );
       } else {
-        apps.push(t.txn.appIndex);
-        accts.push(getApplicationAddress(t.txn.appIndex));
+        const { appIndex } = t.txn.applicationCall!;
+        apps.push(appIndex);
+        accts.push(getApplicationAddress(appIndex).toString());
       }
     }
   }
 
   // Dedupe and add creator to accts array
   const assetPromises = [];
-  for (const assetId of [...new Set(assets)]) {
+  for (const assetId of new Set(assets)) {
     assetPromises.push(
       client
         .getAssetByID(assetId)
@@ -134,33 +112,26 @@ export async function createDryrun({
 
   // Dedupe and get app info for all apps
   const appPromises = [];
-  for (const appId of [...new Set(apps)]) {
+  for (const appId of new Set(apps)) {
     appPromises.push(
       client
         .getApplicationByID(appId)
         .do()
         .then((appInfo) => {
-          const ai = decodePrograms(appInfo as AppWithAppParams);
-          appInfos.push(ai);
-          accts.push(ai.params.creator);
+          appInfos.push(appInfo);
+          accts.push(appInfo.params.creator.toString());
         })
     );
   }
   await Promise.all(appPromises);
 
   const acctPromises = [];
-  for (const acct of [...new Set(accts)]) {
+  for (const acct of new Set(accts)) {
     acctPromises.push(
       client
         .accountInformation(acct)
         .do()
         .then((acctInfo) => {
-          if ('created-apps' in acctInfo) {
-            // eslint-disable-next-line no-param-reassign
-            acctInfo['created-apps'] = acctInfo['created-apps'].map((app) =>
-              decodePrograms(app)
-            );
-          }
           acctInfos.push(acctInfo);
         })
     );
@@ -168,89 +139,17 @@ export async function createDryrun({
   await Promise.all(acctPromises);
 
   return new DryrunRequest({
-    txns: txns.map((st) => ({ ...st, txn: st.txn.get_obj_for_encoding() })),
+    txns: txns.slice(),
     accounts: acctInfos,
     apps: appInfos,
-    latestTimestamp,
-    round,
-    protocolVersion,
-    sources,
+    latestTimestamp: latestTimestamp ?? 0,
+    round: round ?? 0,
+    protocolVersion: protocolVersion ?? '',
+    sources: sources ?? [],
   });
 }
 
-interface StackValueResponse {
-  type: number;
-  bytes: string;
-  uint: number;
-}
-
-class DryrunStackValue {
-  type: number = 0;
-  bytes: string = '';
-  uint: number = 0;
-
-  constructor(sv: StackValueResponse) {
-    this.type = sv.type;
-    this.bytes = sv.bytes;
-    this.uint = sv.uint;
-  }
-
-  toString(): string {
-    if (this.type === 1) {
-      return `0x${Buffer.from(this.bytes, 'base64').toString('hex')}`;
-    }
-    return this.uint.toString();
-  }
-}
-
-interface DryrunTraceLineResponse {
-  error: string;
-  line: number;
-  pc: number;
-  scratch: TealValue[];
-  stack: StackValueResponse[];
-}
-
-class DryrunTraceLine {
-  error: string = '';
-  line: number = 0;
-  pc: number = 0;
-  scratch: TealValue[] = [];
-  stack: DryrunStackValue[] = [];
-
-  constructor(line: DryrunTraceLineResponse) {
-    this.error = line.error === undefined ? '' : line.error;
-    this.line = line.line;
-    this.pc = line.pc;
-    this.scratch = line.scratch;
-    this.stack = line.stack.map(
-      (sv: StackValueResponse) => new DryrunStackValue(sv)
-    );
-  }
-}
-
-class DryrunTrace {
-  trace: DryrunTraceLine[] = [];
-  constructor(t: DryrunTraceLineResponse[]) {
-    if (t == null) return;
-    this.trace = t.map((line) => new DryrunTraceLine(line));
-  }
-}
-
-interface DryrunTransactionResultResponse {
-  disassembly: string[];
-  appCallMessages: string[] | undefined;
-  localDeltas: AccountStateDelta[] | undefined;
-  globalDelta: EvalDeltaKeyValue[] | undefined;
-  cost: number | undefined;
-  logicSigMessages: string[] | undefined;
-  logicSigDisassembly: string[] | undefined;
-  logs: string[] | undefined;
-  appCallTrace: DryrunTrace | undefined;
-  logicSigTrace: DryrunTrace | undefined;
-}
-
-interface StackPrinterConfig {
+export interface StackPrinterConfig {
   maxValueWidth: number | undefined;
   topOfStackFirst: boolean | undefined;
 }
@@ -275,7 +174,7 @@ function scratchToString(
       continue;
     }
 
-    if (JSON.stringify(prevScratch[idx]) !== JSON.stringify(currScratch[idx])) {
+    if (stringifyJSON(prevScratch[idx]) !== stringifyJSON(currScratch[idx])) {
       newScratchIdx = idx;
     }
   }
@@ -284,23 +183,23 @@ function scratchToString(
 
   const newScratch = currScratch[newScratchIdx];
   if (newScratch.bytes.length > 0) {
-    return `${newScratchIdx} = 0x${Buffer.from(
-      newScratch.bytes,
-      'base64'
-    ).toString('hex')}`;
+    return `${newScratchIdx} = 0x${bytesToHex(newScratch.bytes)}`;
   }
   return `${newScratchIdx} = ${newScratch.uint.toString()}`;
 }
 
-function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
+function stackToString(
+  stack: TealValue[],
+  reverse: boolean | undefined
+): string {
   const svs = reverse ? stack.reverse() : stack;
   return `[${svs
-    .map((sv: DryrunStackValue) => {
+    .map((sv) => {
       switch (sv.type) {
         case 1:
-          return `0x${Buffer.from(sv.bytes, 'base64').toString('hex')}`;
+          return `0x${bytesToHex(sv.bytes)}`;
         case 2:
-          return `${sv.uint.toString()}`;
+          return sv.uint.toString();
         default:
           return '';
       }
@@ -308,162 +207,86 @@ function stackToString(stack: DryrunStackValue[], reverse: boolean): string {
     .join(', ')}]`;
 }
 
-class DryrunTransactionResult {
-  disassembly: string[] = [];
-  appCallMessages: string[] | undefined = [];
-  localDeltas: AccountStateDelta[] | undefined = [];
-  globalDelta: EvalDeltaKeyValue[] | undefined = [];
-  cost: number | undefined = 0;
-  logicSigMessages: string[] | undefined = [];
-  logicSigDisassembly: string[] | undefined = [];
-  logs: string[] | undefined = [];
+function dryrunTrace(
+  trace: DryrunState[],
+  disassembly: string[],
+  spc: StackPrinterConfig
+): string {
+  const maxWidth = spc.maxValueWidth || defaultMaxWidth;
 
-  appCallTrace: DryrunTrace | undefined = undefined;
-  logicSigTrace: DryrunTrace | undefined = undefined;
+  // Create the array of arrays, each sub array contains N columns
+  const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
+  for (let idx = 0; idx < trace.length; idx++) {
+    const { line, error, pc, scratch, stack } = trace[idx];
 
-  required = ['disassembly'];
-  optionals = [
-    'app-call-messages',
-    'local-deltas',
-    'global-delta',
-    'cost',
-    'logic-sig-messages',
-    'logic-sig-disassembly',
-    'logs',
-  ];
+    const currScratch = scratch !== undefined ? scratch : [];
+    const prevScratch =
+      idx > 0 && trace[idx - 1].scratch !== undefined
+        ? trace[idx - 1].scratch!
+        : [];
 
-  traces = ['app-call-trace', 'logic-sig-trace'];
+    const src = !error ? disassembly[line] : `!! ${error} !!`;
 
-  constructor(dtr: DryrunTransactionResultResponse) {
-    this.disassembly = dtr.disassembly;
-    this.appCallMessages = dtr['app-call-messages'];
-    this.localDeltas = dtr['local-deltas'];
-    this.globalDelta = dtr['global-delta'];
-    this.cost = dtr.cost;
-    this.logicSigMessages = dtr['logic-sig-messages'];
-    this.logicSigDisassembly = dtr['logic-sig-disassembly'];
-    this.logs = dtr.logs;
-    this.appCallTrace = new DryrunTrace(dtr['app-call-trace']);
-    this.logicSigTrace = new DryrunTrace(dtr['logic-sig-trace']);
+    lines.push([
+      pc.toString().padEnd(3, ' '),
+      line.toString().padEnd(3, ' '),
+      truncate(src, maxWidth),
+      truncate(scratchToString(prevScratch, currScratch), maxWidth),
+      truncate(stackToString(stack, spc.topOfStackFirst), maxWidth),
+    ]);
   }
 
-  appCallRejected(): boolean {
-    return (
-      this.appCallMessages !== undefined &&
-      this.appCallMessages.includes('REJECT')
-    );
-  }
-
-  logicSigRejected(): boolean {
-    return (
-      this.logicSigMessages !== undefined &&
-      this.logicSigMessages.includes('REJECT')
-    );
-  }
-
-  static trace(
-    drt: DryrunTrace,
-    disassembly: string[],
-    spc: StackPrinterConfig
-  ): string {
-    const maxWidth = spc.maxValueWidth || defaultMaxWidth;
-
-    // Create the array of arrays, each sub array contains N columns
-    const lines = [['pc#', 'ln#', 'source', 'scratch', 'stack']];
-    for (let idx = 0; idx < drt.trace.length; idx++) {
-      const { line, error, pc, scratch, stack } = drt.trace[idx];
-
-      const currScratch = scratch !== undefined ? scratch : [];
-      const prevScratch =
-        idx > 0 && drt.trace[idx - 1].scratch !== undefined
-          ? drt.trace[idx - 1].scratch
-          : [];
-
-      const src = error === '' ? disassembly[line] : `!! ${error} !!`;
-
-      lines.push([
-        pc.toString().padEnd(3, ' '),
-        line.toString().padEnd(3, ' '),
-        truncate(src, maxWidth),
-        truncate(scratchToString(prevScratch, currScratch), maxWidth),
-        truncate(stackToString(stack, spc.topOfStackFirst), maxWidth),
-      ]);
+  // Get the max length for each column
+  const maxLengths = lines.reduce((prev, curr) => {
+    const newVal = new Array(lines[0].length).fill(0);
+    for (let idx = 0; idx < prev.length; idx++) {
+      newVal[idx] = curr[idx].length > prev[idx] ? curr[idx].length : prev[idx];
     }
+    return newVal;
+  }, new Array(lines[0].length).fill(0));
 
-    // Get the max length for each column
-    const maxLengths = lines.reduce((prev, curr) => {
-      const newVal = new Array(lines[0].length).fill(0);
-      for (let idx = 0; idx < prev.length; idx++) {
-        newVal[idx] =
-          curr[idx].length > prev[idx] ? curr[idx].length : prev[idx];
-      }
-      return newVal;
-    }, new Array(lines[0].length).fill(0));
-
-    return `${lines
-      .map((line) =>
-        line
-          .map((v, idx) => v.padEnd(maxLengths[idx] + 1, ' '))
-          .join('|')
-          .trim()
-      )
-      .join('\n')}\n`;
-  }
-
-  appTrace(spc?: StackPrinterConfig): string {
-    if (this.appCallTrace === undefined || !this.disassembly) return '';
-
-    let conf = spc;
-    if (spc === undefined)
-      conf = {
-        maxValueWidth: defaultMaxWidth,
-        topOfStackFirst: false,
-      } as StackPrinterConfig;
-
-    return DryrunTransactionResult.trace(
-      this.appCallTrace,
-      this.disassembly,
-      conf
-    );
-  }
-
-  lsigTrace(spc?: StackPrinterConfig): string {
-    if (
-      this.logicSigTrace === undefined ||
-      this.logicSigDisassembly === undefined
+  return `${lines
+    .map((line) =>
+      line
+        .map((v, idx) => v.padEnd(maxLengths[idx] + 1, ' '))
+        .join('|')
+        .trim()
     )
-      return '';
-
-    let conf = spc;
-    if (spc === undefined)
-      conf = {
-        maxValueWidth: defaultMaxWidth,
-        topOfStackFirst: true,
-      } as StackPrinterConfig;
-
-    return DryrunTransactionResult.trace(
-      this.logicSigTrace,
-      this.logicSigDisassembly,
-      conf
-    );
-  }
+    .join('\n')}\n`;
 }
 
-interface DryrunResultResponse {
-  ['error']: string;
-  ['protocol-version']: string;
-  ['txns']: DryrunTransactionResultResponse[];
+export function dryrunTxnResultAppTrace(
+  result: DryrunTxnResult,
+  spc?: StackPrinterConfig
+): string {
+  if (!result.appCallTrace || !result.disassembly) return '';
+
+  let conf = spc;
+  if (spc !== undefined) conf = spc;
+  else {
+    conf = {
+      maxValueWidth: defaultMaxWidth,
+      topOfStackFirst: false,
+    };
+  }
+
+  return dryrunTrace(result.appCallTrace, result.disassembly, conf);
 }
 
-export class DryrunResult {
-  error: string = '';
-  protocolVersion: string = '';
-  txns: DryrunTransactionResult[] = [];
-  constructor(drrResp: DryrunResultResponse) {
-    this.error = drrResp.error;
-    this.protocolVersion = drrResp['protocol-version'];
-    this.txns = drrResp.txns.map(
-      (txn: DryrunTransactionResultResponse) => new DryrunTransactionResult(txn)
-    );
+export function dryrunTxnResultLogicSigTrace(
+  result: DryrunTxnResult,
+  spc?: StackPrinterConfig
+): string {
+  if (!result.logicSigTrace || !result.logicSigDisassembly) return '';
+
+  let conf: StackPrinterConfig;
+  if (spc !== undefined) conf = spc;
+  else {
+    conf = {
+      maxValueWidth: defaultMaxWidth,
+      topOfStackFirst: true,
+    };
   }
+
+  return dryrunTrace(result.logicSigTrace, result.logicSigDisassembly, conf);
 }

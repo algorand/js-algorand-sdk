@@ -1,8 +1,8 @@
-import { Buffer } from 'buffer';
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { Box } from './models/types';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import JSONRequest from '../jsonrequest.js';
+import { Box } from './models/types.js';
 
 /**
  * Given an application ID and the box name (key), return the value stored in the box.
@@ -19,20 +19,14 @@ import { Box } from './models/types';
  * @param index - The application ID to look up.
  * @category GET
  */
-export default class GetApplicationBoxByName extends JSONRequest<
-  Box,
-  Record<string, any>
-> {
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private index: number,
-    name: Uint8Array
-  ) {
-    super(c, intDecoding);
-    this.index = index;
+export default class GetApplicationBoxByName extends JSONRequest<Box> {
+  private index: bigint;
+
+  constructor(c: HTTPClient, index: number | bigint, name: Uint8Array) {
+    super(c);
+    this.index = BigInt(index);
     // Encode name in base64 format and append the encoding prefix.
-    const encodedName = Buffer.from(name).toString('base64');
+    const encodedName = bytesToBase64(name);
     this.query.name = encodeURI(`b64:${encodedName}`);
   }
 
@@ -44,7 +38,7 @@ export default class GetApplicationBoxByName extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): Box {
-    return Box.from_obj_for_encoding(body);
+  prepare(response: HTTPClientResponse): Box {
+    return decodeJSON(response.getJSONText(), Box);
   }
 }

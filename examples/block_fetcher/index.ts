@@ -11,57 +11,42 @@ const address = 'http://127.0.0.1';
 const port = 8080;
 const client = new algosdk.Algodv2(token, address, port);
 
-// Recursively remove all null values from object
-function removeNulls(obj) {
-  for (const key in obj) {
-    if (obj[key] === null) {
-      // eslint-disable-next-line no-param-reassign
-      delete obj[key];
-    } else if (typeof obj[key] === 'object') {
-      removeNulls(obj[key]);
-    }
-  }
-}
-
 (async () => {
   // Retrieve current status
   let status = await client.status().do();
 
   while (true) {
     // Get latest round number
-    let lastRound = status['last-round'];
+    let { lastRound } = status;
     console.log(`Round: ${lastRound}`);
 
     // Fetch block
     const round = await client.block(lastRound).do();
     const { block } = round;
-    const { txns } = block;
+    const txns = block.payset;
 
     // For all transactions in the block reconstruct them
     // into Transaction objects and calculate their TxID
-    for (const t in txns) {
-      const tx = txns[t];
-      const { txn } = txns[t];
+    for (const stxnInBlock of txns) {
+      const { txn } = stxnInBlock.signedTxn.signedTxn;
 
       // Skip StateProofs
-      if (txn.type === 'stpf') continue;
-
-      // Remove nulls (mainly where an appl txn contains a null app arg)
-      removeNulls(txn);
+      if (txn.type === algosdk.TransactionType.stpf) continue;
 
       // Use Genesis Hash and Genesis ID from the block
-      const { gh } = block;
-      let { gen } = block;
+      let gh: Uint8Array | undefined = block.header.genesisHash;
+      let gen: string | undefined = block.header.genesisID;
 
-      // Unset gen if `hgi` isn't set
-      if (!tx.hgi) gen = null;
+      // Unset gh if hasGenesisID isn't set
+      if (!stxnInBlock.hasGenesisID) gh = undefined;
+      // Unset gen if hasGenesisID isn't set
+      if (!stxnInBlock.hasGenesisID) gen = undefined;
 
       // Construct Transaction
-      const transaction = algosdk.Transaction.from_obj_for_encoding({
-        ...txn,
-        gh,
-        gen,
-      });
+      const encodingData = txn.toEncodingData();
+      encodingData.set('gh', gh);
+      encodingData.set('gen', gen);
+      const transaction = algosdk.Transaction.fromEncodingData(encodingData);
       const txid = transaction.txID();
 
       // If set to true, validate the TxID exists against the node
@@ -80,6 +65,6 @@ function removeNulls(obj) {
 
     // Wait for next round
     status = await client.statusAfterBlock(lastRound).do();
-    lastRound = status['last-round'];
+    lastRound = status.lastRound;
   }
 })();

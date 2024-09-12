@@ -1,4 +1,8 @@
-import JSONRequest from '../jsonrequest';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { Address } from '../../../encoding/address.js';
+import { AccountsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed accounts.
@@ -11,7 +15,7 @@ import JSONRequest from '../jsonrequest';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2accounts)
  * @category GET
  */
-export default class SearchAccounts extends JSONRequest {
+export default class SearchAccounts extends JSONRequest<AccountsResponse> {
   /**
    * @returns `/v2/accounts`
    */
@@ -48,7 +52,7 @@ export default class SearchAccounts extends JSONRequest {
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: number | bigint) {
     // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
@@ -80,7 +84,7 @@ export default class SearchAccounts extends JSONRequest {
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: number | bigint) {
     this.query['currency-less-than'] = lesser;
     return this;
   }
@@ -120,7 +124,7 @@ export default class SearchAccounts extends JSONRequest {
    * @param id
    * @category query
    */
-  assetID(id: number) {
+  assetID(id: number | bigint) {
     this.query['asset-id'] = id;
     return this;
   }
@@ -167,7 +171,7 @@ export default class SearchAccounts extends JSONRequest {
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -186,8 +190,8 @@ export default class SearchAccounts extends JSONRequest {
    *
    * @param authAddr
    */
-  authAddr(authAddr: string) {
-    this.query['auth-addr'] = authAddr;
+  authAddr(authAddr: string | Address) {
+    this.query['auth-addr'] = authAddr.toString();
     return this;
   }
 
@@ -206,7 +210,7 @@ export default class SearchAccounts extends JSONRequest {
    * @param applicationID
    * @category query
    */
-  applicationID(applicationID: number) {
+  applicationID(applicationID: number | bigint) {
     this.query['application-id'] = applicationID;
     return this;
   }
@@ -265,5 +269,10 @@ export default class SearchAccounts extends JSONRequest {
   exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): AccountsResponse {
+    return decodeJSON(response.getJSONText(), AccountsResponse);
   }
 }

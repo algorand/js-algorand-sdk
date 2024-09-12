@@ -1,4 +1,4 @@
-import { Transaction } from '../transaction';
+import { Transaction } from '../transaction.js';
 
 export enum ABITransactionType {
   /**
@@ -57,5 +57,5 @@ export function abiCheckTransactionType(
     return true;
   }
 
-  return txn.type && txn.type.toString() === type.toString();
+  return txn.type ? txn.type.toString() === type.toString() : false;
 }

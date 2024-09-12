@@ -1,5 +1,4 @@
 /* eslint-disable func-names,radix */
-const { Buffer } = require('buffer');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -41,6 +40,10 @@ async function loadResource(res) {
   });
 }
 
+async function loadResourceAsJson(res) {
+  return JSON.parse((await loadResource(res)).toString());
+}
+
 // START OBJECT CREATION FUNCTIONS
 
 /**
@@ -69,6 +72,10 @@ function makeArray(...args) {
 
 function makeObject(obj) {
   return { ...obj };
+}
+
+function makeMap(m) {
+  return new Map(m);
 }
 
 function parseJSON(json) {
@@ -123,17 +130,27 @@ module.exports = function getSteps(options) {
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
+  function bytesEqual(a, b) {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
+
   // String parsing helper methods
   function processAppArgs(subArg) {
     switch (subArg[0]) {
       case 'str':
-        return makeUint8Array(Buffer.from(subArg[1]));
+        return makeUint8Array(new TextEncoder().encode(subArg[1]));
       case 'int':
         return makeUint8Array(algosdk.encodeUint64(parseInt(subArg[1], 10)));
       case 'addr':
         return algosdk.decodeAddress(subArg[1]).publicKey;
       case 'b64':
-        return makeUint8Array(Buffer.from(subArg[1], 'base64'));
+        return makeUint8Array(algosdk.base64ToBytes(subArg[1]));
       default:
         throw Error(`did not recognize app arg of type ${subArg[0]}`);
     }
@@ -175,6 +192,35 @@ module.exports = function getSteps(options) {
       }
     }
     return boxRefArray;
+  }
+
+  /*
+  doRaw and the associated functions are used to allow test servers to return unexpected response data in cases where
+  we're not testing the functionality of the response. It is the responsibility of the mocking step to set the doRaw
+  variable to true if it intends to send bad responses.
+  By default, we you `do` which will throw an exception if malformed response data is returned.
+   */
+  let doRaw = false;
+
+  async function doOrDoRaw(req) {
+    if (doRaw === true) {
+      doRaw = false;
+      return req.doRaw();
+    }
+    return req.do();
+  }
+
+  function concatArrays(...arrs) {
+    const size = arrs.reduce((sum, arr) => sum + arr.length, 0);
+    const c = new Uint8Array(size);
+
+    let offset = 0;
+    for (let i = 0; i < arrs.length; i++) {
+      c.set(arrs[i], offset);
+      offset += arrs[i].length;
+    }
+
+    return c;
   }
 
   Given('a kmd client', function () {
@@ -234,12 +280,12 @@ module.exports = function getSteps(options) {
 
   Given(
     'payment transaction parameters {int} {int} {int} {string} {string} {string} {int} {string} {string}',
-    function (fee, fv, lv, gh, to, close, amt, gen, note) {
+    function (fee, fv, lv, gh, receiver, close, amt, gen, note) {
       this.fee = parseInt(fee);
       this.fv = parseInt(fv);
       this.lv = parseInt(lv);
-      this.gh = gh;
-      this.to = to;
+      this.gh = algosdk.base64ToBytes(gh);
+      this.receiver = receiver;
       if (close !== 'none') {
         this.close = close;
       }
@@ -248,7 +294,7 @@ module.exports = function getSteps(options) {
         this.gen = gen;
       }
       if (note !== 'none') {
-        this.note = makeUint8Array(Buffer.from(note, 'base64'));
+        this.note = makeUint8Array(algosdk.base64ToBytes(note));
       }
     }
   );
@@ -293,9 +339,9 @@ module.exports = function getSteps(options) {
     const addrs = [];
     for (let i = 0; i < this.msig.addrs.length; i++) {
       addrs.push(
-        Buffer.from(
+        algosdk.bytesToBase64(
           algosdk.decodeAddress(this.msig.addrs[i]).publicKey
-        ).toString('base64')
+        )
       );
     }
     await this.kcl.importMultisig(
@@ -320,34 +366,29 @@ module.exports = function getSteps(options) {
   Then(
     'the signed transaction should equal the golden {string}',
     function (golden) {
-      assert.deepStrictEqual(
-        Buffer.from(golden, 'base64'),
-        Buffer.from(this.stx)
-      );
+      assert.deepStrictEqual(algosdk.base64ToBytes(golden), this.stx);
     }
   );
 
   Then(
     'the signed transaction should equal the kmd signed transaction',
     function () {
-      assert.deepStrictEqual(Buffer.from(this.stx), Buffer.from(this.stxKmd));
+      assert.deepStrictEqual(this.stx, this.stxKmd);
     }
   );
 
   Then(
     'the multisig address should equal the golden {string}',
     function (golden) {
-      assert.deepStrictEqual(algosdk.multisigAddress(this.msig), golden);
+      const goldenAddr = algosdk.Address.fromString(golden);
+      assert.deepStrictEqual(algosdk.multisigAddress(this.msig), goldenAddr);
     }
   );
 
   Then(
     'the multisig transaction should equal the golden {string}',
     function (golden) {
-      assert.deepStrictEqual(
-        Buffer.from(golden, 'base64'),
-        Buffer.from(this.stx)
-      );
+      assert.deepStrictEqual(algosdk.base64ToBytes(golden), this.stx);
     }
   );
 
@@ -357,14 +398,11 @@ module.exports = function getSteps(options) {
       await this.kcl.deleteMultisig(
         this.handle,
         this.wallet_pswd,
-        algosdk.multisigAddress(this.msig)
+        algosdk.multisigAddress(this.msig).toString()
       );
       const s = algosdk.decodeObj(this.stx);
       const m = algosdk.encodeObj(s.msig);
-      assert.deepStrictEqual(
-        Buffer.from(m),
-        Buffer.from(this.stxKmd, 'base64')
-      );
+      assert.deepStrictEqual(m, algosdk.base64ToBytes(this.stxKmd));
     }
   );
 
@@ -381,17 +419,14 @@ module.exports = function getSteps(options) {
       this.rekey = this.rekey.address;
       // Fund the rekey address with some Algos
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
-      const fundingTxnArgs = {
-        from: this.accounts[0],
-        to: this.rekey,
-        amount: DEV_MODE_INITIAL_MICROALGOS,
-        fee: sp.fee,
-        firstRound: sp.firstRound,
-        lastRound: sp.lastRound,
-        genesisHash: sp.genesisHash,
-        genesisID: sp.genesisID,
-      };
+      if (sp.firstValid === 0) sp.firstValid = 1;
+      const fundingTxnArgs =
+        algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+          sender: this.accounts[0],
+          receiver: this.rekey,
+          amount: DEV_MODE_INITIAL_MICROALGOS,
+          suggestedParams: sp,
+        });
 
       const stxKmd = await this.kcl.signTransaction(
         this.handle,
@@ -406,7 +441,7 @@ module.exports = function getSteps(options) {
   Then('the key should be in the wallet', async function () {
     let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
-    assert.deepStrictEqual(true, keys.indexOf(this.pk) >= 0);
+    assert.ok(keys.indexOf(this.pk) >= 0);
     return keys;
   });
 
@@ -417,13 +452,13 @@ module.exports = function getSteps(options) {
   Then('the key should not be in the wallet', async function () {
     let keys = await this.kcl.listKeys(this.handle);
     keys = keys.addresses;
-    assert.deepStrictEqual(false, keys.indexOf(this.pk) >= 0);
+    assert.ok(keys.indexOf(this.pk) < 0);
     return keys;
   });
 
   When('I generate a key', function () {
     const result = algosdk.generateAccount();
-    this.pk = result.addr;
+    this.pk = result.addr.toString();
     this.sk = result.sk;
   });
 
@@ -441,8 +476,8 @@ module.exports = function getSteps(options) {
       );
       exp = exp.private_key;
       assert.deepStrictEqual(
-        Buffer.from(exp).toString('base64'),
-        Buffer.from(this.sk).toString('base64')
+        algosdk.bytesToBase64(exp),
+        algosdk.bytesToBase64(this.sk)
       );
       return this.kcl.deleteKey(this.handle, this.wallet_pswd, this.pk);
     }
@@ -460,11 +495,11 @@ module.exports = function getSteps(options) {
       [this.pk] = this.accounts;
       const result = await this.v2Client.getTransactionParams().do();
       this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: this.accounts[0],
-        to: this.accounts[1],
+        sender: this.accounts[0],
+        receiver: this.accounts[1],
         amount: parseInt(amt),
         suggestedParams: result,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
+        note: makeUint8Array(algosdk.base64ToBytes(note)),
       });
       return this.txn;
     }
@@ -475,18 +510,14 @@ module.exports = function getSteps(options) {
     async function (amt, note) {
       this.pk = this.rekey;
       const result = await this.v2Client.getTransactionParams().do();
-      this.lastRound = result.lastRound;
-      this.txn = {
-        from: this.rekey,
-        to: this.accounts[1],
-        fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
+      this.lastValid = result.lastValid;
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: this.rekey,
+        receiver: this.accounts[1],
+        note: makeUint8Array(algosdk.base64ToBytes(note)),
         amount: parseInt(amt),
-      };
+        suggestedParams: result,
+      });
       return this.txn;
     }
   );
@@ -502,17 +533,13 @@ module.exports = function getSteps(options) {
         addrs: this.accounts,
       };
 
-      this.txn = {
-        from: algosdk.multisigAddress(this.msig),
-        to: this.accounts[1],
-        fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
-        note: makeUint8Array(Buffer.from(note, 'base64')),
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: algosdk.multisigAddress(this.msig),
+        receiver: this.accounts[1],
+        note: makeUint8Array(algosdk.base64ToBytes(note)),
         amount: parseInt(amt),
-      };
+        suggestedParams: result,
+      });
       return this.txn;
     }
   );
@@ -521,9 +548,9 @@ module.exports = function getSteps(options) {
     const addrs = [];
     for (let i = 0; i < this.msig.addrs.length; i++) {
       addrs.push(
-        Buffer.from(
+        algosdk.bytesToBase64(
           algosdk.decodeAddress(this.msig.addrs[i]).publicKey
-        ).toString('base64')
+        )
       );
     }
     return this.kcl.importMultisig(
@@ -535,12 +562,10 @@ module.exports = function getSteps(options) {
   });
 
   Then('the multisig should be in the wallet', async function () {
-    let keys = await this.kcl.listMultisig(this.handle);
-    keys = keys.addresses;
-    assert.deepStrictEqual(
-      true,
-      keys.indexOf(algosdk.multisigAddress(this.msig)) >= 0
-    );
+    const resp = await this.kcl.listMultisig(this.handle);
+    const keys = resp.addresses;
+    const addr = algosdk.multisigAddress(this.msig).toString();
+    assert.ok(keys.indexOf(addr) >= 0, `Can't find address ${addr} in ${keys}`);
     return keys;
   });
 
@@ -551,17 +576,14 @@ module.exports = function getSteps(options) {
     }
 
     keys = keys.addresses;
-    assert.deepStrictEqual(
-      false,
-      keys.indexOf(algosdk.multisigAddress(this.msig)) >= 0
-    );
+    assert.ok(keys.indexOf(algosdk.multisigAddress(this.msig).toString()) < 0);
     return keys;
   });
 
   When('I export the multisig', async function () {
     this.msigExp = await this.kcl.exportMultisig(
       this.handle,
-      algosdk.multisigAddress(this.msig)
+      algosdk.multisigAddress(this.msig).toString()
     );
     return this.msigExp;
   });
@@ -570,22 +592,21 @@ module.exports = function getSteps(options) {
     return this.kcl.deleteMultisig(
       this.handle,
       this.wallet_pswd,
-      algosdk.multisigAddress(this.msig)
+      algosdk.multisigAddress(this.msig).toString()
     );
   });
 
   Then('the multisig should equal the exported multisig', function () {
     for (let i = 0; i < this.msigExp.length; i++) {
       assert.deepStrictEqual(
-        algosdk.encodeAddress(Buffer.from(this.msigExp[i], 'base64')),
+        algosdk.encodeAddress(algosdk.base64ToBytes(this.msigExp[i])),
         this.msig.addrs[i]
       );
     }
   });
 
   Then('the node should be healthy', async function () {
-    const health = await this.v2Client.healthCheck().do();
-    assert.deepStrictEqual(health, makeObject({}));
+    await this.v2Client.healthCheck().do();
   });
 
   Then('I get the ledger supply', async function () {
@@ -654,30 +675,26 @@ module.exports = function getSteps(options) {
   });
 
   When('I create the flat fee payment transaction', function () {
-    this.txn = {
-      to: this.to,
-      fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      genesisHash: this.gh,
-      flatFee: true,
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.close) {
-      this.txn.closeRemainderTo = this.close;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
-    if (this.amt) {
-      this.txn.amount = this.amt;
-    }
+    this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: this.pk,
+      receiver: this.receiver,
+      amount: this.amt ?? 0,
+      closeRemainderTo: this.close,
+      note: this.note,
+      suggestedParams: {
+        minFee: 1000, // Shouldn't matter because flatFee=true
+        flatFee: true,
+        fee: this.fee,
+        firstValid: this.fv,
+        lastValid: this.lv,
+        genesisHash: this.gh,
+        genesisID: this.gen,
+      },
+    });
   });
 
   Given('encoded multisig transaction {string}', function (encTxn) {
-    this.mtx = Buffer.from(encTxn, 'base64');
+    this.mtx = algosdk.base64ToBytes(encTxn);
     this.stx = algosdk.decodeObj(this.mtx);
   });
 
@@ -719,69 +736,59 @@ module.exports = function getSteps(options) {
     this.mtxs = [];
     const mtxs = encTxns.split(' ');
     for (let i = 0; i < mtxs.length; i++) {
-      this.mtxs.push(Buffer.from(mtxs[i], 'base64'));
+      this.mtxs.push(algosdk.base64ToBytes(mtxs[i]));
     }
   });
 
   When('I create the multisig payment transaction', function () {
-    this.txn = {
-      from: algosdk.multisigAddress(this.msig),
-      to: this.to,
-      fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      genesisHash: this.gh,
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.close) {
-      this.txn.closeRemainderTo = this.close;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
-    if (this.amt) {
-      this.txn.amount = this.amt;
-    }
+    this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: algosdk.multisigAddress(this.msig),
+      receiver: this.receiver,
+      amount: this.amt ?? 0,
+      closeRemainderTo: this.close,
+      note: this.note,
+      suggestedParams: {
+        minFee: 1000, // Hardcoding, but it would be nice to take this as an argument
+        fee: this.fee,
+        firstValid: this.fv,
+        lastValid: this.lv,
+        genesisHash: this.gh,
+        genesisID: this.gen,
+      },
+    });
     return this.txn;
   });
 
   When('I create the multisig payment transaction with zero fee', function () {
-    this.txn = {
-      from: algosdk.multisigAddress(this.msig),
-      to: this.to,
-      fee: this.fee,
-      flatFee: true,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      genesisHash: this.gh,
-    };
-    if (this.gen) {
-      this.txn.genesisID = this.gen;
-    }
-    if (this.close) {
-      this.txn.closeRemainderTo = this.close;
-    }
-    if (this.note) {
-      this.txn.note = this.note;
-    }
-    if (this.amt) {
-      this.txn.amount = this.amt;
-    }
+    this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: algosdk.multisigAddress(this.msig),
+      receiver: this.receiver,
+      amount: this.amt ?? 0,
+      closeRemainderTo: this.close,
+      note: this.note,
+      suggestedParams: {
+        minFee: 1000, // Shouldn't matter because flatFee=true
+        fee: this.fee,
+        flatFee: true,
+        firstValid: this.fv,
+        lastValid: this.lv,
+        genesisHash: this.gh,
+        genesisID: this.gen,
+      },
+    });
     return this.txn;
   });
 
   When('I send the transaction', async function () {
     const txid = await this.v2Client.sendRawTransaction(this.stx).do();
-    this.txid = txid.txId;
+    this.txid = txid.txid;
     this.appTxid = txid; // Alias to use in waitForTransaction.
     return this.txid;
   });
 
   When('I send the kmd-signed transaction', async function () {
     const txid = await this.v2Client.sendRawTransaction(this.stxKmd).do();
-    this.txid = txid.txId;
+    this.txid = txid.txid;
     this.appTxid = txid; // Alias to use in waitForTransaction.
     return this.txid;
   });
@@ -912,15 +919,14 @@ module.exports = function getSteps(options) {
     'default V2 key registration transaction {string}',
     async function (type) {
       const voteKey = makeUint8Array(
-        Buffer.from('9mr13Ri8rFepxN3ghIUrZNui6LqqM5hEzB45Rri5lkU=', 'base64')
+        algosdk.base64ToBytes('9mr13Ri8rFepxN3ghIUrZNui6LqqM5hEzB45Rri5lkU=')
       );
       const selectionKey = makeUint8Array(
-        Buffer.from('dx717L3uOIIb/jr9OIyls1l5Ei00NFgRa380w7TnPr4=', 'base64')
+        algosdk.base64ToBytes('dx717L3uOIIb/jr9OIyls1l5Ei00NFgRa380w7TnPr4=')
       );
       const stateProofKey = makeUint8Array(
-        Buffer.from(
-          'mYR0GVEObMTSNdsKM6RwYywHYPqVDqg3E4JFzxZOreH9NU8B+tKzUanyY8AQ144hETgSMX7fXWwjBdHz6AWk9w==',
-          'base64'
+        algosdk.base64ToBytes(
+          'mYR0GVEObMTSNdsKM6RwYywHYPqVDqg3E4JFzxZOreH9NU8B+tKzUanyY8AQ144hETgSMX7fXWwjBdHz6AWk9w=='
         )
       );
 
@@ -928,36 +934,29 @@ module.exports = function getSteps(options) {
       this.pk = from;
 
       const result = await this.v2Client.getTransactionParams().do();
-      const suggestedParams = {
-        fee: result.fee,
-        firstRound: result.firstRound,
-        lastRound: result.lastRound,
-        genesisHash: result.genesisHash,
-        genesisID: result.genesisID,
-      };
-      this.lastRound = result.lastRound;
+      this.lastValid = result.lastValid;
 
       if (type === 'online') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-          from,
+          sender: from,
           voteKey,
           selectionKey,
           stateProofKey,
           voteFirst: 1,
           voteLast: 2000,
           voteKeyDilution: 10,
-          suggestedParams,
+          suggestedParams: result,
         });
       } else if (type === 'offline') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-          from,
-          suggestedParams,
+          sender: from,
+          suggestedParams: result,
         });
       } else if (type === 'nonparticipation') {
         this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
-          from,
+          sender: from,
           nonParticipation: true,
-          suggestedParams,
+          suggestedParams: result,
         });
       } else {
         throw new Error(`Unrecognized keyreg type: ${type}`);
@@ -976,7 +975,9 @@ module.exports = function getSteps(options) {
       name: 'testcoin',
       unitname: 'coins',
       url: 'http://test',
-      metadataHash: 'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh',
+      metadataHash: new TextEncoder().encode(
+        'fACPO4nRgO55j1ndAK3W6Sgc4APkcyFh'
+      ),
       expectedParams: undefined,
       queriedParams: undefined,
       lastTxn: undefined,
@@ -989,11 +990,11 @@ module.exports = function getSteps(options) {
       [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const parsedIssuance = parseInt(issuance);
+      const parsedIssuance = BigInt(issuance);
       const decimals = 0;
       const defaultFrozen = false;
       const assetName = this.assetTestFixture.name;
@@ -1004,47 +1005,41 @@ module.exports = function getSteps(options) {
       const reserve = this.assetTestFixture.creator;
       const freeze = this.assetTestFixture.creator;
       const clawback = this.assetTestFixture.creator;
-      const genesisID = '';
-      const type = 'acfg';
 
-      this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetTotal: parsedIssuance,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash: metadataHash,
-        assetManager: manager,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          note: this.note,
+          total: parsedIssuance,
+          decimals,
+          defaultFrozen,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash: metadataHash,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
         total: parsedIssuance,
-        defaultfrozen: defaultFrozen,
-        unitname: unitName,
-        assetname: assetName,
+        defaultFrozen,
+        unitName,
+        name: assetName,
         url: assetURL,
-        metadatahash: Buffer.from(metadataHash).toString('base64'),
-        managerkey: manager,
-        reserveaddr: reserve,
-        freezeaddr: freeze,
-        clawbackaddr: clawback,
+        metadataHash,
+        manager,
+        reserve,
+        freeze,
+        clawback,
         decimals,
       };
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1055,11 +1050,11 @@ module.exports = function getSteps(options) {
       [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const parsedIssuance = parseInt(issuance);
+      const parsedIssuance = BigInt(issuance);
       const decimals = 0;
       const defaultFrozen = true;
       const assetName = this.assetTestFixture.name;
@@ -1070,47 +1065,41 @@ module.exports = function getSteps(options) {
       const reserve = this.assetTestFixture.creator;
       const freeze = this.assetTestFixture.creator;
       const clawback = this.assetTestFixture.creator;
-      const genesisID = '';
-      const type = 'acfg';
 
-      this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetTotal: parsedIssuance,
-        assetDecimals: decimals,
-        assetDefaultFrozen: defaultFrozen,
-        assetUnitName: unitName,
-        assetName,
-        assetURL,
-        assetMetadataHash: metadataHash,
-        assetManager: manager,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          note: this.note,
+          total: parsedIssuance,
+          decimals,
+          defaultFrozen,
+          unitName,
+          assetName,
+          assetURL,
+          assetMetadataHash: metadataHash,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.assetTestFixture.expectedParams = {
         creator: this.assetTestFixture.creator,
         total: parsedIssuance,
-        defaultfrozen: defaultFrozen,
-        unitname: unitName,
-        assetname: assetName,
+        defaultFrozen,
+        unitName,
+        name: assetName,
         url: assetURL,
-        metadatahash: Buffer.from(metadataHash).toString('base64'),
-        managerkey: manager,
-        reserveaddr: reserve,
-        freezeaddr: freeze,
-        clawbackaddr: clawback,
+        metadataHash,
+        manager,
+        reserve,
+        freeze,
+        clawback,
         decimals,
       };
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1131,7 +1120,7 @@ module.exports = function getSteps(options) {
     const accountResponse = await this.v2Client
       .accountInformation(this.assetTestFixture.creator)
       .do();
-    const heldAssets = accountResponse['created-assets'];
+    const heldAssets = accountResponse.createdAssets;
     let assetIds = heldAssets.map((asset) => asset.index);
     assetIds = assetIds.sort(sortKeysAscending);
     const assetIndex = assetIds[assetIds.length - 1];
@@ -1147,15 +1136,16 @@ module.exports = function getSteps(options) {
   });
 
   Then('the asset info should match the expected asset info', function () {
-    Object.keys(this.assetTestFixture.expectedParams).forEach((key) => {
-      assert.strictEqual(
-        true,
-        this.assetTestFixture.expectedParams[key] ===
-          this.assetTestFixture.queriedParams.params[key] ||
-          typeof this.assetTestFixture.expectedParams[key] === 'undefined' ||
-          typeof this.assetTestFixture.queriedParams.params[key] === 'undefined'
+    for (const [key, expectedValue] of Object.entries(
+      this.assetTestFixture.expectedParams
+    )) {
+      const actualValue = this.assetTestFixture.queriedParams.params[key];
+      assert.deepStrictEqual(
+        actualValue,
+        expectedValue,
+        `Asset params do not match for ${key}. Actual: ${actualValue}, Expected: ${expectedValue}`
       );
-    });
+    }
   });
 
   When(
@@ -1164,8 +1154,8 @@ module.exports = function getSteps(options) {
       [this.assetTestFixture.creator] = this.accounts;
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       // if we truly supplied no managers at all, it would be an asset destroy txn
@@ -1174,30 +1164,25 @@ module.exports = function getSteps(options) {
       let reserve;
       let freeze;
       let clawback;
-      const genesisID = '';
-      const type = 'acfg';
 
-      this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetManager: manager,
-        assetReserve: reserve,
-        assetFreeze: freeze,
-        assetClawback: clawback,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          note: this.note,
+          manager,
+          reserve,
+          freeze,
+          clawback,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+          strictEmptyAddressChecking: false,
+        });
       // update vars used by other helpers
-      this.assetTestFixture.expectedParams.reserveaddr = '';
-      this.assetTestFixture.expectedParams.freezeaddr = '';
-      this.assetTestFixture.expectedParams.clawbackaddr = '';
+      this.assetTestFixture.expectedParams.reserve = undefined;
+      this.assetTestFixture.expectedParams.freeze = undefined;
+      this.assetTestFixture.expectedParams.clawback = undefined;
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1206,27 +1191,21 @@ module.exports = function getSteps(options) {
     [this.assetTestFixture.creator] = this.accounts;
     this.params = await this.v2Client.getTransactionParams().do();
     this.fee = this.params.fee;
-    this.fv = this.params.firstRound;
-    this.lv = this.params.lastRound;
+    this.fv = this.params.firstValid;
+    this.lv = this.params.lastValid;
     this.note = undefined;
     this.gh = this.params.genesisHash;
-    const genesisID = '';
-    const type = 'acfg';
 
-    this.assetTestFixture.lastTxn = {
-      from: this.assetTestFixture.creator,
-      fee: this.fee,
-      firstRound: this.fv,
-      lastRound: this.lv,
-      note: this.note,
-      genesisHash: this.gh,
-      assetIndex: parseInt(this.assetTestFixture.index),
-      genesisID,
-      type,
-    };
+    this.assetTestFixture.lastTxn =
+      algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
+        sender: this.assetTestFixture.creator,
+        note: this.note,
+        assetIndex: parseInt(this.assetTestFixture.index),
+        suggestedParams: this.params,
+      });
     // update vars used by other helpers
     this.txn = this.assetTestFixture.lastTxn;
-    this.lastRound = this.params.lastRound;
+    this.lastValid = this.params.lastValid;
     [this.pk] = this.accounts;
   });
 
@@ -1246,29 +1225,23 @@ module.exports = function getSteps(options) {
       const accountToUse = this.accounts[1];
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        from: accountToUse,
-        to: accountToUse,
-        amount: 0,
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: accountToUse,
+          receiver: accountToUse,
+          amount: 0,
+          note: this.note,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = accountToUse;
     }
   );
@@ -1278,29 +1251,23 @@ module.exports = function getSteps(options) {
     async function (amount) {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
-        to: this.accounts[1],
-        amount: parseInt(amount),
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          receiver: this.accounts[1],
+          amount: parseInt(amount),
+          note: this.note,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1310,29 +1277,23 @@ module.exports = function getSteps(options) {
     async function (amount) {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        to: this.assetTestFixture.creator,
-        from: this.accounts[1],
-        amount: parseInt(amount),
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          receiver: this.assetTestFixture.creator,
+          sender: this.accounts[1],
+          amount: parseInt(amount),
+          note: this.note,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       [this.pk] = this.accounts;
     }
   );
@@ -1344,7 +1305,7 @@ module.exports = function getSteps(options) {
         .accountInformation(this.assetTestFixture.creator)
         .do();
       for (const asset of accountInformation.assets) {
-        if (asset['asset-id'] === this.assetTestFixture.index) {
+        if (asset.assetId === this.assetTestFixture.index) {
           assert.deepStrictEqual(asset.amount, parseInt(expectedTotal));
         }
       }
@@ -1365,27 +1326,24 @@ module.exports = function getSteps(options) {
     async function () {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const freezer = this.assetTestFixture.creator;
 
-      this.assetTestFixture.lastTxn = {
-        from: freezer,
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        genesisHash: this.gh,
-        type: 'afrz',
-        freezeAccount: this.accounts[1],
-        assetIndex: parseInt(this.assetTestFixture.index),
-        freezeState: false,
-        note: this.note,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
+          sender: freezer,
+          freezeTarget: this.accounts[1],
+          assetIndex: parseInt(this.assetTestFixture.index),
+          frozen: false,
+          note: this.note,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1395,27 +1353,24 @@ module.exports = function getSteps(options) {
     async function () {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
       const freezer = this.assetTestFixture.creator;
 
-      this.assetTestFixture.lastTxn = {
-        from: freezer,
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        genesisHash: this.gh,
-        type: 'afrz',
-        freezeAccount: this.accounts[1],
-        assetIndex: parseInt(this.assetTestFixture.index),
-        freezeState: true,
-        note: this.note,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
+          sender: freezer,
+          freezeTarget: this.accounts[1],
+          assetIndex: parseInt(this.assetTestFixture.index),
+          frozen: true,
+          note: this.note,
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1425,30 +1380,25 @@ module.exports = function getSteps(options) {
     async function (amount) {
       this.params = await this.v2Client.getTransactionParams().do();
       this.fee = this.params.fee;
-      this.fv = this.params.firstRound;
-      this.lv = this.params.lastRound;
+      this.fv = this.params.firstValid;
+      this.lv = this.params.lastValid;
       this.note = undefined;
       this.gh = this.params.genesisHash;
-      const genesisID = '';
-      const type = 'axfer';
 
-      this.assetTestFixture.lastTxn = {
-        from: this.assetTestFixture.creator,
-        to: this.assetTestFixture.creator,
-        assetRevocationTarget: this.accounts[1],
-        amount: parseInt(amount),
-        fee: this.fee,
-        firstRound: this.fv,
-        lastRound: this.lv,
-        note: this.note,
-        genesisHash: this.gh,
-        assetIndex: parseInt(this.assetTestFixture.index),
-        genesisID,
-        type,
-      };
+      this.assetTestFixture.lastTxn =
+        algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          sender: this.assetTestFixture.creator,
+          receiver: this.assetTestFixture.creator,
+          assetSender: this.accounts[1],
+          amount: parseInt(amount),
+          note: this.note,
+          genesisHash: this.gh,
+          assetIndex: parseInt(this.assetTestFixture.index),
+          suggestedParams: this.params,
+        });
       // update vars used by other helpers
       this.txn = this.assetTestFixture.lastTxn;
-      this.lastRound = this.params.lastRound;
+      this.lastValid = this.params.lastValid;
       this.pk = this.assetTestFixture.creator;
     }
   );
@@ -1473,11 +1423,12 @@ module.exports = function getSteps(options) {
   Given(
     'mock http responses in {string} loaded from {string}',
     function (expectedBody, format) {
+      doRaw = false;
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
         if (format === 'msgp') {
           expectedMockResponse = new Uint8Array(
-            Buffer.from(expectedMockResponse, 'base64')
+            algosdk.base64ToBytes(expectedMockResponse)
           );
         }
       }
@@ -1500,11 +1451,12 @@ module.exports = function getSteps(options) {
   Given(
     'mock http responses in {string} loaded from {string} with status {int}.',
     function (expectedBody, status, format) {
+      doRaw = false;
       if (expectedBody !== null) {
         expectedMockResponse = expectedBody;
         if (format === 'msgp') {
           expectedMockResponse = new Uint8Array(
-            Buffer.from(expectedMockResponse, 'base64')
+            algosdk.base64ToBytes(expectedMockResponse)
           );
         }
       }
@@ -1528,57 +1480,447 @@ module.exports = function getSteps(options) {
   When(
     'we make any {string} call to {string}.',
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async function (client, _endpoint) {
-      try {
-        if (client === 'algod') {
-          // endpoints are ignored by mock server, see setupMockServerForResponses
-          if (responseFormat === 'msgp') {
-            this.actualMockResponse = await this.v2Client.block(0).do();
-          } else {
+    async function (client, endpoint) {
+      if (client === 'algod') {
+        switch (endpoint) {
+          case 'GetStatus':
             this.actualMockResponse = await this.v2Client.status().do();
+            break;
+          case 'GetBlock':
+            this.actualMockResponse = await this.v2Client.block(10).do();
+            break;
+          case 'WaitForBlock':
+            this.actualMockResponse = await this.v2Client
+              .statusAfterBlock(10)
+              .do();
+            break;
+          case 'TealCompile':
+            this.actualMockResponse = await this.v2Client
+              .compile(makeUint8Array())
+              .do();
+            break;
+          case 'RawTransaction':
+            this.actualMockResponse = await this.v2Client
+              .sendRawTransaction(makeUint8Array())
+              .do();
+            break;
+          case 'GetSupply':
+            this.actualMockResponse = await this.v2Client.supply().do();
+            break;
+          case 'TransactionParams': {
+            const response = await this.v2Client.getTransactionParams().do();
+            this.actualMockResponse =
+              new algosdk.modelsv2.TransactionParametersResponse({
+                consensusVersion: response.consensusVersion,
+                fee: response.fee,
+                genesisHash: response.genesisHash,
+                genesisId: response.genesisID,
+                lastRound: response.firstValid,
+                minFee: response.minFee,
+              });
+            break;
           }
-        } else if (client === 'indexer') {
-          // endpoints are ignored by mock server, see setupMockServerForResponses
-          this.actualMockResponse = await this.indexerClient
-            .makeHealthCheck()
-            .do();
-        } else {
-          throw Error(`did not recognize desired client "${client}"`);
-        }
-      } catch (err) {
-        if (this.expectedMockResponseCode === 200) {
-          throw err;
-        }
-        if (this.expectedMockResponseCode === 500) {
-          if (!err.toString().includes('Received status 500')) {
-            throw Error(
-              `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
-            );
+          case 'AccountInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountInformation(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'GetApplicationByID':
+            this.actualMockResponse = await this.v2Client
+              .getApplicationByID(10)
+              .do();
+            break;
+          case 'GetAssetByID':
+            this.actualMockResponse = await this.v2Client.getAssetByID(10).do();
+            break;
+          case 'PendingTransactionInformation':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionInformation('transaction')
+              .do();
+            break;
+          case 'GetPendingTransactions':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionsInformation()
+              .do();
+            break;
+          case 'GetPendingTransactionsByAddress':
+            this.actualMockResponse = await this.v2Client
+              .pendingTransactionByAddress(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'DryRun':
+            this.actualMockResponse = await this.v2Client
+              .dryrun(
+                new algosdk.modelsv2.DryrunRequest({
+                  accounts: [],
+                  apps: [],
+                  latestTimestamp: 0,
+                  protocolVersion: '',
+                  round: 0,
+                  sources: [],
+                  txns: [],
+                })
+              )
+              .do();
+            break;
+          case 'GetTransactionProof':
+          // fallthrough
+          case 'Proof':
+            this.actualMockResponse = await this.v2Client
+              .getTransactionProof(10, 'asdf')
+              .do();
+            break;
+          case 'GetGenesis':
+            this.actualMockResponse = await this.v2Client.genesis().do();
+            break;
+          case 'AccountApplicationInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountApplicationInformation(algosdk.Address.zeroAddress(), 10)
+              .do();
+            break;
+          case 'AccountAssetInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountAssetInformation(algosdk.Address.zeroAddress(), 10)
+              .do();
+            break;
+          case 'GetLightBlockHeaderProof':
+            this.actualMockResponse = await this.v2Client
+              .getLightBlockHeaderProof(123)
+              .do();
+            break;
+          case 'GetStateProof':
+            this.actualMockResponse = await this.v2Client
+              .getStateProof(123)
+              .do();
+            break;
+          case 'GetBlockHash':
+            this.actualMockResponse = await this.v2Client
+              .getBlockHash(123)
+              .do();
+            break;
+          case 'GetSyncRound':
+            this.actualMockResponse = await this.v2Client.getSyncRound().do();
+            break;
+          case 'GetBlockTimeStampOffset':
+            this.actualMockResponse = await this.v2Client
+              .getBlockOffsetTimestamp()
+              .do();
+            break;
+          case 'GetLedgerStateDelta':
+            this.actualMockResponse = await this.v2Client
+              .getLedgerStateDelta(123)
+              .do();
+            break;
+          case 'GetTransactionGroupLedgerStateDeltaForRound':
+            this.actualMockResponse = await this.v2Client
+              .getTransactionGroupLedgerStateDeltasForRound(123)
+              .do();
+            break;
+          case 'GetLedgerStateDeltaForTransactionGroup':
+            this.actualMockResponse = await this.v2Client
+              .getLedgerStateDeltaForTransactionGroup('someID')
+              .do();
+            break;
+          case 'GetBlockTxids':
+            this.actualMockResponse = await this.v2Client
+              .getBlockTxids(123)
+              .do();
+            break;
+          case 'any': {
+            // This is an error case
+            let caughtError = false;
+            try {
+              await this.v2Client.status().do();
+            } catch (err) {
+              assert.strictEqual(this.expectedMockResponseCode, 500);
+              assert.ok(
+                err.toString().includes('Received status 500'),
+                `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
+              );
+
+              assert.ok(err.response.body);
+              this.actualMockResponse = err.response.parseBodyAsJSON({
+                intDecoding: algosdk.IntDecoding.MIXED,
+              });
+              caughtError = true;
+            }
+            if (!caughtError) {
+              throw new Error('Expected error response, got none.');
+            }
+            break;
           }
+          default:
+            throw new Error(`Unrecognized algod endpoint: ${endpoint}`);
         }
+      } else if (client === 'indexer') {
+        switch (endpoint) {
+          case 'lookupAccountByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountByID(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'searchForAccounts':
+            this.actualMockResponse = await this.indexerClient
+              .searchAccounts()
+              .do();
+            break;
+          case 'lookupApplicationByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupApplications(10)
+              .do();
+            break;
+          case 'searchForApplications':
+            this.actualMockResponse = await this.indexerClient
+              .searchForApplications()
+              .do();
+            break;
+          case 'lookupAssetBalances':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetBalances(10)
+              .do();
+            break;
+          case 'lookupAssetByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetByID(10)
+              .do();
+            break;
+          case 'searchForAssets':
+            this.actualMockResponse = await this.indexerClient
+              .searchForAssets()
+              .do();
+            break;
+          case 'lookupAccountTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountTransactions(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAssetTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAssetTransactions(10)
+              .do();
+            break;
+          case 'searchForTransactions':
+            this.actualMockResponse = await this.indexerClient
+              .searchForTransactions()
+              .do();
+            break;
+          case 'lookupBlock':
+            this.actualMockResponse = await this.indexerClient
+              .lookupBlock(10)
+              .do();
+            break;
+          case 'lookupTransaction':
+            this.actualMockResponse = await this.indexerClient
+              .lookupTransactionByID('')
+              .do();
+            break;
+          case 'lookupAccountAppLocalStates':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountAppLocalStates(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountCreatedApplications':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountCreatedApplications(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountAssets':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountAssets(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupAccountCreatedAssets':
+            this.actualMockResponse = await this.indexerClient
+              .lookupAccountCreatedAssets(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'lookupApplicationLogsByID':
+            this.actualMockResponse = await this.indexerClient
+              .lookupApplicationLogs(10)
+              .do();
+            break;
+          case 'any': {
+            // This is an error case
+            let caughtError = false;
+            try {
+              await this.indexerClient.searchAccounts().do();
+            } catch (err) {
+              assert.strictEqual(this.expectedMockResponseCode, 500);
+              assert.ok(
+                err.toString().includes('Received status 500'),
+                `expected response code 500 implies error Internal Server Error but instead had error: ${err}`
+              );
+
+              assert.ok(err.response.body);
+              this.actualMockResponse = err.response.parseBodyAsJSON({
+                intDecoding: algosdk.IntDecoding.MIXED,
+              });
+              caughtError = true;
+            }
+            if (!caughtError) {
+              throw new Error('Expected error response, got none.');
+            }
+            break;
+          }
+          default:
+            throw new Error(`Unrecognized indexer endpoint: ${endpoint}`);
+        }
+      } else {
+        throw Error(`did not recognize desired client "${client}"`);
       }
     }
   );
 
-  Then('the parsed response should equal the mock response.', function () {
-    if (this.expectedMockResponseCode === 200) {
-      // assert.deepStrictEqual considers a Buffer and Uint8Array with the same contents as unequal.
-      // These types are fairly interchangable in different parts of the SDK, so we need to normalize
-      // them before comparing, which is why we chain encoding/decoding below.
-      if (responseFormat === 'json') {
-        assert.strictEqual(
-          JSON.stringify(JSON.parse(expectedMockResponse)),
-          JSON.stringify(this.actualMockResponse)
+  function pruneDefaultValuesFromObject(object) {
+    if (
+      typeof object !== 'object' ||
+      object === null ||
+      Array.isArray(object)
+    ) {
+      throw new Error('pruneDefaultValuesFromObject expects an object.');
+    }
+    const prunedObject = makeObject(object);
+    for (const [key, value] of Object.entries(prunedObject)) {
+      if (
+        value === undefined ||
+        value === null ||
+        value === 0 ||
+        value === BigInt(0) ||
+        value === '' ||
+        value === false ||
+        (Array.isArray(value) && value.length === 0) ||
+        (typeof value === 'object' && Object.keys(value).length === 0)
+      ) {
+        delete prunedObject[key];
+        continue;
+      }
+      if (Array.isArray(value)) {
+        prunedObject[key] = value.map((element) =>
+          typeof element === 'object' &&
+          !Array.isArray(element) &&
+          element !== null
+            ? pruneDefaultValuesFromObject(element)
+            : element
         );
-      } else {
-        assert.deepStrictEqual(
-          algosdk.decodeObj(
-            new Uint8Array(algosdk.encodeObj(this.actualMockResponse))
-          ),
-          algosdk.decodeObj(expectedMockResponse)
-        );
+        continue;
+      }
+      if (typeof value === 'object') {
+        prunedObject[key] = pruneDefaultValuesFromObject(value);
+        if (Object.keys(prunedObject[key]).length === 0) {
+          delete prunedObject[key];
+        }
       }
     }
+    return prunedObject;
+  }
+
+  function pruneDefaultValuesFromMap(m) {
+    function isMap(x) {
+      // workaround for firefox
+      const other = makeMap([]);
+      return x instanceof other.constructor;
+    }
+
+    function isUint8Array(x) {
+      // workaround for firefox
+      const other = makeUint8Array();
+      return x instanceof other.constructor;
+    }
+
+    if (!isMap(m)) {
+      throw new Error('pruneDefaultValuesFromMap expects a map.');
+    }
+    const prunedMap = makeMap(m);
+    for (const [key, value] of Array.from(prunedMap.entries())) {
+      if (
+        value === undefined ||
+        value === null ||
+        value === 0 ||
+        value === BigInt(0) ||
+        value === '' ||
+        value === false ||
+        (Array.isArray(value) && value.length === 0) ||
+        (isMap(value) && value.size === 0) ||
+        (isUint8Array(value) &&
+          (value.byteLength === 0 || value.every((byte) => byte === 0)))
+      ) {
+        prunedMap.delete(key);
+        continue;
+      }
+      if (Array.isArray(value)) {
+        prunedMap.set(
+          key,
+          value.map((element) =>
+            isMap(element) ? pruneDefaultValuesFromMap(element) : element
+          )
+        );
+        continue;
+      }
+      if (isMap(value)) {
+        const prunedValue = pruneDefaultValuesFromMap(value);
+        if (prunedValue.size === 0) {
+          prunedMap.delete(key);
+        } else {
+          prunedMap.set(key, prunedValue);
+        }
+      }
+    }
+    return prunedMap;
+  }
+
+  Then('the parsed response should equal the mock response.', function () {
+    let expectedJsonNeedsPruning = true;
+
+    let encodedResponseObject;
+    if (this.expectedMockResponseCode === 200) {
+      if (responseFormat === 'json') {
+        if (typeof this.actualMockResponse.toEncodingData === 'function') {
+          encodedResponseObject = algosdk.encodeJSON(this.actualMockResponse);
+        } else {
+          // Handles responses which don't implement Encodable
+          encodedResponseObject = algosdk.stringifyJSON(
+            this.actualMockResponse
+          );
+          expectedJsonNeedsPruning = false;
+        }
+      } else {
+        encodedResponseObject = algosdk.encodeMsgpack(this.actualMockResponse);
+      }
+    } else {
+      encodedResponseObject = algosdk.stringifyJSON(this.actualMockResponse);
+    }
+
+    // We chain encoding/decoding below to normalize the objects for comparison. This helps deal
+    // with type differences such as bigint vs number and Uint8Array vs Buffer.
+
+    let actualResponseObject;
+    let parsedExpectedMockResponse;
+    if (responseFormat === 'json') {
+      actualResponseObject = algosdk.parseJSON(encodedResponseObject, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
+      parsedExpectedMockResponse = algosdk.parseJSON(expectedMockResponse, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
+      if (expectedJsonNeedsPruning) {
+        // Prune default values from the actual response object to match the expected response object.
+        parsedExpectedMockResponse = pruneDefaultValuesFromObject(
+          parsedExpectedMockResponse
+        );
+      }
+    } else {
+      actualResponseObject = algosdk.msgpackRawDecodeAsMap(
+        encodedResponseObject
+      );
+      parsedExpectedMockResponse =
+        algosdk.msgpackRawDecodeAsMap(expectedMockResponse);
+
+      parsedExpectedMockResponse = pruneDefaultValuesFromMap(
+        parsedExpectedMockResponse
+      );
+    }
+
+    assert.deepStrictEqual(actualResponseObject, parsedExpectedMockResponse);
   });
 
   Then('expect error string to contain {string}', (expectedErrorString) => {
@@ -1590,6 +1932,7 @@ module.exports = function getSteps(options) {
   });
 
   Given('mock server recording request paths', function () {
+    doRaw = true;
     this.v2Client = new algosdk.Algodv2(
       '',
       `http://${mockAlgodPathRecorderHost}`,
@@ -1686,7 +2029,7 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.pendingTransactionInformation(txid).do();
+      await doOrDoRaw(this.v2Client.pendingTransactionInformation(txid));
     }
   );
 
@@ -1696,14 +2039,16 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.pendingTransactionsInformation().max(max).do();
+      await doOrDoRaw(this.v2Client.pendingTransactionsInformation().max(max));
     }
   );
 
   When(
     'we make a Pending Transactions By Address call against account {string} and max {int}',
-    function (account, max) {
-      this.v2Client.pendingTransactionByAddress(account).max(max).do();
+    async function (account, max) {
+      await doOrDoRaw(
+        this.v2Client.pendingTransactionByAddress(account).max(max)
+      );
     }
   );
 
@@ -1713,51 +2058,55 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.pendingTransactionByAddress(account).max(max).do();
+      await doOrDoRaw(
+        this.v2Client.pendingTransactionByAddress(account).max(max)
+      );
     }
   );
 
   When(
     'we make a Status after Block call with round {int}',
     async function (round) {
-      await this.v2Client.statusAfterBlock(round).do();
+      await doOrDoRaw(this.v2Client.statusAfterBlock(round));
     }
   );
 
   When(
     'we make an Account Information call against account {string} with exclude {string}',
     async function (account, exclude) {
-      await this.v2Client.accountInformation(account).exclude(exclude).do();
+      await doOrDoRaw(
+        this.v2Client.accountInformation(account).exclude(exclude)
+      );
     }
   );
 
   When(
     'we make an Account Information call against account {string}',
     async function (account) {
-      await this.v2Client.accountInformation(account).do();
+      await doOrDoRaw(this.v2Client.accountInformation(account));
     }
   );
 
   When(
     'we make an Account Asset Information call against account {string} assetID {int}',
     async function (account, assetID) {
-      await this.v2Client.accountAssetInformation(account, assetID).do();
+      await doOrDoRaw(this.v2Client.accountAssetInformation(account, assetID));
     }
   );
 
   When(
     'we make an Account Application Information call against account {string} applicationID {int}',
     async function (account, applicationID) {
-      await this.v2Client
-        .accountApplicationInformation(account, applicationID)
-        .do();
+      await doOrDoRaw(
+        this.v2Client.accountApplicationInformation(account, applicationID)
+      );
     }
   );
 
   When(
     'we make a Get Block call against block number {int}',
-    function (blockNum) {
-      this.v2Client.block(blockNum).do();
+    async function (blockNum) {
+      await doOrDoRaw(this.v2Client.block(blockNum));
     }
   );
 
@@ -1767,18 +2116,18 @@ module.exports = function getSteps(options) {
       if (format !== 'msgpack') {
         assert.fail('this SDK only supports format msgpack for this function');
       }
-      await this.v2Client.block(blockNum).do();
+      await doOrDoRaw(this.v2Client.block(blockNum));
     }
   );
 
   When('we make a GetAssetByID call for assetID {int}', async function (index) {
-    await this.v2Client.getAssetByID(index).do();
+    await doOrDoRaw(this.v2Client.getAssetByID(index));
   });
 
   When(
     'we make a GetApplicationByID call for applicationID {int}',
     async function (index) {
-      await this.v2Client.getApplicationByID(index).do();
+      await doOrDoRaw(this.v2Client.getApplicationByID(index));
     }
   );
 
@@ -1800,27 +2149,26 @@ module.exports = function getSteps(options) {
   let anyPendingTransactionInfoResponse;
 
   When('we make any Pending Transaction Information call', async function () {
-    anyPendingTransactionInfoResponse = await this.v2Client
-      .pendingTransactionInformation()
-      .do();
+    anyPendingTransactionInfoResponse = await doOrDoRaw(
+      this.v2Client.pendingTransactionInformation()
+    );
   });
 
   Then(
     'the parsed Pending Transaction Information response should have sender {string}',
     (sender) => {
-      const actualSender = algosdk.encodeAddress(
-        anyPendingTransactionInfoResponse.txn.txn.snd
-      );
-      assert.strictEqual(sender, actualSender);
+      const actualSender =
+        anyPendingTransactionInfoResponse.txn.txn.sender.toString();
+      assert.strictEqual(actualSender, sender);
     }
   );
 
   let anyPendingTransactionsInfoResponse;
 
   When('we make any Pending Transactions Information call', async function () {
-    anyPendingTransactionsInfoResponse = await this.v2Client
-      .pendingTransactionsInformation()
-      .do();
+    anyPendingTransactionsInfoResponse = await doOrDoRaw(
+      this.v2Client.pendingTransactionsInformation()
+    );
   });
 
   Then(
@@ -1828,14 +2176,14 @@ module.exports = function getSteps(options) {
     (len, idx, sender) => {
       assert.strictEqual(
         len,
-        anyPendingTransactionsInfoResponse['top-transactions'].length
+        anyPendingTransactionsInfoResponse.topTransactions.length
       );
       if (len !== 0) {
         assert.strictEqual(
-          sender,
-          algosdk.encodeAddress(
-            anyPendingTransactionsInfoResponse['top-transactions'][idx].txn.snd
-          )
+          anyPendingTransactionsInfoResponse.topTransactions[
+            idx
+          ].txn.sender.toString(),
+          sender
         );
       }
     }
@@ -1844,24 +2192,26 @@ module.exports = function getSteps(options) {
   let anySendRawTransactionResponse;
 
   When('we make any Send Raw Transaction call', async function () {
-    anySendRawTransactionResponse = await this.v2Client
-      .sendRawTransaction(makeUint8Array(0))
-      .do();
+    anySendRawTransactionResponse = await doOrDoRaw(
+      this.v2Client.sendRawTransaction(makeUint8Array(0))
+    );
   });
 
   Then(
     'the parsed Send Raw Transaction response should have txid {string}',
     (txid) => {
-      assert.strictEqual(txid, anySendRawTransactionResponse.txId);
+      assert.strictEqual(txid, anySendRawTransactionResponse.txid);
     }
   );
 
   let anyPendingTransactionsByAddressResponse;
 
   When('we make any Pending Transactions By Address call', async function () {
-    anyPendingTransactionsByAddressResponse = await this.v2Client
-      .pendingTransactionByAddress()
-      .do();
+    anyPendingTransactionsByAddressResponse = await doOrDoRaw(
+      this.v2Client.pendingTransactionByAddress(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
+    );
   });
 
   Then(
@@ -1869,15 +2219,15 @@ module.exports = function getSteps(options) {
     (len, idx, sender) => {
       assert.strictEqual(
         len,
-        anyPendingTransactionsByAddressResponse['total-transactions']
+        anyPendingTransactionsByAddressResponse.totalTransactions
       );
       if (len === 0) {
         return;
       }
-      let actualSender =
-        anyPendingTransactionsByAddressResponse['top-transactions'][idx].txn
-          .snd;
-      actualSender = algosdk.encodeAddress(actualSender);
+      const actualSender =
+        anyPendingTransactionsByAddressResponse.topTransactions[
+          idx
+        ].txn.sender.toString();
       assert.strictEqual(sender, actualSender);
     }
   );
@@ -1885,48 +2235,56 @@ module.exports = function getSteps(options) {
   let anyNodeStatusResponse;
 
   When('we make any Node Status call', async function () {
-    anyNodeStatusResponse = await this.v2Client.status().do();
+    anyNodeStatusResponse = await doOrDoRaw(this.v2Client.status());
   });
 
   Then(
     'the parsed Node Status response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse['last-round']);
+      assert.strictEqual(BigInt(lastRound), anyNodeStatusResponse.lastRound);
     }
   );
 
   let anyLedgerSupplyResponse;
 
   When('we make any Ledger Supply call', async function () {
-    anyLedgerSupplyResponse = await this.v2Client.supply().do();
+    anyLedgerSupplyResponse = await doOrDoRaw(this.v2Client.supply());
   });
 
   Then(
     'the parsed Ledger Supply response should have totalMoney {int} onlineMoney {int} on round {int}',
     (totalMoney, onlineMoney, round) => {
-      assert.strictEqual(totalMoney, anyLedgerSupplyResponse['total-money']);
-      assert.strictEqual(onlineMoney, anyLedgerSupplyResponse['online-money']);
-      assert.strictEqual(round, anyLedgerSupplyResponse.current_round);
+      assert.strictEqual(
+        BigInt(totalMoney),
+        anyLedgerSupplyResponse.totalMoney
+      );
+      assert.strictEqual(
+        BigInt(onlineMoney),
+        anyLedgerSupplyResponse.onlineMoney
+      );
+      assert.strictEqual(BigInt(round), anyLedgerSupplyResponse.currentRound);
     }
   );
 
   When('we make any Status After Block call', async function () {
-    anyNodeStatusResponse = await this.v2Client.statusAfterBlock(1).do();
+    anyNodeStatusResponse = await doOrDoRaw(this.v2Client.statusAfterBlock(1));
   });
 
   Then(
     'the parsed Status After Block response should have a last round of {int}',
     (lastRound) => {
-      assert.strictEqual(lastRound, anyNodeStatusResponse['last-round']);
+      assert.strictEqual(BigInt(lastRound), anyNodeStatusResponse.lastRound);
     }
   );
 
   let anyAccountInformationResponse;
 
   When('we make any Account Information call', async function () {
-    anyAccountInformationResponse = await this.v2Client
-      .accountInformation()
-      .do();
+    anyAccountInformationResponse = await doOrDoRaw(
+      this.v2Client.accountInformation(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
+    );
   });
 
   Then(
@@ -1939,15 +2297,19 @@ module.exports = function getSteps(options) {
   let anyBlockResponse;
 
   When('we make any Get Block call', async function () {
-    anyBlockResponse = await this.v2Client.block(1).do();
+    anyBlockResponse = await doOrDoRaw(this.v2Client.block(1));
   });
 
   Then(
     'the parsed Get Block response should have rewards pool {string}',
     (rewardsPoolAddress) => {
-      const rewardsPoolB64String = Buffer.from(
-        anyBlockResponse.block.rwd
-      ).toString('base64');
+      assert.ok(
+        anyBlockResponse.block.header.rewardState.rewardsPool instanceof
+          algosdk.Address
+      );
+      const rewardsPoolB64String = algosdk.bytesToBase64(
+        anyBlockResponse.block.header.rewardState.rewardsPool.publicKey
+      );
       assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
     }
   );
@@ -1955,17 +2317,17 @@ module.exports = function getSteps(options) {
   let anySuggestedTransactionsResponse;
 
   When('we make any Suggested Transaction Parameters call', async function () {
-    anySuggestedTransactionsResponse = await this.v2Client
-      .getTransactionParams()
-      .do();
+    anySuggestedTransactionsResponse = await doOrDoRaw(
+      this.v2Client.getTransactionParams()
+    );
   });
 
   Then(
     'the parsed Suggested Transaction Parameters response should have first round valid of {int}',
-    (firstRound) => {
+    (firstValid) => {
       assert.strictEqual(
-        firstRound,
-        anySuggestedTransactionsResponse.firstRound
+        BigInt(firstValid),
+        anySuggestedTransactionsResponse.firstValid
       );
     }
   );
@@ -1979,12 +2341,13 @@ module.exports = function getSteps(options) {
       currencyGreater,
       currencyLesser
     ) {
-      await this.indexerClient
-        .lookupAssetBalances(index)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAssetBalances(index)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+      );
     }
   );
 
@@ -2012,24 +2375,25 @@ module.exports = function getSteps(options) {
       if (excludeCloseToAsString === 'true') {
         excludeCloseTo = true;
       }
-      await this.indexerClient
-        .lookupAssetTransactions(assetIndex)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .address(address)
-        .addressRole(addressRole)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .minRound(minRound)
-        .maxRound(maxRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAssetTransactions(assetIndex)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .address(address)
+          .addressRole(addressRole)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .minRound(minRound)
+          .maxRound(maxRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+          .excludeCloseTo(excludeCloseTo)
+      );
     }
   );
 
@@ -2102,22 +2466,23 @@ module.exports = function getSteps(options) {
       currencyLesser,
       assetIndex
     ) {
-      await this.indexerClient
-        .lookupAccountTransactions(account)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountTransactions(account)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .assetID(assetIndex)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+      );
     }
   );
 
@@ -2168,35 +2533,39 @@ module.exports = function getSteps(options) {
   When(
     'we make a Lookup Block call against round {int}',
     async function (round) {
-      await this.indexerClient.lookupBlock(round).do();
+      await doOrDoRaw(this.indexerClient.lookupBlock(round));
     }
   );
 
   When(
     'we make a Lookup Block call against round {int} and header {string}',
     async function (int, string) {
-      await this.indexerClient.lookupBlock(int).headerOnly(string).do();
+      await doOrDoRaw(this.indexerClient.lookupBlock(int).headerOnly(string));
     }
   );
 
   When(
     'we make a Lookup Account by ID call against account {string} with round {int}',
     async function (account, round) {
-      await this.indexerClient.lookupAccountByID(account).round(round).do();
+      await doOrDoRaw(
+        this.indexerClient.lookupAccountByID(account).round(round)
+      );
     }
   );
 
   When(
     'we make a Lookup Account by ID call against account {string} with exclude {string}',
     async function (account, exclude) {
-      await this.indexerClient.lookupAccountByID(account).exclude(exclude).do();
+      await doOrDoRaw(
+        this.indexerClient.lookupAccountByID(account).exclude(exclude)
+      );
     }
   );
 
   When(
     'we make a Lookup Asset by ID call against asset index {int}',
     async function (assetIndex) {
-      await this.indexerClient.lookupAssetByID(assetIndex).do();
+      await doOrDoRaw(this.indexerClient.lookupAssetByID(assetIndex));
     }
   );
 
@@ -2224,29 +2593,31 @@ module.exports = function getSteps(options) {
   When(
     'we make a LookupApplicationLogsByID call with applicationID {int} limit {int} minRound {int} maxRound {int} nextToken {string} sender {string} and txID {string}',
     async function (appID, limit, minRound, maxRound, nextToken, sender, txID) {
-      await this.indexerClient
-        .lookupApplicationLogs(appID)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .nextToken(nextToken)
-        .sender(sender)
-        .txid(txID)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupApplicationLogs(appID)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .nextToken(nextToken)
+          .sender(sender)
+          .txid(txID)
+      );
     }
   );
 
   When(
     'we make a Search Accounts call with assetID {int} limit {int} currencyGreaterThan {int} currencyLessThan {int} and round {int}',
     async function (assetIndex, limit, currencyGreater, currencyLesser, round) {
-      await this.indexerClient
-        .searchAccounts()
-        .assetID(assetIndex)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .round(round)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchAccounts()
+          .assetID(assetIndex)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .round(round)
+      );
     }
   );
 
@@ -2275,14 +2646,16 @@ module.exports = function getSteps(options) {
   When(
     'we make a Search Accounts call with exclude {string}',
     async function (exclude) {
-      await this.indexerClient.searchAccounts().exclude(exclude).do();
+      await doOrDoRaw(this.indexerClient.searchAccounts().exclude(exclude));
     }
   );
 
   When(
     'we make a SearchForApplications call with creator {string}',
     async function (creator) {
-      await this.indexerClient.searchForApplications().creator(creator).do();
+      await doOrDoRaw(
+        this.indexerClient.searchForApplications().creator(creator)
+      );
     }
   );
 
@@ -2310,25 +2683,26 @@ module.exports = function getSteps(options) {
       if (excludeCloseToAsString === 'true') {
         excludeCloseTo = true;
       }
-      await this.indexerClient
-        .searchForTransactions()
-        .address(account)
-        .addressRole(addressRole)
-        .assetID(assetIndex)
-        .beforeTime(beforeTime)
-        .afterTime(afterTime)
-        .currencyGreaterThan(currencyGreater)
-        .currencyLessThan(currencyLesser)
-        .limit(limit)
-        .maxRound(maxRound)
-        .minRound(minRound)
-        .notePrefix(notePrefix)
-        .round(round)
-        .sigType(sigType)
-        .txid(txid)
-        .txType(txType)
-        .excludeCloseTo(excludeCloseTo)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchForTransactions()
+          .address(account)
+          .addressRole(addressRole)
+          .assetID(assetIndex)
+          .beforeTime(beforeTime)
+          .afterTime(afterTime)
+          .currencyGreaterThan(currencyGreater)
+          .currencyLessThan(currencyLesser)
+          .limit(limit)
+          .maxRound(maxRound)
+          .minRound(minRound)
+          .notePrefix(notePrefix)
+          .round(round)
+          .sigType(sigType)
+          .txid(txid)
+          .txType(txType)
+          .excludeCloseTo(excludeCloseTo)
+      );
     }
   );
 
@@ -2387,28 +2761,29 @@ module.exports = function getSteps(options) {
   When(
     'we make a SearchForAssets call with limit {int} creator {string} name {string} unit {string} index {int}',
     async function (limit, creator, name, unit, index) {
-      await this.indexerClient
-        .searchForAssets()
-        .limit(limit)
-        .creator(creator)
-        .name(name)
-        .unit(unit)
-        .index(index)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .searchForAssets()
+          .limit(limit)
+          .creator(creator)
+          .name(name)
+          .unit(unit)
+          .index(index)
+      );
     }
   );
 
   When(
     'we make a SearchForApplications call with applicationID {int}',
     async function (index) {
-      await this.indexerClient.searchForApplications().index(index).do();
+      await doOrDoRaw(this.indexerClient.searchForApplications().index(index));
     }
   );
 
   When(
     'we make a LookupApplications call with applicationID {int}',
     async function (index) {
-      await this.indexerClient.lookupApplications(index).do();
+      await doOrDoRaw(this.indexerClient.lookupApplications(index));
     }
   );
 
@@ -2416,8 +2791,7 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAssetBalances call', async function () {
     anyLookupAssetBalancesResponse = await this.indexerClient
-      .lookupAssetBalances()
-      .setIntDecoding('mixed')
+      .lookupAssetBalances(1)
       .do();
   });
 
@@ -2425,12 +2799,12 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetBalances response should be valid on round {int}, and contain an array of len {int} and element number {int} should have address {string} amount {int} and frozen state {string}',
     (round, length, idx, address, amount, frozenStateAsString) => {
       assert.strictEqual(
-        round,
-        anyLookupAssetBalancesResponse['current-round']
+        anyLookupAssetBalancesResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anyLookupAssetBalancesResponse.balances.length
+        anyLookupAssetBalancesResponse.balances.length,
+        length
       );
       if (length === 0) {
         return;
@@ -2440,12 +2814,12 @@ module.exports = function getSteps(options) {
         frozenState = true;
       }
       assert.strictEqual(
-        amount,
-        anyLookupAssetBalancesResponse.balances[idx].amount
+        anyLookupAssetBalancesResponse.balances[idx].amount,
+        BigInt(amount)
       );
       assert.strictEqual(
-        frozenState,
-        anyLookupAssetBalancesResponse.balances[idx]['is-frozen']
+        anyLookupAssetBalancesResponse.balances[idx].isFrozen,
+        frozenState
       );
     }
   );
@@ -2453,52 +2827,56 @@ module.exports = function getSteps(options) {
   When(
     'we make a LookupAccountAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountAssets(account)
-        .assetId(assetID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountAssets(account)
+          .assetId(assetID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountCreatedAssets call with accountID {string} assetID {int} includeAll {string} limit {int} next {string}',
     async function (account, assetID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountCreatedAssets(account)
-        .assetID(assetID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountCreatedAssets(account)
+          .assetID(assetID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountAppLocalStates call with accountID {string} applicationID {int} includeAll {string} limit {int} next {string}',
     async function (account, applicationID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountAppLocalStates(account)
-        .applicationID(applicationID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountAppLocalStates(account)
+          .applicationID(applicationID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
   When(
     'we make a LookupAccountCreatedApplications call with accountID {string} applicationID {int} includeAll {string} limit {int} next {string}',
     async function (account, applicationID, includeAll, limit, next) {
-      await this.indexerClient
-        .lookupAccountCreatedApplications(account)
-        .applicationID(applicationID)
-        .includeAll(includeAll === 'true')
-        .limit(limit)
-        .nextToken(next)
-        .do();
+      await doOrDoRaw(
+        this.indexerClient
+          .lookupAccountCreatedApplications(account)
+          .applicationID(applicationID)
+          .includeAll(includeAll === 'true')
+          .limit(limit)
+          .nextToken(next)
+      );
     }
   );
 
@@ -2506,8 +2884,7 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAssetTransactions call', async function () {
     anyLookupAssetTransactionsResponse = await this.indexerClient
-      .lookupAssetTransactions()
-      .setIntDecoding('mixed')
+      .lookupAssetTransactions(1)
       .do();
   });
 
@@ -2515,19 +2892,19 @@ module.exports = function getSteps(options) {
     'the parsed LookupAssetTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
-        anyLookupAssetTransactionsResponse['current-round']
+        anyLookupAssetTransactionsResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anyLookupAssetTransactionsResponse.transactions.length
+        anyLookupAssetTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        sender,
-        anyLookupAssetTransactionsResponse.transactions[idx].sender
+        anyLookupAssetTransactionsResponse.transactions[idx].sender,
+        sender
       );
     }
   );
@@ -2536,7 +2913,9 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAccountTransactions call', async function () {
     anyLookupAccountTransactionsResponse = await this.indexerClient
-      .lookupAccountTransactions()
+      .lookupAccountTransactions(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
       .do();
   });
 
@@ -2544,12 +2923,12 @@ module.exports = function getSteps(options) {
     'the parsed LookupAccountTransactions response should be valid on round {int}, and contain an array of len {int} and element number {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
-        anyLookupAccountTransactionsResponse['current-round']
+        anyLookupAccountTransactionsResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anyLookupAccountTransactionsResponse.transactions.length
+        anyLookupAccountTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
@@ -2564,15 +2943,15 @@ module.exports = function getSteps(options) {
   let anyLookupBlockResponse;
 
   When('we make any LookupBlock call', async function () {
-    anyLookupBlockResponse = await this.indexerClient.lookupBlock().do();
+    anyLookupBlockResponse = await this.indexerClient.lookupBlock(1).do();
   });
 
   Then(
     'the parsed LookupBlock response should have previous block hash {string}',
     (prevHash) => {
       assert.strictEqual(
-        prevHash,
-        anyLookupBlockResponse['previous-block-hash']
+        algosdk.bytesToBase64(anyLookupBlockResponse.previousBlockHash),
+        prevHash
       );
     }
   );
@@ -2581,14 +2960,16 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAccountByID call', async function () {
     anyLookupAccountByIDResponse = await this.indexerClient
-      .lookupAccountByID()
+      .lookupAccountByID(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      )
       .do();
   });
 
   Then(
     'the parsed LookupAccountByID response should have address {string}',
     (address) => {
-      assert.strictEqual(address, anyLookupAccountByIDResponse.account.address);
+      assert.strictEqual(anyLookupAccountByIDResponse.account.address, address);
     }
   );
 
@@ -2596,13 +2977,12 @@ module.exports = function getSteps(options) {
 
   When('we make any LookupAssetByID call', async function () {
     anyLookupAssetByIDResponse = await this.indexerClient
-      .lookupAssetByID()
-      .setIntDecoding('mixed')
+      .lookupAssetByID(1)
       .do();
   });
 
   Then('the parsed LookupAssetByID response should have index {int}', (idx) => {
-    assert.strictEqual(idx, anyLookupAssetByIDResponse.asset.index);
+    assert.strictEqual(anyLookupAssetByIDResponse.asset.index, BigInt(idx));
   });
 
   let anySearchAccountsResponse;
@@ -2614,14 +2994,14 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have address {string}',
     (round, length, idx, address) => {
-      assert.strictEqual(round, anySearchAccountsResponse['current-round']);
-      assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
+      assert.strictEqual(anySearchAccountsResponse.currentRound, BigInt(round));
+      assert.strictEqual(anySearchAccountsResponse.accounts.length, length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        address,
-        anySearchAccountsResponse.accounts[idx].address
+        anySearchAccountsResponse.accounts[idx].address,
+        address
       );
     }
   );
@@ -2629,14 +3009,14 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchAccounts response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have authorizing address {string}',
     (round, length, idx, authAddress) => {
-      assert.strictEqual(round, anySearchAccountsResponse['current-round']);
-      assert.strictEqual(length, anySearchAccountsResponse.accounts.length);
+      assert.strictEqual(anySearchAccountsResponse.currentRound, BigInt(round));
+      assert.strictEqual(anySearchAccountsResponse.accounts.length, length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        authAddress,
-        anySearchAccountsResponse.accounts[idx]['auth-addr']
+        anySearchAccountsResponse.accounts[idx].authAddr,
+        authAddress
       );
     }
   );
@@ -2653,19 +3033,19 @@ module.exports = function getSteps(options) {
     'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have sender {string}',
     (round, length, idx, sender) => {
       assert.strictEqual(
-        round,
-        anySearchForTransactionsResponse['current-round']
+        anySearchForTransactionsResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anySearchForTransactionsResponse.transactions.length
+        anySearchForTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        sender,
-        anySearchForTransactionsResponse.transactions[idx].sender
+        anySearchForTransactionsResponse.transactions[idx].sender,
+        sender
       );
     }
   );
@@ -2674,19 +3054,19 @@ module.exports = function getSteps(options) {
     'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have rekey-to {string}',
     (round, length, idx, rekeyTo) => {
       assert.strictEqual(
-        round,
-        anySearchForTransactionsResponse['current-round']
+        anySearchForTransactionsResponse.currentRound,
+        BigInt(round)
       );
       assert.strictEqual(
-        length,
-        anySearchForTransactionsResponse.transactions.length
+        anySearchForTransactionsResponse.transactions.length,
+        length
       );
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        rekeyTo,
-        anySearchForTransactionsResponse.transactions[idx]['rekey-to']
+        anySearchForTransactionsResponse.transactions[idx].rekeyTo,
+        rekeyTo
       );
     }
   );
@@ -2702,14 +3082,17 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed SearchForAssets response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have asset index {int}',
     (round, length, idx, assetIndex) => {
-      assert.strictEqual(round, anySearchForAssetsResponse['current-round']);
-      assert.strictEqual(length, anySearchForAssetsResponse.assets.length);
+      assert.strictEqual(
+        anySearchForAssetsResponse.currentRound,
+        BigInt(round)
+      );
+      assert.strictEqual(anySearchForAssetsResponse.assets.length, length);
       if (length === 0) {
         return;
       }
       assert.strictEqual(
-        assetIndex,
-        anySearchForAssetsResponse.assets[idx].index
+        anySearchForAssetsResponse.assets[idx].index,
+        BigInt(assetIndex)
       );
     }
   );
@@ -2719,7 +3102,7 @@ module.exports = function getSteps(options) {
   /// /////////////////////////////////
 
   When('I add a rekeyTo field with address {string}', function (address) {
-    this.txn.reKeyTo = address;
+    this.txn.rekeyTo = algosdk.decodeAddress(address);
   });
 
   When(
@@ -2727,27 +3110,37 @@ module.exports = function getSteps(options) {
     function () {
       const keypair = keyPairFromSecretKey(this.sk);
       const pubKeyFromSk = keypair.publicKey;
-      this.txn.reKeyTo = algosdk.encodeAddress(pubKeyFromSk);
+      this.txn.rekeyTo = algosdk.decodeAddress(
+        algosdk.encodeAddress(pubKeyFromSk)
+      );
     }
   );
 
-  When('I set the from address to {string}', function (from) {
-    this.txn.from = from;
+  When('I set the from address to {string}', function (sender) {
+    this.txn.sender = algosdk.decodeAddress(sender);
   });
 
   let dryrunResponse;
 
   When('we make any Dryrun call', async function () {
-    const dr = new algosdk.modelsv2.DryrunRequest({});
+    const dr = new algosdk.modelsv2.DryrunRequest({
+      accounts: [],
+      apps: [],
+      latestTimestamp: 7,
+      protocolVersion: 'future',
+      round: 100,
+      sources: [],
+      txns: [],
+    });
     dryrunResponse = await this.v2Client.dryrun(dr).do();
   });
 
   Then(
     'the parsed Dryrun Response should have global delta {string} with {int}',
     (key, action) => {
-      assert.strictEqual(dryrunResponse.txns[0]['global-delta'][0].key, key);
+      assert.strictEqual(dryrunResponse.txns[0].globalDelta[0].key, key);
       assert.strictEqual(
-        dryrunResponse.txns[0]['global-delta'][0].value.action,
+        dryrunResponse.txns[0].globalDelta[0].value.action,
         action
       );
     }
@@ -2755,38 +3148,37 @@ module.exports = function getSteps(options) {
 
   When('I dryrun a {string} program {string}', async function (kind, program) {
     const data = await loadResource(program);
-    const algoTxn = new algosdk.Transaction({
-      from: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-      fee: 1000,
+    const sp = await this.v2Client.getTransactionParams().do();
+    const algoTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
+      receiver: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
       amount: 1000,
-      firstRound: 1,
-      lastRound: 1000,
-      type: 'pay',
-      genesisHash: 'ZIkPs8pTDxbRJsFB1yJ7gvnpDu0Q85FRkl2NCkEAQLU=',
+      suggestedParams: sp,
     });
     let txns;
-    let sources;
+    let sources = [];
 
     switch (kind) {
       case 'compiled':
         txns = [
-          {
+          new algosdk.SignedTransaction({
             lsig: new algosdk.LogicSig(data),
             txn: algoTxn,
-          },
+          }),
         ];
         break;
       case 'source':
         txns = [
-          {
+          new algosdk.SignedTransaction({
             txn: algoTxn,
-          },
+          }),
         ];
         sources = [
           new algosdk.modelsv2.DryrunSource({
             fieldName: 'lsig',
-            source: data.toString('utf8'),
+            source: new TextDecoder().decode(data),
             txnIndex: 0,
+            appIndex: 0,
           }),
         ];
         break;
@@ -2795,6 +3187,11 @@ module.exports = function getSteps(options) {
     }
 
     const dr = new algosdk.modelsv2.DryrunRequest({
+      accounts: [],
+      apps: [],
+      latestTimestamp: 0,
+      protocolVersion: '',
+      round: 0,
       txns,
       sources,
     });
@@ -2804,16 +3201,13 @@ module.exports = function getSteps(options) {
   Then('I get execution result {string}', (result) => {
     let msgs;
     const res = dryrunResponse.txns[0];
-    if (
-      res['logic-sig-messages'] !== undefined &&
-      res['logic-sig-messages'].length > 0
-    ) {
-      msgs = res['logic-sig-messages'];
+    if (res.logicSigMessages !== undefined && res.logicSigMessages.length > 0) {
+      msgs = res.logicSigMessages;
     } else if (
-      res['app-call-messages'] !== undefined &&
-      res['app-call-messages'].length > 0
+      res.appCallMessages !== undefined &&
+      res.appCallMessages.length > 0
     ) {
-      msgs = res['app-call-messages'];
+      msgs = res.appCallMessages;
     }
     assert.ok(msgs.length > 0);
     assert.strictEqual(msgs[0], result);
@@ -2850,7 +3244,7 @@ module.exports = function getSteps(options) {
     async (program) => {
       const data = await loadResource(program);
       const decodedResult = makeUint8Array(
-        Buffer.from(compileResponse.result, 'base64')
+        algosdk.base64ToBytes(compileResponse.result)
       );
       assert.deepStrictEqual(makeUint8Array(data), decodedResult);
     }
@@ -2861,7 +3255,7 @@ module.exports = function getSteps(options) {
   /// /////////////////////////////////
 
   Given('base64 encoded data to sign {string}', function (data) {
-    this.data = Buffer.from(data, 'base64');
+    this.data = algosdk.base64ToBytes(data);
   });
 
   Given('program hash {string}', function (contractAddress) {
@@ -2869,13 +3263,13 @@ module.exports = function getSteps(options) {
   });
 
   Given('base64 encoded program {string}', function (programEncoded) {
-    const program = Buffer.from(programEncoded, 'base64');
+    const program = algosdk.base64ToBytes(programEncoded);
     const lsig = new algosdk.LogicSig(program);
     this.contractAddress = lsig.address();
   });
 
   Given('base64 encoded private key {string}', function (keyEncoded) {
-    const seed = Buffer.from(keyEncoded, 'base64');
+    const seed = algosdk.base64ToBytes(keyEncoded);
     const keys = keyPairFromSeed(seed);
     this.sk = keys.secretKey;
   });
@@ -2885,7 +3279,7 @@ module.exports = function getSteps(options) {
   });
 
   Then('the signature should be equal to {string}', function (expectedEncoded) {
-    const expected = makeUint8Array(Buffer.from(expectedEncoded, 'base64'));
+    const expected = makeUint8Array(algosdk.base64ToBytes(expectedEncoded));
     assert.deepStrictEqual(this.sig, expected);
   });
 
@@ -2897,7 +3291,7 @@ module.exports = function getSteps(options) {
     'a signing account with address {string} and mnemonic {string}',
     function (address, mnemonic) {
       this.signingAccount = algosdk.mnemonicToSecretKey(mnemonic);
-      if (this.signingAccount.addr !== address) {
+      if (this.signingAccount.addr.toString() !== address) {
         throw new Error(
           `Address does not match mnemonic: ${this.signingAccount.addr} !== ${address}`
         );
@@ -2920,8 +3314,8 @@ module.exports = function getSteps(options) {
         receiver === 'transient' ? this.transientAccount.addr : receiver;
 
       this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from,
-        to,
+        sender: from,
+        receiver: to,
         amount: parseInt(amount, 10),
         closeRemainderTo: closeTo.length === 0 ? undefined : closeTo,
         suggestedParams: this.suggestedParams,
@@ -2933,15 +3327,13 @@ module.exports = function getSteps(options) {
     "I get the account address for the current application and see that it matches the app id's hash",
     async function () {
       const appID = this.currentApplicationIndex;
-      const toSign = Buffer.concat([
-        Buffer.from('appID'),
-        algosdk.encodeUint64(appID),
-      ]);
-      const expected = algosdk.encodeAddress(
-        makeUint8Array(genericHash(toSign))
+      const toSign = concatArrays(
+        new TextEncoder().encode('appID'),
+        algosdk.encodeUint64(appID)
       );
+      const expected = new algosdk.Address(makeUint8Array(genericHash(toSign)));
       const actual = algosdk.getApplicationAddress(appID);
-      assert.strictEqual(expected, actual);
+      assert.deepStrictEqual(expected, actual);
     }
   );
 
@@ -2949,41 +3341,42 @@ module.exports = function getSteps(options) {
     "I fund the current application's address with {int} microalgos.",
     async function (amount) {
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
-      const fundingTxnArgs = {
-        from: this.accounts[0],
-        to: algosdk.getApplicationAddress(this.currentApplicationIndex),
+      if (sp.firstValid === 0) sp.firstValid = 1;
+      const fundingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: this.accounts[0],
+        receiver: algosdk.getApplicationAddress(this.currentApplicationIndex),
         amount,
         suggestedParams: sp,
-      };
+      });
       const stxn = await this.kcl.signTransaction(
         this.handle,
         this.wallet_pswd,
-        fundingTxnArgs
+        fundingTxn
       );
 
       const fundingResponse = await this.v2Client.sendRawTransaction(stxn).do();
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
-        fundingResponse.txId,
+        fundingResponse.txid,
         1
       );
-      assert.ok(info['confirmed-round'] > 0);
+      assert.ok(info.confirmedRound > 0);
     }
   );
 
   Given(
     'suggested transaction parameters fee {int}, flat-fee {string}, first-valid {int}, last-valid {int}, genesis-hash {string}, genesis-id {string}',
-    function (fee, flatFee, firstRound, lastRound, genesisHash, genesisID) {
+    function (fee, flatFee, firstValid, lastValid, genesisHashB64, genesisID) {
       assert.ok(['true', 'false'].includes(flatFee));
 
       this.suggestedParams = {
+        minFee: 1000, // Would be nice to  take this as an argument in the future
         flatFee: flatFee === 'true',
         fee,
-        firstRound,
-        lastRound,
+        firstValid,
+        lastValid,
         genesisID,
-        genesisHash,
+        genesisHash: algosdk.base64ToBytes(genesisHashB64),
       };
     }
   );
@@ -3002,19 +3395,21 @@ module.exports = function getSteps(options) {
     ) {
       assert.ok(['true', 'false'].includes(nonpart));
 
-      this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParams(
+      this.txn = algosdk.makeKeyRegistrationTxnWithSuggestedParamsFromObject({
         sender,
-        undefined,
-        votePk.length ? votePk : undefined,
-        selectionPk.length ? selectionPk : undefined,
-        voteFirst,
-        voteLast,
-        keyDilution,
-        this.suggestedParams,
-        undefined,
-        nonpart === 'true',
-        stateProofPk.length ? stateProofPk : undefined
-      );
+        voteKey: votePk.length ? algosdk.base64ToBytes(votePk) : undefined,
+        selectionKey: selectionPk.length
+          ? algosdk.base64ToBytes(selectionPk)
+          : undefined,
+        stateProofKey: stateProofPk.length
+          ? algosdk.base64ToBytes(stateProofPk)
+          : undefined,
+        voteFirst: voteFirst || undefined,
+        voteLast: voteLast || undefined,
+        voteKeyDilution: keyDilution || undefined,
+        nonParticipation: nonpart === 'true',
+        suggestedParams: this.suggestedParams,
+      });
     }
   );
 
@@ -3051,7 +3446,7 @@ module.exports = function getSteps(options) {
       try {
         const compiledResponse = await client.compile(data).do();
         const compiledProgram = makeUint8Array(
-          Buffer.from(compiledResponse.result, 'base64')
+          algosdk.base64ToBytes(compiledResponse.result)
         );
         return compiledProgram;
       } catch (err) {
@@ -3139,124 +3534,107 @@ module.exports = function getSteps(options) {
       }
       // build suggested params object
       const sp = {
-        genesisHash: genesisHashBase64,
-        firstRound: firstValid,
-        lastRound: lastValid,
+        genesisHash: algosdk.base64ToBytes(genesisHashBase64),
+        firstValid,
+        lastValid,
         fee,
         flatFee: true,
+        minFee: 1000, // Shouldn't matter because flatFee=true
       };
 
       switch (operationString) {
         case 'call':
-          this.txn = algosdk.makeApplicationNoOpTxn(
+          this.txn = algosdk.makeApplicationNoOpTxnFromObject({
             sender,
-            sp,
             appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'create':
-          this.txn = algosdk.makeApplicationCreateTxn(
+          this.txn = algosdk.makeApplicationCreateTxnFromObject({
             sender,
-            sp,
-            operation,
-            approvalProgramBytes,
-            clearProgramBytes,
+            onComplete: operation,
+            approvalProgram: approvalProgramBytes,
+            clearProgram: clearProgramBytes,
             numLocalInts,
             numLocalByteSlices,
             numGlobalInts,
             numGlobalByteSlices,
+            extraPages,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            extraPages,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'update':
-          this.txn = algosdk.makeApplicationUpdateTxn(
+          this.txn = algosdk.makeApplicationUpdateTxnFromObject({
             sender,
-            sp,
             appIndex,
-            approvalProgramBytes,
-            clearProgramBytes,
+            approvalProgram: approvalProgramBytes,
+            clearProgram: clearProgramBytes,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'optin':
-          this.txn = algosdk.makeApplicationOptInTxn(
+          this.txn = algosdk.makeApplicationOptInTxnFromObject({
             sender,
-            sp,
             appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'delete':
-          this.txn = algosdk.makeApplicationDeleteTxn(
+          this.txn = algosdk.makeApplicationDeleteTxnFromObject({
             sender,
-            sp,
             appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'clear':
-          this.txn = algosdk.makeApplicationClearStateTxn(
+          this.txn = algosdk.makeApplicationClearStateTxnFromObject({
             sender,
-            sp,
             appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         case 'closeout':
-          this.txn = algosdk.makeApplicationCloseOutTxn(
+          this.txn = algosdk.makeApplicationCloseOutTxnFromObject({
             sender,
-            sp,
             appIndex,
             appArgs,
-            appAccounts,
+            accounts: appAccounts,
             foreignApps,
             foreignAssets,
-            undefined,
-            undefined,
-            undefined,
-            boxes
-          );
+            boxes,
+            suggestedParams: sp,
+          });
           return;
         default:
           throw Error(
@@ -3273,18 +3651,18 @@ module.exports = function getSteps(options) {
   Then(
     'the base64 encoded signed transaction should equal {string}',
     function (base64golden) {
-      const actualBase64 = Buffer.from(this.stx).toString('base64');
+      const actualBase64 = algosdk.bytesToBase64(this.stx);
       assert.strictEqual(actualBase64, base64golden);
     }
   );
 
   Then('the decoded transaction should equal the original', function () {
     const decoded = algosdk.decodeSignedTransaction(this.stx);
-    // comparing the output of get_obj_for_encoding instead because the Transaction class instance
+    // comparing the output of toEncodingData instead because the Transaction class instance
     // may have some nonconsequential differences in internal representation
     assert.deepStrictEqual(
-      decoded.txn.get_obj_for_encoding(),
-      this.txn.get_obj_for_encoding()
+      decoded.txn.toEncodingData(),
+      this.txn.toEncodingData()
     );
   });
 
@@ -3330,27 +3708,27 @@ module.exports = function getSteps(options) {
       this.transientAccount = algosdk.generateAccount();
 
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
-      const fundingTxnArgs = {
-        from: this.accounts[0],
-        to: this.transientAccount.addr,
+      if (sp.firstValid === 0) sp.firstValid = 1;
+      const fundingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: this.accounts[0],
+        receiver: this.transientAccount.addr,
         amount: fundingAmount,
         suggestedParams: sp,
-      };
+      });
       const stxKmd = await this.kcl.signTransaction(
         this.handle,
         this.wallet_pswd,
-        fundingTxnArgs
+        fundingTxn
       );
       const fundingResponse = await this.v2Client
         .sendRawTransaction(stxKmd)
         .do();
       const info = await algosdk.waitForConfirmation(
         this.v2Client,
-        fundingResponse.txId,
+        fundingResponse.txid,
         1
       );
-      assert.ok(info['confirmed-round'] > 0);
+      assert.ok(info.confirmedRound > 0);
     }
   );
 
@@ -3432,27 +3810,25 @@ module.exports = function getSteps(options) {
         boxes = splitAndProcessBoxReferences(boxesCommaSeparatedString);
       }
       const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstRound === 0) sp.firstRound = 1;
-      const o = {
-        type: 'appl',
-        from: this.transientAccount.addr,
-        suggestedParams: sp,
+      if (sp.firstValid === 0) sp.firstValid = 1;
+      this.txn = algosdk.makeApplicationCallTxnFromObject({
+        sender: this.transientAccount.addr,
         appIndex: this.currentApplicationIndex,
-        appOnComplete: operation,
-        appLocalInts: numLocalInts,
-        appLocalByteSlices: numLocalByteSlices,
-        appGlobalInts: numGlobalInts,
-        appGlobalByteSlices: numGlobalByteSlices,
-        appApprovalProgram: approvalProgramBytes,
-        appClearProgram: clearProgramBytes,
-        appArgs,
-        appAccounts,
-        appForeignApps: foreignApps,
-        appForeignAssets: foreignAssets,
-        boxes,
+        onComplete: operation,
+        numLocalInts,
+        numLocalByteSlices,
+        numGlobalInts,
+        numGlobalByteSlices,
         extraPages,
-      };
-      this.txn = new algosdk.Transaction(o);
+        approvalProgram: approvalProgramBytes,
+        clearProgram: clearProgramBytes,
+        appArgs,
+        accounts: appAccounts,
+        foreignApps,
+        foreignAssets,
+        boxes,
+        suggestedParams: sp,
+      });
     }
   );
 
@@ -3465,8 +3841,7 @@ module.exports = function getSteps(options) {
       } catch (err) {
         if (errorString !== '') {
           // error was expected. check that err.message includes expected string.
-          const errorContainsString = err.message.includes(errorString);
-          assert.deepStrictEqual(true, errorContainsString);
+          assert.ok(err.message.includes(errorString), err);
         } else {
           // unexpected error, rethrow.
           throw err;
@@ -3478,11 +3853,11 @@ module.exports = function getSteps(options) {
   Given('I wait for the transaction to be confirmed.', async function () {
     const info = await algosdk.waitForConfirmation(
       this.v2Client,
-      this.appTxid.txId,
+      this.appTxid.txid,
       1
     );
-    assert.ok(info['confirmed-round'] > 0);
-    this.lastTxnConfirmedRound = info['confirmed-round'];
+    assert.ok(info.confirmedRound > 0);
+    this.lastTxnConfirmedRound = info.confirmedRound;
   });
 
   Given('I reset the array of application IDs to remember.', async function () {
@@ -3491,9 +3866,9 @@ module.exports = function getSteps(options) {
 
   Given('I remember the new application ID.', async function () {
     const info = await this.v2Client
-      .pendingTransactionInformation(this.appTxid.txId)
+      .pendingTransactionInformation(this.appTxid.txid)
       .do();
-    this.currentApplicationIndex = info['application-index'];
+    this.currentApplicationIndex = info.applicationIndex;
 
     if (!Object.prototype.hasOwnProperty.call(this, 'appIDs')) {
       this.appIDs = [];
@@ -3509,18 +3884,24 @@ module.exports = function getSteps(options) {
       numByteSlices,
       numUints,
       applicationState,
-      stateKey,
+      stateKeyB64,
       stateValue
     ) {
       const accountInfo = await this.v2Client
         .accountInformation(this.transientAccount.addr)
         .do();
-      const appTotalSchema = accountInfo['apps-total-schema'];
-      assert.strictEqual(appTotalSchema['num-byte-slice'], numByteSlices);
-      assert.strictEqual(appTotalSchema['num-uint'], numUints);
+      const appTotalSchema = accountInfo.appsTotalSchema;
+      assert.strictEqual(
+        appTotalSchema.numByteSlice.toString(),
+        numByteSlices.toString()
+      );
+      assert.strictEqual(
+        appTotalSchema.numUint.toString(),
+        numUints.toString()
+      );
 
       const appCreated = appCreatedBoolAsString === 'true';
-      const createdApps = accountInfo['created-apps'];
+      const { createdApps } = accountInfo;
       //  If we don't expect the app to exist, verify that it isn't there and exit.
       if (!appCreated) {
         for (let i = 0; i < createdApps.length; i++) {
@@ -3535,12 +3916,14 @@ module.exports = function getSteps(options) {
       let foundApp = false;
       for (let i = 0; i < createdApps.length; i++) {
         foundApp =
-          foundApp || createdApps[i].id === this.currentApplicationIndex;
+          foundApp ||
+          createdApps[i].id.toString() ===
+            this.currentApplicationIndex.toString();
       }
       assert.ok(foundApp);
 
       // If there is no key to check, we're done.
-      if (stateKey === '') {
+      if (stateKeyB64 === '') {
         return;
       }
 
@@ -3548,20 +3931,24 @@ module.exports = function getSteps(options) {
       let keyValues = [];
       if (applicationState === 'local') {
         let counter = 0;
-        for (let i = 0; i < accountInfo['apps-local-state'].length; i++) {
-          const localState = accountInfo['apps-local-state'][i];
-          if (localState.id === this.currentApplicationIndex) {
-            keyValues = localState['key-value'];
+        for (let i = 0; i < accountInfo.appsLocalState.length; i++) {
+          const localState = accountInfo.appsLocalState[i];
+          if (
+            localState.id.toString() === this.currentApplicationIndex.toString()
+          ) {
+            keyValues = localState.keyValue;
             counter += 1;
           }
         }
         assert.strictEqual(counter, 1);
       } else if (applicationState === 'global') {
         let counter = 0;
-        for (let i = 0; i < accountInfo['created-apps'].length; i++) {
-          const createdApp = accountInfo['created-apps'][i];
-          if (createdApp.id === this.currentApplicationIndex) {
-            keyValues = createdApp.params['global-state'];
+        for (let i = 0; i < accountInfo.createdApps.length; i++) {
+          const createdApp = accountInfo.createdApps[i];
+          if (
+            createdApp.id.toString() === this.currentApplicationIndex.toString()
+          ) {
+            keyValues = createdApp.params.globalState;
             counter += 1;
           }
         }
@@ -3577,11 +3964,14 @@ module.exports = function getSteps(options) {
       for (let i = 0; i < keyValues.length; i++) {
         const keyValue = keyValues[i];
         const foundKey = keyValue.key;
-        if (foundKey === stateKey) {
+        if (algosdk.bytesToBase64(foundKey) === stateKeyB64) {
           foundValueForKey = true;
           const foundValue = keyValue.value;
           if (foundValue.type === 1) {
-            assert.strictEqual(foundValue.bytes, stateValue);
+            assert.deepStrictEqual(
+              foundValue.bytes,
+              algosdk.base64ToBytes(stateValue)
+            );
           } else if (foundValue.type === 0) {
             assert.strictEqual(foundValue.uint, stateValue);
           }
@@ -3687,7 +4077,7 @@ module.exports = function getSteps(options) {
     function (expectedSelectorHex) {
       const actualSelector = this.method.getSelector();
       const expectedSelector = makeUint8Array(
-        Buffer.from(expectedSelectorHex, 'hex')
+        algosdk.hexToBytes(expectedSelectorHex)
       );
       assert.deepStrictEqual(actualSelector, expectedSelector);
     }
@@ -3837,7 +4227,7 @@ module.exports = function getSteps(options) {
           const appID = this.appIDs[parseInt(b64Arg[1], 10)];
           args.push(algosdk.encodeUint64(appID));
         } else {
-          args.push(makeUint8Array(Buffer.from(b64Arg, 'base64')));
+          args.push(makeUint8Array(algosdk.base64ToBytes(b64Arg)));
         }
       }
       this.encodedMethodArguments.push(...args);
@@ -4109,7 +4499,7 @@ module.exports = function getSteps(options) {
   Given(
     'I add a nonced method call with the transient account, the current application, suggested params, on complete {string}, current transaction signer, current method arguments.',
     async function (onComplete) {
-      const nonce = makeUint8Array(Buffer.from(this.nonce));
+      const nonce = makeUint8Array(new TextEncoder().encode(this.nonce));
       await addMethodCallToComposer.call(
         this,
         this.transientAccount.addr,
@@ -4201,16 +4591,16 @@ module.exports = function getSteps(options) {
     function (commaSeparatedB64SignedTxns) {
       const expectedSignedTxns = commaSeparatedB64SignedTxns
         .split(',')
-        .map((b64SignedTxn) => Buffer.from(b64SignedTxn, 'base64'));
+        .map((b64SignedTxn) => algosdk.base64ToBytes(b64SignedTxn));
 
       const actualSignedTxns = this.composerSignedTransactions.map(
-        (signedTxn) => Buffer.from(signedTxn)
+        (signedTxn) => signedTxn
       );
       assert.deepStrictEqual(
         [...actualSignedTxns],
         [...expectedSignedTxns],
         `Got ${actualSignedTxns
-          .map((stxn) => stxn.toString('base64'))
+          .map((stxn) => algosdk.bytesToBase64(stxn))
           .join(',')}`
       );
     }
@@ -4238,20 +4628,19 @@ module.exports = function getSteps(options) {
       for (let i = 0; i < methodResults.length; i++) {
         const actualResult = methodResults[i];
         const { method } = actualResult;
-        const expectedReturnValue = Buffer.from(
-          b64ExpectedReturnValues[i],
-          'base64'
+        const expectedReturnValue = algosdk.base64ToBytes(
+          b64ExpectedReturnValues[i]
         );
 
         if (actualResult.decodeError) {
           throw actualResult.decodeError;
         }
         assert.deepStrictEqual(
-          Buffer.from(actualResult.rawReturnValue),
+          actualResult.rawReturnValue,
           expectedReturnValue,
-          `Actual return value for method at index ${i} does not match expected. Actual: ${Buffer.from(
+          `Actual return value for method at index ${i} does not match expected. Actual: ${algosdk.bytesToBase64(
             actualResult.rawReturnValue
-          ).toString('base64')}`
+          )}`
         );
 
         const returnType = method.returns.type;
@@ -4306,16 +4695,15 @@ module.exports = function getSteps(options) {
     function (resultIndex, methodArg) {
       // Return format for randomInt method
       const methodReturnType = algosdk.ABIType.from('(uint64,byte[17])');
-      const actualResult = this.composerExecuteResponse.methodResults[
-        resultIndex
-      ];
+      const actualResult =
+        this.composerExecuteResponse.methodResults[resultIndex];
       const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
       assert.strictEqual(resultArray.length, 2);
       const [randomIntResult, witnessResult] = resultArray;
 
       // Check the random int against the witness
       const witnessHash = genericHash(witnessResult).slice(0, 8);
-      const witness = algosdk.bytesToBigInt(witnessHash);
+      const witness = algosdk.bytesToBigInt(Uint8Array.from(witnessHash));
       const quotient = witness % BigInt(methodArg);
       assert.strictEqual(quotient, randomIntResult);
     }
@@ -4326,20 +4714,19 @@ module.exports = function getSteps(options) {
     function (resultIndex, methodArg) {
       // Return format for randElement method
       const methodReturnType = algosdk.ABIType.from('(byte,byte[17])');
-      const actualResult = this.composerExecuteResponse.methodResults[
-        resultIndex
-      ];
+      const actualResult =
+        this.composerExecuteResponse.methodResults[resultIndex];
       const resultArray = methodReturnType.decode(actualResult.rawReturnValue);
       assert.strictEqual(resultArray.length, 2);
       const [randomResult, witnessResult] = resultArray;
 
       // Check the random character against the witness
       const witnessHash = genericHash(witnessResult).slice(0, 8);
-      const witness = algosdk.bytesToBigInt(witnessHash);
+      const witness = algosdk.bytesToBigInt(Uint8Array.from(witnessHash));
       const quotient = witness % BigInt(methodArg.length);
       assert.strictEqual(
         methodArg[quotient],
-        Buffer.from(makeUint8Array([randomResult])).toString('utf-8')
+        new TextDecoder().decode(makeUint8Array([randomResult]))
       );
     }
   );
@@ -4361,9 +4748,14 @@ module.exports = function getSteps(options) {
   Then(
     'I can dig the {int}th atomic result with path {string} and see the value {string}',
     function (index, pathString, expectedResult) {
-      let actualResult = this.composerExecuteResponse.methodResults[index]
-        .txInfo;
-      actualResult = glom(actualResult, pathString);
+      let actualResult =
+        this.composerExecuteResponse.methodResults[index].txInfo;
+      actualResult = glom(
+        actualResult
+          .getEncodingSchema()
+          .prepareJSON(actualResult.toEncodingData()),
+        pathString
+      );
 
       assert.strictEqual(expectedResult, actualResult.toString());
     }
@@ -4383,15 +4775,14 @@ module.exports = function getSteps(options) {
           if (j === 0) {
             actualResults = actualResults[itxnIndex].txInfo;
           } else {
-            actualResults = actualResults['inner-txns'][itxnIndex];
+            actualResults = actualResults.innerTxns[itxnIndex];
           }
-
-          const thisGroupID = actualResults.txn.txn.group;
-          if (j === 0) {
-            groupID = thisGroupID;
-          } else {
-            assert.strictEqual(groupID, thisGroupID);
-          }
+        }
+        const thisGroupID = actualResults.txn.txn.group;
+        if (i === 0) {
+          groupID = thisGroupID;
+        } else {
+          assert.deepStrictEqual(groupID, thisGroupID);
         }
       }
     }
@@ -4408,7 +4799,7 @@ module.exports = function getSteps(options) {
       );
       const actualResult = this.composerExecuteResponse.methodResults[index];
       let spin = abiType.decode(actualResult.rawReturnValue)[0];
-      spin = Buffer.from(spin).toString('utf-8');
+      spin = new TextDecoder().decode(Uint8Array.from(spin));
 
       assert.ok(spin.match(regexString));
     }
@@ -4417,17 +4808,22 @@ module.exports = function getSteps(options) {
   Given(
     'a dryrun response file {string} and a transaction at index {string}',
     async function (drrFile, txId) {
-      const drContents = await loadResource(drrFile);
-      const js = parseJSON(drContents);
-      const drr = new algosdk.DryrunResult(js);
+      const drContents = await loadResourceAsJson(drrFile);
+      const drr = algosdk.modelsv2.DryrunResponse.fromEncodingData(
+        algosdk.modelsv2.DryrunResponse.encodingSchema.fromPreparedJSON(
+          drContents
+        )
+      );
       this.txtrace = drr.txns[parseInt(txId)];
     }
   );
 
   Then('calling app trace produces {string}', async function (expected) {
-    const traceString = this.txtrace.appTrace();
-    const expectedString = (await loadResource(expected)).toString();
-    assert.equal(traceString, expectedString);
+    const traceString = algosdk.dryrunTxnResultAppTrace(this.txtrace);
+    const expectedString = new TextDecoder().decode(
+      await loadResource(expected)
+    );
+    assert.strictEqual(traceString, expectedString);
   });
 
   When(
@@ -4497,10 +4893,10 @@ module.exports = function getSteps(options) {
   Then(
     'according to {string}, the contents of the box with name {string} in the current application should be {string}. If there is an error it is {string}.',
     async function (fromClient, boxName, boxValue, errString) {
-      try {
-        const boxKey = splitAndProcessAppArgs(boxName)[0];
+      const boxKey = splitAndProcessAppArgs(boxName)[0];
 
-        let resp = null;
+      let resp = null;
+      try {
         if (fromClient === 'algod') {
           resp = await this.v2Client
             .getApplicationBoxByName(this.currentApplicationIndex, boxKey)
@@ -4515,25 +4911,22 @@ module.exports = function getSteps(options) {
         } else {
           assert.fail(`expecting algod or indexer, got ${fromClient}`);
         }
-
-        const actualName = resp.name;
-        const actualValue = resp.value;
-        assert.deepStrictEqual(Buffer.from(boxKey), Buffer.from(actualName));
-        assert.deepStrictEqual(
-          Buffer.from(boxValue, 'base64'),
-          Buffer.from(actualValue)
-        );
       } catch (err) {
         if (errString !== '') {
-          assert.deepStrictEqual(
-            true,
+          assert.ok(
             err.message.includes(errString),
             `expected ${errString} got ${err.message}`
           );
-        } else {
-          throw err;
+          return;
         }
+        throw err;
       }
+      assert.ok(!errString, "expected error, didn't get one");
+
+      const actualName = resp.name;
+      const actualValue = resp.value;
+      assert.deepStrictEqual(boxKey, actualName);
+      assert.deepStrictEqual(algosdk.base64ToBytes(boxValue), actualValue);
     }
   );
 
@@ -4544,7 +4937,7 @@ module.exports = function getSteps(options) {
     const splitBoxB64Names = boxB64Names.split(':');
     const boxNames = [];
     splitBoxB64Names.forEach((subArg) => {
-      boxNames.push(makeUint8Array(Buffer.from(subArg, 'base64')));
+      boxNames.push(makeUint8Array(algosdk.base64ToBytes(subArg)));
     });
     return boxNames;
   }
@@ -4560,10 +4953,8 @@ module.exports = function getSteps(options) {
         .do();
 
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
-      const actualBoxes = new Set(
-        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
-      );
-      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      const actualBoxes = new Set(resp.boxes.map((b) => b.name));
+      const expectedBoxes = new Set(boxes);
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
   );
@@ -4609,10 +5000,8 @@ module.exports = function getSteps(options) {
       }
 
       assert.deepStrictEqual(boxes.length, resp.boxes.length);
-      const actualBoxes = new Set(
-        resp.boxes.map((b) => Buffer.from(b.name, 'base64'))
-      );
-      const expectedBoxes = new Set(boxes.map(Buffer.from));
+      const actualBoxes = new Set(resp.boxes.map((b) => b.name));
+      const expectedBoxes = new Set(boxes);
       assert.deepStrictEqual(expectedBoxes, actualBoxes);
     }
   );
@@ -4620,11 +5009,12 @@ module.exports = function getSteps(options) {
   Then(
     'I wait for indexer to catch up to the round where my most recent transaction was confirmed.',
     async function () {
+      // eslint-disable-next-line no-promise-executor-return
       const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       const maxAttempts = 30;
 
       const roundToWaitFor = this.lastTxnConfirmedRound;
-      let indexerRound = 0;
+      let indexerRound = BigInt(0);
       let attempts = 0;
 
       for (;;) {
@@ -4652,33 +5042,42 @@ module.exports = function getSteps(options) {
   );
 
   Given('a source map json file {string}', async function (srcmap) {
-    const js = parseJSON(await loadResource(srcmap));
-    this.sourcemap = new algosdk.SourceMap(js);
+    const js = await loadResourceAsJson(srcmap);
+    this.sourcemap = new algosdk.ProgramSourceMap(js);
+  });
+
+  Then('the source map contains pcs {string}', function (pcsString) {
+    const expectedPcs = makeArray(
+      ...pcsString.split(',').map((pc) => parseInt(pc, 10))
+    );
+    const actualPcs = makeArray(...this.sourcemap.getPcs());
+    assert.deepStrictEqual(actualPcs, expectedPcs);
   });
 
   Then(
-    'the string composed of pc:line number equals {string}',
-    function (mapping) {
-      const buff = Object.entries(this.sourcemap.pcToLine).map(
-        ([pc, line]) => `${pc}:${line}`
-      );
-      assert.equal(buff.join(';'), mapping);
+    'the source map maps pc {int} to line {int} and column {int} of source {string}',
+    function (pc, expectedLine, expectedColumn, source) {
+      const actual = this.sourcemap.getLocationForPc(pc);
+      assert.ok(actual);
+      assert.strictEqual(actual.line, expectedLine);
+      assert.strictEqual(actual.column, expectedColumn);
+      assert.strictEqual(this.sourcemap.sources[actual.sourceIndex], source);
     }
   );
 
   Then(
-    'getting the line associated with a pc {string} equals {string}',
-    function (pc, expectedLine) {
-      const actualLine = this.sourcemap.getLineForPc(parseInt(pc));
-      assert.equal(actualLine, parseInt(expectedLine));
-    }
-  );
-
-  Then(
-    'getting the last pc associated with a line {string} equals {string}',
-    function (line, expectedPc) {
-      const actualPcs = this.sourcemap.getPcsForLine(parseInt(line));
-      assert.equal(actualPcs.pop(), parseInt(expectedPc));
+    'the source map maps source {string} and line {int} to pc {int} at column {int}',
+    function (source, line, pc, expectedColumn) {
+      const sourceIndex = this.sourcemap.sources.indexOf(source);
+      assert.ok(sourceIndex >= 0);
+      const actualPcs = this.sourcemap.getPcsOnSourceLine(sourceIndex, line);
+      for (const actualPcInfo of actualPcs) {
+        if (actualPcInfo.pc === pc) {
+          assert.strictEqual(actualPcInfo.column, expectedColumn);
+          return;
+        }
+      }
+      throw new Error(`Could not find pc ${pc}`);
     }
   );
 
@@ -4690,15 +5089,17 @@ module.exports = function getSteps(options) {
         .compile(tealSrc)
         .sourcemap(true)
         .do();
-      this.rawSourceMap = JSON.stringify(compiledResponse.sourcemap);
+      this.rawSourceMap = algosdk.encodeJSON(compiledResponse.sourcemap);
     }
   );
 
   Then(
     'the resulting source map is the same as the json {string}',
     async function (expectedJsonPath) {
-      const expected = await loadResource(expectedJsonPath);
-      assert.equal(this.rawSourceMap, expected.toString().trim());
+      const expected = new TextDecoder()
+        .decode(await loadResource(expectedJsonPath))
+        .trim();
+      assert.deepStrictEqual(this.rawSourceMap, expected);
     }
   );
 
@@ -4707,30 +5108,29 @@ module.exports = function getSteps(options) {
     async function (bytecodeFilename, sourceFilename) {
       const bytecode = await loadResource(bytecodeFilename);
       const resp = await this.v2Client.disassemble(bytecode).do();
-      const expectedSource = await loadResource(sourceFilename);
-
-      assert.deepStrictEqual(
-        resp.result.toString('UTF-8'),
-        expectedSource.toString('UTF-8')
+      const expectedSource = new TextDecoder().decode(
+        await loadResource(sourceFilename)
       );
+
+      assert.deepStrictEqual(resp.result.toString('UTF-8'), expectedSource);
     }
   );
 
   When(
     'we make a GetLightBlockHeaderProof call for round {int}',
     async function (int) {
-      await this.v2Client.getLightBlockHeaderProof(int).do();
+      await doOrDoRaw(this.v2Client.getLightBlockHeaderProof(int));
     }
   );
 
   When('we make a GetStateProof call for round {int}', async function (int) {
-    await this.v2Client.getStateProof(int).do();
+    await doOrDoRaw(this.v2Client.getStateProof(int));
   });
 
   When(
     'we make a Lookup Block Hash call against round {int}',
     async function (int) {
-      await this.v2Client.getBlockHash(int).do();
+      await doOrDoRaw(this.v2Client.getBlockHash(int));
     }
   );
 
@@ -4738,7 +5138,7 @@ module.exports = function getSteps(options) {
     'a base64 encoded program bytes for heuristic sanity check {string}',
     async function (programByteStr) {
       this.seeminglyProgram = new Uint8Array(
-        Buffer.from(programByteStr, 'base64')
+        algosdk.base64ToBytes(programByteStr)
       );
     }
   );
@@ -4826,8 +5226,8 @@ module.exports = function getSteps(options) {
       const stringPath = failAt.split(',');
       const failPath = stringPath.map((n) => parseInt(n, 10));
 
-      const failedMessage = this.simulateResponse.txnGroups[groupNum]
-        .failureMessage;
+      const failedMessage =
+        this.simulateResponse.txnGroups[groupNum].failureMessage;
       assert.ok(
         failedMessage.includes(errorMsg),
         `Error message: "${failedMessage}" does not contain "${errorMsg}"`
@@ -4894,14 +5294,13 @@ module.exports = function getSteps(options) {
       const optionList = execTraceOptions.split(',');
 
       assert.ok(this.simulateRequest);
-      this.simulateRequest.execTraceConfig = new algosdk.modelsv2.SimulateTraceConfig(
-        {
+      this.simulateRequest.execTraceConfig =
+        new algosdk.modelsv2.SimulateTraceConfig({
           enable: true,
           scratchChange: optionList.includes('scratch'),
           stackChange: optionList.includes('stack'),
           stateChange: optionList.includes('state'),
-        }
-      );
+        });
     }
   );
 
@@ -4920,9 +5319,9 @@ module.exports = function getSteps(options) {
       if (expectedValue.length === 0) {
         assert.equal(actualAvmValue.bytes, undefined);
       } else {
-        assert.deepStrictEqual(
+        assert.deepEqual(
           actualAvmValue.bytes,
-          makeUint8Array(Buffer.from(expectedValue, 'base64'))
+          algosdk.base64ToBytes(expectedValue)
         );
       }
     } else {
@@ -4948,9 +5347,9 @@ module.exports = function getSteps(options) {
           .map(Number);
         assert.ok(txnGroupPathSplit.length > 0);
 
-        let traces = this.simulateResponse.txnGroups[0].txnResults[
-          txnGroupPathSplit[0]
-        ].execTrace;
+        let traces =
+          this.simulateResponse.txnGroups[0].txnResults[txnGroupPathSplit[0]]
+            .execTrace;
         assert.ok(traces);
 
         for (let i = 1; i < txnGroupPathSplit.length; i++) {
@@ -5070,7 +5469,9 @@ module.exports = function getSteps(options) {
           assert.ok(initialAppState.appLocals);
           assert.strictEqual(initialAppState.appLocals.length, 1);
           assert.ok(initialAppState.appLocals[0].account);
-          algosdk.decodeAddress(initialAppState.appLocals[0].account);
+          assert.ok(
+            initialAppState.appLocals[0].account instanceof algosdk.Address
+          );
           assert.ok(initialAppState.appLocals[0].kvs);
           kvs = initialAppState.appLocals[0].kvs;
           break;
@@ -5091,11 +5492,11 @@ module.exports = function getSteps(options) {
       }
       assert.ok(kvs.length > 0);
 
-      const binaryKey = Buffer.from(keyStr);
+      const binaryKey = new TextEncoder().encode(keyStr);
 
       let actualValue = null;
       for (const kv of kvs) {
-        if (binaryKey.equals(Buffer.from(kv.key))) {
+        if (bytesEqual(binaryKey, kv.key)) {
           actualValue = kv.value;
           break;
         }
@@ -5122,9 +5523,9 @@ module.exports = function getSteps(options) {
           .map(Number);
         assert.ok(txnGroupPathSplit.length > 0);
 
-        let traces = this.simulateResponse.txnGroups[0].txnResults[
-          txnGroupPathSplit[0]
-        ].execTrace;
+        let traces =
+          this.simulateResponse.txnGroups[0].txnResults[txnGroupPathSplit[0]]
+            .execTrace;
         assert.ok(traces);
 
         for (let i = 1; i < txnGroupPathSplit.length; i++) {
@@ -5163,7 +5564,7 @@ module.exports = function getSteps(options) {
       } else if (stateType === 'local') {
         assert.strictEqual(stateChange.appStateType, 'l');
         assert.ok(stateChange.account);
-        algosdk.decodeAddress(stateChange.account);
+        assert.ok(stateChange.account instanceof algosdk.Address);
       } else if (stateType === 'box') {
         assert.strictEqual(stateChange.appStateType, 'b');
         assert.ok(!stateChange.account);
@@ -5175,7 +5576,7 @@ module.exports = function getSteps(options) {
 
       assert.deepStrictEqual(
         stateChange.key,
-        makeUint8Array(Buffer.from(stateName))
+        makeUint8Array(new TextEncoder().encode(stateName))
       );
       assert.ok(stateChange.newValue);
       avmValueCheck(newValue, stateChange.newValue);
@@ -5191,9 +5592,9 @@ module.exports = function getSteps(options) {
         .map(Number);
       assert.ok(txnGroupPathSplit.length > 0);
 
-      let traces = this.simulateResponse.txnGroups[0].txnResults[
-        txnGroupPathSplit[0]
-      ].execTrace;
+      let traces =
+        this.simulateResponse.txnGroups[0].txnResults[txnGroupPathSplit[0]]
+          .execTrace;
       assert.ok(traces);
 
       for (let i = 1; i < txnGroupPathSplit.length; i++) {
@@ -5212,7 +5613,7 @@ module.exports = function getSteps(options) {
       }
       assert.deepStrictEqual(
         hash,
-        makeUint8Array(Buffer.from(b64ProgHash, 'base64'))
+        makeUint8Array(algosdk.base64ToBytes(b64ProgHash))
       );
     }
   );
@@ -5281,7 +5682,7 @@ module.exports = function getSteps(options) {
   When(
     'we make a GetBlockTxids call against block number {int}',
     async function (round) {
-      await this.v2Client.getBlockTxids(round).do();
+      await this.v2Client.getBlockTxids(round).doRaw();
     }
   );
 

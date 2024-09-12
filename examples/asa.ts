@@ -19,7 +19,7 @@ async function main() {
   // example: ASSET_CREATE
   const suggestedParams = await algodClient.getTransactionParams().do();
   const txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     suggestedParams,
     defaultFrozen: false,
     unitName: 'rug',
@@ -35,24 +35,23 @@ async function main() {
 
   const signedTxn = txn.signTxn(creator.privateKey);
   await algodClient.sendRawTransaction(signedTxn).do();
-  const result = await algosdk.waitForConfirmation(
-    algodClient,
-    txn.txID().toString(),
-    3
-  );
+  const result = await algosdk.waitForConfirmation(algodClient, txn.txID(), 3);
 
-  const assetIndex = result['asset-index'];
+  const { assetIndex } = result;
+  if (!assetIndex) {
+    throw new Error('Asset not created');
+  }
   console.log(`Asset ID created: ${assetIndex}`);
   // example: ASSET_CREATE
 
   // example: ASSET_INFO
   const assetInfo = await algodClient.getAssetByID(assetIndex).do();
   console.log(`Asset Name: ${assetInfo.params.name}`);
-  console.log(`Asset Params: ${assetInfo.params}`);
+  console.log(`Asset Params: ${algosdk.stringifyJSON(assetInfo.params)}`);
   // example: ASSET_INFO
 
   // ensure indexer is caught up
-  await indexerWaitForRound(indexerClient, result['confirmed-round'], 30);
+  await indexerWaitForRound(indexerClient, result.confirmedRound!, 30);
 
   // example: INDEXER_LOOKUP_ASSET
   const indexerAssetInfo = await indexerClient.lookupAssetByID(assetIndex).do();
@@ -63,7 +62,7 @@ async function main() {
   const manager = accounts[1];
 
   const configTxn = algosdk.makeAssetConfigTxnWithSuggestedParamsFromObject({
-    from: creator.addr,
+    sender: creator.addr,
     manager: manager.addr,
     freeze: manager.addr,
     clawback: manager.addr,
@@ -78,10 +77,10 @@ async function main() {
   await algodClient.sendRawTransaction(signedConfigTxn).do();
   const configResult = await algosdk.waitForConfirmation(
     algodClient,
-    txn.txID().toString(),
+    txn.txID(),
     3
   );
-  console.log(`Result confirmed in round: ${configResult['confirmed-round']}`);
+  console.log(`Result confirmed in round: ${configResult.confirmedRound}`);
   // example: ASSET_CONFIG
 
   const receiver = accounts[2];
@@ -89,8 +88,8 @@ async function main() {
 
   // opt-in is simply a 0 amount transfer of the asset to oneself
   const optInTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    from: receiver.addr,
-    to: receiver.addr,
+    sender: receiver.addr,
+    receiver: receiver.addr,
     suggestedParams,
     assetIndex,
     amount: 0,
@@ -98,13 +97,13 @@ async function main() {
 
   const signedOptInTxn = optInTxn.signTxn(receiver.privateKey);
   await algodClient.sendRawTransaction(signedOptInTxn).do();
-  await algosdk.waitForConfirmation(algodClient, optInTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(algodClient, optInTxn.txID(), 3);
   // example: ASSET_OPTIN
 
   // example: ASSET_XFER
   const xferTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    from: creator.addr,
-    to: receiver.addr,
+    sender: creator.addr,
+    receiver: receiver.addr,
     suggestedParams,
     assetIndex,
     amount: 1,
@@ -112,36 +111,32 @@ async function main() {
 
   const signedXferTxn = xferTxn.signTxn(creator.privateKey);
   await algodClient.sendRawTransaction(signedXferTxn).do();
-  await algosdk.waitForConfirmation(algodClient, xferTxn.txID().toString(), 3);
+  await algosdk.waitForConfirmation(algodClient, xferTxn.txID(), 3);
   // example: ASSET_XFER
 
   // example: ASSET_FREEZE
   const freezeTxn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
-    from: manager.addr,
+    sender: manager.addr,
     suggestedParams,
     assetIndex,
-    // freezeState: false would unfreeze the account's asset holding
-    freezeState: true,
+    // frozen: false would unfreeze the account's asset holding
+    frozen: true,
     // freezeTarget is the account that is being frozen or unfrozen
     freezeTarget: receiver.addr,
   });
 
   const signedFreezeTxn = freezeTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedFreezeTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    freezeTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, freezeTxn.txID(), 3);
   // example: ASSET_FREEZE
 
   // example: ASSET_CLAWBACK
   const clawbackTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject(
     {
-      from: manager.addr,
-      to: creator.addr,
-      // revocationTarget is the account that is being clawed back from
-      revocationTarget: receiver.addr,
+      sender: manager.addr,
+      receiver: creator.addr,
+      // assetSender is the account that is being clawed back from
+      assetSender: receiver.addr,
       suggestedParams,
       assetIndex,
       amount: 1,
@@ -150,11 +145,7 @@ async function main() {
 
   const signedClawbackTxn = clawbackTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedClawbackTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    clawbackTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, clawbackTxn.txID(), 3);
   // example: ASSET_CLAWBACK
 
   // example: ASSET_OPT_OUT
@@ -163,8 +154,8 @@ async function main() {
   // any account that can receive the asset.
   // note that closing to the asset creator will always succeed
   const optOutTxn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-    from: receiver.addr,
-    to: creator.addr,
+    sender: receiver.addr,
+    receiver: creator.addr,
     closeRemainderTo: creator.addr,
     suggestedParams,
     assetIndex,
@@ -173,27 +164,19 @@ async function main() {
 
   const signedOptOutTxn = optOutTxn.signTxn(receiver.privateKey);
   await algodClient.sendRawTransaction(signedOptOutTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    optOutTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, optOutTxn.txID(), 3);
   // example: ASSET_OPT_OUT
 
   // example: ASSET_DELETE
   const deleteTxn = algosdk.makeAssetDestroyTxnWithSuggestedParamsFromObject({
-    from: manager.addr,
+    sender: manager.addr,
     suggestedParams,
     assetIndex,
   });
 
   const signedDeleteTxn = deleteTxn.signTxn(manager.privateKey);
   await algodClient.sendRawTransaction(signedDeleteTxn).do();
-  await algosdk.waitForConfirmation(
-    algodClient,
-    deleteTxn.txID().toString(),
-    3
-  );
+  await algosdk.waitForConfirmation(algodClient, deleteTxn.txID(), 3);
   // example: ASSET_DELETE
 }
 

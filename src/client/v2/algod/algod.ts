@@ -1,49 +1,50 @@
-import ServiceClient from '../serviceClient';
-import * as modelsv2 from './models/types';
-import AccountInformation from './accountInformation';
-import AccountAssetInformation from './accountAssetInformation';
-import AccountApplicationInformation from './accountApplicationInformation';
-import Block from './block';
-import Compile from './compile';
-import Dryrun from './dryrun';
-import Genesis from './genesis';
-import GetAssetByID from './getAssetByID';
-import GetApplicationByID from './getApplicationByID';
-import GetBlockHash from './getBlockHash';
-import GetBlockTxids from './getBlockTxids';
-import GetApplicationBoxByName from './getApplicationBoxByName';
-import GetApplicationBoxes from './getApplicationBoxes';
-import HealthCheck from './healthCheck';
-import PendingTransactionInformation from './pendingTransactionInformation';
-import PendingTransactions from './pendingTransactions';
-import PendingTransactionsByAddress from './pendingTransactionsByAddress';
-import GetTransactionProof from './getTransactionProof';
-import SendRawTransaction from './sendRawTransaction';
-import Status from './status';
-import StatusAfterBlock from './statusAfterBlock';
-import SuggestedParams from './suggestedParams';
-import Supply from './supply';
-import Versions from './versions';
-import { BaseHTTPClient } from '../../baseHTTPClient';
+import ServiceClient from '../serviceClient.js';
+import * as modelsv2 from './models/types.js';
+import AccountInformation from './accountInformation.js';
+import AccountAssetInformation from './accountAssetInformation.js';
+import AccountApplicationInformation from './accountApplicationInformation.js';
+import Block from './block.js';
+import Compile from './compile.js';
+import Dryrun from './dryrun.js';
+import Genesis from './genesis.js';
+import GetAssetByID from './getAssetByID.js';
+import GetApplicationByID from './getApplicationByID.js';
+import GetBlockHash from './getBlockHash.js';
+import GetBlockTxids from './getBlockTxids.js';
+import GetApplicationBoxByName from './getApplicationBoxByName.js';
+import GetApplicationBoxes from './getApplicationBoxes.js';
+import HealthCheck from './healthCheck.js';
+import PendingTransactionInformation from './pendingTransactionInformation.js';
+import PendingTransactions from './pendingTransactions.js';
+import PendingTransactionsByAddress from './pendingTransactionsByAddress.js';
+import GetTransactionProof from './getTransactionProof.js';
+import SendRawTransaction from './sendRawTransaction.js';
+import Status from './status.js';
+import StatusAfterBlock from './statusAfterBlock.js';
+import SuggestedParams from './suggestedParams.js';
+import Supply from './supply.js';
+import Versions from './versions.js';
+import { BaseHTTPClient } from '../../baseHTTPClient.js';
 import {
   AlgodTokenHeader,
   CustomTokenHeader,
-} from '../../urlTokenBaseHTTPClient';
-import LightBlockHeaderProof from './lightBlockHeaderProof';
-import StateProof from './stateproof';
-import SetSyncRound from './setSyncRound';
-import GetSyncRound from './getSyncRound';
-import SetBlockOffsetTimestamp from './setBlockOffsetTimestamp';
-import GetBlockOffsetTimestamp from './getBlockOffsetTimestamp';
-import Disassemble from './disassemble';
-import SimulateRawTransactions from './simulateTransaction';
-import { EncodedSignedTransaction } from '../../../types';
-import * as encoding from '../../../encoding/encoding';
-import Ready from './ready';
-import UnsetSyncRound from './unsetSyncRound';
-import GetLedgerStateDeltaForTransactionGroup from './getLedgerStateDeltaForTransactionGroup';
-import GetLedgerStateDelta from './getLedgerStateDelta';
-import GetTransactionGroupLedgerStateDeltasForRound from './getTransactionGroupLedgerStateDeltasForRound';
+} from '../../urlTokenBaseHTTPClient.js';
+import LightBlockHeaderProof from './lightBlockHeaderProof.js';
+import StateProof from './stateproof.js';
+import SetSyncRound from './setSyncRound.js';
+import GetSyncRound from './getSyncRound.js';
+import SetBlockOffsetTimestamp from './setBlockOffsetTimestamp.js';
+import GetBlockOffsetTimestamp from './getBlockOffsetTimestamp.js';
+import Disassemble from './disassemble.js';
+import SimulateRawTransactions from './simulateTransaction.js';
+import { SignedTransaction } from '../../../signedTransaction.js';
+import * as encoding from '../../../encoding/encoding.js';
+import Ready from './ready.js';
+import UnsetSyncRound from './unsetSyncRound.js';
+import GetLedgerStateDeltaForTransactionGroup from './getLedgerStateDeltaForTransactionGroup.js';
+import GetLedgerStateDelta from './getLedgerStateDelta.js';
+import GetTransactionGroupLedgerStateDeltasForRound from './getTransactionGroupLedgerStateDeltasForRound.js';
+import { Address } from '../../../encoding/address.js';
 
 /**
  * Algod client connects an application to the Algorand blockchain. The algod client requires a valid algod REST endpoint IP address and algod token from an Algorand node that is connected to the network you plan to interact with.
@@ -55,7 +56,7 @@ import GetTransactionGroupLedgerStateDeltasForRound from './getTransactionGroupL
  *
  * [Run Algod in Postman OAS3](https://developer.algorand.org/docs/rest-apis/restendpoints/?from_query=algod#algod-indexer-and-kmd-rest-endpoints)
  */
-export default class AlgodClient extends ServiceClient {
+export class AlgodClient extends ServiceClient {
   /**
    * Create an AlgodClient from
    * * either a token, baseServer, port, and optional headers
@@ -95,7 +96,7 @@ export default class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const health = await algodClient.healthCheck().do();
+   * await algodClient.healthCheck().do();
    * ```
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-health)
@@ -125,7 +126,7 @@ export default class AlgodClient extends ServiceClient {
    *
    * #### Example
    * ```typescript
-   * const { txId } = await algodClient.sendRawTransaction(signedTxns).do();
+   * const { txid } = await algodClient.sendRawTransaction(signedTxns).do();
    * const result = await waitForConfirmation(algodClient, txid, 3);
    * ```
    *
@@ -153,8 +154,8 @@ export default class AlgodClient extends ServiceClient {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  accountInformation(account: string) {
-    return new AccountInformation(this.c, this.intDecoding, account);
+  accountInformation(account: string | Address) {
+    return new AccountInformation(this.c, account);
   }
 
   /**
@@ -172,13 +173,8 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  accountAssetInformation(account: string, index: number) {
-    return new AccountAssetInformation(
-      this.c,
-      this.intDecoding,
-      account,
-      index
-    );
+  accountAssetInformation(account: string | Address, index: number | bigint) {
+    return new AccountAssetInformation(this.c, account, index);
   }
 
   /**
@@ -196,13 +192,11 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  accountApplicationInformation(account: string, index: number) {
-    return new AccountApplicationInformation(
-      this.c,
-      this.intDecoding,
-      account,
-      index
-    );
+  accountApplicationInformation(
+    account: string | Address,
+    index: number | bigint
+  ) {
+    return new AccountApplicationInformation(this.c, account, index);
   }
 
   /**
@@ -218,7 +212,7 @@ export default class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  block(roundNumber: number) {
+  block(roundNumber: number | bigint) {
     return new Block(this.c, roundNumber);
   }
 
@@ -235,8 +229,8 @@ export default class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  getBlockHash(roundNumber: number) {
-    return new GetBlockHash(this.c, this.intDecoding, roundNumber);
+  getBlockHash(roundNumber: number | bigint) {
+    return new GetBlockHash(this.c, roundNumber);
   }
 
   /**
@@ -252,8 +246,8 @@ export default class AlgodClient extends ServiceClient {
    * @param roundNumber - The round number of the block to get.
    * @category GET
    */
-  getBlockTxids(roundNumber: number) {
-    return new GetBlockTxids(this.c, this.intDecoding, roundNumber);
+  getBlockTxids(roundNumber: number | bigint) {
+    return new GetBlockTxids(this.c, roundNumber);
   }
 
   /**
@@ -332,7 +326,7 @@ export default class AlgodClient extends ServiceClient {
    * @param address - The address of the sender.
    * @category GET
    */
-  pendingTransactionByAddress(address: string) {
+  pendingTransactionByAddress(address: string | Address) {
     return new PendingTransactionsByAddress(this.c, address);
   }
 
@@ -348,7 +342,7 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   status() {
-    return new Status(this.c, this.intDecoding);
+    return new Status(this.c);
   }
 
   /**
@@ -364,8 +358,8 @@ export default class AlgodClient extends ServiceClient {
    * @param round - The number of the round to wait for.
    * @category GET
    */
-  statusAfterBlock(round: number) {
-    return new StatusAfterBlock(this.c, this.intDecoding, round);
+  statusAfterBlock(round: number | bigint) {
+    return new StatusAfterBlock(this.c, round);
   }
 
   /**
@@ -376,8 +370,8 @@ export default class AlgodClient extends ServiceClient {
    * const suggestedParams = await algodClient.getTransactionParams().do();
    * const amountInMicroAlgos = algosdk.algosToMicroalgos(2); // 2 Algos
    * const unsignedTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-   *   from: senderAddress,
-   *   to: receiverAddress,
+   *   sender: senderAddress,
+   *   receiver: receiverAddress,
    *   amount: amountInMicroAlgos,
    *   suggestedParams: suggestedParams,
    * });
@@ -406,7 +400,7 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   supply() {
-    return new Supply(this.c, this.intDecoding);
+    return new Supply(this.c);
   }
 
   /**
@@ -476,8 +470,8 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The asset ID to look up.
    * @category GET
    */
-  getAssetByID(index: number) {
-    return new GetAssetByID(this.c, this.intDecoding, index);
+  getAssetByID(index: number | bigint) {
+    return new GetAssetByID(this.c, index);
   }
 
   /**
@@ -494,8 +488,8 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationByID(index: number) {
-    return new GetApplicationByID(this.c, this.intDecoding, index);
+  getApplicationByID(index: number | bigint) {
+    return new GetApplicationByID(this.c, index);
   }
 
   /**
@@ -513,13 +507,8 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationBoxByName(index: number, boxName: Uint8Array) {
-    return new GetApplicationBoxByName(
-      this.c,
-      this.intDecoding,
-      index,
-      boxName
-    );
+  getApplicationBoxByName(index: number | bigint, boxName: Uint8Array) {
+    return new GetApplicationBoxByName(this.c, index, boxName);
   }
 
   /**
@@ -536,8 +525,8 @@ export default class AlgodClient extends ServiceClient {
    * @param index - The application ID to look up.
    * @category GET
    */
-  getApplicationBoxes(index: number) {
-    return new GetApplicationBoxes(this.c, this.intDecoding, index);
+  getApplicationBoxes(index: number | bigint) {
+    return new GetApplicationBoxes(this.c, index);
   }
 
   /**
@@ -552,7 +541,7 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   genesis() {
-    return new Genesis(this.c, this.intDecoding);
+    return new Genesis(this.c);
   }
 
   /**
@@ -570,8 +559,8 @@ export default class AlgodClient extends ServiceClient {
    * @param txID - The transaction ID for which to generate a proof.
    * @category GET
    */
-  getTransactionProof(round: number, txID: string) {
-    return new GetTransactionProof(this.c, this.intDecoding, round, txID);
+  getTransactionProof(round: number | bigint, txID: string) {
+    return new GetTransactionProof(this.c, round, txID);
   }
 
   /**
@@ -586,8 +575,8 @@ export default class AlgodClient extends ServiceClient {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2blocksroundlightheaderproof)
    * @param round
    */
-  getLightBlockHeaderProof(round: number) {
-    return new LightBlockHeaderProof(this.c, this.intDecoding, round);
+  getLightBlockHeaderProof(round: number | bigint) {
+    return new LightBlockHeaderProof(this.c, round);
   }
 
   /**
@@ -602,8 +591,8 @@ export default class AlgodClient extends ServiceClient {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/v2#get-v2stateproofsround)
    * @param round
    */
-  getStateProof(round: number) {
-    return new StateProof(this.c, this.intDecoding, round);
+  getStateProof(round: number | bigint) {
+    return new StateProof(this.c, round);
   }
 
   /**
@@ -628,13 +617,13 @@ export default class AlgodClient extends ServiceClient {
    * @category POST
    */
   simulateRawTransactions(stxOrStxs: Uint8Array | Uint8Array[]) {
-    const txnObjects: EncodedSignedTransaction[] = [];
+    const txnObjects: SignedTransaction[] = [];
     if (Array.isArray(stxOrStxs)) {
       for (const stxn of stxOrStxs) {
-        txnObjects.push(encoding.decode(stxn) as EncodedSignedTransaction);
+        txnObjects.push(encoding.decodeMsgpack(stxn, SignedTransaction));
       }
     } else {
-      txnObjects.push(encoding.decode(stxOrStxs) as EncodedSignedTransaction);
+      txnObjects.push(encoding.decodeMsgpack(stxOrStxs, SignedTransaction));
     }
     const request = new modelsv2.SimulateRequest({
       txnGroups: [
@@ -692,8 +681,8 @@ export default class AlgodClient extends ServiceClient {
    * @param offset
    * @category POST
    */
-  setBlockOffsetTimestamp(offset: number) {
-    return new SetBlockOffsetTimestamp(this.c, this.intDecoding, offset);
+  setBlockOffsetTimestamp(offset: number | bigint) {
+    return new SetBlockOffsetTimestamp(this.c, offset);
   }
 
   /**
@@ -708,7 +697,7 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   getBlockOffsetTimestamp() {
-    return new GetBlockOffsetTimestamp(this.c, this.intDecoding);
+    return new GetBlockOffsetTimestamp(this.c);
   }
 
   /**
@@ -724,8 +713,8 @@ export default class AlgodClient extends ServiceClient {
    * @param round
    * @category POST
    */
-  setSyncRound(round: number) {
-    return new SetSyncRound(this.c, this.intDecoding, round);
+  setSyncRound(round: number | bigint) {
+    return new SetSyncRound(this.c, round);
   }
 
   /**
@@ -740,7 +729,7 @@ export default class AlgodClient extends ServiceClient {
    * @category DELETE
    */
   unsetSyncRound() {
-    return new UnsetSyncRound(this.c, this.intDecoding);
+    return new UnsetSyncRound(this.c);
   }
 
   /**
@@ -755,7 +744,7 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   getSyncRound() {
-    return new GetSyncRound(this.c, this.intDecoding);
+    return new GetSyncRound(this.c);
   }
 
   /**
@@ -770,7 +759,7 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   ready() {
-    return new Ready(this.c, this.intDecoding);
+    return new Ready(this.c);
   }
 
   /**
@@ -787,11 +776,7 @@ export default class AlgodClient extends ServiceClient {
    * @category GET
    */
   getLedgerStateDeltaForTransactionGroup(id: string) {
-    return new GetLedgerStateDeltaForTransactionGroup(
-      this.c,
-      this.intDecoding,
-      id
-    );
+    return new GetLedgerStateDeltaForTransactionGroup(this.c, id);
   }
 
   /**
@@ -807,8 +792,8 @@ export default class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getLedgerStateDelta(round: bigint) {
-    return new GetLedgerStateDelta(this.c, this.intDecoding, round);
+  getLedgerStateDelta(round: number | bigint) {
+    return new GetLedgerStateDelta(this.c, round);
   }
 
   /**
@@ -824,11 +809,7 @@ export default class AlgodClient extends ServiceClient {
    * @param round the round number to be searched for
    * @category GET
    */
-  getTransactionGroupLedgerStateDeltasForRound(round: bigint) {
-    return new GetTransactionGroupLedgerStateDeltasForRound(
-      this.c,
-      this.intDecoding,
-      round
-    );
+  getTransactionGroupLedgerStateDeltasForRound(round: number | bigint) {
+    return new GetTransactionGroupLedgerStateDeltasForRound(this.c, round);
   }
 }

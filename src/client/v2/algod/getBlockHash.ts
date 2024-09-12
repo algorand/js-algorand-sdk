@@ -1,18 +1,22 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { BlockHashResponse } from './models/types.js';
 
-export default class GetBlockHash extends JSONRequest {
-  round: number;
+export default class GetBlockHash extends JSONRequest<BlockHashResponse> {
+  private round: bigint;
 
-  constructor(c: HTTPClient, intDecoding: IntDecoding, roundNumber: number) {
-    super(c, intDecoding);
-    if (!Number.isInteger(roundNumber))
-      throw Error('roundNumber should be an integer');
-    this.round = roundNumber;
+  constructor(c: HTTPClient, roundNumber: number | bigint) {
+    super(c);
+    this.round = BigInt(roundNumber);
   }
 
   path() {
     return `/v2/blocks/${this.round}/hash`;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): BlockHashResponse {
+    return decodeJSON(response.getJSONText(), BlockHashResponse);
   }
 }

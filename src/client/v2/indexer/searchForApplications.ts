@@ -1,4 +1,8 @@
-import JSONRequest from '../jsonrequest';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { Address } from '../../../encoding/address.js';
+import { ApplicationsResponse } from './models/types.js';
 
 /**
  * Returns information about indexed applications.
@@ -11,7 +15,7 @@ import JSONRequest from '../jsonrequest';
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2applications)
  * @category GET
  */
-export default class SearchForApplications extends JSONRequest {
+export default class SearchForApplications extends JSONRequest<ApplicationsResponse> {
   /**
    * @returns `/v2/applications`
    */
@@ -35,7 +39,7 @@ export default class SearchForApplications extends JSONRequest {
    * @param index
    * @category query
    */
-  index(index: number) {
+  index(index: number | bigint) {
     this.query['application-id'] = index;
     return this;
   }
@@ -54,8 +58,8 @@ export default class SearchForApplications extends JSONRequest {
    * @param creator
    * @category query
    */
-  creator(creator: string) {
-    this.query.creator = creator;
+  creator(creator: string | Address) {
+    this.query.creator = creator.toString();
     return this;
   }
 
@@ -130,5 +134,10 @@ export default class SearchForApplications extends JSONRequest {
   includeAll(value = true) {
     this.query['include-all'] = value;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): ApplicationsResponse {
+    return decodeJSON(response.getJSONText(), ApplicationsResponse);
   }
 }

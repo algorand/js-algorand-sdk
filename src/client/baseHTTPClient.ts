@@ -26,8 +26,11 @@ export interface BaseHTTPClientError {
  * wallets to provide access to paid API services without leaking
  * the secret tokens/URLs.
  *
- * Note that post and delete also have an optional query parameter
- * This is to allow future extension where post and delete may have queries
+ * The parameter `customOptions` is an object that can be used to configure
+ * individual requests with specific specific to the BaseHTTPClient implementation.
+ *
+ * Note that DELETE requests have an optional query parameter.
+ * This is to allow future extension where DELETE may have queries
  * Currently however HTTPClient does not make use of it
  *
  * Compared to HTTPClient, BaseHTTPClient does not deal with serialization/deserialization
@@ -41,18 +44,21 @@ export interface BaseHTTPClient {
   get(
     relativePath: string,
     query?: Query<string>,
-    requestHeaders?: Record<string, string>
+    requestHeaders?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<BaseHTTPClientResponse>;
   post(
     relativePath: string,
     data: Uint8Array,
     query?: Query<string>,
-    requestHeaders?: Record<string, string>
+    requestHeaders?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<BaseHTTPClientResponse>;
   delete(
     relativePath: string,
-    data: Uint8Array,
+    data?: Uint8Array,
     query?: Query<string>,
-    requestHeaders?: Record<string, string>
+    requestHeaders?: Record<string, string>,
+    customOptions?: Record<string, unknown>
   ): Promise<BaseHTTPClientResponse>;
 }

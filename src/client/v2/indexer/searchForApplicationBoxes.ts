@@ -1,12 +1,11 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { BoxesResponse } from './models/types';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { BoxesResponse } from './models/types.js';
 
-export default class SearchForApplicationBoxes extends JSONRequest<
-  BoxesResponse,
-  Record<string, any>
-> {
+export default class SearchForApplicationBoxes extends JSONRequest<BoxesResponse> {
+  private index: bigint;
+
   /**
    * Returns information about indexed application boxes.
    *
@@ -33,9 +32,9 @@ export default class SearchForApplicationBoxes extends JSONRequest<
    * @oaram index - application index.
    * @category GET
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
-    this.index = index;
+  constructor(c: HTTPClient, index: number | bigint) {
+    super(c);
+    this.index = BigInt(index);
   }
 
   /**
@@ -95,7 +94,7 @@ export default class SearchForApplicationBoxes extends JSONRequest<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(body: Record<string, any>): BoxesResponse {
-    return BoxesResponse.from_obj_for_encoding(body);
+  prepare(response: HTTPClientResponse): BoxesResponse {
+    return decodeJSON(response.getJSONText(), BoxesResponse);
   }
 }

@@ -1,4 +1,5 @@
-import Algodv2 from './client/v2/algod/algod';
+import { AlgodClient } from './client/v2/algod/algod.js';
+import { PendingTransactionResponse } from './client/v2/algod/models/types.js';
 
 /**
  * Wait until a transaction has been confirmed or rejected by the network, or
@@ -10,10 +11,10 @@ import Algodv2 from './client/v2/algod/algod';
  *   `pendingTransactionInformation` call for the confirmed transaction.
  */
 export async function waitForConfirmation(
-  client: Algodv2,
+  client: AlgodClient,
   txid: string,
   waitRounds: number
-): Promise<Record<string, any>> {
+): Promise<PendingTransactionResponse> {
   // Wait until the transaction is confirmed or rejected, or until 'waitRounds'
   // number of rounds have passed.
 
@@ -21,24 +22,25 @@ export async function waitForConfirmation(
   if (typeof status === 'undefined') {
     throw new Error('Unable to get node status');
   }
-  const startRound = status['last-round'] + 1;
+  const startRound = status.lastRound + BigInt(1);
+  const stopRound = startRound + BigInt(waitRounds);
   let currentRound = startRound;
 
   /* eslint-disable no-await-in-loop */
-  while (currentRound < startRound + waitRounds) {
+  while (currentRound < stopRound) {
     let poolError = false;
     try {
       const pendingInfo = await client.pendingTransactionInformation(txid).do();
 
-      if (pendingInfo['confirmed-round']) {
+      if (pendingInfo.confirmedRound) {
         // Got the completed Transaction
         return pendingInfo;
       }
 
-      if (pendingInfo['pool-error']) {
+      if (pendingInfo.poolError) {
         // If there was a pool error, then the transaction has been rejected
         poolError = true;
-        throw new Error(`Transaction Rejected: ${pendingInfo['pool-error']}`);
+        throw new Error(`Transaction Rejected: ${pendingInfo.poolError}`);
       }
     } catch (err) {
       // Ignore errors from PendingTransactionInformation, since it may return 404 if the algod
@@ -51,7 +53,7 @@ export async function waitForConfirmation(
     }
 
     await client.statusAfterBlock(currentRound).do();
-    currentRound += 1;
+    currentRound += BigInt(1);
   }
   /* eslint-enable no-await-in-loop */
   throw new Error(`Transaction not confirmed after ${waitRounds} rounds`);

@@ -1,8 +1,12 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { Address } from '../../../encoding/address.js';
+import { AccountResponse } from './models/types.js';
 
-export default class LookupAccountByID extends JSONRequest {
+export default class LookupAccountByID extends JSONRequest<AccountResponse> {
+  private account: string;
+
   /**
    * Returns information about the given account.
    *
@@ -16,13 +20,9 @@ export default class LookupAccountByID extends JSONRequest {
    * @param account - The address of the account to look up.
    * @category GET
    */
-  constructor(
-    c: HTTPClient,
-    intDecoding: IntDecoding,
-    private account: string
-  ) {
-    super(c, intDecoding);
-    this.account = account;
+  constructor(c: HTTPClient, account: string | Address) {
+    super(c);
+    this.account = account.toString();
   }
 
   /**
@@ -46,7 +46,7 @@ export default class LookupAccountByID extends JSONRequest {
    * ```
    * @param round
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -105,5 +105,10 @@ export default class LookupAccountByID extends JSONRequest {
   exclude(exclude: string) {
     this.query.exclude = exclude;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): AccountResponse {
+    return decodeJSON(response.getJSONText(), AccountResponse);
   }
 }

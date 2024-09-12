@@ -1,9 +1,13 @@
-import JSONRequest from '../jsonrequest';
-import HTTPClient from '../../client';
-import IntDecoding from '../../../types/intDecoding';
-import { base64StringFunnel } from './lookupAccountTransactions';
+import JSONRequest from '../jsonrequest.js';
+import { HTTPClient, HTTPClientResponse } from '../../client.js';
+import { decodeJSON } from '../../../encoding/encoding.js';
+import { base64StringFunnel } from './lookupAccountTransactions.js';
+import { Address } from '../../../encoding/address.js';
+import { TransactionsResponse } from './models/types.js';
 
-export default class LookupAssetTransactions extends JSONRequest {
+export default class LookupAssetTransactions extends JSONRequest<TransactionsResponse> {
+  private index: bigint;
+
   /**
    * Returns transactions relating to the given asset.
    *
@@ -16,9 +20,9 @@ export default class LookupAssetTransactions extends JSONRequest {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2assetsasset-idtransactions)
    * @param index - The asset ID to look up.
    */
-  constructor(c: HTTPClient, intDecoding: IntDecoding, private index: number) {
-    super(c, intDecoding);
-    this.index = index;
+  constructor(c: HTTPClient, index: number | bigint) {
+    super(c);
+    this.index = BigInt(index);
   }
 
   /**
@@ -129,7 +133,7 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  round(round: number) {
+  round(round: number | bigint) {
     this.query.round = round;
     return this;
   }
@@ -150,7 +154,7 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  minRound(round: number) {
+  minRound(round: number | bigint) {
     this.query['min-round'] = round;
     return this;
   }
@@ -171,7 +175,7 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param round
    * @category query
    */
-  maxRound(round: number) {
+  maxRound(round: number | bigint) {
     this.query['max-round'] = round;
     return this;
   }
@@ -210,11 +214,12 @@ export default class LookupAssetTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param before - rfc3339 string
+   * @param before - rfc3339 string or Date object
    * @category query
    */
-  beforeTime(before: string) {
-    this.query['before-time'] = before;
+  beforeTime(before: string | Date) {
+    this.query['before-time'] =
+      before instanceof Date ? before.toISOString() : before;
     return this;
   }
 
@@ -231,11 +236,12 @@ export default class LookupAssetTransactions extends JSONRequest {
    *        .do();
    * ```
    *
-   * @param after - rfc3339 string
+   * @param after - rfc3339 string or Date object
    * @category query
    */
-  afterTime(after: string) {
-    this.query['after-time'] = after;
+  afterTime(after: string | Date) {
+    this.query['after-time'] =
+      after instanceof Date ? after.toISOString() : after;
     return this;
   }
 
@@ -255,7 +261,7 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param greater
    * @category query
    */
-  currencyGreaterThan(greater: number) {
+  currencyGreaterThan(greater: number | bigint) {
     // We convert the following to a string for now to correctly include zero values in request parameters.
     this.query['currency-greater-than'] = greater.toString();
     return this;
@@ -277,7 +283,7 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param lesser
    * @category query
    */
-  currencyLessThan(lesser: number) {
+  currencyLessThan(lesser: number | bigint) {
     this.query['currency-less-than'] = lesser;
     return this;
   }
@@ -321,8 +327,8 @@ export default class LookupAssetTransactions extends JSONRequest {
    * @param address
    * @category query
    */
-  address(address: string) {
-    this.query.address = address;
+  address(address: string | Address) {
+    this.query.address = address.toString();
     return this;
   }
 
@@ -392,5 +398,10 @@ export default class LookupAssetTransactions extends JSONRequest {
   rekeyTo(rekeyTo: boolean) {
     this.query['rekey-to'] = rekeyTo;
     return this;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  prepare(response: HTTPClientResponse): TransactionsResponse {
+    return decodeJSON(response.getJSONText(), TransactionsResponse);
   }
 }

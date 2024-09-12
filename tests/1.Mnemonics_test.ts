@@ -1,8 +1,8 @@
 /* eslint-env mocha */
-const assert = require('assert');
-const algosdk = require('../src/index');
-const nacl = require('../src/nacl/naclWrappers');
-const passphrase = require('../src/mnemonic/mnemonic');
+import assert from 'assert';
+import algosdk from '../src/index.js';
+import { randomBytes } from '../src/nacl/naclWrappers.js';
+import * as passphrase from '../src/mnemonic/mnemonic.js';
 
 describe('#mnemonic', () => {
   it('should return a 25 words passphrase', () => {
@@ -13,7 +13,7 @@ describe('#mnemonic', () => {
 
   it('should be able to be converted back to key', () => {
     for (let i = 0; i < 50; i++) {
-      const seed = nacl.randomBytes(32);
+      const seed = randomBytes(32);
       const mn = passphrase.mnemonicFromSeed(seed);
       const keyTarget = passphrase.seedFromMnemonic(mn);
       const truncatedKey = new Uint8Array(seed);
@@ -32,37 +32,28 @@ describe('#mnemonic', () => {
   });
 
   it('should fail with the wrong checksum', () => {
-    const seed = nacl.randomBytes(32);
+    const seed = randomBytes(32);
     let mn = passphrase.mnemonicFromSeed(seed);
     // Shuffle some bits
     const lastChar = mn.charAt(mn.length - 1) === 'h' ? 'i' : 'h';
     mn = mn.substring(0, mn.length - 2) + lastChar;
-    assert.throws(
-      () => {
-        passphrase.seedFromMnemonic(mn);
-      },
-      (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG
-    );
+    assert.throws(() => {
+      passphrase.seedFromMnemonic(mn);
+    }, new Error(passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG));
   });
 
   it('should fail to verify an invalid mnemonic', () => {
     const mn =
       'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venue abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
-    assert.throws(
-      () => {
-        passphrase.seedFromMnemonic(mn);
-      },
-      (err) => err.message === passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG
-    );
+    assert.throws(() => {
+      passphrase.seedFromMnemonic(mn);
+    }, new Error(passphrase.FAIL_TO_DECODE_MNEMONIC_ERROR_MSG));
   });
   it('should fail to verify an mnemonic with a word that is not in the list ', () => {
     const mn =
       'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon venues abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
-    assert.throws(
-      () => {
-        passphrase.seedFromMnemonic(mn);
-      },
-      (err) => err.message === passphrase.NOT_IN_WORDS_LIST_ERROR_MSG
-    );
+    assert.throws(() => {
+      passphrase.seedFromMnemonic(mn);
+    }, new Error(passphrase.NOT_IN_WORDS_LIST_ERROR_MSG));
   });
 });

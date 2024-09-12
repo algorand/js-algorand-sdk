@@ -1,3 +1,51 @@
+# v3.0.0
+
+<!-- Release notes generated using configuration in .github/release.yml at 3.0.0 **WITH MANUAL EDITING AFTERWARD** -->
+
+## What's Changed
+
+> ⚠️ **WARNING:** This release is a new major version with breaking changes from the v2.X.X series. For help migrating from v2 releases, see the file `v2_TO_v3_MIGRATION_GUIDE.md`.
+
+### v2 End of Life
+
+With the release of v3 of this SDK, v2 is now in maintenance mode. No new features will be added to v2, and only security fixes or critical errors will be addressed. At the end of March 2025, no further updates will be made to the v2 package.
+
+### Breaking Changes
+
+- Convert algod responses to typed by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/776
+- Align transaction fields to transaction reference spec by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/804
+- TEAL Source Map: Improve SourceMap and support columns by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/834
+- Remove `IntDecoding` as a REST option & support native bigint types in models by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/852
+- Refactor `Transaction` class by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/854
+- Improve object encoding and decoding by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/862
+- Correctly model blocks by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/875
+- Fix stateproof txn representation by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/876
+- Typed indexer responses by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/857
+- Support special case raw binary strings by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/878
+- REST API TEAL bytes fix by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/881
+- Fix remaining REST untyped responses by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/882
+
+### Enhancements
+
+- Remove buffer usage in favor or Uint8Array and Dataview by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/800
+- Remove `Buffer` Usage by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/801
+- Add address bytes length check in encodeAddress by @algochoi in https://github.com/algorand/js-algorand-sdk/pull/809
+- Native esm bundle by @PhearZero in https://github.com/algorand/js-algorand-sdk/pull/836
+- Add ability to pass through fetch options by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/883
+- REST API: Allow bigints for client args by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/893
+
+### Bugfixes
+
+- Fix: Don't delete `dist` folder when creating release PR by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/890
+- Release PR Generation: Use prerelease tag in changelog generation by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/892
+
+### Other
+
+- Type and formatting changes by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/853
+- 3.0.0: Sync changes to develop by @jasonpaulos in https://github.com/algorand/js-algorand-sdk/pull/884
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.9.0...v3.0.0
+
 # v2.9.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.9.0 -->
