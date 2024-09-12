@@ -6,6 +6,10 @@
 
 > ⚠️ **WARNING:** This release is a new major version with breaking changes from the v2.X.X series. For help migrating from v2 releases, see the file `v2_TO_v3_MIGRATION_GUIDE.md`.
 
+### v2 End of Life
+
+With the release of v3 of this SDK, v2 is now in maintenance mode. No new features will be added to v2, and only security fixes or critical errors will be addressed. At the end of March 2025, no further updates will be made to the v2 package.
+
 ### Breaking Changes
 
 - Convert algod responses to typed by @Eric-Warehime in https://github.com/algorand/js-algorand-sdk/pull/776
