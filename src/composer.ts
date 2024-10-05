@@ -172,7 +172,9 @@ export class AtomicTransactionComposer {
    * An error will be thrown if the transaction has a nonzero group ID, the composer's status is
    * not BUILDING, or if adding this transaction causes the current group to exceed MAX_GROUP_SIZE.
    */
-  addTransaction(txnAndSigner: TransactionWithSigner): void {
+  addTransaction(
+    txnAndSigner: TransactionWithSigner
+  ): AtomicTransactionComposer {
     if (this.status !== AtomicTransactionComposerStatus.BUILDING) {
       throw new Error(
         'Cannot add transactions when composer status is not BUILDING'
@@ -190,6 +192,8 @@ export class AtomicTransactionComposer {
     }
 
     this.transactions.push(txnAndSigner);
+
+    return this;
   }
 
   /**
@@ -264,7 +268,7 @@ export class AtomicTransactionComposer {
     rekeyTo?: string | Address;
     /** A transaction signer that can authorize this application call from sender */
     signer: TransactionSigner;
-  }): void {
+  }): AtomicTransactionComposer {
     if (this.status !== AtomicTransactionComposerStatus.BUILDING) {
       throw new Error(
         'Cannot add transactions when composer status is not BUILDING'
@@ -495,6 +499,8 @@ export class AtomicTransactionComposer {
 
     this.transactions.push(...txnArgs, appCall);
     this.methodCalls.set(this.transactions.length - 1, method);
+
+    return this;
   }
 
   /**
