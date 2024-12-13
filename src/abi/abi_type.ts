@@ -13,7 +13,7 @@
     // | string
     // | (T1, ..., Tn)
 */
-import { encodeAddress, decodeAddress } from '../encoding/address.js';
+import { encodeAddress, decodeAddress, Address } from '../encoding/address.js';
 import { bigIntToBytes, bytesToBigInt } from '../encoding/bigint.js';
 import { concatArrays } from '../utils/utils.js';
 
@@ -37,7 +37,8 @@ export type ABIValue =
   | bigint
   | string
   | Uint8Array
-  | ABIValue[];
+  | ABIValue[]
+  | Address;
 
 export abstract class ABIType {
   // Converts a ABIType object to a string
@@ -255,18 +256,24 @@ export class ABIAddressType extends ABIType {
   }
 
   encode(value: ABIValue) {
-    if (typeof value !== 'string' && !(value instanceof Uint8Array)) {
-      throw new Error(`Cannot encode value as ${this.toString()}: ${value}`);
-    }
     if (typeof value === 'string') {
       const decodedAddress = decodeAddress(value);
       return decodedAddress.publicKey;
     }
-    // Return the address if it is already in bytes
-    if (value.byteLength !== 32) {
-      throw new Error(`byte string must be 32 bytes long for an address`);
+
+    if (value instanceof Address) {
+      return value.publicKey;
     }
-    return value;
+
+    if (value instanceof Uint8Array) {
+      if (value.byteLength !== 32) {
+        throw new Error(`byte string must be 32 bytes long for an address`);
+      }
+
+      return value;
+    }
+
+    throw new Error(`Cannot encode value as ${this.toString()}: ${value}`);
   }
 
   decode(byteString: Uint8Array): string {
