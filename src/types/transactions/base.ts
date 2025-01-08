@@ -44,7 +44,6 @@ export enum TransactionType {
    * Heartbeat transaction
    */
   hb = 'hb',
-
 }
 
 /**
@@ -503,7 +502,6 @@ export interface HeartbeatTransactionParams {
    */
   hbKeyDilution: bigint;
 }
-
 
 /**
  * A full list of all available transaction parameters

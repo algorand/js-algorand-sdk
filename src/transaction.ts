@@ -715,7 +715,7 @@ export class Transaction implements encoding.Encodable {
       };
     }
 
-      if (params.heartbeatParams) {
+    if (params.heartbeatParams) {
       this.heartbeat = {
         hbAddress: ensureAddress(params.heartbeatParams.hbAddress),
         hbProof: params.heartbeatParams.hbProof,
@@ -867,13 +867,13 @@ export class Transaction implements encoding.Encodable {
     }
 
     if (this.heartbeat) {
-    data.set('a', this.heartbeat.hbAddress);
-    data.set('prf',this.heartbeat.hbProof.toEncodingData());
-    data.set('sd', this.heartbeat.hbSeed);
-    data.set('vid', this.heartbeat.hbVoteID);
-    data.set('kd', this.heartbeat.hbKeyDilution);
-    return data;
-  }
+      data.set('a', this.heartbeat.hbAddress);
+      data.set('prf', this.heartbeat.hbProof.toEncodingData());
+      data.set('sd', this.heartbeat.hbSeed);
+      data.set('vid', this.heartbeat.hbVoteID);
+      data.set('kd', this.heartbeat.hbKeyDilution);
+      return data;
+    }
 
     throw new Error(`Unexpected transaction type: ${this.type}`);
   }

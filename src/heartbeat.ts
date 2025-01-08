@@ -8,7 +8,6 @@ import {
   allOmitEmpty,
 } from './encoding/schema/index.js';
 
-
 export class HeartbeatProof implements Encodable {
   public static readonly encodingSchema = new NamedMapSchema(
     allOmitEmpty([
@@ -113,6 +112,7 @@ export class Heartbeat implements Encodable {
       },
     ])
   );
+
   public address: Uint8Array;
 
   public proof: HeartbeatProof;
