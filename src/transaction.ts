@@ -33,7 +33,7 @@ import {
   HeartbeatTransactionParams,
 } from './types/transactions/base.js';
 import { StateProof, StateProofMessage } from './stateproof.js';
-import { Heartbeat, HeartbeatProof } from './heartbeat.js';
+import { Heartbeat } from './heartbeat.js';
 import * as utils from './utils/utils.js';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
@@ -251,11 +251,7 @@ export interface StateProofTransactionFields {
 }
 
 export interface HeartbeatTransactionFields {
-  readonly hbAddress: Address;
-  readonly hbProof: HeartbeatProof;
-  readonly hbSeed: Uint8Array;
-  readonly hbVoteID: Uint8Array;
-  readonly hbKeyDilution: bigint;
+  readonly heartbeat: Heartbeat;
 }
 
 /**
@@ -717,11 +713,7 @@ export class Transaction implements encoding.Encodable {
 
     if (params.heartbeatParams) {
       this.heartbeat = {
-        hbAddress: ensureAddress(params.heartbeatParams.hbAddress),
-        hbProof: params.heartbeatParams.hbProof,
-        hbSeed: ensureUint8Array(params.heartbeatParams.hbSeed),
-        hbVoteID: ensureUint8Array(params.heartbeatParams.hbVoteID),
-        hbKeyDilution: utils.ensureUint64(params.heartbeatParams.hbKeyDilution),
+        heartbeat: params.heartbeatParams.heartbeat,
       };
     }
 
@@ -867,11 +859,7 @@ export class Transaction implements encoding.Encodable {
     }
 
     if (this.heartbeat) {
-      data.set('a', this.heartbeat.hbAddress);
-      data.set('prf', this.heartbeat.hbProof.toEncodingData());
-      data.set('sd', this.heartbeat.hbSeed);
-      data.set('vid', this.heartbeat.hbVoteID);
-      data.set('kd', this.heartbeat.hbKeyDilution);
+      data.set('hb', this.heartbeat.heartbeat.toEncodingData());
       return data;
     }
 
@@ -1041,11 +1029,7 @@ export class Transaction implements encoding.Encodable {
       params.stateProofParams = stateProofParams;
     } else if (params.type === TransactionType.hb) {
       const heartbeatParams: HeartbeatTransactionParams = {
-        hbAddress: data.get('a'),
-        hbProof: HeartbeatProof.fromEncodingData(data.get('prf')),
-        hbSeed: data.get('sd'),
-        hbVoteID: data.get('vid'),
-        hbKeyDilution: data.get('kd'),
+        heartbeat: Heartbeat.fromEncodingData(data.get('hb')),
       };
       params.heartbeatParams = heartbeatParams;
     } else {
