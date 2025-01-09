@@ -1,3 +1,4 @@
+import { Address } from './encoding/address.js';
 import { Encodable, Schema } from './encoding/encoding.js';
 import {
   AddressSchema,
@@ -113,7 +114,7 @@ export class Heartbeat implements Encodable {
     ])
   );
 
-  public address: Uint8Array;
+  public address: Address;
 
   public proof: HeartbeatProof;
 
@@ -124,7 +125,7 @@ export class Heartbeat implements Encodable {
   public keyDilution: bigint;
 
   public constructor(params: {
-    address: Uint8Array;
+    address: Address;
     proof: HeartbeatProof;
     seed: Uint8Array;
     voteID: Uint8Array;
