@@ -2327,16 +2327,12 @@ module.exports = function getSteps(options) {
   Then(
     'the parsed Get Block response should have heartbeat address {string}',
     (hbAddress) => {
-      // console.log(anyBlockResponse.block.payset[0].signedTxn.signedTxn.txn.heartbeat);
-      // console.log(anyBlockResponse.block.payset[0].signedTxn.signedTxn.txn.heartbeat.heartbeat.address);
-      // console.log(anyBlockResponse.block.payset[0].signedTxn.signedTxn.txn.heartbeat.heartbeat.proof);
-      // console.log(anyBlockResponse.block.payset[0].signedTxn.signedTxn.txn.heartbeat.heartbeat.seed);
       assert.ok(
         anyBlockResponse.block.payset[0].signedTxn.signedTxn.txn.heartbeat
-          .heartbeat.address instanceof algosdk.Address
+          .address instanceof algosdk.Address
       );
       const hbAddressString =
-        anyBlockResponse.block.payset[0].signedTxn.signedTxn.txn.heartbeat.heartbeat.address.toString();
+        anyBlockResponse.block.payset[0].signedTxn.signedTxn.txn.heartbeat.address.toString();
       assert.strictEqual(hbAddress, hbAddressString);
     }
   );

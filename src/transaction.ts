@@ -33,7 +33,7 @@ import {
   HeartbeatTransactionParams,
 } from './types/transactions/base.js';
 import { StateProof, StateProofMessage } from './stateproof.js';
-import { Heartbeat } from './heartbeat.js';
+import { Heartbeat, HeartbeatProof } from './heartbeat.js';
 import * as utils from './utils/utils.js';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
@@ -251,7 +251,11 @@ export interface StateProofTransactionFields {
 }
 
 export interface HeartbeatTransactionFields {
-  readonly heartbeat: Heartbeat;
+  readonly address: Address;
+  readonly proof: HeartbeatProof;
+  readonly seed: Uint8Array;
+  readonly voteID: Uint8Array;
+  readonly keyDilution: bigint;
 }
 
 /**
@@ -712,9 +716,13 @@ export class Transaction implements encoding.Encodable {
     }
 
     if (params.heartbeatParams) {
-      this.heartbeat = {
-        heartbeat: params.heartbeatParams.heartbeat,
-      };
+      this.heartbeat = new Heartbeat({
+        address: params.heartbeatParams.address,
+        proof: params.heartbeatParams.proof,
+        seed: params.heartbeatParams.seed,
+        voteID: params.heartbeatParams.voteID,
+        keyDilution: params.heartbeatParams.keyDilution,
+      });
     }
 
     // Determine fee
@@ -859,7 +867,14 @@ export class Transaction implements encoding.Encodable {
     }
 
     if (this.heartbeat) {
-      data.set('hb', this.heartbeat.heartbeat.toEncodingData());
+      const heartbeat = new Heartbeat({
+        address: this.heartbeat.address,
+        proof: this.heartbeat.proof,
+        seed: this.heartbeat.seed,
+        voteID: this.heartbeat.voteID,
+        keyDilution: this.heartbeat.keyDilution,
+      });
+      data.set('hb', heartbeat.toEncodingData());
       return data;
     }
 
@@ -1028,8 +1043,13 @@ export class Transaction implements encoding.Encodable {
       };
       params.stateProofParams = stateProofParams;
     } else if (params.type === TransactionType.hb) {
+      const heartbeat = Heartbeat.fromEncodingData(data.get('hb'));
       const heartbeatParams: HeartbeatTransactionParams = {
-        heartbeat: Heartbeat.fromEncodingData(data.get('hb')),
+        address: heartbeat.address,
+        proof: heartbeat.proof,
+        seed: heartbeat.seed,
+        voteID: heartbeat.voteID,
+        keyDilution: heartbeat.keyDilution,
       };
       params.heartbeatParams = heartbeatParams;
     } else {

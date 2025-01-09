@@ -1,6 +1,6 @@
 import { Address } from '../../encoding/address.js';
 import { StateProof, StateProofMessage } from '../../stateproof.js';
-import { Heartbeat } from '../../heartbeat.js';
+import { HeartbeatProof } from '../../heartbeat.js';
 
 /**
  * Enum for application transaction types.
@@ -478,9 +478,29 @@ export interface StateProofTransactionParams {
  */
 export interface HeartbeatTransactionParams {
   /*
-   * Heartbeat transaction fields
+   * Account address this txn is proving onlineness for
    */
-  heartbeat: Heartbeat;
+  address: Address;
+
+  /**
+   * Signature using HeartbeatAddress's partkey, thereby showing it is online.
+   */
+  proof: HeartbeatProof;
+
+  /**
+   * The block seed for the this transaction's firstValid block.
+   */
+  seed: Uint8Array;
+
+  /**
+   * Must match the hbAddress account's current VoteID
+   */
+  voteID: Uint8Array;
+
+  /**
+   * Must match hbAddress account's current KeyDilution.
+   */
+  keyDilution: bigint;
 }
 
 /**
