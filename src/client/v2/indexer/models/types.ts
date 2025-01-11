@@ -104,8 +104,7 @@ export class Account extends BaseModel {
   public appsTotalExtraPages?: number | bigint;
 
   /**
-   * the sum of all of the local schemas and global schemas in this account.
-   * Note: the raw account uses `StateSchema` for this type.
+   * Specifies maximums on the number of each type that may be stored.
    */
   public appsTotalSchema?: ApplicationStateSchema;
 
@@ -216,8 +215,7 @@ export class Account extends BaseModel {
    * @param appsLocalState - application local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
    * @param appsTotalExtraPages - the sum of all extra application program pages for this account.
-   * @param appsTotalSchema - the sum of all of the local schemas and global schemas in this account.
-   * Note: the raw account uses `StateSchema` for this type.
+   * @param appsTotalSchema - Specifies maximums on the number of each type that may be stored.
    * @param assets - assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
    * @param authAddr - The address against which signing should be checked. If empty, the address of
@@ -613,12 +611,12 @@ export class AccountResponse extends BaseModel {
    * Definition:
    * data/basics/userBalance.go : AccountData
    */
-  public account: Account;
+  public account?: Account;
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Creates a new `AccountResponse` object.
@@ -631,8 +629,8 @@ export class AccountResponse extends BaseModel {
     account,
     currentRound,
   }: {
-    account: Account;
-    currentRound: number | bigint;
+    account?: Account;
+    currentRound?: number | bigint;
   }) {
     super();
     this.account = account;
@@ -647,14 +645,11 @@ export class AccountResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): AccountResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['account'] === 'undefined')
-      throw new Error(`Response is missing required field 'account': ${data}`);
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new AccountResponse({
-      account: Account.from_obj_for_encoding(data['account']),
+      account:
+        typeof data['account'] !== 'undefined'
+          ? Account.from_obj_for_encoding(data['account'])
+          : undefined,
       currentRound: data['current-round'],
     });
     /* eslint-enable dot-notation */
@@ -715,12 +710,12 @@ export class AccountStateDelta extends BaseModel {
  *
  */
 export class AccountsResponse extends BaseModel {
-  public accounts: Account[];
+  public accounts?: Account[];
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -740,8 +735,8 @@ export class AccountsResponse extends BaseModel {
     currentRound,
     nextToken,
   }: {
-    accounts: Account[];
-    currentRound: number | bigint;
+    accounts?: Account[];
+    currentRound?: number | bigint;
     nextToken?: string;
   }) {
     super();
@@ -759,16 +754,11 @@ export class AccountsResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): AccountsResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['accounts']))
-      throw new Error(
-        `Response is missing required array field 'accounts': ${data}`
-      );
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new AccountsResponse({
-      accounts: data['accounts'].map(Account.from_obj_for_encoding),
+      accounts:
+        typeof data['accounts'] !== 'undefined'
+          ? data['accounts'].map(Account.from_obj_for_encoding)
+          : undefined,
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -786,7 +776,7 @@ export class Application extends BaseModel {
   public id: number | bigint;
 
   /**
-   * application parameters.
+   * Stores the global information associated with an application.
    */
   public params: ApplicationParams;
 
@@ -808,7 +798,7 @@ export class Application extends BaseModel {
   /**
    * Creates a new `Application` object.
    * @param id - application index.
-   * @param params - application parameters.
+   * @param params - Stores the global information associated with an application.
    * @param createdAtRound - Round when this application was created.
    * @param deleted - Whether or not this application is currently deleted.
    * @param deletedAtRound - Round when this application was deleted.
@@ -870,7 +860,7 @@ export class ApplicationLocalState extends BaseModel {
   public id: number | bigint;
 
   /**
-   * schema.
+   * Specifies maximums on the number of each type that may be stored.
    */
   public schema: ApplicationStateSchema;
 
@@ -886,7 +876,7 @@ export class ApplicationLocalState extends BaseModel {
   public deleted?: boolean;
 
   /**
-   * storage.
+   * Represents a key-value store for use in an application.
    */
   public keyValue?: TealKeyValue[];
 
@@ -898,11 +888,11 @@ export class ApplicationLocalState extends BaseModel {
   /**
    * Creates a new `ApplicationLocalState` object.
    * @param id - The application which this local state is for.
-   * @param schema - schema.
+   * @param schema - Specifies maximums on the number of each type that may be stored.
    * @param closedOutAtRound - Round when account closed out of the application.
    * @param deleted - Whether or not the application local state is currently deleted from its
    * account.
-   * @param keyValue - storage.
+   * @param keyValue - Represents a key-value store for use in an application.
    * @param optedInAtRound - Round when the account opted into the application.
    */
   constructor({
@@ -966,12 +956,12 @@ export class ApplicationLocalState extends BaseModel {
  *
  */
 export class ApplicationLocalStatesResponse extends BaseModel {
-  public appsLocalStates: ApplicationLocalState[];
+  public appsLocalStates?: ApplicationLocalState[];
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -991,8 +981,8 @@ export class ApplicationLocalStatesResponse extends BaseModel {
     currentRound,
     nextToken,
   }: {
-    appsLocalStates: ApplicationLocalState[];
-    currentRound: number | bigint;
+    appsLocalStates?: ApplicationLocalState[];
+    currentRound?: number | bigint;
     nextToken?: string;
   }) {
     super();
@@ -1012,18 +1002,13 @@ export class ApplicationLocalStatesResponse extends BaseModel {
     data: Record<string, any>
   ): ApplicationLocalStatesResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['apps-local-states']))
-      throw new Error(
-        `Response is missing required array field 'apps-local-states': ${data}`
-      );
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new ApplicationLocalStatesResponse({
-      appsLocalStates: data['apps-local-states'].map(
-        ApplicationLocalState.from_obj_for_encoding
-      ),
+      appsLocalStates:
+        typeof data['apps-local-states'] !== 'undefined'
+          ? data['apps-local-states'].map(
+              ApplicationLocalState.from_obj_for_encoding
+            )
+          : undefined,
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -1085,12 +1070,12 @@ export class ApplicationLogsResponse extends BaseModel {
   /**
    * (appidx) application index.
    */
-  public applicationId: number | bigint;
+  public applicationId?: number | bigint;
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   public logData?: ApplicationLogData[];
 
@@ -1114,8 +1099,8 @@ export class ApplicationLogsResponse extends BaseModel {
     logData,
     nextToken,
   }: {
-    applicationId: number | bigint;
-    currentRound: number | bigint;
+    applicationId?: number | bigint;
+    currentRound?: number | bigint;
     logData?: ApplicationLogData[];
     nextToken?: string;
   }) {
@@ -1138,14 +1123,6 @@ export class ApplicationLogsResponse extends BaseModel {
     data: Record<string, any>
   ): ApplicationLogsResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['application-id'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'application-id': ${data}`
-      );
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new ApplicationLogsResponse({
       applicationId: data['application-id'],
       currentRound: data['current-round'],
@@ -1185,17 +1162,17 @@ export class ApplicationParams extends BaseModel {
   public extraProgramPages?: number | bigint;
 
   /**
-   * global state
+   * Represents a key-value store for use in an application.
    */
   public globalState?: TealKeyValue[];
 
   /**
-   * global schema
+   * Specifies maximums on the number of each type that may be stored.
    */
   public globalStateSchema?: ApplicationStateSchema;
 
   /**
-   * local schema
+   * Specifies maximums on the number of each type that may be stored.
    */
   public localStateSchema?: ApplicationStateSchema;
 
@@ -1206,9 +1183,9 @@ export class ApplicationParams extends BaseModel {
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
    * @param extraProgramPages - the number of extra program pages available to this app.
-   * @param globalState - global state
-   * @param globalStateSchema - global schema
-   * @param localStateSchema - local schema
+   * @param globalState - Represents a key-value store for use in an application.
+   * @param globalStateSchema - Specifies maximums on the number of each type that may be stored.
+   * @param localStateSchema - Specifies maximums on the number of each type that may be stored.
    */
   constructor({
     approvalProgram,
@@ -1295,50 +1272,46 @@ export class ApplicationParams extends BaseModel {
  */
 export class ApplicationResponse extends BaseModel {
   /**
-   * Round at which the results were computed.
-   */
-  public currentRound: number | bigint;
-
-  /**
    * Application index and its parameters
    */
   public application?: Application;
 
   /**
+   * Round at which the results were computed.
+   */
+  public currentRound?: number | bigint;
+
+  /**
    * Creates a new `ApplicationResponse` object.
-   * @param currentRound - Round at which the results were computed.
    * @param application - Application index and its parameters
+   * @param currentRound - Round at which the results were computed.
    */
   constructor({
-    currentRound,
     application,
+    currentRound,
   }: {
-    currentRound: number | bigint;
     application?: Application;
+    currentRound?: number | bigint;
   }) {
     super();
-    this.currentRound = currentRound;
     this.application = application;
+    this.currentRound = currentRound;
 
     this.attribute_map = {
-      currentRound: 'current-round',
       application: 'application',
+      currentRound: 'current-round',
     };
   }
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): ApplicationResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new ApplicationResponse({
-      currentRound: data['current-round'],
       application:
         typeof data['application'] !== 'undefined'
           ? Application.from_obj_for_encoding(data['application'])
           : undefined,
+      currentRound: data['current-round'],
     });
     /* eslint-enable dot-notation */
   }
@@ -1403,12 +1376,12 @@ export class ApplicationStateSchema extends BaseModel {
  *
  */
 export class ApplicationsResponse extends BaseModel {
-  public applications: Application[];
+  public applications?: Application[];
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -1428,8 +1401,8 @@ export class ApplicationsResponse extends BaseModel {
     currentRound,
     nextToken,
   }: {
-    applications: Application[];
-    currentRound: number | bigint;
+    applications?: Application[];
+    currentRound?: number | bigint;
     nextToken?: string;
   }) {
     super();
@@ -1449,16 +1422,11 @@ export class ApplicationsResponse extends BaseModel {
     data: Record<string, any>
   ): ApplicationsResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['applications']))
-      throw new Error(
-        `Response is missing required array field 'applications': ${data}`
-      );
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new ApplicationsResponse({
-      applications: data['applications'].map(Application.from_obj_for_encoding),
+      applications:
+        typeof data['applications'] !== 'undefined'
+          ? data['applications'].map(Application.from_obj_for_encoding)
+          : undefined,
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -1560,12 +1528,12 @@ export class Asset extends BaseModel {
  *
  */
 export class AssetBalancesResponse extends BaseModel {
-  public balances: MiniAssetHolding[];
+  public balances?: MiniAssetHolding[];
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -1585,8 +1553,8 @@ export class AssetBalancesResponse extends BaseModel {
     currentRound,
     nextToken,
   }: {
-    balances: MiniAssetHolding[];
-    currentRound: number | bigint;
+    balances?: MiniAssetHolding[];
+    currentRound?: number | bigint;
     nextToken?: string;
   }) {
     super();
@@ -1606,16 +1574,11 @@ export class AssetBalancesResponse extends BaseModel {
     data: Record<string, any>
   ): AssetBalancesResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['balances']))
-      throw new Error(
-        `Response is missing required array field 'balances': ${data}`
-      );
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new AssetBalancesResponse({
-      balances: data['balances'].map(MiniAssetHolding.from_obj_for_encoding),
+      balances:
+        typeof data['balances'] !== 'undefined'
+          ? data['balances'].map(MiniAssetHolding.from_obj_for_encoding)
+          : undefined,
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -1728,12 +1691,12 @@ export class AssetHolding extends BaseModel {
  *
  */
 export class AssetHoldingsResponse extends BaseModel {
-  public assets: AssetHolding[];
+  public assets?: AssetHolding[];
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -1753,8 +1716,8 @@ export class AssetHoldingsResponse extends BaseModel {
     currentRound,
     nextToken,
   }: {
-    assets: AssetHolding[];
-    currentRound: number | bigint;
+    assets?: AssetHolding[];
+    currentRound?: number | bigint;
     nextToken?: string;
   }) {
     super();
@@ -1774,16 +1737,11 @@ export class AssetHoldingsResponse extends BaseModel {
     data: Record<string, any>
   ): AssetHoldingsResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['assets']))
-      throw new Error(
-        `Response is missing required array field 'assets': ${data}`
-      );
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new AssetHoldingsResponse({
-      assets: data['assets'].map(AssetHolding.from_obj_for_encoding),
+      assets:
+        typeof data['assets'] !== 'undefined'
+          ? data['assets'].map(AssetHolding.from_obj_for_encoding)
+          : undefined,
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -2031,12 +1989,12 @@ export class AssetResponse extends BaseModel {
   /**
    * Specifies both the unique identifier and the parameters for an asset
    */
-  public asset: Asset;
+  public asset?: Asset;
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Creates a new `AssetResponse` object.
@@ -2047,8 +2005,8 @@ export class AssetResponse extends BaseModel {
     asset,
     currentRound,
   }: {
-    asset: Asset;
-    currentRound: number | bigint;
+    asset?: Asset;
+    currentRound?: number | bigint;
   }) {
     super();
     this.asset = asset;
@@ -2063,14 +2021,11 @@ export class AssetResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): AssetResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['asset'] === 'undefined')
-      throw new Error(`Response is missing required field 'asset': ${data}`);
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new AssetResponse({
-      asset: Asset.from_obj_for_encoding(data['asset']),
+      asset:
+        typeof data['asset'] !== 'undefined'
+          ? Asset.from_obj_for_encoding(data['asset'])
+          : undefined,
       currentRound: data['current-round'],
     });
     /* eslint-enable dot-notation */
@@ -2081,12 +2036,12 @@ export class AssetResponse extends BaseModel {
  *
  */
 export class AssetsResponse extends BaseModel {
-  public assets: Asset[];
+  public assets?: Asset[];
 
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -2106,8 +2061,8 @@ export class AssetsResponse extends BaseModel {
     currentRound,
     nextToken,
   }: {
-    assets: Asset[];
-    currentRound: number | bigint;
+    assets?: Asset[];
+    currentRound?: number | bigint;
     nextToken?: string;
   }) {
     super();
@@ -2125,16 +2080,11 @@ export class AssetsResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): AssetsResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['assets']))
-      throw new Error(
-        `Response is missing required array field 'assets': ${data}`
-      );
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
     return new AssetsResponse({
-      assets: data['assets'].map(Asset.from_obj_for_encoding),
+      assets:
+        typeof data['assets'] !== 'undefined'
+          ? data['assets'].map(Asset.from_obj_for_encoding)
+          : undefined,
       currentRound: data['current-round'],
       nextToken: data['next-token'],
     });
@@ -2462,6 +2412,68 @@ export class Block extends BaseModel {
         typeof data['upgrade-vote'] !== 'undefined'
           ? BlockUpgradeVote.from_obj_for_encoding(data['upgrade-vote'])
           : undefined,
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ *
+ */
+export class BlockHeadersResponse extends BaseModel {
+  public blocks?: Block[];
+
+  /**
+   * Round at which the results were computed.
+   */
+  public currentRound?: number | bigint;
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `BlockHeadersResponse` object.
+   * @param blocks -
+   * @param currentRound - Round at which the results were computed.
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  constructor({
+    blocks,
+    currentRound,
+    nextToken,
+  }: {
+    blocks?: Block[];
+    currentRound?: number | bigint;
+    nextToken?: string;
+  }) {
+    super();
+    this.blocks = blocks;
+    this.currentRound = currentRound;
+    this.nextToken = nextToken;
+
+    this.attribute_map = {
+      blocks: 'blocks',
+      currentRound: 'current-round',
+      nextToken: 'next-token',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): BlockHeadersResponse {
+    /* eslint-disable dot-notation */
+    return new BlockHeadersResponse({
+      blocks:
+        typeof data['blocks'] !== 'undefined'
+          ? data['blocks'].map(Block.from_obj_for_encoding)
+          : undefined,
+      currentRound: data['current-round'],
+      nextToken: data['next-token'],
     });
     /* eslint-enable dot-notation */
   }
@@ -2848,9 +2860,9 @@ export class BoxesResponse extends BaseModel {
   /**
    * (appidx) application index.
    */
-  public applicationId: number | bigint;
+  public applicationId?: number | bigint;
 
-  public boxes: BoxDescriptor[];
+  public boxes?: BoxDescriptor[];
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -2870,8 +2882,8 @@ export class BoxesResponse extends BaseModel {
     boxes,
     nextToken,
   }: {
-    applicationId: number | bigint;
-    boxes: BoxDescriptor[];
+    applicationId?: number | bigint;
+    boxes?: BoxDescriptor[];
     nextToken?: string;
   }) {
     super();
@@ -2889,17 +2901,12 @@ export class BoxesResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): BoxesResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['application-id'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'application-id': ${data}`
-      );
-    if (!Array.isArray(data['boxes']))
-      throw new Error(
-        `Response is missing required array field 'boxes': ${data}`
-      );
     return new BoxesResponse({
       applicationId: data['application-id'],
-      boxes: data['boxes'].map(BoxDescriptor.from_obj_for_encoding),
+      boxes:
+        typeof data['boxes'] !== 'undefined'
+          ? data['boxes'].map(BoxDescriptor.from_obj_for_encoding)
+          : undefined,
       nextToken: data['next-token'],
     });
     /* eslint-enable dot-notation */
@@ -2910,40 +2917,38 @@ export class BoxesResponse extends BaseModel {
  * Response for errors
  */
 export class ErrorResponse extends BaseModel {
-  public message: string;
-
   public data?: Record<string, any>;
+
+  public message?: string;
 
   /**
    * Creates a new `ErrorResponse` object.
-   * @param message -
    * @param data -
+   * @param message -
    */
   constructor({
-    message,
     data,
+    message,
   }: {
-    message: string;
     data?: Record<string, any>;
+    message?: string;
   }) {
     super();
-    this.message = message;
     this.data = data;
+    this.message = message;
 
     this.attribute_map = {
-      message: 'message',
       data: 'data',
+      message: 'message',
     };
   }
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): ErrorResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['message'] === 'undefined')
-      throw new Error(`Response is missing required field 'message': ${data}`);
     return new ErrorResponse({
-      message: data['message'],
       data: data['data'],
+      message: data['message'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3075,6 +3080,106 @@ export class HashFactory extends BaseModel {
     /* eslint-disable dot-notation */
     return new HashFactory({
       hashType: data['hash-type'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+ * it is online.
+ */
+export class HbProofFields extends BaseModel {
+  /**
+   * (p) Public key of the heartbeat message.
+   */
+  public hbPk?: Uint8Array;
+
+  /**
+   * (p1s) Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the
+   * key PK2.
+   */
+  public hbPk1sig?: Uint8Array;
+
+  /**
+   * (p2) Key for new-style two-level ephemeral signature.
+   */
+  public hbPk2?: Uint8Array;
+
+  /**
+   * (p2s) Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master
+   * key (OneTimeSignatureVerifier).
+   */
+  public hbPk2sig?: Uint8Array;
+
+  /**
+   * (s) Signature of the heartbeat message.
+   */
+  public hbSig?: Uint8Array;
+
+  /**
+   * Creates a new `HbProofFields` object.
+   * @param hbPk - (p) Public key of the heartbeat message.
+   * @param hbPk1sig - (p1s) Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the
+   * key PK2.
+   * @param hbPk2 - (p2) Key for new-style two-level ephemeral signature.
+   * @param hbPk2sig - (p2s) Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master
+   * key (OneTimeSignatureVerifier).
+   * @param hbSig - (s) Signature of the heartbeat message.
+   */
+  constructor({
+    hbPk,
+    hbPk1sig,
+    hbPk2,
+    hbPk2sig,
+    hbSig,
+  }: {
+    hbPk?: string | Uint8Array;
+    hbPk1sig?: string | Uint8Array;
+    hbPk2?: string | Uint8Array;
+    hbPk2sig?: string | Uint8Array;
+    hbSig?: string | Uint8Array;
+  }) {
+    super();
+    this.hbPk =
+      typeof hbPk === 'string'
+        ? new Uint8Array(Buffer.from(hbPk, 'base64'))
+        : hbPk;
+    this.hbPk1sig =
+      typeof hbPk1sig === 'string'
+        ? new Uint8Array(Buffer.from(hbPk1sig, 'base64'))
+        : hbPk1sig;
+    this.hbPk2 =
+      typeof hbPk2 === 'string'
+        ? new Uint8Array(Buffer.from(hbPk2, 'base64'))
+        : hbPk2;
+    this.hbPk2sig =
+      typeof hbPk2sig === 'string'
+        ? new Uint8Array(Buffer.from(hbPk2sig, 'base64'))
+        : hbPk2sig;
+    this.hbSig =
+      typeof hbSig === 'string'
+        ? new Uint8Array(Buffer.from(hbSig, 'base64'))
+        : hbSig;
+
+    this.attribute_map = {
+      hbPk: 'hb-pk',
+      hbPk1sig: 'hb-pk1sig',
+      hbPk2: 'hb-pk2',
+      hbPk2sig: 'hb-pk2sig',
+      hbSig: 'hb-sig',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): HbProofFields {
+    /* eslint-disable dot-notation */
+    return new HbProofFields({
+      hbPk: data['hb-pk'],
+      hbPk1sig: data['hb-pk1sig'],
+      hbPk2: data['hb-pk2'],
+      hbPk2sig: data['hb-pk2sig'],
+      hbSig: data['hb-sig'],
     });
     /* eslint-enable dot-notation */
   }
@@ -3465,9 +3570,6 @@ export class ParticipationUpdates extends BaseModel {
  * crypto/stateproof/structs.go : StateProof
  */
 export class StateProofFields extends BaseModel {
-  /**
-   * (P)
-   */
   public partProofs?: MerkleArrayProof;
 
   /**
@@ -3491,9 +3593,6 @@ export class StateProofFields extends BaseModel {
    */
   public sigCommit?: Uint8Array;
 
-  /**
-   * (S)
-   */
   public sigProofs?: MerkleArrayProof;
 
   /**
@@ -3503,13 +3602,13 @@ export class StateProofFields extends BaseModel {
 
   /**
    * Creates a new `StateProofFields` object.
-   * @param partProofs - (P)
+   * @param partProofs -
    * @param positionsToReveal - (pr) Sequence of reveal positions.
    * @param reveals - (r) Note that this is actually stored as a map[uint64] - Reveal in the actual
    * msgp
    * @param saltVersion - (v) Salt version of the merkle signature.
    * @param sigCommit - (c)
-   * @param sigProofs - (S)
+   * @param sigProofs -
    * @param signedWeight - (w)
    */
   constructor({
@@ -3578,9 +3677,6 @@ export class StateProofFields extends BaseModel {
 }
 
 export class StateProofParticipant extends BaseModel {
-  /**
-   * (p)
-   */
   public verifier?: StateProofVerifier;
 
   /**
@@ -3590,7 +3686,7 @@ export class StateProofParticipant extends BaseModel {
 
   /**
    * Creates a new `StateProofParticipant` object.
-   * @param verifier - (p)
+   * @param verifier -
    * @param weight - (w)
    */
   constructor({
@@ -3627,9 +3723,6 @@ export class StateProofParticipant extends BaseModel {
 }
 
 export class StateProofReveal extends BaseModel {
-  /**
-   * (p)
-   */
   public participant?: StateProofParticipant;
 
   /**
@@ -3638,17 +3731,14 @@ export class StateProofReveal extends BaseModel {
    */
   public position?: number | bigint;
 
-  /**
-   * (s)
-   */
   public sigSlot?: StateProofSigSlot;
 
   /**
    * Creates a new `StateProofReveal` object.
-   * @param participant - (p)
+   * @param participant -
    * @param position - The position in the signature and participants arrays corresponding to this
    * entry.
-   * @param sigSlot - (s)
+   * @param sigSlot -
    */
   constructor({
     participant,
@@ -4183,8 +4273,7 @@ export class Transaction extends BaseModel {
   public genesisId?: string;
 
   /**
-   * (gd) Global state key/value changes for the application being executed by this
-   * transaction.
+   * Application state delta.
    */
   public globalStateDelta?: EvalDeltaKeyValue[];
 
@@ -4194,6 +4283,13 @@ export class Transaction extends BaseModel {
    * sha512/256 hash of the transactions in that group.
    */
   public group?: Uint8Array;
+
+  /**
+   * Fields for a heartbeat transaction.
+   * Definition:
+   * data/transactions/heartbeat.go : HeartbeatTxnFields
+   */
+  public heartbeatTransaction?: TransactionHeartbeat;
 
   /**
    * Transaction ID
@@ -4295,6 +4391,7 @@ export class Transaction extends BaseModel {
    * * (afrz) asset-freeze-transaction
    * * (appl) application-transaction
    * * (stpf) state-proof-transaction
+   * * (hb) heartbeat-transaction
    */
   public txType?: string;
 
@@ -4329,11 +4426,13 @@ export class Transaction extends BaseModel {
    * @param createdAssetIndex - Specifies an asset index (ID) if an asset was created with this transaction.
    * @param genesisHash - (gh) Hash of genesis block.
    * @param genesisId - (gen) genesis block ID.
-   * @param globalStateDelta - (gd) Global state key/value changes for the application being executed by this
-   * transaction.
+   * @param globalStateDelta - Application state delta.
    * @param group - (grp) Base64 encoded byte array of a sha512/256 digest. When present indicates
    * that this transaction is part of a transaction group and the value is the
    * sha512/256 hash of the transactions in that group.
+   * @param heartbeatTransaction - Fields for a heartbeat transaction.
+   * Definition:
+   * data/transactions/heartbeat.go : HeartbeatTxnFields
    * @param id - Transaction ID
    * @param innerTxns - Inner transactions produced by application execution.
    * @param intraRoundOffset - Offset into the round where this transaction was confirmed.
@@ -4373,6 +4472,7 @@ export class Transaction extends BaseModel {
    * * (afrz) asset-freeze-transaction
    * * (appl) application-transaction
    * * (stpf) state-proof-transaction
+   * * (hb) heartbeat-transaction
    */
   constructor({
     fee,
@@ -4393,6 +4493,7 @@ export class Transaction extends BaseModel {
     genesisId,
     globalStateDelta,
     group,
+    heartbeatTransaction,
     id,
     innerTxns,
     intraRoundOffset,
@@ -4428,6 +4529,7 @@ export class Transaction extends BaseModel {
     genesisId?: string;
     globalStateDelta?: EvalDeltaKeyValue[];
     group?: string | Uint8Array;
+    heartbeatTransaction?: TransactionHeartbeat;
     id?: string;
     innerTxns?: Transaction[];
     intraRoundOffset?: number | bigint;
@@ -4470,6 +4572,7 @@ export class Transaction extends BaseModel {
       typeof group === 'string'
         ? new Uint8Array(Buffer.from(group, 'base64'))
         : group;
+    this.heartbeatTransaction = heartbeatTransaction;
     this.id = id;
     this.innerTxns = innerTxns;
     this.intraRoundOffset = intraRoundOffset;
@@ -4512,6 +4615,7 @@ export class Transaction extends BaseModel {
       genesisId: 'genesis-id',
       globalStateDelta: 'global-state-delta',
       group: 'group',
+      heartbeatTransaction: 'heartbeat-transaction',
       id: 'id',
       innerTxns: 'inner-txns',
       intraRoundOffset: 'intra-round-offset',
@@ -4590,6 +4694,12 @@ export class Transaction extends BaseModel {
             )
           : undefined,
       group: data['group'],
+      heartbeatTransaction:
+        typeof data['heartbeat-transaction'] !== 'undefined'
+          ? TransactionHeartbeat.from_obj_for_encoding(
+              data['heartbeat-transaction']
+            )
+          : undefined,
       id: data['id'],
       innerTxns:
         typeof data['inner-txns'] !== 'undefined'
@@ -4656,7 +4766,7 @@ export class TransactionApplication extends BaseModel {
    * (apaa) transaction specific arguments accessed from the application's
    * approval-program and clear-state-program.
    */
-  public applicationArgs?: Uint8Array[];
+  public applicationArgs?: string[];
 
   /**
    * (apap) Logic executed for every application transaction, except when
@@ -4775,7 +4885,7 @@ export class TransactionApplication extends BaseModel {
   }: {
     applicationId: number | bigint;
     accounts?: string[];
-    applicationArgs?: Uint8Array[];
+    applicationArgs?: string[];
     approvalProgram?: string | Uint8Array;
     clearStateProgram?: string | Uint8Array;
     extraProgramPages?: number | bigint;
@@ -5095,6 +5205,116 @@ export class TransactionAssetTransfer extends BaseModel {
 }
 
 /**
+ * Fields for a heartbeat transaction.
+ * Definition:
+ * data/transactions/heartbeat.go : HeartbeatTxnFields
+ */
+export class TransactionHeartbeat extends BaseModel {
+  /**
+   * (hbad) HbAddress is the account this txn is proving onlineness for.
+   */
+  public hbAddress: string;
+
+  /**
+   * (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
+   */
+  public hbKeyDilution: number | bigint;
+
+  /**
+   * (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+   * it is online.
+   */
+  public hbProof: HbProofFields;
+
+  /**
+   * (hbsd) HbSeed must be the block seed for the this transaction's firstValid
+   * block.
+   */
+  public hbSeed: Uint8Array;
+
+  /**
+   * (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   */
+  public hbVoteId: Uint8Array;
+
+  /**
+   * Creates a new `TransactionHeartbeat` object.
+   * @param hbAddress - (hbad) HbAddress is the account this txn is proving onlineness for.
+   * @param hbKeyDilution - (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
+   * @param hbProof - (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+   * it is online.
+   * @param hbSeed - (hbsd) HbSeed must be the block seed for the this transaction's firstValid
+   * block.
+   * @param hbVoteId - (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   */
+  constructor({
+    hbAddress,
+    hbKeyDilution,
+    hbProof,
+    hbSeed,
+    hbVoteId,
+  }: {
+    hbAddress: string;
+    hbKeyDilution: number | bigint;
+    hbProof: HbProofFields;
+    hbSeed: string | Uint8Array;
+    hbVoteId: string | Uint8Array;
+  }) {
+    super();
+    this.hbAddress = hbAddress;
+    this.hbKeyDilution = hbKeyDilution;
+    this.hbProof = hbProof;
+    this.hbSeed =
+      typeof hbSeed === 'string'
+        ? new Uint8Array(Buffer.from(hbSeed, 'base64'))
+        : hbSeed;
+    this.hbVoteId =
+      typeof hbVoteId === 'string'
+        ? new Uint8Array(Buffer.from(hbVoteId, 'base64'))
+        : hbVoteId;
+
+    this.attribute_map = {
+      hbAddress: 'hb-address',
+      hbKeyDilution: 'hb-key-dilution',
+      hbProof: 'hb-proof',
+      hbSeed: 'hb-seed',
+      hbVoteId: 'hb-vote-id',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionHeartbeat {
+    /* eslint-disable dot-notation */
+    if (typeof data['hb-address'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'hb-address': ${data}`
+      );
+    if (typeof data['hb-key-dilution'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'hb-key-dilution': ${data}`
+      );
+    if (typeof data['hb-proof'] === 'undefined')
+      throw new Error(`Response is missing required field 'hb-proof': ${data}`);
+    if (typeof data['hb-seed'] === 'undefined')
+      throw new Error(`Response is missing required field 'hb-seed': ${data}`);
+    if (typeof data['hb-vote-id'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'hb-vote-id': ${data}`
+      );
+    return new TransactionHeartbeat({
+      hbAddress: data['hb-address'],
+      hbKeyDilution: data['hb-key-dilution'],
+      hbProof: HbProofFields.from_obj_for_encoding(data['hb-proof']),
+      hbSeed: data['hb-seed'],
+      hbVoteId: data['hb-vote-id'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Fields for a keyreg transaction.
  * Definition:
  * data/transactions/keyreg.go : KeyregTxnFields
@@ -5295,7 +5515,7 @@ export class TransactionResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * Contains all fields common to all transactions and serves as an envelope to all
@@ -5304,7 +5524,7 @@ export class TransactionResponse extends BaseModel {
    * data/transactions/signedtxn.go : SignedTxn
    * data/transactions/transaction.go : Transaction
    */
-  public transaction: Transaction;
+  public transaction?: Transaction;
 
   /**
    * Creates a new `TransactionResponse` object.
@@ -5319,8 +5539,8 @@ export class TransactionResponse extends BaseModel {
     currentRound,
     transaction,
   }: {
-    currentRound: number | bigint;
-    transaction: Transaction;
+    currentRound?: number | bigint;
+    transaction?: Transaction;
   }) {
     super();
     this.currentRound = currentRound;
@@ -5335,17 +5555,12 @@ export class TransactionResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): TransactionResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
-    if (typeof data['transaction'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'transaction': ${data}`
-      );
     return new TransactionResponse({
       currentRound: data['current-round'],
-      transaction: Transaction.from_obj_for_encoding(data['transaction']),
+      transaction:
+        typeof data['transaction'] !== 'undefined'
+          ? Transaction.from_obj_for_encoding(data['transaction'])
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -5444,7 +5659,7 @@ export class TransactionSignatureLogicsig extends BaseModel {
   /**
    * (arg) Logic arguments, base64 encoded.
    */
-  public args?: Uint8Array[];
+  public args?: string[];
 
   /**
    * (msig) structure holding multiple subsignatures.
@@ -5475,7 +5690,7 @@ export class TransactionSignatureLogicsig extends BaseModel {
     signature,
   }: {
     logic: string | Uint8Array;
-    args?: Uint8Array[];
+    args?: string[];
     multisigSignature?: TransactionSignatureMultisig;
     signature?: string | Uint8Array;
   }) {
@@ -5646,9 +5861,6 @@ export class TransactionSignatureMultisigSubsignature extends BaseModel {
  * data/transactions/stateproof.go : StateProofTxnFields
  */
 export class TransactionStateProof extends BaseModel {
-  /**
-   * (spmsg)
-   */
   public message?: IndexerStateProofMessage;
 
   /**
@@ -5666,7 +5878,7 @@ export class TransactionStateProof extends BaseModel {
 
   /**
    * Creates a new `TransactionStateProof` object.
-   * @param message - (spmsg)
+   * @param message -
    * @param stateProof - (sp) represents a state proof.
    * Definition:
    * crypto/stateproof/structs.go : StateProof
@@ -5721,9 +5933,7 @@ export class TransactionsResponse extends BaseModel {
   /**
    * Round at which the results were computed.
    */
-  public currentRound: number | bigint;
-
-  public transactions: Transaction[];
+  public currentRound?: number | bigint;
 
   /**
    * Used for pagination, when making another request provide this token with the
@@ -5731,31 +5941,33 @@ export class TransactionsResponse extends BaseModel {
    */
   public nextToken?: string;
 
+  public transactions?: Transaction[];
+
   /**
    * Creates a new `TransactionsResponse` object.
    * @param currentRound - Round at which the results were computed.
-   * @param transactions -
    * @param nextToken - Used for pagination, when making another request provide this token with the
    * next parameter.
+   * @param transactions -
    */
   constructor({
     currentRound,
-    transactions,
     nextToken,
+    transactions,
   }: {
-    currentRound: number | bigint;
-    transactions: Transaction[];
+    currentRound?: number | bigint;
     nextToken?: string;
+    transactions?: Transaction[];
   }) {
     super();
     this.currentRound = currentRound;
-    this.transactions = transactions;
     this.nextToken = nextToken;
+    this.transactions = transactions;
 
     this.attribute_map = {
       currentRound: 'current-round',
-      transactions: 'transactions',
       nextToken: 'next-token',
+      transactions: 'transactions',
     };
   }
 
@@ -5764,18 +5976,13 @@ export class TransactionsResponse extends BaseModel {
     data: Record<string, any>
   ): TransactionsResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['current-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current-round': ${data}`
-      );
-    if (!Array.isArray(data['transactions']))
-      throw new Error(
-        `Response is missing required array field 'transactions': ${data}`
-      );
     return new TransactionsResponse({
       currentRound: data['current-round'],
-      transactions: data['transactions'].map(Transaction.from_obj_for_encoding),
       nextToken: data['next-token'],
+      transactions:
+        typeof data['transactions'] !== 'undefined'
+          ? data['transactions'].map(Transaction.from_obj_for_encoding)
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }

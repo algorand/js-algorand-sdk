@@ -95,9 +95,7 @@ export class Account extends BaseModel {
   public appsTotalExtraPages?: number | bigint;
 
   /**
-   * (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
-   * Note: the raw account uses `StateSchema` for this type.
+   * Specifies maximums on the number of each type that may be stored.
    */
   public appsTotalSchema?: ApplicationStateSchema;
 
@@ -201,9 +199,7 @@ export class Account extends BaseModel {
    * @param appsLocalState - (appl) applications local data stored in this account.
    * Note the raw object uses `map[int] -> AppLocalState` for this type.
    * @param appsTotalExtraPages - (teap) the sum of all extra application program pages for this account.
-   * @param appsTotalSchema - (tsch) stores the sum of all of the local schemas and global schemas in this
-   * account.
-   * Note: the raw account uses `StateSchema` for this type.
+   * @param appsTotalSchema - Specifies maximums on the number of each type that may be stored.
    * @param assets - (asset) assets held by this account.
    * Note the raw object uses `map[int] -> AssetHolding` for this type.
    * @param authAddr - (spend) the address against which signing should be checked. If empty, the
@@ -452,50 +448,44 @@ export class Account extends BaseModel {
  */
 export class AccountApplicationResponse extends BaseModel {
   /**
-   * The round for which this information is relevant.
-   */
-  public round: number | bigint;
-
-  /**
-   * (appl) the application local data stored in this account.
-   * The raw account uses `AppLocalState` for this type.
+   * Stores local state associated with an application.
    */
   public appLocalState?: ApplicationLocalState;
 
   /**
-   * (appp) parameters of the application created by this account including app
-   * global data.
-   * The raw account uses `AppParams` for this type.
+   * Stores the global information associated with an application.
    */
   public createdApp?: ApplicationParams;
 
   /**
+   * The round for which this information is relevant.
+   */
+  public round?: number | bigint;
+
+  /**
    * Creates a new `AccountApplicationResponse` object.
+   * @param appLocalState - Stores local state associated with an application.
+   * @param createdApp - Stores the global information associated with an application.
    * @param round - The round for which this information is relevant.
-   * @param appLocalState - (appl) the application local data stored in this account.
-   * The raw account uses `AppLocalState` for this type.
-   * @param createdApp - (appp) parameters of the application created by this account including app
-   * global data.
-   * The raw account uses `AppParams` for this type.
    */
   constructor({
-    round,
     appLocalState,
     createdApp,
+    round,
   }: {
-    round: number | bigint;
     appLocalState?: ApplicationLocalState;
     createdApp?: ApplicationParams;
+    round?: number | bigint;
   }) {
     super();
-    this.round = round;
     this.appLocalState = appLocalState;
     this.createdApp = createdApp;
+    this.round = round;
 
     this.attribute_map = {
-      round: 'round',
       appLocalState: 'app-local-state',
       createdApp: 'created-app',
+      round: 'round',
     };
   }
 
@@ -504,10 +494,7 @@ export class AccountApplicationResponse extends BaseModel {
     data: Record<string, any>
   ): AccountApplicationResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['round'] === 'undefined')
-      throw new Error(`Response is missing required field 'round': ${data}`);
     return new AccountApplicationResponse({
-      round: data['round'],
       appLocalState:
         typeof data['app-local-state'] !== 'undefined'
           ? ApplicationLocalState.from_obj_for_encoding(data['app-local-state'])
@@ -516,6 +503,7 @@ export class AccountApplicationResponse extends BaseModel {
         typeof data['created-app'] !== 'undefined'
           ? ApplicationParams.from_obj_for_encoding(data['created-app'])
           : undefined,
+      round: data['round'],
     });
     /* eslint-enable dot-notation */
   }
@@ -527,23 +515,29 @@ export class AccountApplicationResponse extends BaseModel {
  */
 export class AccountAssetHolding extends BaseModel {
   /**
-   * (asset) Details about the asset held by this account.
-   * The raw account uses `AssetHolding` for this type.
+   * Describes an asset held by an account.
+   * Definition:
+   * data/basics/userBalance.go : AssetHolding
    */
   public assetHolding: AssetHolding;
 
   /**
-   * (apar) parameters of the asset held by this account.
-   * The raw account uses `AssetParams` for this type.
+   * AssetParams specifies the parameters for an asset.
+   * (apar) when part of an AssetConfig transaction.
+   * Definition:
+   * data/transactions/asset.go : AssetParams
    */
   public assetParams?: AssetParams;
 
   /**
    * Creates a new `AccountAssetHolding` object.
-   * @param assetHolding - (asset) Details about the asset held by this account.
-   * The raw account uses `AssetHolding` for this type.
-   * @param assetParams - (apar) parameters of the asset held by this account.
-   * The raw account uses `AssetParams` for this type.
+   * @param assetHolding - Describes an asset held by an account.
+   * Definition:
+   * data/basics/userBalance.go : AssetHolding
+   * @param assetParams - AssetParams specifies the parameters for an asset.
+   * (apar) when part of an AssetConfig transaction.
+   * Definition:
+   * data/transactions/asset.go : AssetParams
    */
   constructor({
     assetHolding,
@@ -587,48 +581,54 @@ export class AccountAssetHolding extends BaseModel {
  */
 export class AccountAssetResponse extends BaseModel {
   /**
-   * The round for which this information is relevant.
-   */
-  public round: number | bigint;
-
-  /**
-   * (asset) Details about the asset held by this account.
-   * The raw account uses `AssetHolding` for this type.
+   * Describes an asset held by an account.
+   * Definition:
+   * data/basics/userBalance.go : AssetHolding
    */
   public assetHolding?: AssetHolding;
 
   /**
-   * (apar) parameters of the asset created by this account.
-   * The raw account uses `AssetParams` for this type.
+   * AssetParams specifies the parameters for an asset.
+   * (apar) when part of an AssetConfig transaction.
+   * Definition:
+   * data/transactions/asset.go : AssetParams
    */
   public createdAsset?: AssetParams;
 
   /**
+   * The round for which this information is relevant.
+   */
+  public round?: number | bigint;
+
+  /**
    * Creates a new `AccountAssetResponse` object.
+   * @param assetHolding - Describes an asset held by an account.
+   * Definition:
+   * data/basics/userBalance.go : AssetHolding
+   * @param createdAsset - AssetParams specifies the parameters for an asset.
+   * (apar) when part of an AssetConfig transaction.
+   * Definition:
+   * data/transactions/asset.go : AssetParams
    * @param round - The round for which this information is relevant.
-   * @param assetHolding - (asset) Details about the asset held by this account.
-   * The raw account uses `AssetHolding` for this type.
-   * @param createdAsset - (apar) parameters of the asset created by this account.
-   * The raw account uses `AssetParams` for this type.
    */
   constructor({
-    round,
     assetHolding,
     createdAsset,
+    round,
   }: {
-    round: number | bigint;
     assetHolding?: AssetHolding;
     createdAsset?: AssetParams;
+    round?: number | bigint;
   }) {
     super();
-    this.round = round;
     this.assetHolding = assetHolding;
     this.createdAsset = createdAsset;
+    this.round = round;
 
     this.attribute_map = {
-      round: 'round',
       assetHolding: 'asset-holding',
       createdAsset: 'created-asset',
+      round: 'round',
     };
   }
 
@@ -637,10 +637,7 @@ export class AccountAssetResponse extends BaseModel {
     data: Record<string, any>
   ): AccountAssetResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['round'] === 'undefined')
-      throw new Error(`Response is missing required field 'round': ${data}`);
     return new AccountAssetResponse({
-      round: data['round'],
       assetHolding:
         typeof data['asset-holding'] !== 'undefined'
           ? AssetHolding.from_obj_for_encoding(data['asset-holding'])
@@ -649,6 +646,7 @@ export class AccountAssetResponse extends BaseModel {
         typeof data['created-asset'] !== 'undefined'
           ? AssetParams.from_obj_for_encoding(data['created-asset'])
           : undefined,
+      round: data['round'],
     });
     /* eslint-enable dot-notation */
   }
@@ -658,11 +656,6 @@ export class AccountAssetResponse extends BaseModel {
  * AccountAssetsInformationResponse contains a list of assets held by an account.
  */
 export class AccountAssetsInformationResponse extends BaseModel {
-  /**
-   * The round for which this information is relevant.
-   */
-  public round: number | bigint;
-
   public assetHoldings?: AccountAssetHolding[];
 
   /**
@@ -672,30 +665,35 @@ export class AccountAssetsInformationResponse extends BaseModel {
   public nextToken?: string;
 
   /**
+   * The round for which this information is relevant.
+   */
+  public round?: number | bigint;
+
+  /**
    * Creates a new `AccountAssetsInformationResponse` object.
-   * @param round - The round for which this information is relevant.
    * @param assetHoldings -
    * @param nextToken - Used for pagination, when making another request provide this token with the
    * next parameter.
+   * @param round - The round for which this information is relevant.
    */
   constructor({
-    round,
     assetHoldings,
     nextToken,
+    round,
   }: {
-    round: number | bigint;
     assetHoldings?: AccountAssetHolding[];
     nextToken?: string;
+    round?: number | bigint;
   }) {
     super();
-    this.round = round;
     this.assetHoldings = assetHoldings;
     this.nextToken = nextToken;
+    this.round = round;
 
     this.attribute_map = {
-      round: 'round',
       assetHoldings: 'asset-holdings',
       nextToken: 'next-token',
+      round: 'round',
     };
   }
 
@@ -704,10 +702,7 @@ export class AccountAssetsInformationResponse extends BaseModel {
     data: Record<string, any>
   ): AccountAssetsInformationResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['round'] === 'undefined')
-      throw new Error(`Response is missing required field 'round': ${data}`);
     return new AccountAssetsInformationResponse({
-      round: data['round'],
       assetHoldings:
         typeof data['asset-holdings'] !== 'undefined'
           ? data['asset-holdings'].map(
@@ -715,6 +710,7 @@ export class AccountAssetsInformationResponse extends BaseModel {
             )
           : undefined,
       nextToken: data['next-token'],
+      round: data['round'],
     });
     /* eslint-enable dot-notation */
   }
@@ -974,14 +970,14 @@ export class Application extends BaseModel {
   public id: number | bigint;
 
   /**
-   * (appparams) application parameters.
+   * Stores the global information associated with an application.
    */
   public params: ApplicationParams;
 
   /**
    * Creates a new `Application` object.
    * @param id - (appidx) application index.
-   * @param params - (appparams) application parameters.
+   * @param params - Stores the global information associated with an application.
    */
   constructor({
     id,
@@ -1202,20 +1198,20 @@ export class ApplicationLocalState extends BaseModel {
   public id: number | bigint;
 
   /**
-   * (hsch) schema.
+   * Specifies maximums on the number of each type that may be stored.
    */
   public schema: ApplicationStateSchema;
 
   /**
-   * (tkv) storage.
+   * Represents a key-value store for use in an application.
    */
   public keyValue?: TealKeyValue[];
 
   /**
    * Creates a new `ApplicationLocalState` object.
    * @param id - The application which this local state is for.
-   * @param schema - (hsch) schema.
-   * @param keyValue - (tkv) storage.
+   * @param schema - Specifies maximums on the number of each type that may be stored.
+   * @param keyValue - Represents a key-value store for use in an application.
    */
   constructor({
     id,
@@ -1285,17 +1281,17 @@ export class ApplicationParams extends BaseModel {
   public extraProgramPages?: number | bigint;
 
   /**
-   * (gs) global state
+   * Represents a key-value store for use in an application.
    */
   public globalState?: TealKeyValue[];
 
   /**
-   * (gsch) global schema
+   * Specifies maximums on the number of each type that may be stored.
    */
   public globalStateSchema?: ApplicationStateSchema;
 
   /**
-   * (lsch) local schema
+   * Specifies maximums on the number of each type that may be stored.
    */
   public localStateSchema?: ApplicationStateSchema;
 
@@ -1306,9 +1302,9 @@ export class ApplicationParams extends BaseModel {
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
    * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
-   * @param globalState - (gs) global state
-   * @param globalStateSchema - (gsch) global schema
-   * @param localStateSchema - (lsch) local schema
+   * @param globalState - Represents a key-value store for use in an application.
+   * @param globalStateSchema - Specifies maximums on the number of each type that may be stored.
+   * @param localStateSchema - Specifies maximums on the number of each type that may be stored.
    */
   constructor({
     approvalProgram,
@@ -2069,13 +2065,13 @@ export class BlockHashResponse extends BaseModel {
   /**
    * Block header hash.
    */
-  public blockhash: string;
+  public blockhash?: string;
 
   /**
    * Creates a new `BlockHashResponse` object.
    * @param blockhash - Block header hash.
    */
-  constructor({ blockhash }: { blockhash: string }) {
+  constructor({ blockhash }: { blockhash?: string }) {
     super();
     this.blockhash = blockhash;
 
@@ -2087,12 +2083,40 @@ export class BlockHashResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): BlockHashResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['blockHash'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'blockHash': ${data}`
-      );
     return new BlockHashResponse({
       blockhash: data['blockHash'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Block header.
+ */
+export class BlockHeaderResponse extends BaseModel {
+  /**
+   * Block header data.
+   */
+  public blockheader?: BlockHeader;
+
+  /**
+   * Creates a new `BlockHeaderResponse` object.
+   * @param blockheader - Block header data.
+   */
+  constructor({ blockheader }: { blockheader?: BlockHeader }) {
+    super();
+    this.blockheader = blockheader;
+
+    this.attribute_map = {
+      blockheader: 'blockHeader',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): BlockHeaderResponse {
+    /* eslint-disable dot-notation */
+    return new BlockHeaderResponse({
+      blockheader: data['blockHeader'],
     });
     /* eslint-enable dot-notation */
   }
@@ -2108,13 +2132,13 @@ export class BlockHashResponse extends BaseModel {
  * inner app calls)
  */
 export class BlockLogsResponse extends BaseModel {
-  public logs: AppCallLogs[];
+  public logs?: AppCallLogs[];
 
   /**
    * Creates a new `BlockLogsResponse` object.
    * @param logs -
    */
-  constructor({ logs }: { logs: AppCallLogs[] }) {
+  constructor({ logs }: { logs?: AppCallLogs[] }) {
     super();
     this.logs = logs;
 
@@ -2126,12 +2150,11 @@ export class BlockLogsResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): BlockLogsResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['logs']))
-      throw new Error(
-        `Response is missing required array field 'logs': ${data}`
-      );
     return new BlockLogsResponse({
-      logs: data['logs'].map(AppCallLogs.from_obj_for_encoding),
+      logs:
+        typeof data['logs'] !== 'undefined'
+          ? data['logs'].map(AppCallLogs.from_obj_for_encoding)
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -2144,7 +2167,7 @@ export class BlockResponse extends BaseModel {
   /**
    * Block header data.
    */
-  public block: BlockHeader;
+  public block?: BlockHeader;
 
   /**
    * Optional certificate object. This is only included when the format is set to
@@ -2162,7 +2185,7 @@ export class BlockResponse extends BaseModel {
     block,
     cert,
   }: {
-    block: BlockHeader;
+    block?: BlockHeader;
     cert?: Record<string, any>;
   }) {
     super();
@@ -2178,8 +2201,6 @@ export class BlockResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): BlockResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['block'] === 'undefined')
-      throw new Error(`Response is missing required field 'block': ${data}`);
     return new BlockResponse({
       block: data['block'],
       cert: data['cert'],
@@ -2195,13 +2216,13 @@ export class BlockTxidsResponse extends BaseModel {
   /**
    * Block transaction IDs.
    */
-  public blocktxids: string[];
+  public blocktxids?: string[];
 
   /**
    * Creates a new `BlockTxidsResponse` object.
    * @param blocktxids - Block transaction IDs.
    */
-  constructor({ blocktxids }: { blocktxids: string[] }) {
+  constructor({ blocktxids }: { blocktxids?: string[] }) {
     super();
     this.blocktxids = blocktxids;
 
@@ -2213,10 +2234,6 @@ export class BlockTxidsResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): BlockTxidsResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['blockTxids']))
-      throw new Error(
-        `Response is missing required array field 'blockTxids': ${data}`
-      );
     return new BlockTxidsResponse({
       blocktxids: data['blockTxids'],
     });
@@ -2389,13 +2406,13 @@ export class BoxReference extends BaseModel {
  * Box names of an application
  */
 export class BoxesResponse extends BaseModel {
-  public boxes: BoxDescriptor[];
+  public boxes?: BoxDescriptor[];
 
   /**
    * Creates a new `BoxesResponse` object.
    * @param boxes -
    */
-  constructor({ boxes }: { boxes: BoxDescriptor[] }) {
+  constructor({ boxes }: { boxes?: BoxDescriptor[] }) {
     super();
     this.boxes = boxes;
 
@@ -2407,12 +2424,11 @@ export class BoxesResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): BoxesResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['boxes']))
-      throw new Error(
-        `Response is missing required array field 'boxes': ${data}`
-      );
     return new BoxesResponse({
-      boxes: data['boxes'].map(BoxDescriptor.from_obj_for_encoding),
+      boxes:
+        typeof data['boxes'] !== 'undefined'
+          ? data['boxes'].map(BoxDescriptor.from_obj_for_encoding)
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -2505,18 +2521,86 @@ export class BuildVersion extends BaseModel {
 }
 
 /**
+ *
+ */
+export class CatchpointAbortResponse extends BaseModel {
+  /**
+   * Catchup abort response string
+   */
+  public catchupMessage?: string;
+
+  /**
+   * Creates a new `CatchpointAbortResponse` object.
+   * @param catchupMessage - Catchup abort response string
+   */
+  constructor({ catchupMessage }: { catchupMessage?: string }) {
+    super();
+    this.catchupMessage = catchupMessage;
+
+    this.attribute_map = {
+      catchupMessage: 'catchup-message',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): CatchpointAbortResponse {
+    /* eslint-disable dot-notation */
+    return new CatchpointAbortResponse({
+      catchupMessage: data['catchup-message'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ *
+ */
+export class CatchpointStartResponse extends BaseModel {
+  /**
+   * Catchup start response string
+   */
+  public catchupMessage?: string;
+
+  /**
+   * Creates a new `CatchpointStartResponse` object.
+   * @param catchupMessage - Catchup start response string
+   */
+  constructor({ catchupMessage }: { catchupMessage?: string }) {
+    super();
+    this.catchupMessage = catchupMessage;
+
+    this.attribute_map = {
+      catchupMessage: 'catchup-message',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): CatchpointStartResponse {
+    /* eslint-disable dot-notation */
+    return new CatchpointStartResponse({
+      catchupMessage: data['catchup-message'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Teal compile Result
  */
 export class CompileResponse extends BaseModel {
   /**
    * base32 SHA512_256 of program bytes (Address style)
    */
-  public hash: string;
+  public hash?: string;
 
   /**
    * base64 encoded program bytes
    */
-  public result: string;
+  public result?: string;
 
   /**
    * JSON of the source map
@@ -2534,8 +2618,8 @@ export class CompileResponse extends BaseModel {
     result,
     sourcemap,
   }: {
-    hash: string;
-    result: string;
+    hash?: string;
+    result?: string;
     sourcemap?: Record<string, any>;
   }) {
     super();
@@ -2553,14 +2637,63 @@ export class CompileResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): CompileResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['hash'] === 'undefined')
-      throw new Error(`Response is missing required field 'hash': ${data}`);
-    if (typeof data['result'] === 'undefined')
-      throw new Error(`Response is missing required field 'result': ${data}`);
     return new CompileResponse({
       hash: data['hash'],
       result: data['result'],
       sourcemap: data['sourcemap'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * algod mutex and blocking profiling state.
+ */
+export class DebugSettingsProf extends BaseModel {
+  /**
+   * The rate of blocking events. The profiler aims to sample an average of one
+   * blocking event per rate nanoseconds spent blocked. To turn off profiling
+   * entirely, pass rate 0.
+   */
+  public blockRate?: number | bigint;
+
+  /**
+   * The rate of mutex events. On average 1/rate events are reported. To turn off
+   * profiling entirely, pass rate 0
+   */
+  public mutexRate?: number | bigint;
+
+  /**
+   * Creates a new `DebugSettingsProf` object.
+   * @param blockRate - The rate of blocking events. The profiler aims to sample an average of one
+   * blocking event per rate nanoseconds spent blocked. To turn off profiling
+   * entirely, pass rate 0.
+   * @param mutexRate - The rate of mutex events. On average 1/rate events are reported. To turn off
+   * profiling entirely, pass rate 0
+   */
+  constructor({
+    blockRate,
+    mutexRate,
+  }: {
+    blockRate?: number | bigint;
+    mutexRate?: number | bigint;
+  }) {
+    super();
+    this.blockRate = blockRate;
+    this.mutexRate = mutexRate;
+
+    this.attribute_map = {
+      blockRate: 'block-rate',
+      mutexRate: 'mutex-rate',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): DebugSettingsProf {
+    /* eslint-disable dot-notation */
+    return new DebugSettingsProf({
+      blockRate: data['block-rate'],
+      mutexRate: data['mutex-rate'],
     });
     /* eslint-enable dot-notation */
   }
@@ -2573,13 +2706,13 @@ export class DisassembleResponse extends BaseModel {
   /**
    * disassembled Teal code
    */
-  public result: string;
+  public result?: string;
 
   /**
    * Creates a new `DisassembleResponse` object.
    * @param result - disassembled Teal code
    */
-  constructor({ result }: { result: string }) {
+  constructor({ result }: { result?: string }) {
     super();
     this.result = result;
 
@@ -2591,8 +2724,6 @@ export class DisassembleResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): DisassembleResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['result'] === 'undefined')
-      throw new Error(`Response is missing required field 'result': ${data}`);
     return new DisassembleResponse({
       result: data['result'],
     });
@@ -2727,14 +2858,14 @@ export class DryrunRequest extends BaseModel {
  * DryrunResponse contains per-txn debug information from a dryrun.
  */
 export class DryrunResponse extends BaseModel {
-  public error: string;
+  public error?: string;
 
   /**
    * Protocol version is the protocol version Dryrun was operated under.
    */
-  public protocolVersion: string;
+  public protocolVersion?: string;
 
-  public txns: DryrunTxnResult[];
+  public txns?: DryrunTxnResult[];
 
   /**
    * Creates a new `DryrunResponse` object.
@@ -2747,9 +2878,9 @@ export class DryrunResponse extends BaseModel {
     protocolVersion,
     txns,
   }: {
-    error: string;
-    protocolVersion: string;
-    txns: DryrunTxnResult[];
+    error?: string;
+    protocolVersion?: string;
+    txns?: DryrunTxnResult[];
   }) {
     super();
     this.error = error;
@@ -2766,20 +2897,13 @@ export class DryrunResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): DryrunResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['error'] === 'undefined')
-      throw new Error(`Response is missing required field 'error': ${data}`);
-    if (typeof data['protocol-version'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'protocol-version': ${data}`
-      );
-    if (!Array.isArray(data['txns']))
-      throw new Error(
-        `Response is missing required array field 'txns': ${data}`
-      );
     return new DryrunResponse({
       error: data['error'],
       protocolVersion: data['protocol-version'],
-      txns: data['txns'].map(DryrunTxnResult.from_obj_for_encoding),
+      txns:
+        typeof data['txns'] !== 'undefined'
+          ? data['txns'].map(DryrunTxnResult.from_obj_for_encoding)
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -3246,13 +3370,13 @@ export class GetBlockTimeStampOffsetResponse extends BaseModel {
   /**
    * Timestamp offset in seconds.
    */
-  public offset: number | bigint;
+  public offset?: number | bigint;
 
   /**
    * Creates a new `GetBlockTimeStampOffsetResponse` object.
    * @param offset - Timestamp offset in seconds.
    */
-  constructor({ offset }: { offset: number | bigint }) {
+  constructor({ offset }: { offset?: number | bigint }) {
     super();
     this.offset = offset;
 
@@ -3266,8 +3390,6 @@ export class GetBlockTimeStampOffsetResponse extends BaseModel {
     data: Record<string, any>
   ): GetBlockTimeStampOffsetResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['offset'] === 'undefined')
-      throw new Error(`Response is missing required field 'offset': ${data}`);
     return new GetBlockTimeStampOffsetResponse({
       offset: data['offset'],
     });
@@ -3282,13 +3404,13 @@ export class GetSyncRoundResponse extends BaseModel {
   /**
    * The minimum sync round for the ledger.
    */
-  public round: number | bigint;
+  public round?: number | bigint;
 
   /**
    * Creates a new `GetSyncRoundResponse` object.
    * @param round - The minimum sync round for the ledger.
    */
-  constructor({ round }: { round: number | bigint }) {
+  constructor({ round }: { round?: number | bigint }) {
     super();
     this.round = round;
 
@@ -3302,8 +3424,6 @@ export class GetSyncRoundResponse extends BaseModel {
     data: Record<string, any>
   ): GetSyncRoundResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['round'] === 'undefined')
-      throw new Error(`Response is missing required field 'round': ${data}`);
     return new GetSyncRoundResponse({
       round: data['round'],
     });
@@ -3489,48 +3609,6 @@ export class LightBlockHeaderProof extends BaseModel {
  */
 export class NodeStatusResponse extends BaseModel {
   /**
-   * CatchupTime in nanoseconds
-   */
-  public catchupTime: number | bigint;
-
-  /**
-   * LastRound indicates the last round seen
-   */
-  public lastRound: number | bigint;
-
-  /**
-   * LastVersion indicates the last consensus version supported
-   */
-  public lastVersion: string;
-
-  /**
-   * NextVersion of consensus protocol to use
-   */
-  public nextVersion: string;
-
-  /**
-   * NextVersionRound is the round at which the next consensus version will apply
-   */
-  public nextVersionRound: number | bigint;
-
-  /**
-   * NextVersionSupported indicates whether the next consensus version is supported
-   * by this node
-   */
-  public nextVersionSupported: boolean;
-
-  /**
-   * StoppedAtUnsupportedRound indicates that the node does not support the new
-   * rounds and has stopped making progress
-   */
-  public stoppedAtUnsupportedRound: boolean;
-
-  /**
-   * TimeSinceLastRound in nanoseconds
-   */
-  public timeSinceLastRound: number | bigint;
-
-  /**
    * The current catchpoint that is being caught up to
    */
   public catchpoint?: string;
@@ -3582,9 +3660,51 @@ export class NodeStatusResponse extends BaseModel {
   public catchpointVerifiedKvs?: number | bigint;
 
   /**
+   * CatchupTime in nanoseconds
+   */
+  public catchupTime?: number | bigint;
+
+  /**
    * The last catchpoint seen by the node
    */
   public lastCatchpoint?: string;
+
+  /**
+   * LastRound indicates the last round seen
+   */
+  public lastRound?: number | bigint;
+
+  /**
+   * LastVersion indicates the last consensus version supported
+   */
+  public lastVersion?: string;
+
+  /**
+   * NextVersion of consensus protocol to use
+   */
+  public nextVersion?: string;
+
+  /**
+   * NextVersionRound is the round at which the next consensus version will apply
+   */
+  public nextVersionRound?: number | bigint;
+
+  /**
+   * NextVersionSupported indicates whether the next consensus version is supported
+   * by this node
+   */
+  public nextVersionSupported?: boolean;
+
+  /**
+   * StoppedAtUnsupportedRound indicates that the node does not support the new
+   * rounds and has stopped making progress
+   */
+  public stoppedAtUnsupportedRound?: boolean;
+
+  /**
+   * TimeSinceLastRound in nanoseconds
+   */
+  public timeSinceLastRound?: number | bigint;
 
   /**
    * Upgrade delay
@@ -3628,16 +3748,6 @@ export class NodeStatusResponse extends BaseModel {
 
   /**
    * Creates a new `NodeStatusResponse` object.
-   * @param catchupTime - CatchupTime in nanoseconds
-   * @param lastRound - LastRound indicates the last round seen
-   * @param lastVersion - LastVersion indicates the last consensus version supported
-   * @param nextVersion - NextVersion of consensus protocol to use
-   * @param nextVersionRound - NextVersionRound is the round at which the next consensus version will apply
-   * @param nextVersionSupported - NextVersionSupported indicates whether the next consensus version is supported
-   * by this node
-   * @param stoppedAtUnsupportedRound - StoppedAtUnsupportedRound indicates that the node does not support the new
-   * rounds and has stopped making progress
-   * @param timeSinceLastRound - TimeSinceLastRound in nanoseconds
    * @param catchpoint - The current catchpoint that is being caught up to
    * @param catchpointAcquiredBlocks - The number of blocks that have already been obtained by the node as part of the
    * catchup
@@ -3653,7 +3763,17 @@ export class NodeStatusResponse extends BaseModel {
    * far as part of the catchup
    * @param catchpointVerifiedKvs - The number of key-values (KVs) from the current catchpoint that have been
    * verified so far as part of the catchup
+   * @param catchupTime - CatchupTime in nanoseconds
    * @param lastCatchpoint - The last catchpoint seen by the node
+   * @param lastRound - LastRound indicates the last round seen
+   * @param lastVersion - LastVersion indicates the last consensus version supported
+   * @param nextVersion - NextVersion of consensus protocol to use
+   * @param nextVersionRound - NextVersionRound is the round at which the next consensus version will apply
+   * @param nextVersionSupported - NextVersionSupported indicates whether the next consensus version is supported
+   * by this node
+   * @param stoppedAtUnsupportedRound - StoppedAtUnsupportedRound indicates that the node does not support the new
+   * rounds and has stopped making progress
+   * @param timeSinceLastRound - TimeSinceLastRound in nanoseconds
    * @param upgradeDelay - Upgrade delay
    * @param upgradeNextProtocolVoteBefore - Next protocol round
    * @param upgradeNoVotes - No votes cast for consensus upgrade
@@ -3664,14 +3784,6 @@ export class NodeStatusResponse extends BaseModel {
    * @param upgradeYesVotes - Yes votes cast for consensus upgrade
    */
   constructor({
-    catchupTime,
-    lastRound,
-    lastVersion,
-    nextVersion,
-    nextVersionRound,
-    nextVersionSupported,
-    stoppedAtUnsupportedRound,
-    timeSinceLastRound,
     catchpoint,
     catchpointAcquiredBlocks,
     catchpointProcessedAccounts,
@@ -3681,7 +3793,15 @@ export class NodeStatusResponse extends BaseModel {
     catchpointTotalKvs,
     catchpointVerifiedAccounts,
     catchpointVerifiedKvs,
+    catchupTime,
     lastCatchpoint,
+    lastRound,
+    lastVersion,
+    nextVersion,
+    nextVersionRound,
+    nextVersionSupported,
+    stoppedAtUnsupportedRound,
+    timeSinceLastRound,
     upgradeDelay,
     upgradeNextProtocolVoteBefore,
     upgradeNoVotes,
@@ -3691,14 +3811,6 @@ export class NodeStatusResponse extends BaseModel {
     upgradeVotesRequired,
     upgradeYesVotes,
   }: {
-    catchupTime: number | bigint;
-    lastRound: number | bigint;
-    lastVersion: string;
-    nextVersion: string;
-    nextVersionRound: number | bigint;
-    nextVersionSupported: boolean;
-    stoppedAtUnsupportedRound: boolean;
-    timeSinceLastRound: number | bigint;
     catchpoint?: string;
     catchpointAcquiredBlocks?: number | bigint;
     catchpointProcessedAccounts?: number | bigint;
@@ -3708,7 +3820,15 @@ export class NodeStatusResponse extends BaseModel {
     catchpointTotalKvs?: number | bigint;
     catchpointVerifiedAccounts?: number | bigint;
     catchpointVerifiedKvs?: number | bigint;
+    catchupTime?: number | bigint;
     lastCatchpoint?: string;
+    lastRound?: number | bigint;
+    lastVersion?: string;
+    nextVersion?: string;
+    nextVersionRound?: number | bigint;
+    nextVersionSupported?: boolean;
+    stoppedAtUnsupportedRound?: boolean;
+    timeSinceLastRound?: number | bigint;
     upgradeDelay?: number | bigint;
     upgradeNextProtocolVoteBefore?: number | bigint;
     upgradeNoVotes?: number | bigint;
@@ -3719,14 +3839,6 @@ export class NodeStatusResponse extends BaseModel {
     upgradeYesVotes?: number | bigint;
   }) {
     super();
-    this.catchupTime = catchupTime;
-    this.lastRound = lastRound;
-    this.lastVersion = lastVersion;
-    this.nextVersion = nextVersion;
-    this.nextVersionRound = nextVersionRound;
-    this.nextVersionSupported = nextVersionSupported;
-    this.stoppedAtUnsupportedRound = stoppedAtUnsupportedRound;
-    this.timeSinceLastRound = timeSinceLastRound;
     this.catchpoint = catchpoint;
     this.catchpointAcquiredBlocks = catchpointAcquiredBlocks;
     this.catchpointProcessedAccounts = catchpointProcessedAccounts;
@@ -3736,7 +3848,15 @@ export class NodeStatusResponse extends BaseModel {
     this.catchpointTotalKvs = catchpointTotalKvs;
     this.catchpointVerifiedAccounts = catchpointVerifiedAccounts;
     this.catchpointVerifiedKvs = catchpointVerifiedKvs;
+    this.catchupTime = catchupTime;
     this.lastCatchpoint = lastCatchpoint;
+    this.lastRound = lastRound;
+    this.lastVersion = lastVersion;
+    this.nextVersion = nextVersion;
+    this.nextVersionRound = nextVersionRound;
+    this.nextVersionSupported = nextVersionSupported;
+    this.stoppedAtUnsupportedRound = stoppedAtUnsupportedRound;
+    this.timeSinceLastRound = timeSinceLastRound;
     this.upgradeDelay = upgradeDelay;
     this.upgradeNextProtocolVoteBefore = upgradeNextProtocolVoteBefore;
     this.upgradeNoVotes = upgradeNoVotes;
@@ -3747,14 +3867,6 @@ export class NodeStatusResponse extends BaseModel {
     this.upgradeYesVotes = upgradeYesVotes;
 
     this.attribute_map = {
-      catchupTime: 'catchup-time',
-      lastRound: 'last-round',
-      lastVersion: 'last-version',
-      nextVersion: 'next-version',
-      nextVersionRound: 'next-version-round',
-      nextVersionSupported: 'next-version-supported',
-      stoppedAtUnsupportedRound: 'stopped-at-unsupported-round',
-      timeSinceLastRound: 'time-since-last-round',
       catchpoint: 'catchpoint',
       catchpointAcquiredBlocks: 'catchpoint-acquired-blocks',
       catchpointProcessedAccounts: 'catchpoint-processed-accounts',
@@ -3764,7 +3876,15 @@ export class NodeStatusResponse extends BaseModel {
       catchpointTotalKvs: 'catchpoint-total-kvs',
       catchpointVerifiedAccounts: 'catchpoint-verified-accounts',
       catchpointVerifiedKvs: 'catchpoint-verified-kvs',
+      catchupTime: 'catchup-time',
       lastCatchpoint: 'last-catchpoint',
+      lastRound: 'last-round',
+      lastVersion: 'last-version',
+      nextVersion: 'next-version',
+      nextVersionRound: 'next-version-round',
+      nextVersionSupported: 'next-version-supported',
+      stoppedAtUnsupportedRound: 'stopped-at-unsupported-round',
+      timeSinceLastRound: 'time-since-last-round',
       upgradeDelay: 'upgrade-delay',
       upgradeNextProtocolVoteBefore: 'upgrade-next-protocol-vote-before',
       upgradeNoVotes: 'upgrade-no-votes',
@@ -3779,47 +3899,7 @@ export class NodeStatusResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): NodeStatusResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['catchup-time'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'catchup-time': ${data}`
-      );
-    if (typeof data['last-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'last-round': ${data}`
-      );
-    if (typeof data['last-version'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'last-version': ${data}`
-      );
-    if (typeof data['next-version'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'next-version': ${data}`
-      );
-    if (typeof data['next-version-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'next-version-round': ${data}`
-      );
-    if (typeof data['next-version-supported'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'next-version-supported': ${data}`
-      );
-    if (typeof data['stopped-at-unsupported-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'stopped-at-unsupported-round': ${data}`
-      );
-    if (typeof data['time-since-last-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'time-since-last-round': ${data}`
-      );
     return new NodeStatusResponse({
-      catchupTime: data['catchup-time'],
-      lastRound: data['last-round'],
-      lastVersion: data['last-version'],
-      nextVersion: data['next-version'],
-      nextVersionRound: data['next-version-round'],
-      nextVersionSupported: data['next-version-supported'],
-      stoppedAtUnsupportedRound: data['stopped-at-unsupported-round'],
-      timeSinceLastRound: data['time-since-last-round'],
       catchpoint: data['catchpoint'],
       catchpointAcquiredBlocks: data['catchpoint-acquired-blocks'],
       catchpointProcessedAccounts: data['catchpoint-processed-accounts'],
@@ -3829,7 +3909,15 @@ export class NodeStatusResponse extends BaseModel {
       catchpointTotalKvs: data['catchpoint-total-kvs'],
       catchpointVerifiedAccounts: data['catchpoint-verified-accounts'],
       catchpointVerifiedKvs: data['catchpoint-verified-kvs'],
+      catchupTime: data['catchup-time'],
       lastCatchpoint: data['last-catchpoint'],
+      lastRound: data['last-round'],
+      lastVersion: data['last-version'],
+      nextVersion: data['next-version'],
+      nextVersionRound: data['next-version-round'],
+      nextVersionSupported: data['next-version-supported'],
+      stoppedAtUnsupportedRound: data['stopped-at-unsupported-round'],
+      timeSinceLastRound: data['time-since-last-round'],
       upgradeDelay: data['upgrade-delay'],
       upgradeNextProtocolVoteBefore: data['upgrade-next-protocol-vote-before'],
       upgradeNoVotes: data['upgrade-no-votes'],
@@ -3892,8 +3980,7 @@ export class PendingTransactionResponse extends BaseModel {
   public confirmedRound?: number | bigint;
 
   /**
-   * Global state key/value changes for the application being executed by this
-   * transaction.
+   * Application state delta.
    */
   public globalStateDelta?: EvalDeltaKeyValue[];
 
@@ -3936,8 +4023,7 @@ export class PendingTransactionResponse extends BaseModel {
    * @param closeRewards - Rewards in microalgos applied to the close remainder to account.
    * @param closingAmount - Closing amount for the transaction.
    * @param confirmedRound - The round where this transaction was confirmed, if present.
-   * @param globalStateDelta - Global state key/value changes for the application being executed by this
-   * transaction.
+   * @param globalStateDelta - Application state delta.
    * @param innerTxns - Inner transactions produced by application execution.
    * @param localStateDelta - Local state key/value changes for the application being executed by this
    * transaction.
@@ -4065,12 +4151,12 @@ export class PendingTransactionsResponse extends BaseModel {
   /**
    * An array of signed transaction objects.
    */
-  public topTransactions: EncodedSignedTransaction[];
+  public topTransactions?: EncodedSignedTransaction[];
 
   /**
    * Total number of transactions in the pool.
    */
-  public totalTransactions: number | bigint;
+  public totalTransactions?: number | bigint;
 
   /**
    * Creates a new `PendingTransactionsResponse` object.
@@ -4081,8 +4167,8 @@ export class PendingTransactionsResponse extends BaseModel {
     topTransactions,
     totalTransactions,
   }: {
-    topTransactions: EncodedSignedTransaction[];
-    totalTransactions: number | bigint;
+    topTransactions?: EncodedSignedTransaction[];
+    totalTransactions?: number | bigint;
   }) {
     super();
     this.topTransactions = topTransactions;
@@ -4099,14 +4185,6 @@ export class PendingTransactionsResponse extends BaseModel {
     data: Record<string, any>
   ): PendingTransactionsResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['top-transactions']))
-      throw new Error(
-        `Response is missing required array field 'top-transactions': ${data}`
-      );
-    if (typeof data['total-transactions'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'total-transactions': ${data}`
-      );
     return new PendingTransactionsResponse({
       topTransactions: data['top-transactions'],
       totalTransactions: data['total-transactions'],
@@ -4122,13 +4200,13 @@ export class PostTransactionsResponse extends BaseModel {
   /**
    * encoding of the transaction hash.
    */
-  public txid: string;
+  public txid?: string;
 
   /**
    * Creates a new `PostTransactionsResponse` object.
    * @param txid - encoding of the transaction hash.
    */
-  constructor({ txid }: { txid: string }) {
+  constructor({ txid }: { txid?: string }) {
     super();
     this.txid = txid;
 
@@ -4142,8 +4220,6 @@ export class PostTransactionsResponse extends BaseModel {
     data: Record<string, any>
   ): PostTransactionsResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['txId'] === 'undefined')
-      throw new Error(`Response is missing required field 'txId': ${data}`);
     return new PostTransactionsResponse({
       txid: data['txId'],
     });
@@ -4424,22 +4500,6 @@ export class SimulateRequestTransactionGroup extends BaseModel {
  */
 export class SimulateResponse extends BaseModel {
   /**
-   * The round immediately preceding this simulation. State changes through this
-   * round were used to run this simulation.
-   */
-  public lastRound: number | bigint;
-
-  /**
-   * A result object for each transaction group that was simulated.
-   */
-  public txnGroups: SimulateTransactionGroupResult[];
-
-  /**
-   * The version of this response object.
-   */
-  public version: number | bigint;
-
-  /**
    * The set of parameters and limits override during simulation. If this set of
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
@@ -4457,69 +4517,70 @@ export class SimulateResponse extends BaseModel {
   public initialStates?: SimulateInitialStates;
 
   /**
-   * Creates a new `SimulateResponse` object.
-   * @param lastRound - The round immediately preceding this simulation. State changes through this
+   * The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
-   * @param txnGroups - A result object for each transaction group that was simulated.
-   * @param version - The version of this response object.
+   */
+  public lastRound?: number | bigint;
+
+  /**
+   * A result object for each transaction group that was simulated.
+   */
+  public txnGroups?: SimulateTransactionGroupResult[];
+
+  /**
+   * The version of this response object.
+   */
+  public version?: number | bigint;
+
+  /**
+   * Creates a new `SimulateResponse` object.
    * @param evalOverrides - The set of parameters and limits override during simulation. If this set of
    * parameters is present, then evaluation parameters may differ from standard
    * evaluation in certain ways.
    * @param execTraceConfig - An object that configures simulation execution trace.
    * @param initialStates - Initial states of resources that were accessed during simulation.
+   * @param lastRound - The round immediately preceding this simulation. State changes through this
+   * round were used to run this simulation.
+   * @param txnGroups - A result object for each transaction group that was simulated.
+   * @param version - The version of this response object.
    */
   constructor({
-    lastRound,
-    txnGroups,
-    version,
     evalOverrides,
     execTraceConfig,
     initialStates,
+    lastRound,
+    txnGroups,
+    version,
   }: {
-    lastRound: number | bigint;
-    txnGroups: SimulateTransactionGroupResult[];
-    version: number | bigint;
     evalOverrides?: SimulationEvalOverrides;
     execTraceConfig?: SimulateTraceConfig;
     initialStates?: SimulateInitialStates;
+    lastRound?: number | bigint;
+    txnGroups?: SimulateTransactionGroupResult[];
+    version?: number | bigint;
   }) {
     super();
-    this.lastRound = lastRound;
-    this.txnGroups = txnGroups;
-    this.version = version;
     this.evalOverrides = evalOverrides;
     this.execTraceConfig = execTraceConfig;
     this.initialStates = initialStates;
+    this.lastRound = lastRound;
+    this.txnGroups = txnGroups;
+    this.version = version;
 
     this.attribute_map = {
-      lastRound: 'last-round',
-      txnGroups: 'txn-groups',
-      version: 'version',
       evalOverrides: 'eval-overrides',
       execTraceConfig: 'exec-trace-config',
       initialStates: 'initial-states',
+      lastRound: 'last-round',
+      txnGroups: 'txn-groups',
+      version: 'version',
     };
   }
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): SimulateResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['last-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'last-round': ${data}`
-      );
-    if (!Array.isArray(data['txn-groups']))
-      throw new Error(
-        `Response is missing required array field 'txn-groups': ${data}`
-      );
-    if (typeof data['version'] === 'undefined')
-      throw new Error(`Response is missing required field 'version': ${data}`);
     return new SimulateResponse({
-      lastRound: data['last-round'],
-      txnGroups: data['txn-groups'].map(
-        SimulateTransactionGroupResult.from_obj_for_encoding
-      ),
-      version: data['version'],
       evalOverrides:
         typeof data['eval-overrides'] !== 'undefined'
           ? SimulationEvalOverrides.from_obj_for_encoding(
@@ -4534,6 +4595,14 @@ export class SimulateResponse extends BaseModel {
         typeof data['initial-states'] !== 'undefined'
           ? SimulateInitialStates.from_obj_for_encoding(data['initial-states'])
           : undefined,
+      lastRound: data['last-round'],
+      txnGroups:
+        typeof data['txn-groups'] !== 'undefined'
+          ? data['txn-groups'].map(
+              SimulateTransactionGroupResult.from_obj_for_encoding
+            )
+          : undefined,
+      version: data['version'],
     });
     /* eslint-enable dot-notation */
   }
@@ -5552,17 +5621,17 @@ export class SupplyResponse extends BaseModel {
   /**
    * Round
    */
-  public currentRound: number | bigint;
+  public currentRound?: number | bigint;
 
   /**
    * OnlineMoney
    */
-  public onlineMoney: number | bigint;
+  public onlineMoney?: number | bigint;
 
   /**
    * TotalMoney
    */
-  public totalMoney: number | bigint;
+  public totalMoney?: number | bigint;
 
   /**
    * Creates a new `SupplyResponse` object.
@@ -5575,9 +5644,9 @@ export class SupplyResponse extends BaseModel {
     onlineMoney,
     totalMoney,
   }: {
-    currentRound: number | bigint;
-    onlineMoney: number | bigint;
-    totalMoney: number | bigint;
+    currentRound?: number | bigint;
+    onlineMoney?: number | bigint;
+    totalMoney?: number | bigint;
   }) {
     super();
     this.currentRound = currentRound;
@@ -5594,18 +5663,6 @@ export class SupplyResponse extends BaseModel {
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(data: Record<string, any>): SupplyResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['current_round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'current_round': ${data}`
-      );
-    if (typeof data['online-money'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'online-money': ${data}`
-      );
-    if (typeof data['total-money'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'total-money': ${data}`
-      );
     return new SupplyResponse({
       currentRound: data['current_round'],
       onlineMoney: data['online-money'],
@@ -5726,13 +5783,13 @@ export class TealValue extends BaseModel {
  * associated Ids, in a single round.
  */
 export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel {
-  public deltas: LedgerStateDeltaForTransactionGroup[];
+  public deltas?: LedgerStateDeltaForTransactionGroup[];
 
   /**
    * Creates a new `TransactionGroupLedgerStateDeltasForRoundResponse` object.
    * @param deltas -
    */
-  constructor({ deltas }: { deltas: LedgerStateDeltaForTransactionGroup[] }) {
+  constructor({ deltas }: { deltas?: LedgerStateDeltaForTransactionGroup[] }) {
     super();
     this.deltas = deltas;
 
@@ -5746,14 +5803,13 @@ export class TransactionGroupLedgerStateDeltasForRoundResponse extends BaseModel
     data: Record<string, any>
   ): TransactionGroupLedgerStateDeltasForRoundResponse {
     /* eslint-disable dot-notation */
-    if (!Array.isArray(data['Deltas']))
-      throw new Error(
-        `Response is missing required array field 'Deltas': ${data}`
-      );
     return new TransactionGroupLedgerStateDeltasForRoundResponse({
-      deltas: data['Deltas'].map(
-        LedgerStateDeltaForTransactionGroup.from_obj_for_encoding
-      ),
+      deltas:
+        typeof data['Deltas'] !== 'undefined'
+          ? data['Deltas'].map(
+              LedgerStateDeltaForTransactionGroup.from_obj_for_encoding
+            )
+          : undefined,
     });
     /* eslint-enable dot-notation */
   }
@@ -5768,7 +5824,7 @@ export class TransactionParametersResponse extends BaseModel {
    * ConsensusVersion indicates the consensus protocol version
    * as of LastRound.
    */
-  public consensusVersion: string;
+  public consensusVersion?: string;
 
   /**
    * Fee is the suggested transaction fee
@@ -5776,28 +5832,28 @@ export class TransactionParametersResponse extends BaseModel {
    * Fee may fall to zero but transactions must still have a fee of
    * at least MinTxnFee for the current network protocol.
    */
-  public fee: number | bigint;
+  public fee?: number | bigint;
 
   /**
    * GenesisHash is the hash of the genesis block.
    */
-  public genesisHash: Uint8Array;
+  public genesisHash?: Uint8Array;
 
   /**
    * GenesisID is an ID listed in the genesis block.
    */
-  public genesisId: string;
+  public genesisId?: string;
 
   /**
    * LastRound indicates the last round seen
    */
-  public lastRound: number | bigint;
+  public lastRound?: number | bigint;
 
   /**
    * The minimum transaction fee (not per byte) required for the
    * txn to validate for the current network protocol.
    */
-  public minFee: number | bigint;
+  public minFee?: number | bigint;
 
   /**
    * Creates a new `TransactionParametersResponse` object.
@@ -5821,12 +5877,12 @@ export class TransactionParametersResponse extends BaseModel {
     lastRound,
     minFee,
   }: {
-    consensusVersion: string;
-    fee: number | bigint;
-    genesisHash: string | Uint8Array;
-    genesisId: string;
-    lastRound: number | bigint;
-    minFee: number | bigint;
+    consensusVersion?: string;
+    fee?: number | bigint;
+    genesisHash?: string | Uint8Array;
+    genesisId?: string;
+    lastRound?: number | bigint;
+    minFee?: number | bigint;
   }) {
     super();
     this.consensusVersion = consensusVersion;
@@ -5854,26 +5910,6 @@ export class TransactionParametersResponse extends BaseModel {
     data: Record<string, any>
   ): TransactionParametersResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['consensus-version'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'consensus-version': ${data}`
-      );
-    if (typeof data['fee'] === 'undefined')
-      throw new Error(`Response is missing required field 'fee': ${data}`);
-    if (typeof data['genesis-hash'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'genesis-hash': ${data}`
-      );
-    if (typeof data['genesis-id'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'genesis-id': ${data}`
-      );
-    if (typeof data['last-round'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'last-round': ${data}`
-      );
-    if (typeof data['min-fee'] === 'undefined')
-      throw new Error(`Response is missing required field 'min-fee': ${data}`);
     return new TransactionParametersResponse({
       consensusVersion: data['consensus-version'],
       fee: data['fee'],
@@ -5891,27 +5927,6 @@ export class TransactionParametersResponse extends BaseModel {
  */
 export class TransactionProofResponse extends BaseModel {
   /**
-   * Index of the transaction in the block's payset.
-   */
-  public idx: number | bigint;
-
-  /**
-   * Proof of transaction membership.
-   */
-  public proof: Uint8Array;
-
-  /**
-   * Hash of SignedTxnInBlock for verifying proof.
-   */
-  public stibhash: Uint8Array;
-
-  /**
-   * Represents the depth of the tree that is being proven, i.e. the number of edges
-   * from a leaf to the root.
-   */
-  public treedepth: number | bigint;
-
-  /**
    * The type of hash function used to create the proof, must be one of:
    * * sha512_256
    * * sha256
@@ -5919,30 +5934,52 @@ export class TransactionProofResponse extends BaseModel {
   public hashtype?: string;
 
   /**
+   * Index of the transaction in the block's payset.
+   */
+  public idx?: number | bigint;
+
+  /**
+   * Proof of transaction membership.
+   */
+  public proof?: Uint8Array;
+
+  /**
+   * Hash of SignedTxnInBlock for verifying proof.
+   */
+  public stibhash?: Uint8Array;
+
+  /**
+   * Represents the depth of the tree that is being proven, i.e. the number of edges
+   * from a leaf to the root.
+   */
+  public treedepth?: number | bigint;
+
+  /**
    * Creates a new `TransactionProofResponse` object.
+   * @param hashtype - The type of hash function used to create the proof, must be one of:
+   * * sha512_256
+   * * sha256
    * @param idx - Index of the transaction in the block's payset.
    * @param proof - Proof of transaction membership.
    * @param stibhash - Hash of SignedTxnInBlock for verifying proof.
    * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
    * from a leaf to the root.
-   * @param hashtype - The type of hash function used to create the proof, must be one of:
-   * * sha512_256
-   * * sha256
    */
   constructor({
+    hashtype,
     idx,
     proof,
     stibhash,
     treedepth,
-    hashtype,
   }: {
-    idx: number | bigint;
-    proof: string | Uint8Array;
-    stibhash: string | Uint8Array;
-    treedepth: number | bigint;
     hashtype?: string;
+    idx?: number | bigint;
+    proof?: string | Uint8Array;
+    stibhash?: string | Uint8Array;
+    treedepth?: number | bigint;
   }) {
     super();
+    this.hashtype = hashtype;
     this.idx = idx;
     this.proof =
       typeof proof === 'string'
@@ -5953,14 +5990,13 @@ export class TransactionProofResponse extends BaseModel {
         ? new Uint8Array(Buffer.from(stibhash, 'base64'))
         : stibhash;
     this.treedepth = treedepth;
-    this.hashtype = hashtype;
 
     this.attribute_map = {
+      hashtype: 'hashtype',
       idx: 'idx',
       proof: 'proof',
       stibhash: 'stibhash',
       treedepth: 'treedepth',
-      hashtype: 'hashtype',
     };
   }
 
@@ -5969,22 +6005,12 @@ export class TransactionProofResponse extends BaseModel {
     data: Record<string, any>
   ): TransactionProofResponse {
     /* eslint-disable dot-notation */
-    if (typeof data['idx'] === 'undefined')
-      throw new Error(`Response is missing required field 'idx': ${data}`);
-    if (typeof data['proof'] === 'undefined')
-      throw new Error(`Response is missing required field 'proof': ${data}`);
-    if (typeof data['stibhash'] === 'undefined')
-      throw new Error(`Response is missing required field 'stibhash': ${data}`);
-    if (typeof data['treedepth'] === 'undefined')
-      throw new Error(
-        `Response is missing required field 'treedepth': ${data}`
-      );
     return new TransactionProofResponse({
+      hashtype: data['hashtype'],
       idx: data['idx'],
       proof: data['proof'],
       stibhash: data['stibhash'],
       treedepth: data['treedepth'],
-      hashtype: data['hashtype'],
     });
     /* eslint-enable dot-notation */
   }
