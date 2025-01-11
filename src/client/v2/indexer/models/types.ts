@@ -383,15 +383,15 @@ export class Account extends BaseModel {
       throw new Error(`Response is missing required field 'amount': ${data}`);
     if (typeof data['amount-without-pending-rewards'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'amount-without-pending-rewards': ${data}`,
+        `Response is missing required field 'amount-without-pending-rewards': ${data}`
       );
     if (typeof data['min-balance'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'min-balance': ${data}`,
+        `Response is missing required field 'min-balance': ${data}`
       );
     if (typeof data['pending-rewards'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'pending-rewards': ${data}`,
+        `Response is missing required field 'pending-rewards': ${data}`
       );
     if (typeof data['rewards'] === 'undefined')
       throw new Error(`Response is missing required field 'rewards': ${data}`);
@@ -401,27 +401,27 @@ export class Account extends BaseModel {
       throw new Error(`Response is missing required field 'status': ${data}`);
     if (typeof data['total-apps-opted-in'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'total-apps-opted-in': ${data}`,
+        `Response is missing required field 'total-apps-opted-in': ${data}`
       );
     if (typeof data['total-assets-opted-in'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'total-assets-opted-in': ${data}`,
+        `Response is missing required field 'total-assets-opted-in': ${data}`
       );
     if (typeof data['total-box-bytes'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'total-box-bytes': ${data}`,
+        `Response is missing required field 'total-box-bytes': ${data}`
       );
     if (typeof data['total-boxes'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'total-boxes': ${data}`,
+        `Response is missing required field 'total-boxes': ${data}`
       );
     if (typeof data['total-created-apps'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'total-created-apps': ${data}`,
+        `Response is missing required field 'total-created-apps': ${data}`
       );
     if (typeof data['total-created-assets'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'total-created-assets': ${data}`,
+        `Response is missing required field 'total-created-assets': ${data}`
       );
     return new Account({
       address: data['address'],
@@ -441,14 +441,14 @@ export class Account extends BaseModel {
       appsLocalState:
         typeof data['apps-local-state'] !== 'undefined'
           ? data['apps-local-state'].map(
-              ApplicationLocalState.from_obj_for_encoding,
+              ApplicationLocalState.from_obj_for_encoding
             )
           : undefined,
       appsTotalExtraPages: data['apps-total-extra-pages'],
       appsTotalSchema:
         typeof data['apps-total-schema'] !== 'undefined'
           ? ApplicationStateSchema.from_obj_for_encoding(
-              data['apps-total-schema'],
+              data['apps-total-schema']
             )
           : undefined,
       assets:
@@ -569,28 +569,28 @@ export class AccountParticipation extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): AccountParticipation {
     /* eslint-disable dot-notation */
     if (typeof data['selection-participation-key'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'selection-participation-key': ${data}`,
+        `Response is missing required field 'selection-participation-key': ${data}`
       );
     if (typeof data['vote-first-valid'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'vote-first-valid': ${data}`,
+        `Response is missing required field 'vote-first-valid': ${data}`
       );
     if (typeof data['vote-key-dilution'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'vote-key-dilution': ${data}`,
+        `Response is missing required field 'vote-key-dilution': ${data}`
       );
     if (typeof data['vote-last-valid'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'vote-last-valid': ${data}`,
+        `Response is missing required field 'vote-last-valid': ${data}`
       );
     if (typeof data['vote-participation-key'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'vote-participation-key': ${data}`,
+        `Response is missing required field 'vote-participation-key': ${data}`
       );
     return new AccountParticipation({
       selectionParticipationKey: data['selection-participation-key'],
@@ -651,7 +651,7 @@ export class AccountResponse extends BaseModel {
       throw new Error(`Response is missing required field 'account': ${data}`);
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new AccountResponse({
       account: Account.from_obj_for_encoding(data['account']),
@@ -701,7 +701,7 @@ export class AccountStateDelta extends BaseModel {
       throw new Error(`Response is missing required field 'address': ${data}`);
     if (!Array.isArray(data['delta']))
       throw new Error(
-        `Response is missing required array field 'delta': ${data}`,
+        `Response is missing required array field 'delta': ${data}`
       );
     return new AccountStateDelta({
       address: data['address'],
@@ -761,11 +761,11 @@ export class AccountsResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['accounts']))
       throw new Error(
-        `Response is missing required array field 'accounts': ${data}`,
+        `Response is missing required array field 'accounts': ${data}`
       );
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new AccountsResponse({
       accounts: data['accounts'].map(Account.from_obj_for_encoding),
@@ -940,7 +940,7 @@ export class ApplicationLocalState extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): ApplicationLocalState {
     /* eslint-disable dot-notation */
     if (typeof data['id'] === 'undefined')
@@ -1009,20 +1009,20 @@ export class ApplicationLocalStatesResponse extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): ApplicationLocalStatesResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['apps-local-states']))
       throw new Error(
-        `Response is missing required array field 'apps-local-states': ${data}`,
+        `Response is missing required array field 'apps-local-states': ${data}`
       );
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new ApplicationLocalStatesResponse({
       appsLocalStates: data['apps-local-states'].map(
-        ApplicationLocalState.from_obj_for_encoding,
+        ApplicationLocalState.from_obj_for_encoding
       ),
       currentRound: data['current-round'],
       nextToken: data['next-token'],
@@ -1066,7 +1066,7 @@ export class ApplicationLogData extends BaseModel {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['logs']))
       throw new Error(
-        `Response is missing required array field 'logs': ${data}`,
+        `Response is missing required array field 'logs': ${data}`
       );
     if (typeof data['txid'] === 'undefined')
       throw new Error(`Response is missing required field 'txid': ${data}`);
@@ -1135,16 +1135,16 @@ export class ApplicationLogsResponse extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): ApplicationLogsResponse {
     /* eslint-disable dot-notation */
     if (typeof data['application-id'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'application-id': ${data}`,
+        `Response is missing required field 'application-id': ${data}`
       );
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new ApplicationLogsResponse({
       applicationId: data['application-id'],
@@ -1258,11 +1258,11 @@ export class ApplicationParams extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['approval-program'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'approval-program': ${data}`,
+        `Response is missing required field 'approval-program': ${data}`
       );
     if (typeof data['clear-state-program'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'clear-state-program': ${data}`,
+        `Response is missing required field 'clear-state-program': ${data}`
       );
     return new ApplicationParams({
       approvalProgram: data['approval-program'],
@@ -1276,13 +1276,13 @@ export class ApplicationParams extends BaseModel {
       globalStateSchema:
         typeof data['global-state-schema'] !== 'undefined'
           ? ApplicationStateSchema.from_obj_for_encoding(
-              data['global-state-schema'],
+              data['global-state-schema']
             )
           : undefined,
       localStateSchema:
         typeof data['local-state-schema'] !== 'undefined'
           ? ApplicationStateSchema.from_obj_for_encoding(
-              data['local-state-schema'],
+              data['local-state-schema']
             )
           : undefined,
     });
@@ -1331,7 +1331,7 @@ export class ApplicationResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new ApplicationResponse({
       currentRound: data['current-round'],
@@ -1382,12 +1382,12 @@ export class ApplicationStateSchema extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): ApplicationStateSchema {
     /* eslint-disable dot-notation */
     if (typeof data['num-byte-slice'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'num-byte-slice': ${data}`,
+        `Response is missing required field 'num-byte-slice': ${data}`
       );
     if (typeof data['num-uint'] === 'undefined')
       throw new Error(`Response is missing required field 'num-uint': ${data}`);
@@ -1446,16 +1446,16 @@ export class ApplicationsResponse extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): ApplicationsResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['applications']))
       throw new Error(
-        `Response is missing required array field 'applications': ${data}`,
+        `Response is missing required array field 'applications': ${data}`
       );
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new ApplicationsResponse({
       applications: data['applications'].map(Application.from_obj_for_encoding),
@@ -1603,16 +1603,16 @@ export class AssetBalancesResponse extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): AssetBalancesResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['balances']))
       throw new Error(
-        `Response is missing required array field 'balances': ${data}`,
+        `Response is missing required array field 'balances': ${data}`
       );
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new AssetBalancesResponse({
       balances: data['balances'].map(MiniAssetHolding.from_obj_for_encoding),
@@ -1710,7 +1710,7 @@ export class AssetHolding extends BaseModel {
       throw new Error(`Response is missing required field 'asset-id': ${data}`);
     if (typeof data['is-frozen'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'is-frozen': ${data}`,
+        `Response is missing required field 'is-frozen': ${data}`
       );
     return new AssetHolding({
       amount: data['amount'],
@@ -1771,16 +1771,16 @@ export class AssetHoldingsResponse extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): AssetHoldingsResponse {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['assets']))
       throw new Error(
-        `Response is missing required array field 'assets': ${data}`,
+        `Response is missing required array field 'assets': ${data}`
       );
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new AssetHoldingsResponse({
       assets: data['assets'].map(AssetHolding.from_obj_for_encoding),
@@ -2067,7 +2067,7 @@ export class AssetResponse extends BaseModel {
       throw new Error(`Response is missing required field 'asset': ${data}`);
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new AssetResponse({
       asset: Asset.from_obj_for_encoding(data['asset']),
@@ -2127,11 +2127,11 @@ export class AssetsResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (!Array.isArray(data['assets']))
       throw new Error(
-        `Response is missing required array field 'assets': ${data}`,
+        `Response is missing required array field 'assets': ${data}`
       );
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     return new AssetsResponse({
       assets: data['assets'].map(Asset.from_obj_for_encoding),
@@ -2394,15 +2394,15 @@ export class Block extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['genesis-hash'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'genesis-hash': ${data}`,
+        `Response is missing required field 'genesis-hash': ${data}`
       );
     if (typeof data['genesis-id'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'genesis-id': ${data}`,
+        `Response is missing required field 'genesis-id': ${data}`
       );
     if (typeof data['previous-block-hash'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'previous-block-hash': ${data}`,
+        `Response is missing required field 'previous-block-hash': ${data}`
       );
     if (typeof data['round'] === 'undefined')
       throw new Error(`Response is missing required field 'round': ${data}`);
@@ -2410,15 +2410,15 @@ export class Block extends BaseModel {
       throw new Error(`Response is missing required field 'seed': ${data}`);
     if (typeof data['timestamp'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'timestamp': ${data}`,
+        `Response is missing required field 'timestamp': ${data}`
       );
     if (typeof data['transactions-root'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'transactions-root': ${data}`,
+        `Response is missing required field 'transactions-root': ${data}`
       );
     if (typeof data['transactions-root-sha256'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'transactions-root-sha256': ${data}`,
+        `Response is missing required field 'transactions-root-sha256': ${data}`
       );
     return new Block({
       genesisHash: data['genesis-hash'],
@@ -2434,7 +2434,7 @@ export class Block extends BaseModel {
       participationUpdates:
         typeof data['participation-updates'] !== 'undefined'
           ? ParticipationUpdates.from_obj_for_encoding(
-              data['participation-updates'],
+              data['participation-updates']
             )
           : undefined,
       proposer: data['proposer'],
@@ -2446,7 +2446,7 @@ export class Block extends BaseModel {
       stateProofTracking:
         typeof data['state-proof-tracking'] !== 'undefined'
           ? data['state-proof-tracking'].map(
-              StateProofTracking.from_obj_for_encoding,
+              StateProofTracking.from_obj_for_encoding
             )
           : undefined,
       transactions:
@@ -2514,7 +2514,7 @@ export class BlockHeadersResponse extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): BlockHeadersResponse {
     /* eslint-disable dot-notation */
     return new BlockHeadersResponse({
@@ -2622,23 +2622,23 @@ export class BlockRewards extends BaseModel {
       throw new Error(`Response is missing required field 'fee-sink': ${data}`);
     if (typeof data['rewards-calculation-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'rewards-calculation-round': ${data}`,
+        `Response is missing required field 'rewards-calculation-round': ${data}`
       );
     if (typeof data['rewards-level'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'rewards-level': ${data}`,
+        `Response is missing required field 'rewards-level': ${data}`
       );
     if (typeof data['rewards-pool'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'rewards-pool': ${data}`,
+        `Response is missing required field 'rewards-pool': ${data}`
       );
     if (typeof data['rewards-rate'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'rewards-rate': ${data}`,
+        `Response is missing required field 'rewards-rate': ${data}`
       );
     if (typeof data['rewards-residue'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'rewards-residue': ${data}`,
+        `Response is missing required field 'rewards-residue': ${data}`
       );
     return new BlockRewards({
       feeSink: data['fee-sink'],
@@ -2725,7 +2725,7 @@ export class BlockUpgradeState extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['current-protocol'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-protocol': ${data}`,
+        `Response is missing required field 'current-protocol': ${data}`
       );
     return new BlockUpgradeState({
       currentProtocol: data['current-protocol'],
@@ -2953,11 +2953,11 @@ export class BoxesResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['application-id'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'application-id': ${data}`,
+        `Response is missing required field 'application-id': ${data}`
       );
     if (!Array.isArray(data['boxes']))
       throw new Error(
-        `Response is missing required array field 'boxes': ${data}`,
+        `Response is missing required array field 'boxes': ${data}`
       );
     return new BoxesResponse({
       applicationId: data['application-id'],
@@ -3315,11 +3315,11 @@ export class HealthCheck extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['db-available'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'db-available': ${data}`,
+        `Response is missing required field 'db-available': ${data}`
       );
     if (typeof data['is-migrating'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'is-migrating': ${data}`,
+        `Response is missing required field 'is-migrating': ${data}`
       );
     if (typeof data['message'] === 'undefined')
       throw new Error(`Response is missing required field 'message': ${data}`);
@@ -3411,7 +3411,7 @@ export class IndexerStateProofMessage extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): IndexerStateProofMessage {
     /* eslint-disable dot-notation */
     return new IndexerStateProofMessage({
@@ -3556,7 +3556,7 @@ export class MiniAssetHolding extends BaseModel {
       throw new Error(`Response is missing required field 'amount': ${data}`);
     if (typeof data['is-frozen'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'is-frozen': ${data}`,
+        `Response is missing required field 'is-frozen': ${data}`
       );
     return new MiniAssetHolding({
       address: data['address'],
@@ -3610,7 +3610,7 @@ export class ParticipationUpdates extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): ParticipationUpdates {
     /* eslint-disable dot-notation */
     return new ParticipationUpdates({
@@ -3774,7 +3774,7 @@ export class StateProofParticipant extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): StateProofParticipant {
     /* eslint-disable dot-notation */
     return new StateProofParticipant({
@@ -4125,7 +4125,7 @@ export class StateSchema extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['num-byte-slice'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'num-byte-slice': ${data}`,
+        `Response is missing required field 'num-byte-slice': ${data}`
       );
     if (typeof data['num-uint'] === 'undefined')
       throw new Error(`Response is missing required field 'num-uint': ${data}`);
@@ -4716,11 +4716,11 @@ export class Transaction extends BaseModel {
       throw new Error(`Response is missing required field 'fee': ${data}`);
     if (typeof data['first-valid'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'first-valid': ${data}`,
+        `Response is missing required field 'first-valid': ${data}`
       );
     if (typeof data['last-valid'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'last-valid': ${data}`,
+        `Response is missing required field 'last-valid': ${data}`
       );
     if (typeof data['sender'] === 'undefined')
       throw new Error(`Response is missing required field 'sender': ${data}`);
@@ -4732,25 +4732,25 @@ export class Transaction extends BaseModel {
       applicationTransaction:
         typeof data['application-transaction'] !== 'undefined'
           ? TransactionApplication.from_obj_for_encoding(
-              data['application-transaction'],
+              data['application-transaction']
             )
           : undefined,
       assetConfigTransaction:
         typeof data['asset-config-transaction'] !== 'undefined'
           ? TransactionAssetConfig.from_obj_for_encoding(
-              data['asset-config-transaction'],
+              data['asset-config-transaction']
             )
           : undefined,
       assetFreezeTransaction:
         typeof data['asset-freeze-transaction'] !== 'undefined'
           ? TransactionAssetFreeze.from_obj_for_encoding(
-              data['asset-freeze-transaction'],
+              data['asset-freeze-transaction']
             )
           : undefined,
       assetTransferTransaction:
         typeof data['asset-transfer-transaction'] !== 'undefined'
           ? TransactionAssetTransfer.from_obj_for_encoding(
-              data['asset-transfer-transaction'],
+              data['asset-transfer-transaction']
             )
           : undefined,
       authAddr: data['auth-addr'],
@@ -4764,14 +4764,14 @@ export class Transaction extends BaseModel {
       globalStateDelta:
         typeof data['global-state-delta'] !== 'undefined'
           ? data['global-state-delta'].map(
-              EvalDeltaKeyValue.from_obj_for_encoding,
+              EvalDeltaKeyValue.from_obj_for_encoding
             )
           : undefined,
       group: data['group'],
       heartbeatTransaction:
         typeof data['heartbeat-transaction'] !== 'undefined'
           ? TransactionHeartbeat.from_obj_for_encoding(
-              data['heartbeat-transaction'],
+              data['heartbeat-transaction']
             )
           : undefined,
       id: data['id'],
@@ -4788,7 +4788,7 @@ export class Transaction extends BaseModel {
       localStateDelta:
         typeof data['local-state-delta'] !== 'undefined'
           ? data['local-state-delta'].map(
-              AccountStateDelta.from_obj_for_encoding,
+              AccountStateDelta.from_obj_for_encoding
             )
           : undefined,
       logs: data['logs'],
@@ -4796,7 +4796,7 @@ export class Transaction extends BaseModel {
       paymentTransaction:
         typeof data['payment-transaction'] !== 'undefined'
           ? TransactionPayment.from_obj_for_encoding(
-              data['payment-transaction'],
+              data['payment-transaction']
             )
           : undefined,
       receiverRewards: data['receiver-rewards'],
@@ -4810,7 +4810,7 @@ export class Transaction extends BaseModel {
       stateProofTransaction:
         typeof data['state-proof-transaction'] !== 'undefined'
           ? TransactionStateProof.from_obj_for_encoding(
-              data['state-proof-transaction'],
+              data['state-proof-transaction']
             )
           : undefined,
       txType: data['tx-type'],
@@ -5005,12 +5005,12 @@ export class TransactionApplication extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionApplication {
     /* eslint-disable dot-notation */
     if (typeof data['application-id'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'application-id': ${data}`,
+        `Response is missing required field 'application-id': ${data}`
       );
     return new TransactionApplication({
       applicationId: data['application-id'],
@@ -5083,7 +5083,7 @@ export class TransactionAssetConfig extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionAssetConfig {
     /* eslint-disable dot-notation */
     return new TransactionAssetConfig({
@@ -5147,7 +5147,7 @@ export class TransactionAssetFreeze extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionAssetFreeze {
     /* eslint-disable dot-notation */
     if (typeof data['address'] === 'undefined')
@@ -5156,7 +5156,7 @@ export class TransactionAssetFreeze extends BaseModel {
       throw new Error(`Response is missing required field 'asset-id': ${data}`);
     if (typeof data['new-freeze-status'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'new-freeze-status': ${data}`,
+        `Response is missing required field 'new-freeze-status': ${data}`
       );
     return new TransactionAssetFreeze({
       address: data['address'],
@@ -5257,7 +5257,7 @@ export class TransactionAssetTransfer extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionAssetTransfer {
     /* eslint-disable dot-notation */
     if (typeof data['amount'] === 'undefined')
@@ -5358,16 +5358,16 @@ export class TransactionHeartbeat extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionHeartbeat {
     /* eslint-disable dot-notation */
     if (typeof data['hb-address'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'hb-address': ${data}`,
+        `Response is missing required field 'hb-address': ${data}`
       );
     if (typeof data['hb-key-dilution'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'hb-key-dilution': ${data}`,
+        `Response is missing required field 'hb-key-dilution': ${data}`
       );
     if (typeof data['hb-proof'] === 'undefined')
       throw new Error(`Response is missing required field 'hb-proof': ${data}`);
@@ -5375,7 +5375,7 @@ export class TransactionHeartbeat extends BaseModel {
       throw new Error(`Response is missing required field 'hb-seed': ${data}`);
     if (typeof data['hb-vote-id'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'hb-vote-id': ${data}`,
+        `Response is missing required field 'hb-vote-id': ${data}`
       );
     return new TransactionHeartbeat({
       hbAddress: data['hb-address'],
@@ -5631,11 +5631,11 @@ export class TransactionResponse extends BaseModel {
     /* eslint-disable dot-notation */
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     if (typeof data['transaction'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'transaction': ${data}`,
+        `Response is missing required field 'transaction': ${data}`
       );
     return new TransactionResponse({
       currentRound: data['current-round'],
@@ -5705,7 +5705,7 @@ export class TransactionSignature extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionSignature {
     /* eslint-disable dot-notation */
     return new TransactionSignature({
@@ -5795,7 +5795,7 @@ export class TransactionSignatureLogicsig extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionSignatureLogicsig {
     /* eslint-disable dot-notation */
     if (typeof data['logic'] === 'undefined')
@@ -5806,7 +5806,7 @@ export class TransactionSignatureLogicsig extends BaseModel {
       multisigSignature:
         typeof data['multisig-signature'] !== 'undefined'
           ? TransactionSignatureMultisig.from_obj_for_encoding(
-              data['multisig-signature'],
+              data['multisig-signature']
             )
           : undefined,
       signature: data['signature'],
@@ -5865,14 +5865,14 @@ export class TransactionSignatureMultisig extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionSignatureMultisig {
     /* eslint-disable dot-notation */
     return new TransactionSignatureMultisig({
       subsignature:
         typeof data['subsignature'] !== 'undefined'
           ? data['subsignature'].map(
-              TransactionSignatureMultisigSubsignature.from_obj_for_encoding,
+              TransactionSignatureMultisigSubsignature.from_obj_for_encoding
             )
           : undefined,
       threshold: data['threshold'],
@@ -5923,7 +5923,7 @@ export class TransactionSignatureMultisigSubsignature extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionSignatureMultisigSubsignature {
     /* eslint-disable dot-notation */
     return new TransactionSignatureMultisigSubsignature({
@@ -5990,7 +5990,7 @@ export class TransactionStateProof extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionStateProof {
     /* eslint-disable dot-notation */
     return new TransactionStateProof({
@@ -6055,16 +6055,16 @@ export class TransactionsResponse extends BaseModel {
 
   // eslint-disable-next-line camelcase
   static from_obj_for_encoding(
-    data: Record<string, any>,
+    data: Record<string, any>
   ): TransactionsResponse {
     /* eslint-disable dot-notation */
     if (typeof data['current-round'] === 'undefined')
       throw new Error(
-        `Response is missing required field 'current-round': ${data}`,
+        `Response is missing required field 'current-round': ${data}`
       );
     if (!Array.isArray(data['transactions']))
       throw new Error(
-        `Response is missing required array field 'transactions': ${data}`,
+        `Response is missing required array field 'transactions': ${data}`
       );
     return new TransactionsResponse({
       currentRound: data['current-round'],
