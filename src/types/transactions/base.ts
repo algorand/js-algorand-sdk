@@ -1,5 +1,6 @@
 import { Address } from '../../encoding/address.js';
 import { StateProof, StateProofMessage } from '../../stateproof.js';
+import { HeartbeatProof } from '../../heartbeat.js';
 
 /**
  * Enum for application transaction types.
@@ -38,6 +39,11 @@ export enum TransactionType {
    * State proof transaction
    */
   stpf = 'stpf',
+
+  /**
+   * Heartbeat transaction
+   */
+  hb = 'hb',
 }
 
 /**
@@ -53,7 +59,8 @@ export function isTransactionType(s: string): s is TransactionType {
     s === TransactionType.axfer ||
     s === TransactionType.afrz ||
     s === TransactionType.appl ||
-    s === TransactionType.stpf
+    s === TransactionType.stpf ||
+    s === TransactionType.hb
   );
 }
 
@@ -467,6 +474,36 @@ export interface StateProofTransactionParams {
 }
 
 /**
+ * Contains heartbeat transaction parameters.
+ */
+export interface HeartbeatTransactionParams {
+  /*
+   * Account address this txn is proving onlineness for
+   */
+  address: Address;
+
+  /**
+   * Signature using HeartbeatAddress's partkey, thereby showing it is online.
+   */
+  proof: HeartbeatProof;
+
+  /**
+   * The block seed for the this transaction's firstValid block.
+   */
+  seed: Uint8Array;
+
+  /**
+   * Must match the hbAddress account's current VoteID
+   */
+  voteID: Uint8Array;
+
+  /**
+   * Must match hbAddress account's current KeyDilution.
+   */
+  keyDilution: bigint;
+}
+
+/**
  * A full list of all available transaction parameters
  *
  * The full documentation is available at:
@@ -540,4 +577,9 @@ export interface TransactionParams {
    * State proof transaction parameters. Only set if type is TransactionType.stpf
    */
   stateProofParams?: StateProofTransactionParams;
+
+  /**
+   * Heartbeat transaction parameters. Only set if type is TransactionType.hb
+   */
+  heartbeatParams?: HeartbeatTransactionParams;
 }

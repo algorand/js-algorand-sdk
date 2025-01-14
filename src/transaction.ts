@@ -30,8 +30,10 @@ import {
   KeyRegistrationTransactionParams,
   ApplicationCallTransactionParams,
   StateProofTransactionParams,
+  HeartbeatTransactionParams,
 } from './types/transactions/base.js';
 import { StateProof, StateProofMessage } from './stateproof.js';
+import { Heartbeat, HeartbeatProof } from './heartbeat.js';
 import * as utils from './utils/utils.js';
 
 const ALGORAND_TRANSACTION_LENGTH = 52;
@@ -248,6 +250,14 @@ export interface StateProofTransactionFields {
   readonly message?: StateProofMessage;
 }
 
+export interface HeartbeatTransactionFields {
+  readonly address: Address;
+  readonly proof: HeartbeatProof;
+  readonly seed: Uint8Array;
+  readonly voteID: Uint8Array;
+  readonly keyDilution: bigint;
+}
+
 /**
  * Transaction enables construction of Algorand transactions
  * */
@@ -438,6 +448,8 @@ export class Transaction implements encoding.Encodable {
         key: 'spmsg',
         valueSchema: new OptionalSchema(StateProofMessage.encodingSchema),
       },
+      // Heartbeat
+      { key: 'hb', valueSchema: new OptionalSchema(Heartbeat.encodingSchema) },
     ])
   );
 
@@ -466,6 +478,7 @@ export class Transaction implements encoding.Encodable {
   public readonly assetFreeze?: AssetFreezeTransactionFields;
   public readonly applicationCall?: ApplicationTransactionFields;
   public readonly stateProof?: StateProofTransactionFields;
+  public readonly heartbeat?: HeartbeatTransactionFields;
 
   constructor(params: TransactionParams) {
     if (!isTransactionType(params.type)) {
@@ -506,6 +519,7 @@ export class Transaction implements encoding.Encodable {
     if (params.assetFreezeParams) fieldsPresent.push(TransactionType.afrz);
     if (params.appCallParams) fieldsPresent.push(TransactionType.appl);
     if (params.stateProofParams) fieldsPresent.push(TransactionType.stpf);
+    if (params.heartbeatParams) fieldsPresent.push(TransactionType.hb);
 
     if (fieldsPresent.length !== 1) {
       throw new Error(
@@ -701,6 +715,16 @@ export class Transaction implements encoding.Encodable {
       };
     }
 
+    if (params.heartbeatParams) {
+      this.heartbeat = new Heartbeat({
+        address: params.heartbeatParams.address,
+        proof: params.heartbeatParams.proof,
+        seed: params.heartbeatParams.seed,
+        voteID: params.heartbeatParams.voteID,
+        keyDilution: params.heartbeatParams.keyDilution,
+      });
+    }
+
     // Determine fee
     this.fee = utils.ensureUint64(params.suggestedParams.fee);
 
@@ -839,6 +863,18 @@ export class Transaction implements encoding.Encodable {
           ? this.stateProof.message.toEncodingData()
           : undefined
       );
+      return data;
+    }
+
+    if (this.heartbeat) {
+      const heartbeat = new Heartbeat({
+        address: this.heartbeat.address,
+        proof: this.heartbeat.proof,
+        seed: this.heartbeat.seed,
+        voteID: this.heartbeat.voteID,
+        keyDilution: this.heartbeat.keyDilution,
+      });
+      data.set('hb', heartbeat.toEncodingData());
       return data;
     }
 
@@ -1006,6 +1042,16 @@ export class Transaction implements encoding.Encodable {
           : undefined,
       };
       params.stateProofParams = stateProofParams;
+    } else if (params.type === TransactionType.hb) {
+      const heartbeat = Heartbeat.fromEncodingData(data.get('hb'));
+      const heartbeatParams: HeartbeatTransactionParams = {
+        address: heartbeat.address,
+        proof: heartbeat.proof,
+        seed: heartbeat.seed,
+        voteID: heartbeat.voteID,
+        keyDilution: heartbeat.keyDilution,
+      };
+      params.heartbeatParams = heartbeatParams;
     } else {
       const exhaustiveCheck: never = params.type;
       throw new Error(`Unexpected transaction type: ${exhaustiveCheck}`);
