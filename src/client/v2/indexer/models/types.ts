@@ -2468,6 +2468,68 @@ export class Block extends BaseModel {
 }
 
 /**
+ *
+ */
+export class BlockHeadersResponse extends BaseModel {
+  public blocks?: Block[];
+
+  /**
+   * Round at which the results were computed.
+   */
+  public currentRound?: number | bigint;
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `BlockHeadersResponse` object.
+   * @param blocks -
+   * @param currentRound - Round at which the results were computed.
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  constructor({
+    blocks,
+    currentRound,
+    nextToken,
+  }: {
+    blocks?: Block[];
+    currentRound?: number | bigint;
+    nextToken?: string;
+  }) {
+    super();
+    this.blocks = blocks;
+    this.currentRound = currentRound;
+    this.nextToken = nextToken;
+
+    this.attribute_map = {
+      blocks: 'blocks',
+      currentRound: 'current-round',
+      nextToken: 'next-token',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): BlockHeadersResponse {
+    /* eslint-disable dot-notation */
+    return new BlockHeadersResponse({
+      blocks:
+        typeof data['blocks'] !== 'undefined'
+          ? data['blocks'].map(Block.from_obj_for_encoding)
+          : undefined,
+      currentRound: data['current-round'],
+      nextToken: data['next-token'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
  * Fields relating to rewards,
  */
 export class BlockRewards extends BaseModel {
@@ -3075,6 +3137,106 @@ export class HashFactory extends BaseModel {
     /* eslint-disable dot-notation */
     return new HashFactory({
       hashType: data['hash-type'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+ * it is online.
+ */
+export class HbProofFields extends BaseModel {
+  /**
+   * (p) Public key of the heartbeat message.
+   */
+  public hbPk?: Uint8Array;
+
+  /**
+   * (p1s) Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the
+   * key PK2.
+   */
+  public hbPk1sig?: Uint8Array;
+
+  /**
+   * (p2) Key for new-style two-level ephemeral signature.
+   */
+  public hbPk2?: Uint8Array;
+
+  /**
+   * (p2s) Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master
+   * key (OneTimeSignatureVerifier).
+   */
+  public hbPk2sig?: Uint8Array;
+
+  /**
+   * (s) Signature of the heartbeat message.
+   */
+  public hbSig?: Uint8Array;
+
+  /**
+   * Creates a new `HbProofFields` object.
+   * @param hbPk - (p) Public key of the heartbeat message.
+   * @param hbPk1sig - (p1s) Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the
+   * key PK2.
+   * @param hbPk2 - (p2) Key for new-style two-level ephemeral signature.
+   * @param hbPk2sig - (p2s) Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master
+   * key (OneTimeSignatureVerifier).
+   * @param hbSig - (s) Signature of the heartbeat message.
+   */
+  constructor({
+    hbPk,
+    hbPk1sig,
+    hbPk2,
+    hbPk2sig,
+    hbSig,
+  }: {
+    hbPk?: string | Uint8Array;
+    hbPk1sig?: string | Uint8Array;
+    hbPk2?: string | Uint8Array;
+    hbPk2sig?: string | Uint8Array;
+    hbSig?: string | Uint8Array;
+  }) {
+    super();
+    this.hbPk =
+      typeof hbPk === 'string'
+        ? new Uint8Array(Buffer.from(hbPk, 'base64'))
+        : hbPk;
+    this.hbPk1sig =
+      typeof hbPk1sig === 'string'
+        ? new Uint8Array(Buffer.from(hbPk1sig, 'base64'))
+        : hbPk1sig;
+    this.hbPk2 =
+      typeof hbPk2 === 'string'
+        ? new Uint8Array(Buffer.from(hbPk2, 'base64'))
+        : hbPk2;
+    this.hbPk2sig =
+      typeof hbPk2sig === 'string'
+        ? new Uint8Array(Buffer.from(hbPk2sig, 'base64'))
+        : hbPk2sig;
+    this.hbSig =
+      typeof hbSig === 'string'
+        ? new Uint8Array(Buffer.from(hbSig, 'base64'))
+        : hbSig;
+
+    this.attribute_map = {
+      hbPk: 'hb-pk',
+      hbPk1sig: 'hb-pk1sig',
+      hbPk2: 'hb-pk2',
+      hbPk2sig: 'hb-pk2sig',
+      hbSig: 'hb-sig',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(data: Record<string, any>): HbProofFields {
+    /* eslint-disable dot-notation */
+    return new HbProofFields({
+      hbPk: data['hb-pk'],
+      hbPk1sig: data['hb-pk1sig'],
+      hbPk2: data['hb-pk2'],
+      hbPk2sig: data['hb-pk2sig'],
+      hbSig: data['hb-sig'],
     });
     /* eslint-enable dot-notation */
   }
@@ -4196,6 +4358,13 @@ export class Transaction extends BaseModel {
   public group?: Uint8Array;
 
   /**
+   * Fields for a heartbeat transaction.
+   * Definition:
+   * data/transactions/heartbeat.go : HeartbeatTxnFields
+   */
+  public heartbeatTransaction?: TransactionHeartbeat;
+
+  /**
    * Transaction ID
    */
   public id?: string;
@@ -4295,6 +4464,7 @@ export class Transaction extends BaseModel {
    * * (afrz) asset-freeze-transaction
    * * (appl) application-transaction
    * * (stpf) state-proof-transaction
+   * * (hb) heartbeat-transaction
    */
   public txType?: string;
 
@@ -4334,6 +4504,9 @@ export class Transaction extends BaseModel {
    * @param group - (grp) Base64 encoded byte array of a sha512/256 digest. When present indicates
    * that this transaction is part of a transaction group and the value is the
    * sha512/256 hash of the transactions in that group.
+   * @param heartbeatTransaction - Fields for a heartbeat transaction.
+   * Definition:
+   * data/transactions/heartbeat.go : HeartbeatTxnFields
    * @param id - Transaction ID
    * @param innerTxns - Inner transactions produced by application execution.
    * @param intraRoundOffset - Offset into the round where this transaction was confirmed.
@@ -4373,6 +4546,7 @@ export class Transaction extends BaseModel {
    * * (afrz) asset-freeze-transaction
    * * (appl) application-transaction
    * * (stpf) state-proof-transaction
+   * * (hb) heartbeat-transaction
    */
   constructor({
     fee,
@@ -4393,6 +4567,7 @@ export class Transaction extends BaseModel {
     genesisId,
     globalStateDelta,
     group,
+    heartbeatTransaction,
     id,
     innerTxns,
     intraRoundOffset,
@@ -4428,6 +4603,7 @@ export class Transaction extends BaseModel {
     genesisId?: string;
     globalStateDelta?: EvalDeltaKeyValue[];
     group?: string | Uint8Array;
+    heartbeatTransaction?: TransactionHeartbeat;
     id?: string;
     innerTxns?: Transaction[];
     intraRoundOffset?: number | bigint;
@@ -4470,6 +4646,7 @@ export class Transaction extends BaseModel {
       typeof group === 'string'
         ? new Uint8Array(Buffer.from(group, 'base64'))
         : group;
+    this.heartbeatTransaction = heartbeatTransaction;
     this.id = id;
     this.innerTxns = innerTxns;
     this.intraRoundOffset = intraRoundOffset;
@@ -4512,6 +4689,7 @@ export class Transaction extends BaseModel {
       genesisId: 'genesis-id',
       globalStateDelta: 'global-state-delta',
       group: 'group',
+      heartbeatTransaction: 'heartbeat-transaction',
       id: 'id',
       innerTxns: 'inner-txns',
       intraRoundOffset: 'intra-round-offset',
@@ -4590,6 +4768,12 @@ export class Transaction extends BaseModel {
             )
           : undefined,
       group: data['group'],
+      heartbeatTransaction:
+        typeof data['heartbeat-transaction'] !== 'undefined'
+          ? TransactionHeartbeat.from_obj_for_encoding(
+              data['heartbeat-transaction']
+            )
+          : undefined,
       id: data['id'],
       innerTxns:
         typeof data['inner-txns'] !== 'undefined'
@@ -5089,6 +5273,116 @@ export class TransactionAssetTransfer extends BaseModel {
       closeAmount: data['close-amount'],
       closeTo: data['close-to'],
       sender: data['sender'],
+    });
+    /* eslint-enable dot-notation */
+  }
+}
+
+/**
+ * Fields for a heartbeat transaction.
+ * Definition:
+ * data/transactions/heartbeat.go : HeartbeatTxnFields
+ */
+export class TransactionHeartbeat extends BaseModel {
+  /**
+   * (hbad) HbAddress is the account this txn is proving onlineness for.
+   */
+  public hbAddress: string;
+
+  /**
+   * (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
+   */
+  public hbKeyDilution: number | bigint;
+
+  /**
+   * (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+   * it is online.
+   */
+  public hbProof: HbProofFields;
+
+  /**
+   * (hbsd) HbSeed must be the block seed for the this transaction's firstValid
+   * block.
+   */
+  public hbSeed: Uint8Array;
+
+  /**
+   * (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   */
+  public hbVoteId: Uint8Array;
+
+  /**
+   * Creates a new `TransactionHeartbeat` object.
+   * @param hbAddress - (hbad) HbAddress is the account this txn is proving onlineness for.
+   * @param hbKeyDilution - (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
+   * @param hbProof - (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+   * it is online.
+   * @param hbSeed - (hbsd) HbSeed must be the block seed for the this transaction's firstValid
+   * block.
+   * @param hbVoteId - (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   */
+  constructor({
+    hbAddress,
+    hbKeyDilution,
+    hbProof,
+    hbSeed,
+    hbVoteId,
+  }: {
+    hbAddress: string;
+    hbKeyDilution: number | bigint;
+    hbProof: HbProofFields;
+    hbSeed: string | Uint8Array;
+    hbVoteId: string | Uint8Array;
+  }) {
+    super();
+    this.hbAddress = hbAddress;
+    this.hbKeyDilution = hbKeyDilution;
+    this.hbProof = hbProof;
+    this.hbSeed =
+      typeof hbSeed === 'string'
+        ? new Uint8Array(Buffer.from(hbSeed, 'base64'))
+        : hbSeed;
+    this.hbVoteId =
+      typeof hbVoteId === 'string'
+        ? new Uint8Array(Buffer.from(hbVoteId, 'base64'))
+        : hbVoteId;
+
+    this.attribute_map = {
+      hbAddress: 'hb-address',
+      hbKeyDilution: 'hb-key-dilution',
+      hbProof: 'hb-proof',
+      hbSeed: 'hb-seed',
+      hbVoteId: 'hb-vote-id',
+    };
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    data: Record<string, any>
+  ): TransactionHeartbeat {
+    /* eslint-disable dot-notation */
+    if (typeof data['hb-address'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'hb-address': ${data}`
+      );
+    if (typeof data['hb-key-dilution'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'hb-key-dilution': ${data}`
+      );
+    if (typeof data['hb-proof'] === 'undefined')
+      throw new Error(`Response is missing required field 'hb-proof': ${data}`);
+    if (typeof data['hb-seed'] === 'undefined')
+      throw new Error(`Response is missing required field 'hb-seed': ${data}`);
+    if (typeof data['hb-vote-id'] === 'undefined')
+      throw new Error(
+        `Response is missing required field 'hb-vote-id': ${data}`
+      );
+    return new TransactionHeartbeat({
+      hbAddress: data['hb-address'],
+      hbKeyDilution: data['hb-key-dilution'],
+      hbProof: HbProofFields.from_obj_for_encoding(data['hb-proof']),
+      hbSeed: data['hb-seed'],
+      hbVoteId: data['hb-vote-id'],
     });
     /* eslint-enable dot-notation */
   }
