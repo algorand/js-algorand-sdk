@@ -98,6 +98,66 @@ export interface EncodedBoxReference {
 }
 
 /**
+ * A structure for an encoded heartbeat proof fields object
+ */
+export interface EncodedHeartbeatProof {
+  /**
+   * Sig
+   */
+  s: Buffer;
+
+  /**
+   * PK
+   */
+  p: Buffer;
+
+  /**
+   * PK2
+   */
+  p2: Buffer;
+
+  /**
+   * PK1Sig
+   */
+  p1s: Buffer;
+
+  /**
+   * PK2Sig
+   */
+  p2s: Buffer;
+}
+
+/**
+ * A structure for an encoded heartbeat fields object
+ */
+export interface EncodedHeartbeatFields {
+  /**
+   * HbAddress
+   */
+  a: Buffer;
+
+  /**
+   * HbProof
+   */
+  prf: EncodedHeartbeatProof;
+
+  /**
+   * HbSeed
+   */
+  sd: Buffer;
+
+  /**
+   * HbVoteID
+   */
+  vid: Buffer;
+
+  /**
+   * HbKeyDilution
+   */
+  kd: number;
+}
+
+/**
  * A rough structure for the encoded transaction object. Every property is labelled with its associated Transaction type property
  */
 export interface EncodedTransaction {
@@ -330,6 +390,11 @@ export interface EncodedTransaction {
    * stateProofMessage
    */
   spmsg?: Buffer;
+
+  /**
+   * heartbeat fields
+   */
+  hb?: EncodedHeartbeatFields;
 }
 
 export interface EncodedSubsig {
