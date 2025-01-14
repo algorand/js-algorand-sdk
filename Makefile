@@ -3,7 +3,7 @@ INTEGRATIONS_TAGS := "$(subst :, or ,$(shell awk '{print $2}' tests/cucumber/int
 
 unit:
 	node_modules/.bin/cucumber-js --tags $(UNIT_TAGS) tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
-	
+
 integration:
 	node_modules/.bin/cucumber-js --tags $(INTEGRATIONS_TAGS) tests/cucumber/features --require-module ts-node/register --require tests/cucumber/steps/index.js
 

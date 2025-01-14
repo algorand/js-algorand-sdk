@@ -4,6 +4,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
+const { skip } = require('node:test');
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
 
@@ -1939,7 +1940,15 @@ module.exports = function getSteps(options) {
   let anyBlockResponse;
 
   When('we make any Get Block call', async function () {
-    anyBlockResponse = await this.v2Client.block(1).do();
+    const req = this.v2Client.block(1);
+    if (responseFormat === 'json') {
+      // for json responses, we need to set the format query param and provide a custom decoder
+      // because the default block request only supports msgpack
+      req.query.format = responseFormat;
+      req.prepare = (body) =>
+        algosdk.modelsv2.BlockResponse.from_obj_for_encoding(body);
+    }
+    anyBlockResponse = await req.do();
   });
 
   Then(
@@ -1949,6 +1958,25 @@ module.exports = function getSteps(options) {
         anyBlockResponse.block.rwd
       ).toString('base64');
       assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
+    }
+  );
+
+  Then(
+    'the parsed Get Block response should have heartbeat address {string}',
+    (hbAddress) => {
+      if (responseFormat === 'json') {
+        // cannot properly decode json response (base32 addresses) into transaction objects so skip
+        skip();
+        return;
+      }
+      const enc = anyBlockResponse.block.txns[0].txn;
+      // txn from a block does not have genesis hash so inject to keep the decoding happy
+      enc.gh = '1234';
+      const txn = algosdk.Transaction.from_obj_for_encoding(enc);
+      const hbAddressString = algosdk.encodeAddress(
+        txn.heartbeatFields.a.publicKey
+      );
+      assert.strictEqual(hbAddress, hbAddressString);
     }
   );
 
@@ -2687,6 +2715,26 @@ module.exports = function getSteps(options) {
       assert.strictEqual(
         rekeyTo,
         anySearchForTransactionsResponse.transactions[idx]['rekey-to']
+      );
+    }
+  );
+
+  Then(
+    'the parsed SearchForTransactions response should be valid on round {int} and the array should be of len {int} and the element at index {int} should have hbaddress {string}',
+    (round, length, idx, hbAddress) => {
+      assert.strictEqual(
+        anySearchForTransactionsResponse['current-round'],
+        round
+      );
+      assert.strictEqual(
+        anySearchForTransactionsResponse.transactions.length,
+        length
+      );
+      assert.strictEqual(
+        anySearchForTransactionsResponse.transactions[idx][
+          'heartbeat-transaction'
+        ]['hb-address'],
+        hbAddress
       );
     }
   );
