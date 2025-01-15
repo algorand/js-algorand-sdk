@@ -4,7 +4,6 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const { skip } = require('node:test');
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
 
@@ -1963,10 +1962,10 @@ module.exports = function getSteps(options) {
 
   Then(
     'the parsed Get Block response should have heartbeat address {string}',
+    // eslint-disable-next-line consistent-return
     (hbAddress) => {
       if (responseFormat === 'json') {
         // cannot properly decode json response (base32 addresses) into transaction objects so skip
-        skip();
         return;
       }
       const enc = anyBlockResponse.block.txns[0].txn;
