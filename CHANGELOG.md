@@ -4,6 +4,12 @@
 
 ## What's Changed
 
+> ⚠️ **WARNING:** This is the final planned major release in the v2.X.X series. For help migrating from v2 releases, see the file `v2_TO_v3_MIGRATION_GUIDE.md`.
+
+### V2 End of Life
+
+No new features will be added to v2 going forward, and only security fixes or critical errors will be addressed. At the end of March 2025, no further updates will be made to the v2 line.
+
 ### Bugfixes
 
 - cucumber: fix miissing skip in browsers by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/919
@@ -13,7 +19,7 @@
 - api: port regenerated incentives and heartbeat models by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/917
 - Incentives: Support heartbeat transaction (v2.9) by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/918
 
-**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.1.0...v2.10.0
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v2.9.0...v2.10.0
 
 # v2.9.0
 
