@@ -1158,6 +1158,30 @@ describe('Sign', () => {
       assert.deepStrictEqual(reencRep, encRep);
     });
 
+    it('should correctly serialize and deserialize heartbeat transaction', () => {
+      const golden = algosdk.base64ToBytes(
+        'gqRsc2lngaFsxAYLMSAyAxKjdHhuhqJmdmqiZ2jEIP9SQzAGyec/v8omzEOW3/GIM+a7bvPaU5D/ohX7qjFtomhihaFhxCBsU6oqjVx2U65owbsX9/6N7/YCmul+O3liZ0fO2L75/KJrZGSjcHJmhaFwxCAM1TyIrIbgm+yPLT9so6VDI3rKl33t4c4RSGJv6G12eaNwMXPEQBETln14zJzQ1Mb/SNjmDNl0fyQ4DPBQZML8iTEbhqBj+YDAgpNSEduWj7OuVkCSQMq4N/Er/+2HfKUHu//spgOicDLEIB9c5n7WgG+5aOdjfBmuxH3z4TYiQzDVYKjBLhv4IkNfo3Ayc8RAeKpQ+o/GJyGCH0I4f9luN0i7BPXlMlaJAuXLX5Ng8DTN0vtZtztjqYfkwp1cVOYPu+Fce3aIdJHVoUDaJaMIDqFzxEBQN41y5zAZhYHQWf2wWF6CGboqQk6MxDcQ76zXHvVtzrAPUWXZDt4IB8Ha1z+54Hc6LmEoG090pk0IYs+jLN8HonNkxCCPVPjiD5O7V0c3P/SVsHmED7slwllta7c92WiKwnvgoqN2aWTEIHBy8sOi/V0YKXJw8VtW40MbqhtUyO9HC9m/haf84xiGomx2dKNzbmTEIDAp2wPDnojyy8tTgb3sMH++26D5+l7nHZmyRvzFfLsOpHR5cGWiaGI='
+      );
+
+      const decTxn = algosdk.decodeMsgpack(golden, algosdk.SignedTransaction);
+      const prepTxn = algosdk.SignedTransaction.encodingSchema.prepareMsgpack(
+        decTxn.toEncodingData()
+      );
+      assert.ok(prepTxn instanceof Map && prepTxn.has('txn'));
+
+      const reencRep = algosdk.encodeMsgpack(decTxn);
+      assert.deepStrictEqual(reencRep, golden);
+      const hbAddress =
+        'NRJ2UKUNLR3FHLTIYG5RP576RXX7MAU25F7DW6LCM5D45WF67H6EFQMWNM';
+
+      assert.deepStrictEqual(decTxn.txn.type, algosdk.TransactionType.hb);
+      assert.deepStrictEqual(
+        decTxn.txn.heartbeat?.address.toString(),
+        hbAddress
+      );
+      assert.deepStrictEqual(decTxn.txn.heartbeat?.keyDilution, 100n);
+    });
+
     it('reserializes correctly no genesis ID', () => {
       const expectedTxn = new algosdk.Transaction({
         type: algosdk.TransactionType.pay,

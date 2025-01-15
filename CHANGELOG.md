@@ -1,3 +1,19 @@
+# v3.1.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.1.0 -->
+
+## What's Changed
+
+### Enhancements
+
+- Incentives: Support heartbeat transaction by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/915
+
+### Other
+
+- Regenerate code with the latest specification file (df06f8b1) by @github-actions in https://github.com/algorand/js-algorand-sdk/pull/914
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.0.0...v3.1.0
+
 # v3.0.0
 
 <!-- Release notes generated using configuration in .github/release.yml at 3.0.0 **WITH MANUAL EDITING AFTERWARD** -->

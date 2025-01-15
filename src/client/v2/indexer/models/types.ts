@@ -3411,6 +3411,97 @@ export class Block implements Encodable {
 }
 
 /**
+ *
+ */
+export class BlockHeadersResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'blocks',
+          valueSchema: new ArraySchema(Block.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'current-round',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public blocks: Block[];
+
+  /**
+   * Round at which the results were computed.
+   */
+  public currentRound: bigint;
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `BlockHeadersResponse` object.
+   * @param blocks -
+   * @param currentRound - Round at which the results were computed.
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  constructor({
+    blocks,
+    currentRound,
+    nextToken,
+  }: {
+    blocks: Block[];
+    currentRound: number | bigint;
+    nextToken?: string;
+  }) {
+    this.blocks = blocks;
+    this.currentRound = ensureBigInt(currentRound);
+    this.nextToken = nextToken;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BlockHeadersResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['blocks', this.blocks.map((v) => v.toEncodingData())],
+      ['current-round', this.currentRound],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): BlockHeadersResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded BlockHeadersResponse: ${data}`);
+    }
+    return new BlockHeadersResponse({
+      blocks: (data.get('blocks') ?? []).map((v: unknown) =>
+        Block.fromEncodingData(v)
+      ),
+      currentRound: data.get('current-round'),
+      nextToken: data.get('next-token'),
+    });
+  }
+}
+
+/**
  * Fields relating to rewards,
  */
 export class BlockRewards implements Encodable {
@@ -4252,6 +4343,135 @@ export class HashFactory implements Encodable {
     }
     return new HashFactory({
       hashType: data.get('hash-type'),
+    });
+  }
+}
+
+/**
+ * (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+ * it is online.
+ */
+export class HbProofFields implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'hb-pk',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'hb-pk1sig',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'hb-pk2',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'hb-pk2sig',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'hb-sig',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (p) Public key of the heartbeat message.
+   */
+  public hbPk?: Uint8Array;
+
+  /**
+   * (p1s) Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the
+   * key PK2.
+   */
+  public hbPk1sig?: Uint8Array;
+
+  /**
+   * (p2) Key for new-style two-level ephemeral signature.
+   */
+  public hbPk2?: Uint8Array;
+
+  /**
+   * (p2s) Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master
+   * key (OneTimeSignatureVerifier).
+   */
+  public hbPk2sig?: Uint8Array;
+
+  /**
+   * (s) Signature of the heartbeat message.
+   */
+  public hbSig?: Uint8Array;
+
+  /**
+   * Creates a new `HbProofFields` object.
+   * @param hbPk - (p) Public key of the heartbeat message.
+   * @param hbPk1sig - (p1s) Signature of OneTimeSignatureSubkeyOffsetID(PK, Batch, Offset) under the
+   * key PK2.
+   * @param hbPk2 - (p2) Key for new-style two-level ephemeral signature.
+   * @param hbPk2sig - (p2s) Signature of OneTimeSignatureSubkeyBatchID(PK2, Batch) under the master
+   * key (OneTimeSignatureVerifier).
+   * @param hbSig - (s) Signature of the heartbeat message.
+   */
+  constructor({
+    hbPk,
+    hbPk1sig,
+    hbPk2,
+    hbPk2sig,
+    hbSig,
+  }: {
+    hbPk?: string | Uint8Array;
+    hbPk1sig?: string | Uint8Array;
+    hbPk2?: string | Uint8Array;
+    hbPk2sig?: string | Uint8Array;
+    hbSig?: string | Uint8Array;
+  }) {
+    this.hbPk = typeof hbPk === 'string' ? base64ToBytes(hbPk) : hbPk;
+    this.hbPk1sig =
+      typeof hbPk1sig === 'string' ? base64ToBytes(hbPk1sig) : hbPk1sig;
+    this.hbPk2 = typeof hbPk2 === 'string' ? base64ToBytes(hbPk2) : hbPk2;
+    this.hbPk2sig =
+      typeof hbPk2sig === 'string' ? base64ToBytes(hbPk2sig) : hbPk2sig;
+    this.hbSig = typeof hbSig === 'string' ? base64ToBytes(hbSig) : hbSig;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return HbProofFields.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['hb-pk', this.hbPk],
+      ['hb-pk1sig', this.hbPk1sig],
+      ['hb-pk2', this.hbPk2],
+      ['hb-pk2sig', this.hbPk2sig],
+      ['hb-sig', this.hbSig],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): HbProofFields {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded HbProofFields: ${data}`);
+    }
+    return new HbProofFields({
+      hbPk: data.get('hb-pk'),
+      hbPk1sig: data.get('hb-pk1sig'),
+      hbPk2: data.get('hb-pk2'),
+      hbPk2sig: data.get('hb-pk2sig'),
+      hbSig: data.get('hb-sig'),
     });
   }
 }
@@ -5891,6 +6111,11 @@ export class Transaction implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'heartbeat-transaction',
+          valueSchema: new OptionalSchema(TransactionHeartbeat.encodingSchema),
+          omitEmpty: true,
+        },
+        {
           key: 'id',
           valueSchema: new OptionalSchema(new StringSchema()),
           omitEmpty: true,
@@ -6088,6 +6313,13 @@ export class Transaction implements Encodable {
   public group?: Uint8Array;
 
   /**
+   * Fields for a heartbeat transaction.
+   * Definition:
+   * data/transactions/heartbeat.go : HeartbeatTxnFields
+   */
+  public heartbeatTransaction?: TransactionHeartbeat;
+
+  /**
    * Transaction ID
    */
   public id?: string;
@@ -6187,6 +6419,7 @@ export class Transaction implements Encodable {
    * * (afrz) asset-freeze-transaction
    * * (appl) application-transaction
    * * (stpf) state-proof-transaction
+   * * (hb) heartbeat-transaction
    */
   public txType?: string;
 
@@ -6226,6 +6459,9 @@ export class Transaction implements Encodable {
    * @param group - (grp) Base64 encoded byte array of a sha512/256 digest. When present indicates
    * that this transaction is part of a transaction group and the value is the
    * sha512/256 hash of the transactions in that group.
+   * @param heartbeatTransaction - Fields for a heartbeat transaction.
+   * Definition:
+   * data/transactions/heartbeat.go : HeartbeatTxnFields
    * @param id - Transaction ID
    * @param innerTxns - Inner transactions produced by application execution.
    * @param intraRoundOffset - Offset into the round where this transaction was confirmed.
@@ -6265,6 +6501,7 @@ export class Transaction implements Encodable {
    * * (afrz) asset-freeze-transaction
    * * (appl) application-transaction
    * * (stpf) state-proof-transaction
+   * * (hb) heartbeat-transaction
    */
   constructor({
     fee,
@@ -6285,6 +6522,7 @@ export class Transaction implements Encodable {
     genesisId,
     globalStateDelta,
     group,
+    heartbeatTransaction,
     id,
     innerTxns,
     intraRoundOffset,
@@ -6320,6 +6558,7 @@ export class Transaction implements Encodable {
     genesisId?: string;
     globalStateDelta?: EvalDeltaKeyValue[];
     group?: string | Uint8Array;
+    heartbeatTransaction?: TransactionHeartbeat;
     id?: string;
     innerTxns?: Transaction[];
     intraRoundOffset?: number | bigint;
@@ -6374,6 +6613,7 @@ export class Transaction implements Encodable {
     this.genesisId = genesisId;
     this.globalStateDelta = globalStateDelta;
     this.group = typeof group === 'string' ? base64ToBytes(group) : group;
+    this.heartbeatTransaction = heartbeatTransaction;
     this.id = id;
     this.innerTxns = innerTxns;
     this.intraRoundOffset =
@@ -6460,6 +6700,12 @@ export class Transaction implements Encodable {
           : undefined,
       ],
       ['group', this.group],
+      [
+        'heartbeat-transaction',
+        typeof this.heartbeatTransaction !== 'undefined'
+          ? this.heartbeatTransaction.toEncodingData()
+          : undefined,
+      ],
       ['id', this.id],
       [
         'inner-txns',
@@ -6562,6 +6808,12 @@ export class Transaction implements Encodable {
               .map((v: unknown) => EvalDeltaKeyValue.fromEncodingData(v))
           : undefined,
       group: data.get('group'),
+      heartbeatTransaction:
+        typeof data.get('heartbeat-transaction') !== 'undefined'
+          ? TransactionHeartbeat.fromEncodingData(
+              data.get('heartbeat-transaction')
+            )
+          : undefined,
       id: data.get('id'),
       innerTxns:
         typeof data.get('inner-txns') !== 'undefined'
@@ -7233,6 +7485,129 @@ export class TransactionAssetTransfer implements Encodable {
       closeAmount: data.get('close-amount'),
       closeTo: data.get('close-to'),
       sender: data.get('sender'),
+    });
+  }
+}
+
+/**
+ * Fields for a heartbeat transaction.
+ * Definition:
+ * data/transactions/heartbeat.go : HeartbeatTxnFields
+ */
+export class TransactionHeartbeat implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'hb-address', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'hb-key-dilution',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'hb-proof',
+          valueSchema: HbProofFields.encodingSchema,
+          omitEmpty: true,
+        },
+        { key: 'hb-seed', valueSchema: new ByteArraySchema(), omitEmpty: true },
+        {
+          key: 'hb-vote-id',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (hbad) HbAddress is the account this txn is proving onlineness for.
+   */
+  public hbAddress: string;
+
+  /**
+   * (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
+   */
+  public hbKeyDilution: bigint;
+
+  /**
+   * (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+   * it is online.
+   */
+  public hbProof: HbProofFields;
+
+  /**
+   * (hbsd) HbSeed must be the block seed for the this transaction's firstValid
+   * block.
+   */
+  public hbSeed: Uint8Array;
+
+  /**
+   * (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   */
+  public hbVoteId: Uint8Array;
+
+  /**
+   * Creates a new `TransactionHeartbeat` object.
+   * @param hbAddress - (hbad) HbAddress is the account this txn is proving onlineness for.
+   * @param hbKeyDilution - (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
+   * @param hbProof - (hbprf) HbProof is a signature using HeartbeatAddress's partkey, thereby showing
+   * it is online.
+   * @param hbSeed - (hbsd) HbSeed must be the block seed for the this transaction's firstValid
+   * block.
+   * @param hbVoteId - (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   */
+  constructor({
+    hbAddress,
+    hbKeyDilution,
+    hbProof,
+    hbSeed,
+    hbVoteId,
+  }: {
+    hbAddress: string;
+    hbKeyDilution: number | bigint;
+    hbProof: HbProofFields;
+    hbSeed: string | Uint8Array;
+    hbVoteId: string | Uint8Array;
+  }) {
+    this.hbAddress = hbAddress;
+    this.hbKeyDilution = ensureBigInt(hbKeyDilution);
+    this.hbProof = hbProof;
+    this.hbSeed = typeof hbSeed === 'string' ? base64ToBytes(hbSeed) : hbSeed;
+    this.hbVoteId =
+      typeof hbVoteId === 'string' ? base64ToBytes(hbVoteId) : hbVoteId;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionHeartbeat.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['hb-address', this.hbAddress],
+      ['hb-key-dilution', this.hbKeyDilution],
+      ['hb-proof', this.hbProof.toEncodingData()],
+      ['hb-seed', this.hbSeed],
+      ['hb-vote-id', this.hbVoteId],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionHeartbeat {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded TransactionHeartbeat: ${data}`);
+    }
+    return new TransactionHeartbeat({
+      hbAddress: data.get('hb-address'),
+      hbKeyDilution: data.get('hb-key-dilution'),
+      hbProof: HbProofFields.fromEncodingData(
+        data.get('hb-proof') ?? new Map()
+      ),
+      hbSeed: data.get('hb-seed'),
+      hbVoteId: data.get('hb-vote-id'),
     });
   }
 }
