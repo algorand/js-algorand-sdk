@@ -17,6 +17,7 @@ import {
   ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';
 import StateProofTxn from './stateproof';
+import HeartbeatTxn from './heartbeat';
 
 // Utilities
 export {
@@ -51,6 +52,7 @@ export {
   ApplicationNoOpTransaction as AppNoOpTxn,
 } from './application';
 export { default as StateProofTxn } from './stateproof';
+export { default as HeartbeatTransaction } from './heartbeat';
 
 // All possible transaction types
 type AnyTransaction =
@@ -68,5 +70,6 @@ type AnyTransaction =
   | AppCloseOutTxn
   | AppClearStateTxn
   | AppNoOpTxn
-  | StateProofTxn;
+  | StateProofTxn
+  | HeartbeatTxn;
 export default AnyTransaction;

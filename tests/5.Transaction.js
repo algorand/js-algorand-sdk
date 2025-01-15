@@ -367,10 +367,12 @@ describe('Sign', () => {
         stateProofMessage: new Uint8Array([0, 0, 0, 0]),
       };
       const expectedTxn = new algosdk.Transaction(o);
+      // eslint-disable-next-line no-console
       console.log(
         `${expectedTxn.stateProofType} ${expectedTxn.stateProofMessage} ${expectedTxn.stateProof} ${expectedTxn.type}`
       );
       const encRep = expectedTxn.get_obj_for_encoding();
+      // eslint-disable-next-line no-console
       console.log(
         `${encRep.sptype} ${encRep.spmsg} ${encRep.sp} ${encRep.type}`
       );
@@ -633,6 +635,32 @@ describe('Sign', () => {
       const decTxn = algosdk.Transaction.from_obj_for_encoding(decEncRep);
       const reencRep = decTxn.get_obj_for_encoding();
       assert.deepStrictEqual(reencRep, encRep);
+    });
+
+    it('should correctly serialize and deserialize heartbeat transaction', () => {
+      const golden = new Uint8Array(
+        Buffer.from(
+          'gqRsc2lngaFsxAYLMSAyAxKjdHhuhqJmdmqiZ2jEIP9SQzAGyec/v8omzEOW3/GIM+a7bvPaU5D/ohX7qjFtomhihaFhxCBsU6oqjVx2U65owbsX9/6N7/YCmul+O3liZ0fO2L75/KJrZGSjcHJmhaFwxCAM1TyIrIbgm+yPLT9so6VDI3rKl33t4c4RSGJv6G12eaNwMXPEQBETln14zJzQ1Mb/SNjmDNl0fyQ4DPBQZML8iTEbhqBj+YDAgpNSEduWj7OuVkCSQMq4N/Er/+2HfKUHu//spgOicDLEIB9c5n7WgG+5aOdjfBmuxH3z4TYiQzDVYKjBLhv4IkNfo3Ayc8RAeKpQ+o/GJyGCH0I4f9luN0i7BPXlMlaJAuXLX5Ng8DTN0vtZtztjqYfkwp1cVOYPu+Fce3aIdJHVoUDaJaMIDqFzxEBQN41y5zAZhYHQWf2wWF6CGboqQk6MxDcQ76zXHvVtzrAPUWXZDt4IB8Ha1z+54Hc6LmEoG090pk0IYs+jLN8HonNkxCCPVPjiD5O7V0c3P/SVsHmED7slwllta7c92WiKwnvgoqN2aWTEIHBy8sOi/V0YKXJw8VtW40MbqhtUyO9HC9m/haf84xiGomx2dKNzbmTEIDAp2wPDnojyy8tTgb3sMH++26D5+l7nHZmyRvzFfLsOpHR5cGWiaGI=',
+          'base64'
+        )
+      );
+
+      const decTxn = algosdk.decodeSignedTransaction(golden);
+      const signed = {
+        lsig: decTxn.lsig,
+        txn: decTxn.txn.get_obj_for_encoding(),
+      };
+      const reencRep = algosdk.encodeObj(signed);
+      assert.deepStrictEqual(reencRep, golden);
+      const hbAddress =
+        'NRJ2UKUNLR3FHLTIYG5RP576RXX7MAU25F7DW6LCM5D45WF67H6EFQMWNM';
+
+      assert.deepStrictEqual(decTxn.txn.type, algosdk.TransactionType.hb);
+      assert.deepStrictEqual(
+        algosdk.encodeAddress(decTxn.txn.heartbeatFields.a.publicKey),
+        hbAddress
+      );
+      assert.deepStrictEqual(decTxn.txn.heartbeatFields?.kd, 100);
     });
 
     it('reserializes correctly no genesis ID', () => {

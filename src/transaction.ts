@@ -19,6 +19,8 @@ import AnyTransaction, {
   EncodedSignedTransaction,
   EncodedMultisig,
   EncodedLogicSig,
+  EncodedHeartbeatFields,
+  EncodedHeartbeatProof,
 } from './types/transactions';
 import { Address } from './types/address';
 
@@ -37,6 +39,100 @@ const KEYREG_STATE_PROOF_KEY_LENGTH = 64;
 
 type AnyTransactionWithParams = MustHaveSuggestedParams<AnyTransaction>;
 type AnyTransactionWithParamsInline = MustHaveSuggestedParamsInline<AnyTransaction>;
+
+/**
+ * Object representing a heartbeat proof
+ */
+class HeartbeatProof {
+  s: Buffer;
+  p: Buffer;
+  p2: Buffer;
+  p1s: Buffer;
+  p2s: Buffer;
+
+  constructor(sig: Buffer, pk: Buffer, pk2: Buffer, p1s: Buffer, p2s: Buffer) {
+    this.s = sig;
+    this.p = pk;
+    this.p2 = pk2;
+    this.p1s = p1s;
+    this.p2s = p2s;
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    encHbFields: EncodedHeartbeatProof
+  ): HeartbeatProof {
+    const proof = Object.create(this.prototype) as HeartbeatProof;
+    proof.s = encHbFields.s;
+    proof.p = encHbFields.p;
+    proof.p2 = encHbFields.p2;
+    proof.p1s = encHbFields.p1s;
+    proof.p2s = encHbFields.p2s;
+    return proof;
+  }
+
+  // eslint-disable-next-line camelcase
+  get_obj_for_encoding() {
+    const fields: EncodedHeartbeatProof = {
+      s: this.s,
+      p: this.p,
+      p2: this.p2,
+      p1s: this.p1s,
+      p2s: this.p2s,
+    };
+    return fields;
+  }
+}
+
+/**
+ * Object representing a heartbeat transaction
+ */
+class HeartbeatFields {
+  a: string | Address;
+  prf: HeartbeatProof;
+  sd: Buffer;
+  vid: Buffer;
+  kd: number;
+
+  constructor(
+    addr: string | Address,
+    proof: EncodedHeartbeatProof,
+    seed: Buffer,
+    voteID: Buffer,
+    kd: number
+  ) {
+    this.a = addr;
+    this.prf = HeartbeatProof.from_obj_for_encoding(proof);
+    this.sd = seed;
+    this.vid = voteID;
+    this.kd = kd;
+  }
+
+  // eslint-disable-next-line camelcase
+  static from_obj_for_encoding(
+    encHbFields: EncodedHeartbeatFields
+  ): HeartbeatFields {
+    const fields = Object.create(this.prototype) as HeartbeatFields;
+    fields.a = address.decodeAddress(address.encodeAddress(encHbFields.a));
+    fields.prf = HeartbeatProof.from_obj_for_encoding(encHbFields.prf);
+    fields.sd = Buffer.from(encHbFields.sd);
+    fields.vid = Buffer.from(encHbFields.vid);
+    fields.kd = encHbFields.kd;
+    return fields;
+  }
+
+  // eslint-disable-next-line camelcase
+  get_obj_for_encoding() {
+    const fields: EncodedHeartbeatFields = {
+      a: Buffer.from((this.a as Address).publicKey),
+      prf: this.prf.get_obj_for_encoding(),
+      sd: this.sd,
+      vid: this.vid,
+      kd: this.kd,
+    };
+    return fields;
+  }
+}
 
 /**
  * A modified version of the transaction params. Represents the internal structure that the Transaction class uses
@@ -62,6 +158,7 @@ interface TransactionStorageStructure
     | 'appAccounts'
     | 'suggestedParams'
     | 'reKeyTo'
+    | 'heartbeatFields' // redefine type to silent TS error about 'string | Address' and 'string' incompatibility
   > {
   from: string | Address;
   to: string | Address;
@@ -117,6 +214,7 @@ interface TransactionStorageStructure
   stateProofType?: number | bigint;
   stateProof?: Uint8Array;
   stateProofMessage?: Uint8Array;
+  heartbeatFields?: HeartbeatFields;
 }
 
 function getKeyregKey(
@@ -209,6 +307,7 @@ export class Transaction implements TransactionStorageStructure {
   stateProofType?: number | bigint;
   stateProof?: Uint8Array;
   stateProofMessage?: Uint8Array;
+  heartbeatFields?: HeartbeatFields;
 
   constructor({ ...transaction }: AnyTransaction) {
     // Populate defaults
@@ -574,6 +673,10 @@ export class Transaction implements TransactionStorageStructure {
     } else {
       txn.stateProof = new Uint8Array(0);
     }
+    if (txn.heartbeatFields !== undefined) {
+      if (txn.heartbeatFields.constructor !== HeartbeatFields)
+        throw Error('heartbeatFields must be a HeartbeatFields.');
+    }
   }
 
   // eslint-disable-next-line camelcase
@@ -918,6 +1021,28 @@ export class Transaction implements TransactionStorageStructure {
       if (txn.grp === undefined) delete txn.grp;
       return txn;
     }
+    if (this.type === 'hb') {
+      // heartbeat txn
+      const txn: EncodedTransaction = {
+        fee: this.fee,
+        fv: this.firstRound,
+        lv: this.lastRound,
+        note: Buffer.from(this.note),
+        snd: Buffer.from(this.from.publicKey),
+        type: this.type,
+        gen: this.genesisID,
+        gh: this.genesisHash,
+        lx: Buffer.from(this.lease),
+        hb: this.heartbeatFields.get_obj_for_encoding(),
+      };
+      // allowed zero values
+      if (!txn.note.length) delete txn.note;
+      if (!txn.lx.length) delete txn.lx;
+      if (!txn.fee) delete txn.fee;
+      if (!txn.gen) delete txn.gen;
+      if (txn.grp === undefined) delete txn.grp;
+      return txn;
+    }
 
     return undefined;
   }
@@ -1104,6 +1229,12 @@ export class Transaction implements TransactionStorageStructure {
       }
       if (txnForEnc.spmsg !== undefined) {
         txn.stateProofMessage = txnForEnc.spmsg;
+      }
+    } else if (txnForEnc.type === 'hb') {
+      if (txnForEnc.hb !== undefined) {
+        txn.heartbeatFields = HeartbeatFields.from_obj_for_encoding(
+          txnForEnc.hb
+        );
       }
     }
     return txn;

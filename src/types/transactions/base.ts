@@ -37,6 +37,11 @@ export enum TransactionType {
    * State proof transaction
    */
   stpf = 'stpf',
+
+  /**
+   * Heartbeat transaction
+   */
+  hb = 'hb',
 }
 
 export function isTransactionType(s: string): s is TransactionType {
@@ -47,7 +52,8 @@ export function isTransactionType(s: string): s is TransactionType {
     s === TransactionType.axfer ||
     s === TransactionType.afrz ||
     s === TransactionType.appl ||
-    s === TransactionType.stpf
+    s === TransactionType.stpf ||
+    s === TransactionType.hb
   );
 }
 
@@ -150,6 +156,14 @@ export interface BoxReference {
    * Name of box to reference
    */
   name: Uint8Array;
+}
+
+interface heartbeatFields {
+  a: string;
+  prf: Uint8Array;
+  sd: Uint8Array;
+  vid: Uint8Array;
+  kd: number;
 }
 
 /**
@@ -432,4 +446,9 @@ export interface TransactionParams {
    * Byte array containing the state proof message.
    */
   stateProofMessage?: Uint8Array;
+
+  /**
+   * HeartbeatFields fields
+   */
+  heartbeatFields?: heartbeatFields;
 }

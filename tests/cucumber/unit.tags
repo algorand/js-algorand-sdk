@@ -2,6 +2,7 @@
 @unit.abijson.byname
 @unit.algod
 @unit.algod.ledger_refactoring
+@unit.algod.heartbeat.msgp
 @unit.applications
 @unit.applications.boxes
 @unit.atomic_transaction_composer
@@ -13,6 +14,7 @@
 @unit.indexer
 @unit.indexer.ledger_refactoring
 @unit.indexer.logs
+@unit.indexer.heartbeat
 @unit.offline
 @unit.program_sanity_check
 @unit.ready
