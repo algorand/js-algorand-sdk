@@ -1,3 +1,20 @@
+# v2.10.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v2.10.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- cucumber: fix miissing skip in browsers by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/919
+
+### Enhancements
+
+- api: port regenerated incentives and heartbeat models by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/917
+- Incentives: Support heartbeat transaction (v2.9) by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/918
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.1.0...v2.10.0
+
 # v2.9.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.9.0 -->
