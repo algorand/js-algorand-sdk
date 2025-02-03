@@ -15,6 +15,7 @@ import LookupApplications from './lookupApplications.js';
 import LookupApplicationLogs from './lookupApplicationLogs.js';
 import LookupApplicationBoxByIDandName from './lookupApplicationBoxByIDandName.js';
 import SearchAccounts from './searchAccounts.js';
+import SearchForBlockHeaders from './searchForBlockHeaders.js';
 import SearchForTransactions from './searchForTransactions.js';
 import SearchForAssets from './searchForAssets.js';
 import SearchForApplications from './searchForApplications.js';
@@ -325,6 +326,21 @@ export class IndexerClient extends ServiceClient {
    */
   searchAccounts() {
     return new SearchAccounts(this.c);
+  }
+
+  /**
+   * Returns information about indexed block headers.
+   *
+   * #### Example
+   * ```typescript
+   * const bhs = await indexerClient.searchForBlockHeaders().do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2block-headers)
+   * @category GET
+   */
+  searchForBlockHeaders() {
+    return new SearchForBlockHeaders(this.c);
   }
 
   /**
