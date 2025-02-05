@@ -1,3 +1,17 @@
+# v3.2.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.2.0 -->
+
+## What's Changed
+
+### Enhancements
+
+- Blockheaders: Basic BlockHeaders API support. by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/926
+- Dependencies: Bump webpack from 5.89.0 to 5.97.1 by @dependabot in https://github.com/algorand/js-algorand-sdk/pull/930
+- feat: add Address as an ABIValue and handle encoding an Address by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/911
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.1.0...v3.2.0
+
 # v3.1.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.1.0 -->
