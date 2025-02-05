@@ -12,6 +12,7 @@
 @unit.dryrun.trace.application
 @unit.feetest
 @unit.indexer
+@unit.indexer.blockheaders
 @unit.indexer.ledger_refactoring
 @unit.indexer.logs
 @unit.indexer.heartbeat
