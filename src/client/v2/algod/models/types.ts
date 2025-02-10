@@ -2915,7 +2915,7 @@ export class BlockHeaderResponse implements Encodable {
       this.encodingSchemaValue = new NamedMapSchema([]);
       (this.encodingSchemaValue as NamedMapSchema).pushEntries({
         key: 'blockHeader',
-        valueSchema: Block.encodingSchema,
+        valueSchema: UntypedValue.encodingSchema,
         omitEmpty: true,
       });
     }
@@ -2925,13 +2925,13 @@ export class BlockHeaderResponse implements Encodable {
   /**
    * Block header data.
    */
-  public blockheader: Block;
+  public blockheader: UntypedValue;
 
   /**
    * Creates a new `BlockHeaderResponse` object.
    * @param blockheader - Block header data.
    */
-  constructor({ blockheader }: { blockheader: Block }) {
+  constructor({ blockheader }: { blockheader: UntypedValue }) {
     this.blockheader = blockheader;
   }
 
@@ -2951,7 +2951,9 @@ export class BlockHeaderResponse implements Encodable {
       throw new Error(`Invalid decoded BlockHeaderResponse: ${data}`);
     }
     return new BlockHeaderResponse({
-      blockheader: Block.fromEncodingData(data.get('blockHeader') ?? new Map()),
+      blockheader: UntypedValue.fromEncodingData(
+        data.get('blockHeader') ?? new Map()
+      ),
     });
   }
 }
