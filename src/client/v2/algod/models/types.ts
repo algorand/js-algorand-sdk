@@ -2099,38 +2099,6 @@ export class BlockHashResponse extends BaseModel {
 }
 
 /**
- * Block header.
- */
-export class BlockHeaderResponse extends BaseModel {
-  /**
-   * Block header data.
-   */
-  public blockheader?: BlockHeader;
-
-  /**
-   * Creates a new `BlockHeaderResponse` object.
-   * @param blockheader - Block header data.
-   */
-  constructor({ blockheader }: { blockheader?: BlockHeader }) {
-    super();
-    this.blockheader = blockheader;
-
-    this.attribute_map = {
-      blockheader: 'blockHeader',
-    };
-  }
-
-  // eslint-disable-next-line camelcase
-  static from_obj_for_encoding(data: Record<string, any>): BlockHeaderResponse {
-    /* eslint-disable dot-notation */
-    return new BlockHeaderResponse({
-      blockheader: data['blockHeader'],
-    });
-    /* eslint-enable dot-notation */
-  }
-}
-
-/**
  * All logs emitted in the given round. Each app call, whether top-level or inner,
  * that contains logs results in a separate AppCallLogs object. Therefore there may
  * be multiple AppCallLogs with the same application ID and outer transaction ID in
