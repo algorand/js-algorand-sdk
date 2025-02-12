@@ -1771,6 +1771,23 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'we make a Get Block call for round {int} with format {string} and header-only {string}',
+    async function (round, format, headerOnly) {
+      if (format !== 'msgpack') {
+        assert.fail('this SDK only supports format msgpack for this function');
+      }
+
+      const builder = this.v2Client.block(round);
+      const hob = headerOnly.toLowerCase() === 'true';
+
+      if (hob) {
+        builder.headerOnly(hob);
+      }
+      await builder.do();
+    }
+  );
+
   When('we make a GetAssetByID call for assetID {int}', async function (index) {
     await this.v2Client.getAssetByID(index).do();
   });
@@ -1952,6 +1969,16 @@ module.exports = function getSteps(options) {
 
   Then(
     'the parsed Get Block response should have rewards pool {string}',
+    (rewardsPoolAddress) => {
+      const rewardsPoolB64String = Buffer.from(
+        anyBlockResponse.block.rwd
+      ).toString('base64');
+      assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
+    }
+  );
+
+  Then(
+    'the parsed Get Block response should have rewards pool {string} and no certificate or payset',
     (rewardsPoolAddress) => {
       const rewardsPoolB64String = Buffer.from(
         anyBlockResponse.block.rwd
