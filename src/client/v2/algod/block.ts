@@ -19,6 +19,28 @@ export default class Block extends JSONRequest<BlockResponse> {
     return `/v2/blocks/${this.round}`;
   }
 
+  /**
+   * If true, only the block header (exclusive of payset or certificate) may be included in response.
+   *
+   * #### Example
+   * ```typescript
+   *
+   * const roundNumber = 41000000;
+   *
+   * const blockResponse = await algodClient
+   *        .block(roundNumber)
+   *        .headerOnly(true)
+   *        .do();
+   * ```
+   *
+   * @param headerOnly - the flag indicating whether exclusively return header in response
+   * @category query
+   */
+  headerOnly(headerOnly: boolean) {
+    this.query['header-only'] = headerOnly;
+    return this;
+  }
+
   // eslint-disable-next-line class-methods-use-this
   prepare(response: HTTPClientResponse): BlockResponse {
     return decodeMsgpack(response.body, BlockResponse);

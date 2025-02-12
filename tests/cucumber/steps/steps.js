@@ -2120,6 +2120,23 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'we make a Get Block call for round {int} with format {string} and header-only {string}',
+    async function (round, format, headerOnly) {
+      if (format !== 'msgpack') {
+        assert.fail('this SDK only supports format msgpack for this function');
+      }
+
+      const builder = this.v2Client.block(round);
+      const hob = headerOnly.toLowerCase() === 'true';
+
+      if (hob) {
+        builder.headerOnly(hob);
+      }
+      await doOrDoRaw(builder);
+    }
+  );
+
   When('we make a GetAssetByID call for assetID {int}', async function (index) {
     await doOrDoRaw(this.v2Client.getAssetByID(index));
   });
@@ -2321,6 +2338,31 @@ module.exports = function getSteps(options) {
         anyBlockResponse.block.header.rewardState.rewardsPool.publicKey
       );
       assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
+    }
+  );
+
+  Then(
+    'the parsed Get Block response should have rewards pool {string} and no certificate or payset',
+    (rewardsPoolAddress) => {
+      assert.ok(
+        anyBlockResponse.block.header.rewardState.rewardsPool instanceof
+          algosdk.Address
+      );
+      const rewardsPoolB64String = algosdk.bytesToBase64(
+        anyBlockResponse.block.header.rewardState.rewardsPool.publicKey
+      );
+      assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
+
+      assert.strictEqual(
+        anyBlockResponse.cert,
+        undefined,
+        'Cert should be undefined'
+      );
+      assert.strictEqual(
+        anyBlockResponse.block.payset.length,
+        0,
+        'Payset should be empty'
+      );
     }
   );
 
