@@ -1771,6 +1771,23 @@ module.exports = function getSteps(options) {
     }
   );
 
+  When(
+    'we make a Get Block call for round {int} with format {string} and header-only {string}',
+    async function (round, format, headerOnly) {
+      if (format !== 'msgpack') {
+        assert.fail('this SDK only supports format msgpack for this function');
+      }
+
+      const builder = this.v2Client.block(round);
+      const hob = headerOnly.toLowerCase() === 'true';
+
+      if (hob) {
+        builder.headerOnly(hob);
+      }
+      await builder.do();
+    }
+  );
+
   When('we make a GetAssetByID call for assetID {int}', async function (index) {
     await this.v2Client.getAssetByID(index).do();
   });
@@ -1952,6 +1969,16 @@ module.exports = function getSteps(options) {
 
   Then(
     'the parsed Get Block response should have rewards pool {string}',
+    (rewardsPoolAddress) => {
+      const rewardsPoolB64String = Buffer.from(
+        anyBlockResponse.block.rwd
+      ).toString('base64');
+      assert.strictEqual(rewardsPoolAddress, rewardsPoolB64String);
+    }
+  );
+
+  Then(
+    'the parsed Get Block response should have rewards pool {string} and no certificate or payset',
     (rewardsPoolAddress) => {
       const rewardsPoolB64String = Buffer.from(
         anyBlockResponse.block.rwd
@@ -2360,6 +2387,47 @@ module.exports = function getSteps(options) {
   );
 
   When(
+    'we make a Search For BlockHeaders call with minRound {int} maxRound {int} limit {int} nextToken {string} beforeTime {string} afterTime {string} proposers {string} expired {string} absent {string}',
+    async function (
+      minRound,
+      maxRound,
+      limit,
+      nextToken,
+      beforeTime,
+      afterTime,
+      proposers,
+      expired,
+      absent
+    ) {
+      const builder = this.indexerClient
+        .searchForBlockHeaders()
+        .afterTime(afterTime)
+        .beforeTime(beforeTime)
+        .limit(limit)
+        .maxRound(maxRound)
+        .minRound(minRound)
+        .nextToken(nextToken);
+
+      if (proposers !== null && proposers.trim().length > 0) {
+        const proposersArray = proposers.split(',');
+        builder.proposers(proposersArray);
+      }
+
+      if (expired !== null && expired.trim().length > 0) {
+        const expiredArray = expired.split(',');
+        builder.expired(expiredArray);
+      }
+
+      if (absent !== null && absent.trim().length > 0) {
+        const absentArray = absent.split(',');
+        builder.absent(absentArray);
+      }
+
+      await builder.do();
+    }
+  );
+
+  When(
     'we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string} rekeyTo {string}',
     async function (
       account,
@@ -2734,6 +2802,28 @@ module.exports = function getSteps(options) {
           'heartbeat-transaction'
         ]['hb-address'],
         hbAddress
+      );
+    }
+  );
+
+  let anySearchForBlockHeadersResponse;
+
+  When('we make any SearchForBlockHeaders call', async function () {
+    anySearchForBlockHeadersResponse = await this.indexerClient
+      .searchForBlockHeaders()
+      .do();
+  });
+
+  Then(
+    'the parsed SearchForBlockHeaders response should have a block array of len {int} and the element at index {int} should have round {string}',
+    (length, idx, roundStr) => {
+      assert.strictEqual(
+        anySearchForBlockHeadersResponse.blocks.length,
+        length
+      );
+      assert.strictEqual(
+        anySearchForBlockHeadersResponse.blocks[idx].round,
+        parseInt(roundStr)
       );
     }
   );

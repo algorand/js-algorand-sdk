@@ -15,6 +15,7 @@ import LookupApplications from './lookupApplications';
 import LookupApplicationLogs from './lookupApplicationLogs';
 import LookupApplicationBoxByIDandName from './lookupApplicationBoxByIDandName';
 import SearchAccounts from './searchAccounts';
+import SearchForBlockHeaders from './searchForBlockHeaders';
 import SearchForTransactions from './searchForTransactions';
 import SearchForAssets from './searchForAssets';
 import SearchForApplications from './searchForApplications';
@@ -343,6 +344,21 @@ export default class IndexerClient extends ServiceClient {
    */
   searchForTransactions() {
     return new SearchForTransactions(this.c, this.intDecoding);
+  }
+
+  /**
+   * Returns information about indexed block headers.
+   *
+   * #### Example
+   * ```typescript
+   * const txns = await indexerClient.searchForBlockHeaders().do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/indexer/#get-v2block-headers)
+   * @category GET
+   */
+  searchForBlockHeaders() {
+    return new SearchForBlockHeaders(this.c, this.intDecoding);
   }
 
   /**
