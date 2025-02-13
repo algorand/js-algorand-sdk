@@ -1,3 +1,22 @@
+# v2.11.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v2.11.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- cucumber: fix miissing skip in browsers by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/919
+
+### Enhancements
+
+- api: port regenerated incentives and heartbeat models by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/917
+- Incentives: Support heartbeat transaction (v2.9) by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/918
+- BlockHeaders: Support for /v2/blockheaders against Indexer API (v2.x line) by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/928
+- API: Support for header-only flag on /v2/block algod endpoint (v2.x backport) by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/941
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.1.0...v2.11.0
+
 # v2.10.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v2.10.0 -->
