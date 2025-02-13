@@ -2905,58 +2905,6 @@ export class BlockHashResponse implements Encodable {
 }
 
 /**
- * Block header.
- */
-export class BlockHeaderResponse implements Encodable {
-  private static encodingSchemaValue: Schema | undefined;
-
-  static get encodingSchema(): Schema {
-    if (!this.encodingSchemaValue) {
-      this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
-        key: 'blockHeader',
-        valueSchema: Block.encodingSchema,
-        omitEmpty: true,
-      });
-    }
-    return this.encodingSchemaValue;
-  }
-
-  /**
-   * Block header data.
-   */
-  public blockheader: Block;
-
-  /**
-   * Creates a new `BlockHeaderResponse` object.
-   * @param blockheader - Block header data.
-   */
-  constructor({ blockheader }: { blockheader: Block }) {
-    this.blockheader = blockheader;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  getEncodingSchema(): Schema {
-    return BlockHeaderResponse.encodingSchema;
-  }
-
-  toEncodingData(): Map<string, unknown> {
-    return new Map<string, unknown>([
-      ['blockHeader', this.blockheader.toEncodingData()],
-    ]);
-  }
-
-  static fromEncodingData(data: unknown): BlockHeaderResponse {
-    if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded BlockHeaderResponse: ${data}`);
-    }
-    return new BlockHeaderResponse({
-      blockheader: Block.fromEncodingData(data.get('blockHeader') ?? new Map()),
-    });
-  }
-}
-
-/**
  * All logs emitted in the given round. Each app call, whether top-level or inner,
  * that contains logs results in a separate AppCallLogs object. Therefore there may
  * be multiple AppCallLogs with the same application ID and outer transaction ID in

@@ -231,6 +231,22 @@ describe('ABI type checking', () => {
 });
 
 describe('ABI encoding', () => {
+  // Note we are not using the newTestCase array below because we are not testing round-trip
+  // encoding. We added support for encoding Address as `address`, but decode should still return
+  // a string for backwards compatibility
+  it('ABIAddressType should encode Address properly', () => {
+    const abiType = new ABIAddressType();
+    const addr = decodeAddress(
+      'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+    );
+
+    assert.deepStrictEqual(abiType.encode(addr), addr.publicKey);
+    assert.deepStrictEqual(
+      abiType.decode(abiType.encode(addr)),
+      addr.toString()
+    );
+  });
+
   type TestCase<T> = {
     abiType: ABIType;
     input: T;

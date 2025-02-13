@@ -43,8 +43,13 @@ describe('client', () => {
         format: 'json',
         abc: 'xyz',
         l: '2',
+        adds: [
+          'XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA',
+          '4H5UNRBJ2Q6JENAXQ6HNTGKLKINP4J4VTQBEPK5F3I6RDICMZBPGNH6KD4',
+        ],
       });
-      const expected = 'http://localhost:3000/relative?format=json&abc=xyz&l=2';
+      const expected =
+        'http://localhost:3000/relative?format=json&abc=xyz&l=2&adds=XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA%2C4H5UNRBJ2Q6JENAXQ6HNTGKLKINP4J4VTQBEPK5F3I6RDICMZBPGNH6KD4';
 
       assert.strictEqual(actual, expected);
     });
