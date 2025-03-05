@@ -66,7 +66,7 @@ jobs:
         id: slack-changelog
         uses: slackapi/slack-github-action@v1.27.1
         env:
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:
@@ -95,7 +95,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.27.1
         env:
           SDK: ${{ github.event.repository.name }}
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:
