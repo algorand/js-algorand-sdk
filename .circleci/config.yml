@@ -9,7 +9,7 @@ orbs:
 parameters:
   ubuntu_machine:
     type: string
-    default: 'ubuntu-2004:202111-02'
+    default: 'ubuntu-2404:2024.05.1'
   ubuntu_docker:
     type: string
     default: 'ubuntu:focal'
