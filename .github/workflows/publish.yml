@@ -39,10 +39,11 @@ jobs:
       - run: |
           if git diff-index --quiet HEAD --; then
             echo 'DRY_RUN: '$DRY_RUN
-            if [ '$DRY_RUN' == 'true' ]
+            if [ '$DRY_RUN' == 'true' ]; then
               npm publish --dry-run
             else
               npm publish 
+            fi
           else
             echo "There are unpublished changes"
             exit 1
