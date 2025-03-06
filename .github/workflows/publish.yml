@@ -40,8 +40,10 @@ jobs:
           if git diff-index --quiet HEAD --; then
             echo 'DRY_RUN: '$DRY_RUN
             if [ '$DRY_RUN' == 'false' ]; then
-              npm publish
+              echo 'running a publish'
+              npm publish --dry-run
             else
+              echo 'running a publish'
               npm publish --dry-run
             fi
           else
