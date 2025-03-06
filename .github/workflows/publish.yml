@@ -1,6 +1,8 @@
 name: "Publish NPM package to repository"
 
 on: 
+  push:
+    branch: sdk-release-updates-testing
   workflow_dispatch:
     inputs:
       tag_version:
