@@ -1,0 +1,50 @@
+name: "Publish NPM package to repository"
+
+on: 
+  workflow_dispatch:
+    inputs:
+      tag_version:
+        description: 'The tag_version, e.g. vx.x.x'
+        default: 'vx.x.x'
+        required: true
+        type: 'string'
+      node_version:
+        description: 'The node_version to build with.'
+        default: '22.x'
+        required: true
+        type: 'string'
+      dry_run:
+        description: 'Whether this is a dry_run publish.'
+        default: 'false'
+        required: true
+        type: 'boolean'
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - run: npm run build
+      - run: |
+          if git diff-index --quiet HEAD --; then
+            echo 'DRY_RUN: '$DRY_RUN
+            if [ '$DRY_RUN' == 'true' ]
+              npm publish --dry-run
+            else
+              npm publish 
+          else
+            echo "There are unpublished changes"
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
