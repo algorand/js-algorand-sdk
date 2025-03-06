@@ -1,8 +1,6 @@
 name: "Publish NPM package to repository"
 
 on: 
-  push:
-    branch: sdk-release-updates-testing
   workflow_dispatch:
     inputs:
       tag_version:
@@ -17,7 +15,7 @@ on:
         type: 'string'
       dry_run:
         description: 'Whether this is a dry_run publish.'
-        default: 'false'
+        default: 'true'
         required: true
         type: 'boolean'
 
