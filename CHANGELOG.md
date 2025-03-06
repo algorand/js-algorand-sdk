@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## v3.3.4 - 2025-03-06
+
+<!-- Release notes generated using configuration in .github/release.yml at sdk-release-updates-testing -->
+**Full Changelog**: https://github.com/gmalouf/js-algorand-sdk/compare/v3.3.3...v3.3.4
+
 ## v3.3.2 - 2025-03-05
 
 <!-- Release notes generated using configuration in .github/release.yml at sdk-release-updates-testing -->
