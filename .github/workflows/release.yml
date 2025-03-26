@@ -17,6 +17,7 @@ on:
         description: "The tag name for the release (e.g., v1.2.3)"
         required: true
         type: 'string'
+  push:
 
 jobs:
   release_and_publish:
