@@ -1,0 +1,103 @@
+# .github/workflows/release.yml
+name: "Create and Publish Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_pr_number:
+        description: "The pull request number to merge that contains the package version bumps and changelog updates."
+        required: true
+        type: 'number'
+      node_version:
+        description: "The Node.js version to use for publishing"
+        required: true
+        type: 'string'
+        default: '22.x'
+      release_version:
+        description: "The tag name for the release (e.g., v1.2.3)"
+        required: true
+        type: 'string'
+
+jobs:
+  release_and_publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed for creating releases and tags, and deleting branches
+      pull-requests: write # Needed for merging the PR
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config --local user.name "GitHub Actions"
+          git config --local user.email "actions@github.com"
+
+      - name: Merge Pull Request
+        uses: octokit/plugin-rest.js@v2
+        id: merge_pr
+        with:
+          octokit-version: '21.0.0'
+          method: 'PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge'
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          pull_number: ${{ github.event.inputs.release_pr_number }}
+
+      - name: Get Pull Request Body
+        id: get_pr_info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const result = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.inputs.release_pr_number }},
+            });
+            core.setOutput('RELEASE_NOTES', result.data.body);
+            core.setOutput('RELEASE_TAG', ${{ github.event.inputs.release_version }});
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1 # Using softprops/action-gh-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_version }}
+          name: ${{ github.event.inputs.release_version }} # Use release_version as title
+          body: ${{ steps.get_pr_info.outputs.RELEASE_NOTES }}
+
+      - name: Publish release to NPM
+        uses: ./.github/workflows/publish.yml
+        with:
+          tag_version: ${{ github.event.inputs.release_version }}
+          node_version: ${{ github.event.inputs.node_version }}
+          dry_run: 'false' # Set dry_run to false for the actual publish
+        secrets:
+          ALGORAND_NPM_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
+
+      - name: Delete branch after merge
+        if: steps.merge_pr.outputs.merged == 'true' # only delete if merge was successful
+        uses: git-command-action@v0.6.0  # corrected uses
+        with:
+          script: git push origin -d release/${{ github.event.inputs.release_version }}
+      - name: Notify Slack - Release Completed
+        id: slack-release
+        uses: slackapi/slack-github-action@v1.27.1
+        env:
+          SDK: ${{ github.repository.name }}
+          RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }} # Use the stored release tag.
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ env.SDK }} ${{ env.RELEASE_TAG }}* was released today. https://github.com/algorand/${{ env.SDK }}/releases/tag/${{ env.RELEASE_TAG }}"
+                  }
+                }
+              ]
+            }
+
