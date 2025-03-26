@@ -12,6 +12,11 @@ on:
         description: "(Optional) Pre-Release version, e.g. 'beta.1'. Used mainly to support consensus release on betanet."
         required: false
         type: string
+      node_version:
+        description: 'The node_version to build with.'
+        default: '22.x'
+        required: true
+        type: 'string'
 
 env:
   RELEASE_VERSION: ${{ inputs.release_version }}
@@ -43,7 +48,7 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -108,9 +113,9 @@ jobs:
           echo -e "# ${RELEASE_VERSION}\n\n${CHANGELOG_CONTENT}\n" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ inputs.node_version }}
 
       - name: Update Version References in Source
         env:
@@ -130,26 +135,25 @@ jobs:
         with:
           message: "bump up version to ${{ env.RELEASE_TAG }}"
 
-      - name: Create Pull Request to Master
+      - name: Create Pull Request to Main
+        if: ${{ env.PRE_RELEASE_VERSION == '' }}
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
-          # Note: There's an issue adding teams as reviewers, see https://github.com/cli/cli/issues/6395
-          PULL_REQUEST_URL=$(gh pr create --base "master" \
-            --title "FOR REVIEW ONLY: ${{ github.event.repository.name }} $RELEASE_TAG" \
+          PULL_REQUEST_URL=$(gh pr create --base "main" \
+            --title "RELEASE: ${{ github.event.repository.name }} $RELEASE_TAG" changelog and version bump \
             --label "Skip-Release-Notes" \
-            --label "Team Hyper Flow" \
             --body "${CHANGELOG_CONTENT}" | tail -n 1)
           if [[ $PULL_REQUEST_URL =~ ^https://github.com/${{ github.repository }}/pull/[0-9]+$ ]]; then
             PULL_REQUEST_NUM=$(echo $PULL_REQUEST_URL | sed 's:.*/::')
-            echo "pull-request-master=$PULL_REQUEST_URL" >> $GITHUB_ENV
-            echo "pull-request-master-num=$PULL_REQUEST_NUM" >> $GITHUB_ENV
-            echo "Pull request to Master created: $PULL_REQUEST_URL"
+            echo "pull-request-main=$PULL_REQUEST_URL" >> $GITHUB_ENV
+            echo "pull-request-main-num=$PULL_REQUEST_NUM" >> $GITHUB_ENV
+            echo "Pull request to Main created: $PULL_REQUEST_URL"
           else
-            echo "There was an issue creating the pull request to master branch."
+            echo "There was an issue creating the pull request to main branch."
             exit 1
           fi
 
