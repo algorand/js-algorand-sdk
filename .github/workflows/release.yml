@@ -44,8 +44,8 @@ jobs:
         with:
           script: |
             const octokit = require('@octokit/rest').Octokit;
-            const myOctokit = new octokit({
-              auth: \`token \${{ github.token }}\`
+            const octokit = new Octokit({
+              auth: \`token \${{ secrets.GITHUB_TOKEN }}\`
             });
             const result = await myOctokit.pulls.merge({
               owner: context.repo.owner,
@@ -110,8 +110,8 @@ jobs:
         with:
           script: |
             const octokit = require('@octokit/rest').Octokit; // Corrected Octokit initialization
-            const myOctokit = new octokit({
-              auth: \`token \${{ github.token }}\`
+            const octokit = new Octokit({
+              auth: \`token \${{ secrets.GITHUB_TOKEN }}\`
             });
             try{
               await myOctokit.git.deleteRef({
