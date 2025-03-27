@@ -72,8 +72,6 @@ jobs:
           tag_version: ${{ github.event.inputs.release_version }}
           node_version: ${{ github.event.inputs.node_version }}
           dry_run: 'true' # Set dry_run to false for the actual publish
-        secrets:
-          ALGORAND_NPM_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
 
       - name: Delete branch after merge
         if: steps.merge_pr.outputs.merged == 'true' # only delete if merge was successful
