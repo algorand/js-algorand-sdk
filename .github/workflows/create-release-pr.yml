@@ -158,27 +158,6 @@ jobs:
             exit 1
           fi
 
-      - name: Create Pull Request to Develop
-        if: ${{ env.PRE_RELEASE_VERSION == '' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
-        run: |
-          # Note: There's an issue adding teams as reviewers, see https://github.com/cli/cli/issues/6395
-          PULL_REQUEST_URL=$(gh pr create --base "develop" \
-            --title "FOR REVIEW ONLY: Merge back ${{ github.event.repository.name }} $RELEASE_TAG to develop" \
-            --label "Skip-Release-Notes" \
-            --label "Team Hyper Flow" \
-            --body "Merge back version changes to develop." | tail -n 1)
-          if [[ $PULL_REQUEST_URL =~ ^https://github.com/${{ github.repository }}/pull/[0-9]+$ ]]; then
-            echo "Pull request to Develop created: $PULL_REQUEST_URL"
-            DEVELOP_PR_MESSAGE="\nPull Request to develop: $PULL_REQUEST_URL"
-            echo "pull-request-develop-message=$DEVELOP_PR_MESSAGE" >> $GITHUB_ENV
-          else
-            echo "There was an issue creating the pull request to develop branch."
-            exit 1
-          fi
-
       - name: Send Slack Message
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
@@ -187,6 +166,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
           SDK_DEPLOYMENT_URL: ${{ secrets.SDK_DEPLOYMENT_URL }}
+          RELEASE_WORKFLOW: "workflows/release.yml"
         with:
           payload: |
             {
@@ -202,14 +182,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Approvals needed for*:\nPull Request to master: ${{ env.pull-request-master}}${{ env.pull-request-develop-message }}"
+                    "text": "*Approval needed for*:\nPull Request to main: ${{ env.pull-request-main}}"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*After approvals*\nDeploy SDK using the <${{ env.SDK_DEPLOYMENT_URL }}|Deployment Pipeline> with the following parameters:\n*SDK*: ${{ github.event.repository.name }}\n*RELEASE_PR_NUM*: ${{ env.pull-request-master-num }}\n*RELEASE_VERSION*: ${{ env.RELEASE_VERSION }}\n*PRE_RELEASE_VERSION*: ${{ env.PRE_RELEASE_VERSION }}"
+                    "text": "*After approval*\nRelease and Deploy SDK using the <${{ env.RELEASE_WORKFLOW }}> with the following parameters:\n*release_pr_number*: ${{ env.pull-request-main-num }}\n*release_version*: ${{ env.RELEASE_VERSION }}"
                   }
                 }
               ]
