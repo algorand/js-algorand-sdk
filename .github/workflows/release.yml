@@ -72,11 +72,13 @@ jobs:
           body: ${{ steps.get_pr_info.outputs.RELEASE_NOTES }}
           generate_release_notes: false #  prevent default notes
 
-      - name: Publish release to NPM
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ github.event.inputs.node_version }}
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish release to NPM
         env:
           NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
         run: |
