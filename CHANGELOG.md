@@ -1,3 +1,9 @@
+# v3.3.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.3.0 -->
+
+**Full Changelog**: https://github.com/gmalouf/js-algorand-sdk/compare/v3.2.0...v3.3.0
+
 # v3.2.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.2.0 -->
