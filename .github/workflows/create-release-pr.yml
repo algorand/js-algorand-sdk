@@ -24,7 +24,6 @@ on:
         type: 'string'
 
 env:
-  BASE_BRANCH: ${{ inputs.base_branch }}
   RELEASE_VERSION: ${{ inputs.release_version }}
   PRE_RELEASE_VERSION: ${{ inputs.pre_release_version }}
   RELEASE_BRANCH: release/${{ inputs.release_version }}
@@ -57,7 +56,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: $BASE_BRANCH
+          ref: ${{ inputs.base_branch }}
 
       - name: Create Release Branch if it does not exist
         run: |
@@ -142,7 +141,7 @@ jobs:
         with:
           message: "bump up version to ${{ env.RELEASE_TAG }}"
 
-      - name: Create Pull Request to BASE_BRANCH
+      - name: Create Pull Request to ${{ inputs.base_branch }}
         if: ${{ env.PRE_RELEASE_VERSION == '' }}
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
@@ -150,7 +149,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
-          PULL_REQUEST_URL=$(gh pr create --base "$BASE_BRANCH" \
+          PULL_REQUEST_URL=$(gh pr create --base "${{ inputs.base_branch }}" \
             --title "RELEASE: ${{ github.event.repository.name }} $RELEASE_TAG changelog and version bump" \
             --label "Skip-Release-Notes" \
             --body "${CHANGELOG_CONTENT}" | tail -n 1)
@@ -158,9 +157,9 @@ jobs:
             PULL_REQUEST_NUM=$(echo $PULL_REQUEST_URL | sed 's:.*/::')
             echo "pull-request-base-branch=$PULL_REQUEST_URL" >> $GITHUB_ENV
             echo "pull-request-base-branch-num=$PULL_REQUEST_NUM" >> $GITHUB_ENV
-            echo "Pull request to $BASE_BRANCH created: $PULL_REQUEST_URL"
+            echo "Pull request to ${{ inputs.base_branch }} created: $PULL_REQUEST_URL"
           else
-            echo "There was an issue creating the pull request to $BASE_BRANCH branch."
+            echo "There was an issue creating the pull request to ${{ inputs.base_branch }} branch."
             exit 1
           fi
 
