@@ -31,6 +31,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get_pr_info.outputs.base_branch }}
+          fetch-depth: 0 
 
       - name: Set up Git
         run: |
@@ -70,6 +73,11 @@ jobs:
           RELEASE_PR_NUMBER: ${{ github.event.inputs.release_pr_number }}
           RELEASE_VERSION: ${{ github.event.inputs.release_version }}
 
+      - name: Ensure latest changes from merged PR
+        run: |
+          git fetch origin ${{ steps.get_pr_info.outputs.base_branch }}
+          git reset --hard origin/${{ steps.get_pr_info.outputs.base_branch }}
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
@@ -90,6 +98,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
         run: |
+          # Ensure we're on the latest version of the branch
+          git checkout ${{ steps.get_pr_info.outputs.base_branch }}
+          git pull origin ${{ steps.get_pr_info.outputs.base_branch }}
+
           if git diff-index --quiet HEAD --; then
             if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
               echo "Publishing to NPM"
@@ -130,7 +142,7 @@ jobs:
         id: slack-release
         uses: slackapi/slack-github-action@v1.27.1
         env:
-          SDK: ${{ github.repository.name }}
+          SDK: ${{ github.event.repository.name }}
           RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
