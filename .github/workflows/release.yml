@@ -99,13 +99,19 @@ jobs:
             exit 1
           fi
 
-      - name: Delete branch after merge
+     - name: Delete branch after merge
         if: steps.merge_pr.outputs.merged == 'true' # only delete if merge was successful
-        uses: peter-evans/delete-branch@v2 
+        uses:  actions/github-script@v7
         with:
-          repo: ${{ github.repository }}
-          branch: release/${{ github.event.inputs.release_version }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/release/${{ github.event.inputs.release_version }}`,
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Notify Slack - Release Completed
         id: slack-release
         uses: slackapi/slack-github-action@v1.27.1
