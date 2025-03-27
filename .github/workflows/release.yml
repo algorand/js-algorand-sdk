@@ -39,7 +39,7 @@ jobs:
           git config --local user.email "actions@github.com"
 
       - name: Merge Pull Request
-        uses: github-script@v7
+        uses: actions/github-script@v7
         with:
           script: |
             const octokit = github.getOctokit(''); // Initialize Octokit
