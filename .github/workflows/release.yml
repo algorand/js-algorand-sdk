@@ -35,14 +35,15 @@ jobs:
           git config --local user.email "actions@github.com"
 
       - name: Merge Pull Request
-        uses: octokit/plugin-rest.js@v2
-        id: merge_pr
+        uses: github-script@v7
         with:
-          octokit-version: '21.0.0'
-          method: 'PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge'
-          owner: ${{ github.repository_owner }}
-          repo: ${{ github.event.repository.name }}
-          pull_number: ${{ github.event.inputs.release_pr_number }}
+          script: |
+            const octokit = github.getOctokit(''); // Initialize Octokit
+            await octokit.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.inputs.release_pr_number }},
+            });
 
       - name: Get Pull Request Body
         id: get_pr_info
