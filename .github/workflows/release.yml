@@ -7,20 +7,20 @@ on:
         description: "The pull request number to merge that contains the package version bumps and changelog updates."
         required: true
         type: number
-      node_version:
-        description: "The Node.js version to use for publishing"
-        required: true
-        type: string
-        default: "22.x"
       release_version:
         description: "The tag name for the release (e.g., v1.2.3)"
         required: true
         type: string
       dry_run:
-        description: "Whether this is a dry_run publish."
-        default: "true"
+        description: "Set to true to 'dry-run'/not actually publish to NPM."
+        default: "false"
         required: true
         type: boolean
+      node_version:
+        description: "The Node.js version to use for publishing"
+        required: true
+        type: string
+        default: "22.x"
 
 jobs:
   release_and_publish:
