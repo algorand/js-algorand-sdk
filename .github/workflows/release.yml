@@ -29,10 +29,30 @@ jobs:
       contents: write # Needed for creating releases and tags, and deleting branches
       pull-requests: write # Needed for merging the PR
     steps:
+      - name: Get Pull Request Info (Base Branch, Release Notes)
+        id: get_pr_info
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt(process.env.RELEASE_PR_NUMBER, 10);
+            const result = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            core.setOutput('RELEASE_NOTES', result.data.body);
+            core.setOutput('RELEASE_TAG', process.env.RELEASE_VERSION);
+            core.setOutput('BASE_BRANCH', result.data.base.ref);  // Capture base branch
+        env:
+          RELEASE_PR_NUMBER: ${{ github.event.inputs.release_pr_number }}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.get_pr_info.outputs.base_branch }}
+          ref: ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
           fetch-depth: 0 
 
       - name: Set up Git
@@ -55,28 +75,10 @@ jobs:
 
             core.setOutput('merged', result.data.merged);
 
-      - name: Get Pull Request Body
-        id: get_pr_info
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = parseInt(process.env.RELEASE_PR_NUMBER, 10);
-            const result = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-
-            core.setOutput('RELEASE_NOTES', result.data.body);
-            core.setOutput('RELEASE_TAG', process.env.RELEASE_VERSION);
-        env:
-          RELEASE_PR_NUMBER: ${{ github.event.inputs.release_pr_number }}
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-
       - name: Ensure latest changes from merged PR
         run: |
-          git fetch origin ${{ steps.get_pr_info.outputs.base_branch }}
-          git reset --hard origin/${{ steps.get_pr_info.outputs.base_branch }}
+          git fetch origin ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
+          git reset --hard origin/${{ steps.get_pr_info.outputs.BASE_BRANCH }}
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -99,8 +101,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
         run: |
           # Ensure we're on the latest version of the branch
-          git checkout ${{ steps.get_pr_info.outputs.base_branch }}
-          git pull origin ${{ steps.get_pr_info.outputs.base_branch }}
+          git checkout ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
+          git pull origin ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
 
           if git diff-index --quiet HEAD --; then
             if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
