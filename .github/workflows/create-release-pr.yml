@@ -187,7 +187,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Approval needed for*:\nPull Request to main: ${{ env.pull-request-base-branch}}"
+                    "text": "*Approval needed for*:\nPull Request to ${{ inputs.base_branch }}: ${{ env.pull-request-base-branch}}"
                   }
                 },
                 {
