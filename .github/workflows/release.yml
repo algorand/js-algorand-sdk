@@ -1,4 +1,3 @@
-# .github/workflows/release.yml
 name: "Create and Publish Release"
 
 on:
@@ -7,21 +6,21 @@ on:
       release_pr_number:
         description: "The pull request number to merge that contains the package version bumps and changelog updates."
         required: true
-        type: 'number'
+        type: number
       node_version:
         description: "The Node.js version to use for publishing"
         required: true
-        type: 'string'
-        default: '22.x'
+        type: string
+        default: "22.x"
       release_version:
         description: "The tag name for the release (e.g., v1.2.3)"
         required: true
-        type: 'string'
+        type: string
       dry_run:
-        description: 'Whether this is a dry_run publish.'
-        default: 'true'
+        description: "Whether this is a dry_run publish."
+        default: "true"
         required: true
-        type: 'boolean'
+        type: boolean
 
 jobs:
   release_and_publish:
@@ -44,93 +43,104 @@ jobs:
         with:
           script: |
             const { Octokit } = require("@octokit/rest");
-            const octokit = new Octokit({
-              auth: \`token \${{ secrets.GITHUB_TOKEN }}\`
-            });
-            const result = await myOctokit.pulls.merge({
+            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+            const prNumber = parseInt(process.env.RELEASE_PR_NUMBER, 10);
+            const result = await octokit.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: ${{ github.event.inputs.release_pr_number }},
+              pull_number: prNumber,
             });
+
             core.setOutput('merged', result.data.merged);
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PR_NUMBER: ${{ github.event.inputs.release_pr_number }}
 
       - name: Get Pull Request Body
         id: get_pr_info
         uses: actions/github-script@v7
         with:
           script: |
+            const prNumber = parseInt(process.env.RELEASE_PR_NUMBER, 10);
             const result = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: ${{ github.event.inputs.release_pr_number }},
+              pull_number: prNumber,
             });
+
             core.setOutput('RELEASE_NOTES', result.data.body);
-            core.setOutput('RELEASE_TAG', ${{ github.event.inputs.release_version }});
+            core.setOutput('RELEASE_TAG', process.env.RELEASE_VERSION);
+        env:
+          RELEASE_PR_NUMBER: ${{ github.event.inputs.release_pr_number }}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1 # Using softprops/action-gh-release
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.event.inputs.release_version }}
-          name: ${{ github.event.inputs.release_version }} # Use release_version as title
+          name: ${{ github.event.inputs.release_version }}
           body: ${{ steps.get_pr_info.outputs.RELEASE_NOTES }}
-          generate_release_notes: false #  prevent default notes
+          generate_release_notes: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ github.event.inputs.node_version }}
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
 
       - name: Publish release to NPM
         env:
           NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
         run: |
           if git diff-index --quiet HEAD --; then
-            if ${{ github.event.inputs.dry_run }} == false; then
-              echo "DRY RUN: ${{ github.event.inputs.dry_run }}.  Running npm publish"
+            if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
+              echo "Publishing to NPM"
               npm ci
               npm run build
               npm publish
             else
-              echo "DRY RUN: ${{ github.event.inputs.dry_run }}.  Running npm publish --dry-run"
+              echo "Dry run: Skipping actual publish"
               npm ci
               npm run build
               npm publish --dry-run
             fi
           else
-            echo "There are unpublished changes"
+            echo "There are unpublished changes. Aborting."
             exit 1
           fi
 
       - name: Delete branch after merge
-        if: steps.merge_pr.outputs.merged == 'true' # only delete if merge was successful
-        uses:  actions/github-script@v7
+        if: steps.merge_pr.outputs.merged == 'true'
+        uses: actions/github-script@v7
         with:
           script: |
             const { Octokit } = require("@octokit/rest");
-            const octokit = new Octokit({
-              auth: \`token \${{ secrets.GITHUB_TOKEN }}\`
-            });
-            try{
-              await myOctokit.git.deleteRef({
+            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+            const branchName = `release/${process.env.RELEASE_VERSION}`;
+            try {
+              await octokit.git.deleteRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                ref: \`heads/release/\${{ github.event.inputs.release_version }}\`,
+                ref: `heads/${branchName}`,
               });
+              console.log(`Deleted branch: ${branchName}`);
             } catch (error) {
-              console.error("Failed to delete branch:", error);
+              console.error(`Failed to delete branch ${branchName}:`, error);
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
 
       - name: Notify Slack - Release Completed
         id: slack-release
         uses: slackapi/slack-github-action@v1.27.1
         env:
           SDK: ${{ github.repository.name }}
-          RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }} # Use the stored release tag.
+          RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:
@@ -146,4 +156,3 @@ jobs:
                 }
               ]
             }
-
