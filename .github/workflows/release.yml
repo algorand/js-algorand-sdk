@@ -111,7 +111,6 @@ jobs:
             });
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
       - name: Notify Slack - Release Completed
         id: slack-release
         uses: slackapi/slack-github-action@v1.27.1
