@@ -80,6 +80,8 @@ jobs:
                         --header "Accept: application/vnd.github.v3+json" \
                         "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
             echo "latest-tag=$tag" >> $GITHUB_OUTPUT
+            echo "Tag result: $tag"
+            echo $GITHUB_OUTPUT
           fi
 
       - name: Build Changelog
