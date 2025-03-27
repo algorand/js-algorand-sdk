@@ -156,7 +156,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*${{ env.SDK }} ${{ env.RELEASE_TAG }}* was released today. https://github.com/algorand/${{ env.SDK }}/releases/tag/${{ env.RELEASE_TAG }}"
+                    "text": "*${{ env.SDK }} ${{ env.RELEASE_TAG }}* was released today. https://github.com/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}"
                   }
                 }
               ]
