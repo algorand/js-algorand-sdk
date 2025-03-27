@@ -1,3 +1,19 @@
+# v3.5.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.5.0 -->
+
+## What's Changed
+
+### Enhancements
+
+- Tweak: Env variable tweak. by @gmalouf in https://github.com/gmalouf/js-algorand-sdk/pull/11
+
+## New Contributors
+
+- @gmalouf made their first contribution in https://github.com/gmalouf/js-algorand-sdk/pull/11
+
+**Full Changelog**: https://github.com/gmalouf/js-algorand-sdk/compare/v3.4.0...v3.5.0
+
 # v3.4.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.4.0 -->
