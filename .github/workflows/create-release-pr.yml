@@ -10,7 +10,7 @@ on:
         type: string
       base_branch:
         description: "Override this if preparing a release off the non-default branch"
-        default: ${{ github.event.repository.default_branch }}
+        default: 'main'
         required: true
         type: string
       pre_release_version:
