@@ -17,7 +17,6 @@ on:
         default: '22.x'
         required: true
         type: 'string'
-  push:
 
 env:
   RELEASE_VERSION: ${{ inputs.release_version }}

@@ -18,7 +18,6 @@ on:
         default: 'true'
         required: true
         type: 'boolean'
-  push:
 
 jobs:
   build_and_publish:
