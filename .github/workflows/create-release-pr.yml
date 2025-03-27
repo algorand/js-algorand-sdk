@@ -150,7 +150,7 @@ jobs:
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
           PULL_REQUEST_URL=$(gh pr create --base "${{ inputs.base_branch }}" \
-            --title "RELEASE: ${{ github.event.repository.name }} $RELEASE_TAG changelog and version bump" \
+            --title "FOR REVIEW ONLY: ${{ github.event.repository.name }} $RELEASE_TAG changelog and version bump" \
             --label "Skip-Release-Notes" \
             --body "${CHANGELOG_CONTENT}" | tail -n 1)
           if [[ $PULL_REQUEST_URL =~ ^https://github.com/${{ github.repository }}/pull/[0-9]+$ ]]; then
