@@ -13,10 +13,6 @@ on:
         default: 'main'
         required: true
         type: string
-      pre_release_version:
-        description: "(Optional) Pre-Release version, e.g. 'beta.1'. Used mainly to support consensus release on betanet."
-        required: false
-        type: string
       node_version:
         description: 'The node_version to build with.'
         default: '22'
@@ -25,7 +21,6 @@ on:
 
 env:
   RELEASE_VERSION: ${{ inputs.release_version }}
-  PRE_RELEASE_VERSION: ${{ inputs.pre_release_version }}
   RELEASE_BRANCH: release/${{ inputs.release_version }}
 
 jobs:
@@ -37,16 +32,8 @@ jobs:
         id: set-release
         run: |
           if [[ $RELEASE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            if [[ $PRE_RELEASE_VERSION =~ ^[a-z.0-9]+$ ]]; then
-              echo "release-tag: $RELEASE_VERSION-$PRE_RELEASE_VERSION"
-              echo "release-tag=$RELEASE_VERSION-$PRE_RELEASE_VERSION" >> $GITHUB_OUTPUT
-            elif [[ -n $PRE_RELEASE_VERSION ]]; then
-              echo "Input pre_release_version is not empty, but does not match the regex pattern ^[-a-z0-9]+$"
-              exit 1
-            else
-              echo "release-tag: $RELEASE_VERSION"
-              echo "release-tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-            fi
+            echo "release-tag: $RELEASE_VERSION"
+            echo "release-tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           else
             echo "Version input doesn't match the regex pattern ^[0-9]+\.[0-9]+\.[0-9]+$"
             exit 1
@@ -74,19 +61,12 @@ jobs:
       - name: Get Latest Release
         id: get-release
         run: |
-          if [[ -n $PRE_RELEASE_VERSION ]]; then
-            echo "Get the latest release"
-            tag=$(curl -L \
-                        --header "Accept: application/vnd.github.v3+json" \
-                        "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.[0].tag_name')
-            echo "latest-tag=$tag" >> $GITHUB_OUTPUT
-          else
-            echo "Get the latest stable release"
-            tag=$(curl -L \
-                        --header "Accept: application/vnd.github.v3+json" \
-                        "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
-            echo "latest-tag=$tag" >> $GITHUB_OUTPUT
-          fi
+          echo "Get the latest stable release"
+          tag=$(curl -L \
+                      --header "Accept: application/vnd.github.v3+json" \
+                      "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
+          echo "latest-tag=$tag" >> $GITHUB_OUTPUT
+          
 
       - name: Build Changelog
         id: build-changelog
@@ -111,7 +91,6 @@ jobs:
           echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Update Changelog
-        if: ${{ env.PRE_RELEASE_VERSION == '' }}
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
@@ -142,7 +121,6 @@ jobs:
           message: "bump up version to ${{ env.RELEASE_TAG }}"
 
       - name: Create Pull Request to ${{ inputs.base_branch }}
-        if: ${{ env.PRE_RELEASE_VERSION == '' }}
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
