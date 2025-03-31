@@ -9,7 +9,7 @@ on:
         required: true
         type: string
       base_branch:
-        description: "Override this if preparing a release off the non-default branch"
+        description: "The base branch to release from; only override this if preparing a release off of the non-default branch"
         default: 'main'
         required: true
         type: string
