@@ -10,7 +10,7 @@ on:
         type: 'string'
       node_version:
         description: 'The node_version to build with.'
-        default: '22.x'
+        default: '22'
         required: true
         type: 'string'
       dry_run:
@@ -21,7 +21,7 @@ on:
 
 jobs:
   build_and_publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       id-token: write

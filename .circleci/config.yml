@@ -12,7 +12,7 @@ parameters:
     default: 'ubuntu-2404:2024.05.1'
   ubuntu_docker:
     type: string
-    default: 'ubuntu:focal'
+    default: 'ubuntu:noble'
 
 workflows:
   circleci_build_and_test:

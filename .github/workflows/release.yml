@@ -20,11 +20,11 @@ on:
         description: "The Node.js version to use for publishing"
         required: true
         type: string
-        default: "22.x"
+        default: "22"
 
 jobs:
   release_and_publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write # Needed for creating releases and tags, and deleting branches
       pull-requests: write # Needed for merging the PR
