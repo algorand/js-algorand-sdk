@@ -20,7 +20,7 @@ on:
         description: "The Node.js version to use for publishing"
         required: true
         type: string
-        default: "22.x"
+        default: "22"
 
 jobs:
   release_and_publish:
