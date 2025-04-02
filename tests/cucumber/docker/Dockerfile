@@ -1,4 +1,4 @@
-FROM ubuntu:noble
+FROM ubuntu:jammy
 
 # install wget, gnupg2, make
 RUN apt-get -qqy update \
@@ -20,9 +20,9 @@ RUN wget -q -O - https://deb.nodesource.com/setup_22.x | bash \
   && echo "npm version: $(npm --version)"
 
 # Copy SDK code into the container
-RUN mkdir -p $HOME/js-algorand-sdk
-COPY . $HOME/js-algorand-sdk
-WORKDIR $HOME/js-algorand-sdk
+RUN mkdir -p /app/js-algorand-sdk
+COPY . /app/js-algorand-sdk
+WORKDIR /app/js-algorand-sdk
 
 ARG TEST_BROWSER
 ENV TEST_BROWSER=$TEST_BROWSER
