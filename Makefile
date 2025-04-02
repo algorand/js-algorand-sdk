@@ -18,12 +18,13 @@ harness:
 harness-down:
 	./test-harness.sh down
 
+# Force to platform=linux/amd64 because chrome isn't available on arm64
 docker-build:
-	docker build -t js-sdk-testing -f tests/cucumber/docker/Dockerfile $(CURDIR) --build-arg TEST_BROWSER --build-arg CI=true
+	docker build --platform=linux/amd64 -t js-sdk-testing -f tests/cucumber/docker/Dockerfile $(CURDIR) --build-arg TEST_BROWSER --build-arg CI=true
 
 docker-run:
 	docker ps -a
-	docker run -it --network host js-sdk-testing:latest
+	docker run --platform=linux/amd64 -it --network host js-sdk-testing:latest
 
 smoke-test-examples:
 	cd examples && bash smoke_test.sh && cd -
