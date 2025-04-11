@@ -1,4 +1,4 @@
-FROM ubuntu:jammy
+FROM ubuntu:noble
 
 # install wget, gnupg2, make
 RUN apt-get -qqy update \
