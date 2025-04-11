@@ -137,7 +137,7 @@ commands:
             << parameters.sudo >> apt -y update
             << parameters.sudo >> apt -y install curl make git build-essential jq unzip
       - node/install:
-          node-version: '18'
+          node-version: '22'
       - run:
           name: npm ci
           command: |
