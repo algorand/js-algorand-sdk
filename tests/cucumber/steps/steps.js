@@ -5128,7 +5128,7 @@ module.exports = function getSteps(options) {
     }
   );
 
-  async function sendZeroPaysToAdvanceChain(
+  async function advanceChainWaitForBox(
     algodClient,
     account,
     appIndex,
@@ -5174,7 +5174,7 @@ module.exports = function getSteps(options) {
       if (fromClient === 'algod') {
         // We need to advance a few rounds so that app boxes endpoint returns expected boxes (
         // it only pulls persisted data, so need to get past MaxAccountLookback and flush after)
-        await sendZeroPaysToAdvanceChain(
+        await advanceChainWaitForBox(
           this.v2Client,
           this.transientAccount,
           this.currentApplicationIndex,
