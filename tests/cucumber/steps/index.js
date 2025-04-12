@@ -33,14 +33,14 @@ if (browser) {
 
   if (process.env.CI) {
     chromeOptions = chromeOptions.addArguments(
-      'no-sandbox',
-      'disable-gpu',
-      'headless'
+      '--no-sandbox',
+      '--disable-gpu',
+      '--headless=new'
     );
     firefoxOptions = firefoxOptions
       .setPreference('remote.active-protocols', 1) // Sets protocol to only WebDriver BiDi
       .setPreference('network.http.network-changed.timeout', 30) // In Docker tests this apparently matters
-      .headless();
+      .addArguments('-headless');
   }
 
   driverBuilder = new webdriver.Builder()
