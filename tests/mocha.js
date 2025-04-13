@@ -95,11 +95,11 @@ async function testRunner() {
 
     if (process.env.CI) {
       chromeOptions = chromeOptions.addArguments(
-        'no-sandbox',
-        'headless',
-        'disable-gpu'
+        '--no-sandbox',
+        '--headless=new',
+        '--disable-gpu'
       );
-      firefoxOptions = firefoxOptions.headless();
+      firefoxOptions = firefoxOptions.addArguments('-headless');
     }
 
     const driver = await new webdriver.Builder()

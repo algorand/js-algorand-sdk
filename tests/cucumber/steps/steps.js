@@ -5128,6 +5128,43 @@ module.exports = function getSteps(options) {
     }
   );
 
+  async function advanceChainWaitForBox(
+    algodClient,
+    account,
+    appIndex,
+    boxLength
+  ) {
+    // balancesFlushInterval in algod is 5 seconds, so we need at least that amount of time to pass to trigger the flush we need
+    // eslint-disable-next-line no-promise-executor-return
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    /* eslint-disable no-await-in-loop */
+    for (let i = 0; i < 50; i++) {
+      const sp = await algodClient.getTransactionParams().do();
+      const algoTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: account.addr,
+        receiver: account.addr,
+        amount: 0,
+        suggestedParams: sp,
+      });
+
+      const algoStxn = algoTxn.signTxn(account.sk);
+      await algodClient.sendRawTransaction(algoStxn).do();
+
+      // MaxAccountLookback is 4, we start checking for our boxes after the 5th round from create transaction
+      if (i > 5) {
+        const resp = await algodClient.getApplicationBoxes(appIndex).do();
+
+        // If the boxes have shown up, break out of loop
+        if (resp.boxes.length === boxLength) {
+          break;
+        } else {
+          await sleep(1000); // Sleep then continue
+        }
+      }
+    }
+    /* eslint-enable no-await-in-loop */
+  }
+
   Then(
     'according to {string}, the current application should have the following boxes {string}.',
     async function (fromClient, boxNames) {
@@ -5135,6 +5172,14 @@ module.exports = function getSteps(options) {
 
       let resp = null;
       if (fromClient === 'algod') {
+        // We need to advance a few rounds so that app boxes endpoint returns expected boxes (
+        // it only pulls persisted data, so need to get past MaxAccountLookback and flush after)
+        await advanceChainWaitForBox(
+          this.v2Client,
+          this.transientAccount,
+          this.currentApplicationIndex,
+          boxes.length
+        );
         resp = await this.v2Client
           .getApplicationBoxes(this.currentApplicationIndex)
           .do();
