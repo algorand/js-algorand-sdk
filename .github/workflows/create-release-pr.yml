@@ -8,14 +8,19 @@ on:
         default: 'vx.x.x'
         required: true
         type: string
-      pre_release_version:
-        description: "(Optional) Pre-Release version, e.g. 'beta.1'. Used mainly to support consensus release on betanet."
-        required: false
+      base_branch:
+        description: "The base branch to release from; only override this if preparing a release off of the non-default branch"
+        default: 'main'
+        required: true
         type: string
+      node_version:
+        description: 'The node_version to build with.'
+        default: '22'
+        required: true
+        type: 'string'
 
 env:
   RELEASE_VERSION: ${{ inputs.release_version }}
-  PRE_RELEASE_VERSION: ${{ inputs.pre_release_version }}
   RELEASE_BRANCH: release/${{ inputs.release_version }}
 
 jobs:
@@ -27,25 +32,18 @@ jobs:
         id: set-release
         run: |
           if [[ $RELEASE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            if [[ $PRE_RELEASE_VERSION =~ ^[a-z.0-9]+$ ]]; then
-              echo "release-tag: $RELEASE_VERSION-$PRE_RELEASE_VERSION"
-              echo "release-tag=$RELEASE_VERSION-$PRE_RELEASE_VERSION" >> $GITHUB_OUTPUT
-            elif [[ -n $PRE_RELEASE_VERSION ]]; then
-              echo "Input pre_release_version is not empty, but does not match the regex pattern ^[-a-z0-9]+$"
-              exit 1
-            else
-              echo "release-tag: $RELEASE_VERSION"
-              echo "release-tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-            fi
+            echo "release-tag: $RELEASE_VERSION"
+            echo "release-tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           else
             echo "Version input doesn't match the regex pattern ^[0-9]+\.[0-9]+\.[0-9]+$"
             exit 1
           fi
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ inputs.base_branch }}
 
       - name: Create Release Branch if it does not exist
         run: |
@@ -63,19 +61,12 @@ jobs:
       - name: Get Latest Release
         id: get-release
         run: |
-          if [[ -n $PRE_RELEASE_VERSION ]]; then
-            echo "Get the latest release"
-            tag=$(curl -L \
-                        --header "Accept: application/vnd.github.v3+json" \
-                        "https://api.github.com/repos/${{ github.repository }}/releases" | jq -r '.[0].tag_name')
-            echo "latest-tag=$tag" >> $GITHUB_OUTPUT
-          else
-            echo "Get the latest stable release"
-            tag=$(curl -L \
-                        --header "Accept: application/vnd.github.v3+json" \
-                        "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
-            echo "latest-tag=$tag" >> $GITHUB_OUTPUT
-          fi
+          echo "Get the latest stable release"
+          tag=$(curl -L \
+                      --header "Accept: application/vnd.github.v3+json" \
+                      "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
+          echo "latest-tag=$tag" >> $GITHUB_OUTPUT
+          
 
       - name: Build Changelog
         id: build-changelog
@@ -100,7 +91,6 @@ jobs:
           echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Update Changelog
-        if: ${{ env.PRE_RELEASE_VERSION == '' }}
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
@@ -108,9 +98,9 @@ jobs:
           echo -e "# ${RELEASE_VERSION}\n\n${CHANGELOG_CONTENT}\n" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ inputs.node_version }}
 
       - name: Update Version References in Source
         env:
@@ -130,47 +120,24 @@ jobs:
         with:
           message: "bump up version to ${{ env.RELEASE_TAG }}"
 
-      - name: Create Pull Request to Master
+      - name: Create Pull Request to ${{ inputs.base_branch }}
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
         run: |
-          # Note: There's an issue adding teams as reviewers, see https://github.com/cli/cli/issues/6395
-          PULL_REQUEST_URL=$(gh pr create --base "master" \
-            --title "FOR REVIEW ONLY: ${{ github.event.repository.name }} $RELEASE_TAG" \
+          PULL_REQUEST_URL=$(gh pr create --base "${{ inputs.base_branch }}" \
+            --title "FOR REVIEW ONLY: ${{ github.event.repository.name }} $RELEASE_TAG changelog and version bump" \
             --label "Skip-Release-Notes" \
-            --label "Team Hyper Flow" \
             --body "${CHANGELOG_CONTENT}" | tail -n 1)
           if [[ $PULL_REQUEST_URL =~ ^https://github.com/${{ github.repository }}/pull/[0-9]+$ ]]; then
             PULL_REQUEST_NUM=$(echo $PULL_REQUEST_URL | sed 's:.*/::')
-            echo "pull-request-master=$PULL_REQUEST_URL" >> $GITHUB_ENV
-            echo "pull-request-master-num=$PULL_REQUEST_NUM" >> $GITHUB_ENV
-            echo "Pull request to Master created: $PULL_REQUEST_URL"
+            echo "pull-request-base-branch=$PULL_REQUEST_URL" >> $GITHUB_ENV
+            echo "pull-request-base-branch-num=$PULL_REQUEST_NUM" >> $GITHUB_ENV
+            echo "Pull request to ${{ inputs.base_branch }} created: $PULL_REQUEST_URL"
           else
-            echo "There was an issue creating the pull request to master branch."
-            exit 1
-          fi
-
-      - name: Create Pull Request to Develop
-        if: ${{ env.PRE_RELEASE_VERSION == '' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
-        run: |
-          # Note: There's an issue adding teams as reviewers, see https://github.com/cli/cli/issues/6395
-          PULL_REQUEST_URL=$(gh pr create --base "develop" \
-            --title "FOR REVIEW ONLY: Merge back ${{ github.event.repository.name }} $RELEASE_TAG to develop" \
-            --label "Skip-Release-Notes" \
-            --label "Team Hyper Flow" \
-            --body "Merge back version changes to develop." | tail -n 1)
-          if [[ $PULL_REQUEST_URL =~ ^https://github.com/${{ github.repository }}/pull/[0-9]+$ ]]; then
-            echo "Pull request to Develop created: $PULL_REQUEST_URL"
-            DEVELOP_PR_MESSAGE="\nPull Request to develop: $PULL_REQUEST_URL"
-            echo "pull-request-develop-message=$DEVELOP_PR_MESSAGE" >> $GITHUB_ENV
-          else
-            echo "There was an issue creating the pull request to develop branch."
+            echo "There was an issue creating the pull request to ${{ inputs.base_branch }} branch."
             exit 1
           fi
 
@@ -181,7 +148,7 @@ jobs:
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-          SDK_DEPLOYMENT_URL: ${{ secrets.SDK_DEPLOYMENT_URL }}
+          RELEASE_WORKFLOW: "workflows/release.yml"
         with:
           payload: |
             {
@@ -197,14 +164,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Approvals needed for*:\nPull Request to master: ${{ env.pull-request-master}}${{ env.pull-request-develop-message }}"
+                    "text": "*Approval needed for*:\nPull Request to ${{ inputs.base_branch }}: ${{ env.pull-request-base-branch}}"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*After approvals*\nDeploy SDK using the <${{ env.SDK_DEPLOYMENT_URL }}|Deployment Pipeline> with the following parameters:\n*SDK*: ${{ github.event.repository.name }}\n*RELEASE_PR_NUM*: ${{ env.pull-request-master-num }}\n*RELEASE_VERSION*: ${{ env.RELEASE_VERSION }}\n*PRE_RELEASE_VERSION*: ${{ env.PRE_RELEASE_VERSION }}"
+                    "text": "*After approval*\nRelease and Deploy SDK using the <${{ env.RELEASE_WORKFLOW }}> with the following parameters:\n*release_pr_number*: ${{ env.pull-request-base-branch-num }}\n*release_version*: ${{ env.RELEASE_VERSION }}"
                   }
                 }
               ]

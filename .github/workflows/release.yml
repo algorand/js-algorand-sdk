@@ -1,0 +1,163 @@
+name: "Create and Publish Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_pr_number:
+        description: "The pull request number to merge that contains the package version bumps and changelog updates."
+        required: true
+        type: number
+      release_version:
+        description: "The tag name for the release (e.g., v1.2.3)"
+        required: true
+        type: string
+      dry_run:
+        description: "Set to true to 'dry-run'/not actually publish to NPM."
+        default: "false"
+        required: true
+        type: boolean
+      node_version:
+        description: "The Node.js version to use for publishing"
+        required: true
+        type: string
+        default: "22"
+
+jobs:
+  release_and_publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # Needed for creating releases and tags, and deleting branches
+      pull-requests: write # Needed for merging the PR
+    steps:
+      - name: Get Pull Request Info (Base Branch, Release Notes)
+        id: get_pr_info
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt(process.env.RELEASE_PR_NUMBER, 10);
+            const result = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            core.setOutput('RELEASE_NOTES', result.data.body);
+            core.setOutput('RELEASE_TAG', process.env.RELEASE_VERSION);
+            core.setOutput('BASE_BRANCH', result.data.base.ref);  // Capture base branch
+        env:
+          RELEASE_PR_NUMBER: ${{ github.event.inputs.release_pr_number }}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
+          fetch-depth: 0 
+
+      - name: Set up Git
+        run: |
+          git config --local user.name "GitHub Actions"
+          git config --local user.email "actions@github.com"
+
+      - name: Merge Pull Request
+        uses: actions/github-script@v7
+        id: merge_pr
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ github.event.inputs.release_pr_number }}', 10);
+            const result = await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            core.setOutput('merged', result.data.merged);
+
+      - name: Ensure latest changes from merged PR
+        run: |
+          git fetch origin ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
+          git reset --hard origin/${{ steps.get_pr_info.outputs.BASE_BRANCH }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.release_version }}
+          name: ${{ github.event.inputs.release_version }}
+          body: ${{ steps.get_pr_info.outputs.RELEASE_NOTES }}
+          generate_release_notes: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ github.event.inputs.node_version }}
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish release to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
+        run: |
+          # Ensure we're on the latest version of the branch
+          git checkout ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
+          git pull origin ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
+
+          if git diff-index --quiet HEAD --; then
+            if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
+              echo "Publishing to NPM"
+              npm ci
+              npm run build
+              npm publish
+            else
+              echo "Dry run: Skipping actual publish"
+              npm ci
+              npm run build
+              npm publish --dry-run
+            fi
+          else
+            echo "There are unpublished changes. Aborting."
+            exit 1
+          fi
+
+      - name: Delete branch after merge
+        if: steps.merge_pr.outputs.merged == 'true' # Only delete if merge was successful
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branchName = `release/${{ github.event.inputs.release_version }}`;
+      
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `heads/${branchName}`,
+              });
+              console.log(`Successfully deleted branch: ${branchName}`);
+            } catch (error) {
+              console.error(`Failed to delete branch ${branchName}:`, error);
+            }
+
+      - name: Notify Slack - Release Completed
+        id: slack-release
+        uses: slackapi/slack-github-action@v1.27.1
+        env:
+          SDK: ${{ github.event.repository.name }}
+          RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*${{ env.SDK }} ${{ env.RELEASE_TAG }}* was released today. https://github.com/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}"
+                  }
+                }
+              ]
+            }
