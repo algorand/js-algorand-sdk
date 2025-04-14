@@ -148,7 +148,6 @@ jobs:
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-          SDK_DEPLOYMENT_URL: ${{ secrets.SDK_DEPLOYMENT_URL }}
           RELEASE_WORKFLOW: "workflows/release.yml"
         with:
           payload: |
