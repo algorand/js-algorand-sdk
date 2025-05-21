@@ -271,6 +271,26 @@ export default class SearchAccounts extends JSONRequest<AccountsResponse> {
     return this;
   }
 
+  /**
+   * If true, only online accounts will be returned in the response.
+   *
+   * #### Example
+   * ```typescript
+   * const onlineOnly = true;
+   * const accounts = await indexerClient
+   *        .searchAccounts
+   *        .onlineOnly(onlineOnly)
+   *        .do();
+   * ```
+   *
+   * @param onlineOnly - if true, only online accounts will be returned in the response
+   * @category query
+   */
+  onlineOnly(onlineOnly: boolean) {
+    this.query['online-only'] = onlineOnly;
+    return this;
+  }
+
   // eslint-disable-next-line class-methods-use-this
   prepare(response: HTTPClientResponse): AccountsResponse {
     return decodeJSON(response.getJSONText(), AccountsResponse);
