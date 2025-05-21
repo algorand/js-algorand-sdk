@@ -3113,10 +3113,14 @@ export class Box implements Encodable {
       this.encodingSchemaValue = new NamedMapSchema([]);
       (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
-        { key: 'value', valueSchema: new ByteArraySchema(), omitEmpty: true },
         {
           key: 'round',
           valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'value',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
           omitEmpty: true,
         }
       );
@@ -3130,33 +3134,33 @@ export class Box implements Encodable {
   public name: Uint8Array;
 
   /**
-   * The box value, base64 encoded.
-   */
-  public value: Uint8Array;
-
-  /**
    * The round for which this information is relevant
    */
   public round?: bigint;
 
   /**
+   * The box value, base64 encoded.
+   */
+  public value?: Uint8Array;
+
+  /**
    * Creates a new `Box` object.
    * @param name - The box name, base64 encoded
-   * @param value - The box value, base64 encoded.
    * @param round - The round for which this information is relevant
+   * @param value - The box value, base64 encoded.
    */
   constructor({
     name,
-    value,
     round,
+    value,
   }: {
     name: string | Uint8Array;
-    value: string | Uint8Array;
     round?: number | bigint;
+    value?: string | Uint8Array;
   }) {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
-    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
     this.round = typeof round === 'undefined' ? undefined : ensureBigInt(round);
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -3167,8 +3171,8 @@ export class Box implements Encodable {
   toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
       ['name', this.name],
-      ['value', this.value],
       ['round', this.round],
+      ['value', this.value],
     ]);
   }
 
@@ -3178,8 +3182,8 @@ export class Box implements Encodable {
     }
     return new Box({
       name: data.get('name'),
-      value: data.get('value'),
       round: data.get('round'),
+      value: data.get('value'),
     });
   }
 }
