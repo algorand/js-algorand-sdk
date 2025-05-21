@@ -1832,6 +1832,11 @@ export class ApplicationParams implements Encodable {
             ApplicationStateSchema.encodingSchema
           ),
           omitEmpty: true,
+        },
+        {
+          key: 'version',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
         }
       );
     }
@@ -1875,6 +1880,11 @@ export class ApplicationParams implements Encodable {
   public localStateSchema?: ApplicationStateSchema;
 
   /**
+   * (v) the number of updates to the application programs
+   */
+  public version?: number;
+
+  /**
    * Creates a new `ApplicationParams` object.
    * @param approvalProgram - (approv) approval program.
    * @param clearStateProgram - (clearp) approval program.
@@ -1884,6 +1894,7 @@ export class ApplicationParams implements Encodable {
    * @param globalState - (gs) global state
    * @param globalStateSchema - (gsch) global schema
    * @param localStateSchema - (lsch) local schema
+   * @param version - (v) the number of updates to the application programs
    */
   constructor({
     approvalProgram,
@@ -1893,6 +1904,7 @@ export class ApplicationParams implements Encodable {
     globalState,
     globalStateSchema,
     localStateSchema,
+    version,
   }: {
     approvalProgram: string | Uint8Array;
     clearStateProgram: string | Uint8Array;
@@ -1901,6 +1913,7 @@ export class ApplicationParams implements Encodable {
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
+    version?: number | bigint;
   }) {
     this.approvalProgram =
       typeof approvalProgram === 'string'
@@ -1919,6 +1932,8 @@ export class ApplicationParams implements Encodable {
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
+    this.version =
+      typeof version === 'undefined' ? undefined : ensureSafeInteger(version);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -1950,6 +1965,7 @@ export class ApplicationParams implements Encodable {
           ? this.localStateSchema.toEncodingData()
           : undefined,
       ],
+      ['version', this.version],
     ]);
   }
 
@@ -1980,6 +1996,7 @@ export class ApplicationParams implements Encodable {
               data.get('local-state-schema')
             )
           : undefined,
+      version: data.get('version'),
     });
   }
 }
@@ -3096,33 +3113,41 @@ export class Box implements Encodable {
       this.encodingSchemaValue = new NamedMapSchema([]);
       (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
-        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
-        { key: 'value', valueSchema: new ByteArraySchema(), omitEmpty: true }
+        {
+          key: 'round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'value',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
       );
     }
     return this.encodingSchemaValue;
   }
 
   /**
-   * (name) box name, base64 encoded
+   * The box name, base64 encoded
    */
   public name: Uint8Array;
 
   /**
    * The round for which this information is relevant
    */
-  public round: bigint;
+  public round?: bigint;
 
   /**
-   * (value) box value, base64 encoded.
+   * The box value, base64 encoded.
    */
-  public value: Uint8Array;
+  public value?: Uint8Array;
 
   /**
    * Creates a new `Box` object.
-   * @param name - (name) box name, base64 encoded
+   * @param name - The box name, base64 encoded
    * @param round - The round for which this information is relevant
-   * @param value - (value) box value, base64 encoded.
+   * @param value - The box value, base64 encoded.
    */
   constructor({
     name,
@@ -3130,11 +3155,11 @@ export class Box implements Encodable {
     value,
   }: {
     name: string | Uint8Array;
-    round: number | bigint;
-    value: string | Uint8Array;
+    round?: number | bigint;
+    value?: string | Uint8Array;
   }) {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
-    this.round = ensureBigInt(round);
+    this.round = typeof round === 'undefined' ? undefined : ensureBigInt(round);
     this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
@@ -3159,56 +3184,6 @@ export class Box implements Encodable {
       name: data.get('name'),
       round: data.get('round'),
       value: data.get('value'),
-    });
-  }
-}
-
-/**
- * Box descriptor describes a Box.
- */
-export class BoxDescriptor implements Encodable {
-  private static encodingSchemaValue: Schema | undefined;
-
-  static get encodingSchema(): Schema {
-    if (!this.encodingSchemaValue) {
-      this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
-        key: 'name',
-        valueSchema: new ByteArraySchema(),
-        omitEmpty: true,
-      });
-    }
-    return this.encodingSchemaValue;
-  }
-
-  /**
-   * Base64 encoded box name
-   */
-  public name: Uint8Array;
-
-  /**
-   * Creates a new `BoxDescriptor` object.
-   * @param name - Base64 encoded box name
-   */
-  constructor({ name }: { name: string | Uint8Array }) {
-    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  getEncodingSchema(): Schema {
-    return BoxDescriptor.encodingSchema;
-  }
-
-  toEncodingData(): Map<string, unknown> {
-    return new Map<string, unknown>([['name', this.name]]);
-  }
-
-  static fromEncodingData(data: unknown): BoxDescriptor {
-    if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded BoxDescriptor: ${data}`);
-    }
-    return new BoxDescriptor({
-      name: data.get('name'),
     });
   }
 }
@@ -3280,7 +3255,7 @@ export class BoxReference implements Encodable {
 }
 
 /**
- * Box names of an application
+ * Boxes of an application
  */
 export class BoxesResponse implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
@@ -3288,23 +3263,55 @@ export class BoxesResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
-        key: 'boxes',
-        valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
-        omitEmpty: true,
-      });
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'boxes',
+          valueSchema: new ArraySchema(Box.encodingSchema),
+          omitEmpty: true,
+        },
+        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
     }
     return this.encodingSchemaValue;
   }
 
-  public boxes: BoxDescriptor[];
+  public boxes: Box[];
+
+  /**
+   * The round for which this information is relevant.
+   */
+  public round: number;
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter.
+   */
+  public nextToken?: string;
 
   /**
    * Creates a new `BoxesResponse` object.
    * @param boxes -
+   * @param round - The round for which this information is relevant.
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter.
    */
-  constructor({ boxes }: { boxes: BoxDescriptor[] }) {
+  constructor({
+    boxes,
+    round,
+    nextToken,
+  }: {
+    boxes: Box[];
+    round: number | bigint;
+    nextToken?: string;
+  }) {
     this.boxes = boxes;
+    this.round = ensureSafeInteger(round);
+    this.nextToken = nextToken;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -3315,6 +3322,8 @@ export class BoxesResponse implements Encodable {
   toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
       ['boxes', this.boxes.map((v) => v.toEncodingData())],
+      ['round', this.round],
+      ['next-token', this.nextToken],
     ]);
   }
 
@@ -3324,8 +3333,10 @@ export class BoxesResponse implements Encodable {
     }
     return new BoxesResponse({
       boxes: (data.get('boxes') ?? []).map((v: unknown) =>
-        BoxDescriptor.fromEncodingData(v)
+        Box.fromEncodingData(v)
       ),
+      round: data.get('round'),
+      nextToken: data.get('next-token'),
     });
   }
 }
@@ -4480,6 +4491,210 @@ export class EvalDeltaKeyValue implements Encodable {
   }
 }
 
+export class Genesis implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'alloc',
+          valueSchema: new ArraySchema(GenesisAllocation.encodingSchema),
+          omitEmpty: true,
+        },
+        { key: 'fees', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'id', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'network', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'proto', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'rwd', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'timestamp', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'comment',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'devmode',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public alloc: GenesisAllocation[];
+
+  public fees: string;
+
+  public id: string;
+
+  public network: string;
+
+  public proto: string;
+
+  public rwd: string;
+
+  public timestamp: number;
+
+  public comment?: string;
+
+  public devmode?: boolean;
+
+  /**
+   * Creates a new `Genesis` object.
+   * @param alloc -
+   * @param fees -
+   * @param id -
+   * @param network -
+   * @param proto -
+   * @param rwd -
+   * @param timestamp -
+   * @param comment -
+   * @param devmode -
+   */
+  constructor({
+    alloc,
+    fees,
+    id,
+    network,
+    proto,
+    rwd,
+    timestamp,
+    comment,
+    devmode,
+  }: {
+    alloc: GenesisAllocation[];
+    fees: string;
+    id: string;
+    network: string;
+    proto: string;
+    rwd: string;
+    timestamp: number | bigint;
+    comment?: string;
+    devmode?: boolean;
+  }) {
+    this.alloc = alloc;
+    this.fees = fees;
+    this.id = id;
+    this.network = network;
+    this.proto = proto;
+    this.rwd = rwd;
+    this.timestamp = ensureSafeInteger(timestamp);
+    this.comment = comment;
+    this.devmode = devmode;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return Genesis.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['alloc', this.alloc.map((v) => v.toEncodingData())],
+      ['fees', this.fees],
+      ['id', this.id],
+      ['network', this.network],
+      ['proto', this.proto],
+      ['rwd', this.rwd],
+      ['timestamp', this.timestamp],
+      ['comment', this.comment],
+      ['devmode', this.devmode],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): Genesis {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded Genesis: ${data}`);
+    }
+    return new Genesis({
+      alloc: (data.get('alloc') ?? []).map((v: unknown) =>
+        GenesisAllocation.fromEncodingData(v)
+      ),
+      fees: data.get('fees'),
+      id: data.get('id'),
+      network: data.get('network'),
+      proto: data.get('proto'),
+      rwd: data.get('rwd'),
+      timestamp: data.get('timestamp'),
+      comment: data.get('comment'),
+      devmode: data.get('devmode'),
+    });
+  }
+}
+
+export class GenesisAllocation implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'addr', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'comment', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'state',
+          valueSchema: UntypedValue.encodingSchema,
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public addr: string;
+
+  public comment: string;
+
+  public state: UntypedValue;
+
+  /**
+   * Creates a new `GenesisAllocation` object.
+   * @param addr -
+   * @param comment -
+   * @param state -
+   */
+  constructor({
+    addr,
+    comment,
+    state,
+  }: {
+    addr: string;
+    comment: string;
+    state: UntypedValue;
+  }) {
+    this.addr = addr;
+    this.comment = comment;
+    this.state = state;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return GenesisAllocation.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['addr', this.addr],
+      ['comment', this.comment],
+      ['state', this.state.toEncodingData()],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): GenesisAllocation {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded GenesisAllocation: ${data}`);
+    }
+    return new GenesisAllocation({
+      addr: data.get('addr'),
+      comment: data.get('comment'),
+      state: UntypedValue.fromEncodingData(data.get('state') ?? new Map()),
+    });
+  }
+}
+
 /**
  * Response containing the timestamp offset in seconds
  */
@@ -4578,81 +4793,6 @@ export class GetSyncRoundResponse implements Encodable {
     }
     return new GetSyncRoundResponse({
       round: data.get('round'),
-    });
-  }
-}
-
-/**
- * A single Delta containing the key, the previous value and the current value for
- * a single round.
- */
-export class KvDelta implements Encodable {
-  private static encodingSchemaValue: Schema | undefined;
-
-  static get encodingSchema(): Schema {
-    if (!this.encodingSchemaValue) {
-      this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
-        {
-          key: 'key',
-          valueSchema: new OptionalSchema(new ByteArraySchema()),
-          omitEmpty: true,
-        },
-        {
-          key: 'value',
-          valueSchema: new OptionalSchema(new ByteArraySchema()),
-          omitEmpty: true,
-        }
-      );
-    }
-    return this.encodingSchemaValue;
-  }
-
-  /**
-   * The key, base64 encoded.
-   */
-  public key?: Uint8Array;
-
-  /**
-   * The new value of the KV store entry, base64 encoded.
-   */
-  public value?: Uint8Array;
-
-  /**
-   * Creates a new `KvDelta` object.
-   * @param key - The key, base64 encoded.
-   * @param value - The new value of the KV store entry, base64 encoded.
-   */
-  constructor({
-    key,
-    value,
-  }: {
-    key?: string | Uint8Array;
-    value?: string | Uint8Array;
-  }) {
-    this.key = typeof key === 'string' ? base64ToBytes(key) : key;
-    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  getEncodingSchema(): Schema {
-    return KvDelta.encodingSchema;
-  }
-
-  toEncodingData(): Map<string, unknown> {
-    return new Map<string, unknown>([
-      ['key', this.key],
-      ['value', this.value],
-    ]);
-  }
-
-  static fromEncodingData(data: unknown): KvDelta {
-    if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded KvDelta: ${data}`);
-    }
-    return new KvDelta({
-      key: data.get('key'),
-      value: data.get('value'),
     });
   }
 }

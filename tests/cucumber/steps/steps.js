@@ -2157,9 +2157,17 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a GetApplicationBoxes call for applicationID {int} with max {int}',
-    async function (index, limit) {
-      await this.v2Client.getApplicationBoxes(index).max(limit).doRaw();
+    'we make a GetApplicationBoxes call for applicationID {int} with max {int} prefix {string} next {string} values {string}',
+    async function (index, limit, prefix, next, valuesAsString) {
+      const values = valuesAsString === 'true';
+
+      await this.v2Client
+        .getApplicationBoxes(index)
+        .max(limit)
+        .prefix(prefix)
+        .next(next)
+        .values(values)
+        .doRaw();
     }
   );
 
@@ -2682,6 +2690,17 @@ module.exports = function getSteps(options) {
           .currencyLessThan(currencyLesser)
           .limit(limit)
           .round(round)
+      );
+    }
+  );
+
+  When(
+    'we make a Search Accounts call with onlineOnly {string}',
+    async function (onlineOnlyString) {
+      const onlineOnly = onlineOnlyString === 'true';
+
+      await doOrDoRaw(
+        this.indexerClient.searchAccounts().onlineOnly(onlineOnly)
       );
     }
   );

@@ -1659,6 +1659,11 @@ export class ApplicationParams implements Encodable {
             ApplicationStateSchema.encodingSchema
           ),
           omitEmpty: true,
+        },
+        {
+          key: 'version',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
         }
       );
     }
@@ -1702,6 +1707,11 @@ export class ApplicationParams implements Encodable {
   public localStateSchema?: ApplicationStateSchema;
 
   /**
+   * the number of updates to the application programs
+   */
+  public version?: number;
+
+  /**
    * Creates a new `ApplicationParams` object.
    * @param approvalProgram - approval program.
    * @param clearStateProgram - clear state program.
@@ -1711,6 +1721,7 @@ export class ApplicationParams implements Encodable {
    * @param globalState - global state
    * @param globalStateSchema - global schema
    * @param localStateSchema - local schema
+   * @param version - the number of updates to the application programs
    */
   constructor({
     approvalProgram,
@@ -1720,6 +1731,7 @@ export class ApplicationParams implements Encodable {
     globalState,
     globalStateSchema,
     localStateSchema,
+    version,
   }: {
     approvalProgram: string | Uint8Array;
     clearStateProgram: string | Uint8Array;
@@ -1728,6 +1740,7 @@ export class ApplicationParams implements Encodable {
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
+    version?: number | bigint;
   }) {
     this.approvalProgram =
       typeof approvalProgram === 'string'
@@ -1746,6 +1759,8 @@ export class ApplicationParams implements Encodable {
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
+    this.version =
+      typeof version === 'undefined' ? undefined : ensureSafeInteger(version);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -1782,6 +1797,7 @@ export class ApplicationParams implements Encodable {
           ? this.localStateSchema.toEncodingData()
           : undefined,
       ],
+      ['version', this.version],
     ]);
   }
 
@@ -1812,6 +1828,7 @@ export class ApplicationParams implements Encodable {
               data.get('local-state-schema')
             )
           : undefined,
+      version: data.get('version'),
     });
   }
 }
