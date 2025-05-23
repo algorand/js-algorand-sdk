@@ -1,3 +1,28 @@
+# v3.3.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.3.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- DevOps: Fix docker-test by locking to amd64 and updating dependencies by @onetechnical in https://github.com/algorand/js-algorand-sdk/pull/955
+- Build: Fix Box API Pagination-dependent integration tests by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/961
+- Build: Revert bad CHANGELOG/package version updates. by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/965
+- Docs: fix link in README so it works in typedoc by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/966
+
+### Enhancements
+
+- Devops: Release process update by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/950
+- API: Algorand 4.1 api updates by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/979
+
+### Other
+
+- Bump axios from 1.7.9 to 1.8.4 by @dependabot in https://github.com/algorand/js-algorand-sdk/pull/963
+- Bump esbuild and tsx by @dependabot in https://github.com/algorand/js-algorand-sdk/pull/964
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.2.0...v3.3.0
+
 # v3.2.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.2.0 -->
