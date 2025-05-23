@@ -5925,6 +5925,124 @@ export class PostTransactionsResponse implements Encodable {
 }
 
 /**
+ * Resource arrays that are required for a transaction
+ */
+export class ResourceArrays implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'accounts',
+          valueSchema: new OptionalSchema(new ArraySchema(new StringSchema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'apps',
+          valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'assets',
+          valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
+          omitEmpty: true,
+        },
+        {
+          key: 'boxes',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(BoxReference.encodingSchema)
+          ),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public accounts?: Address[];
+
+  public apps?: bigint[];
+
+  public assets?: bigint[];
+
+  public boxes?: BoxReference[];
+
+  /**
+   * Creates a new `ResourceArrays` object.
+   * @param accounts -
+   * @param apps -
+   * @param assets -
+   * @param boxes -
+   */
+  constructor({
+    accounts,
+    apps,
+    assets,
+    boxes,
+  }: {
+    accounts?: (Address | string)[];
+    apps?: (number | bigint)[];
+    assets?: (number | bigint)[];
+    boxes?: BoxReference[];
+  }) {
+    this.accounts =
+      typeof accounts !== 'undefined'
+        ? accounts.map((addr) =>
+            typeof addr === 'string' ? Address.fromString(addr) : addr
+          )
+        : undefined;
+    this.apps =
+      typeof apps === 'undefined' ? undefined : apps.map(ensureBigInt);
+    this.assets =
+      typeof assets === 'undefined' ? undefined : assets.map(ensureBigInt);
+    this.boxes = boxes;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ResourceArrays.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'accounts',
+        typeof this.accounts !== 'undefined'
+          ? this.accounts.map((v) => v.toString())
+          : undefined,
+      ],
+      ['apps', this.apps],
+      ['assets', this.assets],
+      [
+        'boxes',
+        typeof this.boxes !== 'undefined'
+          ? this.boxes.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ResourceArrays {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded ResourceArrays: ${data}`);
+    }
+    return new ResourceArrays({
+      accounts: data.get('accounts'),
+      apps: data.get('apps'),
+      assets: data.get('assets'),
+      boxes:
+        typeof data.get('boxes') !== 'undefined'
+          ? data
+              .get('boxes')
+              .map((v: unknown) => BoxReference.fromEncodingData(v))
+          : undefined,
+    });
+  }
+}
+
+/**
  * A write operation into a scratch slot.
  */
 export class ScratchChange implements Encodable {
@@ -6112,6 +6230,11 @@ export class SimulateRequest implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'populate-resources',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'round',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
@@ -6159,6 +6282,12 @@ export class SimulateRequest implements Encodable {
   public fixSigners?: boolean;
 
   /**
+   * If true, return populated resource arrays for each transaction based on unnamed
+   * resources
+   */
+  public populateResources?: boolean;
+
+  /**
    * If provided, specifies the round preceding the simulation. State changes through
    * this round will be used to run this simulation. Usually only the 4 most recent
    * rounds will be available (controlled by the node config value MaxAcctLookback).
@@ -6177,6 +6306,8 @@ export class SimulateRequest implements Encodable {
    * @param extraOpcodeBudget - Applies extra opcode budget during simulation for each transaction group.
    * @param fixSigners - If true, signers for transactions that are missing signatures will be fixed
    * during evaluation.
+   * @param populateResources - If true, return populated resource arrays for each transaction based on unnamed
+   * resources
    * @param round - If provided, specifies the round preceding the simulation. State changes through
    * this round will be used to run this simulation. Usually only the 4 most recent
    * rounds will be available (controlled by the node config value MaxAcctLookback).
@@ -6190,6 +6321,7 @@ export class SimulateRequest implements Encodable {
     execTraceConfig,
     extraOpcodeBudget,
     fixSigners,
+    populateResources,
     round,
   }: {
     txnGroups: SimulateRequestTransactionGroup[];
@@ -6199,6 +6331,7 @@ export class SimulateRequest implements Encodable {
     execTraceConfig?: SimulateTraceConfig;
     extraOpcodeBudget?: number | bigint;
     fixSigners?: boolean;
+    populateResources?: boolean;
     round?: number | bigint;
   }) {
     this.txnGroups = txnGroups;
@@ -6211,6 +6344,7 @@ export class SimulateRequest implements Encodable {
         ? undefined
         : ensureSafeInteger(extraOpcodeBudget);
     this.fixSigners = fixSigners;
+    this.populateResources = populateResources;
     this.round = typeof round === 'undefined' ? undefined : ensureBigInt(round);
   }
 
@@ -6233,6 +6367,7 @@ export class SimulateRequest implements Encodable {
       ],
       ['extra-opcode-budget', this.extraOpcodeBudget],
       ['fix-signers', this.fixSigners],
+      ['populate-resources', this.populateResources],
       ['round', this.round],
     ]);
   }
@@ -6254,6 +6389,7 @@ export class SimulateRequest implements Encodable {
           : undefined,
       extraOpcodeBudget: data.get('extra-opcode-budget'),
       fixSigners: data.get('fix-signers'),
+      populateResources: data.get('populate-resources'),
       round: data.get('round'),
     });
   }
@@ -6621,6 +6757,13 @@ export class SimulateTransactionGroupResult implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'extra-resource-arrays',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(ResourceArrays.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'failed-at',
           valueSchema: new OptionalSchema(new ArraySchema(new Uint64Schema())),
           omitEmpty: true,
@@ -6658,6 +6801,12 @@ export class SimulateTransactionGroupResult implements Encodable {
   public appBudgetConsumed?: number;
 
   /**
+   * Present if populate-resource-arrays is true in the request and additional
+   * tranactions are needed to name all the accessed resources.
+   */
+  public extraResourceArrays?: ResourceArrays[];
+
+  /**
    * If present, indicates which transaction in this group caused the failure. This
    * array represents the path to the failing transaction. Indexes are zero based,
    * the first element indicates the top-level transaction, and successive elements
@@ -6689,6 +6838,8 @@ export class SimulateTransactionGroupResult implements Encodable {
    * @param txnResults - Simulation result for individual transactions
    * @param appBudgetAdded - Total budget added during execution of app calls in the transaction group.
    * @param appBudgetConsumed - Total budget consumed during execution of app calls in the transaction group.
+   * @param extraResourceArrays - Present if populate-resource-arrays is true in the request and additional
+   * tranactions are needed to name all the accessed resources.
    * @param failedAt - If present, indicates which transaction in this group caused the failure. This
    * array represents the path to the failing transaction. Indexes are zero based,
    * the first element indicates the top-level transaction, and successive elements
@@ -6709,6 +6860,7 @@ export class SimulateTransactionGroupResult implements Encodable {
     txnResults,
     appBudgetAdded,
     appBudgetConsumed,
+    extraResourceArrays,
     failedAt,
     failureMessage,
     unnamedResourcesAccessed,
@@ -6716,6 +6868,7 @@ export class SimulateTransactionGroupResult implements Encodable {
     txnResults: SimulateTransactionResult[];
     appBudgetAdded?: number | bigint;
     appBudgetConsumed?: number | bigint;
+    extraResourceArrays?: ResourceArrays[];
     failedAt?: (number | bigint)[];
     failureMessage?: string;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
@@ -6729,6 +6882,7 @@ export class SimulateTransactionGroupResult implements Encodable {
       typeof appBudgetConsumed === 'undefined'
         ? undefined
         : ensureSafeInteger(appBudgetConsumed);
+    this.extraResourceArrays = extraResourceArrays;
     this.failedAt =
       typeof failedAt === 'undefined'
         ? undefined
@@ -6747,6 +6901,12 @@ export class SimulateTransactionGroupResult implements Encodable {
       ['txn-results', this.txnResults.map((v) => v.toEncodingData())],
       ['app-budget-added', this.appBudgetAdded],
       ['app-budget-consumed', this.appBudgetConsumed],
+      [
+        'extra-resource-arrays',
+        typeof this.extraResourceArrays !== 'undefined'
+          ? this.extraResourceArrays.map((v) => v.toEncodingData())
+          : undefined,
+      ],
       ['failed-at', this.failedAt],
       ['failure-message', this.failureMessage],
       [
@@ -6770,6 +6930,12 @@ export class SimulateTransactionGroupResult implements Encodable {
       ),
       appBudgetAdded: data.get('app-budget-added'),
       appBudgetConsumed: data.get('app-budget-consumed'),
+      extraResourceArrays:
+        typeof data.get('extra-resource-arrays') !== 'undefined'
+          ? data
+              .get('extra-resource-arrays')
+              .map((v: unknown) => ResourceArrays.fromEncodingData(v))
+          : undefined,
       failedAt: data.get('failed-at'),
       failureMessage: data.get('failure-message'),
       unnamedResourcesAccessed:
@@ -6820,6 +6986,11 @@ export class SimulateTransactionResult implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'populated-resource-arrays',
+          valueSchema: new OptionalSchema(ResourceArrays.encodingSchema),
+          omitEmpty: true,
+        },
+        {
           key: 'unnamed-resources-accessed',
           valueSchema: new OptionalSchema(
             SimulateUnnamedResourcesAccessed.encodingSchema
@@ -6861,6 +7032,12 @@ export class SimulateTransactionResult implements Encodable {
   public logicSigBudgetConsumed?: number;
 
   /**
+   * Present if populate-resource-arrays is true in the request. In this case, it
+   * will be all of the resources this transaction needs to be evaluated.
+   */
+  public populatedResourceArrays?: ResourceArrays;
+
+  /**
    * These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -6884,6 +7061,8 @@ export class SimulateTransactionResult implements Encodable {
    * @param fixedSigner - The account that needed to sign this transaction when no signature was provided
    * and the provided signer was incorrect.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
+   * @param populatedResourceArrays - Present if populate-resource-arrays is true in the request. In this case, it
+   * will be all of the resources this transaction needs to be evaluated.
    * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -6900,6 +7079,7 @@ export class SimulateTransactionResult implements Encodable {
     execTrace,
     fixedSigner,
     logicSigBudgetConsumed,
+    populatedResourceArrays,
     unnamedResourcesAccessed,
   }: {
     txnResult: PendingTransactionResponse;
@@ -6907,6 +7087,7 @@ export class SimulateTransactionResult implements Encodable {
     execTrace?: SimulationTransactionExecTrace;
     fixedSigner?: Address | string;
     logicSigBudgetConsumed?: number | bigint;
+    populatedResourceArrays?: ResourceArrays;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     this.txnResult = txnResult;
@@ -6923,6 +7104,7 @@ export class SimulateTransactionResult implements Encodable {
       typeof logicSigBudgetConsumed === 'undefined'
         ? undefined
         : ensureSafeInteger(logicSigBudgetConsumed);
+    this.populatedResourceArrays = populatedResourceArrays;
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
   }
 
@@ -6949,6 +7131,12 @@ export class SimulateTransactionResult implements Encodable {
       ],
       ['logic-sig-budget-consumed', this.logicSigBudgetConsumed],
       [
+        'populated-resource-arrays',
+        typeof this.populatedResourceArrays !== 'undefined'
+          ? this.populatedResourceArrays.toEncodingData()
+          : undefined,
+      ],
+      [
         'unnamed-resources-accessed',
         typeof this.unnamedResourcesAccessed !== 'undefined'
           ? this.unnamedResourcesAccessed.toEncodingData()
@@ -6974,6 +7162,12 @@ export class SimulateTransactionResult implements Encodable {
           : undefined,
       fixedSigner: data.get('fixed-signer'),
       logicSigBudgetConsumed: data.get('logic-sig-budget-consumed'),
+      populatedResourceArrays:
+        typeof data.get('populated-resource-arrays') !== 'undefined'
+          ? ResourceArrays.fromEncodingData(
+              data.get('populated-resource-arrays')
+            )
+          : undefined,
       unnamedResourcesAccessed:
         typeof data.get('unnamed-resources-accessed') !== 'undefined'
           ? SimulateUnnamedResourcesAccessed.fromEncodingData(
