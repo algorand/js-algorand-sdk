@@ -261,7 +261,7 @@ export class ABIAddressType extends ABIType {
       return decodedAddress.publicKey;
     }
 
-    if (value instanceof Address) {
+    if (typeof value === 'object' && 'publicKey' in value) {
       return value.publicKey;
     }
 

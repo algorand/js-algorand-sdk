@@ -81,6 +81,11 @@ function ensureAddress(input: unknown): Address {
   if (input instanceof Address) {
     return input;
   }
+
+  if (typeof input === 'object' && 'toString' in input) {
+    return Address.fromString(input.toString());
+  }
+
   throw new Error(`Not an address: ${input}`);
 }
 
@@ -93,6 +98,8 @@ function optionalAddress(input: unknown): Address | undefined {
     addr = input;
   } else if (typeof input === 'string') {
     addr = Address.fromString(input);
+  } else if (typeof input === 'object' && 'toString' in input) {
+    addr = Address.fromString(input.toString());
   } else {
     throw new Error(`Not an address: ${input}`);
   }

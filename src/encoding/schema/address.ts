@@ -20,8 +20,14 @@ export class AddressSchema extends Schema {
   }
 
   public prepareMsgpack(data: unknown): MsgpackEncodingData {
-    if (data instanceof Address) {
-      return data.publicKey;
+    if (
+      data instanceof Address ||
+      (data &&
+        typeof data === 'object' &&
+        'publicKey' in data &&
+        data.publicKey instanceof Uint8Array)
+    ) {
+      return data.publicKey as Uint8Array;
     }
     throw new Error(`Invalid address: (${typeof data}) ${data}`);
   }
@@ -40,8 +46,13 @@ export class AddressSchema extends Schema {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _options: PrepareJSONOptions
   ): JSONEncodingData {
-    if (data instanceof Address) {
-      return data.toString();
+    if (
+      data instanceof Address ||
+      (data && typeof data === 'object' && 'toString' in data)
+    ) {
+      // Since are checking for the toString method, we might have something that isn't an Address
+      // Using Address.fromString allows us to throw an error if the input is not a valid address
+      return Address.fromString(data.toString()).toString();
     }
     throw new Error(`Invalid address: (${typeof data}) ${data}`);
   }
