@@ -3113,16 +3113,8 @@ export class Box implements Encodable {
       this.encodingSchemaValue = new NamedMapSchema([]);
       (this.encodingSchemaValue as NamedMapSchema).pushEntries(
         { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
-        {
-          key: 'round',
-          valueSchema: new OptionalSchema(new Uint64Schema()),
-          omitEmpty: true,
-        },
-        {
-          key: 'value',
-          valueSchema: new OptionalSchema(new ByteArraySchema()),
-          omitEmpty: true,
-        }
+        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'value', valueSchema: new ByteArraySchema(), omitEmpty: true }
       );
     }
     return this.encodingSchemaValue;
@@ -3136,12 +3128,12 @@ export class Box implements Encodable {
   /**
    * The round for which this information is relevant
    */
-  public round?: bigint;
+  public round: bigint;
 
   /**
    * The box value, base64 encoded.
    */
-  public value?: Uint8Array;
+  public value: Uint8Array;
 
   /**
    * Creates a new `Box` object.
@@ -3155,11 +3147,11 @@ export class Box implements Encodable {
     value,
   }: {
     name: string | Uint8Array;
-    round?: number | bigint;
-    value?: string | Uint8Array;
+    round: number | bigint;
+    value: string | Uint8Array;
   }) {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
-    this.round = typeof round === 'undefined' ? undefined : ensureBigInt(round);
+    this.round = ensureBigInt(round);
     this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
@@ -3184,6 +3176,56 @@ export class Box implements Encodable {
       name: data.get('name'),
       round: data.get('round'),
       value: data.get('value'),
+    });
+  }
+}
+
+/**
+ * Box descriptor describes a Box.
+ */
+export class BoxDescriptor implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
+        key: 'name',
+        valueSchema: new ByteArraySchema(),
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * Base64 encoded box name
+   */
+  public name: Uint8Array;
+
+  /**
+   * Creates a new `BoxDescriptor` object.
+   * @param name - Base64 encoded box name
+   */
+  constructor({ name }: { name: string | Uint8Array }) {
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BoxDescriptor.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([['name', this.name]]);
+  }
+
+  static fromEncodingData(data: unknown): BoxDescriptor {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded BoxDescriptor: ${data}`);
+    }
+    return new BoxDescriptor({
+      name: data.get('name'),
     });
   }
 }
@@ -3255,7 +3297,7 @@ export class BoxReference implements Encodable {
 }
 
 /**
- * Boxes of an application
+ *  * Box names of an application
  */
 export class BoxesResponse implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
@@ -3263,55 +3305,23 @@ export class BoxesResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
-        {
-          key: 'boxes',
-          valueSchema: new ArraySchema(Box.encodingSchema),
-          omitEmpty: true,
-        },
-        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
-        {
-          key: 'next-token',
-          valueSchema: new OptionalSchema(new StringSchema()),
-          omitEmpty: true,
-        }
-      );
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
+        key: 'boxes',
+        valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
+        omitEmpty: true,
+      });
     }
     return this.encodingSchemaValue;
   }
 
-  public boxes: Box[];
-
-  /**
-   * The round for which this information is relevant.
-   */
-  public round: number;
-
-  /**
-   * Used for pagination, when making another request provide this token with the
-   * next parameter.
-   */
-  public nextToken?: string;
+  public boxes: BoxDescriptor[];
 
   /**
    * Creates a new `BoxesResponse` object.
    * @param boxes -
-   * @param round - The round for which this information is relevant.
-   * @param nextToken - Used for pagination, when making another request provide this token with the
-   * next parameter.
    */
-  constructor({
-    boxes,
-    round,
-    nextToken,
-  }: {
-    boxes: Box[];
-    round: number | bigint;
-    nextToken?: string;
-  }) {
+  constructor({ boxes }: { boxes: BoxDescriptor[] }) {
     this.boxes = boxes;
-    this.round = ensureSafeInteger(round);
-    this.nextToken = nextToken;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -3322,8 +3332,6 @@ export class BoxesResponse implements Encodable {
   toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
       ['boxes', this.boxes.map((v) => v.toEncodingData())],
-      ['round', this.round],
-      ['next-token', this.nextToken],
     ]);
   }
 
@@ -3333,10 +3341,8 @@ export class BoxesResponse implements Encodable {
     }
     return new BoxesResponse({
       boxes: (data.get('boxes') ?? []).map((v: unknown) =>
-        Box.fromEncodingData(v)
+        BoxDescriptor.fromEncodingData(v)
       ),
-      round: data.get('round'),
-      nextToken: data.get('next-token'),
     });
   }
 }
