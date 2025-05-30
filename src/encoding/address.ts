@@ -57,10 +57,7 @@ export class Address {
    * Check if the address is equal to another address.
    */
   equals(other: Address): boolean {
-    return (
-      other instanceof Address &&
-      utils.arrayEqual(this.publicKey, other.publicKey)
-    );
+    return utils.arrayEqual(this.publicKey, other.publicKey);
   }
 
   /**
