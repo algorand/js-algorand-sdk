@@ -98,7 +98,7 @@ jobs:
             export TEST_BROWSER=${{ matrix.browser }}
           fi
           npm test
-          npm ci-test
+          make ci-test
 
   generate-docs:
     name: Generate Documentation
