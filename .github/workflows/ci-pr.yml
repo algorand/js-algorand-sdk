@@ -1,0 +1,164 @@
+name: CI - Test Suite
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install npm dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install npm dependencies
+        run: npm ci
+      
+      - name: Check Prettier formatting
+        run: npx prettier --check .
+
+  compile-test:
+    name: Compile Test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install npm dependencies
+        run: npm ci
+      
+      - name: Compile test
+        run: |
+          npm run build
+          npx tsc -p tests/compile
+
+  build-and-test:
+    name: Build and Test (${{ matrix.browser }})
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        browser: [node, chrome, firefox]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt -y install curl make git build-essential jq unzip ca-certificates gnupg lsb-release
+      
+      - name: Install Chrome
+        if: matrix.browser == 'chrome'
+        run: |
+          sudo apt -y install google-chrome-stable
+      
+      - name: Install Docker
+        run: |
+          sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt update
+          sudo apt -y install docker-ce docker-ce-cli containerd.io
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install npm dependencies
+        run: |
+          npm ci
+          if [ "${{ matrix.browser }}" == "chrome" ]; then npm install chromedriver@latest; fi
+      
+      - name: Setup Chrome browser
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      
+      - name: Setup Firefox browser
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: latest
+      
+      - name: Run tests (${{ matrix.browser }})
+        run: |
+          if [ "${{ matrix.browser }}" == "node" ]; then 
+            unset TEST_BROWSER
+          else 
+            export TEST_BROWSER=${{ matrix.browser }}
+          fi
+          npm test
+          make docker-test
+
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-24.04
+    needs: [eslint, prettier, compile-test, build-and-test]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install npm dependencies
+        run: npm ci
+      
+      - name: Generate documentation
+        run: |
+          rm -rf docs
+          npm run docs
+          touch docs/.nojekyll
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          commit_message: 'Automated docs update'
