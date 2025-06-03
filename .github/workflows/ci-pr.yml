@@ -84,7 +84,9 @@ jobs:
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
-          install-chromedriver: true
+      - name: Install chromedriver if applicable
+        if: matrix.browser == 'chrome'
+        run: npm install chromedriver --detect_chromedriver_version
       - name: Setup Firefox browser
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
