@@ -91,9 +91,17 @@ jobs:
       - name: Install matching chromedriver
         if: matrix.browser == 'chrome'
         run: |
+          # Get the installed Chrome version
+          CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+' | head -1)
+          echo "Detected Chrome version: $CHROME_VERSION"
+          
           # Remove the fixed version chromedriver and install one that matches Chrome
           npm uninstall chromedriver
-          npm install chromedriver@latest
+          npm install chromedriver@$CHROME_VERSION || npm install chromedriver@latest
+          
+          # Verify the installation
+          echo "Installed ChromeDriver version:"
+          npx chromedriver --version
       - name: Setup Firefox browser
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
