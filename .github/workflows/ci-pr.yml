@@ -70,6 +70,15 @@ jobs:
     env:
       CI: true
     steps:
+      - name: Check for pre-installed chrome
+        run: |
+          if command -v google-chrome > /dev/null; then
+            echo "Google Chrome is already installed."
+            which google-chrome
+            google-chrome --version
+          else
+            echo "Google Chrome is not installed."
+          fi
       - name: Checkout code
         uses: actions/checkout@v4      
       - name: Setup Node.js
