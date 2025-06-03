@@ -8,7 +8,6 @@ on:
 
 env:
   NODE_VERSION: '22'
-  CHROME_VERSION: 'stable'
 
 jobs:
   eslint:
@@ -89,11 +88,6 @@ jobs:
       - name: Install npm dependencies
         run: |
           npm ci
-      - name: Setup Chrome browser
-        if: matrix.browser == 'chrome'
-        uses: browser-actions/setup-chrome@v1
-        with:
-          chrome-version: ${{ env.CHROME_VERSION }}
       - name: Install matching chromedriver
         if: matrix.browser == 'chrome'
         run: |
