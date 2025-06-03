@@ -9,6 +9,10 @@ on:
 env:
   NODE_VERSION: '22'
 
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   eslint:
     name: ESLint
