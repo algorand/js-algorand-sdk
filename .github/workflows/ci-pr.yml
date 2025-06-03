@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'      
+          cache: 'npm'
       - name: Install npm dependencies
         run: npm ci
       - name: Check Prettier formatting
@@ -52,7 +52,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'      
+          cache: 'npm'
       - name: Install npm dependencies
         run: npm ci
       - name: Compile test
@@ -70,7 +70,7 @@ jobs:
       CI: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4      
+        uses: actions/checkout@v4
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -100,9 +100,9 @@ jobs:
           firefox-version: latest
       - name: Run tests (${{ matrix.browser }})
         run: |
-          if [ "${{ matrix.browser }}" == "node" ]; then 
+          if [ "${{ matrix.browser }}" == "node" ]; then
             unset TEST_BROWSER
-          else 
+          else
             export TEST_BROWSER=${{ matrix.browser }}
           fi
           npm test
@@ -116,6 +116,8 @@ jobs:
       pages: write
       id-token: write
     if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -123,7 +125,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'      
+          cache: 'npm'
       - name: Install npm dependencies
         run: npm ci
       - name: Generate documentation
