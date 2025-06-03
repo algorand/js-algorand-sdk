@@ -85,7 +85,12 @@ jobs:
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: ${{ env.CHROME_VERSION }}
-          install-chromedriver: true
+      - name: Install matching chromedriver
+        if: matrix.browser == 'chrome'
+        run: |
+          # Remove the fixed version chromedriver and install one that matches Chrome
+          npm uninstall chromedriver
+          npm install chromedriver@latest
       - name: Setup Firefox browser
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
