@@ -76,20 +76,22 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - name: Setup Chrome browser
+      - name: Install npm dependencies
+        run: |
+          npm ci
+          - name: Setup Chrome browser
+          if: matrix.browser == 'chrome'
+          uses: browser-actions/setup-chrome@v1
+          with:
+            chrome-version: latest
+      - name: Install chromedriver if applicable
         if: matrix.browser == 'chrome'
-        uses: browser-actions/setup-chrome@v1
-        with:
-          chrome-version: stable
-          install-chromedriver: true
+        run: npm install chromedriver@latest
       - name: Setup Firefox browser
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
         with:
           firefox-version: latest
-      - name: Install npm dependencies
-        run: |
-          npm ci
       - name: Run tests (${{ matrix.browser }})
         run: |
           if [ "${{ matrix.browser }}" == "node" ]; then 
