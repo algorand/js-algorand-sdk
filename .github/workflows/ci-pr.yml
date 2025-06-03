@@ -79,12 +79,11 @@ jobs:
       - name: Install npm dependencies
         run: |
           npm ci
-          if [ "${{ matrix.browser }}" == "chrome" ]; then npm install chromedriver@latest; fi
       - name: Setup Chrome browser
         if: matrix.browser == 'chrome'
         uses: browser-actions/setup-chrome@v1
         with:
-          chrome-version: stable      
+          install-chromedriver: true
       - name: Setup Firefox browser
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
