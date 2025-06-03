@@ -83,6 +83,7 @@ jobs:
         if: matrix.browser == 'chrome'
         uses: browser-actions/setup-chrome@v1
         with:
+          chrome-version: stable
           install-chromedriver: true
       - name: Setup Firefox browser
         if: matrix.browser == 'firefox'
