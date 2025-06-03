@@ -39,3 +39,5 @@ ci-test: harness prepare-browser-tests unit integration smoke-test-examples
 
 format:
 	npm run format
+
+.PHONY: ci-test
