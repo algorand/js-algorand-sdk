@@ -9,7 +9,7 @@ on:
 env:
   NODE_VERSION: '22'
   CHROME_VERSION: 'stable'
-  CHROMEDRIVER_VERSION: '136'
+  CHROMEDRIVER_VERSION: '136.0.3'
 
 jobs:
   eslint:
