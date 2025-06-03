@@ -9,7 +9,6 @@ on:
 env:
   NODE_VERSION: '22'
   CHROME_VERSION: 'stable'
-  CHROMEDRIVER_VERSION: '136.0.3'
 
 jobs:
   eslint:
@@ -86,9 +85,7 @@ jobs:
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: ${{ env.CHROME_VERSION }}
-      - name: Install chromedriver if applicable
-        if: matrix.browser == 'chrome'
-        run: npm install chromedriver@${{ env.CHROMEDRIVER_VERSION }} --no-save
+          install-chromedriver: true
       - name: Setup Firefox browser
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
