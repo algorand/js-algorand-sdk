@@ -97,11 +97,6 @@ jobs:
           # Verify the installation
           echo "Installed ChromeDriver version:"
           npx chromedriver --version
-      - name: Setup Firefox browser
-        if: matrix.browser == 'firefox'
-        uses: browser-actions/setup-firefox@v1
-        with:
-          firefox-version: latest
       - name: Run tests (${{ matrix.browser }})
         run: |
           if [ "${{ matrix.browser }}" == "node" ]; then
