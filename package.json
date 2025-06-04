@@ -64,7 +64,7 @@
     "@typescript-eslint/eslint-plugin": "^6.18.1",
     "@typescript-eslint/parser": "^6.18.1",
     "assert": "^2.0.0",
-    "chromedriver": "^126.0.3",
+    "chromedriver": "^136.0.3",
     "concurrently": "^6.2.0",
     "cucumber": "^5.1.0",
     "es-abstract": "^1.18.3",

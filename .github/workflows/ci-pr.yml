@@ -1,0 +1,143 @@
+name: CI - Test Suite
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '22'
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Check Prettier formatting
+        run: npx prettier --check .
+
+  compile-test:
+    name: Compile Test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Compile test
+        run: |
+          npm run build
+          npx tsc -p tests/compile
+
+  build-and-test:
+    name: Build and Test (${{ matrix.browser }})
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        browser: [node, chrome, firefox]
+    env:
+      CI: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: |
+          npm ci
+      - name: Install matching chromedriver
+        if: matrix.browser == 'chrome'
+        run: |
+          # Get the installed Chrome version
+          CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+' | head -1)
+          echo "Detected Chrome version: $CHROME_VERSION"
+          
+          # Remove the fixed version chromedriver and install one that matches Chrome
+          npm uninstall chromedriver
+          npm install chromedriver@$CHROME_VERSION || npm install chromedriver@latest
+          
+          # Verify the installation
+          echo "Installed ChromeDriver version:"
+          npx chromedriver --version
+      - name: Run tests (${{ matrix.browser }})
+        run: |
+          if [ "${{ matrix.browser }}" == "node" ]; then
+            unset TEST_BROWSER
+          else
+            export TEST_BROWSER=${{ matrix.browser }}
+          fi
+          npm test
+          make ci-test
+
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-24.04
+    needs: [eslint, prettier, compile-test, build-and-test]
+    permissions:
+      pages: write
+      id-token: write
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Generate documentation
+        run: |
+          rm -rf docs
+          npm run docs
+          touch docs/.nojekyll
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

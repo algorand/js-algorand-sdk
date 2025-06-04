@@ -24,12 +24,20 @@ docker-build:
 
 docker-run:
 	docker ps -a
-	docker run --platform=linux/amd64 -it --network host js-sdk-testing:latest
+	docker run --platform=linux/amd64 -t --network host js-sdk-testing:latest
 
 smoke-test-examples:
 	cd examples && bash smoke_test.sh && cd -
 
 docker-test: harness docker-build docker-run
 
+prepare-browser-tests:
+	npm ci
+	npm run prepare-browser-tests
+
+ci-test: harness prepare-browser-tests unit integration smoke-test-examples
+
 format:
 	npm run format
+
+.PHONY: ci-test
