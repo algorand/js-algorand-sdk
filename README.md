@@ -1,6 +1,6 @@
 # js-algorand-sdk
 
-[![CircleCI](https://dl.circleci.com/status-badge/img/gh/algorand/js-algorand-sdk/tree/develop.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/algorand/js-algorand-sdk/tree/develop) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://www.npmjs.com/package/algosdk)
+[![CI - Test Suite](https://github.com/algorand/js-algorand-sdk/actions/workflows/ci-pr.yml/badge.svg)](https://github.com/algorand/js-algorand-sdk/actions/workflows/ci-pr.yml) [![npm version](https://badge.fury.io/js/algosdk.svg)](https://www.npmjs.com/package/algosdk)
 
 AlgoSDK is the official JavaScript library for communicating with the Algorand network. It's designed for modern browsers and Node.js.
 
