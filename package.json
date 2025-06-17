@@ -96,7 +96,7 @@
     "test": "tsx tests/mocha.js",
     "prepare": "npm run build",
     "prepare-browser-tests": "npm run build && mkdir -p tests/cucumber/browser/build && cp dist/browser/algosdk.min.* tests/cucumber/browser/build/ && webpack --config tests/cucumber/browser/webpack.config.js",
-    "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json\" \"tsc -p tsconfig-cjs.json\"",
+    "build": "concurrently \"webpack --config webpack.config.js\" \"tsc -p tsconfig-esm.json --emitDeclarationOnly\"",
     "docs": "typedoc --options typedoc.config.json",
     "docs:dev": "typedoc --options typedoc.config.json --watch --preserveWatchOutput",
     "lint": "eslint .",
