@@ -464,7 +464,7 @@ export class Transaction implements encoding.Encodable {
    * @returns true if the instance is a Transaction, regardless of which module loaded it
    */
   static [Symbol.hasInstance](instance: any): boolean {
-    return instance && instance._isAlgosdkTransaction === true;
+    return !!(instance && instance._isAlgosdkTransaction === true);
   }
 
   /** common */

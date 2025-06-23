@@ -135,7 +135,9 @@ export class AtomicTransactionComposer {
    * @returns true if the instance is an AtomicTransactionComposer, regardless of which module loaded it
    */
   static [Symbol.hasInstance](instance: any): boolean {
-    return instance && instance._isAlgosdkAtomicTransactionComposer === true;
+    return !!(
+      instance && instance._isAlgosdkAtomicTransactionComposer === true
+    );
   }
 
   private status = AtomicTransactionComposerStatus.BUILDING;

@@ -44,7 +44,7 @@ export class Address {
    * @returns true if the instance is an Address, regardless of which module loaded it
    */
   static [Symbol.hasInstance](instance: any): boolean {
-    return instance && instance._isAlgosdkAddress === true;
+    return !!(instance && instance._isAlgosdkAddress === true);
   }
 
   /**

@@ -57,7 +57,7 @@ export class SignedTransaction implements Encodable {
    * @returns true if the instance is a SignedTransaction, regardless of which module loaded it
    */
   static [Symbol.hasInstance](instance: any): boolean {
-    return instance && instance._isAlgosdkSignedTransaction === true;
+    return !!(instance && instance._isAlgosdkSignedTransaction === true);
   }
 
   /**

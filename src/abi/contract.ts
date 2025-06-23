@@ -36,7 +36,7 @@ export class ABIContract {
    * @returns true if the instance is an ABIContract, regardless of which module loaded it
    */
   static [Symbol.hasInstance](instance: any): boolean {
-    return instance && instance._isAlgosdkABIContract === true;
+    return !!(instance && instance._isAlgosdkABIContract === true);
   }
 
   constructor(params: ABIContractParams) {

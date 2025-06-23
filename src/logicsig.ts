@@ -99,7 +99,7 @@ export class LogicSig implements encoding.Encodable {
    * @returns true if the instance is a LogicSig, regardless of which module loaded it
    */
   static [Symbol.hasInstance](instance: any): boolean {
-    return instance && instance._isAlgosdkLogicSig === true;
+    return !!(instance && instance._isAlgosdkLogicSig === true);
   }
 
   logic: Uint8Array;
@@ -293,7 +293,7 @@ export class LogicSigAccount implements encoding.Encodable {
    * @returns true if the instance is a LogicSigAccount, regardless of which module loaded it
    */
   static [Symbol.hasInstance](instance: any): boolean {
-    return instance && instance._isAlgosdkLogicSigAccount === true;
+    return !!(instance && instance._isAlgosdkLogicSigAccount === true);
   }
 
   lsig: LogicSig;
