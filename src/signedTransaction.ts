@@ -47,6 +47,20 @@ export class SignedTransaction implements Encodable {
   );
 
   /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkSignedTransaction = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is a SignedTransaction, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return instance && instance._isAlgosdkSignedTransaction === true;
+  }
+
+  /**
    * The transaction that was signed
    */
   public readonly txn: Transaction;

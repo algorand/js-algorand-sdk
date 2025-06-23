@@ -41,6 +41,20 @@ module.exports = {
     '@typescript-eslint/no-redeclare': ['error'],
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': ['error'],
+    'no-underscore-dangle': [
+      'error',
+      {
+        allow: [
+          '_isAlgosdkAddress',
+          '_isAlgosdkTransaction',
+          '_isAlgosdkSignedTransaction',
+          '_isAlgosdkLogicSig',
+          '_isAlgosdkLogicSigAccount',
+          '_isAlgosdkAtomicTransactionComposer',
+          '_isAlgosdkABIContract',
+        ],
+      },
+    ],
   },
   overrides: [
     {
