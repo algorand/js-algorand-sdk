@@ -265,6 +265,129 @@ describe('Dual Package Hazard Solution', () => {
     });
   });
 
+  describe('ABI Type Symbol.hasInstance', () => {
+    it('should work for ABIUintType', () => {
+      const uintType = new algosdk.ABIUintType(64);
+      assert.strictEqual(uintType instanceof algosdk.ABIUintType, true);
+      assert.strictEqual(
+        algosdk.ABIUintType[Symbol.hasInstance](uintType),
+        true
+      );
+
+      const mockUintType = { _isAlgosdkABIUintType: true, bitSize: 64 };
+      assert.strictEqual(
+        algosdk.ABIUintType[Symbol.hasInstance](mockUintType),
+        true
+      );
+    });
+
+    it('should work for ABIAddressType', () => {
+      const addressType = new algosdk.ABIAddressType();
+      assert.strictEqual(addressType instanceof algosdk.ABIAddressType, true);
+      assert.strictEqual(
+        algosdk.ABIAddressType[Symbol.hasInstance](addressType),
+        true
+      );
+
+      const mockAddressType = { _isAlgosdkABIAddressType: true };
+      assert.strictEqual(
+        algosdk.ABIAddressType[Symbol.hasInstance](mockAddressType),
+        true
+      );
+    });
+
+    it('should work for ABIBoolType', () => {
+      const boolType = new algosdk.ABIBoolType();
+      assert.strictEqual(boolType instanceof algosdk.ABIBoolType, true);
+      assert.strictEqual(
+        algosdk.ABIBoolType[Symbol.hasInstance](boolType),
+        true
+      );
+
+      const mockBoolType = { _isAlgosdkABIBoolType: true };
+      assert.strictEqual(
+        algosdk.ABIBoolType[Symbol.hasInstance](mockBoolType),
+        true
+      );
+    });
+
+    it('should work for ABIStringType', () => {
+      const stringType = new algosdk.ABIStringType();
+      assert.strictEqual(stringType instanceof algosdk.ABIStringType, true);
+      assert.strictEqual(
+        algosdk.ABIStringType[Symbol.hasInstance](stringType),
+        true
+      );
+
+      const mockStringType = { _isAlgosdkABIStringType: true };
+      assert.strictEqual(
+        algosdk.ABIStringType[Symbol.hasInstance](mockStringType),
+        true
+      );
+    });
+
+    it('should work for ABIArrayStaticType', () => {
+      const elementType = new algosdk.ABIUintType(64);
+      const arrayType = new algosdk.ABIArrayStaticType(elementType, 5);
+      assert.strictEqual(arrayType instanceof algosdk.ABIArrayStaticType, true);
+      assert.strictEqual(
+        algosdk.ABIArrayStaticType[Symbol.hasInstance](arrayType),
+        true
+      );
+
+      const mockArrayType = {
+        _isAlgosdkABIArrayStaticType: true,
+        childType: {},
+        staticLength: 5,
+      };
+      assert.strictEqual(
+        algosdk.ABIArrayStaticType[Symbol.hasInstance](mockArrayType),
+        true
+      );
+    });
+
+    it('should work for ABIArrayDynamicType', () => {
+      const elementType = new algosdk.ABIUintType(64);
+      const arrayType = new algosdk.ABIArrayDynamicType(elementType);
+      assert.strictEqual(
+        arrayType instanceof algosdk.ABIArrayDynamicType,
+        true
+      );
+      assert.strictEqual(
+        algosdk.ABIArrayDynamicType[Symbol.hasInstance](arrayType),
+        true
+      );
+
+      const mockArrayType = {
+        _isAlgosdkABIArrayDynamicType: true,
+        childType: {},
+      };
+      assert.strictEqual(
+        algosdk.ABIArrayDynamicType[Symbol.hasInstance](mockArrayType),
+        true
+      );
+    });
+
+    it('should work for ABITupleType', () => {
+      const childTypes = [
+        new algosdk.ABIUintType(64),
+        new algosdk.ABIBoolType(),
+      ];
+      const tupleType = new algosdk.ABITupleType(childTypes);
+      assert.strictEqual(tupleType instanceof algosdk.ABITupleType, true);
+      assert.strictEqual(
+        algosdk.ABITupleType[Symbol.hasInstance](tupleType),
+        true
+      );
+
+      const mockTupleType = { _isAlgosdkABITupleType: true, childTypes: [] };
+      assert.strictEqual(
+        algosdk.ABITupleType[Symbol.hasInstance](mockTupleType),
+        true
+      );
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle primitive values', () => {
       assert.strictEqual(algosdk.Address[Symbol.hasInstance]('string'), false);
