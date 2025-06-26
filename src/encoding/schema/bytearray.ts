@@ -48,6 +48,9 @@ export class ByteArraySchema extends Schema {
   }
 
   public fromPreparedJSON(encoded: JSONEncodingData): Uint8Array {
+    if (encoded === null || encoded === undefined) {
+      return this.defaultValue();
+    }
     if (typeof encoded === 'string') {
       return base64ToBytes(encoded);
     }
