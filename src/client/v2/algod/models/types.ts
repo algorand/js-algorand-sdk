@@ -3297,7 +3297,7 @@ export class BoxReference implements Encodable {
 }
 
 /**
- *  * Box names of an application
+ * Box names of an application
  */
 export class BoxesResponse implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
@@ -8439,7 +8439,7 @@ export class TransactionParametersResponse implements Encodable {
 /**
  * Proof of transaction in a block.
  */
-export class TransactionProofResponse implements Encodable {
+export class TransactionProof implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
 
   static get encodingSchema(): Schema {
@@ -8493,7 +8493,7 @@ export class TransactionProofResponse implements Encodable {
   public hashtype?: string;
 
   /**
-   * Creates a new `TransactionProofResponse` object.
+   * Creates a new `TransactionProof` object.
    * @param idx - Index of the transaction in the block's payset.
    * @param proof - Proof of transaction membership.
    * @param stibhash - Hash of SignedTxnInBlock for verifying proof.
@@ -8526,7 +8526,7 @@ export class TransactionProofResponse implements Encodable {
 
   // eslint-disable-next-line class-methods-use-this
   getEncodingSchema(): Schema {
-    return TransactionProofResponse.encodingSchema;
+    return TransactionProof.encodingSchema;
   }
 
   toEncodingData(): Map<string, unknown> {
@@ -8539,11 +8539,11 @@ export class TransactionProofResponse implements Encodable {
     ]);
   }
 
-  static fromEncodingData(data: unknown): TransactionProofResponse {
+  static fromEncodingData(data: unknown): TransactionProof {
     if (!(data instanceof Map)) {
-      throw new Error(`Invalid decoded TransactionProofResponse: ${data}`);
+      throw new Error(`Invalid decoded TransactionProof: ${data}`);
     }
-    return new TransactionProofResponse({
+    return new TransactionProof({
       idx: data.get('idx'),
       proof: data.get('proof'),
       stibhash: data.get('stibhash'),

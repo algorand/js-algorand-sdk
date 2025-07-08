@@ -1,9 +1,9 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient, HTTPClientResponse } from '../../client.js';
 import { decodeJSON } from '../../../encoding/encoding.js';
-import { TransactionProofResponse } from './models/types.js';
+import { TransactionProof } from './models/types.js';
 
-export default class GetTransactionProof extends JSONRequest<TransactionProofResponse> {
+export default class GetTransactionProof extends JSONRequest<TransactionProof> {
   private round: bigint;
 
   constructor(
@@ -42,7 +42,7 @@ export default class GetTransactionProof extends JSONRequest<TransactionProofRes
   }
 
   // eslint-disable-next-line class-methods-use-this
-  prepare(response: HTTPClientResponse): TransactionProofResponse {
-    return decodeJSON(response.getJSONText(), TransactionProofResponse);
+  prepare(response: HTTPClientResponse): TransactionProof {
+    return decodeJSON(response.getJSONText(), TransactionProof);
   }
 }

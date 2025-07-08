@@ -4017,6 +4017,74 @@ export class BoxDescriptor implements Encodable {
 }
 
 /**
+ * BoxReference names a box by its name and the application ID it belongs to.
+ */
+export class BoxReference implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'app', valueSchema: new Uint64Schema(), omitEmpty: true },
+        { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * Application ID to which the box belongs, or zero if referring to the called
+   * application.
+   */
+  public app: number;
+
+  /**
+   * Base64 encoded box name
+   */
+  public name: Uint8Array;
+
+  /**
+   * Creates a new `BoxReference` object.
+   * @param app - Application ID to which the box belongs, or zero if referring to the called
+   * application.
+   * @param name - Base64 encoded box name
+   */
+  constructor({
+    app,
+    name,
+  }: {
+    app: number | bigint;
+    name: string | Uint8Array;
+  }) {
+    this.app = ensureSafeInteger(app);
+    this.name = typeof name === 'string' ? base64ToBytes(name) : name;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return BoxReference.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['app', this.app],
+      ['name', this.name],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): BoxReference {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded BoxReference: ${data}`);
+    }
+    return new BoxReference({
+      app: data.get('app'),
+      name: data.get('name'),
+    });
+  }
+}
+
+/**
  * Box names of an application
  */
 export class BoxesResponse implements Encodable {
@@ -6910,6 +6978,13 @@ export class TransactionApplication implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'box-references',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(BoxReference.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'clear-state-program',
           valueSchema: new OptionalSchema(new ByteArraySchema()),
           omitEmpty: true,
@@ -6943,6 +7018,11 @@ export class TransactionApplication implements Encodable {
           key: 'on-completion',
           valueSchema: new OptionalSchema(new StringSchema()),
           omitEmpty: true,
+        },
+        {
+          key: 'reject-version',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
         }
       );
     }
@@ -6973,6 +7053,12 @@ export class TransactionApplication implements Encodable {
    * reject the transaction.
    */
   public approvalProgram?: Uint8Array;
+
+  /**
+   * (apbx) the boxes that can be accessed by this transaction (and others in the
+   * same group).
+   */
+  public boxReferences?: BoxReference[];
 
   /**
    * (apsu) Logic executed for application transactions with on-completion set to
@@ -7030,6 +7116,12 @@ export class TransactionApplication implements Encodable {
   public onCompletion?: string;
 
   /**
+   * (aprv) the lowest application version for which this transaction should
+   * immediately fail. 0 indicates that no version check should be performed.
+   */
+  public rejectVersion?: number;
+
+  /**
    * Creates a new `TransactionApplication` object.
    * @param applicationId - (apid) ID of the application being configured or empty if creating.
    * @param accounts - (apat) List of accounts in addition to the sender that may be accessed from the
@@ -7040,6 +7132,8 @@ export class TransactionApplication implements Encodable {
    * on-completion is set to "clear". It can read and write global state for the
    * application, as well as account-specific local state. Approval programs may
    * reject the transaction.
+   * @param boxReferences - (apbx) the boxes that can be accessed by this transaction (and others in the
+   * same group).
    * @param clearStateProgram - (apsu) Logic executed for application transactions with on-completion set to
    * "clear". It can read and write global state for the application, as well as
    * account-specific local state. Clear state programs cannot reject the
@@ -7067,12 +7161,15 @@ export class TransactionApplication implements Encodable {
    * * update
    * * update
    * * delete
+   * @param rejectVersion - (aprv) the lowest application version for which this transaction should
+   * immediately fail. 0 indicates that no version check should be performed.
    */
   constructor({
     applicationId,
     accounts,
     applicationArgs,
     approvalProgram,
+    boxReferences,
     clearStateProgram,
     extraProgramPages,
     foreignApps,
@@ -7080,11 +7177,13 @@ export class TransactionApplication implements Encodable {
     globalStateSchema,
     localStateSchema,
     onCompletion,
+    rejectVersion,
   }: {
     applicationId: number | bigint;
     accounts?: (Address | string)[];
     applicationArgs?: Uint8Array[];
     approvalProgram?: string | Uint8Array;
+    boxReferences?: BoxReference[];
     clearStateProgram?: string | Uint8Array;
     extraProgramPages?: number | bigint;
     foreignApps?: (number | bigint)[];
@@ -7092,6 +7191,7 @@ export class TransactionApplication implements Encodable {
     globalStateSchema?: StateSchema;
     localStateSchema?: StateSchema;
     onCompletion?: string;
+    rejectVersion?: number | bigint;
   }) {
     this.applicationId = ensureBigInt(applicationId);
     this.accounts =
@@ -7105,6 +7205,7 @@ export class TransactionApplication implements Encodable {
       typeof approvalProgram === 'string'
         ? base64ToBytes(approvalProgram)
         : approvalProgram;
+    this.boxReferences = boxReferences;
     this.clearStateProgram =
       typeof clearStateProgram === 'string'
         ? base64ToBytes(clearStateProgram)
@@ -7124,6 +7225,10 @@ export class TransactionApplication implements Encodable {
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
     this.onCompletion = onCompletion;
+    this.rejectVersion =
+      typeof rejectVersion === 'undefined'
+        ? undefined
+        : ensureSafeInteger(rejectVersion);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -7142,6 +7247,12 @@ export class TransactionApplication implements Encodable {
       ],
       ['application-args', this.applicationArgs],
       ['approval-program', this.approvalProgram],
+      [
+        'box-references',
+        typeof this.boxReferences !== 'undefined'
+          ? this.boxReferences.map((v) => v.toEncodingData())
+          : undefined,
+      ],
       ['clear-state-program', this.clearStateProgram],
       ['extra-program-pages', this.extraProgramPages],
       ['foreign-apps', this.foreignApps],
@@ -7159,6 +7270,7 @@ export class TransactionApplication implements Encodable {
           : undefined,
       ],
       ['on-completion', this.onCompletion],
+      ['reject-version', this.rejectVersion],
     ]);
   }
 
@@ -7171,6 +7283,12 @@ export class TransactionApplication implements Encodable {
       accounts: data.get('accounts'),
       applicationArgs: data.get('application-args'),
       approvalProgram: data.get('approval-program'),
+      boxReferences:
+        typeof data.get('box-references') !== 'undefined'
+          ? data
+              .get('box-references')
+              .map((v: unknown) => BoxReference.fromEncodingData(v))
+          : undefined,
       clearStateProgram: data.get('clear-state-program'),
       extraProgramPages: data.get('extra-program-pages'),
       foreignApps: data.get('foreign-apps'),
@@ -7184,6 +7302,7 @@ export class TransactionApplication implements Encodable {
           ? StateSchema.fromEncodingData(data.get('local-state-schema'))
           : undefined,
       onCompletion: data.get('on-completion'),
+      rejectVersion: data.get('reject-version'),
     });
   }
 }
