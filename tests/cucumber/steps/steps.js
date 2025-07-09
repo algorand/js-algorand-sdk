@@ -2736,7 +2736,7 @@ module.exports = function getSteps(options) {
   );
 
   When(
-    'we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string}',
+    'we make a Search For Transactions call with account {string} NotePrefix {string} TxType {string} SigType {string} txid {string} round {int} minRound {int} maxRound {int} limit {int} beforeTime {string} afterTime {string} currencyGreaterThan {int} currencyLessThan {int} assetIndex {int} addressRole {string} ExcluseCloseTo {string} groupid {string}',
     async function (
       account,
       notePrefix,
@@ -2753,7 +2753,8 @@ module.exports = function getSteps(options) {
       currencyLesser,
       assetIndex,
       addressRole,
-      excludeCloseToAsString
+      excludeCloseToAsString,
+      groupid
     ) {
       let excludeCloseTo = false;
       if (excludeCloseToAsString === 'true') {
@@ -2778,6 +2779,7 @@ module.exports = function getSteps(options) {
           .txid(txid)
           .txType(txType)
           .excludeCloseTo(excludeCloseTo)
+          .groupid(groupid)
       );
     }
   );

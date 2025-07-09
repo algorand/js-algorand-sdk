@@ -107,6 +107,26 @@ export default class SearchForTransactions extends JSONRequest<TransactionsRespo
   }
 
   /**
+   * Lookup transactions by group ID.
+   *
+   * #### Example
+   * ```typescript
+   * const groupIdBase64Encoded = "A62qVigWtWo0laUzcE1iZY8+KXWzK1vSkgwN/eKgvjc=";
+   * const txns = await indexerClient
+   *        .searchForTransactions()
+   *        .groupid(groupIdBase64Encoded)
+   *        .do();
+   * ```
+   *
+   * @param groupid - base64 string or uint8array
+   * @category query
+   */
+  groupid(groupid: Uint8Array | string) {
+    this.query['group-id'] = base64StringFunnel(groupid);
+    return this;
+  }
+
+  /**
    * Include results for the specified round.
    *
    * #### Example
