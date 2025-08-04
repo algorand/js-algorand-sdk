@@ -1,3 +1,31 @@
+# v3.4.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.4.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- fix: handle null values when deserializing byte arrays by @neilcampbell in https://github.com/algorand/js-algorand-sdk/pull/991
+
+### New Features
+
+- CICD: implement tests in GitHub Actions by @onetechnical in https://github.com/algorand/js-algorand-sdk/pull/985
+
+### Enhancements
+
+- Deps: Bump tar-fs from 3.0.8 to 3.0.9 by @dependabot[bot] in https://github.com/algorand/js-algorand-sdk/pull/986
+- CICD: remove CircleCI by @onetechnical in https://github.com/algorand/js-algorand-sdk/pull/987
+- API: Indexer searchfortransactions groupid by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/992
+- Deps: Bump form-data from 4.0.0 to 4.0.4 by @dependabot[bot] in https://github.com/algorand/js-algorand-sdk/pull/993
+- README: update CI badge by @onetechnical in https://github.com/algorand/js-algorand-sdk/pull/988
+
+## New Contributors
+
+- @neilcampbell made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/991
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.3.1...v3.4.0
+
 # v3.3.1
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.3.1 -->
