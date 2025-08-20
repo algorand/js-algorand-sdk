@@ -29,7 +29,7 @@ import { decodeAddress } from '../src/encoding/address';
 describe('ABI type checking', () => {
   it('should create the correct type from the string', () => {
     for (let i = 8; i < 513; i += 8) {
-      let expected = new ABIUintType(i);
+      let expected: ABIType = new ABIUintType(i);
       let actual = ABIType.from(`uint${i}`);
       assert.deepStrictEqual(actual, expected);
       for (let j = 1; j < 161; j++) {
