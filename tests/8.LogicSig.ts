@@ -1,6 +1,17 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import algosdk from '../src/index';
+import * as nacl from '../src/nacl/naclWrappers';
+import * as utils from '../src/utils/utils';
+
+// unsafeSign returns the signature after using secretKey to sign a message.
+// It should only be used in tests.
+function unsafeSign(secretKey: Uint8Array, message: Uint8Array): Uint8Array {
+  return nacl.sign(message, secretKey);
+}
+
+const sampleProgram = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
+const sampleArgs = [Uint8Array.from([1]), Uint8Array.from([2, 3])];
 
 const sampleAccount1 = algosdk.mnemonicToSecretKey(
   'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch'
@@ -24,7 +35,7 @@ const sampleMultisigAddr = algosdk.multisigAddress(sampleMultisigParams);
 describe('LogicSig', () => {
   describe('makeLogicSig', () => {
     it('should work on valid program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
+      const program = sampleProgram;
       const programHash = algosdk.Address.fromString(
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY'
       );
@@ -55,7 +66,7 @@ describe('LogicSig', () => {
       assert.deepStrictEqual(decoded, lsig);
     });
     it('should fail on tampered program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
+      const program = Uint8Array.from(sampleProgram); // Make a copy
       const programHash =
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
       const pk = algosdk.decodeAddress(programHash).publicKey;
@@ -69,7 +80,7 @@ describe('LogicSig', () => {
 
   describe('address', () => {
     it('should produce the correct address', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
+      const program = sampleProgram;
       const programHash =
         '6Z3C3LDVWGMX23BMSYMANACQOSINPFIRF77H7N3AWJZYV6OH6GWTJKVMXY';
 
@@ -85,7 +96,7 @@ describe('LogicSig', () => {
 describe('LogicSigAccount', () => {
   describe('constructor', () => {
     it('should work on valid program without args', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
+      const program = sampleProgram;
 
       const lsigAccount = new algosdk.LogicSigAccount(program);
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
@@ -105,8 +116,8 @@ describe('LogicSigAccount', () => {
       assert.deepStrictEqual(decoded, lsigAccount);
     });
     it('should work on valid program with args', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      const args = [Uint8Array.from([1]), Uint8Array.from([2, 3])];
+      const program = sampleProgram;
+      const args = sampleArgs;
 
       const lsigAccount = new algosdk.LogicSigAccount(program, args);
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
@@ -129,8 +140,8 @@ describe('LogicSigAccount', () => {
 
   describe('sign', () => {
     it('should properly sign the program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      const args = [Uint8Array.from([1]), Uint8Array.from([2, 3])];
+      const program = sampleProgram;
+      const args = sampleArgs;
 
       const lsigAccount = new algosdk.LogicSigAccount(program, args);
       lsigAccount.sign(sampleAccount1.sk);
@@ -164,17 +175,20 @@ describe('LogicSigAccount', () => {
 
   describe('signMultisig', () => {
     it('should properly sign the program', () => {
-      const program = Uint8Array.from([1, 32, 1, 1, 34]);
-      const args = [Uint8Array.from([1]), Uint8Array.from([2, 3])];
+      const program = sampleProgram;
+      const args = sampleArgs;
 
       const lsigAccount = new algosdk.LogicSigAccount(program, args);
       lsigAccount.signMultisig(sampleMultisigParams, sampleAccount1.sk);
 
-      const expectedSig = new Uint8Array(
-        algosdk.base64ToBytes(
-          'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
-        )
+      const msigProgramTag = new TextEncoder().encode('MsigProgram');
+      const toBeSigned = utils.concatArrays(
+        msigProgramTag,
+        sampleMultisigAddr.publicKey,
+        program
       );
+      const expectedSig = unsafeSign(sampleAccount1.sk, toBeSigned);
+
       const expectedMsig: algosdk.EncodedMultisig = {
         v: sampleMultisigParams.version,
         thr: sampleMultisigParams.threshold,
@@ -187,18 +201,12 @@ describe('LogicSigAccount', () => {
       assert.deepStrictEqual(lsigAccount.lsig.logic, program);
       assert.deepStrictEqual(lsigAccount.lsig.args, args);
       assert.strictEqual(lsigAccount.lsig.sig, undefined);
-      assert.deepStrictEqual(lsigAccount.lsig.msig, expectedMsig);
+      assert.strictEqual(lsigAccount.lsig.msig, undefined); // Legacy
+      assert.deepStrictEqual(lsigAccount.lsig.lmsig, expectedMsig);
       assert.strictEqual(lsigAccount.sigkey, undefined);
 
       // check serialization
       const encoded = lsigAccount.toByte();
-      const expectedEncoded = new Uint8Array(
-        algosdk.base64ToBytes(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
-        )
-      );
-      assert.deepStrictEqual(encoded, expectedEncoded);
-
       const decoded = algosdk.LogicSigAccount.fromByte(encoded);
       assert.deepStrictEqual(decoded, lsigAccount);
     });
@@ -206,42 +214,51 @@ describe('LogicSigAccount', () => {
 
   describe('appendToMultisig', () => {
     it('should properly append a signature', () => {
-      const msig1of3Encoded = algosdk.base64ToBytes(
-        'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
+      const lsigAccount = new algosdk.LogicSigAccount(
+        sampleProgram,
+        sampleArgs
       );
-      const lsigAccount = algosdk.LogicSigAccount.fromByte(msig1of3Encoded);
+      const msigProgramTag = new TextEncoder().encode('MsigProgram');
+      const toBeSigned = utils.concatArrays(
+        msigProgramTag,
+        sampleMultisigAddr.publicKey,
+        sampleProgram
+      );
+      const knownSig1 = unsafeSign(sampleAccount1.sk, toBeSigned);
 
+      // Manually create partial multisig (1 of 3 signed)
+      lsigAccount.lsig.lmsig = {
+        v: sampleMultisigParams.version,
+        thr: sampleMultisigParams.threshold,
+        subsig: [
+          { pk: sampleAccount1.addr.publicKey, s: knownSig1 },
+          { pk: sampleAccount2.addr.publicKey },
+          { pk: sampleAccount3.addr.publicKey },
+        ],
+      };
+
+      // Append the second signature
       lsigAccount.appendToMultisig(sampleAccount2.sk);
-
-      const expectedSig1 = algosdk.base64ToBytes(
-        'SRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9Ag=='
-      );
-      const expectedSig2 = algosdk.base64ToBytes(
-        'ZLxV2+2RokHUKrZg9+FKuZmaUrOxcVjO/D9P58siQRStqT1ehAUCChemaYMDIk6Go4tqNsVUviBQ/9PuqLMECQ=='
-      );
+      const expectedSig2 = unsafeSign(sampleAccount2.sk, toBeSigned);
       const expectedMsig: algosdk.EncodedMultisig = {
         v: sampleMultisigParams.version,
         thr: sampleMultisigParams.threshold,
-        subsig: sampleMultisigParams.addrs.map((addr) => ({
-          pk: addr.publicKey,
-        })),
+        subsig: [
+          { pk: sampleAccount1.addr.publicKey, s: knownSig1 },
+          { pk: sampleAccount2.addr.publicKey, s: expectedSig2 },
+          { pk: sampleAccount3.addr.publicKey },
+        ],
       };
-      expectedMsig.subsig[0].s = expectedSig1;
-      expectedMsig.subsig[1].s = expectedSig2;
 
+      assert.deepStrictEqual(lsigAccount.lsig.logic, sampleProgram);
+      assert.deepStrictEqual(lsigAccount.lsig.args, sampleArgs);
       assert.strictEqual(lsigAccount.lsig.sig, undefined);
-      assert.deepStrictEqual(lsigAccount.lsig.msig, expectedMsig);
+      assert.strictEqual(lsigAccount.lsig.msig, undefined); // Legacy
+      assert.deepStrictEqual(lsigAccount.lsig.lmsig, expectedMsig);
       assert.strictEqual(lsigAccount.sigkey, undefined);
 
       // check serialization
       const encoded = lsigAccount.toByte();
-      const expectedEncoded = new Uint8Array(
-        algosdk.base64ToBytes(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
-        )
-      );
-      assert.deepStrictEqual(encoded, expectedEncoded);
-
       const decoded = algosdk.LogicSigAccount.fromByte(encoded);
       assert.deepStrictEqual(decoded, lsigAccount);
     });
@@ -293,24 +310,56 @@ describe('LogicSigAccount', () => {
       assert.strictEqual(lsigAccount.verify(), true);
     });
 
+    it('should verify valid lmsig multisig', () => {
+      const msigEncoded = new Uint8Array(
+        algosdk.base64ToBytes(
+          // from: jq '{lsig: .lsig}' tests/resources/msig_delegated.txn | msgpacktool -e | base64
+          'gaRsc2lng6dhcmc6YjY0kqRBUT09pEFnTT2hbMQFASABASKlbG1zaWeDpnN1YnNpZ5OConBrxCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeKFzxECMM2XEsdETcPI/cNd3Rp/h2Ud5v02NZIF2STXveEzMdldswODv6cFG+mB22vrOVe6a8xt2jrwytOwaLIw9wGcGgqJwa8QgCWMyCVNzifB1ZxF3OZHH0D4bc8jE9Sv2r/Aaolz5wnGhc8RAT1bUfdnAsWoV9Yhk6edD1TEJH/evbLKB3zQNFTojbqXZF3PZ/5dljvfqY/A3aM3+KL6KxoJ683Gt2YSnOOrlDYGicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGiho3RocgKhdgE='
+        )
+      );
+      const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
+
+      assert.strictEqual(lsigAccount.verify(), true);
+    });
+
     it('should fail multisig with wrong sig', () => {
       const msigEncoded = new Uint8Array(
         algosdk.base64ToBytes(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
+          // from: jq '{lsig: .lsig}' tests/resources/msig_delegated.txn | msgpacktool -e | base64
+          'gaRsc2lng6dhcmc6YjY0kqRBUT09pEFnTT2hbMQFASABASKlbG1zaWeDpnN1YnNpZ5OConBrxCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeKFzxECMM2XEsdETcPI/cNd3Rp/h2Ud5v02NZIF2STXveEzMdldswODv6cFG+mB22vrOVe6a8xt2jrwytOwaLIw9wGcGgqJwa8QgCWMyCVNzifB1ZxF3OZHH0D4bc8jE9Sv2r/Aaolz5wnGhc8RAT1bUfdnAsWoV9Yhk6edD1TEJH/evbLKB3zQNFTojbqXZF3PZ/5dljvfqY/A3aM3+KL6KxoJ683Gt2YSnOOrlDYGicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGiho3RocgKhdgE='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
 
       // modify signature
       lsigAccount.lsig.msig!.subsig[0].s![0] = 0;
-
       assert.strictEqual(lsigAccount.verify(), false);
+
+      const lsigAccount2 = algosdk.LogicSigAccount.fromByte(msigEncoded);
+
+      // modify signature
+      lsigAccount2.lsig.lmsig!.subsig[0].s![0] = 0;
+      assert.strictEqual(lsigAccount2.verify(), false);
     });
 
     it('should fail multisig that does not meet threshold', () => {
       const msigBelowThresholdEncoded = new Uint8Array(
         algosdk.base64ToBytes(
-          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
+        )
+      );
+      const lsigAccount = algosdk.LogicSigAccount.fromByte(
+        msigBelowThresholdEncoded
+      );
+
+      assert.strictEqual(lsigAccount.verify(), false);
+    });
+
+    it('should fail lmsig multisig that does not meet threshold', () => {
+      const msigBelowThresholdEncoded = new Uint8Array(
+        algosdk.base64ToBytes(
+          // from: jq '{lsig: .lsig} | .lsig.lmsig.subsig[1] |= del(."s:b64")' tests/resources/msig_delegated.txn | msgpacktool -e | base64
+          'gaRsc2lng6dhcmc6YjY0kqRBUT09pEFnTT2hbMQFASABASKlbG1zaWeDpnN1YnNpZ5OConBrxCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeKFzxECMM2XEsdETcPI/cNd3Rp/h2Ud5v02NZIF2STXveEzMdldswODv6cFG+mB22vrOVe6a8xt2jrwytOwaLIw9wGcGgaJwa8QgCWMyCVNzifB1ZxF3OZHH0D4bc8jE9Sv2r/Aaolz5wnGBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(
@@ -403,8 +452,8 @@ describe('LogicSigAccount', () => {
 });
 
 describe('signLogicSigTransaction', () => {
-  const program = Uint8Array.from([1, 32, 1, 1, 34]);
-  const args = [Uint8Array.from([1]), Uint8Array.from([2, 3])];
+  const program = sampleProgram;
+  const args = sampleArgs;
 
   const otherAddr =
     'WTDCE2FEYM2VB5MKNXKLRSRDTSPR2EFTIGVH4GRW4PHGD6747GFJTBGT2A';
@@ -527,7 +576,8 @@ describe('signLogicSigTransaction', () => {
           txID: 'UGGT5EZXG2OBPGWTEINC65UXIQ6UVAAOTNKRRCRAUCZH4FWJTVQQ',
           blob: new Uint8Array(
             algosdk.base64ToBytes(
-              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5'
+              // from: msgpacktool -e < tests/resources/msig_delegated.txn | base64
+              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqVsbXNpZ4Omc3Vic2lnk4KicGvEIBt+wLBL6mG3lpCX5sv0B+EIpwU1HQvJir6xIgmoq4F4oXPEQIwzZcSx0RNw8j9w13dGn+HZR3m/TY1kgXZJNe94TMx2V2zA4O/pwUb6YHba+s5V7przG3aOvDK07BosjD3AZwaConBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcaFzxEBPVtR92cCxahX1iGTp50PVMQkf969ssoHfNA0VOiNupdkXc9n/l2WO9+pj8Ddozf4ovorGgnrzca3ZhKc46uUNgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
             )
           ),
         };
@@ -540,7 +590,8 @@ describe('signLogicSigTransaction', () => {
           txID: 'DRBC5KBOYEUCL6L6H45GQSRKCCUTPNELUHUSQO4ZWCEODJEXQBBQ',
           blob: new Uint8Array(
             algosdk.base64ToBytes(
-              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBpHNnbnLEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfpo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKpHR5cGWjcGF5'
+              // from: msgpacktool -e < tests/resources/msig_delegated_other.txn | base64
+              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqVsbXNpZ4Omc3Vic2lnk4KicGvEIBt+wLBL6mG3lpCX5sv0B+EIpwU1HQvJir6xIgmoq4F4oXPEQIwzZcSx0RNw8j9w13dGn+HZR3m/TY1kgXZJNe94TMx2V2zA4O/pwUb6YHba+s5V7przG3aOvDK07BosjD3AZwaConBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcaFzxEBPVtR92cCxahX1iGTp50PVMQkf969ssoHfNA0VOiNupdkXc9n/l2WO9+pj8Ddozf4ovorGgnrzca3ZhKc46uUNgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaRzZ25yxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqR0eXBlo3BheQ=='
             )
           ),
         };
@@ -625,7 +676,8 @@ describe('signLogicSigTransaction', () => {
           txID: 'UGGT5EZXG2OBPGWTEINC65UXIQ6UVAAOTNKRRCRAUCZH4FWJTVQQ',
           blob: new Uint8Array(
             algosdk.base64ToBytes(
-              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5'
+              // from: msgpacktool -e < tests/resources/msig_delegated.txn | base64
+              'gqRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqVsbXNpZ4Omc3Vic2lnk4KicGvEIBt+wLBL6mG3lpCX5sv0B+EIpwU1HQvJir6xIgmoq4F4oXPEQIwzZcSx0RNw8j9w13dGn+HZR3m/TY1kgXZJNe94TMx2V2zA4O/pwUb6YHba+s5V7przG3aOvDK07BosjD3AZwaConBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcaFzxEBPVtR92cCxahX1iGTp50PVMQkf969ssoHfNA0VOiNupdkXc9n/l2WO9+pj8Ddozf4ovorGgnrzca3ZhKc46uUNgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
             )
           ),
         };
@@ -638,7 +690,8 @@ describe('signLogicSigTransaction', () => {
           txID: 'DRBC5KBOYEUCL6L6H45GQSRKCCUTPNELUHUSQO4ZWCEODJEXQBBQ',
           blob: new Uint8Array(
             algosdk.base64ToBytes(
-              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RASRO4BdGefywQgPYzfhhUp87q7hDdvRNlhL+Tt18wYxWRyiMM7e8j0XQbUp2w/+83VNZG9LVh/Iu8LXtOY1y9AoKicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxoXPEQGS8VdvtkaJB1Cq2YPfhSrmZmlKzsXFYzvw/T+fLIkEUrak9XoQFAgoXpmmDAyJOhqOLajbFVL4gUP/T7qizBAmBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYBpHNnbnLEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfpo3R4boqjYW10zROIo2ZlZc4AA0+oomZ2zgAO1tyjZ2VurXRlc3RuZXQtdjMxLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zgAO2sSkbm90ZcQItFF5Ofz60nGjcmN2xCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqNzbmTEILTGImikwzVQ9Ypt1LjKI5yfHRCzQap+GjbjzmH7/PmKpHR5cGWjcGF5'
+              // from: msgpacktool -e < tests/resources/msig_delegated_other.txn | base64
+              'g6Rsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqVsbXNpZ4Omc3Vic2lnk4KicGvEIBt+wLBL6mG3lpCX5sv0B+EIpwU1HQvJir6xIgmoq4F4oXPEQIwzZcSx0RNw8j9w13dGn+HZR3m/TY1kgXZJNe94TMx2V2zA4O/pwUb6YHba+s5V7przG3aOvDK07BosjD3AZwaConBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcaFzxEBPVtR92cCxahX1iGTp50PVMQkf969ssoHfNA0VOiNupdkXc9n/l2WO9+pj8Ddozf4ovorGgnrzca3ZhKc46uUNgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaRzZ25yxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aN0eG6Ko2FtdM0TiKNmZWXOAANPqKJmds4ADtbco2dlbq10ZXN0bmV0LXYzMS4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds4ADtrEpG5vdGXECLRReTn8+tJxo3JjdsQgtMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yqjc25kxCC0xiJopMM1UPWKbdS4yiOcnx0Qs0Gqfho2485h+/z5iqR0eXBlo3BheQ=='
             )
           ),
         };

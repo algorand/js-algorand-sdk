@@ -60,6 +60,7 @@ export function sanityCheckProgram(program: Uint8Array) {
 }
 
 const programTag = new TextEncoder().encode('Program');
+const multisigProgramTag = new TextEncoder().encode('MsigProgram');
 
 /**
  LogicSig implementation
@@ -85,6 +86,10 @@ export class LogicSig implements encoding.Encodable {
         key: 'msig',
         valueSchema: new OptionalSchema(ENCODED_MULTISIG_SCHEMA),
       },
+      {
+        key: 'lmsig',
+        valueSchema: new OptionalSchema(ENCODED_MULTISIG_SCHEMA),
+      },
     ])
   );
 
@@ -92,6 +97,7 @@ export class LogicSig implements encoding.Encodable {
   args: Uint8Array[];
   sig?: Uint8Array;
   msig?: EncodedMultisig;
+  lmsig?: EncodedMultisig;
 
   constructor(program: Uint8Array, programArgs?: Array<Uint8Array> | null) {
     if (
@@ -112,6 +118,7 @@ export class LogicSig implements encoding.Encodable {
     this.args = args;
     this.sig = undefined;
     this.msig = undefined;
+    this.lmsig = undefined;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -128,6 +135,9 @@ export class LogicSig implements encoding.Encodable {
     if (this.msig) {
       data.set('msig', encodedMultiSigToEncodingData(this.msig));
     }
+    if (this.lmsig) {
+      data.set('lmsig', encodedMultiSigToEncodingData(this.lmsig));
+    }
     return data;
   }
 
@@ -140,6 +150,9 @@ export class LogicSig implements encoding.Encodable {
     if (data.get('msig')) {
       lsig.msig = encodedMultiSigFromEncodingData(data.get('msig'));
     }
+    if (data.get('lmsig')) {
+      lsig.lmsig = encodedMultiSigFromEncodingData(data.get('lmsig'));
+    }
     return lsig;
   }
 
@@ -148,7 +161,8 @@ export class LogicSig implements encoding.Encodable {
    * @param publicKey - Verification key (derived from sender address or escrow address)
    */
   verify(publicKey: Uint8Array) {
-    if (this.sig && this.msig) {
+    const sigCount = [this.sig, this.msig, this.lmsig].filter(Boolean).length;
+    if (sigCount > 1) {
       return false;
     }
 
@@ -160,7 +174,7 @@ export class LogicSig implements encoding.Encodable {
 
     const toBeSigned = utils.concatArrays(programTag, this.logic);
 
-    if (!this.sig && !this.msig) {
+    if (!this.sig && !this.msig && !this.lmsig) {
       const hash = nacl.genericHash(toBeSigned);
       return utils.arrayEqual(hash, publicKey);
     }
@@ -169,7 +183,25 @@ export class LogicSig implements encoding.Encodable {
       return nacl.verify(toBeSigned, this.sig, publicKey);
     }
 
-    return verifyMultisig(toBeSigned, this.msig!, publicKey);
+    if (this.lmsig) {
+      const multisigAddr = addressFromMultisigPreImg({
+        version: this.lmsig.v,
+        threshold: this.lmsig.thr,
+        pks: this.lmsig.subsig.map((subsig) => subsig.pk),
+      });
+      const lmsigProgram = utils.concatArrays(
+        multisigProgramTag,
+        multisigAddr.publicKey,
+        this.logic
+      );
+      return verifyMultisig(lmsigProgram, this.lmsig!, publicKey);
+    }
+
+    if (this.msig) {
+      return verifyMultisig(toBeSigned, this.msig!, publicKey);
+    }
+
+    return false;
   }
 
   /**
@@ -193,14 +225,14 @@ export class LogicSig implements encoding.Encodable {
     } else {
       const subsigs = pksFromAddresses(msig.addrs).map((pk) => ({ pk }));
 
-      this.msig = {
+      this.lmsig = {
         v: msig.version,
         thr: msig.threshold,
         subsig: subsigs,
       };
 
-      const [sig, index] = this.singleSignMultisig(secretKey, this.msig);
-      this.msig.subsig[index].s = sig;
+      const [sig, index] = this.singleSignMultisig(secretKey, this.lmsig);
+      this.lmsig.subsig[index].s = sig;
     }
   }
 
@@ -209,15 +241,30 @@ export class LogicSig implements encoding.Encodable {
    * @param secretKey - Secret key to sign with
    */
   appendToMultisig(secretKey: Uint8Array) {
-    if (this.msig === undefined) {
+    if (this.lmsig === undefined) {
       throw new Error('no multisig present');
     }
-    const [sig, index] = this.singleSignMultisig(secretKey, this.msig);
-    this.msig.subsig[index].s = sig;
+    const [sig, index] = this.singleSignMultisig(secretKey, this.lmsig);
+    this.lmsig.subsig[index].s = sig;
   }
 
   signProgram(secretKey: Uint8Array) {
     const toBeSigned = utils.concatArrays(programTag, this.logic);
+    const sig = nacl.sign(toBeSigned, secretKey);
+    return sig;
+  }
+
+  signProgramMultisig(secretKey: Uint8Array, msig: EncodedMultisig) {
+    const multisigAddr = addressFromMultisigPreImg({
+      version: msig.v,
+      threshold: msig.thr,
+      pks: msig.subsig.map((subsig) => subsig.pk),
+    });
+    const toBeSigned = utils.concatArrays(
+      multisigProgramTag,
+      multisigAddr.publicKey,
+      this.logic
+    );
     const sig = nacl.sign(toBeSigned, secretKey);
     return sig;
   }
@@ -238,7 +285,7 @@ export class LogicSig implements encoding.Encodable {
     if (index === -1) {
       throw new Error('invalid secret key');
     }
-    const sig = this.signProgram(secretKey);
+    const sig = this.signProgramMultisig(secretKey, msig);
     return [sig, index];
   }
 
@@ -332,7 +379,7 @@ export class LogicSigAccount implements encoding.Encodable {
    * To verify the delegation signature, use `verify`.
    */
   isDelegated() {
-    return !!(this.lsig.sig || this.lsig.msig);
+    return !!(this.lsig.sig || this.lsig.msig || this.lsig.lmsig);
   }
 
   /**
@@ -354,9 +401,12 @@ export class LogicSigAccount implements encoding.Encodable {
    *  escrow address that is the hash of the LogicSig's program code.
    */
   address(): Address {
-    if (this.lsig.sig && this.lsig.msig) {
+    const sigCount = [this.lsig.sig, this.lsig.msig, this.lsig.lmsig].filter(
+      Boolean
+    ).length;
+    if (sigCount > 1) {
       throw new Error(
-        'LogicSig has too many signatures. At most one of sig or msig may be present'
+        'LogicSig has too many signatures. At most one of sig, msig, or lmsig may be present'
       );
     }
 
@@ -367,11 +417,12 @@ export class LogicSigAccount implements encoding.Encodable {
       return new Address(this.sigkey);
     }
 
-    if (this.lsig.msig) {
+    const msig = this.lsig.lmsig || this.lsig.msig;
+    if (msig) {
       const msigMetadata = {
-        version: this.lsig.msig.v,
-        threshold: this.lsig.msig.thr,
-        pks: this.lsig.msig.subsig.map((subsig) => subsig.pk),
+        version: msig.v,
+        threshold: msig.thr,
+        pks: msig.subsig.map((subsig) => subsig.pk),
       };
       return addressFromMultisigPreImg(msigMetadata);
     }
