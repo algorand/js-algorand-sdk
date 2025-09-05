@@ -3037,6 +3037,11 @@ export class Block implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'previous-block-hash-512',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'proposer',
           valueSchema: new OptionalSchema(new StringSchema()),
           omitEmpty: true,
@@ -3063,6 +3068,11 @@ export class Block implements Encodable {
           valueSchema: new OptionalSchema(
             new ArraySchema(Transaction.encodingSchema)
           ),
+          omitEmpty: true,
+        },
+        {
+          key: 'transactions-root-sha512',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
           omitEmpty: true,
         },
         {
@@ -3149,6 +3159,11 @@ export class Block implements Encodable {
   public participationUpdates?: ParticipationUpdates;
 
   /**
+   * (prev512) Previous block hash, using SHA-512.
+   */
+  public previousBlockHash512?: Uint8Array;
+
+  /**
    * the proposer of this block.
    */
   public proposer?: Address;
@@ -3172,6 +3187,13 @@ export class Block implements Encodable {
    * (txns) list of transactions corresponding to a given round.
    */
   public transactions?: Transaction[];
+
+  /**
+   * (txn512) TransactionsRootSHA512 is an auxiliary TransactionRoot, built using a
+   * vector commitment instead of a merkle tree, and SHA512 hash function instead of
+   * the default SHA512_256.
+   */
+  public transactionsRootSha512?: Uint8Array;
 
   /**
    * (tc) TxnCounter counts the number of transactions committed in the ledger, from
@@ -3213,11 +3235,15 @@ export class Block implements Encodable {
    * @param bonus - the potential bonus payout for this block.
    * @param feesCollected - the sum of all fees paid by transactions in this block.
    * @param participationUpdates - Participation account data that needs to be checked/acted on by the network.
+   * @param previousBlockHash512 - (prev512) Previous block hash, using SHA-512.
    * @param proposer - the proposer of this block.
    * @param proposerPayout - the actual amount transferred to the proposer from the fee sink.
    * @param rewards - Fields relating to rewards,
    * @param stateProofTracking - Tracks the status of state proofs.
    * @param transactions - (txns) list of transactions corresponding to a given round.
+   * @param transactionsRootSha512 - (txn512) TransactionsRootSHA512 is an auxiliary TransactionRoot, built using a
+   * vector commitment instead of a merkle tree, and SHA512 hash function instead of
+   * the default SHA512_256.
    * @param txnCounter - (tc) TxnCounter counts the number of transactions committed in the ledger, from
    * the time at which support for this feature was introduced.
    * Specifically, TxnCounter is the number of the next transaction that will be
@@ -3238,11 +3264,13 @@ export class Block implements Encodable {
     bonus,
     feesCollected,
     participationUpdates,
+    previousBlockHash512,
     proposer,
     proposerPayout,
     rewards,
     stateProofTracking,
     transactions,
+    transactionsRootSha512,
     txnCounter,
     upgradeState,
     upgradeVote,
@@ -3258,11 +3286,13 @@ export class Block implements Encodable {
     bonus?: number | bigint;
     feesCollected?: number | bigint;
     participationUpdates?: ParticipationUpdates;
+    previousBlockHash512?: string | Uint8Array;
     proposer?: Address | string;
     proposerPayout?: number | bigint;
     rewards?: BlockRewards;
     stateProofTracking?: StateProofTracking[];
     transactions?: Transaction[];
+    transactionsRootSha512?: string | Uint8Array;
     txnCounter?: number | bigint;
     upgradeState?: BlockUpgradeState;
     upgradeVote?: BlockUpgradeVote;
@@ -3294,6 +3324,10 @@ export class Block implements Encodable {
         ? undefined
         : ensureSafeInteger(feesCollected);
     this.participationUpdates = participationUpdates;
+    this.previousBlockHash512 =
+      typeof previousBlockHash512 === 'string'
+        ? base64ToBytes(previousBlockHash512)
+        : previousBlockHash512;
     this.proposer =
       typeof proposer === 'string' ? Address.fromString(proposer) : proposer;
     this.proposerPayout =
@@ -3303,6 +3337,10 @@ export class Block implements Encodable {
     this.rewards = rewards;
     this.stateProofTracking = stateProofTracking;
     this.transactions = transactions;
+    this.transactionsRootSha512 =
+      typeof transactionsRootSha512 === 'string'
+        ? base64ToBytes(transactionsRootSha512)
+        : transactionsRootSha512;
     this.txnCounter =
       typeof txnCounter === 'undefined'
         ? undefined
@@ -3334,6 +3372,7 @@ export class Block implements Encodable {
           ? this.participationUpdates.toEncodingData()
           : undefined,
       ],
+      ['previous-block-hash-512', this.previousBlockHash512],
       [
         'proposer',
         typeof this.proposer !== 'undefined'
@@ -3359,6 +3398,7 @@ export class Block implements Encodable {
           ? this.transactions.map((v) => v.toEncodingData())
           : undefined,
       ],
+      ['transactions-root-sha512', this.transactionsRootSha512],
       ['txn-counter', this.txnCounter],
       [
         'upgrade-state',
@@ -3396,6 +3436,7 @@ export class Block implements Encodable {
               data.get('participation-updates')
             )
           : undefined,
+      previousBlockHash512: data.get('previous-block-hash-512'),
       proposer: data.get('proposer'),
       proposerPayout: data.get('proposer-payout'),
       rewards:
@@ -3414,6 +3455,7 @@ export class Block implements Encodable {
               .get('transactions')
               .map((v: unknown) => Transaction.fromEncodingData(v))
           : undefined,
+      transactionsRootSha512: data.get('transactions-root-sha512'),
       txnCounter: data.get('txn-counter'),
       upgradeState:
         typeof data.get('upgrade-state') !== 'undefined'
@@ -4693,6 +4735,73 @@ export class HealthCheck implements Encodable {
   }
 }
 
+/**
+ * HoldingRef names a holding by referring to an Address and Asset it belongs to.
+ */
+export class HoldingRef implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'asset', valueSchema: new Uint64Schema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (d) Address in access list, or the sender of the transaction.
+   */
+  public address: Address;
+
+  /**
+   * (s) Asset ID for asset in access list.
+   */
+  public asset: number;
+
+  /**
+   * Creates a new `HoldingRef` object.
+   * @param address - (d) Address in access list, or the sender of the transaction.
+   * @param asset - (s) Asset ID for asset in access list.
+   */
+  constructor({
+    address,
+    asset,
+  }: {
+    address: Address | string;
+    asset: number | bigint;
+  }) {
+    this.address =
+      typeof address === 'string' ? Address.fromString(address) : address;
+    this.asset = ensureSafeInteger(asset);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return HoldingRef.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['address', this.address.toString()],
+      ['asset', this.asset],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): HoldingRef {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded HoldingRef: ${data}`);
+    }
+    return new HoldingRef({
+      address: data.get('address'),
+      asset: data.get('asset'),
+    });
+  }
+}
+
 export class IndexerStateProofMessage implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
 
@@ -4823,6 +4932,75 @@ export class IndexerStateProofMessage implements Encodable {
       latestAttestedRound: data.get('latest-attested-round'),
       lnProvenWeight: data.get('ln-proven-weight'),
       votersCommitment: data.get('voters-commitment'),
+    });
+  }
+}
+
+/**
+ * LocalsRef names a local state by referring to an Address and App it belongs to.
+ */
+export class LocalsRef implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'address', valueSchema: new StringSchema(), omitEmpty: true },
+        { key: 'app', valueSchema: new Uint64Schema(), omitEmpty: true }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (d) Address in access list, or the sender of the transaction.
+   */
+  public address: Address;
+
+  /**
+   * (p) Application ID for app in access list, or zero if referring to the called
+   * application.
+   */
+  public app: number;
+
+  /**
+   * Creates a new `LocalsRef` object.
+   * @param address - (d) Address in access list, or the sender of the transaction.
+   * @param app - (p) Application ID for app in access list, or zero if referring to the called
+   * application.
+   */
+  constructor({
+    address,
+    app,
+  }: {
+    address: Address | string;
+    app: number | bigint;
+  }) {
+    this.address =
+      typeof address === 'string' ? Address.fromString(address) : address;
+    this.app = ensureSafeInteger(app);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return LocalsRef.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['address', this.address.toString()],
+      ['app', this.app],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): LocalsRef {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded LocalsRef: ${data}`);
+    }
+    return new LocalsRef({
+      address: data.get('address'),
+      app: data.get('app'),
     });
   }
 }
@@ -5119,6 +5297,182 @@ export class ParticipationUpdates implements Encodable {
     return new ParticipationUpdates({
       absentParticipationAccounts: data.get('absent-participation-accounts'),
       expiredParticipationAccounts: data.get('expired-participation-accounts'),
+    });
+  }
+}
+
+/**
+ * ResourceRef names a single resource. Only one of the fields should be set.
+ */
+export class ResourceRef implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'address',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'application-id',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'asset-id',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'box',
+          valueSchema: new OptionalSchema(BoxReference.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'holding',
+          valueSchema: new OptionalSchema(HoldingRef.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'local',
+          valueSchema: new OptionalSchema(LocalsRef.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (d) Account whose balance record is accessible by the executing ApprovalProgram
+   * or ClearStateProgram.
+   */
+  public address?: Address;
+
+  /**
+   * (p) Application id whose GlobalState may be read by the executing
+   * ApprovalProgram or ClearStateProgram.
+   */
+  public applicationId?: number;
+
+  /**
+   * (s) Asset whose AssetParams may be read by the executing
+   * ApprovalProgram or ClearStateProgram.
+   */
+  public assetId?: number;
+
+  /**
+   * BoxReference names a box by its name and the application ID it belongs to.
+   */
+  public box?: BoxReference;
+
+  /**
+   * HoldingRef names a holding by referring to an Address and Asset it belongs to.
+   */
+  public holding?: HoldingRef;
+
+  /**
+   * LocalsRef names a local state by referring to an Address and App it belongs to.
+   */
+  public local?: LocalsRef;
+
+  /**
+   * Creates a new `ResourceRef` object.
+   * @param address - (d) Account whose balance record is accessible by the executing ApprovalProgram
+   * or ClearStateProgram.
+   * @param applicationId - (p) Application id whose GlobalState may be read by the executing
+   * ApprovalProgram or ClearStateProgram.
+   * @param assetId - (s) Asset whose AssetParams may be read by the executing
+   * ApprovalProgram or ClearStateProgram.
+   * @param box - BoxReference names a box by its name and the application ID it belongs to.
+   * @param holding - HoldingRef names a holding by referring to an Address and Asset it belongs to.
+   * @param local - LocalsRef names a local state by referring to an Address and App it belongs to.
+   */
+  constructor({
+    address,
+    applicationId,
+    assetId,
+    box,
+    holding,
+    local,
+  }: {
+    address?: Address | string;
+    applicationId?: number | bigint;
+    assetId?: number | bigint;
+    box?: BoxReference;
+    holding?: HoldingRef;
+    local?: LocalsRef;
+  }) {
+    this.address =
+      typeof address === 'string' ? Address.fromString(address) : address;
+    this.applicationId =
+      typeof applicationId === 'undefined'
+        ? undefined
+        : ensureSafeInteger(applicationId);
+    this.assetId =
+      typeof assetId === 'undefined' ? undefined : ensureSafeInteger(assetId);
+    this.box = box;
+    this.holding = holding;
+    this.local = local;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return ResourceRef.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      [
+        'address',
+        typeof this.address !== 'undefined'
+          ? this.address.toString()
+          : undefined,
+      ],
+      ['application-id', this.applicationId],
+      ['asset-id', this.assetId],
+      [
+        'box',
+        typeof this.box !== 'undefined' ? this.box.toEncodingData() : undefined,
+      ],
+      [
+        'holding',
+        typeof this.holding !== 'undefined'
+          ? this.holding.toEncodingData()
+          : undefined,
+      ],
+      [
+        'local',
+        typeof this.local !== 'undefined'
+          ? this.local.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): ResourceRef {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded ResourceRef: ${data}`);
+    }
+    return new ResourceRef({
+      address: data.get('address'),
+      applicationId: data.get('application-id'),
+      assetId: data.get('asset-id'),
+      box:
+        typeof data.get('box') !== 'undefined'
+          ? BoxReference.fromEncodingData(data.get('box'))
+          : undefined,
+      holding:
+        typeof data.get('holding') !== 'undefined'
+          ? HoldingRef.fromEncodingData(data.get('holding'))
+          : undefined,
+      local:
+        typeof data.get('local') !== 'undefined'
+          ? LocalsRef.fromEncodingData(data.get('local'))
+          : undefined,
     });
   }
 }
@@ -6961,6 +7315,13 @@ export class TransactionApplication implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'access',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(ResourceRef.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'accounts',
           valueSchema: new OptionalSchema(new ArraySchema(new StringSchema())),
           omitEmpty: true,
@@ -7033,6 +7394,13 @@ export class TransactionApplication implements Encodable {
    * (apid) ID of the application being configured or empty if creating.
    */
   public applicationId: bigint;
+
+  /**
+   * (al) Access unifies `accounts`, `foreign-apps`, `foreign-assets`, and
+   * `box-references` under a single list. If access is non-empty, these lists must
+   * be empty. If access is empty, those lists may be non-empty.
+   */
+  public access?: ResourceRef[];
 
   /**
    * (apat) List of accounts in addition to the sender that may be accessed from the
@@ -7124,6 +7492,9 @@ export class TransactionApplication implements Encodable {
   /**
    * Creates a new `TransactionApplication` object.
    * @param applicationId - (apid) ID of the application being configured or empty if creating.
+   * @param access - (al) Access unifies `accounts`, `foreign-apps`, `foreign-assets`, and
+   * `box-references` under a single list. If access is non-empty, these lists must
+   * be empty. If access is empty, those lists may be non-empty.
    * @param accounts - (apat) List of accounts in addition to the sender that may be accessed from the
    * application's approval-program and clear-state-program.
    * @param applicationArgs - (apaa) transaction specific arguments accessed from the application's
@@ -7166,6 +7537,7 @@ export class TransactionApplication implements Encodable {
    */
   constructor({
     applicationId,
+    access,
     accounts,
     applicationArgs,
     approvalProgram,
@@ -7180,6 +7552,7 @@ export class TransactionApplication implements Encodable {
     rejectVersion,
   }: {
     applicationId: number | bigint;
+    access?: ResourceRef[];
     accounts?: (Address | string)[];
     applicationArgs?: Uint8Array[];
     approvalProgram?: string | Uint8Array;
@@ -7194,6 +7567,7 @@ export class TransactionApplication implements Encodable {
     rejectVersion?: number | bigint;
   }) {
     this.applicationId = ensureBigInt(applicationId);
+    this.access = access;
     this.accounts =
       typeof accounts !== 'undefined'
         ? accounts.map((addr) =>
@@ -7240,6 +7614,12 @@ export class TransactionApplication implements Encodable {
     return new Map<string, unknown>([
       ['application-id', this.applicationId],
       [
+        'access',
+        typeof this.access !== 'undefined'
+          ? this.access.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      [
         'accounts',
         typeof this.accounts !== 'undefined'
           ? this.accounts.map((v) => v.toString())
@@ -7280,6 +7660,12 @@ export class TransactionApplication implements Encodable {
     }
     return new TransactionApplication({
       applicationId: data.get('application-id'),
+      access:
+        typeof data.get('access') !== 'undefined'
+          ? data
+              .get('access')
+              .map((v: unknown) => ResourceRef.fromEncodingData(v))
+          : undefined,
       accounts: data.get('accounts'),
       applicationArgs: data.get('application-args'),
       approvalProgram: data.get('approval-program'),
@@ -8158,7 +8544,7 @@ export class TransactionSignature implements Encodable {
   public logicsig?: TransactionSignatureLogicsig;
 
   /**
-   * (msig) structure holding multiple subsignatures.
+   * structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
    */
@@ -8174,7 +8560,7 @@ export class TransactionSignature implements Encodable {
    * @param logicsig - (lsig) Programatic transaction signature.
    * Definition:
    * data/transactions/logicsig.go
-   * @param multisig - (msig) structure holding multiple subsignatures.
+   * @param multisig - structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
    * @param sig - (sig) Standard ed25519 signature.
@@ -8255,6 +8641,13 @@ export class TransactionSignatureLogicsig implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'logic-multisig-signature',
+          valueSchema: new OptionalSchema(
+            TransactionSignatureMultisig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'multisig-signature',
           valueSchema: new OptionalSchema(
             TransactionSignatureMultisig.encodingSchema
@@ -8283,7 +8676,14 @@ export class TransactionSignatureLogicsig implements Encodable {
   public args?: Uint8Array[];
 
   /**
-   * (msig) structure holding multiple subsignatures.
+   * structure holding multiple subsignatures.
+   * Definition:
+   * crypto/multisig.go : MultisigSig
+   */
+  public logicMultisigSignature?: TransactionSignatureMultisig;
+
+  /**
+   * structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
    */
@@ -8299,7 +8699,10 @@ export class TransactionSignatureLogicsig implements Encodable {
    * @param logic - (l) Program signed by a signature or multi signature, or hashed to be the
    * address of ana ccount. Base64 encoded TEAL program.
    * @param args - (arg) Logic arguments, base64 encoded.
-   * @param multisigSignature - (msig) structure holding multiple subsignatures.
+   * @param logicMultisigSignature - structure holding multiple subsignatures.
+   * Definition:
+   * crypto/multisig.go : MultisigSig
+   * @param multisigSignature - structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
    * @param signature - (sig) ed25519 signature.
@@ -8307,16 +8710,19 @@ export class TransactionSignatureLogicsig implements Encodable {
   constructor({
     logic,
     args,
+    logicMultisigSignature,
     multisigSignature,
     signature,
   }: {
     logic: string | Uint8Array;
     args?: Uint8Array[];
+    logicMultisigSignature?: TransactionSignatureMultisig;
     multisigSignature?: TransactionSignatureMultisig;
     signature?: string | Uint8Array;
   }) {
     this.logic = typeof logic === 'string' ? base64ToBytes(logic) : logic;
     this.args = args;
+    this.logicMultisigSignature = logicMultisigSignature;
     this.multisigSignature = multisigSignature;
     this.signature =
       typeof signature === 'string' ? base64ToBytes(signature) : signature;
@@ -8331,6 +8737,12 @@ export class TransactionSignatureLogicsig implements Encodable {
     return new Map<string, unknown>([
       ['logic', this.logic],
       ['args', this.args],
+      [
+        'logic-multisig-signature',
+        typeof this.logicMultisigSignature !== 'undefined'
+          ? this.logicMultisigSignature.toEncodingData()
+          : undefined,
+      ],
       [
         'multisig-signature',
         typeof this.multisigSignature !== 'undefined'
@@ -8348,6 +8760,12 @@ export class TransactionSignatureLogicsig implements Encodable {
     return new TransactionSignatureLogicsig({
       logic: data.get('logic'),
       args: data.get('args'),
+      logicMultisigSignature:
+        typeof data.get('logic-multisig-signature') !== 'undefined'
+          ? TransactionSignatureMultisig.fromEncodingData(
+              data.get('logic-multisig-signature')
+            )
+          : undefined,
       multisigSignature:
         typeof data.get('multisig-signature') !== 'undefined'
           ? TransactionSignatureMultisig.fromEncodingData(
@@ -8360,7 +8778,7 @@ export class TransactionSignatureLogicsig implements Encodable {
 }
 
 /**
- * (msig) structure holding multiple subsignatures.
+ * structure holding multiple subsignatures.
  * Definition:
  * crypto/multisig.go : MultisigSig
  */
