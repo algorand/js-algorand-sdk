@@ -314,7 +314,7 @@ describe('LogicSigAccount', () => {
       const msigEncoded = new Uint8Array(
         algosdk.base64ToBytes(
           // from: jq '{lsig: .lsig}' tests/resources/msig_delegated.txn | msgpacktool -e | base64
-          'gaRsc2lng6dhcmc6YjY0kqRBUT09pEFnTT2hbMQFASABASKlbG1zaWeDpnN1YnNpZ5OConBrxCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeKFzxECMM2XEsdETcPI/cNd3Rp/h2Ud5v02NZIF2STXveEzMdldswODv6cFG+mB22vrOVe6a8xt2jrwytOwaLIw9wGcGgqJwa8QgCWMyCVNzifB1ZxF3OZHH0D4bc8jE9Sv2r/Aaolz5wnGhc8RAT1bUfdnAsWoV9Yhk6edD1TEJH/evbLKB3zQNFTojbqXZF3PZ/5dljvfqY/A3aM3+KL6KxoJ683Gt2YSnOOrlDYGicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGiho3RocgKhdgE='
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqVsbXNpZ4Omc3Vic2lnk4KicGvEIBt+wLBL6mG3lpCX5sv0B+EIpwU1HQvJir6xIgmoq4F4oXPEQIwzZcSx0RNw8j9w13dGn+HZR3m/TY1kgXZJNe94TMx2V2zA4O/pwUb6YHba+s5V7przG3aOvDK07BosjD3AZwaConBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcaFzxEBPVtR92cCxahX1iGTp50PVMQkf969ssoHfNA0VOiNupdkXc9n/l2WO9+pj8Ddozf4ovorGgnrzca3ZhKc46uUNgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
@@ -339,7 +339,7 @@ describe('LogicSigAccount', () => {
       const msigEncoded = new Uint8Array(
         algosdk.base64ToBytes(
           // from: jq '{lsig: .lsig}' tests/resources/msig_delegated.txn | msgpacktool -e | base64
-          'gaRsc2lng6dhcmc6YjY0kqRBUT09pEFnTT2hbMQFASABASKlbG1zaWeDpnN1YnNpZ5OConBrxCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeKFzxECMM2XEsdETcPI/cNd3Rp/h2Ud5v02NZIF2STXveEzMdldswODv6cFG+mB22vrOVe6a8xt2jrwytOwaLIw9wGcGgqJwa8QgCWMyCVNzifB1ZxF3OZHH0D4bc8jE9Sv2r/Aaolz5wnGhc8RAT1bUfdnAsWoV9Yhk6edD1TEJH/evbLKB3zQNFTojbqXZF3PZ/5dljvfqY/A3aM3+KL6KxoJ683Gt2YSnOOrlDYGicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGiho3RocgKhdgE='
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqVsbXNpZ4Omc3Vic2lnk4KicGvEIBt+wLBL6mG3lpCX5sv0B+EIpwU1HQvJir6xIgmoq4F4oXPEQIwzZcSx0RNw8j9w13dGn+HZR3m/TY1kgXZJNe94TMx2V2zA4O/pwUb6YHba+s5V7przG3aOvDK07BosjD3AZwaConBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcaFzxEBPVtR92cCxahX1iGTp50PVMQkf969ssoHfNA0VOiNupdkXc9n/l2WO9+pj8Ddozf4ovorGgnrzca3ZhKc46uUNgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AQ=='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(msigEncoded);
@@ -366,7 +366,7 @@ describe('LogicSigAccount', () => {
       const msigBelowThresholdEncoded = new Uint8Array(
         algosdk.base64ToBytes(
           // from: jq '{lsig: .lsig} | .lsig.lmsig.subsig[1] |= del(."s:b64")' tests/resources/msig_delegated.txn | msgpacktool -e | base64
-          'gaRsc2lng6dhcmc6YjY0kqRBUT09pEFnTT2hbMQFASABASKlbG1zaWeDpnN1YnNpZ5OConBrxCAbfsCwS+pht5aQl+bL9AfhCKcFNR0LyYq+sSIJqKuBeKFzxECMM2XEsdETcPI/cNd3Rp/h2Ud5v02NZIF2STXveEzMdldswODv6cFG+mB22vrOVe6a8xt2jrwytOwaLIw9wGcGgaJwa8QgCWMyCVNzifB1ZxF3OZHH0D4bc8jE9Sv2r/Aaolz5wnGBonBrxCDn8PhNBoEd+fMcjYeLEVX0Zx1RoYXCAJCGZ/RJWHBooaN0aHICoXYB'
+          'gaRsc2lng6NhcmeSxAEBxAICA6FsxAUBIAEBIqVsbXNpZ4Omc3Vic2lnk4KicGvEIBt+wLBL6mG3lpCX5sv0B+EIpwU1HQvJir6xIgmoq4F4oXPEQIwzZcSx0RNw8j9w13dGn+HZR3m/TY1kgXZJNe94TMx2V2zA4O/pwUb6YHba+s5V7przG3aOvDK07BosjD3AZwaBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYGicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGiho3RocgKhdgE='
         )
       );
       const lsigAccount = algosdk.LogicSigAccount.fromByte(
