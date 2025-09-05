@@ -62,11 +62,11 @@ export function signLogicSigTransactionObject(
       // delegating account is the sender. If that's not the case, the signing
       // will fail.
       lsigAddress = new Address(txn.sender.publicKey);
-    } else if (lsig.msig) {
+    } else if (lsig.lmsig) {
       const msigMetadata = {
-        version: lsig.msig.v,
-        threshold: lsig.msig.thr,
-        pks: lsig.msig.subsig.map((subsig) => subsig.pk),
+        version: lsig.lmsig.v,
+        threshold: lsig.lmsig.thr,
+        pks: lsig.lmsig.subsig.map((subsig) => subsig.pk),
       };
       lsigAddress = addressFromMultisigPreImg(msigMetadata);
     } else {

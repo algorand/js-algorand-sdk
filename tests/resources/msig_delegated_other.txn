@@ -1,0 +1,39 @@
+{
+  "lsig": {
+    "arg:b64": [
+      "AQ==",
+      "AgM="
+    ],
+    "l:b64": "ASABASI=",
+    "lmsig": {
+      "subsig": [
+        {
+          "pk:b64": "G37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXg=",
+          "s:b64": "jDNlxLHRE3DyP3DXd0af4dlHeb9NjWSBdkk173hMzHZXbMDg7+nBRvpgdtr6zlXumvMbdo68MrTsGiyMPcBnBg=="
+        },
+        {
+          "pk:b64": "CWMyCVNzifB1ZxF3OZHH0D4bc8jE9Sv2r/Aaolz5wnE=",
+          "s:b64": "T1bUfdnAsWoV9Yhk6edD1TEJH/evbLKB3zQNFTojbqXZF3PZ/5dljvfqY/A3aM3+KL6KxoJ683Gt2YSnOOrlDQ=="
+        },
+        {
+          "pk:b64": "5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKE="
+        }
+      ],
+      "thr": 2,
+      "v": 1
+    }
+  },
+  "sgnr:b64": "jZK0iZABc6BN+kNZo2ZqavzqLEKgXdnB9z7rpUeAN+k=",
+  "txn": {
+    "amt": 5000,
+    "fee": 217000,
+    "fv": 972508,
+    "gen": "testnet-v31.0",
+    "gh:b64": "JgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dI=",
+    "lv": 973508,
+    "note:b64": "tFF5Ofz60nE=",
+    "rcv:b64": "tMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yo=",
+    "snd:b64": "tMYiaKTDNVD1im3UuMojnJ8dELNBqn4aNuPOYfv8+Yo=",
+    "type": "pay"
+  }
+}
