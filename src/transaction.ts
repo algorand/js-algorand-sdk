@@ -1,5 +1,6 @@
 import base32 from 'hi-base32';
 import { boxReferencesToEncodingData } from './boxStorage.js';
+import { resourceReferencesToEncodingData } from './appAccess.js';
 import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
@@ -180,6 +181,63 @@ function ensureBoxReference(input: unknown): TransactionBoxReference {
   throw new Error(`Not a box reference: ${input}`);
 }
 
+export interface TransactionHoldingReference {
+  readonly assetIndex: bigint;
+  readonly address: Address;
+}
+
+function ensureHoldingReference(input: unknown): TransactionHoldingReference {
+  if (input != null && typeof input === 'object') {
+    const { assetIndex, address } = input as TransactionHoldingReference;
+    return {
+      assetIndex: utils.ensureUint64(assetIndex),
+      address: ensureAddress(address),
+    };
+  }
+  throw new Error(`Not a holding reference: ${input}`);
+}
+
+export interface TransactionLocalsReference {
+  readonly appIndex: bigint;
+  readonly address: Address;
+}
+
+function ensureLocalsReference(input: unknown): TransactionLocalsReference {
+  if (input != null && typeof input === 'object') {
+    const { appIndex, address } = input as TransactionLocalsReference;
+    return {
+      appIndex: utils.ensureUint64(appIndex),
+      address: ensureAddress(address),
+    };
+  }
+  throw new Error(`Not a locals reference: ${input}`);
+}
+
+export interface TransactionResourceReference {
+  readonly address: Readonly<Address>;
+  readonly appIndex: Readonly<bigint>;
+  readonly assetIndex: Readonly<bigint>;
+  readonly holding: Readonly<TransactionHoldingReference>;
+  readonly locals: Readonly<TransactionLocalsReference>;
+  readonly box: Readonly<TransactionBoxReference>;
+}
+
+function ensureResourceReference(input: unknown): TransactionResourceReference {
+  if (input != null && typeof input === 'object') {
+    const { address, appIndex, assetIndex, holding, locals, box } =
+      input as TransactionResourceReference;
+    return {
+      address: ensureAddress(address),
+      appIndex: utils.ensureUint64(appIndex),
+      assetIndex: utils.ensureUint64(assetIndex),
+      holding: ensureHoldingReference(holding),
+      locals: ensureLocalsReference(locals),
+      box: ensureBoxReference(box),
+    };
+  }
+  throw new Error(`Not a resource reference: ${input}`);
+}
+
 const TX_TAG = new TextEncoder().encode('TX');
 
 export interface PaymentTransactionFields {
@@ -242,6 +300,7 @@ export interface ApplicationTransactionFields {
   readonly foreignApps: ReadonlyArray<bigint>;
   readonly foreignAssets: ReadonlyArray<bigint>;
   readonly boxes: ReadonlyArray<TransactionBoxReference>;
+  readonly access: ReadonlyArray<TransactionResourceReference>;
 }
 
 export interface StateProofTransactionFields {
@@ -702,6 +761,9 @@ export class Transaction implements encoding.Encodable {
         boxes: ensureArray(params.appCallParams.boxes ?? []).map(
           ensureBoxReference
         ),
+        access: ensureArray(params.appCallParams.access ?? []).map(
+          ensureResourceReference
+        ),
       };
     }
 
@@ -827,6 +889,13 @@ export class Transaction implements encoding.Encodable {
           this.applicationCall.boxes,
           this.applicationCall.foreignApps,
           this.applicationCall.appIndex
+        )
+      );
+      data.set(
+        'al',
+        resourceReferencesToEncodingData(
+          this.applicationCall.appIndex,
+          this.applicationCall.access
         )
       );
       data.set('apap', this.applicationCall.approvalProgram);
