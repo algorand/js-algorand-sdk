@@ -428,14 +428,14 @@ export function makeApplicationCallTxnFromObject({
   }
   let access2 = access;
   if (convertToAccess) {
-    access2 = foreignArraysToResourceReferences(
+    access2 = foreignArraysToResourceReferences({
       accounts,
       foreignApps,
       foreignAssets,
       holdings,
       locals,
-      boxes
-    );
+      boxes,
+    });
   }
   return new Transaction({
     type: TransactionType.appl,

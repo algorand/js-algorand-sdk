@@ -1,7 +1,13 @@
 /* eslint-env mocha */
 import assert from 'assert';
-import algosdk from '../src/index.js';
+import algosdk, { HoldingReference, LocalsReference } from '../src/index.js';
+import { Address } from '../src/encoding/address.js';
 import { boxReferencesToEncodingData } from '../src/boxStorage.js';
+import {
+  foreignArraysToResourceReferences,
+  resourceReferencesToEncodingData,
+} from '../src/appAccess.js';
+import { BoxReference } from '../src/types/transactions/base.js';
 
 describe('Sign', () => {
   it('should not modify input arrays', () => {
@@ -2162,6 +2168,322 @@ describe('Sign', () => {
           testCase[2]
         );
         assert.deepStrictEqual(actual, expected);
+      }
+    });
+  });
+});
+
+describe('Convert', () => {
+  describe('foreign arrays to resource references', () => {
+    it('should convert', () => {
+      const appIndex = BigInt(111);
+      const accounts = [
+        Address.fromString(
+          '47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU'
+        ),
+        Address.fromString(
+          'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4'
+        ),
+      ];
+      const zero = Address.zeroAddress();
+      const one = Address.fromString(
+        'AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE3PRHE'
+      );
+      const two = Address.fromString(
+        'AIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGFFWAF4'
+      );
+      const foreignAssets = [2222, 3333];
+      const foreignApps = [222, 333];
+
+      const testCases = [
+        [
+          {
+            accounts,
+          },
+          [new Map([['d', accounts[0]]]), new Map([['d', accounts[1]]])],
+        ],
+        [
+          {
+            accounts,
+            foreignAssets,
+          },
+          [
+            new Map([['d', accounts[0]]]),
+            new Map([['d', accounts[1]]]),
+            new Map([['s', 2222]]),
+            new Map([['s', 3333]]),
+          ],
+        ],
+        [
+          {
+            accounts,
+            foreignAssets,
+            foreignApps,
+          },
+          [
+            new Map([['d', accounts[0]]]),
+            new Map([['d', accounts[1]]]),
+            new Map([['s', 2222]]),
+            new Map([['s', 3333]]),
+            new Map([['p', 222]]),
+            new Map([['p', 333]]),
+          ],
+        ],
+        [
+          {
+            accounts,
+            foreignAssets,
+            foreignApps,
+            boxes: [
+              { appIndex: 3, name: Buffer.from('aaa') },
+              { appIndex: 0, name: Buffer.from('bbb') },
+              { appIndex: 111, name: Buffer.from('bbb2') },
+            ],
+          },
+          [
+            new Map([['d', accounts[0]]]),
+            new Map([['d', accounts[1]]]),
+            new Map([['s', 2222]]),
+            new Map([['s', 3333]]),
+            new Map([['p', 222]]),
+            new Map([['p', 333]]),
+
+            new Map([['p', 3]]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 7],
+                  ['n', Buffer.from('aaa')],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 0],
+                  ['n', Buffer.from('bbb')],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 0],
+                  ['n', Buffer.from('bbb2')],
+                ]),
+              ],
+            ]),
+          ],
+        ],
+        [
+          {
+            accounts,
+            foreignAssets,
+            foreignApps,
+            boxes: [
+              { appIndex: 3, name: Buffer.from('aaa') },
+              { appIndex: 0, name: Buffer.from('bbb') },
+              { appIndex: 111, name: Buffer.from('bbb2') },
+            ],
+            holdings: [
+              { assetIndex: 111, address: one },
+              { assetIndex: 3333, address: zero },
+            ],
+          },
+          [
+            new Map([['d', accounts[0]]]),
+            new Map([['d', accounts[1]]]),
+            new Map([['s', 2222]]),
+            new Map([['s', 3333]]),
+            new Map([['p', 222]]),
+            new Map([['p', 333]]),
+
+            new Map([['d', one]]),
+            new Map([['s', 111]]),
+            new Map([
+              [
+                'h',
+                new Map<string, any>([
+                  ['s', 8],
+                  ['d', 7],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'h',
+                new Map<string, any>([
+                  ['s', 4],
+                  ['d', 0],
+                ]),
+              ],
+            ]),
+
+            new Map([['p', 3]]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 11],
+                  ['n', Buffer.from('aaa')],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 0],
+                  ['n', Buffer.from('bbb')],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 0],
+                  ['n', Buffer.from('bbb2')],
+                ]),
+              ],
+            ]),
+          ],
+        ],
+        [
+          {
+            accounts,
+            foreignAssets,
+            foreignApps,
+            boxes: [
+              { appIndex: 3, name: Buffer.from('aaa') },
+              { appIndex: 0, name: Buffer.from('bbb') },
+              { appIndex: 111, name: Buffer.from('bbb2') },
+            ],
+            holdings: [
+              { assetIndex: 111, address: one },
+              { assetIndex: 3333, address: zero },
+            ],
+            locals: [
+              { appIndex: 111, address: two },
+              { appIndex: 333, address: zero },
+              { appIndex: 444, address: one },
+            ],
+          },
+          [
+            new Map([['d', accounts[0]]]),
+            new Map([['d', accounts[1]]]),
+            new Map([['s', 2222]]),
+            new Map([['s', 3333]]),
+            new Map([['p', 222]]),
+            new Map([['p', 333]]),
+
+            new Map([['d', one]]),
+            new Map([['s', 111]]),
+            new Map([
+              [
+                'h',
+                new Map<string, any>([
+                  ['s', 8],
+                  ['d', 7],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'h',
+                new Map<string, any>([
+                  ['s', 4],
+                  ['d', 0],
+                ]),
+              ],
+            ]),
+
+            new Map([['d', two]]),
+            new Map([
+              [
+                'l',
+                new Map<string, any>([
+                  ['p', 0],
+                  ['d', 11],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'l',
+                new Map<string, any>([
+                  ['p', 6],
+                  ['d', 0],
+                ]),
+              ],
+            ]),
+            new Map([['p', 444]]),
+            new Map([
+              [
+                'l',
+                new Map<string, any>([
+                  ['p', 14],
+                  ['d', 7],
+                ]),
+              ],
+            ]),
+
+            new Map([['p', 3]]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 16],
+                  ['n', Buffer.from('aaa')],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 0],
+                  ['n', Buffer.from('bbb')],
+                ]),
+              ],
+            ]),
+            new Map([
+              [
+                'b',
+                new Map<string, any>([
+                  ['i', 0],
+                  ['n', Buffer.from('bbb2')],
+                ]),
+              ],
+            ]),
+          ],
+        ],
+      ];
+
+      for (const testCase of testCases) {
+        // testCase is a 2-tuple: [ inputObject, expectedEncoding ]
+        const inputs = testCase[0] as {
+          accounts: Address[];
+          foreignAssets?: bigint[];
+          foreignApps?: bigint[];
+          holdings?: HoldingReference[];
+          locals?: LocalsReference[];
+          boxes?: BoxReference[];
+        };
+        const expected = testCase[1];
+        const references = foreignArraysToResourceReferences({
+          accounts: inputs.accounts,
+          foreignAssets: inputs.foreignAssets,
+          foreignApps: inputs.foreignApps,
+          holdings: inputs.holdings,
+          locals: inputs.locals,
+          boxes: inputs.boxes,
+        });
+        const res = resourceReferencesToEncodingData(appIndex, references);
+        assert.deepStrictEqual(res, expected, JSON.stringify(testCase[0]));
       }
     });
   });

@@ -19,18 +19,15 @@ export function resourceReferencesToEncodingData(
   function ensure(target: ResourceReference): number {
     for (let idx = 0; idx < accessList.length; idx++) {
       const a = accessList[idx];
-      if (a.size !== 1) {
-        throw new Error('more than a single resource reference set');
-      }
       if (
-        a.get('d') === target.address ||
-        a.get('s') === target.assetIndex ||
+        a.get('d') === target.address &&
+        a.get('s') === target.assetIndex &&
         a.get('p') === target.appIndex
       ) {
         return idx + 1; // 1-based index
       }
     }
-    if (target.appIndex) {
+    if (target.address) {
       accessList.push(new Map<string, unknown>([['d', target.address]]));
     }
     if (target.assetIndex) {
@@ -117,29 +114,36 @@ export function resourceReferencesToEncodingData(
  * Note, runtime representation of ResourceReference uses addresses, app and asset identifiers, not indexes.
  *
  * @param accounts - optional array of accounts
- * @param foreignApps - optional array of foreign apps
  * @param foreignAssets - optional array of foreign assets
+ * @param foreignApps - optional array of foreign apps
  * @param holdings - optional array of holdings
  * @param locals - optional array of locals
  * @param boxes - optional array of boxes
  */
-export function foreignArraysToResourceReferences(
-  accounts?: ReadonlyArray<string | Address>,
-  foreignApps?: ReadonlyArray<number | bigint>,
-  foreignAssets?: ReadonlyArray<number | bigint>,
-  holdings?: ReadonlyArray<HoldingReference>,
-  locals?: ReadonlyArray<LocalsReference>,
-  boxes?: ReadonlyArray<BoxReference>
-): Array<ResourceReference> {
+export function foreignArraysToResourceReferences({
+  accounts,
+  foreignAssets,
+  foreignApps,
+  holdings,
+  locals,
+  boxes,
+}: {
+  accounts?: ReadonlyArray<string | Address>;
+  foreignAssets?: ReadonlyArray<number | bigint>;
+  foreignApps?: ReadonlyArray<number | bigint>;
+  holdings?: ReadonlyArray<HoldingReference>;
+  locals?: ReadonlyArray<LocalsReference>;
+  boxes?: ReadonlyArray<BoxReference>;
+}): Array<ResourceReference> {
   const accessList: Array<ResourceReference> = [];
   for (const acct of accounts ?? []) {
     accessList.push({ address: acct });
   }
-  for (const app of foreignApps ?? []) {
-    accessList.push({ appIndex: app });
-  }
   for (const asset of foreignAssets ?? []) {
     accessList.push({ assetIndex: asset });
+  }
+  for (const app of foreignApps ?? []) {
+    accessList.push({ appIndex: app });
   }
   for (const holding of holdings ?? []) {
     accessList.push({ holding });
