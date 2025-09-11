@@ -2195,6 +2195,11 @@ describe('Convert', () => {
       const foreignAssets = [2222, 3333];
       const foreignApps = [222, 333];
 
+      const boxNames = [
+        new TextEncoder().encode('aaa'),
+        new TextEncoder().encode('bbb'),
+        new TextEncoder().encode('bbb2'),
+      ];
       const testCases = [
         [
           {
@@ -2235,9 +2240,9 @@ describe('Convert', () => {
             foreignAssets,
             foreignApps,
             boxes: [
-              { appIndex: 3, name: Buffer.from('aaa') },
-              { appIndex: 0, name: Buffer.from('bbb') },
-              { appIndex: 111, name: Buffer.from('bbb2') },
+              { appIndex: 3, name: boxNames[0] },
+              { appIndex: 0, name: boxNames[1] },
+              { appIndex: 111, name: boxNames[2] },
             ],
           },
           [
@@ -2254,7 +2259,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 7],
-                  ['n', Buffer.from('aaa')],
+                  ['n', boxNames[0]],
                 ]),
               ],
             ]),
@@ -2263,7 +2268,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 0],
-                  ['n', Buffer.from('bbb')],
+                  ['n', boxNames[1]],
                 ]),
               ],
             ]),
@@ -2272,7 +2277,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 0],
-                  ['n', Buffer.from('bbb2')],
+                  ['n', boxNames[2]],
                 ]),
               ],
             ]),
@@ -2284,9 +2289,9 @@ describe('Convert', () => {
             foreignAssets,
             foreignApps,
             boxes: [
-              { appIndex: 3, name: Buffer.from('aaa') },
-              { appIndex: 0, name: Buffer.from('bbb') },
-              { appIndex: 111, name: Buffer.from('bbb2') },
+              { appIndex: 3, name: boxNames[0] },
+              { appIndex: 0, name: boxNames[1] },
+              { appIndex: 111, name: boxNames[2] },
             ],
             holdings: [
               { assetIndex: 111, address: one },
@@ -2328,7 +2333,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 11],
-                  ['n', Buffer.from('aaa')],
+                  ['n', boxNames[0]],
                 ]),
               ],
             ]),
@@ -2337,7 +2342,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 0],
-                  ['n', Buffer.from('bbb')],
+                  ['n', boxNames[1]],
                 ]),
               ],
             ]),
@@ -2346,7 +2351,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 0],
-                  ['n', Buffer.from('bbb2')],
+                  ['n', boxNames[2]],
                 ]),
               ],
             ]),
@@ -2358,9 +2363,9 @@ describe('Convert', () => {
             foreignAssets,
             foreignApps,
             boxes: [
-              { appIndex: 3, name: Buffer.from('aaa') },
-              { appIndex: 0, name: Buffer.from('bbb') },
-              { appIndex: 111, name: Buffer.from('bbb2') },
+              { appIndex: 3, name: boxNames[0] },
+              { appIndex: 0, name: boxNames[1] },
+              { appIndex: 111, name: boxNames[2] },
             ],
             holdings: [
               { assetIndex: 111, address: one },
@@ -2437,7 +2442,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 16],
-                  ['n', Buffer.from('aaa')],
+                  ['n', boxNames[0]],
                 ]),
               ],
             ]),
@@ -2446,7 +2451,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 0],
-                  ['n', Buffer.from('bbb')],
+                  ['n', boxNames[1]],
                 ]),
               ],
             ]),
@@ -2455,7 +2460,7 @@ describe('Convert', () => {
                 'b',
                 new Map<string, any>([
                   ['i', 0],
-                  ['n', Buffer.from('bbb2')],
+                  ['n', boxNames[2]],
                 ]),
               ],
             ]),
