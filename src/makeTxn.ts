@@ -426,9 +426,14 @@ export function makeApplicationCallTxnFromObject({
   ) {
     throw Error('cannot specify both access and other access fields');
   }
+  let accounts2 = accounts;
+  let foreignApps2 = foreignApps;
+  let foreignAssets2 = foreignAssets;
+  let boxes2 = boxes;
   let access2 = access;
   if (convertToAccess) {
     access2 = foreignArraysToResourceReferences({
+      appIndex,
       accounts,
       foreignApps,
       foreignAssets,
@@ -436,6 +441,10 @@ export function makeApplicationCallTxnFromObject({
       locals,
       boxes,
     });
+    accounts2 = undefined;
+    foreignApps2 = undefined;
+    foreignAssets2 = undefined;
+    boxes2 = undefined;
   }
   return new Transaction({
     type: TransactionType.appl,
@@ -448,10 +457,10 @@ export function makeApplicationCallTxnFromObject({
       appIndex,
       onComplete,
       appArgs,
-      accounts,
-      foreignAssets,
-      foreignApps,
-      boxes,
+      accounts: accounts2,
+      foreignAssets: foreignAssets2,
+      foreignApps: foreignApps2,
+      boxes: boxes2,
       access: access2,
       approvalProgram,
       clearProgram,

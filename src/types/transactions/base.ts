@@ -258,7 +258,7 @@ export interface ResourceReference {
   /**
    * Box definition: application ID and a name of the box
    */
-  boxes?: BoxReference;
+  box?: BoxReference;
 }
 
 /**

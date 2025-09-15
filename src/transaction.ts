@@ -1,6 +1,9 @@
 import base32 from 'hi-base32';
 import { boxReferencesToEncodingData } from './boxStorage.js';
-import { resourceReferencesToEncodingData } from './appAccess.js';
+import {
+  resourceReferencesToEncodingData,
+  convertIndicesToResourceReferences,
+} from './appAccess.js';
 import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
@@ -214,26 +217,38 @@ function ensureLocalsReference(input: unknown): TransactionLocalsReference {
 }
 
 export interface TransactionResourceReference {
-  readonly address: Readonly<Address>;
-  readonly appIndex: Readonly<bigint>;
-  readonly assetIndex: Readonly<bigint>;
-  readonly holding: Readonly<TransactionHoldingReference>;
-  readonly locals: Readonly<TransactionLocalsReference>;
-  readonly box: Readonly<TransactionBoxReference>;
+  readonly address?: Readonly<Address>;
+  readonly appIndex?: Readonly<bigint>;
+  readonly assetIndex?: Readonly<bigint>;
+  readonly holding?: Readonly<TransactionHoldingReference>;
+  readonly locals?: Readonly<TransactionLocalsReference>;
+  readonly box?: Readonly<TransactionBoxReference>;
 }
 
 function ensureResourceReference(input: unknown): TransactionResourceReference {
   if (input != null && typeof input === 'object') {
     const { address, appIndex, assetIndex, holding, locals, box } =
       input as TransactionResourceReference;
-    return {
-      address: ensureAddress(address),
-      appIndex: utils.ensureUint64(appIndex),
-      assetIndex: utils.ensureUint64(assetIndex),
-      holding: ensureHoldingReference(holding),
-      locals: ensureLocalsReference(locals),
-      box: ensureBoxReference(box),
-    };
+    let result = {};
+    if (address !== undefined) {
+      result = { ...result, address: ensureAddress(address) };
+    }
+    if (appIndex !== undefined) {
+      result = { ...result, appIndex: utils.ensureUint64(appIndex) };
+    }
+    if (assetIndex !== undefined) {
+      result = { ...result, assetIndex: utils.ensureUint64(assetIndex) };
+    }
+    if (holding !== undefined) {
+      result = { ...result, holding: ensureHoldingReference(holding) };
+    }
+    if (locals !== undefined) {
+      result = { ...result, locals: ensureLocalsReference(locals) };
+    }
+    if (box !== undefined) {
+      result = { ...result, box: ensureBoxReference(box) };
+    }
+    return result;
   }
   throw new Error(`Not a resource reference: ${input}`);
 }
@@ -457,6 +472,80 @@ export class Transaction implements encoding.Encodable {
                 {
                   key: 'n',
                   valueSchema: new ByteArraySchema(),
+                },
+              ])
+            )
+          )
+        ),
+      },
+      {
+        key: 'al',
+        valueSchema: new OptionalSchema(
+          new ArraySchema(
+            new NamedMapSchema(
+              allOmitEmpty([
+                {
+                  key: 'd',
+                  valueSchema: new OptionalSchema(new AddressSchema()),
+                },
+                {
+                  key: 's',
+                  valueSchema: new OptionalSchema(new Uint64Schema()),
+                },
+                {
+                  key: 'p',
+                  valueSchema: new OptionalSchema(new Uint64Schema()),
+                },
+                {
+                  key: 'h',
+                  valueSchema: new OptionalSchema(
+                    new NamedMapSchema(
+                      allOmitEmpty([
+                        {
+                          key: 'd',
+                          valueSchema: new Uint64Schema(),
+                        },
+                        {
+                          key: 's',
+                          valueSchema: new Uint64Schema(),
+                        },
+                      ])
+                    )
+                  ),
+                },
+                {
+                  key: 'l',
+                  valueSchema: new OptionalSchema(
+                    new NamedMapSchema(
+                      allOmitEmpty([
+                        {
+                          key: 'd',
+                          valueSchema: new Uint64Schema(),
+                        },
+                        {
+                          key: 'p',
+                          valueSchema: new Uint64Schema(),
+                        },
+                      ])
+                    )
+                  ),
+                },
+                {
+                  key: 'b',
+                  valueSchema: new OptionalSchema(
+                    new NamedMapSchema(
+                      allOmitEmpty([
+                        {
+                          key: 'i',
+                          valueSchema: new Uint64Schema(),
+                        },
+                        {
+                          key: 'n',
+                          valueSchema: new ByteArraySchema(),
+                        },
+                      ])
+                    )
+                  ),
                 },
               ])
             )
@@ -1098,6 +1187,12 @@ export class Transaction implements encoding.Encodable {
             name,
           };
         });
+      }
+      const references = data.get('al') as
+        | Array<Map<string, unknown>>
+        | undefined;
+      if (references) {
+        appCallParams.access = convertIndicesToResourceReferences(references);
       }
       params.appCallParams = appCallParams;
     } else if (params.type === TransactionType.stpf) {

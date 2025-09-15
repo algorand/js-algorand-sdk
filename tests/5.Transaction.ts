@@ -2173,33 +2173,33 @@ describe('Sign', () => {
   });
 });
 
-describe('Convert', () => {
+describe('Application Resources Refeneces', () => {
   describe('foreign arrays to resource references', () => {
-    it('should convert', () => {
-      const appIndex = BigInt(111);
-      const accounts = [
-        Address.fromString(
-          '47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU'
-        ),
-        Address.fromString(
-          'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4'
-        ),
-      ];
-      const zero = Address.zeroAddress();
-      const one = Address.fromString(
-        'AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE3PRHE'
-      );
-      const two = Address.fromString(
-        'AIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGFFWAF4'
-      );
-      const foreignAssets = [2222, 3333];
-      const foreignApps = [222, 333];
+    const accounts = [
+      Address.fromString(
+        '47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU'
+      ),
+      Address.fromString(
+        'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4'
+      ),
+    ];
+    const zero = Address.zeroAddress();
+    const one = Address.fromString(
+      'AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE3PRHE'
+    );
+    const two = Address.fromString(
+      'AIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGFFWAF4'
+    );
+    const foreignAssets = [2222, 3333];
+    const foreignApps = [222, 333];
 
-      const boxNames = [
-        new TextEncoder().encode('aaa'),
-        new TextEncoder().encode('bbb'),
-        new TextEncoder().encode('bbb2'),
-      ];
+    const boxNames = [
+      new TextEncoder().encode('aaa'),
+      new TextEncoder().encode('bbb'),
+      new TextEncoder().encode('bbb2'),
+    ];
+    it('should convert to resource references in proper order and content', () => {
+      const appIndex = BigInt(111);
       const testCases = [
         [
           {
@@ -2480,6 +2480,7 @@ describe('Convert', () => {
         };
         const expected = testCase[1];
         const references = foreignArraysToResourceReferences({
+          appIndex,
           accounts: inputs.accounts,
           foreignAssets: inputs.foreignAssets,
           foreignApps: inputs.foreignApps,
@@ -2490,6 +2491,61 @@ describe('Convert', () => {
         const res = resourceReferencesToEncodingData(appIndex, references);
         assert.deepStrictEqual(res, expected, JSON.stringify(testCase[0]));
       }
+    });
+    it('should correctly serialize and deserialize an application transaction with access', () => {
+      const expectedTxn = algosdk.makeApplicationCallTxnFromObject({
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        appIndex: 111,
+        approvalProgram: Uint8Array.from([1, 32, 1, 1, 34]),
+        clearProgram: Uint8Array.from([2, 32, 1, 1, 34]),
+        numGlobalInts: 1,
+        numGlobalByteSlices: 2,
+        numLocalInts: 3,
+        numLocalByteSlices: 4,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        accounts: [
+          '47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU',
+          'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        ],
+        appArgs: [Uint8Array.from([0]), Uint8Array.from([1, 2])],
+        extraPages: 2,
+        foreignApps,
+        foreignAssets,
+        boxes: [
+          { appIndex: 3, name: boxNames[0] },
+          { appIndex: 0, name: boxNames[1] },
+        ],
+        holdings: [
+          { assetIndex: 111, address: one },
+          { assetIndex: 3333, address: zero },
+        ],
+        locals: [
+          { appIndex: 0, address: two },
+          { appIndex: 333, address: zero },
+          { appIndex: 444, address: one },
+        ],
+        convertToAccess: true,
+        lease: Uint8Array.from(new Array(32).fill(7)),
+        note: new TextEncoder().encode('note value'),
+        rekeyTo: 'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+        suggestedParams: {
+          minFee: 1000,
+          fee: 0,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
+        },
+      });
+      const encTxn = algosdk.encodeMsgpack(expectedTxn);
+      const decTxn = algosdk.decodeMsgpack(encTxn, algosdk.Transaction);
+      assert.deepStrictEqual(decTxn, expectedTxn);
+
+      const encRep = expectedTxn.toEncodingData();
+      const reencRep = decTxn.toEncodingData();
+      assert.deepStrictEqual(reencRep, encRep);
     });
   });
 });
