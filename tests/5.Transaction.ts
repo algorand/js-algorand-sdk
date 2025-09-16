@@ -2173,7 +2173,7 @@ describe('Sign', () => {
   });
 });
 
-describe('Application Resources Refeneces', () => {
+describe('Application Resources References', () => {
   describe('foreign arrays to resource references', () => {
     const accounts = [
       Address.fromString(
@@ -2491,6 +2491,72 @@ describe('Application Resources Refeneces', () => {
         const res = resourceReferencesToEncodingData(appIndex, references);
         assert.deepStrictEqual(res, expected, JSON.stringify(testCase[0]));
       }
+    });
+    it('should throw if both access and foreign arrays provided', () => {
+      assert.throws(
+        () =>
+          algosdk.makeApplicationCallTxnFromObject({
+            sender:
+              'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+            appIndex: 111,
+            onComplete: algosdk.OnApplicationComplete.NoOpOC,
+            foreignApps,
+            access: [{ assetIndex: 123 }],
+            suggestedParams: {
+              minFee: 1000,
+              fee: 0,
+              firstValid: 322575,
+              lastValid: 323575,
+              genesisID: 'testnet-v1.0',
+              genesisHash: algosdk.base64ToBytes(
+                'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+              ),
+            },
+          }),
+        Error('cannot specify both access and other access fields')
+      );
+    });
+    it('should not create access if convertToAccess is false', () => {
+      const txn = algosdk.makeApplicationCallTxnFromObject({
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        appIndex: 111,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        foreignApps,
+        foreignAssets,
+        convertToAccess: false,
+        suggestedParams: {
+          minFee: 1000,
+          fee: 0,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
+        },
+      });
+      assert.deepStrictEqual(txn.applicationCall?.access, []);
+    });
+    it.only('should accept access list', () => {
+      const txn = algosdk.makeApplicationCallTxnFromObject({
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        appIndex: 111,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        access: [{ assetIndex: 123 }],
+        suggestedParams: {
+          minFee: 1000,
+          fee: 0,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
+        },
+      });
+      assert.deepStrictEqual(txn.applicationCall?.access, [
+        { assetIndex: BigInt(123) },
+      ]);
     });
     it('should correctly serialize and deserialize an application transaction with access', () => {
       const expectedTxn = algosdk.makeApplicationCallTxnFromObject({
