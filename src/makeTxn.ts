@@ -9,8 +9,10 @@ import {
   AssetTransferTransactionParams,
   AssetFreezeTransactionParams,
   ApplicationCallTransactionParams,
+  ApplicationCallReferenceParams,
 } from './types/transactions/base.js';
 import { Address } from './encoding/address.js';
+import { foreignArraysToResourceReferences } from './appAccess.js';
 
 /** Contains parameters common to every transaction type */
 export interface CommonTransactionParams {
@@ -397,6 +399,10 @@ export function makeApplicationCallTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   approvalProgram,
   clearProgram,
   numLocalInts,
@@ -408,9 +414,37 @@ export function makeApplicationCallTxnFromObject({
   lease,
   rekeyTo,
   suggestedParams,
-}: ApplicationCallTransactionParams & CommonTransactionParams): Transaction {
+}: ApplicationCallTransactionParams &
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (onComplete == null) {
     throw Error('onComplete must be provided');
+  }
+  if (
+    access &&
+    (accounts || foreignApps || foreignAssets || boxes || holdings || locals)
+  ) {
+    throw Error('cannot specify both access and other access fields');
+  }
+  let accounts2 = accounts;
+  let foreignApps2 = foreignApps;
+  let foreignAssets2 = foreignAssets;
+  let boxes2 = boxes;
+  let access2 = access;
+  if (convertToAccess) {
+    access2 = foreignArraysToResourceReferences({
+      appIndex,
+      accounts,
+      foreignApps,
+      foreignAssets,
+      holdings,
+      locals,
+      boxes,
+    });
+    accounts2 = undefined;
+    foreignApps2 = undefined;
+    foreignAssets2 = undefined;
+    boxes2 = undefined;
   }
   return new Transaction({
     type: TransactionType.appl,
@@ -423,10 +457,11 @@ export function makeApplicationCallTxnFromObject({
       appIndex,
       onComplete,
       appArgs,
-      accounts,
-      foreignAssets,
-      foreignApps,
-      boxes,
+      accounts: accounts2,
+      foreignAssets: foreignAssets2,
+      foreignApps: foreignApps2,
+      boxes: boxes2,
+      access: access2,
       approvalProgram,
       clearProgram,
       numLocalInts,
@@ -451,6 +486,10 @@ export function makeApplicationCreateTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   approvalProgram,
   clearProgram,
   numLocalInts,
@@ -469,7 +508,8 @@ export function makeApplicationCreateTxnFromObject({
   Required<
     Pick<ApplicationCallTransactionParams, 'approvalProgram' | 'clearProgram'>
   > &
-  CommonTransactionParams): Transaction {
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (!approvalProgram || !clearProgram) {
     throw Error('approvalProgram and clearProgram must be provided');
   }
@@ -485,6 +525,10 @@ export function makeApplicationCreateTxnFromObject({
     foreignApps,
     foreignAssets,
     boxes,
+    convertToAccess,
+    holdings,
+    locals,
+    access,
     approvalProgram,
     clearProgram,
     numLocalInts,
@@ -512,6 +556,10 @@ export function makeApplicationUpdateTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   approvalProgram,
   clearProgram,
   note,
@@ -532,7 +580,8 @@ export function makeApplicationUpdateTxnFromObject({
   Required<
     Pick<ApplicationCallTransactionParams, 'approvalProgram' | 'clearProgram'>
   > &
-  CommonTransactionParams): Transaction {
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (!appIndex) {
     throw Error('appIndex must be provided');
   }
@@ -548,6 +597,10 @@ export function makeApplicationUpdateTxnFromObject({
     foreignApps,
     foreignAssets,
     boxes,
+    convertToAccess,
+    holdings,
+    locals,
+    access,
     approvalProgram,
     clearProgram,
     note,
@@ -570,6 +623,10 @@ export function makeApplicationDeleteTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   note,
   lease,
   rekeyTo,
@@ -585,7 +642,8 @@ export function makeApplicationDeleteTxnFromObject({
   | 'approvalProgram'
   | 'clearProgram'
 > &
-  CommonTransactionParams): Transaction {
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (!appIndex) {
     throw Error('appIndex must be provided');
   }
@@ -598,6 +656,10 @@ export function makeApplicationDeleteTxnFromObject({
     foreignApps,
     foreignAssets,
     boxes,
+    convertToAccess,
+    holdings,
+    locals,
+    access,
     note,
     lease,
     rekeyTo,
@@ -618,6 +680,10 @@ export function makeApplicationOptInTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   note,
   lease,
   rekeyTo,
@@ -633,7 +699,8 @@ export function makeApplicationOptInTxnFromObject({
   | 'approvalProgram'
   | 'clearProgram'
 > &
-  CommonTransactionParams): Transaction {
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (!appIndex) {
     throw Error('appIndex must be provided');
   }
@@ -647,6 +714,10 @@ export function makeApplicationOptInTxnFromObject({
     foreignAssets,
     boxes,
     note,
+    convertToAccess,
+    holdings,
+    locals,
+    access,
     lease,
     rekeyTo,
     suggestedParams,
@@ -666,6 +737,10 @@ export function makeApplicationCloseOutTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   note,
   lease,
   rekeyTo,
@@ -681,7 +756,8 @@ export function makeApplicationCloseOutTxnFromObject({
   | 'approvalProgram'
   | 'clearProgram'
 > &
-  CommonTransactionParams): Transaction {
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (!appIndex) {
     throw Error('appIndex must be provided');
   }
@@ -694,6 +770,10 @@ export function makeApplicationCloseOutTxnFromObject({
     foreignApps,
     foreignAssets,
     boxes,
+    convertToAccess,
+    holdings,
+    locals,
+    access,
     note,
     lease,
     rekeyTo,
@@ -714,6 +794,10 @@ export function makeApplicationClearStateTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   note,
   lease,
   rekeyTo,
@@ -729,7 +813,8 @@ export function makeApplicationClearStateTxnFromObject({
   | 'approvalProgram'
   | 'clearProgram'
 > &
-  CommonTransactionParams): Transaction {
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (!appIndex) {
     throw Error('appIndex must be provided');
   }
@@ -742,6 +827,10 @@ export function makeApplicationClearStateTxnFromObject({
     foreignApps,
     foreignAssets,
     boxes,
+    convertToAccess,
+    holdings,
+    locals,
+    access,
     note,
     lease,
     rekeyTo,
@@ -762,6 +851,10 @@ export function makeApplicationNoOpTxnFromObject({
   foreignApps,
   foreignAssets,
   boxes,
+  convertToAccess,
+  holdings,
+  locals,
+  access,
   note,
   lease,
   rekeyTo,
@@ -777,7 +870,8 @@ export function makeApplicationNoOpTxnFromObject({
   | 'approvalProgram'
   | 'clearProgram'
 > &
-  CommonTransactionParams): Transaction {
+  CommonTransactionParams &
+  ApplicationCallReferenceParams): Transaction {
   if (!appIndex) {
     throw Error('appIndex must be provided');
   }
@@ -790,6 +884,10 @@ export function makeApplicationNoOpTxnFromObject({
     foreignApps,
     foreignAssets,
     boxes,
+    convertToAccess,
+    holdings,
+    locals,
+    access,
     note,
     lease,
     rekeyTo,

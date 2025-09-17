@@ -182,6 +182,86 @@ export interface BoxReference {
 }
 
 /**
+ * A grouping of the asset index and address of the account
+ */
+export interface HoldingReference {
+  /**
+   * The asset index of the holding
+   */
+  assetIndex: number | bigint;
+
+  /**
+   * The address of the account holding the asset
+   */
+  address: string | Address;
+}
+
+/** A grouping of the application index and address of the account
+ */
+export interface LocalsReference {
+  /**
+   * The application index of the local state
+   */
+  appIndex: number | bigint;
+
+  /**
+   * The address of the account holding the local state
+   */
+  address: string | Address;
+}
+
+/**
+ * Parameters for resource references in application transactions
+ */
+export interface ApplicationCallReferenceParams {
+  /**
+   * A grouping of the asset index and address of the account
+   */
+  holdings?: HoldingReference[];
+
+  /** A grouping of the application index and address of the account
+   */
+  locals?: LocalsReference[];
+
+  /**
+   * If true, use the foreign accounts, apps, assets, boxes, holdings, and locals fields to construct the access list
+   */
+  convertToAccess?: boolean;
+}
+
+export interface ResourceReference {
+  /**
+   * Address string, any additional accounts to supply to the application
+   */
+  address?: string | Address;
+
+  /**
+   * Asset index uniquely specifying the asset
+   */
+  assetIndex?: number | bigint;
+
+  /**
+   * A unique application ID
+   */
+  appIndex?: number | bigint;
+
+  /**
+   * Holding definition: asset ID and account address
+   */
+  holding?: HoldingReference;
+
+  /**
+   * Local state definition: application ID and account address
+   */
+  locals?: LocalsReference;
+
+  /**
+   * Box definition: application ID and a name of the box
+   */
+  box?: BoxReference;
+}
+
+/**
  * Contains payment transaction parameters.
  *
  * The full documentation is available at:
@@ -451,6 +531,11 @@ export interface ApplicationCallTransactionParams {
    * A grouping of the app ID and name of the box in an Uint8Array
    */
   boxes?: BoxReference[];
+
+  /**
+   * Resources accessed by the application
+   */
+  access?: ResourceReference[];
 }
 
 /**
