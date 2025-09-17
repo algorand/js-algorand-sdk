@@ -2537,7 +2537,7 @@ describe('Application Resources References', () => {
       });
       assert.deepStrictEqual(txn.applicationCall?.access, []);
     });
-    it.only('should accept access list', () => {
+    it('should accept access list', () => {
       const txn = algosdk.makeApplicationCallTxnFromObject({
         sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
         appIndex: 111,

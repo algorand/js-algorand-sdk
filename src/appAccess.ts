@@ -44,6 +44,7 @@ export function resourceReferencesToEncodingData(
   for (const rr of references) {
     if (rr.address || rr.assetIndex || rr.appIndex) {
       ensure(rr);
+      continue;
     }
 
     if (rr.holding) {
@@ -64,6 +65,7 @@ export function resourceReferencesToEncodingData(
           ],
         ])
       );
+      continue;
     }
     if (rr.locals) {
       const l = rr.locals;
@@ -86,6 +88,7 @@ export function resourceReferencesToEncodingData(
           ],
         ])
       );
+      continue;
     }
     if (rr.box) {
       const b = rr.box;
@@ -119,10 +122,15 @@ export function convertIndicesToResourceReferences(
     const appIndex = item.get('p') as bigint | undefined;
     if (address) {
       references.push({ address });
-    } else if (assetIndex) {
+      continue;
+    }
+    if (assetIndex) {
       references.push({ assetIndex });
-    } else if (appIndex) {
+      continue;
+    }
+    if (appIndex) {
       references.push({ appIndex });
+      continue;
     }
     const holding = item.get('h') as Map<string, unknown> | undefined;
     if (holding) {
@@ -137,6 +145,7 @@ export function convertIndicesToResourceReferences(
           : (references[hAddressIndex - 1].address as Address);
       const asset = references[hAssetIndex - 1].assetIndex as bigint;
       references.push({ holding: { address: hAddress, assetIndex: asset } });
+      continue;
     }
     const locals = item.get('l') as Map<string, unknown> | undefined;
     if (locals) {
@@ -151,6 +160,7 @@ export function convertIndicesToResourceReferences(
           ? BigInt(0)
           : (references[lAppIndex - 1].appIndex as bigint);
       references.push({ locals: { address: lAddress, appIndex: app } });
+      continue;
     }
     const box = item.get('b') as Map<string, unknown> | undefined;
     if (box) {
@@ -232,7 +242,7 @@ export function foreignArraysToResourceReferences({
   function ensureAsset(asset: number | bigint) {
     let assetFound = false;
     for (const rr of accessList) {
-      if (rr.assetIndex && rr.assetIndex === asset) {
+      if (rr.assetIndex === asset) {
         assetFound = true;
         break;
       }

@@ -229,26 +229,24 @@ function ensureResourceReference(input: unknown): TransactionResourceReference {
   if (input != null && typeof input === 'object') {
     const { address, appIndex, assetIndex, holding, locals, box } =
       input as TransactionResourceReference;
-    let result = {};
     if (address !== undefined) {
-      result = { ...result, address: ensureAddress(address) };
+      return { address: ensureAddress(address) };
     }
     if (appIndex !== undefined) {
-      result = { ...result, appIndex: utils.ensureUint64(appIndex) };
+      return { appIndex: utils.ensureUint64(appIndex) };
     }
     if (assetIndex !== undefined) {
-      result = { ...result, assetIndex: utils.ensureUint64(assetIndex) };
+      return { assetIndex: utils.ensureUint64(assetIndex) };
     }
     if (holding !== undefined) {
-      result = { ...result, holding: ensureHoldingReference(holding) };
+      return { holding: ensureHoldingReference(holding) };
     }
     if (locals !== undefined) {
-      result = { ...result, locals: ensureLocalsReference(locals) };
+      return { locals: ensureLocalsReference(locals) };
     }
     if (box !== undefined) {
-      result = { ...result, box: ensureBoxReference(box) };
+      return { box: ensureBoxReference(box) };
     }
-    return result;
   }
   throw new Error(`Not a resource reference: ${input}`);
 }
