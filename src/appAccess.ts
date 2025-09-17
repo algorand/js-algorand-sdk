@@ -254,7 +254,7 @@ export function foreignArraysToResourceReferences({
   function ensureApp(app: number | bigint) {
     let appFound = false;
     for (const rr of accessList) {
-      if (rr.appIndex && rr.appIndex === app) {
+      if (rr.appIndex === app) {
         appFound = true;
         break;
       }
