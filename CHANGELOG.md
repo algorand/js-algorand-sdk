@@ -1,3 +1,22 @@
+# v3.5.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.5.0 -->
+
+## What's Changed
+
+### Enhancements
+
+- Deps: Bump tmp from 0.2.3 to 0.2.4 by @dependabot[bot] in https://github.com/algorand/js-algorand-sdk/pull/995
+- API: Regenerate code with the latest specification file (e4539acc) by @github-actions[bot] in https://github.com/algorand/js-algorand-sdk/pull/997
+- Signatures: support lmsig logicsig signatures by @cce in https://github.com/algorand/js-algorand-sdk/pull/999
+- types: add txn access by @algorandskiy in https://github.com/algorand/js-algorand-sdk/pull/1000
+
+## New Contributors
+
+- @cce made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/999
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.4.0...v3.5.0
+
 # v3.4.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.4.0 -->
