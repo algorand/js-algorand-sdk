@@ -971,17 +971,26 @@ export class Transaction implements encoding.Encodable {
       data.set('apid', this.applicationCall.appIndex);
       data.set('apan', this.applicationCall.onComplete);
       data.set('apaa', this.applicationCall.appArgs);
-      data.set('apat', this.applicationCall.accounts);
-      data.set('apas', this.applicationCall.foreignAssets);
-      data.set('apfa', this.applicationCall.foreignApps);
-      data.set(
-        'apbx',
-        boxReferencesToEncodingData(
-          this.applicationCall.boxes,
-          this.applicationCall.foreignApps,
-          this.applicationCall.appIndex
-        )
-      );
+
+      // Only encode legacy foreign arrays if access is not present
+      if (
+        !this.applicationCall.access ||
+        this.applicationCall.access.length === 0
+      ) {
+        data.set('apat', this.applicationCall.accounts);
+        data.set('apas', this.applicationCall.foreignAssets);
+        data.set('apfa', this.applicationCall.foreignApps);
+        data.set(
+          'apbx',
+          boxReferencesToEncodingData(
+            this.applicationCall.boxes,
+            this.applicationCall.foreignApps,
+            this.applicationCall.appIndex
+          )
+        );
+      }
+
+      // Always encode access if present
       data.set(
         'al',
         resourceReferencesToEncodingData(
