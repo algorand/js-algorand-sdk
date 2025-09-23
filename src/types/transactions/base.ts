@@ -536,6 +536,12 @@ export interface ApplicationCallTransactionParams {
    * Resources accessed by the application
    */
   access?: ResourceReference[];
+
+  /**
+   * The lowest application version for which this transaction should immediately fail.
+   * 0 indicates that no version check should be performed.
+   */
+  rejectVersion?: number | bigint;
 }
 
 /**

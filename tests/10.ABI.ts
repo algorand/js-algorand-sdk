@@ -563,4 +563,48 @@ describe('ABI encoding', () => {
       assert.deepStrictEqual(signedTxns.length, 1);
     });
   });
+
+  it('should properly support rejectVersion parameter in ATC addMethodCall', () => {
+    const method = ABIMethod.fromSignature('test(uint64)uint64');
+    const composer = new AtomicTransactionComposer();
+    const sender = 'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI';
+
+    const suggestedParams = {
+      genesisHash: base64ToBytes(
+        'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+      ),
+      genesisID: '',
+      firstValid: 0,
+      lastValid: 1000,
+      fee: 1000,
+      flatFee: true,
+      minFee: 1000,
+    };
+
+    const signer = makeBasicAccountTransactionSigner({
+      addr: sender,
+      sk: new Uint8Array(64), // Dummy key for testing
+    });
+
+    // Test with rejectVersion specified
+    composer.addMethodCall({
+      appID: 123,
+      method,
+      methodArgs: [42],
+      sender,
+      suggestedParams,
+      rejectVersion: 10,
+      signer,
+    });
+
+    const group = composer.buildGroup();
+    const appCallTxn = group[0].txn;
+
+    // Verify rejectVersion is correctly set
+    assert.strictEqual(appCallTxn.applicationCall?.rejectVersion, 10);
+
+    // Verify encoding includes rejectVersion
+    const encodingData = appCallTxn.toEncodingData();
+    assert.strictEqual(encodingData.get('aprv'), 10);
+  });
 });

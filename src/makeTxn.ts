@@ -410,6 +410,7 @@ export function makeApplicationCallTxnFromObject({
   numGlobalInts,
   numGlobalByteSlices,
   extraPages,
+  rejectVersion,
   note,
   lease,
   rekeyTo,
@@ -469,6 +470,7 @@ export function makeApplicationCallTxnFromObject({
       numGlobalInts,
       numGlobalByteSlices,
       extraPages,
+      rejectVersion,
     },
   });
 }

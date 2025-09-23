@@ -220,6 +220,7 @@ export class AtomicTransactionComposer {
     note,
     lease,
     rekeyTo,
+    rejectVersion,
     signer,
   }: {
     /** The ID of the smart contract to call. Set this to 0 to indicate an application creation call. */
@@ -262,6 +263,8 @@ export class AtomicTransactionComposer {
     lease?: Uint8Array;
     /** If provided, the address that the sender will be rekeyed to at the conclusion of this application call */
     rekeyTo?: string | Address;
+    /** The lowest application version for which this transaction should immediately fail. 0 indicates that no version check should be performed. */
+    rejectVersion?: number | bigint;
     /** A transaction signer that can authorize this application call from sender */
     signer: TransactionSigner;
   }): void {
@@ -485,6 +488,7 @@ export class AtomicTransactionComposer {
         numLocalInts,
         numLocalByteSlices,
         extraPages,
+        rejectVersion,
         lease,
         note,
         rekeyTo,
