@@ -314,6 +314,7 @@ export interface ApplicationTransactionFields {
   readonly foreignAssets: ReadonlyArray<bigint>;
   readonly boxes: ReadonlyArray<TransactionBoxReference>;
   readonly access: ReadonlyArray<TransactionResourceReference>;
+  readonly rejectVersion: number;
 }
 
 export interface StateProofTransactionFields {
@@ -851,6 +852,9 @@ export class Transaction implements encoding.Encodable {
         access: ensureArray(params.appCallParams.access ?? []).map(
           ensureResourceReference
         ),
+        rejectVersion: utils.ensureSafeUnsignedInteger(
+          params.appCallParams.rejectVersion ?? 0
+        ),
       };
     }
 
@@ -1002,6 +1006,7 @@ export class Transaction implements encoding.Encodable {
         ])
       );
       data.set('apep', this.applicationCall.extraPages);
+      data.set('aprv', this.applicationCall.rejectVersion);
       return data;
     }
 
@@ -1146,6 +1151,7 @@ export class Transaction implements encoding.Encodable {
         approvalProgram: data.get('apap'),
         clearProgram: data.get('apsu'),
         extraPages: data.get('apep'),
+        rejectVersion: data.get('aprv') ?? 0,
       };
       const localSchema = data.get('apls') as Map<string, number> | undefined;
       if (localSchema) {
