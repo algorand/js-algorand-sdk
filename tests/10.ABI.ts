@@ -526,6 +526,141 @@ describe('ABI encoding', () => {
     );
   });
 
+  it('should properly accept access parameter in the ATC addMethodCall', () => {
+    const composer = new AtomicTransactionComposer();
+    const method = ABIMethod.fromSignature('add(application)uint8');
+    const account = generateAccount();
+    const sender = 'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
+    const genesisHash = new Uint8Array(32);
+    genesisHash[0] = 1;
+    genesisHash[1] = 2;
+    const sp = {
+      minFee: 1000,
+      fee: 1000,
+      firstValid: 1,
+      lastValid: 1001,
+      genesisID: 'gi',
+      genesisHash,
+    };
+
+    // Create method call using ATC with access parameter
+    composer.addMethodCall({
+      appID: 7,
+      method,
+      sender,
+      suggestedParams: sp,
+      methodArgs: [2],
+      access: [
+        { appIndex: 1 },
+        { assetIndex: 124 },
+        {
+          address: 'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM',
+        },
+      ],
+      signer: makeBasicAccountTransactionSigner(account),
+    });
+
+    assert.deepStrictEqual(
+      composer.getStatus(),
+      AtomicTransactionComposerStatus.BUILDING
+    );
+    assert.deepStrictEqual(composer.count(), 1);
+
+    // The built group should have one txn.
+    const txns = composer.buildGroup();
+    // eslint-disable-next-line prefer-destructuring
+    const txn = txns[0].txn;
+
+    // Assert that access parameter was correctly processed
+    assert.deepStrictEqual(txn.applicationCall?.access?.length, 3);
+    assert.deepStrictEqual(txn.applicationCall?.access[0]?.appIndex, 1n);
+    assert.deepStrictEqual(txn.applicationCall?.access[1]?.assetIndex, 124n);
+    assert.deepStrictEqual(
+      txn.applicationCall?.access[2]?.address,
+      decodeAddress(
+        'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM'
+      )
+    );
+
+    // When using access parameter, legacy foreign arrays should be empty
+    // (method arguments are processed differently and don't populate foreign arrays when access is used)
+    assert.deepStrictEqual(txn.applicationCall?.foreignApps?.length, 0);
+    assert.deepStrictEqual(txn.applicationCall?.foreignAssets?.length, 0);
+    assert.deepStrictEqual(txn.applicationCall?.accounts?.length, 0);
+  });
+
+  it('should prevent mixing access parameter with legacy foreign arrays in ATC addMethodCall', () => {
+    const composer = new AtomicTransactionComposer();
+    const method = ABIMethod.fromSignature('add()uint8');
+    const account = generateAccount();
+    const sender = 'DN7MBMCL5JQ3PFUQS7TMX5AH4EEKOBJVDUF4TCV6WERATKFLQF4MQUPZTA';
+    const genesisHash = new Uint8Array(32);
+    genesisHash[0] = 1;
+    genesisHash[1] = 2;
+    const sp = {
+      minFee: 1000,
+      fee: 1000,
+      firstValid: 1,
+      lastValid: 1001,
+      genesisID: 'gi',
+      genesisHash,
+    };
+
+    // Attempt to create method call using both access and legacy foreign arrays
+    assert.throws(() => {
+      composer.addMethodCall({
+        appID: 7,
+        method,
+        sender,
+        suggestedParams: sp,
+        access: [{ appIndex: 1 }],
+        appForeignApps: [2], // This should cause an error
+        signer: makeBasicAccountTransactionSigner(account),
+      });
+    }, /Cannot specify both access and legacy foreign arrays/);
+
+    // Test with appAccounts
+    assert.throws(() => {
+      composer.addMethodCall({
+        appID: 7,
+        method,
+        sender,
+        suggestedParams: sp,
+        access: [{ appIndex: 1 }],
+        appAccounts: [
+          'E4VCHISDQPLIZWMALIGNPK2B2TERPDMR64MZJXE3UL75MUDXZMADX5OWXM',
+        ],
+        signer: makeBasicAccountTransactionSigner(account),
+      });
+    }, /Cannot specify both access and legacy foreign arrays/);
+
+    // Test with appForeignAssets
+    assert.throws(() => {
+      composer.addMethodCall({
+        appID: 7,
+        method,
+        sender,
+        suggestedParams: sp,
+        access: [{ appIndex: 1 }],
+        appForeignAssets: [124],
+        signer: makeBasicAccountTransactionSigner(account),
+      });
+    }, /Cannot specify both access and legacy foreign arrays/);
+
+    // Test with boxes
+    assert.throws(() => {
+      composer.addMethodCall({
+        appID: 7,
+        method,
+        sender,
+        suggestedParams: sp,
+        access: [{ appIndex: 1 }],
+        boxes: [{ appIndex: 0, name: new Uint8Array([1, 2, 3]) }],
+        signer: makeBasicAccountTransactionSigner(account),
+      });
+    }, /Cannot specify both access and legacy foreign arrays/);
+  });
+
   it('should accept at least one signature in the multisig', () => {
     const account1 = generateAccount();
     const account2 = generateAccount();

@@ -31,6 +31,7 @@ import { SignedTransaction } from './signedTransaction.js';
 import {
   BoxReference,
   OnApplicationComplete,
+  ResourceReference,
   SuggestedParams,
 } from './types/transactions/base.js';
 import { arrayEqual, stringifyJSON, ensureUint64 } from './utils/utils.js';
@@ -217,6 +218,7 @@ export class AtomicTransactionComposer {
     appForeignApps,
     appForeignAssets,
     boxes,
+    access,
     note,
     lease,
     rekeyTo,
@@ -257,6 +259,8 @@ export class AtomicTransactionComposer {
     appForeignAssets?: Array<number | bigint>;
     /** The box references for this application call */
     boxes?: BoxReference[];
+    /** The resource references for this application call */
+    access?: ResourceReference[];
     /** The note value for this application call */
     note?: Uint8Array;
     /** The lease value for this application call */
@@ -324,6 +328,16 @@ export class AtomicTransactionComposer {
     ) {
       throw new Error(
         'One of the following application creation parameters were set on a non-creation call: approvalProgram, clearProgram, numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices, extraPages'
+      );
+    }
+
+    // Validate that access and legacy foreign arrays are not both specified
+    if (
+      access &&
+      (appAccounts || appForeignApps || appForeignAssets || boxes)
+    ) {
+      throw new Error(
+        'Cannot specify both access and legacy foreign arrays (appAccounts, appForeignApps, appForeignAssets, boxes)'
       );
     }
 
@@ -475,10 +489,12 @@ export class AtomicTransactionComposer {
         sender,
         appIndex: appID,
         appArgs: appArgsEncoded,
-        accounts: foreignAccounts,
-        foreignApps,
-        foreignAssets,
-        boxes: boxReferences,
+        // Only pass legacy foreign arrays if access is not provided
+        accounts: access ? undefined : foreignAccounts,
+        foreignApps: access ? undefined : foreignApps,
+        foreignAssets: access ? undefined : foreignAssets,
+        boxes: access ? undefined : boxReferences,
+        access,
         onComplete:
           onComplete == null ? OnApplicationComplete.NoOpOC : onComplete,
         approvalProgram,
