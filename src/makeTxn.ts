@@ -427,10 +427,6 @@ export function makeApplicationCallTxnFromObject({
   ) {
     throw Error('cannot specify both access and other access fields');
   }
-  let accounts2 = accounts;
-  let foreignApps2 = foreignApps;
-  let foreignAssets2 = foreignAssets;
-  let boxes2 = boxes;
   let access2 = access;
   if (convertToAccess) {
     access2 = foreignArraysToResourceReferences({
@@ -442,10 +438,6 @@ export function makeApplicationCallTxnFromObject({
       locals,
       boxes,
     });
-    accounts2 = undefined;
-    foreignApps2 = undefined;
-    foreignAssets2 = undefined;
-    boxes2 = undefined;
   }
   return new Transaction({
     type: TransactionType.appl,
@@ -459,10 +451,10 @@ export function makeApplicationCallTxnFromObject({
       onComplete,
       appArgs,
       // Only pass legacy foreign arrays if access is not provided
-      accounts: access2 ? undefined : accounts2,
-      foreignAssets: access2 ? undefined : foreignAssets2,
-      foreignApps: access2 ? undefined : foreignApps2,
-      boxes: access2 ? undefined : boxes2,
+      accounts: access2 ? undefined : accounts,
+      foreignAssets: access2 ? undefined : foreignAssets,
+      foreignApps: access2 ? undefined : foreignApps,
+      boxes: access2 ? undefined : boxes,
       access: access2,
       approvalProgram,
       clearProgram,
