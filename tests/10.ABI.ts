@@ -717,7 +717,7 @@ describe('ABI encoding', () => {
     };
 
     const signer = makeBasicAccountTransactionSigner({
-      addr: sender,
+      addr: decodeAddress(sender),
       sk: new Uint8Array(64), // Dummy key for testing
     });
 
