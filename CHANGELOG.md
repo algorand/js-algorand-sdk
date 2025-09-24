@@ -1,3 +1,16 @@
+# v3.5.1
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.5.1 -->
+
+## What's Changed
+
+### Enhancements
+
+- Types: Support using txnAccess in addMethodCall by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/1003
+- Apps: Support for reject-version on application call transactions and txnAccess encoding tweaks by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/1004
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.5.0...v3.5.1
+
 # v3.5.0
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.5.0 -->
