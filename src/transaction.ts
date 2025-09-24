@@ -588,6 +588,7 @@ export class Transaction implements encoding.Encodable {
         ),
       },
       { key: 'apep', valueSchema: new OptionalSchema(new Uint64Schema()) },
+      { key: 'aprv', valueSchema: new OptionalSchema(new Uint64Schema()) },
       // StateProof
       { key: 'sptype', valueSchema: new OptionalSchema(new Uint64Schema()) },
       { key: 'sp', valueSchema: new OptionalSchema(StateProof.encodingSchema) },

@@ -2643,8 +2643,11 @@ describe('Application Resources References', () => {
       const encodingData = txnWithRejectVersion.toEncodingData();
       assert.strictEqual(encodingData.get('aprv'), 5);
 
-      // Note: Serialization/deserialization test temporarily removed due to msgpack decoding issue
-      // The core functionality works correctly as verified by other tests
+      // Test serialization/deserialization
+      const encodedTxn =
+        algosdk.encodeUnsignedTransaction(txnWithRejectVersion);
+      const decodedTxn = algosdk.decodeUnsignedTransaction(encodedTxn);
+      assert.strictEqual(decodedTxn.applicationCall?.rejectVersion, 5);
 
       // Test with default rejectVersion (should be 0)
       const txnDefaultRejectVersion = algosdk.makeApplicationCallTxnFromObject({
