@@ -20,8 +20,14 @@ export function resourceReferencesToEncodingData(
   function ensure(target: ResourceReference): number {
     for (let idx = 0; idx < accessList.length; idx++) {
       const a = accessList[idx];
+      const aAddress = a.get('d') as Address | undefined;
+      const addressesEqual =
+        (!target.address && !aAddress) ||
+        (target.address &&
+          aAddress &&
+          (target.address as Address).equals(aAddress));
       if (
-        a.get('d') === target.address &&
+        addressesEqual &&
         a.get('s') === target.assetIndex &&
         a.get('p') === target.appIndex
       ) {

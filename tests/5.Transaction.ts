@@ -2674,4 +2674,238 @@ describe('Application Resources References', () => {
       assert.strictEqual(defaultEncodingData.get('aprv'), 0);
     });
   });
+
+  describe('Access field deduplication', () => {
+    it('should deduplicate address references across different resource types', () => {
+      const addr1 = algosdk.Address.fromString(
+        'FDMKB5D72THLYSJEBHBDHUE7XFRDOM5IHO44SOJ7AWPD6EZMWOQ2WKN7HQ'
+      );
+      const access = [
+        { address: addr1 },
+        { assetIndex: 54n },
+        {
+          holding: {
+            assetIndex: 54n,
+            address: addr1,
+          },
+        },
+        { appIndex: 432n },
+        {
+          locals: {
+            appIndex: 432n,
+            address: addr1,
+          },
+        },
+      ];
+
+      const txn = algosdk.makeApplicationCallTxnFromObject({
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        appIndex: 1,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        access,
+        suggestedParams: {
+          minFee: 1000,
+          fee: 0,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
+        },
+      });
+
+      // Test encoding data has correct length (5, not 7)
+      const encodingData = txn.toEncodingData();
+      const accessList = encodingData.get('al') as Array<Map<string, unknown>>;
+      assert.strictEqual(
+        accessList.length,
+        5,
+        'Access list should have 5 entries, not 7 due to deduplication'
+      );
+
+      // Verify the holding and locals entries reference the same address (index 1)
+      const holdingEntry = accessList.find((entry) => entry.has('h')) as Map<
+        string,
+        unknown
+      >;
+      const localsEntry = accessList.find((entry) => entry.has('l')) as Map<
+        string,
+        unknown
+      >;
+
+      const holdingData = holdingEntry.get('h') as Map<string, unknown>;
+      const localsData = localsEntry.get('l') as Map<string, unknown>;
+
+      assert.strictEqual(
+        holdingData.get('d'),
+        1,
+        'Holding should reference address index 1'
+      );
+      assert.strictEqual(
+        localsData.get('d'),
+        1,
+        'Locals should reference address index 1'
+      );
+    });
+
+    it('should handle different Address objects with same address value', () => {
+      // Create two different Address objects with the same address value
+      const addr1 = algosdk.Address.fromString(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      );
+      const addr2 = algosdk.Address.fromString(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      );
+
+      // Verify they are different objects but equal values
+      assert.notStrictEqual(
+        addr1,
+        addr2,
+        'Address objects should be different instances'
+      );
+      assert.ok(addr1.equals(addr2), 'Address values should be equal');
+
+      const access = [
+        { address: addr1 },
+        { address: addr2 }, // Should be deduplicated
+        { holding: { assetIndex: 123n, address: addr1 } },
+        { locals: { appIndex: 456n, address: addr2 } },
+      ];
+
+      const txn = algosdk.makeApplicationCallTxnFromObject({
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        appIndex: 1,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        access,
+        suggestedParams: {
+          minFee: 1000,
+          fee: 0,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
+        },
+      });
+
+      const encodingData = txn.toEncodingData();
+      const accessList = encodingData.get('al') as Array<Map<string, unknown>>;
+
+      // Should have: 1 address, 1 asset, 1 app, 1 holding, 1 locals = 5 entries
+      // NOT 6 entries (which would happen if addresses weren't deduplicated)
+      assert.strictEqual(
+        accessList.length,
+        5,
+        'Should deduplicate different Address objects with same value'
+      );
+
+      // Verify only one address entry exists
+      const addressEntries = accessList.filter((entry) => entry.has('d'));
+      assert.strictEqual(
+        addressEntries.length,
+        1,
+        'Should have exactly one address entry'
+      );
+    });
+
+    it('should preserve different addresses correctly', () => {
+      const addr1 = algosdk.Address.fromString(
+        'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI'
+      );
+      const addr2 = algosdk.Address.fromString(
+        'BGYTHFJU624NRGOCQ3ZKK6OCHIHERKQMNU553DF3AR6LZHBP3XR5JLNCUI'
+      );
+
+      const access = [
+        { address: addr1 },
+        { address: addr2 },
+        { holding: { assetIndex: 123n, address: addr1 } }, // Should reference addr1
+        { holding: { assetIndex: 456n, address: addr2 } }, // Should reference addr2
+      ];
+
+      const txn = algosdk.makeApplicationCallTxnFromObject({
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        appIndex: 1,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        access,
+        suggestedParams: {
+          minFee: 1000,
+          fee: 0,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
+        },
+      });
+
+      const encodingData = txn.toEncodingData();
+      const accessList = encodingData.get('al') as Array<Map<string, unknown>>;
+
+      // Should have: 2 addresses, 2 assets, 2 holdings = 6 entries
+      assert.strictEqual(
+        accessList.length,
+        6,
+        'Should preserve different addresses correctly'
+      );
+
+      // Verify we have exactly 2 address entries
+      const addressEntries = accessList.filter((entry) => entry.has('d'));
+      assert.strictEqual(
+        addressEntries.length,
+        2,
+        'Should have exactly two address entries'
+      );
+    });
+
+    it('should correctly serialize and deserialize access with deduplication', () => {
+      const addr1 = algosdk.Address.fromString(
+        'FDMKB5D72THLYSJEBHBDHUE7XFRDOM5IHO44SOJ7AWPD6EZMWOQ2WKN7HQ'
+      );
+      const access = [
+        { address: addr1 },
+        { assetIndex: 54n },
+        { holding: { assetIndex: 54n, address: addr1 } },
+        { appIndex: 432n },
+        { locals: { appIndex: 432n, address: addr1 } },
+      ];
+
+      const originalTxn = algosdk.makeApplicationCallTxnFromObject({
+        sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+        appIndex: 1,
+        onComplete: algosdk.OnApplicationComplete.NoOpOC,
+        access,
+        suggestedParams: {
+          minFee: 1000,
+          fee: 0,
+          firstValid: 322575,
+          lastValid: 323575,
+          genesisID: 'testnet-v1.0',
+          genesisHash: algosdk.base64ToBytes(
+            'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+          ),
+        },
+      });
+
+      // Test encoding/decoding roundtrip
+      const encodedTxn = algosdk.encodeUnsignedTransaction(originalTxn);
+      const decodedTxn = algosdk.decodeUnsignedTransaction(encodedTxn);
+
+      // Verify the access field is preserved correctly
+      assert.strictEqual(decodedTxn.applicationCall?.access?.length, 5);
+
+      // Verify the address in holding and locals references is correctly restored
+      const decodedAccess = decodedTxn.applicationCall?.access || [];
+      const holdingRef = decodedAccess.find((ref) => ref.holding);
+      const localsRef = decodedAccess.find((ref) => ref.locals);
+
+      assert.ok(holdingRef?.holding?.address);
+      assert.ok(localsRef?.locals?.address);
+      assert.ok((holdingRef.holding.address as algosdk.Address).equals(addr1));
+      assert.ok((localsRef.locals.address as algosdk.Address).equals(addr1));
+    });
+  });
 });
