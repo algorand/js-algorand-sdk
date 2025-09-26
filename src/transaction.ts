@@ -601,6 +601,20 @@ export class Transaction implements encoding.Encodable {
     ])
   );
 
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkTransaction = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is a Transaction, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkTransaction === true);
+  }
+
   /** common */
   public readonly type: TransactionType;
   public readonly sender: Address;

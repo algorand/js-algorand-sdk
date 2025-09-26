@@ -125,6 +125,22 @@ export class AtomicTransactionComposer {
   /** The maximum size of an atomic transaction group. */
   static MAX_GROUP_SIZE: number = 16;
 
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkAtomicTransactionComposer = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an AtomicTransactionComposer, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(
+      instance && instance._isAlgosdkAtomicTransactionComposer === true
+    );
+  }
+
   private status = AtomicTransactionComposerStatus.BUILDING;
   private transactions: TransactionWithSigner[] = [];
   private methodCalls: Map<number, ABIMethod> = new Map();
@@ -652,7 +668,7 @@ export class AtomicTransactionComposer {
    *
    * @param client - An Algodv2 client
    * @param request - SimulateRequest with options in simulation.
-   *   If provided, the request's transaction group will be overrwritten by the composer's group,
+   *   If provided, the request's transaction group will be overwritten by the composer's group,
    *   only simulation related options will be used.
    *
    * @returns A promise that, upon success, resolves to an object containing an

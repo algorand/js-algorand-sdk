@@ -34,6 +34,20 @@ export class Address {
   public readonly publicKey: Uint8Array;
 
   /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkAddress = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an Address, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkAddress === true);
+  }
+
+  /**
    * Create a new Address object from its binary form.
    * @param publicKey - The binary form of the address. Must be 32 bytes.
    */

@@ -25,6 +25,20 @@ export class ABIContract {
   /** [ARC-28](https://arc.algorand.foundation/ARCs/arc-0028) events that MAY be emitted by this contract */
   public readonly events?: ARC28Event[];
 
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkABIContract = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is an ABIContract, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkABIContract === true);
+  }
+
   constructor(params: ABIContractParams) {
     if (
       typeof params.name !== 'string' ||

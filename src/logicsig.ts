@@ -93,6 +93,20 @@ export class LogicSig implements encoding.Encodable {
     ])
   );
 
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkLogicSig = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is a LogicSig, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkLogicSig === true);
+  }
+
   logic: Uint8Array;
   args: Uint8Array[];
   sig?: Uint8Array;
@@ -314,6 +328,20 @@ export class LogicSigAccount implements encoding.Encodable {
       },
     ])
   );
+
+  /**
+   * Unique property marker for Symbol.hasInstance compatibility across module boundaries
+   */
+  private readonly _isAlgosdkLogicSigAccount = true;
+
+  /**
+   * Custom Symbol.hasInstance to handle dual package hazard
+   * @param instance - The instance to check
+   * @returns true if the instance is a LogicSigAccount, regardless of which module loaded it
+   */
+  static [Symbol.hasInstance](instance: any): boolean {
+    return !!(instance && instance._isAlgosdkLogicSigAccount === true);
+  }
 
   lsig: LogicSig;
   sigkey?: Uint8Array;
