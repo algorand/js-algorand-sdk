@@ -1,3 +1,20 @@
+# v3.5.2
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.5.2 -->
+
+## What's Changed
+
+### Bugfixes
+
+- Apps: Make sure reject version param gets serialized to message pack format by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/1007
+- Apps: In access, addresses need to be checked for nil cases and compared via equals() rather than reference equality. by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/1009
+
+### Enhancements
+
+- Deps: Bump tar-fs from 3.0.9 to 3.1.1 by @dependabot[bot] in https://github.com/algorand/js-algorand-sdk/pull/1010
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.5.1...v3.5.2
+
 # v3.5.1
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.5.1 -->
