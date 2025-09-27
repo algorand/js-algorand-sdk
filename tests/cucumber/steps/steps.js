@@ -5,6 +5,7 @@ const path = require('path');
 
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
+const { BoxReference } = require('../../../src/client/v2/algod/models/types');
 
 const maindir = path.dirname(path.dirname(path.dirname(__dirname)));
 
@@ -5843,6 +5844,62 @@ module.exports = function getSteps(options) {
     'we make a GetBlockTxids call against block number {int}',
     async function (round) {
       await this.v2Client.getBlockTxids(round).doRaw();
+    }
+  );
+
+  When('I set unnamed-resources {string}', function (string) {
+    this.simulateRequest.allowUnnamedResources = string === 'true';
+  });
+
+  When('I set populate-resources {string}', function (string) {
+    this.simulateRequest.populateResources = string === 'true';
+  });
+
+  Then(
+    'the response should include populated-resource-arrays for the transaction',
+    function () {
+      // const resp: SimulateResponse = this.simulateResponse;
+
+      const group = this.simulateResponse.txnGroups[0];
+      const txnResult = group.txnResults[0];
+
+      const name = new Uint8Array(Buffer.from('box_key'));
+
+      assert.deepEqual(
+        txnResult.populatedResourceArrays.apps,
+        [10000, 20000, 30000]
+      );
+      assert.deepEqual(txnResult.populatedResourceArrays.assets, undefined);
+      assert.deepEqual(txnResult.populatedResourceArrays.boxes, [
+        new BoxReference({ app: this.currentApplicationIndex, name }),
+      ]);
+      assert.deepEqual(
+        txnResult.populatedResourceArrays.accounts.map((a) => a.toString()),
+        [
+          'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ',
+          'AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKE3PRHE',
+          'AIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGFFWAF4',
+          'AMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANVWEXNA',
+        ]
+      );
+    }
+  );
+
+  Then(
+    'the response should include extra-resource-arrays for the group',
+    function () {
+      // Write code here that turns the phrase above into concrete actions
+      const { extraResourceArrays } = this.simulateResponse.txnGroups[0];
+
+      assert.deepEqual(extraResourceArrays[0].apps, [40000]);
+      assert.deepEqual(extraResourceArrays[0].assets, [10001]);
+      assert.deepEqual(extraResourceArrays[0].boxes, [
+        new BoxReference({ app: 0, name: '' }),
+      ]);
+      assert.deepEqual(
+        extraResourceArrays[0].accounts.map((a) => a.toString()),
+        ['AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJVBPJXY']
+      );
     }
   );
 
