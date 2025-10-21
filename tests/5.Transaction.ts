@@ -2911,4 +2911,58 @@ describe('Application Resources References', () => {
       assert.ok((localsRef.locals.address as algosdk.Address).equals(addr1));
     });
   });
+
+  it('should decode access list', () => {
+    const addr1 = algosdk.Address.fromString(
+      'FDMKB5D72THLYSJEBHBDHUE7XFRDOM5IHO44SOJ7AWPD6EZMWOQ2WKN7HQ'
+    );
+    const txn = algosdk.makeApplicationCallTxnFromObject({
+      sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+      appIndex: 111,
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+      access: [
+        {
+          holding: {
+            assetIndex: 123,
+            address: addr1,
+          },
+        },
+        { address: addr1 },
+        { assetIndex: 123 },
+      ],
+      suggestedParams: {
+        minFee: 1000,
+        fee: 0,
+        firstValid: 322575,
+        lastValid: 323575,
+        genesisID: 'testnet-v1.0',
+        genesisHash: algosdk.base64ToBytes(
+          'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+        ),
+      },
+    });
+
+    const encodingData = txn.toEncodingData();
+
+    // This code is here to demonstrate the problem.
+    // When encoding, the cross product references are added first,
+    // so modify the access list encoding data to simulate how it may be encoded on chain.
+    const accessList = encodingData.get('al') as Array<Map<string, unknown>>;
+    // Index 2 is actually the holding reference.
+    // Manually adjust the indexes, because we'll be re-ording the list.
+    (accessList[2].get('h') as any).set('d', 2);
+    (accessList[2].get('h') as any).set('s', 3);
+    const updateAccessList: Array<Map<string, unknown>> = [];
+    updateAccessList.push(accessList[2]);
+    updateAccessList.push(accessList[0]);
+    updateAccessList.push(accessList[1]);
+    encodingData.set('al', updateAccessList);
+
+    const decodedTxn = algosdk.Transaction.fromEncodingData(encodingData);
+
+    assert.deepStrictEqual(
+      txn.applicationCall?.access,
+      decodedTxn.applicationCall?.access
+    );
+  });
 });
