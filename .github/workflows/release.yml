@@ -22,6 +22,10 @@ on:
         type: string
         default: "22"
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   release_and_publish:
     runs-on: ubuntu-24.04
@@ -97,8 +101,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Publish release to NPM
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
         run: |
           # Ensure we're on the latest version of the branch
           git checkout ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
