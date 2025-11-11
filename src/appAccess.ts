@@ -145,11 +145,12 @@ export function convertIndicesToResourceReferences(
       if (!hAssetIndex) {
         throw new Error(`Holding missing asset index: ${holding}`);
       }
+
       const hAddress =
         hAddressIndex === 0
           ? Address.zeroAddress()
-          : (references[hAddressIndex - 1].address as Address);
-      const asset = references[hAssetIndex - 1].assetIndex as bigint;
+          : (accessList[hAddressIndex - 1].get('d') as Address);
+      const asset = accessList[hAssetIndex - 1].get('s') as bigint;
       references.push({ holding: { address: hAddress, assetIndex: asset } });
       continue;
     }
@@ -160,11 +161,11 @@ export function convertIndicesToResourceReferences(
       const lAddress =
         lAddressIndex === 0
           ? Address.zeroAddress()
-          : (references[lAddressIndex - 1].address as Address);
+          : (accessList[lAddressIndex - 1].get('d') as Address);
       const app =
         lAppIndex === 0
           ? BigInt(0)
-          : (references[lAppIndex - 1].appIndex as bigint);
+          : (accessList[lAppIndex - 1].get('p') as bigint);
       references.push({ locals: { address: lAddress, appIndex: app } });
       continue;
     }
@@ -178,7 +179,7 @@ export function convertIndicesToResourceReferences(
       const app =
         bAppIndex === 0
           ? BigInt(0)
-          : (references[bAppIndex - 1].appIndex as number | bigint);
+          : (accessList[bAppIndex - 1].get('p') as number | bigint);
       references.push({ box: { appIndex: app, name } });
     }
   }
