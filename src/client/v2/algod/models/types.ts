@@ -1834,6 +1834,11 @@ export class ApplicationParams implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'size-sponsor',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'version',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
@@ -1880,6 +1885,11 @@ export class ApplicationParams implements Encodable {
   public localStateSchema?: ApplicationStateSchema;
 
   /**
+   * (ss) the account responsible for extra pages and global state MBR
+   */
+  public sizeSponsor?: Address;
+
+  /**
    * (v) the number of updates to the application programs
    */
   public version?: number;
@@ -1894,6 +1904,7 @@ export class ApplicationParams implements Encodable {
    * @param globalState - (gs) global state
    * @param globalStateSchema - (gsch) global schema
    * @param localStateSchema - (lsch) local schema
+   * @param sizeSponsor - (ss) the account responsible for extra pages and global state MBR
    * @param version - (v) the number of updates to the application programs
    */
   constructor({
@@ -1904,6 +1915,7 @@ export class ApplicationParams implements Encodable {
     globalState,
     globalStateSchema,
     localStateSchema,
+    sizeSponsor,
     version,
   }: {
     approvalProgram: string | Uint8Array;
@@ -1913,6 +1925,7 @@ export class ApplicationParams implements Encodable {
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
+    sizeSponsor?: Address | string;
     version?: number | bigint;
   }) {
     this.approvalProgram =
@@ -1932,6 +1945,10 @@ export class ApplicationParams implements Encodable {
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
+    this.sizeSponsor =
+      typeof sizeSponsor === 'string'
+        ? Address.fromString(sizeSponsor)
+        : sizeSponsor;
     this.version =
       typeof version === 'undefined' ? undefined : ensureSafeInteger(version);
   }
@@ -1965,6 +1982,12 @@ export class ApplicationParams implements Encodable {
           ? this.localStateSchema.toEncodingData()
           : undefined,
       ],
+      [
+        'size-sponsor',
+        typeof this.sizeSponsor !== 'undefined'
+          ? this.sizeSponsor.toString()
+          : undefined,
+      ],
       ['version', this.version],
     ]);
   }
@@ -1996,6 +2019,7 @@ export class ApplicationParams implements Encodable {
               data.get('local-state-schema')
             )
           : undefined,
+      sizeSponsor: data.get('size-sponsor'),
       version: data.get('version'),
     });
   }
