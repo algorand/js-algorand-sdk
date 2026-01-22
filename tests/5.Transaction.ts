@@ -2965,4 +2965,84 @@ describe('Application Resources References', () => {
       decodedTxn.applicationCall?.access
     );
   });
+
+  it('should handle empty resource references in access list', () => {
+    const addr1 = algosdk.Address.fromString(
+      'FDMKB5D72THLYSJEBHBDHUE7XFRDOM5IHO44SOJ7AWPD6EZMWOQ2WKN7HQ'
+    );
+
+    const txn = algosdk.makeApplicationCallTxnFromObject({
+      sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+      appIndex: 1134696561,
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+      suggestedParams: {
+        minFee: 1000,
+        fee: 0,
+        firstValid: 322575,
+        lastValid: 323575,
+        genesisID: 'testnet-v1.0',
+        genesisHash: algosdk.base64ToBytes(
+          'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+        ),
+      },
+    });
+
+    const encodingData = txn.toEncodingData();
+
+    // Simulate an access list with empty resource references as might come from the blockchain
+    const accessList: Array<Map<string, unknown>> = [
+      new Map([['d', addr1]]),
+      new Map(), // Empty resource reference
+      new Map([['s', BigInt(1134696561)]]),
+      new Map([['p', BigInt(1134695678)]]),
+    ];
+    encodingData.set('al', accessList);
+
+    // This should not throw an error
+    const decodedTxn = algosdk.Transaction.fromEncodingData(encodingData);
+
+    // Verify that the decoded transaction has the correct access list
+    assert.ok(decodedTxn.applicationCall?.access);
+    assert.strictEqual(decodedTxn.applicationCall.access.length, 4);
+
+    // First reference should be an address
+    assert.ok(decodedTxn.applicationCall.access[0].address);
+    assert.ok(
+      (decodedTxn.applicationCall.access[0].address as algosdk.Address).equals(
+        addr1
+      )
+    );
+
+    // Second reference should be an empty box reference
+    assert.ok(decodedTxn.applicationCall.access[1].box);
+    assert.strictEqual(
+      decodedTxn.applicationCall.access[1].box?.appIndex,
+      BigInt(0)
+    );
+    assert.ok(decodedTxn.applicationCall.access[1].box?.name);
+    assert.strictEqual(
+      decodedTxn.applicationCall.access[1].box?.name.length,
+      0
+    );
+
+    // Third reference should be an asset
+    assert.ok(decodedTxn.applicationCall.access[2].assetIndex);
+    assert.strictEqual(
+      decodedTxn.applicationCall.access[2].assetIndex,
+      BigInt(1134696561)
+    );
+
+    // Fourth reference should be an app
+    assert.ok(decodedTxn.applicationCall.access[3].appIndex);
+    assert.strictEqual(
+      decodedTxn.applicationCall.access[3].appIndex,
+      BigInt(1134695678)
+    );
+
+    // Also test encoding and decoding through msgpack
+    const encoded = algosdk.encodeUnsignedTransaction(decodedTxn);
+    const redecoded = algosdk.decodeUnsignedTransaction(encoded);
+    assert.ok(redecoded.applicationCall?.access);
+    assert.strictEqual(redecoded.applicationCall.access.length, 4);
+  });
 });

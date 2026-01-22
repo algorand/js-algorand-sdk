@@ -181,7 +181,11 @@ export function convertIndicesToResourceReferences(
           ? BigInt(0)
           : (accessList[bAppIndex - 1].get('p') as number | bigint);
       references.push({ box: { appIndex: app, name } });
+      continue;
     }
+
+    // Empty resource reference - treat as an empty box reference
+    references.push({ box: { appIndex: BigInt(0), name: new Uint8Array(0) } });
   }
   return references;
 }
