@@ -43,8 +43,9 @@ describe('encoding', () => {
       public a: number | bigint,
       public b: string,
       public c: Uint8Array
+    ) {
       // eslint-disable-next-line no-empty-function
-    ) {}
+    }
 
     // eslint-disable-next-line class-methods-use-this
     getEncodingSchema(): Schema {

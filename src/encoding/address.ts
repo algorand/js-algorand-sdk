@@ -48,7 +48,9 @@ export class Address {
       ALGORAND_ADDRESS_BYTE_LENGTH - ALGORAND_CHECKSUM_BYTE_LENGTH
     )
       throw new Error(
-        `${MALFORMED_ADDRESS_ERROR_MSG}: 0x${bytesToHex(publicKey)}, length ${publicKey.length}`
+        `${MALFORMED_ADDRESS_ERROR_MSG}: 0x${bytesToHex(publicKey)}, length ${
+          publicKey.length
+        }`
       );
     this.publicKey = publicKey;
   }

@@ -148,7 +148,9 @@ async function main() {
   const globalValue = globalState[0].value.bytes;
 
   console.log(
-    `Decoded global state - ${algosdk.bytesToBase64(globalKey)}: ${algosdk.bytesToBase64(globalValue)}`
+    `Decoded global state - ${algosdk.bytesToBase64(
+      globalKey
+    )}: ${algosdk.bytesToBase64(globalValue)}`
   );
 
   const accountAppInfo = await algodClient

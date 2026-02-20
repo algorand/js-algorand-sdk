@@ -103,7 +103,7 @@ export async function createDryrun({
         .getAssetByID(assetId)
         .do()
         .then((assetInfo) => {
-          accts.push(assetInfo.params.creator);
+          accts.push(assetInfo.params!.creator);
         })
     );
   }
@@ -119,7 +119,7 @@ export async function createDryrun({
         .do()
         .then((appInfo) => {
           appInfos.push(appInfo);
-          accts.push(appInfo.params.creator.toString());
+          accts.push(appInfo.params!.creator.toString());
         })
     );
   }
