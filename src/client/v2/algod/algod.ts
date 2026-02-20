@@ -3,6 +3,7 @@ import * as modelsv2 from './models/types.js';
 import AccountInformation from './accountInformation.js';
 import AccountAssetInformation from './accountAssetInformation.js';
 import AccountApplicationInformation from './accountApplicationInformation.js';
+import AccountApplicationsInformation from './accountApplicationsInformation.js';
 import Block from './block.js';
 import Compile from './compile.js';
 import Dryrun from './dryrun.js';
@@ -197,6 +198,24 @@ export class AlgodClient extends ServiceClient {
     index: number | bigint
   ) {
     return new AccountApplicationInformation(this.c, account, index);
+  }
+
+  /**
+   * Returns the given account's application holdings (local state and params if the account
+   * is the creator).
+   *
+   * #### Example
+   * ```typescript
+   * const address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA";
+   * const accountApps = await algodClient.accountApplicationsInformation(address).do();
+   * ```
+   *
+   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddressapplications)
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
+  accountApplicationsInformation(account: string | Address) {
+    return new AccountApplicationsInformation(this.c, account);
   }
 
   /**

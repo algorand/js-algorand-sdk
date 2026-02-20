@@ -429,10 +429,14 @@ export class MsgpackRawStringProvider {
       return parentPathString;
     }
     if (this.segment.kind === MsgpackObjectPathSegmentKind.MAP_VALUE) {
-      return `${parentPathString} -> map key "${this.segment.key}" (${typeof this.segment.key})`;
+      return `${parentPathString} -> map key "${
+        this.segment.key
+      }" (${typeof this.segment.key})`;
     }
     if (this.segment.kind === MsgpackObjectPathSegmentKind.ARRAY_ELEMENT) {
-      return `${parentPathString} -> array index ${this.segment.key} (${typeof this.segment.key})`;
+      return `${parentPathString} -> array index ${
+        this.segment.key
+      } (${typeof this.segment.key})`;
     }
     return `${parentPathString} -> unknown segment kind ${this.segment.kind}`;
   }

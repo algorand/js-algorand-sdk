@@ -56,7 +56,9 @@ export class SpecialCaseBinaryStringSchema extends Schema {
         !arrayEqual(coerceToBytes(stringValue), data)
       ) {
         throw new Error(
-          `Invalid UTF-8 byte array encountered. Encode with lossyBinaryStringConversion enabled to bypass this check. Base64 value: ${bytesToBase64(data)}`
+          `Invalid UTF-8 byte array encountered. Encode with lossyBinaryStringConversion enabled to bypass this check. Base64 value: ${bytesToBase64(
+            data
+          )}`
         );
       }
       return stringValue;

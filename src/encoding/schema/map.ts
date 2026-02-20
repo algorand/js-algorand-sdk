@@ -678,7 +678,9 @@ export class SpecialCaseBinaryStringMapSchema extends Schema {
         !arrayEqual(coerceToBytes(keyStringValue), key)
       ) {
         throw new Error(
-          `Invalid UTF-8 byte array encountered. Encode with lossyBinaryStringConversion enabled to bypass this check. Base64 value: ${bytesToBase64(key)}`
+          `Invalid UTF-8 byte array encountered. Encode with lossyBinaryStringConversion enabled to bypass this check. Base64 value: ${bytesToBase64(
+            key
+          )}`
         );
       }
       prepared.set(
