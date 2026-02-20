@@ -315,8 +315,25 @@ export class LogicSigAccount implements encoding.Encodable {
     ])
   );
 
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.LogicSigAccount';
+
   lsig: LogicSig;
   sigkey?: Uint8Array;
+
+  /**
+   * Check if a value is a LogicSigAccount instance, even if it comes from a
+   * different version of the SDK. This should be used instead of `instanceof`
+   * to ensure compatibility across multiple SDK versions.
+   */
+  static isInstance(value: unknown): value is LogicSigAccount {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as LogicSigAccount).tag === 'algosdk.LogicSigAccount' &&
+      typeof (value as LogicSigAccount).lsig === 'object'
+    );
+  }
 
   /**
    * Create a new LogicSigAccount. By default this will create an escrow

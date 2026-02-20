@@ -50,7 +50,7 @@ export function signLogicSigTransactionObject(
   let lsig: LogicSig;
   let lsigAddress: Address;
 
-  if (lsigObject instanceof LogicSigAccount) {
+  if (LogicSigAccount.isInstance(lsigObject)) {
     lsig = lsigObject.lsig;
     lsigAddress = lsigObject.address();
   } else {

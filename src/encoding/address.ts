@@ -33,6 +33,9 @@ export class Address {
    */
   public readonly publicKey: Uint8Array;
 
+  // Tag for type identification, used instead of instanceof.
+  public readonly tag = 'algosdk.Address';
+
   /**
    * Create a new Address object from its binary form.
    * @param publicKey - The binary form of the address. Must be 32 bytes.
@@ -54,11 +57,25 @@ export class Address {
   }
 
   /**
+   * Check if a value is an Address instance, even if it comes from a different
+   * version of the SDK. This should be used instead of `instanceof` to ensure
+   * compatibility across multiple SDK versions.
+   */
+  static isAddress(value: unknown): value is Address {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as Address).tag === 'algosdk.Address' &&
+      (value as Address).publicKey instanceof Uint8Array
+    );
+  }
+
+  /**
    * Check if the address is equal to another address.
    */
   equals(other: Address): boolean {
     return (
-      other instanceof Address &&
+      Address.isAddress(other) &&
       utils.arrayEqual(this.publicKey, other.publicKey)
     );
   }

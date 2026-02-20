@@ -126,6 +126,9 @@ export abstract class ABIType {
 }
 
 export class ABIUintType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIUintType';
+
   bitSize: number;
 
   constructor(size: number) {
@@ -136,12 +139,21 @@ export class ABIUintType extends ABIType {
     this.bitSize = size;
   }
 
+  /** Check if a value is an ABIUintType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIUintType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIUintType).tag === 'algosdk.ABIUintType'
+    );
+  }
+
   toString() {
     return `uint${this.bitSize}`;
   }
 
   equals(other: ABIType) {
-    return other instanceof ABIUintType && this.bitSize === other.bitSize;
+    return ABIUintType.isInstance(other) && this.bitSize === other.bitSize;
   }
 
   isDynamic() {
@@ -178,6 +190,9 @@ export class ABIUintType extends ABIType {
 }
 
 export class ABIUfixedType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIUfixedType';
+
   bitSize: number;
   precision: number;
 
@@ -193,13 +208,22 @@ export class ABIUfixedType extends ABIType {
     this.precision = denominator;
   }
 
+  /** Check if a value is an ABIUfixedType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIUfixedType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIUfixedType).tag === 'algosdk.ABIUfixedType'
+    );
+  }
+
   toString() {
     return `ufixed${this.bitSize}x${this.precision}`;
   }
 
   equals(other: ABIType) {
     return (
-      other instanceof ABIUfixedType &&
+      ABIUfixedType.isInstance(other) &&
       this.bitSize === other.bitSize &&
       this.precision === other.precision
     );
@@ -239,12 +263,24 @@ export class ABIUfixedType extends ABIType {
 }
 
 export class ABIAddressType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIAddressType';
+
+  /** Check if a value is an ABIAddressType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIAddressType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIAddressType).tag === 'algosdk.ABIAddressType'
+    );
+  }
+
   toString() {
     return 'address';
   }
 
   equals(other: ABIType) {
-    return other instanceof ABIAddressType;
+    return ABIAddressType.isInstance(other);
   }
 
   isDynamic() {
@@ -261,7 +297,7 @@ export class ABIAddressType extends ABIType {
       return decodedAddress.publicKey;
     }
 
-    if (value instanceof Address) {
+    if (Address.isAddress(value)) {
       return value.publicKey;
     }
 
@@ -285,12 +321,24 @@ export class ABIAddressType extends ABIType {
 }
 
 export class ABIBoolType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIBoolType';
+
+  /** Check if a value is an ABIBoolType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIBoolType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIBoolType).tag === 'algosdk.ABIBoolType'
+    );
+  }
+
   toString() {
     return 'bool';
   }
 
   equals(other: ABIType) {
-    return other instanceof ABIBoolType;
+    return ABIBoolType.isInstance(other);
   }
 
   isDynamic() {
@@ -327,12 +375,24 @@ export class ABIBoolType extends ABIType {
 }
 
 export class ABIByteType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIByteType';
+
+  /** Check if a value is an ABIByteType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIByteType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIByteType).tag === 'algosdk.ABIByteType'
+    );
+  }
+
   toString() {
     return 'byte';
   }
 
   equals(other: ABIType) {
-    return other instanceof ABIByteType;
+    return ABIByteType.isInstance(other);
   }
 
   isDynamic() {
@@ -366,12 +426,24 @@ export class ABIByteType extends ABIType {
 }
 
 export class ABIStringType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIStringType';
+
+  /** Check if a value is an ABIStringType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIStringType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIStringType).tag === 'algosdk.ABIStringType'
+    );
+  }
+
   toString() {
     return 'string';
   }
 
   equals(other: ABIType) {
-    return other instanceof ABIStringType;
+    return ABIStringType.isInstance(other);
   }
 
   isDynamic() {
@@ -430,6 +502,9 @@ export class ABIStringType extends ABIType {
 }
 
 export class ABIArrayStaticType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIArrayStaticType';
+
   childType: ABIType;
   staticLength: number;
 
@@ -444,13 +519,22 @@ export class ABIArrayStaticType extends ABIType {
     this.staticLength = arrayLength;
   }
 
+  /** Check if a value is an ABIArrayStaticType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIArrayStaticType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIArrayStaticType).tag === 'algosdk.ABIArrayStaticType'
+    );
+  }
+
   toString() {
     return `${this.childType.toString()}[${this.staticLength}]`;
   }
 
   equals(other: ABIType) {
     return (
-      other instanceof ABIArrayStaticType &&
+      ABIArrayStaticType.isInstance(other) &&
       this.staticLength === other.staticLength &&
       this.childType.equals(other.childType)
     );
@@ -491,11 +575,23 @@ export class ABIArrayStaticType extends ABIType {
 }
 
 export class ABIArrayDynamicType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABIArrayDynamicType';
+
   childType: ABIType;
 
   constructor(argType: ABIType) {
     super();
     this.childType = argType;
+  }
+
+  /** Check if a value is an ABIArrayDynamicType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABIArrayDynamicType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABIArrayDynamicType).tag === 'algosdk.ABIArrayDynamicType'
+    );
   }
 
   toString() {
@@ -504,7 +600,7 @@ export class ABIArrayDynamicType extends ABIType {
 
   equals(other: ABIType) {
     return (
-      other instanceof ABIArrayDynamicType &&
+      ABIArrayDynamicType.isInstance(other) &&
       this.childType.equals(other.childType)
     );
   }
@@ -546,6 +642,9 @@ export class ABIArrayDynamicType extends ABIType {
 }
 
 export class ABITupleType extends ABIType {
+  // Tag for type identification, used instead of instanceof.
+  readonly tag = 'algosdk.ABITupleType';
+
   childTypes: ABIType[];
 
   constructor(argTypes: ABIType[]) {
@@ -558,6 +657,15 @@ export class ABITupleType extends ABIType {
     this.childTypes = argTypes;
   }
 
+  /** Check if a value is an ABITupleType, even across different SDK versions. */
+  static isInstance(value: unknown): value is ABITupleType {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      (value as ABITupleType).tag === 'algosdk.ABITupleType'
+    );
+  }
+
   toString() {
     const typeStrings: string[] = [];
     for (let i = 0; i < this.childTypes.length; i++) {
@@ -568,7 +676,7 @@ export class ABITupleType extends ABIType {
 
   equals(other: ABIType) {
     return (
-      other instanceof ABITupleType &&
+      ABITupleType.isInstance(other) &&
       this.childTypes.length === other.childTypes.length &&
       this.childTypes.every((child, index) =>
         child.equals(other.childTypes[index])
