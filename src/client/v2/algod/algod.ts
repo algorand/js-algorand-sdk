@@ -2,6 +2,8 @@ import ServiceClient from '../serviceClient.js';
 import * as modelsv2 from './models/types.js';
 import AccountInformation from './accountInformation.js';
 import AccountAssetInformation from './accountAssetInformation.js';
+import AccountAssetsInformation from './accountAssetsInformation.js';
+import AccountApplicationsInformation from './accountApplicationsInformation.js';
 import AccountApplicationInformation from './accountApplicationInformation.js';
 import Block from './block.js';
 import Compile from './compile.js';
@@ -175,6 +177,26 @@ export class AlgodClient extends ServiceClient {
    */
   accountAssetInformation(account: string | Address, index: number | bigint) {
     return new AccountAssetInformation(this.c, account, index);
+  }
+
+  /**
+   * Returns the given account's asset holdings, paginated.
+   *
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
+  accountAssetsInformation(account: string | Address) {
+    return new AccountAssetsInformation(this.c, account);
+  }
+
+  /**
+   * Returns the given account's application holdings, paginated.
+   *
+   * @param account - The address of the account to look up.
+   * @category GET
+   */
+  accountApplicationsInformation(account: string | Address) {
+    return new AccountApplicationsInformation(this.c, account);
   }
 
   /**

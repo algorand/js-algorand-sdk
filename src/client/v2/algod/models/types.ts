@@ -622,6 +622,152 @@ export class Account implements Encodable {
 }
 
 /**
+ * AccountApplicationResource describes the account's application resource (local
+ * state and params if the account is the creator) for a specific application ID.
+ */
+export class AccountApplicationResource implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'id', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'app-local-state',
+          valueSchema: new OptionalSchema(ApplicationLocalState.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'created-at-round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'deleted',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'params',
+          valueSchema: new OptionalSchema(ApplicationParams.encodingSchema),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * The application ID.
+   */
+  public id: number;
+
+  /**
+   * (appl) the application local data stored in this account.
+   * The raw account uses `AppLocalState` for this type.
+   */
+  public appLocalState?: ApplicationLocalState;
+
+  /**
+   * Round when the account opted into or created the application.
+   */
+  public createdAtRound?: number;
+
+  /**
+   * Whether the application has been deleted.
+   */
+  public deleted?: boolean;
+
+  /**
+   * (appp) parameters of the application created by this account including app
+   * global data.
+   * The raw account uses `AppParams` for this type.
+   * Only present if the account is the creator and `include=params` is specified.
+   */
+  public params?: ApplicationParams;
+
+  /**
+   * Creates a new `AccountApplicationResource` object.
+   * @param id - The application ID.
+   * @param appLocalState - (appl) the application local data stored in this account.
+   * The raw account uses `AppLocalState` for this type.
+   * @param createdAtRound - Round when the account opted into or created the application.
+   * @param deleted - Whether the application has been deleted.
+   * @param params - (appp) parameters of the application created by this account including app
+   * global data.
+   * The raw account uses `AppParams` for this type.
+   * Only present if the account is the creator and `include=params` is specified.
+   */
+  constructor({
+    id,
+    appLocalState,
+    createdAtRound,
+    deleted,
+    params,
+  }: {
+    id: number | bigint;
+    appLocalState?: ApplicationLocalState;
+    createdAtRound?: number | bigint;
+    deleted?: boolean;
+    params?: ApplicationParams;
+  }) {
+    this.id = ensureSafeInteger(id);
+    this.appLocalState = appLocalState;
+    this.createdAtRound =
+      typeof createdAtRound === 'undefined'
+        ? undefined
+        : ensureSafeInteger(createdAtRound);
+    this.deleted = deleted;
+    this.params = params;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountApplicationResource.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['id', this.id],
+      [
+        'app-local-state',
+        typeof this.appLocalState !== 'undefined'
+          ? this.appLocalState.toEncodingData()
+          : undefined,
+      ],
+      ['created-at-round', this.createdAtRound],
+      ['deleted', this.deleted],
+      [
+        'params',
+        typeof this.params !== 'undefined'
+          ? this.params.toEncodingData()
+          : undefined,
+      ],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): AccountApplicationResource {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded AccountApplicationResource: ${data}`);
+    }
+    return new AccountApplicationResource({
+      id: data.get('id'),
+      appLocalState:
+        typeof data.get('app-local-state') !== 'undefined'
+          ? ApplicationLocalState.fromEncodingData(data.get('app-local-state'))
+          : undefined,
+      createdAtRound: data.get('created-at-round'),
+      deleted: data.get('deleted'),
+      params:
+        typeof data.get('params') !== 'undefined'
+          ? ApplicationParams.fromEncodingData(data.get('params'))
+          : undefined,
+    });
+  }
+}
+
+/**
  * AccountApplicationResponse describes the account's application local state and
  * global state (AppLocalState and AppParams, if either exists) for a specific
  * application ID. Global state will only be returned if the provided address is
@@ -728,6 +874,112 @@ export class AccountApplicationResponse implements Encodable {
         typeof data.get('created-app') !== 'undefined'
           ? ApplicationParams.fromEncodingData(data.get('created-app'))
           : undefined,
+    });
+  }
+}
+
+/**
+ * AccountApplicationsInformationResponse contains a list of application resources
+ * for an account.
+ */
+export class AccountApplicationsInformationResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'round', valueSchema: new Uint64Schema(), omitEmpty: true },
+        {
+          key: 'application-resources',
+          valueSchema: new OptionalSchema(
+            new ArraySchema(AccountApplicationResource.encodingSchema)
+          ),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * The round for which this information is relevant.
+   */
+  public round: number;
+
+  public applicationResources?: AccountApplicationResource[];
+
+  /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter. The next token is the next application ID to use as the
+   * pagination cursor.
+   */
+  public nextToken?: string;
+
+  /**
+   * Creates a new `AccountApplicationsInformationResponse` object.
+   * @param round - The round for which this information is relevant.
+   * @param applicationResources -
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter. The next token is the next application ID to use as the
+   * pagination cursor.
+   */
+  constructor({
+    round,
+    applicationResources,
+    nextToken,
+  }: {
+    round: number | bigint;
+    applicationResources?: AccountApplicationResource[];
+    nextToken?: string;
+  }) {
+    this.round = ensureSafeInteger(round);
+    this.applicationResources = applicationResources;
+    this.nextToken = nextToken;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return AccountApplicationsInformationResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['round', this.round],
+      [
+        'application-resources',
+        typeof this.applicationResources !== 'undefined'
+          ? this.applicationResources.map((v) => v.toEncodingData())
+          : undefined,
+      ],
+      ['next-token', this.nextToken],
+    ]);
+  }
+
+  static fromEncodingData(
+    data: unknown
+  ): AccountApplicationsInformationResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(
+        `Invalid decoded AccountApplicationsInformationResponse: ${data}`
+      );
+    }
+    return new AccountApplicationsInformationResponse({
+      round: data.get('round'),
+      applicationResources:
+        typeof data.get('application-resources') !== 'undefined'
+          ? data
+              .get('application-resources')
+              .map((v: unknown) =>
+                AccountApplicationResource.fromEncodingData(v)
+              )
+          : undefined,
+      nextToken: data.get('next-token'),
     });
   }
 }
@@ -1347,7 +1599,7 @@ export class Application implements Encodable {
         { key: 'id', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'params',
-          valueSchema: ApplicationParams.encodingSchema,
+          valueSchema: new OptionalSchema(ApplicationParams.encodingSchema),
           omitEmpty: true,
         }
       );
@@ -1363,7 +1615,7 @@ export class Application implements Encodable {
   /**
    * (appparams) application parameters.
    */
-  public params: ApplicationParams;
+  public params?: ApplicationParams;
 
   /**
    * Creates a new `Application` object.
@@ -1375,7 +1627,7 @@ export class Application implements Encodable {
     params,
   }: {
     id: number | bigint;
-    params: ApplicationParams;
+    params?: ApplicationParams;
   }) {
     this.id = ensureBigInt(id);
     this.params = params;
@@ -1389,7 +1641,12 @@ export class Application implements Encodable {
   toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
       ['id', this.id],
-      ['params', this.params.toEncodingData()],
+      [
+        'params',
+        typeof this.params !== 'undefined'
+          ? this.params.toEncodingData()
+          : undefined,
+      ],
     ]);
   }
 
@@ -1399,9 +1656,10 @@ export class Application implements Encodable {
     }
     return new Application({
       id: data.get('id'),
-      params: ApplicationParams.fromEncodingData(
-        data.get('params') ?? new Map()
-      ),
+      params:
+        typeof data.get('params') !== 'undefined'
+          ? ApplicationParams.fromEncodingData(data.get('params'))
+          : undefined,
     });
   }
 }
@@ -1834,6 +2092,11 @@ export class ApplicationParams implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'size-sponsor',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'version',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
@@ -1880,6 +2143,11 @@ export class ApplicationParams implements Encodable {
   public localStateSchema?: ApplicationStateSchema;
 
   /**
+   * (ss) the account responsible for extra pages and global state MBR
+   */
+  public sizeSponsor?: Address;
+
+  /**
    * (v) the number of updates to the application programs
    */
   public version?: number;
@@ -1894,6 +2162,7 @@ export class ApplicationParams implements Encodable {
    * @param globalState - (gs) global state
    * @param globalStateSchema - (gsch) global schema
    * @param localStateSchema - (lsch) local schema
+   * @param sizeSponsor - (ss) the account responsible for extra pages and global state MBR
    * @param version - (v) the number of updates to the application programs
    */
   constructor({
@@ -1904,6 +2173,7 @@ export class ApplicationParams implements Encodable {
     globalState,
     globalStateSchema,
     localStateSchema,
+    sizeSponsor,
     version,
   }: {
     approvalProgram: string | Uint8Array;
@@ -1913,6 +2183,7 @@ export class ApplicationParams implements Encodable {
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
+    sizeSponsor?: Address | string;
     version?: number | bigint;
   }) {
     this.approvalProgram =
@@ -1932,6 +2203,10 @@ export class ApplicationParams implements Encodable {
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
+    this.sizeSponsor =
+      typeof sizeSponsor === 'string'
+        ? Address.fromString(sizeSponsor)
+        : sizeSponsor;
     this.version =
       typeof version === 'undefined' ? undefined : ensureSafeInteger(version);
   }
@@ -1965,6 +2240,12 @@ export class ApplicationParams implements Encodable {
           ? this.localStateSchema.toEncodingData()
           : undefined,
       ],
+      [
+        'size-sponsor',
+        typeof this.sizeSponsor !== 'undefined'
+          ? this.sizeSponsor.toString()
+          : undefined,
+      ],
       ['version', this.version],
     ]);
   }
@@ -1996,6 +2277,7 @@ export class ApplicationParams implements Encodable {
               data.get('local-state-schema')
             )
           : undefined,
+      sizeSponsor: data.get('size-sponsor'),
       version: data.get('version'),
     });
   }
@@ -2216,7 +2498,7 @@ export class Asset implements Encodable {
         { key: 'index', valueSchema: new Uint64Schema(), omitEmpty: true },
         {
           key: 'params',
-          valueSchema: AssetParams.encodingSchema,
+          valueSchema: new OptionalSchema(AssetParams.encodingSchema),
           omitEmpty: true,
         }
       );
@@ -2235,7 +2517,7 @@ export class Asset implements Encodable {
    * Definition:
    * data/transactions/asset.go : AssetParams
    */
-  public params: AssetParams;
+  public params?: AssetParams;
 
   /**
    * Creates a new `Asset` object.
@@ -2250,7 +2532,7 @@ export class Asset implements Encodable {
     params,
   }: {
     index: number | bigint;
-    params: AssetParams;
+    params?: AssetParams;
   }) {
     this.index = ensureBigInt(index);
     this.params = params;
@@ -2264,7 +2546,12 @@ export class Asset implements Encodable {
   toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
       ['index', this.index],
-      ['params', this.params.toEncodingData()],
+      [
+        'params',
+        typeof this.params !== 'undefined'
+          ? this.params.toEncodingData()
+          : undefined,
+      ],
     ]);
   }
 
@@ -2274,7 +2561,10 @@ export class Asset implements Encodable {
     }
     return new Asset({
       index: data.get('index'),
-      params: AssetParams.fromEncodingData(data.get('params') ?? new Map()),
+      params:
+        typeof data.get('params') !== 'undefined'
+          ? AssetParams.fromEncodingData(data.get('params'))
+          : undefined,
     });
   }
 }
@@ -8039,6 +8329,11 @@ export class SupplyResponse implements Encodable {
           valueSchema: new Uint64Schema(),
           omitEmpty: true,
         },
+        {
+          key: 'online-stake',
+          valueSchema: new Uint64Schema(),
+          omitEmpty: true,
+        },
         { key: 'total-money', valueSchema: new Uint64Schema(), omitEmpty: true }
       );
     }
@@ -8051,9 +8346,17 @@ export class SupplyResponse implements Encodable {
   public currentRound: bigint;
 
   /**
-   * OnlineMoney
+   * Total stake held by accounts with status Online at current_round, including
+   * those whose participation keys have expired but have not yet been marked
+   * offline.
    */
   public onlineMoney: bigint;
+
+  /**
+   * Online stake used by agreement to vote for current_round, excluding accounts
+   * whose participation keys have expired.
+   */
+  public onlineStake: number;
 
   /**
    * TotalMoney
@@ -8063,20 +8366,27 @@ export class SupplyResponse implements Encodable {
   /**
    * Creates a new `SupplyResponse` object.
    * @param currentRound - Round
-   * @param onlineMoney - OnlineMoney
+   * @param onlineMoney - Total stake held by accounts with status Online at current_round, including
+   * those whose participation keys have expired but have not yet been marked
+   * offline.
+   * @param onlineStake - Online stake used by agreement to vote for current_round, excluding accounts
+   * whose participation keys have expired.
    * @param totalMoney - TotalMoney
    */
   constructor({
     currentRound,
     onlineMoney,
+    onlineStake,
     totalMoney,
   }: {
     currentRound: number | bigint;
     onlineMoney: number | bigint;
+    onlineStake: number | bigint;
     totalMoney: number | bigint;
   }) {
     this.currentRound = ensureBigInt(currentRound);
     this.onlineMoney = ensureBigInt(onlineMoney);
+    this.onlineStake = ensureSafeInteger(onlineStake);
     this.totalMoney = ensureBigInt(totalMoney);
   }
 
@@ -8089,6 +8399,7 @@ export class SupplyResponse implements Encodable {
     return new Map<string, unknown>([
       ['current_round', this.currentRound],
       ['online-money', this.onlineMoney],
+      ['online-stake', this.onlineStake],
       ['total-money', this.totalMoney],
     ]);
   }
@@ -8100,6 +8411,7 @@ export class SupplyResponse implements Encodable {
     return new SupplyResponse({
       currentRound: data.get('current_round'),
       onlineMoney: data.get('online-money'),
+      onlineStake: data.get('online-stake'),
       totalMoney: data.get('total-money'),
     });
   }
