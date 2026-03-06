@@ -8356,7 +8356,7 @@ export class SupplyResponse implements Encodable {
    * Online stake used by agreement to vote for current_round, excluding accounts
    * whose participation keys have expired.
    */
-  public onlineStake: number;
+  public onlineStake: bigint;
 
   /**
    * TotalMoney
@@ -8386,7 +8386,7 @@ export class SupplyResponse implements Encodable {
   }) {
     this.currentRound = ensureBigInt(currentRound);
     this.onlineMoney = ensureBigInt(onlineMoney);
-    this.onlineStake = ensureSafeInteger(onlineStake);
+    this.onlineStake = ensureBigInt(onlineStake);
     this.totalMoney = ensureBigInt(totalMoney);
   }
 
