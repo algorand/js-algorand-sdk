@@ -1626,6 +1626,16 @@ module.exports = function getSteps(options) {
               .getBlockTxids(123)
               .do();
             break;
+          case 'AccountAssetsInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountAssetsInformation(algosdk.Address.zeroAddress())
+              .do();
+            break;
+          case 'AccountApplicationsInformation':
+            this.actualMockResponse = await this.v2Client
+              .accountApplicationsInformation(algosdk.Address.zeroAddress())
+              .do();
+            break;
           case 'any': {
             // This is an error case
             let caughtError = false;
@@ -2100,6 +2110,27 @@ module.exports = function getSteps(options) {
       await doOrDoRaw(
         this.v2Client.accountApplicationInformation(account, applicationID)
       );
+    }
+  );
+
+  When(
+    'we make an Account Assets Information call against account {string} with limit {int} and next {string}',
+    async function (account, limit, next) {
+      const builder = this.v2Client.accountAssetsInformation(account);
+      if (limit > 0) builder.limit(limit);
+      if (next) builder.next(next);
+      await doOrDoRaw(builder);
+    }
+  );
+
+  When(
+    'we make an Account Applications Information call against account {string} with limit {int} next {string} and include {string}',
+    async function (account, limit, next, include) {
+      const builder = this.v2Client.accountApplicationsInformation(account);
+      if (include) builder.include(include.split(','));
+      if (limit > 0) builder.limit(limit);
+      if (next) builder.next(next);
+      await doOrDoRaw(builder);
     }
   );
 
