@@ -8672,8 +8672,8 @@ export class TransactionParametersResponse implements Encodable {
   public lastRound: bigint;
 
   /**
-   * The minimum transaction fee (not per byte) required for the
-   * txn to validate for the current network protocol.
+   * The minimum transaction fee (not per byte) required for the txn to validate for
+   * the current network protocol.
    */
   public minFee: bigint;
 
@@ -8688,8 +8688,8 @@ export class TransactionParametersResponse implements Encodable {
    * @param genesisHash - GenesisHash is the hash of the genesis block.
    * @param genesisId - GenesisID is an ID listed in the genesis block.
    * @param lastRound - LastRound indicates the last round seen
-   * @param minFee - The minimum transaction fee (not per byte) required for the
-   * txn to validate for the current network protocol.
+   * @param minFee - The minimum transaction fee (not per byte) required for the txn to validate for
+   * the current network protocol.
    */
   constructor({
     consensusVersion,
