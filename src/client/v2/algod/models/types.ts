@@ -3479,11 +3479,14 @@ export class BoxDescriptor implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
-        key: 'name',
-        valueSchema: new ByteArraySchema(),
-        omitEmpty: true,
-      });
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
+        {
+          key: 'value',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
     }
     return this.encodingSchemaValue;
   }
@@ -3494,11 +3497,26 @@ export class BoxDescriptor implements Encodable {
   public name: Uint8Array;
 
   /**
+   * Base64 encoded box value. Present only when the `values` query parameter is set
+   * to true.
+   */
+  public value?: Uint8Array;
+
+  /**
    * Creates a new `BoxDescriptor` object.
    * @param name - Base64 encoded box name
+   * @param value - Base64 encoded box value. Present only when the `values` query parameter is set
+   * to true.
    */
-  constructor({ name }: { name: string | Uint8Array }) {
+  constructor({
+    name,
+    value,
+  }: {
+    name: string | Uint8Array;
+    value?: string | Uint8Array;
+  }) {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -3507,7 +3525,10 @@ export class BoxDescriptor implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    return new Map<string, unknown>([['name', this.name]]);
+    return new Map<string, unknown>([
+      ['name', this.name],
+      ['value', this.value],
+    ]);
   }
 
   static fromEncodingData(data: unknown): BoxDescriptor {
@@ -3516,6 +3537,7 @@ export class BoxDescriptor implements Encodable {
     }
     return new BoxDescriptor({
       name: data.get('name'),
+      value: data.get('value'),
     });
   }
 }
@@ -3587,7 +3609,7 @@ export class BoxReference implements Encodable {
 }
 
 /**
- * Box names of an application
+ * Boxes of an application
  */
 export class BoxesResponse implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
@@ -3595,11 +3617,23 @@ export class BoxesResponse implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
-        key: 'boxes',
-        valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
-        omitEmpty: true,
-      });
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'boxes',
+          valueSchema: new ArraySchema(BoxDescriptor.encodingSchema),
+          omitEmpty: true,
+        },
+        {
+          key: 'next-token',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
     }
     return this.encodingSchemaValue;
   }
@@ -3607,11 +3641,38 @@ export class BoxesResponse implements Encodable {
   public boxes: BoxDescriptor[];
 
   /**
+   * Used for pagination, when making another request provide this token with the
+   * next parameter. The next token is the box name to use as the pagination cursor,
+   * encoded in the goal app call arg form.
+   */
+  public nextToken?: string;
+
+  /**
+   * The round for which this information is relevant.
+   */
+  public round?: number;
+
+  /**
    * Creates a new `BoxesResponse` object.
    * @param boxes -
+   * @param nextToken - Used for pagination, when making another request provide this token with the
+   * next parameter. The next token is the box name to use as the pagination cursor,
+   * encoded in the goal app call arg form.
+   * @param round - The round for which this information is relevant.
    */
-  constructor({ boxes }: { boxes: BoxDescriptor[] }) {
+  constructor({
+    boxes,
+    nextToken,
+    round,
+  }: {
+    boxes: BoxDescriptor[];
+    nextToken?: string;
+    round?: number | bigint;
+  }) {
     this.boxes = boxes;
+    this.nextToken = nextToken;
+    this.round =
+      typeof round === 'undefined' ? undefined : ensureSafeInteger(round);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -3622,6 +3683,8 @@ export class BoxesResponse implements Encodable {
   toEncodingData(): Map<string, unknown> {
     return new Map<string, unknown>([
       ['boxes', this.boxes.map((v) => v.toEncodingData())],
+      ['next-token', this.nextToken],
+      ['round', this.round],
     ]);
   }
 
@@ -3633,6 +3696,8 @@ export class BoxesResponse implements Encodable {
       boxes: (data.get('boxes') ?? []).map((v: unknown) =>
         BoxDescriptor.fromEncodingData(v)
       ),
+      nextToken: data.get('next-token'),
+      round: data.get('round'),
     });
   }
 }
@@ -8672,8 +8737,8 @@ export class TransactionParametersResponse implements Encodable {
   public lastRound: bigint;
 
   /**
-   * The minimum transaction fee (not per byte) required for the
-   * txn to validate for the current network protocol.
+   * The minimum transaction fee (not per byte) required for the txn to validate for
+   * the current network protocol.
    */
   public minFee: bigint;
 
@@ -8688,8 +8753,8 @@ export class TransactionParametersResponse implements Encodable {
    * @param genesisHash - GenesisHash is the hash of the genesis block.
    * @param genesisId - GenesisID is an ID listed in the genesis block.
    * @param lastRound - LastRound indicates the last round seen
-   * @param minFee - The minimum transaction fee (not per byte) required for the
-   * txn to validate for the current network protocol.
+   * @param minFee - The minimum transaction fee (not per byte) required for the txn to validate for
+   * the current network protocol.
    */
   constructor({
     consensusVersion,
