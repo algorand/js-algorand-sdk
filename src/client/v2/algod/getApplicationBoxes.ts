@@ -34,7 +34,7 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
   }
 
   /**
-   * Limit results for pagination.
+   * Limits results when NOT using pagination. If using pagination, use {@link perPageLimit}
    *
    * #### Example
    * ```typescript
@@ -45,11 +45,135 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    *        .do();
    * ```
    *
-   * @param limit - maximum number of results to return.
+   * @param max - maximum number of results to return.
    * @category query
    */
   max(max: number) {
     this.query.max = max;
+    return this;
+  }
+
+  /**
+   * Pagination token returned by the previous call.
+   *
+   * This is the value returned by a previous call to this endpoint in the
+   * `next-token` response field. Provide this token to get the next page of
+   * results. The token is the box name to use as the pagination cursor,
+   * encoded in the goal app call arg form.
+   *
+   * #### Example
+   * ```typescript
+   * const boxesResponse = await algodClient
+   *        .getApplicationBoxes(1234)
+   *        .max(20)
+   *        .next("b64:AAECAw==")
+   *        .do();
+   * ```
+   *
+   * @param nextToken - The next token to use for pagination.
+   * @category query
+   */
+  next(nextToken: string | undefined) {
+    this.query.next = nextToken;
+    return this;
+  }
+
+  /**
+   * Filter box names by a prefix.
+   *
+   * #### Example
+   * ```typescript
+   * const boxesResponse = await algodClient
+   *        .getApplicationBoxes(1234)
+   *        .prefix(myAddr.publicKey)
+   *        .do();
+   * ```
+   *
+   * @param prefix - The prefix to filter box names by
+   * @category query
+   */
+  prefix(prefix: Uint8Array) {
+    this.query.prefix = `b64:${Buffer.from(prefix).toString('base64')}`;
+    return this;
+  }
+
+  /**
+   * Include box values in the response.
+   *
+   * When true, the `value` field of each {@link BoxDescriptor} will contain the
+   * box's value. When false (the default), only box names are returned.
+   *
+   * #### Example
+   * ```typescript
+   * const boxesResponse = await algodClient
+   *        .getApplicationBoxes(1234)
+   *        .values(true)
+   *        .do();
+   * // Access box values
+   * const boxData = boxesResponse.boxes.map(box => ({
+   *   name: box.name,
+   *   value: box.value // Uint8Array
+   * }));
+   * ```
+   *
+   * @param includeValues - Whether to include box values in the response.
+   * @category query
+   */
+  values(includeValues: boolean) {
+    if (includeValues) {
+      if (this.query.include) {
+        this.query.include += ',values';
+      } else {
+        this.query.include = 'values';
+      }
+    } else if (this.query.include) {
+      const include: string[] = this.query.include.split(',');
+      this.query.include = include.filter((i) => i !== 'values');
+    }
+
+    return this;
+  }
+
+  /**
+   * Limits results per page when using pagination. If not using pagination, use {@link max}
+   *
+   * #### Example
+   * ```typescript
+   * const maxResults = 20;
+   * const boxesResult = await algodClient
+   *        .GetApplicationBoxes(1234)
+   *        .limit(maxResults)
+   *        .do();
+   * const { nextToken } = boxesResult
+   * ```
+   *
+   * @param limit - maximum number of results to return per page.
+   * @category query
+   */
+  perPageLimit(limit: number) {
+    this.query.limit = limit;
+    return this;
+  }
+
+  /**
+   * Return results for the specified round.
+   *
+   * If not provided, results will be from the latest round. This parameter
+   * can be used to pin all pages of a paginated query to a consistent round.
+   *
+   * #### Example
+   * ```typescript
+   * const boxesResponse = await algodClient
+   *        .getApplicationBoxes(1234)
+   *        .round(12345678)
+   *        .do();
+   * ```
+   *
+   * @param roundNumber - The round to query.
+   * @category query
+   */
+  round(roundNumber: number | bigint) {
+    this.query.round = Number(roundNumber);
     return this;
   }
 
