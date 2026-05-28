@@ -1,6 +1,8 @@
 import JSONRequest from '../jsonrequest.js';
 import { HTTPClient, HTTPClientResponse } from '../../client.js';
 import { decodeJSON } from '../../../encoding/encoding.js';
+import { bytesToBase64 } from '../../../encoding/binarydata.js';
+import { ensureSafeInteger } from '../../../utils/utils.js';
 import { BoxesResponse } from './models/types.js';
 
 /**
@@ -40,8 +42,8 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    * ```typescript
    * const maxResults = 20;
    * const boxesResult = await algodClient
-   *        .GetApplicationBoxes(1234)
-   *        .limit(maxResults)
+   *        .getApplicationBoxes(1234)
+   *        .max(maxResults)
    *        .do();
    * ```
    *
@@ -65,7 +67,7 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    * ```typescript
    * const boxesResponse = await algodClient
    *        .getApplicationBoxes(1234)
-   *        .max(20)
+   *        .perPageLimit(20)
    *        .next("b64:AAECAw==")
    *        .do();
    * ```
@@ -93,7 +95,7 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    * @category query
    */
   prefix(prefix: Uint8Array) {
-    this.query.prefix = `b64:${Buffer.from(prefix).toString('base64')}`;
+    this.query.prefix = `b64:${bytesToBase64(prefix)}`;
     return this;
   }
 
@@ -128,7 +130,12 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
       }
     } else if (this.query.include) {
       const include: string[] = this.query.include.split(',');
-      this.query.include = include.filter((i) => i !== 'values');
+      const filteredInclude = include.filter((i) => i !== 'values');
+      if (filteredInclude.length === 0) {
+        delete this.query.include;
+      } else {
+        this.query.include = filteredInclude.join(',');
+      }
     }
 
     return this;
@@ -141,8 +148,8 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    * ```typescript
    * const maxResults = 20;
    * const boxesResult = await algodClient
-   *        .GetApplicationBoxes(1234)
-   *        .limit(maxResults)
+   *        .getApplicationBoxes(1234)
+   *        .perPageLimit(maxResults)
    *        .do();
    * const { nextToken } = boxesResult
    * ```
@@ -173,7 +180,7 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    * @category query
    */
   round(roundNumber: number | bigint) {
-    this.query.round = Number(roundNumber);
+    this.query.round = ensureSafeInteger(roundNumber);
     return this;
   }
 

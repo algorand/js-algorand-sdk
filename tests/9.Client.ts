@@ -1,9 +1,10 @@
 /* eslint-env mocha */
 import assert from 'assert';
-import { HTTPClient } from '../src/client/client';
+import { HTTPClient, HTTPClientResponse } from '../src/client/client';
 import { URLTokenBaseHTTPClient } from '../src/client/urlTokenBaseHTTPClient';
 import IntDecoding from '../src/types/intDecoding';
 import { AlgodClient } from '../src/client/v2/algod/algod';
+import GetApplicationBoxes from '../src/client/v2/algod/getApplicationBoxes';
 import * as utils from '../src/utils/utils';
 
 describe('client', () => {
@@ -214,6 +215,83 @@ describe('client', () => {
         const errorString = (err as Error).toString();
         assert.ok(errorString.includes('aborted'), errorString);
       }
+    });
+  });
+
+  describe('GetApplicationBoxes request', () => {
+    function createJSONResponse(data: string): HTTPClientResponse {
+      return new HTTPClientResponse({
+        body: new TextEncoder().encode(data),
+        text: data,
+        format: 'application/json',
+        headers: {},
+        status: 200,
+        ok: true,
+      });
+    }
+
+    it('should serialize query values for box pagination and filtering', () => {
+      const request = new GetApplicationBoxes(
+        new HTTPClient({}, 'http://localhost'),
+        1234
+      )
+        .next('b64:AAECAw==')
+        .prefix(new Uint8Array([0, 1, 2, 3]))
+        .values(true)
+        .perPageLimit(20)
+        .round(98765);
+
+      assert.deepStrictEqual(request.query, {
+        max: 0,
+        next: 'b64:AAECAw==',
+        prefix: 'b64:AAECAw==',
+        include: 'values',
+        limit: 20,
+        round: 98765,
+      });
+    });
+
+    it('should remove include=values while preserving other include values', () => {
+      const request = new GetApplicationBoxes(
+        new HTTPClient({}, 'http://localhost'),
+        1234
+      );
+
+      request.query.include = 'foo,values,bar';
+      request.values(false);
+      assert.strictEqual(request.query.include, 'foo,bar');
+
+      request.query.include = 'values';
+      request.values(false);
+      assert.strictEqual(request.query.include, undefined);
+    });
+
+    it('should reject unsafe round values', () => {
+      const request = new GetApplicationBoxes(
+        new HTTPClient({}, 'http://localhost'),
+        1234
+      );
+      assert.throws(() => request.round(BigInt(Number.MAX_SAFE_INTEGER) + 1n));
+    });
+
+    it('should decode next-token, round, and box values from response', () => {
+      const request = new GetApplicationBoxes(
+        new HTTPClient({}, 'http://localhost'),
+        1234
+      );
+      const response = createJSONResponse(
+        JSON.stringify({
+          boxes: [{ name: 'AAECAw==', value: 'BAUG' }],
+          'next-token': 'b64:Bwg=',
+          round: 11,
+        })
+      );
+      const decoded = request.prepare(response);
+
+      assert.strictEqual(decoded.round, 11);
+      assert.strictEqual(decoded.nextToken, 'b64:Bwg=');
+      assert.deepStrictEqual(decoded.boxes[0].name, new Uint8Array([0, 1, 2, 3]));
+      assert.deepStrictEqual(decoded.boxes[0].value, new Uint8Array([4, 5, 6]));
     });
   });
 });
