@@ -290,7 +290,10 @@ describe('client', () => {
 
       assert.strictEqual(decoded.round, 11);
       assert.strictEqual(decoded.nextToken, 'b64:Bwg=');
-      assert.deepStrictEqual(decoded.boxes[0].name, new Uint8Array([0, 1, 2, 3]));
+      assert.deepStrictEqual(
+        decoded.boxes[0].name,
+        new Uint8Array([0, 1, 2, 3])
+      );
       assert.deepStrictEqual(decoded.boxes[0].value, new Uint8Array([4, 5, 6]));
     });
   });
