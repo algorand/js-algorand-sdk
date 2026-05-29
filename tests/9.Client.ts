@@ -238,7 +238,7 @@ describe('client', () => {
         .next('b64:AAECAw==')
         .prefix(new Uint8Array([0, 1, 2, 3]))
         .values(true)
-        .perPageLimit(20)
+        .limit(20)
         .round(98765);
 
       assert.deepStrictEqual(request.query, {

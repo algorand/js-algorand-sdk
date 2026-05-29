@@ -159,12 +159,14 @@ return:
 
   let next: undefined | string;
   const pages = [];
+  const { lastRound } = await algodClient.status().do();
   do {
     // eslint-disable-next-line no-await-in-loop
     const page = await algodClient
       .getApplicationBoxes(appIndex)
       .values(true)
-      .perPageLimit(1)
+      .round(lastRound)
+      .limit(1)
       .next(next)
       .do();
     next = page.nextToken;

@@ -15,6 +15,9 @@ import { BoxesResponse } from './models/types.js';
  * const boxNames = boxesResponse.boxes.map(box => box.name);
  * ```
  *
+ * With the `.values(true)` parameter, returns values in addition to names. Pagination is supported with `limit`. If using pagination,
+ * it is recommended to use the `.round()` parameter to ensure each page is for the same round.
+ *
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idboxes)
  * @param index - The application ID to look up.
  * @category GET
@@ -36,7 +39,9 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
   }
 
   /**
-   * Limits results when NOT using pagination. If using pagination, use {@link perPageLimit}
+   * @deprecated - Use `limit` instead for proper pagition with a limit.
+   *
+   * Set the max amount of boxes to return. Returns HTTP 400 if max is exceeded.
    *
    * #### Example
    * ```typescript
@@ -157,7 +162,7 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    * @param limit - maximum number of results to return per page.
    * @category query
    */
-  perPageLimit(limit: number) {
+  limit(limit: number) {
     this.query.limit = limit;
     return this;
   }
