@@ -39,7 +39,7 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
   }
 
   /**
-   * @deprecated - Use `limit` instead for proper pagition with a limit.
+   * @deprecated - Use `limit` instead for proper pagination with a limit.
    *
    * Set the max amount of boxes to return. Returns HTTP 400 if max is exceeded.
    *
@@ -72,7 +72,7 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    * ```typescript
    * const boxesResponse = await algodClient
    *        .getApplicationBoxes(1234)
-   *        .perPageLimit(20)
+   *        .limit(20)
    *        .next("b64:AAECAw==")
    *        .do();
    * ```
@@ -147,14 +147,14 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
   }
 
   /**
-   * Limits results per page when using pagination. If not using pagination, use {@link max}
+   * Limits results per page when using pagination.
    *
    * #### Example
    * ```typescript
    * const maxResults = 20;
    * const boxesResult = await algodClient
    *        .getApplicationBoxes(1234)
-   *        .perPageLimit(maxResults)
+   *        .limit(maxResults)
    *        .do();
    * const { nextToken } = boxesResult
    * ```
