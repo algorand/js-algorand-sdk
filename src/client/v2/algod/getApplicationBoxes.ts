@@ -5,8 +5,10 @@ import { bytesToBase64 } from '../../../encoding/binarydata.js';
 import { ensureSafeInteger } from '../../../utils/utils.js';
 import { BoxesResponse } from './models/types.js';
 
+export type BoxInclude = 'values';
+
 /**
- * Given an application ID, return all the box names associated with the app.
+ * Given an application ID, return all the boxes associated with the app.
  *
  * #### Example
  * ```typescript
@@ -15,7 +17,7 @@ import { BoxesResponse } from './models/types.js';
  * const boxNames = boxesResponse.boxes.map(box => box.name);
  * ```
  *
- * With the `.values(true)` parameter, returns values in addition to names. Pagination is supported with `limit`. If using pagination,
+ * With the `.include("values")` parameter, returns values in addition to names. Pagination is supported with `limit`. If using pagination,
  * it is recommended to use the `.round()` parameter to ensure each page is for the same round.
  *
  * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idboxes)
@@ -105,44 +107,20 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
   }
 
   /**
-   * Include box values in the response.
+   * include additional items in the response.
    *
-   * When true, the `value` field of each {@link BoxDescriptor} will contain the
-   * box's value. When false (the default), only box names are returned.
-   *
+   * Use `values` to include box values.
    * #### Example
    * ```typescript
    * const boxesResponse = await algodClient
    *        .getApplicationBoxes(1234)
-   *        .values(true)
+   *        .prefix(myAddr.publicKey)
+   *        .include("values")
    *        .do();
-   * // Access box values
-   * const boxData = boxesResponse.boxes.map(box => ({
-   *   name: box.name,
-   *   value: box.value // Uint8Array
-   * }));
    * ```
-   *
-   * @param includeValues - Whether to include box values in the response.
-   * @category query
    */
-  values(includeValues: boolean) {
-    if (includeValues) {
-      if (this.query.include) {
-        this.query.include += ',values';
-      } else {
-        this.query.include = 'values';
-      }
-    } else if (this.query.include) {
-      const include: string[] = this.query.include.split(',');
-      const filteredInclude = include.filter((i) => i !== 'values');
-      if (filteredInclude.length === 0) {
-        delete this.query.include;
-      } else {
-        this.query.include = filteredInclude.join(',');
-      }
-    }
-
+  include(...include: BoxInclude[]) {
+    this.query.include = include.join(',');
     return this;
   }
 

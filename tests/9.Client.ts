@@ -237,7 +237,7 @@ describe('client', () => {
       )
         .next('b64:AAECAw==')
         .prefix(new Uint8Array([0, 1, 2, 3]))
-        .values(true)
+        .include('values')
         .limit(20)
         .round(98765);
 
@@ -249,21 +249,6 @@ describe('client', () => {
         limit: 20,
         round: 98765,
       });
-    });
-
-    it('should remove include=values while preserving other include values', () => {
-      const request = new GetApplicationBoxes(
-        new HTTPClient({}, 'http://localhost'),
-        1234
-      );
-
-      request.query.include = 'foo,values,bar';
-      request.values(false);
-      assert.strictEqual(request.query.include, 'foo,bar');
-
-      request.query.include = 'values';
-      request.values(false);
-      assert.strictEqual(request.query.include, undefined);
     });
 
     it('should reject unsafe round values', () => {

@@ -132,7 +132,7 @@ return:
 
   const boxValues = await algodClient
     .getApplicationBoxes(appIndex)
-    .values(true)
+    .include('values')
     .do();
 
   console.log('Box Values:', boxValues);
@@ -141,7 +141,7 @@ return:
 
   const aliceValues = await algodClient
     .getApplicationBoxes(appIndex)
-    .values(true)
+    .include('values')
     .prefix(alice.addr.publicKey)
     .do();
 
@@ -150,7 +150,7 @@ return:
 
   const bobValues = await algodClient
     .getApplicationBoxes(appIndex)
-    .values(true)
+    .include('values')
     .prefix(bob.addr.publicKey)
     .do();
 
@@ -164,7 +164,7 @@ return:
     // eslint-disable-next-line no-await-in-loop
     const page = await algodClient
       .getApplicationBoxes(appIndex)
-      .values(true)
+      .include('values')
       .round(lastRound)
       .limit(1)
       .next(next)
