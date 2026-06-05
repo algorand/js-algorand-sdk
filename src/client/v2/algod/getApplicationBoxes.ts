@@ -107,9 +107,10 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
   }
 
   /**
-   * include additional items in the response.
+   * Include additional items in the response.
    *
    * Use `values` to include box values.
+   *
    * #### Example
    * ```typescript
    * const boxesResponse = await algodClient
@@ -118,6 +119,9 @@ export default class GetApplicationBoxes extends JSONRequest<BoxesResponse> {
    *        .include("values")
    *        .do();
    * ```
+   *
+   * @param include - The additional items to include in the response.
+   * @category query
    */
   include(...include: BoxInclude[]) {
     this.query.include = include.join(',');
