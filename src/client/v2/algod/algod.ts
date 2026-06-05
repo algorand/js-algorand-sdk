@@ -534,7 +534,7 @@ export class AlgodClient extends ServiceClient {
   }
 
   /**
-   * Given an application ID, return all the box names associated with the app.
+   * Given an application ID, return all the boxes associated with the app.
    *
    * #### Example
    * ```typescript
@@ -542,6 +542,8 @@ export class AlgodClient extends ServiceClient {
    * const boxesResponse = await algodClient.getApplicationBoxes(index).max(3).do();
    * const boxNames = boxesResponse.boxes.map(box => box.name);
    * ```
+   * With the `.include("values")` parameter, returns values in addition to names. Pagination is supported with `limit`. If using pagination,
+   * it is recommended to use the `.round()` parameter to ensure each page is for the same round.
    *
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#get-v2applicationsapplication-idboxes)
    * @param index - The application ID to look up.
