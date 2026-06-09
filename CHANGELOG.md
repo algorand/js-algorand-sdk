@@ -1,3 +1,29 @@
+# v3.6.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.6.0 -->
+
+## What's Changed
+
+### Bugfixes
+
+- Transactions: decoding access list with any order by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1014
+- Fix: Handle empty resource references in access list by @jannotti in https://github.com/algorand/js-algorand-sdk/pull/1041
+
+### New Features
+
+- API: box API pagination, values, prefix, and round by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1089
+
+### Enhancements
+
+- CI: permissions for publishing via OIDC by @onetechnical in https://github.com/algorand/js-algorand-sdk/pull/1015
+- API: Support for Applications/Assets Pagination and new exclude parameters by @gmalouf in https://github.com/algorand/js-algorand-sdk/pull/1053
+
+## New Contributors
+
+- @jannotti made their first contribution in https://github.com/algorand/js-algorand-sdk/pull/1041
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.5.2...v3.6.0
+
 # v3.5.2
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.5.2 -->
