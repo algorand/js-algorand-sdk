@@ -10,7 +10,7 @@ on:
         type: 'string'
       node_version:
         description: 'The node_version to build with.'
-        default: '22'
+        default: '24'
         required: true
         type: 'string'
       dry_run:
@@ -39,7 +39,7 @@ jobs:
       - run: |
           if git diff-index --quiet HEAD --; then
             echo 'DRY_RUN: '$DRY_RUN
-            if [ '$DRY_RUN' == 'false' ]; then
+            if [ "$DRY_RUN" == 'false' ]; then
               npm publish
             else
               npm publish --dry-run
