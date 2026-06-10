@@ -10,7 +10,7 @@ on:
         type: 'string'
       node_version:
         description: 'The node_version to build with.'
-        default: '22'
+        default: '24'
         required: true
         type: 'string'
       dry_run:
