@@ -10,6 +10,10 @@ import {
 } from './multisigSigning.js';
 import { Address } from './main.js';
 
+export interface Addressable {
+  address: Address;
+}
+
 /**
  * This type represents a function which can sign transactions from an atomic transaction group.
  * @param txnGroup - The atomic group containing transactions to be signed
@@ -23,9 +27,8 @@ export type TransactionSigner = (
   indexesToSign: number[]
 ) => Promise<Uint8Array[]>;
 
-export interface AddressWithSigner {
-  address: Address;
-  signer: TransactionSigner;
+export interface AddressWithTransactionSigner extends Addressable {
+  txnSigner: TransactionSigner;
 }
 
 /**

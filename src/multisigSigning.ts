@@ -10,7 +10,10 @@ import {
   addressFromMultisigPreImg,
   pksFromAddresses,
 } from './multisig.js';
-import { AddressWithSigner, signTransactionWithSigner } from './main.js';
+import {
+  AddressWithTransactionSigner,
+  signTransactionWithSigner,
+} from './main.js';
 
 export const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
   'Not enough multisig transactions to merge. Need at least two';
@@ -148,9 +151,9 @@ function partialSignTxn(
 async function partialSignTxnWithSigner(
   transaction: Transaction,
   { version, threshold, pks }: MultisigMetadataWithPks,
-  { address, signer }: AddressWithSigner
+  { address, txnSigner }: AddressWithTransactionSigner
 ) {
-  const rawSig = (await signTransactionWithSigner(transaction, signer)).stxn
+  const rawSig = (await signTransactionWithSigner(transaction, txnSigner)).stxn
     .sig;
 
   if (rawSig === undefined) {
@@ -320,13 +323,13 @@ export function signMultisigTransaction(
 export async function signMultisigTransactionWithSigner(
   txn: Transaction,
   { version, threshold, addrs }: MultisigMetadata,
-  { address, signer }: AddressWithSigner
+  { address, txnSigner }: AddressWithTransactionSigner
 ) {
   const pks = pksFromAddresses(addrs);
   const blob = await partialSignTxnWithSigner(
     txn,
     { version, threshold, pks },
-    { address, signer }
+    { address, txnSigner }
   );
   return {
     txID: txn.txID(),
@@ -372,7 +375,7 @@ export function appendSignMultisigTransaction(
 export async function appendSignMultisigTransactionWithSigner(
   multisigTxnBlob: Uint8Array,
   { version, threshold, addrs }: MultisigMetadata,
-  { address, signer }: AddressWithSigner
+  { address, txnSigner }: AddressWithTransactionSigner
 ) {
   const pks = pksFromAddresses(addrs);
   // obtain underlying txn, sign it, and merge it
@@ -383,7 +386,7 @@ export async function appendSignMultisigTransactionWithSigner(
   const partialSignedBlob = await partialSignTxnWithSigner(
     multisigTxObj.txn,
     { version, threshold, pks },
-    { address, signer }
+    { address, txnSigner }
   );
   return {
     txID: multisigTxObj.txn.txID(),
