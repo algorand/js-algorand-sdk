@@ -10,6 +10,7 @@ import {
   addressFromMultisigPreImg,
   pksFromAddresses,
 } from './multisig.js';
+import { AddressWithSigner, signTransactionWithSigner } from './main.js';
 
 export const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
   'Not enough multisig transactions to merge. Need at least two';
@@ -144,6 +145,30 @@ function partialSignTxn(
   );
 }
 
+async function partialSignTxnWithSigner(
+  transaction: Transaction,
+  { version, threshold, pks }: MultisigMetadataWithPks,
+  { address, signer }: AddressWithSigner
+) {
+  const rawSig = (await signTransactionWithSigner(transaction, signer)).stxn
+    .sig;
+
+  if (rawSig === undefined) {
+    throw Error(
+      `Expected signer to return signed transaction with sig but sig was empty`
+    );
+  }
+
+  return createMultisigTransactionWithSignature(
+    transaction,
+    {
+      rawSig,
+      myPk: address.publicKey,
+    },
+    { version, threshold, pks }
+  );
+}
+
 /**
  * partialSignWithMultisigSignature partially signs this transaction with an external raw multisig signature and returns
  * a partially-signed multisig transaction, encoded with msgpack as a typed array.
@@ -265,6 +290,8 @@ export function mergeMultisigTransactions(multisigTxnBlobs: Uint8Array[]) {
 }
 
 /**
+ * @deprecated Use {@link signMultisigTransactionWithSigner} instead
+ *
  * signMultisigTransaction takes a raw transaction (see signTransaction), a multisig preimage, a secret key, and returns
  * a multisig transaction, which is a blob representing a transaction and multisignature account preimage. The returned
  * multisig txn can accumulate additional signatures through mergeMultisigTransactions or appendSignMultisigTransaction.
@@ -290,7 +317,26 @@ export function signMultisigTransaction(
   };
 }
 
+export async function signMultisigTransactionWithSigner(
+  txn: Transaction,
+  { version, threshold, addrs }: MultisigMetadata,
+  { address, signer }: AddressWithSigner
+) {
+  const pks = pksFromAddresses(addrs);
+  const blob = await partialSignTxnWithSigner(
+    txn,
+    { version, threshold, pks },
+    { address, signer }
+  );
+  return {
+    txID: txn.txID(),
+    blob,
+  };
+}
+
 /**
+ * @deprecated Use {@link appendSignMultisigTransactionWithSigner} instead
+ *
  * appendSignMultisigTransaction takes a multisig transaction blob, and appends our signature to it.
  * While we could derive public key preimagery from the partially-signed multisig transaction,
  * we ask the caller to pass it back in, to ensure they know what they are signing.
@@ -316,6 +362,28 @@ export function appendSignMultisigTransaction(
     multisigTxObj.txn,
     { version, threshold, pks },
     sk
+  );
+  return {
+    txID: multisigTxObj.txn.txID(),
+    blob: mergeMultisigTransactions([multisigTxnBlob, partialSignedBlob]),
+  };
+}
+
+export async function appendSignMultisigTransactionWithSigner(
+  multisigTxnBlob: Uint8Array,
+  { version, threshold, addrs }: MultisigMetadata,
+  { address, signer }: AddressWithSigner
+) {
+  const pks = pksFromAddresses(addrs);
+  // obtain underlying txn, sign it, and merge it
+  const multisigTxObj = encoding.decodeMsgpack(
+    multisigTxnBlob,
+    SignedTransaction
+  );
+  const partialSignedBlob = await partialSignTxnWithSigner(
+    multisigTxObj.txn,
+    { version, threshold, pks },
+    { address, signer }
   );
   return {
     txID: multisigTxObj.txn.txID(),

@@ -8,6 +8,7 @@ import {
   signMultisigTransaction,
   mergeMultisigTransactions,
 } from './multisigSigning.js';
+import { Address } from './main.js';
 
 /**
  * This type represents a function which can sign transactions from an atomic transaction group.
@@ -21,6 +22,11 @@ export type TransactionSigner = (
   txnGroup: Transaction[],
   indexesToSign: number[]
 ) => Promise<Uint8Array[]>;
+
+export interface AddressWithSigner {
+  address: Address;
+  signer: TransactionSigner;
+}
 
 /**
  * Create a TransactionSigner that can sign transactions for the provided basic Account.
