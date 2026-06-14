@@ -22,6 +22,7 @@ import {
   encodedMultiSigFromEncodingData,
   ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/encoded.js';
+import { AddressWithDelegatedLsigSigner, DelegatedLsigSigner } from './main.js';
 
 // base64regex is the regex to test for base64 strings
 const base64regex =
@@ -215,6 +216,8 @@ export class LogicSig implements encoding.Encodable {
   }
 
   /**
+   * @deprecated Use `signWithSigner` instead
+   *
    * Creates signature (if no msig provided) or multi signature otherwise
    * @param secretKey - Secret key to sign with
    * @param msig - Multisig account as \{version, threshold, addrs\}
@@ -236,7 +239,31 @@ export class LogicSig implements encoding.Encodable {
     }
   }
 
+  // TODO: It's a bit strange to me that a single instance allows the signature to change...
+  // Should we add a check to ensure one a sig is set it isn't changed?
+  async signWithSigner(signer: DelegatedLsigSigner, msig?: MultisigMetadata) {
+    const sigResult = await signer(this, msig);
+    if (msig == null) {
+      if (!('sig' in sigResult) || !sigResult.sig) {
+        throw Error(
+          'Expected DelegatedLsigSigner to return sig, but sig is undefined. If signing for an msig, be sure to pass the msig argument'
+        );
+      }
+      this.sig = sigResult.sig;
+    } else {
+      if (!('lmsig' in sigResult) || !sigResult.lmsig) {
+        throw Error(
+          'Expected DelegatedLsigSigner to return lmsig, but lmsig is undefined. If signing for a single account, do not pass msig argument'
+        );
+      }
+
+      this.lmsig = sigResult.lmsig;
+    }
+  }
+
   /**
+   * @deprecated Use `appendToMultisigWithSigner` instead
+   *
    * Appends a signature to multi signature
    * @param secretKey - Secret key to sign with
    */
@@ -248,12 +275,48 @@ export class LogicSig implements encoding.Encodable {
     this.lmsig.subsig[index].s = sig;
   }
 
+  async appendToMultisigWithSigner(signer: DelegatedLsigSigner) {
+    if (this.lmsig === undefined) {
+      throw new Error('no multisig present');
+    }
+
+    const sigResult = await signer(this, {
+      version: this.lmsig.v,
+      threshold: this.lmsig.thr,
+      addrs: this.lmsig.subsig.map((s) => new Address(s.pk)),
+    });
+
+    if (!('lmsig' in sigResult) || !sigResult.lmsig) {
+      throw Error(
+        'Expected DelegatedLsigSigner to return lmsig, but lmsig is undefined'
+      );
+    }
+
+    for (const subsig of sigResult.lmsig.subsig) {
+      if (subsig.s) {
+        const thisSubssig = this.lmsig.subsig.find((s) => s.s === subsig.s);
+        if (thisSubssig === undefined) {
+          throw Error(
+            `DelegatedLsigSigner return a signature for ${subsig.pk} but this pk is not in the current msig`
+          );
+        }
+        thisSubssig.s = subsig.s;
+      }
+    }
+  }
+
+  /**
+   * @deprecated Use `signWithSigner` followed by `.sig` instead
+   */
   signProgram(secretKey: Uint8Array) {
     const toBeSigned = utils.concatArrays(programTag, this.logic);
     const sig = nacl.sign(toBeSigned, secretKey);
     return sig;
   }
 
+  /**
+   * @deprecated Use `signWithSigner` followed by `.sig` instead
+   */
   signProgramMultisig(secretKey: Uint8Array, msig: EncodedMultisig) {
     const multisigAddr = addressFromMultisigPreImg({
       version: msig.v,
@@ -269,6 +332,9 @@ export class LogicSig implements encoding.Encodable {
     return sig;
   }
 
+  /**
+   * @deprecated Use `signWithSigner` followed by `.sig` instead
+   */
   singleSignMultisig(
     secretKey: Uint8Array,
     msig: EncodedMultisig
@@ -431,6 +497,8 @@ export class LogicSigAccount implements encoding.Encodable {
   }
 
   /**
+   * @deprecated Use `signMultisigWithSigner` instead
+   *
    * Turns this LogicSigAccount into a delegated LogicSig. This type of LogicSig
    * has the authority to sign transactions on behalf of another account, called
    * the delegating account. Use this function if the delegating account is a
@@ -445,7 +513,16 @@ export class LogicSigAccount implements encoding.Encodable {
     this.lsig.sign(secretKey, msig);
   }
 
+  async signMultisigWithSigner(
+    msig: MultisigMetadata,
+    signer: DelegatedLsigSigner
+  ) {
+    await this.lsig.signWithSigner(signer, msig);
+  }
+
   /**
+   * @deprecated Use appendToMultisigWithSigner
+   *
    * Adds an additional signature from a member of the delegating multisig
    * account.
    *
@@ -456,7 +533,13 @@ export class LogicSigAccount implements encoding.Encodable {
     this.lsig.appendToMultisig(secretKey);
   }
 
+  async appendToMultisigWithSigner(signer: DelegatedLsigSigner) {
+    await this.lsig.appendToMultisigWithSigner(signer);
+  }
+
   /**
+   * @deprecated Use `signWithSigner` instead
+   *
    * Turns this LogicSigAccount into a delegated LogicSig. This type of LogicSig
    * has the authority to sign transactions on behalf of another account, called
    * the delegating account. If the delegating account is a multisig account,
@@ -467,6 +550,11 @@ export class LogicSigAccount implements encoding.Encodable {
   sign(secretKey: Uint8Array) {
     this.lsig.sign(secretKey);
     this.sigkey = nacl.keyPairFromSecretKey(secretKey).publicKey;
+  }
+
+  signWithSigner(signer: AddressWithDelegatedLsigSigner) {
+    this.lsig.signWithSigner(signer.delegatedLsigSigner);
+    this.sigkey = signer.address.publicKey;
   }
 }
 

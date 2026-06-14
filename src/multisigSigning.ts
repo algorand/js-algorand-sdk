@@ -158,7 +158,7 @@ async function partialSignTxnWithSigner(
 
   if (rawSig === undefined) {
     throw Error(
-      `Expected signer to return signed transaction with sig but sig was empty`
+      `Expected TransactionSigner to return signed transaction with sig but sig was empty`
     );
   }
 

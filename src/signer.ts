@@ -8,7 +8,7 @@ import {
   signMultisigTransaction,
   mergeMultisigTransactions,
 } from './multisigSigning.js';
-import { Address } from './main.js';
+import { Address, EncodedMultisig, LogicSig } from './main.js';
 
 export interface Addressable {
   address: Address;
@@ -29,6 +29,24 @@ export type TransactionSigner = (
 
 export interface AddressWithTransactionSigner extends Addressable {
   txnSigner: TransactionSigner;
+}
+
+/** Function for signing logic signatures for delegation
+ *  @param lsig - The logic signature that is being signed for delegation
+ *  @param msig - Optional multisig account that should be set when a public key is signing as a subsigner of a multisig
+ *  @returns The address of the delegator
+ * */
+export type DelegatedLsigSigner = (
+  lsig: LogicSig,
+  // TODO: implement multisig class like in v10?
+  // https://github.com/algorandfoundation/algokit-utils-ts/blob/0a499fcaf90b2c4b62d1c80647703b655e32c9b5/packages/transact/src/multisig.ts#L387-L387
+  msig?: MultisigMetadata
+) => Promise<
+  { addr: Address } & ({ sig?: Uint8Array } | { lmsig?: EncodedMultisig })
+>;
+
+export interface AddressWithDelegatedLsigSigner extends Addressable {
+  delegatedLsigSigner: DelegatedLsigSigner;
 }
 
 /**
