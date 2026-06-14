@@ -3,6 +3,9 @@ import { Address } from './encoding/address.js';
 import { Transaction } from './transaction.js';
 import * as convert from './convert.js';
 import * as utils from './utils/utils.js';
+import { TransactionSigner } from './signer.js';
+import { SignedTransaction } from './signedTransaction.js';
+import { decodeMsgpack } from './main.js';
 
 const SIGN_BYTES_PREFIX = Uint8Array.from([77, 88]); // "MX"
 
@@ -11,6 +14,8 @@ export const MULTISIG_BAD_SENDER_ERROR_MSG =
   'The transaction sender address and multisig preimage do not match.';
 
 /**
+ * @deprecated Use signTransactionWithSigner
+ *
  * signTransaction takes an object with either payment or key registration fields and
  * a secret key and returns a signed blob.
  *
@@ -29,6 +34,19 @@ export function signTransaction(txn: Transaction, sk: Uint8Array) {
   return {
     txID: txn.txID(),
     blob: txn.signTxn(sk),
+  };
+}
+
+export async function signTransactionWithSigner(
+  txn: Transaction,
+  signer: TransactionSigner
+): Promise<ReturnType<typeof signTransaction> & { stxn: SignedTransaction }> {
+  const [blob] = await signer([txn], [0]);
+
+  return {
+    blob,
+    txID: txn.txID(),
+    stxn: decodeMsgpack(blob, SignedTransaction),
   };
 }
 
