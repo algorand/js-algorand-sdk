@@ -7,7 +7,7 @@ import { TransactionSigner } from './signer.js';
 import { SignedTransaction } from './signedTransaction.js';
 import { decodeMsgpack } from './main.js';
 
-const SIGN_BYTES_PREFIX = Uint8Array.from([77, 88]); // "MX"
+export const SIGN_BYTES_PREFIX = Uint8Array.from([77, 88]); // "MX"
 
 // Errors
 export const MULTISIG_BAD_SENDER_ERROR_MSG =

@@ -60,8 +60,8 @@ export function sanityCheckProgram(program: Uint8Array) {
   }
 }
 
-const programTag = new TextEncoder().encode('Program');
-const multisigProgramTag = new TextEncoder().encode('MsigProgram');
+export const PROGRAM_TAG = new TextEncoder().encode('Program');
+export const MSIG_PROGRAM_TAG = new TextEncoder().encode('MsigProgram');
 
 /**
  LogicSig implementation
@@ -173,7 +173,7 @@ export class LogicSig implements encoding.Encodable {
       return false;
     }
 
-    const toBeSigned = utils.concatArrays(programTag, this.logic);
+    const toBeSigned = utils.concatArrays(PROGRAM_TAG, this.logic);
 
     if (!this.sig && !this.msig && !this.lmsig) {
       const hash = nacl.genericHash(toBeSigned);
@@ -191,7 +191,7 @@ export class LogicSig implements encoding.Encodable {
         pks: this.lmsig.subsig.map((subsig) => subsig.pk),
       });
       const lmsigProgram = utils.concatArrays(
-        multisigProgramTag,
+        MSIG_PROGRAM_TAG,
         multisigAddr.publicKey,
         this.logic
       );
@@ -210,7 +210,7 @@ export class LogicSig implements encoding.Encodable {
    * @returns String representation of the address
    */
   address(): Address {
-    const toBeSigned = utils.concatArrays(programTag, this.logic);
+    const toBeSigned = utils.concatArrays(PROGRAM_TAG, this.logic);
     const hash = nacl.genericHash(toBeSigned);
     return new Address(Uint8Array.from(hash));
   }
@@ -309,7 +309,7 @@ export class LogicSig implements encoding.Encodable {
    * @deprecated Use `signWithSigner` followed by `.sig` instead
    */
   signProgram(secretKey: Uint8Array) {
-    const toBeSigned = utils.concatArrays(programTag, this.logic);
+    const toBeSigned = utils.concatArrays(PROGRAM_TAG, this.logic);
     const sig = nacl.sign(toBeSigned, secretKey);
     return sig;
   }
@@ -324,7 +324,7 @@ export class LogicSig implements encoding.Encodable {
       pks: msig.subsig.map((subsig) => subsig.pk),
     });
     const toBeSigned = utils.concatArrays(
-      multisigProgramTag,
+      MSIG_PROGRAM_TAG,
       multisigAddr.publicKey,
       this.logic
     );
