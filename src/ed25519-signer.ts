@@ -1,4 +1,8 @@
-import { MSIG_PROGRAM_TAG, PROGRAM_TAG } from './logicsig';
+import {
+  MSIG_PROGRAM_TAG,
+  PROGRAM_TAG,
+  SIGN_PROGRAM_DATA_PREFIX,
+} from './logicsig';
 import {
   Address,
   AddressWithSigners,
@@ -7,6 +11,7 @@ import {
   EncodedSubsig,
   encodeMsgpack,
   MxBytesSigner,
+  ProgramDataSigner,
   SIGN_BYTES_PREFIX,
   SignedTransaction,
   Transaction,
@@ -23,7 +28,7 @@ export interface Ed25519SigningKey {
 export function addressWithSignersFromRawEd25519Signer(
   ed25519SigningKey: Ed25519SigningKey,
   sendingAddress: Address = new Address(ed25519SigningKey.ed25519PublicKey)
-): AddressWithSigners {
+): AddressWithSigners & { programDataSigner: ProgramDataSigner } {
   const authAddress = new Address(ed25519SigningKey.ed25519PublicKey);
   const { ed25519Signer: rawSigner } = ed25519SigningKey;
 
@@ -98,8 +103,15 @@ export function addressWithSignersFromRawEd25519Signer(
     return rawSigner(bytesToSign);
   };
 
+  const programDataSigner: ProgramDataSigner = async (data, lsig) => {
+    const parts = concatArrays(lsig.address().publicKey, data);
+    const toBeSigned = concatArrays(SIGN_PROGRAM_DATA_PREFIX, parts);
+    return rawSigner(toBeSigned);
+  };
+
   return {
     address: sendingAddress,
+    programDataSigner,
     txnSigner,
     delegatedLsigSigner,
     mxBytesSigner,

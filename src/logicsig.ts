@@ -22,7 +22,11 @@ import {
   encodedMultiSigFromEncodingData,
   ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/encoded.js';
-import { AddressWithDelegatedLsigSigner, DelegatedLsigSigner } from './main.js';
+import {
+  AddressWithDelegatedLsigSigner,
+  DelegatedLsigSigner,
+  ProgramDataSigner,
+} from './main.js';
 
 // base64regex is the regex to test for base64 strings
 const base64regex =
@@ -362,6 +366,10 @@ export class LogicSig implements encoding.Encodable {
   static fromByte(encoded: ArrayLike<any>): LogicSig {
     return encoding.decodeMsgpack(encoded, LogicSig);
   }
+
+  async signDataWithSigner(data: Uint8Array, signer: ProgramDataSigner) {
+    return signer(data, this);
+  }
 }
 
 /**
@@ -566,7 +574,7 @@ export function logicSigFromByte(encoded: Uint8Array): LogicSig {
   return encoding.decodeMsgpack(encoded, LogicSig);
 }
 
-const SIGN_PROGRAM_DATA_PREFIX = new TextEncoder().encode('ProgData');
+export const SIGN_PROGRAM_DATA_PREFIX = new TextEncoder().encode('ProgData');
 
 /**
  * tealSign creates a signature compatible with ed25519verify opcode from program hash

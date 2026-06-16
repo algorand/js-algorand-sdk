@@ -61,6 +61,11 @@ export interface AddressWithSigners
     AddressWithDelegatedLsigSigner,
     AddressWithMxBytesSigner {}
 
+export type ProgramDataSigner = (
+  data: Uint8Array,
+  lsig: LogicSig
+) => Promise<Uint8Array>;
+
 /**
  * Create a TransactionSigner that can sign transactions for the provided basic Account.
  */
