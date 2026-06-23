@@ -6711,6 +6711,16 @@ export class SimulateResponse implements Encodable {
           key: 'initial-states',
           valueSchema: new OptionalSchema(SimulateInitialStates.encodingSchema),
           omitEmpty: true,
+        },
+        {
+          key: 'total-fees-paid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'total-usage',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
         }
       );
     }
@@ -6751,6 +6761,17 @@ export class SimulateResponse implements Encodable {
   public initialStates?: SimulateInitialStates;
 
   /**
+   * Total fees paid across all top-level transaction groups and their descendants.
+   */
+  public totalFeesPaid?: number;
+
+  /**
+   * Total fee usage across all top-level transaction groups and their descendants,
+   * in millionths of a basic transaction fee unit.
+   */
+  public totalUsage?: number;
+
+  /**
    * Creates a new `SimulateResponse` object.
    * @param lastRound - The round immediately preceding this simulation. State changes through this
    * round were used to run this simulation.
@@ -6761,6 +6782,9 @@ export class SimulateResponse implements Encodable {
    * evaluation in certain ways.
    * @param execTraceConfig - An object that configures simulation execution trace.
    * @param initialStates - Initial states of resources that were accessed during simulation.
+   * @param totalFeesPaid - Total fees paid across all top-level transaction groups and their descendants.
+   * @param totalUsage - Total fee usage across all top-level transaction groups and their descendants,
+   * in millionths of a basic transaction fee unit.
    */
   constructor({
     lastRound,
@@ -6769,6 +6793,8 @@ export class SimulateResponse implements Encodable {
     evalOverrides,
     execTraceConfig,
     initialStates,
+    totalFeesPaid,
+    totalUsage,
   }: {
     lastRound: number | bigint;
     txnGroups: SimulateTransactionGroupResult[];
@@ -6776,6 +6802,8 @@ export class SimulateResponse implements Encodable {
     evalOverrides?: SimulationEvalOverrides;
     execTraceConfig?: SimulateTraceConfig;
     initialStates?: SimulateInitialStates;
+    totalFeesPaid?: number | bigint;
+    totalUsage?: number | bigint;
   }) {
     this.lastRound = ensureBigInt(lastRound);
     this.txnGroups = txnGroups;
@@ -6783,6 +6811,14 @@ export class SimulateResponse implements Encodable {
     this.evalOverrides = evalOverrides;
     this.execTraceConfig = execTraceConfig;
     this.initialStates = initialStates;
+    this.totalFeesPaid =
+      typeof totalFeesPaid === 'undefined'
+        ? undefined
+        : ensureSafeInteger(totalFeesPaid);
+    this.totalUsage =
+      typeof totalUsage === 'undefined'
+        ? undefined
+        : ensureSafeInteger(totalUsage);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -6813,6 +6849,8 @@ export class SimulateResponse implements Encodable {
           ? this.initialStates.toEncodingData()
           : undefined,
       ],
+      ['total-fees-paid', this.totalFeesPaid],
+      ['total-usage', this.totalUsage],
     ]);
   }
 
@@ -6838,6 +6876,8 @@ export class SimulateResponse implements Encodable {
         typeof data.get('initial-states') !== 'undefined'
           ? SimulateInitialStates.fromEncodingData(data.get('initial-states'))
           : undefined,
+      totalFeesPaid: data.get('total-fees-paid'),
+      totalUsage: data.get('total-usage'),
     });
   }
 }
@@ -6992,6 +7032,16 @@ export class SimulateTransactionGroupResult implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'group-fees-paid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'group-usage',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
           key: 'unnamed-resources-accessed',
           valueSchema: new OptionalSchema(
             SimulateUnnamedResourcesAccessed.encodingSchema
@@ -7033,6 +7083,18 @@ export class SimulateTransactionGroupResult implements Encodable {
   public failureMessage?: string;
 
   /**
+   * Total fees paid by the transaction group and all of its descendant inner
+   * transaction groups.
+   */
+  public groupFeesPaid?: number;
+
+  /**
+   * Fee usage for the transaction group, including all descendant inner
+   * transactions, in millionths of a basic transaction fee unit.
+   */
+  public groupUsage?: number;
+
+  /**
    * These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -7056,6 +7118,10 @@ export class SimulateTransactionGroupResult implements Encodable {
    * indicate deeper inner transactions.
    * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
    * happened
+   * @param groupFeesPaid - Total fees paid by the transaction group and all of its descendant inner
+   * transaction groups.
+   * @param groupUsage - Fee usage for the transaction group, including all descendant inner
+   * transactions, in millionths of a basic transaction fee unit.
    * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -7072,6 +7138,8 @@ export class SimulateTransactionGroupResult implements Encodable {
     appBudgetConsumed,
     failedAt,
     failureMessage,
+    groupFeesPaid,
+    groupUsage,
     unnamedResourcesAccessed,
   }: {
     txnResults: SimulateTransactionResult[];
@@ -7079,6 +7147,8 @@ export class SimulateTransactionGroupResult implements Encodable {
     appBudgetConsumed?: number | bigint;
     failedAt?: (number | bigint)[];
     failureMessage?: string;
+    groupFeesPaid?: number | bigint;
+    groupUsage?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     this.txnResults = txnResults;
@@ -7095,6 +7165,14 @@ export class SimulateTransactionGroupResult implements Encodable {
         ? undefined
         : failedAt.map(ensureSafeInteger);
     this.failureMessage = failureMessage;
+    this.groupFeesPaid =
+      typeof groupFeesPaid === 'undefined'
+        ? undefined
+        : ensureSafeInteger(groupFeesPaid);
+    this.groupUsage =
+      typeof groupUsage === 'undefined'
+        ? undefined
+        : ensureSafeInteger(groupUsage);
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
   }
 
@@ -7110,6 +7188,8 @@ export class SimulateTransactionGroupResult implements Encodable {
       ['app-budget-consumed', this.appBudgetConsumed],
       ['failed-at', this.failedAt],
       ['failure-message', this.failureMessage],
+      ['group-fees-paid', this.groupFeesPaid],
+      ['group-usage', this.groupUsage],
       [
         'unnamed-resources-accessed',
         typeof this.unnamedResourcesAccessed !== 'undefined'
@@ -7133,6 +7213,8 @@ export class SimulateTransactionGroupResult implements Encodable {
       appBudgetConsumed: data.get('app-budget-consumed'),
       failedAt: data.get('failed-at'),
       failureMessage: data.get('failure-message'),
+      groupFeesPaid: data.get('group-fees-paid'),
+      groupUsage: data.get('group-usage'),
       unnamedResourcesAccessed:
         typeof data.get('unnamed-resources-accessed') !== 'undefined'
           ? SimulateUnnamedResourcesAccessed.fromEncodingData(
@@ -7171,6 +7253,11 @@ export class SimulateTransactionResult implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'fees-paid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
           key: 'fixed-signer',
           valueSchema: new OptionalSchema(new StringSchema()),
           omitEmpty: true,
@@ -7185,6 +7272,11 @@ export class SimulateTransactionResult implements Encodable {
           valueSchema: new OptionalSchema(
             SimulateUnnamedResourcesAccessed.encodingSchema
           ),
+          omitEmpty: true,
+        },
+        {
+          key: 'usage',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
         }
       );
@@ -7211,6 +7303,12 @@ export class SimulateTransactionResult implements Encodable {
   public execTrace?: SimulationTransactionExecTrace;
 
   /**
+   * Total fees paid by this transaction and all of its descendant inner
+   * transactions.
+   */
+  public feesPaid?: number;
+
+  /**
    * The account that needed to sign this transaction when no signature was provided
    * and the provided signer was incorrect.
    */
@@ -7235,6 +7333,12 @@ export class SimulateTransactionResult implements Encodable {
   public unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
 
   /**
+   * Fee usage for this transaction and all of its descendant inner transactions, in
+   * millionths of a basic transaction fee unit.
+   */
+  public usage?: number;
+
+  /**
    * Creates a new `SimulateTransactionResult` object.
    * @param txnResult - Details about a pending transaction. If the transaction was recently confirmed,
    * includes confirmation details like the round and reward details.
@@ -7242,6 +7346,8 @@ export class SimulateTransactionResult implements Encodable {
    * budged used by inner app calls spawned by this transaction.
    * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
    * call trace in a recursive way.
+   * @param feesPaid - Total fees paid by this transaction and all of its descendant inner
+   * transactions.
    * @param fixedSigner - The account that needed to sign this transaction when no signature was provided
    * and the provided signer was incorrect.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
@@ -7254,21 +7360,27 @@ export class SimulateTransactionResult implements Encodable {
    * resources that qualify for group sharing can be made available by any
    * transaction of the group; otherwise, resources must be placed in the same
    * transaction which accessed them.
+   * @param usage - Fee usage for this transaction and all of its descendant inner transactions, in
+   * millionths of a basic transaction fee unit.
    */
   constructor({
     txnResult,
     appBudgetConsumed,
     execTrace,
+    feesPaid,
     fixedSigner,
     logicSigBudgetConsumed,
     unnamedResourcesAccessed,
+    usage,
   }: {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
     execTrace?: SimulationTransactionExecTrace;
+    feesPaid?: number | bigint;
     fixedSigner?: Address | string;
     logicSigBudgetConsumed?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
+    usage?: number | bigint;
   }) {
     this.txnResult = txnResult;
     this.appBudgetConsumed =
@@ -7276,6 +7388,8 @@ export class SimulateTransactionResult implements Encodable {
         ? undefined
         : ensureSafeInteger(appBudgetConsumed);
     this.execTrace = execTrace;
+    this.feesPaid =
+      typeof feesPaid === 'undefined' ? undefined : ensureSafeInteger(feesPaid);
     this.fixedSigner =
       typeof fixedSigner === 'string'
         ? Address.fromString(fixedSigner)
@@ -7285,6 +7399,8 @@ export class SimulateTransactionResult implements Encodable {
         ? undefined
         : ensureSafeInteger(logicSigBudgetConsumed);
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
+    this.usage =
+      typeof usage === 'undefined' ? undefined : ensureSafeInteger(usage);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -7302,6 +7418,7 @@ export class SimulateTransactionResult implements Encodable {
           ? this.execTrace.toEncodingData()
           : undefined,
       ],
+      ['fees-paid', this.feesPaid],
       [
         'fixed-signer',
         typeof this.fixedSigner !== 'undefined'
@@ -7315,6 +7432,7 @@ export class SimulateTransactionResult implements Encodable {
           ? this.unnamedResourcesAccessed.toEncodingData()
           : undefined,
       ],
+      ['usage', this.usage],
     ]);
   }
 
@@ -7333,6 +7451,7 @@ export class SimulateTransactionResult implements Encodable {
               data.get('exec-trace')
             )
           : undefined,
+      feesPaid: data.get('fees-paid'),
       fixedSigner: data.get('fixed-signer'),
       logicSigBudgetConsumed: data.get('logic-sig-budget-consumed'),
       unnamedResourcesAccessed:
@@ -7341,6 +7460,7 @@ export class SimulateTransactionResult implements Encodable {
               data.get('unnamed-resources-accessed')
             )
           : undefined,
+      usage: data.get('usage'),
     });
   }
 }
