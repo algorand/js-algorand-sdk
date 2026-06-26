@@ -6992,6 +6992,16 @@ export class SimulateTransactionGroupResult implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'group-fees-paid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'group-usage',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
           key: 'unnamed-resources-accessed',
           valueSchema: new OptionalSchema(
             SimulateUnnamedResourcesAccessed.encodingSchema
@@ -7033,6 +7043,18 @@ export class SimulateTransactionGroupResult implements Encodable {
   public failureMessage?: string;
 
   /**
+   * Total fees paid by the transaction group and all of its descendant inner
+   * transaction groups.
+   */
+  public groupFeesPaid?: number;
+
+  /**
+   * Fee usage for the transaction group, including all descendant inner
+   * transactions, in millionths of a basic transaction fee unit.
+   */
+  public groupUsage?: number;
+
+  /**
    * These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -7056,6 +7078,10 @@ export class SimulateTransactionGroupResult implements Encodable {
    * indicate deeper inner transactions.
    * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
    * happened
+   * @param groupFeesPaid - Total fees paid by the transaction group and all of its descendant inner
+   * transaction groups.
+   * @param groupUsage - Fee usage for the transaction group, including all descendant inner
+   * transactions, in millionths of a basic transaction fee unit.
    * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -7072,6 +7098,8 @@ export class SimulateTransactionGroupResult implements Encodable {
     appBudgetConsumed,
     failedAt,
     failureMessage,
+    groupFeesPaid,
+    groupUsage,
     unnamedResourcesAccessed,
   }: {
     txnResults: SimulateTransactionResult[];
@@ -7079,6 +7107,8 @@ export class SimulateTransactionGroupResult implements Encodable {
     appBudgetConsumed?: number | bigint;
     failedAt?: (number | bigint)[];
     failureMessage?: string;
+    groupFeesPaid?: number | bigint;
+    groupUsage?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     this.txnResults = txnResults;
@@ -7095,6 +7125,14 @@ export class SimulateTransactionGroupResult implements Encodable {
         ? undefined
         : failedAt.map(ensureSafeInteger);
     this.failureMessage = failureMessage;
+    this.groupFeesPaid =
+      typeof groupFeesPaid === 'undefined'
+        ? undefined
+        : ensureSafeInteger(groupFeesPaid);
+    this.groupUsage =
+      typeof groupUsage === 'undefined'
+        ? undefined
+        : ensureSafeInteger(groupUsage);
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
   }
 
@@ -7110,6 +7148,8 @@ export class SimulateTransactionGroupResult implements Encodable {
       ['app-budget-consumed', this.appBudgetConsumed],
       ['failed-at', this.failedAt],
       ['failure-message', this.failureMessage],
+      ['group-fees-paid', this.groupFeesPaid],
+      ['group-usage', this.groupUsage],
       [
         'unnamed-resources-accessed',
         typeof this.unnamedResourcesAccessed !== 'undefined'
@@ -7133,6 +7173,8 @@ export class SimulateTransactionGroupResult implements Encodable {
       appBudgetConsumed: data.get('app-budget-consumed'),
       failedAt: data.get('failed-at'),
       failureMessage: data.get('failure-message'),
+      groupFeesPaid: data.get('group-fees-paid'),
+      groupUsage: data.get('group-usage'),
       unnamedResourcesAccessed:
         typeof data.get('unnamed-resources-accessed') !== 'undefined'
           ? SimulateUnnamedResourcesAccessed.fromEncodingData(
@@ -7168,6 +7210,11 @@ export class SimulateTransactionResult implements Encodable {
           valueSchema: new OptionalSchema(
             SimulationTransactionExecTrace.encodingSchema
           ),
+          omitEmpty: true,
+        },
+        {
+          key: 'fees-paid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
         },
         {
@@ -7211,6 +7258,12 @@ export class SimulateTransactionResult implements Encodable {
   public execTrace?: SimulationTransactionExecTrace;
 
   /**
+   * Total fees paid by this transaction and all of its descendant inner
+   * transactions.
+   */
+  public feesPaid?: number;
+
+  /**
    * The account that needed to sign this transaction when no signature was provided
    * and the provided signer was incorrect.
    */
@@ -7242,6 +7295,8 @@ export class SimulateTransactionResult implements Encodable {
    * budged used by inner app calls spawned by this transaction.
    * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
    * call trace in a recursive way.
+   * @param feesPaid - Total fees paid by this transaction and all of its descendant inner
+   * transactions.
    * @param fixedSigner - The account that needed to sign this transaction when no signature was provided
    * and the provided signer was incorrect.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
@@ -7259,6 +7314,7 @@ export class SimulateTransactionResult implements Encodable {
     txnResult,
     appBudgetConsumed,
     execTrace,
+    feesPaid,
     fixedSigner,
     logicSigBudgetConsumed,
     unnamedResourcesAccessed,
@@ -7266,6 +7322,7 @@ export class SimulateTransactionResult implements Encodable {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
     execTrace?: SimulationTransactionExecTrace;
+    feesPaid?: number | bigint;
     fixedSigner?: Address | string;
     logicSigBudgetConsumed?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
@@ -7276,6 +7333,8 @@ export class SimulateTransactionResult implements Encodable {
         ? undefined
         : ensureSafeInteger(appBudgetConsumed);
     this.execTrace = execTrace;
+    this.feesPaid =
+      typeof feesPaid === 'undefined' ? undefined : ensureSafeInteger(feesPaid);
     this.fixedSigner =
       typeof fixedSigner === 'string'
         ? Address.fromString(fixedSigner)
@@ -7302,6 +7361,7 @@ export class SimulateTransactionResult implements Encodable {
           ? this.execTrace.toEncodingData()
           : undefined,
       ],
+      ['fees-paid', this.feesPaid],
       [
         'fixed-signer',
         typeof this.fixedSigner !== 'undefined'
@@ -7333,6 +7393,7 @@ export class SimulateTransactionResult implements Encodable {
               data.get('exec-trace')
             )
           : undefined,
+      feesPaid: data.get('fees-paid'),
       fixedSigner: data.get('fixed-signer'),
       logicSigBudgetConsumed: data.get('logic-sig-budget-consumed'),
       unnamedResourcesAccessed:
