@@ -55,16 +55,14 @@ export interface AddressWithMxBytesSigner extends Addressable {
   mxBytesSigner: MxBytesSigner;
 }
 
-export interface AddressWithSigners
-  extends Addressable,
-    AddressWithTransactionSigner,
-    AddressWithDelegatedLsigSigner,
-    AddressWithMxBytesSigner {}
-
 export type ProgramDataSigner = (
   data: Uint8Array,
   lsig: LogicSig
 ) => Promise<Uint8Array>;
+
+export interface AddressWithProgramDataSigner extends Addressable {
+  programDataSigner: ProgramDataSigner;
+}
 
 /**
  * Create a TransactionSigner that can sign transactions for the provided basic Account.

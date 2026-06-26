@@ -5,7 +5,10 @@ import {
 } from './logicsig';
 import {
   Address,
-  AddressWithSigners,
+  AddressWithDelegatedLsigSigner,
+  AddressWithMxBytesSigner,
+  AddressWithProgramDataSigner,
+  AddressWithTransactionSigner,
   DelegatedLsigSigner,
   EncodedMultisig,
   EncodedSubsig,
@@ -28,7 +31,10 @@ export interface Ed25519SigningKey {
 export function addressWithSignersFromRawEd25519Signer(
   ed25519SigningKey: Ed25519SigningKey,
   sendingAddress: Address = new Address(ed25519SigningKey.ed25519PublicKey)
-): AddressWithSigners & { programDataSigner: ProgramDataSigner } {
+): AddressWithTransactionSigner &
+  AddressWithDelegatedLsigSigner &
+  AddressWithMxBytesSigner &
+  AddressWithProgramDataSigner {
   const authAddress = new Address(ed25519SigningKey.ed25519PublicKey);
   const { ed25519Signer: rawSigner } = ed25519SigningKey;
 
