@@ -9,7 +9,10 @@ import {
   mergeMultisigTransactions,
 } from './multisigSigning.js';
 import type { Address } from './encoding/address.js';
-import type { EncodedMultisig } from './types/transactions/encoded.js';
+import type {
+  EncodedMultisig,
+  EncodedPQSig,
+} from './types/transactions/encoded.js';
 import type { LogicSig } from './logicsig.js';
 
 export interface Addressable {
@@ -44,7 +47,11 @@ export type DelegatedLsigSigner = (
   // https://github.com/algorandfoundation/algokit-utils-ts/blob/0a499fcaf90b2c4b62d1c80647703b655e32c9b5/packages/transact/src/multisig.ts#L387-L387
   msig?: MultisigMetadata
 ) => Promise<
-  { address: Address } & ({ sig?: Uint8Array } | { lmsig?: EncodedMultisig })
+  { address: Address } & (
+    | { sig: Uint8Array }
+    | { lmsig: EncodedMultisig }
+    | { pqsig: EncodedPQSig }
+  )
 >;
 
 export interface AddressWithDelegatedLsigSigner extends Addressable {

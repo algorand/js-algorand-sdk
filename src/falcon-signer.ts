@@ -1,13 +1,19 @@
+import { PROGRAM_TAG } from './logicsig';
 import {
   Address,
+  AddressWithDelegatedLsigSigner,
   AddressWithTransactionSigner,
+  DelegatedLsigSigner,
   EncodedPQSig,
   encodeMsgpack,
+  LogicSig,
+  MultisigMetadata,
   SignedTransaction,
   Transaction,
   TransactionSigner,
 } from './main';
 import { genericHash } from './nacl/naclWrappers';
+import { concatArrays } from './utils/utils';
 
 /**
  * The 2-byte ASCII identifier of the Falcon-1024 post-quantum signature scheme.
@@ -22,13 +28,13 @@ export interface FalconSigningKey {
 export function addressWithSignersFromRawFalcon1024Signer(
   falconSigningKey: FalconSigningKey,
   sendingAddress?: Address
-): AddressWithTransactionSigner {
+): AddressWithTransactionSigner & AddressWithDelegatedLsigSigner {
   const { falconPublicKey, falconSigner: rawSigner } = falconSigningKey;
   const { address: authAddress, salt } = Address.canonicalPQAddress(
     FALCON1024_SCHEME,
     falconPublicKey
   );
-  const fromAddress = sendingAddress ?? authAddress;
+  const txnSender = sendingAddress ?? authAddress;
 
   const txnSigner: TransactionSigner = async (
     txnGroup: Transaction[],
@@ -50,7 +56,7 @@ export function addressWithSignersFromRawFalcon1024Signer(
       const stxn = new SignedTransaction({
         txn,
         pqsig,
-        sgnr: txn.sender.equals(fromAddress) ? undefined : authAddress,
+        sgnr: txn.sender.equals(txnSender) ? undefined : authAddress,
       });
 
       stxns.push(stxn);
@@ -59,8 +65,33 @@ export function addressWithSignersFromRawFalcon1024Signer(
     return stxns.map((stxn) => encodeMsgpack(stxn));
   };
 
+  const delegatedLsigSigner: DelegatedLsigSigner = async (
+    lsig: LogicSig,
+    msig?: MultisigMetadata
+  ) => {
+    if (msig) {
+      throw Error('FALCON-1024 does not support multisig signing');
+    }
+
+    const toBeSigned = new Uint8Array(
+      genericHash(concatArrays(authAddress.publicKey, PROGRAM_TAG, lsig.logic))
+    );
+
+    const sig = await rawSigner(toBeSigned);
+
+    const pqsig: EncodedPQSig = {
+      sch: FALCON1024_SCHEME,
+      slt: salt,
+      pk: falconPublicKey,
+      sig,
+    };
+
+    return { address: authAddress, pqsig };
+  };
+
   return {
-    address: fromAddress,
+    address: txnSender,
     txnSigner,
+    delegatedLsigSigner,
   };
 }
