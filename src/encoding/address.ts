@@ -1,4 +1,7 @@
 import base32 from 'hi-base32';
+// @noble/curves only exports the ".js" subpath; the extension is required to resolve.
+// eslint-disable-next-line import/extensions
+import { ed25519 } from '@noble/curves/ed25519.js';
 import * as nacl from '../nacl/naclWrappers.js';
 import * as utils from '../utils/utils.js';
 import { encodeUint64 } from './uint64.js';
@@ -12,6 +15,32 @@ export const ALGORAND_ZERO_ADDRESS_STRING =
 
 export const MALFORMED_ADDRESS_ERROR_MSG = 'address seems to be malformed';
 export const CHECKSUM_ADDRESS_ERROR_MSG = 'wrong checksum for address';
+
+/**
+ * The domain-separation prefix prepended to a post-quantum address preimage
+ * before hashing. Matches go-algorand's protocol.PostQuantumAddress HashID.
+ */
+const PQ_ADDRESS_PREFIX = new TextEncoder().encode('PQA');
+
+/**
+ * The required byte length of a post-quantum signature scheme identifier.
+ */
+const PQ_SCHEME_SIZE = 2;
+
+/**
+ * Check whether a 32-byte value is a valid Ed25519 curve point.
+ */
+function isEd25519Point(publicKey: Uint8Array): boolean {
+  try {
+    ed25519.Point.fromBytes(publicKey, true);
+    return true;
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('bad point')) {
+      return false;
+    }
+    throw e;
+  }
+}
 
 function checksumFromPublicKey(pk: Uint8Array): Uint8Array {
   return Uint8Array.from(
@@ -119,6 +148,44 @@ export class Address {
       throw new Error(CHECKSUM_ADDRESS_ERROR_MSG);
 
     return new Address(pk);
+  }
+
+  /**
+   * Derive a post-quantum (PQ) account address from a PQ signature scheme and
+   * its public key, using the canonical salt.
+   *
+   * The address is the SHA-512/256 hash of ("PQA" || scheme || salt || key).
+   * The canonical salt is the lowest salt in the range 0..255 whose derived
+   * address is NOT a valid Ed25519 point, which ensures PQ addresses cannot
+   * collide with classical Ed25519 accounts.
+   *
+   * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
+   * @param key - The scheme's canonical public key.
+   * @returns An Address corresponding to the PQ public key.
+   */
+  static fromPQKey(scheme: string, key: Uint8Array): Address {
+    const schemeBytes = new TextEncoder().encode(scheme);
+    if (schemeBytes.length !== PQ_SCHEME_SIZE)
+      throw new Error(
+        `invalid PQ scheme length: expected ${PQ_SCHEME_SIZE} bytes, got ${schemeBytes.length}`
+      );
+
+    // Rejection-sample the lowest salt that yields a PQ-compliant (non-Ed25519)
+    // address. The probability of exhausting the range is ~2^-256.
+    for (let salt = 0; salt <= 0xff; salt++) {
+      const toBeHashed = utils.concatArrays(
+        PQ_ADDRESS_PREFIX,
+        schemeBytes,
+        Uint8Array.of(salt),
+        key
+      );
+      const publicKey = Uint8Array.from(nacl.genericHash(toBeHashed));
+      if (!isEd25519Point(publicKey)) {
+        return new Address(publicKey);
+      }
+    }
+
+    throw new Error('no canonical salt exists for this PQ public key and scheme');
   }
 
   /**

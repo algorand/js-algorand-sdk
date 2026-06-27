@@ -1,0 +1,155 @@
+/* eslint-env mocha */
+import assert from 'assert';
+import {
+  Address,
+  decodeAddress,
+  ALGORAND_ADDRESS_LENGTH,
+} from '../src/encoding/address.js';
+
+// Port of go-algorand's post-quantum address tests (basics/pqAddress_test.go).
+//
+// The JS SDK only exposes the canonical-salt derivation path via
+// `Address.fromPQKey(scheme, key)`, which returns just an `Address`. Several Go
+// subtests exercise lower-level APIs that this SDK does not expose, so they are
+// out of scope here:
+//   - Known-answer rows using non-canonical explicit salts (seed 0/salt 255,
+//     seed 255/salt 255, the on-curve seed 1/salt 0, and seed 2/salt 2 whose
+//     salt is not known to be canonical) require explicit-salt derivation.
+//   - `IsPQCompliant()` / `IsEdwards25519Point` assertions (the on-curve check is
+//     private).
+//   - The `CanonicalPQAddressSalt` salt-return value and lower-salt loop
+//     (`fromPQKey` does not return the salt it landed on).
+//   - The `pqAddressPreimage` byte-layout test (the preimage is built inline).
+//
+// `falcon-1024` is the same Falcon implementation used by go-algorand, so a
+// keypair generated from the same 48-byte seed yields the same public key bytes;
+// that is what makes the Go known-answer addresses reproducible here.
+
+// falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
+// via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
+// read `file://` URLs, so under the Node test runner we shim fetch to serve the
+// local `.wasm` from disk. In the browser test runner webpack bundles the wasm
+// and real fetch works, so this shim (and its `node:` imports, skipped by the
+// webpackIgnore magic comment) is never used.
+async function installNodeWasmFetchShim(): Promise<void> {
+  const isNode =
+    typeof process !== 'undefined' &&
+    process.versions != null &&
+    process.versions.node != null;
+  if (!isNode) return;
+
+  const { readFile } = await import(/* webpackIgnore: true */ 'node:fs/promises');
+  const { fileURLToPath } = await import(/* webpackIgnore: true */ 'node:url');
+
+  const originalFetch = globalThis.fetch.bind(globalThis);
+  globalThis.fetch = (async (input: unknown, init?: unknown) => {
+    const url = input instanceof URL ? input.href : String(input);
+    if (url.startsWith('file://') && url.endsWith('.wasm')) {
+      const bytes = await readFile(fileURLToPath(url));
+      return new Response(bytes, {
+        headers: { 'Content-Type': 'application/wasm' },
+      });
+    }
+    return originalFetch(
+      input as Parameters<typeof fetch>[0],
+      init as Parameters<typeof fetch>[1]
+    );
+  }) as typeof fetch;
+}
+
+// falcon-1024 is ESM-only; a static import would be transpiled to require() by
+// tsx (the project is not "type": "module") and fail to resolve. Load it
+// dynamically instead, after the wasm shim is in place.
+let generateKey: (seed?: Uint8Array) => {
+  publicKey: Uint8Array;
+  privateKey: Uint8Array;
+};
+
+const FALCON1024_SCHEME = 'f1';
+
+// Mirrors Go's falconPublicKeyForPQAddressTest: a 48-byte zero-filled seed with
+// only the first byte set.
+function falconPublicKeyForSeedByte(firstSeedByte: number): Uint8Array {
+  const seed = new Uint8Array(48);
+  seed[0] = firstSeedByte;
+  return generateKey(seed).publicKey;
+}
+
+describe('PQ Address', function pqAddressSuite() {
+  // Allow time for WASM instantiation and Falcon key generation.
+  this.timeout(20000);
+
+  before(async () => {
+    await installNodeWasmFetchShim();
+    ({ generateKey } = await import('falcon-1024'));
+  });
+
+  describe('known answers (canonical salt)', () => {
+    // These are the Go known-answer rows whose explicit salt equals the
+    // canonical salt for that key, so they are reachable via fromPQKey.
+    const testCases = [
+      {
+        name: 'seed byte 0 (canonical salt 0)',
+        firstSeedByte: 0,
+        expectedAddress:
+          '7ZQ6VZDWW5NECRV3XMW6L7YX743PFC55IEVS4X3GDHIW4NBMYLYTJT4VTA',
+      },
+      {
+        name: 'seed byte 1 (canonical salt 1)',
+        firstSeedByte: 1,
+        expectedAddress:
+          '4X6LFIO4F7WZFXM24J567HAXW4FHXWKGVGPNCA4SMPPAYMZYSHYTB6XXC4',
+      },
+    ];
+
+    testCases.forEach((tc) => {
+      it(`derives the expected address for ${tc.name}`, () => {
+        const publicKey = falconPublicKeyForSeedByte(tc.firstSeedByte);
+
+        const addr = Address.fromPQKey(FALCON1024_SCHEME, publicKey);
+        assert.strictEqual(addr.toString(), tc.expectedAddress);
+
+        // Go's addrAgain check: derivation is deterministic.
+        const addrAgain = Address.fromPQKey(FALCON1024_SCHEME, publicKey);
+        assert.ok(addr.equals(addrAgain));
+        assert.strictEqual(addr.toString(), addrAgain.toString());
+      });
+    });
+  });
+
+  describe('address validity', () => {
+    it('produces a well-formed, round-trippable address', () => {
+      const publicKey = falconPublicKeyForSeedByte(1);
+      const addr = Address.fromPQKey(FALCON1024_SCHEME, publicKey);
+
+      const encoded = addr.toString();
+      assert.strictEqual(encoded.length, ALGORAND_ADDRESS_LENGTH);
+      assert.ok(decodeAddress(encoded).equals(addr));
+    });
+  });
+
+  describe('scheme length validation', () => {
+    // Port of TestCanonicalPQAddressSaltRejectsInvalidSchemeLength.
+    ['', 'x', 'xyz'].forEach((scheme) => {
+      it(`rejects scheme ${JSON.stringify(scheme)}`, () => {
+        const publicKey = falconPublicKeyForSeedByte(0);
+        assert.throws(
+          () => Address.fromPQKey(scheme, publicKey),
+          /invalid PQ scheme length/
+        );
+      });
+    });
+  });
+
+  describe('does not require a registered scheme or validated key', () => {
+    // Port of TestCanonicalPQAddressSaltDoesNotRequireRegisteredSchemeOrValidatedKey.
+    it('derives a deterministic address for an arbitrary scheme and key', () => {
+      const scheme = 'x1';
+      const publicKey = Uint8Array.of(0xab, 0xcd, 0xef);
+
+      const addr = Address.fromPQKey(scheme, publicKey);
+      const addrAgain = Address.fromPQKey(scheme, publicKey);
+      assert.ok(addr.equals(addrAgain));
+    });
+  });
+});
