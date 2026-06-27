@@ -7,6 +7,7 @@ import {
   Transaction,
   TransactionSigner,
 } from './main';
+import { genericHash } from './nacl/naclWrappers';
 
 /**
  * The 2-byte ASCII identifier of the Falcon-1024 post-quantum signature scheme.
@@ -37,7 +38,9 @@ export function addressWithSignersFromRawFalcon1024Signer(
     for (const index of indexesToSign) {
       const txn = txnGroup[index];
       // eslint-disable-next-line no-await-in-loop
-      const sig = await rawSigner(txn.bytesToSign());
+      const sig = await rawSigner(
+        new Uint8Array(genericHash(txn.bytesToSign()))
+      );
       const pqsig: EncodedPQSig = {
         sch: FALCON1024_SCHEME,
         slt: salt,

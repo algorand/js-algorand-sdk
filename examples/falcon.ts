@@ -5,6 +5,7 @@
 import assert from 'assert';
 import algosdk, { SignedTransaction } from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
+import { genericHash } from '../src/nacl/naclWrappers';
 
 // falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
 // via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
@@ -80,7 +81,7 @@ async function main() {
   const fundTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: dispenser.addr,
     receiver: falconAddr,
-    amount: 200_000,
+    amount: 103_000,
     suggestedParams,
   });
   await client.sendRawTransaction(fundTxn.signTxn(dispenser.privateKey)).do();
@@ -97,22 +98,25 @@ async function main() {
     sender: falconAddr,
     receiver: falconAddr,
     amount: 0,
-    suggestedParams,
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
   });
 
   const atc = new algosdk.AtomicTransactionComposer();
   atc.addTransaction({ txn: zeroPayTxn, signer: falconTxnSigner });
   const [stxn] = await atc.gatherSignatures();
+  const falconSig = algosdk.decodeMsgpack(stxn, SignedTransaction).pqsig!.sig!;
   const verifyResult = verifyCompressed(
     publicKey,
-    algosdk.decodeMsgpack(stxn, SignedTransaction).pqsig!.sig!,
-    zeroPayTxn.bytesToSign()
+    falconSig,
+    new Uint8Array(genericHash(zeroPayTxn.bytesToSign()))
   );
 
   console.debug(
     'signed txn',
     algosdk.decodeMsgpack(stxn, SignedTransaction).toEncodingData()
   );
+
+  console.debug('sig', falconSig.byteLength);
 
   console.log('verify result', verifyResult);
   const result = await atc.execute(client, 4);
