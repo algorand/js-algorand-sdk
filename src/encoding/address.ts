@@ -164,6 +164,25 @@ export class Address {
    * @returns An Address corresponding to the PQ public key.
    */
   static fromPQKey(scheme: string, key: Uint8Array): Address {
+    return Address.canonicalPQAddress(scheme, key).address;
+  }
+
+  /**
+   * Derive a post-quantum (PQ) account address together with the canonical salt
+   * used to derive it.
+   *
+   * This is the same derivation as {@link Address.fromPQKey}, but it also
+   * returns the salt, which is required when constructing a PQ signature
+   * (the `slt` field of the encoded PQ signature).
+   *
+   * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
+   * @param key - The scheme's canonical public key.
+   * @returns The derived Address and the canonical 1-byte salt.
+   */
+  static canonicalPQAddress(
+    scheme: string,
+    key: Uint8Array
+  ): { address: Address; salt: number } {
     const schemeBytes = new TextEncoder().encode(scheme);
     if (schemeBytes.length !== PQ_SCHEME_SIZE)
       throw new Error(
@@ -181,7 +200,7 @@ export class Address {
       );
       const publicKey = Uint8Array.from(nacl.genericHash(toBeHashed));
       if (!isEd25519Point(publicKey)) {
-        return new Address(publicKey);
+        return { address: new Address(publicKey), salt };
       }
     }
 
