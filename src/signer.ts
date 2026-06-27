@@ -8,7 +8,9 @@ import {
   signMultisigTransaction,
   mergeMultisigTransactions,
 } from './multisigSigning.js';
-import { Address, EncodedMultisig, LogicSig } from './main.js';
+import type { Address } from './encoding/address.js';
+import type { EncodedMultisig } from './types/transactions/encoded.js';
+import type { LogicSig } from './logicsig.js';
 
 export interface Addressable {
   address: Address;

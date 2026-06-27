@@ -22,11 +22,11 @@ import {
   encodedMultiSigFromEncodingData,
   ENCODED_MULTISIG_SCHEMA,
 } from './types/transactions/encoded.js';
-import {
+import type {
   AddressWithDelegatedLsigSigner,
   DelegatedLsigSigner,
   ProgramDataSigner,
-} from './main.js';
+} from './signer.js';
 
 // base64regex is the regex to test for base64 strings
 const base64regex =

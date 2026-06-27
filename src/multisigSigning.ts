@@ -10,10 +10,8 @@ import {
   addressFromMultisigPreImg,
   pksFromAddresses,
 } from './multisig.js';
-import {
-  AddressWithTransactionSigner,
-  signTransactionWithSigner,
-} from './main.js';
+import type { AddressWithTransactionSigner } from './signer.js';
+import { signTransactionWithSigner } from './signing.js';
 
 export const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
   'Not enough multisig transactions to merge. Need at least two';

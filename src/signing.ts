@@ -1,10 +1,82 @@
 import * as nacl from './nacl/naclWrappers.js';
 import { Address } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
+import * as utils from './utils/utils.js';
 import { SignedTransaction } from './signedTransaction.js';
 import { Transaction } from './transaction.js';
 import { LogicSig, LogicSigAccount } from './logicsig.js';
 import { addressFromMultisigPreImg } from './multisig.js';
+import type { TransactionSigner } from './signer.js';
+
+export const SIGN_BYTES_PREFIX = Uint8Array.from([77, 88]); // "MX"
+
+/**
+ * @deprecated Use signTransactionWithSigner
+ *
+ * signTransaction takes an object with either payment or key registration fields and
+ * a secret key and returns a signed blob.
+ *
+ * Payment transaction fields: from, to, amount, fee, firstValid, lastValid, genesisHash,
+ * note(optional), GenesisID(optional), closeRemainderTo(optional)
+ *
+ * Key registration fields: fee, firstValid, lastValid, voteKey, selectionKey, voteFirst,
+ * voteLast, voteKeyDilution, genesisHash, note(optional), GenesisID(optional)
+ *
+ * If flatFee is not set and the final calculated fee is lower than the protocol minimum fee, the fee will be increased to match the minimum.
+ * @param txn - object with either payment or key registration fields
+ * @param sk - Algorand Secret Key
+ * @returns object contains the binary signed transaction and its txID
+ */
+export function signTransaction(txn: Transaction, sk: Uint8Array) {
+  return {
+    txID: txn.txID(),
+    blob: txn.signTxn(sk),
+  };
+}
+
+export async function signTransactionWithSigner(
+  txn: Transaction,
+  signer: TransactionSigner
+): Promise<ReturnType<typeof signTransaction> & { stxn: SignedTransaction }> {
+  const [blob] = await signer([txn], [0]);
+
+  return {
+    blob,
+    txID: txn.txID(),
+    stxn: encoding.decodeMsgpack(blob, SignedTransaction),
+  };
+}
+
+/**
+ * signBytes takes arbitrary bytes and a secret key, prepends the bytes with "MX" for domain separation, signs the bytes
+ * with the private key, and returns the signature.
+ * @param bytes - Uint8array
+ * @param sk - Algorand secret key
+ * @returns binary signature
+ */
+export function signBytes(bytes: Uint8Array, sk: Uint8Array) {
+  const toBeSigned = utils.concatArrays(SIGN_BYTES_PREFIX, bytes);
+  const sig = nacl.sign(toBeSigned, sk);
+  return sig;
+}
+
+/**
+ * verifyBytes takes array of bytes, an address, and a signature and verifies if the signature is correct for the public
+ * key and the bytes (the bytes should have been signed with "MX" prepended for domain separation).
+ * @param bytes - Uint8Array
+ * @param signature - binary signature
+ * @param addr - string address
+ * @returns bool
+ */
+export function verifyBytes(
+  bytes: Uint8Array,
+  signature: Uint8Array,
+  addr: string | Address
+) {
+  const toBeVerified = utils.concatArrays(SIGN_BYTES_PREFIX, bytes);
+  const addrObj = typeof addr === 'string' ? Address.fromString(addr) : addr;
+  return nacl.verify(toBeVerified, signature, addrObj.publicKey);
+}
 
 function signLogicSigTransactionWithAddress(
   txn: Transaction,
