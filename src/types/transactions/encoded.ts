@@ -1,6 +1,8 @@
 import {
   NamedMapSchema,
   FixedLengthByteArraySchema,
+  ByteArraySchema,
+  StringSchema,
   Uint64Schema,
   ArraySchema,
   OptionalSchema,
@@ -114,5 +116,77 @@ export function encodedMultiSigToEncodingData(
     ['v', msig.v],
     ['thr', msig.thr],
     ['subsig', msig.subsig.map(encodedSubsigToEncodingData)],
+  ]);
+}
+
+/**
+ * A structure for the encoded post-quantum signature transaction authorization
+ * proof. Mirrors the `PQSig` struct from go-algorand.
+ */
+export interface EncodedPQSig {
+  /**
+   * The 2-byte ASCII identifier of the post-quantum signature scheme (e.g. "f1"
+   * for Falcon-1024).
+   */
+  sch: string;
+
+  /**
+   * The 1-byte salt used when deriving the post-quantum account address from the
+   * public key.
+   */
+  slt: number;
+
+  /**
+   * The post-quantum public key.
+   */
+  pk: Uint8Array;
+
+  /**
+   * The post-quantum signature over the transaction.
+   */
+  sig: Uint8Array;
+}
+
+export const ENCODED_PQSIG_SCHEMA = new NamedMapSchema(
+  allOmitEmpty([
+    {
+      key: 'sch',
+      valueSchema: new StringSchema(),
+    },
+    {
+      key: 'slt',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'pk',
+      valueSchema: new ByteArraySchema(),
+    },
+    {
+      key: 'sig',
+      valueSchema: new ByteArraySchema(),
+    },
+  ])
+);
+
+export function encodedPQSigFromEncodingData(data: unknown): EncodedPQSig {
+  if (!(data instanceof Map)) {
+    throw new Error(`Invalid decoded EncodedPQSig: ${data}`);
+  }
+  return {
+    sch: data.get('sch'),
+    slt: ensureSafeUnsignedInteger(data.get('slt')),
+    pk: data.get('pk'),
+    sig: data.get('sig'),
+  };
+}
+
+export function encodedPQSigToEncodingData(
+  pqsig: EncodedPQSig
+): Map<string, unknown> {
+  return new Map<string, unknown>([
+    ['sch', pqsig.sch],
+    ['slt', pqsig.slt],
+    ['pk', pqsig.pk],
+    ['sig', pqsig.sig],
   ]);
 }

@@ -11,6 +11,10 @@ import {
   encodedMultiSigToEncodingData,
   encodedMultiSigFromEncodingData,
   ENCODED_MULTISIG_SCHEMA,
+  EncodedPQSig,
+  encodedPQSigToEncodingData,
+  encodedPQSigFromEncodingData,
+  ENCODED_PQSIG_SCHEMA,
 } from './types/transactions/index.js';
 import {
   AddressSchema,
@@ -40,6 +44,10 @@ export class SignedTransaction implements Encodable {
         valueSchema: new OptionalSchema(LogicSig.encodingSchema),
       },
       {
+        key: 'pq',
+        valueSchema: new OptionalSchema(ENCODED_PQSIG_SCHEMA),
+      },
+      {
         key: 'sgnr',
         valueSchema: new OptionalSchema(new AddressSchema()),
       },
@@ -67,6 +75,11 @@ export class SignedTransaction implements Encodable {
   public readonly lsig?: LogicSig;
 
   /**
+   * Post-quantum signature
+   */
+  public readonly pqsig?: EncodedPQSig;
+
+  /**
    * The signer, if signing with a different key than the Transaction type `sender` property indicates
    */
   public readonly sgnr?: Address;
@@ -76,24 +89,28 @@ export class SignedTransaction implements Encodable {
     sig,
     msig,
     lsig,
+    pqsig,
     sgnr,
   }: {
     txn: Transaction;
     sig?: Uint8Array;
     msig?: EncodedMultisig;
     lsig?: LogicSig;
+    pqsig?: EncodedPQSig;
     sgnr?: Address;
   }) {
     this.txn = txn;
     this.sig = sig;
     this.msig = msig;
     this.lsig = lsig;
+    this.pqsig = pqsig;
     this.sgnr = sgnr;
 
     let numberOfSigs = 0;
     if (sig) numberOfSigs += 1;
     if (msig) numberOfSigs += 1;
     if (lsig) numberOfSigs += 1;
+    if (pqsig) numberOfSigs += 1;
     if (numberOfSigs > 1) {
       throw new Error(
         `SignedTransaction must not have more than 1 signature. Got ${numberOfSigs}`
@@ -115,6 +132,7 @@ export class SignedTransaction implements Encodable {
         this.msig ? encodedMultiSigToEncodingData(this.msig) : undefined,
       ],
       ['lsig', this.lsig ? this.lsig.toEncodingData() : undefined],
+      ['pq', this.pqsig ? encodedPQSigToEncodingData(this.pqsig) : undefined],
       ['sgnr', this.sgnr],
     ]);
   }
@@ -131,6 +149,9 @@ export class SignedTransaction implements Encodable {
         : undefined,
       lsig: data.get('lsig')
         ? LogicSig.fromEncodingData(data.get('lsig'))
+        : undefined,
+      pqsig: data.get('pq')
+        ? encodedPQSigFromEncodingData(data.get('pq'))
         : undefined,
       sgnr: data.get('sgnr'),
     });
