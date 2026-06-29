@@ -9,6 +9,7 @@
 import assert from 'assert';
 import algosdk, {
   LogicSigAccount,
+  makePaymentTxnWithSuggestedParamsFromObject,
   SignedTransaction,
   type Falcon1024SigningKey,
 } from '../src';
@@ -170,6 +171,67 @@ async function main() {
     lsigResult.confirmedRound,
     'txid',
     lsigResult.txIDs[0]
+  );
+
+  const ed25519Acct = algosdk.generateAccount();
+
+  const edFund = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: dispenser.addr,
+    receiver: ed25519Acct.addr,
+    amount: 107_000,
+    suggestedParams,
+  });
+  await client.sendRawTransaction(edFund.signTxn(dispenser.privateKey)).do();
+  await algosdk.waitForConfirmation(client, edFund.txID(), 3);
+
+  console.log('ed funded');
+
+  const rekeyTxn = makePaymentTxnWithSuggestedParamsFromObject({
+    suggestedParams,
+    sender: ed25519Acct.addr,
+    receiver: ed25519Acct.addr,
+    amount: 0,
+    rekeyTo: falconAddr,
+  });
+
+  await client.sendRawTransaction(rekeyTxn.signTxn(ed25519Acct.sk)).do();
+  await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
+  console.log(`Rekeyed ${ed25519Acct.addr} to ${falconAddr}`);
+
+  // Payment from rekeyed
+  const rekeyedPay = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: ed25519Acct.addr,
+    receiver: falconAddr,
+    amount: 0,
+    note: new TextEncoder().encode('rekeyed pay'),
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
+  });
+
+  const rekeyedAtc = new algosdk.AtomicTransactionComposer();
+  rekeyedAtc.addTransaction({ txn: rekeyedPay, signer: falconTxnSigner });
+  await rekeyedAtc.execute(client, 3);
+
+  console.log(
+    `Sent a payment from ${rekeyedPay.sender} by signing with ${falconAddr}`
+  );
+
+  // Payment from rekeyed delegated lsig
+  const rekeyedDlsigPay = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: ed25519Acct.addr,
+    receiver: falconAddr,
+    amount: 0,
+    note: new TextEncoder().encode('rekeyed dlisg pay'),
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
+  });
+
+  const rekeyedDlsigAtc = new algosdk.AtomicTransactionComposer();
+  rekeyedDlsigAtc.addTransaction({
+    txn: rekeyedDlsigPay,
+    signer: falconTxnSigner,
+  });
+  await rekeyedDlsigAtc.execute(client, 3);
+  console.log(
+    `Sent a payment from ${rekeyedPay.sender} by signing an lsig with ${falconAddr}`
   );
 }
 
