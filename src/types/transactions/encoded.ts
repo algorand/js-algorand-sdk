@@ -125,10 +125,10 @@ export function encodedMultiSigToEncodingData(
  */
 export interface EncodedPQSig {
   /**
-   * The 2-byte ASCII identifier of the post-quantum signature scheme (e.g. "f1"
+   * The 2-byte identifier of the post-quantum signature scheme (e.g. "f1"
    * for Falcon-1024).
    */
-  sch: string;
+  sch: Uint8Array;
 
   /**
    * The 1-byte salt used when deriving the post-quantum account address from the
@@ -151,7 +151,7 @@ export const ENCODED_PQSIG_SCHEMA = new NamedMapSchema(
   allOmitEmpty([
     {
       key: 'sch',
-      valueSchema: new StringSchema(),
+      valueSchema: new ByteArraySchema(),
     },
     {
       key: 'slt',

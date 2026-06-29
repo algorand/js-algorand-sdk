@@ -163,7 +163,7 @@ export class Address {
    * @param key - The scheme's canonical public key.
    * @returns An Address corresponding to the PQ public key.
    */
-  static fromPQKey(scheme: string, key: Uint8Array): Address {
+  static fromPQKey(scheme: Uint8Array, key: Uint8Array): Address {
     return Address.canonicalPQAddress(scheme, key).address;
   }
 
@@ -180,10 +180,9 @@ export class Address {
    * @returns The derived Address and the canonical 1-byte salt.
    */
   static canonicalPQAddress(
-    scheme: string,
+    schemeBytes: Uint8Array,
     key: Uint8Array
   ): { address: Address; salt: number } {
-    const schemeBytes = new TextEncoder().encode(scheme);
     if (schemeBytes.length !== PQ_SCHEME_SIZE)
       throw new Error(
         `invalid PQ scheme length: expected ${PQ_SCHEME_SIZE} bytes, got ${schemeBytes.length}`
@@ -204,7 +203,9 @@ export class Address {
       }
     }
 
-    throw new Error('no canonical salt exists for this PQ public key and scheme');
+    throw new Error(
+      'no canonical salt exists for this PQ public key and scheme'
+    );
   }
 
   /**

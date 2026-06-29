@@ -18,7 +18,7 @@ import { concatArrays } from './utils/utils';
 /**
  * The 2-byte ASCII identifier of the Falcon-1024 post-quantum signature scheme.
  */
-export const FALCON1024_SCHEME = 'f1';
+export const FALCON1024_SCHEME = new TextEncoder().encode('f1');
 
 export interface Falcon1024SigningKey {
   falcon1024PublicKey: Uint8Array;
