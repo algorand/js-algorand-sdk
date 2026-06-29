@@ -3,7 +3,7 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
 import assert from 'assert';
-import algosdk, { SignedTransaction } from '../src';
+import algosdk, { SignedTransaction, type Falcon1024SigningKey } from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { genericHash } from '../src/nacl/naclWrappers';
 
@@ -58,9 +58,9 @@ async function main() {
 
   // Wrap the private key in the "raw signer" abstraction the SDK expects: a
   // function that produces a detached Falcon signature over arbitrary bytes.
-  const falconSigningKey: algosdk.FalconSigningKey = {
-    falconPublicKey: publicKey,
-    falconSigner: async (bytesToSign: Uint8Array) =>
+  const falconSigningKey: Falcon1024SigningKey = {
+    falcon1024PublicKey: publicKey,
+    falcon1024Signer: async (bytesToSign: Uint8Array) =>
       signCompressed(privateKey, bytesToSign),
   };
 

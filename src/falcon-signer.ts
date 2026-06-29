@@ -20,19 +20,19 @@ import { concatArrays } from './utils/utils';
  */
 export const FALCON1024_SCHEME = 'f1';
 
-export interface FalconSigningKey {
-  falconPublicKey: Uint8Array;
-  falconSigner: (bytesToSign: Uint8Array) => Promise<Uint8Array>;
+export interface Falcon1024SigningKey {
+  falcon1024PublicKey: Uint8Array;
+  falcon1024Signer: (bytesToSign: Uint8Array) => Promise<Uint8Array>;
 }
 
 export function addressWithSignersFromRawFalcon1024Signer(
-  falconSigningKey: FalconSigningKey,
+  falconSigningKey: Falcon1024SigningKey,
   sendingAddress?: Address
 ): AddressWithTransactionSigner & AddressWithDelegatedLsigSigner {
-  const { falconPublicKey, falconSigner: rawSigner } = falconSigningKey;
+  const { falcon1024PublicKey, falcon1024Signer: rawSigner } = falconSigningKey;
   const { address: authAddress, salt } = Address.canonicalPQAddress(
     FALCON1024_SCHEME,
-    falconPublicKey
+    falcon1024PublicKey
   );
   const txnSender = sendingAddress ?? authAddress;
 
@@ -50,7 +50,7 @@ export function addressWithSignersFromRawFalcon1024Signer(
       const pqsig: EncodedPQSig = {
         sch: FALCON1024_SCHEME,
         slt: salt,
-        pk: falconPublicKey,
+        pk: falcon1024PublicKey,
         sig,
       };
       const stxn = new SignedTransaction({
@@ -82,7 +82,7 @@ export function addressWithSignersFromRawFalcon1024Signer(
     const pqsig: EncodedPQSig = {
       sch: FALCON1024_SCHEME,
       slt: salt,
-      pk: falconPublicKey,
+      pk: falcon1024PublicKey,
       sig,
     };
 
