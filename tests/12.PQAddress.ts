@@ -5,6 +5,7 @@ import {
   decodeAddress,
   ALGORAND_ADDRESS_LENGTH,
 } from '../src/encoding/address.js';
+import { FALCON_1024_SCHEME } from '../src/falcon-signer.js';
 
 // Port of go-algorand's post-quantum address tests (basics/pqAddress_test.go).
 //
@@ -38,7 +39,9 @@ async function installNodeWasmFetchShim(): Promise<void> {
     process.versions.node != null;
   if (!isNode) return;
 
-  const { readFile } = await import(/* webpackIgnore: true */ 'node:fs/promises');
+  const { readFile } = await import(
+    /* webpackIgnore: true */ 'node:fs/promises'
+  );
   const { fileURLToPath } = await import(/* webpackIgnore: true */ 'node:url');
 
   const originalFetch = globalThis.fetch.bind(globalThis);
@@ -64,8 +67,6 @@ let generateKey: (seed?: Uint8Array) => {
   publicKey: Uint8Array;
   privateKey: Uint8Array;
 };
-
-const FALCON1024_SCHEME = 'f1';
 
 // Mirrors Go's falconPublicKeyForPQAddressTest: a 48-byte zero-filled seed with
 // only the first byte set.
@@ -106,11 +107,11 @@ describe('PQ Address', function pqAddressSuite() {
       it(`derives the expected address for ${tc.name}`, () => {
         const publicKey = falconPublicKeyForSeedByte(tc.firstSeedByte);
 
-        const addr = Address.fromPQKey(FALCON1024_SCHEME, publicKey);
+        const addr = Address.fromPQKey(FALCON_1024_SCHEME, publicKey);
         assert.strictEqual(addr.toString(), tc.expectedAddress);
 
         // Go's addrAgain check: derivation is deterministic.
-        const addrAgain = Address.fromPQKey(FALCON1024_SCHEME, publicKey);
+        const addrAgain = Address.fromPQKey(FALCON_1024_SCHEME, publicKey);
         assert.ok(addr.equals(addrAgain));
         assert.strictEqual(addr.toString(), addrAgain.toString());
       });
@@ -120,7 +121,7 @@ describe('PQ Address', function pqAddressSuite() {
   describe('address validity', () => {
     it('produces a well-formed, round-trippable address', () => {
       const publicKey = falconPublicKeyForSeedByte(1);
-      const addr = Address.fromPQKey(FALCON1024_SCHEME, publicKey);
+      const addr = Address.fromPQKey(FALCON_1024_SCHEME, publicKey);
 
       const encoded = addr.toString();
       assert.strictEqual(encoded.length, ALGORAND_ADDRESS_LENGTH);
@@ -134,7 +135,7 @@ describe('PQ Address', function pqAddressSuite() {
       it(`rejects scheme ${JSON.stringify(scheme)}`, () => {
         const publicKey = falconPublicKeyForSeedByte(0);
         assert.throws(
-          () => Address.fromPQKey(scheme, publicKey),
+          () => Address.fromPQKey(new TextEncoder().encode(scheme), publicKey),
           /invalid PQ scheme length/
         );
       });
@@ -144,7 +145,7 @@ describe('PQ Address', function pqAddressSuite() {
   describe('does not require a registered scheme or validated key', () => {
     // Port of TestCanonicalPQAddressSaltDoesNotRequireRegisteredSchemeOrValidatedKey.
     it('derives a deterministic address for an arbitrary scheme and key', () => {
-      const scheme = 'x1';
+      const scheme = new TextEncoder().encode('x1');
       const publicKey = Uint8Array.of(0xab, 0xcd, 0xef);
 
       const addr = Address.fromPQKey(scheme, publicKey);

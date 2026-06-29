@@ -18,7 +18,7 @@ import { concatArrays } from './utils/utils';
 /**
  * The 2-byte ASCII identifier of the Falcon-1024 post-quantum signature scheme.
  */
-export const FALCON1024_SCHEME = new TextEncoder().encode('f1');
+export const FALCON_1024_SCHEME = new TextEncoder().encode('f1');
 
 export interface Falcon1024SigningKey {
   falcon1024PublicKey: Uint8Array;
@@ -31,7 +31,7 @@ export function addressWithSignersFromRawFalcon1024Signer(
 ): AddressWithTransactionSigner & AddressWithDelegatedLsigSigner {
   const { falcon1024PublicKey, falcon1024Signer: rawSigner } = falconSigningKey;
   const { address: authAddress, salt } = Address.canonicalPQAddress(
-    FALCON1024_SCHEME,
+    FALCON_1024_SCHEME,
     falcon1024PublicKey
   );
   const txnSender = sendingAddress ?? authAddress;
@@ -48,7 +48,7 @@ export function addressWithSignersFromRawFalcon1024Signer(
         new Uint8Array(genericHash(txn.bytesToSign()))
       );
       const pqsig: EncodedPQSig = {
-        sch: FALCON1024_SCHEME,
+        sch: FALCON_1024_SCHEME,
         slt: salt,
         pk: falcon1024PublicKey,
         sig,
@@ -82,7 +82,7 @@ export function addressWithSignersFromRawFalcon1024Signer(
     const sig = await rawSigner(toBeSigned);
 
     const pqsig: EncodedPQSig = {
-      sch: FALCON1024_SCHEME,
+      sch: FALCON_1024_SCHEME,
       slt: salt,
       pk: falcon1024PublicKey,
       sig,
