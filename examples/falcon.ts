@@ -2,6 +2,10 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
+
+// Tested with the following sandbox config
+// https://github.com/joe-p/sandbox/blob/25bad1a7f445883628deafbc3310377cf28150aa/config.pq
+
 import assert from 'assert';
 import algosdk, {
   LogicSigAccount,
@@ -88,7 +92,7 @@ async function main() {
   const fundTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: dispenser.addr,
     receiver: falconAddr,
-    amount: 103_000,
+    amount: 106_000,
     suggestedParams,
   });
   await client.sendRawTransaction(fundTxn.signTxn(dispenser.privateKey)).do();
