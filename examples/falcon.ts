@@ -3,7 +3,11 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-console */
 import assert from 'assert';
-import algosdk, { SignedTransaction, type Falcon1024SigningKey } from '../src';
+import algosdk, {
+  LogicSigAccount,
+  SignedTransaction,
+  type Falcon1024SigningKey,
+} from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { genericHash } from '../src/nacl/naclWrappers';
 
@@ -65,8 +69,11 @@ async function main() {
   };
 
   // Derive the post-quantum address and a TransactionSigner from the keypair.
-  const { address: falconAddr, txnSigner: falconTxnSigner } =
-    algosdk.addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
+  const {
+    address: falconAddr,
+    txnSigner: falconTxnSigner,
+    delegatedLsigSigner: falconLsigSigner,
+  } = algosdk.addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
   // example: FALCON_KEYGEN
 
   // From https://github.com/cusma/go-algorand//blob/4ec3185d16784b3e9b62ebb6473ab00bd578d6e5/data/basics/pq_address_test.go#L66-L66
@@ -129,6 +136,37 @@ async function main() {
     result.txIDs[0]
   );
   assert.ok(result.confirmedRound > 0, 'expected the transaction to confirm');
+
+  const lsigTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: falconAddr,
+    receiver: falconAddr,
+    amount: 0,
+    note: new Uint8Array([1]),
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
+  });
+
+  const teal = '#pragma version 12\nint 1';
+  const compiled = new Uint8Array(
+    Buffer.from((await client.compile(teal).do()).result, 'base64')
+  );
+
+  const lsig = new LogicSigAccount(compiled);
+  await lsig.signWithSigner({
+    address: falconAddr,
+    delegatedLsigSigner: falconLsigSigner,
+  });
+
+  const delegatedSigner = algosdk.makeLogicSigAccountTransactionSigner(lsig);
+  const lsigAtc = new algosdk.AtomicTransactionComposer();
+  lsigAtc.addTransaction({ txn: lsigTxn, signer: delegatedSigner });
+  const lsigResult = await lsigAtc.execute(client, 3);
+
+  console.log(
+    'Falcon-signed delegated lsig 0-payment confirmed in round',
+    lsigResult.confirmedRound,
+    'txid',
+    lsigResult.txIDs[0]
+  );
 }
 
 main()

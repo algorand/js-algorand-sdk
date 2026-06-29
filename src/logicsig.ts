@@ -21,6 +21,10 @@ import {
   encodedMultiSigToEncodingData,
   encodedMultiSigFromEncodingData,
   ENCODED_MULTISIG_SCHEMA,
+  EncodedPQSig,
+  ENCODED_PQSIG_SCHEMA,
+  encodedPQSigToEncodingData,
+  encodedPQSigFromEncodingData,
 } from './types/transactions/encoded.js';
 import type {
   AddressWithDelegatedLsigSigner,
@@ -65,6 +69,7 @@ export function sanityCheckProgram(program: Uint8Array) {
 }
 
 export const PROGRAM_TAG = new TextEncoder().encode('Program');
+export const PQ_PROGRAM_TAG = new TextEncoder().encode('PQProgram');
 export const MSIG_PROGRAM_TAG = new TextEncoder().encode('MsigProgram');
 
 /**
@@ -95,6 +100,10 @@ export class LogicSig implements encoding.Encodable {
         key: 'lmsig',
         valueSchema: new OptionalSchema(ENCODED_MULTISIG_SCHEMA),
       },
+      {
+        key: 'pq',
+        valueSchema: new OptionalSchema(ENCODED_PQSIG_SCHEMA),
+      },
     ])
   );
 
@@ -103,6 +112,7 @@ export class LogicSig implements encoding.Encodable {
   sig?: Uint8Array;
   msig?: EncodedMultisig;
   lmsig?: EncodedMultisig;
+  pqsig?: EncodedPQSig;
 
   constructor(program: Uint8Array, programArgs?: Array<Uint8Array> | null) {
     if (
@@ -124,6 +134,7 @@ export class LogicSig implements encoding.Encodable {
     this.sig = undefined;
     this.msig = undefined;
     this.lmsig = undefined;
+    this.pqsig = undefined;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -143,6 +154,9 @@ export class LogicSig implements encoding.Encodable {
     if (this.lmsig) {
       data.set('lmsig', encodedMultiSigToEncodingData(this.lmsig));
     }
+    if (this.pqsig) {
+      data.set('pq', encodedPQSigToEncodingData(this.pqsig));
+    }
     return data;
   }
 
@@ -158,6 +172,9 @@ export class LogicSig implements encoding.Encodable {
     if (data.get('lmsig')) {
       lsig.lmsig = encodedMultiSigFromEncodingData(data.get('lmsig'));
     }
+    if (data.get('pq')) {
+      lsig.pqsig = encodedPQSigFromEncodingData(data.get('pq'));
+    }
     return lsig;
   }
 
@@ -166,7 +183,9 @@ export class LogicSig implements encoding.Encodable {
    * @param publicKey - Verification key (derived from sender address or escrow address)
    */
   verify(publicKey: Uint8Array) {
-    const sigCount = [this.sig, this.msig, this.lmsig].filter(Boolean).length;
+    const sigCount = [this.sig, this.msig, this.lmsig, this.pqsig].filter(
+      Boolean
+    ).length;
     if (sigCount > 1) {
       return false;
     }
@@ -179,13 +198,23 @@ export class LogicSig implements encoding.Encodable {
 
     const toBeSigned = utils.concatArrays(PROGRAM_TAG, this.logic);
 
-    if (!this.sig && !this.msig && !this.lmsig) {
+    if (!this.sig && !this.msig && !this.lmsig && !this.pqsig) {
       const hash = nacl.genericHash(toBeSigned);
       return utils.arrayEqual(hash, publicKey);
     }
 
     if (this.sig) {
       return nacl.verify(toBeSigned, this.sig, publicKey);
+    }
+
+    if (this.pqsig) {
+      // Post-quantum (e.g. Falcon-1024) signatures cannot be verified in JS —
+      // the SDK has no PQ signature verifier and verification happens on-chain.
+      // The feasible check here is that the signature's scheme and public key
+      // bind to the delegating account address.
+      return Address.fromPQKey(this.pqsig.sch, this.pqsig.pk).equals(
+        new Address(publicKey)
+      );
     }
 
     if (this.lmsig) {
@@ -248,9 +277,14 @@ export class LogicSig implements encoding.Encodable {
   async signWithSigner(signer: DelegatedLsigSigner, msig?: MultisigMetadata) {
     const sigResult = await signer(this, msig);
     if (msig == null) {
+      if ('pqsig' in sigResult && sigResult.pqsig) {
+        this.pqsig = sigResult.pqsig;
+        return;
+      }
+
       if (!('sig' in sigResult) || !sigResult.sig) {
         throw Error(
-          'Expected DelegatedLsigSigner to return sig, but sig is undefined. If signing for an msig, be sure to pass the msig argument'
+          'Expected DelegatedLsigSigner to return sig or pqsig, but both are undefined. If signing for an msig, be sure to pass the msig argument'
         );
       }
       this.sig = sigResult.sig;
@@ -453,7 +487,12 @@ export class LogicSigAccount implements encoding.Encodable {
    * To verify the delegation signature, use `verify`.
    */
   isDelegated() {
-    return !!(this.lsig.sig || this.lsig.msig || this.lsig.lmsig);
+    return !!(
+      this.lsig.sig ||
+      this.lsig.msig ||
+      this.lsig.lmsig ||
+      this.lsig.pqsig
+    );
   }
 
   /**
@@ -475,16 +514,19 @@ export class LogicSigAccount implements encoding.Encodable {
    *  escrow address that is the hash of the LogicSig's program code.
    */
   address(): Address {
-    const sigCount = [this.lsig.sig, this.lsig.msig, this.lsig.lmsig].filter(
-      Boolean
-    ).length;
+    const sigCount = [
+      this.lsig.sig,
+      this.lsig.msig,
+      this.lsig.lmsig,
+      this.lsig.pqsig,
+    ].filter(Boolean).length;
     if (sigCount > 1) {
       throw new Error(
-        'LogicSig has too many signatures. At most one of sig, msig, or lmsig may be present'
+        'LogicSig has too many signatures. At most one of sig, msig, lmsig, or pqsig may be present'
       );
     }
 
-    if (this.lsig.sig) {
+    if (this.lsig.sig || this.lsig.pqsig) {
       if (!this.sigkey) {
         throw new Error('Signing key for delegated account is missing');
       }
@@ -560,8 +602,8 @@ export class LogicSigAccount implements encoding.Encodable {
     this.sigkey = nacl.keyPairFromSecretKey(secretKey).publicKey;
   }
 
-  signWithSigner(signer: AddressWithDelegatedLsigSigner) {
-    this.lsig.signWithSigner(signer.delegatedLsigSigner);
+  async signWithSigner(signer: AddressWithDelegatedLsigSigner) {
+    await this.lsig.signWithSigner(signer.delegatedLsigSigner);
     this.sigkey = signer.address.publicKey;
   }
 }

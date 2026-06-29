@@ -1,4 +1,4 @@
-import { PROGRAM_TAG } from './logicsig';
+import { PQ_PROGRAM_TAG, PROGRAM_TAG } from './logicsig';
 import {
   Address,
   AddressWithDelegatedLsigSigner,
@@ -74,7 +74,9 @@ export function addressWithSignersFromRawFalcon1024Signer(
     }
 
     const toBeSigned = new Uint8Array(
-      genericHash(concatArrays(authAddress.publicKey, PROGRAM_TAG, lsig.logic))
+      genericHash(
+        concatArrays(PQ_PROGRAM_TAG, authAddress.publicKey, lsig.logic)
+      )
     );
 
     const sig = await rawSigner(toBeSigned);

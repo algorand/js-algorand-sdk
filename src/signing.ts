@@ -128,7 +128,7 @@ export function signLogicSigTransactionObject(
   } else {
     lsig = lsigObject;
 
-    if (lsig.sig) {
+    if (lsig.sig || lsig.pqsig) {
       // For a LogicSig with a non-multisig delegating account, we cannot derive
       // the address of that account from only its signature, so assume the
       // delegating account is the sender. If that's not the case, the signing
