@@ -115,10 +115,9 @@ async function main() {
     'signed txn',
     algosdk.decodeMsgpack(stxn, SignedTransaction).toEncodingData()
   );
-
-  console.debug('sig', falconSig.byteLength);
-
+  console.debug(`signed txn bytes 0x${Buffer.from(stxn).toString('hex')}`);
   console.log('verify result', verifyResult);
+  console.debug('Calling atc.execute...');
   const result = await atc.execute(client, 4);
   // example: FALCON_SEND
 

@@ -26,11 +26,14 @@ export async function waitForConfirmation(
   const stopRound = startRound + BigInt(waitRounds);
   let currentRound = startRound;
 
+  console.debug('Starting wait loop...');
   /* eslint-disable no-await-in-loop */
   while (currentRound < stopRound) {
     let poolError = false;
     try {
+      console.debug(`Sending API call to /v2/transactions/pending/${txid}...`);
       const pendingInfo = await client.pendingTransactionInformation(txid).do();
+      console.debug({ pendingInfo });
 
       if (pendingInfo.confirmedRound) {
         // Got the completed Transaction
@@ -43,6 +46,7 @@ export async function waitForConfirmation(
         throw new Error(`Transaction Rejected: ${pendingInfo.poolError}`);
       }
     } catch (err) {
+      console.debug('Error in wait loop:', err);
       // Ignore errors from PendingTransactionInformation, since it may return 404 if the algod
       // instance is behind a load balancer and the request goes to a different algod than the
       // one we submitted the transaction to

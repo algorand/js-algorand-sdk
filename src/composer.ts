@@ -754,6 +754,7 @@ export class AtomicTransactionComposer {
     );
     const indexToWaitFor =
       firstMethodCallIndex === -1 ? 0 : firstMethodCallIndex;
+    console.debug(`Calling waitForConfirmation for ${txIDs[indexToWaitFor]}`);
     const confirmedTxnInfo = await waitForConfirmation(
       client,
       txIDs[indexToWaitFor],
