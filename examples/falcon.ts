@@ -64,6 +64,36 @@ async function main() {
     'falcon-1024'
   );
 
+  // Emit the known-answer address test vectors consumed by tests/12.PQ.ts, so
+  // that test suite doesn't need to depend on falcon-1024 itself. Each vector
+  // is a Falcon public key derived from a 48-byte seed with only the first byte
+  // set (mirrors Go's falconPublicKeyForPQAddressTest) plus the address the SDK
+  // derives from it.
+  const addressTestCases = [
+    {
+      firstSeedByte: 0,
+      expectedAddress:
+        '7ZQ6VZDWW5NECRV3XMW6L7YX743PFC55IEVS4X3GDHIW4NBMYLYTJT4VTA',
+    },
+    {
+      firstSeedByte: 1,
+      expectedAddress:
+        '4X6LFIO4F7WZFXM24J567HAXW4FHXWKGVGPNCA4SMPPAYMZYSHYTB6XXC4',
+    },
+  ].map((tc) => {
+    const seed = new Uint8Array(48);
+    seed[0] = tc.firstSeedByte;
+    return {
+      ...tc,
+      publicKey: Buffer.from(generateKey(seed).publicKey).toString('base64'),
+    };
+  });
+
+  writeFileSync(
+    'tests/pq_test_data/addresses.json',
+    JSON.stringify({ testCases: addressTestCases }, null, 2)
+  );
+
   // example: FALCON_KEYGEN
   const mnemonic = `${'abandon '.repeat(24)}invest`;
 
@@ -86,6 +116,25 @@ async function main() {
     delegatedLsigSigner: falconLsigSigner,
   } = algosdk.addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
   // example: FALCON_KEYGEN
+
+  // Emit the mnemonic -> seed -> public key -> address chain consumed by
+  // tests/12.PQ.ts, so that suite can exercise mnemonic-based key derivation
+  // without depending on falcon-1024.
+  writeFileSync(
+    'tests/pq_test_data/mnemonic.json',
+    JSON.stringify(
+      {
+        mnemonic,
+        seed: Buffer.from(
+          pq25WordMnemonicToSeed(mnemonic, FALCON_1024_SCHEME)
+        ).toString('base64'),
+        publicKey: Buffer.from(publicKey).toString('base64'),
+        address: falconAddr.toString(),
+      },
+      null,
+      2
+    )
+  );
 
   // example: FALCON_FUND
   // Fund the new Falcon address so it can cover its min balance + fees.
