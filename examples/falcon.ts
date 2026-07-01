@@ -7,17 +7,18 @@
 // https://github.com/joe-p/sandbox/blob/25bad1a7f445883628deafbc3310377cf28150aa/config.pq
 
 import assert from 'assert';
+import { writeFileSync } from 'node:fs';
 import algosdk, {
   LogicSigAccount,
   makePaymentTxnWithSuggestedParamsFromObject,
   FALCON_1024_SCHEME,
   SignedTransaction,
   type Falcon1024SigningKey,
+  Ed25519SigningKey,
 } from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { genericHash } from '../src/nacl/naclWrappers';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic';
-import { writeFileSync } from 'node:fs';
 
 // falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
 // via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
@@ -179,6 +180,23 @@ async function main() {
   const delegatedSigner = algosdk.makeLogicSigAccountTransactionSigner(lsig);
   const lsigAtc = new algosdk.AtomicTransactionComposer();
   lsigAtc.addTransaction({ txn: lsigTxn, signer: delegatedSigner });
+  const [lsigStxn] = await lsigAtc.gatherSignatures();
+
+  writeFileSync(
+    'tests/pq_test_data/lsig.json',
+    JSON.stringify(
+      {
+        publicKey: Buffer.from(publicKey).toString('base64'),
+        program: Buffer.from(compiled).toString('base64'),
+        txnBlob: Buffer.from(lsigTxn.toByte()).toString('base64'),
+        lsigSig: Buffer.from(lsig.lsig.pqsig!.sig).toString('base64'),
+        stxnBlob: Buffer.from(lsigStxn).toString('base64'),
+      },
+      null,
+      2
+    )
+  );
+
   const lsigResult = await lsigAtc.execute(client, 3);
 
   console.log(
@@ -188,7 +206,7 @@ async function main() {
     lsigResult.txIDs[0]
   );
 
-  const ed25519Acct = algosdk.generateAccount();
+  const ed25519Acct = algosdk.mnemonicToSecretKey(mnemonic);
 
   const edFund = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: dispenser.addr,
@@ -224,6 +242,25 @@ async function main() {
 
   const rekeyedAtc = new algosdk.AtomicTransactionComposer();
   rekeyedAtc.addTransaction({ txn: rekeyedPay, signer: falconTxnSigner });
+  const [rekeyStxn] = await rekeyedAtc.gatherSignatures();
+
+  writeFileSync(
+    'tests/pq_test_data/rekey.json',
+    JSON.stringify(
+      {
+        publicKey: Buffer.from(publicKey).toString('base64'),
+        sender: ed25519Acct.addr.toString(),
+        txnBlob: Buffer.from(rekeyedPay.toByte()).toString('base64'),
+        txnSig: Buffer.from(
+          algosdk.decodeMsgpack(rekeyStxn, SignedTransaction).pqsig!.sig
+        ).toString('base64'),
+        stxnBlob: Buffer.from(rekeyStxn).toString('base64'),
+      },
+      null,
+      2
+    )
+  );
+
   await rekeyedAtc.execute(client, 3);
 
   console.log(

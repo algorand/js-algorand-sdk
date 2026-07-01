@@ -11,12 +11,17 @@ import {
   FALCON_1024_SCHEME,
 } from '../src/falcon-signer.js';
 import pqTxnData from './pq_test_data/txn.json';
+import pqLsigData from './pq_test_data/lsig.json';
+import pqRekeyData from './pq_test_data/rekey.json';
 import {
   decodeMsgpack,
   signTransactionWithSigner,
   Transaction,
+  LogicSigAccount,
+  makeLogicSigAccountTransactionSigner,
 } from '../src/main.js';
-import { arrayEqual, concatArrays } from '../src/utils/utils.js';
+import { PQ_PROGRAM_TAG } from '../src/logicsig.js';
+import { concatArrays } from '../src/utils/utils.js';
 import { genericHash } from '../src/nacl/naclWrappers.js';
 
 // falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
@@ -183,6 +188,95 @@ describe('PQ signers', () => {
     assert.deepEqual(
       blob,
       new Uint8Array(Buffer.from(pqTxnData.stxnBlob, 'base64'))
+    );
+  });
+
+  it('properly attaches a signature to a rekeyed transaction', async () => {
+    // The sender of this transaction is a (rekeyed) ed25519 address that
+    // differs from the Falcon auth address, so the signer must populate the
+    // `sgnr` (authorizing address) field on the signed transaction.
+    const txn = decodeMsgpack(
+      Buffer.from(pqRekeyData.txnBlob, 'base64'),
+      Transaction
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: new Uint8Array(
+        Buffer.from(pqRekeyData.publicKey, 'base64')
+      ),
+      falcon1024Signer: async (data: Uint8Array) => {
+        assert.deepEqual(data, new Uint8Array(genericHash(txn.bytesToSign())));
+
+        return new Uint8Array(Buffer.from(pqRekeyData.txnSig, 'base64'));
+      },
+    };
+
+    const addrWithSigners =
+      addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
+
+    const { blob } = await signTransactionWithSigner(
+      txn,
+      addrWithSigners.txnSigner
+    );
+    assert.deepEqual(
+      blob,
+      new Uint8Array(Buffer.from(pqRekeyData.stxnBlob, 'base64'))
+    );
+  });
+
+  it('properly attaches a signature to a delegated logic sig', async () => {
+    const program = new Uint8Array(Buffer.from(pqLsigData.program, 'base64'));
+    const publicKey = new Uint8Array(
+      Buffer.from(pqLsigData.publicKey, 'base64')
+    );
+
+    const { address: authAddress } = addressFromPQKey(
+      FALCON_1024_SCHEME,
+      publicKey
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async (data: Uint8Array) => {
+        // A delegated lsig is signed over the program bytes (prefixed with the
+        // PQ program tag and the auth address), not over a transaction.
+        assert.deepEqual(
+          data,
+          new Uint8Array(
+            genericHash(
+              concatArrays(PQ_PROGRAM_TAG, authAddress.publicKey, program)
+            )
+          )
+        );
+
+        return new Uint8Array(Buffer.from(pqLsigData.lsigSig, 'base64'));
+      },
+    };
+
+    const addrWithSigners =
+      addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
+
+    const lsigAccount = new LogicSigAccount(program);
+    await lsigAccount.signWithSigner(addrWithSigners);
+
+    assert.deepEqual(
+      lsigAccount.lsig.pqsig!.sig,
+      new Uint8Array(Buffer.from(pqLsigData.lsigSig, 'base64'))
+    );
+
+    const txn = decodeMsgpack(
+      Buffer.from(pqLsigData.txnBlob, 'base64'),
+      Transaction
+    );
+
+    const { blob } = await signTransactionWithSigner(
+      txn,
+      makeLogicSigAccountTransactionSigner(lsigAccount)
+    );
+
+    assert.deepEqual(
+      blob,
+      new Uint8Array(Buffer.from(pqLsigData.stxnBlob, 'base64'))
     );
   });
 });
