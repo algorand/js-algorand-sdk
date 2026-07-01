@@ -3,6 +3,7 @@ import english from './wordlists/english.js';
 import * as nacl from '../nacl/naclWrappers.js';
 import { Address } from '../encoding/address.js';
 import Account from '../types/account.js';
+import { concatArrays } from '../utils/utils.js';
 
 export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 export const NOT_IN_WORDS_LIST_ERROR_MSG =
@@ -178,4 +179,16 @@ export function mnemonicToMasterDerivationKey(mn: string) {
  */
 export function masterDerivationKeyToMnemonic(mdk: Uint8Array) {
   return mnemonicFromSeed(mdk);
+}
+
+// TODO: better naming of ed25519 functions to differentiate?
+export function pq25WordMnemonicToSeed(
+  mn: string,
+  scheme: Uint8Array
+): Uint8Array {
+  return new Uint8Array(
+    nacl.genericHash(
+      concatArrays(Buffer.from('PQK'), scheme, seedFromMnemonic(mn))
+    )
+  );
 }

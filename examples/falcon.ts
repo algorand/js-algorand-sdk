@@ -10,11 +10,13 @@ import assert from 'assert';
 import algosdk, {
   LogicSigAccount,
   makePaymentTxnWithSuggestedParamsFromObject,
+  FALCON_1024_SCHEME,
   SignedTransaction,
   type Falcon1024SigningKey,
 } from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { genericHash } from '../src/nacl/naclWrappers';
+import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic';
 
 // falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
 // via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
@@ -61,9 +63,11 @@ async function main() {
   );
 
   // example: FALCON_KEYGEN
-  // Generate a Falcon-1024 post-quantum keypair. With no seed argument the
-  // library generates a random 48-byte seed for us.
-  const { publicKey, privateKey } = generateKey(new Uint8Array(48));
+  const mnemonic = `${'abandon '.repeat(24)}invest`;
+
+  const { publicKey, privateKey } = generateKey(
+    pq25WordMnemonicToSeed(mnemonic, FALCON_1024_SCHEME)
+  );
 
   // Wrap the private key in the "raw signer" abstraction the SDK expects: a
   // function that produces a detached Falcon signature over arbitrary bytes.
@@ -80,12 +84,6 @@ async function main() {
     delegatedLsigSigner: falconLsigSigner,
   } = algosdk.addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
   // example: FALCON_KEYGEN
-
-  // From https://github.com/cusma/go-algorand//blob/4ec3185d16784b3e9b62ebb6473ab00bd578d6e5/data/basics/pq_address_test.go#L66-L66
-  assert.deepEqual(
-    '7ZQ6VZDWW5NECRV3XMW6L7YX743PFC55IEVS4X3GDHIW4NBMYLYTJT4VTA',
-    falconAddr.toString()
-  );
 
   // example: FALCON_FUND
   // Fund the new Falcon address so it can cover its min balance + fees.
