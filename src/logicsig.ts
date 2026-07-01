@@ -1,5 +1,9 @@
 import * as nacl from './nacl/naclWrappers.js';
-import { Address, isValidAddress } from './encoding/address.js';
+import {
+  Address,
+  addressFromPQKey,
+  isValidAddress,
+} from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
   NamedMapSchema,
@@ -212,7 +216,7 @@ export class LogicSig implements encoding.Encodable {
       // the SDK has no PQ signature verifier and verification happens on-chain.
       // The feasible check here is that the signature's scheme and public key
       // bind to the delegating account address.
-      return Address.fromPQKey(this.pqsig.sch, this.pqsig.pk).equals(
+      return addressFromPQKey(this.pqsig.sch, this.pqsig.pk).address.equals(
         new Address(publicKey)
       );
     }
