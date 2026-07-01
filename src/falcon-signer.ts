@@ -1,4 +1,5 @@
-import { PQ_PROGRAM_TAG, PROGRAM_TAG } from './logicsig';
+import { addressFromPQKey } from './encoding/address';
+import { PQ_PROGRAM_TAG } from './logicsig';
 import {
   Address,
   AddressWithDelegatedLsigSigner,
@@ -30,7 +31,7 @@ export function addressWithSignersFromRawFalcon1024Signer(
   sendingAddress?: Address
 ): AddressWithTransactionSigner & AddressWithDelegatedLsigSigner {
   const { falcon1024PublicKey, falcon1024Signer: rawSigner } = falconSigningKey;
-  const { address: authAddress, salt } = Address.canonicalPQAddress(
+  const { address: authAddress, salt } = addressFromPQKey(
     FALCON_1024_SCHEME,
     falcon1024PublicKey
   );

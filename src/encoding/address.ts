@@ -151,64 +151,6 @@ export class Address {
   }
 
   /**
-   * Derive a post-quantum (PQ) account address from a PQ signature scheme and
-   * its public key, using the canonical salt.
-   *
-   * The address is the SHA-512/256 hash of ("PQA" || scheme || salt || key).
-   * The canonical salt is the lowest salt in the range 0..255 whose derived
-   * address is NOT a valid Ed25519 point, which ensures PQ addresses cannot
-   * collide with classical Ed25519 accounts.
-   *
-   * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
-   * @param key - The scheme's canonical public key.
-   * @returns An Address corresponding to the PQ public key.
-   */
-  static fromPQKey(scheme: Uint8Array, key: Uint8Array): Address {
-    return Address.canonicalPQAddress(scheme, key).address;
-  }
-
-  /**
-   * Derive a post-quantum (PQ) account address together with the canonical salt
-   * used to derive it.
-   *
-   * This is the same derivation as {@link Address.fromPQKey}, but it also
-   * returns the salt, which is required when constructing a PQ signature
-   * (the `slt` field of the encoded PQ signature).
-   *
-   * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
-   * @param key - The scheme's canonical public key.
-   * @returns The derived Address and the canonical 1-byte salt.
-   */
-  static canonicalPQAddress(
-    schemeBytes: Uint8Array,
-    key: Uint8Array
-  ): { address: Address; salt: number } {
-    if (schemeBytes.length !== PQ_SCHEME_SIZE)
-      throw new Error(
-        `invalid PQ scheme length: expected ${PQ_SCHEME_SIZE} bytes, got ${schemeBytes.length}`
-      );
-
-    // Rejection-sample the lowest salt that yields a PQ-compliant (non-Ed25519)
-    // address. The probability of exhausting the range is ~2^-256.
-    for (let salt = 0; salt <= 0xff; salt++) {
-      const toBeHashed = utils.concatArrays(
-        PQ_ADDRESS_PREFIX,
-        schemeBytes,
-        Uint8Array.of(salt),
-        key
-      );
-      const publicKey = Uint8Array.from(nacl.genericHash(toBeHashed));
-      if (!isEd25519Point(publicKey)) {
-        return { address: new Address(publicKey), salt };
-      }
-    }
-
-    throw new Error(
-      'no canonical salt exists for this PQ public key and scheme'
-    );
-  }
-
-  /**
    * Get the zero address.
    */
   static zeroAddress(): Address {
@@ -264,4 +206,39 @@ export function getApplicationAddress(appID: number | bigint): Address {
   const toBeSigned = utils.concatArrays(APP_ID_PREFIX, encodeUint64(appID));
   const hash = nacl.genericHash(toBeSigned);
   return new Address(Uint8Array.from(hash));
+}
+
+/**
+ * Derive a post-quantum (PQ) account address together with the canonical salt
+ * used to derive it.
+ *
+ * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
+ * @param key - The scheme's canonical public key.
+ * @returns The derived Address and the canonical 1-byte salt.
+ */
+export function addressFromPQKey(
+  schemeBytes: Uint8Array,
+  key: Uint8Array
+): { address: Address; salt: number } {
+  if (schemeBytes.length !== PQ_SCHEME_SIZE)
+    throw new Error(
+      `invalid PQ scheme length: expected ${PQ_SCHEME_SIZE} bytes, got ${schemeBytes.length}`
+    );
+
+  // Rejection-sample the lowest salt that yields a PQ-compliant (non-Ed25519)
+  // address. The probability of exhausting the range is ~2^-256.
+  for (let salt = 0; salt <= 0xff; salt++) {
+    const toBeHashed = utils.concatArrays(
+      PQ_ADDRESS_PREFIX,
+      schemeBytes,
+      Uint8Array.of(salt),
+      key
+    );
+    const publicKey = Uint8Array.from(nacl.genericHash(toBeHashed));
+    if (!isEd25519Point(publicKey)) {
+      return { address: new Address(publicKey), salt };
+    }
+  }
+
+  throw new Error('no canonical salt exists for this PQ public key and scheme');
 }

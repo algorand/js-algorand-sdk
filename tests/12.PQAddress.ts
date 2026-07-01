@@ -1,30 +1,11 @@
 /* eslint-env mocha */
 import assert from 'assert';
 import {
-  Address,
   decodeAddress,
   ALGORAND_ADDRESS_LENGTH,
+  addressFromPQKey,
 } from '../src/encoding/address.js';
 import { FALCON_1024_SCHEME } from '../src/falcon-signer.js';
-
-// Port of go-algorand's post-quantum address tests (basics/pqAddress_test.go).
-//
-// The JS SDK only exposes the canonical-salt derivation path via
-// `Address.fromPQKey(scheme, key)`, which returns just an `Address`. Several Go
-// subtests exercise lower-level APIs that this SDK does not expose, so they are
-// out of scope here:
-//   - Known-answer rows using non-canonical explicit salts (seed 0/salt 255,
-//     seed 255/salt 255, the on-curve seed 1/salt 0, and seed 2/salt 2 whose
-//     salt is not known to be canonical) require explicit-salt derivation.
-//   - `IsPQCompliant()` / `IsEdwards25519Point` assertions (the on-curve check is
-//     private).
-//   - The `CanonicalPQAddressSalt` salt-return value and lower-salt loop
-//     (`fromPQKey` does not return the salt it landed on).
-//   - The `pqAddressPreimage` byte-layout test (the preimage is built inline).
-//
-// `falcon-1024` is the same Falcon implementation used by go-algorand, so a
-// keypair generated from the same 48-byte seed yields the same public key bytes;
-// that is what makes the Go known-answer addresses reproducible here.
 
 // falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
 // via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
@@ -107,13 +88,17 @@ describe('PQ Address', function pqAddressSuite() {
       it(`derives the expected address for ${tc.name}`, () => {
         const publicKey = falconPublicKeyForSeedByte(tc.firstSeedByte);
 
-        const addr = Address.fromPQKey(FALCON_1024_SCHEME, publicKey);
-        assert.strictEqual(addr.toString(), tc.expectedAddress);
+        const { address } = addressFromPQKey(FALCON_1024_SCHEME, publicKey);
+        assert.strictEqual(address.toString(), tc.expectedAddress);
 
         // Go's addrAgain check: derivation is deterministic.
-        const addrAgain = Address.fromPQKey(FALCON_1024_SCHEME, publicKey);
-        assert.ok(addr.equals(addrAgain));
-        assert.strictEqual(addr.toString(), addrAgain.toString());
+        const { address: addrAgain } = addressFromPQKey(
+          FALCON_1024_SCHEME,
+          publicKey
+        );
+
+        assert.ok(address.equals(addrAgain));
+        assert.strictEqual(address.toString(), addrAgain.toString());
       });
     });
   });
@@ -121,11 +106,11 @@ describe('PQ Address', function pqAddressSuite() {
   describe('address validity', () => {
     it('produces a well-formed, round-trippable address', () => {
       const publicKey = falconPublicKeyForSeedByte(1);
-      const addr = Address.fromPQKey(FALCON_1024_SCHEME, publicKey);
+      const { address } = addressFromPQKey(FALCON_1024_SCHEME, publicKey);
 
-      const encoded = addr.toString();
+      const encoded = address.toString();
       assert.strictEqual(encoded.length, ALGORAND_ADDRESS_LENGTH);
-      assert.ok(decodeAddress(encoded).equals(addr));
+      assert.ok(decodeAddress(encoded).equals(address));
     });
   });
 
@@ -135,7 +120,9 @@ describe('PQ Address', function pqAddressSuite() {
       it(`rejects scheme ${JSON.stringify(scheme)}`, () => {
         const publicKey = falconPublicKeyForSeedByte(0);
         assert.throws(
-          () => Address.fromPQKey(new TextEncoder().encode(scheme), publicKey),
+          () =>
+            addressFromPQKey(new TextEncoder().encode(scheme), publicKey)
+              .address,
           /invalid PQ scheme length/
         );
       });
@@ -148,9 +135,10 @@ describe('PQ Address', function pqAddressSuite() {
       const scheme = new TextEncoder().encode('x1');
       const publicKey = Uint8Array.of(0xab, 0xcd, 0xef);
 
-      const addr = Address.fromPQKey(scheme, publicKey);
-      const addrAgain = Address.fromPQKey(scheme, publicKey);
-      assert.ok(addr.equals(addrAgain));
+      const { address } = addressFromPQKey(scheme, publicKey);
+      const { address: addrAgain } = addressFromPQKey(scheme, publicKey);
+
+      assert.ok(address.equals(addrAgain));
     });
   });
 });

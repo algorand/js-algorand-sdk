@@ -43,8 +43,6 @@ export interface AddressWithTransactionSigner extends Addressable {
  * */
 export type DelegatedLsigSigner = (
   lsig: LogicSig,
-  // TODO: implement multisig class like in v10?
-  // https://github.com/algorandfoundation/algokit-utils-ts/blob/0a499fcaf90b2c4b62d1c80647703b655e32c9b5/packages/transact/src/multisig.ts#L387-L387
   msig?: MultisigMetadata
 ) => Promise<
   { address: Address } & (
