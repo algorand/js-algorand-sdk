@@ -5,7 +5,19 @@ import {
   ALGORAND_ADDRESS_LENGTH,
   addressFromPQKey,
 } from '../src/encoding/address.js';
-import { FALCON_1024_SCHEME } from '../src/falcon-signer.js';
+import {
+  addressWithSignersFromRawFalcon1024Signer,
+  Falcon1024SigningKey,
+  FALCON_1024_SCHEME,
+} from '../src/falcon-signer.js';
+import pqTxnData from './pq_test_data/txn.json';
+import {
+  decodeMsgpack,
+  signTransactionWithSigner,
+  Transaction,
+} from '../src/main.js';
+import { arrayEqual, concatArrays } from '../src/utils/utils.js';
+import { genericHash } from '../src/nacl/naclWrappers.js';
 
 // falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
 // via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
@@ -140,5 +152,37 @@ describe('PQ Address', function pqAddressSuite() {
 
       assert.ok(address.equals(addrAgain));
     });
+  });
+});
+
+describe('PQ signers', () => {
+  it('properly attaches a signature to a transaction', async () => {
+    const txn = decodeMsgpack(
+      Buffer.from(pqTxnData.txnBlob, 'base64'),
+      Transaction
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: new Uint8Array(
+        Buffer.from(pqTxnData.publicKey, 'base64')
+      ),
+      falcon1024Signer: async (data: Uint8Array) => {
+        assert.deepEqual(data, new Uint8Array(genericHash(txn.bytesToSign())));
+
+        return new Uint8Array(Buffer.from(pqTxnData.txnSig, 'base64'));
+      },
+    };
+
+    const addrWithSigners =
+      addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
+
+    const { blob } = await signTransactionWithSigner(
+      txn,
+      addrWithSigners.txnSigner
+    );
+    assert.deepEqual(
+      blob,
+      new Uint8Array(Buffer.from(pqTxnData.stxnBlob, 'base64'))
+    );
   });
 });

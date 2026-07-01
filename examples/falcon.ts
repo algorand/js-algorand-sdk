@@ -17,11 +17,12 @@ import algosdk, {
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { genericHash } from '../src/nacl/naclWrappers';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic';
+import { writeFileSync } from 'node:fs';
 
 // falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
 // via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
 // read `file://` URLs, so when running under Node we shim fetch to serve the
-// local `.wasm` from disk. (Mirrors the shim in tests/12.PQAddress.ts.)
+// local `.wasm` from disk. (Mirrors the shim in tests/12.PQ.ts.)
 async function installNodeWasmFetchShim(): Promise<void> {
   const isNode =
     typeof process !== 'undefined' &&
@@ -119,6 +120,22 @@ async function main() {
     publicKey,
     falconSig,
     new Uint8Array(genericHash(zeroPayTxn.bytesToSign()))
+  );
+
+  writeFileSync(
+    'tests/pq_test_data/txn.json',
+    JSON.stringify(
+      {
+        publicKey: Buffer.from(publicKey).toString('base64'),
+        txnBlob: Buffer.from(zeroPayTxn.toByte()).toString('base64'),
+        txnSig: Buffer.from(
+          algosdk.decodeMsgpack(stxn, SignedTransaction).pqsig!.sig
+        ).toString('base64'),
+        stxnBlob: Buffer.from(stxn).toString('base64'),
+      },
+      null,
+      2
+    )
   );
 
   console.debug(
