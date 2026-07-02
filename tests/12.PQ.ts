@@ -14,7 +14,7 @@ import pqPaymentData from './pq_test_data/pqPayment.json';
 import pqDelegatedPaymentData from './pq_test_data/pqDelegatedPayment.json';
 import pqRekeyedPaymentData from './pq_test_data/pqRekeyedPayment.json';
 import pqRekeyedDelegatedPaymentData from './pq_test_data/pqRekeyedDelegatedPayment.json';
-import pqMnemonicData from './pq_test_data/mnemonic.json';
+import pqMnemonicData from './pq_test_data/pqMnemonic.json';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic.js';
 import {
   decodeMsgpack,

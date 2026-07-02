@@ -7,7 +7,6 @@
 // https://github.com/joe-p/sandbox/blob/25bad1a7f445883628deafbc3310377cf28150aa/config.pq
 
 import assert from 'assert';
-import { writeFileSync } from 'node:fs';
 import algosdk, {
   LogicSigAccount,
   makePaymentTxnWithSuggestedParamsFromObject,
@@ -85,25 +84,6 @@ async function main() {
     delegatedLsigSigner: falconLsigSigner,
   } = algosdk.addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
   // example: FALCON_KEYGEN
-
-  // Emit the mnemonic -> seed -> public key -> address chain consumed by
-  // tests/12.PQ.ts, so that suite can exercise mnemonic-based key derivation
-  // without depending on falcon-1024.
-  writeFileSync(
-    'tests/pq_test_data/mnemonic.json',
-    JSON.stringify(
-      {
-        mnemonic,
-        seed: Buffer.from(
-          pq25WordMnemonicToSeed(mnemonic, FALCON_1024_SCHEME)
-        ).toString('base64'),
-        publicKey: Buffer.from(publicKey).toString('base64'),
-        address: falconAddr.toString(),
-      },
-      null,
-      2
-    )
-  );
 
   // example: FALCON_FUND
   // Fund the new Falcon address so it can cover its min balance + fees.

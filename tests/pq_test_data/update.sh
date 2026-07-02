@@ -5,7 +5,8 @@
 
 BASE=https://raw.githubusercontent.com/algorandfoundation/algokit-polytest/pq/resources/data-factory/data
 
-curl -sL -o pqPayment.json "$BASE/pqPayment.json"
-curl -sL -o pqDelegatedPayment.json "$BASE/pqDelegatedPayment.json"
-curl -sL -o pqRekeyedPayment.json "$BASE/pqRekeyedPayment.json"
-curl -sL -o pqRekeyedDelegatedPayment.json "$BASE/pqRekeyedDelegatedPayment.json"
+curl -L -O "$BASE/pqPayment.json"
+curl -L -O "$BASE/pqDelegatedPayment.json"
+curl -L -O "$BASE/pqRekeyedPayment.json"
+curl -L -O "$BASE/pqRekeyedDelegatedPayment.json"
+curl -L -O "$BASE/pqMnemonic.json"
