@@ -14,7 +14,6 @@ import algosdk, {
   FALCON_1024_SCHEME,
   SignedTransaction,
   type Falcon1024SigningKey,
-  Ed25519SigningKey,
 } from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { genericHash } from '../src/nacl/naclWrappers';
@@ -41,7 +40,7 @@ async function installNodeWasmFetchShim(): Promise<void> {
     const url = input instanceof URL ? input.href : String(input);
     if (url.startsWith('file://') && url.endsWith('.wasm')) {
       const bytes = await readFile(fileURLToPath(url));
-      return new Response(bytes, {
+      return new Response(new Uint8Array(bytes), {
         headers: { 'Content-Type': 'application/wasm' },
       });
     }
@@ -62,36 +61,6 @@ async function main() {
   await installNodeWasmFetchShim();
   const { generateKey, signCompressed, verifyCompressed } = await import(
     'falcon-1024'
-  );
-
-  // Emit the known-answer address test vectors consumed by tests/12.PQ.ts, so
-  // that test suite doesn't need to depend on falcon-1024 itself. Each vector
-  // is a Falcon public key derived from a 48-byte seed with only the first byte
-  // set (mirrors Go's falconPublicKeyForPQAddressTest) plus the address the SDK
-  // derives from it.
-  const addressTestCases = [
-    {
-      firstSeedByte: 0,
-      expectedAddress:
-        '7ZQ6VZDWW5NECRV3XMW6L7YX743PFC55IEVS4X3GDHIW4NBMYLYTJT4VTA',
-    },
-    {
-      firstSeedByte: 1,
-      expectedAddress:
-        '4X6LFIO4F7WZFXM24J567HAXW4FHXWKGVGPNCA4SMPPAYMZYSHYTB6XXC4',
-    },
-  ].map((tc) => {
-    const seed = new Uint8Array(48);
-    seed[0] = tc.firstSeedByte;
-    return {
-      ...tc,
-      publicKey: Buffer.from(generateKey(seed).publicKey).toString('base64'),
-    };
-  });
-
-  writeFileSync(
-    'tests/pq_test_data/addresses.json',
-    JSON.stringify({ testCases: addressTestCases }, null, 2)
   );
 
   // example: FALCON_KEYGEN
@@ -172,22 +141,6 @@ async function main() {
     new Uint8Array(genericHash(zeroPayTxn.bytesToSign()))
   );
 
-  writeFileSync(
-    'tests/pq_test_data/txn.json',
-    JSON.stringify(
-      {
-        publicKey: Buffer.from(publicKey).toString('base64'),
-        txnBlob: Buffer.from(zeroPayTxn.toByte()).toString('base64'),
-        txnSig: Buffer.from(
-          algosdk.decodeMsgpack(stxn, SignedTransaction).pqsig!.sig
-        ).toString('base64'),
-        stxnBlob: Buffer.from(stxn).toString('base64'),
-      },
-      null,
-      2
-    )
-  );
-
   console.debug(
     'signed txn',
     algosdk.decodeMsgpack(stxn, SignedTransaction).toEncodingData()
@@ -229,22 +182,6 @@ async function main() {
   const delegatedSigner = algosdk.makeLogicSigAccountTransactionSigner(lsig);
   const lsigAtc = new algosdk.AtomicTransactionComposer();
   lsigAtc.addTransaction({ txn: lsigTxn, signer: delegatedSigner });
-  const [lsigStxn] = await lsigAtc.gatherSignatures();
-
-  writeFileSync(
-    'tests/pq_test_data/lsig.json',
-    JSON.stringify(
-      {
-        publicKey: Buffer.from(publicKey).toString('base64'),
-        program: Buffer.from(compiled).toString('base64'),
-        txnBlob: Buffer.from(lsigTxn.toByte()).toString('base64'),
-        lsigSig: Buffer.from(lsig.lsig.pqsig!.sig).toString('base64'),
-        stxnBlob: Buffer.from(lsigStxn).toString('base64'),
-      },
-      null,
-      2
-    )
-  );
 
   const lsigResult = await lsigAtc.execute(client, 3);
 
@@ -291,24 +228,6 @@ async function main() {
 
   const rekeyedAtc = new algosdk.AtomicTransactionComposer();
   rekeyedAtc.addTransaction({ txn: rekeyedPay, signer: falconTxnSigner });
-  const [rekeyStxn] = await rekeyedAtc.gatherSignatures();
-
-  writeFileSync(
-    'tests/pq_test_data/rekey.json',
-    JSON.stringify(
-      {
-        publicKey: Buffer.from(publicKey).toString('base64'),
-        sender: ed25519Acct.addr.toString(),
-        txnBlob: Buffer.from(rekeyedPay.toByte()).toString('base64'),
-        txnSig: Buffer.from(
-          algosdk.decodeMsgpack(rekeyStxn, SignedTransaction).pqsig!.sig
-        ).toString('base64'),
-        stxnBlob: Buffer.from(rekeyStxn).toString('base64'),
-      },
-      null,
-      2
-    )
-  );
 
   await rekeyedAtc.execute(client, 3);
 
