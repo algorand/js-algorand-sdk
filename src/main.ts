@@ -78,6 +78,7 @@ export {
   mnemonicToSecretKey,
   seedFromMnemonic,
   mnemonicFromSeed,
+  pq25WordMnemonicToSeed,
 } from './mnemonic/mnemonic.js';
 export {
   microalgosToAlgos,
@@ -106,6 +107,10 @@ export {
   tealSign,
   tealSignFromProgram,
   verifyTealSign,
+  PROGRAM_TAG,
+  PQ_PROGRAM_TAG,
+  MSIG_PROGRAM_TAG,
+  SIGN_PROGRAM_DATA_PREFIX,
 } from './logicsig.js';
 export {
   MultisigMetadata,
@@ -118,12 +123,28 @@ export {
   appendSignMultisigTransaction,
   createMultisigTransaction,
   appendSignRawMultisigSignature,
+  signMultisigTransactionWithSigner,
+  appendSignMultisigTransactionWithSigner,
 } from './multisigSigning.js';
 export {
   ProgramSourceMap,
   SourceLocation,
   PcLineLocation,
 } from './logic/sourcemap.js';
+
+export {
+  Ed25519SigningKey,
+  addressWithSignersFromRawEd25519Signer,
+} from './ed25519-signer.js';
+export {
+  FALCON_1024_SCHEME,
+  Falcon1024SigningKey,
+  addressWithSignersFromRawFalcon1024Signer,
+} from './falcon-signer.js';
+export {
+  PQSigningKey,
+  addressWithSignersFromRawPQSigner,
+} from './pq-signer.js';
 
 export * from './dryrun.js';
 export * from './makeTxn.js';
