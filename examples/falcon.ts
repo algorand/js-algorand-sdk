@@ -17,50 +17,12 @@ import algosdk, {
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { genericHash } from '../src/nacl/naclWrappers';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic';
-
-// falcon-1024 ships a browser-oriented WASM build that locates its `.wasm` file
-// via `fetch(new URL("falcon_wasm.wasm", import.meta.url))`. Node's fetch cannot
-// read `file://` URLs, so when running under Node we shim fetch to serve the
-// local `.wasm` from disk. (Mirrors the shim in tests/12.PQ.ts.)
-async function installNodeWasmFetchShim(): Promise<void> {
-  const isNode =
-    typeof process !== 'undefined' &&
-    process.versions != null &&
-    process.versions.node != null;
-  if (!isNode) return;
-
-  const { readFile } = await import(
-    /* webpackIgnore: true */ 'node:fs/promises'
-  );
-  const { fileURLToPath } = await import(/* webpackIgnore: true */ 'node:url');
-
-  const originalFetch = globalThis.fetch.bind(globalThis);
-  globalThis.fetch = (async (input: unknown, init?: unknown) => {
-    const url = input instanceof URL ? input.href : String(input);
-    if (url.startsWith('file://') && url.endsWith('.wasm')) {
-      const bytes = await readFile(fileURLToPath(url));
-      return new Response(new Uint8Array(bytes), {
-        headers: { 'Content-Type': 'application/wasm' },
-      });
-    }
-    return originalFetch(
-      input as Parameters<typeof fetch>[0],
-      init as Parameters<typeof fetch>[1]
-    );
-  }) as typeof fetch;
-}
+import { generateKey, signCompressed, verifyCompressed } from 'falcon-1024';
 
 async function main() {
   const client = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
   const dispenser = accounts[0];
-
-  // falcon-1024 is ESM-only and depends on WASM, so load it dynamically after
-  // the fetch shim is in place.
-  await installNodeWasmFetchShim();
-  const { generateKey, signCompressed, verifyCompressed } = await import(
-    'falcon-1024'
-  );
 
   // example: FALCON_KEYGEN
   const mnemonic = `${'abandon '.repeat(24)}invest`;
