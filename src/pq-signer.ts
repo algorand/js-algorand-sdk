@@ -1,20 +1,18 @@
-import { addressFromPQKey } from './encoding/address';
-import { PQ_PROGRAM_TAG } from './logicsig';
+import { Address, addressFromPQKey } from './encoding/address.js';
+import { encodeMsgpack } from './encoding/encoding.js';
+import { LogicSig, PQ_PROGRAM_TAG } from './logicsig.js';
+import { MultisigMetadata } from './multisig.js';
+import { SignedTransaction } from './signedTransaction.js';
 import {
-  Address,
   AddressWithDelegatedLsigSigner,
   AddressWithTransactionSigner,
   DelegatedLsigSigner,
-  EncodedPQSig,
-  encodeMsgpack,
-  LogicSig,
-  MultisigMetadata,
-  SignedTransaction,
-  Transaction,
   TransactionSigner,
-} from './main';
-import { genericHash } from './nacl/naclWrappers';
-import { concatArrays } from './utils/utils';
+} from './signer.js';
+import { Transaction } from './transaction.js';
+import { EncodedPQSig } from './types/transactions/encoded.js';
+import { genericHash } from './nacl/naclWrappers.js';
+import { concatArrays } from './utils/utils.js';
 
 export interface PQSigningKey {
   pqScheme: Uint8Array;

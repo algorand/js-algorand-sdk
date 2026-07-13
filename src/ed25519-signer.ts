@@ -1,27 +1,29 @@
+import { Address } from './encoding/address.js';
+import { encodeMsgpack } from './encoding/encoding.js';
 import {
   MSIG_PROGRAM_TAG,
   PROGRAM_TAG,
   SIGN_PROGRAM_DATA_PREFIX,
-} from './logicsig';
+} from './logicsig.js';
+import { addressFromMultisigPreImg } from './multisig.js';
+import { SignedTransaction } from './signedTransaction.js';
 import {
-  Address,
   AddressWithDelegatedLsigSigner,
   AddressWithMxBytesSigner,
   AddressWithProgramDataSigner,
   AddressWithTransactionSigner,
   DelegatedLsigSigner,
-  EncodedMultisig,
-  EncodedSubsig,
-  encodeMsgpack,
   MxBytesSigner,
   ProgramDataSigner,
-  SIGN_BYTES_PREFIX,
-  SignedTransaction,
-  Transaction,
   TransactionSigner,
-} from './main';
-import { addressFromMultisigPreImg } from './multisig';
-import { arrayEqual, concatArrays } from './utils/utils';
+} from './signer.js';
+import { SIGN_BYTES_PREFIX } from './signing.js';
+import { Transaction } from './transaction.js';
+import {
+  EncodedMultisig,
+  EncodedSubsig,
+} from './types/transactions/encoded.js';
+import { arrayEqual, concatArrays } from './utils/utils.js';
 
 export interface Ed25519SigningKey {
   ed25519PublicKey: Uint8Array;

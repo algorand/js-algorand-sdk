@@ -1,9 +1,9 @@
+import { Address } from './encoding/address.js';
 import {
-  Address,
   AddressWithDelegatedLsigSigner,
   AddressWithTransactionSigner,
-} from './main';
-import { addressWithSignersFromRawPQSigner } from './pq-signer';
+} from './signer.js';
+import { addressWithSignersFromRawPQSigner } from './pq-signer.js';
 
 /**
  * The 2-byte ASCII identifier of the Falcon-1024 post-quantum signature scheme.
