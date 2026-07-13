@@ -50,6 +50,7 @@ export {
   encodeAddress,
   decodeAddress,
   getApplicationAddress,
+  addressFromPQKey,
   ALGORAND_ZERO_ADDRESS_STRING,
 } from './encoding/address.js';
 export { bytesToBigInt, bigIntToBytes } from './encoding/bigint.js';
