@@ -2,7 +2,6 @@ import {
   NamedMapSchema,
   FixedLengthByteArraySchema,
   ByteArraySchema,
-  StringSchema,
   Uint64Schema,
   ArraySchema,
   OptionalSchema,
