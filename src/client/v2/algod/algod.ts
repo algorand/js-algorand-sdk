@@ -473,6 +473,8 @@ export class AlgodClient extends ServiceClient {
    * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2tealdryrun)
    * @param dr
    * @category POST
+   * @deprecated The dryrun endpoint has been removed from algod. Use
+   * {@link AlgodClient.simulateTransactions} instead.
    */
   dryrun(dr: modelsv2.DryrunRequest) {
     return new Dryrun(this.c, dr);
