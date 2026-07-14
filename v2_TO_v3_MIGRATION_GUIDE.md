@@ -314,6 +314,12 @@ Though in the vast majority of cases, you will not need to use these functions d
 
 The `IntDecoding.DEFAULT` option has been renamed to `IntDecoding.UNSAFE` in v3. It behaves identically to the v2 `IntDecoding.DEFAULT` option, but the name has been changed to better reflect the fact that other options should be preferred.
 
+### Dryrun Utilities
+
+Dryrun-related utilities are deprecated because the `POST /v2/teal/dryrun` endpoint has been removed from algod. Prefer transaction simulation via `AlgodClient.simulateTransactions`.
+
+If you still need to parse legacy dryrun responses, use the fully-typed `modelsv2.DryrunResponse`/`modelsv2.DryrunTxnResult` models and the helper functions `dryrunTxnResultAppTrace` and `dryrunTxnResultLogicSigTrace`.
+
 ### Object Encoding and Decoding
 
 In v2 of the SDK, the `Transaction`, `LogicSig`, `BaseModel` and other classes had `get_obj_for_encoding` methods and `from_obj_for_encoding` static methods. These were used during the process of encoding or decoding objects from msgpack or JSON. These ad-hoc methods have been removed in v3, and in their place a new `Encodable` interface has been introduced, along with functions `encodeMsgpack`, `decodeMsgpack`, `encodeJSON`, and `decodeJSON`.
