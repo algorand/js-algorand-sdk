@@ -105,7 +105,7 @@ export class LogicSig implements encoding.Encodable {
         valueSchema: new OptionalSchema(ENCODED_MULTISIG_SCHEMA),
       },
       {
-        key: 'pq',
+        key: 'pqsig',
         valueSchema: new OptionalSchema(ENCODED_PQSIG_SCHEMA),
       },
     ])
@@ -159,7 +159,7 @@ export class LogicSig implements encoding.Encodable {
       data.set('lmsig', encodedMultiSigToEncodingData(this.lmsig));
     }
     if (this.pqsig) {
-      data.set('pq', encodedPQSigToEncodingData(this.pqsig));
+      data.set('pqsig', encodedPQSigToEncodingData(this.pqsig));
     }
     return data;
   }
@@ -176,8 +176,8 @@ export class LogicSig implements encoding.Encodable {
     if (data.get('lmsig')) {
       lsig.lmsig = encodedMultiSigFromEncodingData(data.get('lmsig'));
     }
-    if (data.get('pq')) {
-      lsig.pqsig = encodedPQSigFromEncodingData(data.get('pq'));
+    if (data.get('pqsig')) {
+      lsig.pqsig = encodedPQSigFromEncodingData(data.get('pqsig'));
     }
     return lsig;
   }

@@ -44,7 +44,7 @@ export class SignedTransaction implements Encodable {
         valueSchema: new OptionalSchema(LogicSig.encodingSchema),
       },
       {
-        key: 'pq',
+        key: 'pqsig',
         valueSchema: new OptionalSchema(ENCODED_PQSIG_SCHEMA),
       },
       {
@@ -132,7 +132,10 @@ export class SignedTransaction implements Encodable {
         this.msig ? encodedMultiSigToEncodingData(this.msig) : undefined,
       ],
       ['lsig', this.lsig ? this.lsig.toEncodingData() : undefined],
-      ['pq', this.pqsig ? encodedPQSigToEncodingData(this.pqsig) : undefined],
+      [
+        'pqsig',
+        this.pqsig ? encodedPQSigToEncodingData(this.pqsig) : undefined,
+      ],
       ['sgnr', this.sgnr],
     ]);
   }
@@ -150,8 +153,8 @@ export class SignedTransaction implements Encodable {
       lsig: data.get('lsig')
         ? LogicSig.fromEncodingData(data.get('lsig'))
         : undefined,
-      pqsig: data.get('pq')
-        ? encodedPQSigFromEncodingData(data.get('pq'))
+      pqsig: data.get('pqsig')
+        ? encodedPQSigFromEncodingData(data.get('pqsig'))
         : undefined,
       sgnr: data.get('sgnr'),
     });
