@@ -1548,21 +1548,6 @@ module.exports = function getSteps(options) {
               .pendingTransactionByAddress(algosdk.Address.zeroAddress())
               .do();
             break;
-          case 'DryRun':
-            this.actualMockResponse = await this.v2Client
-              .dryrun(
-                new algosdk.modelsv2.DryrunRequest({
-                  accounts: [],
-                  apps: [],
-                  latestTimestamp: 0,
-                  protocolVersion: '',
-                  round: 0,
-                  sources: [],
-                  txns: [],
-                })
-              )
-              .do();
-            break;
           case 'GetTransactionProof':
           // fallthrough
           case 'Proof':
@@ -3311,99 +3296,6 @@ module.exports = function getSteps(options) {
     this.txn.sender = algosdk.decodeAddress(sender);
   });
 
-  let dryrunResponse;
-
-  When('we make any Dryrun call', async function () {
-    const dr = new algosdk.modelsv2.DryrunRequest({
-      accounts: [],
-      apps: [],
-      latestTimestamp: 7,
-      protocolVersion: 'future',
-      round: 100,
-      sources: [],
-      txns: [],
-    });
-    dryrunResponse = await this.v2Client.dryrun(dr).do();
-  });
-
-  Then(
-    'the parsed Dryrun Response should have global delta {string} with {int}',
-    (key, action) => {
-      assert.strictEqual(dryrunResponse.txns[0].globalDelta[0].key, key);
-      assert.strictEqual(
-        dryrunResponse.txns[0].globalDelta[0].value.action,
-        action
-      );
-    }
-  );
-
-  When('I dryrun a {string} program {string}', async function (kind, program) {
-    const data = await loadResource(program);
-    const sp = await this.v2Client.getTransactionParams().do();
-    const algoTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      sender: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-      receiver: 'UAPJE355K7BG7RQVMTZOW7QW4ICZJEIC3RZGYG5LSHZ65K6LCNFPJDSR7M',
-      amount: 1000,
-      suggestedParams: sp,
-    });
-    let txns;
-    let sources = [];
-
-    switch (kind) {
-      case 'compiled':
-        txns = [
-          new algosdk.SignedTransaction({
-            lsig: new algosdk.LogicSig(data),
-            txn: algoTxn,
-          }),
-        ];
-        break;
-      case 'source':
-        txns = [
-          new algosdk.SignedTransaction({
-            txn: algoTxn,
-          }),
-        ];
-        sources = [
-          new algosdk.modelsv2.DryrunSource({
-            fieldName: 'lsig',
-            source: new TextDecoder().decode(data),
-            txnIndex: 0,
-            appIndex: 0,
-          }),
-        ];
-        break;
-      default:
-        throw Error(`kind ${kind} not in (source, compiled)`);
-    }
-
-    const dr = new algosdk.modelsv2.DryrunRequest({
-      accounts: [],
-      apps: [],
-      latestTimestamp: 0,
-      protocolVersion: '',
-      round: 0,
-      txns,
-      sources,
-    });
-    dryrunResponse = await this.v2Client.dryrun(dr).do();
-  });
-
-  Then('I get execution result {string}', (result) => {
-    let msgs;
-    const res = dryrunResponse.txns[0];
-    if (res.logicSigMessages !== undefined && res.logicSigMessages.length > 0) {
-      msgs = res.logicSigMessages;
-    } else if (
-      res.appCallMessages !== undefined &&
-      res.appCallMessages.length > 0
-    ) {
-      msgs = res.appCallMessages;
-    }
-    assert.ok(msgs.length > 0);
-    assert.strictEqual(msgs[0], result);
-  });
-
   let compileStatusCode;
   let compileResponse;
 
@@ -4995,27 +4887,6 @@ module.exports = function getSteps(options) {
       assert.ok(spin.match(regexString));
     }
   );
-
-  Given(
-    'a dryrun response file {string} and a transaction at index {string}',
-    async function (drrFile, txId) {
-      const drContents = await loadResourceAsJson(drrFile);
-      const drr = algosdk.modelsv2.DryrunResponse.fromEncodingData(
-        algosdk.modelsv2.DryrunResponse.encodingSchema.fromPreparedJSON(
-          drContents
-        )
-      );
-      this.txtrace = drr.txns[parseInt(txId)];
-    }
-  );
-
-  Then('calling app trace produces {string}', async function (expected) {
-    const traceString = algosdk.dryrunTxnResultAppTrace(this.txtrace);
-    const expectedString = new TextDecoder().decode(
-      await loadResource(expected)
-    );
-    assert.strictEqual(traceString, expectedString);
-  });
 
   When(
     'I append to my Method objects list in the case of a non-empty signature {string}',

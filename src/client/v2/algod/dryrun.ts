@@ -5,6 +5,10 @@ import { setHeaders } from './compile.js';
 import { DryrunResponse } from './models/types.js';
 import * as modelsv2 from './models/types.js';
 
+/**
+ * @deprecated The dryrun endpoint has been removed from algod. Use the simulate
+ * endpoint instead (see {@link AlgodClient.simulateTransactions}).
+ */
 export default class Dryrun extends JSONRequest<DryrunResponse> {
   private blob: Uint8Array;
 
