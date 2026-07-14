@@ -10,8 +10,6 @@
 @unit.atomic_transaction_composer
 @unit.blocksummary
 @unit.blocktxids
-@unit.dryrun
-@unit.dryrun.trace.application
 @unit.feetest
 @unit.indexer
 @unit.indexer.blockheaders

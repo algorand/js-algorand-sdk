@@ -314,14 +314,6 @@ Though in the vast majority of cases, you will not need to use these functions d
 
 The `IntDecoding.DEFAULT` option has been renamed to `IntDecoding.UNSAFE` in v3. It behaves identically to the v2 `IntDecoding.DEFAULT` option, but the name has been changed to better reflect the fact that other options should be preferred.
 
-### Dryrun Utilities
-
-Due to the fully-typed Algod responses in v3, some of the redundant dryrun types have been removed.
-
-Specifically, the `DryrunResult` class and its dependent types have been removed in favor of the Algod response model, `modelsv2.DryrunResponse`.
-
-The `DryrunTransactionResult` class, which made up the elements of the v2 `DryrunResult.txns` array, used to have methods `appTrace` and `lsigTrace`. These have been replaced by the new `dryrunTxnResultAppTrace` and `dryrunTxnResultLogicSigTrace` functions, which accept a `DryrunTxnResult`. These new functions should produce identical results to the old ones.
-
 ### Object Encoding and Decoding
 
 In v2 of the SDK, the `Transaction`, `LogicSig`, `BaseModel` and other classes had `get_obj_for_encoding` methods and `from_obj_for_encoding` static methods. These were used during the process of encoding or decoding objects from msgpack or JSON. These ad-hoc methods have been removed in v3, and in their place a new `Encodable` interface has been introduced, along with functions `encodeMsgpack`, `decodeMsgpack`, `encodeJSON`, and `decodeJSON`.

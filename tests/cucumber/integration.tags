@@ -7,7 +7,6 @@
 @compile
 @compile.disassemble
 @compile.sourcemap
-@dryrun
 @kmd
 @rekey_v1
 @send

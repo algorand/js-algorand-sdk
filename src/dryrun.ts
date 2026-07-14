@@ -29,6 +29,8 @@ const defaultMaxWidth = 30;
  * @param round - the round available to some TEAL scripts. Defaults to the current round on the network.
  * @param sources - TEAL source text that gets uploaded, compiled, and inserted into transactions or application state.
  * @returns the DryrunRequest object constructed from the SignedTransactions passed
+ * @deprecated The dryrun endpoint has been removed from algod. Use the simulate
+ * endpoint instead (see {@link AlgodClient.simulateTransactions}).
  */
 export async function createDryrun({
   client,
@@ -255,6 +257,10 @@ function dryrunTrace(
     .join('\n')}\n`;
 }
 
+/**
+ * @deprecated The dryrun endpoint has been removed from algod. Use the simulate
+ * endpoint instead (see {@link AlgodClient.simulateTransactions}).
+ */
 export function dryrunTxnResultAppTrace(
   result: DryrunTxnResult,
   spc?: StackPrinterConfig
@@ -273,6 +279,10 @@ export function dryrunTxnResultAppTrace(
   return dryrunTrace(result.appCallTrace, result.disassembly, conf);
 }
 
+/**
+ * @deprecated The dryrun endpoint has been removed from algod. Use the simulate
+ * endpoint instead (see {@link AlgodClient.simulateTransactions}).
+ */
 export function dryrunTxnResultLogicSigTrace(
   result: DryrunTxnResult,
   spc?: StackPrinterConfig
