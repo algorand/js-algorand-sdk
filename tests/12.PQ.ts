@@ -26,18 +26,18 @@ import {
 import { PQ_PROGRAM_TAG } from '../src/logicsig.js';
 import { concatArrays } from '../src/utils/utils.js';
 import { genericHash } from '../src/nacl/naclWrappers.js';
-
-function fromB64(s: string): Uint8Array {
-  return new Uint8Array(Buffer.from(s, 'base64'));
-}
+import { base64ToBytes } from '../src/encoding/binarydata.js';
 
 describe('PQ Address', () => {
   it('derives the sender address of a PQ payment from its public key', () => {
     // pqPayment is sent directly from the Falcon auth address, so decoding the
     // transaction yields the address that fromPQKey must reproduce from the
     // public key.
-    const txn = decodeMsgpack(fromB64(pqPaymentData.txnBlob), Transaction);
-    const publicKey = fromB64(pqPaymentData.signer.pqSigner.pk);
+    const txn = decodeMsgpack(
+      base64ToBytes(pqPaymentData.txnBlob),
+      Transaction
+    );
+    const publicKey = base64ToBytes(pqPaymentData.signer.pqSigner.pk);
 
     const { address } = addressFromPQKey(FALCON_1024_SCHEME, publicKey);
     assert.strictEqual(address.toString(), txn.sender.toString());
@@ -53,7 +53,7 @@ describe('PQ Address', () => {
 
   describe('address validity', () => {
     it('produces a well-formed, round-trippable address', () => {
-      const publicKey = fromB64(pqPaymentData.signer.pqSigner.pk);
+      const publicKey = base64ToBytes(pqPaymentData.signer.pqSigner.pk);
       const { address } = addressFromPQKey(FALCON_1024_SCHEME, publicKey);
 
       const encoded = address.toString();
@@ -66,7 +66,7 @@ describe('PQ Address', () => {
     // Port of TestCanonicalPQAddressSaltRejectsInvalidSchemeLength.
     ['', 'x', 'xyz'].forEach((scheme) => {
       it(`rejects scheme ${JSON.stringify(scheme)}`, () => {
-        const publicKey = fromB64(pqPaymentData.signer.pqSigner.pk);
+        const publicKey = base64ToBytes(pqPaymentData.signer.pqSigner.pk);
         assert.throws(
           () =>
             addressFromPQKey(new TextEncoder().encode(scheme), publicKey)
@@ -100,11 +100,11 @@ describe('PQ mnemonic', () => {
       pqMnemonicData.mnemonic,
       FALCON_1024_SCHEME
     );
-    assert.deepEqual(seed, fromB64(pqMnemonicData.seed));
+    assert.deepEqual(seed, base64ToBytes(pqMnemonicData.seed));
   });
 
   it('derives the expected address from the mnemonic public key', () => {
-    const publicKey = fromB64(pqMnemonicData.publicKey);
+    const publicKey = base64ToBytes(pqMnemonicData.publicKey);
     const { address } = addressFromPQKey(FALCON_1024_SCHEME, publicKey);
     assert.strictEqual(address.toString(), pqMnemonicData.address);
   });
@@ -112,14 +112,17 @@ describe('PQ mnemonic', () => {
 
 describe('PQ signers', () => {
   it('properly attaches a signature to a transaction', async () => {
-    const txn = decodeMsgpack(fromB64(pqPaymentData.txnBlob), Transaction);
+    const txn = decodeMsgpack(
+      base64ToBytes(pqPaymentData.txnBlob),
+      Transaction
+    );
 
     const falconSigningKey: Falcon1024SigningKey = {
-      falcon1024PublicKey: fromB64(pqPaymentData.signer.pqSigner.pk),
+      falcon1024PublicKey: base64ToBytes(pqPaymentData.signer.pqSigner.pk),
       falcon1024Signer: async (data: Uint8Array) => {
         assert.deepEqual(data, new Uint8Array(genericHash(txn.bytesToSign())));
 
-        return fromB64(pqPaymentData.stxn.pq.sig);
+        return base64ToBytes(pqPaymentData.stxn.pq.sig);
       },
     };
 
@@ -130,7 +133,7 @@ describe('PQ signers', () => {
       txn,
       addrWithSigners.txnSigner
     );
-    assert.deepEqual(blob, fromB64(pqPaymentData.stxnBlob));
+    assert.deepEqual(blob, base64ToBytes(pqPaymentData.stxnBlob));
   });
 
   it('properly attaches a signature to a rekeyed transaction', async () => {
@@ -138,16 +141,18 @@ describe('PQ signers', () => {
     // differs from the Falcon auth address, so the signer must populate the
     // `sgnr` (authorizing address) field on the signed transaction.
     const txn = decodeMsgpack(
-      fromB64(pqRekeyedPaymentData.txnBlob),
+      base64ToBytes(pqRekeyedPaymentData.txnBlob),
       Transaction
     );
 
     const falconSigningKey: Falcon1024SigningKey = {
-      falcon1024PublicKey: fromB64(pqRekeyedPaymentData.signer.pqSigner.pk),
+      falcon1024PublicKey: base64ToBytes(
+        pqRekeyedPaymentData.signer.pqSigner.pk
+      ),
       falcon1024Signer: async (data: Uint8Array) => {
         assert.deepEqual(data, new Uint8Array(genericHash(txn.bytesToSign())));
 
-        return fromB64(pqRekeyedPaymentData.stxn.pq.sig);
+        return base64ToBytes(pqRekeyedPaymentData.stxn.pq.sig);
       },
     };
 
@@ -158,12 +163,12 @@ describe('PQ signers', () => {
       txn,
       addrWithSigners.txnSigner
     );
-    assert.deepEqual(blob, fromB64(pqRekeyedPaymentData.stxnBlob));
+    assert.deepEqual(blob, base64ToBytes(pqRekeyedPaymentData.stxnBlob));
   });
 
   it('properly attaches a signature to a delegated logic sig', async () => {
-    const program = fromB64(pqDelegatedPaymentData.signer.lsig);
-    const publicKey = fromB64(pqDelegatedPaymentData.signer.pqSigner.pk);
+    const program = base64ToBytes(pqDelegatedPaymentData.signer.lsig);
+    const publicKey = base64ToBytes(pqDelegatedPaymentData.signer.pqSigner.pk);
 
     const { address: authAddress } = addressFromPQKey(
       FALCON_1024_SCHEME,
@@ -184,7 +189,7 @@ describe('PQ signers', () => {
           )
         );
 
-        return fromB64(pqDelegatedPaymentData.stxn.lsig.pq.sig);
+        return base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pq.sig);
       },
     };
 
@@ -196,11 +201,11 @@ describe('PQ signers', () => {
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
-      fromB64(pqDelegatedPaymentData.stxn.lsig.pq.sig)
+      base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pq.sig)
     );
 
     const txn = decodeMsgpack(
-      fromB64(pqDelegatedPaymentData.txnBlob),
+      base64ToBytes(pqDelegatedPaymentData.txnBlob),
       Transaction
     );
 
@@ -209,15 +214,17 @@ describe('PQ signers', () => {
       makeLogicSigAccountTransactionSigner(lsigAccount)
     );
 
-    assert.deepEqual(blob, fromB64(pqDelegatedPaymentData.stxnBlob));
+    assert.deepEqual(blob, base64ToBytes(pqDelegatedPaymentData.stxnBlob));
   });
 
   it('properly attaches a signature to a rekeyed delegated logic sig', async () => {
     // Same as the delegated lsig case, but the transaction sender is a rekeyed
     // account that differs from the lsig (Falcon auth) address, so the signer
     // must populate the `sgnr` field on the signed transaction.
-    const program = fromB64(pqRekeyedDelegatedPaymentData.signer.lsig);
-    const publicKey = fromB64(pqRekeyedDelegatedPaymentData.signer.pqSigner.pk);
+    const program = base64ToBytes(pqRekeyedDelegatedPaymentData.signer.lsig);
+    const publicKey = base64ToBytes(
+      pqRekeyedDelegatedPaymentData.signer.pqSigner.pk
+    );
 
     const { address: authAddress } = addressFromPQKey(
       FALCON_1024_SCHEME,
@@ -236,7 +243,7 @@ describe('PQ signers', () => {
           )
         );
 
-        return fromB64(pqRekeyedDelegatedPaymentData.stxn.lsig.pq.sig);
+        return base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pq.sig);
       },
     };
 
@@ -248,11 +255,11 @@ describe('PQ signers', () => {
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
-      fromB64(pqRekeyedDelegatedPaymentData.stxn.lsig.pq.sig)
+      base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pq.sig)
     );
 
     const txn = decodeMsgpack(
-      fromB64(pqRekeyedDelegatedPaymentData.txnBlob),
+      base64ToBytes(pqRekeyedDelegatedPaymentData.txnBlob),
       Transaction
     );
 
@@ -261,6 +268,9 @@ describe('PQ signers', () => {
       makeLogicSigAccountTransactionSigner(lsigAccount)
     );
 
-    assert.deepEqual(blob, fromB64(pqRekeyedDelegatedPaymentData.stxnBlob));
+    assert.deepEqual(
+      blob,
+      base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
+    );
   });
 });

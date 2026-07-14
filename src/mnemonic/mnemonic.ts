@@ -4,6 +4,7 @@ import * as nacl from '../nacl/naclWrappers.js';
 import { Address } from '../encoding/address.js';
 import Account from '../types/account.js';
 import { concatArrays } from '../utils/utils.js';
+import { coerceToBytes } from '../encoding/binarydata.js';
 
 export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 export const NOT_IN_WORDS_LIST_ERROR_MSG =
@@ -188,7 +189,7 @@ export function pq25WordMnemonicToSeed(
 ): Uint8Array {
   return new Uint8Array(
     nacl.genericHash(
-      concatArrays(Buffer.from('PQK'), scheme, seedFromMnemonic(mn))
+      concatArrays(coerceToBytes('PQK'), scheme, seedFromMnemonic(mn))
     )
   );
 }
