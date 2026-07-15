@@ -122,7 +122,7 @@ describe('PQ signers', () => {
       falcon1024Signer: async (data: Uint8Array) => {
         assert.deepEqual(data, new Uint8Array(genericHash(txn.bytesToSign())));
 
-        return base64ToBytes(pqPaymentData.stxn.pq.sig);
+        return base64ToBytes(pqPaymentData.stxn.pqsig.sig);
       },
     };
 
@@ -152,7 +152,7 @@ describe('PQ signers', () => {
       falcon1024Signer: async (data: Uint8Array) => {
         assert.deepEqual(data, new Uint8Array(genericHash(txn.bytesToSign())));
 
-        return base64ToBytes(pqRekeyedPaymentData.stxn.pq.sig);
+        return base64ToBytes(pqRekeyedPaymentData.stxn.pqsig.sig);
       },
     };
 
@@ -189,7 +189,7 @@ describe('PQ signers', () => {
           )
         );
 
-        return base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pq.sig);
+        return base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig);
       },
     };
 
@@ -201,7 +201,7 @@ describe('PQ signers', () => {
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
-      base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pq.sig)
+      base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig)
     );
 
     const txn = decodeMsgpack(
@@ -243,7 +243,7 @@ describe('PQ signers', () => {
           )
         );
 
-        return base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pq.sig);
+        return base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pqsig.sig);
       },
     };
 
@@ -255,7 +255,7 @@ describe('PQ signers', () => {
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
-      base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pq.sig)
+      base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pqsig.sig)
     );
 
     const txn = decodeMsgpack(
