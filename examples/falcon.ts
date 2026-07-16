@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 
 // Tested with the following sandbox config
-// https://github.com/joe-p/sandbox/blob/25bad1a7f445883628deafbc3310377cf28150aa/config.pq
+// https://github.com/joe-p/sandbox/blob/b825ae5573ded27f056462fd13b93f4910d6406e/config.pq
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { generateKey, signCompressed, verifyCompressed } from 'falcon-1024';
@@ -25,7 +25,6 @@ async function main() {
   const accounts = await getLocalAccounts();
   const dispenser = accounts[0];
 
-  // example: FALCON_KEYGEN
   const mnemonic = `${'abandon '.repeat(24)}invest`;
 
   const { publicKey, privateKey } = generateKey(
@@ -46,9 +45,7 @@ async function main() {
     txnSigner: falconTxnSigner,
     delegatedLsigSigner: falconLsigSigner,
   } = algosdk.addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
-  // example: FALCON_KEYGEN
 
-  // example: FALCON_FUND
   // Fund the new Falcon address so it can cover its min balance + fees.
   const suggestedParams = await client.getTransactionParams().do();
   const fundTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -62,9 +59,7 @@ async function main() {
 
   const funded = await client.accountInformation(falconAddr).do();
   console.log('Funded balance (microAlgos):', funded.amount);
-  // example: FALCON_FUND
 
-  // example: FALCON_SEND
   // Send a 0-amount payment FROM the Falcon address, signed with the Falcon
   // signer, using the AtomicTransactionComposer to gather and submit it.
   const zeroPayTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
@@ -93,7 +88,6 @@ async function main() {
 
   console.log('verify result', verifyResult);
   const result = await atc.execute(client, 4);
-  // example: FALCON_SEND
 
   console.log(
     'Falcon-signed 0-payment confirmed in round',
@@ -148,16 +142,22 @@ async function main() {
 
   console.log('ed funded');
 
-  const rekeyTxn = makePaymentTxnWithSuggestedParamsFromObject({
-    suggestedParams,
-    sender: ed25519Acct.addr,
-    receiver: ed25519Acct.addr,
-    amount: 0,
-    rekeyTo: falconAddr,
-  });
+  if (
+    (await client.accountInformation(ed25519Acct.addr).do()).authAddr ===
+    undefined
+  ) {
+    const rekeyTxn = makePaymentTxnWithSuggestedParamsFromObject({
+      suggestedParams,
+      sender: ed25519Acct.addr,
+      receiver: ed25519Acct.addr,
+      amount: 0,
+      rekeyTo: falconAddr,
+    });
 
-  await client.sendRawTransaction(rekeyTxn.signTxn(ed25519Acct.sk)).do();
-  await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
+    await client.sendRawTransaction(rekeyTxn.signTxn(ed25519Acct.sk)).do();
+    await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
+  }
+
   console.log(`Rekeyed ${ed25519Acct.addr} to ${falconAddr}`);
 
   // Payment from rekeyed
