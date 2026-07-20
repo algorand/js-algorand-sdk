@@ -7,7 +7,6 @@ import AccountApplicationsInformation from './accountApplicationsInformation.js'
 import AccountApplicationInformation from './accountApplicationInformation.js';
 import Block from './block.js';
 import Compile from './compile.js';
-import Dryrun from './dryrun.js';
 import Genesis from './genesis.js';
 import GetAssetByID from './getAssetByID.js';
 import GetApplicationByID from './getApplicationByID.js';
@@ -458,26 +457,6 @@ export class AlgodClient extends ServiceClient {
    */
   disassemble(source: string | Uint8Array) {
     return new Disassemble(this.c, source);
-  }
-
-  /**
-   * Provides debugging information for a transaction (or group).
-   *
-   * Executes TEAL program(s) in context and returns debugging information about the execution. This endpoint is only enabled when a node's configureation file sets `EnableDeveloperAPI` to true.
-   *
-   * #### Example
-   * ```typescript
-   * const dryRunResult = await algodClient.dryrun(dr).do();
-   * ```
-   *
-   * [Response data schema details](https://developer.algorand.org/docs/rest-apis/algod/#post-v2tealdryrun)
-   * @param dr
-   * @category POST
-   * @deprecated The dryrun endpoint has been removed from algod. Use
-   * {@link AlgodClient.simulateTransactions} instead.
-   */
-  dryrun(dr: modelsv2.DryrunRequest) {
-    return new Dryrun(this.c, dr);
   }
 
   /**

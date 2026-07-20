@@ -316,9 +316,7 @@ The `IntDecoding.DEFAULT` option has been renamed to `IntDecoding.UNSAFE` in v3.
 
 ### Dryrun Utilities
 
-Dryrun-related utilities are deprecated because the `POST /v2/teal/dryrun` endpoint has been removed from algod. Prefer transaction simulation via `AlgodClient.simulateTransactions`.
-
-If you still need to parse legacy dryrun responses, use the fully-typed `modelsv2.DryrunResponse`/`modelsv2.DryrunTxnResult` models and the helper functions `dryrunTxnResultAppTrace` and `dryrunTxnResultLogicSigTrace`.
+Dryrun-related utilities have been removed because the `POST /v2/teal/dryrun` endpoint no longer exists on algod. This includes the `AlgodClient.dryrun` method, the `createDryrun`, `dryrunTxnResultAppTrace`, and `dryrunTxnResultLogicSigTrace` functions, and the `DryrunRequest`, `DryrunResponse`, `DryrunSource`, `DryrunState`, and `DryrunTxnResult` models. Use transaction simulation via `AlgodClient.simulateTransactions` instead.
 
 ### Object Encoding and Decoding
 
