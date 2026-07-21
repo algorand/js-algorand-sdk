@@ -11,7 +11,6 @@ import {
 } from './signer.js';
 import { Transaction } from './transaction.js';
 import { EncodedPQSig } from './types/transactions/encoded.js';
-import { genericHash } from './nacl/naclWrappers.js';
 import { concatArrays } from './utils/utils.js';
 
 export interface PQSigningKey {
@@ -39,9 +38,7 @@ export function addressWithSignersFromRawPQSigner(
     for (const index of indexesToSign) {
       const txn = txnGroup[index];
       // eslint-disable-next-line no-await-in-loop
-      const sig = await rawSigner(
-        new Uint8Array(genericHash(txn.bytesToSign()))
-      );
+      const sig = await rawSigner(txn.bytesToSign());
       const pqsig: EncodedPQSig = {
         sch: pqScheme,
         slt: salt,
@@ -69,9 +66,7 @@ export function addressWithSignersFromRawPQSigner(
     }
 
     const toBeSigned = new Uint8Array(
-      genericHash(
-        concatArrays(PQ_PROGRAM_TAG, authAddress.publicKey, lsig.logic)
-      )
+      concatArrays(PQ_PROGRAM_TAG, authAddress.publicKey, lsig.logic)
     );
 
     const sig = await rawSigner(toBeSigned);

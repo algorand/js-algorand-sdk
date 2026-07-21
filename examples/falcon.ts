@@ -17,7 +17,6 @@ import algosdk, {
   type Falcon1024SigningKey,
 } from '../src';
 import { getLocalAlgodClient, getLocalAccounts } from './utils';
-import { genericHash } from '../src/nacl/naclWrappers';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic';
 
 async function main() {
@@ -76,7 +75,7 @@ async function main() {
   const verifyResult = verifyCompressed(
     publicKey,
     falconSig,
-    new Uint8Array(genericHash(zeroPayTxn.bytesToSign()))
+    new Uint8Array(zeroPayTxn.bytesToSign())
   );
 
   console.debug(
