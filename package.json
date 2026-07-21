@@ -48,7 +48,6 @@
     "url": "git://github.com/algorand/js-algorand-sdk.git"
   },
   "dependencies": {
-    "@noble/curves": "^2.2.0",
     "algorand-msgpack": "^1.1.0",
     "hi-base32": "^0.5.1",
     "js-sha256": "^0.9.0",

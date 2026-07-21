@@ -1,11 +1,9 @@
 import base32 from 'hi-base32';
-// @noble/curves only exports the ".js" subpath; the extension is required to resolve.
-// eslint-disable-next-line import/extensions
-import { ed25519 } from '@noble/curves/ed25519.js';
 import * as nacl from '../nacl/naclWrappers.js';
 import * as utils from '../utils/utils.js';
 import { encodeUint64 } from './uint64.js';
 import { bytesToHex } from './binarydata.js';
+import { couldBeCurvePoint } from '../utils/ed25519-check.js';
 
 export const ALGORAND_ADDRESS_BYTE_LENGTH = 36;
 export const ALGORAND_CHECKSUM_BYTE_LENGTH = 4;
@@ -26,21 +24,6 @@ const PQ_ADDRESS_PREFIX = new TextEncoder().encode('PQA');
  * The required byte length of a post-quantum signature scheme identifier.
  */
 const PQ_SCHEME_SIZE = 2;
-
-/**
- * Check whether a 32-byte value is a valid Ed25519 curve point.
- */
-function isEd25519Point(publicKey: Uint8Array): boolean {
-  try {
-    ed25519.Point.fromBytes(publicKey, true);
-    return true;
-  } catch (e) {
-    if (e instanceof Error && e.message.includes('bad point')) {
-      return false;
-    }
-    throw e;
-  }
-}
 
 function checksumFromPublicKey(pk: Uint8Array): Uint8Array {
   return Uint8Array.from(
@@ -235,7 +218,7 @@ export function addressFromPQKey(
       key
     );
     const publicKey = Uint8Array.from(nacl.genericHash(toBeHashed));
-    if (!isEd25519Point(publicKey)) {
+    if (!couldBeCurvePoint(publicKey)) {
       return { address: new Address(publicKey), salt };
     }
   }

@@ -1,0 +1,78 @@
+{
+  "schema": "falcon-signatures/algorand-lsig-address-kat/v1",
+  "source": {
+    "generator": "algorand/lsig_address_kat_generate_test.go",
+    "regenerate_command": "UPDATE_LSIG_ADDRESS_KAT=1 go test ./algorand -run TestUpdateLSigAddressKAT -count=1",
+    "falcon_seed_hex": "a4559bec684539e5db98dbe86bba8fe2032d65f1dd9a273fc84c85d7ed610ebeb8a0db25e3ec9301c45b21184d7ad329"
+  },
+  "edwards25519_decode_cases": [
+    {
+      "name": "canonical main-subgroup base point",
+      "encoding_hex": "5866666666666666666666666666666666666666666666666666666666666666",
+      "decodes_to_edwards25519_point": true,
+      "reject_for_lsig_address_derivation": true,
+      "libsodium_crypto_core_ed25519_is_valid_point": true,
+      "note": "Baseline Ed25519 public key accepted by narrow and broad predicates."
+    },
+    {
+      "name": "canonical small-order identity",
+      "encoding_hex": "0100000000000000000000000000000000000000000000000000000000000000",
+      "decodes_to_edwards25519_point": true,
+      "reject_for_lsig_address_derivation": true,
+      "libsodium_crypto_core_ed25519_is_valid_point": false,
+      "note": "Small-order points still decode to Edwards25519 curve points and must be rejected."
+    },
+    {
+      "name": "x-zero sign-bit non-canonical identity",
+      "encoding_hex": "0100000000000000000000000000000000000000000000000000000000000080",
+      "decodes_to_edwards25519_point": true,
+      "reject_for_lsig_address_derivation": true,
+      "libsodium_crypto_core_ed25519_is_valid_point": false,
+      "note": "filippo.io/edwards25519 accepts this ecosystem-compatible non-canonical encoding."
+    },
+    {
+      "name": "non-canonical y equals p",
+      "encoding_hex": "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "decodes_to_edwards25519_point": true,
+      "reject_for_lsig_address_derivation": true,
+      "libsodium_crypto_core_ed25519_is_valid_point": false,
+      "note": "The field element is non-canonical but reduces to a valid Edwards25519 point."
+    },
+    {
+      "name": "invalid y equals p plus 2",
+      "encoding_hex": "efffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+      "decodes_to_edwards25519_point": false,
+      "reject_for_lsig_address_derivation": false,
+      "libsodium_crypto_core_ed25519_is_valid_point": false,
+      "note": "This value does not decode to an Edwards25519 point under the broad predicate."
+    }
+  ],
+  "lsig_derivation": {
+    "name": "counter zero rejected, counter one selected",
+    "falcon_public_key_hex": "0a51018306136ec84e158e3b7a66fea162d6c57a04b3915905505b9c00bdad2b66bee01857d5bbe1e40ef549ee4a5653a1939e6966873be277ae807ec1d4256f37ba1bf360cbc16e2a333553865e7ea20d31a62f44a6e1dd0a5bebc22b942539a6258605b270fa95a7074645a060c014042392ff4adec0af1fcc4a062493d80bca988023877298b6288b10d7a979c935d01916f147e53c66419f3c608e37654aaa1fb22428a977a745bad0be611dd4d65964c82ae7ee90956eb0075ba8a98d21e0c76b1cc20ce58b7647c84f4451ba143b0af16e82930485d76d2192b9eb8781659615baa96f6e1f40ee554642e1941ddaf0c01daaa87d5aa5aa8951f29840196a0f6cd04d408181c691e8a0ca20d3590a933e8a745211613ca45c9bd47310ab5cb96a240d1638458a23758a859c28fd94065b0ffebcd8a0212bc0337fe183c66b4cae3b5502436a8f405b393156ef9a12bfbc503013cfab12b87d626201223051c9d3f8c3963e76a31885e49948fe3f8b230f826165877ab2870805ddf60822ddd73de4ba824526e207899c4b6059b579a606d19507be4f72acd0e9516aa7d12d7099edd671d5545542ca2426d2ed207e946abffd1365cdceda97f95669996bb348e21b3b6e816f24f5a8cbd1ca66b3303b78175937ab091a30c6d631a1d8740a8911a996161c30435c6e3e02c2c5d9d08841b268f11652ef56a82f02e21f6b987695e2ca6f6e3fb88180c76825385cf4606254761748e0f1dc559c08a662a5e7608db224b6dbd753896d585e153242d1a595d1714f1e3293a2c5a4e450a93a8820d93b9e02a8c4557573ee9e50f6a7e248c1e67388bf411a11b38225bcb1fbddcc976ded147859a61b56c74bc448b80fde9a01c66df68324b94b7a0c9f82edf8e6db196d9da6cd794f94fd26b677b03a043e9040f885a296641e167fba4dc978bb8a82c5a5d7e67fa63b5183234039a02e2b40a08629fdf5d273d676554a095548c9834d32d91b8e226261eef68a169c225de8fd821287ff24d457176b070e22803bb4bb0b0252822e983453016a757855f02e4989402ebb9891d99c0d4cd15cd3e603ba2b831ea5616f09faf45f43cd3ab98bc2a29068479aafa00558f9124da4b107ec835ab66a392e819d3af9ba47d358577daad79b93138785853c511883fa3d8c0b33574ca73c641325ea991a7e918f3604a08c9b39f81b1cd1216a5c8c7b48ae5bb89de6395c52adb7c98d86c54637616ca3e14ea4137089b4a799024c490d0c50e8dfe38f5dc890979159a88088b81a9d1449607ae4a4a11d59c870a69c0ed02e2a7ae5e3e9c395a6fcb05eec879d8ce3b44a8af9678093da3b03912f55d4b6cb278874cd9b74e187e22c15eadae2a9805c2664772790c68b98cf01d024c77e829ac94e246408d25e0089a8b87a66d12374496170915762a90296260c05434d9e0f851ad9670f9d26b7c5769370024f03ac254594501475a69990e78ae451aae5a2a74e0962819913fc49587fe1a9d945d8744389365aef02c13151042b894d0c03caad87bb0ab539bc6aaa606b5e934ed898038abe31f68717085f92ba1e9830d4225e8fb506abfe6ea584b249f67ad3b0786d2563f64009675e2a642583dd5458681562edae267423e3fc29f5acb935f6d618ac94dea88665e98d08550ad9d599b8778880e4d229e6a01ad5f894147a292a65aa1d5a96bb9d5b05625faa690aec87d0d94f5d28fc7bf15d3834324b7a71204788f15340385c3843de6f5345416a2a02d84844a57fa44824309d562009f182b95cc3a3284ec6d2edea3321acec700de39d178147744ece5d6386d55bdf24df35957eb1a743b53c7407c623148041c86db34aefa91e049028ce918e6d986170951c1523f5e349a029a752e14f01e39b12a8e2e6655ec3d0725ad151fd1825aa85d01af64e6b769e4ba2e7593e8dd80b61bed74f44cd18522a141e6b39b1a7d6cc4b42f485da8a216b6ea481197dc7df8e4c42829e2b6508d62467a8a75c78d21778c6dfefb34404d318d7a571a894ca4644344c62347989e8e068523de9414506b424f839d78483a908ffd26eebc037f8ef80a8837340ca84139126d387b8bee3b6c70c2128e4ba6a50ad0eea6f65c2cdbe59ddc09865491a8638e0680663b358715932ca8b0870c588dab98c49697c79804115d5097ee5f2c0ac075774f042d5958c9bf9dd5a87c9e6a256285732675b34ee32c59cadd66ccec3f2c8205783cea8612261c92126df310544ec06022ad532d5779cd6d9041e542d4201e0073803e5640076670b2d7aa91c49c102cb43be653304a000b300112243bac8a45f687af64199e4825198480418112f1aa1a723a04c0eb66393ba175261419298a369f584a9fdb884a98503a4d4018ad125700d9127ff5c901dee78012b00897dc2f0510fe1359eae021a0d255fa4a53a921d8f1f1b001f8024e3ba2e8d81abd54e7e08c987f748aae385062216dce15939504fa9e5440285a0d2f6d6470c837a2790ead2d748145ee97daa0d",
+    "program_length": 1805,
+    "program_prefix_hex": "0c2601010031172d80810e",
+    "program_counter_offset": 4,
+    "program_public_key_offset": 11,
+    "program_suffix_hex": "85",
+    "selected_counter": 1,
+    "selected_address": "U4VQCVV4N47N6UUTYTODGC53XHTEITF32VE6M7W3PXP5U2RQ37YSTHGLZY",
+    "selected_address_hex": "a72b0156bc6f3edf5293c4dc330bbbb9e6444cbbd549e67edb7ddfda6a30dff1",
+    "counter_cases": [
+      {
+        "counter": 0,
+        "address": "G5S5AAANTSCQBP7BFBN3E3SV5NIYHORFUX5SK5GN33FFUM7RFYMKA2S5VE",
+        "address_hex": "3765d0000d9c8500bfe1285bb26e55eb5183ba25a5fb2574cddeca5a33f12e18",
+        "decodes_to_edwards25519_point": true,
+        "reject_for_lsig_address_derivation": true
+      },
+      {
+        "counter": 1,
+        "address": "U4VQCVV4N47N6UUTYTODGC53XHTEITF32VE6M7W3PXP5U2RQ37YSTHGLZY",
+        "address_hex": "a72b0156bc6f3edf5293c4dc330bbbb9e6444cbbd549e67edb7ddfda6a30dff1",
+        "decodes_to_edwards25519_point": false,
+        "reject_for_lsig_address_derivation": false
+      }
+    ]
+  }
+}
