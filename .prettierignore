@@ -3,5 +3,6 @@ docs
 tests/cucumber/features
 tests/cucumber/browser/build
 tests/browser/bundle.*
+tests/pq_test_data
 .github
 CODE_OF_CONDUCT.md
