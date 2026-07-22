@@ -532,7 +532,16 @@ export class ABIArrayDynamicType extends ABIType {
   }
 
   decode(byteString: Uint8Array): ABIValue[] {
-    const view = new DataView(byteString.buffer, 0, LENGTH_ENCODE_BYTE_SIZE);
+    if (byteString.length < LENGTH_ENCODE_BYTE_SIZE) {
+      throw new Error(
+        `byte string is too short to be decoded. Actual length is ${byteString.length}, but expected at least ${LENGTH_ENCODE_BYTE_SIZE}`
+      );
+    }
+    const view = new DataView(
+      byteString.buffer,
+      byteString.byteOffset,
+      LENGTH_ENCODE_BYTE_SIZE
+    );
     const byteLength = view.getUint16(0);
     const convertedTuple = this.toABITupleType(byteLength);
     return convertedTuple.decode(
