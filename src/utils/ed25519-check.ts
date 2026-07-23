@@ -45,6 +45,7 @@ function hasValidX(y: bigint): boolean {
 export function couldBeCurvePoint(keyBytes: Uint8Array): boolean {
   // test both the raw y and the mod-p-reduced y, to over-approximate
   // whatever the verifier's decoder accepts
+  if (keyBytes.length !== 32) return false;
   const raw = decodeY(keyBytes, false);
   if (hasValidX(raw)) return true;
   const reduced = decodeY(keyBytes, true);
