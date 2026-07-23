@@ -178,7 +178,6 @@ export {
   PcLineLocation,
 } from './logic/sourcemap.js';
 
-export * from './dryrun.js';
 export * from './makeTxn.js';
 export * from './transaction.js';
 export * from './signer.js';
