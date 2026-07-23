@@ -146,7 +146,6 @@ export {
   addressWithSignersFromRawPQSigner,
 } from './pq-signer.js';
 
-export * from './dryrun.js';
 export * from './makeTxn.js';
 export * from './transaction.js';
 export * from './signer.js';
