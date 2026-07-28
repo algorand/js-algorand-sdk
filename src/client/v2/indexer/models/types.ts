@@ -4009,7 +4009,7 @@ export class Box implements Encodable {
 }
 
 /**
- * Box descriptor describes an app box without a value.
+ * Box descriptor describes an app box.
  */
 export class BoxDescriptor implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
@@ -4017,11 +4017,14 @@ export class BoxDescriptor implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
-        key: 'name',
-        valueSchema: new ByteArraySchema(),
-        omitEmpty: true,
-      });
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
+        {
+          key: 'value',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
     }
     return this.encodingSchemaValue;
   }
@@ -4032,11 +4035,26 @@ export class BoxDescriptor implements Encodable {
   public name: Uint8Array;
 
   /**
+   * Base64 encoded box value. Present only when the `values` query parameter is set
+   * to true.
+   */
+  public value?: Uint8Array;
+
+  /**
    * Creates a new `BoxDescriptor` object.
    * @param name - Base64 encoded box name
+   * @param value - Base64 encoded box value. Present only when the `values` query parameter is set
+   * to true.
    */
-  constructor({ name }: { name: string | Uint8Array }) {
+  constructor({
+    name,
+    value,
+  }: {
+    name: string | Uint8Array;
+    value?: string | Uint8Array;
+  }) {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -4045,7 +4063,10 @@ export class BoxDescriptor implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    return new Map<string, unknown>([['name', this.name]]);
+    return new Map<string, unknown>([
+      ['name', this.name],
+      ['value', this.value],
+    ]);
   }
 
   static fromEncodingData(data: unknown): BoxDescriptor {
@@ -4054,6 +4075,7 @@ export class BoxDescriptor implements Encodable {
     }
     return new BoxDescriptor({
       name: data.get('name'),
+      value: data.get('value'),
     });
   }
 }
@@ -4150,6 +4172,11 @@ export class BoxesResponse implements Encodable {
           key: 'next-token',
           valueSchema: new OptionalSchema(new StringSchema()),
           omitEmpty: true,
+        },
+        {
+          key: 'round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
         }
       );
     }
@@ -4170,24 +4197,34 @@ export class BoxesResponse implements Encodable {
   public nextToken?: string;
 
   /**
+   * The round for which this information is relevant.
+   */
+  public round?: number;
+
+  /**
    * Creates a new `BoxesResponse` object.
    * @param applicationId - (appidx) application index.
    * @param boxes -
    * @param nextToken - Used for pagination, when making another request provide this token with the
    * next parameter.
+   * @param round - The round for which this information is relevant.
    */
   constructor({
     applicationId,
     boxes,
     nextToken,
+    round,
   }: {
     applicationId: number | bigint;
     boxes: BoxDescriptor[];
     nextToken?: string;
+    round?: number | bigint;
   }) {
     this.applicationId = ensureBigInt(applicationId);
     this.boxes = boxes;
     this.nextToken = nextToken;
+    this.round =
+      typeof round === 'undefined' ? undefined : ensureSafeInteger(round);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -4200,6 +4237,7 @@ export class BoxesResponse implements Encodable {
       ['application-id', this.applicationId],
       ['boxes', this.boxes.map((v) => v.toEncodingData())],
       ['next-token', this.nextToken],
+      ['round', this.round],
     ]);
   }
 
@@ -4213,6 +4251,7 @@ export class BoxesResponse implements Encodable {
         BoxDescriptor.fromEncodingData(v)
       ),
       nextToken: data.get('next-token'),
+      round: data.get('round'),
     });
   }
 }
