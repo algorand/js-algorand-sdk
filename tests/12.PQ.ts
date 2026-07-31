@@ -19,6 +19,7 @@ import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic.js';
 import {
   decodeMsgpack,
   signTransactionWithSigner,
+  SignedTransaction,
   Transaction,
   LogicSigAccount,
   makeLogicSigAccountTransactionSigner,
@@ -165,6 +166,69 @@ describe('PQ signers', () => {
       addrWithSigners.txnSigner
     );
     assert.deepEqual(blob, base64ToBytes(pqRekeyedPaymentData.stxnBlob));
+  });
+
+  it('attaches a placeholder PQ envelope for simulation', async () => {
+    // The empty signer must produce the scheme, salt, and public key so that
+    // `simulate` can derive the authorizer and charge the post-quantum fee
+    // surcharge, but it must leave the signature bytes empty (so we never have
+    // to produce a real Falcon signature just to estimate fees).
+    const txn = decodeMsgpack(
+      base64ToBytes(pqPaymentData.txnBlob),
+      Transaction
+    );
+
+    const publicKey = base64ToBytes(pqPaymentData.signer.pqSigner.pk);
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () => {
+        throw new Error('empty signer must not produce a real signature');
+      },
+    };
+
+    const addrWithSigners =
+      addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
+    const [blob] = await addrWithSigners.emptyTxnSigner([txn], [0]);
+    const stxn = decodeMsgpack(blob, SignedTransaction);
+
+    assert.ok(stxn.pqsig, 'expected a PQ envelope');
+    assert.deepEqual(stxn.pqsig!.sch, FALCON_1024_SCHEME);
+    assert.deepEqual(stxn.pqsig!.pk, publicKey);
+    assert.strictEqual(stxn.pqsig!.slt, pqPaymentData.stxn.pqsig.slt);
+    assert.strictEqual(stxn.pqsig!.sig.length, 0, 'signature must be empty');
+    // Sender is the Falcon address itself, so no separate signer is needed.
+    assert.strictEqual(stxn.sgnr, undefined);
+  });
+
+  it('sets the signer address on a placeholder envelope for a rekeyed txn', async () => {
+    const txn = decodeMsgpack(
+      base64ToBytes(pqRekeyedPaymentData.txnBlob),
+      Transaction
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: base64ToBytes(
+        pqRekeyedPaymentData.signer.pqSigner.pk
+      ),
+      falcon1024Signer: async () => {
+        throw new Error('empty signer must not produce a real signature');
+      },
+    };
+
+    const addrWithSigners =
+      addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
+    const [blob] = await addrWithSigners.emptyTxnSigner([txn], [0]);
+    const stxn = decodeMsgpack(blob, SignedTransaction);
+
+    assert.strictEqual(stxn.pqsig!.sig.length, 0, 'signature must be empty');
+    // The sender is a rekeyed ed25519 address, so the authorizing Falcon
+    // address must be carried in `sgnr`.
+    assert.ok(stxn.sgnr);
+    assert.strictEqual(stxn.sgnr!.toString(), pqRekeyedPaymentData.stxn.sgnr);
+    assert.strictEqual(
+      stxn.sgnr!.toString(),
+      addrWithSigners.address.toString()
+    );
   });
 
   it('properly attaches a signature to a delegated logic sig', async () => {

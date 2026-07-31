@@ -1,6 +1,7 @@
 import { Address } from './encoding/address.js';
 import {
   AddressWithDelegatedLsigSigner,
+  AddressWithEmptyTransactionSigner,
   AddressWithTransactionSigner,
 } from './signer.js';
 import { addressWithSignersFromRawPQSigner } from './pq-signer.js';
@@ -18,7 +19,9 @@ export interface Falcon1024SigningKey {
 export function addressWithSignersFromRawFalcon1024Signer(
   falconSigningKey: Falcon1024SigningKey,
   sendingAddress?: Address
-): AddressWithTransactionSigner & AddressWithDelegatedLsigSigner {
+): AddressWithTransactionSigner &
+  AddressWithDelegatedLsigSigner &
+  AddressWithEmptyTransactionSigner {
   return addressWithSignersFromRawPQSigner(
     {
       pqScheme: FALCON_1024_SCHEME,
