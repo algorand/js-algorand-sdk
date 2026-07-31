@@ -241,15 +241,15 @@ export class AtomicTransactionComposer {
     approvalProgram?: Uint8Array;
     /** The clear program for this application call. Only set this if this is an application creation call, or if onComplete is OnApplicationComplete.UpdateApplicationOC */
     clearProgram?: Uint8Array;
-    /** The global integer schema size. Only set this if this is an application creation call. */
+    /** The global integer schema size. Only set this if this is an application creation call or an OnApplicationComplete.UpdateApplicationOC call. */
     numGlobalInts?: number;
-    /** The global byte slice schema size. Only set this if this is an application creation call. */
+    /** The global byte slice schema size. Only set this if this is an application creation call or an OnApplicationComplete.UpdateApplicationOC call. */
     numGlobalByteSlices?: number;
     /** The local integer schema size. Only set this if this is an application creation call. */
     numLocalInts?: number;
     /** The local byte slice schema size. Only set this if this is an application creation call. */
     numLocalByteSlices?: number;
-    /** The number of extra pages to allocate for the application's programs. Only set this if this is an application creation call. If omitted, defaults to 0. */
+    /** The number of extra pages to allocate for the application's programs. Only set this if this is an application creation call or an OnApplicationComplete.UpdateApplicationOC call. If omitted, defaults to 0. */
     extraPages?: number;
     /** Array of Address strings that represent external accounts supplied to this application. If accounts are provided here, the accounts specified in the method args will appear after these. */
     appAccounts?: Array<string | Address>;
@@ -306,15 +306,11 @@ export class AtomicTransactionComposer {
           'One of the following required parameters for OnApplicationComplete.UpdateApplicationOC is missing: approvalProgram, clearProgram'
         );
       }
-      if (
-        numGlobalInts != null ||
-        numGlobalByteSlices != null ||
-        numLocalInts != null ||
-        numLocalByteSlices != null ||
-        extraPages != null
-      ) {
+      // The local state schema cannot be changed after application creation. The global state
+      // schema (numGlobalInts, numGlobalByteSlices) and extraPages may be changed during an update.
+      if (numLocalInts != null || numLocalByteSlices != null) {
         throw new Error(
-          'One of the following application creation parameters were set on a non-creation call: numGlobalInts, numGlobalByteSlices, numLocalInts, numLocalByteSlices, extraPages'
+          'The local state schema cannot be changed on an update call: numLocalInts, numLocalByteSlices'
         );
       }
     } else if (

@@ -10,6 +10,7 @@ import {
   makeMultiSigAccountTransactionSigner,
   makePaymentTxnWithSuggestedParamsFromObject,
   base64ToBytes,
+  OnApplicationComplete,
 } from '../src';
 import {
   ABIAddressType,
@@ -741,5 +742,90 @@ describe('ABI encoding', () => {
     // Verify encoding includes rejectVersion
     const encodingData = appCallTxn.toEncodingData();
     assert.strictEqual(encodingData.get('aprv'), 10);
+  });
+
+  it('should allow global schema and extra pages on an UpdateApplication ATC addMethodCall', () => {
+    const method = ABIMethod.fromSignature('test(uint64)uint64');
+    const composer = new AtomicTransactionComposer();
+    const sender = 'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI';
+
+    const suggestedParams = {
+      genesisHash: base64ToBytes(
+        'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+      ),
+      genesisID: '',
+      firstValid: 0,
+      lastValid: 1000,
+      fee: 1000,
+      flatFee: true,
+      minFee: 1000,
+    };
+
+    const signer = makeBasicAccountTransactionSigner({
+      addr: decodeAddress(sender),
+      sk: new Uint8Array(64), // Dummy key for testing
+    });
+
+    composer.addMethodCall({
+      appID: 123,
+      method,
+      methodArgs: [42],
+      sender,
+      suggestedParams,
+      onComplete: OnApplicationComplete.UpdateApplicationOC,
+      approvalProgram: Uint8Array.from([1, 2, 3]),
+      clearProgram: Uint8Array.from([4, 5, 6]),
+      numGlobalInts: 2,
+      numGlobalByteSlices: 3,
+      extraPages: 1,
+      signer,
+    });
+
+    const group = composer.buildGroup();
+    const appCallTxn = group[0].txn;
+
+    assert.strictEqual(appCallTxn.applicationCall?.numGlobalInts, 2);
+    assert.strictEqual(appCallTxn.applicationCall?.numGlobalByteSlices, 3);
+    assert.strictEqual(appCallTxn.applicationCall?.extraPages, 1);
+  });
+
+  it('should reject local schema on an UpdateApplication ATC addMethodCall', () => {
+    const method = ABIMethod.fromSignature('test(uint64)uint64');
+    const composer = new AtomicTransactionComposer();
+    const sender = 'MO2H6ZU47Q36GJ6GVHUKGEBEQINN7ZWVACMWZQGIYUOE3RBSRVYHV4ACJI';
+
+    const suggestedParams = {
+      genesisHash: base64ToBytes(
+        'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+      ),
+      genesisID: '',
+      firstValid: 0,
+      lastValid: 1000,
+      fee: 1000,
+      flatFee: true,
+      minFee: 1000,
+    };
+
+    const signer = makeBasicAccountTransactionSigner({
+      addr: decodeAddress(sender),
+      sk: new Uint8Array(64), // Dummy key for testing
+    });
+
+    assert.throws(
+      () =>
+        composer.addMethodCall({
+          appID: 123,
+          method,
+          methodArgs: [42],
+          sender,
+          suggestedParams,
+          onComplete: OnApplicationComplete.UpdateApplicationOC,
+          approvalProgram: Uint8Array.from([1, 2, 3]),
+          clearProgram: Uint8Array.from([4, 5, 6]),
+          numLocalInts: 1,
+          signer,
+        }),
+      /local state schema cannot be changed/
+    );
   });
 });

@@ -539,7 +539,11 @@ export function makeApplicationCreateTxnFromObject({
 }
 
 /**
- * Make a transaction that changes an application's approval and clear programs
+ * Make a transaction that changes an application's approval and clear programs.
+ *
+ * The application's global state schema and extra program pages may also be changed during an
+ * update by providing numGlobalInts, numGlobalByteSlices, and/or extraPages. The local state schema
+ * cannot be changed after application creation.
  *
  * @param options - Application update transaction parameters
  */
@@ -557,6 +561,9 @@ export function makeApplicationUpdateTxnFromObject({
   access,
   approvalProgram,
   clearProgram,
+  numGlobalInts,
+  numGlobalByteSlices,
+  extraPages,
   note,
   lease,
   rekeyTo,
@@ -566,9 +573,6 @@ export function makeApplicationUpdateTxnFromObject({
   | 'onComplete'
   | 'numLocalInts'
   | 'numLocalByteSlices'
-  | 'numGlobalInts'
-  | 'numGlobalByteSlices'
-  | 'extraPages'
   | 'approvalProgram'
   | 'clearProgram'
 > &
@@ -598,6 +602,9 @@ export function makeApplicationUpdateTxnFromObject({
     access,
     approvalProgram,
     clearProgram,
+    numGlobalInts,
+    numGlobalByteSlices,
+    extraPages,
     note,
     lease,
     rekeyTo,
