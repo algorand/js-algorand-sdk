@@ -7,7 +7,7 @@
 // https://github.com/joe-p/sandbox/blob/b825ae5573ded27f056462fd13b93f4910d6406e/config.pq
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { generateKey, signCompressed, verifyCompressed } from 'falcon-1024';
+import { falcon1024 } from 'falcon-1024';
 import assert from 'assert';
 import algosdk, {
   LogicSigAccount,
@@ -20,6 +20,7 @@ import { getLocalAlgodClient, getLocalAccounts } from './utils';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic';
 
 async function main() {
+  const { generateKey, signCompressed, verifyCompressed } = falcon1024;
   const client = getLocalAlgodClient();
   const accounts = await getLocalAccounts();
   const dispenser = accounts[0];
