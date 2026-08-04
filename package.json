@@ -58,7 +58,7 @@
     "vlq": "^2.0.4"
   },
   "devDependencies": {
-    "falcon-1024": "^0.2.0",
+    "falcon-1024": "1.0.0-beta.2",
     "@types/json-bigint": "^1.0.0",
     "@types/mocha": "^8.2.2",
     "@types/node": "^20.11.5",
