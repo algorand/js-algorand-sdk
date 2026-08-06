@@ -2,8 +2,27 @@
 const assert = require('assert');
 const sha512 = require('js-sha512');
 const nacl = require('tweetnacl');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { falcon1024 } = require('falcon-1024');
 
 window.assert = assert;
+
+// Build a Falcon-1024 account (address + signers) from a raw PQ seed. This
+// mirrors the same-named helper in tests/cucumber/steps/steps.js so the browser
+// step context has it available as a global.
+window.falconAccountFromSeed = function falconAccountFromSeed(seed) {
+  const { publicKey, privateKey } = falcon1024.generateKey(seed);
+  const signingKey = {
+    falcon1024PublicKey: publicKey,
+    falcon1024Signer: async (bytesToSign) =>
+      falcon1024.signCompressed(privateKey, bytesToSign),
+  };
+  return {
+    publicKey,
+    privateKey,
+    ...window.algosdk.addressWithSignersFromRawFalcon1024Signer(signingKey),
+  };
+};
 
 window.keyPairFromSecretKey = function keyPairFromSecretKey(sk) {
   return nacl.sign.keyPair.fromSecretKey(sk);
