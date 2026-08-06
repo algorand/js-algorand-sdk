@@ -211,16 +211,6 @@ export class LogicSig implements encoding.Encodable {
       return nacl.verify(toBeSigned, this.sig, publicKey);
     }
 
-    if (this.pqsig) {
-      // Post-quantum (e.g. Falcon-1024) signatures cannot be verified in JS —
-      // the SDK has no PQ signature verifier and verification happens on-chain.
-      // The feasible check here is that the signature's scheme and public key
-      // bind to the delegating account address.
-      return addressFromPQKey(this.pqsig.sch, this.pqsig.pk).address.equals(
-        new Address(publicKey)
-      );
-    }
-
     if (this.lmsig) {
       const multisigAddr = addressFromMultisigPreImg({
         version: this.lmsig.v,
