@@ -1,5 +1,9 @@
 import * as nacl from './nacl/naclWrappers.js';
-import { Address, isValidAddress } from './encoding/address.js';
+import {
+  Address,
+  addressFromPQSig,
+  isValidAddress,
+} from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
   NamedMapSchema,
@@ -274,9 +278,11 @@ export class LogicSig implements encoding.Encodable {
    *
    * @param signer - The signer to delegate to
    * @param msig - Optional multisig account the signer is a subsigner of
-   * @returns The address of the delegating account, as reported by the signer.
-   *   This is the authorizing address, which is not necessarily the address a
-   *   signer sends transactions from.
+   * @returns The address the signer signed as. When `msig` is omitted this is
+   *   the delegating account. When `msig` is given it is the individual
+   *   subsigner, not the multisig, so the delegating account is
+   *   `multisigAddress(msig)`. Either way it is an authorizing address, which
+   *   is not necessarily the address a signer sends transactions from.
    *
    * Re-signing an already-signed LogicSig is allowed, and replaces the previous
    * delegation signature. At most one of `sig`, `msig`, `lmsig` and `pqsig` may
@@ -565,7 +571,20 @@ export class LogicSigAccount implements encoding.Encodable {
       );
     }
 
-    if (this.lsig.sig || this.lsig.pqsig) {
+    if (this.lsig.pqsig) {
+      // A PQ signature carries the scheme, salt and public key of the
+      // delegating account, so derive the address rather than trusting
+      // `sigkey`. Also throws if the signature is not self-consistent.
+      const derived = addressFromPQSig(this.lsig.pqsig);
+      if (this.sigkey && !utils.arrayEqual(this.sigkey, derived.publicKey)) {
+        throw new Error(
+          `Signing key for delegated account does not match the PQ signature. The signature authorizes ${derived}, but sigkey is ${new Address(this.sigkey)}`
+        );
+      }
+      return derived;
+    }
+
+    if (this.lsig.sig) {
       if (!this.sigkey) {
         throw new Error('Signing key for delegated account is missing');
       }

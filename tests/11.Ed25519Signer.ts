@@ -314,10 +314,10 @@ describe('Ed25519Signer', () => {
       );
     });
 
-    it('throws when the signer does not identify its key via sgnr', async () => {
-      // The signing key can only be identified by `sgnr`, so a signer that
-      // omits it cannot be matched to a member. This must fail loudly rather
-      // than attach the signature to the wrong subsig.
+    it('throws when the signer omits sgnr and the sender is not a member', async () => {
+      // Without `sgnr` the signing key is assumed to be the sender, which here
+      // is the multisig address itself and so not a member. This must fail
+      // loudly rather than attach the signature to the wrong subsig.
       const bareSigner: algosdk.TransactionSigner = async (group, indexes) =>
         indexes.map((i) =>
           algosdk.encodeMsgpack(
@@ -336,6 +336,27 @@ describe('Ed25519Signer', () => {
         ),
         /Key does not exist/
       );
+    });
+
+    it('falls back to the sender when the signer omits sgnr', async () => {
+      // A signer omits `sgnr` when the signing key is the transaction sender.
+      // That happens for a multisig member sending from their own address after
+      // rekeying it to the multisig, and the signature must still be attributed
+      // to that member.
+      const txn = makePaymentTxn(sampleAccount1.addr);
+
+      const { blob } = await algosdk.signMultisigTransactionWithSigner(
+        txn,
+        msigParams,
+        addressWithSignersFromRawEd25519Signer(
+          signingKeyForAccount(sampleAccount1)
+        ).txnSigner
+      );
+
+      const stxn = algosdk.decodeMsgpack(blob, algosdk.SignedTransaction);
+      const signed = stxn.msig!.subsig.filter((s) => s.s);
+      assert.strictEqual(signed.length, 1);
+      assert.deepStrictEqual(signed[0].pk, sampleAccount1.addr.publicKey);
     });
   });
 

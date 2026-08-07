@@ -8,6 +8,7 @@ import {
   allOmitEmpty,
 } from '../../encoding/schema/index.js';
 import { ensureSafeUnsignedInteger } from '../../utils/utils.js';
+import { PQ_SALT_MAX, PQ_SCHEME_SIZE } from '../../encoding/address.js';
 
 export interface EncodedSubsig {
   /**
@@ -171,9 +172,23 @@ export function encodedPQSigFromEncodingData(data: unknown): EncodedPQSig {
   if (!(data instanceof Map)) {
     throw new Error(`Invalid decoded EncodedPQSig: ${data}`);
   }
+  const sch = data.get('sch') as Uint8Array;
+  if (sch.length !== PQ_SCHEME_SIZE) {
+    throw new Error(
+      `Invalid decoded EncodedPQSig: expected a ${PQ_SCHEME_SIZE}-byte scheme, got ${sch.length} bytes`
+    );
+  }
+  // The salt occupies a single byte of the address preimage, so anything wider
+  // could never have produced a valid address.
+  const slt = ensureSafeUnsignedInteger(data.get('slt'));
+  if (slt > PQ_SALT_MAX) {
+    throw new Error(
+      `Invalid decoded EncodedPQSig: salt ${slt} exceeds the maximum of ${PQ_SALT_MAX}`
+    );
+  }
   return {
-    sch: data.get('sch'),
-    slt: ensureSafeUnsignedInteger(data.get('slt')),
+    sch,
+    slt,
     pk: data.get('pk'),
     sig: data.get('sig'),
   };

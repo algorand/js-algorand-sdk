@@ -156,17 +156,15 @@ async function partialSignTxnWithSigner(
 
   if (rawSig === undefined) {
     throw Error(
-      `Expected TransactionSigner to return signed transaction with sig but sig was empty`
+      `Expected TransactionSigner to return a signed transaction with a sig, but sig was empty`
     );
   }
 
-  if (stxn.sgnr === undefined) {
-    throw Error(
-      'Expected TransactionSigner to return a signed tranasction with a sgnr, but sgnr was empty'
-    );
-  }
-
-  const myPk = stxn.sgnr.publicKey;
+  // A signer reports which key it signed with in `sgnr`, but omits it when that
+  // key is the transaction sender, so fall back to the sender. If neither is a
+  // member of the multisig, createMultisigTransactionWithSignature rejects it
+  // rather than attaching the signature to the wrong subsig.
+  const myPk = (stxn.sgnr ?? transaction.sender).publicKey;
 
   return createMultisigTransactionWithSignature(
     transaction,
@@ -332,10 +330,11 @@ export function signMultisigTransaction(
  * preimage. The returned multisig txn can accumulate additional signatures through
  * mergeMultisigTransactions or appendSignMultisigTransactionWithSigner.
  *
- * The signer must hold a key belonging to the multisig, and must identify that key by setting the
- * `sgnr` field on the transaction it returns. Every signer this SDK provides does so. Note that
- * `AddressWithTransactionSigner.address` cannot be used for this: it is the address the signer
- * sends transactions from, which for a rekeyed account is not the signing key.
+ * The signer must hold a key belonging to the multisig. That key is taken from the `sgnr` field of
+ * the transaction the signer returns, falling back to the transaction sender when `sgnr` is absent
+ * — which is the same convention signers use when writing it. Every signer this SDK provides
+ * follows it. Note that `AddressWithTransactionSigner.address` cannot be used for this: it is the
+ * address the signer sends transactions from, which for a rekeyed account is not the signing key.
  *
  * @param txn - the transaction to sign
  * @param version - multisig version
@@ -402,8 +401,9 @@ export function appendSignMultisigTransaction(
  * multisig transaction, we ask the caller to pass it back in, to ensure they know what they are
  * signing.
  *
- * As with {@link signMultisigTransactionWithSigner}, the signer must identify its key by setting
- * the `sgnr` field on the transaction it returns.
+ * As with {@link signMultisigTransactionWithSigner}, the signer's key is taken from the `sgnr`
+ * field of the transaction it returns, falling back to the transaction sender when `sgnr` is
+ * absent.
  *
  * @param multisigTxnBlob - an encoded multisig txn. Supports non-payment txn types.
  * @param version - multisig version

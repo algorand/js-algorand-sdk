@@ -79,13 +79,6 @@ async function main() {
     new Uint8Array(zeroPayTxn.bytesToSign())
   );
 
-  console.debug(
-    'signed txn',
-    algosdk.decodeMsgpack(stxn, SignedTransaction).toEncodingData()
-  );
-
-  console.debug('sig', falconSig.byteLength);
-
   console.log('verify result', verifyResult);
   const result = await atc.execute(client, 4);
 

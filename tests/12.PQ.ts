@@ -360,10 +360,13 @@ describe('PQ delegated LogicSig safety checks', () => {
   }
 
   function samplePqsig() {
+    const pk = Uint8Array.of(1);
     return {
       sch: FALCON_1024_SCHEME,
-      slt: 0,
-      pk: Uint8Array.of(1),
+      // Use the canonical salt so the signature is self-consistent and these
+      // tests exercise the check they are actually about.
+      slt: addressFromPQKey(FALCON_1024_SCHEME, pk).salt,
+      pk,
       sig: Uint8Array.of(2),
     };
   }
@@ -432,6 +435,119 @@ describe('PQ delegated LogicSig safety checks', () => {
     // A single signature means the result is usable, not a malformed blob.
     assert.doesNotThrow(() =>
       signLogicSigTransactionObject(paymentTxn(), lsig)
+    );
+  });
+
+  it('derives the delegating account of a bare LogicSig from its pqsig', async () => {
+    // Unlike an ed25519 sig, a pqsig identifies its own delegating account, so
+    // a bare LogicSig can authorize a transaction whose sender was rekeyed to
+    // that account. `sgnr` must name the delegating account, not the sender.
+    const program = base64ToBytes(pqRekeyedDelegatedPaymentData.signer.lsig);
+    const publicKey = base64ToBytes(
+      pqRekeyedDelegatedPaymentData.signer.pqSigner.pk
+    );
+    const { address: authAddress } = addressFromPQKey(
+      FALCON_1024_SCHEME,
+      publicKey
+    );
+
+    const { delegatedLsigSigner } = addressWithSignersFromRawFalcon1024Signer({
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    });
+
+    const lsig = new LogicSig(program);
+    await lsig.signWithSigner(delegatedLsigSigner);
+
+    const txn = decodeMsgpack(
+      base64ToBytes(pqRekeyedDelegatedPaymentData.txnBlob),
+      Transaction
+    );
+    assert.ok(
+      !txn.sender.equals(authAddress),
+      'expected the fixture sender to differ from the auth address'
+    );
+
+    // Passing the bare LogicSig must produce the same blob as passing the
+    // LogicSigAccount, which knows its delegating account via `sigkey`.
+    const { blob } = signLogicSigTransactionObject(txn, lsig);
+    assert.deepEqual(
+      blob,
+      base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
+    );
+  });
+
+  it('rejects a pqsig whose salt is not the canonical one', () => {
+    const pqsig = samplePqsig();
+    const lsig = new LogicSig(sampleProgram);
+    lsig.pqsig = { ...pqsig, slt: (pqsig.slt + 1) % 256 };
+
+    assert.throws(
+      () => signLogicSigTransactionObject(paymentTxn(), lsig),
+      /invalid PQ signature salt/
+    );
+  });
+
+  it('rejects a LogicSigAccount whose sigkey contradicts its pqsig', async () => {
+    const publicKey = base64ToBytes(pqDelegatedPaymentData.signer.pqSigner.pk);
+    const { delegatedLsigSigner } = addressWithSignersFromRawFalcon1024Signer({
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    });
+
+    const account = new LogicSigAccount(sampleProgram);
+    await account.signWithSigner(delegatedLsigSigner);
+    // Tamper with the recorded delegating account, as a hand-built or
+    // maliciously encoded LogicSigAccount could.
+    account.sigkey = new Uint8Array(32);
+
+    assert.throws(() => account.address(), /does not match the PQ signature/);
+  });
+});
+
+describe('PQ signature decoding', () => {
+  function encodePqsig(pqsig: {
+    sch: Uint8Array;
+    slt: number;
+    pk: Uint8Array;
+    sig: Uint8Array;
+  }): Uint8Array {
+    const txn = decodeMsgpack(
+      base64ToBytes(pqPaymentData.txnBlob),
+      Transaction
+    );
+    // SignedTransaction validates nothing about the pqsig contents, so this
+    // round-trips an arbitrary one through the wire format.
+    return encodeMsgpack(new SignedTransaction({ txn, pqsig }));
+  }
+
+  it('rejects a scheme that is not 2 bytes', () => {
+    const blob = encodePqsig({
+      sch: new TextEncoder().encode('f10'),
+      slt: 0,
+      pk: Uint8Array.of(1),
+      sig: Uint8Array.of(2),
+    });
+
+    assert.throws(
+      () => decodeMsgpack(blob, SignedTransaction),
+      /expected a 2-byte scheme, got 3 bytes/
+    );
+  });
+
+  it('rejects a salt wider than one byte', () => {
+    const blob = encodePqsig({
+      sch: FALCON_1024_SCHEME,
+      slt: 256,
+      pk: Uint8Array.of(1),
+      sig: Uint8Array.of(2),
+    });
+
+    assert.throws(
+      () => decodeMsgpack(blob, SignedTransaction),
+      /salt 256 exceeds the maximum of 255/
     );
   });
 });
