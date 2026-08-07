@@ -148,6 +148,11 @@ module.exports = function getSteps(options) {
   // Dev Mode State
   const DEV_MODE_INITIAL_MICROALGOS = 100_000_000;
 
+  // Each falcon1024 scenario funds a brand new account that is never swept back,
+  // so keep the amount just large enough for min balance + the largest amount
+  // sent by those scenarios + fees.
+  const FALCON_FUNDING_MICROALGOS = 5_000_000;
+
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
   function bytesEqual(a, b) {
@@ -3343,7 +3348,7 @@ module.exports = function getSteps(options) {
     const fundingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender: this.accounts[0],
       receiver: this.falconAccount.address,
-      amount: DEV_MODE_INITIAL_MICROALGOS,
+      amount: FALCON_FUNDING_MICROALGOS,
       suggestedParams: sp,
     });
     const stxKmd = await this.kcl.signTransaction(
