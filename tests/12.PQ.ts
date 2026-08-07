@@ -18,7 +18,9 @@ import pqMnemonicData from './pq_test_data/pqMnemonic.json';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic.js';
 import {
   decodeMsgpack,
+  encodeMsgpack,
   signTransactionWithSigner,
+  SignedTransaction,
   Transaction,
   LogicSigAccount,
   makeLogicSigAccountTransactionSigner,
@@ -267,6 +269,121 @@ describe('PQ signers', () => {
       blob,
       base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
     );
+  });
+
+  it('sets sgnr from the auth address even when a sending address is given', async () => {
+    // `sendingAddress` only controls which address the signer reports as its
+    // own; it must not suppress `sgnr`, which is required whenever the
+    // authorizing (Falcon) address differs from the transaction sender.
+    const txn = decodeMsgpack(
+      base64ToBytes(pqRekeyedPaymentData.txnBlob),
+      Transaction
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: base64ToBytes(
+        pqRekeyedPaymentData.signer.pqSigner.pk
+      ),
+      falcon1024Signer: async () =>
+        base64ToBytes(pqRekeyedPaymentData.stxn.pqsig.sig),
+    };
+
+    const addrWithSigners = addressWithSignersFromRawFalcon1024Signer(
+      falconSigningKey,
+      txn.sender
+    );
+    assert.ok(addrWithSigners.address.equals(txn.sender));
+
+    const { blob, stxn } = await signTransactionWithSigner(
+      txn,
+      addrWithSigners.txnSigner
+    );
+
+    assert.ok(stxn.sgnr, 'expected sgnr to be set');
+    assert.deepEqual(blob, base64ToBytes(pqRekeyedPaymentData.stxnBlob));
+  });
+
+  it('reports the auth address as the delegating account when a sending address is given', async () => {
+    const program = base64ToBytes(pqRekeyedDelegatedPaymentData.signer.lsig);
+    const publicKey = base64ToBytes(
+      pqRekeyedDelegatedPaymentData.signer.pqSigner.pk
+    );
+    const { address: authAddress } = addressFromPQKey(
+      FALCON_1024_SCHEME,
+      publicKey
+    );
+
+    const txn = decodeMsgpack(
+      base64ToBytes(pqRekeyedDelegatedPaymentData.txnBlob),
+      Transaction
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    };
+
+    // Build the signer with the rekeyed sender as its sending address. The
+    // delegating account of the lsig is still the Falcon auth address.
+    const addrWithSigners = addressWithSignersFromRawFalcon1024Signer(
+      falconSigningKey,
+      txn.sender
+    );
+
+    const lsigAccount = new LogicSigAccount(program);
+    await lsigAccount.signWithSigner(addrWithSigners);
+
+    assert.ok(
+      lsigAccount.address().equals(authAddress),
+      'expected the delegating account to be the auth address'
+    );
+
+    const { blob } = await signTransactionWithSigner(
+      txn,
+      makeLogicSigAccountTransactionSigner(lsigAccount)
+    );
+    assert.deepEqual(
+      blob,
+      base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
+    );
+  });
+});
+
+describe('PQ signature encoding', () => {
+  it('round-trips a pqsig whose salt is 0', () => {
+    // All the go-generated vectors happen to use salt 3, so cover the
+    // omitEmpty encoding path for `slt` explicitly. Roughly half of all keys
+    // yield salt 0, so a short search is enough to find one.
+    let saltZeroKey: Uint8Array | undefined;
+    for (let i = 0; i < 256 && saltZeroKey === undefined; i++) {
+      const candidate = Uint8Array.of(i);
+      if (addressFromPQKey(FALCON_1024_SCHEME, candidate).salt === 0) {
+        saltZeroKey = candidate;
+      }
+    }
+    assert.ok(saltZeroKey, 'expected to find a public key with salt 0');
+
+    const txn = decodeMsgpack(
+      base64ToBytes(pqPaymentData.txnBlob),
+      Transaction
+    );
+
+    const stxn = new SignedTransaction({
+      txn,
+      pqsig: {
+        sch: FALCON_1024_SCHEME,
+        slt: 0,
+        pk: saltZeroKey!,
+        sig: Uint8Array.of(1, 2, 3),
+      },
+    });
+
+    const decoded = decodeMsgpack(encodeMsgpack(stxn), SignedTransaction);
+    assert.ok(decoded.pqsig, 'expected pqsig to survive the round trip');
+    assert.strictEqual(decoded.pqsig!.slt, 0);
+    assert.deepEqual(decoded.pqsig!.pk, saltZeroKey);
+    assert.deepEqual(decoded.pqsig!.sch, FALCON_1024_SCHEME);
   });
 });
 

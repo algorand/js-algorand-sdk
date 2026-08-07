@@ -52,7 +52,7 @@ export function addressWithSignersFromRawEd25519Signer(
       const stxn = new SignedTransaction({
         txn,
         sig,
-        sgnr: txn.sender.equals(sendingAddress) ? undefined : authAddress,
+        sgnr: txn.sender.equals(authAddress) ? undefined : authAddress,
       });
 
       stxns.push(stxn);

@@ -195,7 +195,7 @@ export function getApplicationAddress(appID: number | bigint): Address {
  * Derive a post-quantum (PQ) account address together with the canonical salt
  * used to derive it.
  *
- * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
+ * @param schemeBytes - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
  * @param key - The scheme's canonical public key.
  * @returns The derived Address and the canonical 1-byte salt.
  */

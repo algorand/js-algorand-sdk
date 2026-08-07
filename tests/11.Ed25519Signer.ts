@@ -160,6 +160,106 @@ describe('Ed25519Signer', () => {
         true
       );
     });
+
+    it('still sets sgnr when a custom sending address is given', async () => {
+      // account3 has been rekeyed to account1, and the signer is told to report
+      // account3 as its sending address. `sgnr` is still required, because the
+      // signature is made by account1's key, not account3's.
+      const signers = addressWithSignersFromRawEd25519Signer(
+        signingKeyForAccount(sampleAccount1),
+        sampleAccount3.addr
+      );
+      const txn = makePaymentTxn(sampleAccount3.addr);
+
+      const [blob] = await signers.txnSigner([txn], [0]);
+      const stxn = algosdk.decodeMsgpack(blob, algosdk.SignedTransaction);
+
+      assert.ok(stxn.sgnr, 'expected an auth address (sgnr)');
+      assert.ok(stxn.sgnr!.equals(sampleAccount1.addr));
+      assert.strictEqual(
+        nacl.verify(
+          txn.bytesToSign(),
+          stxn.sig!,
+          sampleAccount1.addr.publicKey
+        ),
+        true
+      );
+    });
+
+    it('omits sgnr when the sender is the signing key address', async () => {
+      // The inverse case: a custom sending address must not cause a spurious
+      // sgnr when the transaction is sent from the signing key's own address.
+      const signers = addressWithSignersFromRawEd25519Signer(
+        signingKeyForAccount(sampleAccount1),
+        sampleAccount3.addr
+      );
+      const txn = makePaymentTxn(sampleAccount1.addr);
+
+      const [blob] = await signers.txnSigner([txn], [0]);
+      const stxn = algosdk.decodeMsgpack(blob, algosdk.SignedTransaction);
+
+      assert.strictEqual(stxn.sgnr, undefined);
+    });
+  });
+
+  describe('delegated multisig lsig', () => {
+    const msigParams = {
+      version: 1,
+      threshold: 2,
+      addrs: [sampleAccount1.addr, sampleAccount2.addr, sampleAccount3.addr],
+    } satisfies algosdk.MultisigMetadata;
+
+    it('accumulates subsignatures from multiple members', async () => {
+      const lsigAccount = new algosdk.LogicSigAccount(sampleProgram);
+
+      await lsigAccount.signMultisigWithSigner(
+        msigParams,
+        addressWithSignersFromRawEd25519Signer(
+          signingKeyForAccount(sampleAccount1)
+        ).delegatedLsigSigner
+      );
+      assert.strictEqual(
+        lsigAccount.lsig.lmsig!.subsig.filter((s) => s.s).length,
+        1
+      );
+
+      await lsigAccount.appendToMultisigWithSigner(
+        addressWithSignersFromRawEd25519Signer(
+          signingKeyForAccount(sampleAccount2)
+        ).delegatedLsigSigner
+      );
+
+      const signed = lsigAccount.lsig.lmsig!.subsig.filter((s) => s.s);
+      assert.strictEqual(signed.length, 2);
+      assert.deepStrictEqual(signed[0].pk, sampleAccount1.addr.publicKey);
+      assert.deepStrictEqual(signed[1].pk, sampleAccount2.addr.publicKey);
+
+      // With threshold 2 satisfied, the delegation verifies.
+      assert.strictEqual(lsigAccount.verify(), true);
+    });
+
+    it('throws when appending a signer that is not in the multisig', async () => {
+      const lsigAccount = new algosdk.LogicSigAccount(sampleProgram);
+      await lsigAccount.signMultisigWithSigner(
+        {
+          version: 1,
+          threshold: 2,
+          addrs: [sampleAccount1.addr, sampleAccount2.addr],
+        },
+        addressWithSignersFromRawEd25519Signer(
+          signingKeyForAccount(sampleAccount1)
+        ).delegatedLsigSigner
+      );
+
+      await assert.rejects(
+        lsigAccount.appendToMultisigWithSigner(
+          addressWithSignersFromRawEd25519Signer(
+            signingKeyForAccount(sampleAccount3)
+          ).delegatedLsigSigner
+        ),
+        /could not find .* as a signer in the multisig/
+      );
+    });
   });
 
   describe('delegatedLsigSigner', () => {

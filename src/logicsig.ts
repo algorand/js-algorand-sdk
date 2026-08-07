@@ -1,9 +1,5 @@
 import * as nacl from './nacl/naclWrappers.js';
-import {
-  Address,
-  addressFromPQKey,
-  isValidAddress,
-} from './encoding/address.js';
+import { Address, isValidAddress } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import {
   NamedMapSchema,
@@ -183,7 +179,7 @@ export class LogicSig implements encoding.Encodable {
   }
 
   /**
-   * @deprecated This function does not perform full verification and should not be fully trusted on its own. 
+   * @deprecated This function does not perform full verification and should not be fully trusted on its own.
    * For example, it does not evaluate programs and does not have the ability to validate PQ signatures.
    *
    * Performs signature verification
@@ -208,6 +204,14 @@ export class LogicSig implements encoding.Encodable {
     if (!this.sig && !this.msig && !this.lmsig && !this.pqsig) {
       const hash = nacl.genericHash(toBeSigned);
       return utils.arrayEqual(hash, publicKey);
+    }
+
+    if (this.pqsig) {
+      // This function has no way to validate a post-quantum signature, so it
+      // cannot report success here. Callers that need to sign a transaction
+      // with a PQ delegated LogicSig should go through
+      // signLogicSigTransactionObject, which skips this check.
+      return false;
     }
 
     if (this.sig) {
@@ -269,14 +273,26 @@ export class LogicSig implements encoding.Encodable {
     }
   }
 
+  /**
+   * Signs this LogicSig for delegation using the given signer.
+   *
+   * @param signer - The signer to delegate to
+   * @param msig - Optional multisig account the signer is a subsigner of
+   * @returns The address of the delegating account, as reported by the signer.
+   *   This is the authorizing address, which is not necessarily the address a
+   *   signer sends transactions from.
+   */
   // TODO: It's a bit strange to me that a single instance allows the signature to change...
   // Should we add a check to ensure one a sig is set it isn't changed?
-  async signWithSigner(signer: DelegatedLsigSigner, msig?: MultisigMetadata) {
+  async signWithSigner(
+    signer: DelegatedLsigSigner,
+    msig?: MultisigMetadata
+  ): Promise<Address> {
     const sigResult = await signer(this, msig);
     if (msig == null) {
       if ('pqsig' in sigResult && sigResult.pqsig) {
         this.pqsig = sigResult.pqsig;
-        return;
+        return sigResult.address;
       }
 
       if (!('sig' in sigResult) || !sigResult.sig) {
@@ -294,6 +310,8 @@ export class LogicSig implements encoding.Encodable {
 
       this.lmsig = sigResult.lmsig;
     }
+
+    return sigResult.address;
   }
 
   /**
@@ -329,13 +347,15 @@ export class LogicSig implements encoding.Encodable {
 
     for (const subsig of sigResult.lmsig.subsig) {
       if (subsig.s) {
-        const thisSubssig = this.lmsig.subsig.find((s) => s.s === subsig.s);
-        if (thisSubssig === undefined) {
+        const thisSubsig = this.lmsig.subsig.find((s) =>
+          utils.arrayEqual(s.pk, subsig.pk)
+        );
+        if (thisSubsig === undefined) {
           throw Error(
-            `DelegatedLsigSigner return a signature for ${subsig.pk} but this pk is not in the current msig`
+            `DelegatedLsigSigner returned a signature for ${new Address(subsig.pk)} but this pk is not in the current msig`
           );
         }
-        thisSubssig.s = subsig.s;
+        thisSubsig.s = subsig.s;
       }
     }
   }
@@ -493,7 +513,7 @@ export class LogicSigAccount implements encoding.Encodable {
   }
 
   /**
-   * @deprecated This function does not perform full verification and should not be fully trusted on its own. 
+   * @deprecated This function does not perform full verification and should not be fully trusted on its own.
    * For example, it does not evaluate programs and does not have the ability to validate PQ signatures.
    *
    * Verifies this LogicSig's program and signatures.
@@ -603,8 +623,13 @@ export class LogicSigAccount implements encoding.Encodable {
   }
 
   async signWithSigner(signer: AddressWithDelegatedLsigSigner) {
-    await this.lsig.signWithSigner(signer.delegatedLsigSigner);
-    this.sigkey = signer.address.publicKey;
+    // Use the address reported by the signer rather than signer.address: the
+    // latter is the address the signer sends transactions from, which for a
+    // rekeyed account is not the account that authorizes this delegation.
+    const delegatingAddress = await this.lsig.signWithSigner(
+      signer.delegatedLsigSigner
+    );
+    this.sigkey = delegatingAddress.publicKey;
   }
 }
 

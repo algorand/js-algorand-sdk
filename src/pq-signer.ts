@@ -28,7 +28,6 @@ export function addressWithSignersFromRawPQSigner(
     pqScheme,
     pqPublicKey
   );
-  const txnSender = sendingAddress ?? authAddress;
 
   const txnSigner: TransactionSigner = async (
     txnGroup: Transaction[],
@@ -48,7 +47,7 @@ export function addressWithSignersFromRawPQSigner(
       const stxn = new SignedTransaction({
         txn,
         pqsig,
-        sgnr: txn.sender.equals(txnSender) ? undefined : authAddress,
+        sgnr: txn.sender.equals(authAddress) ? undefined : authAddress,
       });
 
       stxns.push(stxn);
@@ -62,7 +61,9 @@ export function addressWithSignersFromRawPQSigner(
     msig?: MultisigMetadata
   ) => {
     if (msig) {
-      throw Error('FALCON-1024 does not support multisig signing');
+      throw Error(
+        `post-quantum scheme ${new TextDecoder().decode(pqScheme)} does not support multisig signing`
+      );
     }
 
     const toBeSigned = new Uint8Array(
@@ -82,7 +83,7 @@ export function addressWithSignersFromRawPQSigner(
   };
 
   return {
-    address: txnSender,
+    address: sendingAddress ?? authAddress,
     txnSigner,
     delegatedLsigSigner,
   };

@@ -4,7 +4,7 @@ import * as encoding from './encoding/encoding.js';
 import * as utils from './utils/utils.js';
 import { SignedTransaction } from './signedTransaction.js';
 import { Transaction } from './transaction.js';
-import { LogicSig, LogicSigAccount } from './logicsig.js';
+import { LogicSig, LogicSigAccount, sanityCheckProgram } from './logicsig.js';
 import { addressFromMultisigPreImg } from './multisig.js';
 import type { TransactionSigner } from './signer.js';
 
@@ -83,7 +83,17 @@ function signLogicSigTransactionWithAddress(
   lsig: LogicSig,
   lsigAddress: Address
 ) {
-  if (!lsig.verify(lsigAddress.publicKey)) {
+  if (lsig.pqsig) {
+    // This SDK cannot validate a post-quantum signature, so only the program is
+    // checked here; the network validates the delegation signature itself.
+    try {
+      sanityCheckProgram(lsig.logic);
+    } catch (e) {
+      throw new Error(
+        `Logic signature verification failed. Ensure the program is valid: ${(e as Error).message}`
+      );
+    }
+  } else if (!lsig.verify(lsigAddress.publicKey)) {
     throw new Error(
       'Logic signature verification failed. Ensure the program and signature are valid.'
     );

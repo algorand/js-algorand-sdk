@@ -183,18 +183,21 @@ async function main() {
     sender: ed25519Acct.addr,
     receiver: falconAddr,
     amount: 0,
-    note: new TextEncoder().encode('rekeyed dlisg pay'),
+    note: new TextEncoder().encode('rekeyed dlsig pay'),
     suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
   });
 
   const rekeyedDlsigAtc = new algosdk.AtomicTransactionComposer();
+  // The delegating account of `lsig` is the Falcon address, which is now the
+  // auth address of the rekeyed ed25519 account, so the delegated lsig signer
+  // can authorize transactions sent from it.
   rekeyedDlsigAtc.addTransaction({
     txn: rekeyedDlsigPay,
-    signer: falconTxnSigner,
+    signer: delegatedSigner,
   });
   await rekeyedDlsigAtc.execute(client, 3);
   console.log(
-    `Sent a payment from ${rekeyedPay.sender} by signing an lsig with ${falconAddr}`
+    `Sent a payment from ${rekeyedDlsigPay.sender} by signing an lsig with ${falconAddr}`
   );
 }
 
