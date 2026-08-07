@@ -36,6 +36,10 @@ window.genericHash = function genericHash(toHash) {
   return sha512.sha512_256.array(toHash);
 };
 
+window.randomBytes = function randomBytes(length) {
+  return nacl.randomBytes(length);
+};
+
 window.loadResource = async function loadResource(resource) {
   const res = await fetch(`/features/resources/${resource}`);
   if (!res.ok) {

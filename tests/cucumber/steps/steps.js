@@ -40,6 +40,10 @@ function genericHash(toHash) {
   return nacl.genericHash(toHash);
 }
 
+function randomBytes(length) {
+  return nacl.randomBytes(length);
+}
+
 async function loadResource(res) {
   const p = path.join(
     maindir,
@@ -3337,7 +3341,7 @@ module.exports = function getSteps(options) {
   });
 
   When('I generate and fund a falcon1024 key', async function () {
-    const seed = nacl.randomBytes(32);
+    const seed = randomBytes(32);
     this.falconAccount = falconAccountFromSeed(seed);
 
     // Fund the new Falcon address so it can cover its min balance + fees.
