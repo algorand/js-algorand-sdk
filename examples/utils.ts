@@ -114,7 +114,7 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
   // Don't need to wait for it
   kmdClient.releaseWalletHandle(handle);
 
-  return keys.map((k) => {
+  const accounts = keys.map((k) => {
     const addr = new algosdk.Address(k.private_key.slice(32));
     const acct: algosdk.Account = { sk: k.private_key, addr };
     const signer = algosdk.makeBasicAccountTransactionSigner(acct);
@@ -125,6 +125,32 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
       signer,
     };
   });
+
+  // kmd lists keys in an arbitrary order, and the sandbox wallet accumulates
+  // throwaway accounts from the test suites that share it. Examples index into
+  // this list expecting well-funded accounts, so order by balance. Accounts
+  // that were rekeyed away sort last: their exported key can no longer
+  // authorize them.
+  const algodClient = getLocalAlgodClient();
+  const zeroAddress = algosdk.Address.zeroAddress().toString();
+  const spendable = new Map<string, bigint>();
+  await Promise.all(
+    accounts.map(async (account) => {
+      const address = account.addr.toString();
+      const info = await algodClient.accountInformation(address).do();
+      const authAddr = info.authAddr ? info.authAddr.toString() : zeroAddress;
+      const signable = authAddr === zeroAddress || authAddr === address;
+      spendable.set(address, signable ? info.amount : BigInt(-1));
+    })
+  );
+  accounts.sort((a, b) => {
+    const balanceA = spendable.get(a.addr.toString()) ?? BigInt(0);
+    const balanceB = spendable.get(b.addr.toString()) ?? BigInt(0);
+    if (balanceA === balanceB) return 0;
+    return balanceA > balanceB ? -1 : 1;
+  });
+
+  return accounts;
 }
 
 export async function deployCalculatorApp(
