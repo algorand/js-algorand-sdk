@@ -15,6 +15,10 @@ import type {
 } from './types/transactions/encoded.js';
 import type { LogicSig } from './logicsig.js';
 
+/**
+ * Something that has an Algorand address associated with it.
+ * It could be logic sig, single-signer account, multisig, app, etc.
+ */
 export interface Addressable {
   address: Address;
 }

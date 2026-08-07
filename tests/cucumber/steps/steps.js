@@ -3338,6 +3338,8 @@ module.exports = function getSteps(options) {
 
     // Fund the new Falcon address so it can cover its min balance + fees.
     const sp = await this.v2Client.getTransactionParams().do();
+    // A dev-mode network that has not produced a block yet reports round 0,
+    // which is not a valid firstValid.
     if (sp.firstValid === 0) sp.firstValid = 1;
     const fundingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       sender: this.accounts[0],

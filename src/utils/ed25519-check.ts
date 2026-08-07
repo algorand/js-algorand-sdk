@@ -2,6 +2,8 @@
 
 const p = (1n << 255n) - 19n;
 
+const ED25519_PUBLIC_KEY_LENGTH = 32;
+
 function powMod(base: bigint, exp: bigint) {
   let res = 1n;
 
@@ -19,15 +21,21 @@ function powMod(base: bigint, exp: bigint) {
 const d = (((-121665n * powMod(121666n, p - 2n)) % p) + p) % p;
 const I = powMod(2n, (p - 1n) / 4n);
 
-function decodeY(keyBytes: Uint8Array, reduce: boolean): bigint {
+/**
+ * Decode the little-endian y coordinate of an Ed25519 point encoding, dropping
+ * the sign-of-x bit. The result is not reduced mod p; `hasValidX` reduces it.
+ */
+function decodeY(keyBytes: Uint8Array): bigint {
   const bytes = keyBytes.slice();
   bytes[31] &= 0x7f;
   let y = 0n;
   for (let i = 31; i >= 0; i--) y = (y << 8n) | BigInt(bytes[i]);
-  return reduce ? y % p : y;
+  return y;
 }
 
 function hasValidX(y: bigint): boolean {
+  // Reducing here is what makes this the broad predicate: non-canonical
+  // encodings with y >= p are accepted if their reduced value is on the curve.
   const yr = ((y % p) + p) % p;
   const y2 = (yr * yr) % p;
   const u = (y2 - 1n + p) % p;
@@ -42,13 +50,18 @@ function hasValidX(y: bigint): boolean {
   return false;
 }
 
+/**
+ * Report whether the given bytes decode to an Edwards25519 curve point.
+ *
+ * This over-approximates whatever the verifier's decoder accepts: small-order
+ * points and non-canonical encodings (such as y == p) count as curve points,
+ * matching decoders like filippo.io/edwards25519. Over-approximating is the
+ * safe direction here, because the only caller uses this to *reject* candidate
+ * post-quantum addresses that an Ed25519 key could also occupy.
+ */
 export function couldBeCurvePoint(keyBytes: Uint8Array): boolean {
-  // test both the raw y and the mod-p-reduced y, to over-approximate
-  // whatever the verifier's decoder accepts
-  if (keyBytes.length !== 32) return false;
-  const raw = decodeY(keyBytes, false);
-  if (hasValidX(raw)) return true;
-  const reduced = decodeY(keyBytes, true);
-  if (reduced !== raw && hasValidX(reduced)) return true;
-  return false;
+  // An Ed25519 public key is always exactly 32 bytes, so nothing else can
+  // collide with one.
+  if (keyBytes.length !== ED25519_PUBLIC_KEY_LENGTH) return false;
+  return hasValidX(decodeY(keyBytes));
 }

@@ -26,11 +26,7 @@ import {
   encodedPQSigToEncodingData,
   encodedPQSigFromEncodingData,
 } from './types/transactions/encoded.js';
-import type {
-  AddressWithDelegatedLsigSigner,
-  DelegatedLsigSigner,
-  ProgramDataSigner,
-} from './signer.js';
+import type { DelegatedLsigSigner, ProgramDataSigner } from './signer.js';
 
 // base64regex is the regex to test for base64 strings
 const base64regex =
@@ -281,9 +277,11 @@ export class LogicSig implements encoding.Encodable {
    * @returns The address of the delegating account, as reported by the signer.
    *   This is the authorizing address, which is not necessarily the address a
    *   signer sends transactions from.
+   *
+   * Re-signing an already-signed LogicSig is allowed, and replaces the previous
+   * delegation signature. At most one of `sig`, `msig`, `lmsig` and `pqsig` may
+   * be set, so any signature left over from an earlier call is cleared.
    */
-  // TODO: It's a bit strange to me that a single instance allows the signature to change...
-  // Should we add a check to ensure one a sig is set it isn't changed?
   async signWithSigner(
     signer: DelegatedLsigSigner,
     msig?: MultisigMetadata
@@ -291,6 +289,7 @@ export class LogicSig implements encoding.Encodable {
     const sigResult = await signer(this, msig);
     if (msig == null) {
       if ('pqsig' in sigResult && sigResult.pqsig) {
+        this.clearSignatures();
         this.pqsig = sigResult.pqsig;
         return sigResult.address;
       }
@@ -300,6 +299,7 @@ export class LogicSig implements encoding.Encodable {
           'Expected DelegatedLsigSigner to return sig or pqsig, but both are undefined. If signing for an msig, be sure to pass the msig argument'
         );
       }
+      this.clearSignatures();
       this.sig = sigResult.sig;
     } else {
       if (!('lmsig' in sigResult) || !sigResult.lmsig) {
@@ -308,10 +308,22 @@ export class LogicSig implements encoding.Encodable {
         );
       }
 
+      this.clearSignatures();
       this.lmsig = sigResult.lmsig;
     }
 
     return sigResult.address;
+  }
+
+  /**
+   * Removes every delegation signature from this LogicSig, so that exactly one
+   * of them can be set afterwards.
+   */
+  private clearSignatures() {
+    this.sig = undefined;
+    this.msig = undefined;
+    this.lmsig = undefined;
+    this.pqsig = undefined;
   }
 
   /**
@@ -418,7 +430,14 @@ export class LogicSig implements encoding.Encodable {
     return encoding.decodeMsgpack(encoded, LogicSig);
   }
 
-  async signDataWithSigner(data: Uint8Array, signer: ProgramDataSigner) {
+  /**
+   * Signs arbitrary data for use with the `ed25519verify` opcode from within
+   * this LogicSig's program.
+   *
+   * @param signer - The signer to sign the data with
+   * @param data - The data to sign
+   */
+  async signDataWithSigner(signer: ProgramDataSigner, data: Uint8Array) {
     return signer(data, this);
   }
 }
@@ -622,13 +641,19 @@ export class LogicSigAccount implements encoding.Encodable {
     this.sigkey = nacl.keyPairFromSecretKey(secretKey).publicKey;
   }
 
-  async signWithSigner(signer: AddressWithDelegatedLsigSigner) {
-    // Use the address reported by the signer rather than signer.address: the
-    // latter is the address the signer sends transactions from, which for a
-    // rekeyed account is not the account that authorizes this delegation.
-    const delegatingAddress = await this.lsig.signWithSigner(
-      signer.delegatedLsigSigner
-    );
+  /**
+   * Turns this LogicSigAccount into a delegated LogicSig, signed by the given
+   * signer. If the delegating account is a multisig account, use
+   * `signMultisigWithSigner` instead.
+   *
+   * @param signer - The signer of the delegating account.
+   */
+  async signWithSigner(signer: DelegatedLsigSigner) {
+    // Record the address the signer reports rather than any sending address it
+    // may advertise: the latter is the address the signer sends transactions
+    // from, which for a rekeyed account is not the account that authorizes
+    // this delegation.
+    const delegatingAddress = await this.lsig.signWithSigner(signer);
     this.sigkey = delegatingAddress.publicKey;
   }
 }

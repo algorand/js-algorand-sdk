@@ -106,15 +106,12 @@ async function main() {
   });
 
   const teal = '#pragma version 12\nint 1';
-  const compiled = new Uint8Array(
-    Buffer.from((await client.compile(teal).do()).result, 'base64')
+  const compiled = algosdk.base64ToBytes(
+    (await client.compile(teal).do()).result
   );
 
   const lsig = new LogicSigAccount(compiled);
-  await lsig.signWithSigner({
-    address: falconAddr,
-    delegatedLsigSigner: falconLsigSigner,
-  });
+  await lsig.signWithSigner(falconLsigSigner);
 
   const delegatedSigner = algosdk.makeLogicSigAccountTransactionSigner(lsig);
   const lsigAtc = new algosdk.AtomicTransactionComposer();

@@ -202,6 +202,143 @@ describe('Ed25519Signer', () => {
     });
   });
 
+  describe('multisig transaction signing', () => {
+    const msigParams = {
+      version: 1,
+      threshold: 2,
+      addrs: [sampleAccount1.addr, sampleAccount2.addr, sampleAccount3.addr],
+    } satisfies algosdk.MultisigMetadata;
+    const msigAddr = algosdk.multisigAddress(msigParams);
+
+    it('attributes the subsignature to the signing key, not the sending address', async () => {
+      // The signer holds account1's key but reports account3 as the address it
+      // sends transactions from, as it would if account3 had been rekeyed to
+      // account1. account3 is also a member of this multisig, so confusing the
+      // two would silently file account1's signature under account3's subsig.
+      const signers = addressWithSignersFromRawEd25519Signer(
+        signingKeyForAccount(sampleAccount1),
+        sampleAccount3.addr
+      );
+      const txn = makePaymentTxn(msigAddr);
+
+      const { blob } = await algosdk.signMultisigTransactionWithSigner(
+        txn,
+        msigParams,
+        signers.txnSigner
+      );
+
+      const stxn = algosdk.decodeMsgpack(blob, algosdk.SignedTransaction);
+      const signed = stxn.msig!.subsig.filter((s) => s.s);
+      assert.strictEqual(signed.length, 1);
+      assert.deepStrictEqual(signed[0].pk, sampleAccount1.addr.publicKey);
+      assert.strictEqual(
+        nacl.verify(
+          txn.bytesToSign(),
+          signed[0].s!,
+          sampleAccount1.addr.publicKey
+        ),
+        true
+      );
+    });
+
+    it('signs for a member whose sending address is not in the multisig', async () => {
+      // Same rekey setup, but the sending address is not a member at all. The
+      // signing key still is, so this must succeed.
+      const twoOfTwo = {
+        version: 1,
+        threshold: 2,
+        addrs: [sampleAccount1.addr, sampleAccount2.addr],
+      } satisfies algosdk.MultisigMetadata;
+      const signers = addressWithSignersFromRawEd25519Signer(
+        signingKeyForAccount(sampleAccount1),
+        sampleAccount3.addr
+      );
+      const txn = makePaymentTxn(algosdk.multisigAddress(twoOfTwo));
+
+      const { blob } = await algosdk.signMultisigTransactionWithSigner(
+        txn,
+        twoOfTwo,
+        signers.txnSigner
+      );
+
+      const stxn = algosdk.decodeMsgpack(blob, algosdk.SignedTransaction);
+      const signed = stxn.msig!.subsig.filter((s) => s.s);
+      assert.strictEqual(signed.length, 1);
+      assert.deepStrictEqual(signed[0].pk, sampleAccount1.addr.publicKey);
+    });
+
+    it('appends a second member signature to an existing blob', async () => {
+      const txn = makePaymentTxn(msigAddr);
+
+      const { blob: firstBlob } =
+        await algosdk.signMultisigTransactionWithSigner(
+          txn,
+          msigParams,
+          addressWithSignersFromRawEd25519Signer(
+            signingKeyForAccount(sampleAccount1),
+            sampleAccount3.addr
+          ).txnSigner
+        );
+
+      const { blob } = await algosdk.appendSignMultisigTransactionWithSigner(
+        firstBlob,
+        msigParams,
+        addressWithSignersFromRawEd25519Signer(
+          signingKeyForAccount(sampleAccount2)
+        ).txnSigner
+      );
+
+      const stxn = algosdk.decodeMsgpack(blob, algosdk.SignedTransaction);
+      const signed = stxn.msig!.subsig.filter((s) => s.s);
+      assert.strictEqual(signed.length, 2);
+      assert.deepStrictEqual(signed[0].pk, sampleAccount1.addr.publicKey);
+      assert.deepStrictEqual(signed[1].pk, sampleAccount2.addr.publicKey);
+    });
+
+    it('throws when the signing key is not a member of the multisig', async () => {
+      const twoOfTwo = {
+        version: 1,
+        threshold: 2,
+        addrs: [sampleAccount2.addr, sampleAccount3.addr],
+      } satisfies algosdk.MultisigMetadata;
+
+      await assert.rejects(
+        algosdk.signMultisigTransactionWithSigner(
+          makePaymentTxn(algosdk.multisigAddress(twoOfTwo)),
+          twoOfTwo,
+          addressWithSignersFromRawEd25519Signer(
+            signingKeyForAccount(sampleAccount1)
+          ).txnSigner
+        ),
+        /Key does not exist/
+      );
+    });
+
+    it('throws when the signer does not identify its key via sgnr', async () => {
+      // The signing key can only be identified by `sgnr`, so a signer that
+      // omits it cannot be matched to a member. This must fail loudly rather
+      // than attach the signature to the wrong subsig.
+      const bareSigner: algosdk.TransactionSigner = async (group, indexes) =>
+        indexes.map((i) =>
+          algosdk.encodeMsgpack(
+            new algosdk.SignedTransaction({
+              txn: group[i],
+              sig: nacl.sign(group[i].bytesToSign(), sampleAccount2.sk),
+            })
+          )
+        );
+
+      await assert.rejects(
+        algosdk.signMultisigTransactionWithSigner(
+          makePaymentTxn(msigAddr),
+          msigParams,
+          bareSigner
+        ),
+        /Key does not exist/
+      );
+    });
+  });
+
   describe('delegated multisig lsig', () => {
     const msigParams = {
       version: 1,

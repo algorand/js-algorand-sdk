@@ -10,7 +10,7 @@ import {
   addressFromMultisigPreImg,
   pksFromAddresses,
 } from './multisig.js';
-import type { AddressWithTransactionSigner } from './signer.js';
+import type { TransactionSigner } from './signer.js';
 import { signTransactionWithSigner } from './signing.js';
 
 export const MULTISIG_MERGE_LESSTHANTWO_ERROR_MSG =
@@ -149,10 +149,10 @@ function partialSignTxn(
 async function partialSignTxnWithSigner(
   transaction: Transaction,
   { version, threshold, pks }: MultisigMetadataWithPks,
-  { address, txnSigner }: AddressWithTransactionSigner
+  txnSigner: TransactionSigner
 ) {
-  const rawSig = (await signTransactionWithSigner(transaction, txnSigner)).stxn
-    .sig;
+  const { stxn } = await signTransactionWithSigner(transaction, txnSigner);
+  const rawSig = stxn.sig;
 
   if (rawSig === undefined) {
     throw Error(
@@ -160,11 +160,19 @@ async function partialSignTxnWithSigner(
     );
   }
 
+  if (stxn.sgnr === undefined) {
+    throw Error(
+      'Expected TransactionSigner to return a signed tranasction with a sgnr, but sgnr was empty'
+    );
+  }
+
+  const myPk = stxn.sgnr.publicKey;
+
   return createMultisigTransactionWithSignature(
     transaction,
     {
       rawSig,
-      myPk: address.publicKey,
+      myPk,
     },
     { version, threshold, pks }
   );
@@ -318,16 +326,34 @@ export function signMultisigTransaction(
   };
 }
 
+/**
+ * signMultisigTransactionWithSigner takes a raw transaction, a multisig preimage and a signer, and
+ * returns a multisig transaction: a blob representing a transaction and multisignature account
+ * preimage. The returned multisig txn can accumulate additional signatures through
+ * mergeMultisigTransactions or appendSignMultisigTransactionWithSigner.
+ *
+ * The signer must hold a key belonging to the multisig, and must identify that key by setting the
+ * `sgnr` field on the transaction it returns. Every signer this SDK provides does so. Note that
+ * `AddressWithTransactionSigner.address` cannot be used for this: it is the address the signer
+ * sends transactions from, which for a rekeyed account is not the signing key.
+ *
+ * @param txn - the transaction to sign
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param txnSigner - the signer to sign with
+ * @returns an object with txID and blob properties
+ */
 export async function signMultisigTransactionWithSigner(
   txn: Transaction,
   { version, threshold, addrs }: MultisigMetadata,
-  { address, txnSigner }: AddressWithTransactionSigner
+  txnSigner: TransactionSigner
 ) {
   const pks = pksFromAddresses(addrs);
   const blob = await partialSignTxnWithSigner(
     txn,
     { version, threshold, pks },
-    { address, txnSigner }
+    txnSigner
   );
   return {
     txID: txn.txID(),
@@ -370,10 +396,26 @@ export function appendSignMultisigTransaction(
   };
 }
 
+/**
+ * appendSignMultisigTransactionWithSigner takes a multisig transaction blob, and appends the given
+ * signer's signature to it. While we could derive public key preimagery from the partially-signed
+ * multisig transaction, we ask the caller to pass it back in, to ensure they know what they are
+ * signing.
+ *
+ * As with {@link signMultisigTransactionWithSigner}, the signer must identify its key by setting
+ * the `sgnr` field on the transaction it returns.
+ *
+ * @param multisigTxnBlob - an encoded multisig txn. Supports non-payment txn types.
+ * @param version - multisig version
+ * @param threshold - multisig threshold
+ * @param addrs - a list of Algorand addresses representing possible signers for this multisig. Order is important.
+ * @param txnSigner - the signer to sign with
+ * @returns an object with txID and blob properties
+ */
 export async function appendSignMultisigTransactionWithSigner(
   multisigTxnBlob: Uint8Array,
   { version, threshold, addrs }: MultisigMetadata,
-  { address, txnSigner }: AddressWithTransactionSigner
+  txnSigner: TransactionSigner
 ) {
   const pks = pksFromAddresses(addrs);
   // obtain underlying txn, sign it, and merge it
@@ -384,7 +426,7 @@ export async function appendSignMultisigTransactionWithSigner(
   const partialSignedBlob = await partialSignTxnWithSigner(
     multisigTxObj.txn,
     { version, threshold, pks },
-    { address, txnSigner }
+    txnSigner
   );
   return {
     txID: multisigTxObj.txn.txID(),

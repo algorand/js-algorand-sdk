@@ -22,8 +22,10 @@ import {
   signTransactionWithSigner,
   SignedTransaction,
   Transaction,
+  LogicSig,
   LogicSigAccount,
   makeLogicSigAccountTransactionSigner,
+  signLogicSigTransactionObject,
 } from '../src/main.js';
 import { PQ_PROGRAM_TAG } from '../src/logicsig.js';
 import { concatArrays } from '../src/utils/utils.js';
@@ -196,7 +198,7 @@ describe('PQ signers', () => {
       addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
 
     const lsigAccount = new LogicSigAccount(program);
-    await lsigAccount.signWithSigner(addrWithSigners);
+    await lsigAccount.signWithSigner(addrWithSigners.delegatedLsigSigner);
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
@@ -248,7 +250,7 @@ describe('PQ signers', () => {
       addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
 
     const lsigAccount = new LogicSigAccount(program);
-    await lsigAccount.signWithSigner(addrWithSigners);
+    await lsigAccount.signWithSigner(addrWithSigners.delegatedLsigSigner);
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
@@ -332,7 +334,7 @@ describe('PQ signers', () => {
     );
 
     const lsigAccount = new LogicSigAccount(program);
-    await lsigAccount.signWithSigner(addrWithSigners);
+    await lsigAccount.signWithSigner(addrWithSigners.delegatedLsigSigner);
 
     assert.ok(
       lsigAccount.address().equals(authAddress),
@@ -346,6 +348,90 @@ describe('PQ signers', () => {
     assert.deepEqual(
       blob,
       base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
+    );
+  });
+});
+
+describe('PQ delegated LogicSig safety checks', () => {
+  const sampleProgram = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
+
+  function paymentTxn(): Transaction {
+    return decodeMsgpack(base64ToBytes(pqPaymentData.txnBlob), Transaction);
+  }
+
+  function samplePqsig() {
+    return {
+      sch: FALCON_1024_SCHEME,
+      slt: 0,
+      pk: Uint8Array.of(1),
+      sig: Uint8Array.of(2),
+    };
+  }
+
+  it('reports a PQ-delegated LogicSig as delegated but unverifiable', async () => {
+    const publicKey = base64ToBytes(pqDelegatedPaymentData.signer.pqSigner.pk);
+    const { address: authAddress, delegatedLsigSigner } =
+      addressWithSignersFromRawFalcon1024Signer({
+        falcon1024PublicKey: publicKey,
+        falcon1024Signer: async () =>
+          base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig),
+      });
+
+    const account = new LogicSigAccount(sampleProgram);
+    await account.signWithSigner(delegatedLsigSigner);
+
+    assert.strictEqual(account.isDelegated(), true);
+    assert.ok(account.address().equals(authAddress));
+    // This SDK cannot validate a PQ signature, so `verify` must not claim the
+    // delegation is good.
+    assert.strictEqual(account.verify(), false);
+    assert.strictEqual(account.lsig.verify(authAddress.publicKey), false);
+  });
+
+  it('rejects a LogicSig carrying both an ed25519 sig and a pqsig', () => {
+    const lsig = new LogicSig(sampleProgram);
+    lsig.sig = new Uint8Array(64);
+    lsig.pqsig = samplePqsig();
+
+    assert.throws(
+      () => signLogicSigTransactionObject(paymentTxn(), lsig),
+      /At most one of sig, msig, lmsig, or pqsig may be present/
+    );
+  });
+
+  it('rejects a PQ-delegated LogicSig whose program is not TEAL bytecode', () => {
+    // The constructor sanity-checks the program, so an invalid one can only
+    // arrive by decoding or by later mutation.
+    const lsig = new LogicSig(sampleProgram);
+    lsig.pqsig = samplePqsig();
+    lsig.logic = new TextEncoder().encode('#pragma version 12\nint 1');
+
+    assert.throws(
+      () => signLogicSigTransactionObject(paymentTxn(), lsig),
+      /Logic signature verification failed. Ensure the program is valid/
+    );
+  });
+
+  it('replaces a previous signature rather than accumulating one', async () => {
+    const publicKey = base64ToBytes(pqDelegatedPaymentData.signer.pqSigner.pk);
+    const { delegatedLsigSigner } = addressWithSignersFromRawFalcon1024Signer({
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    });
+
+    const lsig = new LogicSig(sampleProgram);
+    // Start from an ed25519-signed lsig, then re-sign with a PQ signer.
+    lsig.sig = new Uint8Array(64);
+    await lsig.signWithSigner(delegatedLsigSigner);
+
+    assert.ok(lsig.pqsig, 'expected the PQ signature to be set');
+    assert.strictEqual(lsig.sig, undefined);
+    assert.strictEqual(lsig.msig, undefined);
+    assert.strictEqual(lsig.lmsig, undefined);
+    // A single signature means the result is usable, not a malformed blob.
+    assert.doesNotThrow(() =>
+      signLogicSigTransactionObject(paymentTxn(), lsig)
     );
   });
 });

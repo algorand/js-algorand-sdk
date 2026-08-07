@@ -83,6 +83,17 @@ function signLogicSigTransactionWithAddress(
   lsig: LogicSig,
   lsigAddress: Address
 ) {
+  // `lsig.verify` enforces this for the non-PQ paths, but the PQ path below
+  // skips it, so check it up front for every path.
+  const sigCount = [lsig.sig, lsig.msig, lsig.lmsig, lsig.pqsig].filter(
+    Boolean
+  ).length;
+  if (sigCount > 1) {
+    throw new Error(
+      'LogicSig has too many signatures. At most one of sig, msig, lmsig, or pqsig may be present'
+    );
+  }
+
   if (lsig.pqsig) {
     // This SDK cannot validate a post-quantum signature, so only the program is
     // checked here; the network validates the delegation signature itself.
