@@ -306,16 +306,15 @@ module.exports = function getSteps(options) {
       this.lv = parseInt(lv);
       this.gh = algosdk.base64ToBytes(gh);
       this.receiver = receiver;
-      if (close !== 'none') {
-        this.close = close;
-      }
+      // Always assign, even for "none", so a scenario can never inherit a
+      // value left behind by an earlier one.
+      this.close = close !== 'none' ? close : undefined;
       this.amt = parseInt(amt);
-      if (gen !== 'none') {
-        this.gen = gen;
-      }
-      if (note !== 'none') {
-        this.note = makeUint8Array(algosdk.base64ToBytes(note));
-      }
+      this.gen = gen !== 'none' ? gen : undefined;
+      this.note =
+        note !== 'none'
+          ? makeUint8Array(algosdk.base64ToBytes(note))
+          : undefined;
     }
   );
 
