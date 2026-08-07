@@ -346,6 +346,7 @@ export class Account implements Encodable {
    * * sig
    * * msig
    * * lsig
+   * * pqsig
    * * or null if unknown
    */
   public sigType?: string;
@@ -406,6 +407,7 @@ export class Account implements Encodable {
    * * sig
    * * msig
    * * lsig
+   * * pqsig
    * * or null if unknown
    */
   constructor({
@@ -3027,7 +3029,17 @@ export class Block implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'congestion-tax',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
           key: 'fees-collected',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'load',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
         },
@@ -3149,9 +3161,22 @@ export class Block implements Encodable {
   public bonus?: number;
 
   /**
+   * the fee required, beyond the minimum fee, for "normal" transactions in this
+   * block.
+   */
+  public congestionTax?: number;
+
+  /**
    * the sum of all fees paid by transactions in this block.
    */
   public feesCollected?: number;
+
+  /**
+   * the degree to which this block is full, based on the number of bytes in the
+   * final block compared to the maximum allowed. Expressed as a fixed-point integer
+   * with 6 digits of precision, so 1,000,000 is a completely full block.
+   */
+  public load?: number;
 
   /**
    * Participation account data that needs to be checked/acted on by the network.
@@ -3233,7 +3258,12 @@ export class Block implements Encodable {
    * the default SHA512_256. This commitment can be used on environments where only
    * the SHA256 function exists.
    * @param bonus - the potential bonus payout for this block.
+   * @param congestionTax - the fee required, beyond the minimum fee, for "normal" transactions in this
+   * block.
    * @param feesCollected - the sum of all fees paid by transactions in this block.
+   * @param load - the degree to which this block is full, based on the number of bytes in the
+   * final block compared to the maximum allowed. Expressed as a fixed-point integer
+   * with 6 digits of precision, so 1,000,000 is a completely full block.
    * @param participationUpdates - Participation account data that needs to be checked/acted on by the network.
    * @param previousBlockHash512 - (prev512) Previous block hash, using SHA-512.
    * @param proposer - the proposer of this block.
@@ -3262,7 +3292,9 @@ export class Block implements Encodable {
     transactionsRoot,
     transactionsRootSha256,
     bonus,
+    congestionTax,
     feesCollected,
+    load,
     participationUpdates,
     previousBlockHash512,
     proposer,
@@ -3284,7 +3316,9 @@ export class Block implements Encodable {
     transactionsRoot: string | Uint8Array;
     transactionsRootSha256: string | Uint8Array;
     bonus?: number | bigint;
+    congestionTax?: number | bigint;
     feesCollected?: number | bigint;
+    load?: number | bigint;
     participationUpdates?: ParticipationUpdates;
     previousBlockHash512?: string | Uint8Array;
     proposer?: Address | string;
@@ -3319,10 +3353,16 @@ export class Block implements Encodable {
         : transactionsRootSha256;
     this.bonus =
       typeof bonus === 'undefined' ? undefined : ensureSafeInteger(bonus);
+    this.congestionTax =
+      typeof congestionTax === 'undefined'
+        ? undefined
+        : ensureSafeInteger(congestionTax);
     this.feesCollected =
       typeof feesCollected === 'undefined'
         ? undefined
         : ensureSafeInteger(feesCollected);
+    this.load =
+      typeof load === 'undefined' ? undefined : ensureSafeInteger(load);
     this.participationUpdates = participationUpdates;
     this.previousBlockHash512 =
       typeof previousBlockHash512 === 'string'
@@ -3365,7 +3405,9 @@ export class Block implements Encodable {
       ['transactions-root', this.transactionsRoot],
       ['transactions-root-sha256', this.transactionsRootSha256],
       ['bonus', this.bonus],
+      ['congestion-tax', this.congestionTax],
       ['fees-collected', this.feesCollected],
+      ['load', this.load],
       [
         'participation-updates',
         typeof this.participationUpdates !== 'undefined'
@@ -3429,7 +3471,9 @@ export class Block implements Encodable {
       transactionsRoot: data.get('transactions-root'),
       transactionsRootSha256: data.get('transactions-root-sha256'),
       bonus: data.get('bonus'),
+      congestionTax: data.get('congestion-tax'),
       feesCollected: data.get('fees-collected'),
+      load: data.get('load'),
       participationUpdates:
         typeof data.get('participation-updates') !== 'undefined'
           ? ParticipationUpdates.fromEncodingData(
@@ -8078,6 +8122,11 @@ export class TransactionHeartbeat implements Encodable {
           key: 'hb-vote-id',
           valueSchema: new ByteArraySchema(),
           omitEmpty: true,
+        },
+        {
+          key: 'hb-challenge-discount',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
         }
       );
     }
@@ -8112,6 +8161,13 @@ export class TransactionHeartbeat implements Encodable {
   public hbVoteId: Uint8Array;
 
   /**
+   * (hbc) HbChallengeDiscount requests the challenge fee discount, reducing the
+   * required fee by one min fee. It is a request, not an assertion: it is granted
+   * only if HbAddress is actually under challenge.
+   */
+  public hbChallengeDiscount?: boolean;
+
+  /**
    * Creates a new `TransactionHeartbeat` object.
    * @param hbAddress - (hbad) HbAddress is the account this txn is proving onlineness for.
    * @param hbKeyDilution - (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
@@ -8120,6 +8176,9 @@ export class TransactionHeartbeat implements Encodable {
    * @param hbSeed - (hbsd) HbSeed must be the block seed for the this transaction's firstValid
    * block.
    * @param hbVoteId - (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   * @param hbChallengeDiscount - (hbc) HbChallengeDiscount requests the challenge fee discount, reducing the
+   * required fee by one min fee. It is a request, not an assertion: it is granted
+   * only if HbAddress is actually under challenge.
    */
   constructor({
     hbAddress,
@@ -8127,12 +8186,14 @@ export class TransactionHeartbeat implements Encodable {
     hbProof,
     hbSeed,
     hbVoteId,
+    hbChallengeDiscount,
   }: {
     hbAddress: string;
     hbKeyDilution: number | bigint;
     hbProof: HbProofFields;
     hbSeed: string | Uint8Array;
     hbVoteId: string | Uint8Array;
+    hbChallengeDiscount?: boolean;
   }) {
     this.hbAddress = hbAddress;
     this.hbKeyDilution = ensureBigInt(hbKeyDilution);
@@ -8140,6 +8201,7 @@ export class TransactionHeartbeat implements Encodable {
     this.hbSeed = typeof hbSeed === 'string' ? base64ToBytes(hbSeed) : hbSeed;
     this.hbVoteId =
       typeof hbVoteId === 'string' ? base64ToBytes(hbVoteId) : hbVoteId;
+    this.hbChallengeDiscount = hbChallengeDiscount;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -8154,6 +8216,7 @@ export class TransactionHeartbeat implements Encodable {
       ['hb-proof', this.hbProof.toEncodingData()],
       ['hb-seed', this.hbSeed],
       ['hb-vote-id', this.hbVoteId],
+      ['hb-challenge-discount', this.hbChallengeDiscount],
     ]);
   }
 
@@ -8169,6 +8232,7 @@ export class TransactionHeartbeat implements Encodable {
       ),
       hbSeed: data.get('hb-seed'),
       hbVoteId: data.get('hb-vote-id'),
+      hbChallengeDiscount: data.get('hb-challenge-discount'),
     });
   }
 }

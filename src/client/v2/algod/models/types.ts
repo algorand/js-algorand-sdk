@@ -4441,6 +4441,57 @@ export class GetBlockTimeStampOffsetResponse implements Encodable {
 }
 
 /**
+ * Response containing the network peers of the node
+ */
+export class GetPeersResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
+        key: 'Peers',
+        valueSchema: new ArraySchema(PeerStatus.encodingSchema),
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public peers: PeerStatus[];
+
+  /**
+   * Creates a new `GetPeersResponse` object.
+   * @param peers -
+   */
+  constructor({ peers }: { peers: PeerStatus[] }) {
+    this.peers = peers;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return GetPeersResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['Peers', this.peers.map((v) => v.toEncodingData())],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): GetPeersResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded GetPeersResponse: ${data}`);
+    }
+    return new GetPeersResponse({
+      peers: (data.get('Peers') ?? []).map((v: unknown) =>
+        PeerStatus.fromEncodingData(v)
+      ),
+    });
+  }
+}
+
+/**
  * Response containing the ledger's minimum sync round
  */
 export class GetSyncRoundResponse implements Encodable {
@@ -5150,6 +5201,96 @@ export class NodeStatusResponse implements Encodable {
       upgradeVotes: data.get('upgrade-votes'),
       upgradeVotesRequired: data.get('upgrade-votes-required'),
       upgradeYesVotes: data.get('upgrade-yes-votes'),
+    });
+  }
+}
+
+/**
+ * The status of a connected peer in the P2P network
+ */
+export class PeerStatus implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'network-address',
+          valueSchema: new StringSchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'connection-type',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'network-type',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * Network address of the peer
+   */
+  public networkAddress: string;
+
+  /**
+   * Connection type
+   */
+  public connectionType?: string;
+
+  /**
+   * Network type
+   */
+  public networkType?: string;
+
+  /**
+   * Creates a new `PeerStatus` object.
+   * @param networkAddress - Network address of the peer
+   * @param connectionType - Connection type
+   * @param networkType - Network type
+   */
+  constructor({
+    networkAddress,
+    connectionType,
+    networkType,
+  }: {
+    networkAddress: string;
+    connectionType?: string;
+    networkType?: string;
+  }) {
+    this.networkAddress = networkAddress;
+    this.connectionType = connectionType;
+    this.networkType = networkType;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return PeerStatus.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['network-address', this.networkAddress],
+      ['connection-type', this.connectionType],
+      ['network-type', this.networkType],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): PeerStatus {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded PeerStatus: ${data}`);
+    }
+    return new PeerStatus({
+      networkAddress: data.get('network-address'),
+      connectionType: data.get('connection-type'),
+      networkType: data.get('network-type'),
     });
   }
 }
