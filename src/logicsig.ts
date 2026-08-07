@@ -183,6 +183,9 @@ export class LogicSig implements encoding.Encodable {
   }
 
   /**
+   * @deprecated This function does not perform full verification and should not be fully trusted on its own. 
+   * For example, it does not evaluate programs and does not have the ability to validate PQ signatures.
+   *
    * Performs signature verification
    * @param publicKey - Verification key (derived from sender address or escrow address)
    */
@@ -490,6 +493,9 @@ export class LogicSigAccount implements encoding.Encodable {
   }
 
   /**
+   * @deprecated This function does not perform full verification and should not be fully trusted on its own. 
+   * For example, it does not evaluate programs and does not have the ability to validate PQ signatures.
+   *
    * Verifies this LogicSig's program and signatures.
    * @returns true if and only if the LogicSig program and signatures are valid.
    */
