@@ -2071,6 +2071,16 @@ export class ApplicationParams implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'family-box-access',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'foreign-box-reads',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
+        },
+        {
           key: 'global-state',
           valueSchema: new OptionalSchema(
             new ArraySchema(TealKeyValue.encodingSchema)
@@ -2128,6 +2138,16 @@ export class ApplicationParams implements Encodable {
   public extraProgramPages?: number;
 
   /**
+   * (fba) if true, apps with the same creator may read and write this app's boxes
+   */
+  public familyBoxAccess?: boolean;
+
+  /**
+   * (fbr) if true, any app may read this app's boxes
+   */
+  public foreignBoxReads?: boolean;
+
+  /**
    * (gs) global state
    */
   public globalState?: TealKeyValue[];
@@ -2159,6 +2179,8 @@ export class ApplicationParams implements Encodable {
    * @param creator - The address that created this application. This is the address where the
    * parameters and global state for this application can be found.
    * @param extraProgramPages - (epp) the amount of extra program pages available to this app.
+   * @param familyBoxAccess - (fba) if true, apps with the same creator may read and write this app's boxes
+   * @param foreignBoxReads - (fbr) if true, any app may read this app's boxes
    * @param globalState - (gs) global state
    * @param globalStateSchema - (gsch) global schema
    * @param localStateSchema - (lsch) local schema
@@ -2170,6 +2192,8 @@ export class ApplicationParams implements Encodable {
     clearStateProgram,
     creator,
     extraProgramPages,
+    familyBoxAccess,
+    foreignBoxReads,
     globalState,
     globalStateSchema,
     localStateSchema,
@@ -2180,6 +2204,8 @@ export class ApplicationParams implements Encodable {
     clearStateProgram: string | Uint8Array;
     creator: Address | string;
     extraProgramPages?: number | bigint;
+    familyBoxAccess?: boolean;
+    foreignBoxReads?: boolean;
     globalState?: TealKeyValue[];
     globalStateSchema?: ApplicationStateSchema;
     localStateSchema?: ApplicationStateSchema;
@@ -2200,6 +2226,8 @@ export class ApplicationParams implements Encodable {
       typeof extraProgramPages === 'undefined'
         ? undefined
         : ensureSafeInteger(extraProgramPages);
+    this.familyBoxAccess = familyBoxAccess;
+    this.foreignBoxReads = foreignBoxReads;
     this.globalState = globalState;
     this.globalStateSchema = globalStateSchema;
     this.localStateSchema = localStateSchema;
@@ -2222,6 +2250,8 @@ export class ApplicationParams implements Encodable {
       ['clear-state-program', this.clearStateProgram],
       ['creator', this.creator.toString()],
       ['extra-program-pages', this.extraProgramPages],
+      ['family-box-access', this.familyBoxAccess],
+      ['foreign-box-reads', this.foreignBoxReads],
       [
         'global-state',
         typeof this.globalState !== 'undefined'
@@ -2259,6 +2289,8 @@ export class ApplicationParams implements Encodable {
       clearStateProgram: data.get('clear-state-program'),
       creator: data.get('creator'),
       extraProgramPages: data.get('extra-program-pages'),
+      familyBoxAccess: data.get('family-box-access'),
+      foreignBoxReads: data.get('foreign-box-reads'),
       globalState:
         typeof data.get('global-state') !== 'undefined'
           ? data
@@ -4409,6 +4441,57 @@ export class GetBlockTimeStampOffsetResponse implements Encodable {
 }
 
 /**
+ * Response containing the network peers of the node
+ */
+export class GetPeersResponse implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
+        key: 'Peers',
+        valueSchema: new ArraySchema(PeerStatus.encodingSchema),
+        omitEmpty: true,
+      });
+    }
+    return this.encodingSchemaValue;
+  }
+
+  public peers: PeerStatus[];
+
+  /**
+   * Creates a new `GetPeersResponse` object.
+   * @param peers -
+   */
+  constructor({ peers }: { peers: PeerStatus[] }) {
+    this.peers = peers;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return GetPeersResponse.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['Peers', this.peers.map((v) => v.toEncodingData())],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): GetPeersResponse {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded GetPeersResponse: ${data}`);
+    }
+    return new GetPeersResponse({
+      peers: (data.get('Peers') ?? []).map((v: unknown) =>
+        PeerStatus.fromEncodingData(v)
+      ),
+    });
+  }
+}
+
+/**
  * Response containing the ledger's minimum sync round
  */
 export class GetSyncRoundResponse implements Encodable {
@@ -5118,6 +5201,96 @@ export class NodeStatusResponse implements Encodable {
       upgradeVotes: data.get('upgrade-votes'),
       upgradeVotesRequired: data.get('upgrade-votes-required'),
       upgradeYesVotes: data.get('upgrade-yes-votes'),
+    });
+  }
+}
+
+/**
+ * The status of a connected peer in the P2P network
+ */
+export class PeerStatus implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'network-address',
+          valueSchema: new StringSchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'connection-type',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'network-type',
+          valueSchema: new OptionalSchema(new StringSchema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * Network address of the peer
+   */
+  public networkAddress: string;
+
+  /**
+   * Connection type
+   */
+  public connectionType?: string;
+
+  /**
+   * Network type
+   */
+  public networkType?: string;
+
+  /**
+   * Creates a new `PeerStatus` object.
+   * @param networkAddress - Network address of the peer
+   * @param connectionType - Connection type
+   * @param networkType - Network type
+   */
+  constructor({
+    networkAddress,
+    connectionType,
+    networkType,
+  }: {
+    networkAddress: string;
+    connectionType?: string;
+    networkType?: string;
+  }) {
+    this.networkAddress = networkAddress;
+    this.connectionType = connectionType;
+    this.networkType = networkType;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return PeerStatus.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['network-address', this.networkAddress],
+      ['connection-type', this.connectionType],
+      ['network-type', this.networkType],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): PeerStatus {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded PeerStatus: ${data}`);
+    }
+    return new PeerStatus({
+      networkAddress: data.get('network-address'),
+      connectionType: data.get('connection-type'),
+      networkType: data.get('network-type'),
     });
   }
 }
@@ -6292,6 +6465,16 @@ export class SimulateTransactionGroupResult implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'group-fees-paid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'group-usage',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
           key: 'unnamed-resources-accessed',
           valueSchema: new OptionalSchema(
             SimulateUnnamedResourcesAccessed.encodingSchema
@@ -6333,6 +6516,18 @@ export class SimulateTransactionGroupResult implements Encodable {
   public failureMessage?: string;
 
   /**
+   * Total fees paid by the transaction group and all of its descendant inner
+   * transaction groups.
+   */
+  public groupFeesPaid?: number;
+
+  /**
+   * Fee usage for the transaction group, including all descendant inner
+   * transactions, in millionths of a basic transaction fee unit.
+   */
+  public groupUsage?: number;
+
+  /**
    * These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -6356,6 +6551,10 @@ export class SimulateTransactionGroupResult implements Encodable {
    * indicate deeper inner transactions.
    * @param failureMessage - If present, indicates that the transaction group failed and specifies why that
    * happened
+   * @param groupFeesPaid - Total fees paid by the transaction group and all of its descendant inner
+   * transaction groups.
+   * @param groupUsage - Fee usage for the transaction group, including all descendant inner
+   * transactions, in millionths of a basic transaction fee unit.
    * @param unnamedResourcesAccessed - These are resources that were accessed by this group that would normally have
    * caused failure, but were allowed in simulation. Depending on where this object
    * is in the response, the unnamed resources it contains may or may not qualify for
@@ -6372,6 +6571,8 @@ export class SimulateTransactionGroupResult implements Encodable {
     appBudgetConsumed,
     failedAt,
     failureMessage,
+    groupFeesPaid,
+    groupUsage,
     unnamedResourcesAccessed,
   }: {
     txnResults: SimulateTransactionResult[];
@@ -6379,6 +6580,8 @@ export class SimulateTransactionGroupResult implements Encodable {
     appBudgetConsumed?: number | bigint;
     failedAt?: (number | bigint)[];
     failureMessage?: string;
+    groupFeesPaid?: number | bigint;
+    groupUsage?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
   }) {
     this.txnResults = txnResults;
@@ -6395,6 +6598,14 @@ export class SimulateTransactionGroupResult implements Encodable {
         ? undefined
         : failedAt.map(ensureSafeInteger);
     this.failureMessage = failureMessage;
+    this.groupFeesPaid =
+      typeof groupFeesPaid === 'undefined'
+        ? undefined
+        : ensureSafeInteger(groupFeesPaid);
+    this.groupUsage =
+      typeof groupUsage === 'undefined'
+        ? undefined
+        : ensureSafeInteger(groupUsage);
     this.unnamedResourcesAccessed = unnamedResourcesAccessed;
   }
 
@@ -6410,6 +6621,8 @@ export class SimulateTransactionGroupResult implements Encodable {
       ['app-budget-consumed', this.appBudgetConsumed],
       ['failed-at', this.failedAt],
       ['failure-message', this.failureMessage],
+      ['group-fees-paid', this.groupFeesPaid],
+      ['group-usage', this.groupUsage],
       [
         'unnamed-resources-accessed',
         typeof this.unnamedResourcesAccessed !== 'undefined'
@@ -6433,6 +6646,8 @@ export class SimulateTransactionGroupResult implements Encodable {
       appBudgetConsumed: data.get('app-budget-consumed'),
       failedAt: data.get('failed-at'),
       failureMessage: data.get('failure-message'),
+      groupFeesPaid: data.get('group-fees-paid'),
+      groupUsage: data.get('group-usage'),
       unnamedResourcesAccessed:
         typeof data.get('unnamed-resources-accessed') !== 'undefined'
           ? SimulateUnnamedResourcesAccessed.fromEncodingData(
@@ -6468,6 +6683,11 @@ export class SimulateTransactionResult implements Encodable {
           valueSchema: new OptionalSchema(
             SimulationTransactionExecTrace.encodingSchema
           ),
+          omitEmpty: true,
+        },
+        {
+          key: 'fees-paid',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
         },
         {
@@ -6511,6 +6731,12 @@ export class SimulateTransactionResult implements Encodable {
   public execTrace?: SimulationTransactionExecTrace;
 
   /**
+   * Total fees paid by this transaction and all of its descendant inner
+   * transactions.
+   */
+  public feesPaid?: number;
+
+  /**
    * The account that needed to sign this transaction when no signature was provided
    * and the provided signer was incorrect.
    */
@@ -6542,6 +6768,8 @@ export class SimulateTransactionResult implements Encodable {
    * budged used by inner app calls spawned by this transaction.
    * @param execTrace - The execution trace of calling an app or a logic sig, containing the inner app
    * call trace in a recursive way.
+   * @param feesPaid - Total fees paid by this transaction and all of its descendant inner
+   * transactions.
    * @param fixedSigner - The account that needed to sign this transaction when no signature was provided
    * and the provided signer was incorrect.
    * @param logicSigBudgetConsumed - Budget used during execution of a logic sig transaction.
@@ -6559,6 +6787,7 @@ export class SimulateTransactionResult implements Encodable {
     txnResult,
     appBudgetConsumed,
     execTrace,
+    feesPaid,
     fixedSigner,
     logicSigBudgetConsumed,
     unnamedResourcesAccessed,
@@ -6566,6 +6795,7 @@ export class SimulateTransactionResult implements Encodable {
     txnResult: PendingTransactionResponse;
     appBudgetConsumed?: number | bigint;
     execTrace?: SimulationTransactionExecTrace;
+    feesPaid?: number | bigint;
     fixedSigner?: Address | string;
     logicSigBudgetConsumed?: number | bigint;
     unnamedResourcesAccessed?: SimulateUnnamedResourcesAccessed;
@@ -6576,6 +6806,8 @@ export class SimulateTransactionResult implements Encodable {
         ? undefined
         : ensureSafeInteger(appBudgetConsumed);
     this.execTrace = execTrace;
+    this.feesPaid =
+      typeof feesPaid === 'undefined' ? undefined : ensureSafeInteger(feesPaid);
     this.fixedSigner =
       typeof fixedSigner === 'string'
         ? Address.fromString(fixedSigner)
@@ -6602,6 +6834,7 @@ export class SimulateTransactionResult implements Encodable {
           ? this.execTrace.toEncodingData()
           : undefined,
       ],
+      ['fees-paid', this.feesPaid],
       [
         'fixed-signer',
         typeof this.fixedSigner !== 'undefined'
@@ -6633,6 +6866,7 @@ export class SimulateTransactionResult implements Encodable {
               data.get('exec-trace')
             )
           : undefined,
+      feesPaid: data.get('fees-paid'),
       fixedSigner: data.get('fixed-signer'),
       logicSigBudgetConsumed: data.get('logic-sig-budget-consumed'),
       unnamedResourcesAccessed:
