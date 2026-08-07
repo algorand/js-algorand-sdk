@@ -31,7 +31,10 @@ async function main() {
   // example: TRANSACTION_PAYMENT_CREATE
 
   // example: TRANSACTION_PAYMENT_SIGN
-  const signedTxn = ptxn.signTxn(acct.privateKey);
+  const { blob: signedTxn } = await algosdk.signTransactionWithSigner(
+    ptxn,
+    acct.signer
+  );
   // example: TRANSACTION_PAYMENT_SIGN
 
   // example: TRANSACTION_PAYMENT_SUBMIT

@@ -4,6 +4,19 @@ import algosdk from '../src/index.js';
 import * as nacl from '../src/nacl/naclWrappers.js';
 import * as utils from '../src/utils/utils.js';
 
+/**
+ * Build the set of signers for an account from its secret key. The SDK only
+ * needs a "raw signer": a function producing a detached ed25519 signature over
+ * arbitrary bytes.
+ */
+function signersForAccount(account: algosdk.Account) {
+  return algosdk.addressWithSignersFromRawEd25519Signer({
+    ed25519PublicKey: account.addr.publicKey,
+    ed25519Signer: async (bytesToSign: Uint8Array) =>
+      nacl.sign(bytesToSign, account.sk),
+  });
+}
+
 describe('Algosdk (AKA end to end)', () => {
   describe('#mnemonic', () => {
     it('should export and import', () => {
@@ -85,7 +98,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(txnAsBufferGolden, txnAsBufferRecovered);
     });
 
-    it('should not mutate signed transaction when going to or from encoded buffer', () => {
+    it('should not mutate signed transaction when going to or from encoded buffer', async () => {
       const receiver =
         'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI';
       const minFee = 1000;
@@ -120,12 +133,17 @@ describe('Algosdk (AKA end to end)', () => {
       const sk = algosdk.mnemonicToSecretKey(
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
       );
-      const initialSignedTxnBytes = txnAsObj.signTxn(sk.sk);
+      const signer = algosdk.makeBasicAccountTransactionSigner(sk);
+      const initialSignedTxnBytes = (
+        await algosdk.signTransactionWithSigner(txnAsObj, signer)
+      ).blob;
       const signedTxnRecovered = algosdk.decodeSignedTransaction(
         initialSignedTxnBytes
       );
       const txnAsObjRecovered = signedTxnRecovered.txn;
-      const recoveredSignedTxnBytes = txnAsObjRecovered.signTxn(sk.sk);
+      const recoveredSignedTxnBytes = (
+        await algosdk.signTransactionWithSigner(txnAsObjRecovered, signer)
+      ).blob;
       assert.deepStrictEqual(initialSignedTxnBytes, recoveredSignedTxnBytes);
       const signedTxnBytesGolden = new Uint8Array(
         algosdk.base64ToBytes(
@@ -137,7 +155,7 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('Sign', () => {
-    it('should return a blob that matches the go code', () => {
+    it('should return a blob that matches the go code', async () => {
       const account = algosdk.mnemonicToSecretKey(
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
       );
@@ -160,7 +178,10 @@ describe('Algosdk (AKA end to end)', () => {
         },
       });
 
-      const signed = algosdk.signTransaction(txn, account.sk);
+      const signed = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
 
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
@@ -172,14 +193,14 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(signed.txID, txGolden);
     });
 
-    it('should return a blob that matches the go code when using a flat fee', () => {
-      const { addr, sk } = algosdk.mnemonicToSecretKey(
+    it('should return a blob that matches the go code when using a flat fee', async () => {
+      const account = algosdk.mnemonicToSecretKey(
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
       );
       const golden =
         'gqNzaWfEQPhUAZ3xkDDcc8FvOVo6UinzmKBCqs0woYSfodlmBMfQvGbeUx3Srxy3dyJDzv7rLm26BRv9FnL2/AuT7NYfiAWjdHhui6NhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0EmKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqRub3RlxAjqABVHQ2y/lqNyY3bEIHts4k/rW6zAsWTinCIsV/X2PcOH1DkEglhBHF/hD3wCo3NuZMQg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGkdHlwZaNwYXk=';
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: addr,
+        sender: account.addr,
         receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
         amount: 1000,
         closeRemainderTo:
@@ -198,7 +219,10 @@ describe('Algosdk (AKA end to end)', () => {
         },
       });
 
-      const jsDec = algosdk.signTransaction(txn, sk);
+      const jsDec = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
 
       // // Check txid
@@ -206,7 +230,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(jsDec.txID, txGolden);
     });
 
-    it('should return a blob that matches the go code when constructing with a lease', () => {
+    it('should return a blob that matches the go code when constructing with a lease', async () => {
       const account = algosdk.mnemonicToSecretKey(
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
       );
@@ -231,13 +255,16 @@ describe('Algosdk (AKA end to end)', () => {
           ),
         },
       });
-      const signed = algosdk.signTransaction(txn, account.sk);
+      const signed = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
 
       const golden = algosdk.base64ToBytes(
         'gqNzaWfEQOMmFSIKsZvpW0txwzhmbgQjxv6IyN7BbV5sZ2aNgFbVcrWUnqPpQQxfPhV/wdu9jzEPUU1jAujYtcNCxJ7ONgejdHhujKNhbXTNA+ilY2xvc2XEIEDpNJKIJWTLzpxZpptnVCaJ6aHDoqnqW2Wm6KRCH/xXo2ZlZc0FLKJmds0wsqNnZW6sZGV2bmV0LXYzMy4womdoxCAmCyAJoJOohot5WHIvpeVG7eftF+TYXEx4r7BFJpDt0qJsds00mqJseMQgAQIDBAECAwQBAgMEAQIDBAECAwQBAgMEAQIDBAECAwSkbm90ZcQI6gAVR0Nsv5ajcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihpHR5cGWjcGF5'
       );
-      const goldenDecoded = algosdk.decodeObj(golden);
-      const actualDecoded = algosdk.decodeObj(signed.blob);
+      const goldenDecoded = algosdk.msgpackRawDecode(golden);
+      const actualDecoded = algosdk.msgpackRawDecode(signed.blob);
       assert.deepStrictEqual(actualDecoded, goldenDecoded);
       assert.deepStrictEqual(signed.blob, golden);
 
@@ -246,7 +273,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(signed.txID, txGolden);
     });
 
-    it('should return a blob that matches the go code when adding a lease', () => {
+    it('should return a blob that matches the go code when adding a lease', async () => {
       const sk = algosdk.mnemonicToSecretKey(
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor'
       );
@@ -288,7 +315,12 @@ describe('Algosdk (AKA end to end)', () => {
         lease,
       });
 
-      const txnBytes = txn.signTxn(sk.sk);
+      const txnBytes = (
+        await algosdk.signTransactionWithSigner(
+          txn,
+          algosdk.makeBasicAccountTransactionSigner(sk)
+        )
+      ).blob;
       assert.deepStrictEqual(txnBytes, algosdk.base64ToBytes(golden));
 
       // Check txid
@@ -313,7 +345,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.equal(false, algosdk.verifyBytes(toSign, signed, account.addr));
     });
 
-    it('should attach arbitrary signatures', () => {
+    it('should attach arbitrary signatures', async () => {
       const sender = algosdk.generateAccount();
       const signer = algosdk.generateAccount();
 
@@ -335,7 +367,12 @@ describe('Algosdk (AKA end to end)', () => {
       });
 
       // Sign it directly to get a signature
-      const signedWithSk = txn.signTxn(signer.sk);
+      const signedWithSk = (
+        await algosdk.signTransactionWithSigner(
+          txn,
+          algosdk.makeBasicAccountTransactionSigner(signer)
+        )
+      ).blob;
       const decoded = algosdk.decodeMsgpack(
         signedWithSk,
         algosdk.SignedTransaction
@@ -354,7 +391,7 @@ describe('Algosdk (AKA end to end)', () => {
       assert.deepStrictEqual(decodedWithSigner.sgnr, signer.addr);
     });
 
-    it('should not attach signature with incorrect length', () => {
+    it('should not attach signature with incorrect length', async () => {
       const sender = algosdk.generateAccount();
       const signer = algosdk.generateAccount();
 
@@ -376,7 +413,12 @@ describe('Algosdk (AKA end to end)', () => {
       });
 
       // Sign it directly to get a signature
-      const signedWithSk = txn.signTxn(signer.sk);
+      const signedWithSk = (
+        await algosdk.signTransactionWithSigner(
+          txn,
+          algosdk.makeBasicAccountTransactionSigner(signer)
+        )
+      ).blob;
       const decoded = algosdk.decodeMsgpack(
         signedWithSk,
         algosdk.SignedTransaction
@@ -392,7 +434,7 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('Multisig Sign', () => {
-    it('should return a blob that matches the go code', () => {
+    it('should return a blob that matches the go code', async () => {
       const params = {
         version: 1,
         threshold: 2,
@@ -406,7 +448,7 @@ describe('Algosdk (AKA end to end)', () => {
 
       const mnem3 =
         'advice pudding treat near rule blouse same whisper inner electric quit surface sunny dismiss leader blood seat clown cost exist hospital century reform able sponsor';
-      const { sk } = algosdk.mnemonicToSecretKey(mnem3);
+      const account = algosdk.mnemonicToSecretKey(mnem3);
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: msigAddr,
@@ -427,7 +469,11 @@ describe('Algosdk (AKA end to end)', () => {
         },
       });
 
-      const jsDec = algosdk.signMultisigTransaction(txn, params, sk);
+      const jsDec = await algosdk.signMultisigTransactionWithSigner(
+        txn,
+        params,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
       // this golden also contains the correct multisig address
       const golden = algosdk.base64ToBytes(
         'gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
@@ -441,7 +487,7 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('Multisig Append', () => {
-    it('should return a blob that matches the go code', () => {
+    it('should return a blob that matches the go code', async () => {
       const params = {
         version: 1,
         threshold: 2,
@@ -453,14 +499,18 @@ describe('Algosdk (AKA end to end)', () => {
       };
       const mnem1 =
         'auction inquiry lava second expand liberty glass involve ginger illness length room item discover ahead table doctor term tackle cement bonus profit right above catch';
-      const { sk } = algosdk.mnemonicToSecretKey(mnem1);
+      const account = algosdk.mnemonicToSecretKey(mnem1);
 
       // this is a multisig transaction with an existing signature
       const o = algosdk.base64ToBytes(
         'gqRtc2lng6ZzdWJzaWeTgaJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXiBonBrxCAJYzIJU3OJ8HVnEXc5kcfQPhtzyMT1K/av8BqiXPnCcYKicGvEIOfw+E0GgR358xyNh4sRVfRnHVGhhcIAkIZn9ElYcGihoXPEQF6nXZ7CgInd1h7NVspIPFZNhkPL+vGFpTNwH3Eh9gwPM8pf1EPTHfPvjf14sS7xN7mTK+wrz7Odhp4rdWBNUASjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQSYomZ2zTCyo2dlbqxkZXZuZXQtdjMzLjCiZ2jEICYLIAmgk6iGi3lYci+l5Ubt5+0X5NhcTHivsEUmkO3Somx2zTSapG5vdGXECF+AZeMEPawqo3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
       );
 
-      const jsDec = algosdk.appendSignMultisigTransaction(o, params, sk);
+      const jsDec = await algosdk.appendSignMultisigTransactionWithSigner(
+        o,
+        params,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
       const golden = algosdk.base64ToBytes(
         'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAjmG2MILQVLoKg8q7jAYpu0r42zu9edYHrkkuSAikJAnDPplY1Pq90/ssyFhpKLrmvDDcSwNAwTGBjqtSOFYUAIGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgqJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGhc8RAXqddnsKAid3WHs1Wykg8Vk2GQ8v68YWlM3AfcSH2DA8zyl/UQ9Md8++N/XixLvE3uZMr7CvPs52Gnit1YE1QBKN0aHICoXYBo3R4boujYW10zQPopWNsb3NlxCBA6TSSiCVky86cWaabZ1Qmiemhw6Kp6ltlpuikQh/8V6NmZWXNBJiiZnbNMLKjZ2VurGRldm5ldC12MzMuMKJnaMQgJgsgCaCTqIaLeVhyL6XlRu3n7Rfk2FxMeK+wRSaQ7dKibHbNNJqkbm90ZcQIX4Bl4wQ9rCqjcmN2xCB7bOJP61uswLFk4pwiLFf19j3Dh9Q5BIJYQRxf4Q98AqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWjcGF5'
       );
@@ -584,7 +634,7 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('assets', () => {
-    it('should return a blob that matches the go code for asset create', () => {
+    it('should return a blob that matches the go code for asset create', async () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
@@ -618,11 +668,14 @@ describe('Algosdk (AKA end to end)', () => {
           },
         }
       );
-      const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
+      const jsDecCreate = await algosdk.signTransactionWithSigner(
+        createTxn,
+        algosdk.makeBasicAccountTransactionSigner(sk)
+      );
       assert.deepStrictEqual(jsDecCreate.blob, algosdk.base64ToBytes(golden));
     });
 
-    it('should return a blob that matches the go code for asset create with decimals', () => {
+    it('should return a blob that matches the go code for asset create with decimals', async () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
@@ -657,11 +710,14 @@ describe('Algosdk (AKA end to end)', () => {
           },
         }
       );
-      const jsDecCreate = algosdk.signTransaction(createTxn, sk.sk);
+      const jsDecCreate = await algosdk.signTransactionWithSigner(
+        createTxn,
+        algosdk.makeBasicAccountTransactionSigner(sk)
+      );
       assert.deepStrictEqual(jsDecCreate.blob, algosdk.base64ToBytes(golden));
     });
 
-    it('should return a blob that matches the go code for asset configuration', () => {
+    it('should return a blob that matches the go code for asset configuration', async () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
@@ -686,11 +742,14 @@ describe('Algosdk (AKA end to end)', () => {
           ),
         },
       });
-      const jsDec = algosdk.signTransaction(txn, sk.sk);
+      const jsDec = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(sk)
+      );
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
 
-    it('should return a blob that matches the go code for asset destroy', () => {
+    it('should return a blob that matches the go code for asset destroy', async () => {
       const address =
         'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const golden =
@@ -711,10 +770,13 @@ describe('Algosdk (AKA end to end)', () => {
           ),
         },
       });
-      const jsDec = algosdk.signTransaction(txn, sk.sk);
+      const jsDec = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(sk)
+      );
       assert.deepStrictEqual(jsDec.blob, algosdk.base64ToBytes(golden));
     });
-    it('should return a blob that matches the go code for asset freeze', () => {
+    it('should return a blob that matches the go code for asset freeze', async () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
       const txn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
         sender: addr,
@@ -734,14 +796,17 @@ describe('Algosdk (AKA end to end)', () => {
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
-      const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const jsDec = algosdk.signTransaction(txn, sk);
+      const account = algosdk.mnemonicToSecretKey(mnem);
+      const jsDec = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
       const golden = algosdk.base64ToBytes(
         'gqNzaWfEQAhru5V2Xvr19s4pGnI0aslqwY4lA2skzpYtDTAN9DKSH5+qsfQQhm4oq+9VHVj7e1rQC49S28vQZmzDTVnYDQGjdHhuiaRhZnJ6w6RmYWRkxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRmYWlkAaNmZWXNCRqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv+KNzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWkYWZyeg=='
       );
       assert.deepStrictEqual(jsDec.blob, golden);
     });
-    it('should return a blob that matches the go code for asset transfer', () => {
+    it('should return a blob that matches the go code for asset transfer', async () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
 
       const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -763,14 +828,17 @@ describe('Algosdk (AKA end to end)', () => {
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
-      const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const jsDec = algosdk.signTransaction(txn, sk);
+      const account = algosdk.mnemonicToSecretKey(mnem);
+      const jsDec = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
       const golden = algosdk.base64ToBytes(
         'gqNzaWfEQNkEs3WdfFq6IQKJdF1n0/hbV9waLsvojy9pM1T4fvwfMNdjGQDy+LeesuQUfQVTneJD4VfMP7zKx4OUlItbrwSjdHhuiqRhYW10AaZhY2xvc2XEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pGFyY3bEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9o2ZlZc0KvqJmds4ABOwPomdoxCBIY7UYpLPITsgQ8i1PEIHLD3HwWaesIN7GL39w5Qk6IqJsds4ABO/4o3NuZMQgCfvSdiwI+Gxa5r9t16epAd5mdddQ4H6MXHaYZH224f2kdHlwZaVheGZlcqR4YWlkAQ=='
       );
       assert.deepStrictEqual(jsDec.blob, golden);
     });
-    it('should return a blob that matches the go code for asset accept', () => {
+    it('should return a blob that matches the go code for asset accept', async () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
 
       const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -791,17 +859,20 @@ describe('Algosdk (AKA end to end)', () => {
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
-      const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const jsDec = algosdk.signTransaction(txn, sk);
+      const account = algosdk.mnemonicToSecretKey(mnem);
+      const jsDec = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
       const golden = algosdk.base64ToBytes(
         'gqNzaWfEQJ7q2rOT8Sb/wB0F87ld+1zMprxVlYqbUbe+oz0WM63FctIi+K9eYFSqT26XBZ4Rr3+VTJpBE+JLKs8nctl9hgijdHhuiKRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCOiiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE='
       );
-      const goldenDecoded = algosdk.decodeObj(golden);
-      const actualDecoded = algosdk.decodeObj(jsDec.blob);
+      const goldenDecoded = algosdk.msgpackRawDecode(golden);
+      const actualDecoded = algosdk.msgpackRawDecode(jsDec.blob);
       assert.deepStrictEqual(actualDecoded, goldenDecoded);
       assert.deepStrictEqual(jsDec.blob, golden);
     });
-    it('should return a blob that matches the go code for asset revoke', () => {
+    it('should return a blob that matches the go code for asset revoke', async () => {
       const addr = 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4';
 
       const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -823,13 +894,16 @@ describe('Algosdk (AKA end to end)', () => {
 
       const mnem =
         'awful drop leaf tennis indoor begin mandate discover uncle seven only coil atom any hospital uncover make any climb actor armed measure need above hundred';
-      const { sk } = algosdk.mnemonicToSecretKey(mnem);
-      const jsDec = algosdk.signTransaction(txn, sk);
+      const account = algosdk.mnemonicToSecretKey(mnem);
+      const jsDec = await algosdk.signTransactionWithSigner(
+        txn,
+        algosdk.makeBasicAccountTransactionSigner(account)
+      );
       const golden = algosdk.base64ToBytes(
         'gqNzaWfEQHsgfEAmEHUxLLLR9s+Y/yq5WeoGo/jAArCbany+7ZYwExMySzAhmV7M7S8+LBtJalB4EhzEUMKmt3kNKk6+vAWjdHhuiqRhYW10AaRhcmN2xCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aRhc25kxCAJ+9J2LAj4bFrmv23Xp6kB3mZ111Dgfoxcdphkfbbh/aNmZWXNCqqiZnbOAATsD6JnaMQgSGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiKibHbOAATv96NzbmTEIAn70nYsCPhsWua/bdenqQHeZnXXUOB+jFx2mGR9tuH9pHR5cGWlYXhmZXKkeGFpZAE='
       );
-      const goldenDecoded = algosdk.decodeObj(golden);
-      const actualDecoded = algosdk.decodeObj(jsDec.blob);
+      const goldenDecoded = algosdk.msgpackRawDecode(golden);
+      const actualDecoded = algosdk.msgpackRawDecode(jsDec.blob);
       assert.deepStrictEqual(actualDecoded, goldenDecoded);
       assert.deepStrictEqual(jsDec.blob, golden);
     });
@@ -851,11 +925,11 @@ describe('Algosdk (AKA end to end)', () => {
     });
   });
   describe('Single logic sig', () => {
-    it('should work on valid program', () => {
+    it('should work on valid program', async () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
       const keys = algosdk.generateAccount();
       const lsig = new algosdk.LogicSig(program);
-      lsig.sign(keys.sk);
+      await lsig.signWithSigner(signersForAccount(keys).delegatedLsigSigner);
       const verified = lsig.verify(keys.addr.publicKey);
       assert.equal(verified, true);
 
@@ -866,12 +940,17 @@ describe('Algosdk (AKA end to end)', () => {
     });
   });
   describe('Multisig logic sig', () => {
-    it('should work on valid program', () => {
+    it('should work on valid program', async () => {
       const program = Uint8Array.from([1, 32, 1, 1, 34]);
       const lsig = new algosdk.LogicSig(program);
 
       const keys = algosdk.generateAccount();
-      assert.throws(() => lsig.appendToMultisig(keys.sk), 'empty msig');
+      await assert.rejects(
+        lsig.appendToMultisigWithSigner(
+          signersForAccount(keys).delegatedLsigSigner
+        ),
+        /no multisig present/
+      );
 
       const params = {
         version: 1,
@@ -891,18 +970,27 @@ describe('Algosdk (AKA end to end)', () => {
       const sk1 = algosdk.mnemonicToSecretKey(mn1);
       const sk2 = algosdk.mnemonicToSecretKey(mn2);
 
-      lsig.sign(sk1.sk, params);
+      await lsig.signWithSigner(
+        signersForAccount(sk1).delegatedLsigSigner,
+        params
+      );
 
       // fails on wrong key
-      assert.throws(() => lsig.appendToMultisig(keys.sk));
+      await assert.rejects(
+        lsig.appendToMultisigWithSigner(
+          signersForAccount(keys).delegatedLsigSigner
+        )
+      );
 
-      lsig.appendToMultisig(sk2.sk);
+      await lsig.appendToMultisigWithSigner(
+        signersForAccount(sk2).delegatedLsigSigner
+      );
       let verified = lsig.verify(msigPk);
       assert.equal(verified, true);
 
       // combine sig and msig
       const lsigf = new algosdk.LogicSig(program);
-      lsigf.sign(keys.sk);
+      await lsigf.signWithSigner(signersForAccount(keys).delegatedLsigSigner);
       lsig.sig = lsigf.sig;
       verified = lsig.verify(msigPk);
       assert.equal(verified, false);
@@ -919,7 +1007,7 @@ describe('Algosdk (AKA end to end)', () => {
   });
 
   describe('LogicSig Transaction', () => {
-    it('should match to goal-produced logic signed tx', () => {
+    it('should match to goal-produced logic signed tx', async () => {
       const fromAddress =
         '47YPQTIGQEO7T4Y4RWDYWEKV6RTR2UNBQXBABEEGM72ESWDQNCQ52OPASU';
       const toAddress =
@@ -959,7 +1047,7 @@ describe('Algosdk (AKA end to end)', () => {
       ];
       const lsig = new algosdk.LogicSig(program, args);
       const sk = algosdk.mnemonicToSecretKey(mn);
-      lsig.sign(sk.sk);
+      await lsig.signWithSigner(signersForAccount(sk).delegatedLsigSigner);
 
       const jsDec = algosdk.signLogicSigTransaction(txn, lsig);
 

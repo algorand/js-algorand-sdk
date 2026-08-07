@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import algosdk from '../src';
+import * as nacl from '../src/nacl/naclWrappers';
 
 export async function compileProgram(
   client: algosdk.Algodv2,
@@ -82,6 +83,9 @@ export interface SandboxAccount {
   addr: algosdk.Address;
   privateKey: Uint8Array;
   signer: algosdk.TransactionSigner;
+  delegatedLsigSigner: algosdk.DelegatedLsigSigner;
+  mxBytesSigner: algosdk.MxBytesSigner;
+  programDataSigner: algosdk.ProgramDataSigner;
 }
 
 export async function getLocalAccounts(): Promise<SandboxAccount[]> {
@@ -114,15 +118,28 @@ export async function getLocalAccounts(): Promise<SandboxAccount[]> {
   // Don't need to wait for it
   kmdClient.releaseWalletHandle(handle);
 
-  const accounts = keys.map((k) => {
+  const accounts: SandboxAccount[] = keys.map((k) => {
     const addr = new algosdk.Address(k.private_key.slice(32));
     const acct: algosdk.Account = { sk: k.private_key, addr };
-    const signer = algosdk.makeBasicAccountTransactionSigner(acct);
+
+    // Wrap the secret key in the "raw signer" abstraction the SDK expects: a
+    // function that produces a detached ed25519 signature over arbitrary
+    // bytes. From that, the SDK derives signers for transactions, delegated
+    // logic sigs, "MX"-prefixed bytes and program data.
+    const { txnSigner, delegatedLsigSigner, mxBytesSigner, programDataSigner } =
+      algosdk.addressWithSignersFromRawEd25519Signer({
+        ed25519PublicKey: acct.addr.publicKey,
+        ed25519Signer: async (bytesToSign: Uint8Array) =>
+          nacl.sign(bytesToSign, acct.sk),
+      });
 
     return {
       addr: acct.addr,
       privateKey: acct.sk,
-      signer,
+      signer: txnSigner,
+      delegatedLsigSigner,
+      mxBytesSigner,
+      programDataSigner,
     };
   });
 
@@ -181,9 +198,11 @@ export async function deployCalculatorApp(
     onComplete: algosdk.OnApplicationComplete.NoOpOC,
   });
 
-  await algodClient
-    .sendRawTransaction(appCreateTxn.signTxn(creator.privateKey))
-    .do();
+  const signedAppCreateTxn = await algosdk.signTransactionWithSigner(
+    appCreateTxn,
+    creator.signer
+  );
+  await algodClient.sendRawTransaction(signedAppCreateTxn.blob).do();
 
   const result = await algosdk.waitForConfirmation(
     algodClient,

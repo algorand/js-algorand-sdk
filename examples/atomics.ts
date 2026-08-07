@@ -37,8 +37,8 @@ async function main() {
   // example: ATOMIC_GROUP_TXNS
 
   // example: ATOMIC_GROUP_SIGN
-  const alicesSignedTxn = txnGroup[0].signTxn(acct1.privateKey);
-  const bobsSignedTxn = txnGroup[1].signTxn(acct2.privateKey);
+  const [alicesSignedTxn] = await acct1.signer(txnGroup, [0]);
+  const [bobsSignedTxn] = await acct2.signer(txnGroup, [1]);
   // example: ATOMIC_GROUP_SIGN
 
   // example: ATOMIC_GROUP_ASSEMBLE

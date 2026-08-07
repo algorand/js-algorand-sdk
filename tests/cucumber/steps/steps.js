@@ -15,6 +15,17 @@ function keyPairFromSecretKey(sk) {
   return nacl.keyPairFromSecretKey(sk);
 }
 
+// Wrap a raw ed25519 secret key in the Account shape the SDK's signer
+// factories expect.
+function accountFromSecretKey(sk) {
+  return { addr: new algosdk.Address(sk.slice(32)), sk };
+}
+
+// TransactionSigner for a raw ed25519 secret key.
+function txnSignerFromSecretKey(sk) {
+  return algosdk.makeBasicAccountTransactionSigner(accountFromSecretKey(sk));
+}
+
 // Build a Falcon-1024 account (address + signers) from a raw PQ seed. The
 // deterministic keypair is wrapped in the "raw signer" abstraction the SDK
 // exposes via addressWithSignersFromRawFalcon1024Signer.
@@ -414,15 +425,25 @@ module.exports = function getSteps(options) {
     this.pk = algosdk.multisigAddress(this.msig);
   });
 
-  When('I sign the transaction with the private key', function () {
-    const obj = algosdk.signTransaction(this.txn, this.sk);
+  When('I sign the transaction with the private key', async function () {
+    const obj = await algosdk.signTransactionWithSigner(
+      this.txn,
+      txnSignerFromSecretKey(this.sk)
+    );
     this.stx = obj.blob;
   });
 
-  When('I sign the multisig transaction with the private key', function () {
-    const obj = algosdk.signMultisigTransaction(this.txn, this.msig, this.sk);
-    this.stx = obj.blob;
-  });
+  When(
+    'I sign the multisig transaction with the private key',
+    async function () {
+      const obj = await algosdk.signMultisigTransactionWithSigner(
+        this.txn,
+        this.msig,
+        txnSignerFromSecretKey(this.sk)
+      );
+      this.stx = obj.blob;
+    }
+  );
 
   When('I sign the transaction with kmd', async function () {
     this.stxKmd = await this.kcl.signTransaction(
@@ -498,8 +519,10 @@ module.exports = function getSteps(options) {
         this.wallet_pswd,
         algosdk.multisigAddress(this.msig).toString()
       );
-      const s = algosdk.decodeObj(this.stx);
-      const m = algosdk.encodeObj(s.msig);
+      const s = algosdk.msgpackRawDecode(this.stx, {
+        intDecoding: algosdk.IntDecoding.MIXED,
+      });
+      const m = algosdk.msgpackRawEncode(s.msig);
       assert.deepStrictEqual(m, algosdk.base64ToBytes(this.stxKmd));
     }
   );
@@ -712,19 +735,25 @@ module.exports = function getSteps(options) {
   });
 
   When('I encode and decode the bid', function () {
-    this.sbid = algosdk.decodeObj(algosdk.encodeObj(this.sbid));
+    this.sbid = algosdk.msgpackRawDecode(algosdk.msgpackRawEncode(this.sbid), {
+      intDecoding: algosdk.IntDecoding.MIXED,
+    });
     return this.sbid;
   });
 
   When('I sign the bid', function () {
-    this.sbid = algosdk.decodeObj(algosdk.signBid(this.bid, this.sk));
-    this.oldBid = algosdk.decodeObj(algosdk.signBid(this.bid, this.sk));
+    this.sbid = algosdk.msgpackRawDecode(algosdk.signBid(this.bid, this.sk), {
+      intDecoding: algosdk.IntDecoding.MIXED,
+    });
+    this.oldBid = algosdk.msgpackRawDecode(algosdk.signBid(this.bid, this.sk), {
+      intDecoding: algosdk.IntDecoding.MIXED,
+    });
   });
 
   Then('the bid should still be the same', function () {
     assert.deepStrictEqual(
-      algosdk.encodeObj(this.sbid),
-      algosdk.encodeObj(this.oldBid)
+      algosdk.msgpackRawEncode(this.sbid),
+      algosdk.msgpackRawEncode(this.oldBid)
     );
   });
 
@@ -778,10 +807,12 @@ module.exports = function getSteps(options) {
 
   Given('encoded multisig transaction {string}', function (encTxn) {
     this.mtx = algosdk.base64ToBytes(encTxn);
-    this.stx = algosdk.decodeObj(this.mtx);
+    this.stx = algosdk.msgpackRawDecode(this.mtx, {
+      intDecoding: algosdk.IntDecoding.MIXED,
+    });
   });
 
-  When('I append a signature to the multisig transaction', function () {
+  When('I append a signature to the multisig transaction', async function () {
     const addresses = this.stx.msig.subsig.slice();
     for (let i = 0; i < addresses.length; i++) {
       addresses[i] = algosdk.encodeAddress(addresses[i].pk);
@@ -791,10 +822,12 @@ module.exports = function getSteps(options) {
       threshold: this.stx.msig.thr,
       addrs: addresses,
     };
-    this.stx = algosdk.appendSignMultisigTransaction(
-      this.mtx,
-      msig,
-      this.sk
+    this.stx = (
+      await algosdk.appendSignMultisigTransactionWithSigner(
+        this.mtx,
+        msig,
+        txnSignerFromSecretKey(this.sk)
+      )
     ).blob;
   });
 
@@ -967,7 +1000,7 @@ module.exports = function getSteps(options) {
 
   // When("I read a transaction {string} from file {string}", function(string, num){
   //   this.num = num
-  //   this.txn = algosdk.decodeObj(
+  //   this.txn = algosdk.msgpackRawDecode(
   //     makeUint8Array(fs.readFileSync(maindir + '/temp/raw' + num + '.tx'))
   //   );
   //   return this.txn
@@ -976,7 +1009,7 @@ module.exports = function getSteps(options) {
   // When("I write the transaction to file", function(){
   //   fs.writeFileSync(
   //     maindir + '/temp/raw' + this.num + '.tx',
-  //     Buffer.from(algosdk.encodeObj(this.txn))
+  //     Buffer.from(algosdk.msgpackRawEncode(this.txn))
   //   );
   // });
 
@@ -3887,8 +3920,13 @@ module.exports = function getSteps(options) {
     }
   );
 
-  When('sign the transaction', function () {
-    this.stx = this.txn.signTxn(this.signingAccount.sk);
+  When('sign the transaction', async function () {
+    this.stx = (
+      await algosdk.signTransactionWithSigner(
+        this.txn,
+        algosdk.makeBasicAccountTransactionSigner(this.signingAccount)
+      )
+    ).blob;
   });
 
   Then(
@@ -4080,7 +4118,12 @@ module.exports = function getSteps(options) {
     'I sign and submit the transaction, saving the txid. If there is an error it is {string}.',
     async function (errorString) {
       try {
-        const appStx = this.txn.signTxn(this.transientAccount.sk);
+        const appStx = (
+          await algosdk.signTransactionWithSigner(
+            this.txn,
+            algosdk.makeBasicAccountTransactionSigner(this.transientAccount)
+          )
+        ).blob;
         this.appTxid = await this.v2Client.sendRawTransaction(appStx).do();
       } catch (err) {
         if (errorString !== '') {
@@ -4226,13 +4269,17 @@ module.exports = function getSteps(options) {
   );
 
   Then('fee field is in txn', async function () {
-    const s = algosdk.decodeObj(this.stx);
+    const s = algosdk.msgpackRawDecode(this.stx, {
+      intDecoding: algosdk.IntDecoding.MIXED,
+    });
     const { txn } = s;
     assert.strictEqual('fee' in txn, true);
   });
 
   Then('fee field not in txn', async function () {
-    const s = algosdk.decodeObj(this.stx);
+    const s = algosdk.msgpackRawDecode(this.stx, {
+      intDecoding: algosdk.IntDecoding.MIXED,
+    });
     const { txn } = s;
     assert.strictEqual(!('fee' in txn), true);
   });
@@ -5189,7 +5236,7 @@ module.exports = function getSteps(options) {
       if (fromClient === 'algod') {
         resp = await this.v2Client
           .getApplicationBoxes(this.currentApplicationIndex)
-          .max(limit)
+          .limit(limit)
           .do();
       } else if (fromClient === 'indexer') {
         resp = await this.indexerV2client
