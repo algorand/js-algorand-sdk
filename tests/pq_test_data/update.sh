@@ -1,7 +1,11 @@
 #!/bin/bash
+set -euo pipefail
 
 # To see how this data is generated: https://github.com/algorandfoundation/algokit-polytest/blob/pq/resources/data-factory/main.go
 # This data is generated and validated directly via go-algorand
+
+# Write next to this script rather than into the caller's working directory.
+cd "$(dirname "$0")"
 
 BASE=https://raw.githubusercontent.com/algorandfoundation/algokit-polytest/pq/resources/data-factory/data
 

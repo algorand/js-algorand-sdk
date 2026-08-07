@@ -127,13 +127,6 @@ async function main() {
     new Uint8Array(zeroPayTxn.bytesToSign())
   );
 
-  console.debug(
-    'signed txn',
-    algosdk.decodeMsgpack(stxn, SignedTransaction).toEncodingData()
-  );
-
-  console.debug('sig', falconSig.byteLength);
-
   console.log('verify result', verifyResult);
   const result = await atc.execute(client, 4);
 
@@ -154,15 +147,12 @@ async function main() {
   });
 
   const teal = '#pragma version 12\nint 1';
-  const compiled = new Uint8Array(
-    Buffer.from((await client.compile(teal).do()).result, 'base64')
+  const compiled = algosdk.base64ToBytes(
+    (await client.compile(teal).do()).result
   );
 
   const lsig = new LogicSigAccount(compiled);
-  await lsig.signWithSigner({
-    address: falconAddr,
-    delegatedLsigSigner: falconLsigSigner,
-  });
+  await lsig.signWithSigner(falconLsigSigner);
 
   const delegatedSigner = algosdk.makeLogicSigAccountTransactionSigner(lsig);
   const lsigAtc = new algosdk.AtomicTransactionComposer();
@@ -231,18 +221,21 @@ async function main() {
     sender: ed25519Acct.addr,
     receiver: falconAddr,
     amount: 0,
-    note: new TextEncoder().encode('rekeyed dlisg pay'),
     suggestedParams: { ...suggestedParams, flatFee: true, fee: requiredFee },
+    note: new TextEncoder().encode('rekeyed dlsig pay'),
   });
 
   const rekeyedDlsigAtc = new algosdk.AtomicTransactionComposer();
+  // The delegating account of `lsig` is the Falcon address, which is now the
+  // auth address of the rekeyed ed25519 account, so the delegated lsig signer
+  // can authorize transactions sent from it.
   rekeyedDlsigAtc.addTransaction({
     txn: rekeyedDlsigPay,
-    signer: falconTxnSigner,
+    signer: delegatedSigner,
   });
   await rekeyedDlsigAtc.execute(client, 3);
   console.log(
-    `Sent a payment from ${rekeyedPay.sender} by signing an lsig with ${falconAddr}`
+    `Sent a payment from ${rekeyedDlsigPay.sender} by signing an lsig with ${falconAddr}`
   );
 }
 

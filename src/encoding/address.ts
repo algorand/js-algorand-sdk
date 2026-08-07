@@ -4,6 +4,9 @@ import * as utils from '../utils/utils.js';
 import { encodeUint64 } from './uint64.js';
 import { bytesToHex } from './binarydata.js';
 import { couldBeCurvePoint } from '../utils/ed25519-check.js';
+// Type-only: erased at runtime, so this does not create an import cycle with
+// types/transactions/encoded.ts, which imports this module transitively.
+import type { EncodedPQSig } from '../types/transactions/encoded.js';
 
 export const ALGORAND_ADDRESS_BYTE_LENGTH = 36;
 export const ALGORAND_CHECKSUM_BYTE_LENGTH = 4;
@@ -23,7 +26,13 @@ const PQ_ADDRESS_PREFIX = new TextEncoder().encode('PQA');
 /**
  * The required byte length of a post-quantum signature scheme identifier.
  */
-const PQ_SCHEME_SIZE = 2;
+export const PQ_SCHEME_SIZE = 2;
+
+/**
+ * The largest value a post-quantum address salt may take. The salt occupies a
+ * single byte of the address preimage.
+ */
+export const PQ_SALT_MAX = 0xff;
 
 function checksumFromPublicKey(pk: Uint8Array): Uint8Array {
   return Uint8Array.from(
@@ -195,7 +204,7 @@ export function getApplicationAddress(appID: number | bigint): Address {
  * Derive a post-quantum (PQ) account address together with the canonical salt
  * used to derive it.
  *
- * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
+ * @param schemeBytes - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
  * @param key - The scheme's canonical public key.
  * @returns The derived Address and the canonical 1-byte salt.
  */
@@ -210,7 +219,7 @@ export function addressFromPQKey(
 
   // Rejection-sample the lowest salt that yields a PQ-compliant (non-Ed25519)
   // address. The probability of exhausting the range is ~2^-256.
-  for (let salt = 0; salt <= 0xff; salt++) {
+  for (let salt = 0; salt <= PQ_SALT_MAX; salt++) {
     const toBeHashed = utils.concatArrays(
       PQ_ADDRESS_PREFIX,
       schemeBytes,
@@ -224,4 +233,28 @@ export function addressFromPQKey(
   }
 
   throw new Error('no canonical salt exists for this PQ public key and scheme');
+}
+
+/**
+ * Derive the account address that a post-quantum signature authorizes.
+ *
+ * Unlike an Ed25519 signature, a PQ signature carries the scheme, salt and
+ * public key of the signing account, so the address it authorizes is fully
+ * determined by the signature and does not have to be supplied out of band.
+ *
+ * This also validates the signature's self-consistency: the salt must be the
+ * canonical one for the given scheme and public key, which is what the network
+ * requires.
+ *
+ * @param pqsig - The post-quantum signature to derive the address from.
+ * @returns The address of the account the signature authorizes.
+ */
+export function addressFromPQSig(pqsig: EncodedPQSig): Address {
+  const { address, salt } = addressFromPQKey(pqsig.sch, pqsig.pk);
+  if (salt !== pqsig.slt) {
+    throw new Error(
+      `invalid PQ signature salt: expected the canonical salt ${salt}, got ${pqsig.slt}`
+    );
+  }
+  return address;
 }

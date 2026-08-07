@@ -3,6 +3,9 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { falcon1024 } = require('falcon-1024');
+
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
 
@@ -12,12 +15,33 @@ function keyPairFromSecretKey(sk) {
   return nacl.keyPairFromSecretKey(sk);
 }
 
+// Build a Falcon-1024 account (address + signers) from a raw PQ seed. The
+// deterministic keypair is wrapped in the "raw signer" abstraction the SDK
+// exposes via addressWithSignersFromRawFalcon1024Signer.
+function falconAccountFromSeed(seed) {
+  const { publicKey, privateKey } = falcon1024.generateKey(seed);
+  const signingKey = {
+    falcon1024PublicKey: publicKey,
+    falcon1024Signer: async (bytesToSign) =>
+      falcon1024.signCompressed(privateKey, bytesToSign),
+  };
+  return {
+    publicKey,
+    privateKey,
+    ...algosdk.addressWithSignersFromRawFalcon1024Signer(signingKey),
+  };
+}
+
 function keyPairFromSeed(seed) {
   return nacl.keyPairFromSeed(seed);
 }
 
 function genericHash(toHash) {
   return nacl.genericHash(toHash);
+}
+
+function randomBytes(length) {
+  return nacl.randomBytes(length);
 }
 
 async function loadResource(res) {
@@ -125,8 +149,82 @@ module.exports = function getSteps(options) {
     steps.then[name] = fn;
   }
 
-  // Dev Mode State
-  const DEV_MODE_INITIAL_MICROALGOS = 100_000_000;
+  // Each falcon1024 scenario funds a brand new account that is never swept back,
+  // so keep the amount just large enough for min balance + the largest amount
+  // sent by those scenarios + fees.
+  const FALCON_FUNDING_MICROALGOS = 5_000_000;
+
+  // The rekey scenarios only send zero-amount transactions, so their throwaway
+  // account just needs min balance plus a few (falcon-sized) fees.
+  const REKEY_FUNDING_MICROALGOS = 1_000_000;
+
+  // Order the wallet's keys so the accounts steps reach for by index are the
+  // ones that can actually pay.
+  //
+  // Steps treat `this.accounts[0]` (and [1]) as well-funded genesis accounts,
+  // but scenarios that generate keys add them to the same kmd wallet and never
+  // sweep them back, and kmd does not list keys in insertion order. Without
+  // this, index 0 eventually lands on a modestly funded throwaway account and
+  // the sends overspend. Accounts that a rekey scenario pointed at another
+  // authorizer sort last: kmd can no longer sign for them at all.
+  async function sortAccountsByUsableBalance(context, addresses) {
+    const zeroAddress = algosdk.Address.zeroAddress().toString();
+    const infos = await Promise.all(
+      addresses.map(async (address) => {
+        const info = await context.v2Client.accountInformation(address).do();
+        const authAddr = info.authAddr ? info.authAddr.toString() : zeroAddress;
+        const signable = authAddr === zeroAddress || authAddr === address;
+        return { address, amount: signable ? info.amount : -1n };
+      })
+    );
+    infos.sort((a, b) => {
+      if (a.amount === b.amount) return 0;
+      return a.amount > b.amount ? -1 : 1;
+    });
+    return infos.map((info) => info.address);
+  }
+
+  // Some features read wallet information before creating an algod client, so
+  // the ordering above has to be (re)applied whenever both are available.
+  async function orderWalletAccounts(context) {
+    if (!context.v2Client || !context.accounts) return;
+    context.accounts = await sortAccountsByUsableBalance(
+      context,
+      context.accounts
+    );
+  }
+
+  // Fund `receiver` from the richest account kmd can still sign for.
+  async function fundAccount(context, receiver, amount) {
+    const suggestedParams = await context.v2Client.getTransactionParams().do();
+    // A dev-mode network that has not produced a block yet reports round 0,
+    // which is not a valid firstValid.
+    if (suggestedParams.firstValid === 0) suggestedParams.firstValid = 1;
+
+    const sender = context.accounts[0];
+    const { amount: senderBalance } = await context.v2Client
+      .accountInformation(sender)
+      .do();
+    const required = BigInt(amount) + BigInt(suggestedParams.minFee);
+    assert.ok(
+      senderBalance >= required,
+      `${sender} cannot fund ${required} microAlgos, it holds ${senderBalance}`
+    );
+
+    const fundingTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender,
+      receiver,
+      amount,
+      suggestedParams,
+    });
+    const stxKmd = await context.kcl.signTransaction(
+      context.handle,
+      context.wallet_pswd,
+      fundingTxn
+    );
+    const { txid } = await context.v2Client.sendRawTransaction(stxKmd).do();
+    return algosdk.waitForConfirmation(context.v2Client, txid, 1);
+  }
 
   const { algod_token: algodToken, kmd_token: kmdToken } = options;
 
@@ -228,8 +326,9 @@ module.exports = function getSteps(options) {
     return this.kcl;
   });
 
-  Given('an algod v2 client', function () {
+  Given('an algod v2 client', async function () {
     this.v2Client = new algosdk.Algodv2(algodToken, 'http://localhost', 60000);
+    await orderWalletAccounts(this);
   });
 
   Given('an indexer v2 client', function () {
@@ -253,8 +352,8 @@ module.exports = function getSteps(options) {
       this.wallet_pswd
     );
     this.handle = this.handle.wallet_handle_token;
-    this.accounts = await this.kcl.listKeys(this.handle);
-    this.accounts = this.accounts.addresses;
+    this.accounts = (await this.kcl.listKeys(this.handle)).addresses;
+    await orderWalletAccounts(this);
     return this.accounts;
   });
 
@@ -286,16 +385,15 @@ module.exports = function getSteps(options) {
       this.lv = parseInt(lv);
       this.gh = algosdk.base64ToBytes(gh);
       this.receiver = receiver;
-      if (close !== 'none') {
-        this.close = close;
-      }
+      // Always assign, even for "none", so a scenario can never inherit a
+      // value left behind by an earlier one.
+      this.close = close !== 'none' ? close : undefined;
       this.amt = parseInt(amt);
-      if (gen !== 'none') {
-        this.gen = gen;
-      }
-      if (note !== 'none') {
-        this.note = makeUint8Array(algosdk.base64ToBytes(note));
-      }
+      this.gen = gen !== 'none' ? gen : undefined;
+      this.note =
+        note !== 'none'
+          ? makeUint8Array(algosdk.base64ToBytes(note))
+          : undefined;
     }
   );
 
@@ -418,22 +516,7 @@ module.exports = function getSteps(options) {
       this.rekey = await this.kcl.generateKey(this.handle);
       this.rekey = this.rekey.address;
       // Fund the rekey address with some Algos
-      const sp = await this.v2Client.getTransactionParams().do();
-      if (sp.firstValid === 0) sp.firstValid = 1;
-      const fundingTxnArgs =
-        algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-          sender: this.accounts[0],
-          receiver: this.rekey,
-          amount: DEV_MODE_INITIAL_MICROALGOS,
-          suggestedParams: sp,
-        });
-
-      const stxKmd = await this.kcl.signTransaction(
-        this.handle,
-        this.wallet_pswd,
-        fundingTxnArgs
-      );
-      await this.v2Client.sendRawTransaction(stxKmd).do();
+      await fundAccount(this, this.rekey, REKEY_FUNDING_MICROALGOS);
       return this.rekey;
     }
   );
@@ -3296,6 +3379,83 @@ module.exports = function getSteps(options) {
     this.txn.sender = algosdk.decodeAddress(sender);
   });
 
+  /// /////////////////////////////////
+  // begin falcon1024 (PQ) test helpers
+  /// /////////////////////////////////
+
+  When('I get the default falcon1024 account', function () {
+    // A fixed seed shared across SDK test suites; derives the golden account
+    // AZM6UV2ONIVHH7BK2CSBUPJCXNPZH5LFA2YFBCZPHSYXUFJ4LLLFJOUT5Y.
+    const seed = Uint8Array.from({ length: 32 }, (_, i) => i);
+    this.falconAccount = falconAccountFromSeed(seed);
+  });
+
+  Given('mnemonic for falcon1024 private key {string}', function (mn) {
+    const seed = algosdk.pq25WordMnemonicToSeed(mn, algosdk.FALCON_1024_SCHEME);
+    this.falconAccount = falconAccountFromSeed(seed);
+  });
+
+  When('I generate and fund a falcon1024 key', async function () {
+    const seed = randomBytes(32);
+    this.falconAccount = falconAccountFromSeed(seed);
+
+    // Fund the new Falcon address so it can cover its min balance + fees.
+    const info = await fundAccount(
+      this,
+      this.falconAccount.address,
+      FALCON_FUNDING_MICROALGOS
+    );
+    assert.ok(info.confirmedRound > 0);
+  });
+
+  When('I create the falcon1024 payment transaction', function () {
+    this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: this.falconAccount.address,
+      receiver: this.receiver,
+      amount: this.amt ?? 0,
+      closeRemainderTo: this.close,
+      note: this.note,
+      suggestedParams: {
+        minFee: 1000, // Shouldn't matter because flatFee=true
+        flatFee: true,
+        fee: this.fee,
+        firstValid: this.fv,
+        lastValid: this.lv,
+        genesisHash: this.gh,
+        genesisID: this.gen,
+      },
+    });
+  });
+
+  When(
+    'I create the default falcon1024 transaction with parameters {int} {string}',
+    async function (amt, note) {
+      const result = await this.v2Client.getTransactionParams().do();
+      this.txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: this.falconAccount.address,
+        receiver: this.accounts[1],
+        amount: parseInt(amt),
+        note: makeUint8Array(algosdk.base64ToBytes(note)),
+        // A flat fee large enough to cover the oversized Falcon signature.
+        suggestedParams: { ...result, flatFee: true, fee: 3000 },
+      });
+      return this.txn;
+    }
+  );
+
+  When('I add a fee to cover falcon1024 signatures', function () {
+    // Bump to a flat fee large enough to cover the oversized Falcon signature.
+    this.txn.fee = 3000n;
+  });
+
+  When(
+    'I sign the falcon1024 transaction with the private key',
+    async function () {
+      const [blob] = await this.falconAccount.txnSigner([this.txn], [0]);
+      this.stx = blob;
+    }
+  );
+
   let compileStatusCode;
   let compileResponse;
 
@@ -3751,13 +3911,14 @@ module.exports = function getSteps(options) {
 
   Given(
     'an algod v2 client connected to {string} port {int} with token {string}',
-    function (host, port, token) {
+    async function (host, port, token) {
       let mutableHost = host;
 
       if (!mutableHost.startsWith('http')) {
         mutableHost = `http://${mutableHost}`;
       }
       this.v2Client = new algosdk.Algodv2(token, mutableHost, port, {});
+      await orderWalletAccounts(this);
     }
   );
 

@@ -18,11 +18,14 @@ import pqMnemonicData from './pq_test_data/pqMnemonic.json';
 import { pq25WordMnemonicToSeed } from '../src/mnemonic/mnemonic.js';
 import {
   decodeMsgpack,
+  encodeMsgpack,
   signTransactionWithSigner,
   SignedTransaction,
   Transaction,
+  LogicSig,
   LogicSigAccount,
   makeLogicSigAccountTransactionSigner,
+  signLogicSigTransactionObject,
 } from '../src/main.js';
 import { PQ_PROGRAM_TAG } from '../src/logicsig.js';
 import { concatArrays } from '../src/utils/utils.js';
@@ -258,7 +261,7 @@ describe('PQ signers', () => {
       addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
 
     const lsigAccount = new LogicSigAccount(program);
-    await lsigAccount.signWithSigner(addrWithSigners);
+    await lsigAccount.signWithSigner(addrWithSigners.delegatedLsigSigner);
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
@@ -310,7 +313,7 @@ describe('PQ signers', () => {
       addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
 
     const lsigAccount = new LogicSigAccount(program);
-    await lsigAccount.signWithSigner(addrWithSigners);
+    await lsigAccount.signWithSigner(addrWithSigners.delegatedLsigSigner);
 
     assert.deepEqual(
       lsigAccount.lsig.pqsig!.sig,
@@ -331,6 +334,321 @@ describe('PQ signers', () => {
       blob,
       base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
     );
+  });
+
+  it('sets sgnr from the auth address even when a sending address is given', async () => {
+    // `sendingAddress` only controls which address the signer reports as its
+    // own; it must not suppress `sgnr`, which is required whenever the
+    // authorizing (Falcon) address differs from the transaction sender.
+    const txn = decodeMsgpack(
+      base64ToBytes(pqRekeyedPaymentData.txnBlob),
+      Transaction
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: base64ToBytes(
+        pqRekeyedPaymentData.signer.pqSigner.pk
+      ),
+      falcon1024Signer: async () =>
+        base64ToBytes(pqRekeyedPaymentData.stxn.pqsig.sig),
+    };
+
+    const addrWithSigners = addressWithSignersFromRawFalcon1024Signer(
+      falconSigningKey,
+      txn.sender
+    );
+    assert.ok(addrWithSigners.address.equals(txn.sender));
+
+    const { blob, stxn } = await signTransactionWithSigner(
+      txn,
+      addrWithSigners.txnSigner
+    );
+
+    assert.ok(stxn.sgnr, 'expected sgnr to be set');
+    assert.deepEqual(blob, base64ToBytes(pqRekeyedPaymentData.stxnBlob));
+  });
+
+  it('reports the auth address as the delegating account when a sending address is given', async () => {
+    const program = base64ToBytes(pqRekeyedDelegatedPaymentData.signer.lsig);
+    const publicKey = base64ToBytes(
+      pqRekeyedDelegatedPaymentData.signer.pqSigner.pk
+    );
+    const { address: authAddress } = addressFromPQKey(
+      FALCON_1024_SCHEME,
+      publicKey
+    );
+
+    const txn = decodeMsgpack(
+      base64ToBytes(pqRekeyedDelegatedPaymentData.txnBlob),
+      Transaction
+    );
+
+    const falconSigningKey: Falcon1024SigningKey = {
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    };
+
+    // Build the signer with the rekeyed sender as its sending address. The
+    // delegating account of the lsig is still the Falcon auth address.
+    const addrWithSigners = addressWithSignersFromRawFalcon1024Signer(
+      falconSigningKey,
+      txn.sender
+    );
+
+    const lsigAccount = new LogicSigAccount(program);
+    await lsigAccount.signWithSigner(addrWithSigners.delegatedLsigSigner);
+
+    assert.ok(
+      lsigAccount.address().equals(authAddress),
+      'expected the delegating account to be the auth address'
+    );
+
+    const { blob } = await signTransactionWithSigner(
+      txn,
+      makeLogicSigAccountTransactionSigner(lsigAccount)
+    );
+    assert.deepEqual(
+      blob,
+      base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
+    );
+  });
+});
+
+describe('PQ delegated LogicSig safety checks', () => {
+  const sampleProgram = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
+
+  function paymentTxn(): Transaction {
+    return decodeMsgpack(base64ToBytes(pqPaymentData.txnBlob), Transaction);
+  }
+
+  function samplePqsig() {
+    const pk = Uint8Array.of(1);
+    return {
+      sch: FALCON_1024_SCHEME,
+      // Use the canonical salt so the signature is self-consistent and these
+      // tests exercise the check they are actually about.
+      slt: addressFromPQKey(FALCON_1024_SCHEME, pk).salt,
+      pk,
+      sig: Uint8Array.of(2),
+    };
+  }
+
+  it('reports a PQ-delegated LogicSig as delegated but unverifiable', async () => {
+    const publicKey = base64ToBytes(pqDelegatedPaymentData.signer.pqSigner.pk);
+    const { address: authAddress, delegatedLsigSigner } =
+      addressWithSignersFromRawFalcon1024Signer({
+        falcon1024PublicKey: publicKey,
+        falcon1024Signer: async () =>
+          base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig),
+      });
+
+    const account = new LogicSigAccount(sampleProgram);
+    await account.signWithSigner(delegatedLsigSigner);
+
+    assert.strictEqual(account.isDelegated(), true);
+    assert.ok(account.address().equals(authAddress));
+    // This SDK cannot validate a PQ signature, so `verify` must not claim the
+    // delegation is good.
+    assert.strictEqual(account.verify(), false);
+    assert.strictEqual(account.lsig.verify(authAddress.publicKey), false);
+  });
+
+  it('rejects a LogicSig carrying both an ed25519 sig and a pqsig', () => {
+    const lsig = new LogicSig(sampleProgram);
+    lsig.sig = new Uint8Array(64);
+    lsig.pqsig = samplePqsig();
+
+    assert.throws(
+      () => signLogicSigTransactionObject(paymentTxn(), lsig),
+      /At most one of sig, msig, lmsig, or pqsig may be present/
+    );
+  });
+
+  it('rejects a PQ-delegated LogicSig whose program is not TEAL bytecode', () => {
+    // The constructor sanity-checks the program, so an invalid one can only
+    // arrive by decoding or by later mutation.
+    const lsig = new LogicSig(sampleProgram);
+    lsig.pqsig = samplePqsig();
+    lsig.logic = new TextEncoder().encode('#pragma version 12\nint 1');
+
+    assert.throws(
+      () => signLogicSigTransactionObject(paymentTxn(), lsig),
+      /Logic signature verification failed. Ensure the program is valid/
+    );
+  });
+
+  it('replaces a previous signature rather than accumulating one', async () => {
+    const publicKey = base64ToBytes(pqDelegatedPaymentData.signer.pqSigner.pk);
+    const { delegatedLsigSigner } = addressWithSignersFromRawFalcon1024Signer({
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    });
+
+    const lsig = new LogicSig(sampleProgram);
+    // Start from an ed25519-signed lsig, then re-sign with a PQ signer.
+    lsig.sig = new Uint8Array(64);
+    await lsig.signWithSigner(delegatedLsigSigner);
+
+    assert.ok(lsig.pqsig, 'expected the PQ signature to be set');
+    assert.strictEqual(lsig.sig, undefined);
+    assert.strictEqual(lsig.msig, undefined);
+    assert.strictEqual(lsig.lmsig, undefined);
+    // A single signature means the result is usable, not a malformed blob.
+    assert.doesNotThrow(() =>
+      signLogicSigTransactionObject(paymentTxn(), lsig)
+    );
+  });
+
+  it('derives the delegating account of a bare LogicSig from its pqsig', async () => {
+    // Unlike an ed25519 sig, a pqsig identifies its own delegating account, so
+    // a bare LogicSig can authorize a transaction whose sender was rekeyed to
+    // that account. `sgnr` must name the delegating account, not the sender.
+    const program = base64ToBytes(pqRekeyedDelegatedPaymentData.signer.lsig);
+    const publicKey = base64ToBytes(
+      pqRekeyedDelegatedPaymentData.signer.pqSigner.pk
+    );
+    const { address: authAddress } = addressFromPQKey(
+      FALCON_1024_SCHEME,
+      publicKey
+    );
+
+    const { delegatedLsigSigner } = addressWithSignersFromRawFalcon1024Signer({
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqRekeyedDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    });
+
+    const lsig = new LogicSig(program);
+    await lsig.signWithSigner(delegatedLsigSigner);
+
+    const txn = decodeMsgpack(
+      base64ToBytes(pqRekeyedDelegatedPaymentData.txnBlob),
+      Transaction
+    );
+    assert.ok(
+      !txn.sender.equals(authAddress),
+      'expected the fixture sender to differ from the auth address'
+    );
+
+    // Passing the bare LogicSig must produce the same blob as passing the
+    // LogicSigAccount, which knows its delegating account via `sigkey`.
+    const { blob } = signLogicSigTransactionObject(txn, lsig);
+    assert.deepEqual(
+      blob,
+      base64ToBytes(pqRekeyedDelegatedPaymentData.stxnBlob)
+    );
+  });
+
+  it('rejects a pqsig whose salt is not the canonical one', () => {
+    const pqsig = samplePqsig();
+    const lsig = new LogicSig(sampleProgram);
+    lsig.pqsig = { ...pqsig, slt: (pqsig.slt + 1) % 256 };
+
+    assert.throws(
+      () => signLogicSigTransactionObject(paymentTxn(), lsig),
+      /invalid PQ signature salt/
+    );
+  });
+
+  it('rejects a LogicSigAccount whose sigkey contradicts its pqsig', async () => {
+    const publicKey = base64ToBytes(pqDelegatedPaymentData.signer.pqSigner.pk);
+    const { delegatedLsigSigner } = addressWithSignersFromRawFalcon1024Signer({
+      falcon1024PublicKey: publicKey,
+      falcon1024Signer: async () =>
+        base64ToBytes(pqDelegatedPaymentData.stxn.lsig.pqsig.sig),
+    });
+
+    const account = new LogicSigAccount(sampleProgram);
+    await account.signWithSigner(delegatedLsigSigner);
+    // Tamper with the recorded delegating account, as a hand-built or
+    // maliciously encoded LogicSigAccount could.
+    account.sigkey = new Uint8Array(32);
+
+    assert.throws(() => account.address(), /does not match the PQ signature/);
+  });
+});
+
+describe('PQ signature decoding', () => {
+  function encodePqsig(pqsig: {
+    sch: Uint8Array;
+    slt: number;
+    pk: Uint8Array;
+    sig: Uint8Array;
+  }): Uint8Array {
+    const txn = decodeMsgpack(
+      base64ToBytes(pqPaymentData.txnBlob),
+      Transaction
+    );
+    // SignedTransaction validates nothing about the pqsig contents, so this
+    // round-trips an arbitrary one through the wire format.
+    return encodeMsgpack(new SignedTransaction({ txn, pqsig }));
+  }
+
+  it('rejects a scheme that is not 2 bytes', () => {
+    const blob = encodePqsig({
+      sch: new TextEncoder().encode('f10'),
+      slt: 0,
+      pk: Uint8Array.of(1),
+      sig: Uint8Array.of(2),
+    });
+
+    assert.throws(
+      () => decodeMsgpack(blob, SignedTransaction),
+      /expected a 2-byte scheme, got 3 bytes/
+    );
+  });
+
+  it('rejects a salt wider than one byte', () => {
+    const blob = encodePqsig({
+      sch: FALCON_1024_SCHEME,
+      slt: 256,
+      pk: Uint8Array.of(1),
+      sig: Uint8Array.of(2),
+    });
+
+    assert.throws(
+      () => decodeMsgpack(blob, SignedTransaction),
+      /salt 256 exceeds the maximum of 255/
+    );
+  });
+});
+
+describe('PQ signature encoding', () => {
+  it('round-trips a pqsig whose salt is 0', () => {
+    // All the go-generated vectors happen to use salt 3, so cover the
+    // omitEmpty encoding path for `slt` explicitly. Roughly half of all keys
+    // yield salt 0, so a short search is enough to find one.
+    let saltZeroKey: Uint8Array | undefined;
+    for (let i = 0; i < 256 && saltZeroKey === undefined; i++) {
+      const candidate = Uint8Array.of(i);
+      if (addressFromPQKey(FALCON_1024_SCHEME, candidate).salt === 0) {
+        saltZeroKey = candidate;
+      }
+    }
+    assert.ok(saltZeroKey, 'expected to find a public key with salt 0');
+
+    const txn = decodeMsgpack(
+      base64ToBytes(pqPaymentData.txnBlob),
+      Transaction
+    );
+
+    const stxn = new SignedTransaction({
+      txn,
+      pqsig: {
+        sch: FALCON_1024_SCHEME,
+        slt: 0,
+        pk: saltZeroKey!,
+        sig: Uint8Array.of(1, 2, 3),
+      },
+    });
+
+    const decoded = decodeMsgpack(encodeMsgpack(stxn), SignedTransaction);
+    assert.ok(decoded.pqsig, 'expected pqsig to survive the round trip');
+    assert.strictEqual(decoded.pqsig!.slt, 0);
+    assert.deepEqual(decoded.pqsig!.pk, saltZeroKey);
+    assert.deepEqual(decoded.pqsig!.sch, FALCON_1024_SCHEME);
   });
 });
 

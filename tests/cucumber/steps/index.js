@@ -3,6 +3,7 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 const {
+  Before,
   BeforeAll,
   After,
   AfterAll,
@@ -224,6 +225,18 @@ BeforeAll(async () => {
 
     // populate steps in browser context
     await driver.executeScript(getSteps, options);
+  }
+});
+
+Before(async () => {
+  // this code is run before each individual scenario
+  if (browser) {
+    // Cucumber gives every scenario a fresh World, but the browser context is
+    // created once in BeforeAll, so window.testWorld would otherwise persist
+    // for the whole run and leak state between scenarios.
+    await driver.executeScript(() => {
+      window.testWorld = {}; // eslint-disable-line no-undef
+    });
   }
 });
 

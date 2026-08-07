@@ -5,7 +5,7 @@ import {
   PROGRAM_TAG,
   SIGN_PROGRAM_DATA_PREFIX,
 } from './logicsig.js';
-import { addressFromMultisigPreImg } from './multisig.js';
+import { addressFromMultisigPreImg, pksFromAddresses } from './multisig.js';
 import { SignedTransaction } from './signedTransaction.js';
 import {
   AddressWithDelegatedLsigSigner,
@@ -52,7 +52,7 @@ export function addressWithSignersFromRawEd25519Signer(
       const stxn = new SignedTransaction({
         txn,
         sig,
-        sgnr: txn.sender.equals(sendingAddress) ? undefined : authAddress,
+        sgnr: txn.sender.equals(authAddress) ? undefined : authAddress,
       });
 
       stxns.push(stxn);
@@ -63,9 +63,7 @@ export function addressWithSignersFromRawEd25519Signer(
 
   const delegatedLsigSigner: DelegatedLsigSigner = async (lsig, msig) => {
     if (msig) {
-      const pks = msig.addrs.map(
-        (a) => Address.fromString(a.toString()).publicKey
-      );
+      const pks = pksFromAddresses(msig.addrs);
 
       const multisigAddr = addressFromMultisigPreImg({
         version: msig.version,

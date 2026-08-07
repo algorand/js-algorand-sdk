@@ -1,10 +1,10 @@
 import * as nacl from './nacl/naclWrappers.js';
-import { Address } from './encoding/address.js';
+import { Address, addressFromPQSig } from './encoding/address.js';
 import * as encoding from './encoding/encoding.js';
 import * as utils from './utils/utils.js';
 import { SignedTransaction } from './signedTransaction.js';
 import { Transaction } from './transaction.js';
-import { LogicSig, LogicSigAccount } from './logicsig.js';
+import { LogicSig, LogicSigAccount, sanityCheckProgram } from './logicsig.js';
 import { addressFromMultisigPreImg } from './multisig.js';
 import type { TransactionSigner } from './signer.js';
 
@@ -83,7 +83,37 @@ function signLogicSigTransactionWithAddress(
   lsig: LogicSig,
   lsigAddress: Address
 ) {
-  if (!lsig.verify(lsigAddress.publicKey)) {
+  // `lsig.verify` enforces this for the non-PQ paths, but the PQ path below
+  // skips it, so check it up front for every path.
+  const sigCount = [lsig.sig, lsig.msig, lsig.lmsig, lsig.pqsig].filter(
+    Boolean
+  ).length;
+  if (sigCount > 1) {
+    throw new Error(
+      'LogicSig has too many signatures. At most one of sig, msig, lmsig, or pqsig may be present'
+    );
+  }
+
+  if (lsig.pqsig) {
+    // This SDK cannot validate the post-quantum signature itself, so it checks
+    // what it can and leaves the signature to the network: the program must be
+    // well-formed, and the signature's scheme, salt and public key must derive
+    // the delegating address.
+    try {
+      sanityCheckProgram(lsig.logic);
+    } catch (e) {
+      throw new Error(
+        `Logic signature verification failed. Ensure the program is valid: ${(e as Error).message}`
+      );
+    }
+
+    const derived = addressFromPQSig(lsig.pqsig);
+    if (!derived.equals(lsigAddress)) {
+      throw new Error(
+        `Logic signature verification failed. The PQ signature authorizes ${derived}, but the delegating account is ${lsigAddress}`
+      );
+    }
+  } else if (!lsig.verify(lsigAddress.publicKey)) {
     throw new Error(
       'Logic signature verification failed. Ensure the program and signature are valid.'
     );
@@ -128,11 +158,17 @@ export function signLogicSigTransactionObject(
   } else {
     lsig = lsigObject;
 
-    if (lsig.sig || lsig.pqsig) {
-      // For a LogicSig with a non-multisig delegating account, we cannot derive
-      // the address of that account from only its signature, so assume the
-      // delegating account is the sender. If that's not the case, the signing
-      // will fail.
+    if (lsig.pqsig) {
+      // A PQ signature carries the scheme, salt and public key of the
+      // delegating account, so its address is derivable. This is what lets a
+      // bare PQ-delegated LogicSig authorize a transaction whose sender was
+      // rekeyed to the delegating account.
+      lsigAddress = addressFromPQSig(lsig.pqsig);
+    } else if (lsig.sig) {
+      // For an ed25519 LogicSig with a non-multisig delegating account, we
+      // cannot derive the address of that account from only its signature, so
+      // assume the delegating account is the sender. If that's not the case,
+      // the signing will fail.
       lsigAddress = new Address(txn.sender.publicKey);
     } else if (lsig.lmsig) {
       const msigMetadata = {
