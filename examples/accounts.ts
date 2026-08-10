@@ -48,7 +48,11 @@ async function main() {
     suggestedParams,
   });
 
-  await client.sendRawTransaction(fundMsigTxn.signTxn(funder.privateKey)).do();
+  const signedFundMsigTxn = await algosdk.signTransactionWithSigner(
+    fundMsigTxn,
+    funder.signer
+  );
+  await client.sendRawTransaction(signedFundMsigTxn.blob).do();
   await algosdk.waitForConfirmation(client, fundMsigTxn.txID(), 3);
 
   // example: MULTISIG_SIGN
@@ -59,18 +63,22 @@ async function main() {
     suggestedParams,
   });
 
-  // First signature uses signMultisigTransaction
-  const msigWithFirstSig = algosdk.signMultisigTransaction(
-    msigTxn,
-    multiSigParams,
-    signerAccounts[0].sk
+  // First signature uses signMultisigTransactionWithSigner
+  const msigWithFirstSig = (
+    await algosdk.signMultisigTransactionWithSigner(
+      msigTxn,
+      multiSigParams,
+      algosdk.makeBasicAccountTransactionSigner(signerAccounts[0])
+    )
   ).blob;
 
-  // Subsequent signatures use appendSignMultisigTransaction
-  const msigWithSecondSig = algosdk.appendSignMultisigTransaction(
-    msigWithFirstSig,
-    multiSigParams,
-    signerAccounts[1].sk
+  // Subsequent signatures use appendSignMultisigTransactionWithSigner
+  const msigWithSecondSig = (
+    await algosdk.appendSignMultisigTransactionWithSigner(
+      msigWithFirstSig,
+      multiSigParams,
+      algosdk.makeBasicAccountTransactionSigner(signerAccounts[1])
+    )
   ).blob;
 
   await client.sendRawTransaction(msigWithSecondSig).do();
@@ -95,7 +103,11 @@ async function main() {
     rekeyTo: acct2.addr, // set the rekeyTo field to the new signer
   });
 
-  await client.sendRawTransaction(rekeyTxn.signTxn(acct1.privateKey)).do();
+  const signedRekeyTxn = await algosdk.signTransactionWithSigner(
+    rekeyTxn,
+    acct1.signer
+  );
+  await client.sendRawTransaction(signedRekeyTxn.blob).do();
   await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
 
   const acctInfo = await client.accountInformation(acct1.addr).do();
@@ -116,7 +128,11 @@ async function main() {
     suggestedParams,
     rekeyTo: acct1.addr,
   });
-  await client.sendRawTransaction(rekeyBack.signTxn(acct2.privateKey)).do();
+  const signedRekeyBack = await algosdk.signTransactionWithSigner(
+    rekeyBack,
+    acct2.signer
+  );
+  await client.sendRawTransaction(signedRekeyBack.blob).do();
   await algosdk.waitForConfirmation(client, rekeyBack.txID(), 3);
 }
 

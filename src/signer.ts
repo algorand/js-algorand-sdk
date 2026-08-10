@@ -8,6 +8,20 @@ import {
   signMultisigTransaction,
   mergeMultisigTransactions,
 } from './multisigSigning.js';
+import type { Address } from './encoding/address.js';
+import type {
+  EncodedMultisig,
+  EncodedPQSig,
+} from './types/transactions/encoded.js';
+import type { LogicSig } from './logicsig.js';
+
+/**
+ * Something that has an Algorand address associated with it.
+ * It could be logic sig, single-signer account, multisig, app, etc.
+ */
+export interface Addressable {
+  address: Address;
+}
 
 /**
  * This type represents a function which can sign transactions from an atomic transaction group.
@@ -21,6 +35,45 @@ export type TransactionSigner = (
   txnGroup: Transaction[],
   indexesToSign: number[]
 ) => Promise<Uint8Array[]>;
+
+export interface AddressWithTransactionSigner extends Addressable {
+  txnSigner: TransactionSigner;
+}
+
+/** Function for signing logic signatures for delegation
+ *  @param lsig - The logic signature that is being signed for delegation
+ *  @param msig - Optional multisig account that should be set when a public key is signing as a subsigner of a multisig
+ *  @returns The address of the delegator
+ * */
+export type DelegatedLsigSigner = (
+  lsig: LogicSig,
+  msig?: MultisigMetadata
+) => Promise<
+  { address: Address } & (
+    | { sig: Uint8Array }
+    | { lmsig: EncodedMultisig }
+    | { pqsig: EncodedPQSig }
+  )
+>;
+
+export interface AddressWithDelegatedLsigSigner extends Addressable {
+  delegatedLsigSigner: DelegatedLsigSigner;
+}
+
+export type MxBytesSigner = (bytesToSign: Uint8Array) => Promise<Uint8Array>;
+
+export interface AddressWithMxBytesSigner extends Addressable {
+  mxBytesSigner: MxBytesSigner;
+}
+
+export type ProgramDataSigner = (
+  data: Uint8Array,
+  lsig: LogicSig
+) => Promise<Uint8Array>;
+
+export interface AddressWithProgramDataSigner extends Addressable {
+  programDataSigner: ProgramDataSigner;
+}
 
 /**
  * Create a TransactionSigner that can sign transactions for the provided basic Account.

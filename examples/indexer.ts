@@ -72,7 +72,8 @@ async function main() {
     suggestedParams,
   });
 
-  await client.sendRawTransaction(txn.signTxn(sender.privateKey)).do();
+  const signedTxn = await algosdk.signTransactionWithSigner(txn, sender.signer);
+  await client.sendRawTransaction(signedTxn.blob).do();
   const result = await algosdk.waitForConfirmation(client, txn.txID(), 3);
 
   // ensure indexer is caught up

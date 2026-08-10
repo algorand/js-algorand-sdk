@@ -1,0 +1,90 @@
+import { Address, addressFromPQKey } from './encoding/address.js';
+import { encodeMsgpack } from './encoding/encoding.js';
+import { LogicSig, PQ_PROGRAM_TAG } from './logicsig.js';
+import { MultisigMetadata } from './multisig.js';
+import { SignedTransaction } from './signedTransaction.js';
+import {
+  AddressWithDelegatedLsigSigner,
+  AddressWithTransactionSigner,
+  DelegatedLsigSigner,
+  TransactionSigner,
+} from './signer.js';
+import { Transaction } from './transaction.js';
+import { EncodedPQSig } from './types/transactions/encoded.js';
+import { concatArrays } from './utils/utils.js';
+
+export interface PQSigningKey {
+  pqScheme: Uint8Array;
+  pqPublicKey: Uint8Array;
+  pqSigner: (bytesToSign: Uint8Array) => Promise<Uint8Array>;
+}
+
+export function addressWithSignersFromRawPQSigner(
+  signingKey: PQSigningKey,
+  sendingAddress?: Address
+): AddressWithTransactionSigner & AddressWithDelegatedLsigSigner {
+  const { pqPublicKey, pqSigner: rawSigner, pqScheme } = signingKey;
+  const { address: authAddress, salt } = addressFromPQKey(
+    pqScheme,
+    pqPublicKey
+  );
+
+  const txnSigner: TransactionSigner = async (
+    txnGroup: Transaction[],
+    indexesToSign: number[]
+  ) => {
+    const stxns: SignedTransaction[] = [];
+    for (const index of indexesToSign) {
+      const txn = txnGroup[index];
+      // eslint-disable-next-line no-await-in-loop
+      const sig = await rawSigner(txn.bytesToSign());
+      const pqsig: EncodedPQSig = {
+        sch: pqScheme,
+        slt: salt,
+        pk: pqPublicKey,
+        sig,
+      };
+      const stxn = new SignedTransaction({
+        txn,
+        pqsig,
+        sgnr: txn.sender.equals(authAddress) ? undefined : authAddress,
+      });
+
+      stxns.push(stxn);
+    }
+
+    return stxns.map((stxn) => encodeMsgpack(stxn));
+  };
+
+  const delegatedLsigSigner: DelegatedLsigSigner = async (
+    lsig: LogicSig,
+    msig?: MultisigMetadata
+  ) => {
+    if (msig) {
+      throw Error(
+        `post-quantum scheme ${new TextDecoder().decode(pqScheme)} does not support multisig signing`
+      );
+    }
+
+    const toBeSigned = new Uint8Array(
+      concatArrays(PQ_PROGRAM_TAG, authAddress.publicKey, lsig.logic)
+    );
+
+    const sig = await rawSigner(toBeSigned);
+
+    const pqsig: EncodedPQSig = {
+      sch: pqScheme,
+      slt: salt,
+      pk: pqPublicKey,
+      sig,
+    };
+
+    return { address: authAddress, pqsig };
+  };
+
+  return {
+    address: sendingAddress ?? authAddress,
+    txnSigner,
+    delegatedLsigSigner,
+  };
+}

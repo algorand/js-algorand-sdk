@@ -10,6 +10,19 @@ function unsafeSign(secretKey: Uint8Array, message: Uint8Array): Uint8Array {
   return nacl.sign(message, secretKey);
 }
 
+/**
+ * Build the set of signers for an account from its secret key. The SDK only
+ * needs a "raw signer": a function producing a detached ed25519 signature over
+ * arbitrary bytes.
+ */
+function signersForAccount(account: algosdk.Account) {
+  return algosdk.addressWithSignersFromRawEd25519Signer({
+    ed25519PublicKey: account.addr.publicKey,
+    ed25519Signer: async (bytesToSign: Uint8Array) =>
+      nacl.sign(bytesToSign, account.sk),
+  });
+}
+
 const sampleProgram = Uint8Array.from([1, 32, 1, 1, 34]); // int 1
 const sampleArgs = [Uint8Array.from([1]), Uint8Array.from([2, 3])];
 
@@ -138,13 +151,15 @@ describe('LogicSigAccount', () => {
     });
   });
 
-  describe('sign', () => {
-    it('should properly sign the program', () => {
+  describe('signWithSigner', () => {
+    it('should properly sign the program', async () => {
       const program = sampleProgram;
       const args = sampleArgs;
 
       const lsigAccount = new algosdk.LogicSigAccount(program, args);
-      lsigAccount.sign(sampleAccount1.sk);
+      await lsigAccount.signWithSigner(
+        signersForAccount(sampleAccount1).delegatedLsigSigner
+      );
 
       const expectedSig = new Uint8Array(
         algosdk.base64ToBytes(
@@ -173,13 +188,16 @@ describe('LogicSigAccount', () => {
     });
   });
 
-  describe('signMultisig', () => {
-    it('should properly sign the program', () => {
+  describe('signMultisigWithSigner', () => {
+    it('should properly sign the program', async () => {
       const program = sampleProgram;
       const args = sampleArgs;
 
       const lsigAccount = new algosdk.LogicSigAccount(program, args);
-      lsigAccount.signMultisig(sampleMultisigParams, sampleAccount1.sk);
+      await lsigAccount.signMultisigWithSigner(
+        sampleMultisigParams,
+        signersForAccount(sampleAccount1).delegatedLsigSigner
+      );
 
       const msigProgramTag = new TextEncoder().encode('MsigProgram');
       const toBeSigned = utils.concatArrays(
@@ -212,8 +230,8 @@ describe('LogicSigAccount', () => {
     });
   });
 
-  describe('appendToMultisig', () => {
-    it('should properly append a signature', () => {
+  describe('appendToMultisigWithSigner', () => {
+    it('should properly append a signature', async () => {
       const lsigAccount = new algosdk.LogicSigAccount(
         sampleProgram,
         sampleArgs
@@ -238,7 +256,9 @@ describe('LogicSigAccount', () => {
       };
 
       // Append the second signature
-      lsigAccount.appendToMultisig(sampleAccount2.sk);
+      await lsigAccount.appendToMultisigWithSigner(
+        signersForAccount(sampleAccount2).delegatedLsigSigner
+      );
       const expectedSig2 = unsafeSign(sampleAccount2.sk, toBeSigned);
       const expectedMsig: algosdk.EncodedMultisig = {
         v: sampleMultisigParams.version,
@@ -529,7 +549,11 @@ describe('signLogicSigTransaction', () => {
         'olympic cricket tower model share zone grid twist sponsor avoid eight apology patient party success claim famous rapid donor pledge bomb mystery security ability often'
       );
       const lsig = new algosdk.LogicSig(program, args);
-      lsig.sign(account.sk);
+      before(async () => {
+        await lsig.signWithSigner(
+          signersForAccount(account).delegatedLsigSigner
+        );
+      });
 
       it('should match expected when sender is LogicSig address', () => {
         const sender = account.addr;
@@ -574,8 +598,15 @@ describe('signLogicSigTransaction', () => {
 
     describe('multisig', () => {
       const lsig = new algosdk.LogicSig(program, args);
-      lsig.sign(sampleAccount1.sk, sampleMultisigParams);
-      lsig.appendToMultisig(sampleAccount2.sk);
+      before(async () => {
+        await lsig.signWithSigner(
+          signersForAccount(sampleAccount1).delegatedLsigSigner,
+          sampleMultisigParams
+        );
+        await lsig.appendToMultisigWithSigner(
+          signersForAccount(sampleAccount2).delegatedLsigSigner
+        );
+      });
 
       it('should match expected when sender is LogicSig address', () => {
         const sender = sampleMultisigAddr;
@@ -643,7 +674,11 @@ describe('signLogicSigTransaction', () => {
         'olympic cricket tower model share zone grid twist sponsor avoid eight apology patient party success claim famous rapid donor pledge bomb mystery security ability often'
       );
       const lsigAccount = new algosdk.LogicSigAccount(program, args);
-      lsigAccount.sign(account.sk);
+      before(async () => {
+        await lsigAccount.signWithSigner(
+          signersForAccount(account).delegatedLsigSigner
+        );
+      });
 
       it('should match expected when sender is LogicSig address', () => {
         const sender = account.addr;
@@ -674,8 +709,15 @@ describe('signLogicSigTransaction', () => {
 
     describe('multisig', () => {
       const lsigAccount = new algosdk.LogicSigAccount(program, args);
-      lsigAccount.signMultisig(sampleMultisigParams, sampleAccount1.sk);
-      lsigAccount.appendToMultisig(sampleAccount2.sk);
+      before(async () => {
+        await lsigAccount.signMultisigWithSigner(
+          sampleMultisigParams,
+          signersForAccount(sampleAccount1).delegatedLsigSigner
+        );
+        await lsigAccount.appendToMultisigWithSigner(
+          signersForAccount(sampleAccount2).delegatedLsigSigner
+        );
+      });
 
       it('should match expected when sender is LogicSig address', () => {
         const sender = sampleMultisigAddr;

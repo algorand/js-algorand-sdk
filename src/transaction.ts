@@ -1252,13 +1252,21 @@ export class Transaction implements encoding.Encodable {
     return encoding.encodeMsgpack(this);
   }
 
-  // returns the raw signature
+  /**
+   * @deprecated Use `(await signTransactionWithSigner(txn, signer)).stxn.sig` instead
+   *
+   * returns the raw signature
+   *
+   */
   rawSignTxn(sk: Uint8Array): Uint8Array {
     const toBeSigned = this.bytesToSign();
     const sig = nacl.sign(toBeSigned, sk);
     return sig;
   }
 
+  /**
+   * @deprecated Use `await signTransactionWithSigner(txn, signer)`
+   */
   signTxn(sk: Uint8Array): Uint8Array {
     // TODO: deprecate in favor of SignedTransaction class
     const keypair = nacl.keyPairFromSecretKey(sk);
