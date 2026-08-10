@@ -109,7 +109,7 @@ jobs:
           name: ${{ github.event.inputs.release_version }}
           body: ${{ steps.get_pr_info.outputs.RELEASE_NOTES }}
           generate_release_notes: false
-          prerelease: ${{ steps.release_type.outputs.is-beta == 'true' }}
+          prerelease: ${{ steps.release_type.outputs['is-beta'] == 'true' }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -119,7 +119,7 @@ jobs:
 
       - name: Publish release to NPM
         env:
-          NPM_TAG: ${{ steps.release_type.outputs.npm-tag }}
+          NPM_TAG: ${{ steps.release_type.outputs['npm-tag'] }}
           RELEASE_VERSION: ${{ github.event.inputs.release_version }}
         run: |
           # Ensure we're on the latest version of the branch
@@ -175,8 +175,8 @@ jobs:
         env:
           SDK: ${{ github.event.repository.name }}
           RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }}
-          RELEASE_KIND: ${{ steps.release_type.outputs.is-beta == 'true' && 'beta released' || 'released' }}
-          NPM_NOTE: ${{ steps.release_type.outputs.is-beta == 'true' && ' Install it with `npm install algosdk@beta`.' || '' }}
+          RELEASE_KIND: ${{ steps.release_type.outputs['is-beta'] == 'true' && 'beta released' || 'released' }}
+          NPM_NOTE: ${{ steps.release_type.outputs['is-beta'] == 'true' && ' Install it with `npm install algosdk@beta`.' || '' }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:

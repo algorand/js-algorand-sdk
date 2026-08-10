@@ -73,5 +73,5 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.ALGORAND_NPM_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
-          NPM_TAG: ${{ steps.release_type.outputs.npm-tag }}
+          NPM_TAG: ${{ steps.release_type.outputs['npm-tag'] }}
           TAG_VERSION: ${{ inputs.tag_version }}

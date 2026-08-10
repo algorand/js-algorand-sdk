@@ -65,7 +65,7 @@ jobs:
       - name: Get Latest Release
         id: get-release
         env:
-          IS_BETA: ${{ steps.set-release.outputs.is-beta }}
+          IS_BETA: ${{ steps['set-release'].outputs['is-beta'] }}
         run: |
           if [[ "$IS_BETA" == "true" ]]; then
             # Diff against the most recent release of any kind so the changelog of a
@@ -86,8 +86,8 @@ jobs:
       - name: Build Changelog
         id: build-changelog
         env:
-          PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
+          PREVIOUS_VERSION: ${{ steps['get-release'].outputs['latest-tag'] }}
+          RELEASE_TAG: ${{ steps['set-release'].outputs['release-tag'] }}
         run: |
           CHANGELOG=$(curl -L \
             -X POST \
@@ -108,7 +108,7 @@ jobs:
       - name: Update Changelog
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
-          PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
+          PREVIOUS_VERSION: ${{ steps['get-release'].outputs['latest-tag'] }}
         run: |
           echo -e "# ${RELEASE_VERSION}\n\n${CHANGELOG_CONTENT}\n" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
 
@@ -119,8 +119,8 @@ jobs:
 
       - name: Update Version References in Source
         env:
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
-          IS_BETA: ${{ steps.set-release.outputs.is-beta }}
+          RELEASE_TAG: ${{ steps['set-release'].outputs['release-tag'] }}
+          IS_BETA: ${{ steps['set-release'].outputs['is-beta'] }}
         run: |
           rm -rf node_modules
           npm ci
@@ -137,17 +137,17 @@ jobs:
       - name: Commit Changes
         uses: EndBug/add-and-commit@v9.1.3
         env:
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
+          RELEASE_TAG: ${{ steps['set-release'].outputs['release-tag'] }}
         with:
           message: "bump up version to ${{ env.RELEASE_TAG }}"
 
       - name: Create Pull Request to ${{ inputs.base_branch }}
         env:
           CHANGELOG_CONTENT: ${{ steps.build-changelog.outputs.changelog }}
-          PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
+          PREVIOUS_VERSION: ${{ steps['get-release'].outputs['latest-tag'] }}
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
-          IS_BETA: ${{ steps.set-release.outputs.is-beta }}
+          RELEASE_TAG: ${{ steps['set-release'].outputs['release-tag'] }}
+          IS_BETA: ${{ steps['set-release'].outputs['is-beta'] }}
         run: |
           TITLE_PREFIX="FOR REVIEW ONLY"
           if [[ "$IS_BETA" == "true" ]]; then
@@ -171,7 +171,7 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         env:
-          RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
+          RELEASE_TAG: ${{ steps['set-release'].outputs['release-tag'] }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
           RELEASE_WORKFLOW: "workflows/release.yml"
