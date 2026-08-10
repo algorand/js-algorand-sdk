@@ -39,7 +39,11 @@ async function main() {
     appArgs: [],
   });
 
-  await client.sendRawTransaction(createTxn.signTxn(sender.privateKey)).do();
+  const signedCreateTxn = await algosdk.signTransactionWithSigner(
+    createTxn,
+    sender.signer
+  );
+  await client.sendRawTransaction(signedCreateTxn.blob).do();
   const response = await algosdk.waitForConfirmation(
     client,
     createTxn.txID(),

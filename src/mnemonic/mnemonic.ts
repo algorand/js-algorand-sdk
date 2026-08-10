@@ -1,8 +1,9 @@
 /* eslint-disable no-bitwise */
 import english from './wordlists/english.js';
 import * as nacl from '../nacl/naclWrappers.js';
-import { Address } from '../encoding/address.js';
+import { Address, PQ_SCHEME_SIZE } from '../encoding/address.js';
 import Account from '../types/account.js';
+import { concatArrays } from '../utils/utils.js';
 
 export const FAIL_TO_DECODE_MNEMONIC_ERROR_MSG = 'failed to decode mnemonic';
 export const NOT_IN_WORDS_LIST_ERROR_MSG =
@@ -178,4 +179,36 @@ export function mnemonicToMasterDerivationKey(mn: string) {
  */
 export function masterDerivationKeyToMnemonic(mdk: Uint8Array) {
   return mnemonicFromSeed(mdk);
+}
+
+/**
+ * The domain-separation prefix prepended to a post-quantum key seed preimage
+ * before hashing. Matches go-algorand's protocol.PostQuantumKey HashID.
+ */
+const PQ_KEY_PREFIX = new TextEncoder().encode('PQK');
+
+/**
+ * pq25WordMnemonicToSeed derives a post-quantum key seed from a standard 25-word
+ * Algorand mnemonic.
+ *
+ * The seed is domain-separated by the PQ scheme, so the same mnemonic yields a
+ * different key for each scheme, and a different key again from the ed25519
+ * account that `mnemonicToSecretKey` derives from it.
+ *
+ * @param mn - A 25-word Algorand mnemonic
+ * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024)
+ * @returns The 32-byte seed to hand to the scheme's key generator
+ */
+export function pq25WordMnemonicToSeed(
+  mn: string,
+  scheme: Uint8Array
+): Uint8Array {
+  if (scheme.length !== PQ_SCHEME_SIZE) {
+    throw new Error(
+      `invalid PQ scheme length: expected ${PQ_SCHEME_SIZE} bytes, got ${scheme.length}`
+    );
+  }
+  return new Uint8Array(
+    nacl.genericHash(concatArrays(PQ_KEY_PREFIX, scheme, seedFromMnemonic(mn)))
+  );
 }

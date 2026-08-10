@@ -37,9 +37,11 @@ async function main() {
     suggestedParams,
   });
 
-  await client
-    .sendRawTransaction(fundSmartSigTxn.signTxn(funder.privateKey))
-    .do();
+  const signedFundSmartSigTxn = await algosdk.signTransactionWithSigner(
+    fundSmartSigTxn,
+    funder.signer
+  );
+  await client.sendRawTransaction(signedFundSmartSigTxn.blob).do();
   await algosdk.waitForConfirmation(client, fundSmartSigTxn.txID(), 3);
 
   // example: LSIG_SIGN_FULL
@@ -63,7 +65,7 @@ async function main() {
   const userAccount = accounts[1];
 
   // sign sig with userAccount so the program can send transactions from userAccount
-  smartSig.sign(userAccount.privateKey);
+  await smartSig.signWithSigner(userAccount.delegatedLsigSigner);
 
   const delegatedTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: userAccount.addr,
@@ -72,7 +74,7 @@ async function main() {
     suggestedParams,
   });
 
-  // use signLogicSigTransactionObject instead of the typical Transaction.signTxn function
+  // use signLogicSigTransactionObject instead of the typical signTransactionWithSigner function
   const signedDelegatedTxn = algosdk.signLogicSigTransactionObject(
     delegatedTxn,
     smartSig

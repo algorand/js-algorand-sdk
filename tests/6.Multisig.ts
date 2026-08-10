@@ -52,8 +52,8 @@ describe('Sample Multisig Info', () => {
 });
 
 describe('Multisig Functionality', () => {
-  describe('signMultisigTransaction', () => {
-    it('should match golden main repo result', () => {
+  describe('signMultisigTransactionWithSigner', () => {
+    it('should match golden main repo result', async () => {
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: sampleMultisigAddr,
         receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
@@ -74,10 +74,10 @@ describe('Multisig Functionality', () => {
         },
       });
 
-      const { txID, blob } = algosdk.signMultisigTransaction(
+      const { txID, blob } = await algosdk.signMultisigTransactionWithSigner(
         txn,
         sampleMultisigParams,
-        sampleAccount1.sk
+        algosdk.makeBasicAccountTransactionSigner(sampleAccount1)
       );
 
       const expectedTxID =
@@ -90,7 +90,7 @@ describe('Multisig Functionality', () => {
       assert.deepStrictEqual(blob, expectedSignedTxn);
     });
 
-    it('should correctly handle a different sender', () => {
+    it('should correctly handle a different sender', async () => {
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         sender: 'EHGMQCXBIFBE364DEKWQVVNCTCTVCGQL3BR2Q5I7CFTRXWIVTF4SYA3GHU',
         receiver: 'PNWOET7LLOWMBMLE4KOCELCX6X3D3Q4H2Q4QJASYIEOF7YIPPQBG3YQ5YI',
@@ -111,10 +111,10 @@ describe('Multisig Functionality', () => {
         },
       });
 
-      const { txID, blob } = algosdk.signMultisigTransaction(
+      const { txID, blob } = await algosdk.signMultisigTransactionWithSigner(
         txn,
         sampleMultisigParams,
-        sampleAccount1.sk
+        algosdk.makeBasicAccountTransactionSigner(sampleAccount1)
       );
 
       const expectedTxID =
@@ -128,17 +128,18 @@ describe('Multisig Functionality', () => {
     });
   });
 
-  describe('appendSignMultisigTransaction', () => {
-    it('should match golden main repo result', () => {
+  describe('appendSignMultisigTransactionWithSigner', () => {
+    it('should match golden main repo result', async () => {
       const oneSigTxn = algosdk.base64ToBytes(
         'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAuLAFE0oma0skOoAmOzEwfPuLYpEWl4LINtsiLrUqWQkDxh4WHb29//YCpj4MFbiSgD2jKYt0XKRD86zKCF4RDYGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQPoomZ2zfMVo2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zfb9pG5vdGXECEUmIgAYUob7o3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
       );
 
-      const { txID, blob } = algosdk.appendSignMultisigTransaction(
-        oneSigTxn,
-        sampleMultisigParams,
-        sampleAccount2.sk
-      );
+      const { txID, blob } =
+        await algosdk.appendSignMultisigTransactionWithSigner(
+          oneSigTxn,
+          sampleMultisigParams,
+          algosdk.makeBasicAccountTransactionSigner(sampleAccount2)
+        );
 
       const expectedTxID =
         'MANN3ESOHQVHFZBAGD6UK6XFVWEFZQJPWO5SQ2J5LZRCF5E2VVQQ';
@@ -150,16 +151,17 @@ describe('Multisig Functionality', () => {
       assert.deepStrictEqual(blob, expectedBlob);
     });
 
-    it('should correctly handle a different sender', () => {
+    it('should correctly handle a different sender', async () => {
       const oneSigTxn = algosdk.base64ToBytes(
         'g6Rtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAWLcyn6nB68yo/PUHXB21wyTy+PhHgMQNOIXPTGB96faZP2xqpQ8IFlIR2LPotlX68ylK8MCl82SUfMR4FYyzAIGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaRzZ25yxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQPoomZ2zfMVo2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zfb9pG5vdGXECEUmIgAYUob7o3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCAhzMgK4UFCTfuDIq0K1aKYp1EaC9hjqHUfEWcb2RWZeaR0eXBlo3BheQ=='
       );
 
-      const { txID, blob } = algosdk.appendSignMultisigTransaction(
-        oneSigTxn,
-        sampleMultisigParams,
-        sampleAccount2.sk
-      );
+      const { txID, blob } =
+        await algosdk.appendSignMultisigTransactionWithSigner(
+          oneSigTxn,
+          sampleMultisigParams,
+          algosdk.makeBasicAccountTransactionSigner(sampleAccount2)
+        );
 
       const expectedTxID =
         'YQOXQNNO56WXQSU3IDUM2C4J7IZI6WMSCMKN5UCP5ZK6GWA6BXKQ';
@@ -173,16 +175,16 @@ describe('Multisig Functionality', () => {
   });
 
   describe('create/append multisig with external signatures', () => {
-    it('should match golden main repo result', () => {
+    it('should match golden main repo result', async () => {
       const oneSigTxn = algosdk.base64ToBytes(
         'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAuLAFE0oma0skOoAmOzEwfPuLYpEWl4LINtsiLrUqWQkDxh4WHb29//YCpj4MFbiSgD2jKYt0XKRD86zKCF4RDYGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQPoomZ2zfMVo2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zfb9pG5vdGXECEUmIgAYUob7o3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
       );
 
       const signerAddr = sampleAccount2.addr;
-      const signedTxn = algosdk.appendSignMultisigTransaction(
+      const signedTxn = await algosdk.appendSignMultisigTransactionWithSigner(
         oneSigTxn,
         sampleMultisigParams,
-        sampleAccount2.sk
+        algosdk.makeBasicAccountTransactionSigner(sampleAccount2)
       );
 
       const multisig = algosdk.decodeSignedTransaction(signedTxn.blob).msig;
@@ -218,16 +220,16 @@ describe('Multisig Functionality', () => {
       assert.deepStrictEqual(blob, expectedBlob);
     });
 
-    it('should not sign with signature of invalid length', () => {
+    it('should not sign with signature of invalid length', async () => {
       const oneSigTxn = algosdk.base64ToBytes(
         'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAuLAFE0oma0skOoAmOzEwfPuLYpEWl4LINtsiLrUqWQkDxh4WHb29//YCpj4MFbiSgD2jKYt0XKRD86zKCF4RDYGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Lo2FtdM0D6KVjbG9zZcQgQOk0koglZMvOnFmmm2dUJonpocOiqepbZabopEIf/FejZmVlzQPoomZ2zfMVo2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zfb9pG5vdGXECEUmIgAYUob7o3JjdsQge2ziT+tbrMCxZOKcIixX9fY9w4fUOQSCWEEcX+EPfAKjc25kxCCNkrSJkAFzoE36Q1mjZmpq/OosQqBd2cH3PuulR4A36aR0eXBlo3BheQ=='
       );
 
       const signerAddr = sampleAccount2.addr;
-      const signedTxn = algosdk.appendSignMultisigTransaction(
+      const signedTxn = await algosdk.appendSignMultisigTransactionWithSigner(
         oneSigTxn,
         sampleMultisigParams,
-        sampleAccount2.sk
+        algosdk.makeBasicAccountTransactionSigner(sampleAccount2)
       );
 
       const multisig = algosdk.decodeSignedTransaction(signedTxn.blob).msig;
@@ -259,7 +261,7 @@ describe('Multisig Functionality', () => {
       );
     });
 
-    it('should append signature to created raw multisig transaction', () => {
+    it('should append signature to created raw multisig transaction', async () => {
       const rawTxBlob = algosdk.base64ToBytes(
         'jKNmZWXOAAPIwKJmds4ADvnao2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zgAO/cKmc2Vsa2V5xCAyEisr1j3cUzGWF6WqU8Sxwm/j3MryjTYitWl3oUBchqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWma2V5cmVnp3ZvdGVmc3TOAA27oKZ2b3Rla2TNJxCndm90ZWtlecQgcBvX+5ErB7MIEf8oHZ/ulWPlgC4gJokjGSWPd/qTHoindm90ZWxzdM4AD0JA'
       );
@@ -279,9 +281,9 @@ describe('Multisig Functionality', () => {
           }[];
         };
       }
-      const unsignedMultisigTxBlob = algosdk.decodeObj(
+      const unsignedMultisigTxBlob = algosdk.msgpackRawDecode(
         unsignedMultisigTx
-      ) as ExpectedMultisigTxStructure;
+      ) as unknown as ExpectedMultisigTxStructure;
       assert.deepStrictEqual(
         unsignedMultisigTxBlob.msig.subsig[0].pk,
         sampleAccount1.addr.publicKey
@@ -290,10 +292,10 @@ describe('Multisig Functionality', () => {
 
       // Sign the raw transaction with a signature generated from the first account
       const signerAddr = sampleAccount1.addr;
-      const signedTxn = algosdk.appendSignMultisigTransaction(
+      const signedTxn = await algosdk.appendSignMultisigTransactionWithSigner(
         unsignedMultisigTx,
         sampleMultisigParams,
-        sampleAccount1.sk
+        algosdk.makeBasicAccountTransactionSigner(sampleAccount1)
       );
 
       const multisig = algosdk.decodeSignedTransaction(signedTxn.blob).msig;
@@ -331,16 +333,16 @@ describe('Multisig Functionality', () => {
   });
 
   describe('should sign keyreg transaction types', () => {
-    it('first partial sig should match golden main repo result', () => {
+    it('first partial sig should match golden main repo result', async () => {
       const rawTxBlob = algosdk.base64ToBytes(
         'jKNmZWXOAAPIwKJmds4ADvnao2dlbqxkZXZuZXQtdjM4LjCiZ2jEIP6zbDkQFDkAw9pVQsoYNrAP0vgZWRJXzSP2BC+YyDadomx2zgAO/cKmc2Vsa2V5xCAyEisr1j3cUzGWF6WqU8Sxwm/j3MryjTYitWl3oUBchqNzbmTEII2StImQAXOgTfpDWaNmamr86ixCoF3Zwfc+66VHgDfppHR5cGWma2V5cmVnp3ZvdGVmc3TOAA27oKZ2b3Rla2TNJxCndm90ZWtlecQgcBvX+5ErB7MIEf8oHZ/ulWPlgC4gJokjGSWPd/qTHoindm90ZWxzdM4AD0JA'
       );
       const decRawTx = algosdk.decodeUnsignedTransaction(rawTxBlob);
 
-      const { txID, blob } = algosdk.signMultisigTransaction(
+      const { txID, blob } = await algosdk.signMultisigTransactionWithSigner(
         decRawTx,
         sampleMultisigParams,
-        sampleAccount1.sk
+        algosdk.makeBasicAccountTransactionSigner(sampleAccount1)
       );
 
       const expectedTxID =
@@ -354,17 +356,17 @@ describe('Multisig Functionality', () => {
       assert.deepStrictEqual(blob, oneSigTxBlob);
     });
 
-    it('second partial sig with 3rd pk should match golden main repo result', () => {
+    it('second partial sig with 3rd pk should match golden main repo result', async () => {
       const rawOneSigTxBlob = algosdk.base64ToBytes(
         'gqRtc2lng6ZzdWJzaWeTgqJwa8QgG37AsEvqYbeWkJfmy/QH4QinBTUdC8mKvrEiCairgXihc8RAcT0s17wJbvnza+NpyHwM0RWbQ+HwKmsT1PLs+w6d6MpdTH3tra+yKZE0K0qEyhSE7Y56+B9oaf2orEbjc/njDYGicGvEIAljMglTc4nwdWcRdzmRx9A+G3PIxPUr9q/wGqJc+cJxgaJwa8Qg5/D4TQaBHfnzHI2HixFV9GcdUaGFwgCQhmf0SVhwaKGjdGhyAqF2AaN0eG6Mo2ZlZc4AA8jAomZ2zgAO+dqjZ2VurGRldm5ldC12MzguMKJnaMQg/rNsORAUOQDD2lVCyhg2sA/S+BlZElfNI/YEL5jINp2ibHbOAA79wqZzZWxrZXnEIDISKyvWPdxTMZYXpapTxLHCb+PcyvKNNiK1aXehQFyGo3NuZMQgjZK0iZABc6BN+kNZo2ZqavzqLEKgXdnB9z7rpUeAN+mkdHlwZaZrZXlyZWendm90ZWZzdM4ADbugpnZvdGVrZM0nEKd2b3Rla2V5xCBwG9f7kSsHswgR/ygdn+6VY+WALiAmiSMZJY93+pMeiKd2b3RlbHN0zgAPQkA='
       );
 
       const decRawTx = algosdk.decodeSignedTransaction(rawOneSigTxBlob).txn;
 
-      const { txID, blob } = algosdk.signMultisigTransaction(
+      const { txID, blob } = await algosdk.signMultisigTransactionWithSigner(
         decRawTx,
         sampleMultisigParams,
-        sampleAccount3.sk
+        algosdk.makeBasicAccountTransactionSigner(sampleAccount3)
       );
 
       const expectedTxID =

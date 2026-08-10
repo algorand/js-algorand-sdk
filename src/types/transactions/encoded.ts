@@ -1,12 +1,14 @@
 import {
   NamedMapSchema,
   FixedLengthByteArraySchema,
+  ByteArraySchema,
   Uint64Schema,
   ArraySchema,
   OptionalSchema,
   allOmitEmpty,
 } from '../../encoding/schema/index.js';
 import { ensureSafeUnsignedInteger } from '../../utils/utils.js';
+import { PQ_SALT_MAX, PQ_SCHEME_SIZE } from '../../encoding/address.js';
 
 export interface EncodedSubsig {
   /**
@@ -114,5 +116,91 @@ export function encodedMultiSigToEncodingData(
     ['v', msig.v],
     ['thr', msig.thr],
     ['subsig', msig.subsig.map(encodedSubsigToEncodingData)],
+  ]);
+}
+
+/**
+ * A structure for the encoded post-quantum signature transaction authorization
+ * proof. Mirrors the `PQSig` struct from go-algorand.
+ */
+export interface EncodedPQSig {
+  /**
+   * The 2-byte identifier of the post-quantum signature scheme (e.g. "f1"
+   * for Falcon-1024).
+   */
+  sch: Uint8Array;
+
+  /**
+   * The 1-byte salt used when deriving the post-quantum account address from the
+   * public key.
+   */
+  slt: number;
+
+  /**
+   * The post-quantum public key.
+   */
+  pk: Uint8Array;
+
+  /**
+   * The post-quantum signature over the transaction.
+   */
+  sig: Uint8Array;
+}
+
+export const ENCODED_PQSIG_SCHEMA = new NamedMapSchema(
+  allOmitEmpty([
+    {
+      key: 'sch',
+      valueSchema: new ByteArraySchema(),
+    },
+    {
+      key: 'slt',
+      valueSchema: new Uint64Schema(),
+    },
+    {
+      key: 'pk',
+      valueSchema: new ByteArraySchema(),
+    },
+    {
+      key: 'sig',
+      valueSchema: new ByteArraySchema(),
+    },
+  ])
+);
+
+export function encodedPQSigFromEncodingData(data: unknown): EncodedPQSig {
+  if (!(data instanceof Map)) {
+    throw new Error(`Invalid decoded EncodedPQSig: ${data}`);
+  }
+  const sch = data.get('sch') as Uint8Array;
+  if (sch.length !== PQ_SCHEME_SIZE) {
+    throw new Error(
+      `Invalid decoded EncodedPQSig: expected a ${PQ_SCHEME_SIZE}-byte scheme, got ${sch.length} bytes`
+    );
+  }
+  // The salt occupies a single byte of the address preimage, so anything wider
+  // could never have produced a valid address.
+  const slt = ensureSafeUnsignedInteger(data.get('slt'));
+  if (slt > PQ_SALT_MAX) {
+    throw new Error(
+      `Invalid decoded EncodedPQSig: salt ${slt} exceeds the maximum of ${PQ_SALT_MAX}`
+    );
+  }
+  return {
+    sch,
+    slt,
+    pk: data.get('pk'),
+    sig: data.get('sig'),
+  };
+}
+
+export function encodedPQSigToEncodingData(
+  pqsig: EncodedPQSig
+): Map<string, unknown> {
+  return new Map<string, unknown>([
+    ['sch', pqsig.sch],
+    ['slt', pqsig.slt],
+    ['pk', pqsig.pk],
+    ['sig', pqsig.sig],
   ]);
 }
