@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'The release_version used for the release branch name, e.g. release/vx.x.x'
+        description: 'The release_version used for the release branch name, e.g. release/vx.x.x. Use vx.x.x-beta.n for a beta release.'
         default: 'vx.x.x'
         required: true
         type: string
@@ -32,12 +32,16 @@ jobs:
         id: set-release
         run: |
           if [[ $RELEASE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "release-tag: $RELEASE_VERSION"
-            echo "release-tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+            IS_BETA=false
+          elif [[ $RELEASE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+            IS_BETA=true
           else
-            echo "Version input doesn't match the regex pattern ^[0-9]+\.[0-9]+\.[0-9]+$"
+            echo "Version input doesn't match the regex pattern ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$"
             exit 1
           fi
+          echo "release-tag: $RELEASE_VERSION (beta: $IS_BETA)"
+          echo "release-tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "is-beta=$IS_BETA" >> $GITHUB_OUTPUT
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,11 +64,22 @@ jobs:
 
       - name: Get Latest Release
         id: get-release
+        env:
+          IS_BETA: ${{ steps.set-release.outputs.is-beta }}
         run: |
-          echo "Get the latest stable release"
-          tag=$(curl -L \
-                      --header "Accept: application/vnd.github.v3+json" \
-                      "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
+          if [[ "$IS_BETA" == "true" ]]; then
+            # Diff against the most recent release of any kind so the changelog of a
+            # follow-up beta only contains what changed since the previous beta.
+            echo "Get the latest release, including pre-releases"
+            tag=$(curl -L \
+                        --header "Accept: application/vnd.github.v3+json" \
+                        "https://api.github.com/repos/${{ github.repository }}/releases?per_page=1" | jq -r '.[0].tag_name')
+          else
+            echo "Get the latest stable release"
+            tag=$(curl -L \
+                        --header "Accept: application/vnd.github.v3+json" \
+                        "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r '.tag_name')
+          fi
           echo "latest-tag=$tag" >> $GITHUB_OUTPUT
           
 
@@ -105,12 +120,18 @@ jobs:
       - name: Update Version References in Source
         env:
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
+          IS_BETA: ${{ steps.set-release.outputs.is-beta }}
         run: |
           rm -rf node_modules
           npm ci
           npm run build
           NEW_HASH=$(cat dist/browser/algosdk.min.js | openssl dgst -sha384 -binary | openssl base64 -A)
-          python3 scripts/bump_version.py ${RELEASE_TAG:1} --new_hash "${NEW_HASH}"
+          SKIP_README=()
+          if [[ "$IS_BETA" == "true" ]]; then
+            # Keep the README's documented CDN version on the latest stable release
+            SKIP_README=(--skip_read_me)
+          fi
+          python3 scripts/bump_version.py ${RELEASE_TAG:1} --new_hash "${NEW_HASH}" "${SKIP_README[@]}"
           npx prettier --write .
 
       - name: Commit Changes
@@ -126,9 +147,14 @@ jobs:
           PREVIOUS_VERSION: ${{ steps.get-release.outputs.latest-tag }}
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.set-release.outputs.release-tag }}
+          IS_BETA: ${{ steps.set-release.outputs.is-beta }}
         run: |
+          TITLE_PREFIX="FOR REVIEW ONLY"
+          if [[ "$IS_BETA" == "true" ]]; then
+            TITLE_PREFIX="FOR REVIEW ONLY (BETA)"
+          fi
           PULL_REQUEST_URL=$(gh pr create --base "${{ inputs.base_branch }}" \
-            --title "FOR REVIEW ONLY: ${{ github.event.repository.name }} $RELEASE_TAG changelog and version bump" \
+            --title "$TITLE_PREFIX: ${{ github.event.repository.name }} $RELEASE_TAG changelog and version bump" \
             --label "Skip-Release-Notes" \
             --body "${CHANGELOG_CONTENT}" | tail -n 1)
           if [[ $PULL_REQUEST_URL =~ ^https://github.com/${{ github.repository }}/pull/[0-9]+$ ]]; then

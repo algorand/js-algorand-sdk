@@ -74,9 +74,17 @@ if __name__ == "__main__":
         help="path to package-lock.json",
     )
     parser.add_argument("--read_me", default="README.md", help="path to readme")
+    parser.add_argument(
+        "--skip_read_me",
+        action="store_true",
+        help="don't update the README; used for pre-releases so the documented CDN version keeps pointing at the latest stable release",
+    )
 
     args = parser.parse_args()
     check_version(args.new_version)
     bump_package_json(args.new_version, args.package_json)
     bump_package_lock_json(args.new_version, args.package_lock_json)
-    update_read_me(args.new_version, args.new_hash, args.read_me)
+    if args.skip_read_me:
+        print("Skipping README update")
+    else:
+        update_read_me(args.new_version, args.new_hash, args.read_me)
