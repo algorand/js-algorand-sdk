@@ -8,7 +8,7 @@ on:
         required: true
         type: number
       release_version:
-        description: "The tag name for the release (e.g., v1.2.3)"
+        description: "The tag name for the release (e.g., v1.2.3). Use vX.Y.Z-beta.N to publish a pre-release under the npm 'beta' dist-tag."
         required: true
         type: string
       dry_run:
@@ -33,6 +33,22 @@ jobs:
       contents: write # Needed for creating releases and tags, and deleting branches
       pull-requests: write # Needed for merging the PR
     steps:
+      - name: Determine Release Type
+        id: release_type
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+        run: |
+          if [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "is-beta=false" >> $GITHUB_OUTPUT
+            echo "npm-tag=latest" >> $GITHUB_OUTPUT
+          elif [[ "$RELEASE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+            echo "is-beta=true" >> $GITHUB_OUTPUT
+            echo "npm-tag=beta" >> $GITHUB_OUTPUT
+          else
+            echo "release_version doesn't match ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$"
+            exit 1
+          fi
+
       - name: Get Pull Request Info (Base Branch, Release Notes)
         id: get_pr_info
         uses: actions/github-script@v7
@@ -93,6 +109,7 @@ jobs:
           name: ${{ github.event.inputs.release_version }}
           body: ${{ steps.get_pr_info.outputs.RELEASE_NOTES }}
           generate_release_notes: false
+          prerelease: ${{ steps.release_type.outputs['is-beta'] == 'true' }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -101,22 +118,32 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Publish release to NPM
+        env:
+          NPM_TAG: ${{ steps.release_type.outputs['npm-tag'] }}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
         run: |
           # Ensure we're on the latest version of the branch
           git checkout ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
           git pull origin ${{ steps.get_pr_info.outputs.BASE_BRANCH }}
 
+          # A mismatch here would publish a beta under the 'latest' tag, or vice versa
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if [[ "$PACKAGE_VERSION" != "${RELEASE_VERSION#v}" ]]; then
+            echo "package.json version ($PACKAGE_VERSION) doesn't match release_version ($RELEASE_VERSION). Aborting."
+            exit 1
+          fi
+
           if git diff-index --quiet HEAD --; then
             if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
-              echo "Publishing to NPM"
+              echo "Publishing to NPM under the '$NPM_TAG' tag"
               npm ci
               npm run build
-              npm publish
+              npm publish --tag "$NPM_TAG"
             else
-              echo "Dry run: Skipping actual publish"
+              echo "Dry run: Skipping actual publish (would use the '$NPM_TAG' tag)"
               npm ci
               npm run build
-              npm publish --dry-run
+              npm publish --dry-run --tag "$NPM_TAG"
             fi
           else
             echo "There are unpublished changes. Aborting."
@@ -148,6 +175,8 @@ jobs:
         env:
           SDK: ${{ github.event.repository.name }}
           RELEASE_TAG: ${{ steps.get_pr_info.outputs.RELEASE_TAG }}
+          RELEASE_KIND: ${{ steps.release_type.outputs['is-beta'] == 'true' && 'beta released' || 'released' }}
+          NPM_NOTE: ${{ steps.release_type.outputs['is-beta'] == 'true' && ' Install it with `npm install algosdk@beta`.' || '' }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_RELEASE_NOTIFICATIONS_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:
@@ -158,7 +187,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*${{ env.SDK }} ${{ env.RELEASE_TAG }}* was released today. https://github.com/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}"
+                    "text": "*${{ env.SDK }} ${{ env.RELEASE_TAG }}* was ${{ env.RELEASE_KIND }} today. https://github.com/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}${{ env.NPM_NOTE }}"
                   }
                 }
               ]
