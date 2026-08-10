@@ -51,7 +51,7 @@ jobs:
 
       - name: Get Pull Request Info (Base Branch, Release Notes)
         id: get_pr_info
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -81,7 +81,7 @@ jobs:
           git config --local user.email "actions@github.com"
 
       - name: Merge Pull Request
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         id: merge_pr
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Delete branch after merge
         if: steps.merge_pr.outputs.merged == 'true' # Only delete if merge was successful
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
