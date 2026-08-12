@@ -139,6 +139,10 @@ export class AppParams implements Encodable {
       { key: 'lsch', valueSchema: StateSchema.encodingSchema }, // localStateSchema
       { key: 'gsch', valueSchema: StateSchema.encodingSchema }, // globalStateSchema
       { key: 'epp', valueSchema: new Uint64Schema() }, // extraProgramPages
+      { key: 'v', valueSchema: new Uint64Schema() }, // version
+      { key: 'ss', valueSchema: new AddressSchema() }, // sizeSponsor
+      { key: 'fbr', valueSchema: new BooleanSchema() }, // foreignBoxReads
+      { key: 'fba', valueSchema: new BooleanSchema() }, // familyBoxAccess
     ])
   );
 
@@ -148,6 +152,20 @@ export class AppParams implements Encodable {
   public localStateSchema: StateSchema;
   public globalStateSchema: StateSchema;
   public extraProgramPages: number;
+  public version: bigint;
+  /**
+   * If non-zero, the account that must hold MBR for extra program pages and the
+   * global schema.
+   */
+  public sizeSponsor: Address;
+  /**
+   * When true, any app may read this app's boxes.
+   */
+  public foreignBoxReads: boolean;
+  /**
+   * When true, apps with the same creator may read and write this app's boxes.
+   */
+  public familyBoxAccess: boolean;
 
   constructor(params: {
     approvalProgram: Uint8Array;
@@ -156,6 +174,10 @@ export class AppParams implements Encodable {
     localStateSchema: StateSchema;
     globalStateSchema: StateSchema;
     extraProgramPages: number;
+    version?: bigint;
+    sizeSponsor?: Address;
+    foreignBoxReads?: boolean;
+    familyBoxAccess?: boolean;
   }) {
     this.approvalProgram = params.approvalProgram;
     this.clearStateProgram = params.clearStateProgram;
@@ -163,6 +185,10 @@ export class AppParams implements Encodable {
     this.localStateSchema = params.localStateSchema;
     this.globalStateSchema = params.globalStateSchema;
     this.extraProgramPages = params.extraProgramPages;
+    this.version = params.version ?? BigInt(0);
+    this.sizeSponsor = params.sizeSponsor ?? Address.zeroAddress();
+    this.foreignBoxReads = params.foreignBoxReads ?? false;
+    this.familyBoxAccess = params.familyBoxAccess ?? false;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -178,6 +204,10 @@ export class AppParams implements Encodable {
       ['lsch', this.localStateSchema.toEncodingData()],
       ['gsch', this.globalStateSchema.toEncodingData()],
       ['epp', this.extraProgramPages],
+      ['v', this.version],
+      ['ss', this.sizeSponsor],
+      ['fbr', this.foreignBoxReads],
+      ['fba', this.familyBoxAccess],
     ]);
   }
 
@@ -195,6 +225,10 @@ export class AppParams implements Encodable {
       localStateSchema: StateSchema.fromEncodingData(data.get('lsch')),
       globalStateSchema: StateSchema.fromEncodingData(data.get('gsch')),
       extraProgramPages: Number(data.get('epp')),
+      version: data.get('v'),
+      sizeSponsor: data.get('ss'),
+      foreignBoxReads: data.get('fbr'),
+      familyBoxAccess: data.get('fba'),
     });
   }
 }

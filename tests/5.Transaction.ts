@@ -1186,6 +1186,8 @@ describe('Sign', () => {
         hbAddress
       );
       assert.deepStrictEqual(decTxn.txn.heartbeat?.keyDilution, 100n);
+      // The challenge discount is off in the golden, so it must not be encoded
+      assert.strictEqual(decTxn.txn.heartbeat?.challengeDiscount, false);
     });
 
     it('reserializes correctly no genesis ID', () => {
@@ -2557,6 +2559,69 @@ describe('Application Resources References', () => {
       assert.deepStrictEqual(txn.applicationCall?.access, [
         { assetIndex: BigInt(123) },
       ]);
+    });
+    it('should encode an empty access list entry as a box quota bump', () => {
+      const suggestedParams = {
+        minFee: 1000,
+        fee: 0,
+        firstValid: 322575,
+        lastValid: 323575,
+        genesisID: 'testnet-v1.0',
+        genesisHash: algosdk.base64ToBytes(
+          'SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI='
+        ),
+      };
+      const makeTxn = (access: algosdk.ResourceReference[]) =>
+        algosdk.makeApplicationCallTxnFromObject({
+          sender: 'BH55E5RMBD4GYWXGX5W5PJ5JAHPGM5OXKDQH5DC4O2MGI7NW4H6VOE4CP4',
+          appIndex: 111,
+          onComplete: algosdk.OnApplicationComplete.NoOpOC,
+          access,
+          suggestedParams,
+        });
+
+      // go-algorand allows empty ResourceRefs; they ask for a box quota bump.
+      // `{}` and an unnamed box reference are two spellings of the same thing.
+      const bare = makeTxn([{}, {}]);
+      const viaBox = makeTxn([
+        { box: { appIndex: 0, name: new Uint8Array() } },
+        { box: { appIndex: 0, name: new Uint8Array() } },
+      ]);
+      assert.deepStrictEqual(
+        algosdk.encodeMsgpack(bare),
+        algosdk.encodeMsgpack(viaBox)
+      );
+
+      const encodingData = bare.toEncodingData();
+      assert.deepStrictEqual(encodingData.get('al'), [new Map(), new Map()]);
+
+      // An empty entry still occupies a slot, so later 1-based indices hold.
+      const mixed = makeTxn([
+        {},
+        {
+          holding: {
+            address:
+              'UCE2U2JC4O4ZR6W763GUQCG57HQCDZEUJY4J5I6VYY4HQZUJDF7AKZO5GM',
+            assetIndex: 77,
+          },
+        },
+      ]);
+      const mixedList = mixed.toEncodingData().get('al') as Array<
+        Map<string, unknown>
+      >;
+      assert.strictEqual(mixedList.length, 4);
+      assert.strictEqual(mixedList[0].size, 0);
+      const holdingEntry = mixedList[3].get('h') as Map<string, unknown>;
+      assert.strictEqual(holdingEntry.get('d'), 2);
+      assert.strictEqual(holdingEntry.get('s'), 3);
+
+      const encoded = algosdk.encodeMsgpack(mixed);
+      assert.deepStrictEqual(
+        algosdk.encodeMsgpack(
+          algosdk.decodeMsgpack(encoded, algosdk.Transaction)
+        ),
+        encoded
+      );
     });
     it('should correctly serialize and deserialize an application transaction with access', () => {
       const expectedTxn = algosdk.makeApplicationCallTxnFromObject({

@@ -113,7 +113,12 @@ export function resourceReferencesToEncodingData(
           ],
         ])
       );
+      continue;
     }
+
+    // A reference that names no resource encodes as an empty ResourceRef, which
+    // the network reads as a request for a box I/O quota bump.
+    accessList.push(new Map<string, unknown>());
   }
   return accessList;
 }

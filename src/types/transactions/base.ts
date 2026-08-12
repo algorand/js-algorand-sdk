@@ -592,6 +592,17 @@ export interface HeartbeatTransactionParams {
    * Must match hbAddress account's current KeyDilution.
    */
   keyDilution: bigint;
+
+  /**
+   * Requests the challenge fee discount: when set, the required fee is reduced
+   * by one min fee. The network verifies that hbAddress is actually under
+   * challenge before granting it, and a heartbeat claiming the discount may not
+   * carry any extra fields (note, lease, group, etc.).
+   *
+   * Only allowed once transaction size pricing is enabled. Before that, the
+   * discount was inferred from an underpaid singleton heartbeat instead.
+   */
+  challengeDiscount?: boolean;
 }
 
 /**

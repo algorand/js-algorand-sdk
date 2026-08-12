@@ -247,6 +247,9 @@ function ensureResourceReference(input: unknown): TransactionResourceReference {
     if (box !== undefined) {
       return { box: ensureBoxReference(box) };
     }
+    // An empty resource reference is meaningful: it asks for a box I/O quota
+    // bump without naming a resource.
+    return {};
   }
   throw new Error(`Not a resource reference: ${input}`);
 }
@@ -329,6 +332,7 @@ export interface HeartbeatTransactionFields {
   readonly seed: Uint8Array;
   readonly voteID: Uint8Array;
   readonly keyDilution: bigint;
+  readonly challengeDiscount: boolean;
 }
 
 /**
@@ -876,6 +880,7 @@ export class Transaction implements encoding.Encodable {
         seed: params.heartbeatParams.seed,
         voteID: params.heartbeatParams.voteID,
         keyDilution: params.heartbeatParams.keyDilution,
+        challengeDiscount: params.heartbeatParams.challengeDiscount,
       });
     }
 
@@ -1035,6 +1040,7 @@ export class Transaction implements encoding.Encodable {
         seed: this.heartbeat.seed,
         voteID: this.heartbeat.voteID,
         keyDilution: this.heartbeat.keyDilution,
+        challengeDiscount: this.heartbeat.challengeDiscount,
       });
       data.set('hb', heartbeat.toEncodingData());
       return data;
@@ -1219,6 +1225,7 @@ export class Transaction implements encoding.Encodable {
         seed: heartbeat.seed,
         voteID: heartbeat.voteID,
         keyDilution: heartbeat.keyDilution,
+        challengeDiscount: heartbeat.challengeDiscount,
       };
       params.heartbeatParams = heartbeatParams;
     } else {
