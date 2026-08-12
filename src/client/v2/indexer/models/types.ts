@@ -8630,6 +8630,13 @@ export class TransactionSignature implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'pqsig',
+          valueSchema: new OptionalSchema(
+            TransactionSignaturePQsig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'sig',
           valueSchema: new OptionalSchema(new ByteArraySchema()),
           omitEmpty: true,
@@ -8654,6 +8661,13 @@ export class TransactionSignature implements Encodable {
   public multisig?: TransactionSignatureMultisig;
 
   /**
+   * structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
+   */
+  public pqsig?: TransactionSignaturePQsig;
+
+  /**
    * (sig) Standard ed25519 signature.
    */
   public sig?: Uint8Array;
@@ -8666,19 +8680,25 @@ export class TransactionSignature implements Encodable {
    * @param multisig - structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
+   * @param pqsig - structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
    * @param sig - (sig) Standard ed25519 signature.
    */
   constructor({
     logicsig,
     multisig,
+    pqsig,
     sig,
   }: {
     logicsig?: TransactionSignatureLogicsig;
     multisig?: TransactionSignatureMultisig;
+    pqsig?: TransactionSignaturePQsig;
     sig?: string | Uint8Array;
   }) {
     this.logicsig = logicsig;
     this.multisig = multisig;
+    this.pqsig = pqsig;
     this.sig = typeof sig === 'string' ? base64ToBytes(sig) : sig;
   }
 
@@ -8701,6 +8721,12 @@ export class TransactionSignature implements Encodable {
           ? this.multisig.toEncodingData()
           : undefined,
       ],
+      [
+        'pqsig',
+        typeof this.pqsig !== 'undefined'
+          ? this.pqsig.toEncodingData()
+          : undefined,
+      ],
       ['sig', this.sig],
     ]);
   }
@@ -8717,6 +8743,10 @@ export class TransactionSignature implements Encodable {
       multisig:
         typeof data.get('multisig') !== 'undefined'
           ? TransactionSignatureMultisig.fromEncodingData(data.get('multisig'))
+          : undefined,
+      pqsig:
+        typeof data.get('pqsig') !== 'undefined'
+          ? TransactionSignaturePQsig.fromEncodingData(data.get('pqsig'))
           : undefined,
       sig: data.get('sig'),
     });
@@ -8758,6 +8788,13 @@ export class TransactionSignatureLogicsig implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'pqsig',
+          valueSchema: new OptionalSchema(
+            TransactionSignaturePQsig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'signature',
           valueSchema: new OptionalSchema(new ByteArraySchema()),
           omitEmpty: true,
@@ -8793,6 +8830,13 @@ export class TransactionSignatureLogicsig implements Encodable {
   public multisigSignature?: TransactionSignatureMultisig;
 
   /**
+   * structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
+   */
+  public pqsig?: TransactionSignaturePQsig;
+
+  /**
    * (sig) ed25519 signature.
    */
   public signature?: Uint8Array;
@@ -8808,6 +8852,9 @@ export class TransactionSignatureLogicsig implements Encodable {
    * @param multisigSignature - structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
+   * @param pqsig - structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
    * @param signature - (sig) ed25519 signature.
    */
   constructor({
@@ -8815,18 +8862,21 @@ export class TransactionSignatureLogicsig implements Encodable {
     args,
     logicMultisigSignature,
     multisigSignature,
+    pqsig,
     signature,
   }: {
     logic: string | Uint8Array;
     args?: Uint8Array[];
     logicMultisigSignature?: TransactionSignatureMultisig;
     multisigSignature?: TransactionSignatureMultisig;
+    pqsig?: TransactionSignaturePQsig;
     signature?: string | Uint8Array;
   }) {
     this.logic = typeof logic === 'string' ? base64ToBytes(logic) : logic;
     this.args = args;
     this.logicMultisigSignature = logicMultisigSignature;
     this.multisigSignature = multisigSignature;
+    this.pqsig = pqsig;
     this.signature =
       typeof signature === 'string' ? base64ToBytes(signature) : signature;
   }
@@ -8852,6 +8902,12 @@ export class TransactionSignatureLogicsig implements Encodable {
           ? this.multisigSignature.toEncodingData()
           : undefined,
       ],
+      [
+        'pqsig',
+        typeof this.pqsig !== 'undefined'
+          ? this.pqsig.toEncodingData()
+          : undefined,
+      ],
       ['signature', this.signature],
     ]);
   }
@@ -8874,6 +8930,10 @@ export class TransactionSignatureLogicsig implements Encodable {
           ? TransactionSignatureMultisig.fromEncodingData(
               data.get('multisig-signature')
             )
+          : undefined,
+      pqsig:
+        typeof data.get('pqsig') !== 'undefined'
+          ? TransactionSignaturePQsig.fromEncodingData(data.get('pqsig'))
           : undefined,
       signature: data.get('signature'),
     });
@@ -9065,6 +9125,115 @@ export class TransactionSignatureMultisigSubsignature implements Encodable {
     return new TransactionSignatureMultisigSubsignature({
       publicKey: data.get('public-key'),
       signature: data.get('signature'),
+    });
+  }
+}
+
+/**
+ * structure holding a post-quantum signature.
+ * Definition:
+ * data/transactions/pqsig.go : PQSig
+ */
+export class TransactionSignaturePQsig implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'public-key',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        { key: 'scheme', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'signature',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'salt',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (pk)
+   */
+  public publicKey: Uint8Array;
+
+  /**
+   * (sch) identifies the internal signature scheme.
+   */
+  public scheme: string;
+
+  /**
+   * (sig)
+   */
+  public signature: Uint8Array;
+
+  /**
+   * (slt) a single byte, added to ensure the hashed address is not an Ed25519 curve
+   * point
+   */
+  public salt?: number;
+
+  /**
+   * Creates a new `TransactionSignaturePQsig` object.
+   * @param publicKey - (pk)
+   * @param scheme - (sch) identifies the internal signature scheme.
+   * @param signature - (sig)
+   * @param salt - (slt) a single byte, added to ensure the hashed address is not an Ed25519 curve
+   * point
+   */
+  constructor({
+    publicKey,
+    scheme,
+    signature,
+    salt,
+  }: {
+    publicKey: string | Uint8Array;
+    scheme: string;
+    signature: string | Uint8Array;
+    salt?: number | bigint;
+  }) {
+    this.publicKey =
+      typeof publicKey === 'string' ? base64ToBytes(publicKey) : publicKey;
+    this.scheme = scheme;
+    this.signature =
+      typeof signature === 'string' ? base64ToBytes(signature) : signature;
+    this.salt =
+      typeof salt === 'undefined' ? undefined : ensureSafeInteger(salt);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionSignaturePQsig.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['public-key', this.publicKey],
+      ['scheme', this.scheme],
+      ['signature', this.signature],
+      ['salt', this.salt],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionSignaturePQsig {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded TransactionSignaturePQsig: ${data}`);
+    }
+    return new TransactionSignaturePQsig({
+      publicKey: data.get('public-key'),
+      scheme: data.get('scheme'),
+      signature: data.get('signature'),
+      salt: data.get('salt'),
     });
   }
 }
