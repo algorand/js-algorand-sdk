@@ -81,7 +81,7 @@ export function addressWithSignersFromRawPQSigner(
       const stxn = new SignedTransaction({
         txn,
         pqsig,
-        sgnr: txn.sender.equals(txn.sender) ? undefined : authAddress,
+        sgnr: txn.sender.equals(authAddress) ? undefined : authAddress,
       });
       stxns.push(encodeMsgpack(stxn));
     }
