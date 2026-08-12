@@ -106,13 +106,6 @@ function signLogicSigTransactionWithAddress(
         `Logic signature verification failed. Ensure the program is valid: ${(e as Error).message}`
       );
     }
-
-    const derived = addressFromPQSig(lsig.pqsig);
-    if (!derived.equals(lsigAddress)) {
-      throw new Error(
-        `Logic signature verification failed. The PQ signature authorizes ${derived}, but the delegating account is ${lsigAddress}`
-      );
-    }
   } else if (!lsig.verify(lsigAddress.publicKey)) {
     throw new Error(
       'Logic signature verification failed. Ensure the program and signature are valid.'

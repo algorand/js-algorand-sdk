@@ -28,6 +28,20 @@ window.keyPairFromSecretKey = function keyPairFromSecretKey(sk) {
   return nacl.sign.keyPair.fromSecretKey(sk);
 };
 
+// Wrap a raw ed25519 secret key in the Account shape the SDK's signer
+// factories expect. Mirrors the same-named helper in
+// tests/cucumber/steps/steps.js.
+window.accountFromSecretKey = function accountFromSecretKey(sk) {
+  return { addr: new window.algosdk.Address(sk.slice(32)), sk };
+};
+
+// TransactionSigner for a raw ed25519 secret key.
+window.txnSignerFromSecretKey = function txnSignerFromSecretKey(sk) {
+  return window.algosdk.makeBasicAccountTransactionSigner(
+    window.accountFromSecretKey(sk)
+  );
+};
+
 window.keyPairFromSeed = function keyPairFromSeed(seed) {
   return nacl.sign.keyPair.fromSeed(seed);
 };

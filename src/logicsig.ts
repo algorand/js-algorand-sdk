@@ -313,6 +313,20 @@ export class LogicSig implements encoding.Encodable {
           'Expected DelegatedLsigSigner to return lmsig, but lmsig is undefined. If signing for a single account, do not pass msig argument'
         );
       }
+      const { lmsig } = sigResult;
+      const expectedPks = pksFromAddresses(msig.addrs);
+      if (
+        lmsig.v !== msig.version ||
+        lmsig.thr !== msig.threshold ||
+        lmsig.subsig.length !== expectedPks.length ||
+        !lmsig.subsig.every((subsig, i) =>
+          utils.arrayEqual(subsig.pk, expectedPks[i])
+        )
+      ) {
+        throw Error(
+          'DelegatedLsigSigner returned an lmsig whose version, threshold or public keys do not match the requested multisig'
+        );
+      }
 
       this.clearSignatures();
       this.lmsig = sigResult.lmsig;
@@ -362,9 +376,19 @@ export class LogicSig implements encoding.Encodable {
         'Expected DelegatedLsigSigner to return lmsig, but lmsig is undefined'
       );
     }
+    if (
+      sigResult.lmsig.v !== this.lmsig.v ||
+      sigResult.lmsig.thr !== this.lmsig.thr
+    ) {
+      throw Error(
+        'DelegatedLsigSigner returned an lmsig whose version or threshold does not match the current msig'
+      );
+    }
 
+    let signaturesReturned = false;
     for (const subsig of sigResult.lmsig.subsig) {
       if (subsig.s) {
+        signaturesReturned = true;
         const thisSubsig = this.lmsig.subsig.find((s) =>
           utils.arrayEqual(s.pk, subsig.pk)
         );
@@ -373,8 +397,19 @@ export class LogicSig implements encoding.Encodable {
             `DelegatedLsigSigner returned a signature for ${new Address(subsig.pk)} but this pk is not in the current msig`
           );
         }
+        // Never let the signer silently replace a signature already collected
+        // from another member.
+        if (thisSubsig.s && !utils.arrayEqual(thisSubsig.s, subsig.s)) {
+          throw Error(
+            `DelegatedLsigSigner returned a signature for ${new Address(subsig.pk)} that conflicts with the signature already collected for it`
+          );
+        }
         thisSubsig.s = subsig.s;
       }
+    }
+
+    if (!signaturesReturned) {
+      throw Error('DelegatedLsigSigner returned an lmsig with no signatures');
     }
   }
 

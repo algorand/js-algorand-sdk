@@ -50,7 +50,10 @@ async function main() {
   // example: CODEC_TRANSACTION_UNSIGNED
 
   // example: CODEC_TRANSACTION_SIGNED
-  const signedTxn = txn.signTxn(sender.privateKey);
+  const { blob: signedTxn } = await algosdk.signTransactionWithSigner(
+    txn,
+    sender.signer
+  );
   const signedB64Txn = algosdk.bytesToBase64(signedTxn);
   const restoredSignedTxn = algosdk.decodeSignedTransaction(
     algosdk.base64ToBytes(signedB64Txn)

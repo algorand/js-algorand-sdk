@@ -58,7 +58,11 @@ async function main() {
     amount: 300_000,
     suggestedParams,
   });
-  await client.sendRawTransaction(fundTxn.signTxn(dispenser.privateKey)).do();
+  const signedFundTxn = await algosdk.signTransactionWithSigner(
+    fundTxn,
+    dispenser.signer
+  );
+  await client.sendRawTransaction(signedFundTxn.blob).do();
   await algosdk.waitForConfirmation(client, fundTxn.txID(), 3);
 
   const funded = await client.accountInformation(falconAddr).do();
@@ -168,6 +172,7 @@ async function main() {
   );
 
   const ed25519Acct = algosdk.mnemonicToSecretKey(mnemonic);
+  const ed25519Signer = algosdk.makeBasicAccountTransactionSigner(ed25519Acct);
 
   const edFund = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: dispenser.addr,
@@ -175,7 +180,11 @@ async function main() {
     amount: 107_000,
     suggestedParams,
   });
-  await client.sendRawTransaction(edFund.signTxn(dispenser.privateKey)).do();
+  const signedEdFund = await algosdk.signTransactionWithSigner(
+    edFund,
+    dispenser.signer
+  );
+  await client.sendRawTransaction(signedEdFund.blob).do();
   await algosdk.waitForConfirmation(client, edFund.txID(), 3);
 
   console.log('ed funded');
@@ -192,7 +201,11 @@ async function main() {
       rekeyTo: falconAddr,
     });
 
-    await client.sendRawTransaction(rekeyTxn.signTxn(ed25519Acct.sk)).do();
+    const signedRekeyTxn = await algosdk.signTransactionWithSigner(
+      rekeyTxn,
+      ed25519Signer
+    );
+    await client.sendRawTransaction(signedRekeyTxn.blob).do();
     await algosdk.waitForConfirmation(client, rekeyTxn.txID(), 3);
   }
 

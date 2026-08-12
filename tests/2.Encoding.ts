@@ -165,8 +165,10 @@ describe('encoding', () => {
   });
   it('should be able to encode and decode', () => {
     const temp = { a: 3, b: 500 };
-    const enc = algosdk.encodeObj(temp);
-    const dec = algosdk.decodeObj(enc);
+    const enc = algosdk.msgpackRawEncode(temp);
+    const dec = algosdk.msgpackRawDecode(enc, {
+      intDecoding: algosdk.IntDecoding.MIXED,
+    });
     assert.deepStrictEqual(temp, dec);
   });
   // The strategy here is mainly to see that we match our go code.
@@ -175,17 +177,20 @@ describe('encoding', () => {
     it('should match encode every integer must be encoded to the smallest type possible', () => {
       let golden = new Uint8Array([0x81, 0xa1, 0x41, 0x78]);
       let o = { A: 120 };
-      assert.notStrictEqual(algosdk.encodeObj(o), golden);
+      assert.notStrictEqual(algosdk.msgpackRawEncode(o), golden);
 
       golden = new Uint8Array([0x81, 0xa1, 0x41, 0xcd, 0x1, 0x2c]);
       o = { A: 300 };
-      assert.notStrictEqual(algosdk.encodeObj(o), golden);
+      assert.notStrictEqual(algosdk.msgpackRawEncode(o), golden);
     });
 
     it('should sort all fields before encoding', () => {
       const a = { a: 3, b: 5 };
       const b = { b: 5, a: 3 };
-      assert.notStrictEqual(algosdk.encodeObj(a), algosdk.encodeObj(b));
+      assert.notStrictEqual(
+        algosdk.msgpackRawEncode(a),
+        algosdk.msgpackRawEncode(b)
+      );
     });
 
     it('should fail if empty or 0 fields exist', () => {
@@ -233,22 +238,27 @@ describe('encoding', () => {
         0x61,
       ]);
       const o = { J: new Uint8Array([20, 30, 40]), K: 'aaa' };
-      assert.notStrictEqual(algosdk.encodeObj(o), golden);
+      assert.notStrictEqual(algosdk.msgpackRawEncode(o), golden);
     });
 
     it('should safely encode/decode bigints', () => {
+      const mixed = { intDecoding: algosdk.IntDecoding.MIXED };
       const beforeZero = BigInt('0');
-      const afterZero = algosdk.decodeObj(algosdk.encodeObj(beforeZero as any));
+      const afterZero = algosdk.msgpackRawDecode(
+        algosdk.msgpackRawEncode(beforeZero),
+        mixed
+      );
       // eslint-disable-next-line eqeqeq
       assert.ok(beforeZero == afterZero); // after is a Number because 0 fits into a Number - so we do this loose comparison
       const beforeLarge = BigInt('18446744073709551612'); // larger than a Number, but fits into a uint64
-      const afterLarge = algosdk.decodeObj(
-        algosdk.encodeObj(beforeLarge as any)
+      const afterLarge = algosdk.msgpackRawDecode(
+        algosdk.msgpackRawEncode(beforeLarge),
+        mixed
       );
       assert.strictEqual(beforeLarge, afterLarge);
       const tooLarge = BigInt('18446744073709551616'); // larger than even fits into a uint64. we do not want to work with these too-large numbers
       assert.throws(
-        () => algosdk.encodeObj(tooLarge as any),
+        () => algosdk.msgpackRawEncode(tooLarge),
         /Bigint is too large for uint64: 18446744073709551616$/
       );
     });
@@ -266,7 +276,7 @@ describe('encoding', () => {
         lv: 61,
       };
 
-      const jsEnc = algosdk.encodeObj(o);
+      const jsEnc = algosdk.msgpackRawEncode(o);
       assert.deepStrictEqual(jsEnc, golden);
     });
   });
