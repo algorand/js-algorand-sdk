@@ -346,6 +346,7 @@ export class Account implements Encodable {
    * * sig
    * * msig
    * * lsig
+   * * pqsig
    * * or null if unknown
    */
   public sigType?: string;
@@ -406,6 +407,7 @@ export class Account implements Encodable {
    * * sig
    * * msig
    * * lsig
+   * * pqsig
    * * or null if unknown
    */
   constructor({
@@ -3027,7 +3029,17 @@ export class Block implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'congestion-tax',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
           key: 'fees-collected',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        },
+        {
+          key: 'load',
           valueSchema: new OptionalSchema(new Uint64Schema()),
           omitEmpty: true,
         },
@@ -3149,9 +3161,22 @@ export class Block implements Encodable {
   public bonus?: number;
 
   /**
+   * the fee required, beyond the minimum fee, for "normal" transactions in this
+   * block.
+   */
+  public congestionTax?: number;
+
+  /**
    * the sum of all fees paid by transactions in this block.
    */
   public feesCollected?: number;
+
+  /**
+   * the degree to which this block is full, based on the number of bytes in the
+   * final block compared to the maximum allowed. Expressed as a fixed-point integer
+   * with 6 digits of precision, so 1,000,000 is a completely full block.
+   */
+  public load?: number;
 
   /**
    * Participation account data that needs to be checked/acted on by the network.
@@ -3233,7 +3258,12 @@ export class Block implements Encodable {
    * the default SHA512_256. This commitment can be used on environments where only
    * the SHA256 function exists.
    * @param bonus - the potential bonus payout for this block.
+   * @param congestionTax - the fee required, beyond the minimum fee, for "normal" transactions in this
+   * block.
    * @param feesCollected - the sum of all fees paid by transactions in this block.
+   * @param load - the degree to which this block is full, based on the number of bytes in the
+   * final block compared to the maximum allowed. Expressed as a fixed-point integer
+   * with 6 digits of precision, so 1,000,000 is a completely full block.
    * @param participationUpdates - Participation account data that needs to be checked/acted on by the network.
    * @param previousBlockHash512 - (prev512) Previous block hash, using SHA-512.
    * @param proposer - the proposer of this block.
@@ -3262,7 +3292,9 @@ export class Block implements Encodable {
     transactionsRoot,
     transactionsRootSha256,
     bonus,
+    congestionTax,
     feesCollected,
+    load,
     participationUpdates,
     previousBlockHash512,
     proposer,
@@ -3284,7 +3316,9 @@ export class Block implements Encodable {
     transactionsRoot: string | Uint8Array;
     transactionsRootSha256: string | Uint8Array;
     bonus?: number | bigint;
+    congestionTax?: number | bigint;
     feesCollected?: number | bigint;
+    load?: number | bigint;
     participationUpdates?: ParticipationUpdates;
     previousBlockHash512?: string | Uint8Array;
     proposer?: Address | string;
@@ -3319,10 +3353,16 @@ export class Block implements Encodable {
         : transactionsRootSha256;
     this.bonus =
       typeof bonus === 'undefined' ? undefined : ensureSafeInteger(bonus);
+    this.congestionTax =
+      typeof congestionTax === 'undefined'
+        ? undefined
+        : ensureSafeInteger(congestionTax);
     this.feesCollected =
       typeof feesCollected === 'undefined'
         ? undefined
         : ensureSafeInteger(feesCollected);
+    this.load =
+      typeof load === 'undefined' ? undefined : ensureSafeInteger(load);
     this.participationUpdates = participationUpdates;
     this.previousBlockHash512 =
       typeof previousBlockHash512 === 'string'
@@ -3365,7 +3405,9 @@ export class Block implements Encodable {
       ['transactions-root', this.transactionsRoot],
       ['transactions-root-sha256', this.transactionsRootSha256],
       ['bonus', this.bonus],
+      ['congestion-tax', this.congestionTax],
       ['fees-collected', this.feesCollected],
+      ['load', this.load],
       [
         'participation-updates',
         typeof this.participationUpdates !== 'undefined'
@@ -3429,7 +3471,9 @@ export class Block implements Encodable {
       transactionsRoot: data.get('transactions-root'),
       transactionsRootSha256: data.get('transactions-root-sha256'),
       bonus: data.get('bonus'),
+      congestionTax: data.get('congestion-tax'),
       feesCollected: data.get('fees-collected'),
+      load: data.get('load'),
       participationUpdates:
         typeof data.get('participation-updates') !== 'undefined'
           ? ParticipationUpdates.fromEncodingData(
@@ -4009,7 +4053,7 @@ export class Box implements Encodable {
 }
 
 /**
- * Box descriptor describes an app box without a value.
+ * Box descriptor describes an app box.
  */
 export class BoxDescriptor implements Encodable {
   private static encodingSchemaValue: Schema | undefined;
@@ -4017,11 +4061,14 @@ export class BoxDescriptor implements Encodable {
   static get encodingSchema(): Schema {
     if (!this.encodingSchemaValue) {
       this.encodingSchemaValue = new NamedMapSchema([]);
-      (this.encodingSchemaValue as NamedMapSchema).pushEntries({
-        key: 'name',
-        valueSchema: new ByteArraySchema(),
-        omitEmpty: true,
-      });
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        { key: 'name', valueSchema: new ByteArraySchema(), omitEmpty: true },
+        {
+          key: 'value',
+          valueSchema: new OptionalSchema(new ByteArraySchema()),
+          omitEmpty: true,
+        }
+      );
     }
     return this.encodingSchemaValue;
   }
@@ -4032,11 +4079,26 @@ export class BoxDescriptor implements Encodable {
   public name: Uint8Array;
 
   /**
+   * Base64 encoded box value. Present only when the `values` query parameter is set
+   * to true.
+   */
+  public value?: Uint8Array;
+
+  /**
    * Creates a new `BoxDescriptor` object.
    * @param name - Base64 encoded box name
+   * @param value - Base64 encoded box value. Present only when the `values` query parameter is set
+   * to true.
    */
-  constructor({ name }: { name: string | Uint8Array }) {
+  constructor({
+    name,
+    value,
+  }: {
+    name: string | Uint8Array;
+    value?: string | Uint8Array;
+  }) {
     this.name = typeof name === 'string' ? base64ToBytes(name) : name;
+    this.value = typeof value === 'string' ? base64ToBytes(value) : value;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -4045,7 +4107,10 @@ export class BoxDescriptor implements Encodable {
   }
 
   toEncodingData(): Map<string, unknown> {
-    return new Map<string, unknown>([['name', this.name]]);
+    return new Map<string, unknown>([
+      ['name', this.name],
+      ['value', this.value],
+    ]);
   }
 
   static fromEncodingData(data: unknown): BoxDescriptor {
@@ -4054,6 +4119,7 @@ export class BoxDescriptor implements Encodable {
     }
     return new BoxDescriptor({
       name: data.get('name'),
+      value: data.get('value'),
     });
   }
 }
@@ -4150,6 +4216,11 @@ export class BoxesResponse implements Encodable {
           key: 'next-token',
           valueSchema: new OptionalSchema(new StringSchema()),
           omitEmpty: true,
+        },
+        {
+          key: 'round',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
         }
       );
     }
@@ -4170,24 +4241,34 @@ export class BoxesResponse implements Encodable {
   public nextToken?: string;
 
   /**
+   * The round for which this information is relevant.
+   */
+  public round?: number;
+
+  /**
    * Creates a new `BoxesResponse` object.
    * @param applicationId - (appidx) application index.
    * @param boxes -
    * @param nextToken - Used for pagination, when making another request provide this token with the
    * next parameter.
+   * @param round - The round for which this information is relevant.
    */
   constructor({
     applicationId,
     boxes,
     nextToken,
+    round,
   }: {
     applicationId: number | bigint;
     boxes: BoxDescriptor[];
     nextToken?: string;
+    round?: number | bigint;
   }) {
     this.applicationId = ensureBigInt(applicationId);
     this.boxes = boxes;
     this.nextToken = nextToken;
+    this.round =
+      typeof round === 'undefined' ? undefined : ensureSafeInteger(round);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -4200,6 +4281,7 @@ export class BoxesResponse implements Encodable {
       ['application-id', this.applicationId],
       ['boxes', this.boxes.map((v) => v.toEncodingData())],
       ['next-token', this.nextToken],
+      ['round', this.round],
     ]);
   }
 
@@ -4213,6 +4295,7 @@ export class BoxesResponse implements Encodable {
         BoxDescriptor.fromEncodingData(v)
       ),
       nextToken: data.get('next-token'),
+      round: data.get('round'),
     });
   }
 }
@@ -8039,6 +8122,11 @@ export class TransactionHeartbeat implements Encodable {
           key: 'hb-vote-id',
           valueSchema: new ByteArraySchema(),
           omitEmpty: true,
+        },
+        {
+          key: 'hb-challenge-discount',
+          valueSchema: new OptionalSchema(new BooleanSchema()),
+          omitEmpty: true,
         }
       );
     }
@@ -8073,6 +8161,13 @@ export class TransactionHeartbeat implements Encodable {
   public hbVoteId: Uint8Array;
 
   /**
+   * (hbc) HbChallengeDiscount requests the challenge fee discount, reducing the
+   * required fee by one min fee. It is a request, not an assertion: it is granted
+   * only if HbAddress is actually under challenge.
+   */
+  public hbChallengeDiscount?: boolean;
+
+  /**
    * Creates a new `TransactionHeartbeat` object.
    * @param hbAddress - (hbad) HbAddress is the account this txn is proving onlineness for.
    * @param hbKeyDilution - (hbkd) HbKeyDilution must match HbAddress account's current KeyDilution.
@@ -8081,6 +8176,9 @@ export class TransactionHeartbeat implements Encodable {
    * @param hbSeed - (hbsd) HbSeed must be the block seed for the this transaction's firstValid
    * block.
    * @param hbVoteId - (hbvid) HbVoteID must match the HbAddress account's current VoteID.
+   * @param hbChallengeDiscount - (hbc) HbChallengeDiscount requests the challenge fee discount, reducing the
+   * required fee by one min fee. It is a request, not an assertion: it is granted
+   * only if HbAddress is actually under challenge.
    */
   constructor({
     hbAddress,
@@ -8088,12 +8186,14 @@ export class TransactionHeartbeat implements Encodable {
     hbProof,
     hbSeed,
     hbVoteId,
+    hbChallengeDiscount,
   }: {
     hbAddress: string;
     hbKeyDilution: number | bigint;
     hbProof: HbProofFields;
     hbSeed: string | Uint8Array;
     hbVoteId: string | Uint8Array;
+    hbChallengeDiscount?: boolean;
   }) {
     this.hbAddress = hbAddress;
     this.hbKeyDilution = ensureBigInt(hbKeyDilution);
@@ -8101,6 +8201,7 @@ export class TransactionHeartbeat implements Encodable {
     this.hbSeed = typeof hbSeed === 'string' ? base64ToBytes(hbSeed) : hbSeed;
     this.hbVoteId =
       typeof hbVoteId === 'string' ? base64ToBytes(hbVoteId) : hbVoteId;
+    this.hbChallengeDiscount = hbChallengeDiscount;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -8115,6 +8216,7 @@ export class TransactionHeartbeat implements Encodable {
       ['hb-proof', this.hbProof.toEncodingData()],
       ['hb-seed', this.hbSeed],
       ['hb-vote-id', this.hbVoteId],
+      ['hb-challenge-discount', this.hbChallengeDiscount],
     ]);
   }
 
@@ -8130,6 +8232,7 @@ export class TransactionHeartbeat implements Encodable {
       ),
       hbSeed: data.get('hb-seed'),
       hbVoteId: data.get('hb-vote-id'),
+      hbChallengeDiscount: data.get('hb-challenge-discount'),
     });
   }
 }
@@ -8527,6 +8630,13 @@ export class TransactionSignature implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'pqsig',
+          valueSchema: new OptionalSchema(
+            TransactionSignaturePQsig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'sig',
           valueSchema: new OptionalSchema(new ByteArraySchema()),
           omitEmpty: true,
@@ -8551,6 +8661,13 @@ export class TransactionSignature implements Encodable {
   public multisig?: TransactionSignatureMultisig;
 
   /**
+   * structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
+   */
+  public pqsig?: TransactionSignaturePQsig;
+
+  /**
    * (sig) Standard ed25519 signature.
    */
   public sig?: Uint8Array;
@@ -8563,19 +8680,25 @@ export class TransactionSignature implements Encodable {
    * @param multisig - structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
+   * @param pqsig - structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
    * @param sig - (sig) Standard ed25519 signature.
    */
   constructor({
     logicsig,
     multisig,
+    pqsig,
     sig,
   }: {
     logicsig?: TransactionSignatureLogicsig;
     multisig?: TransactionSignatureMultisig;
+    pqsig?: TransactionSignaturePQsig;
     sig?: string | Uint8Array;
   }) {
     this.logicsig = logicsig;
     this.multisig = multisig;
+    this.pqsig = pqsig;
     this.sig = typeof sig === 'string' ? base64ToBytes(sig) : sig;
   }
 
@@ -8598,6 +8721,12 @@ export class TransactionSignature implements Encodable {
           ? this.multisig.toEncodingData()
           : undefined,
       ],
+      [
+        'pqsig',
+        typeof this.pqsig !== 'undefined'
+          ? this.pqsig.toEncodingData()
+          : undefined,
+      ],
       ['sig', this.sig],
     ]);
   }
@@ -8614,6 +8743,10 @@ export class TransactionSignature implements Encodable {
       multisig:
         typeof data.get('multisig') !== 'undefined'
           ? TransactionSignatureMultisig.fromEncodingData(data.get('multisig'))
+          : undefined,
+      pqsig:
+        typeof data.get('pqsig') !== 'undefined'
+          ? TransactionSignaturePQsig.fromEncodingData(data.get('pqsig'))
           : undefined,
       sig: data.get('sig'),
     });
@@ -8655,6 +8788,13 @@ export class TransactionSignatureLogicsig implements Encodable {
           omitEmpty: true,
         },
         {
+          key: 'pqsig',
+          valueSchema: new OptionalSchema(
+            TransactionSignaturePQsig.encodingSchema
+          ),
+          omitEmpty: true,
+        },
+        {
           key: 'signature',
           valueSchema: new OptionalSchema(new ByteArraySchema()),
           omitEmpty: true,
@@ -8690,6 +8830,13 @@ export class TransactionSignatureLogicsig implements Encodable {
   public multisigSignature?: TransactionSignatureMultisig;
 
   /**
+   * structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
+   */
+  public pqsig?: TransactionSignaturePQsig;
+
+  /**
    * (sig) ed25519 signature.
    */
   public signature?: Uint8Array;
@@ -8705,6 +8852,9 @@ export class TransactionSignatureLogicsig implements Encodable {
    * @param multisigSignature - structure holding multiple subsignatures.
    * Definition:
    * crypto/multisig.go : MultisigSig
+   * @param pqsig - structure holding a post-quantum signature.
+   * Definition:
+   * data/transactions/pqsig.go : PQSig
    * @param signature - (sig) ed25519 signature.
    */
   constructor({
@@ -8712,18 +8862,21 @@ export class TransactionSignatureLogicsig implements Encodable {
     args,
     logicMultisigSignature,
     multisigSignature,
+    pqsig,
     signature,
   }: {
     logic: string | Uint8Array;
     args?: Uint8Array[];
     logicMultisigSignature?: TransactionSignatureMultisig;
     multisigSignature?: TransactionSignatureMultisig;
+    pqsig?: TransactionSignaturePQsig;
     signature?: string | Uint8Array;
   }) {
     this.logic = typeof logic === 'string' ? base64ToBytes(logic) : logic;
     this.args = args;
     this.logicMultisigSignature = logicMultisigSignature;
     this.multisigSignature = multisigSignature;
+    this.pqsig = pqsig;
     this.signature =
       typeof signature === 'string' ? base64ToBytes(signature) : signature;
   }
@@ -8749,6 +8902,12 @@ export class TransactionSignatureLogicsig implements Encodable {
           ? this.multisigSignature.toEncodingData()
           : undefined,
       ],
+      [
+        'pqsig',
+        typeof this.pqsig !== 'undefined'
+          ? this.pqsig.toEncodingData()
+          : undefined,
+      ],
       ['signature', this.signature],
     ]);
   }
@@ -8771,6 +8930,10 @@ export class TransactionSignatureLogicsig implements Encodable {
           ? TransactionSignatureMultisig.fromEncodingData(
               data.get('multisig-signature')
             )
+          : undefined,
+      pqsig:
+        typeof data.get('pqsig') !== 'undefined'
+          ? TransactionSignaturePQsig.fromEncodingData(data.get('pqsig'))
           : undefined,
       signature: data.get('signature'),
     });
@@ -8962,6 +9125,115 @@ export class TransactionSignatureMultisigSubsignature implements Encodable {
     return new TransactionSignatureMultisigSubsignature({
       publicKey: data.get('public-key'),
       signature: data.get('signature'),
+    });
+  }
+}
+
+/**
+ * structure holding a post-quantum signature.
+ * Definition:
+ * data/transactions/pqsig.go : PQSig
+ */
+export class TransactionSignaturePQsig implements Encodable {
+  private static encodingSchemaValue: Schema | undefined;
+
+  static get encodingSchema(): Schema {
+    if (!this.encodingSchemaValue) {
+      this.encodingSchemaValue = new NamedMapSchema([]);
+      (this.encodingSchemaValue as NamedMapSchema).pushEntries(
+        {
+          key: 'public-key',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        { key: 'scheme', valueSchema: new StringSchema(), omitEmpty: true },
+        {
+          key: 'signature',
+          valueSchema: new ByteArraySchema(),
+          omitEmpty: true,
+        },
+        {
+          key: 'salt',
+          valueSchema: new OptionalSchema(new Uint64Schema()),
+          omitEmpty: true,
+        }
+      );
+    }
+    return this.encodingSchemaValue;
+  }
+
+  /**
+   * (pk)
+   */
+  public publicKey: Uint8Array;
+
+  /**
+   * (sch) identifies the internal signature scheme.
+   */
+  public scheme: string;
+
+  /**
+   * (sig)
+   */
+  public signature: Uint8Array;
+
+  /**
+   * (slt) a single byte, added to ensure the hashed address is not an Ed25519 curve
+   * point
+   */
+  public salt?: number;
+
+  /**
+   * Creates a new `TransactionSignaturePQsig` object.
+   * @param publicKey - (pk)
+   * @param scheme - (sch) identifies the internal signature scheme.
+   * @param signature - (sig)
+   * @param salt - (slt) a single byte, added to ensure the hashed address is not an Ed25519 curve
+   * point
+   */
+  constructor({
+    publicKey,
+    scheme,
+    signature,
+    salt,
+  }: {
+    publicKey: string | Uint8Array;
+    scheme: string;
+    signature: string | Uint8Array;
+    salt?: number | bigint;
+  }) {
+    this.publicKey =
+      typeof publicKey === 'string' ? base64ToBytes(publicKey) : publicKey;
+    this.scheme = scheme;
+    this.signature =
+      typeof signature === 'string' ? base64ToBytes(signature) : signature;
+    this.salt =
+      typeof salt === 'undefined' ? undefined : ensureSafeInteger(salt);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getEncodingSchema(): Schema {
+    return TransactionSignaturePQsig.encodingSchema;
+  }
+
+  toEncodingData(): Map<string, unknown> {
+    return new Map<string, unknown>([
+      ['public-key', this.publicKey],
+      ['scheme', this.scheme],
+      ['signature', this.signature],
+      ['salt', this.salt],
+    ]);
+  }
+
+  static fromEncodingData(data: unknown): TransactionSignaturePQsig {
+    if (!(data instanceof Map)) {
+      throw new Error(`Invalid decoded TransactionSignaturePQsig: ${data}`);
+    }
+    return new TransactionSignaturePQsig({
+      publicKey: data.get('public-key'),
+      scheme: data.get('scheme'),
+      signature: data.get('signature'),
+      salt: data.get('salt'),
     });
   }
 }
