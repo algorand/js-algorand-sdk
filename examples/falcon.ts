@@ -43,15 +43,19 @@ async function main() {
   const {
     address: falconAddr,
     txnSigner: falconTxnSigner,
+    emptyTxnSigner: falconEmptyTxnSigner,
     delegatedLsigSigner: falconLsigSigner,
   } = algosdk.addressWithSignersFromRawFalcon1024Signer(falconSigningKey);
 
-  // Fund the new Falcon address so it can cover its min balance + fees.
+  // Fund the new Falcon address so it can cover its min balance + fees. We fund
+  // comfortably above the strict minimum so that the fee-estimating simulation
+  // below can charge a generous (simulated) fee without tripping the min-balance
+  // check. Simulation never actually spends these Algos.
   const suggestedParams = await client.getTransactionParams().do();
   const fundTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: dispenser.addr,
     receiver: falconAddr,
-    amount: 106_000,
+    amount: 300_000,
     suggestedParams,
   });
   const signedFundTxn = await algosdk.signTransactionWithSigner(
@@ -64,13 +68,57 @@ async function main() {
   const funded = await client.accountInformation(falconAddr).do();
   console.log('Funded balance (microAlgos):', funded.amount);
 
+  // A Falcon-1024 signature is far larger than an ed25519 one, so a Falcon-signed
+  // transaction is charged a fee surcharge on top of the base fee. Rather than
+  // hard-coding the multiplier, ask algod how much the group needs by simulating
+  // it. We attach a *placeholder* Falcon signature via the empty signer: this
+  // carries the scheme, salt, and public key (so algod can derive the authorizer
+  // and charge the post-quantum surcharge) but no signature bytes, which means we
+  // learn the fee without paying the cost of producing a real Falcon signature.
+  const feeEstimateTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    sender: falconAddr,
+    receiver: falconAddr,
+    amount: 0,
+    // A deliberately generous fee so the simulation is never rejected for
+    // underpaying; the precise fee is derived from the reported usage below.
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: 100_000 },
+  });
+
+  const feeEstimateAtc = new algosdk.AtomicTransactionComposer();
+  feeEstimateAtc.addTransaction({
+    txn: feeEstimateTxn,
+    signer: falconEmptyTxnSigner,
+  });
+
+  const { simulateResponse } = await feeEstimateAtc.simulate(
+    client,
+    new algosdk.modelsv2.SimulateRequest({
+      txnGroups: [],
+      allowEmptySignatures: true,
+    })
+  );
+
+  const simGroup = simulateResponse.txnGroups[0];
+  assert.ok(
+    !simGroup.failureMessage,
+    `simulation failed: ${simGroup.failureMessage}`
+  );
+
+  // The required fee is minFee scaled by the reported usage, rounded up.
+  // usage is expressed in millionths of a basic transaction fee unit (1e6 == 1).
+  const minFee = Number(suggestedParams.minFee);
+  const groupUsage = simGroup.groupUsage ?? 0;
+  const requiredFee = Math.ceil((minFee * groupUsage) / 1_000_000);
+  console.log('Derived required fee (microAlgos):', requiredFee);
+
   // Send a 0-amount payment FROM the Falcon address, signed with the Falcon
-  // signer, using the AtomicTransactionComposer to gather and submit it.
+  // signer, using the AtomicTransactionComposer to gather and submit it. The fee
+  // is the one we just derived from simulation.
   const zeroPayTxn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
     sender: falconAddr,
     receiver: falconAddr,
     amount: 0,
-    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: requiredFee },
   });
 
   const atc = new algosdk.AtomicTransactionComposer();
@@ -99,7 +147,7 @@ async function main() {
     receiver: falconAddr,
     amount: 0,
     note: new Uint8Array([1]),
-    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: requiredFee },
   });
 
   const teal = '#pragma version 12\nint 1';
@@ -169,7 +217,7 @@ async function main() {
     receiver: falconAddr,
     amount: 0,
     note: new TextEncoder().encode('rekeyed pay'),
-    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: requiredFee },
   });
 
   const rekeyedAtc = new algosdk.AtomicTransactionComposer();
@@ -186,8 +234,8 @@ async function main() {
     sender: ed25519Acct.addr,
     receiver: falconAddr,
     amount: 0,
+    suggestedParams: { ...suggestedParams, flatFee: true, fee: requiredFee },
     note: new TextEncoder().encode('rekeyed dlsig pay'),
-    suggestedParams: { ...suggestedParams, flatFee: true, fee: 3000 },
   });
 
   const rekeyedDlsigAtc = new algosdk.AtomicTransactionComposer();

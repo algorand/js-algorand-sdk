@@ -2,6 +2,7 @@ import { Address } from './encoding/address.js';
 import { Encodable, Schema } from './encoding/encoding.js';
 import {
   AddressSchema,
+  BooleanSchema,
   Uint64Schema,
   ByteArraySchema,
   FixedLengthByteArraySchema,
@@ -111,6 +112,10 @@ export class Heartbeat implements Encodable {
         key: 'kd', // HbKeyDilution
         valueSchema: new Uint64Schema(),
       },
+      {
+        key: 'c', // HbChallengeDiscount
+        valueSchema: new BooleanSchema(),
+      },
     ])
   );
 
@@ -124,18 +129,22 @@ export class Heartbeat implements Encodable {
 
   public keyDilution: bigint;
 
+  public challengeDiscount: boolean;
+
   public constructor(params: {
     address: Address;
     proof: HeartbeatProof;
     seed: Uint8Array;
     voteID: Uint8Array;
     keyDilution: bigint;
+    challengeDiscount?: boolean;
   }) {
     this.address = params.address;
     this.proof = params.proof;
     this.seed = params.seed;
     this.voteID = params.voteID;
     this.keyDilution = params.keyDilution;
+    this.challengeDiscount = params.challengeDiscount ?? false;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -150,6 +159,7 @@ export class Heartbeat implements Encodable {
       ['sd', this.seed],
       ['vid', this.voteID],
       ['kd', this.keyDilution],
+      ['c', this.challengeDiscount],
     ]);
   }
 
@@ -163,6 +173,7 @@ export class Heartbeat implements Encodable {
       seed: data.get('sd'),
       voteID: data.get('vid'),
       keyDilution: data.get('kd'),
+      challengeDiscount: data.get('c'),
     });
   }
 }

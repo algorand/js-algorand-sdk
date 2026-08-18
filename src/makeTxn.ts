@@ -539,7 +539,13 @@ export function makeApplicationCreateTxnFromObject({
 }
 
 /**
- * Make a transaction that changes an application's approval and clear programs
+ * Make a transaction that changes an application's approval and clear programs.
+ *
+ * The application's global state schema and extra program pages may also be changed during an
+ * update by providing numGlobalInts, numGlobalByteSlices, and/or extraPages. The local state schema
+ * cannot be changed after application creation. If the pages or global schema increases in size, the entire
+ * MBR for the application will move to the sender of the update and that account will become the `sizeSponsor`
+ * in the application's parameters. A decrease in schema or pages does not affect MBR or `sizeSponsor`.
  *
  * @param options - Application update transaction parameters
  */
@@ -557,6 +563,9 @@ export function makeApplicationUpdateTxnFromObject({
   access,
   approvalProgram,
   clearProgram,
+  numGlobalInts,
+  numGlobalByteSlices,
+  extraPages,
   note,
   lease,
   rekeyTo,
@@ -566,9 +575,6 @@ export function makeApplicationUpdateTxnFromObject({
   | 'onComplete'
   | 'numLocalInts'
   | 'numLocalByteSlices'
-  | 'numGlobalInts'
-  | 'numGlobalByteSlices'
-  | 'extraPages'
   | 'approvalProgram'
   | 'clearProgram'
 > &
@@ -598,6 +604,9 @@ export function makeApplicationUpdateTxnFromObject({
     access,
     approvalProgram,
     clearProgram,
+    numGlobalInts,
+    numGlobalByteSlices,
+    extraPages,
     note,
     lease,
     rekeyTo,

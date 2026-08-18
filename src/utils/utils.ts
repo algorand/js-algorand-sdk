@@ -205,3 +205,16 @@ export function ensureUint64(value: unknown): bigint {
   }
   return bigIntValue;
 }
+
+export function isEmptyObject(obj: any) {
+  if (!obj || typeof obj !== 'object') return false;
+
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (obj[key] !== undefined) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

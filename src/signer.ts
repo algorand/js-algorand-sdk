@@ -40,6 +40,15 @@ export interface AddressWithTransactionSigner extends Addressable {
   txnSigner: TransactionSigner;
 }
 
+export interface AddressWithEmptyTransactionSigner extends Addressable {
+  /**
+   * A TransactionSigner that produces unsigned (or placeholder-signed)
+   * transactions. This must only be used to simulate transactions with the
+   * `allowEmptySignatures` option enabled.
+   */
+  emptyTxnSigner: TransactionSigner;
+}
+
 /** Function for signing logic signatures for delegation
  *  @param lsig - The logic signature that is being signed for delegation
  *  @param msig - Optional multisig account that should be set when a public key is signing as a subsigner of a multisig

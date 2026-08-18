@@ -53,8 +53,10 @@ async function main() {
   const algodClient = getLocalAlgodClient();
 
   const versions = await algodClient.versionsCheck().do();
-  assert(versions.build.major >= 4);
-  assert(versions.build.minor >= 7);
+  assert(
+    versions.build.major >= 5 ||
+      (versions.build.minor === 4 && versions.build.minor >= 7)
+  );
 
   const accounts = await getLocalAccounts();
   const [alice, bob] = accounts;
