@@ -247,9 +247,12 @@ function ensureResourceReference(input: unknown): TransactionResourceReference {
     if (box !== undefined) {
       return { box: ensureBoxReference(box) };
     }
+
     // An empty resource reference is meaningful: it asks for a box I/O quota
     // bump without naming a resource.
-    return {};
+    if (utils.isEmptyObject(input)) {
+      return {};
+    }
   }
   throw new Error(`Not a resource reference: ${input}`);
 }
