@@ -3,7 +3,7 @@ const assert = require('assert');
 const sha512 = require('js-sha512');
 const nacl = require('tweetnacl');
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { falcon1024 } = require('falcon-1024');
+const { falcon1024 } = require('@algorandfoundation/falcon-wasm');
 
 window.assert = assert;
 
