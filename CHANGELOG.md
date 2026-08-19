@@ -4,10 +4,6 @@
 
 ## What's Changed
 
-### Bugfixes
-
-- API: deprecate dryrun by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1103
-
 ### New Features
 
 - Signatures: PQ signature support by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1102
