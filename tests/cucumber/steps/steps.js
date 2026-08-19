@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { falcon1024 } = require('falcon-1024');
+const { falcon1024 } = require('@algorandfoundation/falcon-wasm');
 
 const algosdk = require('../../../src/index');
 const nacl = require('../../../src/nacl/naclWrappers');
