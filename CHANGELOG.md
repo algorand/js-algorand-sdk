@@ -1,3 +1,20 @@
+# v3.7.0
+
+<!-- Release notes generated using configuration in .github/release.yml at release/v3.7.0 -->
+
+## What's Changed
+
+### New Features
+
+- Signatures: PQ signature support by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1102
+- feat: support for consensus v42 by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1115
+
+### Enhancements
+
+- feat: remove dryrun due to removal in algod by @joe-p in https://github.com/algorand/js-algorand-sdk/pull/1104
+
+**Full Changelog**: https://github.com/algorand/js-algorand-sdk/compare/v3.6.0...v3.7.0
+
 # v3.7.0-beta.1
 
 <!-- Release notes generated using configuration in .github/release.yml at release/v3.7.0-beta.1 -->
