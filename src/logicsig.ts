@@ -68,8 +68,22 @@ export function sanityCheckProgram(program: Uint8Array) {
   }
 }
 
+/**
+ * The domain-separation prefix prepended to a program before it is hashed into
+ * an escrow address, or signed for delegation by a single ed25519 account.
+ */
 export const PROGRAM_TAG = new TextEncoder().encode('Program');
+
+/**
+ * The domain-separation prefix prepended to a post-quantum delegating account's
+ * address and a program before the program is signed for delegation.
+ */
 export const PQ_PROGRAM_TAG = new TextEncoder().encode('PQProgram');
+
+/**
+ * The domain-separation prefix prepended to a delegating multisig account's
+ * address and a program before the program is signed for delegation.
+ */
 export const MSIG_PROGRAM_TAG = new TextEncoder().encode('MsigProgram');
 
 /**
@@ -112,6 +126,11 @@ export class LogicSig implements encoding.Encodable {
   sig?: Uint8Array;
   msig?: EncodedMultisig;
   lmsig?: EncodedMultisig;
+  /**
+   * The post-quantum delegation signature, if the delegating account is a
+   * post-quantum account. At most one of `sig`, `msig`, `lmsig` and `pqsig` may
+   * be set.
+   */
   pqsig?: EncodedPQSig;
 
   constructor(program: Uint8Array, programArgs?: Array<Uint8Array> | null) {
@@ -276,6 +295,11 @@ export class LogicSig implements encoding.Encodable {
   /**
    * Signs this LogicSig for delegation using the given signer.
    *
+   * @remarks
+   * Re-signing an already-signed LogicSig is allowed, and replaces the previous
+   * delegation signature. At most one of `sig`, `msig`, `lmsig` and `pqsig` may
+   * be set, so any signature left over from an earlier call is cleared.
+   *
    * @param signer - The signer to delegate to
    * @param msig - Optional multisig account the signer is a subsigner of
    * @returns The address the signer signed as. When `msig` is omitted this is
@@ -283,10 +307,9 @@ export class LogicSig implements encoding.Encodable {
    *   subsigner, not the multisig, so the delegating account is
    *   `multisigAddress(msig)`. Either way it is an authorizing address, which
    *   is not necessarily the address a signer sends transactions from.
-   *
-   * Re-signing an already-signed LogicSig is allowed, and replaces the previous
-   * delegation signature. At most one of `sig`, `msig`, `lmsig` and `pqsig` may
-   * be set, so any signature left over from an earlier call is cleared.
+   * @throws If the signer returns a signature of the wrong kind for the
+   *   requested delegation, or an `lmsig` whose version, threshold or public
+   *   keys do not match `msig`
    */
   async signWithSigner(
     signer: DelegatedLsigSigner,
@@ -360,6 +383,24 @@ export class LogicSig implements encoding.Encodable {
     this.lmsig.subsig[index].s = sig;
   }
 
+  /**
+   * Appends an additional subsignature to this LogicSig's existing multisig
+   * delegation.
+   *
+   * @remarks
+   * The multisig preimage is taken from the `lmsig` already on this LogicSig,
+   * so {@link signWithSigner} must have been called with an `msig` argument
+   * first. The signer must hold a key belonging to that multisig.
+   *
+   * A signature already collected from another member is never silently
+   * replaced: if the signer returns a different signature for a subsig that is
+   * already filled in, this throws instead.
+   *
+   * @param signer - The signer to append a subsignature from
+   * @throws If there is no multisig on this LogicSig, if the signer returns no
+   *   signature, a signature for a key outside the multisig, or one that
+   *   conflicts with a signature already collected
+   */
   async appendToMultisigWithSigner(signer: DelegatedLsigSigner) {
     if (this.lmsig === undefined) {
       throw new Error('no multisig present');
@@ -475,8 +516,15 @@ export class LogicSig implements encoding.Encodable {
    * Signs arbitrary data for use with the `ed25519verify` opcode from within
    * this LogicSig's program.
    *
+   * @remarks
+   * This does not modify the LogicSig or delegate it; the LogicSig is only used
+   * for the address that domain-separates the signature. The program is
+   * responsible for verifying the returned signature against the signer's
+   * public key.
+   *
    * @param signer - The signer to sign the data with
    * @param data - The data to sign
+   * @returns A promise which resolves to the raw signature over the data
    */
   async signDataWithSigner(signer: ProgramDataSigner, data: Uint8Array) {
     return signer(data, this);
@@ -656,6 +704,22 @@ export class LogicSigAccount implements encoding.Encodable {
     this.lsig.sign(secretKey, msig);
   }
 
+  /**
+   * Turns this LogicSigAccount into a delegated LogicSig, signed by one member
+   * of a delegating multisig account.
+   *
+   * @remarks
+   * This produces a LogicSig with a single subsignature filled in. Unless the
+   * multisig's threshold is 1, call {@link LogicSigAccount.appendToMultisigWithSigner}
+   * with the remaining members' signers before the LogicSig can authorize
+   * transactions.
+   *
+   * If the delegating account is not a multisig, use
+   * {@link LogicSigAccount.signWithSigner} instead.
+   *
+   * @param msig - The multisig delegating to this LogicSig
+   * @param signer - The signer of one member of `msig`
+   */
   async signMultisigWithSigner(
     msig: MultisigMetadata,
     signer: DelegatedLsigSigner
@@ -676,6 +740,16 @@ export class LogicSigAccount implements encoding.Encodable {
     this.lsig.appendToMultisig(secretKey);
   }
 
+  /**
+   * Adds an additional signature from a member of the delegating multisig
+   * account.
+   *
+   * @remarks
+   * {@link LogicSigAccount.signMultisigWithSigner} must have been called first
+   * to establish the multisig this signature belongs to.
+   *
+   * @param signer - The signer of another member of the delegating multisig account
+   */
   async appendToMultisigWithSigner(signer: DelegatedLsigSigner) {
     await this.lsig.appendToMultisigWithSigner(signer);
   }
@@ -697,8 +771,17 @@ export class LogicSigAccount implements encoding.Encodable {
 
   /**
    * Turns this LogicSigAccount into a delegated LogicSig, signed by the given
-   * signer. If the delegating account is a multisig account, use
-   * `signMultisigWithSigner` instead.
+   * signer. This type of LogicSig has the authority to sign transactions on
+   * behalf of another account, called the delegating account.
+   *
+   * @remarks
+   * If the delegating account is a multisig account, use
+   * {@link LogicSigAccount.signMultisigWithSigner} instead.
+   *
+   * The delegating account is taken to be the address the signer reports having
+   * signed as, not any sending address the signer advertises: for a rekeyed
+   * account the latter is the address it sends transactions from, which is not
+   * the account authorizing this delegation.
    *
    * @param signer - The signer of the delegating account.
    */
@@ -720,6 +803,10 @@ export function logicSigFromByte(encoded: Uint8Array): LogicSig {
   return encoding.decodeMsgpack(encoded, LogicSig);
 }
 
+/**
+ * The domain-separation prefix prepended, along with the program's address, to
+ * data signed for verification by the `ed25519verify` opcode.
+ */
 export const SIGN_PROGRAM_DATA_PREFIX = new TextEncoder().encode('ProgData');
 
 /**

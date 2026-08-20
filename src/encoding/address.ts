@@ -204,9 +204,16 @@ export function getApplicationAddress(appID: number | bigint): Address {
  * Derive a post-quantum (PQ) account address together with the canonical salt
  * used to derive it.
  *
+ * @remarks
+ * The salt is found by rejection sampling: it is the lowest value whose
+ * preimage hashes to something that could not also be an Ed25519 public key, so
+ * that a PQ account can never collide with an Ed25519 one.
+ *
  * @param schemeBytes - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024).
  * @param key - The scheme's canonical public key.
  * @returns The derived Address and the canonical 1-byte salt.
+ * @throws If `schemeBytes` is not exactly {@link PQ_SCHEME_SIZE} bytes, or in
+ *   the ~2^-256 case where no salt in range yields a valid address.
  */
 export function addressFromPQKey(
   schemeBytes: Uint8Array,
@@ -248,6 +255,8 @@ export function addressFromPQKey(
  *
  * @param pqsig - The post-quantum signature to derive the address from.
  * @returns The address of the account the signature authorizes.
+ * @throws If the signature's scheme is malformed, or if its salt is not the
+ *   canonical one for its scheme and public key.
  */
 export function addressFromPQSig(pqsig: EncodedPQSig): Address {
   const { address, salt } = addressFromPQKey(pqsig.sch, pqsig.pk);

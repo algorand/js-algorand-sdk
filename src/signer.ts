@@ -36,10 +36,25 @@ export type TransactionSigner = (
   indexesToSign: number[]
 ) => Promise<Uint8Array[]>;
 
+/**
+ * An address paired with a signer able to sign transactions on its behalf.
+ *
+ * @remarks
+ * `address` is the address transactions are sent from, which is not necessarily
+ * the address that authorizes them: for a rekeyed account the two differ, and
+ * `txnSigner` sets the transaction's `sgnr` field accordingly.
+ */
 export interface AddressWithTransactionSigner extends Addressable {
   txnSigner: TransactionSigner;
 }
 
+/**
+ * An address paired with a signer that produces placeholder signatures for it.
+ *
+ * @remarks
+ * Useful for post-quantum accounts, whose real signatures are large and slow to
+ * produce, when only a simulation of the group is needed.
+ */
 export interface AddressWithEmptyTransactionSigner extends Addressable {
   /**
    * A TransactionSigner that produces unsigned (or placeholder-signed)
@@ -49,11 +64,26 @@ export interface AddressWithEmptyTransactionSigner extends Addressable {
   emptyTxnSigner: TransactionSigner;
 }
 
-/** Function for signing logic signatures for delegation
- *  @param lsig - The logic signature that is being signed for delegation
- *  @param msig - Optional multisig account that should be set when a public key is signing as a subsigner of a multisig
- *  @returns The address of the delegator
- * */
+/**
+ * This type represents a function which can sign a LogicSig for delegation.
+ *
+ * @remarks
+ * Exactly one of `sig`, `lmsig` and `pqsig` is returned, according to the kind
+ * of key the signer holds and whether `msig` was supplied:
+ *
+ * - `sig` - an ed25519 signature from a single delegating account
+ * - `lmsig` - a multisig containing this signer's subsignature, returned when
+ *   `msig` is supplied
+ * - `pqsig` - a post-quantum signature from a single delegating account
+ *
+ * @param lsig - The logic signature that is being signed for delegation
+ * @param msig - Optional multisig account that should be set when a public key is signing as a subsigner of a multisig
+ * @returns A promise which resolves to the signature and the address that
+ *   produced it. When `msig` is omitted this is the delegating account; when
+ *   `msig` is supplied it is the individual subsigner rather than the multisig.
+ *   Either way it is an authorizing address, which is not necessarily the
+ *   address the signer sends transactions from.
+ */
 export type DelegatedLsigSigner = (
   lsig: LogicSig,
   msig?: MultisigMetadata
@@ -65,21 +95,54 @@ export type DelegatedLsigSigner = (
   )
 >;
 
+/**
+ * An address paired with a signer able to delegate a LogicSig to it.
+ */
 export interface AddressWithDelegatedLsigSigner extends Addressable {
   delegatedLsigSigner: DelegatedLsigSigner;
 }
 
+/**
+ * This type represents a function which can sign arbitrary bytes, for use with
+ * {@link verifyBytes}.
+ *
+ * @remarks
+ * The implementation is responsible for prepending the "MX" domain-separation
+ * prefix ({@link SIGN_BYTES_PREFIX}) before signing, so `bytesToSign` is the
+ * caller's bytes alone.
+ *
+ * @param bytesToSign - The bytes to sign, without any domain-separation prefix
+ * @returns A promise which resolves to the raw signature
+ */
 export type MxBytesSigner = (bytesToSign: Uint8Array) => Promise<Uint8Array>;
 
+/**
+ * An address paired with a signer able to sign arbitrary bytes on its behalf.
+ */
 export interface AddressWithMxBytesSigner extends Addressable {
   mxBytesSigner: MxBytesSigner;
 }
 
+/**
+ * This type represents a function which can sign data for use with the
+ * `ed25519verify` opcode from within a LogicSig's program.
+ *
+ * @remarks
+ * The implementation is responsible for prepending the "ProgData" prefix
+ * ({@link SIGN_PROGRAM_DATA_PREFIX}) and the LogicSig's address before signing.
+ *
+ * @param data - The data to sign, without any prefix
+ * @param lsig - The LogicSig whose program will verify the signature
+ * @returns A promise which resolves to the raw signature
+ */
 export type ProgramDataSigner = (
   data: Uint8Array,
   lsig: LogicSig
 ) => Promise<Uint8Array>;
 
+/**
+ * An address paired with a signer able to sign program data on its behalf.
+ */
 export interface AddressWithProgramDataSigner extends Addressable {
   programDataSigner: ProgramDataSigner;
 }
