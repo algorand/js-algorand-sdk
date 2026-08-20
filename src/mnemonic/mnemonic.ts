@@ -198,6 +198,8 @@ const PQ_KEY_PREFIX = new TextEncoder().encode('PQK');
  * @param mn - A 25-word Algorand mnemonic
  * @param scheme - The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024)
  * @returns The 32-byte seed to hand to the scheme's key generator
+ * @throws If `mn` is not a valid 25-word mnemonic, or if `scheme` is not
+ *   exactly {@link PQ_SCHEME_SIZE} bytes
  */
 export function pq25WordMnemonicToSeed(
   mn: string,

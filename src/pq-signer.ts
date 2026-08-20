@@ -14,12 +14,49 @@ import { Transaction } from './transaction.js';
 import { EncodedPQSig } from './types/transactions/encoded.js';
 import { concatArrays } from './utils/utils.js';
 
+/**
+ * A post-quantum public key, its scheme identifier, and a function that signs
+ * raw bytes with the corresponding secret key.
+ *
+ * @remarks
+ * `pqSigner` receives the exact bytes to sign, with every domain-separation
+ * prefix already applied, so it can be backed by a key that never leaves a
+ * wallet, HSM or hardware device.
+ */
 export interface PQSigningKey {
+  /** The 2-byte ASCII PQ scheme identifier (e.g. "f1" for Falcon-1024). */
   pqScheme: Uint8Array;
+  /** The scheme's canonical public key. */
   pqPublicKey: Uint8Array;
+  /** Signs the given bytes verbatim with the corresponding secret key. */
   pqSigner: (bytesToSign: Uint8Array) => Promise<Uint8Array>;
 }
 
+/**
+ * Build the full set of signers for a post-quantum key from a function that
+ * signs raw bytes with it.
+ *
+ * @remarks
+ * The account address is derived from the scheme and public key via
+ * {@link addressFromPQKey}, so it does not have to be supplied. Every signature
+ * produced carries the scheme, canonical salt and public key alongside the
+ * signature bytes, which is what lets the network recover the authorizing
+ * address from the signature alone.
+ *
+ * PQ schemes cannot participate in multisig, so `delegatedLsigSigner` throws if
+ * given an `msig` argument, and no `mxBytesSigner` or `programDataSigner` is
+ * returned — signing arbitrary bytes and program data are ed25519-only
+ * operations.
+ *
+ * @param signingKey - The scheme, public key and raw signing function to build the signers from
+ * @param sendingAddress - The address transactions are sent from. Defaults to
+ *   the derived PQ address; supply it when the PQ key is the auth address of a
+ *   rekeyed account, in which case the produced transactions carry the derived
+ *   address in their `sgnr` field.
+ * @returns An address bundled with transaction, empty transaction and delegated
+ *   LogicSig signers
+ * @throws If `pqScheme` is not exactly 2 bytes
+ */
 export function addressWithSignersFromRawPQSigner(
   signingKey: PQSigningKey,
   sendingAddress?: Address

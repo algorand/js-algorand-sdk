@@ -25,11 +25,40 @@ import {
 } from './types/transactions/encoded.js';
 import { arrayEqual, concatArrays } from './utils/utils.js';
 
+/**
+ * An ed25519 public key paired with a function that signs raw bytes with the
+ * corresponding secret key.
+ *
+ * @remarks
+ * `ed25519Signer` receives the exact bytes to sign, with every
+ * domain-separation prefix already applied, so it can be backed by a key that
+ * never leaves a wallet, HSM or hardware device.
+ */
 export interface Ed25519SigningKey {
+  /** The 32-byte ed25519 public key. */
   ed25519PublicKey: Uint8Array;
+  /** Signs the given bytes verbatim with the corresponding secret key. */
   ed25519Signer: (bytesToSign: Uint8Array) => Promise<Uint8Array>;
 }
 
+/**
+ * Build the full set of signers for an ed25519 key from a function that signs
+ * raw bytes with it.
+ *
+ * @remarks
+ * Each returned signer applies the domain separation its use requires
+ * ("Program", "MsigProgram", "ProgData", or the transaction prefix) before
+ * calling `ed25519Signer`, so a caller only has to supply the raw signing
+ * operation once.
+ *
+ * @param ed25519SigningKey - The public key and raw signing function to build the signers from
+ * @param sendingAddress - The address transactions are sent from. Defaults to
+ *   the address of `ed25519PublicKey`; supply it when that key is the auth
+ *   address of a rekeyed account, in which case the produced transactions carry
+ *   the key's address in their `sgnr` field.
+ * @returns An address bundled with transaction, delegated LogicSig, arbitrary
+ *   bytes and program data signers
+ */
 export function addressWithSignersFromRawEd25519Signer(
   ed25519SigningKey: Ed25519SigningKey,
   sendingAddress: Address = new Address(ed25519SigningKey.ed25519PublicKey)

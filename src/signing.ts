@@ -8,6 +8,11 @@ import { LogicSig, LogicSigAccount, sanityCheckProgram } from './logicsig.js';
 import { addressFromMultisigPreImg } from './multisig.js';
 import type { TransactionSigner } from './signer.js';
 
+/**
+ * The domain-separation prefix prepended to arbitrary bytes before signing them
+ * with {@link signBytes}, so that such a signature can never be mistaken for a
+ * signature over a transaction or a program.
+ */
 export const SIGN_BYTES_PREFIX = Uint8Array.from([77, 88]); // "MX"
 
 /**
@@ -34,6 +39,23 @@ export function signTransaction(txn: Transaction, sk: Uint8Array) {
   };
 }
 
+/**
+ * signTransactionWithSigner signs a single transaction with the given signer.
+ *
+ * @remarks
+ * This is the replacement for the deprecated {@link signTransaction}, which can
+ * only sign with a raw ed25519 secret key. Because a `TransactionSigner` signs
+ * a group, the transaction is passed as a one-element group and the single
+ * result is returned.
+ *
+ * The decoded `stxn` is returned alongside the blob so callers can read what
+ * the signer produced — its `sig`, `pqsig` or `msig` field, and the `sgnr` field
+ * naming the key that signed when it is not the transaction sender.
+ *
+ * @param txn - the transaction to sign
+ * @param signer - the signer to sign with
+ * @returns an object with blob, txID and stxn properties
+ */
 export async function signTransactionWithSigner(
   txn: Transaction,
   signer: TransactionSigner
