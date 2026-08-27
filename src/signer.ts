@@ -232,29 +232,57 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
 }
 
 /**
+ * The result of running a {@link GroupModifier}: instructions for what the composer
+ * should insert at the boundaries of the whole group, and/or change about the modifier's
+ * own transaction, when building the group.
+ *
+ * @remarks
+ * `prependTxns`/`appendTxns` are inserted at the very start/end of the *whole* built group,
+ * not next to the modifier's own transaction — so if more than one transaction in the group
+ * has a modifier, all of their `prependTxns` are stacked at the front (in group order) and
+ * all of their `appendTxns` are stacked at the back (in group order). A modifier cannot
+ * move, remove, or replace any *existing* transaction, and cannot change any field of its
+ * own transaction other than `fee`. Because existing transactions only ever shift together
+ * (from a prepend) or stay put (an append only adds after them), the relative offset
+ * between any two existing transactions never changes — which is what keeps a modifier from
+ * disturbing an ABI method call's transaction-argument adjacency elsewhere in the group
+ * (ARC-4 resolves those purely by relative position) — and guarantees a dapp that its own
+ * transaction's sender, receiver, args, etc. cannot be silently rewritten out from under it.
+ */
+export interface GroupModifierResult {
+  /** Transactions to insert at the very beginning of the built group */
+  prependTxns?: Transaction[];
+  /** Changes to make to this transaction itself */
+  modifications?: {
+    /** If set, overrides this transaction's fee */
+    fee?: bigint;
+  };
+  /** Transactions to insert at the very end of the built group */
+  appendTxns?: Transaction[];
+}
+
+/**
  * A function which can rewrite an atomic transaction group before it is built, e.g. to
- * change one of its transactions or to add new transactions to it (such as a fee-bump
- * or a cover transaction).
+ * bump its own transaction's fee, or to add a cover/sponsor transaction at the start or
+ * end of the group.
  *
  * @remarks
  * {@link AtomicTransactionComposer.buildGroupWithModifiers} runs the modifier of every
- * transaction that has one, in group order; each modifier sees the group as reshaped by
- * any modifier that ran before it. A transaction newly introduced by a modifier's output
- * is never itself checked for a `modifier`, so modifiers do not cascade within a single
- * build.
+ * transaction that has one, each against the group as it looked before any modifier ran
+ * (except that fee changes, being applied in place, are visible to modifiers that run
+ * later in the same build). Transactions introduced by `prependTxns`/`appendTxns` are
+ * signed by the modifier-owning transaction's signer, and are never themselves checked
+ * for a `modifier`, so modifiers do not cascade within a single build.
  *
- * @param txnGroup - The current transactions in the atomic group, in order
- * @returns A promise which resolves to the new list of transactions for the group, along
- *   with a map from each new transaction's index (in the returned `txns` array) to the
- *   index of the transaction in `txnGroup` it was derived from. A new transaction
- *   introduced by the modifier (not derived from an existing one) should be omitted from
- *   the map; the composer will sign it using the modifier-owning transaction's signer.
+ * @param txnGroup - The transactions in the atomic group, in order, as they were before
+ *   this build's modifiers ran
+ * @returns A promise which resolves to the changes this modifier wants made to the group
+ *   and to its own transaction
  */
 export type GroupModifier = (
   // eslint-disable-next-line no-use-before-define
   txnGroup: Transaction[]
-  // eslint-disable-next-line no-use-before-define
-) => Promise<{ txns: Transaction[]; txnIndexMap: Map<number, number> }>;
+) => Promise<GroupModifierResult>;
 
 /** Represents an unsigned transactions and a signer that can authorize that transaction. */
 export interface TransactionWithSigner {
@@ -262,7 +290,7 @@ export interface TransactionWithSigner {
   txn: Transaction;
   /** A transaction signer that can authorize txn */
   signer: TransactionSigner;
-  /** An optional modifier that can rewrite the transaction group this transaction belongs to */
+  /** An optional modifier that can adjust this transaction's fee and/or insert transactions at the start/end of the group */
   modifier?: GroupModifier;
 }
 

@@ -148,9 +148,16 @@ export class AtomicTransactionComposer {
   /**
    * Create a new composer with the same underlying transactions. The new composer's status will be
    * BUILDING, so additional transactions may be added to it.
+   *
+   * @remarks
+   * If this composer has already been built, its transactions' modifiers have already run
+   * and are not carried over to the clone — otherwise re-building the clone would apply
+   * them a second time, on top of their own prior output.
    */
   clone(): AtomicTransactionComposer {
     const theClone = new AtomicTransactionComposer();
+    const alreadyBuilt =
+      this.status !== AtomicTransactionComposerStatus.BUILDING;
 
     theClone.transactions = this.transactions.map(
       ({ txn, signer, modifier }) => {
@@ -161,7 +168,7 @@ export class AtomicTransactionComposer {
           // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
           txn: Transaction.fromEncodingData(txnMap),
           signer,
-          modifier,
+          modifier: alreadyBuilt ? undefined : modifier,
         };
       }
     );
@@ -542,10 +549,14 @@ export class AtomicTransactionComposer {
    *
    * @remarks
    * Used instead of {@link buildGroup} whenever at least one transaction in the group has
-   * a `modifier`. Each modifier-bearing transaction's modifier runs once, in group order,
-   * against the group as reshaped by any modifier that ran before it; transactions the
-   * modifier introduces are not themselves checked for a `modifier`. Method calls tracked
-   * via {@link addMethodCall} are remapped to follow their transaction if its index shifts.
+   * a `modifier`. Every modifier-bearing transaction's modifier runs once, against the
+   * group as it looked before any modifier ran this build. A modifier's `prependTxns`/
+   * `appendTxns` are collected into two blocks (signed by their respective transactions'
+   * signers) and inserted at the very start/end of the built group, in group order if more
+   * than one modifier contributes to a block; none of the existing transactions move
+   * relative to one another, so this never disturbs an ABI method call's transaction-
+   * argument adjacency elsewhere in the group. Method calls tracked via
+   * {@link addMethodCall} are remapped to follow their transaction if its index shifts.
    *
    * The composer's status will be at least BUILT after executing this method.
    */
@@ -555,43 +566,54 @@ export class AtomicTransactionComposer {
         throw new Error('Cannot build a group with 0 transactions');
       }
 
-      for (const ogTxn of [...this.transactions]) {
+      const originalTxns = this.transactions.map((t) => t.txn);
+      const prependGroup: TransactionWithSigner[] = [];
+      const middleGroup: TransactionWithSigner[] = [];
+      const appendGroup: TransactionWithSigner[] = [];
+      const middleMethodCalls: Map<number, ABIMethod> = new Map();
+
+      for (const [oldIdx, ogTxn] of this.transactions.entries()) {
         if (ogTxn.modifier) {
-          const newGroup: TransactionWithSigner[] = [];
-          const oldMethodCalls = new Map(this.methodCalls);
-          this.methodCalls = new Map();
+          const { prependTxns, modifications, appendTxns } =
+            // eslint-disable-next-line no-await-in-loop
+            await ogTxn.modifier(originalTxns);
 
-          // eslint-disable-next-line no-await-in-loop
-          const { txns, txnIndexMap } = await ogTxn.modifier(
-            this.transactions.map((t) => t.txn)
-          );
-
-          for (const [idx, newTxn] of txns.entries()) {
-            const oldIdx = txnIndexMap.get(idx);
-
-            // If this is a new txn introduced by the modifier, use the current signer
-            if (oldIdx === undefined) {
-              newGroup[idx] = {
-                txn: newTxn,
-                signer: ogTxn.signer,
-              };
-            } else {
-              newGroup[idx] = {
-                txn: newTxn,
-                signer: this.transactions[oldIdx].signer,
-                modifier: this.transactions[oldIdx].modifier,
-              };
-
-              const methodCall = oldMethodCalls.get(oldIdx);
-              if (methodCall) {
-                this.methodCalls.set(idx, methodCall);
-              }
-            }
+          for (const txn of prependTxns ?? []) {
+            prependGroup.push({ txn, signer: ogTxn.signer });
           }
 
-          this.transactions = newGroup;
+          if (modifications?.fee !== undefined) {
+            ogTxn.txn.fee = modifications.fee;
+          }
+
+          const newIdx = middleGroup.length;
+          middleGroup.push({ txn: ogTxn.txn, signer: ogTxn.signer });
+          const methodCall = this.methodCalls.get(oldIdx);
+          if (methodCall) {
+            middleMethodCalls.set(newIdx, methodCall);
+          }
+
+          for (const txn of appendTxns ?? []) {
+            appendGroup.push({ txn, signer: ogTxn.signer });
+          }
+        } else {
+          const newIdx = middleGroup.length;
+          middleGroup.push(ogTxn);
+          const methodCall = this.methodCalls.get(oldIdx);
+          if (methodCall) {
+            middleMethodCalls.set(newIdx, methodCall);
+          }
         }
       }
+
+      const indexOffset = prependGroup.length;
+      this.transactions = [...prependGroup, ...middleGroup, ...appendGroup];
+      this.methodCalls = new Map(
+        Array.from(middleMethodCalls, ([idx, method]) => [
+          idx + indexOffset,
+          method,
+        ])
+      );
       assignGroupID(this.transactions.map((t) => t.txn));
       this.status = AtomicTransactionComposerStatus.BUILT;
     }

@@ -78,18 +78,9 @@ describe('AtomicTransactionComposer group modifiers', () => {
       suggestedParams,
     });
 
-    const tripleFee: GroupModifier = async (txnGroup) => {
-      const newTxns = [...txnGroup];
-      newTxns[0].fee = txnGroup[0].fee * 3n;
-      return {
-        txns: newTxns,
-        txnIndexMap: new Map([
-          [0, 0],
-          [1, 1],
-          [2, 2],
-        ]),
-      };
-    };
+    const tripleFee: GroupModifier = async () => ({
+      modifications: { fee: txnToModify.fee * 3n },
+    });
 
     composer.addTransaction({
       txn: txnToModify,
@@ -136,8 +127,8 @@ describe('AtomicTransactionComposer group modifiers', () => {
     assert.deepStrictEqual(modified.txn.group, untouched.txn.group);
     assert.deepStrictEqual(modified.txn.group, appCall.txn.group);
 
-    // The method call's index (2) was unaffected by the modifier, so its key
-    // in the internal methodCalls map should be unchanged too.
+    // A fee-only modification doesn't move any transaction, so the method
+    // call's key in the internal methodCalls map should be unchanged.
     const methodCalls = getMethodCalls(composer);
     assert.strictEqual(methodCalls.size, 1);
     assert.strictEqual(methodCalls.get(2), method);
@@ -156,20 +147,14 @@ describe('AtomicTransactionComposer group modifiers', () => {
       suggestedParams,
     });
 
-    const prependSponsorTxn: GroupModifier = async (txnGroup) => {
+    const prependSponsorTxn: GroupModifier = async () => {
       const sponsorTxn = makePaymentTxnWithSuggestedParamsFromObject({
         sender: account.addr,
         receiver: account.addr,
         amount: 0,
         suggestedParams,
       });
-      return {
-        txns: [sponsorTxn, ...txnGroup],
-        txnIndexMap: new Map([
-          [1, 0],
-          [2, 1],
-        ]),
-      };
+      return { prependTxns: [sponsorTxn] };
     };
 
     composer.addTransaction({
@@ -239,22 +224,20 @@ describe('AtomicTransactionComposer group modifiers', () => {
       suggestedParams,
     });
 
-    const appendCleanupTxn: GroupModifier = async (txnGroup) => {
+    const appendCleanupTxn: GroupModifier = async () => {
       const cleanupTxn = makePaymentTxnWithSuggestedParamsFromObject({
         sender: account.addr,
         receiver: account.addr,
         amount: 0,
         suggestedParams,
       });
-      return {
-        txns: [...txnGroup, cleanupTxn],
-        txnIndexMap: new Map([
-          [0, 0],
-          [1, 1],
-        ]),
-      };
+      return { appendTxns: [cleanupTxn] };
     };
 
+    // The modifier-bearing transaction is added first and the method call second, to
+    // demonstrate that appendTxns targets the true end of the whole group -- not just
+    // "immediately after the transaction that owns the modifier" -- since the method
+    // call, added later, still ends up between the original txn and the cleanup txn.
     composer.addTransaction({
       txn: originalTxn,
       signer: makeBasicAccountTransactionSigner(account),
@@ -281,8 +264,6 @@ describe('AtomicTransactionComposer group modifiers', () => {
     assert.strictEqual(original.txn.payment?.amount, 1000n);
     assertSignedBy(original, account);
 
-    // The method call stayed at index 1 (the new txn is appended after it);
-    // confirm it wasn't disturbed by the modifier and kept its own signer.
     assert.strictEqual(appCall.txn.applicationCall?.appIndex, BigInt(appID));
     assert.deepStrictEqual(
       appCall.txn.applicationCall?.appArgs[0],
@@ -295,14 +276,66 @@ describe('AtomicTransactionComposer group modifiers', () => {
     assertSignedBy(cleanup, account);
 
     assert.ok(cleanup.txn.group && cleanup.txn.group.length > 0);
-    assert.deepStrictEqual(cleanup.txn.group, original.txn.group);
     assert.deepStrictEqual(cleanup.txn.group, appCall.txn.group);
+    assert.deepStrictEqual(cleanup.txn.group, original.txn.group);
 
-    // The method call was added at index 1, and the modifier only appended a
-    // new txn after it, so its key in the internal methodCalls map should
-    // still be 1.
+    // The method call was added at index 1, after the modifier-bearing
+    // transaction; nothing about the modifier should have moved it.
     const methodCalls = getMethodCalls(composer);
     assert.strictEqual(methodCalls.size, 1);
     assert.strictEqual(methodCalls.get(1), method);
+  });
+
+  it('should not re-run a modifier when a built composer is cloned', async () => {
+    const composer = new AtomicTransactionComposer();
+    const account = generateAccount();
+    const receiver = generateAccount();
+
+    const originalTxn = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account.addr,
+      receiver: receiver.addr,
+      amount: 1000,
+      suggestedParams,
+    });
+
+    let modifierCalls = 0;
+    const prependSponsorTxn: GroupModifier = async () => {
+      modifierCalls += 1;
+      const sponsorTxn = makePaymentTxnWithSuggestedParamsFromObject({
+        sender: account.addr,
+        receiver: account.addr,
+        amount: 0,
+        suggestedParams,
+      });
+      return { prependTxns: [sponsorTxn] };
+    };
+
+    composer.addTransaction({
+      txn: originalTxn,
+      signer: makeBasicAccountTransactionSigner(account),
+      modifier: prependSponsorTxn,
+    });
+
+    const stxns = await composer.gatherSignatures();
+    assert.strictEqual(stxns.length, 2);
+    assert.strictEqual(modifierCalls, 1);
+
+    const clone = composer.clone();
+    assert.strictEqual(
+      clone.getStatus(),
+      AtomicTransactionComposerStatus.BUILDING
+    );
+
+    const cloneStxns = await clone.gatherSignatures();
+    assert.strictEqual(
+      cloneStxns.length,
+      2,
+      'cloning an already-built composer should not re-apply its modifiers'
+    );
+    assert.strictEqual(
+      modifierCalls,
+      1,
+      'the modifier should not run again for the clone'
+    );
   });
 });
