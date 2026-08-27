@@ -152,16 +152,19 @@ export class AtomicTransactionComposer {
   clone(): AtomicTransactionComposer {
     const theClone = new AtomicTransactionComposer();
 
-    theClone.transactions = this.transactions.map(({ txn, signer }) => {
-      const txnMap = txn.toEncodingData();
-      // erase the group ID
-      txnMap.delete('grp');
-      return {
-        // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
-        txn: Transaction.fromEncodingData(txnMap),
-        signer,
-      };
-    });
+    theClone.transactions = this.transactions.map(
+      ({ txn, signer, modifier }) => {
+        const txnMap = txn.toEncodingData();
+        // erase the group ID
+        txnMap.delete('grp');
+        return {
+          // not quite a deep copy, but good enough for our purposes (modifying txn.group in buildGroup)
+          txn: Transaction.fromEncodingData(txnMap),
+          signer,
+          modifier,
+        };
+      }
+    );
     theClone.methodCalls = new Map(this.methodCalls);
 
     return theClone;
@@ -534,6 +537,69 @@ export class AtomicTransactionComposer {
   }
 
   /**
+   * Finalize the transaction group and return the finalized transactions, running each
+   * transaction's {@link GroupModifier} (if any) first.
+   *
+   * @remarks
+   * Used instead of {@link buildGroup} whenever at least one transaction in the group has
+   * a `modifier`. Each modifier-bearing transaction's modifier runs once, in group order,
+   * against the group as reshaped by any modifier that ran before it; transactions the
+   * modifier introduces are not themselves checked for a `modifier`. Method calls tracked
+   * via {@link addMethodCall} are remapped to follow their transaction if its index shifts.
+   *
+   * The composer's status will be at least BUILT after executing this method.
+   */
+  async buildGroupWithModifiers(): Promise<TransactionWithSigner[]> {
+    if (this.status === AtomicTransactionComposerStatus.BUILDING) {
+      if (this.transactions.length === 0) {
+        throw new Error('Cannot build a group with 0 transactions');
+      }
+
+      for (const ogTxn of [...this.transactions]) {
+        if (ogTxn.modifier) {
+          const newGroup: TransactionWithSigner[] = [];
+          const oldMethodCalls = new Map(this.methodCalls);
+          this.methodCalls = new Map();
+
+          // eslint-disable-next-line no-await-in-loop
+          const { txns, txnIndexMap } = await ogTxn.modifier(
+            this.transactions.map((t) => t.txn)
+          );
+
+          for (const [idx, newTxn] of txns.entries()) {
+            const oldIdx = txnIndexMap.get(idx);
+
+            // If this is a new txn introduced by the modifier, use the current signer
+            if (oldIdx === undefined) {
+              newGroup[idx] = {
+                txn: newTxn,
+                signer: ogTxn.signer,
+              };
+            } else {
+              newGroup[idx] = {
+                txn: newTxn,
+                signer: this.transactions[oldIdx].signer,
+                modifier: this.transactions[oldIdx].modifier,
+              };
+
+              const methodCall = oldMethodCalls.get(oldIdx);
+              if (methodCall) {
+                this.methodCalls.set(idx, methodCall);
+              }
+            }
+          }
+
+          this.transactions = newGroup;
+        }
+      }
+      assignGroupID(this.transactions.map((t) => t.txn));
+      this.status = AtomicTransactionComposerStatus.BUILT;
+    }
+
+    return this.transactions;
+  }
+
+  /**
    * Obtain signatures for each transaction in this group. If signatures have already been obtained,
    * this method will return cached versions of the signatures.
    *
@@ -548,8 +614,15 @@ export class AtomicTransactionComposer {
       return this.signedTxns;
     }
 
+    const groupHasModifiers = this.transactions.find(
+      (t) => t.modifier !== undefined
+    );
+
     // retrieve built transactions and verify status is BUILT
-    const txnsWithSigners = this.buildGroup();
+    const txnsWithSigners = groupHasModifiers
+      ? await this.buildGroupWithModifiers()
+      : this.buildGroup();
+
     const txnGroup = txnsWithSigners.map((txnWithSigner) => txnWithSigner.txn);
 
     const indexesPerSigner: Map<TransactionSigner, number[]> = new Map();

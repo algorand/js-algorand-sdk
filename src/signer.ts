@@ -231,12 +231,39 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
   };
 }
 
+/**
+ * A function which can rewrite an atomic transaction group before it is built, e.g. to
+ * change one of its transactions or to add new transactions to it (such as a fee-bump
+ * or a cover transaction).
+ *
+ * @remarks
+ * {@link AtomicTransactionComposer.buildGroupWithModifiers} runs the modifier of every
+ * transaction that has one, in group order; each modifier sees the group as reshaped by
+ * any modifier that ran before it. A transaction newly introduced by a modifier's output
+ * is never itself checked for a `modifier`, so modifiers do not cascade within a single
+ * build.
+ *
+ * @param txnGroup - The current transactions in the atomic group, in order
+ * @returns A promise which resolves to the new list of transactions for the group, along
+ *   with a map from each new transaction's index (in the returned `txns` array) to the
+ *   index of the transaction in `txnGroup` it was derived from. A new transaction
+ *   introduced by the modifier (not derived from an existing one) should be omitted from
+ *   the map; the composer will sign it using the modifier-owning transaction's signer.
+ */
+export type GroupModifier = (
+  // eslint-disable-next-line no-use-before-define
+  txnGroup: Transaction[]
+  // eslint-disable-next-line no-use-before-define
+) => Promise<{ txns: Transaction[]; txnIndexMap: Map<number, number> }>;
+
 /** Represents an unsigned transactions and a signer that can authorize that transaction. */
 export interface TransactionWithSigner {
   /** An unsigned transaction */
   txn: Transaction;
   /** A transaction signer that can authorize txn */
   signer: TransactionSigner;
+  /** An optional modifier that can rewrite the transaction group this transaction belongs to */
+  modifier?: GroupModifier;
 }
 
 /**
