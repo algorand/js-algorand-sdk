@@ -620,8 +620,8 @@ export class Transaction implements encoding.Encodable {
 
   /** suggested params */
   public fee: bigint;
-  public readonly firstValid: bigint;
-  public readonly lastValid: bigint;
+  public firstValid: bigint;
+  public lastValid: bigint;
   public readonly genesisID?: string;
   public readonly genesisHash?: Uint8Array;
 

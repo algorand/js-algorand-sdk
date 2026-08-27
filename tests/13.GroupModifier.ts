@@ -59,7 +59,7 @@ describe('AtomicTransactionComposer group modifiers', () => {
     );
   }
 
-  it('should allow a modifier to change a transaction within the group (fee)', async () => {
+  it('should allow a modifier to change a transaction within the group', async () => {
     const composer = new AtomicTransactionComposer();
     const account1 = generateAccount();
     const account2 = generateAccount();
@@ -78,14 +78,18 @@ describe('AtomicTransactionComposer group modifiers', () => {
       suggestedParams,
     });
 
-    const tripleFee: GroupModifier = async () => ({
-      modifications: { fee: txnToModify.fee * 3n },
+    const modifyTxn: GroupModifier = async () => ({
+      modifications: {
+        fee: txnToModify.fee * 3n,
+        firstValid: 5n,
+        lastValid: 1005n,
+      },
     });
 
     composer.addTransaction({
       txn: txnToModify,
       signer: makeBasicAccountTransactionSigner(account1),
-      modifier: tripleFee,
+      modifier: modifyTxn,
     });
     composer.addTransaction({
       txn: untouchedTxn,
@@ -110,9 +114,13 @@ describe('AtomicTransactionComposer group modifiers', () => {
     const [modified, untouched, appCall] = decodeSignedTxns(stxns);
 
     assert.strictEqual(modified.txn.fee, 3000n);
+    assert.strictEqual(modified.txn.firstValid, 5n);
+    assert.strictEqual(modified.txn.lastValid, 1005n);
     assertSignedBy(modified, account1);
 
     assert.strictEqual(untouched.txn.fee, 1000n);
+    assert.strictEqual(untouched.txn.firstValid, 0n);
+    assert.strictEqual(untouched.txn.lastValid, 1000n);
     assertSignedBy(untouched, account2);
 
     assert.strictEqual(appCall.txn.applicationCall?.appIndex, BigInt(appID));

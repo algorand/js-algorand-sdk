@@ -242,7 +242,7 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
  * has a modifier, all of their `prependTxns` are stacked at the front (in group order) and
  * all of their `appendTxns` are stacked at the back (in group order). A modifier cannot
  * move, remove, or replace any *existing* transaction, and cannot change any field of its
- * own transaction other than `fee`. Because existing transactions only ever shift together
+ * own transaction other than `fee`, `firstValid`, or `lastValid`. Because existing transactions only ever shift together
  * (from a prepend) or stay put (an append only adds after them), the relative offset
  * between any two existing transactions never changes — which is what keeps a modifier from
  * disturbing an ABI method call's transaction-argument adjacency elsewhere in the group
@@ -256,6 +256,10 @@ export interface GroupModifierResult {
   modifications?: {
     /** If set, overrides this transaction's fee */
     fee?: bigint;
+    /** If set, overrides this transaction's first valid round */
+    firstValid?: bigint;
+    /** If set, overrides this transaction's last valid round */
+    lastValid?: bigint;
   };
   /** Transactions to insert at the very end of the built group */
   appendTxns?: Transaction[];
@@ -263,7 +267,7 @@ export interface GroupModifierResult {
 
 /**
  * A function which can rewrite an atomic transaction group before it is built, e.g. to
- * bump its own transaction's fee, or to add a cover/sponsor transaction at the start or
+ * change its own transaction's fee or validity window, or to add a cover/sponsor transaction at the start or
  * end of the group.
  *
  * @remarks
@@ -290,7 +294,7 @@ export interface TransactionWithSigner {
   txn: Transaction;
   /** A transaction signer that can authorize txn */
   signer: TransactionSigner;
-  /** An optional modifier that can adjust this transaction's fee and/or insert transactions at the start/end of the group */
+  /** An optional modifier that can adjust this transaction's fee and validity window and/or insert transactions at the start/end of the group */
   modifier?: GroupModifier;
 }
 

@@ -533,6 +533,17 @@ export class AtomicTransactionComposer {
       if (this.transactions.length === 0) {
         throw new Error('Cannot build a group with 0 transactions');
       }
+
+      const groupHasModifiers = this.transactions.find(
+        (t) => t.modifier !== undefined
+      );
+
+      if (groupHasModifiers) {
+        console.warn(
+          `AtomicTransactionComposer.buildGroup was called on a group with transaction group modifiers. Use buildGroupWithModifiers instead`
+        );
+      }
+
       if (this.transactions.length > 1) {
         assignGroupID(
           this.transactions.map((txnWithSigner) => txnWithSigner.txn)
@@ -584,6 +595,12 @@ export class AtomicTransactionComposer {
 
           if (modifications?.fee !== undefined) {
             ogTxn.txn.fee = modifications.fee;
+          }
+          if (modifications?.firstValid !== undefined) {
+            ogTxn.txn.firstValid = modifications.firstValid;
+          }
+          if (modifications?.lastValid !== undefined) {
+            ogTxn.txn.lastValid = modifications.lastValid;
           }
 
           const newIdx = middleGroup.length;
