@@ -231,18 +231,36 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
   };
 }
 
+/** A transaction added by a group modifier and the existing transaction whose signer it should use. */
+export interface GroupModifierAddedTransaction {
+  /** The transaction to add */
+  txn: Transaction;
+  /** The index of a transaction assigned to this modifier whose signer will sign the added transaction */
+  signerIndex: number;
+}
+
+/** Changes a group modifier wants to make to one of its assigned transactions. */
+export interface GroupModifierTransactionModification {
+  /** The index of the transaction to modify */
+  index: number;
+  /** If set, overrides this transaction's fee */
+  fee?: bigint;
+  /** If set, overrides this transaction's first valid round */
+  firstValid?: bigint;
+  /** If set, overrides this transaction's last valid round */
+  lastValid?: bigint;
+}
+
 /**
  * The result of running a {@link GroupModifier}: instructions for what the composer
- * should insert at the boundaries of the whole group, and/or change about the modifier's
- * own transaction, when building the group.
+ * should insert at the boundaries of the whole group, and/or change about the transactions
+ * assigned to the modifier, when building the group.
  *
  * @remarks
  * `prependTxns`/`appendTxns` are inserted at the very start/end of the *whole* built group,
- * not next to the modifier's own transaction — so if more than one transaction in the group
- * has a modifier, all of their `prependTxns` are stacked at the front (in group order) and
- * all of their `appendTxns` are stacked at the back (in group order). A modifier cannot
- * move, remove, or replace any *existing* transaction, and cannot change any field of its
- * own transaction other than `fee`, `firstValid`, or `lastValid`. Because existing transactions only ever shift together
+ * not next to a modifier-bearing transaction. A modifier cannot move, remove, or replace
+ * any *existing* transaction, and cannot change any field other than `fee`, `firstValid`,
+ * or `lastValid` on the transactions assigned to it. Because existing transactions only ever shift together
  * (from a prepend) or stay put (an append only adds after them), the relative offset
  * between any two existing transactions never changes — which is what keeps a modifier from
  * disturbing an ABI method call's transaction-argument adjacency elsewhere in the group
@@ -251,41 +269,38 @@ export function makeEmptyTransactionSigner(): TransactionSigner {
  */
 export interface GroupModifierResult {
   /** Transactions to insert at the very beginning of the built group */
-  prependTxns?: Transaction[];
-  /** Changes to make to this transaction itself */
-  modifications?: {
-    /** If set, overrides this transaction's fee */
-    fee?: bigint;
-    /** If set, overrides this transaction's first valid round */
-    firstValid?: bigint;
-    /** If set, overrides this transaction's last valid round */
-    lastValid?: bigint;
-  };
+  prependTxns?: GroupModifierAddedTransaction[];
+  /** Changes to make to transactions assigned to this modifier */
+  modifications?: GroupModifierTransactionModification[];
   /** Transactions to insert at the very end of the built group */
-  appendTxns?: Transaction[];
+  appendTxns?: GroupModifierAddedTransaction[];
 }
 
 /**
  * A function which can rewrite an atomic transaction group before it is built, e.g. to
- * change its own transaction's fee or validity window, or to add a cover/sponsor transaction at the start or
- * end of the group.
+ * change its assigned transactions' fees or validity windows, or to add a cover/sponsor
+ * transaction at the start or end of the group.
  *
  * @remarks
- * {@link AtomicTransactionComposer.buildGroupWithModifiers} runs the modifier of every
- * transaction that has one, each against the group as it looked before any modifier ran
+ * {@link AtomicTransactionComposer.buildGroupWithModifiers} runs each unique modifier once,
+ * passing the indices of every transaction assigned to it. Each modifier receives the group
+ * as it looked before any modifier ran
  * (except that fee changes, being applied in place, are visible to modifiers that run
  * later in the same build). Transactions introduced by `prependTxns`/`appendTxns` are
- * signed by the modifier-owning transaction's signer, and are never themselves checked
- * for a `modifier`, so modifiers do not cascade within a single build.
+ * signed by the signer selected by their `signerIndex`, and are never themselves checked
+ * for a `modifier`, so modifiers do not cascade within a single build. A modifier can only
+ * modify or select signers from the indices passed to it.
  *
  * @param txnGroup - The transactions in the atomic group, in order, as they were before
  *   this build's modifiers ran
+ * @param indexesToModify - The indices of transactions assigned to this modifier
  * @returns A promise which resolves to the changes this modifier wants made to the group
- *   and to its own transaction
+ *   and to its assigned transactions
  */
 export type GroupModifier = (
   // eslint-disable-next-line no-use-before-define
-  txnGroup: Transaction[]
+  txnGroup: Transaction[],
+  indexesToModify: number[]
 ) => Promise<GroupModifierResult>;
 
 /** Represents an unsigned transactions and a signer that can authorize that transaction. */

@@ -78,12 +78,15 @@ describe('AtomicTransactionComposer group modifiers', () => {
       suggestedParams,
     });
 
-    const modifyTxn: GroupModifier = async () => ({
-      modifications: {
-        fee: txnToModify.fee * 3n,
-        firstValid: 5n,
-        lastValid: 1005n,
-      },
+    const modifyTxn: GroupModifier = async (_txnGroup, [index]) => ({
+      modifications: [
+        {
+          index,
+          fee: txnToModify.fee * 3n,
+          firstValid: 5n,
+          lastValid: 1005n,
+        },
+      ],
     });
 
     composer.addTransaction({
@@ -142,6 +145,84 @@ describe('AtomicTransactionComposer group modifiers', () => {
     assert.strictEqual(methodCalls.get(2), method);
   });
 
+  it('should call a shared modifier once with all of its transaction indices', async () => {
+    const composer = new AtomicTransactionComposer();
+    const accounts = [generateAccount(), generateAccount(), generateAccount()];
+    const txns = accounts.map((account, index) =>
+      makePaymentTxnWithSuggestedParamsFromObject({
+        sender: account.addr,
+        receiver: accounts[(index + 1) % accounts.length].addr,
+        amount: (index + 1) * 1000,
+        suggestedParams,
+      })
+    );
+    let modifierCalls = 0;
+
+    const sharedModifier: GroupModifier = async (txnGroup, indexesToModify) => {
+      modifierCalls += 1;
+      assert.deepStrictEqual(txnGroup, txns);
+      assert.deepStrictEqual(indexesToModify, [0, 2]);
+      return {
+        modifications: indexesToModify.map((index) => ({
+          index,
+          fee: txnGroup[index].fee + 1000n,
+        })),
+      };
+    };
+
+    txns.forEach((txn, index) => {
+      composer.addTransaction({
+        txn,
+        signer: makeBasicAccountTransactionSigner(accounts[index]),
+        modifier: index === 1 ? undefined : sharedModifier,
+      });
+    });
+
+    const stxns = decodeSignedTxns(await composer.gatherSignatures());
+
+    assert.strictEqual(modifierCalls, 1);
+    assert.strictEqual(stxns[0].txn.fee, 2000n);
+    assert.strictEqual(stxns[1].txn.fee, 1000n);
+    assert.strictEqual(stxns[2].txn.fee, 2000n);
+    stxns.forEach((stxn, index) => assertSignedBy(stxn, accounts[index]));
+  });
+
+  it('should reject changes to transactions not assigned to a modifier', async () => {
+    const composer = new AtomicTransactionComposer();
+    const account1 = generateAccount();
+    const account2 = generateAccount();
+    const txn1 = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account1.addr,
+      receiver: account2.addr,
+      amount: 1000,
+      suggestedParams,
+    });
+    const txn2 = makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account2.addr,
+      receiver: account1.addr,
+      amount: 1000,
+      suggestedParams,
+    });
+    const invalidModifier: GroupModifier = async () => ({
+      modifications: [{ index: 1, fee: 2000n }],
+    });
+
+    composer.addTransaction({
+      txn: txn1,
+      signer: makeBasicAccountTransactionSigner(account1),
+      modifier: invalidModifier,
+    });
+    composer.addTransaction({
+      txn: txn2,
+      signer: makeBasicAccountTransactionSigner(account2),
+    });
+
+    await assert.rejects(
+      composer.buildGroupWithModifiers(),
+      /cannot modify transaction at index 1/
+    );
+  });
+
   it('should allow a modifier to add a transaction to the beginning of the group', async () => {
     const composer = new AtomicTransactionComposer();
     const account = generateAccount();
@@ -155,14 +236,17 @@ describe('AtomicTransactionComposer group modifiers', () => {
       suggestedParams,
     });
 
-    const prependSponsorTxn: GroupModifier = async () => {
+    const prependSponsorTxn: GroupModifier = async (
+      _txnGroup,
+      [signerIndex]
+    ) => {
       const sponsorTxn = makePaymentTxnWithSuggestedParamsFromObject({
         sender: account.addr,
         receiver: account.addr,
         amount: 0,
         suggestedParams,
       });
-      return { prependTxns: [sponsorTxn] };
+      return { prependTxns: [{ txn: sponsorTxn, signerIndex }] };
     };
 
     composer.addTransaction({
@@ -232,14 +316,17 @@ describe('AtomicTransactionComposer group modifiers', () => {
       suggestedParams,
     });
 
-    const appendCleanupTxn: GroupModifier = async () => {
+    const appendCleanupTxn: GroupModifier = async (
+      _txnGroup,
+      [signerIndex]
+    ) => {
       const cleanupTxn = makePaymentTxnWithSuggestedParamsFromObject({
         sender: account.addr,
         receiver: account.addr,
         amount: 0,
         suggestedParams,
       });
-      return { appendTxns: [cleanupTxn] };
+      return { appendTxns: [{ txn: cleanupTxn, signerIndex }] };
     };
 
     // The modifier-bearing transaction is added first and the method call second, to
@@ -307,7 +394,10 @@ describe('AtomicTransactionComposer group modifiers', () => {
     });
 
     let modifierCalls = 0;
-    const prependSponsorTxn: GroupModifier = async () => {
+    const prependSponsorTxn: GroupModifier = async (
+      _txnGroup,
+      [signerIndex]
+    ) => {
       modifierCalls += 1;
       const sponsorTxn = makePaymentTxnWithSuggestedParamsFromObject({
         sender: account.addr,
@@ -315,7 +405,7 @@ describe('AtomicTransactionComposer group modifiers', () => {
         amount: 0,
         suggestedParams,
       });
-      return { prependTxns: [sponsorTxn] };
+      return { prependTxns: [{ txn: sponsorTxn, signerIndex }] };
     };
 
     composer.addTransaction({

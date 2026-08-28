@@ -23,6 +23,7 @@ import { assignGroupID } from './group.js';
 import { makeApplicationCallTxnFromObject } from './makeTxn.js';
 import {
   isTransactionWithSigner,
+  GroupModifier,
   TransactionSigner,
   TransactionWithSigner,
 } from './signer.js';
@@ -560,11 +561,10 @@ export class AtomicTransactionComposer {
    *
    * @remarks
    * Used instead of {@link buildGroup} whenever at least one transaction in the group has
-   * a `modifier`. Every modifier-bearing transaction's modifier runs once, against the
-   * group as it looked before any modifier ran this build. A modifier's `prependTxns`/
-   * `appendTxns` are collected into two blocks (signed by their respective transactions'
-   * signers) and inserted at the very start/end of the built group, in group order if more
-   * than one modifier contributes to a block; none of the existing transactions move
+   * a `modifier`. Each unique modifier runs once with all transaction indices assigned to
+   * it, against the group as it looked before any modifier ran this build. A modifier's
+   * `prependTxns`/`appendTxns` are collected into two blocks and inserted at the very
+   * start/end of the built group; none of the existing transactions move
    * relative to one another, so this never disturbs an ABI method call's transaction-
    * argument adjacency elsewhere in the group. Method calls tracked via
    * {@link addMethodCall} are remapped to follow their transaction if its index shifts.
@@ -582,44 +582,78 @@ export class AtomicTransactionComposer {
       const middleGroup: TransactionWithSigner[] = [];
       const appendGroup: TransactionWithSigner[] = [];
       const middleMethodCalls: Map<number, ABIMethod> = new Map();
+      const modifierIndexes: Map<GroupModifier, number[]> = new Map();
+
+      for (const [index, { modifier }] of this.transactions.entries()) {
+        if (modifier) {
+          const indexes = modifierIndexes.get(modifier) ?? [];
+          indexes.push(index);
+          modifierIndexes.set(modifier, indexes);
+        }
+      }
+
+      for (const [modifier, indexesToModify] of modifierIndexes) {
+        const { prependTxns, modifications, appendTxns } =
+          // eslint-disable-next-line no-await-in-loop
+          await modifier(originalTxns, indexesToModify);
+        const modifiedIndexes = new Set<number>();
+
+        for (const modification of modifications ?? []) {
+          if (!indexesToModify.includes(modification.index)) {
+            throw new Error(
+              `Group modifier cannot modify transaction at index ${modification.index}`
+            );
+          }
+          if (modifiedIndexes.has(modification.index)) {
+            throw new Error(
+              `Group modifier returned multiple modifications for transaction at index ${modification.index}`
+            );
+          }
+          modifiedIndexes.add(modification.index);
+          const { txn } = this.transactions[modification.index];
+
+          if (modification.fee !== undefined) {
+            txn.fee = modification.fee;
+          }
+          if (modification.firstValid !== undefined) {
+            txn.firstValid = modification.firstValid;
+          }
+          if (modification.lastValid !== undefined) {
+            txn.lastValid = modification.lastValid;
+          }
+        }
+
+        for (const { txn, signerIndex } of prependTxns ?? []) {
+          if (!indexesToModify.includes(signerIndex)) {
+            throw new Error(
+              `Group modifier cannot use signer from transaction at index ${signerIndex}`
+            );
+          }
+          prependGroup.push({
+            txn,
+            signer: this.transactions[signerIndex].signer,
+          });
+        }
+
+        for (const { txn, signerIndex } of appendTxns ?? []) {
+          if (!indexesToModify.includes(signerIndex)) {
+            throw new Error(
+              `Group modifier cannot use signer from transaction at index ${signerIndex}`
+            );
+          }
+          appendGroup.push({
+            txn,
+            signer: this.transactions[signerIndex].signer,
+          });
+        }
+      }
 
       for (const [oldIdx, ogTxn] of this.transactions.entries()) {
-        if (ogTxn.modifier) {
-          const { prependTxns, modifications, appendTxns } =
-            // eslint-disable-next-line no-await-in-loop
-            await ogTxn.modifier(originalTxns);
-
-          for (const txn of prependTxns ?? []) {
-            prependGroup.push({ txn, signer: ogTxn.signer });
-          }
-
-          if (modifications?.fee !== undefined) {
-            ogTxn.txn.fee = modifications.fee;
-          }
-          if (modifications?.firstValid !== undefined) {
-            ogTxn.txn.firstValid = modifications.firstValid;
-          }
-          if (modifications?.lastValid !== undefined) {
-            ogTxn.txn.lastValid = modifications.lastValid;
-          }
-
-          const newIdx = middleGroup.length;
-          middleGroup.push({ txn: ogTxn.txn, signer: ogTxn.signer });
-          const methodCall = this.methodCalls.get(oldIdx);
-          if (methodCall) {
-            middleMethodCalls.set(newIdx, methodCall);
-          }
-
-          for (const txn of appendTxns ?? []) {
-            appendGroup.push({ txn, signer: ogTxn.signer });
-          }
-        } else {
-          const newIdx = middleGroup.length;
-          middleGroup.push(ogTxn);
-          const methodCall = this.methodCalls.get(oldIdx);
-          if (methodCall) {
-            middleMethodCalls.set(newIdx, methodCall);
-          }
+        const newIdx = middleGroup.length;
+        middleGroup.push({ txn: ogTxn.txn, signer: ogTxn.signer });
+        const methodCall = this.methodCalls.get(oldIdx);
+        if (methodCall) {
+          middleMethodCalls.set(newIdx, methodCall);
         }
       }
 
